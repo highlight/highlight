@@ -176,7 +176,7 @@ func (i *InfluxDB) createWriteAPI(bucket string, measurement Measurement) api.Wr
 	// Create go proc for reading and logging errors
 	go func() {
 		for err := range errorsCh {
-			log.Errorf("influxdb write error: %s\n", err.Error())
+			log.Errorf("influxdb write error on %s: %s\n", b, err.Error())
 		}
 	}()
 	return writeAPI

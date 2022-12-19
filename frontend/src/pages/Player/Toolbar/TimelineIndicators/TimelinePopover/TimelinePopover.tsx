@@ -11,6 +11,7 @@ import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConf
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { RightPlayerPanelTabType } from '@pages/Player/RightPlayerPanel/constants'
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext'
+import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
 import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
@@ -32,13 +33,15 @@ const POPOVER_CONTENT_ROW_HEIGHT = 28
 
 const TimelinePopover = ({ bucket }: Props) => {
 	const history = useHistory()
-	const { setCurrentEvent, pause } = useReplayerContext()
+	const { setCurrentEvent, pause, errors } = useReplayerContext()
 	const {
 		setShowRightPanel,
 		setShowDevTools,
 		setSelectedDevToolsTab,
 		setSelectedRightPlayerPanelTab,
 	} = usePlayerConfiguration()
+	const { setErrorPanel } = useResourceOrErrorDetailPanel()
+
 	const [selectedType, setSelectedType] = useState<string | null>(null)
 	const selectedTypeName = selectedType
 		? getTimelineEventDisplayName(selectedType)
@@ -75,6 +78,10 @@ const TimelinePopover = ({ bucket }: Props) => {
 		} else if (type === 'Errors') {
 			setShowDevTools(true)
 			setSelectedDevToolsTab(DevToolTabType.Errors)
+			const error = errors.find(
+				(error) => error.error_group_secure_id === identifier,
+			)
+			if (error) setErrorPanel(error)
 		} else {
 			setShowRightPanel(true)
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Events)
@@ -188,67 +195,65 @@ const TimelinePopover = ({ bucket }: Props) => {
 						)
 					})
 				) : (
-					<>
-						<Virtuoso
-							ref={virtuoso}
-							overscan={500}
-							style={{
-								height: Math.min(
-									POPOVER_CONTENT_MAX_HEIGHT,
-									POPOVER_CONTENT_ROW_HEIGHT *
-										bucket.identifier[selectedType].length,
-								),
-							}}
-							data={bucket.identifier[selectedType]}
-							itemContent={(_, identifier: string) => {
-								const color = `var(${getAnnotationColor(
-									selectedType as EventsForTimelineKeys[number],
-								)})`
-								const timestamp = bucket.timestamp[identifier]
-								return (
-									<div
-										className={style.eventTypeRow}
-										key={identifier}
-										onClick={() =>
-											onEventInstanceClick(
-												selectedType,
-												identifier,
-											)
-										}
-										style={{
-											height: POPOVER_CONTENT_ROW_HEIGHT,
-										}}
-									>
-										<button className={style.actionButton}>
-											<span
-												className={style.eventTypeIcon}
-												style={{ background: color }}
-											/>
-											<span
-												className={classNames(
-													style.rightActionIcon,
-													style.eventIdentifier,
-												)}
-											>
-												{bucket.details[identifier]}
+					<Virtuoso
+						ref={virtuoso}
+						overscan={500}
+						style={{
+							height: Math.min(
+								POPOVER_CONTENT_MAX_HEIGHT,
+								POPOVER_CONTENT_ROW_HEIGHT *
+									bucket.identifier[selectedType].length,
+							),
+						}}
+						data={bucket.identifier[selectedType]}
+						itemContent={(_, identifier: string) => {
+							const color = `var(${getAnnotationColor(
+								selectedType as EventsForTimelineKeys[number],
+							)})`
+							const timestamp = bucket.timestamp[identifier]
+							return (
+								<div
+									className={style.eventTypeRow}
+									key={identifier}
+									onClick={() =>
+										onEventInstanceClick(
+											selectedType,
+											identifier,
+										)
+									}
+									style={{
+										height: POPOVER_CONTENT_ROW_HEIGHT,
+									}}
+								>
+									<button className={style.actionButton}>
+										<span
+											className={style.eventTypeIcon}
+											style={{ background: color }}
+										/>
+										<span
+											className={classNames(
+												style.rightActionIcon,
+												style.eventIdentifier,
+											)}
+										>
+											{bucket.details[identifier]}
+										</span>
+										<div className={style.rightCounter}>
+											<span>
+												{formatTimeAsHMS(timestamp)}
 											</span>
-											<div className={style.rightCounter}>
-												<span>
-													{formatTimeAsHMS(timestamp)}
-												</span>
-												<CircleRightArrow
-													className={classNames(
-														style.transitionIcon,
-														style.rightActionIcon,
-													)}
-												/>
-											</div>
-										</button>
-									</div>
-								)
-							}}
-						/>
-					</>
+											<CircleRightArrow
+												className={classNames(
+													style.transitionIcon,
+													style.rightActionIcon,
+												)}
+											/>
+										</div>
+									</button>
+								</div>
+							)
+						}}
+					/>
 				)}
 			</div>
 		</div>

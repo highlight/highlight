@@ -57,10 +57,9 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 						title: (
 							<TabTitle
 								icon={<IconTrendingUp />}
-								label="Metrics (Coming soon)"
+								label="Metrics"
 							/>
 						),
-						disabled: true,
 						panelContent: <ErrorMetrics errorGroup={errorGroup} />,
 					},
 				]}

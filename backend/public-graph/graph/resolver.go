@@ -144,6 +144,9 @@ const ERROR_EVENT_MAX_LENGTH = 10000
 
 const SESSION_FIELD_MAX_LENGTH = 2000
 
+// metrics that should be stored in postgres for session lookup
+var MetricCategoriesForDB = map[string]bool{"Device": true, "WebVital": true}
+
 // Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properties map[string]string, propType Property) error {
 	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
@@ -2039,49 +2042,60 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 	var points []timeseries.Point
 	var aggregatePoints []timeseries.Point
 	for groupName, metricInputs := range metricsByGroup {
-		mg := &model.MetricGroup{
-			GroupName: groupName,
-			SessionID: sessionID,
-			ProjectID: projectID,
-		}
-		tx := r.DB.Where(&model.MetricGroup{
-			GroupName: groupName,
-			SessionID: sessionID,
-		}).Clauses(clause.Returning{}, clause.OnConflict{
-			OnConstraint: model.METRIC_GROUPS_NAME_SESSION_UNIQ,
-			DoNothing:    true,
-		}).Create(&mg)
-		if err := tx.Error; err != nil {
-			return err
-		}
-		if tx.RowsAffected == 0 {
-			if err := r.DB.Where(&model.MetricGroup{
-				GroupName: groupName,
-				SessionID: sessionID,
-			}).First(&mg).Error; err != nil {
-				return err
-			}
-		}
+		var mg *model.MetricGroup
 		var newMetrics []*model.Metric
+		downsampledMetric := false
 		firstTime := time.Time{}
+		fields := map[string]interface{}{}
 		tags := map[string]string{
 			"session_id": strconv.Itoa(sessionID),
 			"group_name": groupName,
 		}
-		downsampledMetric := false
-		fields := map[string]interface{}{}
+		if _, ok := lo.Find(metricInputs, func(m *publicModel.MetricInput) bool {
+			category := ""
+			if m.Category != nil {
+				category = *m.Category
+			}
+			return MetricCategoriesForDB[category]
+		}); ok {
+			mg = &model.MetricGroup{
+				GroupName: groupName,
+				SessionID: sessionID,
+				ProjectID: projectID,
+			}
+			tx := r.DB.Where(&model.MetricGroup{
+				GroupName: groupName,
+				SessionID: sessionID,
+			}).Clauses(clause.Returning{}, clause.OnConflict{
+				OnConstraint: model.METRIC_GROUPS_NAME_SESSION_UNIQ,
+				DoNothing:    true,
+			}).Create(&mg)
+			if err := tx.Error; err != nil {
+				return err
+			}
+			if tx.RowsAffected == 0 {
+				if err := r.DB.Where(&model.MetricGroup{
+					GroupName: groupName,
+					SessionID: sessionID,
+				}).First(&mg).Error; err != nil {
+					return err
+				}
+			}
+		}
 		for _, m := range metricInputs {
 			category := ""
 			if m.Category != nil {
 				category = *m.Category
 			}
-			newMetrics = append(newMetrics, &model.Metric{
-				MetricGroupID: mg.ID,
-				Name:          m.Name,
-				Value:         m.Value,
-				Category:      category,
-				CreatedAt:     m.Timestamp,
-			})
+			if mg != nil {
+				newMetrics = append(newMetrics, &model.Metric{
+					MetricGroupID: mg.ID,
+					Name:          m.Name,
+					Value:         m.Value,
+					Category:      category,
+					CreatedAt:     m.Timestamp,
+				})
+			}
 			if m.Timestamp.After(firstTime) {
 				firstTime = m.Timestamp
 			}

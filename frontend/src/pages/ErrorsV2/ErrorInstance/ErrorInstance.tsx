@@ -1,13 +1,14 @@
 import { useApolloClient } from '@apollo/client'
 import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
+import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	GetErrorInstanceDocument,
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
 import type { ErrorInstance as ErrorInstanceType } from '@graph/schemas'
-import { Box, Button, Column, Heading, IconPlay, Text } from '@highlight-run/ui'
+import { Box, Button, Heading, IconPlay, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
@@ -30,6 +31,12 @@ type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
 }
 
+const METADATA_LABELS: { [key: string]: string } = {
+	os: 'OS',
+	url: 'URL',
+	id: 'ID',
+} as const
+
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { error_object_id, error_secure_id } = useParams<{
 		error_secure_id: string
@@ -40,7 +47,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const client = useApolloClient()
 	const { isLoggedIn } = useAuthContext()
 
-	const { data } = useGetErrorInstanceQuery({
+	const { loading, data } = useGetErrorInstanceQuery({
 		variables: {
 			error_group_secure_id: String(errorGroup?.secure_id),
 			error_object_id,
@@ -84,10 +91,90 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const errorInstance = data?.error_instance
 
 	if (!errorInstance || !errorInstance?.error_object) {
-		return null
+		if (!loading) return null
+		return (
+			<Box id="error-instance-container">
+				<Box my="28" display="flex" justifyContent="space-between">
+					<Box display="flex" flexDirection="column" gap="16">
+						<Heading level="h4">Error Instance</Heading>
+					</Box>
+
+					<Box>
+						<Box display="flex" gap="8" alignItems="center">
+							<Button
+								disabled={true}
+								kind="secondary"
+								emphasis="low"
+							>
+								Older
+							</Button>
+							<Box borderRight="neutral" style={{ height: 18 }} />
+							<Button
+								disabled={true}
+								kind="secondary"
+								emphasis="low"
+							>
+								Newer
+							</Button>
+							<Button
+								kind="secondary"
+								emphasis="high"
+								disabled={!isLoggedIn}
+								onClick={() =>
+									isLoggedIn
+										? history.push(
+												`/${projectId}/sessions/${errorInstance?.error_object?.session?.secure_id}`,
+										  )
+										: null
+								}
+								iconLeft={<IconPlay />}
+							>
+								Show session
+							</Button>
+						</Box>
+					</Box>
+				</Box>
+
+				<Box
+					display="flex"
+					flexDirection={{ desktop: 'row', mobile: 'column' }}
+					mb="40"
+					gap="40"
+				>
+					<div style={{ flexBasis: 0, flexGrow: 1 }}>
+						<Box>
+							<Box bb="neutral" pb="20" my="12">
+								<Text weight="bold" size="large">
+									Instance metadata
+								</Text>
+							</Box>
+							<Skeleton count={5} />
+						</Box>
+					</div>
+
+					<div style={{ flexBasis: 0, flexGrow: 1 }}>
+						<Box width="full">
+							<Box pb="20" mt="12">
+								<Text weight="bold" size="large">
+									User details
+								</Text>
+							</Box>
+							<Skeleton count={5} />
+						</Box>
+					</div>
+				</Box>
+
+				<Text size="large" weight="bold">
+					Stack trace
+				</Text>
+				<Box bt="neutral" mt="12" pt="16">
+					<Skeleton count={10} />
+				</Box>
+			</Box>
+		)
 	}
 
-	const errorObject = errorInstance.error_object
+	const errorObject = errorInstance?.error_object
 
 	return (
 		<Box id="error-instance-container">
@@ -104,6 +191,10 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstance.previous_id}`,
 									search: window.location.search,
 								})
+
+								analytics.track('Viewed error instance', {
+									direction: 'previous',
+								})
 							}}
 							disabled={Number(errorInstance.previous_id) === 0}
 							kind="secondary"
@@ -117,6 +208,10 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								history.push({
 									pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstance.next_id}`,
 									search: window.location.search,
+								})
+
+								analytics.track('Viewed error instance', {
+									direction: 'next',
 								})
 							}}
 							disabled={Number(errorInstance.next_id) === 0}
@@ -155,9 +250,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				</div>
 
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
-					<Box display="flex">
-						<User errorObject={errorObject} />
-					</Box>
+					<User errorObject={errorObject} />
 				</div>
 			</Box>
 
@@ -200,41 +293,43 @@ const Metadata: React.FC<{
 			</Box>
 
 			<Box>
-				<Column.Container gap="16">
-					<Column span="4">
-						{metadata.map((meta) => (
-							<Box
-								py="10"
-								key={meta.key}
-								onClick={() => copyToClipboard(meta.key)}
+				{metadata.map((meta) => (
+					<Box display="flex" gap="6" key={meta.key}>
+						<Box
+							py="10"
+							cursor="pointer"
+							onClick={() => copyToClipboard(meta.key)}
+							style={{ width: '33%' }}
+						>
+							<Text
+								color="neutral500"
+								transform="capitalize"
+								align="left"
+								lines="1"
 							>
-								<Text
-									color="neutral500"
-									transform="capitalize"
-									align="left"
-									lines="1"
-								>
-									{meta.key.replace('_', ' ')}
-								</Text>
-							</Box>
-						))}
-					</Column>
-					<Column span="8">
-						{metadata.map((meta) => (
-							<Box
-								py="10"
-								key={meta.key}
-								onClick={() =>
-									meta.label && copyToClipboard(meta.label)
-								}
+								{METADATA_LABELS[meta.key] ??
+									meta.key.replace('_', ' ')}
+							</Text>
+						</Box>
+						<Box
+							cursor="pointer"
+							py="10"
+							onClick={() =>
+								meta.label && copyToClipboard(meta.label)
+							}
+							style={{ width: '67%' }}
+						>
+							<Text
+								align="left"
+								break="word"
+								lines="4"
+								title={String(meta.label)}
 							>
-								<Text align="left" break="all" lines="1">
-									{meta.label}
-								</Text>
-							</Box>
-						))}
-					</Column>
-				</Column.Container>
+								{meta.label}
+							</Text>
+						</Box>
+					</Box>
+				))}
 			</Box>
 		</Box>
 	)
@@ -287,6 +382,7 @@ const User: React.FC<{
 					alignItems="center"
 					display="flex"
 					justifyContent="space-between"
+					gap="4"
 				>
 					<Box alignItems="center" display="flex" gap="8">
 						<Avatar
@@ -338,14 +434,14 @@ const User: React.FC<{
 
 				<Box py="8" px="12">
 					<Box display="flex" flexDirection="column">
-						<Column.Container gap="16">
-							<Column span="4">
-								{userDisplayPropertyKeys.map((key) => (
+						<Box gap="16">
+							{userDisplayPropertyKeys.map((key) => (
+								<Box display="flex" gap="6" key={key}>
 									<Box
 										py="10"
 										overflow="hidden"
-										key={key}
 										onClick={() => copyToClipboard(key)}
+										style={{ width: '33%' }}
 									>
 										<Text
 											color="neutral500"
@@ -354,40 +450,39 @@ const User: React.FC<{
 											lines="1"
 											title={key}
 										>
-											{key}
+											{METADATA_LABELS[key] ?? key}
 										</Text>
 									</Box>
-								))}
 
-								<Box py="10">
-									<Text color="neutral500" align="left">
-										Location
-									</Text>
-								</Box>
-							</Column>
-							<Column span="8">
-								{userDisplayPropertyKeys.map((key) => (
 									<Box
 										py="10"
-										key={key}
 										display="flex"
 										overflow="hidden"
 										onClick={() =>
 											copyToClipboard(userProperties[key])
 										}
 										title={userProperties[key]}
+										style={{ width: '67%' }}
 									>
 										<Text lines="1" as="span">
 											{userProperties[key]}
 										</Text>
 									</Box>
-								))}
+								</Box>
+							))}
 
-								<Box py="10">
+							<Box display="flex" alignItems="center" gap="6">
+								<Box py="10" style={{ width: '33%' }}>
+									<Text color="neutral500" align="left">
+										Location
+									</Text>
+								</Box>
+
+								<Box py="10" style={{ width: '67%' }}>
 									<Text>{location}</Text>
 								</Box>
-							</Column>
-						</Column.Container>
+							</Box>
+						</Box>
 						{truncateable && (
 							<Box>
 								<Button
