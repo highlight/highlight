@@ -1022,10 +1022,10 @@ export type MutationUpdateBillingDetailsArgs = {
 }
 
 export type MutationUpdateEmailOptOutArgs = {
-	admin_id: Scalars['ID']
+	admin_id?: InputMaybe<Scalars['ID']>
 	category: EmailOptOutCategory
 	is_opt_out: Scalars['Boolean']
-	token: Scalars['String']
+	token?: InputMaybe<Scalars['String']>
 }
 
 export type MutationUpdateErrorAlertArgs = {
@@ -1362,8 +1362,8 @@ export type QueryDiscord_Channel_SuggestionsArgs = {
 }
 
 export type QueryEmail_Opt_OutsArgs = {
-	admin_id: Scalars['ID']
-	token: Scalars['String']
+	admin_id?: InputMaybe<Scalars['ID']>
+	token?: InputMaybe<Scalars['String']>
 }
 
 export type QueryEnhanced_User_DetailsArgs = {

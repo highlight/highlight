@@ -1263,7 +1263,7 @@ type Query {
 	sourcemap_files(project_id: ID!, version: String): [S3File!]!
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
-	email_opt_outs(token: String!, admin_id: ID!): [EmailOptOutCategory!]!
+	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 }
 
 type Mutation {
@@ -1547,8 +1547,8 @@ type Mutation {
 		project_mappings: [VercelProjectMappingInput!]!
 	): Boolean!
 	updateEmailOptOut(
-		token: String!
-		admin_id: ID!
+		token: String
+		admin_id: ID
 		category: EmailOptOutCategory!
 		is_opt_out: Boolean!
 	): Boolean!

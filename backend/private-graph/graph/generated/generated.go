@@ -507,7 +507,7 @@ type ComplexityRoot struct {
 		UpdateAllowMeterOverage          func(childComplexity int, workspaceID int, allowMeterOverage bool) int
 		UpdateAllowedEmailOrigins        func(childComplexity int, workspaceID int, allowedAutoJoinEmailOrigins string) int
 		UpdateBillingDetails             func(childComplexity int, workspaceID int) int
-		UpdateEmailOptOut                func(childComplexity int, token string, adminID int, category model.EmailOptOutCategory, isOptOut bool) int
+		UpdateEmailOptOut                func(childComplexity int, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool) int
 		UpdateErrorAlert                 func(childComplexity int, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) int
 		UpdateErrorAlertIsDisabled       func(childComplexity int, id int, projectID int, disabled bool) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
@@ -576,7 +576,7 @@ type ComplexityRoot struct {
 		DailySessionsCount           func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
 		DashboardDefinitions         func(childComplexity int, projectID int) int
 		DiscordChannelSuggestions    func(childComplexity int, projectID int) int
-		EmailOptOuts                 func(childComplexity int, token string, adminID int) int
+		EmailOptOuts                 func(childComplexity int, token *string, adminID *int) int
 		EnhancedUserDetails          func(childComplexity int, sessionSecureID string) int
 		EnvironmentSuggestion        func(childComplexity int, projectID int) int
 		ErrorAlerts                  func(childComplexity int, projectID int) int
@@ -1083,7 +1083,7 @@ type MutationResolver interface {
 	DeleteDashboard(ctx context.Context, id int) (bool, error)
 	DeleteSessions(ctx context.Context, projectID int, query string, sessionCount int) (bool, error)
 	UpdateVercelProjectMappings(ctx context.Context, projectID int, projectMappings []*model.VercelProjectMappingInput) (bool, error)
-	UpdateEmailOptOut(ctx context.Context, token string, adminID int, category model.EmailOptOutCategory, isOptOut bool) (bool, error)
+	UpdateEmailOptOut(ctx context.Context, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool) (bool, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -1190,7 +1190,7 @@ type QueryResolver interface {
 	SourcemapFiles(ctx context.Context, projectID int, version *string) ([]*model.S3File, error)
 	SourcemapVersions(ctx context.Context, projectID int) ([]string, error)
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
-	EmailOptOuts(ctx context.Context, token string, adminID int) ([]model.EmailOptOutCategory, error)
+	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -3721,7 +3721,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateEmailOptOut(childComplexity, args["token"].(string), args["admin_id"].(int), args["category"].(model.EmailOptOutCategory), args["is_opt_out"].(bool)), true
+		return e.complexity.Mutation.UpdateEmailOptOut(childComplexity, args["token"].(*string), args["admin_id"].(*int), args["category"].(model.EmailOptOutCategory), args["is_opt_out"].(bool)), true
 
 	case "Mutation.updateErrorAlert":
 		if e.complexity.Mutation.UpdateErrorAlert == nil {
@@ -4213,7 +4213,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.EmailOptOuts(childComplexity, args["token"].(string), args["admin_id"].(int)), true
+		return e.complexity.Query.EmailOptOuts(childComplexity, args["token"].(*string), args["admin_id"].(*int)), true
 
 	case "Query.enhanced_user_details":
 		if e.complexity.Query.EnhancedUserDetails == nil {
@@ -8083,7 +8083,7 @@ type Query {
 	sourcemap_files(project_id: ID!, version: String): [S3File!]!
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
-	email_opt_outs(token: String!, admin_id: ID!): [EmailOptOutCategory!]!
+	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 }
 
 type Mutation {
@@ -8367,8 +8367,8 @@ type Mutation {
 		project_mappings: [VercelProjectMappingInput!]!
 	): Boolean!
 	updateEmailOptOut(
-		token: String!
-		admin_id: ID!
+		token: String
+		admin_id: ID
 		category: EmailOptOutCategory!
 		is_opt_out: Boolean!
 	): Boolean!
@@ -10317,19 +10317,19 @@ func (ec *executionContext) field_Mutation_updateBillingDetails_args(ctx context
 func (ec *executionContext) field_Mutation_updateEmailOptOut_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *string
 	if tmp, ok := rawArgs["token"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["token"] = arg0
-	var arg1 int
+	var arg1 *int
 	if tmp, ok := rawArgs["admin_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("admin_id"))
-		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		arg1, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -11160,19 +11160,19 @@ func (ec *executionContext) field_Query_discord_channel_suggestions_args(ctx con
 func (ec *executionContext) field_Query_email_opt_outs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *string
 	if tmp, ok := rawArgs["token"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["token"] = arg0
-	var arg1 int
+	var arg1 *int
 	if tmp, ok := rawArgs["admin_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("admin_id"))
-		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		arg1, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -29126,7 +29126,7 @@ func (ec *executionContext) _Mutation_updateEmailOptOut(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateEmailOptOut(rctx, fc.Args["token"].(string), fc.Args["admin_id"].(int), fc.Args["category"].(model.EmailOptOutCategory), fc.Args["is_opt_out"].(bool))
+		return ec.resolvers.Mutation().UpdateEmailOptOut(rctx, fc.Args["token"].(*string), fc.Args["admin_id"].(*int), fc.Args["category"].(model.EmailOptOutCategory), fc.Args["is_opt_out"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -37126,7 +37126,7 @@ func (ec *executionContext) _Query_email_opt_outs(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().EmailOptOuts(rctx, fc.Args["token"].(string), fc.Args["admin_id"].(int))
+		return ec.resolvers.Query().EmailOptOuts(rctx, fc.Args["token"].(*string), fc.Args["admin_id"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

@@ -7,6 +7,7 @@ import {
 } from '@context/AppLoadingContext'
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
+import { Box } from '@highlight-run/ui'
 import { ApplicationContextProvider } from '@routers/OrgRouter/ApplicationContext'
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
 import { message } from 'antd'
@@ -31,10 +32,16 @@ const OptInRow = (
 		<Switch
 			key={label}
 			label={
-				<>
+				<Box display="flex" alignItems="center" gap="2">
 					{label}
-					{info && <InfoTooltip size="medium" title={info} />}
-				</>
+					{info && (
+						<InfoTooltip
+							placement="right"
+							size="medium"
+							title={info}
+						/>
+					)}
+				</Box>
 			}
 			trackingId={`switch-${label}`}
 			checked={checked}
@@ -44,19 +51,18 @@ const OptInRow = (
 	)
 }
 
-export const EmailOptOutPage = () => {
-	const [{ admin_id, token }] = useQueryParams({
-		admin_id: StringParam,
-		token: StringParam,
+type Props = {
+	token?: string | null
+	admin_id?: string | null
+}
+
+export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
+	const [updateEmailOptOut] = useUpdateEmailOptOutMutation({
+		refetchQueries: [namedOperations.Query.GetEmailOptOuts],
 	})
 
 	const { data, loading, error } = useGetEmailOptOutsQuery({
-		variables: { token: token ?? '', admin_id: admin_id ?? '' },
-		skip: !token || !admin_id,
-	})
-
-	const [updateEmailOptOut] = useUpdateEmailOptOutMutation({
-		refetchQueries: [namedOperations.Query.GetEmailOptOuts],
+		variables: { token, admin_id },
 	})
 
 	const { setLoadingState } = useAppLoadingContext()
@@ -66,11 +72,10 @@ export const EmailOptOutPage = () => {
 		}
 	}, [loading, setLoadingState])
 
-	let innerContent
 	if (loading) {
-		innerContent = null
+		return null
 	} else if (error) {
-		innerContent = (
+		return (
 			<>
 				<p>Link is invalid or has expired.</p>
 				<p>
@@ -125,41 +130,49 @@ export const EmailOptOutPage = () => {
 			}
 		}
 
-		innerContent = (
-			<>
-				<h1>Email Settings</h1>
+		return (
+			<p>
 				<p>I would like to receive the following emails:</p>
-				{categories.map((c) =>
-					OptInRow(
-						c.label,
-						c.info,
-						!optOuts.has(c.type),
-						(isOptIn: boolean) => {
-							updateEmailOptOut({
-								variables: {
-									token: token ?? '',
-									admin_id: admin_id ?? '',
-									category: c.type,
-									is_opt_out: !isOptIn,
-								},
-							})
-								.then(() => {
-									message.success(
-										`Opted ${
-											isOptIn ? 'in to' : 'out of'
-										} ${c.type} emails.`,
-									)
+				<p>
+					{categories.map((c) =>
+						OptInRow(
+							c.label,
+							c.info,
+							!optOuts.has(c.type),
+							(isOptIn: boolean) => {
+								updateEmailOptOut({
+									variables: {
+										token,
+										admin_id,
+										category: c.type,
+										is_opt_out: !isOptIn,
+									},
 								})
-								.catch((reason: any) => {
-									message.error(String(reason))
-								})
-						},
-						optOutAll,
-					),
-				)}
-			</>
+									.then(() => {
+										message.success(
+											`Opted ${
+												isOptIn ? 'in to' : 'out of'
+											} ${c.type} emails.`,
+										)
+									})
+									.catch((reason: any) => {
+										message.error(String(reason))
+									})
+							},
+							optOutAll,
+						),
+					)}
+				</p>
+			</p>
 		)
 	}
+}
+
+export const EmailOptOutPage = () => {
+	const [{ admin_id, token }] = useQueryParams({
+		admin_id: StringParam,
+		token: StringParam,
+	})
 
 	return (
 		<ApplicationContextProvider
@@ -181,7 +194,8 @@ export const EmailOptOutPage = () => {
 				<div>
 					<Header />
 					<div className={styles.contentContainer}>
-						{innerContent}
+						<h1>Email Settings</h1>
+						<EmailOptOutPanel token={token} admin_id={admin_id} />
 					</div>
 				</div>
 			</GlobalContextProvider>
