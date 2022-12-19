@@ -454,7 +454,9 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Cli
 		}
 
 		overage := int64(0)
-		if workspace.AllowMeterOverage && meter > int64(limit) {
+		// Charge overage if
+		if backend.PlanType(workspace.PlanTier) != backend.PlanTypeFree &&
+			workspace.AllowMeterOverage && meter > int64(limit) {
 			overage = meter - int64(limit)
 		}
 

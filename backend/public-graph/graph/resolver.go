@@ -1804,17 +1804,8 @@ func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model
 		return true, 0
 	}
 
-	if project.FreeTier {
-		sessionCount, err := pricing.GetProjectMeter(r.DB, project)
-		if err != nil {
-			log.Warn(fmt.Sprintf("error getting sessions meter for project %d", project.ID))
-		}
-		withinBillingQuota := int64(pricing.TypeToQuota(privateModel.PlanTypeFree)) > sessionCount
-		return withinBillingQuota, 0
-	}
-
 	var quota int
-
+	var stripePlan privateModel.PlanType
 	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
 		quota = *workspace.MonthlySessionLimit
 	} else {
@@ -1828,7 +1819,8 @@ func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model
 	}
 
 	quotaPercent := float64(monthToDateSessionCount) / float64(quota)
-	if workspace.AllowMeterOverage {
+	// If the workspace is not on the free plan and overage is allowed
+	if stripePlan != privateModel.PlanTypeFree && workspace.AllowMeterOverage {
 		return true, quotaPercent
 	}
 
