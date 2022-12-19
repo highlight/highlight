@@ -272,6 +272,12 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 		return e.Wrap(err, "error querying workspace")
 	}
 
+	if workspace.TrialEndDate != nil && *workspace.TrialEndDate.Before(time.Now().AddDate(0, 0, -7)) {
+		if workspace.TrialEndDate < time.Now() {
+
+		}
+	}
+
 	// Don't report usage for free plans
 	if backend.PlanType(workspace.PlanTier) == backend.PlanTypeFree {
 		return nil

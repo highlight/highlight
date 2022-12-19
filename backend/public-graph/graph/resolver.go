@@ -1294,12 +1294,12 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 			return
 		}
 
-		if workspace.PlanTier != privateModel.PlanTypeFree.String() {
+		if workspace.PlanTier != privateModel.PlanTypeFree.String() && workspace.AllowMeterOverage {
 			if quotaPercent >= 1 {
 				if err := model.SendBillingNotifications(r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace); err != nil {
 					log.Error(e.Wrap(err, "failed to send billing notifications"))
 				}
-			} else if quotaPercent >= 0 { //.8 {
+			} else if quotaPercent >= .8 {
 				if err := model.SendBillingNotifications(r.DB, r.MailClient, email.BillingSessionUsage80Percent, workspace); err != nil {
 					log.Error(e.Wrap(err, "failed to send billing notifications"))
 				}
