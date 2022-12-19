@@ -6,10 +6,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/model"
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
+	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
@@ -262,19 +264,29 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 	return priceMap, nil
 }
 
-func ReportUsageForWorkspace(DB *gorm.DB, stripeClient *client.API, workspaceID int) error {
-	return reportUsage(DB, stripeClient, workspaceID, nil)
+func ReportUsageForWorkspace(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Client, workspaceID int) error {
+	return reportUsage(DB, stripeClient, mailClient, workspaceID, nil)
 }
 
-func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType *ProductType) error {
+func reportUsage(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Client, workspaceID int, productType *ProductType) error {
 	var workspace model.Workspace
 	if err := DB.Model(&workspace).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
 		return e.Wrap(err, "error querying workspace")
 	}
 
-	if workspace.TrialEndDate != nil && *workspace.TrialEndDate.Before(time.Now().AddDate(0, 0, -7)) {
-		if workspace.TrialEndDate < time.Now() {
-
+	// If the trial end date is recent (within the past 7 days) or it hasn't ended yet
+	// The 7 day check is to avoid sending emails to customers whose trials ended long ago
+	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(time.Now().AddDate(0, 0, -7)) {
+		if workspace.TrialEndDate.Before(time.Now()) {
+			// If the trial has ended, send an email
+			if err := model.SendBillingNotifications(DB, mailClient, email.BillingHighlightTrialEnded, &workspace); err != nil {
+				log.Error(e.Wrap(err, "failed to send billing notifications"))
+			}
+		} else if workspace.TrialEndDate.Before(time.Now().AddDate(0, 0, 7)) {
+			// If the trial is ending within 7 days, send an email
+			if err := model.SendBillingNotifications(DB, mailClient, email.BillingHighlightTrial7Days, &workspace); err != nil {
+				log.Error(e.Wrap(err, "failed to send billing notifications"))
+			}
 		}
 	}
 
@@ -292,6 +304,8 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 
 	customerParams := &stripe.CustomerParams{}
 	customerParams.AddExpand("subscriptions")
+	customerParams.AddExpand("subscriptions.discount")
+	customerParams.AddExpand("subscriptions.discount.coupon")
 	c, err := stripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
 	if err != nil {
 		return e.Wrap(err, "couldn't retrieve stripe customer data")
@@ -316,6 +330,25 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 	_, productTier, _, interval := GetProductMetadata(subscriptionItem.Price)
 	if productTier == nil {
 		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - product has no tier")
+	}
+
+	// If the subscription has a 100% coupon with an expiration
+	if subscription.Discount != nil &&
+		subscription.Discount.Coupon != nil &&
+		subscription.Discount.Coupon.PercentOff == 100 &&
+		subscription.Discount.End != 0 {
+		subscriptionEnd := time.Unix(subscription.Discount.End, 0)
+		if subscriptionEnd.Before(time.Now().AddDate(0, 0, 3)) {
+			// If the Stripe trial is ending within 3 days, send an email
+			if err := model.SendBillingNotifications(DB, mailClient, email.BillingStripeTrial3Days, &workspace); err != nil {
+				log.Error(e.Wrap(err, "failed to send billing notifications"))
+			}
+		} else if subscriptionEnd.Before(time.Now().AddDate(0, 0, 7)) {
+			// If the Stripe trial is ending within 7 days, send an email
+			if err := model.SendBillingNotifications(DB, mailClient, email.BillingStripeTrial7Days, &workspace); err != nil {
+				log.Error(e.Wrap(err, "failed to send billing notifications"))
+			}
+		}
 	}
 
 	// For annual subscriptions, set PendingInvoiceItemInterval to 'month' if not set
@@ -450,7 +483,7 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 	return nil
 }
 
-func ReportAllUsage(DB *gorm.DB, stripeClient *client.API) {
+func ReportAllUsage(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Client) {
 	// Get all workspace IDs
 	var workspaceIDs []int
 	if err := DB.Raw(`
@@ -464,7 +497,7 @@ func ReportAllUsage(DB *gorm.DB, stripeClient *client.API) {
 	}
 
 	for _, workspaceID := range workspaceIDs {
-		if err := reportUsage(DB, stripeClient, workspaceID, nil); err != nil {
+		if err := reportUsage(DB, stripeClient, mailClient, workspaceID, nil); err != nil {
 			log.Error(e.Wrapf(err, "error reporting usage for workspace %d", workspaceID))
 		}
 	}

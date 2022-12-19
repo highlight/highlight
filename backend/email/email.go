@@ -30,9 +30,9 @@ var (
 type EmailType string
 
 const (
-	BillingHighlightTrial14Days   EmailType = "BillingHighlightTrial14Days"
+	BillingHighlightTrial7Days    EmailType = "BillingHighlightTrial7Days"
 	BillingHighlightTrialEnded    EmailType = "BillingHighlightTrialEnded"
-	BillingStripeTrial14Days      EmailType = "BillingStripeTrial14Days"
+	BillingStripeTrial7Days       EmailType = "BillingStripeTrial7Days"
 	BillingStripeTrial3Days       EmailType = "BillingStripeTrial3Days"
 	BillingSessionUsage80Percent  EmailType = "BillingSessionUsage80Percent"
 	BillingSessionUsage100Percent EmailType = "BillingSessionUsage100Percent"
@@ -85,10 +85,10 @@ func GetSubscriptionUrl(adminId int, previous bool) string {
 
 func getBillingNotificationMessage(workspaceId int, emailType EmailType) string {
 	switch emailType {
-	case BillingHighlightTrial14Days:
+	case BillingHighlightTrial7Days:
 		return fmt.Sprintf(`
 			We hope you've been enjoying Highlight!<br>
-			Your free trial is ending in 14 days.<br>
+			Your free trial is ending in 7 days.<br>
 			Once it has ended, you will be on the free tier with a limit of 500 sessions per month.<br>
 			You can upgrade to a paid subscription <a href="https://app.highlight.io/w/%d/upgrade-plan">here</a>.`, workspaceId)
 	case BillingHighlightTrialEnded:
@@ -96,10 +96,10 @@ func getBillingNotificationMessage(workspaceId int, emailType EmailType) string 
 			We hope you've been enjoying Highlight!<br>
 			Your free trial has ended - you are now on the free tier with a limit of 500 sessions per month.<br>
 			You can upgrade to a paid subscription <a href="https://app.highlight.io/w/%d/upgrade-plan">here</a>.`, workspaceId)
-	case BillingStripeTrial14Days:
+	case BillingStripeTrial7Days:
 		return fmt.Sprintf(`
 			We hope you've been enjoying Highlight!<br>
-			Your free trial is ending in 14 days.<br>
+			Your free trial is ending in 7 days.<br>
 			Once the trial has ended, the card on file will be charged for the plan you have selected.<br>
 			If you would like to switch to a different plan or cancel your subscription, 
 			you can update your billing settings <a href="https://app.highlight.io/w/%d/current-plan">here</a>.`, workspaceId)

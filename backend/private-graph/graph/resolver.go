@@ -1351,7 +1351,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.ReportUsageForWorkspace(r.DB, r.StripeClient, workspace.ID); err != nil {
+	if err := pricing.ReportUsageForWorkspace(r.DB, r.StripeClient, r.MailClient, workspace.ID); err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
 	}
 
