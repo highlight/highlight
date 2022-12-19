@@ -6,8 +6,11 @@ Fetch Session + Errors:
     python3 scripts/fetch_prod_session.py SESSION_SECURE_ID -e
 
 Prerequisites:
+    brew install awscli
+    aws configure
     brew install python
-    virtualenv -p python3.8 ~/venvs/highlight
+    brew install virtualenv
+    virtualenv -p python3.8 ~/venvs/highlight # Note, you may have to replace 3.8 if `python3 --version` returns a different version
     source ~/venvs/highlight/bin/activate
     pip install -r scripts/requirements.txt
     python scripts/fetch_prod_session.py SESSION_SECURE_ID

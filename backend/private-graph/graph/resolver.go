@@ -450,7 +450,11 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 	for _, errorGroupID := range errorGroupIDs {
 		errorGroupFilters = append(errorGroupFilters, fmt.Sprintf(`r.ErrorGroupID == "%d"`, errorGroupID))
 	}
-	errorGroupFilter := fmt.Sprintf(`|> filter(fn: (r) => %s)`, strings.Join(errorGroupFilters, " or "))
+	errorGroupFilter := ""
+	if len(errorGroupFilters) > 0 {
+		errorGroupFilter = fmt.Sprintf(`|> filter(fn: (r) => %s)`, strings.Join(errorGroupFilters, " or "))
+	}
+
 	extraFilter := ""
 	if metric != "" {
 		extraFilter = fmt.Sprintf(`|> filter(fn: (r) => r._field == "%s")`, metric)
@@ -464,6 +468,7 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 		|> aggregateWindow(every: %[7]dm, fn: sum, createEmpty: true)
 		|> sort(columns: ["ErrorGroupID", "_field", "_time"])
 	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, errorGroupFilter, extraFilter, params.ResolutionMinutes)
+
 	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
 	span.SetTag("projectID", projectID)
 	span.SetTag("errorGroupIDs", errorGroupIDs)
