@@ -121,7 +121,7 @@ const ClickUpIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 			</p>
 			<footer>
 				<Button
-					trackingId={`IntegrationDisconnectCancel-ClickUp`}
+					trackingId="IntegrationDisconnectCancel-ClickUp"
 					className={styles.modalBtn}
 					onClick={() => {
 						setModalOpen(false)
@@ -131,7 +131,7 @@ const ClickUpIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 					Cancel
 				</Button>
 				<Button
-					trackingId={`IntegrationDisconnectSave-ClickUp`}
+					trackingId="IntegrationDisconnectSave-ClickUp"
 					className={styles.modalBtn}
 					type="primary"
 					danger
@@ -251,11 +251,11 @@ export const ClickUpIntegrationSettings: React.FC<
 				return (
 					<div className={styles.select}>
 						<Select
-							className={'w-full'}
+							className="w-full"
 							value={opts}
 							onChange={row.onUpdateProjectLink}
 							options={selectOptions}
-							placeholder={'ClickUp space'}
+							placeholder="ClickUp space"
 							allowClear
 						/>
 					</div>
@@ -266,7 +266,7 @@ export const ClickUpIntegrationSettings: React.FC<
 
 	const projectMappings: ClickUpProjectMappingInput[] = []
 	for (const [projectId, clickUpSpaceId] of projectMap.entries()) {
-		// Skip for vercelIds the user no longer has access to
+		// Skip for clickUpSpaceIds the user no longer has access to
 		// (could be deleted or have had their permissions revoked)
 		if (!allSpaces.find((s) => s.id === clickUpSpaceId)) {
 			continue
@@ -313,7 +313,7 @@ export const ClickUpIntegrationSettings: React.FC<
 			</div>
 			<footer className="flex justify-end gap-2 pt-0">
 				<Button
-					trackingId={`IntegrationConfigurationCancel-ClickUp`}
+					trackingId="IntegrationConfigurationCancel-ClickUp"
 					className={styles.modalBtn}
 					onClick={() => {
 						onCancel && onCancel()
@@ -323,7 +323,7 @@ export const ClickUpIntegrationSettings: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId={`IntegrationConfigurationSave-ClickUp`}
+					trackingId="IntegrationConfigurationSave-ClickUp"
 					className={styles.modalBtn}
 					type="primary"
 					target="_blank"

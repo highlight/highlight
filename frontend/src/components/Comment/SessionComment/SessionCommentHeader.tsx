@@ -81,30 +81,29 @@ const SessionCommentHeader = ({
 		return `Highlight Comment for a session`
 	}, [session])
 
+	const issueTrackers: [boolean | undefined, IssueTrackerIntegration][] = [
+		[isLinearIntegratedWithProject, LINEAR_INTEGRATION],
+		[isClickupIntegrated, CLICKUP_INTEGRATION],
+	]
+
 	const createIssueMenuItems = (
 		<>
-			{isLinearIntegratedWithProject ? (
-				<MenuItem
-					icon={<SvgFileText2Icon />}
-					onClick={() => {
-						analytics.track('Create Linear Issue from Comment')
-						setShowNewIssueModal(LINEAR_INTEGRATION)
-					}}
-				>
-					Create Linear Issue
-				</MenuItem>
-			) : null}
-			{isClickupIntegrated ? (
-				<MenuItem
-					icon={<SvgFileText2Icon />}
-					onClick={() => {
-						analytics.track('Create ClickUp Issue from Comment')
-						setShowNewIssueModal(CLICKUP_INTEGRATION)
-					}}
-				>
-					Create ClickUp Issue
-				</MenuItem>
-			) : null}
+			{issueTrackers?.map((item) => {
+				const [isIntegrated, integration] = item
+				return isIntegrated ? (
+					<MenuItem
+						icon={<SvgFileText2Icon />}
+						onClick={() => {
+							analytics.track(
+								`Create ${integration.name} Issue from Comment`,
+							)
+							setShowNewIssueModal(integration)
+						}}
+					>
+						Create {integration.name} Issue
+					</MenuItem>
+				) : null
+			})}
 		</>
 	)
 
