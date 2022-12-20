@@ -1130,8 +1130,8 @@ export type UpdateVercelSettingsMutation = { __typename?: 'Mutation' } & Pick<
 >
 
 export type UpdateEmailOptOutMutationVariables = Types.Exact<{
-	token: Types.Scalars['String']
-	admin_id: Types.Scalars['ID']
+	token?: Types.Maybe<Types.Scalars['String']>
+	admin_id?: Types.Maybe<Types.Scalars['ID']>
 	category: Types.EmailOptOutCategory
 	is_opt_out: Types.Scalars['Boolean']
 }>
@@ -3703,8 +3703,8 @@ export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
 }
 
 export type GetEmailOptOutsQueryVariables = Types.Exact<{
-	token: Types.Scalars['String']
-	admin_id: Types.Scalars['ID']
+	token?: Types.Maybe<Types.Scalars['String']>
+	admin_id?: Types.Maybe<Types.Scalars['ID']>
 }>
 
 export type GetEmailOptOutsQuery = { __typename?: 'Query' } & Pick<
