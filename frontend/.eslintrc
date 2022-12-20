@@ -40,6 +40,13 @@
 		"unused-imports/no-unused-imports-ts": "error",
 		"@typescript-eslint/no-non-null-assertion": "off",
 		"tailwindcss/no-custom-classname": "off",
+		"react/jsx-curly-brace-presence": [
+			"error",
+			{
+				"props": "never",
+				"children": "never"
+			}
+		],
 		"no-restricted-imports": [
 			"error",
 			{

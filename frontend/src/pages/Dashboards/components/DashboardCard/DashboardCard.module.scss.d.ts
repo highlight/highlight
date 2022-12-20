@@ -10,7 +10,6 @@ export const description: string
 export const draggable: string
 export const formLabel: string
 export const header: string
-export const headerActions: string
 export const headerContainer: string
 export const infoTooltip: string
 export const mainHeaderContent: string

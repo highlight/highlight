@@ -1,0 +1,29 @@
+@import 'src/static/shared.scss';
+
+.metricsDistributionContainer {
+	min-height: 240px;
+}
+
+.iconContainer {
+	margin-right: var(--size-xSmall);
+	padding-top: 4px;
+}
+
+.titleContainer {
+	align-items: center;
+	display: flex;
+}
+
+.timePickerContainer {
+	z-index: 10;
+}
+
+.calloutContainer {
+	background-color: #f9f8f9;
+	margin-top: var(--size-medium);
+
+	.bodyText {
+		line-height: 20px;
+		margin-bottom: var(--size-small);
+	}
+}

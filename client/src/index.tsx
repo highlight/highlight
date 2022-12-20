@@ -45,7 +45,6 @@ import { ViewportResizeListener } from './listeners/viewport-resize-listener'
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener'
 import { ClickListener } from './listeners/click-listener/click-listener'
 import { FocusListener } from './listeners/focus-listener/focus-listener'
-import packageJson from '../package.json'
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys'
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener'
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener'
@@ -65,14 +64,13 @@ import {
 	SessionData,
 } from './utils/sessionStorage/highlightSession'
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
-import publicGraphURI from 'consts:publicGraphURI'
 import { getGraphQLRequestWrapper } from './utils/graph'
 import { ReplayEventsInput } from './graph/generated/schemas'
 import { MessageType, PropertyType, Source } from './workers/types'
 import { Logger } from './logger'
-import { HighlightFetchWindow } from 'listeners/network-listener/utils/fetch-listener'
-import { ConsoleMessage } from 'types/shared-types'
-import { RequestResponsePair } from 'listeners/network-listener/utils/models'
+import { HighlightFetchWindow } from './listeners/network-listener/utils/fetch-listener'
+import { ConsoleMessage } from './types/shared-types'
+import { RequestResponsePair } from './listeners/network-listener/utils/models'
 import {
 	JankListener,
 	JankPayload,
@@ -169,6 +167,7 @@ export class Highlight {
 	events!: eventWithTime[]
 	sessionData!: SessionData
 	ready!: boolean
+	manualStopped!: boolean
 	state!: 'NotRecording' | 'Recording'
 	logger!: Logger
 	fingerprintjs!: Promise<Agent>
@@ -202,7 +201,6 @@ export class Highlight {
 	hasPushedData!: boolean
 	reloaded!: boolean
 	_hasPreviouslyInitialized!: boolean
-	recordStop!: (() => void) | undefined
 	_payloadId!: number
 
 	static create(options: HighlightClassOptions): Highlight {
@@ -232,7 +230,7 @@ export class Highlight {
 			options.sessionSecureID = GenerateSecureID()
 		}
 		// default to inlining stylesheets to help with recording accuracy
-		options.inlineStylesheet = true
+		options.inlineStylesheet = options.inlineStylesheet ?? true
 		this.options = options
 		if (typeof this.options?.debug === 'boolean') {
 			this.debugOptions = this.options.debug
@@ -301,6 +299,7 @@ export class Highlight {
 	async _reset() {
 		if (this.pushPayloadTimerId) {
 			clearTimeout(this.pushPayloadTimerId)
+			this.pushPayloadTimerId = undefined
 		}
 
 		let user_identifier, user_object
@@ -324,12 +323,8 @@ export class Highlight {
 		this.sessionData.sessionSecureID = GenerateSecureID()
 		this.options.sessionSecureID = this.sessionData.sessionSecureID
 		this.sessionData.sessionStartTime = Date.now()
-		this._firstLoadListeners.stopListening()
+		this.stopRecording()
 		this._firstLoadListeners = new FirstLoadListeners(this.options)
-		if (this.recordStop) {
-			this.recordStop()
-			this.recordStop = undefined
-		}
 		await this.initialize()
 		if (user_identifier && user_object) {
 			await this.identify(user_identifier, user_object)
@@ -343,6 +338,7 @@ export class Highlight {
 
 		this.ready = false
 		this.state = 'NotRecording'
+		this.manualStopped = false
 		this.enableSegmentIntegration = !!options.enableSegmentIntegration
 		this.enableStrictPrivacy = options.enableStrictPrivacy || false
 		this.enableCanvasRecording = options.enableCanvasRecording || false
@@ -357,8 +353,7 @@ export class Highlight {
 			canvasMaxSnapshotDimension: 360,
 			...(options.samplingStrategy || {}),
 		}
-		this._backendUrl =
-			options?.backendUrl || publicGraphURI || 'https://pub.highlight.run'
+		this._backendUrl = options?.backendUrl || 'https://pub.highlight.run'
 
 		// If _backendUrl is a relative URL, convert it to an absolute URL
 		// so that it's usable from a web worker.
@@ -383,6 +378,10 @@ export class Highlight {
 			this.organizationID = options.organizationID
 		} else {
 			this.organizationID = options.organizationID.toString()
+		}
+		// disable inline stylesheets for aerotime
+		if (this.organizationID === 'jgoqo9el') {
+			this.inlineStylesheet = false
 		}
 		this.isRunningOnHighlight =
 			this.organizationID === '1' || this.organizationID === '1jdkoe52'
@@ -586,7 +585,7 @@ export class Highlight {
 				organization_verbose_id: this.organizationID,
 				enable_strict_privacy: this.enableStrictPrivacy,
 				enable_recording_network_contents: enableNetworkRecording,
-				clientVersion: packageJson['version'],
+				clientVersion: this.firstloadVersion,
 				firstloadVersion: this.firstloadVersion,
 				clientConfig: JSON.stringify(this._optionsInternal),
 				environment: this.environment,
@@ -614,9 +613,20 @@ export class Highlight {
 					this.sessionData.userObject,
 				)
 			}
+
+			if (
+				!this.sessionData.projectID ||
+				!this.sessionData.sessionSecureID
+			) {
+				console.error(
+					'Failed to initialize Highlight; an error occurred on our end.',
+					this.sessionData,
+				)
+				return
+			}
 			this.logger.log(
 				`Loaded Highlight
-Remote: ${publicGraphURI}
+Remote: ${this._backendUrl}
 Project ID: ${this.sessionData.projectID}
 SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
@@ -657,6 +667,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 
 			if (this.pushPayloadTimerId) {
 				clearTimeout(this.pushPayloadTimerId)
+				this.pushPayloadTimerId = undefined
 			}
 			this.pushPayloadTimerId = setTimeout(() => {
 				this._save()
@@ -665,45 +676,47 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this.events.push(event)
 			}
 			emit.bind(this)
-			setTimeout(() => {
-				// Skip if we're already recording events
-				if (this.recordStop) {
-					return
-				}
-				this.recordStop = record({
-					ignoreClass: 'highlight-ignore',
-					blockClass: 'highlight-block',
-					emit,
-					enableStrictPrivacy: this.enableStrictPrivacy,
-					maskAllInputs: this.enableStrictPrivacy,
-					recordCanvas: this.enableCanvasRecording,
-					sampling: {
-						canvas: {
-							fps: this.samplingStrategy.canvas,
-							resizeQuality: this.samplingStrategy.canvasQuality,
-							resizeFactor: this.samplingStrategy.canvasFactor,
-							maxSnapshotDimension:
-								this.samplingStrategy
-									.canvasMaxSnapshotDimension,
+
+			// Skip if we're already recording events
+			if (this.state !== 'Recording') {
+				setTimeout(() => {
+					const recordStop = record({
+						ignoreClass: 'highlight-ignore',
+						blockClass: 'highlight-block',
+						emit,
+						enableStrictPrivacy: this.enableStrictPrivacy,
+						maskAllInputs: this.enableStrictPrivacy,
+						recordCanvas: this.enableCanvasRecording,
+						sampling: {
+							canvas: {
+								fps: this.samplingStrategy.canvas,
+								resizeQuality:
+									this.samplingStrategy.canvasQuality,
+								resizeFactor:
+									this.samplingStrategy.canvasFactor,
+								maxSnapshotDimension:
+									this.samplingStrategy
+										.canvasMaxSnapshotDimension,
+							},
 						},
-					},
-					keepIframeSrcFn: (_src) => {
-						return true
-					},
-					inlineImages: this.inlineImages,
-					inlineStylesheet: this.inlineStylesheet,
-					plugins: [getRecordSequentialIdPlugin()],
-				})
-				if (this.recordStop) {
-					this.listeners.push(this.recordStop)
-				}
-				const viewport = {
-					height: window.innerHeight,
-					width: window.innerWidth,
-				}
-				this.addCustomEvent('Viewport', viewport)
-				this.submitViewportMetrics(viewport)
-			}, 1)
+						keepIframeSrcFn: (_src) => {
+							return true
+						},
+						inlineImages: this.inlineImages,
+						inlineStylesheet: this.inlineStylesheet,
+						plugins: [getRecordSequentialIdPlugin()],
+					})
+					if (recordStop) {
+						this.listeners.push(recordStop)
+					}
+					const viewport = {
+						height: window.innerHeight,
+						width: window.innerWidth,
+					}
+					this.addCustomEvent('Viewport', viewport)
+					this.submitViewportMetrics(viewport)
+				}, 1)
+			}
 
 			if (document.referrer) {
 				// Don't record the referrer if it's the same origin.
@@ -724,31 +737,24 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					)
 				}
 			}
+
+			this._setupWindowListeners()
+			this.ready = true
+			this.state = 'Recording'
+			this.manualStopped = false
 		} catch (e) {
 			if (this._isOnLocalHost) {
 				console.error(e)
 				HighlightWarning('initializeSession', e)
 			}
 		}
-		try {
-			// ensure we only create document/window listeners once
-			if (this._hasPreviouslyInitialized) {
-				return
-			}
-			this._setupWindowListeners()
-		} finally {
-			this._hasPreviouslyInitialized = true
-			if (
-				this.sessionData.projectID &&
-				this.sessionData.sessionSecureID
-			) {
-				this.ready = true
-				this.state = 'Recording'
-			}
-		}
 	}
 
 	async _visibilityHandler(hidden: boolean) {
+		if (this.manualStopped) {
+			this.logger.log(`Ignoring visibility event due to manual stop.`)
+			return
+		}
 		if (
 			new Date().getTime() - this._lastVisibilityChangeTime <
 			VISIBILITY_DEBOUNCE_MS
@@ -756,42 +762,41 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			return
 		}
 		this._lastVisibilityChangeTime = new Date().getTime()
+		this.logger.log(`Detected window ${hidden ? 'hidden' : 'visible'}.`)
 		if (!hidden) {
-			this.logger.log(`Detected window visible. Resuming recording.`)
 			await this.initialize()
 			this.addCustomEvent('TabHidden', false)
-			return
-		}
-		this.logger.log(`Detected window hidden. Pausing recording.`)
-		this.addCustomEvent('TabHidden', true)
-		if ('sendBeacon' in navigator) {
-			try {
-				await this._sendPayload({
-					isBeacon: true,
-					sendFn: (payload) => {
-						let blob = new Blob(
-							[
-								JSON.stringify({
-									query: print(PushPayloadDocument),
-									variables: payload,
-								}),
-							],
-							{
-								type: 'application/json',
-							},
-						)
-						navigator.sendBeacon(`${this._backendUrl}`, blob)
-						return Promise.resolve(0)
-					},
-				})
-			} catch (e) {
-				if (this._isOnLocalHost) {
-					console.error(e)
-					HighlightWarning('_sendPayload', e)
+		} else {
+			this.addCustomEvent('TabHidden', true)
+			if ('sendBeacon' in navigator) {
+				try {
+					await this._sendPayload({
+						isBeacon: true,
+						sendFn: (payload) => {
+							let blob = new Blob(
+								[
+									JSON.stringify({
+										query: print(PushPayloadDocument),
+										variables: payload,
+									}),
+								],
+								{
+									type: 'application/json',
+								},
+							)
+							navigator.sendBeacon(`${this._backendUrl}`, blob)
+							return Promise.resolve(0)
+						},
+					})
+				} catch (e) {
+					if (this._isOnLocalHost) {
+						console.error(e)
+						HighlightWarning('_sendPayload', e)
+					}
 				}
 			}
+			this.stopRecording()
 		}
-		this.stopRecordingEvents()
 	}
 
 	_setupWindowListeners() {
@@ -926,31 +931,40 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				)
 			}
 
-			// setup electron main thread window visiblity events listener
-			if (window.electron?.ipcRenderer) {
-				window.electron.ipcRenderer.on(
-					'highlight.run',
-					({ visible }: { visible: boolean }) => {
-						this._visibilityHandler(!visible)
-					},
-				)
-				this.logger.log('Set up Electron highlight.run events.')
-			} else {
-				// Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
-				// as when switching tabs or apps on mobile. Non-blocking.
-				PageVisibilityListener((isTabHidden) =>
-					this._visibilityHandler(isTabHidden),
-				)
-				this.logger.log('Set up document visibility listener.')
+			// only do this once, since we want to keep the visibility listener attached even when recoding is stopped
+			if (!this._hasPreviouslyInitialized) {
+				// setup electron main thread window visiblity events listener
+				if (window.electron?.ipcRenderer) {
+					window.electron.ipcRenderer.on(
+						'highlight.run',
+						({ visible }: { visible: boolean }) => {
+							this._visibilityHandler(!visible)
+						},
+					)
+					this.logger.log('Set up Electron highlight.run events.')
+				} else {
+					// Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
+					// as when switching tabs or apps on mobile. Non-blocking.
+					PageVisibilityListener((isTabHidden) =>
+						this._visibilityHandler(isTabHidden),
+					)
+					this.logger.log('Set up document visibility listener.')
+				}
+				this._hasPreviouslyInitialized = true
 			}
 
 			// Clear the timer so it doesn't block the next page navigation.
-			window.addEventListener('beforeunload', () => {
+			const unloadListener = () => {
 				this.hasSessionUnloaded = true
 				if (this.pushPayloadTimerId) {
 					clearTimeout(this.pushPayloadTimerId)
+					this.pushPayloadTimerId = undefined
 				}
-			})
+			}
+			window.addEventListener('beforeunload', unloadListener)
+			this.listeners.push(() =>
+				window.removeEventListener('beforeunload', unloadListener),
+			)
 		} catch (e) {
 			if (this._isOnLocalHost) {
 				console.error(e)
@@ -958,26 +972,34 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			}
 		}
 
-		window.addEventListener('beforeunload', () => {
+		const unloadListener = () => {
 			this.addCustomEvent('Page Unload', '')
 			window.sessionStorage.setItem(
 				SESSION_STORAGE_KEYS.SESSION_DATA,
 				JSON.stringify(this.sessionData),
 			)
-		})
+		}
+		window.addEventListener('beforeunload', unloadListener)
+		this.listeners.push(() =>
+			window.removeEventListener('beforeunload', unloadListener),
+		)
 
 		// beforeunload is not supported on iOS on Safari. Apple docs recommend using `pagehide` instead.
 		const isOnIOS =
 			navigator.userAgent.match(/iPad/i) ||
 			navigator.userAgent.match(/iPhone/i)
 		if (isOnIOS) {
-			window.addEventListener('pagehide', () => {
+			const unloadListener = () => {
 				this.addCustomEvent('Page Unload', '')
 				window.sessionStorage.setItem(
 					SESSION_STORAGE_KEYS.SESSION_DATA,
 					JSON.stringify(this.sessionData),
 				)
-			})
+			}
+			window.addEventListener('pagehide', unloadListener)
+			this.listeners.push(() =>
+				window.removeEventListener('beforeunload', unloadListener),
+			)
 		}
 	}
 
@@ -1038,22 +1060,17 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	 * @param manual The end user requested to stop recording.
 	 */
 	stopRecording(manual?: boolean) {
-		this.stopRecordingEvents(manual)
-		this._firstLoadListeners.stopListening()
-	}
-
-	stopRecordingEvents(manual?: boolean) {
-		if (manual) {
+		this.manualStopped = !!manual
+		if (this.manualStopped) {
 			this.addCustomEvent(
 				'Stop',
 				'H.stop() was called which stops Highlight from recording.',
 			)
 		}
 		this.state = 'NotRecording'
-		if (this.recordStop) {
-			this.recordStop()
-			this.recordStop = undefined
-		}
+		// stop all other event listeners, to be restarted on initialize()
+		this.listeners.forEach((stop) => stop())
+		this.listeners = []
 	}
 
 	getCurrentSessionTimestamp() {
@@ -1115,13 +1132,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	// Reset the events array and push to a backend.
 	async _save() {
 		try {
-			await this._sendPayload({ isBeacon: false })
-			this.hasPushedData = true
-			this.sessionData.lastPushTime = Date.now()
-			// Listeners are cleared when the user calls stop() manually.
-			if (this.listeners.length === 0) {
-				return
-			}
 			if (
 				this.state === 'Recording' &&
 				this.listeners &&
@@ -1130,6 +1140,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					MAX_SESSION_LENGTH
 			) {
 				await this._reset()
+			}
+			await this._sendPayload({ isBeacon: false })
+			this.hasPushedData = true
+			this.sessionData.lastPushTime = Date.now()
+			// Listeners are cleared when the user calls stop() manually.
+			if (this.listeners.length === 0) {
 				return
 			}
 		} catch (e) {
@@ -1141,6 +1157,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		if (this.state === 'Recording') {
 			if (this.pushPayloadTimerId) {
 				clearTimeout(this.pushPayloadTimerId)
+				this.pushPayloadTimerId = undefined
 			}
 			this.pushPayloadTimerId = setTimeout(() => {
 				this._save()

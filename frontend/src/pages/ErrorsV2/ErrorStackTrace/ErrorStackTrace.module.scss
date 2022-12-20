@@ -1,0 +1,92 @@
+.editor {
+	background: var(--color-editor-background);
+	color: var(--color-editor-foreground-text);
+	display: flex;
+	flex-wrap: nowrap;
+	font-family: var(--monospace-font-family);
+
+	.lineNumber {
+		color: var(--color-editor-secondary-text);
+		display: inline-block;
+		flex-shrink: 0;
+		margin-right: var(--size-medium);
+		text-align: right;
+		width: calc(1ch * var(--longest-character-length));
+	}
+
+	.functionName {
+		direction: rtl;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
+.skeleton {
+	border-radius: 8px;
+	height: 109px;
+	margin-bottom: 20px;
+}
+
+.alert {
+	margin-bottom: var(--size-large);
+
+	a {
+		margin-top: var(--size-medium);
+	}
+
+	.sourcemapActions {
+		align-items: center;
+		display: flex;
+
+		a {
+			margin-right: var(--size-medium);
+		}
+
+		@media (max-width: 1350px) {
+			align-items: start;
+			flex-direction: column;
+		}
+	}
+}
+
+.tooltip {
+	margin-left: auto;
+}
+
+.collapsibleWrapper {
+	width: 100%;
+	&#{&} {
+		h2 {
+			font-size: 14px !important;
+			font-weight: 400;
+		}
+	}
+
+	span > div {
+		margin-bottom: initial !important;
+		padding: 16px !important;
+	}
+
+	svg {
+		flex-shrink: 0;
+		margin-left: 16px;
+	}
+}
+
+.contentWrapper {
+	padding: 0 !important;
+}
+
+.stackTraceCard {
+	margin-bottom: 30px;
+	max-width: 100%;
+}
+
+.codeBlock {
+	border-radius: 0 !important;
+}
+
+.fillerText {
+	color: var(--color-gray-500);
+}

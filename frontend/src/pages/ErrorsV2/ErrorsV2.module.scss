@@ -1,28 +1,21 @@
 @import 'src/static/shared.scss';
 
 .container {
-	--header-height: 80px;
-	--left-panel-width: 475px;
-	--top-padding: 80px;
+	--header-height: 45px;
 
 	display: flex;
-	padding-top: var(--header-height);
 	width: 100%;
-
-	&.withErrorState {
-		padding-top: var(--header-height);
-	}
 }
 
 .detailsContainer {
-	align-items: space-around;
 	display: flex;
 	flex-direction: column;
 	flex-grow: 1;
 	height: 100%;
 
 	.errorDetails {
-		padding: var(--size-medium) var(--size-large);
+		margin-left: 0;
+		padding: var(--size-large) var(--size-xxLarge);
 		width: 100%;
 	}
 
@@ -31,4 +24,17 @@
 		gap: var(--size-medium);
 		margin-top: var(--size-medium);
 	}
+}
+
+.moveDetailsRight {
+	margin-left: 340px;
+}
+
+.sessionSwitchButton {
+	border: 0 !important;
+	border-radius: 0;
+}
+
+.emptyState {
+	height: calc(100% - var(--header-height) - var(--banner-height));
 }

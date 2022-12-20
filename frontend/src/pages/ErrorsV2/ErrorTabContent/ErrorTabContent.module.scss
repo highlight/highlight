@@ -1,0 +1,29 @@
+@import 'src/static/shared.scss';
+
+.tabs {
+	margin-top: var(--size-xxLarge);
+
+	:global(.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn) {
+		color: var(--color-purple) !important;
+	}
+
+	:global(.ant-tabs-ink-bar) {
+		background: var(--color-purple) !important;
+	}
+
+	:global(.ant-tabs-tab) {
+		margin-left: 0 !important;
+	}
+}
+
+.iconContainer {
+	display: inline-flex;
+	margin-right: var(--size-xxSmall);
+	padding-bottom: 4px;
+	vertical-align: middle;
+}
+
+.titleContainer {
+	font-size: 13px;
+	padding: 0 6px;
+}

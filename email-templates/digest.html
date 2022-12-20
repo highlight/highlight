@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<!--[if !mso]><!-->
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title></title>
+		<style>
+			* {
+				font-family: Helvetica, sans-serif;
+			}
+
+			.body-container {
+				background-color: #0d0225;
+				width: 100%;
+				height: 100%;
+			}
+
+			.content-container {
+				max-width: 400px;
+				text-align: center;
+				margin: 0 auto;
+				padding: 0 16px;
+			}
+
+			.content-container > * {
+				margin-bottom: 24px;
+			}
+
+			.info-card {
+				border: 1px solid #30294e;
+				border-radius: 12px;
+				padding: 12px 16px;
+			}
+
+			.section-start {
+				background-color: #ebff5e;
+				color: #0d0225;
+				font-weight: 600;
+				border-radius: 100px;
+				width: fit-content;
+				padding: 2px 12px;
+				margin: 0 auto 24px;
+				font-size: 14px;
+				line-height: 22px;
+			}
+
+			h1 {
+				font-size: 36px;
+				font-weight: 600;
+				line-height: 44px;
+				color: #ffffff;
+				margin: 0;
+			}
+
+			h2 {
+				font-size: 16px;
+				font-weight: 600;
+				margin: 0;
+				margin-bottom: -4px;
+				line-height: 26px;
+				color: #ffffff;
+			}
+
+			h3 {
+				color: #9d97aa;
+			}
+
+			h3 {
+				font-size: 14px;
+				font-weight: 400;
+				margin: 0;
+				line-height: 22px;
+			}
+
+			th {
+				padding-bottom: 6px;
+			}
+
+			.stats-grid td {
+				font-weight: 600;
+				padding-bottom: 8px;
+				padding-top: 8px;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				overflow: hidden;
+				max-width: 80px;
+			}
+
+			.cell-primary {
+				color: #ffffff;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				overflow: hidden;
+			}
+
+			.top-border {
+				border-top: 1px solid #30294e;
+			}
+
+			.logo {
+				width: 32px;
+				height: 32px;
+				align-self: center;
+				padding-top: 32px;
+			}
+
+			.project-name {
+				color: #ebff5e;
+			}
+
+			.stat-icon {
+				width: 14px;
+				height: 14px;
+			}
+
+			.stat {
+				color: #ffffff;
+				font-size: 18px;
+				line-height: 34px;
+				font-weight: 600;
+			}
+
+			.stat-delta {
+				color: #ffffff;
+				background-color: rgba(255, 255, 255, 0.32);
+				border-radius: 100px;
+				padding: 2px 12px;
+				align-items: center;
+				font-size: 14px;
+				line-height: 22px;
+				font-weight: 600;
+			}
+
+			.right {
+				text-align: right;
+			}
+
+			table {
+				table-layout: fixed;
+			}
+
+			.stats-grid td {
+				text-align: center;
+				padding-top: 0;
+				padding-bottom: 12px;
+			}
+
+			.card-header {
+				margin-bottom: 24px;
+			}
+
+			.stats-grid {
+				width: 100%;
+			}
+
+			.stat-pair > *:first-child {
+				margin-right: 8px;
+			}
+
+			.header-container {
+				white-space: normal;
+			}
+
+			a {
+				color: #9d97aa;
+				text-decoration: none;
+			}
+
+			a:hover {
+				color: #72e4fc !important;
+			}
+
+			a:hover .cell-primary {
+				color: #72e4fc !important;
+			}
+
+			a:hover .stat-delta {
+				color: #72e4fc !important;
+			}
+
+			.w-20 {
+				width: 20%;
+			}
+
+			.w-25 {
+				width: 25%;
+			}
+
+			.w-30 {
+				width: 30%;
+			}
+
+			.w-35 {
+				width: 35%;
+			}
+
+			.w-50 {
+				width: 50%;
+			}
+
+			.w-60 {
+				width: 60%;
+			}
+
+			.w-65 {
+				width: 65%;
+			}
+
+			.w-75 {
+				width: 75%;
+			}
+
+			.row {
+				padding-bottom: 8px;
+				padding-top: 8px;
+				text-align: left;
+				width: 100%;
+				display: flex;
+				gap: 0;
+			}
+
+			.data {
+				font-weight: 600;
+			}
+
+			.cell {
+				display: inline-block;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				text-align: left;
+				color: #9d97aa;
+				font-size: 14px;
+			}
+
+			.cell-primary {
+				color: #ffffff;
+			}
+
+			.cell-primary a {
+				color: #ffffff;
+			}
+
+			a:hover .cell {
+				color: #72e4fc !important;
+			}
+
+			.right {
+				text-align: right;
+			}
+
+			.footer {
+				text-align: center;
+				padding: 40px 32px;
+			}
+
+			.unsubscribe-info {
+				font-size: 14px;
+				font-weight: 600;
+				line-height: 22px;
+				color: #ffffff;
+				padding-bottom: 24px;
+				border-bottom: 1px solid #30294e;
+			}
+
+			.unsubscribe-info a {
+				color: #72e4fc;
+			}
+
+			.company-info {
+				font-size: 12px;
+				line-height: 20px;
+				padding-top: 24px;
+				padding-bottom: 16px;
+				color: #9d97aa;
+			}
+
+			.company-address {
+				font-size: 10px;
+				line-height: 16px;
+				color: #9d97aa;
+			}
+
+			.logo-full {
+				margin-top: 24px;
+				height: 16px;
+				width: 70px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="body-container">
+			<div class="content-container">
+				<img
+					class="logo"
+					src="https://static.highlight.io/assets/digest/logo-on-dark.png"
+					width="32"
+					height="32"
+				/>
+
+				<div class="header-container">
+					<h1>
+						<span class="project-name">{{projectName}}</span> Weekly
+						Highlight Digest
+					</h1>
+				</div>
+
+				<div class="info-card">
+					<div class="card-header">
+						<h2>Last week's recap</h2>
+						<h3>compared to the previous week</h3>
+					</div>
+
+					<table class="stats-grid">
+						<tr>
+							<td>
+								<h3>
+									<img
+										class="stat-icon"
+										src="https://static.highlight.io/assets/digest/user-group.png"
+										width="14"
+										height="14"
+									/>
+									Total users
+								</h3>
+								<div class="stat-pair">
+									<span class="stat">{{userCount}}</span>
+									<span class="stat-delta"
+										>{{userDelta}}</span
+									>
+								</div>
+							</td>
+							<td>
+								<h3>
+									<img
+										class="stat-icon"
+										src="https://static.highlight.io/assets/digest/play-circle.png"
+										width="14"
+										height="14"
+									/>
+									Total sessions
+								</h3>
+								<div class="stat-pair">
+									<span class="stat">{{sessionCount}}</span>
+									<span class="stat-delta"
+										>{{sessionDelta}}</span
+									>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<h3>
+									<img
+										class="stat-icon"
+										src="https://static.highlight.io/assets/digest/x-circle.png"
+										width="14"
+										height="14"
+									/>
+									Total errors
+								</h3>
+								<div class="stat-pair">
+									<span class="stat">{{errorCount}}</span>
+									<span class="stat-delta"
+										>{{errorDelta}}</span
+									>
+								</div>
+							</td>
+							<td>
+								<h3>
+									<img
+										class="stat-icon"
+										src="https://static.highlight.io/assets/digest/clock.png"
+										width="14"
+										height="14"
+									/>
+									Avg active time
+								</h3>
+								<div class="stat-pair">
+									<span class="stat">{{activityTotal}}</span>
+									<span class="stat-delta"
+										>{{activityDelta}}</span
+									>
+								</div>
+							</td>
+						</tr>
+					</table>
+				</div>
+
+				<div class="section-start">Insightful sessions</div>
+
+				<div class="info-card">
+					<div class="card-header">
+						<h2>Most active sessions</h2>
+						<h3>from last week</h3>
+					</div>
+					{{#greaterThan (length activeSessions) 0}}
+					<div>
+						<div class="row">
+							<div class="cell w-50">User</div>
+							<div class="cell w-30">Location</div>
+							<div class="cell w-20 right">Length</div>
+						</div>
+						{{#each activeSessions}}
+						<a href="{{this.url}}">
+							<div class="top-border row data">
+								<div class="cell cell-primary w-50">
+									{{this.identifier}}
+								</div>
+								<div class="cell w-30">{{this.location}}</div>
+								<div class="cell w-20 right">
+									{{this.activeLength}}
+								</div>
+							</div>
+						</a>
+						{{/each}}
+					</div>
+					{{else}}
+					<h3>You had no sessions last week!</h3>
+					{{/greaterThan}}
+				</div>
+
+				<div class="info-card">
+					<div class="card-header">
+						<h2>Most erroneous sessions</h2>
+						<h3>from last week</h3>
+					</div>
+					{{#greaterThan (length errorSessions) 0}}
+					<div>
+						<div class="row">
+							<div class="cell w-50">User</div>
+							<div class="cell w-30"># Errors</div>
+							<div class="cell w-20 right">Length</div>
+						</div>
+						{{#each errorSessions}}
+						<a href="{{this.url}}">
+							<div class="top-border row data">
+								<div class="cell cell-primary w-50">
+									{{this.identifier}}
+								</div>
+								<div class="cell w-30">{{this.errorCount}}</div>
+								<div class="cell w-20 right">
+									{{this.activeLength}}
+								</div>
+							</div>
+						</a>
+						{{/each}}
+					</div>
+					{{else}}
+					<h3>Your sessions had no errors last week!</h3>
+					{{/greaterThan}}
+				</div>
+
+				<div class="section-start">Insightful errors</div>
+
+				<div class="info-card">
+					<div class="card-header">
+						<h2>New errors</h2>
+						<h3>from last week</h3>
+					</div>
+					{{#greaterThan (length newErrors) 0}}
+					<div>
+						<div class="row">
+							<div class="cell w-65">Error</div>
+							<div class="cell w-35 right">Affected Users</div>
+						</div>
+						{{#each newErrors}}
+						<a href="{{this.url}}">
+							<div class="top-border row data">
+								<div class="cell cell-primary w-75">
+									{{this.message}}
+								</div>
+								<div class="cell w-25 right">
+									{{this.affectedUserCount}}
+								</div>
+							</div>
+						</a>
+						{{/each}}
+					</div>
+					{{else}}
+					<h3>You had no new errors last week!</h3>
+					{{/greaterThan}}
+				</div>
+
+				<div class="info-card">
+					<div class="card-header">
+						<h2>Most frequent errors</h2>
+						<h3>from last week</h3>
+					</div>
+					{{#greaterThan (length frequentErrors) 0}}
+					<div>
+						<div class="row">
+							<div class="cell w-50">Error</div>
+							<div class="cell w-50 right">
+								Amount (since last week)
+							</div>
+						</div>
+						{{#each frequentErrors}}
+						<a href="{{this.url}}">
+							<div class="top-border row data">
+								<div class="cell cell-primary w-65">
+									{{this.message}}
+								</div>
+								<div class="cell w-35 right">
+									<span>{{this.count}}</span>
+									<span class="stat-delta">
+										{{this.delta}}
+									</span>
+								</div>
+							</div>
+						</a>
+						{{/each}}
+					</div>
+					{{else}}
+					<h3>You had no errors last week!</h3>
+					{{/greaterThan}}
+				</div>
+			</div>
+			<div class="footer">
+				<div class="unsubscribe-info">
+					This digest was sent to
+					<a href="mailto:{{toEmail}}">{{toEmail}}</a>. If you don't
+					want to receive emails like this in the future, you can
+					<a href="{{unsubscribeUrl}}">unsubscribe</a>.
+				</div>
+				<img
+					class="logo-full"
+					src="https://static.highlight.io/assets/digest/highlight-logo.png"
+					width="70"
+					height="16"
+				/>
+				<div class="company-address">Seattle, WA 98122</div>
+			</div>
+		</div>
+	</body>
+</html>
+<!--<![endif]-->

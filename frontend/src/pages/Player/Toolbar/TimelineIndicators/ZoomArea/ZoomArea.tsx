@@ -1,101 +1,131 @@
+import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
+import { useWindowEvent } from '@hooks/useWindowEvent'
 import {
 	useToolbarItemsContext,
 	ZoomAreaPercent,
 } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import { clamp } from '@util/numbers'
-import { RefObject, useLayoutEffect, useRef, useState } from 'react'
+import clsx from 'clsx'
+import { useEffect, useRef, useState } from 'react'
 
 import style from './ZoomArea.module.scss'
 
 interface Props {
 	containerWidth: number
-	wrapperRef: RefObject<HTMLElement>
+	containerLeft: number
 	update: (p: ZoomAreaPercent) => void
 	minZoomAreaPercent: number
 }
 const ZOOM_AREA_SIDE = 15
 
-const ZoomArea = ({ wrapperRef, update, minZoomAreaPercent }: Props) => {
+const ZoomArea = ({
+	update,
+	minZoomAreaPercent,
+	containerWidth,
+	containerLeft,
+}: Props) => {
 	const leftRef = useRef<HTMLDivElement>(null)
 	const rightRef = useRef<HTMLDivElement>(null)
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	const [isDragging, setIsDragging] = useState<boolean>(false)
+	const [isLeftDragging, setIsLeftDragging] = useState<boolean>(false)
+	const [isRightDragging, setIsRightDragging] = useState<boolean>(false)
+	const [isPanning, setIsPanning] = useState<boolean>(false)
 	const { zoomAreaPercent } = useToolbarItemsContext()
 	const [dragPercent, setDragPercent] =
 		useState<ZoomAreaPercent>(zoomAreaPercent)
 
-	const leftDiv = leftRef.current
-	const rightDiv = rightRef.current
-	const wrapperDiv = wrapperRef.current
-	const containerDiv = containerRef.current
+	const getRelativeX = (event: MouseEvent) => {
+		const { clientX } = event
+		return clientX + document.documentElement.scrollLeft - containerLeft
+	}
 
-	const wrapperBbox = wrapperRef.current?.getBoundingClientRect()
-	const wrapperWidth = wrapperBbox?.width || 1
-	const wrapperLeft = wrapperBbox?.left || 0
+	const onLeftPointerDown = () => {
+		setIsLeftDragging(true)
+	}
 
-	useLayoutEffect(() => {
-		if (!leftDiv || !rightDiv || !wrapperDiv || !containerDiv) {
+	useHTMLElementEvent(leftRef.current, 'pointerdown', onLeftPointerDown, {
+		passive: true,
+	})
+
+	const onRightPointerDown = () => {
+		setIsRightDragging(true)
+	}
+
+	useHTMLElementEvent(rightRef.current, 'pointerdown', onRightPointerDown, {
+		passive: true,
+	})
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const [_, setPanX] = useState<number>(0)
+
+	const onCenterPointerDown = (event: MouseEvent) => {
+		const containerDiv = containerRef.current
+
+		if (!containerDiv) {
 			return
 		}
 
-		const getRelativeX = (event: MouseEvent) => {
-			const { clientX } = event
-			return clientX + document.documentElement.scrollLeft - wrapperLeft
+		if (!isLeftDragging && !isRightDragging) {
+			setIsPanning(true)
+			setPanX(getRelativeX(event))
 		}
 
-		let isLeftDragging = false
-		const onDrag = (event: MouseEvent) => {
-			event.preventDefault()
-			setIsDragging(true)
+		containerDiv.style.cursor = 'grabbing'
+	}
+
+	useHTMLElementEvent(
+		containerRef.current,
+		'pointerdown',
+		onCenterPointerDown,
+		{
+			passive: true,
+		},
+	)
+
+	const onPointerUp = () => {
+		if (isLeftDragging || isRightDragging || isPanning) {
+			setIsLeftDragging(false)
+			setIsRightDragging(false)
+			setIsPanning(false)
+			update(dragPercent)
 		}
 
-		const onLeftPointerDown = (event: MouseEvent) => {
-			onDrag(event)
-			isLeftDragging = true
+		const containerDiv = containerRef.current
+
+		if (!containerDiv) {
+			return
 		}
 
-		let isRightDragging = false
-		const onRightPointerDown = (event: MouseEvent) => {
-			onDrag(event)
-			isRightDragging = true
-		}
+		containerDiv.style.cursor = 'grab'
+	}
 
-		let isPanning = false
-		let panX = 0
-		const onCenterPointerDown = (event: MouseEvent) => {
-			onDrag(event)
-			isPanning = !isLeftDragging && !isRightDragging
-			if (isPanning) {
-				panX = getRelativeX(event)
-			}
-			containerDiv.style.cursor = 'grabbing'
-		}
+	useWindowEvent('pointerup', onPointerUp, { passive: true })
 
-		const onPointerMove = (event: MouseEvent) => {
-			event.preventDefault()
-			const percent = (100 * getRelativeX(event)) / wrapperWidth
-			if (isLeftDragging) {
-				setDragPercent(({ right }) => {
-					const zoomPercent = {
-						left: clamp(percent, 0, right - minZoomAreaPercent),
-						right,
-					}
-					update(zoomPercent)
-					return zoomPercent
-				})
-			} else if (isRightDragging) {
-				setDragPercent(({ left }) => {
-					const zoomPercent = {
-						left,
-						right: clamp(percent, left + minZoomAreaPercent, 100),
-					}
-					update(zoomPercent)
-					return zoomPercent
-				})
-			} else if (isPanning) {
+	const onPointerMove = (event: MouseEvent) => {
+		const percent = (100 * getRelativeX(event)) / containerWidth
+		if (isLeftDragging) {
+			setDragPercent(({ right }) => {
+				const zoomPercent = {
+					left: clamp(percent, 0, right - minZoomAreaPercent),
+					right,
+				}
+				requestAnimationFrame(() => update(zoomPercent))
+				return zoomPercent
+			})
+		} else if (isRightDragging) {
+			setDragPercent(({ left }) => {
+				const zoomPercent = {
+					left,
+					right: clamp(percent, left + minZoomAreaPercent, 100),
+				}
+				requestAnimationFrame(() => update(zoomPercent))
+				return zoomPercent
+			})
+		} else if (isPanning) {
+			setPanX((panX) => {
 				const offsetX = getRelativeX(event) - panX
-				const offset = (100 * offsetX) / wrapperWidth
+				const offset = (100 * offsetX) / containerWidth
 
 				setDragPercent(({ left, right }) => {
 					const width = right - left
@@ -105,51 +135,31 @@ const ZoomArea = ({ wrapperRef, update, minZoomAreaPercent }: Props) => {
 						left: newLeft,
 						right: newRight,
 					}
-					update(zoomPercent)
+					requestAnimationFrame(() => update(zoomPercent))
 					return zoomPercent
 				})
-				panX += offsetX
-			}
+				return panX + offsetX
+			})
 		}
+	}
 
-		const onPointerUp = () => {
-			if (isLeftDragging || isRightDragging || isPanning) {
-				isLeftDragging = false
-				isRightDragging = false
-				isPanning = false
-				setIsDragging(false)
-				containerDiv.style.cursor = 'grab'
-			}
-		}
+	useWindowEvent('pointermove', onPointerMove, { passive: true })
 
-		leftDiv.addEventListener('pointerdown', onLeftPointerDown)
-		rightDiv.addEventListener('pointerdown', onRightPointerDown)
-		containerDiv.addEventListener('pointerdown', onCenterPointerDown)
-		document.addEventListener('pointermove', onPointerMove)
-		document.addEventListener('pointerup', onPointerUp)
-		return () => {
-			leftDiv.removeEventListener('pointerdown', onLeftPointerDown)
-			rightDiv.removeEventListener('pointerdown', onRightPointerDown)
-			containerDiv.removeEventListener('pointerdown', onCenterPointerDown)
-			document.removeEventListener('pointermove', onPointerMove)
-			document.removeEventListener('pointerup', onPointerUp)
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [containerDiv, leftDiv, rightDiv, wrapperDiv, wrapperWidth, wrapperLeft])
-
-	useLayoutEffect(() => {
-		if (!isDragging) {
+	const doesNoAction = !isLeftDragging && !isRightDragging && !isPanning
+	useEffect(() => {
+		if (doesNoAction) {
 			setDragPercent(zoomAreaPercent)
 		}
-	}, [isDragging, zoomAreaPercent])
+	}, [doesNoAction, zoomAreaPercent])
 
 	const { left, right } = dragPercent
 	const percentWidth = clamp(right - left, minZoomAreaPercent, 100)
-	const isWide = (percentWidth * wrapperWidth) / 100 > 2 * ZOOM_AREA_SIDE + 1
+	const isWide =
+		(percentWidth * containerWidth) / 100 > 2 * ZOOM_AREA_SIDE + 1
 	const sideWidth = isWide ? ZOOM_AREA_SIDE : 0
 	const handleWidth = isWide ? 3 : 0
 
-	const isHidden = !isDragging && percentWidth === 100
+	const isHidden = percentWidth === 100
 	return (
 		<div
 			style={{
@@ -157,8 +167,9 @@ const ZoomArea = ({ wrapperRef, update, minZoomAreaPercent }: Props) => {
 				width: `${percentWidth}%`,
 				visibility: isHidden ? 'hidden' : 'visible',
 			}}
-			className={style.zoomArea}
-			ref={containerRef}
+			className={clsx(style.zoomArea, {
+				[style.animated]: !doesNoAction,
+			})}
 		>
 			<div
 				ref={leftRef}
@@ -170,7 +181,7 @@ const ZoomArea = ({ wrapperRef, update, minZoomAreaPercent }: Props) => {
 					style={{ width: handleWidth }}
 				/>
 			</div>
-
+			<div ref={containerRef} className={style.zoomAreaPanSpace} />
 			<div
 				ref={rightRef}
 				className={style.zoomAreaSide}

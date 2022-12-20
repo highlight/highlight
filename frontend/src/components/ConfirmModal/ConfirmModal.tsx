@@ -1,5 +1,6 @@
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
+import analytics from '@util/analytics'
 import { H } from 'highlight.run'
 import React, { useState } from 'react'
 import { useAsyncFn } from 'react-use'
@@ -104,7 +105,7 @@ const ConfirmModal = ({
 						buttonProps.onClick(e)
 					}
 					setShowModal(true)
-					H.track(`ConfirmModal-Open-${trackingId}`)
+					analytics.track(`ConfirmModal-Open-${trackingId}`)
 				}}
 			>
 				{buttonText}

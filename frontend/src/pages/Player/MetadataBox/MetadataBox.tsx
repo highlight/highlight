@@ -323,7 +323,7 @@ export const UserDetailsBox = React.memo(
 												type: 'Github',
 											} as SocialLink
 										}
-										key={'example'}
+										key="example"
 									/>
 									SOME INTERESTING DETAILS HERE
 								</div>

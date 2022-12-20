@@ -26,15 +26,18 @@ import {
 	useGetAdminLazyQuery,
 	useGetAdminRoleByProjectLazyQuery,
 	useGetAdminRoleLazyQuery,
+	useGetProjectLazyQuery,
 } from '@graph/hooks'
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import useLocalStorage from '@rehooks/local-storage'
+import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils'
 import { showHiringMessage } from '@util/console/hiringMessage'
 import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
+import { showIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
@@ -44,7 +47,16 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login'
+import { RequestWorker } from './worker'
 
+export const worker: RequestWorker = new Worker(
+	new URL('./worker.ts', import.meta.url),
+	{
+		type: 'module',
+	},
+)
+
+analytics.initialize()
 const dev = import.meta.env.DEV
 const options: HighlightOptions = {
 	debug: { clientInteractions: true, domRecording: true },
@@ -61,9 +73,6 @@ const options: HighlightOptions = {
 	},
 	tracingOrigins: ['highlight.run', 'localhost'],
 	integrations: {
-		mixpanel: {
-			projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',
-		},
 		amplitude: {
 			apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
 		},
@@ -78,7 +87,6 @@ const options: HighlightOptions = {
 	},
 	inlineStylesheet: true,
 	inlineImages: true,
-	scriptUrl: 'https://static.highlight.run/beta/index.js',
 	sessionShortcut: 'alt+1,command+`,alt+esc',
 }
 const favicon = document.querySelector("link[rel~='icon']") as any
@@ -109,12 +117,7 @@ H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 if (!isOnPrem) {
 	H.start()
 
-	window.Intercom('boot', {
-		app_id: 'gm6369ty',
-		alignment: 'right',
-		hide_default_launcher: true,
-	})
-
+	showIntercom({ hideMessage: true })
 	if (!dev) {
 		datadogLogs.init({
 			clientToken: import.meta.env.DD_CLIENT_TOKEN,
@@ -159,8 +162,8 @@ const App = () => {
 			<ApolloProvider client={client}>
 				<QueryParamProvider>
 					<SkeletonTheme
-						baseColor={'var(--color-gray-200)'}
-						highlightColor={'var(--color-primary-background)'}
+						baseColor="var(--color-gray-200)"
+						highlightColor="var(--color-primary-background)"
 					>
 						<AppLoadingContext
 							value={{
@@ -270,9 +273,34 @@ const AuthenticationRoleRouter = () => {
 	}
 
 	const { setLoadingState } = useAppLoadingContext()
+	const [getProjectQuery] = useGetProjectLazyQuery()
 
 	const [user, setUser] = useState<any>()
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
+
+	useEffect(() => {
+		// Wait until auth is finished loading otherwise this request can fail.
+		if (!adminData || !projectId || isAuthLoading(authRole)) {
+			return
+		}
+
+		getProjectQuery({
+			variables: {
+				id: projectId,
+			},
+			onCompleted: (data) => {
+				if (!data.project || !adminData) {
+					return
+				}
+
+				analytics.identify(adminData.id, {
+					'Project ID': data.project?.id,
+					'Workspace ID': data.workspace?.id,
+				})
+			},
+		})
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [adminData, authRole, projectId])
 
 	useEffect(() => {
 		const variables: Partial<{ workspace_id: string; project_id: string }> =
@@ -324,7 +352,7 @@ const AuthenticationRoleRouter = () => {
 			} else if (adminData) {
 				setAuthRole(AuthRole.AUTHENTICATED)
 			}
-			H.track('Authenticated')
+			analytics.track('Authenticated')
 		} else if (adminError) {
 			setAuthRole(AuthRole.UNAUTHENTICATED)
 		}
@@ -371,38 +399,40 @@ get in contact with us!
 					errorString={JSON.stringify(adminError)}
 				/>
 			) : (
-				<Router>
-					<Switch>
-						<Route path="/:project_id(0)/*" exact>
-							{/* Allow guests to access this route without being asked to log in */}
-							<AuthAdminRouter />
-						</Route>
-						<Route
-							path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
-							exact
-						>
-							{/* Allow guests to access this route without being asked to log in */}
-							<AuthAdminRouter />
-						</Route>
-						<Route
-							path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
-							exact
-						>
-							{/* Allow guests to access this route without being asked to log in */}
-							<AuthAdminRouter />
-						</Route>
-						<Route
-							path="/:project_id(\d+)/errors/:error_secure_id(\w+)"
-							exact
-						>
-							{/* Allow guests to access this route without being asked to log in */}
-							<AuthAdminRouter />
-						</Route>
-						<Route path="/">
-							<LoginForm />
-						</Route>
-					</Switch>
-				</Router>
+				<Switch>
+					<Route path="/subscriptions">
+						{/* This route uses a token for authentication */}
+						<AuthAdminRouter />
+					</Route>
+					<Route path="/:project_id(0)/*" exact>
+						{/* Allow guests to access this route without being asked to log in */}
+						<AuthAdminRouter />
+					</Route>
+					<Route
+						path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
+						exact
+					>
+						{/* Allow guests to access this route without being asked to log in */}
+						<AuthAdminRouter />
+					</Route>
+					<Route
+						path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
+						exact
+					>
+						{/* Allow guests to access this route without being asked to log in */}
+						<AuthAdminRouter />
+					</Route>
+					<Route
+						path="/:project_id(\d+)/errors/:error_secure_id(\w+)/:error_tab_key(\w+)?/:error_object_id(\d+)?"
+						exact
+					>
+						{/* Allow guests to access this route without being asked to log in */}
+						<AuthAdminRouter />
+					</Route>
+					<Route path="/">
+						<LoginForm />
+					</Route>
+				</Switch>
 			)}
 		</AuthContextProvider>
 	)

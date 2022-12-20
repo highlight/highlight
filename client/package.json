@@ -1,7 +1,7 @@
 {
 	"name": "@highlight-run/client",
 	"private": true,
-	"version": "1.3.8",
+	"version": "0.0.0",
 	"description": "rollup setup for writing a javascript library and making it available as script or npm package",
 	"main": "dist/index.js",
 	"module": "dist/indexESM.js",
@@ -29,7 +29,7 @@
 	"homepage": "https://github.com/highlight-run/highlight#readme",
 	"devDependencies": {
 		"@graphql-codegen/cli": "^2.11.2",
-		"@graphql-codegen/typescript": "^2.7.2",
+		"@graphql-codegen/typescript": "^2.8.1",
 		"@graphql-codegen/typescript-graphql-request": "^4.5.2",
 		"@graphql-codegen/typescript-operations": "^2.5.2",
 		"@rollup/plugin-commonjs": "^22.0.1",
@@ -74,7 +74,7 @@
 	"bundlesize": [
 		{
 			"path": "dist/**.js",
-			"maxSize": "150 kB"
+			"maxSize": "300 kB"
 		}
 	]
 }

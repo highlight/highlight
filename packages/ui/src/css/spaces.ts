@@ -1,14 +1,22 @@
 export const spaces = {
-	none: '0',
-	xxSmall: '2px',
-	xTiny: '3px',
-	xSmall: '4px',
-	tiny: '6px',
-	small: '8px',
-	narrow: '10px',
-	medium: '12px',
-	large: '16px',
-	wide: '20px',
-	xLarge: '24px',
-	xxLarge: '32px',
-}
+	'0': '0',
+	'1': '1px',
+	'3': '3px',
+	'2': '2px',
+	'4': '4px',
+	'6': '6px',
+	'7': '7px',
+	'8': '8px',
+	'9': '9px',
+	'10': '10px',
+	'12': '12px',
+	'16': '16px',
+	'20': '20px',
+	'24': '24px',
+	'28': '28px',
+	'32': '32px',
+	'40': '40px',
+} as const
+
+export type Space = keyof typeof spaces
+export const spaceNames = Object.keys(spaces) as readonly Space[]

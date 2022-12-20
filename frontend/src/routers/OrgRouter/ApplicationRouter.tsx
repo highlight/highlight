@@ -1,19 +1,20 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import AlertsRouter from '@pages/Alerts/AlertsRouter'
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
 import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
 import SetupRouter from '@pages/Setup/SetupRouter/SetupRouter'
-import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import React, { Suspense } from 'react'
 import { Redirect, Route, Switch } from 'react-router-dom'
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
-import ErrorPage from '../../pages/Error/ErrorPage'
-import Player from '../../pages/Player/PlayerPage'
+import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
+import { usePreloadErrors, usePreloadSessions } from '@util/preload'
+
+import PlayerPage from '../../pages/Player/PlayerPage'
 import ProjectSettings from '../../pages/ProjectSettings/ProjectSettings'
 
 interface Props {
@@ -21,27 +22,25 @@ interface Props {
 }
 
 const ApplicationRouter = ({ integrated }: Props) => {
+	const { page } = useSearchContext()
+	const { page: errorPage } = useErrorSearchContext()
+	usePreloadSessions({ page: page || 1 })
+	usePreloadErrors({ page: errorPage || 1 })
 	const { project_id } = useParams<{ project_id: string }>()
-	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
-	const [newErrorsPageEnabled] = useLocalStorage(
-		`highlight-new-errors-page-enabled`,
-		false,
-	)
+	const { isLoggedIn } = useAuthContext()
 
 	return (
 		<>
-			<KeyboardShortcutsEducation />
 			<Switch>
 				{/* These two routes do not require login */}
 				<Route path="/:project_id/sessions/:session_secure_id?" exact>
-					<Player integrated={integrated} />
+					<PlayerPage integrated={integrated} />
 				</Route>
-				<Route path="/:project_id/errors/:error_secure_id?" exact>
-					{isHighlightAdmin && newErrorsPageEnabled ? (
-						<ErrorsV2 />
-					) : (
-						<ErrorPage integrated={integrated} />
-					)}
+				<Route
+					path="/:project_id/errors/:error_secure_id?/:error_tab_key?/:error_object_id?"
+					exact
+				>
+					<ErrorsV2 />
 				</Route>
 				{/* If not logged in and project id is numeric and nonzero, redirect to login */}
 				{!isLoggedIn && (

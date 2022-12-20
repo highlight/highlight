@@ -2,12 +2,12 @@ import { useGetResourcesQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
 import { RequestResponsePair } from '@highlight-run/client'
 import { getGraphQLResolverName } from '@pages/Player/utils/utils'
+import { createContext } from '@util/context/context'
+import { indexedDBFetch } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import { useCallback, useEffect, useState } from 'react'
 import { BooleanParam, useQueryParam } from 'use-query-params'
-
-import { createContext } from '../../../util/context/context'
 
 interface ResourcesContext {
 	resourcesLoading: boolean
@@ -94,7 +94,7 @@ export const useResources = (
 			!!session?.resources_url
 		) {
 			setResourcesLoading(true)
-			fetch(session.resources_url)
+			indexedDBFetch(session.resources_url)
 				.then((response) => response.json())
 				.then((data) => {
 					setResources(

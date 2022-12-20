@@ -15,6 +15,12 @@ export const Sizes = () => {
 			<Badge size="medium" label="Medium" />
 			<br />
 			<Badge size="large" label="Large" />
+			<br />
+			<Badge shape="round" size="small" label="Small" />
+			<br />
+			<Badge shape="round" size="medium" label="Medium" />
+			<br />
+			<Badge shape="round" size="large" label="Large" />
 		</>
 	)
 }

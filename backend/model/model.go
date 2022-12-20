@@ -174,6 +174,7 @@ var Models = []interface{}{
 	&OAuthClientStore{},
 	&ResthookSubscription{},
 	&IntegrationProjectMapping{},
+	&EmailOptOut{},
 }
 
 func init() {
@@ -253,6 +254,7 @@ type Workspace struct {
 	ClearbitEnabled             bool       `gorm:"default:false"`
 	DiscordGuildId              *string
 	ClickupAccessToken          *string
+	PromoCode                   *string
 }
 
 type WorkspaceAdmin struct {
@@ -859,10 +861,11 @@ type ErrorSegment struct {
 
 type ErrorObject struct {
 	Model
+	ID               int `gorm:"primary_key;type:serial;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
 	OrganizationID   int
 	ProjectID        int `json:"project_id"`
 	SessionID        int
-	ErrorGroupID     int
+	ErrorGroupID     int `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
 	Event            string
 	Type             string
 	URL              string
@@ -899,6 +902,20 @@ type ErrorGroup struct {
 	Environments     string
 	IsPublic         bool    `gorm:"default:false"`
 	ErrorFrequency   []int64 `gorm:"-"`
+	ErrorMetrics     []*struct {
+		ErrorGroupID int
+		Date         time.Time
+		Name         string
+		Value        int64
+	} `gorm:"-"`
+	FirstOccurrence *time.Time `gorm:"-"`
+	LastOccurrence  *time.Time `gorm:"-"`
+}
+
+type ErrorInstance struct {
+	ErrorObject ErrorObject `json:"error_object"`
+	NextID      *int        `json:"next_id"`
+	PreviousID  *int        `json:"previous_id"`
 }
 
 type ErrorField struct {
@@ -1094,6 +1111,12 @@ var ErrorType = struct {
 }{
 	FRONTEND: "Frontend",
 	BACKEND:  "Backend",
+}
+
+type EmailOptOut struct {
+	Model
+	AdminID  int                             `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
+	Category modelInputs.EmailOptOutCategory `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {

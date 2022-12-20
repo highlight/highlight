@@ -1,5 +1,5 @@
 import Breadcrumb from '@components/Breadcrumb/Breadcrumb'
-import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils'
+import { getSlackUrl } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
 import { GetAlertsPagePayloadQuery } from '@graph/operations'
@@ -9,6 +9,7 @@ import EditAlertsPage from '@pages/Alerts/EditAlertsPage'
 import EditMonitorPage from '@pages/Alerts/EditMonitorPage'
 import NewAlertPage from '@pages/Alerts/NewAlertPage'
 import NewMonitorPage from '@pages/Alerts/NewMonitorPage'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -29,7 +30,7 @@ const AlertsRouter = () => {
 	const { data, loading } = useGetAlertsPagePayloadQuery({
 		variables: { project_id },
 	})
-	const slackUrl = getSlackUrl('Organization', project_id)
+	const slackUrl = getSlackUrl(project_id)
 	const history = useHistory<{ errorName: string }>()
 
 	useEffect(() => {
@@ -37,6 +38,8 @@ const AlertsRouter = () => {
 			setAlertsPayload(data)
 		}
 	}, [data, loading])
+
+	useEffect(() => analytics.page(), [])
 
 	return (
 		<AlertsContextProvider

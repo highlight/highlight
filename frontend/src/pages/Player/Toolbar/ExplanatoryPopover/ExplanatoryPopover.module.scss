@@ -1,0 +1,18 @@
+.explanatoryPopoverOverlay {
+	:global(.ant-popover-inner-content) {
+		align-items: center;
+		display: flex;
+		gap: 4px;
+		justify-content: center;
+		padding: 4px !important;
+	}
+
+	&:global(.ant-popover-placement-top) {
+		pointer-events: none;
+	}
+
+	&:global(.ant-popover-inner) {
+		border: 1px solid var(--color-neutral-200);
+		overflow: hidden;
+	}
+}

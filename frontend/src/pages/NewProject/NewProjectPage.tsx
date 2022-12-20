@@ -16,22 +16,21 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
+import analytics from '@util/analytics'
 import { client } from '@util/graph'
 import { useParams } from '@util/react-router/useParams'
+import { message } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Redirect, useLocation } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
-import commonStyles from '../../Common.module.scss'
 import Button from '../../components/Button/Button/Button'
 import styles from './NewProject.module.scss'
 
 const NewProjectPage = () => {
 	const { workspace_id } = useParams<{ workspace_id: string }>()
-	const [error, setError] = useState<undefined | string>(undefined)
 	const [name, setName] = useState<string>('')
 	const [autoJoinDomains, setAutoJoinDomains] = useState<string[]>()
 
@@ -55,9 +54,10 @@ const NewProjectPage = () => {
 
 	useEffect(() => {
 		if (projectError || workspaceError) {
-			setError(projectError?.message ?? workspaceError?.message)
+			const err = projectError?.message ?? workspaceError?.message
+			message.error(err)
 		}
-	}, [setError, projectError, workspaceError])
+	}, [projectError, workspaceError])
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
@@ -66,9 +66,12 @@ const NewProjectPage = () => {
 	const { data, loading } = useGetWorkspacesCountQuery()
 
 	const { search } = useLocation()
-	const [{ next }] = useQueryParams({
+	const [{ next, promo }] = useQueryParams({
 		next: StringParam,
+		promo: StringParam,
 	})
+	const [promoCode, setPromoCode] = useState(promo ?? '')
+	const [showPromoCode, setShowPromoCode] = useState(!!promoCode)
 
 	// User is creating a workspace if workspace is not specified in the URL
 	const isWorkspace = !workspace_id
@@ -79,10 +82,11 @@ const NewProjectPage = () => {
 			const result = await createWorkspace({
 				variables: {
 					name: name,
+					promo_code: promoCode || undefined,
 				},
 			})
 			const createdWorkspaceId = result.data?.createWorkspace?.id
-			H.track('CreateWorkspace', { name })
+			analytics.track('CreateWorkspace', { name })
 			await client.cache.reset()
 			setName('')
 			if (createdWorkspaceId && autoJoinDomains?.length) {
@@ -107,7 +111,7 @@ const NewProjectPage = () => {
 					namedOperations.Query.GetProjectsAndWorkspaces,
 				],
 			})
-			H.track('CreateProject', { name })
+			analytics.track('CreateProject', { name })
 			await client.cache.reset()
 			setName('')
 		}
@@ -131,7 +135,6 @@ const NewProjectPage = () => {
 		}
 	}
 
-	const pageType = isWorkspace ? 'workspace' : 'project'
 	const pageTypeCaps = isWorkspace ? 'Workspace' : 'Project'
 
 	return (
@@ -147,11 +150,6 @@ const NewProjectPage = () => {
 					{!isWorkspace &&
 						`Let's create a project! This is usually a single application (e.g. web front end, landing page, etc.).`}
 				</p>
-				{error && (
-					<div className={commonStyles.errorMessage}>
-						{`Error with ${pageType} name ` + error}
-					</div>
-				)}
 				<CardForm onSubmit={onSubmit} className={styles.cardForm}>
 					<Input
 						placeholder={
@@ -165,6 +163,28 @@ const NewProjectPage = () => {
 						autoComplete="off"
 						autoFocus
 					/>
+					{isWorkspace &&
+						(showPromoCode ? (
+							<label className={styles.inputLabel}>
+								Promo code
+								<Input
+									placeholder="Enter a promo code (optional)"
+									value={promoCode}
+									onChange={(e) => {
+										setPromoCode(e.target.value)
+									}}
+								/>
+							</label>
+						) : (
+							<span
+								onClick={() => {
+									setShowPromoCode(true)
+								}}
+								className={styles.promoCodeToggle}
+							>
+								Use a promo code?
+							</span>
+						))}
 					{isWorkspace && (
 						<AutoJoinForm
 							newWorkspace

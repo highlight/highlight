@@ -1,9 +1,10 @@
 import Input from '@components/Input/Input'
 import { namedOperations } from '@graph/operations'
+import { ErrorSegment, Maybe } from '@graph/schemas'
 import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 
 import Button from '../../../../components/Button/Button/Button'
@@ -19,17 +20,32 @@ interface Props {
 	onHideModal: () => void
 	/** Called after a segment is created. */
 	afterCreateHandler?: (segmentId: string, segmentValue: string) => void
+	currentSegment?: Maybe<Partial<ErrorSegment>>
 }
 
 const CreateErrorSegmentModal = ({
 	showModal,
 	onHideModal,
 	afterCreateHandler,
+	currentSegment,
 }: Props) => {
 	const [createSegment, { loading }] = useCreateErrorSegmentMutation({
 		refetchQueries: [namedOperations.Query.GetErrorSegments],
 	})
-	const [newSegmentName, setNewSegmentName] = useState('')
+
+	const [newSegmentName, setNewSegmentName] = useState(
+		currentSegment?.name ?? '',
+	)
+
+	const shouldUpdate = !!currentSegment
+	useEffect(() => {
+		if (shouldUpdate && currentSegment?.name) {
+			setNewSegmentName(currentSegment?.name)
+		} else {
+			setNewSegmentName('')
+		}
+	}, [currentSegment?.name, shouldUpdate])
+
 	const { project_id } = useParams<{
 		project_id: string
 		segment_id: string
@@ -40,6 +56,9 @@ const CreateErrorSegmentModal = ({
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
+		if (!newSegmentName) {
+			return
+		}
 		createSegment({
 			variables: {
 				project_id,
@@ -59,17 +78,23 @@ const CreateErrorSegmentModal = ({
 				)
 			}
 			onHideModal()
-			setNewSegmentName('')
-			message.success(
-				`Created '${r.data?.createErrorSegment?.name}' segment`,
-				5,
-			)
+			if (shouldUpdate) {
+				message.success(
+					`Changed '${currentSegment.name}' name to '${r.data?.createErrorSegment?.name}'`,
+					5,
+				)
+			} else {
+				message.success(
+					`Created '${r.data?.createErrorSegment?.name}' segment`,
+					5,
+				)
+			}
 		})
 	}
 
 	return (
 		<Modal
-			title="Create a Segment"
+			title={shouldUpdate ? 'Update a Segment' : 'Create a Segment'}
 			visible={showModal}
 			onCancel={onHideModal}
 			style={{ display: 'flex' }}
@@ -79,8 +104,8 @@ const CreateErrorSegmentModal = ({
 			<ModalBody>
 				<form onSubmit={onSubmit}>
 					<p className={styles.modalSubTitle}>
-						Creating a segment allows you to save search queries
-						that target a specific set of errors.
+						Segments allow you to save search queries that target a
+						specific set of errors.
 					</p>
 					<div className={styles.queryBuilderContainer}>
 						<ErrorQueryBuilder readonly />
@@ -91,11 +116,15 @@ const CreateErrorSegmentModal = ({
 						onChange={(e) => {
 							setNewSegmentName(e.target.value)
 						}}
-						placeholder={'Segment Name'}
+						placeholder="Segment Name"
 						autoFocus
 					/>
 					<Button
-						trackingId="SaveErrorSegmentFromExistingSegment"
+						trackingId={
+							shouldUpdate
+								? 'UpdateErrorSegment'
+								: 'SaveErrorSegment'
+						}
 						style={{
 							width: '100%',
 							marginTop: 24,
@@ -103,6 +132,7 @@ const CreateErrorSegmentModal = ({
 						}}
 						type="primary"
 						htmlType="submit"
+						disabled={!newSegmentName}
 					>
 						{loading ? (
 							<CircularSpinner
@@ -111,6 +141,8 @@ const CreateErrorSegmentModal = ({
 									color: 'var(--text-primary-inverted)',
 								}}
 							/>
+						) : shouldUpdate ? (
+							'Update Segment'
 						) : (
 							'Save As Segment'
 						)}

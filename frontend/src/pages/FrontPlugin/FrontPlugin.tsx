@@ -2,17 +2,17 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
+import HighlightSessions from '@pages/FrontPlugin/components/HighlightSessions'
+import { FrontContextProvider } from '@pages/FrontPlugin/Front/FrontContext'
 import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
-import { FrontContextProvider } from '@pages/FrontPlugin/Front/FrontContext'
-import HighlightSessions from '@pages/FrontPlugin/components/HighlightSessions'
 
 const FrontPlugin = () => {
 	const { setLoadingState } = useAppLoadingContext()
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
-	}, [])
+	}, [setLoadingState])
 
 	return (
 		<FrontContextProvider>

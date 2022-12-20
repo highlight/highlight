@@ -65,7 +65,7 @@ export const LengthInput = () => {
 				<Slider
 					range
 					className={styles.slider}
-					tooltipPlacement={'bottom'}
+					tooltipPlacement="bottom"
 					disabled={false}
 					min={0}
 					max={60}

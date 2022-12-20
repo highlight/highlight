@@ -7,7 +7,7 @@ import React from 'react'
 
 import styles from './Popover.module.scss'
 
-type PopoverProps = Pick<
+export type PopoverProps = Pick<
 	AntDesignPopoverProps,
 	| 'arrowContent'
 	| 'showArrow'

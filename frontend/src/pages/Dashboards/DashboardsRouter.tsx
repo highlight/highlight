@@ -29,7 +29,7 @@ const DashboardsRouter = () => {
 	const { data: adminsData } = useGetWorkspaceAdminsByProjectIdQuery({
 		variables: { project_id },
 	})
-	const { data, loading, error, called } = useGetDashboardDefinitionsQuery({
+	const { data, loading, called } = useGetDashboardDefinitionsQuery({
 		variables: { project_id },
 	})
 	const [upsertDashboardMutation] = useUpsertDashboardMutation({
@@ -37,34 +37,74 @@ const DashboardsRouter = () => {
 	})
 
 	useEffect(() => {
-		// create default dashboards
-		if (project_id && !loading && !error && called) {
-			if (
-				!data?.dashboard_definitions?.some(
-					(d) => d?.name === 'Web Vitals',
+		if (loading || !called) {
+			return
+		}
+
+		if (
+			!data?.dashboard_definitions?.some((d) => d?.name === 'Web Vitals')
+		) {
+			upsertDashboardMutation({
+				variables: {
+					project_id,
+					metrics: Object.values(WEB_VITALS_CONFIGURATION),
+					name: 'Web Vitals',
+					layout: JSON.stringify(DEFAULT_METRICS_LAYOUT),
+					is_default: true,
+				},
+			}).catch(H.consumeError)
+		}
+
+		const homeDashboard = data?.dashboard_definitions?.find(
+			(d) => d?.name === 'Home',
+		)
+		if (!homeDashboard?.metrics?.length) {
+			upsertDashboardMutation({
+				variables: {
+					project_id,
+					metrics: Object.values(HOME_DASHBOARD_CONFIGURATION),
+					name: 'Home',
+					layout: JSON.stringify(DEFAULT_HOME_DASHBOARD_LAYOUT),
+					is_default: true,
+				},
+			}).catch(H.consumeError)
+		} else {
+			const newMetrics = [...homeDashboard.metrics]
+
+			// if a legacy session count chart exists, update it
+			const oldSessionMetricIdx = newMetrics.findIndex(
+				(m) => m.component_type === 'SessionCountChart',
+			)
+			if (oldSessionMetricIdx !== -1) {
+				newMetrics[oldSessionMetricIdx] =
+					HOME_DASHBOARD_CONFIGURATION['Sessions']
+			}
+
+			// if a legacy error count chart exists, update it
+			const oldErrorMetricIdx = newMetrics.findIndex(
+				(m) => m.component_type === 'ErrorCountChart',
+			)
+			if (oldErrorMetricIdx !== -1) {
+				newMetrics[oldErrorMetricIdx] =
+					HOME_DASHBOARD_CONFIGURATION['Errors']
+			}
+
+			if (oldSessionMetricIdx !== -1 || oldErrorMetricIdx !== -1) {
+				console.log(
+					'Updating legacy home dashboard',
+					[...homeDashboard.metrics],
+					'to',
+					newMetrics,
+					{ oldSessionMetricIdx, oldErrorMetricIdx },
 				)
-			) {
 				upsertDashboardMutation({
 					variables: {
-						project_id,
-						metrics: Object.values(WEB_VITALS_CONFIGURATION),
-						name: 'Web Vitals',
-						layout: JSON.stringify(DEFAULT_METRICS_LAYOUT),
-						is_default: true,
+						...homeDashboard,
+						metrics: newMetrics,
 					},
 				}).catch(H.consumeError)
 			}
-			if (!data?.dashboard_definitions?.some((d) => d?.name === 'Home')) {
-				upsertDashboardMutation({
-					variables: {
-						project_id,
-						metrics: Object.values(HOME_DASHBOARD_CONFIGURATION),
-						name: 'Home',
-						layout: JSON.stringify(DEFAULT_HOME_DASHBOARD_LAYOUT),
-						is_default: true,
-					},
-				}).catch(H.consumeError)
-			}
+
 			if (
 				!data?.dashboard_definitions?.some(
 					(d) => d?.name === 'Request Metrics',
@@ -84,7 +124,7 @@ const DashboardsRouter = () => {
 			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [project_id, loading, error, called, data])
+	}, [loading, called])
 
 	return (
 		<DashboardsContextProvider
@@ -108,7 +148,7 @@ const DashboardsRouter = () => {
 				<title>Dashboards</title>
 			</Helmet>
 			<Switch>
-				<Route exact path={`/:project_id/home`}>
+				<Route exact path="/:project_id/home">
 					<HomePageV2 />
 				</Route>
 				<Route exact path={path}>

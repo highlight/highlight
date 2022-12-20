@@ -62,7 +62,7 @@
 
 .backdrop {
 	background: rgba(0, 0, 0, 0.5);
-	left: calc(-1 * var(--sidebar-width));
+	left: 0;
 	min-height: 200vh;
 	opacity: 0;
 	pointer-events: none;
@@ -78,8 +78,15 @@
 }
 
 .container {
+	display: inline-block;
+	max-width: 240px;
 	position: relative;
+	transition: all 0.1s ease-in-out;
 	width: 100%;
+
+	&:focus-within {
+		max-width: 550px;
+	}
 }
 
 .dropdownPlaceholder {

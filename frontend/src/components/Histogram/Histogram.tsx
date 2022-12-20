@@ -1,5 +1,8 @@
-import GoToButton from '@components/Button/GoToButton'
-import React, { useEffect, useState } from 'react'
+import tinycolor from '@ctrl/tinycolor'
+import { Box, Text } from '@highlight-run/ui'
+import { colors } from '@highlight-run/ui/src/css/colors'
+import moment from 'moment'
+import React, { useEffect, useMemo, useState } from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import { Bar, BarChart, Cell, ReferenceArea, Tooltip } from 'recharts'
 
@@ -7,12 +10,12 @@ import styles from './Histogram.module.scss'
 
 export interface Series {
 	label: string
-	color: string // Color as a css var e.g. --color-green-300
+	color: keyof typeof colors
 	counts: number[]
 }
 
-const POPOVER_TIMEOUT_MS = 300
-const BAR_RADIUS_PX = 2
+const POPOVER_TIMEOUT_MS = 500
+const BAR_RADIUS_PX = 4
 
 interface Props {
 	bucketTimes: number[]
@@ -20,9 +23,7 @@ interface Props {
 	onBucketClicked: (bucketIndex: number) => void
 	seriesList: Series[]
 	timeFormatter: (value: number) => string
-	tooltipContent: (bucketIndex: number) => React.ReactNode
-	tooltipDelayMs?: number
-	gotoAction?: (bucketIndex: number) => void
+	barGap?: number
 }
 
 const Histogram = React.memo(
@@ -31,15 +32,21 @@ const Histogram = React.memo(
 		onBucketClicked,
 		seriesList,
 		bucketTimes,
-		timeFormatter,
-		tooltipContent,
-		tooltipDelayMs,
-		gotoAction,
+		barGap = 3,
 	}: Props) => {
 		const [dragStart, setDragStart] = useState<number | undefined>()
 		const [dragEnd, setDragEnd] = useState<number | undefined>()
 		const [tooltipHidden, setTooltipHidden] = useState(true)
 		const [tooltipWantHidden, setTooltipWantHidden] = useState(true)
+
+		// sets the visual minimum bar value
+		// (to ensure bars are not so short that the border radius looks weird)
+		const maxBarValue = useMemo(() => {
+			return Math.max(
+				...seriesList.flatMap((value) => Math.max(...value.counts)),
+			)
+		}, [seriesList])
+		const minBarValue = Math.floor(maxBarValue * 0.2)
 
 		let dragLeft: number | undefined
 		let dragRight: number | undefined
@@ -49,7 +56,6 @@ const Histogram = React.memo(
 		}
 
 		const bucketStartTimes = bucketTimes.slice(0, -1)
-		const bucketEndTimes = bucketTimes.slice(1)
 		const seriesLength = bucketStartTimes.length
 
 		const chartData: {
@@ -61,7 +67,11 @@ const Histogram = React.memo(
 
 		for (const s of seriesList) {
 			for (let i = 0; i < seriesLength; i++) {
-				chartData[i][s.label] = s.counts[i]
+				chartData[i][`${s.label}-raw`] = s.counts[i]
+				chartData[i][s.label] =
+					s.counts[i] > 0
+						? Math.max(minBarValue, s.counts[i])
+						: s.counts[i]
 			}
 		}
 
@@ -96,55 +106,13 @@ const Histogram = React.memo(
 				tooltipWantHidden
 					? () => setTooltipHidden(true)
 					: () => setTooltipHidden(false),
-				tooltipWantHidden ? POPOVER_TIMEOUT_MS : tooltipDelayMs || 0,
+				POPOVER_TIMEOUT_MS,
 			)
 
 			return () => {
 				clearTimeout(id)
 			}
-		}, [tooltipHidden, tooltipWantHidden, tooltipDelayMs])
-
-		const CustomTooltip = ({ label }: any) => {
-			let inner
-			if (dragLeft !== undefined && dragRight !== undefined) {
-				const leftTime = timeFormatter(bucketStartTimes[dragLeft])
-				const rightTime = timeFormatter(bucketEndTimes[dragRight])
-				inner = (
-					<div className={styles.title}>
-						{leftTime} to {rightTime}
-					</div>
-				)
-			} else {
-				const leftTime = timeFormatter(bucketStartTimes[label])
-				const rightTime = timeFormatter(bucketEndTimes[label])
-				inner = (
-					<>
-						<div className={styles.title}>
-							{`${leftTime} to ${rightTime}`}
-							{gotoAction && (
-								<GoToButton onClick={() => gotoAction(label)} />
-							)}
-						</div>
-						<div className={styles.popoverContent}>
-							{label !== undefined && tooltipContent(label)}
-						</div>
-					</>
-				)
-			}
-			return (
-				<div
-					className={styles.tooltipPopover}
-					onMouseOver={() => {
-						setTooltipWantHidden(false)
-					}}
-					onMouseLeave={() => {
-						setTooltipWantHidden(true)
-					}}
-				>
-					{inner}
-				</div>
-			)
-		}
+		}, [tooltipHidden, tooltipWantHidden])
 
 		// assert all series have the same length
 		if (!seriesList.every((s) => s.counts.length === seriesLength)) {
@@ -162,7 +130,8 @@ const Histogram = React.memo(
 						{({ height, width }) => (
 							<BarChart
 								data={chartData}
-								barGap={0}
+								barGap={barGap}
+								barCategoryGap={barGap}
 								margin={{
 									top: 0,
 									right: 0,
@@ -211,7 +180,17 @@ const Histogram = React.memo(
 								}}
 							>
 								<Tooltip
-									content={<CustomTooltip />}
+									content={
+										tooltipHidden ? undefined : (
+											<CustomTooltip
+												seriesList={seriesList}
+												bucketTimes={bucketTimes}
+												setTooltipWantHidden={
+													setTooltipWantHidden
+												}
+											/>
+										)
+									}
 									wrapperStyle={{
 										bottom: '100%',
 										top: 'none',
@@ -229,6 +208,7 @@ const Histogram = React.memo(
 											dragRight !== undefined
 												? 'transparent'
 												: 'rgba(204, 204, 204, .5)',
+										radius: 3,
 									}}
 									allowEscapeViewBox={{
 										x: false,
@@ -241,9 +221,9 @@ const Histogram = React.memo(
 										key={s.label}
 										dataKey={s.label}
 										stackId="a"
-										fill={`var(${s.color})`}
+										fill={colors[s.color]}
 									>
-										{chartData.map((entry, i) => {
+										{chartData.map((_, i) => {
 											const isFirst =
 												firstSeries[i] === s.label
 											const isLast =
@@ -287,5 +267,61 @@ const Histogram = React.memo(
 		)
 	},
 )
+
+const CustomTooltip: React.FC<{
+	setTooltipWantHidden: (value: React.SetStateAction<boolean>) => void
+	bucketTimes: number[]
+	payload?: any[]
+	label?: number
+	seriesList: Series[]
+}> = ({ bucketTimes, seriesList, payload, label, setTooltipWantHidden }) => {
+	if (!payload || !payload.length || !label) {
+		return null
+	}
+
+	const currentTime = bucketTimes[label]
+
+	return (
+		<Box
+			alignItems="center"
+			borderRadius="6"
+			border="neutral"
+			display="flex"
+			gap="4"
+			p="4"
+			background="white"
+			onMouseOver={() => {
+				setTooltipWantHidden(false)
+			}}
+			onMouseLeave={() => {
+				setTooltipWantHidden(true)
+			}}
+		>
+			<Text color="neutral300" size="xSmall" weight="medium">
+				{moment(currentTime).format('MMM D')}
+			</Text>
+
+			{payload.map((p, index) => {
+				const series = seriesList.find((s) => s.label === p.dataKey)
+				const color = series?.color || 'black'
+				const colorIsDark = tinycolor(p.color).getBrightness() < 165
+				const rawValue = p.payload[`${p.name}-raw`]
+
+				return (
+					<Box
+						key={index}
+						borderRadius="3"
+						backgroundColor={color}
+						p="4"
+					>
+						<Text color={colorIsDark ? 'white' : 'neutral700'}>
+							{rawValue} {p.name}
+						</Text>
+					</Box>
+				)
+			})}
+		</Box>
+	)
+}
 
 export default Histogram

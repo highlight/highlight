@@ -1,8 +1,10 @@
+import { normalizeParams } from '@context/BaseSearchContext'
 import {
 	useGetFieldsOpensearchQuery,
 	useGetFieldTypesQuery,
 } from '@graph/hooks'
 import { SearchParamsInput } from '@graph/schemas'
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import QueryBuilder, {
 	BOOLEAN_OPERATORS,
@@ -20,8 +22,19 @@ import QueryBuilder, {
 	VIEWED_BY_OPERATORS,
 } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
 import { useParams } from '@util/react-router/useParams'
+import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params'
+import { isEqual } from 'lodash'
 import moment from 'moment'
-import React from 'react'
+import React, { useEffect } from 'react'
+import {
+	ArrayParam,
+	BooleanParam,
+	JsonParam,
+	NumberParam,
+	StringParam,
+	useQueryParam,
+	useQueryParams,
+} from 'use-query-params'
 
 export const TIME_RANGE_FIELD: SelectOption = {
 	kind: 'single',
@@ -231,9 +244,116 @@ const SessionsQueryBuilder = React.memo(
 			variables: { project_id },
 		})
 
+		const searchContext = useSearchContext()
+
+		const {
+			searchParams,
+			setSearchParams,
+			page,
+			setPage,
+			selectedSegment,
+			setSelectedSegment,
+		} = searchContext
+
+		const [searchParamsToUrlParams, setSearchParamsToUrlParams] =
+			useQueryParams({
+				user_properties: FieldArrayParam,
+				identified: BooleanParam,
+				browser: StringParam,
+				date_range: JsonParam,
+				excluded_properties: FieldArrayParam,
+				hide_viewed: BooleanParam,
+				length_range: JsonParam,
+				os: StringParam,
+				referrer: StringParam,
+				track_properties: FieldArrayParam,
+				excluded_track_properties: FieldArrayParam,
+				visited_url: StringParam,
+				first_time: BooleanParam,
+				device_id: StringParam,
+				show_live_sessions: BooleanParam,
+				environments: ArrayParam,
+				app_versions: ArrayParam,
+				query: QueryBuilderStateParam,
+			})
+
+		const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
+			'segment',
+			JsonParam,
+		)
+
+		const [paginationToUrlParams, setPaginationToUrlParams] =
+			useQueryParams({
+				page: NumberParam,
+			})
+
+		useEffect(() => {
+			if (page !== undefined) {
+				setPaginationToUrlParams(
+					{
+						page: page,
+					},
+					'replaceIn',
+				)
+			}
+		}, [setPaginationToUrlParams, page])
+
+		useEffect(() => {
+			if (
+				paginationToUrlParams.page &&
+				page != paginationToUrlParams.page
+			) {
+				setPage(paginationToUrlParams.page)
+			}
+			// We only want to run this on mount (i.e. when the page first loads).
+			// eslint-disable-next-line react-hooks/exhaustive-deps
+		}, [])
+
+		useEffect(() => {
+			if (!isEqual(searchParams, EmptySessionsSearchParams)) {
+				setSearchParamsToUrlParams(
+					normalizeParams(searchParams),
+					'replaceIn',
+				)
+			}
+		}, [
+			setSearchParamsToUrlParams,
+			searchParams,
+			selectedSegment,
+			activeSegmentUrlParam,
+		])
+
+		// Session Segment Deep Linking
+		useEffect(() => {
+			if (selectedSegment && selectedSegment.id && selectedSegment.name) {
+				if (!isEqual(activeSegmentUrlParam, selectedSegment)) {
+					setActiveSegmentUrlParam(selectedSegment, 'replace')
+				}
+			} else if (activeSegmentUrlParam !== undefined) {
+				setActiveSegmentUrlParam(undefined, 'replace')
+			}
+			// eslint-disable-next-line react-hooks/exhaustive-deps
+		}, [selectedSegment, setActiveSegmentUrlParam])
+
+		useEffect(() => {
+			if (activeSegmentUrlParam) {
+				setSelectedSegment(activeSegmentUrlParam)
+			}
+			const params = normalizeParams(
+				searchParamsToUrlParams.query !== undefined
+					? (searchParamsToUrlParams as SearchParamsInput)
+					: EmptySessionsSearchParams,
+			)
+
+			setSearchParams(params)
+
+			// We only want to run this on mount (i.e. when the page first loads).
+			// eslint-disable-next-line react-hooks/exhaustive-deps
+		}, [])
+
 		return (
 			<QueryBuilder
-				searchContext={useSearchContext()}
+				searchContext={searchContext}
 				timeRangeField={TIME_RANGE_FIELD}
 				customFields={CUSTOM_FIELDS}
 				fetchFields={fetchFields}

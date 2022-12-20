@@ -9,7 +9,7 @@ on:
 jobs:
     build:
         name: Build Yarn Turborepo
-        timeout-minutes: 15
+        timeout-minutes: 30
         runs-on: ubuntu-latest
         # configures turborepo Remote Caching
         env:
@@ -33,6 +33,14 @@ jobs:
                   node-version: 16
                   cache: 'yarn'
 
+            - uses: dorny/paths-filter@v2
+              id: filter
+              with:
+                  filters: |
+                      highlight-run:
+                        - 'client/**'
+                        - 'firstload/**'
+
             - name: Install js dependencies
               run: yarn
 
@@ -42,19 +50,30 @@ jobs:
             - name: Build & test
               run: yarn test:all
 
-            - name: Upload frontend sourcemaps
-              if: github.ref == 'refs/heads/master'
-              run: yarn && yarn sourcemaps:frontend
-              env:
-                  HIGHLIGHT_API_KEY: ${{ secrets.HIGHLIGHT_SOURCEMAP_API_KEY }}
-
             - name: Configure AWS credentials
-              if: github.ref == 'refs/heads/master'
               uses: aws-actions/configure-aws-credentials@v1
               with:
                   aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws-region: us-east-2
+
+            - name: Validate project is ready to be published
+              if: steps.filter.outputs.highlight-run == 'true'
+              run: yarn prepublish
+
+            # always publish client, even in PRs
+            # this is ok because the final push to master of the version will replace
+            # any previous builds, while doing this in PR will allow the PR frontend preview
+            # to reference the PR's latest version of client
+            - name: Publish client bundle
+              if: steps.filter.outputs.highlight-run == 'true'
+              run: yarn publish:client
+
+            - name: Upload frontend sourcemaps
+              if: github.ref == 'refs/heads/master'
+              run: yarn && yarn sourcemaps:frontend
+              env:
+                  HIGHLIGHT_API_KEY: ${{ secrets.HIGHLIGHT_SOURCEMAP_API_KEY }}
 
             - name: Configure yarn npm registry credentials
               if: github.ref == 'refs/heads/master'

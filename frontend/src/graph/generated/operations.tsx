@@ -125,17 +125,6 @@ export type DeleteAdminFromWorkspaceMutation = {
 	__typename?: 'Mutation'
 } & Pick<Types.Mutation, 'deleteAdminFromWorkspace'>
 
-export type OpenSlackConversationMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	code: Types.Scalars['String']
-	redirect_path: Types.Scalars['String']
-}>
-
-export type OpenSlackConversationMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'openSlackConversation'
->
-
 export type AddIntegrationToProjectMutationVariables = Types.Exact<{
 	integration_type?: Types.Maybe<Types.IntegrationType>
 	project_id: Types.Scalars['ID']
@@ -210,6 +199,7 @@ export type SubmitRegistrationFormMutation = { __typename?: 'Mutation' } & Pick<
 
 export type CreateWorkspaceMutationVariables = Types.Exact<{
 	name: Types.Scalars['String']
+	promo_code?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateWorkspaceMutation = { __typename?: 'Mutation' } & {
@@ -1170,6 +1160,18 @@ export type UpdateClickUpSettingsMutation = { __typename?: 'Mutation' } & Pick<
 	'updateClickUpProjectMappings'
 >
 
+export type UpdateEmailOptOutMutationVariables = Types.Exact<{
+	token?: Types.Maybe<Types.Scalars['String']>
+	admin_id?: Types.Maybe<Types.Scalars['ID']>
+	category: Types.EmailOptOutCategory
+	is_opt_out: Types.Scalars['Boolean']
+}>
+
+export type UpdateEmailOptOutMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'updateEmailOptOut'
+>
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -1485,6 +1487,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
 			| 'postal'
 			| 'fingerprint'
 			| 'created_at'
+			| 'payload_updated_at'
 			| 'language'
 			| 'user_object'
 			| 'user_properties'
@@ -2065,6 +2068,7 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 				{ __typename?: 'ErrorGroup' } & Pick<
 					Types.ErrorGroup,
 					| 'created_at'
+					| 'updated_at'
 					| 'id'
 					| 'secure_id'
 					| 'type'
@@ -2073,6 +2077,8 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 					| 'environments'
 					| 'stack_trace'
 					| 'error_frequency'
+					| 'is_public'
+					| 'project_id'
 				> & {
 						structured_stack_trace: Array<
 							Types.Maybe<
@@ -2083,6 +2089,12 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 									| 'functionName'
 									| 'columnNumber'
 								>
+							>
+						>
+						error_metrics: Array<
+							{ __typename?: 'ErrorDistributionItem' } & Pick<
+								Types.ErrorDistributionItem,
+								'error_group_id' | 'date' | 'name' | 'value'
 							>
 						>
 					}
@@ -2542,6 +2554,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'ErrorGroup' } & Pick<
 			Types.ErrorGroup,
 			| 'created_at'
+			| 'updated_at'
 			| 'id'
 			| 'secure_id'
 			| 'type'
@@ -2552,6 +2565,8 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 			| 'stack_trace'
 			| 'error_frequency'
 			| 'is_public'
+			| 'last_occurrence'
+			| 'first_occurrence'
 		> & {
 				structured_stack_trace: Array<
 					Types.Maybe<
@@ -2578,6 +2593,155 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 						>
 					>
 				>
+				error_metrics: Array<
+					{ __typename?: 'ErrorDistributionItem' } & Pick<
+						Types.ErrorDistributionItem,
+						'error_group_id' | 'date' | 'name' | 'value'
+					>
+				>
+			}
+	>
+}
+
+export type GetErrorObjectQueryVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+}>
+
+export type GetErrorObjectQuery = { __typename?: 'Query' } & {
+	error_object?: Types.Maybe<
+		{ __typename?: 'ErrorObject' } & Pick<
+			Types.ErrorObject,
+			| 'id'
+			| 'created_at'
+			| 'project_id'
+			| 'error_group_id'
+			| 'error_group_secure_id'
+			| 'event'
+			| 'type'
+			| 'url'
+			| 'source'
+			| 'lineNumber'
+			| 'columnNumber'
+			| 'stack_trace'
+			| 'timestamp'
+			| 'payload'
+			| 'request_id'
+			| 'os'
+			| 'browser'
+			| 'environment'
+		> & {
+				session?: Types.Maybe<
+					{ __typename?: 'Session' } & Pick<
+						Types.Session,
+						| 'identifier'
+						| 'fingerprint'
+						| 'secure_id'
+						| 'city'
+						| 'state'
+						| 'country'
+						| 'user_properties'
+					>
+				>
+				structured_stack_trace: Array<
+					Types.Maybe<
+						{ __typename?: 'ErrorTrace' } & Pick<
+							Types.ErrorTrace,
+							| 'fileName'
+							| 'lineNumber'
+							| 'functionName'
+							| 'columnNumber'
+							| 'lineContent'
+							| 'linesBefore'
+							| 'linesAfter'
+							| 'error'
+						>
+					>
+				>
+			}
+	>
+}
+
+export type GetErrorInstanceQueryVariables = Types.Exact<{
+	error_group_secure_id: Types.Scalars['String']
+	error_object_id?: Types.Maybe<Types.Scalars['ID']>
+}>
+
+export type GetErrorInstanceQuery = { __typename?: 'Query' } & {
+	error_instance?: Types.Maybe<
+		{ __typename?: 'ErrorInstance' } & Pick<
+			Types.ErrorInstance,
+			'next_id' | 'previous_id'
+		> & {
+				error_object: { __typename?: 'ErrorObject' } & Pick<
+					Types.ErrorObject,
+					| 'id'
+					| 'created_at'
+					| 'project_id'
+					| 'error_group_id'
+					| 'error_group_secure_id'
+					| 'event'
+					| 'type'
+					| 'url'
+					| 'source'
+					| 'lineNumber'
+					| 'columnNumber'
+					| 'stack_trace'
+					| 'timestamp'
+					| 'payload'
+					| 'request_id'
+					| 'os'
+					| 'browser'
+					| 'environment'
+				> & {
+						session?: Types.Maybe<
+							{ __typename?: 'Session' } & Pick<
+								Types.Session,
+								| 'identifier'
+								| 'fingerprint'
+								| 'secure_id'
+								| 'city'
+								| 'state'
+								| 'country'
+								| 'user_properties'
+							>
+						>
+						structured_stack_trace: Array<
+							Types.Maybe<
+								{ __typename?: 'ErrorTrace' } & Pick<
+									Types.ErrorTrace,
+									| 'fileName'
+									| 'lineNumber'
+									| 'functionName'
+									| 'columnNumber'
+									| 'lineContent'
+									| 'linesBefore'
+									| 'linesAfter'
+									| 'error'
+								> & {
+										sourceMappingErrorMetadata?: Types.Maybe<
+											{
+												__typename?: 'SourceMappingError'
+											} & Pick<
+												Types.SourceMappingError,
+												| 'errorCode'
+												| 'stackTraceFileURL'
+												| 'sourcemapFetchStrategy'
+												| 'sourceMapURL'
+												| 'minifiedFetchStrategy'
+												| 'actualMinifiedFetchedPath'
+												| 'minifiedLineNumber'
+												| 'minifiedColumnNumber'
+												| 'actualSourcemapFetchedPath'
+												| 'sourcemapFileSize'
+												| 'minifiedFileSize'
+												| 'mappedLineNumber'
+												| 'mappedColumnNumber'
+											>
+										>
+									}
+							>
+						>
+					}
 			}
 	>
 }
@@ -3126,14 +3290,10 @@ export type GetSlackChannelSuggestionQueryVariables = Types.Exact<{
 }>
 
 export type GetSlackChannelSuggestionQuery = { __typename?: 'Query' } & {
-	slack_channel_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'SanitizedSlackChannel' } & Pick<
-					Types.SanitizedSlackChannel,
-					'webhook_channel' | 'webhook_channel_id'
-				>
-			>
+	slack_channel_suggestion: Array<
+		{ __typename?: 'SanitizedSlackChannel' } & Pick<
+			Types.SanitizedSlackChannel,
+			'webhook_channel' | 'webhook_channel_id'
 		>
 	>
 }
@@ -3285,14 +3445,10 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 	is_integrated_with_slack: Types.Query['is_integrated_with']
 	is_integrated_with_discord: Types.Query['is_integrated_with']
 } & {
-	slack_channel_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'SanitizedSlackChannel' } & Pick<
-					Types.SanitizedSlackChannel,
-					'webhook_channel' | 'webhook_channel_id'
-				>
-			>
+	slack_channel_suggestion: Array<
+		{ __typename?: 'SanitizedSlackChannel' } & Pick<
+			Types.SanitizedSlackChannel,
+			'webhook_channel' | 'webhook_channel_id'
 		>
 	>
 	discord_channel_suggestions: Array<
@@ -3451,12 +3607,10 @@ export type GetCommentMentionSuggestionsQuery = { __typename?: 'Query' } & {
 			>
 		}
 	>
-	slack_members: Array<
-		Types.Maybe<
-			{ __typename?: 'SanitizedSlackChannel' } & Pick<
-				Types.SanitizedSlackChannel,
-				'webhook_channel' | 'webhook_channel_id'
-			>
+	slack_channel_suggestion: Array<
+		{ __typename?: 'SanitizedSlackChannel' } & Pick<
+			Types.SanitizedSlackChannel,
+			'webhook_channel' | 'webhook_channel_id'
 		>
 	>
 }
@@ -3610,6 +3764,36 @@ export type GetOAuthClientMetadataQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorGroupFrequenciesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	error_group_secure_ids:
+		| Array<Types.Scalars['String']>
+		| Types.Scalars['String']
+	params: Types.ErrorGroupFrequenciesParamsInput
+	metric: Types.Scalars['String']
+}>
+
+export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
+	errorGroupFrequencies: Array<
+		Types.Maybe<
+			{ __typename?: 'ErrorDistributionItem' } & Pick<
+				Types.ErrorDistributionItem,
+				'error_group_id' | 'date' | 'name' | 'value'
+			>
+		>
+	>
+}
+
+export type GetEmailOptOutsQueryVariables = Types.Exact<{
+	token?: Types.Maybe<Types.Scalars['String']>
+	admin_id?: Types.Maybe<Types.Scalars['ID']>
+}>
+
+export type GetEmailOptOutsQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'email_opt_outs'
+>
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -3658,6 +3842,8 @@ export const namedOperations = {
 		GetBillingDetails: 'GetBillingDetails' as const,
 		GetSubscriptionDetails: 'GetSubscriptionDetails' as const,
 		GetErrorGroup: 'GetErrorGroup' as const,
+		GetErrorObject: 'GetErrorObject' as const,
+		GetErrorInstance: 'GetErrorInstance' as const,
 		GetRecentErrors: 'GetRecentErrors' as const,
 		GetMessages: 'GetMessages' as const,
 		GetResources: 'GetResources' as const,
@@ -3714,6 +3900,8 @@ export const namedOperations = {
 		GetSourcemapFiles: 'GetSourcemapFiles' as const,
 		GetSourcemapVersions: 'GetSourcemapVersions' as const,
 		GetOAuthClientMetadata: 'GetOAuthClientMetadata' as const,
+		GetErrorGroupFrequencies: 'GetErrorGroupFrequencies' as const,
+		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 	},
 	Mutation: {
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
@@ -3729,7 +3917,6 @@ export const namedOperations = {
 		ChangeAdminRole: 'ChangeAdminRole' as const,
 		DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
 		DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
-		OpenSlackConversation: 'OpenSlackConversation' as const,
 		AddIntegrationToProject: 'AddIntegrationToProject' as const,
 		RemoveIntegrationFromProject: 'RemoveIntegrationFromProject' as const,
 		AddIntegrationToWorkspace: 'AddIntegrationToWorkspace' as const,
@@ -3782,6 +3969,7 @@ export const namedOperations = {
 		DeleteSessions: 'DeleteSessions' as const,
 		UpdateVercelSettings: 'UpdateVercelSettings' as const,
 		UpdateClickUpSettings: 'UpdateClickUpSettings' as const,
+		UpdateEmailOptOut: 'UpdateEmailOptOut' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

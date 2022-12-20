@@ -7,9 +7,9 @@ import SvgPlusIcon from '@icons/PlusIcon'
 import alertStyles from '@pages/Alerts/Alerts.module.scss'
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext'
 import { DEFAULT_METRICS_LAYOUT } from '@pages/Dashboards/Metrics'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { Form } from 'antd'
-import { H } from 'highlight.run'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router-dom'
 
@@ -41,7 +41,7 @@ const CreateDashboardModal = () => {
 					setShowModal(false)
 				}}
 				visible={showModal}
-				title={'Create a New Dashboard'}
+				title="Create a New Dashboard"
 				width="800px"
 			>
 				<ModalBody>
@@ -67,7 +67,7 @@ const CreateDashboardModal = () => {
 						<CardFormActionsContainer>
 							<div className={styles.submitRow}>
 								<Button
-									type={'primary'}
+									type="primary"
 									style={{
 										width: 105,
 									}}
@@ -80,7 +80,7 @@ const CreateDashboardModal = () => {
 											}}
 										/>
 									}
-									trackingId={'CreateDashboard'}
+									trackingId="CreateDashboard"
 									htmlType="submit"
 								>
 									Create
@@ -91,11 +91,11 @@ const CreateDashboardModal = () => {
 				</ModalBody>
 			</Modal>
 			<Button
-				trackingId={'NewDashboard'}
+				trackingId="NewDashboard"
 				className={alertStyles.callToAction}
 				onClick={() => {
 					setShowModal(true)
-					H.track(`CreateDashboardModal-Open`)
+					analytics.track(`CreateDashboardModal-Open`)
 				}}
 			>
 				New Dashboard

@@ -26,8 +26,13 @@ interface PerformanceData {
 }
 
 const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
-	const { performancePayloads, jankPayloads, pause, events, session } =
-		useReplayerContext()
+	const {
+		performancePayloads,
+		jankPayloads,
+		pause,
+		eventsForTimelineIndicator,
+		session,
+	} = useReplayerContext()
 
 	const performanceData: PerformanceData[] = performancePayloads.map(
 		(payload) => {
@@ -59,9 +64,12 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 	)
 	performanceData.sort((a, b) => a.timestamp - b.timestamp)
 
-	const isLoading = events.length === 0 && performancePayloads.length === 0
+	const isLoading =
+		eventsForTimelineIndicator.length === 0 &&
+		performancePayloads.length === 0
 	const hasNoPerformancePayloads =
-		events.length > 0 && performancePayloads.length === 0
+		eventsForTimelineIndicator.length > 0 &&
+		performancePayloads.length === 0
 
 	return (
 		<div className={styles.container}>
@@ -156,7 +164,10 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						)
 						if (data.length === 0 || !hasData) {
 							return (
-								<div className={styles.noDataContainer}>
+								<div
+									className={styles.noDataContainer}
+									key={key}
+								>
 									<p>
 										{session?.browser_name}{' '}
 										{session?.browser_version} does not

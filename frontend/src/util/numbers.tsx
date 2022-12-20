@@ -23,3 +23,9 @@ export const formatNumberWithDelimiters = (number?: number) => {
 export function clamp(value: number, min: number, max: number): number {
 	return Math.max(min, Math.min(max, value))
 }
+
+export function range(start: number, end: number, step?: number) {
+	const $step = step ?? 1
+	const length = Math.floor((end - start) / $step)
+	return Array.from({ length }, (_, idx) => idx * $step + start)
+}

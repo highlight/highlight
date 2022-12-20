@@ -4,7 +4,6 @@
 	gap: 0 0;
 	grid-template-areas: '. Left-Panel Center-Panel Right-Panel .';
 	grid-template-columns: auto 300px minmax(200px, 700px) 300px auto;
-	height: 100%;
 	padding-left: 100px;
 	padding-top: 100px;
 	width: 100%;
@@ -26,4 +25,10 @@
 	display: flex;
 	flex-direction: column;
 	width: 100%;
+}
+
+.sourcemapErrors {
+	margin: 20px auto;
+	max-width: 980px;
+	padding: 0 20px;
 }

@@ -17,10 +17,8 @@ import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import PlayerCommentCanvas, {
 	Coordinates2D,
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
-import {
-	SessionViewability,
-	usePlayer,
-} from '@pages/Player/PlayerHook/PlayerHook'
+import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook'
+import { SessionViewability } from '@pages/Player/PlayerHook/PlayerState'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import PlayerPageProductTour from '@pages/Player/PlayerPageProductTour/PlayerPageProductTour'
 import {
@@ -31,7 +29,9 @@ import {
 	ResourcesContextProvider,
 	useResources,
 } from '@pages/Player/ResourcesContext/ResourcesContext'
-import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
+import RightPlayerPanel, {
+	DUAL_PANEL_VIEWPORT_THRESHOLD,
+} from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
 import SearchPanel from '@pages/Player/SearchPanel/SearchPanel'
 import SessionLevelBar from '@pages/Player/SessionLevelBar/SessionLevelBar'
 import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel'
@@ -42,14 +42,23 @@ import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
+import analytics from '@util/analytics'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
 import Lottie from 'lottie-react'
-import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+	Suspense,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import useResizeAware from 'react-resize-aware'
+import { useWindowSize } from 'react-use'
 
 import WaitingAnimation from '../../lottie/waiting.json'
 import styles from './PlayerPage.module.scss'
@@ -64,7 +73,7 @@ export const RIGHT_PANEL_WIDTH = 350
 const CENTER_COLUMN_MARGIN = 16
 const MIN_CENTER_COLUMN_WIDTH = 428
 
-const Player = ({ integrated }: Props) => {
+const PlayerPage = ({ integrated }: Props) => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
 	const { session_secure_id } = useParams<{
@@ -76,14 +85,12 @@ const Player = ({ integrated }: Props) => {
 	const player = usePlayer()
 	const {
 		state: replayerState,
-		scale: replayerScale,
 		setScale,
 		replayer,
 		time,
 		sessionViewability,
 		isPlayerReady,
 		session,
-		isLoadingEvents,
 		currentUrl,
 	} = player
 
@@ -95,8 +102,11 @@ const Player = ({ integrated }: Props) => {
 	})
 
 	const resources = useResources(session)
-	const { setShowLeftPanel, showLeftPanel: showLeftPanelPreference } =
-		usePlayerConfiguration()
+	const {
+		setShowRightPanel,
+		setShowLeftPanel,
+		showLeftPanel: showLeftPanelPreference,
+	} = usePlayerConfiguration()
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
@@ -128,39 +138,43 @@ const Player = ({ integrated }: Props) => {
 		}
 	}, [session_secure_id, setShowLeftPanel])
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const resizePlayer = (replayer: Replayer): boolean => {
-		const width = replayer?.wrapper?.getBoundingClientRect().width
-		const height = replayer?.wrapper?.getBoundingClientRect().height
-		const targetWidth = playerWrapperRef.current?.clientWidth
-		const targetHeight = playerWrapperRef.current?.clientHeight
-		if (!width || !targetWidth || !height || !targetHeight) {
-			return false
-		}
-		const widthScale = (targetWidth - 80) / width
-		const heightScale = (targetHeight - 80) / height
-		const scale = Math.min(heightScale, widthScale)
-		// If calculated scale is close enough to 1, return to avoid
-		// infinite looping caused by small floating point math differences
-		if (scale >= 0.9999 && scale <= 1.0001) {
+	const resizePlayer = useCallback(
+		(replayer: Replayer): boolean => {
+			const width = replayer?.wrapper?.getBoundingClientRect().width
+			const height = replayer?.wrapper?.getBoundingClientRect().height
+			const targetWidth = playerWrapperRef.current?.clientWidth
+			const targetHeight = playerWrapperRef.current?.clientHeight
+			if (!width || !targetWidth || !height || !targetHeight) {
+				return false
+			}
+			const widthScale = (targetWidth - 80) / width
+			const heightScale = (targetHeight - 80) / height
+			const scale = Math.min(heightScale, widthScale)
+			// If calculated scale is close enough to 1, return to avoid
+			// infinite looping caused by small floating point math differences
+			if (scale >= 0.9999 && scale <= 1.0001) {
+				return true
+			}
+
+			if (scale <= 0) {
+				return false
+			}
+
+			setScale((s) => {
+				const replayerScale = s * scale
+
+				// why translate -50 -50 -> https://medium.com/front-end-weekly/absolute-centering-in-css-ea3a9d0ad72e
+				replayer?.wrapper?.setAttribute(
+					'style',
+					`transform: scale(${replayerScale}) translate(-50%, -50%)`,
+				)
+
+				return replayerScale
+			})
 			return true
-		}
-
-		if (scale <= 0) {
-			return false
-		}
-
-		// why translate -50 -50 -> https://medium.com/front-end-weekly/absolute-centering-in-css-ea3a9d0ad72e
-		replayer?.wrapper?.setAttribute(
-			'style',
-			`transform: scale(${replayerScale * scale}) translate(-50%, -50%)`,
-		)
-
-		setScale((s) => {
-			return s * scale
-		})
-		return true
-	}
+		},
+		[setScale],
+	)
 
 	// This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
 	useEffect(() => {
@@ -168,7 +182,7 @@ const Player = ({ integrated }: Props) => {
 			if (replayer && resizePlayer(replayer)) {
 				clearInterval(i)
 			}
-		}, 200)
+		}, 1000 / 60)
 		return () => {
 			i && clearInterval(i)
 		}
@@ -179,7 +193,7 @@ const Player = ({ integrated }: Props) => {
 	const playerBoundingClientRectHeight =
 		replayer?.wrapper?.getBoundingClientRect().height
 
-	// On any change to replayer, 'sizes', or 'showConsole', refresh the size of the player.
+	// On any change to replayer, 'sizes', refresh the size of the player.
 	useEffect(() => {
 		replayer && resizePlayer(replayer)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -189,6 +203,8 @@ const Player = ({ integrated }: Props) => {
 		playerBoundingClientRectWidth,
 		playerBoundingClientRectHeight,
 	])
+
+	useEffect(() => analytics.page(), [session_secure_id])
 
 	const showLeftPanel =
 		showLeftPanelPreference &&
@@ -211,6 +227,9 @@ const Player = ({ integrated }: Props) => {
 		)
 	}, [controllerWidth])
 
+	const { width: windowWidth } = useWindowSize()
+
+	const replayerWrapperBbox = replayer?.wrapper.getBoundingClientRect()
 	return (
 		<PlayerUIContextProvider
 			value={{
@@ -265,6 +284,14 @@ const Player = ({ integrated }: Props) => {
 								direction="left"
 								isOpen={showLeftPanelPreference}
 								onClick={() => {
+									if (
+										!showLeftPanelPreference &&
+										windowWidth <=
+											DUAL_PANEL_VIEWPORT_THRESHOLD
+									) {
+										setShowRightPanel(false)
+									}
+
 									setShowLeftPanel(!showLeftPanelPreference)
 								}}
 							/>
@@ -378,10 +405,8 @@ const Player = ({ integrated }: Props) => {
 														styles.manuallyStoppedMessageContainer
 													}
 													style={{
-														height: replayer?.wrapper.getBoundingClientRect()
-															.height,
-														width: replayer?.wrapper.getBoundingClientRect()
-															.width,
+														height: replayerWrapperBbox?.height,
+														width: replayerWrapperBbox?.width,
 													}}
 												>
 													<ElevatedCard title="Session recording manually stopped">
@@ -418,36 +443,25 @@ const Player = ({ integrated }: Props) => {
 													</ElevatedCard>
 												</div>
 											)}
-											{isPlayerReady && (
-												<PlayerCommentCanvas
-													setModalPosition={
-														setCommentModalPosition
-													}
-													isReplayerReady={
-														isPlayerReady
-													}
-													modalPosition={
-														commentModalPosition
-													}
-													setCommentPosition={
-														setCommentPosition
-													}
-													isLoadingEvents={
-														isLoadingEvents
-													}
-												/>
-											)}
 											<div
 												style={{
 													visibility: isPlayerReady
 														? 'visible'
 														: 'hidden',
 												}}
-												className={classNames(
-													styles.rrwebPlayerDiv,
-													'highlight-block',
-												)}
+												className="highlight-block"
 												id="player"
+											/>
+											<PlayerCommentCanvas
+												setModalPosition={
+													setCommentModalPosition
+												}
+												modalPosition={
+													commentModalPosition
+												}
+												setCommentPosition={
+													setCommentPosition
+												}
 											/>
 											{!isPlayerReady &&
 												sessionViewability ===
@@ -486,7 +500,7 @@ const Player = ({ integrated }: Props) => {
 						newCommentModalRef={newCommentModalRef}
 						commentModalPosition={commentModalPosition}
 						commentPosition={commentPosition}
-						commentTime={time || 0}
+						commentTime={time}
 						session={session}
 						session_secure_id={session_secure_id}
 						onCancel={() => {
@@ -509,8 +523,8 @@ const PlayerSkeleton = ({
 }) => {
 	return (
 		<SkeletonTheme
-			baseColor={'var(--text-primary-inverted)'}
-			highlightColor={'#f5f5f5'}
+			baseColor="var(--text-primary-inverted)"
+			highlightColor="#f5f5f5"
 		>
 			<Skeleton
 				height={height}
@@ -521,7 +535,7 @@ const PlayerSkeleton = ({
 	)
 }
 
-export default Player
+export default PlayerPage
 
 const getTabTitle = (session?: Session) => {
 	if (!session) {

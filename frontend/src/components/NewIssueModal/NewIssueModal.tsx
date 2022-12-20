@@ -190,9 +190,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							>
 								<Select
 									aria-label={`${selectedIntegration.name} Team`}
-									placeholder={
-										'Choose a team to create the issue in'
-									}
+									placeholder="Choose a team to create the issue in"
 									options={linearTeamsOptions}
 									onChange={setLinearTeamId}
 									value={selectedlinearTeamId}

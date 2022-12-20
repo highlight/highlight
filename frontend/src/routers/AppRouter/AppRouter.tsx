@@ -3,6 +3,7 @@ import '../../App.scss'
 import { useAuthContext } from '@authentication/AuthContext'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { AccountsPage } from '@pages/Accounts/Accounts'
+import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import { Landing } from '@pages/Landing/Landing'
 import LoginForm from '@pages/Login/Login'
@@ -29,6 +30,9 @@ export const AppRouter = () => {
 		<div className={styles.appBody}>
 			<Router>
 				<Switch>
+					<Route path="/subscriptions">
+						<EmailOptOutPage />
+					</Route>
 					<Route path="/accounts">
 						<AccountsPage />
 					</Route>

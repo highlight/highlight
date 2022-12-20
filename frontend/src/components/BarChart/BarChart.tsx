@@ -1,46 +1,43 @@
 import Tooltip from '@components/Tooltip/Tooltip'
-import React, { useEffect, useState } from 'react'
+import classNames from 'classnames'
+import React from 'react'
 
-import styles from './BarChart.module.scss'
+import * as style from './BarChart.css'
 
 interface Props {
 	data: Array<number>
 	xAxis?: string
 	yAxis?: string
 	height?: number
-	width?: number
-	sharedMaxNum?: number
-	showBase?: boolean
+	width?: number | string
+	maxValue?: number
+	minBarHeight?: number
+	selected?: boolean
+	barGap?: number
 }
 
 const BarChart = ({
 	data,
 	xAxis = 'day',
-	yAxis = 'occurence',
+	yAxis = 'occurrence',
 	height = 60,
 	width = 100,
-	sharedMaxNum,
-	showBase = true,
+	maxValue,
+	minBarHeight,
+	selected,
+	barGap = 3,
 }: Props) => {
-	const [maxNum, setMaxNum] = useState(5)
-
-	useEffect(() => {
-		if (!!sharedMaxNum) {
-			setMaxNum(sharedMaxNum)
-		} else {
-			setMaxNum(Math.max(...data, 5))
-		}
-	}, [sharedMaxNum, data])
+	const max = maxValue ?? Math.max(...data, 5)
 
 	return (
 		<div
 			style={{ height: height, width: width }}
-			className={styles.barChartWrapper}
+			className={style.barChartWrapper}
 		>
 			{data.map((num, ind) => {
-				const tmpBarHeight = (height - 4) * (num / maxNum)
-				const barHeight =
-					tmpBarHeight === 0 ? 0 : Math.max(tmpBarHeight, 3)
+				const barHeight = num
+					? Math.max((height - 4) * (num / max), 8)
+					: minBarHeight ?? 0
 				return (
 					<Tooltip
 						title={`${
@@ -48,14 +45,21 @@ const BarChart = ({
 						} ${xAxis}(s) ago\n ${num} ${yAxis}(s)`}
 						key={ind}
 					>
-						<div className={styles.barDiv}>
+						<div
+							className={style.barDiv}
+							style={{
+								paddingLeft: barGap / 2,
+								paddingRight: barGap / 2,
+							}}
+						>
 							<div
-								className={styles.bar}
+								className={classNames(style.bar, {
+									[style.barSelected]: !!selected,
+								})}
 								style={{
 									height: `${barHeight}px`,
 								}}
 							/>
-							{showBase && <div className={styles.barBase}></div>}
 						</div>
 					</Tooltip>
 				)

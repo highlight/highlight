@@ -7,15 +7,12 @@ import {
 	findNextSessionInList,
 	findPreviousSessionInList,
 } from '@pages/Player/PlayerHook/utils'
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import {
-	PLAYBACK_MAX_SPEED,
-	PLAYBACK_MIN_SPEED,
-	PLAYBACK_SPEED_INCREMENT,
-} from '@pages/Player/Toolbar/SpeedControl/SpeedControl'
+import usePlayerConfiguration, {
+	PLAYBACK_SPEED_OPTIONS,
+} from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import { H } from 'highlight.run'
 import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useHistory } from 'react-router-dom'
@@ -61,8 +58,8 @@ export const usePlayerKeyboardShortcuts = () => {
 	} = useReplayerContext()
 	const { setIsPlayerFullscreen } = usePlayerUIContext()
 	const {
-		setPlayerSpeed,
-		playerSpeed,
+		setPlayerSpeedIdx,
+		playerSpeedIdx,
 		setEnableInspectElement,
 		setShowLeftPanel,
 		showLeftPanel,
@@ -107,7 +104,7 @@ export const usePlayerKeyboardShortcuts = () => {
 		'space',
 		(e) => {
 			if (replayer) {
-				H.track('PlayerPausePlayKeyboardShortcut')
+				analytics.track('PlayerPausePlayKeyboardShortcut')
 				moveFocusToDocument(e)
 
 				switch (state) {
@@ -122,6 +119,8 @@ export const usePlayerKeyboardShortcuts = () => {
 					case ReplayerState.Loading:
 					case ReplayerState.SessionRecordingStopped:
 						break
+					case ReplayerState.SessionEnded:
+						play(0)
 				}
 			}
 		},
@@ -132,7 +131,7 @@ export const usePlayerKeyboardShortcuts = () => {
 		'left',
 		(e) => {
 			if (replayer) {
-				H.track('PlayerSkipBackwardsKeyboardShortcut')
+				analytics.track('PlayerSkipBackwardsKeyboardShortcut')
 				moveFocusToDocument(e)
 
 				const newTime = getNewTimeWithSkip({
@@ -147,6 +146,7 @@ export const usePlayerKeyboardShortcuts = () => {
 					case ReplayerState.Paused:
 					case ReplayerState.LoadedAndUntouched:
 					case ReplayerState.LoadedWithDeepLink:
+					case ReplayerState.SessionEnded:
 						pause(newTime)
 						break
 					case ReplayerState.Loading:
@@ -162,7 +162,7 @@ export const usePlayerKeyboardShortcuts = () => {
 		'right',
 		(e) => {
 			if (replayer) {
-				H.track('PlayerSkipForwardsKeyboardShortcut')
+				analytics.track('PlayerSkipForwardsKeyboardShortcut')
 				moveFocusToDocument(e)
 
 				const totalTime = sessionMetadata.totalTime
@@ -194,7 +194,7 @@ export const usePlayerKeyboardShortcuts = () => {
 		'shift+n',
 		(e) => {
 			if (sessionResults.sessions.length > 0 && session_secure_id) {
-				H.track('PlayerSkipToNextSessionKeyboardShortcut')
+				analytics.track('PlayerSkipToNextSessionKeyboardShortcut')
 				moveFocusToDocument(e)
 
 				const nextSession = findNextSessionInList(
@@ -211,7 +211,7 @@ export const usePlayerKeyboardShortcuts = () => {
 		'shift+p',
 		(e) => {
 			if (sessionResults.sessions.length > 0 && session_secure_id) {
-				H.track('PlayerSkipToPreviousSessionKeyboardShortcut')
+				analytics.track('PlayerSkipToPreviousSessionKeyboardShortcut')
 				moveFocusToDocument(e)
 
 				const nextSession = findPreviousSessionInList(
@@ -230,52 +230,36 @@ export const usePlayerKeyboardShortcuts = () => {
 	)
 
 	useHotkeys(
-		'shift+.',
+		'cmd+up, ctrl+up',
 		(e) => {
-			H.track('PlayerIncreasePlayerSpeedKeyboardShortcut')
+			analytics.track('PlayerIncreasePlayerSpeedKeyboardShortcut')
 			moveFocusToDocument(e)
 
-			if (playerSpeed === PLAYBACK_MAX_SPEED) {
-				message.success(
-					`Playback speed is already at the max: ${PLAYBACK_MAX_SPEED}x`,
-				)
-				return
+			if (playerSpeedIdx !== PLAYBACK_SPEED_OPTIONS.length - 1) {
+				setPlayerSpeedIdx(playerSpeedIdx + 1)
 			}
-
-			const newSpeed = playerSpeed + PLAYBACK_SPEED_INCREMENT
-			setPlayerSpeed(newSpeed)
-
-			message.success(`Playback speed set to ${newSpeed.toFixed(1)}x`)
 		},
-		[playerSpeed],
+		[playerSpeedIdx],
 	)
 
 	useHotkeys(
-		'shift+,',
+		'cmd+down, ctrl+down',
 		(e) => {
-			H.track('PlayerDecreasePlayerSpeedKeyboardShortcut')
+			analytics.track('PlayerDecreasePlayerSpeedKeyboardShortcut')
 			moveFocusToDocument(e)
 
-			if (playerSpeed === PLAYBACK_MIN_SPEED) {
-				message.success(
-					`Playback speed is already at the minimum: ${PLAYBACK_MIN_SPEED}x`,
-				)
-				return
+			if (playerSpeedIdx !== 0) {
+				setPlayerSpeedIdx(playerSpeedIdx - 1)
 			}
-
-			const newSpeed = playerSpeed - PLAYBACK_SPEED_INCREMENT
-			setPlayerSpeed(newSpeed)
-
-			message.success(`Playback speed set to ${newSpeed.toFixed(1)}x`)
 		},
-		[playerSpeed],
+		[playerSpeedIdx],
 	)
 
 	useHotkeys(
 		'f',
 		(e) => {
 			if (replayer) {
-				H.track('PlayerToggleFullscreenKeyboardShortcut')
+				analytics.track('PlayerToggleFullscreenKeyboardShortcut')
 				moveFocusToDocument(e)
 
 				setIsPlayerFullscreen((previousState) => !previousState)
@@ -285,7 +269,7 @@ export const usePlayerKeyboardShortcuts = () => {
 	)
 
 	useHotkeys('c', (e) => {
-		H.track('PlayerEnableCommentsKeyboardShortcut')
+		analytics.track('PlayerEnableCommentsKeyboardShortcut')
 		moveFocusToDocument(e)
 
 		setEnableInspectElement(false)
@@ -295,7 +279,7 @@ export const usePlayerKeyboardShortcuts = () => {
 	})
 
 	useHotkeys('d', (e) => {
-		H.track('PlayerEnableInspectElementKeyboardShortcut')
+		analytics.track('PlayerEnableInspectElementKeyboardShortcut')
 		moveFocusToDocument(e)
 
 		setEnableInspectElement(true)
@@ -307,7 +291,7 @@ export const usePlayerKeyboardShortcuts = () => {
 	useHotkeys(
 		'cmd+b, ctrl+b',
 		(e) => {
-			H.track('PlayerToggleLeftSidebarKeyboardShortcut')
+			analytics.track('PlayerToggleLeftSidebarKeyboardShortcut')
 			moveFocusToDocument(e)
 
 			setShowLeftPanel(!showLeftPanel)
@@ -318,7 +302,7 @@ export const usePlayerKeyboardShortcuts = () => {
 	useHotkeys(
 		'cmd+i, ctrl+i',
 		(e) => {
-			H.track('PlayerToggleRightSidebarKeyboardShortcut')
+			analytics.track('PlayerToggleRightSidebarKeyboardShortcut')
 			moveFocusToDocument(e)
 
 			setShowRightPanel(!showRightPanel)
@@ -329,7 +313,7 @@ export const usePlayerKeyboardShortcuts = () => {
 	useHotkeys(
 		'cmd+e, ctrl+e',
 		(e) => {
-			H.track('PlayerToggleTimelineKeyboardShortcut')
+			analytics.track('PlayerToggleTimelineKeyboardShortcut')
 			moveFocusToDocument(e)
 
 			setShowHistogram(!showHistogram)
@@ -340,7 +324,7 @@ export const usePlayerKeyboardShortcuts = () => {
 	useHotkeys(
 		'cmd+/, ctrl+/',
 		(e) => {
-			H.track('PlayerToggleDevToolsKeyboardShortcut')
+			analytics.track('PlayerToggleDevToolsKeyboardShortcut')
 			moveFocusToDocument(e)
 
 			setShowDevTools(!showDevTools)

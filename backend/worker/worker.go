@@ -17,24 +17,21 @@ import (
 	"sync"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/alerts"
-	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/leonelquinteros/hubspot"
-
-	"gorm.io/gorm"
-
-	highlightErrors "github.com/highlight-run/highlight/backend/errors"
-
+	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm"
 
+	"github.com/highlight-run/highlight/backend/alerts"
+	highlightErrors "github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
+	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/payload"
@@ -42,8 +39,9 @@ import (
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	pubgraph "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	storage "github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
 )
 
@@ -107,47 +105,68 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 	return nil
 }
 
-func (w *Worker) writeEventChunk(ctx context.Context, manager *payload.PayloadManager, eventObject *model.EventsObject, s *model.Session) error {
+func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.PayloadManager, eventObject *model.EventsObject, s *model.Session) error {
 	events, err := parse.EventsFromString(eventObject.Events)
 	if err != nil {
 		return errors.Wrap(err, "error parsing events from string")
 	}
-	var timestamp int64
+
+	chunkIdx := 0
+	hadFullSnapshot := false
+	var eventChunks [][]*parse.ReplayEvent
 	for _, event := range events.Events {
 		if event.Type == parse.FullSnapshot {
-			timestamp = int64(event.TimestampRaw)
-			break
+			if hadFullSnapshot {
+				chunkIdx++
+			}
+			hadFullSnapshot = true
 		}
+		if len(eventChunks) <= chunkIdx {
+			eventChunks = append(eventChunks, []*parse.ReplayEvent{})
+		}
+		eventChunks[chunkIdx] = append(eventChunks[chunkIdx], event)
 	}
-	if timestamp != 0 {
-		sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
-		if manager.EventsChunked != nil {
-			manager.EventsChunked.Close()
+	for _, events := range eventChunks {
+		if len(events) == 0 {
+			continue
 		}
-		curChunkedFile := manager.GetFile(payload.EventsChunked)
-		if curChunkedFile != nil {
-			curOffset := manager.ChunkIndex
-			_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, curChunkedFile, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(curOffset))
-			if err != nil {
-				return errors.Wrap(err, "error pushing event chunk file to s3")
+		if hadFullSnapshot {
+			sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
+			if manager.EventsChunked != nil {
+				// close the chunk file
+				if err := manager.EventsChunked.Close(); err != nil {
+					return errors.Wrap(err, "error closing chunked events writer")
+				}
+			}
+			curChunkedFile := manager.GetFile(payload.EventsChunked)
+			if curChunkedFile != nil {
+				curOffset := manager.ChunkIndex
+				_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, curChunkedFile, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(curOffset))
+				if err != nil {
+					return errors.Wrap(err, "error pushing event chunk file to s3")
+				}
+			}
+			if err := manager.NewChunkedFile(sessionIdString); err != nil {
+				return errors.Wrap(err, "error creating new chunked events file")
+			}
+			eventChunk := &model.EventChunk{
+				SessionID:  s.ID,
+				ChunkIndex: manager.ChunkIndex,
+				Timestamp:  int64(events[0].TimestampRaw),
+			}
+			if err := w.Resolver.DB.Create(eventChunk).Error; err != nil {
+				return errors.Wrap(err, "error saving event chunk metadata")
 			}
 		}
-		if err := manager.NewChunkedFile(sessionIdString); err != nil {
-			return errors.Wrap(err, "error creating new chunked events file")
+		eventsBytes, err := json.Marshal(&parse.ReplayEvents{Events: events})
+		if err != nil {
+			return errors.Wrap(err, "error marshalling chunked events")
 		}
-		eventChunk := &model.EventChunk{
-			SessionID:  s.ID,
-			ChunkIndex: manager.ChunkIndex,
-			Timestamp:  int64(timestamp),
-		}
-		if err := w.Resolver.DB.Create(eventChunk).Error; err != nil {
-			return errors.Wrap(err, "error saving event chunk metadata")
-		}
-	}
-	if manager.GetFile(payload.EventsChunked) != nil {
-		if err := manager.EventsChunked.WriteObject(eventObject, &payload.EventsUnmarshalled{}); err != nil {
-			if err != nil {
-				return errors.Wrap(err, "error writing chunked event")
+		if manager.GetFile(payload.EventsChunked) != nil {
+			if err := manager.EventsChunked.WriteObject(&model.EventsObject{Events: string(eventsBytes)}, &payload.EventsUnmarshalled{}); err != nil {
+				if err != nil {
+					return errors.Wrap(err, "error writing chunked event")
+				}
 			}
 		}
 	}
@@ -188,7 +207,7 @@ func (w *Worker) fetchEventsSql(ctx context.Context, manager *payload.PayloadMan
 			}
 			numberOfRows += 1
 			if writeChunks {
-				if err := w.writeEventChunk(ctx, manager, &eventObject, s); err != nil {
+				if err := w.writeToEventChunk(ctx, manager, &eventObject, s); err != nil {
 					return errors.Wrap(err, "error writing event chunk")
 				}
 			}
@@ -229,7 +248,7 @@ func (w *Worker) fetchEventsRedis(ctx context.Context, manager *payload.PayloadM
 		}
 		numberOfRows += 1
 		if writeChunks {
-			if err := w.writeEventChunk(ctx, manager, &eventObject, s); err != nil {
+			if err := w.writeToEventChunk(ctx, manager, &eventObject, s); err != nil {
 				return errors.Wrap(err, "error writing event chunk")
 			}
 		}
@@ -857,6 +876,33 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	}
 
+	if err := w.PublicResolver.PushMetricsImpl(ctx, s.SecureID, []*publicModel.MetricInput{
+		{
+			SessionSecureID: s.SecureID,
+			Timestamp:       s.CreatedAt,
+			Name:            mgraph.SessionActiveMetricName,
+			Value:           float64(accumulator.ActiveDuration.Milliseconds()),
+			Category:        pointy.String(model.InternalMetricCategory),
+			Tags: []*publicModel.MetricTag{
+				{Name: "Excluded", Value: "false"},
+				{Name: "Processed", Value: "true"},
+			},
+		},
+		{
+			SessionSecureID: s.SecureID,
+			Timestamp:       s.CreatedAt,
+			Name:            mgraph.SessionProcessedMetricName,
+			Value:           float64(s.ID),
+			Category:        pointy.String(model.InternalMetricCategory),
+			Tags: []*publicModel.MetricTag{
+				{Name: "Excluded", Value: "false"},
+				{Name: "Processed", Value: "true"},
+			},
+		},
+	}); err != nil {
+		log.Errorf("failed to submit session processing metric for %s: %s", s.SecureID, err)
+	}
+
 	// Update session count on dailydb
 	currentDate := time.Date(s.CreatedAt.UTC().Year(), s.CreatedAt.UTC().Month(), s.CreatedAt.UTC().Day(), 0, 0, 0, 0, time.UTC)
 	dailySession := &model.DailySessionCount{}
@@ -1213,12 +1259,21 @@ func (w *Worker) RefreshMaterializedViews() {
 
 	if !util.IsDevOrTestEnv() {
 		for _, c := range counts {
+			// See HIG-2743
+			// Skip updating session count for demo workspace because we exclude it from Hubspot
+			if c.WorkspaceID == 0 {
+				continue
+			}
+
 			if err := w.Resolver.HubspotApi.UpdateCompanyProperty(c.WorkspaceID, []hubspot.Property{{
 				Name:     "highlight_session_count",
 				Property: "highlight_session_count",
 				Value:    c.Count,
 			}}); err != nil {
-				log.Fatal(e.Wrap(err, "error updating highlight session count in hubspot"))
+				log.WithFields(log.Fields{
+					"workspace_id": c.WorkspaceID,
+					"value":        c.Count,
+				}).Fatal(e.Wrap(err, "error updating highlight session count in hubspot"))
 			}
 			time.Sleep(150 * time.Millisecond)
 		}

@@ -9,6 +9,12 @@
 	z-index: 999999999999;
 
 	&.spinner {
+		left: -2px;
+		top: -2px;
+	}
+
+	&.search {
+		left: 10px;
 		top: 6px;
 	}
 }
@@ -21,10 +27,9 @@
 }
 
 .loadingIconContainer {
-	--size: var(--size-medium);
+	--size: 14px;
 	height: var(--size) !important;
 	margin-left: var(--size-small);
-	top: 3px !important;
 	width: var(--size) !important;
 
 	:global(.ant-spin),

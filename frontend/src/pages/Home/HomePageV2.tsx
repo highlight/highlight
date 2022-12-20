@@ -4,10 +4,11 @@ import DemoWorkspaceButton, {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useGetAdminQuery } from '@graph/hooks'
 import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage'
+import analytics from '@util/analytics'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import Lottie from 'lottie-react'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link } from 'react-router-dom'
 
@@ -16,6 +17,8 @@ import WaitingAnimation from '../../lottie/waiting.json'
 import styles from './HomePage.module.scss'
 
 const HomePageV2 = () => {
+	useEffect(() => analytics.page(), [])
+
 	const { loading: adminLoading, data: adminData } = useGetAdminQuery({
 		skip: false,
 	})
@@ -56,7 +59,7 @@ const HomePageV2 = () => {
 									</h2>
 								</div>
 							}
-							dashboardName={'Home'}
+							dashboardName="Home"
 						/>
 					</div>
 					{!integrated && (

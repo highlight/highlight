@@ -19,6 +19,7 @@
 		"highlight-node",
 		"render",
 		"rrweb/packages/*",
+		"scripts",
 		"sourcemap-uploader"
 	],
 	"scripts": {
@@ -35,15 +36,18 @@
 		"dev:frontend": "yarn turbo run dev --filter frontend...",
 		"dev:redis": "redis-server",
 		"enforce-size": "yarn turbo run enforce-size --filter frontend...",
-		"format-check": "prettier --check --ignore-unknown . \"!./data\"",
-		"format:all": "prettier --write --ignore-unknown . \"!./data\"",
+		"format-check": "prettier --check --ignore-unknown . \"!./data\" \"!./docs\" \"!./rrweb\" \"!./scripts/venv\" \"!./backend/highlight-go\"",
+		"format:all": "prettier --write --ignore-unknown . \"!./data\" \"!./docs\" \"!./rrweb\" \"!./scripts/venv\"",
 		"frontend:start": "yarn dev:frontend",
 		"g": "yarn generate",
 		"generate": "hygen",
+		"preinstall": "git submodule update --init --recursive",
 		"prepare": "husky install && patch-package",
-		"publish:all": "run-p --print-label publish:turbo publish:render",
-		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish",
+		"prepublish": "yarn workspace scripts prepublish:client",
+		"publish:all": "run-p --print-label publish:client publish:turbo publish:render",
+		"publish:client": "yarn workspace scripts publish:client",
 		"publish:render": "yarn workspace render publish",
+		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish",
 		"test:all": "yarn turbo run test --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-snapshot",
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},
@@ -56,10 +60,11 @@
 		"patch-package": "^6.4.7",
 		"prettier": "^2.7.1",
 		"pretty-quick": "^3.1.3",
-		"turbo": "^1.5.4"
+		"turbo": "^1.6.3"
 	},
 	"packageManager": "yarn@3.2.3",
 	"resolutions": {
+		"@types/dom-webcodecs": "0.1.4",
 		"ansi-regex": "3.0.1",
 		"ejs": "3.1.7",
 		"eventsource": "1.1.1",

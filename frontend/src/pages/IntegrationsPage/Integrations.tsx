@@ -4,6 +4,7 @@ import ClickUpIntegrationConfig from '@pages/IntegrationsPage/components/ClickUp
 import ClickUpListSelector from '@pages/IntegrationsPage/components/ClickUpIntegration/ClickUpListSelector'
 import DiscordIntegrationConfig from '@pages/IntegrationsPage/components/DiscordIntegration/DiscordIntegrationConfig'
 import FrontIntegrationConfig from '@pages/IntegrationsPage/components/FrontIntegration/FrontIntegrationConfig'
+import FrontPluginConfig from '@pages/IntegrationsPage/components/FrontPlugin/FrontPluginConfig'
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
 import LinearIntegrationConfig from '@pages/IntegrationsPage/components/LinearIntegration/LinearIntegrationConfig'
 import LinearTeamSelector from '@pages/IntegrationsPage/components/LinearIntegration/LinearTeamSelector'
@@ -29,6 +30,7 @@ export interface Integration {
 	configurationPage: (opts: IntegrationConfigProps) => React.ReactNode
 	hasSettings: boolean
 	modalWidth?: number
+	docs?: string
 }
 
 export const SLACK_INTEGRATION: Integration = {
@@ -74,6 +76,7 @@ export const CLEARBIT_INTEGRATION: Integration = {
 	icon: '/images/integrations/clearbit.svg',
 	configurationPage: (opts) => <ClearbitIntegrationConfig {...opts} />,
 	hasSettings: false,
+	docs: 'https://www.highlight.io/docs/integrations/clearbit-integration',
 }
 
 export const FRONT_INTEGRATION: Integration = {
@@ -84,6 +87,16 @@ export const FRONT_INTEGRATION: Integration = {
 	description: 'Enhance your customer interaction experience.',
 	icon: '/images/integrations/front.png',
 	configurationPage: (opts) => <FrontIntegrationConfig {...opts} />,
+	hasSettings: false,
+}
+
+export const FRONT_PLUGIN: Integration = {
+	key: 'front',
+	name: 'Front',
+	configurationPath: 'front',
+	description: 'Enhance your customer interaction experience.',
+	icon: '/images/integrations/front.png',
+	configurationPage: (opts) => <FrontPluginConfig {...opts} />,
 	hasSettings: false,
 }
 
@@ -130,7 +143,7 @@ const INTEGRATIONS: Integration[] = [
 	LINEAR_INTEGRATION,
 	ZAPIER_INTEGRATION,
 	CLEARBIT_INTEGRATION,
-	FRONT_INTEGRATION,
+	FRONT_PLUGIN,
 	VERCEL_INTEGRATION,
 	DISCORD_INTEGRATION,
 	CLICKUP_INTEGRATION,

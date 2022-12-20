@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"net/http"
 	"net/url"
 	"os"
 	"regexp"
@@ -47,9 +46,11 @@ import (
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
+	"github.com/rs/zerolog"
+	zlog "github.com/rs/zerolog/log"
+	"github.com/rs/zerolog/pkgerrors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
-	"github.com/slack-go/slack"
 	stripe "github.com/stripe/stripe-go/v72"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/cases"
@@ -185,12 +186,12 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 				20
 			) AS e ON s.id = e.session_id
 		WHERE
-			s.excluded <> true 
+			s.excluded <> true
 			AND s.project_id = ?
 		ORDER BY
 			s.updated_at DESC
 		LIMIT
-			20;	
+			20;
 	`,
 		obj.ID,
 		obj.ProjectID,
@@ -213,6 +214,17 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 	}
 }
 
+// ErrorMetrics is the resolver for the error_metrics field.
+func (r *errorGroupResolver) ErrorMetrics(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorDistributionItem, error) {
+	return r.GetErrorGroupFrequencies(ctx, obj.ProjectID, []int{obj.ID}, modelInputs.ErrorGroupFrequenciesParamsInput{
+		DateRange: &modelInputs.DateRangeRequiredInput{
+			StartDate: time.Now().Add(-24 * 30 * time.Hour),
+			EndDate:   time.Now(),
+		},
+		ResolutionMinutes: 24 * 60,
+	}, "")
+}
+
 // ErrorGroupSecureID is the resolver for the error_group_secure_id field.
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
 	if obj != nil {
@@ -233,7 +245,24 @@ func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject)
 
 // StructuredStackTrace is the resolver for the structured_stack_trace field.
 func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *model.ErrorObject) ([]*modelInputs.ErrorTrace, error) {
-	return r.UnmarshalStackTrace(*obj.StackTrace)
+	if (obj.MappedStackTrace == nil || *obj.MappedStackTrace == "") && *obj.StackTrace == "" {
+		return nil, nil
+	}
+	stackTraceString := *obj.StackTrace
+	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" && *obj.MappedStackTrace != "null" {
+		stackTraceString = *obj.MappedStackTrace
+	}
+
+	return r.UnmarshalStackTrace(stackTraceString)
+}
+
+// Session is the resolver for the session field.
+func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObject) (*model.Session, error) {
+	session := &model.Session{}
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: obj.SessionID}}).First(&session).Error; err != nil {
+		return nil, e.Wrap(err, "error reading session from error object")
+	}
+	return session, nil
 }
 
 // Params is the resolver for the params field.
@@ -369,13 +398,24 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string, works
 }
 
 // CreateWorkspace is the resolver for the createWorkspace field.
-func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*model.Workspace, error) {
+func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model.Workspace, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, nil
 	}
 
 	trialEnd := time.Now().Add(14 * 24 * time.Hour) // Trial expires 14 days from current day
+	if promoCode != nil {
+		trialDetails, ok := PromoCodes[strings.ToUpper(*promoCode)]
+		if !ok {
+			return nil, e.New("Could not create workspace: promo code is not valid.")
+		}
+		if time.Now().After(trialDetails.ValidUntil) {
+			return nil, e.New("Could not create workspace: promo code has expired.")
+		}
+
+		trialEnd = time.Now().Add(time.Duration(trialDetails.TrialDays*24) * time.Hour)
+	}
 
 	workspace := &model.Workspace{
 		Admins:                    []model.Admin{*admin},
@@ -383,6 +423,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		TrialEndDate:              &trialEnd,
 		EligibleForTrialExtension: true, // Trial can be extended if user integrates + fills out form
 		TrialExtensionEnabled:     false,
+		PromoCode:                 promoCode,
 	}
 
 	if err := r.DB.Create(workspace).Error; err != nil {
@@ -531,7 +572,15 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 				Property: "number_of_highlight_sessions_viewed",
 				Value:    totalSessionCountAsInt,
 			}}); err != nil {
-				log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
+				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+
+				zlog.Error().
+					Stack().
+					Err(err).
+					Int("admin_id", admin.ID).
+					Int("value", totalSessionCountAsInt).
+					Msg("error updating session count for admin in hubspot")
 			}
 			log.Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
 		}
@@ -1804,63 +1853,6 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 	return commentReply, nil
 }
 
-// OpenSlackConversation is the resolver for the openSlackConversation field.
-func (r *mutationResolver) OpenSlackConversation(ctx context.Context, projectID int, code string, redirectPath string) (*bool, error) {
-	var (
-		SLACK_CLIENT_ID     string
-		SLACK_CLIENT_SECRET string
-	)
-	project, err := r.isAdminInProject(ctx, projectID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
-	}
-	redirect := os.Getenv("FRONTEND_URI")
-	redirect += "/" + strconv.Itoa(projectID) + "/" + redirectPath
-	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
-		SLACK_CLIENT_ID = tempSlackClientID
-	}
-	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
-		SLACK_CLIENT_SECRET = tempSlackClientSecret
-	}
-	resp, err := slack.
-		GetOAuthV2Response(
-			&http.Client{},
-			SLACK_CLIENT_ID,
-			SLACK_CLIENT_SECRET,
-			code,
-			redirect,
-		)
-	if err != nil {
-		return nil, e.Wrap(err, "error getting slack oauth response")
-	}
-
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	if workspace.SlackAccessToken == nil {
-		if err := r.DB.Where(&workspace).Updates(&model.Workspace{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating slack access token in workspace")
-		}
-	}
-
-	slackClient := slack.New(resp.AccessToken)
-	c, _, _, err := slackClient.OpenConversation(&slack.OpenConversationParameters{Users: []string{resp.AuthedUser.ID}})
-	if err != nil {
-		return nil, e.Wrap(err, "error opening slack conversation")
-	}
-	adminUID := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
-	if err := r.DB.Where(&model.Admin{UID: &adminUID}).Updates(&model.Admin{SlackIMChannelID: &c.ID}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating slack conversation on admin table")
-	}
-	_, _, err = slackClient.PostMessage(c.ID, slack.MsgOptionText("You will receive personal notifications when you're tagged in a session or error comment here!", false))
-	if err != nil {
-		return nil, e.Wrap(err, "error posting message to user")
-	}
-	return &model.T, nil
-}
-
 // AddIntegrationToProject is the resolver for the addIntegrationToProject field.
 func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrationType *modelInputs.IntegrationType, projectID int, code string) (bool, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
@@ -3037,6 +3029,39 @@ func (r *mutationResolver) UpdateClickUpProjectMappings(ctx context.Context, wor
 	return true, nil
 }
 
+// UpdateEmailOptOut is the resolver for the updateEmailOptOut field.
+func (r *mutationResolver) UpdateEmailOptOut(ctx context.Context, token *string, adminID *int, category modelInputs.EmailOptOutCategory, isOptOut bool) (bool, error) {
+	var adminIdDeref int
+	if adminID != nil && token != nil {
+		if !IsOptOutTokenValid(*adminID, *token) {
+			return false, e.New("token is not valid or has expired")
+		}
+		adminIdDeref = *adminID
+	} else {
+		admin, err := r.getCurrentAdmin(ctx)
+		if err != nil {
+			return false, e.New("error querying current admin")
+		}
+		adminIdDeref = admin.ID
+	}
+
+	if isOptOut {
+		if err := r.DB.Create(&model.EmailOptOut{
+			AdminID:  adminIdDeref,
+			Category: category,
+		}).Error; err != nil {
+			return false, err
+		}
+	} else {
+		if err := r.DB.Where("admin_id = ? AND category = ?", adminIdDeref, category).
+			Delete(&model.EmailOptOut{}).Error; err != nil {
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
@@ -3053,7 +3078,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 		FROM workspaces w
 		INNER JOIN projects p
 		ON p.workspace_id = w.id
-		INNER JOIN daily_session_counts_view sc
+		LEFT OUTER JOIN daily_session_counts_view sc
 		ON sc.project_id = p.id
 		group by 1, 2
 	`).Scan(&accounts).Error; err != nil {
@@ -3395,8 +3420,11 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		// page param is 1 indexed
 		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
-
+	errorGroupsOpensearchSearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+		tracer.ResourceName("resolver.errorGroupsOpensearchSearchQuery"), tracer.Tag("project_id", projectID))
 	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
+	errorGroupsOpensearchSearchSpan.Finish()
+
 	if err != nil {
 		return nil, err
 	}
@@ -3406,7 +3434,13 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		asErrorGroups = append(asErrorGroups, result.ToErrorGroup())
 	}
 
-	if err := r.SetErrorFrequencies(asErrorGroups, 5); err != nil {
+	errorFrequencyInfluxSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+		tracer.ResourceName("resolver.errorFrequencyInflux"), tracer.Tag("project_id", projectID))
+
+	err = r.SetErrorFrequenciesInflux(ctx, projectID, asErrorGroups, ErrorGroupLookbackDays)
+	errorFrequencyInfluxSpan.Finish()
+
+	if err != nil {
 		return nil, err
 	}
 
@@ -3448,7 +3482,58 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 
 // ErrorGroup is the resolver for the error_group field.
 func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
-	return r.canAdminViewErrorGroup(ctx, secureID, true)
+	eg, err := r.canAdminViewErrorGroup(ctx, secureID, true)
+	if err != nil {
+		return nil, err
+	}
+	return eg, err
+}
+
+// ErrorObject is the resolver for the error_object field.
+func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorObject, error) {
+	errorObject := &model.ErrorObject{}
+	if err := r.DB.Where(&model.ErrorObject{Model: model.Model{ID: id}}).First(&errorObject).Error; err != nil {
+		return nil, e.Wrap(err, "error reading error object")
+	}
+	return errorObject, nil
+}
+
+// ErrorInstance is the resolver for the error_instance field.
+func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int) (*model.ErrorInstance, error) {
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, true)
+	if err != nil {
+		return nil, e.Wrap(err, "not authorized to view error group")
+	}
+
+	errorObject := model.ErrorObject{}
+	errorObjectQuery := r.DB.Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID})
+	if errorObjectID == nil {
+		if err := errorObjectQuery.Last(&errorObject).Error; err != nil {
+			return nil, e.Wrap(err, "error reading error object for instance")
+		}
+	} else {
+		if err := errorObjectQuery.Where(&model.ErrorObject{Model: model.Model{ID: *errorObjectID}}).First(&errorObject).Error; err != nil {
+			return nil, e.Wrap(err, "error reading error object for instance")
+		}
+	}
+
+	nextErrorObject := model.ErrorObject{}
+	if err := r.DB.Model(&errorObject).Select("id").Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Where("id > ?", errorObject.ID).Order("id asc").Limit(1).Find(&nextErrorObject).Error; err != nil {
+		return nil, e.Wrap(err, "error reading next error object in group")
+	}
+
+	previousErrorObject := model.ErrorObject{}
+	if err := r.DB.Model(&errorObject).Select("id").Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Where("id < ?", errorObject.ID).Order("id desc").Limit(1).Find(&previousErrorObject).Error; err != nil {
+		return nil, e.Wrap(err, "error reading previous error object in group")
+	}
+
+	errorInstance := model.ErrorInstance{
+		ErrorObject: errorObject,
+		NextID:      &nextErrorObject.ID,
+		PreviousID:  &previousErrorObject.ID,
+	}
+
+	return &errorInstance, nil
 }
 
 // Messages is the resolver for the messages field.
@@ -4061,6 +4146,22 @@ func (r *queryResolver) ErrorDistribution(ctx context.Context, projectID int, er
 	return errorDistribution, nil
 }
 
+// ErrorGroupFrequencies is the resolver for the errorGroupFrequencies field.
+func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params modelInputs.ErrorGroupFrequenciesParamsInput, metric *string) ([]*modelInputs.ErrorDistributionItem, error) {
+	var errorGroupIDs []int
+	for _, errorGroupSecureID := range errorGroupSecureIds {
+		errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+		if err != nil {
+			return nil, e.Wrap(err, "admin not error group owner")
+		}
+		errorGroupIDs = append(errorGroupIDs, errorGroup.ID)
+	}
+	if metric == nil {
+		metric = pointy.String("")
+	}
+	return r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, *metric)
+}
+
 // Referrers is the resolver for the referrers field.
 func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
@@ -4331,7 +4432,7 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 		Aggregation: &opensearch.TermsAggregation{
 			Field:   "fields.Key.raw",
 			Include: pointy.String("(session|track|user)_.*"),
-			Size:    pointy.Int(100),
+			Size:    pointy.Int(500),
 		},
 	}
 
@@ -5021,36 +5122,6 @@ func (r *queryResolver) DiscordChannelSuggestions(ctx context.Context, projectID
 		})
 	}
 
-	return ret, nil
-}
-
-// SlackMembers is the resolver for the slack_members field.
-func (r *queryResolver) SlackMembers(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, e.Wrap(err, "error getting project")
-	}
-
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	chs, err := workspace.IntegratedSlackChannels()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving existing channels")
-	}
-
-	ret := []*modelInputs.SanitizedSlackChannel{}
-	for _, ch := range chs {
-		channel := ch.WebhookChannel
-		channelID := ch.WebhookChannelID
-
-		ret = append(ret, &modelInputs.SanitizedSlackChannel{
-			WebhookChannel:   &channel,
-			WebhookChannelID: &channelID,
-		})
-	}
 	return ret, nil
 }
 
@@ -5787,7 +5858,7 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 		  |> group(columns: ["_field"])
 		  |> distinct(column: "_field")
 		  |> yield(name: "distinct")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, filter)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, filter)
 	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.querySuggestedMetrics")
 	tdbQuerySpan.SetTag("projectID", projectID)
 	results, err := r.TDB.Query(ctx, query)
@@ -5810,7 +5881,7 @@ func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricNam
 	query := fmt.Sprintf(`
 		import "influxdata/influxdb/schema"
 		schema.tagKeys(bucket: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, metricName)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, metricName)
 	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTags")
 	tdbQuerySpan.SetTag("projectID", projectID)
 	tdbQuerySpan.SetTag("metricName", metricName)
@@ -5840,7 +5911,7 @@ func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metr
 	query := fmt.Sprintf(`
 		import "influxdata/influxdb/schema"
 		schema.tagValues(bucket: "%s", tag: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID)), tagName, timeseries.Metrics, metricName)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), tagName, timeseries.Metrics, metricName)
 	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTagValues")
 	tdbQuerySpan.SetTag("projectID", projectID)
 	tdbQuerySpan.SetTag("metricName", metricName)
@@ -5870,7 +5941,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		return nil, err
 	}
 
-	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
+	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
 	div := CalculateMetricUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	tagFilters := GetTagFilters(params.Filters)
 	if params.MinValue == nil || params.MaxValue == nil {
@@ -6007,7 +6078,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		  |> sort(desc: true)
           |> limit(n: 10)
 		  |> yield(name: "count")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID)), days, timeseries.Metrics, extraFiltersStr, params.Attribute.String())
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), days, timeseries.Metrics, extraFiltersStr, params.Attribute.String())
 	networkHistogramSpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
 	networkHistogramSpan.SetTag("projectID", projectID)
 	networkHistogramSpan.SetTag("attribute", params.Attribute.String())
@@ -6132,6 +6203,34 @@ func (r *queryResolver) OauthClientMetadata(ctx context.Context, clientID string
 		CreatedAt: client.CreatedAt,
 		AppName:   client.AppName,
 	}, nil
+}
+
+// EmailOptOuts is the resolver for the email_opt_outs field.
+func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]modelInputs.EmailOptOutCategory, error) {
+	var adminIdDeref int
+	if adminID != nil && token != nil {
+		if !IsOptOutTokenValid(*adminID, *token) {
+			return nil, e.New("token is not valid or has expired")
+		}
+		adminIdDeref = *adminID
+	} else {
+		admin, err := r.getCurrentAdmin(ctx)
+		if err != nil {
+			return nil, e.New("error querying current admin")
+		}
+		adminIdDeref = admin.ID
+	}
+
+	rows := []*model.EmailOptOut{}
+	if err := r.DB.Where("admin_id = ?", adminIdDeref).Find(&rows).Error; err != nil {
+		return nil, err
+	}
+
+	results := lo.Map(rows, func(c *model.EmailOptOut, idx int) modelInputs.EmailOptOutCategory {
+		return c.Category
+	})
+
+	return results, nil
 }
 
 // Params is the resolver for the params field.

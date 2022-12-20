@@ -193,6 +193,11 @@ type DateRangeInput struct {
 	EndDate   *time.Time `json:"end_date"`
 }
 
+type DateRangeRequiredInput struct {
+	StartDate time.Time `json:"start_date"`
+	EndDate   time.Time `json:"end_date"`
+}
+
 type DiscordChannelInput struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
@@ -208,8 +213,15 @@ type EnhancedUserDetailsResult struct {
 }
 
 type ErrorDistributionItem struct {
-	Name  string `json:"name"`
-	Value int64  `json:"value"`
+	ErrorGroupID string    `json:"error_group_id"`
+	Date         time.Time `json:"date"`
+	Name         string    `json:"name"`
+	Value        int64     `json:"value"`
+}
+
+type ErrorGroupFrequenciesParamsInput struct {
+	DateRange         *DateRangeRequiredInput `json:"date_range"`
+	ResolutionMinutes int                     `json:"resolution_minutes"`
 }
 
 type ErrorMetadata struct {
@@ -240,14 +252,15 @@ type ErrorSearchParamsInput struct {
 }
 
 type ErrorTrace struct {
-	FileName     *string `json:"fileName"`
-	LineNumber   *int    `json:"lineNumber"`
-	FunctionName *string `json:"functionName"`
-	ColumnNumber *int    `json:"columnNumber"`
-	Error        *string `json:"error"`
-	LineContent  *string `json:"lineContent"`
-	LinesBefore  *string `json:"linesBefore"`
-	LinesAfter   *string `json:"linesAfter"`
+	FileName                   *string             `json:"fileName"`
+	LineNumber                 *int                `json:"lineNumber"`
+	FunctionName               *string             `json:"functionName"`
+	ColumnNumber               *int                `json:"columnNumber"`
+	Error                      *string             `json:"error"`
+	SourceMappingErrorMetadata *SourceMappingError `json:"sourceMappingErrorMetadata"`
+	LineContent                *string             `json:"lineContent"`
+	LinesBefore                *string             `json:"linesBefore"`
+	LinesAfter                 *string             `json:"linesAfter"`
 }
 
 type HistogramBucket struct {
@@ -430,6 +443,22 @@ type SocialLink struct {
 	Link *string    `json:"link"`
 }
 
+type SourceMappingError struct {
+	ErrorCode                  *SourceMappingErrorCode `json:"errorCode"`
+	StackTraceFileURL          *string                 `json:"stackTraceFileURL"`
+	SourcemapFetchStrategy     *string                 `json:"sourcemapFetchStrategy"`
+	SourceMapURL               *string                 `json:"sourceMapURL"`
+	MinifiedFetchStrategy      *string                 `json:"minifiedFetchStrategy"`
+	ActualMinifiedFetchedPath  *string                 `json:"actualMinifiedFetchedPath"`
+	MinifiedLineNumber         *int                    `json:"minifiedLineNumber"`
+	MinifiedColumnNumber       *int                    `json:"minifiedColumnNumber"`
+	ActualSourcemapFetchedPath *string                 `json:"actualSourcemapFetchedPath"`
+	SourcemapFileSize          *int                    `json:"sourcemapFileSize"`
+	MinifiedFileSize           *int                    `json:"minifiedFileSize"`
+	MappedLineNumber           *int                    `json:"mappedLineNumber"`
+	MappedColumnNumber         *int                    `json:"mappedColumnNumber"`
+}
+
 type SubscriptionDetails struct {
 	BaseAmount      int64    `json:"baseAmount"`
 	DiscountPercent float64  `json:"discountPercent"`
@@ -528,6 +557,47 @@ func (e *DashboardChartType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e DashboardChartType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EmailOptOutCategory string
+
+const (
+	EmailOptOutCategoryAll     EmailOptOutCategory = "All"
+	EmailOptOutCategoryDigests EmailOptOutCategory = "Digests"
+)
+
+var AllEmailOptOutCategory = []EmailOptOutCategory{
+	EmailOptOutCategoryAll,
+	EmailOptOutCategoryDigests,
+}
+
+func (e EmailOptOutCategory) IsValid() bool {
+	switch e {
+	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests:
+		return true
+	}
+	return false
+}
+
+func (e EmailOptOutCategory) String() string {
+	return string(e)
+}
+
+func (e *EmailOptOutCategory) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EmailOptOutCategory(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EmailOptOutCategory", str)
+	}
+	return nil
+}
+
+func (e EmailOptOutCategory) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1102,6 +1172,63 @@ func (e *SocialType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SocialType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SourceMappingErrorCode string
+
+const (
+	SourceMappingErrorCodeFileNameMissingFromSourcePath         SourceMappingErrorCode = "File_Name_Missing_From_Source_Path"
+	SourceMappingErrorCodeErrorParsingStackTraceFileURL         SourceMappingErrorCode = "Error_Parsing_Stack_Trace_File_Url"
+	SourceMappingErrorCodeMissingSourceMapFileInS3              SourceMappingErrorCode = "Missing_Source_Map_File_In_S3"
+	SourceMappingErrorCodeMinifiedFileMissingInS3AndURL         SourceMappingErrorCode = "Minified_File_Missing_In_S3_And_URL"
+	SourceMappingErrorCodeSourcemapFileMissingInS3AndURL        SourceMappingErrorCode = "Sourcemap_File_Missing_In_S3_And_URL"
+	SourceMappingErrorCodeMinifiedFileLarger                    SourceMappingErrorCode = "Minified_File_Larger"
+	SourceMappingErrorCodeSourceMapFileLarger                   SourceMappingErrorCode = "Source_Map_File_Larger"
+	SourceMappingErrorCodeInvalidSourceMapURL                   SourceMappingErrorCode = "Invalid_SourceMapURL"
+	SourceMappingErrorCodeSourcemapLibraryCouldntParse          SourceMappingErrorCode = "Sourcemap_Library_Couldnt_Parse"
+	SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource SourceMappingErrorCode = "Sourcemap_Library_Couldnt_Retrieve_Source"
+)
+
+var AllSourceMappingErrorCode = []SourceMappingErrorCode{
+	SourceMappingErrorCodeFileNameMissingFromSourcePath,
+	SourceMappingErrorCodeErrorParsingStackTraceFileURL,
+	SourceMappingErrorCodeMissingSourceMapFileInS3,
+	SourceMappingErrorCodeMinifiedFileMissingInS3AndURL,
+	SourceMappingErrorCodeSourcemapFileMissingInS3AndURL,
+	SourceMappingErrorCodeMinifiedFileLarger,
+	SourceMappingErrorCodeSourceMapFileLarger,
+	SourceMappingErrorCodeInvalidSourceMapURL,
+	SourceMappingErrorCodeSourcemapLibraryCouldntParse,
+	SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource,
+}
+
+func (e SourceMappingErrorCode) IsValid() bool {
+	switch e {
+	case SourceMappingErrorCodeFileNameMissingFromSourcePath, SourceMappingErrorCodeErrorParsingStackTraceFileURL, SourceMappingErrorCodeMissingSourceMapFileInS3, SourceMappingErrorCodeMinifiedFileMissingInS3AndURL, SourceMappingErrorCodeSourcemapFileMissingInS3AndURL, SourceMappingErrorCodeMinifiedFileLarger, SourceMappingErrorCodeSourceMapFileLarger, SourceMappingErrorCodeInvalidSourceMapURL, SourceMappingErrorCodeSourcemapLibraryCouldntParse, SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource:
+		return true
+	}
+	return false
+}
+
+func (e SourceMappingErrorCode) String() string {
+	return string(e)
+}
+
+func (e *SourceMappingErrorCode) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SourceMappingErrorCode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SourceMappingErrorCode", str)
+	}
+	return nil
+}
+
+func (e SourceMappingErrorCode) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

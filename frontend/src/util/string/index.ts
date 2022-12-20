@@ -1,3 +1,5 @@
+import { message } from 'antd'
+
 export const snakeCaseString = (string: string) => {
 	return string
 		.replace(/\W+/g, ' ')
@@ -84,4 +86,13 @@ export function parseOptionalJSON(text: string): any {
 		parsed = text
 	}
 	return parsed
+}
+
+export function copyToClipboard(text: string, maxWidth = 80) {
+	navigator.clipboard.writeText(text)
+	message.success(
+		`'${
+			text.length > maxWidth ? `${text.slice(0, maxWidth)}...` : text
+		}' copied to clipboard.`,
+	)
 }

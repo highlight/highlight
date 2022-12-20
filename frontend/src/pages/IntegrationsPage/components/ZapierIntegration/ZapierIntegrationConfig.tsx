@@ -38,7 +38,7 @@ const ZapierIntegrationConfig: React.FC<
 				</p>
 				<footer>
 					<Button
-						trackingId={`IntegrationDisconnectCancel-Slack`}
+						trackingId="IntegrationDisconnectCancel-Slack"
 						className={styles.modalBtn}
 						onClick={() => {
 							setModalOpen(false)
@@ -48,7 +48,7 @@ const ZapierIntegrationConfig: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId={`IntegrationDisconnectSave-Slack`}
+						trackingId="IntegrationDisconnectSave-Slack"
 						className={styles.modalBtn}
 						type="primary"
 						danger
@@ -84,7 +84,7 @@ const ZapierIntegrationConfig: React.FC<
 			/>
 			<footer>
 				<Button
-					trackingId={`IntegrationConfigurationCancel-Zapier`}
+					trackingId="IntegrationConfigurationCancel-Zapier"
 					className={styles.modalBtn}
 					onClick={() => {
 						setModalOpen(false)
@@ -94,7 +94,7 @@ const ZapierIntegrationConfig: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId={`IntegrationConfigurationSave-Zapier`}
+					trackingId="IntegrationConfigurationSave-Zapier"
 					className={styles.modalBtn}
 					type="primary"
 					target="_blank"

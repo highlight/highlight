@@ -1,6 +1,6 @@
 import useLocalStorage from '@rehooks/local-storage'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { H } from 'highlight.run'
 import { useEffect, useState } from 'react'
 
 import { useAuthContext } from '../authentication/AuthContext'
@@ -52,7 +52,7 @@ export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
 				localStorageIntegrated === false &&
 				integratedRaw?.valueOf() === true
 			) {
-				H.track('IntegratedProject', { id: project_id })
+				analytics.track('IntegratedProject', { id: project_id })
 			}
 		}
 	}, [
@@ -122,7 +122,7 @@ export const useBackendIntegrated = (): {
 				localStorageIntegrated === false &&
 				integratedRaw?.valueOf() === true
 			) {
-				H.track('IntegratedProjectBackend', { id: project_id })
+				analytics.track('IntegratedProjectBackend', { id: project_id })
 			}
 		}
 	}, [

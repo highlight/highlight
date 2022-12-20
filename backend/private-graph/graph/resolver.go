@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -21,6 +22,9 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/go-chi/chi"
+	"github.com/leonelquinteros/hubspot"
+	"github.com/samber/lo"
+
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	"github.com/highlight-run/highlight/backend/clickup"
@@ -30,14 +34,11 @@ import (
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stepfunctions"
 	"github.com/highlight-run/highlight/backend/vercel"
-	"github.com/leonelquinteros/hubspot"
-	"github.com/samber/lo"
 
 	"github.com/pkg/errors"
 
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
@@ -45,11 +46,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
-	stripe "github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
 	"github.com/stripe/stripe-go/v72/webhook"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
+
+	"github.com/highlight-run/workerpool"
 
 	H "github.com/highlight-run/highlight-go"
 	Email "github.com/highlight-run/highlight/backend/email"
@@ -57,7 +60,7 @@ import (
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	storage "github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 )
@@ -66,9 +69,14 @@ import (
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
+const ErrorGroupLookbackDays = 7
+const SessionActiveMetricName = "sessionActiveLength"
+const SessionProcessedMetricName = "sessionProcessed"
+
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
+	EmailOptOutSalt = os.Getenv("EMAIL_OPT_OUT_SALT")
 )
 
 var BytesConversion = map[string]int64{
@@ -78,6 +86,18 @@ var BytesConversion = map[string]int64{
 	"gb": 1024 * 1024 * 1024,
 	"tb": 1024 * 1024 * 1024 * 1024,
 	"pb": 1024 * 1024 * 1024 * 1024 * 1024,
+}
+
+type PromoCode struct {
+	TrialDays  int
+	ValidUntil time.Time
+}
+
+var PromoCodes = map[string]PromoCode{
+	"WEBDEVSIMPLIFIED": {
+		TrialDays:  60,
+		ValidUntil: time.Date(2023, time.May, 15, 0, 0, 0, 0, time.UTC),
+	},
 }
 
 type Resolver struct {
@@ -338,6 +358,11 @@ func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, 
 }
 
 func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
+	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInWorkspace"))
+	defer span.Finish()
+
+	span.SetTag("WorkspaceID", workspaceID)
+
 	if r.isWhitelistedAccount(ctx) {
 		return r.GetWorkspace(workspaceID)
 	}
@@ -346,6 +371,8 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving user")
 	}
+
+	span.SetTag("AdminID", admin.ID)
 
 	workspace := model.Workspace{}
 	if err := r.DB.Order("name asc").
@@ -364,6 +391,11 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 // isAdminInProject should be used for actions that you only want admins in all projects to have access to.
 // Use this on actions that you don't want laymen in the demo project to have access to.
 func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model.Project, error) {
+	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInProject"))
+	defer span.Finish()
+
+	span.SetTag("ProjectID", project_id)
+
 	if util.IsTestEnv() {
 		return nil, nil
 	}
@@ -380,10 +412,126 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	}
 	for _, p := range projects {
 		if p.ID == project_id {
+			span.SetTag("WorkspaceID", p.WorkspaceID)
 			return p, nil
 		}
 	}
 	return nil, e.New("admin doesn't exist in project")
+}
+
+func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, errorGroupID int) (*time.Time, *time.Time, error) {
+	bucket := r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors) + timeseries.Error.DownsampleBucketSuffix
+	query := fmt.Sprintf(`
+      query = () => from(bucket: "%[1]s")
+		|> range(start: 0, stop: now())
+		|> filter(fn: (r) => r._measurement == "%[2]s")
+		|> filter(fn: (r) => r.ErrorGroupID == "%[3]d")
+    	|> filter(fn: (r) => r._value > 0)
+		|> group(columns: ["ErrorGroupID"])
+
+      union(tables:[query() |> first(), query() |> last()])
+        |> sort(columns: ["ErrorGroupID", "_field", "_time"])
+	`, bucket, timeseries.Error.AggName, errorGroupID)
+	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupOccurrences")
+	span.SetTag("projectID", projectID)
+	span.SetTag("errorGroupID", errorGroupID)
+	results, err := r.TDB.Query(ctx, query)
+	if err != nil {
+		return nil, nil, e.Wrap(err, "failed to perform tdb query for error group occurrences")
+	}
+	if len(results) < 2 {
+		return nil, nil, nil
+	}
+	return &results[0].Time, &results[1].Time, nil
+}
+
+func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupIDs []int, params modelInputs.ErrorGroupFrequenciesParamsInput, metric string) ([]*modelInputs.ErrorDistributionItem, error) {
+	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, params.DateRange.EndDate.Sub(params.DateRange.StartDate))
+	var errorGroupFilters []string
+	for _, errorGroupID := range errorGroupIDs {
+		errorGroupFilters = append(errorGroupFilters, fmt.Sprintf(`r.ErrorGroupID == "%d"`, errorGroupID))
+	}
+	errorGroupFilter := fmt.Sprintf(`|> filter(fn: (r) => %s)`, strings.Join(errorGroupFilters, " or "))
+	extraFilter := ""
+	if metric != "" {
+		extraFilter = fmt.Sprintf(`|> filter(fn: (r) => r._field == "%s")`, metric)
+	}
+	query := fmt.Sprintf(`
+      from(bucket: "%[1]s")
+		|> range(start: %[2]s, stop: %[3]s)
+		|> filter(fn: (r) => r._measurement == "%[4]s")
+		%[5]s
+		%[6]s
+		|> aggregateWindow(every: %[7]dm, fn: sum, createEmpty: true)
+		|> sort(columns: ["ErrorGroupID", "_field", "_time"])
+	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, errorGroupFilter, extraFilter, params.ResolutionMinutes)
+	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
+	span.SetTag("projectID", projectID)
+	span.SetTag("errorGroupIDs", errorGroupIDs)
+	results, err := r.TDB.Query(ctx, query)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to perform tdb query for error group frequencies")
+	}
+	var response []*modelInputs.ErrorDistributionItem
+	for _, r := range results {
+		field := r.Values["_field"]
+		if field != nil {
+			var value int64
+			if r.Value != nil {
+				value = r.Value.(int64)
+			}
+			var id string
+			if r.Values["ErrorGroupID"] != nil {
+				id = r.Values["ErrorGroupID"].(string)
+			}
+			response = append(response, &modelInputs.ErrorDistributionItem{
+				ErrorGroupID: id,
+				Date:         r.Time,
+				Name:         field.(string),
+				Value:        value,
+			})
+		}
+	}
+	return response, nil
+}
+
+func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
+	params := modelInputs.ErrorGroupFrequenciesParamsInput{
+		DateRange: &modelInputs.DateRangeRequiredInput{
+			StartDate: time.Now().Add(time.Duration(-24*lookbackPeriod) * time.Hour),
+			EndDate:   time.Now(),
+		},
+		ResolutionMinutes: 24 * 60,
+	}
+	var errorGroupMap = make(map[string]*model.ErrorGroup)
+	var errorGroupIDs []int
+	for _, errorGroup := range errorGroups {
+		errorGroup.ErrorMetrics = []*struct {
+			ErrorGroupID int
+			Date         time.Time
+			Name         string
+			Value        int64
+		}{}
+		errorGroupMap[strconv.Itoa(errorGroup.ID)] = errorGroup
+		errorGroupIDs = append(errorGroupIDs, errorGroup.ID)
+	}
+	results, err := r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, "")
+	if err != nil {
+		return err
+	}
+	for _, r := range results {
+		eg := errorGroupMap[r.ErrorGroupID]
+		if r.Name == "count" {
+			eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
+		}
+		eg.ErrorMetrics = append(eg.ErrorMetrics, &struct {
+			ErrorGroupID int
+			Date         time.Time
+			Name         string
+			Value        int64
+		}{ErrorGroupID: eg.ID, Date: r.Date, Name: r.Name, Value: r.Value})
+	}
+	return nil
 }
 
 func (r *Resolver) SetErrorFrequencies(errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
@@ -555,22 +703,30 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 	return modelParams
 }
 
-func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string, preloadFields bool) (eg *model.ErrorGroup, isOwner bool, err error) {
-	errorGroup := &model.ErrorGroup{}
+func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string, preloadFields bool) (*model.ErrorGroup, bool, error) {
+	eg := &model.ErrorGroup{}
 
 	var db = r.DB
 	if preloadFields {
 		db = r.DB.Preload("Fields")
 	}
-	if err := db.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).First(&errorGroup).Error; err != nil {
+	if err := db.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).First(&eg).Error; err != nil {
 		return nil, false, e.Wrap(err, "error querying error group by secureID: "+errorGroupSecureID)
 	}
 
-	_, err = r.isAdminInProjectOrDemoProject(ctx, errorGroup.ProjectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, eg.ProjectID)
 	if err != nil {
-		return errorGroup, false, e.Wrap(err, "error validating admin in project")
+		return eg, false, e.Wrap(err, "error validating admin in project")
 	}
-	return errorGroup, true, nil
+
+	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
+		return nil, false, e.Wrap(err, "error querying error group occurrences")
+	}
+	if err := r.SetErrorFrequenciesInflux(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+		return nil, false, e.Wrap(err, "error querying error group frequencies")
+	}
+
+	return eg, true, nil
 }
 
 func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureID string, preloadFields bool) (*model.ErrorGroup, error) {
@@ -598,7 +754,7 @@ func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecur
 
 func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id string) (session *model.Session, ownsSession bool, err error) {
 	session = &model.Session{}
-	if err = r.DB.Where(&model.Session{SecureID: session_secure_id}).First(&session).Error; err != nil {
+	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: session_secure_id}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
 		return nil, false, e.Wrap(err, "error querying session by secure_id: "+session_secure_id)
 	}
 
@@ -1473,6 +1629,7 @@ func (r *Resolver) ProjectJWTHandler(w http.ResponseWriter, req *http.Request) {
 		SameSite: http.SameSiteNoneMode,
 		Path:     "/",
 	})
+	w.WriteHeader(http.StatusOK)
 }
 
 func (r *Resolver) AssetHandler(w http.ResponseWriter, req *http.Request) {
@@ -2406,11 +2563,18 @@ func (r *Resolver) sendCommentPrimaryNotification(
 		if len(admins) < 1 {
 			return
 		}
+
 		var taggedAdminSlacks []*modelInputs.SanitizedSlackChannelInput
 		for _, a := range admins {
 			taggedAdminSlacks = append(taggedAdminSlacks, &modelInputs.SanitizedSlackChannelInput{
 				WebhookChannelID: a.SlackIMChannelID,
 			})
+
+			// See HIG-3438
+			// We need additional debugging information to see if we can remove this code path.
+			log.WithFields(log.Fields{
+				"admin_id": a.ID,
+			}).Info("Sending slack notification for a Highlight user using a legacy slack configuration")
 		}
 
 		err := r.SendSlackAlertToUser(workspace, admin, taggedAdminSlacks, viewLink, textForEmail, action, subjectScope, nil, sessionCommentID, errorCommentID, additionalContext)
@@ -2527,54 +2691,32 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 		log.Error(e.Wrap(err, "failed to get users"))
 	}
 
-	newChannels := []model.SlackChannel{}
-	for _, channel := range allSlackChannelsFromAPI {
-		newChannel := model.SlackChannel{}
-
-		// Slack channels' `User` will be an empty string and the user's ID if it's a user.
-		if channel.User != "" {
-			var userToFind *slack.User
-			for _, user := range users {
-				if user.ID == channel.User {
-					userToFind = &user
-					break
-				}
-			}
-
-			if userToFind != nil {
-				// Filter out Slack Bots.
-				if userToFind.IsBot || userToFind.Name == "slackbot" {
-					continue
-				}
-				newChannel.WebhookChannel = fmt.Sprintf("@%s", userToFind.Name)
-			}
-		} else {
-			newChannel.WebhookChannel = fmt.Sprintf("#%s", channel.Name)
-		}
-
-		newChannel.WebhookChannelID = channel.ID
-		newChannels = append(newChannels, newChannel)
-	}
-
 	newChannelsCount := 0
-	// Filter out `newChannels` that already exist in `existingChannels` so we don't have duplicates.
-	for _, newChannel := range newChannels {
-		channelAlreadyExists := false
 
-		for _, existingChannel := range existingChannels {
-			if existingChannel.WebhookChannelID == newChannel.WebhookChannelID {
-				channelAlreadyExists = true
-				break
-			}
-		}
+	channelsAndUsers := map[string]model.SlackChannel{}
+	for _, channel := range existingChannels {
+		channelsAndUsers[channel.WebhookChannelID] = channel
+	}
 
-		if !channelAlreadyExists {
-			filteredNewChannels = append(filteredNewChannels, newChannel)
+	for _, channel := range allSlackChannelsFromAPI {
+		_, exists := channelsAndUsers[channel.ID]
+		if !exists && channel.IsChannel && channel.ID != "" {
 			newChannelsCount++
+			slackChannel := model.SlackChannel{WebhookChannelID: channel.ID, WebhookChannel: fmt.Sprintf("#%s", channel.Name)}
+			channelsAndUsers[channel.ID] = slackChannel
+			existingChannels = append(existingChannels, slackChannel)
 		}
 	}
 
-	existingChannels = append(existingChannels, filteredNewChannels...)
+	for _, user := range users {
+		_, exists := channelsAndUsers[user.ID]
+		if !exists && !user.IsBot && !user.Deleted && strings.ToLower(user.Name) != "slackbot" {
+			newChannelsCount++
+			slackChannel := model.SlackChannel{WebhookChannelID: user.ID, WebhookChannel: fmt.Sprintf("@%s", user.Name)}
+			channelsAndUsers[user.ID] = slackChannel
+			existingChannels = append(existingChannels, slackChannel)
+		}
+	}
 
 	return &existingChannels, newChannelsCount, nil
 }
@@ -2768,7 +2910,7 @@ func CalculateMetricUnitConversion(originalUnits *string, desiredUnits *string) 
 func MetricOriginalUnits(metricName string) (originalUnits *string) {
 	if strings.HasSuffix(metricName, "-ms") {
 		originalUnits = pointy.String("ms")
-	} else if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true, "jank": true}[strings.ToLower(metricName)] {
+	} else if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true, "jank": true, SessionActiveMetricName: true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("ms")
 	} else if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("ns")
@@ -2820,7 +2962,7 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 		resMins = *params.ResolutionMinutes
 	}
 
-	bucket, measurement := tdb.GetSampledMeasurement(tdb.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
+	bucket, measurement := tdb.GetSampledMeasurement(tdb.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
 	query := fmt.Sprintf(`
       query = () =>
 		from(bucket: "%[1]s")
@@ -3001,4 +3143,29 @@ func MergeHistogramBucketCounts(bucketCounts []int64, multiple int) []int64 {
 		}
 	}
 	return newBuckets
+}
+
+func GetOptOutToken(adminID int, previous bool) string {
+	now := time.Now()
+	if previous {
+		now = now.AddDate(0, -1, 0)
+	}
+	h := sha256.New()
+	preHash := strconv.Itoa(adminID) + now.Format("2006-01") + EmailOptOutSalt
+	h.Write([]byte(preHash))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func IsOptOutTokenValid(adminID int, token string) bool {
+	if adminID <= 0 {
+		return false
+	}
+
+	// If the token matches the current month's, it's valid
+	if token == GetOptOutToken(adminID, false) {
+		return true
+	}
+
+	// If the token matches the prior month's, it's valid
+	return token == GetOptOutToken(adminID, true)
 }

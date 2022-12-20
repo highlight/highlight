@@ -1,6 +1,6 @@
 import SvgMailIcon from '@icons/MailIcon'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { H } from 'highlight.run'
+import { showIntercom } from '@util/window'
 import React from 'react'
 
 import { useAuthContext } from '../../../../authentication/AuthContext'
@@ -22,18 +22,7 @@ const FeedbackButton = () => {
 							{
 								displayName: 'Bug Report',
 								icon: <SvgBugIcon />,
-								action: async () => {
-									const sessionId = await H.getSessionURL()
-
-									window.Intercom('boot', {
-										app_id: 'gm6369ty',
-										alignment: 'right',
-										hide_default_launcher: true,
-										email: admin?.email,
-										sessionId,
-									})
-									window.Intercom('showNewMessage')
-								},
+								action: () => showIntercom({ admin }),
 							},
 					  ]
 					: []),

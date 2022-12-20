@@ -2,8 +2,8 @@ import SimpleMetric, {
 	DetailedMetric,
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric'
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils'
+import analytics from '@util/analytics'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React, { useEffect } from 'react'
 
 import styles from './WebVitalRender.module.scss'
@@ -19,7 +19,7 @@ const WebVitalSimpleRenderer = React.memo(
 	({ vitals, showDetailedView }: Props) => {
 		useEffect(() => {
 			if (showDetailedView) {
-				H.track('ViewedWebVitalsDetails')
+				analytics.track('ViewedWebVitalsDetails')
 			}
 		}, [showDetailedView])
 

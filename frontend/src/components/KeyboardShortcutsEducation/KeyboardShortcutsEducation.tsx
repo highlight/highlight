@@ -3,12 +3,11 @@ import ElevatedCard from '@components/ElevatedCard/ElevatedCard'
 import Input from '@components/Input/Input'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import SvgSearchIcon from '@icons/SearchIcon'
-import { PLAYBACK_SPEED_INCREMENT } from '@pages/Player/Toolbar/SpeedControl/SpeedControl'
 import { PLAYER_SKIP_DURATION } from '@pages/Player/utils/PlayerHooks'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import analytics from '@util/analytics'
 import classNames from 'classnames'
 import { AnimatePresence, motion } from 'framer-motion'
-import { H } from 'highlight.run'
 import { useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation } from 'react-router'
@@ -36,7 +35,7 @@ const KeyboardShortcutsEducation = () => {
 			}
 
 			if (showKeyboardShortcutsGuide) {
-				H.track('ViewedKeyboardShortcutsGuide')
+				analytics.track('ViewedKeyboardShortcutsGuide')
 			}
 			toggleShowKeyboardShortcutsGuide()
 		},
@@ -78,11 +77,38 @@ const KeyboardShortcutsEducation = () => {
 				.includes(searchQuery.toLocaleLowerCase())
 		},
 	)
+	const filteredErrorsKeyboardShortcuts = ErrorsKeyboardShortcuts.filter(
+		({ description }) => {
+			return description
+				.toLocaleLowerCase()
+				.includes(searchQuery.toLocaleLowerCase())
+		},
+	)
 
 	const isOnSessionPlayerPage = location.pathname.includes('sessions')
+	const isOnErrorsPage = location.pathname.includes('errors')
 	const hasNoSearchHits =
 		filteredPlayerKeyboardShortcuts.length === 0 &&
-		filteredGeneralKeyboardShortcuts.length === 0
+		filteredGeneralKeyboardShortcuts.length === 0 &&
+		filteredErrorsKeyboardShortcuts.length === 0
+
+	const playerShortcuts = filteredPlayerKeyboardShortcuts.length > 0 && (
+		<KeyboardShortcutDoc
+			title="Session Player Page"
+			shortcuts={filteredPlayerKeyboardShortcuts}
+			searchQuery={searchQuery}
+			disabled={!isOnSessionPlayerPage}
+		/>
+	)
+
+	const errorShortcuts = filteredErrorsKeyboardShortcuts.length > 0 && (
+		<KeyboardShortcutDoc
+			title="Errors Page"
+			shortcuts={filteredErrorsKeyboardShortcuts}
+			searchQuery={searchQuery}
+			disabled={!isOnErrorsPage}
+		/>
+	)
 
 	return (
 		<AnimatePresence presenceAffectsLayout>
@@ -139,14 +165,10 @@ const KeyboardShortcutsEducation = () => {
 									allowClear
 								/>
 
-								{!isOnSessionPlayerPage && !hasNoSearchHits && (
+								{!isOnSessionPlayerPage && hasNoSearchHits && (
 									<section>
 										<h3 className={styles.emptyTitle}>
-											{
-												location.pathname
-													.split('/')
-													.reverse()[0]
-											}{' '}
+											{location.pathname.split('/')[2]}{' '}
 											Page
 										</h3>
 
@@ -180,100 +202,26 @@ const KeyboardShortcutsEducation = () => {
 
 								{filteredGeneralKeyboardShortcuts.length >
 									0 && (
-									<section>
-										<h3>General</h3>
-
-										<table>
-											<tbody>
-												{filteredGeneralKeyboardShortcuts.map(
-													(shortcut) => (
-														<tr
-															key={
-																shortcut.description
-															}
-														>
-															<td
-																className={
-																	styles.description
-																}
-															>
-																<TextHighlighter
-																	searchWords={searchQuery.split(
-																		' ',
-																	)}
-																	textToHighlight={
-																		shortcut.description
-																	}
-																/>
-															</td>
-															<td
-																className={
-																	styles.shortcutContainer
-																}
-															>
-																<KeyboardShortcut
-																	shortcut={
-																		shortcut.shortcut
-																	}
-																/>
-															</td>
-														</tr>
-													),
-												)}
-											</tbody>
-										</table>
-									</section>
+									<KeyboardShortcutDoc
+										title="General"
+										shortcuts={
+											filteredGeneralKeyboardShortcuts
+										}
+										searchQuery={searchQuery}
+										disabled={false}
+									/>
 								)}
 
-								{filteredPlayerKeyboardShortcuts.length > 0 && (
-									<section
-										className={classNames({
-											[styles.disabled]:
-												!isOnSessionPlayerPage,
-										})}
-									>
-										<h3>Session Player Page</h3>
-
-										<table>
-											<tbody>
-												{filteredPlayerKeyboardShortcuts.map(
-													(shortcut) => (
-														<tr
-															key={
-																shortcut.description
-															}
-														>
-															<td
-																className={
-																	styles.description
-																}
-															>
-																<TextHighlighter
-																	searchWords={searchQuery.split(
-																		' ',
-																	)}
-																	textToHighlight={
-																		shortcut.description
-																	}
-																/>
-															</td>
-															<td
-																className={
-																	styles.shortcutContainer
-																}
-															>
-																<KeyboardShortcut
-																	shortcut={
-																		shortcut.shortcut
-																	}
-																/>
-															</td>
-														</tr>
-													),
-												)}
-											</tbody>
-										</table>
-									</section>
+								{isOnErrorsPage ? (
+									<>
+										{errorShortcuts}
+										{playerShortcuts}
+									</>
+								) : (
+									<>
+										{playerShortcuts}
+										{errorShortcuts}
+									</>
 								)}
 							</main>
 						</ElevatedCard>
@@ -281,6 +229,43 @@ const KeyboardShortcutsEducation = () => {
 				</>
 			)}
 		</AnimatePresence>
+	)
+}
+
+const KeyboardShortcutDoc: React.FC<{
+	title: string
+	searchQuery: string
+	shortcuts: ShortcutItem[]
+	disabled?: boolean
+}> = ({ disabled, title, searchQuery, shortcuts }) => {
+	return (
+		<section
+			className={classNames({
+				[styles.disabled]: disabled,
+			})}
+		>
+			<h3>{title}</h3>
+
+			<table>
+				<tbody>
+					{shortcuts.map((shortcut) => (
+						<tr key={shortcut.description}>
+							<td className={styles.description}>
+								<TextHighlighter
+									searchWords={searchQuery.split(' ')}
+									textToHighlight={shortcut.description}
+								/>
+							</td>
+							<td className={styles.shortcutContainer}>
+								<KeyboardShortcut
+									shortcut={shortcut.shortcut}
+								/>
+							</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</section>
 	)
 }
 
@@ -303,21 +288,32 @@ const KeyboardShortcut = ({ shortcut }: Pick<ShortcutItem, 'shortcut'>) => {
 	)
 }
 
-interface ShortcutItem {
+export interface ShortcutItem {
 	description: string
 	shortcut: string[]
 }
 
 const isOnMac = window.navigator.platform.includes('Mac')
+export const cmdKey = isOnMac ? '⌘' : 'Ctrl'
 
-const GeneralKeyboardShortcuts: ShortcutItem[] = [
+export const GeneralKeyboardShortcuts: ShortcutItem[] = [
 	{
 		description: 'Open Keyboard Shortcuts Guide',
 		shortcut: ['?'],
 	},
 ]
 
-const PlayerKeyboardShortcuts: ShortcutItem[] = [
+export const DevToolsShortcut: ShortcutItem = {
+	description: `Toggle dev tools`,
+	shortcut: [cmdKey, '/'],
+}
+
+export const TimelineShortcut: ShortcutItem = {
+	description: `Toggle the timeline`,
+	shortcut: [cmdKey, 'E'],
+}
+
+export const PlayerKeyboardShortcuts: ShortcutItem[] = [
 	{
 		description: 'Play or pause the video',
 		shortcut: ['space'],
@@ -334,14 +330,8 @@ const PlayerKeyboardShortcuts: ShortcutItem[] = [
 		} seconds forwards`,
 		shortcut: ['right'],
 	},
-	{
-		description: `Toggle the timeline`,
-		shortcut: [isOnMac ? '⌘' : 'Ctrl', 'E'],
-	},
-	{
-		description: `Toggle dev tools`,
-		shortcut: [isOnMac ? '⌘' : 'Ctrl', '/'],
-	},
+	TimelineShortcut,
+	DevToolsShortcut,
 	{
 		description: `Play the next session`,
 		shortcut: ['shift', 'N'],
@@ -351,11 +341,11 @@ const PlayerKeyboardShortcuts: ShortcutItem[] = [
 		shortcut: ['shift', 'P'],
 	},
 	{
-		description: `Decrease the playback speed by ${PLAYBACK_SPEED_INCREMENT}x`,
+		description: `Decrease the playback speed`,
 		shortcut: ['shift', ','],
 	},
 	{
-		description: `Increase the playback speed by ${PLAYBACK_SPEED_INCREMENT}x`,
+		description: `Increase the playback speed`,
 		shortcut: ['shift', '.'],
 	},
 	{
@@ -372,10 +362,21 @@ const PlayerKeyboardShortcuts: ShortcutItem[] = [
 	},
 	{
 		description: `Toggle left sidebar`,
-		shortcut: [isOnMac ? '⌘' : 'Ctrl', 'b'],
+		shortcut: [cmdKey, 'b'],
 	},
 	{
 		description: `Toggle right sidebar`,
-		shortcut: [isOnMac ? '⌘' : 'Ctrl', 'i'],
+		shortcut: [cmdKey, 'i'],
+	},
+]
+
+export const ErrorsKeyboardShortcuts: ShortcutItem[] = [
+	{
+		description: `Next error`,
+		shortcut: ['j'],
+	},
+	{
+		description: `Previous error`,
+		shortcut: ['k'],
 	},
 ]

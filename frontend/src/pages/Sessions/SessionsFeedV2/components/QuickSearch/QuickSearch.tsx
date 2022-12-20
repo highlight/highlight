@@ -72,6 +72,8 @@ export const styleProps: Styles<any, false> = {
 		borderRadius: 'var(--border-radius)',
 		boxShadow: 'var(--box-shadow)',
 		border: '1px solid var(--color-gray-300)',
+		minWidth: '400px',
+		right: 0,
 	}),
 	menuList: (provided) => ({
 		...provided,
@@ -93,7 +95,7 @@ export const styleProps: Styles<any, false> = {
 		fontSize: '12px',
 		background: 'none',
 		flexDirection: 'row-reverse',
-		minHeight: '32px',
+		minHeight: '28px',
 		'&:hover': {
 			borderColor: 'var(--color-purple) !important',
 		},
@@ -107,7 +109,7 @@ export const styleProps: Styles<any, false> = {
 	valueContainer: (provided) => ({
 		...provided,
 		padding: '0 12px',
-		height: '32px',
+		height: '28px',
 		cursor: 'text',
 	}),
 	noOptionsMessage: (provided) => ({
@@ -143,9 +145,8 @@ const QuickSearch = () => {
 	const {
 		setSearchParams,
 		setExistingParams,
-		setSegmentName,
 		setShowStarredSessions,
-		setSelectedSegment,
+		removeSelectedSegment,
 		setQueryBuilderInput,
 	} = useSearchContext()
 	const selectRef = useRef<any>(null)
@@ -313,9 +314,8 @@ const QuickSearch = () => {
 			history.push(`/${project_id}/sessions`)
 			setExistingParams(searchParams)
 			setSearchParams(searchParams)
-			setSegmentName(null)
 			setShowStarredSessions(false)
-			setSelectedSegment(undefined)
+			removeSelectedSegment()
 		}
 		setLastLoadedQuery('')
 	}
@@ -394,7 +394,7 @@ const QuickSearch = () => {
 				noOptionsMessage={({ inputValue }) =>
 					!inputValue ? null : `No results for "${inputValue}"`
 				}
-				placeholder="Search for a property..."
+				placeholder="Search..."
 				onInputChange={(newValue, actionMeta) => {
 					if (actionMeta?.action === 'input-change') {
 						setQuery(newValue)
@@ -431,7 +431,7 @@ const QuickSearch = () => {
 						}
 						return (
 							<AnimateHeight
-								key={'animatedMenu'}
+								key="animatedMenu"
 								duration={300}
 								height={height || 'auto'}
 							>

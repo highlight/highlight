@@ -6,9 +6,9 @@ import React from 'react'
 
 import styles from './<%= componentName %>.module.scss'
 
-interface Props {}
+type Props = React.PropsWithChildren & {}
 
-const <%= componentName %>: React.FC<React.PropsWithChildren<Props>> = (props) => {
+const <%= componentName %>: React.FC<Props> = (props) => {
 	return (
 		<div className={styles.<%= h.changeCase.camel(componentName) %>}>Hello from <%= componentName %>!</div>
 	)

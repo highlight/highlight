@@ -10,11 +10,14 @@ import AboutYouPage from '@pages/AboutYou/AboutYouCard'
 import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
+import analytics from '@util/analytics'
 import { auth, googleProvider } from '@util/auth'
+import { showIntercom } from '@util/window'
 import { message } from 'antd'
 import classNames from 'classnames'
 import firebase from 'firebase'
 import { H } from 'highlight.run'
+import { omit } from 'lodash'
 import React, {
 	FormEvent,
 	ReactNode,
@@ -38,48 +41,32 @@ import styles from './Login.module.scss'
 export const AuthAdminRouter = () => {
 	const { isAuthLoading, admin } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
+
 	useEffect(() => {
 		if (admin) {
 			const { email, id, name } = admin
-			let identifyMetadata: {
+			const identifyMetadata: {
 				id: string
 				avatar?: string
 				name: string
-				highlightDisplayName?: string
 				email?: string
 			} = {
+				email,
 				id,
 				name,
 			}
 
 			if (admin.photo_url) {
-				identifyMetadata = {
-					...identifyMetadata,
-					avatar: admin.photo_url,
-				}
+				identifyMetadata.avatar = admin.photo_url
 			}
+
 			H.identify(email, identifyMetadata)
-			window.analytics.identify(email, identifyMetadata)
-			H.getSessionURL()
-				.then((sessionUrl) => {
-					window.Intercom('boot', {
-						app_id: 'gm6369ty',
-						alignment: 'right',
-						hide_default_launcher: true,
-						email: admin?.email,
-						user_id: admin?.uid,
-						sessionUrl,
-					})
-				})
-				.catch(() => {
-					window.Intercom('boot', {
-						app_id: 'gm6369ty',
-						alignment: 'right',
-						hide_default_launcher: true,
-						email: admin?.email,
-						user_id: admin?.uid,
-					})
-				})
+
+			// `id` is a reserved keyword in rudderstack and it's recommended to use a
+			// static property for the user ID rather than something that could change
+			// over time, like an email address.
+			analytics.identify(admin.id, omit(identifyMetadata, ['id']))
+			showIntercom({ admin, hideMessage: true })
 		}
 	}, [admin])
 
@@ -173,6 +160,12 @@ export default function LoginForm() {
 			auth.createUserWithEmailAndPassword(email, password)
 				.then(() => {
 					auth.currentUser?.sendEmailVerification()
+
+					if (auth.currentUser?.email) {
+						analytics.track('Sign up', {
+							email: auth.currentUser.email,
+						})
+					}
 				})
 				.catch((error) => {
 					setError(error.toString())
@@ -222,6 +215,16 @@ export default function LoginForm() {
 			setFormState(LoginFormState.SignIn)
 		}
 	}, [admin, admin?.email_verified, formState, isLoggedIn])
+
+	useEffect(() => {
+		// This is loaded on every page, but we only want to track pageviews when we
+		// are on the login page.
+		if (isAuthLoading || isLoggedIn) {
+			return
+		}
+
+		analytics.page(`/login`, { page: LoginFormState[formState] })
+	}, [formState, isAuthLoading, isLoggedIn])
 
 	if (isAuthLoading) {
 		return null
@@ -323,9 +326,9 @@ export default function LoginForm() {
 					</div>
 					<div className={styles.inputContainer}>
 						<Input
-							placeholder={'Email'}
+							placeholder="Email"
 							name="email"
-							type={'email'}
+							type="email"
 							value={email}
 							onChange={(e) => {
 								setEmail(e.target.value)
@@ -335,7 +338,7 @@ export default function LoginForm() {
 						/>
 						{formState !== LoginFormState.ResetPassword && (
 							<Input
-								placeholder={'Password'}
+								placeholder="Password"
 								type="password"
 								name="password"
 								value={password}
@@ -348,7 +351,7 @@ export default function LoginForm() {
 						{formState === LoginFormState.SignUp && (
 							<>
 								<Input
-									placeholder={'Confirm Password'}
+									placeholder="Confirm Password"
 									type="password"
 									name="confirm-password"
 									required
@@ -588,7 +591,7 @@ function AuthPageLayout({
 	return (
 		<div className="relative m-auto flex w-full max-w-6xl items-center justify-center gap-24">
 			<section className="flex w-full max-w-md flex-col items-center gap-6">
-				<div className="font-poppins flex flex-col items-center gap-2 text-center font-semibold">
+				<div className="flex flex-col items-center gap-2 text-center font-poppins font-semibold">
 					<h2 className="text-4xl tracking-wide text-white">
 						{title}
 					</h2>
@@ -632,7 +635,7 @@ function AuthPageLayout({
 
 function Testimonial() {
 	return (
-		<div className="font-poppins flex flex-col gap-8 tracking-wide text-white">
+		<div className="flex flex-col gap-8 font-poppins tracking-wide text-white">
 			<p className="text-2xl font-semibold leading-normal tracking-wider text-white">
 				<span className="text-highlight-1">
 					No matter your team size

@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -35,11 +34,10 @@ import SessionsQueryBuilder, {
 } from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
 import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration'
-import useLocalStorage from '@rehooks/local-storage'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
-import { serializeAbsoluteTimeRange } from '@util/time'
+import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import { message } from 'antd'
 import classNames from 'classnames'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -57,20 +55,16 @@ import {
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard'
 import styles from './SessionsFeed.module.scss'
 
-const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
+export const SessionsHistogram: React.FC = React.memo(() => {
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
 	const { searchParams, setSearchParams, backendSearchQuery } =
 		useSearchContext()
-	const [histogram, setHistogram] = useState<{
-		seriesList: Series[]
-		bucketTimes: number[]
-	}>({
-		seriesList: [],
-		bucketTimes: [],
-	})
 
-	const { loading } = useGetSessionsHistogramQuery({
+	const { loading, data } = useGetSessionsHistogramQuery({
 		variables: {
-			project_id: projectId,
+			project_id,
 			query: backendSearchQuery?.searchQuery as string,
 			histogram_options: {
 				bucket_size:
@@ -78,42 +72,43 @@ const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
 				time_zone:
 					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
 				bounds: {
-					start_date:
-						backendSearchQuery?.startDate.toISOString() as string,
-					end_date:
-						backendSearchQuery?.endDate.toISOString() as string,
+					start_date: roundDateToMinute(
+						backendSearchQuery?.startDate.toISOString() ?? null,
+					).format(),
+					end_date: roundDateToMinute(
+						backendSearchQuery?.endDate.toISOString() ?? null,
+					).format(),
 				},
 			},
 		},
-		onCompleted: (r) => {
-			let seriesList: Series[] = []
-			let bucketTimes: number[] = []
-			const histogramData = r?.sessions_histogram
-			if (backendSearchQuery && histogramData) {
-				bucketTimes = histogramData.bucket_times.map((startTime) =>
-					new Date(startTime).valueOf(),
-				)
-				seriesList = [
-					{
-						label: 'Sessions without errors',
-						color: '--color-purple',
-						counts: histogramData.sessions_without_errors,
-					},
-					{
-						label: 'Sessions with errors',
-						color: '--color-red-600',
-						counts: histogramData.sessions_with_errors,
-					},
-				]
-			}
-			setHistogram({
-				seriesList,
-				bucketTimes,
-			})
-		},
 		skip: !backendSearchQuery,
-		fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
+		fetchPolicy: 'cache-first',
 	})
+
+	const histogram: {
+		seriesList: Series[]
+		bucketTimes: number[]
+	} = {
+		seriesList: [],
+		bucketTimes: [],
+	}
+	if (data?.sessions_histogram) {
+		histogram.bucketTimes = data?.sessions_histogram.bucket_times.map(
+			(startTime) => new Date(startTime).valueOf(),
+		)
+		histogram.seriesList = [
+			{
+				label: 'sessions',
+				color: 'neutralN9',
+				counts: data?.sessions_histogram.sessions_without_errors,
+			},
+			{
+				label: 'errors',
+				color: 'blueLB100',
+				counts: data?.sessions_histogram.sessions_with_errors,
+			},
+		]
+	}
 
 	const updateTimeRange = useCallback(
 		(newStartTime: Date, newEndTime: Date) => {
@@ -139,7 +134,7 @@ const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
 			updateTimeRange={updateTimeRange}
 		/>
 	)
-}
+})
 
 export const SessionFeed = React.memo(() => {
 	const { setSessionResults, sessionResults } = useReplayerContext()
@@ -147,11 +142,11 @@ export const SessionFeed = React.memo(() => {
 		project_id: string
 		session_secure_id: string
 	}>()
-	const { isHighlightAdmin } = useAuthContext()
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
 	const {
 		autoPlaySessions,
 		setAutoPlaySessions,
+		setAutoPlayVideo,
 		setShowDetailedSessionView,
 		showDetailedSessionView,
 	} = usePlayerConfiguration()
@@ -162,10 +157,6 @@ export const SessionFeed = React.memo(() => {
 	] = useState(true)
 
 	const totalPages = useRef<number>(0)
-	const [sessionsCount, setSessionsCount] = useLocalStorage<number>(
-		`sessionsCount-project-${project_id}`,
-		0,
-	)
 	const {
 		searchParams,
 		showStarredSessions,
@@ -178,7 +169,7 @@ export const SessionFeed = React.memo(() => {
 	} = useSearchContext()
 	const { integrated } = useIntegrated()
 	const searchParamsChanged = useRef<Date>()
-	const projectHasManySessions = sessionsCount > DEFAULT_PAGE_SIZE
+	const projectHasManySessions = sessionResults.totalCount > DEFAULT_PAGE_SIZE
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id },
@@ -199,7 +190,9 @@ export const SessionFeed = React.memo(() => {
 			fetchPolicy: 'network-only',
 		})
 
-	// Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
+	// Used to determine if we need to show the loading skeleton.
+	// The loading skeleton should only be shown on the first load and when searchParams changes.
+	// It should not show when loading more sessions via infinite scroll.
 	useEffect(() => {
 		setSearchResultsLoading(true)
 	}, [backendSearchQuery, page, setSearchResultsLoading])
@@ -210,11 +203,16 @@ export const SessionFeed = React.memo(() => {
 
 	const addSessions = (response: GetSessionsOpenSearchQuery) => {
 		if (response?.sessions_opensearch) {
-			setSessionResults(response.sessions_opensearch)
+			setSessionResults({
+				...response.sessions_opensearch,
+				sessions: response.sessions_opensearch.sessions.map((s) => ({
+					...s,
+					payload_updated_at: new Date().toISOString(),
+				})),
+			})
 			totalPages.current = Math.ceil(
 				response?.sessions_opensearch.totalCount / DEFAULT_PAGE_SIZE,
 			)
-			setSessionsCount(response?.sessions_opensearch.totalCount)
 		}
 		setSearchResultsLoading(false)
 	}
@@ -231,7 +229,6 @@ export const SessionFeed = React.memo(() => {
 		skip: !backendSearchQuery,
 		fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
 	})
-	const histogram = useHistogram(project_id, projectHasManySessions)
 
 	useEffect(() => {
 		// we just loaded the page for the first time
@@ -323,9 +320,9 @@ export const SessionFeed = React.memo(() => {
 				<SegmentPickerForPlayer />
 				<SessionsQueryBuilder />
 			</div>
-			{isHighlightAdmin && (loading || sessionResults.totalCount > 0) && (
-				<Box paddingTop="large" paddingBottom="tiny" px="medium">
-					{histogram}
+			{(loading || sessionResults.totalCount > 0) && (
+				<Box paddingTop="16" paddingBottom="6" px="8">
+					<SessionsHistogram />
 				</Box>
 			)}
 			<div className={styles.fixedContent}>
@@ -376,6 +373,7 @@ export const SessionFeed = React.memo(() => {
 									checked={autoPlaySessions}
 									onChange={(checked) => {
 										setAutoPlaySessions(checked)
+										if (checked) setAutoPlayVideo(checked)
 									}}
 									trackingId="SessionFeedAutoplay"
 								/>
@@ -427,12 +425,17 @@ export const SessionFeed = React.memo(() => {
 							!loading ? (
 								showStarredSessions ? (
 									<SearchEmptyState
-										item={'sessions'}
+										item="sessions"
 										customTitle="Your project doesn't have starred sessions."
-										customDescription="Starring a session is like bookmarking a website. It gives you a way to tag a session that you want to look at again. You can star a session by clicking the star icon next to the user details in the session's right panel."
+										customDescription={
+											'Starring a session is like bookmarking a website. ' +
+											'It gives you a way to tag a session that you want to look at again. ' +
+											'You can star a session by clicking the star icon next to the user details ' +
+											"in the session's right panel."
+										}
 									/>
 								) : (
-									<SearchEmptyState item={'sessions'} />
+									<SearchEmptyState item="sessions" />
 								)
 							) : (
 								<>

@@ -33,13 +33,13 @@ import ISSUE_TRACKER_INTEGRATIONS, {
 } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect'
+import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
 import { Form, message } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React, { useEffect, useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
 import { Link } from 'react-router-dom'
@@ -148,7 +148,7 @@ export const NewCommentForm = ({
 	}, [session, errorTitle])
 
 	const onCreateErrorComment = async () => {
-		H.track('Create Error Comment', {
+		analytics.track('Create Error Comment', {
 			numHighlightAdminMentions: mentionedAdmins.length,
 			numSlackMentions: mentionedSlackUsers.length,
 		})
@@ -186,7 +186,9 @@ export const NewCommentForm = ({
 			onCloseHandler()
 		} catch (_e) {
 			const e = _e as Error
-			H.track('Create Error Comment Failed', { error: e.toString() })
+			analytics.track('Create Error Comment Failed', {
+				error: e.toString(),
+			})
 			message.error(
 				<>
 					Failed to post a comment, please try again. If this keeps
@@ -210,7 +212,7 @@ export const NewCommentForm = ({
 	}
 
 	const onCreateSessionComment = async () => {
-		H.track('Create Comment', {
+		analytics.track('Create Comment', {
 			numHighlightAdminMentions: mentionedAdmins.length,
 			numSlackMentions: mentionedSlackUsers.length,
 		})
@@ -264,7 +266,7 @@ export const NewCommentForm = ({
 		} catch (_e) {
 			const e = _e as Error
 
-			H.track('Create Comment Failed', { error: e.toString() })
+			analytics.track('Create Comment Failed', { error: e.toString() })
 			message.error(
 				<>
 					Failed to post a comment, please try again.{' '}
@@ -343,7 +345,7 @@ export const NewCommentForm = ({
 				}),
 		)
 
-		if (mentionSuggestionsData?.slack_members) {
+		if (mentionSuggestionsData?.slack_channel_suggestion) {
 			setMentionedSlackUsers(
 				mentions
 					.filter(
@@ -353,10 +355,10 @@ export const NewCommentForm = ({
 					)
 					.map<SanitizedSlackChannelInput>((mention) => {
 						const matchingSlackUser =
-							mentionSuggestionsData.slack_members.find(
-								(slackUser) => {
+							mentionSuggestionsData.slack_channel_suggestion.find(
+								(suggestion) => {
 									return (
-										slackUser?.webhook_channel_id ===
+										suggestion.webhook_channel_id ===
 										mention.id
 									)
 								},
@@ -483,7 +485,7 @@ export const NewCommentForm = ({
 								aria-label="Comment tags"
 								allowClear={true}
 								defaultActiveFirstOption
-								placeholder={'Attach an issue'}
+								placeholder="Attach an issue"
 								options={issueIntegrationsOptions}
 								onChange={setSelectedIssueService}
 								value={selectedIssueService}

@@ -1,5 +1,6 @@
 import { LoadingOutlined } from '@ant-design/icons'
-import SvgSearchIcon from '@icons/SearchIcon'
+import { IconSearch } from '@highlight-run/ui'
+import { vars } from '@highlight-run/ui/src/css/vars'
 import { Spin } from 'antd'
 import classNames from 'classnames'
 import React from 'react'
@@ -28,13 +29,11 @@ export const DropdownIndicator = React.memo(
 				/>
 			</div>
 		) : (
-			<SvgSearchIcon
-				className={classNames(
-					styles.searchIcon,
-					styles.dropdownIndicator,
-				)}
-				style={style}
-			/>
+			<div
+				className={classNames(styles.dropdownIndicator, styles.search)}
+			>
+				<IconSearch color={vars.color.neutral500} size={14} />
+			</div>
 		)
 	},
 )

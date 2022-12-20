@@ -208,10 +208,9 @@ const TABLE_COLUMNS = [
 					<div className={styles.innerChart}>
 						{hasData ? (
 							<BarChart
-								sharedMaxNum={frequency}
+								maxValue={frequency}
 								height={30}
 								data={record.DailyFrequency}
-								showBase={false}
 							/>
 						) : (
 							<p className={styles.frequencyGraphEmptyMessage}>
@@ -415,7 +414,7 @@ function AlertsPageLoaded({
 				)}
 			</div>
 			{alertsPayload && (
-				<Card noPadding style={{ width: 1200 }}>
+				<Card noPadding>
 					<Table
 						columns={TABLE_COLUMNS}
 						dataSource={alertsAsTableRows}
@@ -425,7 +424,7 @@ function AlertsPageLoaded({
 						renderEmptyComponent={
 							<SearchEmptyState
 								className={styles.emptyContainer}
-								item={'alerts'}
+								item="alerts"
 								customTitle={`Your project doesn't have any alerts yet 😔`}
 								customDescription={
 									<>

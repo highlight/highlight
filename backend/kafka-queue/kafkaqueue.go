@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/samber/lo"
 	"os"
 	"strings"
 	"time"
@@ -20,6 +21,8 @@ import (
 
 // KafkaOperationTimeout If an ECS task is being replaced, there's a 30 second window to do cleanup work. A shorter timeout means we shouldn't be killed mid-operation.
 const KafkaOperationTimeout = 25 * time.Second
+
+const ConsumerGroupName = "group-default"
 
 const (
 	taskRetries           = 5
@@ -49,6 +52,7 @@ const (
 type Queue struct {
 	Topic         string
 	ConsumerGroup string
+	Client        *kafka.Client
 	kafkaP        *kafka.Writer
 	kafkaC        *kafka.Reader
 }
@@ -76,7 +80,7 @@ func New(topic string, mode Mode) *Queue {
 			TLS:  tlsConfig,
 		},
 	}
-	groupID := "group-default"
+	groupID := ConsumerGroupName
 	if util.IsDevOrTestEnv() {
 		// create per-profile consumer and topic to avoid collisions between dev envs
 		groupID = fmt.Sprintf("%s_%s", EnvironmentPrefix, groupID)
@@ -120,7 +124,7 @@ func New(topic string, mode Mode) *Queue {
 		}
 	}
 
-	pool := &Queue{Topic: topic, ConsumerGroup: groupID}
+	pool := &Queue{Topic: topic, ConsumerGroup: groupID, Client: client}
 	if mode&1 == 1 {
 		log.Debugf("initializing kafka producer for %s", topic)
 		pool.kafkaP = &kafka.Writer{
@@ -244,6 +248,50 @@ func (p *Queue) Receive() (msg *Message) {
 	return
 }
 
+func (p *Queue) Rewind(dur time.Duration) error {
+	ts := time.Now().Add(-dur)
+
+	resp, err := p.Client.Metadata(context.Background(), &kafka.MetadataRequest{
+		Addr:   p.Client.Addr,
+		Topics: []string{p.Topic},
+	})
+	if err != nil {
+		return errors.Wrap(err, "failed to read topic partitions")
+	}
+	numPartitions := len(resp.Topics[0].Partitions)
+
+	var requests []kafka.OffsetRequest
+	for partition := 0; partition < numPartitions; partition++ {
+		requests = append(requests, kafka.TimeOffsetOf(partition, ts))
+	}
+	offsets, err := p.Client.ListOffsets(context.Background(), &kafka.ListOffsetsRequest{
+		Addr: p.Client.Addr,
+		Topics: map[string][]kafka.OffsetRequest{
+			p.Topic: requests,
+		},
+		IsolationLevel: kafka.ReadCommitted,
+	})
+	if err != nil {
+		return errors.Wrap(err, "failed to list offsets")
+	}
+
+	desiredOffsets := map[int]int64{}
+	for _, offset := range offsets.Topics[p.Topic] {
+		// ListOffsets for a TimeOffsetOf request returns offset -> date map.
+		// since we make one TimeOffsetOf request per partition, there is only
+		// one key returned in each partition map.
+		off := lo.Keys(offset.Offsets)[0]
+		if off != -1 {
+			desiredOffsets[offset.Partition] = off
+		} else {
+			log.Warnf("no offset exists for ts %s on partition %d", ts, offset.Partition)
+		}
+	}
+
+	log.Infof("resetting kafka offsets for %s based on desired time %s: %+v", p.Topic, ts, desiredOffsets)
+	return p.resetConsumerOffset(desiredOffsets)
+}
+
 func (p *Queue) Commit(msg *kafka.Message) {
 	start := time.Now()
 	ctx, cancel := context.WithTimeout(context.Background(), KafkaOperationTimeout)
@@ -299,5 +347,34 @@ func (p *Queue) deserializeMessage(compressed []byte) (msg *Message, error error
 	if err := json.Unmarshal(compressed, &msg); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshall msg")
 	}
+	return
+}
+
+func (p *Queue) resetConsumerOffset(partitionOffsets map[int]int64) (error error) {
+	cfg := p.kafkaC.Config()
+	group, err := kafka.NewConsumerGroup(kafka.ConsumerGroupConfig{
+		ID:      ConsumerGroupName,
+		Brokers: cfg.Brokers,
+		Dialer:  cfg.Dialer,
+		Topics:  []string{cfg.Topic},
+		Timeout: KafkaOperationTimeout,
+	})
+	if err != nil {
+		return errors.Wrap(err, "failed to create consumer group")
+	}
+
+	gen, err := group.Next(context.Background())
+	if err != nil {
+		return errors.Wrap(err, "failed to establish next group generation")
+	}
+	err = gen.CommitOffsets(map[string]map[int]int64{cfg.Topic: partitionOffsets})
+	if err != nil {
+		return errors.Wrap(err, "failed to commit new offsets")
+	}
+
+	if err = group.Close(); err != nil {
+		return errors.Wrap(err, "failed to close consumer group")
+	}
+	log.Infof("reset consumer offsets: %+v", partitionOffsets)
 	return
 }

@@ -347,8 +347,15 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 	invoiceParams.AddExpand("lines.data.price.product")
 
 	invoice, err := stripeClient.Invoices.GetNext(invoiceParams)
+	// Cancelled subscriptions have no upcoming invoice - we can skip these since we won't
+	// be charging any overage for their next billing period.
 	if err != nil {
-		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to retrieve upcoming invoice")
+		if err.Error() == string(stripe.ErrorCodeInvoiceUpcomingNone) {
+			return nil
+		} else {
+			log.Error(err)
+			return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to retrieve upcoming invoice for customer "+c.ID)
+		}
 	}
 
 	invoiceLines := map[ProductType]*stripe.InvoiceLine{}

@@ -64,12 +64,12 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 		return (
 			<>
 				<p className={styles.modalSubTitle}>
-					Disconnecting Discord from Highlight will stop enhancing
-					your customer interactions.
+					Disconnecting Discord from Highlight will prevent alerts
+					from notifying Discord channels.
 				</p>
 				<footer>
 					<Button
-						trackingId={`IntegrationDisconnectCancel-Discord`}
+						trackingId="IntegrationDisconnectCancel-Discord"
 						className={styles.modalBtn}
 						onClick={() => {
 							setModalOpen(false)
@@ -79,7 +79,7 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 						Cancel
 					</Button>
 					<Button
-						trackingId={`IntegrationDisconnectSave-Discord`}
+						trackingId="IntegrationDisconnectSave-Discord"
 						className={styles.modalBtn}
 						type="primary"
 						danger
@@ -104,7 +104,7 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 			</p>
 			<footer>
 				<Button
-					trackingId={`IntegrationConfigurationCancel-Discord`}
+					trackingId="IntegrationConfigurationCancel-Discord"
 					className={styles.modalBtn}
 					onClick={() => {
 						setModalOpen(false)
@@ -114,7 +114,7 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 					Cancel
 				</Button>
 				<Button
-					trackingId={`IntegrationConfigurationSave-Discord`}
+					trackingId="IntegrationConfigurationSave-Discord"
 					className={styles.modalBtn}
 					type="primary"
 					target="_blank"

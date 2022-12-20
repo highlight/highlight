@@ -1,6 +1,6 @@
 import Alert from '@components/Alert/Alert'
 import Card from '@components/Card/Card'
-import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton'
+import ConnectHighlightWithSlackButton from '@components/Header/components/ConnectHighlightWithSlackButton/ConnectHighlightWithSlackButton'
 import Modal from '@components/Modal/Modal'
 import Select from '@components/Select/Select'
 import Steps from '@components/Steps/Steps'
@@ -131,7 +131,7 @@ const AlertSetupModal = () => {
 						trackingId="AlertSetupModalSlackIntegration"
 						closable={false}
 						message={"Slack isn't connected"}
-						type={'error'}
+						type="error"
 						description={
 							<>
 								<p>
@@ -148,10 +148,8 @@ const AlertSetupModal = () => {
 									<li>A new feature is used</li>
 									<li>User submitted feedback</li>
 								</ul>
-								<PersonalNotificationButton
-									text="Connect Highlight with Slack"
+								<ConnectHighlightWithSlackButton
 									className={styles.integrationButton}
-									type="Organization"
 								/>
 							</>
 						}
@@ -289,7 +287,7 @@ const AlertSetupModal = () => {
 								.toLowerCase()
 								.includes(searchValue.toLowerCase())
 						}}
-						placeholder={`Select a channel(s) or person(s) to send alerts to.`}
+						placeholder="Select a channel(s) or person(s) to send alerts to."
 						onChange={onChannelsChange}
 						defaultValue={selectedChannels}
 						notFoundContent={

@@ -42,6 +42,7 @@ const Auth: React.FC = () => {
 		}
 		// Passing dependency because this component isn't unmounted when logged out
 		// so the state never gets reset after logging in.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [auth.currentUser?.metadata.lastSignInTime])
 
 	return (

@@ -101,7 +101,7 @@ export const ExcludedUsersForm = () => {
 	}
 
 	return (
-		<FieldsBox id={'users'}>
+		<FieldsBox id="users">
 			<h3>Excluded Sessions</h3>
 			<form onSubmit={onSubmit} key={project_id}>
 				<p>
@@ -112,7 +112,7 @@ export const ExcludedUsersForm = () => {
 				<div className={styles.inputAndButtonRow}>
 					<Select
 						mode="tags"
-						placeholder={`.*@yourdomain.com`}
+						placeholder=".*@yourdomain.com"
 						defaultValue={
 							data?.project?.excluded_users || undefined
 						}
@@ -148,7 +148,7 @@ export const ExcludedUsersForm = () => {
 						}}
 					/>
 					<Button
-						trackingId={`ExcludedUsersUpdate`}
+						trackingId="ExcludedUsersUpdate"
 						htmlType="submit"
 						type="primary"
 						className={classNames(

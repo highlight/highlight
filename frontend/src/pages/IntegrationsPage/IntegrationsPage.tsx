@@ -1,5 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils'
+import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'
@@ -11,8 +11,9 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
@@ -20,9 +21,7 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 import styles from './IntegrationsPage.module.scss'
 
 const IntegrationsPage = () => {
-	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot({
-		type: 'Organization',
-	})
+	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()
 
 	const { integration_type: configureIntegration } = useParams<{
 		integration_type: string
@@ -95,6 +94,8 @@ const IntegrationsPage = () => {
 		isClickUpIntegratedWithProject,
 	])
 
+	useEffect(() => analytics.page(), [])
+
 	return (
 		<>
 			<Helmet>
@@ -109,7 +110,7 @@ const IntegrationsPage = () => {
 				<div className={styles.integrationsContainer}>
 					{integrations.map((integration) =>
 						loading ? (
-							<Skeleton height={187} />
+							<Skeleton height={187} key={integration.key} />
 						) : (
 							<Integration
 								integration={integration}

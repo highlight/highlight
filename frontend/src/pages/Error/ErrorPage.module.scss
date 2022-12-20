@@ -1,7 +1,7 @@
 @import 'src/static/shared.scss';
 
 .errorPageCenterColumn {
-	height: calc(100vh - var(--top-padding));
+	height: calc(100vh - var(--header-height));
 	overflow-y: auto;
 	padding-top: var(--size-large);
 
@@ -10,12 +10,11 @@
 	}
 
 	&.bannerShown {
-		height: calc(100vh - var(--top-padding) - var(--banner-height));
+		height: calc(100vh - var(--header-height) - var(--banner-height));
 	}
 }
 
 .errorPageLeftColumn {
-	margin-top: calc((-1 * var(--top-padding)) + var(--header-height));
 	width: var(--left-panel-width);
 
 	&.hidden {
@@ -26,7 +25,7 @@
 .errorPageRightColumn {
 	display: flex;
 	flex-direction: column;
-	height: calc(100vh - var(--top-padding));
+	height: calc(100vh - var(--header-height));
 	padding-bottom: var(--size-large);
 	padding-right: var(--size-medium);
 	padding-top: var(--size-large);
@@ -36,7 +35,7 @@
 	width: 100%;
 
 	&.bannerShown {
-		height: calc(100vh - var(--top-padding) - var(--banner-height));
+		height: calc(100vh - var(--header-height) - var(--banner-height));
 	}
 }
 
@@ -54,7 +53,6 @@
 .errorPage {
 	--right-panel-width: 370px;
 	--left-panel-width: 475px;
-	--top-padding: 80px;
 
 	background: var(--color-gray-200);
 	column-gap: var(--size-large);
@@ -63,7 +61,6 @@
 	height: 100%;
 	justify-content: space-between;
 	padding-bottom: 0;
-	padding-top: var(--top-padding);
 	width: 100%;
 	word-break: break-word;
 
@@ -77,10 +74,6 @@
 
 	&.empty {
 		grid-template-columns: var(--left-panel-width) 1fr;
-	}
-
-	&.withErrorState {
-		padding-top: var(--header-height);
 	}
 }
 

@@ -37,28 +37,23 @@ export const Badge: React.FC<Props> = ({
 			textColor = 'neutral500'
 			break
 		case 'white':
-			textColor = 'neutral700'
+			textColor = 'neutralN11'
 			break
 		default:
-			textColor = 'neutral700'
+			textColor = 'neutralN11'
 	}
 
 	return (
 		<Box
 			display="flex"
+			flexDirection="row"
 			alignItems="center"
-			gap="xxSmall"
-			width="fit"
+			gap="2"
 			cssClass={[styles.variants({ ...rest })]}
 		>
 			{iconStart}
 			{label && (
-				<Text
-					weight="semibold"
-					size={textSize}
-					color={textColor}
-					as="span"
-				>
+				<Text size={textSize} color={textColor} as="span">
 					{label}
 				</Text>
 			)}

@@ -40,8 +40,7 @@ const ReferrersTable = ({
 
 	const { timeRange } = useDataTimeRange()
 	const history = useHistory()
-	const { setSearchParams, setSegmentName, setSelectedSegment } =
-		useSearchContext()
+	const { setSearchParams, removeSelectedSegment } = useSearchContext()
 
 	const { loading } = useGetReferrersCountQuery({
 		variables: {
@@ -83,8 +82,7 @@ const ReferrersTable = ({
 					loading={false}
 					onClickHandler={(record) => {
 						history.push(`/${projectIdRemapped}/sessions`)
-						setSegmentName(null)
-						setSelectedSegment(undefined)
+						removeSelectedSegment()
 						setSearchParams({
 							...EmptySessionsSearchParams,
 							referrer: record.host,

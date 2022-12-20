@@ -1,22 +1,9 @@
-.legendContainer {
-	align-items: center;
-	display: flex;
-	justify-content: center;
-	margin-top: var(--size-xSmall);
-}
-
-.legendItem {
-	align-items: center;
-	color: var(--color-gray-500) !important;
-	column-gap: var(--size-xxSmall);
-	display: flex;
-	font-size: 12px;
-	padding-bottom: 0 !important;
-	padding-top: 0 !important;
-}
+@import 'src/static/shared.scss';
 
 .legendValue {
 	color: var(--color-gray-500) !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
 
 	&.notShowing {
 		text-decoration: line-through;
@@ -27,6 +14,8 @@
 	border-radius: 2px;
 	flex-shrink: 0;
 	height: var(--size-small);
+	margin-bottom: auto;
+	margin-top: auto;
 	width: var(--size-small);
 
 	&.notShowing {
@@ -34,26 +23,8 @@
 	}
 }
 
-.tooltipEntry {
-	align-items: center;
-	column-gap: var(--size-xxSmall);
-	display: flex;
-	flex-direction: column;
-	margin-bottom: 0 !important;
-}
-
 .referenceLineValue {
 	color: var(--color-gray-500);
-}
-
-.tooltipRow {
-	align-items: center;
-	column-gap: var(--size-xSmall);
-	display: flex;
-	flex-direction: row;
-	justify-content: space-around;
-	margin-bottom: var(--size-medium);
-	width: 100%;
 }
 
 .tooltipGrid {
@@ -77,4 +48,8 @@
 	color: var(--text-primary);
 	font-size: 12px;
 	line-height: initial;
+}
+
+.text {
+	@include hide-scrollbar;
 }

@@ -1,13 +1,12 @@
 import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils'
 import PopConfirm from '@components/PopConfirm/PopConfirm'
 import { useGetAdminQuery, useGetOnboardingStepsQuery } from '@graph/hooks'
 import SvgCloseIcon from '@icons/CloseIcon'
 import useLocalStorage from '@rehooks/local-storage'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
 import { useHistory } from 'react-router'
@@ -41,10 +40,6 @@ const OnboardingBubble = () => {
 		`highlight-started-onboarding-${project_id}`,
 		false,
 	)
-	const [, setSetupType] = useLocalStorage<'' | 'Personal' | 'Organization'>(
-		'Highlight-slackBotSetupType',
-		'',
-	)
 	const [
 		temporarilyHideOnboardingBubble,
 		setTemporarilyHideOnboardingBubble,
@@ -72,10 +67,6 @@ const OnboardingBubble = () => {
 				temporarilyHideOnboardingBubble ||
 				permanentlyHideOnboardingBubble,
 		})
-
-	const { slackUrl: slackBotUrl } = useSlackBot({
-		type: 'Personal',
-	})
 
 	useEffect(() => {
 		if (data?.isIntegrated && data?.workspace?.id) {
@@ -171,8 +162,6 @@ const OnboardingBubble = () => {
 		setHasFinishedOnboarding,
 		startPolling,
 		stopPolling,
-		slackBotUrl,
-		setSetupType,
 	])
 
 	if (rainConfetti) {
@@ -197,7 +186,7 @@ const OnboardingBubble = () => {
 				trigger={['click']}
 				onVisibleChange={(visible) => {
 					if (visible) {
-						H.track('Viewed onboarding bubble')
+						analytics.track('Viewed onboarding bubble')
 					}
 				}}
 				popoverClassName={styles.popover}

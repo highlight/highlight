@@ -22,8 +22,6 @@ export const playerContainer: string
 export const playerLeftPanel: string
 export const playerPageBody: string
 export const progressBar: string
-export const rightHeader: string
-export const rrwebPlayerDiv: string
 export const rrwebPlayerSection: string
 export const rrwebPlayerWrapper: string
 export const signinWrapper: string

@@ -129,8 +129,7 @@
 	--border-radius: var(--size-xSmall);
 
 	// UI Elements
-	--sidebar-width: 64px;
-	--header-height: 80px;
+	--header-height: 45px;
 	--banner-height: 32px;
 
 	// Errors
@@ -278,7 +277,7 @@ input {
 }
 
 a {
-	color: var(--color-link) !important;
+	color: var(--color-link);
 }
 
 .blob {

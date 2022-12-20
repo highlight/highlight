@@ -23,7 +23,7 @@ import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInput
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput'
 import { useParams } from '@util/react-router/useParams'
-import { serializeAbsoluteTimeRange } from '@util/time'
+import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import { Checkbox } from 'antd'
 import classNames from 'classnames'
 import _ from 'lodash'
@@ -742,7 +742,7 @@ const SelectPopout = ({
 			>
 				<span>
 					<Button
-						trackingId={`SessionsQuerySelect`}
+						trackingId="SessionsQuerySelect"
 						className={classNames(styles.ruleItem, {
 							[styles.invalid]: invalid && !visible,
 						})}
@@ -844,7 +844,7 @@ export const TimeRangeFilter = ({
 			value={rule.val}
 			onChange={onChangeValue}
 			loadOptions={() => Promise.resolve([])}
-			type={'date_range'}
+			type="date_range"
 			disabled={false}
 		/>
 	)
@@ -1038,7 +1038,7 @@ export interface QueryBuilderState {
 }
 
 export const serializeRules = (rules: RuleProps[]): QueryBuilderRule[] => {
-	const ruleGroups = rules
+	return rules
 		.map((rule) => {
 			const ret: QueryBuilderRule = []
 
@@ -1065,8 +1065,6 @@ export const serializeRules = (rules: RuleProps[]): QueryBuilderRule[] => {
 			return ret
 		})
 		.filter((ruleGroup) => !!ruleGroup && ruleGroup.length > 0)
-
-	return ruleGroups
 }
 
 const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
@@ -1104,12 +1102,10 @@ export const deserializeGroup = (
 }
 
 const deserializeRules = (ruleGroups: any): RuleProps[] => {
-	const rules = ruleGroups.map((group: any[]) => {
+	return ruleGroups.map((group: any[]) => {
 		const [field, op, ...vals] = group
 		return deserializeGroup(field, op, vals)
 	})
-
-	return rules
 }
 
 const isComplete = (rule: RuleProps) =>
@@ -1417,88 +1413,6 @@ function QueryBuilder<T extends SearchContextTypes>(
 		},
 		[parseRuleImpl],
 	)
-
-	const parseGroup = useCallback(
-		(isAnd: boolean, rules: RuleProps[]): OpenSearchQuery => {
-			const errorObjectRules = rules.filter(
-				(r) => getType(r.field!.value) === ERROR_FIELD_TYPE,
-			)
-			if (errorObjectRules.length === 0) {
-				return {
-					query: {
-						bool: {
-							[isAnd ? 'must' : 'should']: rules.map((rule) =>
-								parseRule(rule),
-							),
-						},
-					},
-				}
-			} else {
-				const standardRules = rules.filter(
-					(r) => getType(r.field!.value) !== ERROR_FIELD_TYPE,
-				)
-				return {
-					query: {
-						bool: {
-							[isAnd ? 'must' : 'should']: [
-								{
-									bool: {
-										[isAnd ? 'must' : 'should']:
-											standardRules.map((rule) =>
-												parseRule(rule),
-											),
-									},
-								},
-								{
-									has_child: {
-										type: 'child',
-										query: {
-											bool: {
-												[isAnd ? 'must' : 'should']:
-													errorObjectRules.map(
-														(rule) =>
-															parseRule(rule),
-													),
-											},
-										},
-									},
-								},
-							],
-						},
-					},
-					childQuery: {
-						bool: {
-							[isAnd ? 'must' : 'should']: [
-								{
-									has_parent: {
-										parent_type: 'parent',
-										query: {
-											bool: {
-												[isAnd ? 'must' : 'should']:
-													standardRules.map((rule) =>
-														parseRule(rule),
-													),
-											},
-										},
-									},
-								},
-								{
-									bool: {
-										[isAnd ? 'must' : 'should']:
-											errorObjectRules.map((rule) =>
-												parseRule(rule),
-											),
-									},
-								},
-							],
-						},
-					},
-				}
-			}
-		},
-		[parseRule],
-	)
-
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -1529,17 +1443,113 @@ function QueryBuilder<T extends SearchContextTypes>(
 			},
 		}
 	}, [timeRangeField, project_id])
+
+	const getFilterRules = useCallback(
+		(rules: RuleProps[]) =>
+			rules.filter((rule) => rule.field?.value !== timeRangeField.value),
+		[timeRangeField.value],
+	)
+
+	const parseGroup = useCallback(
+		(isAnd: boolean, rules: RuleProps[]): OpenSearchQuery => {
+			const condition = isAnd ? 'must' : 'should'
+			const filterErrors = rules.some(
+				(r) => getType(r.field!.value) === ERROR_FIELD_TYPE,
+			)
+			const timeRange =
+				rules.find(
+					(rule) => rule.field?.value === timeRangeField.value,
+				) ?? defaultTimeRangeRule
+
+			const timeRule = parseRule(timeRange)
+
+			const errorObjectRules = rules
+				.filter(
+					(r) =>
+						getType(r.field!.value) === ERROR_FIELD_TYPE &&
+						r !== timeRange,
+				)
+				.map(parseRule)
+
+			const standardRules = rules
+				.filter(
+					(r) =>
+						getType(r.field!.value) !== ERROR_FIELD_TYPE &&
+						r !== timeRange,
+				)
+				.map(parseRule)
+
+			const request: OpenSearchQuery = { query: {} }
+
+			if (filterErrors) {
+				const errorGroupFilter = {
+					bool: {
+						[condition]: standardRules,
+					},
+				}
+				const errorObjectFilter = {
+					bool: {
+						must: [
+							timeRule,
+							{
+								bool: {
+									[condition]: errorObjectRules,
+								},
+							},
+						],
+					},
+				}
+				request.query = {
+					bool: {
+						must: [
+							errorGroupFilter,
+							{
+								has_child: {
+									type: 'child',
+									query: errorObjectFilter,
+								},
+							},
+						],
+					},
+				}
+				request.childQuery = {
+					bool: {
+						must: [
+							{
+								has_parent: {
+									parent_type: 'parent',
+									query: errorGroupFilter,
+								},
+							},
+							errorObjectFilter,
+						],
+					},
+				}
+			} else {
+				request.query = {
+					bool: {
+						must: [
+							timeRule,
+							{
+								bool: {
+									[condition]: standardRules,
+								},
+							},
+						],
+					},
+				}
+			}
+			return request
+		},
+		[defaultTimeRangeRule, parseRule, timeRangeField.value],
+	)
+
 	const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule])
 	const serializedQuery = useRef<BackendSearchQuery | undefined>()
 	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
-	const timeRangeRule = useMemo<RuleProps | undefined>(
-		() => rules.find((rule) => rule.field?.value === timeRangeField.value),
-		[rules, timeRangeField.value],
-	)
 	const filterRules = useMemo<RuleProps[]>(
-		() =>
-			rules.filter((rule) => rule.field?.value !== timeRangeField.value),
-		[rules, timeRangeField.value],
+		() => getFilterRules(rules),
+		[getFilterRules, rules],
 	)
 	const setRules = (rules: RuleProps[]) => {
 		setRulesImpl(rules)
@@ -1575,10 +1585,22 @@ function QueryBuilder<T extends SearchContextTypes>(
 		[rules],
 	)
 
+	const timeRangeRule = useMemo<RuleProps>(() => {
+		const timeRange = rules.find(
+			(rule) => rule.field?.value === timeRangeField.value,
+		)
+		if (!timeRange) {
+			addRule(defaultTimeRangeRule)
+			return defaultTimeRangeRule
+		}
+
+		return timeRange
+	}, [addRule, defaultTimeRangeRule, rules, timeRangeField.value])
+
 	const [isAnd, toggleIsAnd] = useToggle(true)
 
 	const getKeyOptions = async (input: string) => {
-		const results = customFields
+		return customFields
 			.concat(fieldData?.field_types ?? [])
 			.map((ft) => ({
 				label: ft.name,
@@ -1602,16 +1624,14 @@ function QueryBuilder<T extends SearchContextTypes>(
 					return 1
 				}
 			})
-		return results
 	}
 
 	const updateSerializedQuery = useCallback(
 		(isAnd: boolean, rules: RuleProps[]) => {
-			if (!timeRangeRule) return
-			const startDate = moment(
+			const startDate = roundDateToMinute(
 				getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
 			)
-			const endDate = moment(
+			const endDate = roundDateToMinute(
 				getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
 			)
 			const searchQuery = parseGroup(isAnd, rules)
@@ -1715,7 +1735,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 	const [qbState, setQbState] = useState<string | undefined>(undefined)
 
 	useEffect(() => {
-		if (searchResultsLoading === false) {
+		if (!searchResultsLoading) {
 			const timer = setTimeout(() => {
 				setSyncButtonDisabled(false)
 			}, 5000)
@@ -1806,75 +1826,63 @@ function QueryBuilder<T extends SearchContextTypes>(
 		return null
 	}
 
-	if (!timeRangeRule) {
-		addRule(defaultTimeRangeRule)
-	}
-
 	return (
 		<div className={styles.builderContainer}>
-			{timeRangeRule && (
-				<div className={styles.rulesContainer}>
-					<div
-						className={classNames(
-							styles.ruleContainer,
-							styles.timeRangeContainer,
-						)}
-					>
-						<TimeRangeFilter
-							rule={timeRangeRule}
-							onChangeValue={(val) =>
-								updateRule(timeRangeRule, { val })
-							}
-						/>
-						{!readonly &&
-							timeRangeRule.val?.options[0].value !==
-								defaultTimeRangeRule.val?.options[0].value && (
-								<Button
-									trackingId="resetTimeRangeRule"
-									className={classNames(
-										styles.ruleItem,
-										styles.removeRule,
-									)}
-									onClick={() =>
-										updateRule(timeRangeRule, {
-											val: defaultTimeRangeRule.val,
-										})
-									}
-								>
-									<SvgXIcon />
-								</Button>
-							)}
-					</div>
+			<div className={styles.rulesContainer}>
+				<div
+					className={classNames(
+						styles.ruleContainer,
+						styles.timeRangeContainer,
+					)}
+				>
+					<TimeRangeFilter
+						rule={timeRangeRule}
+						onChangeValue={(val) =>
+							updateRule(timeRangeRule, { val })
+						}
+					/>
 					{!readonly &&
-						!isAbsoluteTimeRange(
-							timeRangeRule.val?.options[0].value,
-						) && (
+						timeRangeRule.val?.options[0].value !==
+							defaultTimeRangeRule.val?.options[0].value && (
 							<Button
+								trackingId="resetTimeRangeRule"
 								className={classNames(
 									styles.ruleItem,
-									styles.syncButton,
+									styles.removeRule,
 								)}
-								onClick={() => {
-									// Re-generate the absolute times used in the serialized query
-									updateSerializedQuery(isAnd, rules)
-									setBackendSearchQuery(
-										serializedQuery.current,
-									)
-								}}
-								disabled={syncButtonDisabled}
-								trackingId={'RefreshSearchResults'}
+								onClick={() =>
+									updateRule(timeRangeRule, {
+										val: defaultTimeRangeRule.val,
+									})
+								}
 							>
-								<Tooltip
-									title={
-										'Refetch the latest results of your query.'
-									}
-								>
-									<Reload width="1em" height="1em" />
-								</Tooltip>
+								<SvgXIcon />
 							</Button>
 						)}
 				</div>
-			)}
+				{!readonly &&
+					!isAbsoluteTimeRange(
+						timeRangeRule.val?.options[0].value,
+					) && (
+						<Button
+							className={classNames(
+								styles.ruleItem,
+								styles.syncButton,
+							)}
+							onClick={() => {
+								// Re-generate the absolute times used in the serialized query
+								updateSerializedQuery(isAnd, rules)
+								setBackendSearchQuery(serializedQuery.current)
+							}}
+							disabled={syncButtonDisabled}
+							trackingId="RefreshSearchResults"
+						>
+							<Tooltip title="Refetch the latest results of your query.">
+								<Reload width="1em" height="1em" />
+							</Tooltip>
+						</Button>
+					)}
+			</div>
 			<div>
 				{filterRules.length > 0 && (
 					<div className={styles.rulesContainer}>
@@ -1930,111 +1938,109 @@ function QueryBuilder<T extends SearchContextTypes>(
 					</div>
 				)}
 				{!readonly && (
-					<div>
-						<Popover
-							trigger="click"
-							content={
-								currentRule?.field === undefined ? (
-									<PopoutContent
-										key={'popover-step-1'}
-										value={undefined}
-										setVisible={() => {
+					<Popover
+						trigger="click"
+						content={
+							currentRule?.field === undefined ? (
+								<PopoutContent
+									key="popover-step-1"
+									value={undefined}
+									setVisible={() => {
+										setCurrentStep(undefined)
+									}}
+									onChange={(val) => {
+										const field = val as
+											| SelectOption
+											| undefined
+										addRule({
+											field: field,
+											op: undefined,
+											val: undefined,
+										})
+									}}
+									loadOptions={getKeyOptions}
+									type="select"
+									placeholder="Filter..."
+								/>
+							) : currentRule?.op === undefined ? (
+								<PopoutContent
+									key="popover-step-2"
+									value={undefined}
+									setVisible={() => {
+										setCurrentStep(3)
+									}}
+									onChange={(val) => {
+										const op = (val as SelectOption)
+											.value as Operator
+										if (!hasArguments(op)) {
 											setCurrentStep(undefined)
-										}}
-										onChange={(val) => {
-											const field = val as
-												| SelectOption
-												| undefined
-											addRule({
-												field: field,
-												op: undefined,
-												val: undefined,
-											})
-										}}
-										loadOptions={getKeyOptions}
-										type="select"
-										placeholder="Filter..."
-									/>
-								) : currentRule?.op === undefined ? (
-									<PopoutContent
-										key={'popover-step-2'}
-										value={undefined}
-										setVisible={() => {
-											setCurrentStep(3)
-										}}
-										onChange={(val) => {
-											const op = (val as SelectOption)
-												.value as Operator
-											if (!hasArguments(op)) {
-												setCurrentStep(undefined)
-												addRule({
-													...currentRule,
-													op,
-												})
-											} else {
-												setCurrentRule({
-													...currentRule,
-													op,
-												})
-											}
-										}}
-										loadOptions={getOperatorOptionsCallback(
-											getCustomFieldOptions(
-												currentRule.field,
-											),
-											currentRule.val,
-										)}
-										type="select"
-										placeholder="Select..."
-									/>
-								) : (
-									<PopoutContent
-										key={'popover-step-3'}
-										value={undefined}
-										setVisible={() => {
-											setCurrentStep(undefined)
-										}}
-										onChange={(val) => {
 											addRule({
 												...currentRule,
-												val: val as
-													| MultiselectOption
-													| undefined,
+												op,
 											})
-										}}
-										loadOptions={getValueOptionsCallback(
+										} else {
+											setCurrentRule({
+												...currentRule,
+												op,
+											})
+										}
+									}}
+									loadOptions={getOperatorOptionsCallback(
+										getCustomFieldOptions(
 											currentRule.field,
-										)}
-										type={getPopoutType(currentRule.op)}
-										placeholder={`Select...`}
-									/>
-								)
+										),
+										currentRule.val,
+									)}
+									type="select"
+									placeholder="Select..."
+								/>
+							) : (
+								<PopoutContent
+									key="popover-step-3"
+									value={undefined}
+									setVisible={() => {
+										setCurrentStep(undefined)
+									}}
+									onChange={(val) => {
+										addRule({
+											...currentRule,
+											val: val as
+												| MultiselectOption
+												| undefined,
+										})
+									}}
+									loadOptions={getValueOptionsCallback(
+										currentRule.field,
+									)}
+									type={getPopoutType(currentRule.op)}
+									placeholder="Select..."
+								/>
+							)
+						}
+						placement="bottomLeft"
+						contentContainerClassName={styles.contentContainer}
+						popoverClassName={styles.popoverContainer}
+						destroyTooltipOnHide
+						onVisibleChange={(isVisible) => {
+							if (!isVisible) {
+								setCurrentStep(undefined)
 							}
-							placement="bottomLeft"
-							contentContainerClassName={styles.contentContainer}
-							popoverClassName={styles.popoverContainer}
-							destroyTooltipOnHide
-							onVisibleChange={(isVisible) => {
-								if (!isVisible) {
-									setCurrentStep(undefined)
-								}
-							}}
-							visible={
-								currentStep === 1 ||
-								(currentStep === 2 && !!currentRule?.field) ||
-								(currentStep === 3 && !!currentRule?.op)
-							}
+						}}
+						visible={
+							currentStep === 1 ||
+							(currentStep === 2 && !!currentRule?.field) ||
+							(currentStep === 3 && !!currentRule?.op)
+						}
+					>
+						<Button
+							className={styles.addFilter}
+							trackingId="SessionsQueryAddRule2"
+							onClick={newRule}
+							type="dashed"
 						>
-							<Button
-								className={styles.addFilter}
-								trackingId="SessionsQueryAddRule2"
-								onClick={newRule}
-								type="dashed"
-							>
-								+ Filter
-							</Button>
-						</Popover>
-					</div>
+							+ Filter
+						</Button>
+					</Popover>
 				)}
 			</div>
 		</div>

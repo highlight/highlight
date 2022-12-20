@@ -3,10 +3,12 @@ import {
 	RightPlayerPanelTabType,
 } from '@pages/Player/RightPlayerPanel/constants'
 import useLocalStorage from '@rehooks/local-storage'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { DevToolTabType } from '../../Toolbar/DevToolsContext/DevToolsContext'
 import { EventsForTimeline } from '.'
+
+export const PLAYBACK_SPEED_OPTIONS: readonly number[] = [1, 2, 4, 8]
 
 /**
  * Gets configuration for the Player.
@@ -78,9 +80,16 @@ const usePlayerConfiguration = () => {
 		false,
 	)
 
-	const [playerSpeed, setPlayerSpeed] = useLocalStorage(
-		'highlightMenuSpeed',
+	const [playerSpeedIdx, _setPlayerSpeedIdx] = useLocalStorage(
+		'highlightMenuSpeedIdx',
 		2,
+	)
+	const setPlayerSpeedIdx = useCallback(
+		(val: number) => {
+			const modulo = PLAYBACK_SPEED_OPTIONS.length
+			_setPlayerSpeedIdx((Math.round(val) + modulo) % modulo)
+		},
+		[_setPlayerSpeedIdx],
 	)
 
 	const [skipInactive, setSkipInactive] = useLocalStorage(
@@ -127,8 +136,8 @@ const usePlayerConfiguration = () => {
 		setPlayerTime,
 		enableInspectElement,
 		setEnableInspectElement,
-		playerSpeed,
-		setPlayerSpeed,
+		setPlayerSpeedIdx,
+		playerSpeedIdx,
 		skipInactive,
 		setSkipInactive,
 		showPlayerMouseTail,

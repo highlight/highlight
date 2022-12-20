@@ -1,16 +1,37 @@
 import React from 'react'
+import { Sprinkles } from '../../css/sprinkles.css'
 import { Box } from '../Box/Box'
+import { Truncate, Props as TruncateProps } from '../private/Truncate/Truncate'
 
 import * as styles from './styles.css'
 
-type Props = React.PropsWithChildren & {
-	size: 'h1' | 'h2' | 'h3' | 'h4'
-}
+// `as?: styles.Variants['level']` was producing a type error so pulled this out
+// to a separate type.
+type Levels = 'h1' | 'h2' | 'h3' | 'h4'
 
-export const Heading: React.FC<Props> = ({ children, size }) => {
+type Props = React.PropsWithChildren &
+	Pick<Sprinkles, 'my' | 'mt' | 'mb' | 'marginTop' | 'marginBottom'> & {
+		as?: Levels
+		level?: Levels
+		lines?: TruncateProps['lines']
+	}
+
+export const Heading: React.FC<Props> = ({
+	as,
+	children,
+	level = 'h2',
+	lines,
+	...props
+}) => {
+	const content = lines ? (
+		<Truncate lines={lines}>{children}</Truncate>
+	) : (
+		children
+	)
+
 	return (
-		<Box as={size} cssClass={styles.variants({ size })}>
-			{children}
+		<Box as={as || level} cssClass={styles.variants({ level })} {...props}>
+			{content}
 		</Box>
 	)
 }

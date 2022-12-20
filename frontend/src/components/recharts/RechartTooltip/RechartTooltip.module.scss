@@ -25,3 +25,8 @@
 		margin: 0 !important;
 	}
 }
+
+/* Removes blue border around tooltip in Chrome */
+:global(.recharts-tooltip-wrapper:focus-visible) {
+	outline: none;
+}

@@ -4,7 +4,7 @@ import validator from 'validator'
 import { Maybe, Session } from '../../../../../../graph/generated/schemas'
 
 export const getIdentifiedUserProfileImage = (
-	session: Maybe<Session>,
+	session: Maybe<Partial<Session>>,
 ): string | undefined => {
 	if (!session || !session.user_properties) {
 		return undefined
@@ -22,20 +22,23 @@ export const getIdentifiedUserProfileImage = (
 	return undefined
 }
 
-// Fallback logic for the display name shown for the session card
-export const getDisplayNameAndField = (
-	session?: Maybe<Session>,
-): [string, string | null] => {
-	let userProperties
+export const getUserProperties = (session?: Maybe<Partial<Session>>) => {
 	try {
 		if (typeof session?.user_properties === 'string') {
-			userProperties = JSON.parse(session?.user_properties || '{}')
+			return JSON.parse(session?.user_properties || '{}')
 		}
 	} catch (e) {
 		if (e instanceof Error) {
 			H.consumeError(e)
 		}
 	}
+}
+
+// Fallback logic for the display name shown for the session card
+export const getDisplayNameAndField = (
+	session?: Maybe<Partial<Session>>,
+): [string, string | null] => {
+	const userProperties = getUserProperties(session)
 
 	if (userProperties?.highlightDisplayName) {
 		return [userProperties?.highlightDisplayName, 'highlightDisplayName']
@@ -51,6 +54,6 @@ export const getDisplayNameAndField = (
 }
 
 // Fallback logic for the display name shown for the session card
-export const getDisplayName = (session?: Maybe<Session>): string => {
+export const getDisplayName = (session?: Maybe<Partial<Session>>): string => {
 	return getDisplayNameAndField(session)[0]
 }

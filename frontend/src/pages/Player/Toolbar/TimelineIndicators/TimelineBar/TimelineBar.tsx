@@ -1,10 +1,10 @@
 import Popover from '@components/Popover/Popover'
 import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext'
 import { EventsForTimeline } from '@pages/Player/PlayerHook/utils'
-import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings'
 import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import TimelinePopover from '@pages/Player/Toolbar/TimelineIndicators/TimelinePopover/TimelinePopover'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
+import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import { clamp } from '@util/numbers'
 import { TooltipPlacement } from 'antd/lib/tooltip'
 import classNames from 'classnames'
@@ -79,15 +79,16 @@ const TimelineIndicatorsBar = ({
 		}
 	}, [isInsideBar, isInsidePopover, viewportRef, width])
 
+	const viewportBbox = viewportRef.current?.getBoundingClientRect()
+
 	const tooltipPosition = useMemo(() => {
 		const viewportDiv = viewportRef.current
-		if (!viewportDiv) {
+		if (!viewportDiv || !viewportBbox) {
 			return {
 				rightOffset: 0,
 				placement: 'top' as TooltipPlacement,
 			}
 		}
-		const viewportBbox = viewportDiv.getBoundingClientRect()
 		const { scrollWidth, scrollLeft } = viewportDiv
 
 		const barLeft = (bucket.startPercent * scrollWidth) / 100 - scrollLeft
@@ -121,7 +122,7 @@ const TimelineIndicatorsBar = ({
 		}
 		// disable checks to update on scroll
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [viewportRef, viewportRef.current?.scrollLeft, width])
+	}, [viewportBbox, width])
 
 	return (
 		<Popover

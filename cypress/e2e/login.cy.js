@@ -12,7 +12,18 @@ describe('login spec', () => {
 		// Fill out login form
 		cy.get('[name="email"]').should('be.visible').type('swag@highlight.run')
 		cy.get('[name="password"]').type('9nsUj7eNoh#qeVPB!LaYCPFLBs!wwPG2')
-		cy.get('button[type="submit"]').click()
+		cy.get('button[type="submit"]').click().wait(5000)
+		cy.visit('/1/buttons').wait(5000)
+		cy.title().then((title) => {
+			if (title === 'About You') {
+				cy.get('[name="First Name"]').type('Swag')
+				cy.get('[name="Last Name"]').type('Master')
+				cy.get('[name="Role"]').type('Boba')
+				cy.get('button[type="button"]').click({ multiple: true })
+				cy.get('button[type="submit"]').click().wait(5000)
+			}
+		})
+		cy.get('#draw').click().wait(5000)
 
 		// Ensure client requests are made
 		cy.wait('@pushMetrics')

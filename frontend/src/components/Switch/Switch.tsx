@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
+import analytics from '@util/analytics'
 import { Switch as AntDesignSwitch, SwitchProps } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React from 'react'
 
 import styles from './Switch.module.scss'
@@ -52,7 +52,7 @@ const Switch = ({
 				})}
 				onChange={(checked, event) => {
 					if (props.onChange) {
-						H.track(`Switch-${trackingId}`, {
+						analytics.track(`Switch-${trackingId}`, {
 							checked,
 						})
 						props.onChange(checked, event)

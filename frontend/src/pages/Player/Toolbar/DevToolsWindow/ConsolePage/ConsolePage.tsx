@@ -3,6 +3,7 @@ import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { useGetMessagesQuery } from '@graph/hooks'
 import { ConsoleMessage } from '@highlight-run/client'
+import { indexedDBFetch } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message as AntDesignMessage } from 'antd'
@@ -61,7 +62,7 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
 			!!session?.messages_url
 		) {
 			setLoading(true)
-			fetch(session.messages_url)
+			indexedDBFetch(session.messages_url)
 				.then((response) => response.json())
 				.then((data) => {
 					setParsedMessages(
@@ -332,9 +333,14 @@ const ConsoleRender = React.memo(
 		// if the message is large, do not linkify as this may freeze the UI
 		return (
 			<div>
-				{result.map((r) =>
+				{result.map((r, idx) =>
 					typeof r === 'object' ? (
-						<JsonViewer name="Object" collapsed src={r} />
+						<JsonViewer
+							name="Object"
+							collapsed
+							src={r}
+							key={`console-msg-${idx}`}
+						/>
 					) : r.length > 1024 ? (
 						<div className={styles.messageText}>
 							<p>{r}</p>

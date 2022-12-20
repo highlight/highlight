@@ -1,30 +1,41 @@
-import { defineProperties, createSprinkles } from '@vanilla-extract/sprinkles'
+import {
+	defineProperties,
+	createSprinkles,
+	createMapValueFn,
+} from '@vanilla-extract/sprinkles'
 import { borders } from './borders'
-import { breakpoints } from './breakpoints'
+import { Breakpoint, mediaQueries } from './breakpoints'
 import { colors } from './colors'
 import { vars } from './vars'
 
 const responsiveProperties = defineProperties({
-	conditions: {
-		mobile: {},
-		tablet: {
-			'@media': `screen and (min-width: ${breakpoints.tablet})`,
-		},
-		desktop: {
-			'@media': `screen and (min-width: ${breakpoints.desktop})`,
-		},
-		wide: { '@media': `screen and (min-width: ${breakpoints.wide})` },
-	},
+	conditions: mediaQueries,
 	defaultCondition: 'mobile',
 	properties: {
 		alignItems: ['stretch', 'flex-start', 'center', 'flex-end'],
 		borderRadius: vars.borderRadius,
-		display: ['none', 'flex', 'block', 'inline'],
+		borderTopLeftRadius: vars.borderRadius,
+		borderTopRightRadius: vars.borderRadius,
+		borderBottomLeftRadius: vars.borderRadius,
+		borderBottomRightRadius: vars.borderRadius,
+		display: [
+			'none',
+			'flex',
+			'block',
+			'inline',
+			'inline-block',
+			'inline-flex',
+		],
+		position: ['absolute', 'fixed', 'relative', 'static', 'sticky'],
 		gap: vars.space,
 		flex: {
 			stretch: '1 1 0',
+			fixed: '0 0 auto',
 		},
 		flexDirection: ['row', 'column'],
+		flexGrow: [0, 1],
+		flexShrink: [0],
+		flexWrap: ['wrap', 'nowrap'],
 		justifyContent: [
 			'stretch',
 			'flex-start',
@@ -33,6 +44,50 @@ const responsiveProperties = defineProperties({
 			'space-around',
 			'space-between',
 		],
+		padding: vars.space,
+		paddingTop: vars.space,
+		paddingBottom: vars.space,
+		paddingLeft: vars.space,
+		paddingRight: vars.space,
+		margin: vars.margin,
+		marginTop: vars.margin,
+		marginBottom: vars.margin,
+		marginLeft: vars.margin,
+		marginRight: vars.margin,
+		width: {
+			full: '100%',
+		},
+		maxWidth: {
+			full: '100%',
+		},
+	},
+	shorthands: {
+		align: ['alignItems'],
+		btr: ['borderTopLeftRadius', 'borderTopRightRadius'],
+		bbr: ['borderBottomLeftRadius', 'borderBottomRightRadius'],
+		brr: ['borderTopRightRadius', 'borderBottomRightRadius'],
+		blr: ['borderTopLeftRadius', 'borderBottomLeftRadius'],
+		p: ['paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'],
+		px: ['paddingLeft', 'paddingRight'],
+		py: ['paddingTop', 'paddingBottom'],
+		pt: ['paddingTop'],
+		pr: ['paddingRight'],
+		pb: ['paddingBottom'],
+		pl: ['paddingLeft'],
+		m: ['marginTop', 'marginBottom', 'marginLeft', 'marginRight'],
+		mx: ['marginLeft', 'marginRight'],
+		my: ['marginTop', 'marginBottom'],
+		mt: ['marginTop'],
+		mr: ['marginRight'],
+		mb: ['marginBottom'],
+		ml: ['marginLeft'],
+	},
+})
+
+const staticProperties = defineProperties({
+	properties: {
+		visibility: ['hidden', 'visible'],
+		cursor: ['default', 'pointer'],
 		textTransform: [
 			'none',
 			'capitalize',
@@ -41,27 +96,10 @@ const responsiveProperties = defineProperties({
 			'full-width',
 			'full-size-kana',
 		],
-		padding: vars.space,
-		paddingTop: vars.space,
-		paddingBottom: vars.space,
-		paddingLeft: vars.space,
-		paddingRight: vars.space,
-		margin: vars.space,
-		marginTop: vars.space,
-		marginBottom: vars.space,
-		marginLeft: vars.space,
-		marginRight: vars.space,
-		height: vars.space,
-		width: { fit: 'fit-content', ...vars.space },
-	},
-	shorthands: {
-		align: ['alignItems'],
-		p: ['paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'],
-		px: ['paddingLeft', 'paddingRight'],
-		py: ['paddingTop', 'paddingBottom'],
-		m: ['marginTop', 'marginBottom', 'marginLeft', 'marginRight'],
-		mx: ['marginLeft', 'marginRight'],
-		my: ['marginTop', 'marginBottom'],
+		userSelect: ['all', 'auto', 'none'],
+		overflow: vars.overflow,
+		overflowX: vars.overflow,
+		overflowY: vars.overflow,
 	},
 })
 
@@ -72,7 +110,7 @@ const colorProperties = defineProperties({
 	},
 	defaultCondition: 'lightMode',
 	properties: {
-		background: vars.color,
+		backgroundColor: vars.color,
 		border: borders,
 		borderTop: borders,
 		borderRight: borders,
@@ -86,6 +124,7 @@ const colorProperties = defineProperties({
 		textTransform: ['none', 'capitalize', 'uppercase', 'lowercase'],
 	},
 	shorthands: {
+		background: ['backgroundColor'],
 		border: ['borderTop', 'borderRight', 'borderBottom', 'borderLeft'],
 		bt: ['borderTop'],
 		br: ['borderRight'],
@@ -95,6 +134,16 @@ const colorProperties = defineProperties({
 	},
 })
 
-export const sprinkles = createSprinkles(responsiveProperties, colorProperties)
+export const sprinkles = createSprinkles(
+	responsiveProperties,
+	colorProperties,
+	staticProperties,
+)
 
 export type Sprinkles = Parameters<typeof sprinkles>[0]
+
+export const mapResponsiveValue = createMapValueFn(responsiveProperties)
+
+export type OptionalResponsiveObject<Value> =
+	| Value
+	| Partial<Record<Breakpoint, Value>>

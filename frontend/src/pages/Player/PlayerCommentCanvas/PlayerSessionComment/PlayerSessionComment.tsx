@@ -161,7 +161,7 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 						styles.commentPinButton,
 					)}
 				>
-					<img src={CommentPinIcon} alt={'comment pin icon'} />
+					<img src={CommentPinIcon} alt="comment pin icon" />
 				</button>
 			</TransparentPopover>
 		</div>

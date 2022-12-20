@@ -4,10 +4,10 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useSubmitRegistrationFormMutation } from '@graph/hooks'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Redirect } from 'react-router-dom'
@@ -71,7 +71,7 @@ const RegistrationForm = () => {
 				pun: pun,
 			},
 		}).then(() => {
-			H.track('RegistrationFormSubmitted')
+			analytics.track('RegistrationFormSubmitted')
 		})
 	}
 
@@ -187,7 +187,7 @@ const RegistrationForm = () => {
 						/>
 					</label>
 					<Button
-						trackingId={`SubmitRegistrationForm`}
+						trackingId="SubmitRegistrationForm"
 						type="primary"
 						className={classNames(styles.button)}
 						block

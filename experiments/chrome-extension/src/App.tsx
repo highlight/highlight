@@ -185,11 +185,9 @@ const TabApp = ({ id }: { id: number }) => {
 	)
 }
 
-const Row: React.FC<{ header: string; row: string }> = ({
-	header,
-	row,
-	children,
-}) => {
+const Row: React.FC<
+	React.PropsWithChildren<{ header: string; row: string }>
+> = ({ header, row, children }) => {
 	return (
 		<>
 			<div

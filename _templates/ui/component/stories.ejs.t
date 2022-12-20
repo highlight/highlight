@@ -8,7 +8,7 @@ import { ComponentMeta } from '@storybook/react'
 import { <%= name %> } from './<%= name %>'
 
 export default {
-	title: '<%= name %>',
+	title: 'Components/<%= name %>',
 	component: <%= name %>,
 } as ComponentMeta<typeof <%= name %>>
 

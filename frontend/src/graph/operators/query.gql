@@ -221,6 +221,7 @@ query GetSession($secure_id: String!) {
 		postal
 		fingerprint
 		created_at
+		payload_updated_at
 		language
 		user_object
 		user_properties
@@ -675,6 +676,7 @@ query GetErrorGroupsOpenSearch(
 	) {
 		error_groups {
 			created_at
+			updated_at
 			id
 			secure_id
 			type
@@ -690,6 +692,14 @@ query GetErrorGroupsOpenSearch(
 				columnNumber
 			}
 			error_frequency
+			error_metrics {
+				error_group_id
+				date
+				name
+				value
+			}
+			is_public
+			project_id
 		}
 		totalCount
 	}
@@ -973,6 +983,7 @@ query GetSubscriptionDetails($workspace_id: ID!) {
 query GetErrorGroup($secure_id: String!) {
 	error_group(secure_id: $secure_id) {
 		created_at
+		updated_at
 		id
 		secure_id
 		type
@@ -996,7 +1007,121 @@ query GetErrorGroup($secure_id: String!) {
 			value
 		}
 		error_frequency
+		error_metrics {
+			error_group_id
+			date
+			name
+			value
+		}
 		is_public
+		last_occurrence
+		first_occurrence
+	}
+}
+
+query GetErrorObject($id: ID!) {
+	error_object(id: $id) {
+		id
+		created_at
+		project_id
+		session {
+			identifier
+			fingerprint
+			secure_id
+			city
+			state
+			country
+			user_properties
+		}
+		error_group_id
+		error_group_secure_id
+		event
+		type
+		url
+		source
+		lineNumber
+		columnNumber
+		stack_trace
+		structured_stack_trace {
+			fileName
+			lineNumber
+			functionName
+			columnNumber
+			lineContent
+			linesBefore
+			linesAfter
+			error
+		}
+		timestamp
+		payload
+		request_id
+		os
+		browser
+		environment
+	}
+}
+
+query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
+	error_instance(
+		error_group_secure_id: $error_group_secure_id
+		error_object_id: $error_object_id
+	) {
+		error_object {
+			id
+			created_at
+			project_id
+			session {
+				identifier
+				fingerprint
+				secure_id
+				city
+				state
+				country
+				user_properties
+			}
+			error_group_id
+			error_group_secure_id
+			event
+			type
+			url
+			source
+			lineNumber
+			columnNumber
+			stack_trace
+			structured_stack_trace {
+				fileName
+				lineNumber
+				functionName
+				columnNumber
+				lineContent
+				linesBefore
+				linesAfter
+				error
+				sourceMappingErrorMetadata {
+					errorCode
+					stackTraceFileURL
+					sourcemapFetchStrategy
+					sourceMapURL
+					minifiedFetchStrategy
+					actualMinifiedFetchedPath
+					minifiedLineNumber
+					minifiedColumnNumber
+					actualSourcemapFetchedPath
+					sourcemapFileSize
+					minifiedFileSize
+					mappedLineNumber
+					mappedColumnNumber
+				}
+			}
+			timestamp
+			payload
+			request_id
+			os
+			browser
+			environment
+		}
+		next_id
+		previous_id
 	}
 }
 
@@ -1539,7 +1664,7 @@ query GetCommentMentionSuggestions($project_id: ID!) {
 			photo_url
 		}
 	}
-	slack_members(project_id: $project_id) {
+	slack_channel_suggestion(project_id: $project_id) {
 		webhook_channel
 		webhook_channel_id
 	}
@@ -1638,4 +1763,27 @@ query GetOAuthClientMetadata($client_id: String!) {
 		created_at
 		app_name
 	}
+}
+
+query GetErrorGroupFrequencies(
+	$project_id: ID!
+	$error_group_secure_ids: [String!]!
+	$params: ErrorGroupFrequenciesParamsInput!
+	$metric: String!
+) {
+	errorGroupFrequencies(
+		project_id: $project_id
+		error_group_secure_ids: $error_group_secure_ids
+		params: $params
+		metric: $metric
+	) {
+		error_group_id
+		date
+		name
+		value
+	}
+}
+
+query GetEmailOptOuts($token: String, $admin_id: ID) {
+	email_opt_outs(token: $token, admin_id: $admin_id)
 }

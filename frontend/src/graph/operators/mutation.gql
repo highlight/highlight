@@ -71,18 +71,6 @@ mutation DeleteAdminFromWorkspace($workspace_id: ID!, $admin_id: ID!) {
 	deleteAdminFromWorkspace(workspace_id: $workspace_id, admin_id: $admin_id)
 }
 
-mutation OpenSlackConversation(
-	$project_id: ID!
-	$code: String!
-	$redirect_path: String!
-) {
-	openSlackConversation(
-		project_id: $project_id
-		code: $code
-		redirect_path: $redirect_path
-	)
-}
-
 mutation AddIntegrationToProject(
 	$integration_type: IntegrationType
 	$project_id: ID!
@@ -162,8 +150,8 @@ mutation SubmitRegistrationForm(
 	)
 }
 
-mutation CreateWorkspace($name: String!) {
-	createWorkspace(name: $name) {
+mutation CreateWorkspace($name: String!, $promo_code: String) {
+	createWorkspace(name: $name, promo_code: $promo_code) {
 		id
 		name
 	}
@@ -962,5 +950,19 @@ mutation UpdateClickUpSettings(
 	updateClickUpProjectMappings(
 		workspace_id: $workspace_id
 		project_mappings: $project_mappings
+	)
+}
+
+mutation UpdateEmailOptOut(
+	$token: String
+	$admin_id: ID
+	$category: EmailOptOutCategory!
+	$is_opt_out: Boolean!
+) {
+	updateEmailOptOut(
+		token: $token
+		admin_id: $admin_id
+		category: $category
+		is_opt_out: $is_opt_out
 	)
 }

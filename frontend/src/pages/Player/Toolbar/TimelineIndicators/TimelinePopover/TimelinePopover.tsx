@@ -1,3 +1,4 @@
+import { Box, Text } from '@highlight-run/ui'
 import { ReactComponent as CircleRightArrow } from '@icons/Solid/arrow-circle-right.svg'
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
 import { ReactComponent as ChevronRightIcon } from '@icons/Solid/cheveron-right.svg'
@@ -10,9 +11,10 @@ import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConf
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { RightPlayerPanelTabType } from '@pages/Player/RightPlayerPanel/constants'
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext'
-import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings'
+import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
 import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
+import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import { formatTimeAsHMS, MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import classNames from 'classnames'
@@ -31,14 +33,15 @@ const POPOVER_CONTENT_ROW_HEIGHT = 28
 
 const TimelinePopover = ({ bucket }: Props) => {
 	const history = useHistory()
-	const { setTime, setCurrentEvent } = useReplayerContext()
+	const { setCurrentEvent, pause, errors } = useReplayerContext()
 	const {
 		setShowRightPanel,
-		setShowLeftPanel,
 		setShowDevTools,
 		setSelectedDevToolsTab,
 		setSelectedRightPlayerPanelTab,
 	} = usePlayerConfiguration()
+	const { setErrorPanel } = useResourceOrErrorDetailPanel()
+
 	const [selectedType, setSelectedType] = useState<string | null>(null)
 	const selectedTypeName = selectedType
 		? getTimelineEventDisplayName(selectedType)
@@ -63,21 +66,23 @@ const TimelinePopover = ({ bucket }: Props) => {
 	const onEventInstanceClick = (type: string, identifier: string) => {
 		const timestamp = bucket.timestamp[identifier]
 
-		setTime(timestamp)
+		pause(timestamp)
 		if (type === 'Comments') {
 			const urlSearchParams = new URLSearchParams()
 			urlSearchParams.append(PlayerSearchParameters.commentId, identifier)
 			history.replace(
 				`${history.location.pathname}?${urlSearchParams.toString()}`,
 			)
-			setShowLeftPanel(false)
 			setShowRightPanel(true)
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Comments)
 		} else if (type === 'Errors') {
 			setShowDevTools(true)
 			setSelectedDevToolsTab(DevToolTabType.Errors)
+			const error = errors.find(
+				(error) => error.error_group_secure_id === identifier,
+			)
+			if (error) setErrorPanel(error)
 		} else {
-			setShowLeftPanel(false)
 			setShowRightPanel(true)
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Events)
 			setCurrentEvent(identifier)
@@ -100,7 +105,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 					if (selectedType) {
 						setSelectedType(null)
 					} else {
-						setTime(bucket.startTime)
+						pause(bucket.startTime)
 					}
 				}}
 			>
@@ -130,19 +135,21 @@ const TimelinePopover = ({ bucket }: Props) => {
 				)}
 			</div>
 			{!!selectedType ? (
-				<div className={style.infoPanel}>
-					<span className={style.selectedTypeName}>
+				<Box cssClass={style.infoPanel} background="neutral50">
+					<Text color="neutral500" size="xxSmall">
 						{selectedTypeName}
-					</span>
+					</Text>
 					<div
 						className={classNames(
 							style.rightCounter,
 							style.infoPanelCounter,
 						)}
 					>
-						<span>{selectedCount}</span>
+						<Text color="neutral500" size="xxSmall">
+							{selectedCount}
+						</Text>
 					</div>
-				</div>
+				</Box>
 			) : null}
 			<div className={style.timelinePopoverDetails}>
 				{!selectedType ? (
@@ -150,10 +157,6 @@ const TimelinePopover = ({ bucket }: Props) => {
 						const count = bucket.identifier[eventType].length
 						const name = getTimelineEventDisplayName(eventType)
 						const color = `var(${getAnnotationColor(eventType)})`
-						const first = bucket.identifier[eventType][0]
-						const firstHMS = formatTimeAsHMS(
-							bucket.timestamp[first],
-						)
 						return (
 							<div
 								className={style.eventTypeRow}
@@ -162,11 +165,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 								onClick={(ev) => {
 									ev.preventDefault()
 									ev.stopPropagation()
-									if (count === 1) {
-										onEventInstanceClick(eventType, first)
-									} else {
-										setSelectedType(eventType)
-									}
+									setSelectedType(eventType)
 								}}
 							>
 								<button className={style.actionButton}>
@@ -180,99 +179,81 @@ const TimelinePopover = ({ bucket }: Props) => {
 											style.eventIdentifier,
 										)}
 									>
-										{count > 1
-											? name
-											: bucket.details[first]}
+										{name}
 									</span>
 									<div className={style.rightCounter}>
-										{count > 1 ? (
-											<>
-												<span>{count}</span>
-												<ChevronRightIcon
-													className={classNames(
-														style.transitionIcon,
-														style.rightActionIcon,
-													)}
-												/>
-											</>
-										) : (
-											<>
-												<span>{firstHMS}</span>
-												<CircleRightArrow
-													className={classNames(
-														style.transitionIcon,
-														style.rightActionIcon,
-													)}
-												/>
-											</>
-										)}
+										<span>{count}</span>
+										<ChevronRightIcon
+											className={classNames(
+												style.transitionIcon,
+												style.rightActionIcon,
+											)}
+										/>
 									</div>
 								</button>
 							</div>
 						)
 					})
 				) : (
-					<>
-						<Virtuoso
-							ref={virtuoso}
-							overscan={500}
-							style={{
-								height: Math.min(
-									POPOVER_CONTENT_MAX_HEIGHT,
-									POPOVER_CONTENT_ROW_HEIGHT *
-										bucket.identifier[selectedType].length,
-								),
-							}}
-							data={bucket.identifier[selectedType]}
-							itemContent={(_, identifier: string) => {
-								const color = `var(${getAnnotationColor(
-									selectedType as EventsForTimelineKeys[number],
-								)})`
-								const timestamp = bucket.timestamp[identifier]
-								return (
-									<div
-										className={style.eventTypeRow}
-										key={identifier}
-										onClick={() =>
-											onEventInstanceClick(
-												selectedType,
-												identifier,
-											)
-										}
-										style={{
-											height: POPOVER_CONTENT_ROW_HEIGHT,
-										}}
-									>
-										<button className={style.actionButton}>
-											<span
-												className={style.eventTypeIcon}
-												style={{ background: color }}
-											/>
-											<span
-												className={classNames(
-													style.rightActionIcon,
-													style.eventIdentifier,
-												)}
-											>
-												{bucket.details[identifier]}
+					<Virtuoso
+						ref={virtuoso}
+						overscan={500}
+						style={{
+							height: Math.min(
+								POPOVER_CONTENT_MAX_HEIGHT,
+								POPOVER_CONTENT_ROW_HEIGHT *
+									bucket.identifier[selectedType].length,
+							),
+						}}
+						data={bucket.identifier[selectedType]}
+						itemContent={(_, identifier: string) => {
+							const color = `var(${getAnnotationColor(
+								selectedType as EventsForTimelineKeys[number],
+							)})`
+							const timestamp = bucket.timestamp[identifier]
+							return (
+								<div
+									className={style.eventTypeRow}
+									key={identifier}
+									onClick={() =>
+										onEventInstanceClick(
+											selectedType,
+											identifier,
+										)
+									}
+									style={{
+										height: POPOVER_CONTENT_ROW_HEIGHT,
+									}}
+								>
+									<button className={style.actionButton}>
+										<span
+											className={style.eventTypeIcon}
+											style={{ background: color }}
+										/>
+										<span
+											className={classNames(
+												style.rightActionIcon,
+												style.eventIdentifier,
+											)}
+										>
+											{bucket.details[identifier]}
+										</span>
+										<div className={style.rightCounter}>
+											<span>
+												{formatTimeAsHMS(timestamp)}
 											</span>
-											<div className={style.rightCounter}>
-												<span>
-													{formatTimeAsHMS(timestamp)}
-												</span>
-												<CircleRightArrow
-													className={classNames(
-														style.transitionIcon,
-														style.rightActionIcon,
-													)}
-												/>
-											</div>
-										</button>
-									</div>
-								)
-							}}
-						/>
-					</>
+											<CircleRightArrow
+												className={classNames(
+													style.transitionIcon,
+													style.rightActionIcon,
+												)}
+											/>
+										</div>
+									</button>
+								</div>
+							)
+						}}
+					/>
 				)}
 			</div>
 		</div>

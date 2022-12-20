@@ -1,46 +1,62 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
-import { RESET_PAGE_MS, STARTING_PAGE } from '@components/Pagination/Pagination'
 import { Skeleton } from '@components/Skeleton/Skeleton'
-import { BackendSearchQuery } from '@context/BaseSearchContext'
 import {
 	useGetErrorGroupQuery,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
-import { ErrorSearchParamsInput } from '@graph/schemas'
-import { getHeaderFromError } from '@pages/Error/ErrorPage'
-import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
+import {
+	Box,
+	ButtonIcon,
+	Container,
+	IconChevronDown,
+	IconChevronUp,
+	IconExitRight,
+	vars,
+} from '@highlight-run/ui'
+import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
+import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
+import ErrorTabContent from '@pages/ErrorsV2/ErrorTabContent/ErrorTabContent'
 import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
+import { controlBar } from '@pages/ErrorsV2/SearchPanel/SearchPanel.css'
+import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
-import { SessionPageSearchParams } from '@pages/Player/utils/utils'
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
+import analytics from '@util/analytics'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import classNames from 'classnames'
-import { H } from 'highlight.run'
-import moment from 'moment'
-import React, { useEffect, useRef, useState } from 'react'
+import clsx from 'clsx'
+import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { useHistory } from 'react-router'
-import { useLocalStorage } from 'react-use'
-import { NumberParam, useQueryParams } from 'use-query-params'
 
 import styles from './ErrorsV2.module.scss'
 
 const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
-	const { error_secure_id, project_id } = useParams<{
-		error_secure_id: string
+	const { project_id, error_secure_id } = useParams<{
 		project_id: string
+		error_secure_id: string
 	}>()
 	const { isLoggedIn } = useAuthContext()
-	const { queryBuilderInput, setQueryBuilderInput } = useSearchContext()
 	const integrated = useIntegrated()
+	const { searchResultSecureIds } = useErrorSearchContext()
+	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
+
+	const currentSearchResultIndex = searchResultSecureIds.findIndex(
+		(secureId) => secureId === error_secure_id,
+	)
+	const canMoveForward =
+		searchResultSecureIds.length &&
+		currentSearchResultIndex < searchResultSecureIds.length - 1
+	const canMoveBackward =
+		searchResultSecureIds.length && currentSearchResultIndex > 0
+	const nextSecureId = searchResultSecureIds[currentSearchResultIndex + 1]
+	const previousSecureId = searchResultSecureIds[currentSearchResultIndex - 1]
 
 	const {
 		data,
@@ -50,43 +66,26 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		variables: { secure_id: error_secure_id },
 		skip: !error_secure_id,
 		onCompleted: () => {
-			H.track('Viewed error', { is_guest: !isLoggedIn })
+			analytics.track('Viewed error', { is_guest: !isLoggedIn })
 		},
 	})
 
 	const history = useHistory()
-
-	const [segmentName, setSegmentName] = useState<string | null>(null)
-	const [cachedParams, setCachedParams] =
-		useLocalStorage<ErrorSearchParamsInput>(
-			`cachedErrorParams-v2-${
-				segmentName || 'no-selected-segment'
-			}-${project_id}`,
-			{},
+	const goToErrorGroup = (secureId: string) => {
+		history.push(
+			`/${project_id}/errors/${secureId}${history.location.search}`,
 		)
-	const [searchParams, setSearchParams] = useState<ErrorSearchParamsInput>(
-		cachedParams || EmptyErrorsSearchParams,
-	)
-	const [searchResultsLoading, setSearchResultsLoading] =
-		useState<boolean>(false)
-	const [existingParams, setExistingParams] =
-		useState<ErrorSearchParamsInput>({})
-	const dateFromSearchParams = new URLSearchParams(location.search).get(
-		SessionPageSearchParams.date,
-	)
-	const searchParamsChanged = useRef<Date>()
+	}
 
-	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
-		page: NumberParam,
-	})
+	const isEmptyState =
+		!error_secure_id && !errorQueryingErrorGroup && !loading
 
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
 	useEffect(() => {
 		const urlParams = new URLSearchParams(location.search)
-
 		const commentId = urlParams.get(PlayerSearchParameters.commentId)
-
 		const hasMuted = urlParams.get(PlayerSearchParameters.muted) === '1'
+
 		if (commentId && hasMuted) {
 			muteErrorCommentThread({
 				variables: {
@@ -106,170 +105,190 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [location.search])
 
-	useEffect(
-		() => setCachedParams(searchParams),
-		[searchParams, setCachedParams],
+	useEffect(() => {
+		if (!error_secure_id) {
+			return
+		}
+
+		analytics.page({ is_guest: !isLoggedIn })
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [error_secure_id])
+
+	useHotkeys(
+		'j',
+		() => {
+			if (canMoveForward) {
+				analytics.track('NextErrorGroupKeyboardShortcut')
+				goToErrorGroup(nextSecureId)
+			}
+		},
+		[canMoveForward, nextSecureId],
 	)
 
-	useEffect(() => {
-		if (dateFromSearchParams) {
-			const start_date = moment(dateFromSearchParams)
-			const end_date = moment(dateFromSearchParams)
-
-			setSearchParams(() => ({
-				// We are explicitly clearing any existing search params so the only
-				// applied search param is the date range.
-				...EmptyErrorsSearchParams,
-				date_range: {
-					start_date: start_date
-						.startOf('day')
-						.subtract(1, 'days')
-						.format(),
-					end_date: end_date.endOf('day').format(),
-				},
-			}))
-			message.success(
-				`Showing errors that were thrown on ${dateFromSearchParams}`,
-			)
-			history.replace({ search: '' })
-		}
-	}, [history, dateFromSearchParams, setSearchParams])
-
-	useEffect(() => {
-		if (queryBuilderInput?.type === 'errors') {
-			setSearchParams({
-				...EmptyErrorsSearchParams,
-				query: JSON.stringify(queryBuilderInput),
-			})
-			setQueryBuilderInput(undefined)
-		}
-	}, [queryBuilderInput, setQueryBuilderInput])
-
-	const [backendSearchQuery, setBackendSearchQuery] =
-		useState<BackendSearchQuery>(undefined)
-	const [page, setPage] = useState<number>()
-
-	useEffect(() => {
-		if (page !== undefined) {
-			setPaginationToUrlParams(
-				{
-					page: page,
-				},
-				'replaceIn',
-			)
-		}
-	}, [setPaginationToUrlParams, page])
-
-	useEffect(() => {
-		if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
-			setPage(paginationToUrlParams.page)
-		}
-		// We only want to run this on mount (i.e. when the page first loads).
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-
-	useEffect(() => {
-		// we just loaded the page for the first time
-		if (
-			searchParamsChanged.current &&
-			new Date().getTime() - searchParamsChanged.current.getTime() >
-				RESET_PAGE_MS
-		) {
-			// the search query actually changed, reset the page
-			setPage(STARTING_PAGE)
-		}
-		searchParamsChanged.current = new Date()
-	}, [searchParams, setPage])
+	useHotkeys(
+		'k',
+		() => {
+			if (canMoveBackward) {
+				analytics.track('NextErrorGroupKeyboardShortcut')
+				goToErrorGroup(previousSecureId)
+			}
+		},
+		[canMoveBackward, previousSecureId],
+	)
 
 	return (
-		<ErrorSearchContextProvider
-			value={{
-				// TODO: See if we can clean this up...
-				searchParams,
-				setSearchParams,
-				existingParams,
-				setExistingParams,
-				segmentName,
-				setSegmentName,
-				backendSearchQuery,
-				setBackendSearchQuery,
-				page,
-				setPage,
-				searchResultsLoading,
-				setSearchResultsLoading,
-			}}
-		>
+		<>
 			<Helmet>
 				<title>Errors</title>
 			</Helmet>
 
-			<div
-				className={classNames(styles.container, {
-					[styles.withErrorState]: errorQueryingErrorGroup,
-				})}
-			>
+			<div className={styles.container}>
 				<SearchPanel />
 
-				<div className={styles.detailsContainer}>
+				<div
+					className={clsx(styles.detailsContainer, {
+						[styles.moveDetailsRight]: showLeftPanel,
+					})}
+				>
 					{!integrated && <IntegrationCard />}
-					{error_secure_id && !errorQueryingErrorGroup ? (
-						<>
-							<Helmet>
-								<title>
-									Errors:{' '}
-									{getHeaderFromError(
-										data?.error_group?.event ?? [],
-									)}
-								</title>
-							</Helmet>
 
-							<div
-								className={classNames(styles.detailsContainer)}
+					<Box
+						display="flex"
+						flexDirection="column"
+						cssClass={clsx({ [styles.emptyState]: isEmptyState })}
+					>
+						{isLoggedIn && (
+							<Box
+								backgroundColor="white"
+								display="flex"
+								alignItems="center"
+								px="12"
+								borderBottom="neutral"
+								cssClass={controlBar}
 							>
-								<div className={styles.errorDetails}>
-									{loading ? (
-										<>
-											<Skeleton
-												count={1}
-												style={{
-													width: 300,
-													height: 37,
-												}}
-											/>
-
-											<Skeleton
-												count={1}
-												style={{
-													height: '2ch',
-													marginBottom: 0,
-												}}
-											/>
-										</>
-									) : (
-										<>
-											<ErrorTitle
-												errorGroup={data?.error_group}
-											/>
-
-											<ErrorBody
-												errorGroup={data?.error_group}
-											/>
-										</>
+								<Box display="flex" gap="8">
+									{!showLeftPanel && (
+										<ButtonIcon
+											kind="secondary"
+											size="small"
+											shape="square"
+											emphasis="medium"
+											icon={<IconExitRight size={14} />}
+											onClick={() =>
+												setShowLeftPanel(true)
+											}
+										/>
 									)}
+									<Box
+										borderRadius="6"
+										overflow="hidden"
+										display="flex"
+										style={{
+											// TODO: Replace with button group once built in UI package.
+											boxShadow: `0 0 0 1px ${vars.color.neutral200} inset`,
+										}}
+									>
+										<ButtonIcon
+											kind="secondary"
+											size="small"
+											shape="square"
+											emphasis="low"
+											icon={<IconChevronUp size={14} />}
+											cssClass={
+												styles.sessionSwitchButton
+											}
+											onClick={() => {
+												goToErrorGroup(previousSecureId)
+											}}
+											disabled={!canMoveBackward}
+										/>
+										<Box as="span" borderRight="neutral" />
+										<ButtonIcon
+											kind="secondary"
+											size="small"
+											shape="square"
+											emphasis="low"
+											icon={<IconChevronDown size={14} />}
+											title="j"
+											cssClass={
+												styles.sessionSwitchButton
+											}
+											onClick={() => {
+												goToErrorGroup(nextSecureId)
+											}}
+											disabled={!canMoveForward}
+										/>
+									</Box>
+								</Box>
+							</Box>
+						)}
+						{error_secure_id && !errorQueryingErrorGroup ? (
+							<>
+								<Helmet>
+									<title>
+										Errors:{' '}
+										{getHeaderFromError(
+											data?.error_group?.event ?? [],
+										)}
+									</title>
+								</Helmet>
+
+								<div className={styles.errorDetails}>
+									<Container>
+										{loading ? (
+											<>
+												<Skeleton
+													count={1}
+													style={{
+														width: 940,
+														height: 37,
+													}}
+												/>
+
+												<Skeleton
+													count={1}
+													style={{
+														height: '2ch',
+														marginBottom: 0,
+													}}
+												/>
+											</>
+										) : (
+											<div>
+												<ErrorTitle
+													errorGroup={
+														data?.error_group
+													}
+												/>
+
+												<ErrorBody
+													errorGroup={
+														data?.error_group
+													}
+												/>
+
+												<ErrorTabContent
+													errorGroup={
+														data?.error_group
+													}
+												/>
+											</div>
+										)}
+									</Container>
 								</div>
-							</div>
-						</>
-					) : errorQueryingErrorGroup ? (
-						<ErrorState
-							shownWithHeader
-							message="This error does not exist or has not been made public."
-						/>
-					) : (
-						<NoActiveErrorCard />
-					)}
+							</>
+						) : errorQueryingErrorGroup ? (
+							<ErrorState
+								shownWithHeader
+								message="This error does not exist or has not been made public."
+							/>
+						) : (
+							<NoActiveErrorCard />
+						)}
+					</Box>
 				</div>
 			</div>
-		</ErrorSearchContextProvider>
+		</>
 	)
 }
 

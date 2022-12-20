@@ -4,7 +4,7 @@ import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils'
+import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import { IntercomInlineMessage } from '@components/IntercomMessage/IntercomMessage'
 import { RadioGroup } from '@components/RadioGroup/RadioGroup'
 import { useGetProjectQuery } from '@graph/hooks'
@@ -13,13 +13,13 @@ import { Admin } from '@graph/schemas'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { getInitSnippet } from '@pages/Setup/util'
 import useLocalStorage from '@rehooks/local-storage'
+import analytics from '@util/analytics'
 import { useBackendIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import { Spin } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React, { FunctionComponent, useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
@@ -90,9 +90,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 		loading: isBackendIntegratedLoading,
 	} = useBackendIntegrated()
 	const { isSlackConnectedToWorkspace, loading: isSlackConnectedLoading } =
-		useSlackBot({
-			type: 'Organization',
-		})
+		useSlackBot()
 	const { isLinearIntegratedWithProject, loading: isLinearConnectedLoading } =
 		useLinearIntegration()
 
@@ -379,7 +377,7 @@ const ClientSetup = ({
 						<CodeBlock
 							language="javascript"
 							onCopy={() => {
-								H.track(
+								analytics.track(
 									'Copied Code Snippet (Highlight Event)',
 									{ copied: 'code snippet' },
 								)
@@ -410,7 +408,7 @@ const ClientSetup = ({
 								<CodeBlock
 									language="javascript"
 									onCopy={() => {
-										H.track(
+										analytics.track(
 											'Copied Code Snippet (Highlight Event)',
 											{ copied: 'code snippet' },
 										)
@@ -916,7 +914,7 @@ const HtmlInstructions = ({
 				<CodeBlock
 					language="html"
 					onCopy={() => {
-						H.track('Copied Script (Highlight Event)', {
+						analytics.track('Copied Script (Highlight Event)', {
 							copied: 'script',
 						})
 					}}
@@ -951,12 +949,12 @@ const NextBackendInstructions = () => {
 					<code>@highlight-run/next</code> package.
 				</p>
 				<CodeBlock
-					text={`npm install @highlight-run/next`}
+					text="npm install @highlight-run/next"
 					language="shell"
 				/>
 				<p>or with Yarn:</p>
 				<CodeBlock
-					text={`yarn add @highlight-run/next`}
+					text="yarn add @highlight-run/next"
 					language="shell"
 				/>
 			</Section>
@@ -1033,12 +1031,12 @@ const ExpressBackendInstructions = () => {
 					<code>@highlight-run/node</code> package.
 				</p>
 				<CodeBlock
-					text={`npm install @highlight-run/node`}
+					text="npm install @highlight-run/node"
 					language="shell"
 				/>
 				<p>or with Yarn:</p>
 				<CodeBlock
-					text={`yarn add @highlight-run/node`}
+					text="yarn add @highlight-run/node"
 					language="shell"
 				/>
 			</Section>
@@ -1063,7 +1061,7 @@ const ExpressBackendInstructions = () => {
 				<p>
 					<CodeBlock
 						language="javascript"
-						text={`const highlightOptions = {}; 
+						text={`const highlightOptions = {};
 const highlightHandler = Highlight.Handlers.errorHandler(highlightOptions);
 `}
 					/>
@@ -1075,7 +1073,7 @@ const highlightHandler = Highlight.Handlers.errorHandler(highlightOptions);
 
 const app = express();
 
-const highlightOptions = {}; 
+const highlightOptions = {};
 const highlightHandler = Highlight.Handlers.errorHandler(highlightOptions);
 
 // This should be before any other error middleware and after all controllers
@@ -1096,7 +1094,7 @@ const GoBackendInstructions = () => {
 					<code>highlight-go</code> package.
 				</p>
 				<CodeBlock
-					text={`go get -u github.com/highlight-run/highlight-go`}
+					text="go get -u github.com/highlight-run/highlight-go"
 					language="shell"
 				/>
 			</Section>
@@ -1194,27 +1192,27 @@ const JsAppInstructions = ({
 							<code>@highlight-run/react</code> packages.
 						</p>
 						<CodeBlock
-							text={`npm install highlight.run @highlight-run/react`}
+							text="npm install highlight.run @highlight-run/react"
 							language="shell"
 						/>
 						<p>or with Yarn:</p>
 						<CodeBlock
-							text={`yarn add highlight.run @highlight-run/react`}
+							text="yarn add highlight.run @highlight-run/react"
 							language="shell"
 						/>
 					</>
 				) : (
 					<>
 						<p>
-							Install the <code>{'highlight.run'}</code> package.
+							Install the <code>highlight.run</code> package.
 						</p>
 						<CodeBlock
-							text={`npm install highlight.run`}
+							text="npm install highlight.run"
 							language="shell"
 						/>
 						<p>or with Yarn:</p>
 						<CodeBlock
-							text={`yarn add highlight.run`}
+							text="yarn add highlight.run"
 							language="shell"
 						/>
 					</>

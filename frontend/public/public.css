@@ -1,3 +1,7 @@
+body {
+	overscroll-behavior: none;
+}
+
 @font-face {
 	font-display: swap;
 	font-family: 'Steradian';

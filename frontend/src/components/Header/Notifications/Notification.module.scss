@@ -13,6 +13,19 @@
 	}
 }
 
+.buttonV2 {
+	display: block;
+}
+
+.iconContainerV2 {
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	margin-left: 10px;
+	margin-top: -14px;
+	position: absolute;
+}
+
 .popover {
 	margin-top: var(--size-xxSmall);
 	width: 320px;
@@ -201,20 +214,8 @@
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 	}
-
-	label {
-		display: flex;
-		flex-direction: column;
-		font-size: 10px;
-		row-gap: var(--size-xxSmall);
-	}
 }
 
 .filtersButton {
-	align-items: center;
-	color: var(--color-gray-500) !important;
-	column-gap: var(--size-xxSmall);
-	display: flex;
-	font-size: 12px;
-	height: var(--size-xLarge);
+	flex-shrink: 0;
 }

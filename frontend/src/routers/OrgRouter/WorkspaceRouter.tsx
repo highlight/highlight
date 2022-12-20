@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { Header } from '@components/Header/Header'
+import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -13,7 +14,6 @@ import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
 import { WorkspaceRedirectionRouter } from '@routers/OrgRouter/WorkspaceRedirectionRouter'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
-import classNames from 'classnames'
 import React, { useEffect } from 'react'
 import { Route, Switch } from 'react-router-dom'
 import { useToggle } from 'react-use'
@@ -54,17 +54,6 @@ export const WorkspaceRouter = () => {
 
 	useEffect(() => {
 		if (isLoggedIn) {
-			document.documentElement.style.setProperty(
-				'--sidebar-width',
-				'64px',
-			)
-		} else {
-			document.documentElement.style.setProperty('--sidebar-width', '0')
-		}
-	}, [isLoggedIn])
-
-	useEffect(() => {
-		if (isLoggedIn) {
 			setLoadingState(AppLoadingState.LOADED)
 		}
 	}, [isLoggedIn, setLoadingState])
@@ -96,12 +85,8 @@ export const WorkspaceRouter = () => {
 				}}
 			>
 				<Header />
-				<div
-					className={classNames(
-						commonStyles.bodyWrapper,
-						commonStyles.sidebarHidden,
-					)}
-				>
+				<KeyboardShortcutsEducation />
+				<div className={commonStyles.bodyWrapper}>
 					{isLoggedIn && joinableWorkspace ? (
 						<ErrorState
 							shownWithHeader
@@ -109,7 +94,7 @@ export const WorkspaceRouter = () => {
 						/>
 					) : isLoggedIn && data?.workspace === null ? (
 						<ErrorState
-							title={'Enter this Workspace?'}
+							title="Enter this Workspace?"
 							message={`
                         Sadly, you don’t have access to the workspace 😢
                         Request access and we'll shoot an email to your workspace admin.

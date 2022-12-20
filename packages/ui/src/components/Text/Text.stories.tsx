@@ -4,6 +4,7 @@ import { ComponentMeta } from '@storybook/react'
 import { Text } from './Text'
 import { typographyStyles } from './styles.css'
 import { Box } from '../Box/Box'
+import { Heading } from '../Heading/Heading'
 
 export default {
 	title: 'Components/Text',
@@ -13,10 +14,10 @@ export default {
 export const Sizes = () => {
 	return Object.keys(typographyStyles.size).map(
 		(size: keyof typeof typographyStyles.size) => (
-			<Box marginBottom="xxLarge" key={size}>
+			<Box marginBottom="24" key={size}>
 				{Object.keys(typographyStyles.weight).map(
 					(weight: keyof typeof typographyStyles.weight) => (
-						<Box marginBottom="large" key={weight}>
+						<Box marginBottom="10" key={weight}>
 							<Text
 								size={size}
 								weight={weight}
@@ -64,4 +65,45 @@ export const Elements = () => (
 		<br />
 		<Text as="code">code</Text>
 	</>
+)
+
+export const Clamping = () => (
+	<div style={{ maxWidth: 400 }}>
+		<Box p="24" background="neutral100" borderRadius="6" mb="24">
+			<Heading level="h3" mb="16">
+				1 Line
+			</Heading>
+
+			<Text lines="1">
+				Lorem ipsum dolor sit amet consectetur, adipisicing elit.
+				Eveniet labore sapiente, quaerat consectetur voluptatum
+				accusamus quibusdam quam tempore eligendi ut mollitia maiores
+				minima. Nobis labore, officia aliquam debitis voluptatem iure?
+			</Text>
+		</Box>
+		<Box p="24" background="neutral100" borderRadius="6" mb="24">
+			<Heading level="h3" mb="16">
+				2 Lines
+			</Heading>
+
+			<Text lines="2">
+				Lorem ipsum dolor sit amet consectetur, adipisicing elit.
+				Eveniet labore sapiente, quaerat consectetur voluptatum
+				accusamus quibusdam quam tempore eligendi ut mollitia maiores
+				minima. Nobis labore, officia aliquam debitis voluptatem iure?
+			</Text>
+		</Box>
+		<Box p="24" background="neutral100" borderRadius="6" mb="24">
+			<Heading level="h3" mb="16">
+				3 Lines
+			</Heading>
+
+			<Text lines="3">
+				Lorem ipsum dolor sit amet consectetur, adipisicing elit.
+				Eveniet labore sapiente, quaerat consectetur voluptatum
+				accusamus quibusdam quam tempore eligendi ut mollitia maiores
+				minima. Nobis labore, officia aliquam debitis voluptatem iure?
+			</Text>
+		</Box>
+	</div>
 )

@@ -4,7 +4,7 @@
 	"packageManager": "yarn@3.2.3",
 	"type": "module",
 	"main": "./src/index.ts",
-	"types": "./dist/index.d.ts",
+	"types": "./src/index.ts",
 	"scripts": {
 		"build": "vite build",
 		"docs:dev": "start-storybook -p 6006 --no-manager-cache",
@@ -17,17 +17,17 @@
 		"@vanilla-extract/css": "^1.9.1",
 		"@vanilla-extract/recipes": "^0.2.5",
 		"@vanilla-extract/sprinkles": "^1.5.0",
+		"ariakit": "^2.0.0-next.41",
 		"clsx": "^1.2.1",
-		"react": "^18.2.0",
-		"react-aria": "^3.20.0"
+		"react": "^18.2.0"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.19.3",
 		"@capsizecss/core": "^3.0.0",
 		"@capsizecss/metrics": "^0.3.0",
 		"@mdx-js/react": "^1.6.22",
-		"@storybook/addon-actions": "^6.5.12",
-		"@storybook/addon-docs": "^6.5.12",
+		"@storybook/addon-actions": "^6.5.13",
+		"@storybook/addon-docs": "^6.5.13",
 		"@storybook/addon-essentials": "^6.5.12",
 		"@storybook/addon-interactions": "^6.5.12",
 		"@storybook/addon-links": "^6.5.12",

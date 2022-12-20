@@ -25,7 +25,7 @@ jobs:
                   make migrate
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-    deploy-lambdas:
+    deploy-session-delete-lambdas:
         needs: migrate-database
         runs-on: ubuntu-latest
         steps:
@@ -110,6 +110,67 @@ jobs:
                   aws_region: us-east-2
                   function_name: sendEmail
                   zip_file: backend/sendEmail.zip
+    deploy-digest-lambdas:
+        needs: migrate-database
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v3
+              with:
+                  go-version-file: 'backend/go.mod'
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v1
+            - name: Build and zip
+              run: |
+                  cd backend/
+                  go build ./lambda-functions/digests/getProjectIds
+                  zip getProjectIds.zip getProjectIds
+                  go build ./lambda-functions/digests/getDigestData
+                  zip getDigestData.zip getDigestData
+                  go build ./lambda-functions/digests/sendDigestEmails
+                  zip sendDigestEmails.zip sendDigestEmails
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-east-2
+            - name: Update Lambda secrets
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
+              run: |
+                  aws lambda update-function-configuration --function-name getProjectIds \
+                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                  aws lambda update-function-configuration --function-name getDigestData \
+                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                  aws lambda update-function-configuration --function-name sendDigestEmails \
+                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+            - name: Deploy getProjectIds
+              uses: appleboy/lambda-action@master
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: getProjectIds
+                  zip_file: backend/getProjectIds.zip
+            - name: Deploy getDigestData
+              uses: appleboy/lambda-action@master
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: getDigestData
+                  zip_file: backend/getDigestData.zip
+            - name: Deploy sendDigestEmails
+              uses: appleboy/lambda-action@master
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: sendDigestEmails
+                  zip_file: backend/sendDigestEmails.zip
     deploy_backend:
         needs: migrate-database
         runs-on: ubuntu-latest
@@ -131,7 +192,7 @@ jobs:
                   ECR_REPOSITORY: highlight-production-ecr-repo
                   IMAGE_TAG: ${{ github.sha }}
               run: |
-                  docker build --build-arg=REACT_APP_COMMIT_SHA=${{ github.sha }} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f deploy/Dockerfile.prod .
+                  docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f deploy/Dockerfile.prod .
                   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             # Edit and deploy private-graph
             - name: Replace image label for private-graph task

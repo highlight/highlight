@@ -2,8 +2,9 @@ import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import Tabs from '@components/Tabs/Tabs'
 import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings'
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHistory } from 'react-router-dom'
 
@@ -33,6 +34,8 @@ export const WorkspaceTabs = () => {
 		workspace_id: string
 		page_id: SettingsTab
 	}>()
+
+	useEffect(() => analytics.page(), [history.location.pathname])
 
 	return (
 		<>

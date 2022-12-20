@@ -69,7 +69,7 @@ export const StandardDropdown = ({
 	)
 	return (
 		<Dropdown
-			placement={'bottomLeft'}
+			placement="bottomLeft"
 			overlay={menu}
 			onVisibleChange={(v) => setVisible(v)}
 			trigger={['click']}

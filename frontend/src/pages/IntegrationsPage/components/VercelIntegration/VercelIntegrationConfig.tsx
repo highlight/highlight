@@ -87,7 +87,7 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 					className={styles.modalBtn}
 					type="primary"
 					target="_blank"
-					href={`https://vercel.com/integrations/highlight/new`}
+					href="https://vercel.com/integrations/highlight/new"
 					rel="noreferrer"
 				>
 					<span className={styles.modalBtnText}>
@@ -116,7 +116,7 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 			</p>
 			<footer>
 				<Button
-					trackingId={`IntegrationDisconnectCancel-Slack`}
+					trackingId="IntegrationDisconnectCancel-Slack"
 					className={styles.modalBtn}
 					onClick={() => {
 						setModalOpen(false)
@@ -126,7 +126,7 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 					Cancel
 				</Button>
 				<Button
-					trackingId={`IntegrationDisconnectSave-Slack`}
+					trackingId="IntegrationDisconnectSave-Slack"
 					className={styles.modalBtn}
 					type="primary"
 					danger
@@ -295,11 +295,11 @@ export const VercelIntegrationSettings: React.FC<
 				return (
 					<div className={styles.select}>
 						<Select
-							className={'w-full'}
+							className="w-full"
 							value={opts}
 							onChange={row.onUpdateProjectLink}
 							options={selectOptions}
-							placeholder={'Vercel project(s)'}
+							placeholder="Vercel project(s)"
 							mode="multiple"
 						/>
 					</div>
@@ -339,9 +339,7 @@ export const VercelIntegrationSettings: React.FC<
 									<Button
 										className="rounded-lg"
 										iconButton
-										trackingId={
-											'IntegrationConfiguration-Vercel-DeleteNewProject'
-										}
+										trackingId="IntegrationConfiguration-Vercel-DeleteNewProject"
 										onClick={() => {
 											onProjectDelete(row.id)
 										}}
@@ -426,7 +424,7 @@ export const VercelIntegrationSettings: React.FC<
 					></Table>
 					<div className="border-0 border-t border-solid border-[#eaeaea]">
 						<Button
-							trackingId={`IntegrationConfiguration-Vercel-NewHighlightProject`}
+							trackingId="IntegrationConfiguration-Vercel-NewHighlightProject"
 							className={classNames(
 								'ml-auto m-4',
 								styles.modalBtn,
@@ -468,7 +466,7 @@ export const VercelIntegrationSettings: React.FC<
 			</div>
 			<footer className="flex justify-end gap-2 pt-0">
 				<Button
-					trackingId={`IntegrationConfigurationCancel-Vercel`}
+					trackingId="IntegrationConfigurationCancel-Vercel"
 					className={styles.modalBtn}
 					onClick={() => {
 						onCancel && onCancel()
@@ -478,7 +476,7 @@ export const VercelIntegrationSettings: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId={`IntegrationConfigurationSave-Vercel`}
+					trackingId="IntegrationConfigurationSave-Vercel"
 					className={styles.modalBtn}
 					type="primary"
 					target="_blank"

@@ -13,6 +13,7 @@ export interface TabItem {
 	key: string
 	title?: string | React.ReactNode // If undefined, `key` will be used as the title
 	panelContent: React.ReactNode
+	disabled?: boolean
 }
 
 type Props = Pick<
@@ -24,6 +25,8 @@ type Props = Pick<
 	id: string
 	/** Whether the tab contents has the default padding. */
 	noPadding?: boolean
+	/** Whether the tabs overflow-y should be unset */
+	unsetOverflowY?: boolean
 	/** Whether the tab headers have the default padding. */
 	noHeaderPadding?: boolean
 	/** An HTML id to attach to the tabs. */
@@ -38,6 +41,7 @@ const Tabs = ({
 	id,
 	noPadding = false,
 	noHeaderPadding = false,
+	unsetOverflowY = false,
 	tabBarExtraContent,
 	tabsHtmlId,
 	className,
@@ -102,13 +106,15 @@ const Tabs = ({
 				[styles.noHeaderPadding]: noHeaderPadding,
 			})}
 		>
-			{tabs.map(({ panelContent, title, key }) => (
+			{tabs.map(({ panelContent, title, key, disabled }) => (
 				<TabPane
 					key={key}
 					tab={title ?? key}
 					className={classNames(styles.tabPane, {
 						[styles.withPadding]: !noPadding,
+						[styles.unsetOverflowY]: unsetOverflowY,
 					})}
+					disabled={disabled}
 				>
 					{panelContent}
 				</TabPane>

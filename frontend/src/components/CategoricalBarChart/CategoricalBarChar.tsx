@@ -2,11 +2,13 @@ import {
 	CLICK_NEARBY_THRESHOLD,
 	CustomLegend,
 	CustomTooltip,
+	MAX_LEGEND_ITEMS,
 	Props as LineChartProps,
 } from '@components/LineChart/LineChart'
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip'
 import { generateRandomColor } from '@util/color'
 import React from 'react'
+import AutoSizer from 'react-virtualized-auto-sizer'
 import {
 	Bar,
 	BarChart as RechartsBarChart,
@@ -16,7 +18,6 @@ import {
 	ReferenceArea,
 	ReferenceAreaProps,
 	ReferenceLine,
-	ResponsiveContainer,
 	Tooltip,
 	XAxis,
 	YAxis,
@@ -30,6 +31,8 @@ type Props = Omit<LineChartProps, 'lineColorMapping' | 'height'> & {
 	barColorMapping: any
 	yAxisLabel: string
 	hideLegend?: boolean
+	hideYAxis?: boolean
+	hideXAxis?: boolean
 	stacked?: boolean
 	referenceAreaProps?: ReferenceAreaProps
 }
@@ -42,12 +45,13 @@ const CategoricalBarChart = ({
 	xAxisLabel,
 	xAxisUnits,
 	xAxisTickFormatter,
-	hideXAxis = false,
 	barColorMapping,
 	yAxisTickFormatter,
 	yAxisLabel,
 	syncId,
 	hideLegend = false,
+	hideYAxis = false,
+	hideXAxis = false,
 	stacked = false,
 	referenceAreaProps,
 	onMouseUp,
@@ -61,7 +65,7 @@ const CategoricalBarChart = ({
 		dateGroups[x.date] = { ...dateGroups[x.date], ...x }
 	}
 	const groupedData: any[] = Object.values(dateGroups)
-	const yAxisKeys =
+	const allYAxisKeys =
 		data.length > 0
 			? Object.keys(groupedData[0]).filter(
 					(keyName) =>
@@ -69,13 +73,14 @@ const CategoricalBarChart = ({
 						keyName !== '__typename',
 			  )
 			: []
+	const yAxisKeys = allYAxisKeys.slice(0, MAX_LEGEND_ITEMS)
 	const gridColor = 'none'
 	const labelColor = 'var(--color-gray-500)'
 
 	if (!groupedData) return null
 	return (
-		<>
-			<ResponsiveContainer width="100%" height="100%">
+		<AutoSizer>
+			{({ height, width }) => (
 				<RechartsBarChart
 					data={groupedData}
 					syncId={syncId}
@@ -93,6 +98,8 @@ const CategoricalBarChart = ({
 					onMouseUp={onMouseUp}
 					// use a smaller, proportional gap when bars get numerous and small
 					barCategoryGap={groupedData.length > 30 ? '20%' : 4}
+					height={height}
+					width={width}
 				>
 					<CartesianGrid
 						vertical={false}
@@ -112,18 +119,25 @@ const CategoricalBarChart = ({
 					<YAxis
 						tickFormatter={yAxisTickFormatter}
 						tick={{ fontSize: '8px', fill: labelColor }}
-						tickLine={{ stroke: labelColor, visibility: 'hidden' }}
+						tickLine={{
+							stroke: labelColor,
+							visibility: 'hidden',
+						}}
 						axisLine={{ stroke: gridColor }}
 						dx={-12}
 						unit={yAxisLabel}
+						hide={hideYAxis}
 					/>
 					<Tooltip
 						position={{ y: 0 }}
+						wrapperStyle={{ outline: 'none' }}
 						content={
 							showTooltip ? (
 								<RechartTooltip
+									hideZeroValues
 									render={(payload: any[]) => (
 										<CustomTooltip
+											hideZeroValues
 											payload={payload}
 											yAxisLabel={yAxisLabel}
 											referenceLines={referenceLines}
@@ -140,8 +154,17 @@ const CategoricalBarChart = ({
 					{!hideLegend && (
 						<Legend
 							verticalAlign="bottom"
-							height={18}
-							iconType={'square'}
+							height={
+								(Math.floor(
+									Math.min(
+										MAX_LEGEND_ITEMS,
+										yAxisKeys.length,
+									) / 4,
+								) +
+									1) *
+								20
+							}
+							iconType="square"
 							iconSize={8}
 							content={(props) => (
 								<CustomLegend
@@ -165,7 +188,7 @@ const CategoricalBarChart = ({
 							{!!showReferenceLineLabels && (
 								<>
 									<Label
-										position={'center'}
+										position="center"
 										alignmentBaseline="auto"
 										offset={10}
 										className={styles.referenceLineValue}
@@ -195,8 +218,8 @@ const CategoricalBarChart = ({
 						<ReferenceArea {...referenceAreaProps} isFront />
 					)}
 				</RechartsBarChart>
-			</ResponsiveContainer>
-		</>
+			)}
+		</AutoSizer>
 	)
 }
 

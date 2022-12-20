@@ -1,42 +1,92 @@
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { sprinkles } from '../../css/sprinkles.css'
+import { vars } from '../../css/vars'
 
 export const variants = recipe({
+	base: [
+		{
+			alignItems: 'center',
+			display: 'inline-flex',
+			userSelect: 'none',
+		},
+	],
+
 	variants: {
 		size: {
-			small: sprinkles({
-				height: 'large',
-				borderRadius: 'xSmall',
-				px: 'xSmall',
-				py: 'none',
-			}),
-			medium: sprinkles({
-				height: 'wide',
-				borderRadius: 'xTiny',
-				px: 'xSmall',
-				py: 'xxSmall',
-			}),
-			large: sprinkles({
-				height: 'xLarge',
-				borderRadius: 'tiny',
-				px: 'tiny',
-				py: 'xxSmall',
-			}),
+			tiny: [sprinkles({ px: '4' }), { height: 16 }],
+			small: [sprinkles({ px: '6' }), { height: 16 }],
+			medium: [sprinkles({ px: '8' }), { height: 20 }],
+			large: [sprinkles({ px: '10' }), { height: 24 }],
+		},
+		shape: {
+			round: {
+				borderRadius: vars.borderRadius.round,
+			},
+			rounded: {},
 		},
 		variant: {
-			white: sprinkles({ background: 'white', border: 'neutral' }),
-			grey: sprinkles({ background: 'neutral100' }),
+			white: sprinkles({
+				background: 'white',
+				border: 'neutral',
+				color: 'neutralN11',
+			}),
+			grey: sprinkles({
+				background: 'neutral100',
+				color: 'neutral500',
+			}),
 			outlineGrey: sprinkles({
 				border: 'neutral',
+				color: 'neutral500',
 			}),
 			green: sprinkles({
 				background: 'green500',
+				color: 'white',
 			}),
 		},
 	},
 
+	compoundVariants: [
+		{
+			variants: {
+				size: 'tiny',
+				shape: 'rounded',
+			},
+			style: {
+				borderRadius: vars.borderRadius['3'],
+			},
+		},
+		{
+			variants: {
+				size: 'small',
+				shape: 'rounded',
+			},
+			style: {
+				borderRadius: vars.borderRadius['3'],
+			},
+		},
+		{
+			variants: {
+				size: 'medium',
+				shape: 'rounded',
+			},
+			style: {
+				borderRadius: vars.borderRadius['5'],
+			},
+		},
+		{
+			variants: {
+				size: 'large',
+				shape: 'rounded',
+			},
+			style: {
+				borderRadius: vars.borderRadius['6'],
+			},
+		},
+	],
+
 	defaultVariants: {
 		size: 'small',
+		shape: 'rounded',
 		variant: 'white',
 	},
 })

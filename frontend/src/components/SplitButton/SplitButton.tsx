@@ -1,6 +1,6 @@
 import SvgDotsHorizontalIcon from '@icons/DotsHorizontalIcon'
+import analytics from '@util/analytics'
 import Dropdown, { DropdownButtonProps } from 'antd/lib/dropdown'
-import { H } from 'highlight.run'
 import React from 'react'
 
 import styles from './SplitButton.module.scss'
@@ -19,7 +19,7 @@ const SplitButton = ({ buttonLabel, trackingId, ...props }: Props) => {
 			className={styles.splitButton}
 			{...props}
 			onClick={(e) => {
-				H.track(`SplitButton-${trackingId}`)
+				analytics.track(`SplitButton-${trackingId}`)
 				if (props.onClick) {
 					props.onClick(e)
 				}

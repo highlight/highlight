@@ -1,4 +1,9 @@
-import { DashboardMetricConfig, MetricViewComponentType } from '@graph/schemas'
+import {
+	DashboardChartType,
+	DashboardMetricConfig,
+	MetricAggregator,
+	MetricViewComponentType,
+} from '@graph/schemas'
 
 export const HOME_DASHBOARD_CONFIGURATION: {
 	[key in string]: DashboardMetricConfig
@@ -9,28 +14,17 @@ export const HOME_DASHBOARD_CONFIGURATION: {
 		component_type: MetricViewComponentType.KeyPerformanceGauge,
 	},
 	Sessions: {
-		name: 'Sessions',
+		name: 'sessions',
 		description: 'Sessions',
-		component_type: MetricViewComponentType.SessionCountChart,
+		chart_type: DashboardChartType.TimelineBar,
+		aggregator: MetricAggregator.Sum,
 	},
 	Errors: {
-		name: 'Errors',
+		name: 'errors',
 		description: 'Errors',
-		component_type: MetricViewComponentType.ErrorCountChart,
+		chart_type: DashboardChartType.TimelineBar,
+		aggregator: MetricAggregator.Sum,
 	},
-	// TODO(vkorolik) eventually switch to influx data
-	// Sessions: {
-	// 	name: 'sessions',
-	// 	description: 'Sessions',
-	// 	chart_type: DashboardChartType.TimelineBar,
-	// 	aggregator: MetricAggregator.Sum,
-	// },
-	// Errors: {
-	// 	name: 'errors',
-	// 	description: 'Errors',
-	// 	chart_type: DashboardChartType.TimelineBar,
-	// 	aggregator: MetricAggregator.Sum,
-	// },
 	TopReferrers: {
 		name: 'TopReferrers',
 		description: 'Top Referrers',

@@ -34,6 +34,7 @@ type Session {
 	identifier: String!
 	identified: Boolean!
 	created_at: Timestamp!
+	payload_updated_at: Timestamp!
 	length: Int
 	active_length: Int
 	user_object: Any
@@ -234,6 +235,19 @@ enum ErrorState {
 	IGNORED
 }
 
+enum SourceMappingErrorCode {
+	File_Name_Missing_From_Source_Path
+	Error_Parsing_Stack_Trace_File_Url
+	Missing_Source_Map_File_In_S3
+	Minified_File_Missing_In_S3_And_URL
+	Sourcemap_File_Missing_In_S3_And_URL
+	Minified_File_Larger
+	Source_Map_File_Larger
+	Invalid_SourceMapURL
+	Sourcemap_Library_Couldnt_Parse
+	Sourcemap_Library_Couldnt_Retrieve_Source
+}
+
 enum AdminRole {
 	ADMIN
 	MEMBER
@@ -345,6 +359,7 @@ type ErrorSegment {
 
 type ErrorObject {
 	id: ID!
+	created_at: Timestamp!
 	project_id: Int!
 	session_id: Int!
 	error_group_id: Int!
@@ -360,6 +375,16 @@ type ErrorObject {
 	timestamp: Timestamp!
 	payload: String
 	request_id: String
+	os: String
+	browser: String
+	environment: String
+	session: Session
+}
+
+type ErrorInstance {
+	error_object: ErrorObject!
+	next_id: ID
+	previous_id: ID
 }
 
 type ErrorField {
@@ -370,6 +395,7 @@ type ErrorField {
 
 type ErrorGroup {
 	created_at: Timestamp!
+	updated_at: Timestamp!
 	id: ID!
 	secure_id: String!
 	project_id: Int!
@@ -383,7 +409,10 @@ type ErrorGroup {
 	state: ErrorState!
 	environments: String
 	error_frequency: [Int64!]!
+	error_metrics: [ErrorDistributionItem!]!
 	is_public: Boolean!
+	first_occurrence: Timestamp
+	last_occurrence: Timestamp
 }
 
 type ErrorMetadata {
@@ -408,9 +437,26 @@ type ErrorTrace {
 	functionName: String
 	columnNumber: Int
 	error: String
+	sourceMappingErrorMetadata: SourceMappingError
 	lineContent: String
 	linesBefore: String
 	linesAfter: String
+}
+
+type SourceMappingError {
+	errorCode: SourceMappingErrorCode
+	stackTraceFileURL: String
+	sourcemapFetchStrategy: String
+	sourceMapURL: String
+	minifiedFetchStrategy: String
+	actualMinifiedFetchedPath: String
+	minifiedLineNumber: Int
+	minifiedColumnNumber: Int
+	actualSourcemapFetchedPath: String
+	sourcemapFileSize: Int
+	minifiedFileSize: Int
+	mappedLineNumber: Int
+	mappedColumnNumber: Int
 }
 
 type S3File {
@@ -485,6 +531,11 @@ input HistogramParamsInput {
 	max_percentile: Float
 	units: String
 	filters: [MetricTagFilterInput!]
+}
+
+input ErrorGroupFrequenciesParamsInput {
+	date_range: DateRangeRequiredInput!
+	resolution_minutes: Int!
 }
 
 enum MetricTagFilterOp {
@@ -607,6 +658,11 @@ type DateRange {
 input DateRangeInput {
 	start_date: Timestamp
 	end_date: Timestamp
+}
+
+input DateRangeRequiredInput {
+	start_date: Timestamp!
+	end_date: Timestamp!
 }
 
 type LengthRange {
@@ -780,6 +836,8 @@ type DailyErrorCount {
 }
 
 type ErrorDistributionItem {
+	error_group_id: String!
+	date: Timestamp!
 	name: String!
 	value: Int64!
 }
@@ -1039,6 +1097,11 @@ type OAuthClient {
 	app_name: String!
 }
 
+enum EmailOptOutCategory {
+	All
+	Digests
+}
+
 scalar Upload
 
 type Query {
@@ -1067,6 +1130,11 @@ type Query {
 		histogram_options: DateHistogramOptions!
 	): ErrorsHistogram!
 	error_group(secure_id: String!): ErrorGroup
+	error_object(id: ID!): ErrorObject
+	error_instance(
+		error_group_secure_id: String!
+		error_object_id: ID
+	): ErrorInstance
 	messages(session_secure_id: String!): [Any]
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
@@ -1105,6 +1173,12 @@ type Query {
 		project_id: ID!
 		error_group_secure_id: String!
 		property: String!
+	): [ErrorDistributionItem]!
+	errorGroupFrequencies(
+		project_id: ID!
+		error_group_secure_ids: [String!]
+		params: ErrorGroupFrequenciesParamsInput!
+		metric: String
 	): [ErrorDistributionItem]!
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
@@ -1175,9 +1249,8 @@ type Query {
 	environment_suggestion(project_id: ID!): [Field]
 	app_version_suggestion(project_id: ID!): [String]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
-	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
+	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel!]!
 	discord_channel_suggestions(project_id: ID!): [DiscordChannel!]!
-	slack_members(project_id: ID!): [SanitizedSlackChannel]!
 	generate_zapier_access_token(project_id: ID!): String!
 	is_integrated_with(
 		integration_type: IntegrationType!
@@ -1235,12 +1308,13 @@ type Query {
 	sourcemap_files(project_id: ID!, version: String): [S3File!]!
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
+	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 }
 
 type Mutation {
 	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
 	createProject(name: String!, workspace_id: ID!): Project
-	createWorkspace(name: String!): Workspace
+	createWorkspace(name: String!, promo_code: String): Workspace
 	editProject(
 		id: ID!
 		name: String
@@ -1386,11 +1460,6 @@ type Mutation {
 		tagged_admins: [SanitizedAdminInput]!
 		tagged_slack_users: [SanitizedSlackChannelInput]!
 	): CommentReply
-	openSlackConversation(
-		project_id: ID!
-		code: String!
-		redirect_path: String!
-	): Boolean
 	addIntegrationToProject(
 		integration_type: IntegrationType
 		project_id: ID!
@@ -1534,6 +1603,12 @@ type Mutation {
 	updateClickUpProjectMappings(
 		workspace_id: ID!
 		project_mappings: [ClickUpProjectMappingInput!]!
+	): Boolean!
+	updateEmailOptOut(
+		token: String
+		admin_id: ID
+		category: EmailOptOutCategory!
+		is_opt_out: Boolean!
 	): Boolean!
 }
 

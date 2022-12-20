@@ -8,8 +8,9 @@ import SvgChevronRightIcon from '@icons/ChevronRightIcon'
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy'
 import CreateDashboardModal from '@pages/Dashboards/components/CreateDashboardModal/CreateDashboardModal'
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Link, useHistory } from 'react-router-dom'
 
 import alertStyles from '../../../Alerts/Alerts.module.scss'
@@ -21,6 +22,8 @@ const DashboardsHomePage = () => {
 	})
 	const history = useHistory()
 	const { dashboards, allAdmins } = useDashboardsContext()
+
+	useEffect(() => analytics.page(), [])
 
 	return (
 		<LeadAlignLayout fullWidth>
@@ -53,7 +56,7 @@ const DashboardsHomePage = () => {
 						renderEmptyComponent={
 							<SearchEmptyState
 								className={alertStyles.emptyContainer}
-								item={'dashboards'}
+								item="dashboards"
 								customTitle={`Your project doesn't have any dashboards yet 😔`}
 								customDescription={
 									<>

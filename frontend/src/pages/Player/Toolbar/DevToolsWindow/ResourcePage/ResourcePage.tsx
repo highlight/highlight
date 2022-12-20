@@ -14,11 +14,11 @@ import {
 } from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/utils/utils'
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
 import useLocalStorage from '@rehooks/local-storage'
+import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Skeleton from 'react-loading-skeleton'
@@ -189,7 +189,7 @@ export const ResourcePage = React.memo(
 								)}.`,
 							)
 						}
-						H.track(
+						analytics.track(
 							'FailedToMatchHighlightResourceHeaderWithResource',
 						)
 					}

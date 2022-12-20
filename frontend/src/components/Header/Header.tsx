@@ -1,11 +1,37 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
+import Notifications from '@components/Header/Notifications/NotificationsV2'
+import { linkStyle } from '@components/Header/styles.css'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
 import { Maybe, PlanType, Project } from '@graph/schemas'
+import {
+	Box,
+	Button,
+	IconArrowSmLeft,
+	IconAtSymbol,
+	IconCog,
+	IconDesktopComputer,
+	IconDocumentText,
+	IconDotsHorizontal,
+	IconHome,
+	IconOfficeBuilding,
+	IconPlayCircle,
+	IconQuestionMarkCircle,
+	IconSpeakerphone,
+	IconStackedBarChart,
+	IconSwitchHorizontal,
+	IconUserCircle,
+	IconViewGridAdd,
+	IconXCircle,
+	LinkButton,
+	Menu,
+} from '@highlight-run/ui'
+import { vars } from '@highlight-run/ui/src/css/vars'
+import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
 import { useBillingHook } from '@pages/Billing/Billing'
 import { getTrialEndDateMessage } from '@pages/Billing/utils/utils'
@@ -13,29 +39,27 @@ import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/Q
 import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import analytics from '@util/analytics'
+import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
+import { client } from '@util/graph'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
+import { titleCaseString } from '@util/string'
+import { showIntercom } from '@util/window'
 import classNames from 'classnames/bind'
-import { H } from 'highlight.run'
 import moment from 'moment'
 import React, { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
-import { HighlightLogo } from '../HighlightLogo/HighlightLogo'
 import { CommandBar } from './CommandBar/CommandBar'
-import ApplicationPicker from './components/ApplicationPicker/ApplicationPicker'
-import FeedbackButton from './components/FeedbackButton/FeedbackButton'
-import HeaderActions from './components/HeaderActions'
 import styles from './Header.module.scss'
-import { UserDropdown } from './UserDropdown/UserDropdown'
 
 export const Header = () => {
-	const { project_id, workspace_id } = useParams<{
+	const { project_id } = useParams<{
 		project_id: string
-		workspace_id: string
 	}>()
 	const projectIdRemapped =
 		project_id === DEMO_WORKSPACE_APPLICATION_ID
@@ -43,68 +67,382 @@ export const Header = () => {
 			: project_id
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
-	const { showBanner } = useGlobalContext()
-	const isWorkspaceLevel = workspace_id !== undefined
+	const workspaceId = currentWorkspace?.id
+
+	const { pathname } = useLocation()
+	const parts = pathname.split('/')
+	const currentPage = parts.length >= 3 ? parts[2] : undefined
+
+	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
+	const { admin } = useAuthContext()
+
+	const pages = [
+		{
+			key: 'home',
+			icon: IconHome,
+		},
+		{
+			key: 'errors',
+			icon: IconXCircle,
+		},
+		{
+			key: 'sessions',
+			icon: IconPlayCircle,
+		},
+		{
+			key: 'alerts',
+			icon: IconSpeakerphone,
+		},
+	]
+
+	const inProjectOrWorkspace =
+		isLoggedIn && (projectIdRemapped || workspaceId)
 
 	return (
 		<>
 			<CommandBar />
-			<div
-				className={classNames(styles.header, {
-					[styles.guest]:
-						!isLoggedIn &&
-						projectIdRemapped !==
-							DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-					[styles.bannerShown]: showBanner,
-					[styles.sidebarHidden]: isWorkspaceLevel,
-				})}
-			>
+			<Box background="neutral50" borderBottom="neutral">
 				{!!project_id && getBanner(project_id)}
-				<div className={styles.headerContent}>
-					{isLoggedIn ||
+				<Box
+					display="flex"
+					alignItems="center"
+					px="12"
+					py="8"
+					justifyContent="space-between"
+				>
+					{inProjectOrWorkspace ||
 					projectIdRemapped ===
 						DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
-						<div className={styles.applicationPickerContainer}>
-							<ApplicationPicker />
-
-							{!!project_id && (
-								<div className={styles.quicksearchWrapper}>
-									<QuickSearch />
-								</div>
+						<Box
+							display="flex"
+							alignItems="center"
+							gap="12"
+							style={{ zIndex: 20000 }}
+							width="full"
+						>
+							<ProjectPicker />
+							{project_id && (
+								<Box display="flex" alignItems="center" gap="4">
+									{pages.map((p) => {
+										return (
+											<LinkButton
+												iconLeft={
+													<p.icon
+														size={14}
+														color={
+															currentPage ===
+															p.key
+																? undefined
+																: vars.color
+																		.neutral700
+														}
+													/>
+												}
+												emphasis={
+													currentPage === p.key
+														? 'high'
+														: 'low'
+												}
+												kind={
+													currentPage === p.key
+														? 'primary'
+														: 'secondary'
+												}
+												to={`/${project_id}/${p.key}`}
+												key={p.key}
+											>
+												{titleCaseString(p.key)}
+											</LinkButton>
+										)
+									})}
+									<Menu>
+										<Menu.Button
+											icon={
+												<IconDotsHorizontal
+													size={14}
+													color={
+														vars.color.neutral500
+													}
+												/>
+											}
+											emphasis="low"
+											kind="secondary"
+										/>
+										<Menu.List>
+											<Link
+												to={`/${project_id}/dashboards`}
+												className={linkStyle}
+											>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconStackedBarChart
+															size={14}
+															color={
+																vars.color
+																	.neutral300
+															}
+														/>
+														Dashboards
+													</Box>
+												</Menu.Item>
+											</Link>
+											<Link
+												to={`/${project_id}/integrations`}
+												className={linkStyle}
+											>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconViewGridAdd
+															size={14}
+															color={
+																vars.color
+																	.neutral300
+															}
+														/>
+														Integrations
+													</Box>
+												</Menu.Item>
+											</Link>
+											<Link
+												to={`/${project_id}/setup`}
+												className={linkStyle}
+											>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconDesktopComputer
+															size={14}
+															color={
+																vars.color
+																	.neutral300
+															}
+														/>
+														Setup
+													</Box>
+												</Menu.Item>
+											</Link>
+										</Menu.List>
+									</Menu>
+								</Box>
 							)}
-						</div>
+						</Box>
 					) : (
-						<div className={styles.logoWrapper}>
-							<Link
-								className={styles.homeLink}
-								to={`/${projectIdRemapped}/home`}
-							>
-								<HighlightLogo />
-							</Link>
-						</div>
-					)}
-
-					<div className={styles.rightHeader}>
-						<HeaderActions />
-						<div className={styles.hideableButtonContainer}>
-							{!isLoggedIn ? (
-								<ButtonLink
-									className={styles.upsellButton}
-									trackingId="DemoProjectSignUp"
-									to="/?sign_up=1"
+						<Box
+							display="flex"
+							justifyContent="space-between"
+							width="full"
+						>
+							<Link className={styles.homeLink} to="/">
+								<Button
+									kind="secondary"
+									emphasis="high"
+									size="small"
+									iconLeft={<IconArrowSmLeft size={14} />}
 								>
-									Try Highlight for Free!
-								</ButtonLink>
-							) : (
-								<FeedbackButton />
+									Back to Highlight
+								</Button>
+							</Link>
+							<a
+								className={styles.homeLink}
+								href="https://www.highlight.io"
+							>
+								<SvgHighlightLogoOnLight
+									width={28}
+									height={28}
+								/>
+							</a>
+						</Box>
+					)}
+					{inProjectOrWorkspace && (
+						<Box
+							display="flex"
+							justifyContent="flex-end"
+							alignItems="center"
+							gap="12"
+							style={{ zIndex: 20000 }}
+							width="full"
+						>
+							{!!project_id && (
+								<Box className={styles.quicksearchWrapper}>
+									<QuickSearch />
+								</Box>
 							)}
-						</div>
-						{isLoggedIn && (
-							<UserDropdown workspaceId={currentWorkspace?.id} />
-						)}
-					</div>
-				</div>
-			</div>
+							<Box display="flex" alignItems="center" gap="4">
+								{inProjectOrWorkspace && <Notifications />}
+								<Menu>
+									<Menu.Button
+										emphasis="low"
+										kind="secondary"
+										icon={
+											<IconCog
+												size={14}
+												color={vars.color.neutral500}
+											/>
+										}
+									/>
+									<Menu.List>
+										<Link
+											to={`/w/${workspaceId}/team`}
+											className={linkStyle}
+										>
+											<Menu.Item>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconOfficeBuilding
+														size={14}
+														color={
+															vars.color
+																.neutral300
+														}
+													/>
+													Workspace settings
+												</Box>
+											</Menu.Item>
+										</Link>
+										<Link
+											to={`/w/${workspaceId}/account/auth`}
+											className={linkStyle}
+										>
+											<Menu.Item>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconUserCircle
+														size={14}
+														color={
+															vars.color
+																.neutral300
+														}
+													/>
+													Account settings
+												</Box>
+											</Menu.Item>
+										</Link>
+										<Menu.Divider />
+										<Link
+											to="/switch"
+											className={linkStyle}
+										>
+											<Menu.Item>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconSwitchHorizontal
+														size={14}
+														color={
+															vars.color
+																.neutral300
+														}
+													/>
+													Switch workspace
+												</Box>
+											</Menu.Item>
+										</Link>
+										<Menu.Item
+											onClick={() =>
+												showIntercom({ admin })
+											}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconQuestionMarkCircle
+													size={14}
+													color={
+														vars.color.neutral300
+													}
+												/>
+												Feedback
+											</Box>
+										</Menu.Item>
+										<a
+											href="https://www.highlight.io/docs"
+											className={linkStyle}
+										>
+											<Menu.Item>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconDocumentText
+														size={14}
+														color={
+															vars.color
+																.neutral300
+														}
+													/>
+													Documentation
+												</Box>
+											</Menu.Item>
+										</a>
+										<Menu.Item
+											onClick={() => {
+												toggleShowKeyboardShortcutsGuide(
+													true,
+												)
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconAtSymbol
+													size={14}
+													color={
+														vars.color.neutral300
+													}
+												/>
+												Shortcuts
+											</Box>
+										</Menu.Item>
+										<Menu.Divider />
+										<Menu.Item
+											onClick={async () => {
+												try {
+													auth.signOut()
+												} catch (e) {
+													console.log(e)
+												}
+												await client.clearStore()
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												Log out
+											</Box>
+										</Menu.Item>
+									</Menu.List>
+								</Menu>
+							</Box>
+						</Box>
+					)}
+				</Box>
+			</Box>
 		</>
 	)
 }
@@ -139,7 +477,7 @@ const BillingBanner = () => {
 			!hasReportedTrialExtension &&
 			data?.workspace_for_project?.trial_extension_enabled
 		) {
-			H.track('TrialExtensionEnabled', {
+			analytics.track('TrialExtensionEnabled', {
 				project_id,
 				workspace_id: data?.workspace_for_project.id,
 			})
@@ -170,11 +508,11 @@ const BillingBanner = () => {
 
 	if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
 		// If date is Oct 19 in PST timezone, show Product Hunt banner
-		const isOct19 = moment().isBetween(
-			'2022-10-19T07:00:00Z',
-			'2022-10-20T07:00:00Z',
+		const isDec12 = moment().isBetween(
+			'2022-12-12T08:00:00Z',
+			'2022-12-13T08:00:00Z',
 		)
-		if (isOct19) {
+		if (isDec12) {
 			toggleShowBanner(true)
 			return <ProductHuntBanner />
 		}
@@ -267,7 +605,7 @@ const BillingBanner = () => {
 			{hasTrial && (
 				<button
 					onClick={() => {
-						H.track('TemporarilyHideFreePlanBanner', {
+						analytics.track('TemporarilyHideFreePlanBanner', {
 							hasTrial,
 						})
 						setTemporarilyHideBanner(true)
@@ -335,7 +673,7 @@ const ProductHuntBanner = () => {
 			Highlight is live on Product Hunt 🎉‍{' '}
 			<a
 				target="_blank"
-				href="https://www.producthunt.com/posts/next-js-integration-in-highlight"
+				href="https://www.producthunt.com/posts/digests-by-highlight"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>

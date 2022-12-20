@@ -51,7 +51,7 @@ const ClearbitIntegrationConfig: React.FC<
 				</p>
 				<footer>
 					<Button
-						trackingId={`IntegrationDisconnectCancel-Slack`}
+						trackingId="IntegrationDisconnectCancel-Slack"
 						className={styles.modalBtn}
 						onClick={() => {
 							setModalOpen(false)
@@ -61,7 +61,7 @@ const ClearbitIntegrationConfig: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId={`IntegrationDisconnectSave-Slack`}
+						trackingId="IntegrationDisconnectSave-Slack"
 						className={styles.modalBtn}
 						type="primary"
 						danger
@@ -100,7 +100,7 @@ const ClearbitIntegrationConfig: React.FC<
 					</p>
 					<footer>
 						<Button
-							trackingId={`IntegrationConfigurationCancelUpgrade-Clearbit`}
+							trackingId="IntegrationConfigurationCancelUpgrade-Clearbit"
 							className={styles.modalBtn}
 							onClick={() => {
 								setModalOpen(false)
@@ -110,7 +110,7 @@ const ClearbitIntegrationConfig: React.FC<
 							Cancel
 						</Button>
 						<Button
-							trackingId={`IntegrationConfigurationViewUpgrade-Clearbit`}
+							trackingId="IntegrationConfigurationViewUpgrade-Clearbit"
 							className={styles.modalBtn}
 							type="primary"
 							onClick={() => {
@@ -125,7 +125,7 @@ const ClearbitIntegrationConfig: React.FC<
 			) : (
 				<footer>
 					<Button
-						trackingId={`IntegrationConfigurationCancel-Clearbit`}
+						trackingId="IntegrationConfigurationCancel-Clearbit"
 						className={styles.modalBtn}
 						onClick={() => {
 							setModalOpen(false)
@@ -135,7 +135,7 @@ const ClearbitIntegrationConfig: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId={`IntegrationConfigurationSave-Clearbit`}
+						trackingId="IntegrationConfigurationSave-Clearbit"
 						className={styles.modalBtn}
 						type="primary"
 						onClick={() => {

@@ -40,7 +40,7 @@ export const LoadingBar = ({
 				style={{ width: width || 100 }}
 				className={styles.spinnerStyle}
 			>
-				<BarLoader width={width} height={height} color={'#5629c6'} />
+				<BarLoader width={width} height={height} color="#5629c6" />
 			</div>
 		</div>
 	)

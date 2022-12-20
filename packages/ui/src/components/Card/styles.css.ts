@@ -8,9 +8,9 @@ export const variants = recipe({
 			dark: sprinkles({ background: 'purple900', color: 'white' }),
 		},
 		size: {
-			small: sprinkles({ padding: 'small' }),
-			medium: sprinkles({ padding: 'medium' }),
-			large: sprinkles({ padding: 'large' }),
+			small: sprinkles({ padding: '6' }),
+			medium: sprinkles({ padding: '12' }),
+			large: sprinkles({ padding: '16' }),
 		},
 		border: {
 			none: {},
@@ -19,7 +19,7 @@ export const variants = recipe({
 			black: sprinkles({ border: 'black' }),
 		},
 		rounded: {
-			true: sprinkles({ borderRadius: 'medium' }),
+			true: sprinkles({ borderRadius: '6' }),
 			false: {},
 		},
 	},

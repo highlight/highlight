@@ -1,5 +1,6 @@
 import SetupPage from '@pages/Setup/SetupPage'
-import React from 'react'
+import analytics from '@util/analytics'
+import React, { useEffect } from 'react'
 import { Route, Switch, useRouteMatch } from 'react-router-dom'
 
 interface Props {
@@ -8,6 +9,8 @@ interface Props {
 
 const SetupRouter = ({ integrated }: Props) => {
 	const { path } = useRouteMatch()
+
+	useEffect(() => analytics.page(), [])
 
 	return (
 		<>

@@ -41,8 +41,7 @@ export const SessionCountGraph = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { setSearchParams, setSegmentName, setSelectedSegment } =
-		useSearchContext()
+	const { setSearchParams, removeSelectedSegment } = useSearchContext()
 	const { timeRange } = useDataTimeRange()
 	const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
 		[],
@@ -104,8 +103,7 @@ export const SessionCountGraph = ({
 				name="Sessions"
 				onClickHandler={(payload: any) => {
 					const date = moment(payload.activePayload[0].payload.date)
-					setSegmentName(null)
-					setSelectedSegment(undefined)
+					removeSelectedSegment()
 					setSearchParams({
 						...EmptySessionsSearchParams,
 						date_range: {
@@ -187,7 +185,7 @@ export const ErrorCountGraph = ({
 		<div className={classNames({ [styles.loading]: loading })}>
 			<DailyChart
 				data={errorCountData}
-				lineColor={'var(--color-orange-400)'}
+				lineColor="var(--color-orange-400)"
 				name="Errors"
 				onClickHandler={(payload: any) => {
 					history.push(
@@ -221,7 +219,7 @@ const DailyChart = ({
 					count: lineColor,
 				}}
 				xAxisDataKeyName="date"
-				xAxisLabel={''}
+				xAxisLabel=""
 				xAxisTickFormatter={(value: number) =>
 					moment(value).format('D MMM YYYY')
 				}

@@ -23,6 +23,5 @@
 	},
 	"include": ["src"],
 	"exclude": ["src/**/*.test.tsx"],
-	"files": ["package.json"],
 	"references": [{ "path": "../rrweb/packages/rrweb" }]
 }

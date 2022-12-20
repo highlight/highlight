@@ -12,8 +12,8 @@ export const Basic = () => (
 	<Box
 		background="purple700"
 		color="white"
-		padding="xxLarge"
-		borderRadius="medium"
+		padding="24"
+		borderRadius="6"
 		border="neutralLarge"
 	>
 		Hello! 👋

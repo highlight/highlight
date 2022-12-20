@@ -19,10 +19,10 @@ import {
 	LINEAR_INTEGRATION,
 } from '@pages/IntegrationsPage/Integrations'
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
+import analytics from '@util/analytics'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { Menu } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React, { useMemo, useState } from 'react'
 
 import CommentTextBody from '../../../Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
@@ -117,7 +117,7 @@ const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
 				<MenuItem
 					icon={<SvgFileText2Icon />}
 					onClick={() => {
-						H.track('Create Linear Issue from Comment')
+						analytics.track('Create Linear Issue from Comment')
 						setShowNewIssueModal(LINEAR_INTEGRATION)
 					}}
 				>
@@ -128,7 +128,7 @@ const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
 				<MenuItem
 					icon={<SvgFileText2Icon />}
 					onClick={() => {
-						H.track('Create ClickUp Issue from Comment')
+						analytics.track('Create ClickUp Issue from Comment')
 						setShowNewIssueModal(CLICKUP_INTEGRATION)
 					}}
 				>

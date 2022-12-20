@@ -16,7 +16,9 @@
 		"project": ["./tsconfig.json"]
 	},
 	"plugins": ["@typescript-eslint", "react"],
-	"rules": {},
+	"rules": {
+		"react/display-name": "off"
+	},
 	"settings": {
 		"react": {
 			"version": "detect"

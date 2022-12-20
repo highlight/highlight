@@ -29,14 +29,6 @@
 	text-decoration: none;
 }
 
-.rightHeader {
-	align-items: center;
-	display: flex;
-	height: 100%;
-	justify-content: center;
-	margin-left: auto;
-}
-
 .accountIcon {
 	cursor: pointer;
 	fill: var(--color-purple);
@@ -171,11 +163,6 @@
 	width: 100%;
 }
 
-.rrwebPlayerDiv {
-	height: 100%;
-	position: relative;
-}
-
 .progressBar {
 	border-top: 7px solid var(--color-primary-inverted-background);
 }
@@ -189,7 +176,6 @@
 	grid-template-columns: 1fr;
 	height: 100%;
 	overflow: hidden;
-	padding-top: 80px;
 	width: 100%;
 
 	&.withLeftPanel {
