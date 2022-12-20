@@ -27,6 +27,7 @@ import (
 
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
+	"github.com/highlight-run/highlight/backend/clickup"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/oauth"
@@ -1766,6 +1767,19 @@ func (r *Resolver) AddVercelToWorkspace(workspace *model.Workspace, code string)
 	return nil
 }
 
+func (r *Resolver) AddClickUpToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	res, err := clickup.GetAccessToken(ctx, code)
+	if err != nil {
+		return e.Wrap(err, "error getting ClickUp oauth access token")
+	}
+
+	if err := r.DB.Where(&workspace).Select("clickup_access_token").Updates(&model.Workspace{ClickupAccessToken: &res.AccessToken}).Error; err != nil {
+		return e.Wrap(err, "error updating ClickUp access token in workspace")
+	}
+
+	return nil
+}
+
 func (r *Resolver) AddDiscordToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	token, err := discord.OAuth(ctx, code)
 
@@ -1926,6 +1940,33 @@ func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
 		Select("vercel_access_token", "vercel_team_id").
 		Updates(&model.Workspace{VercelAccessToken: nil, VercelTeamID: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing Vercel access token and team id")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveClickUpFromWorkspace(workspace *model.Workspace) error {
+	if workspace.ClickupAccessToken == nil {
+		return e.New("workspace does not have a ClickUp access token")
+	}
+
+	if err := r.DB.Raw(`
+		DELETE FROM integration_project_mappings ipm
+		WHERE ipm.integration_type = ?
+		AND EXISTS (
+			SELECT *
+			FROM projects p
+			WHERE p.workspace_id = ?
+			AND ipm.project_id = p.id
+		)
+	`, modelInputs.IntegrationTypeClickUp, workspace.ID).Error; err != nil {
+		return err
+	}
+
+	if err := r.DB.Where(workspace).
+		Select("clickup_access_token").
+		Updates(&model.Workspace{ClickupAccessToken: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing ClickUp access token")
 	}
 
 	return nil
@@ -2198,6 +2239,20 @@ func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, at
 	attachment.ExternalID = attachmentRes.Data.AttachmentCreate.Attachment.ID
 	attachment.Title = issueRes.Data.IssueCreate.Issue.Identifier
 
+	if err := r.DB.Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
+func (r *Resolver) CreateClickUpTaskAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string, teamId *string) error {
+	task, err := clickup.CreateTask(*workspace.ClickupAccessToken, *teamId, issueTitle, issueDescription)
+	if err != nil {
+		return err
+	}
+
+	attachment.ExternalID = task.ID
+	attachment.Title = task.Name
 	if err := r.DB.Create(attachment).Error; err != nil {
 		return e.Wrap(err, "error creating external attachment")
 	}

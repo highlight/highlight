@@ -7,3 +7,6 @@
 [submodule "docs"]
 	path = docs
 	url = git@github.com:highlight-run/docs.git
+[submodule "highlight-javascript"]
+	path = highlight-javascript
+	url = git@github.com:highlight-run/highlight-javascript.git
