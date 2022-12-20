@@ -2,6 +2,10 @@ import Card from '@components/Card/Card'
 import Table from '@components/Table/Table'
 import { ExternalAttachment, IntegrationType, Maybe } from '@graph/schemas'
 import ShareIcon from '@icons/ShareIcon'
+import {
+	CLICKUP_INTEGRATION,
+	LINEAR_INTEGRATION,
+} from '@pages/IntegrationsPage/Integrations'
 import React from 'react'
 
 import styles from './AttachmentList.module.scss'
@@ -39,6 +43,26 @@ interface AttachmentListProps {
 	attachments: Maybe<ExternalAttachment>[]
 }
 
+const getLogoUrl = (a: Maybe<ExternalAttachment>) => {
+	switch (a?.integration_type) {
+		case IntegrationType.Linear:
+			return LINEAR_INTEGRATION.icon
+		case IntegrationType.ClickUp:
+			return CLICKUP_INTEGRATION.icon
+	}
+	return ''
+}
+
+const getAttachmentUrl = (a: Maybe<ExternalAttachment>) => {
+	switch (a?.integration_type) {
+		case IntegrationType.Linear:
+			return `https://linear.app/issue/${a.title}`
+		case IntegrationType.ClickUp:
+			return `https://app.clickup.com/t/${a.external_id}`
+	}
+	return ''
+}
+
 const AttachmentList: React.FC<
 	React.PropsWithChildren<AttachmentListProps>
 > = ({ attachments }) => {
@@ -48,14 +72,8 @@ const AttachmentList: React.FC<
 				(item) =>
 					({
 						...item,
-						logoUrl:
-							item?.integration_type === IntegrationType.Linear
-								? '/images/integrations/linear.png'
-								: '',
-						url:
-							item?.integration_type === IntegrationType.Linear
-								? `https://linear.app/issue/${item.title}`
-								: '',
+						logoUrl: getLogoUrl(item),
+						url: getAttachmentUrl(item),
 					} as ParsedAttachment),
 			),
 		[attachments],

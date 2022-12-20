@@ -173,6 +173,7 @@ var Models = []interface{}{
 	&VercelIntegrationConfig{},
 	&OAuthClientStore{},
 	&ResthookSubscription{},
+	&IntegrationProjectMapping{},
 	&EmailOptOut{},
 }
 
@@ -252,6 +253,7 @@ type Workspace struct {
 	TrialExtensionEnabled       bool       `gorm:"default:false"`
 	ClearbitEnabled             bool       `gorm:"default:false"`
 	DiscordGuildId              *string
+	ClickupAccessToken          *string
 	PromoCode                   *string
 }
 
@@ -1078,6 +1080,12 @@ type VercelIntegrationConfig struct {
 	WorkspaceID     int `gorm:"uniqueIndex:idx_workspace_id_vercel_project_id;index"`
 	ProjectID       int
 	VercelProjectID string `gorm:"uniqueIndex:idx_workspace_id_vercel_project_id"`
+}
+
+type IntegrationProjectMapping struct {
+	IntegrationType modelInputs.IntegrationType `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type"`
+	ProjectID       int                         `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type"`
+	ExternalID      string
 }
 
 type AlertEvent struct {

@@ -93,6 +93,28 @@ mutation RemoveIntegrationFromProject(
 	)
 }
 
+mutation AddIntegrationToWorkspace(
+	$integration_type: IntegrationType
+	$workspace_id: ID!
+	$code: String!
+) {
+	addIntegrationToWorkspace(
+		integration_type: $integration_type
+		workspace_id: $workspace_id
+		code: $code
+	)
+}
+
+mutation RemoveIntegrationFromWorkspace(
+	$integration_type: IntegrationType
+	$workspace_id: ID!
+) {
+	removeIntegrationFromWorkspace(
+		integration_type: $integration_type
+		workspace_id: $workspace_id
+	)
+}
+
 mutation UpdateAllowedEmailOrigins(
 	$workspace_id: ID!
 	$allowed_auto_join_email_origins: String!
@@ -917,6 +939,16 @@ mutation UpdateVercelSettings(
 ) {
 	updateVercelProjectMappings(
 		project_id: $project_id
+		project_mappings: $project_mappings
+	)
+}
+
+mutation UpdateClickUpSettings(
+	$workspace_id: ID!
+	$project_mappings: [ClickUpProjectMappingInput!]!
+) {
+	updateClickUpProjectMappings(
+		workspace_id: $workspace_id
 		project_mappings: $project_mappings
 	)
 }

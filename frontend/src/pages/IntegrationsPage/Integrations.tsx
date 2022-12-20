@@ -1,13 +1,17 @@
 import { VercelSettingsModalWidth } from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import ClearbitIntegrationConfig from '@pages/IntegrationsPage/components/ClearbitIntegration/ClearbitIntegrationConfig'
+import ClickUpIntegrationConfig from '@pages/IntegrationsPage/components/ClickUpIntegration/ClickUpIntegrationConfig'
+import ClickUpListSelector from '@pages/IntegrationsPage/components/ClickUpIntegration/ClickUpListSelector'
 import DiscordIntegrationConfig from '@pages/IntegrationsPage/components/DiscordIntegration/DiscordIntegrationConfig'
 import FrontIntegrationConfig from '@pages/IntegrationsPage/components/FrontIntegration/FrontIntegrationConfig'
 import FrontPluginConfig from '@pages/IntegrationsPage/components/FrontPlugin/FrontPluginConfig'
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
 import LinearIntegrationConfig from '@pages/IntegrationsPage/components/LinearIntegration/LinearIntegrationConfig'
+import LinearTeamSelector from '@pages/IntegrationsPage/components/LinearIntegration/LinearTeamSelector'
 import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackIntegration/SlackIntegrationConfig'
 import VercelIntegrationConfig from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
 import ZapierIntegrationConfig from '@pages/IntegrationsPage/components/ZapierIntegration/ZapierIntegrationConfig'
+import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import React from 'react'
 
 export interface Integration {
@@ -40,7 +44,7 @@ export const SLACK_INTEGRATION: Integration = {
 	hasSettings: false,
 }
 
-export const LINEAR_INTEGRATION: Integration = {
+export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
 	key: 'linear',
 	name: 'Linear',
 	configurationPath: 'linear',
@@ -48,6 +52,9 @@ export const LINEAR_INTEGRATION: Integration = {
 	icon: '/images/integrations/linear.png',
 	configurationPage: (opts) => <LinearIntegrationConfig {...opts} />,
 	hasSettings: false,
+	containerLabel: 'team',
+	issueLabel: 'issue',
+	containerSelection: (opts) => <LinearTeamSelector {...opts} />,
 }
 
 export const ZAPIER_INTEGRATION: Integration = {
@@ -116,6 +123,21 @@ export const DISCORD_INTEGRATION: Integration = {
 	hasSettings: false,
 }
 
+export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
+	key: 'clickup',
+	name: 'ClickUp',
+	configurationPath: 'clickup',
+	onlyShowForHighlightAdmin: true,
+	description: 'Create ClickUp tasks from your Highlight comments.',
+	configurationPage: (opts) => <ClickUpIntegrationConfig {...opts} />,
+	icon: '/images/integrations/clickup.svg',
+	hasSettings: true,
+	modalWidth: 672,
+	containerLabel: 'list',
+	issueLabel: 'task',
+	containerSelection: (opts) => <ClickUpListSelector {...opts} />,
+}
+
 const INTEGRATIONS: Integration[] = [
 	SLACK_INTEGRATION,
 	LINEAR_INTEGRATION,
@@ -124,6 +146,7 @@ const INTEGRATIONS: Integration[] = [
 	FRONT_PLUGIN,
 	VERCEL_INTEGRATION,
 	DISCORD_INTEGRATION,
+	CLICKUP_INTEGRATION,
 ]
 
 export default INTEGRATIONS

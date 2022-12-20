@@ -74,6 +74,43 @@ type CategoryHistogramPayload struct {
 	Buckets []*CategoryHistogramBucket `json:"buckets"`
 }
 
+type ClickUpFolder struct {
+	ID    string         `json:"id"`
+	Name  string         `json:"name"`
+	Lists []*ClickUpList `json:"lists"`
+}
+
+type ClickUpList struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type ClickUpProjectMapping struct {
+	ProjectID      int    `json:"project_id"`
+	ClickupSpaceID string `json:"clickup_space_id"`
+}
+
+type ClickUpProjectMappingInput struct {
+	ProjectID      int    `json:"project_id"`
+	ClickupSpaceID string `json:"clickup_space_id"`
+}
+
+type ClickUpSpace struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type ClickUpTask struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type ClickUpTeam struct {
+	ID     string          `json:"id"`
+	Name   string          `json:"name"`
+	Spaces []*ClickUpSpace `json:"spaces"`
+}
+
 type DashboardDefinition struct {
 	ID                int                      `json:"id"`
 	UpdatedAt         time.Time                `json:"updated_at"`
@@ -616,6 +653,7 @@ const (
 	IntegrationTypeFront   IntegrationType = "Front"
 	IntegrationTypeVercel  IntegrationType = "Vercel"
 	IntegrationTypeDiscord IntegrationType = "Discord"
+	IntegrationTypeClickUp IntegrationType = "ClickUp"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -625,11 +663,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeFront,
 	IntegrationTypeVercel,
 	IntegrationTypeDiscord,
+	IntegrationTypeClickUp,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp:
 		return true
 	}
 	return false
