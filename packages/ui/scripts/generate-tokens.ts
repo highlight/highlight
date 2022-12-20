@@ -1,9 +1,11 @@
-import { readFile, writeFile } from 'node:fs'
+import { readFile, writeFileSync } from 'node:fs'
 import { exec } from 'child_process'
 import camelCase from 'lodash.camelcase'
 
 const inputFile = new URL('../design-tokens.json', import.meta.url).pathname
-const outputFile = new URL('../src/css/tokens.ts', import.meta.url).pathname
+const outputColorsFile = new URL('../src/css/colors.ts', import.meta.url)
+	.pathname
+const outputThemeFile = new URL('../src/css/theme.ts', import.meta.url).pathname
 const colorTokens = {}
 const lightThemeTokens = {}
 
@@ -17,19 +19,14 @@ readFile(inputFile, 'utf8', (err, data) => {
 	extractColors(json.values.Primitives)
 	extractThemeVariables(json.values['Light theme'], lightThemeTokens)
 
-	const tokens = objectKeysToCamelCase({
-		color: colorTokens,
-		theme: lightThemeTokens,
-	})
-	const content = `export const tokens = ${JSON.stringify(tokens)}`
+	const theme = objectKeysToCamelCase(lightThemeTokens)
+	const themeContent = `export const theme = ${JSON.stringify(theme)}`
+	const colors = objectKeysToCamelCase(colorTokens)
+	const colorsContent = `export const colors = ${JSON.stringify(colors)}`
 
-	writeFile(outputFile, content, (err) => {
-		if (err) {
-			throw err
-		}
-
-		exec(`npx prettier --write ${outputFile}`)
-	})
+	writeFileSync(outputThemeFile, themeContent)
+	writeFileSync(outputColorsFile, colorsContent)
+	exec(`npx prettier --write ${outputThemeFile} ${outputColorsFile}`)
 })
 
 const extractColors = (obj: any) => {
