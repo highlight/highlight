@@ -88,11 +88,24 @@ export function parseOptionalJSON(text: string): any {
 	return parsed
 }
 
-export function copyToClipboard(text: string, maxWidth = 80) {
+interface CopyToClipboardOptions {
+	maxWidth?: number
+	onCopyText?: string
+}
+
+export function copyToClipboard(
+	text: string,
+	options?: CopyToClipboardOptions,
+) {
 	navigator.clipboard.writeText(text)
-	message.success(
-		`'${
-			text.length > maxWidth ? `${text.slice(0, maxWidth)}...` : text
-		}' copied to clipboard.`,
-	)
+	const maxWidth = options?.maxWidth ?? 80
+	if (!!options?.onCopyText) {
+		message.success(options.onCopyText)
+	} else {
+		message.success(
+			`'${
+				text.length > maxWidth ? `${text.slice(0, maxWidth)}...` : text
+			}' copied to clipboard.`,
+		)
+	}
 }
