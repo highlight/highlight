@@ -1,3 +1,4 @@
+import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
 
@@ -8,6 +9,7 @@ export const CENTER_COLUMN_OVERLAP = 64
 // the negative margin on playerCenterColumn cancels out with the `controllerWidth` to
 // set this as the effective margin
 export const CENTER_COLUMN_MARGIN = 0
+export const PLAYER_PADDING = 8
 export const MIN_CENTER_COLUMN_WIDTH = 428
 export const PLAYER_PADDING_X = 64
 export const PLAYER_PADDING_Y = 64
@@ -32,13 +34,17 @@ export const playerContainer = style({
 	flexDirection: 'column',
 	flexGrow: 1,
 	height: '100%',
+	padding: PLAYER_PADDING,
 })
 
 export const rrwebPlayerSection = style({
+	border: `1px solid ${colors.neutralN6}`,
+	borderRadius: 6,
+	boxShadow: shadows.medium,
 	display: 'flex',
 	flex: 2,
-	width: '100%',
 	height: '100%',
+	width: '100%',
 })
 
 export const rrwebPlayerWrapper = style({
@@ -52,8 +58,7 @@ export const rrwebPlayerWrapper = style({
 })
 
 export const rrwebInnerWrapper = style({
-	border: `32px solid ${colors.purpleP3}`,
-	borderRadius: 32,
+	clipPath: `inset(0% 0% 0% 0% round 8px)`,
 })
 
 export const playerCenterColumn = style({
