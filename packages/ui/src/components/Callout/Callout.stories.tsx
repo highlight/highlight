@@ -2,7 +2,6 @@ import React from 'react'
 import { ComponentMeta } from '@storybook/react'
 
 import { Callout } from './Callout'
-import { Heading } from '../Heading/Heading'
 import { Text } from '../Text/Text'
 import { Box } from '../Box/Box'
 import { Button } from '../Button/Button'

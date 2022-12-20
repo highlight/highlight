@@ -3,11 +3,10 @@ import { ComponentMeta } from '@storybook/react'
 
 import { Tooltip } from './Tooltip'
 import { Box } from '../Box/Box'
-import { Button } from '../Button/Button'
 import { Text } from '../Text/Text'
 import { Badge } from '../Badge/Badge'
 import { Tag } from '../Tag/Tag'
-import { IconChartBar, IconTrendingUp } from '../icons'
+import { IconTrendingUp } from '../icons'
 
 export default {
 	title: 'Components/Tooltip',
