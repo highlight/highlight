@@ -541,11 +541,8 @@ type ComplexityRoot struct {
 		UpdateAllowMeterOverage          func(childComplexity int, workspaceID int, allowMeterOverage bool) int
 		UpdateAllowedEmailOrigins        func(childComplexity int, workspaceID int, allowedAutoJoinEmailOrigins string) int
 		UpdateBillingDetails             func(childComplexity int, workspaceID int) int
-<<<<<<< HEAD
 		UpdateClickUpProjectMappings     func(childComplexity int, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) int
-=======
 		UpdateEmailOptOut                func(childComplexity int, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool) int
->>>>>>> e296ba0603df1a5523b9fb9f1e4adf68171a98a7
 		UpdateErrorAlert                 func(childComplexity int, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) int
 		UpdateErrorAlertIsDisabled       func(childComplexity int, id int, projectID int, disabled bool) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
@@ -1128,11 +1125,8 @@ type MutationResolver interface {
 	DeleteDashboard(ctx context.Context, id int) (bool, error)
 	DeleteSessions(ctx context.Context, projectID int, query string, sessionCount int) (bool, error)
 	UpdateVercelProjectMappings(ctx context.Context, projectID int, projectMappings []*model.VercelProjectMappingInput) (bool, error)
-<<<<<<< HEAD
 	UpdateClickUpProjectMappings(ctx context.Context, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) (bool, error)
-=======
 	UpdateEmailOptOut(ctx context.Context, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool) (bool, error)
->>>>>>> e296ba0603df1a5523b9fb9f1e4adf68171a98a7
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -3887,30 +3881,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateBillingDetails(childComplexity, args["workspace_id"].(int)), true
 
-<<<<<<< HEAD
 	case "Mutation.updateClickUpProjectMappings":
 		if e.complexity.Mutation.UpdateClickUpProjectMappings == nil {
 			break
 		}
 
 		args, err := ec.field_Mutation_updateClickUpProjectMappings_args(context.TODO(), rawArgs)
-=======
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateClickUpProjectMappings(childComplexity, args["workspace_id"].(int), args["project_mappings"].([]*model.ClickUpProjectMappingInput)), true
+
 	case "Mutation.updateEmailOptOut":
 		if e.complexity.Mutation.UpdateEmailOptOut == nil {
 			break
 		}
 
 		args, err := ec.field_Mutation_updateEmailOptOut_args(context.TODO(), rawArgs)
->>>>>>> e296ba0603df1a5523b9fb9f1e4adf68171a98a7
 		if err != nil {
 			return 0, false
 		}
 
-<<<<<<< HEAD
-		return e.complexity.Mutation.UpdateClickUpProjectMappings(childComplexity, args["workspace_id"].(int), args["project_mappings"].([]*model.ClickUpProjectMappingInput)), true
-=======
 		return e.complexity.Mutation.UpdateEmailOptOut(childComplexity, args["token"].(*string), args["admin_id"].(*int), args["category"].(model.EmailOptOutCategory), args["is_opt_out"].(bool)), true
->>>>>>> e296ba0603df1a5523b9fb9f1e4adf68171a98a7
 
 	case "Mutation.updateErrorAlert":
 		if e.complexity.Mutation.UpdateErrorAlert == nil {
@@ -8670,17 +8663,15 @@ type Mutation {
 		project_id: ID!
 		project_mappings: [VercelProjectMappingInput!]!
 	): Boolean!
-<<<<<<< HEAD
 	updateClickUpProjectMappings(
 		workspace_id: ID!
 		project_mappings: [ClickUpProjectMappingInput!]!
-=======
+	): Boolean!
 	updateEmailOptOut(
 		token: String
 		admin_id: ID
 		category: EmailOptOutCategory!
 		is_opt_out: Boolean!
->>>>>>> e296ba0603df1a5523b9fb9f1e4adf68171a98a7
 	): Boolean!
 }
 
@@ -10681,7 +10672,6 @@ func (ec *executionContext) field_Mutation_updateBillingDetails_args(ctx context
 	return args, nil
 }
 
-<<<<<<< HEAD
 func (ec *executionContext) field_Mutation_updateClickUpProjectMappings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -10689,7 +10679,23 @@ func (ec *executionContext) field_Mutation_updateClickUpProjectMappings_args(ctx
 	if tmp, ok := rawArgs["workspace_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-=======
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	var arg1 []*model.ClickUpProjectMappingInput
+	if tmp, ok := rawArgs["project_mappings"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_mappings"))
+		arg1, err = ec.unmarshalNClickUpProjectMappingInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐClickUpProjectMappingInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_mappings"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateEmailOptOut_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -10697,31 +10703,19 @@ func (ec *executionContext) field_Mutation_updateEmailOptOut_args(ctx context.Co
 	if tmp, ok := rawArgs["token"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
 		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
->>>>>>> e296ba0603df1a5523b9fb9f1e4adf68171a98a7
 		if err != nil {
 			return nil, err
 		}
 	}
-<<<<<<< HEAD
-	args["workspace_id"] = arg0
-	var arg1 []*model.ClickUpProjectMappingInput
-	if tmp, ok := rawArgs["project_mappings"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_mappings"))
-		arg1, err = ec.unmarshalNClickUpProjectMappingInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐClickUpProjectMappingInputᚄ(ctx, tmp)
-=======
 	args["token"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["admin_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("admin_id"))
 		arg1, err = ec.unmarshalOID2ᚖint(ctx, tmp)
->>>>>>> e296ba0603df1a5523b9fb9f1e4adf68171a98a7
 		if err != nil {
 			return nil, err
 		}
 	}
-<<<<<<< HEAD
-	args["project_mappings"] = arg1
-=======
 	args["admin_id"] = arg1
 	var arg2 model.EmailOptOutCategory
 	if tmp, ok := rawArgs["category"]; ok {
@@ -10741,7 +10735,6 @@ func (ec *executionContext) field_Mutation_updateEmailOptOut_args(ctx context.Co
 		}
 	}
 	args["is_opt_out"] = arg3
->>>>>>> e296ba0603df1a5523b9fb9f1e4adf68171a98a7
 	return args, nil
 }
 
@@ -30323,13 +30316,8 @@ func (ec *executionContext) fieldContext_Mutation_updateVercelProjectMappings(ct
 	return fc, nil
 }
 
-<<<<<<< HEAD
 func (ec *executionContext) _Mutation_updateClickUpProjectMappings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_updateClickUpProjectMappings(ctx, field)
-=======
-func (ec *executionContext) _Mutation_updateEmailOptOut(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_updateEmailOptOut(ctx, field)
->>>>>>> e296ba0603df1a5523b9fb9f1e4adf68171a98a7
 	if err != nil {
 		return graphql.Null
 	}
@@ -30342,11 +30330,7 @@ func (ec *executionContext) _Mutation_updateEmailOptOut(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-<<<<<<< HEAD
 		return ec.resolvers.Mutation().UpdateClickUpProjectMappings(rctx, fc.Args["workspace_id"].(int), fc.Args["project_mappings"].([]*model.ClickUpProjectMappingInput))
-=======
-		return ec.resolvers.Mutation().UpdateEmailOptOut(rctx, fc.Args["token"].(*string), fc.Args["admin_id"].(*int), fc.Args["category"].(model.EmailOptOutCategory), fc.Args["is_opt_out"].(bool))
->>>>>>> e296ba0603df1a5523b9fb9f1e4adf68171a98a7
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30363,11 +30347,7 @@ func (ec *executionContext) _Mutation_updateEmailOptOut(ctx context.Context, fie
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-<<<<<<< HEAD
 func (ec *executionContext) fieldContext_Mutation_updateClickUpProjectMappings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-=======
-func (ec *executionContext) fieldContext_Mutation_updateEmailOptOut(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
->>>>>>> e296ba0603df1a5523b9fb9f1e4adf68171a98a7
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -30384,11 +30364,62 @@ func (ec *executionContext) fieldContext_Mutation_updateEmailOptOut(ctx context.
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-<<<<<<< HEAD
 	if fc.Args, err = ec.field_Mutation_updateClickUpProjectMappings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-=======
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateEmailOptOut(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateEmailOptOut(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateEmailOptOut(rctx, fc.Args["token"].(*string), fc.Args["admin_id"].(*int), fc.Args["category"].(model.EmailOptOutCategory), fc.Args["is_opt_out"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateEmailOptOut(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateEmailOptOut_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
->>>>>>> e296ba0603df1a5523b9fb9f1e4adf68171a98a7
 		ec.Error(ctx, err)
 		return
 	}
@@ -54864,17 +54895,19 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-<<<<<<< HEAD
 		case "updateClickUpProjectMappings":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateClickUpProjectMappings(ctx, field)
-=======
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "updateEmailOptOut":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateEmailOptOut(ctx, field)
->>>>>>> e296ba0603df1a5523b9fb9f1e4adf68171a98a7
 			})
 
 			if out.Values[i] == graphql.Null {
