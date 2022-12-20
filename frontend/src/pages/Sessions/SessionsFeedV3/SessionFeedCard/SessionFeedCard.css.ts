@@ -26,16 +26,16 @@ export const activityGraph = style({
 export const sessionCard = style({
 	selectors: {
 		'&:hover': {
-			background: colors.neutral100,
+			background: colors.neutralN1,
 		},
 	},
 })
 
 export const sessionCardSelected = style({
-	background: colors.neutral200,
+	background: colors.neutralN5,
 	selectors: {
 		'&:hover': {
-			backgroundColor: colors.neutral200,
+			backgroundColor: colors.neutralN5,
 		},
 	},
 })

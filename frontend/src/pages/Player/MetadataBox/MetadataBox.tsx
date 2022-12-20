@@ -287,6 +287,9 @@ export const MetadataBox = React.memo(() => {
 					</Box>
 				)}
 				<Box display="flex" alignItems="center">
+					<UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
+				</Box>
+				<Box display="flex" alignItems="center">
 					<Tag
 						kind="white"
 						size="medium"
@@ -298,9 +301,6 @@ export const MetadataBox = React.memo(() => {
 							<Text color="neutralN11">Show more sessions</Text>
 						</Box>
 					</Tag>
-				</Box>
-				<Box display="flex" alignItems="center">
-					<UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
 				</Box>
 			</Box>
 		</Box>

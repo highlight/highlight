@@ -81,25 +81,26 @@ const DevToolsWindowV2: React.FC<
 							</button>
 						</div>
 						<Tabs<Tab>
+							default={Tab.Console}
 							onChange={(t: Tab) => {
 								setTab(t)
 								setFilter('')
 							}}
 							pages={{
-								[Tab.Errors]: {
-									page: (
-										<ErrorsPage
-											autoScroll={autoScroll}
-											filter={filter}
-											time={time}
-										/>
-									),
-								},
 								[Tab.Console]: {
 									page: (
 										<ConsolePage
 											autoScroll={autoScroll}
 											logLevel={logLevel}
+											filter={filter}
+											time={time}
+										/>
+									),
+								},
+								[Tab.Errors]: {
+									page: (
+										<ErrorsPage
+											autoScroll={autoScroll}
 											filter={filter}
 											time={time}
 										/>

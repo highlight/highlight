@@ -106,9 +106,14 @@ export const SessionFeedCard = React.memo(
 						<Box color="dark" cssClass={style.sessionCardTitle}>
 							<Box
 								display="inline-flex"
-								gap="8"
+								gap="6"
 								alignItems="center"
 							>
+								<Avatar
+									seed={getDisplayName(session)}
+									style={{ height: 20, width: 20 }}
+									customImage={customAvatarImage}
+								/>
 								<Text
 									lines="1"
 									size="small"
@@ -126,11 +131,22 @@ export const SessionFeedCard = React.memo(
 									/>
 								)}
 							</Box>
-							<Avatar
-								seed={getDisplayName(session)}
-								style={{ height: 20, width: 20 }}
-								customImage={customAvatarImage}
-							/>
+							{!session.processed && (
+								<Tag
+									shape="basic"
+									kind="primary"
+									size="small"
+									emphasis="low"
+									onClick={() => {
+										setSearchParams({
+											...EmptySessionsSearchParams,
+											show_live_sessions: true,
+										})
+									}}
+								>
+									Live
+								</Tag>
+							)}
 						</Box>
 						<Box
 							alignItems="center"
@@ -145,21 +161,6 @@ export const SessionFeedCard = React.memo(
 								justifyContent="space-between"
 							>
 								<Box display="flex" gap="4" alignItems="center">
-									{!session.processed && (
-										<Tag
-											shape="basic"
-											kind="grey"
-											size="small"
-											onClick={() => {
-												setSearchParams({
-													...EmptySessionsSearchParams,
-													show_live_sessions: true,
-												})
-											}}
-										>
-											<Text>Live</Text>
-										</Tag>
-									)}
 									{!viewed && (
 										<Tag
 											shape="basic"

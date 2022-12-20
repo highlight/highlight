@@ -55,7 +55,6 @@ export const controlBarBottomVariants = recipe({
 		backgroundColor: colors.neutralN11,
 		borderRadius: '2px 2px 0px 0px',
 		height: 2,
-		transition: 'background-color 1s ease',
 	},
 	variants: {
 		selected: {

@@ -19,7 +19,6 @@ type Props<T extends string> = styles.Variants & {
 	onChange?: (tab: T) => void
 }
 
-// TODO(vkorolik) color when clicked
 export const Tabs = function <T extends string>(props: Props<T>) {
 	const [tab, setTab] = React.useState<string>(props.default)
 	const [hoveredTab, setHoveredTab] = React.useState<string>()
@@ -63,7 +62,12 @@ export const Tabs = function <T extends string>(props: Props<T>) {
 									selected: t === tab,
 								})}
 							>
-								<Text cssClass={styles.tabText}>
+								<Text
+									color={
+										t === tab ? 'purpleP9' : 'neutralN11'
+									}
+									cssClass={styles.tabText}
+								>
 									{t}
 									{props.pages[t].badge}
 								</Text>

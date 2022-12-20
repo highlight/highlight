@@ -35,6 +35,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 	shape = styles.defaultShape,
 	size = styles.defaultSize,
 	kind = styles.defaultKind,
+	emphasis = styles.defaultEmphasis,
 	onIconLeftClick,
 	onIconRightClick,
 	lines,
@@ -53,6 +54,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 					kind,
 					size,
 					shape,
+					emphasis,
 				}),
 			])}
 			{...buttonProps}

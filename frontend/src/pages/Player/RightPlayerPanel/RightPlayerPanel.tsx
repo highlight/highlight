@@ -6,6 +6,7 @@ import {
 	IconHashtag,
 	Tabs,
 } from '@highlight-run/ui'
+import { colors } from '@highlight-run/ui/src/css/colors'
 import EventStream from '@pages/Player/components/EventStream/EventStream'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
@@ -76,6 +77,7 @@ enum Tab {
 }
 
 const RightPlayerPanelTabs = React.memo(() => {
+	const [tab, setTab] = React.useState<string>(Tab.Events)
 	const sessionCommentsRef = React.useRef(null)
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const { data: sessionCommentsData, loading } = useGetSessionCommentsQuery({
@@ -87,8 +89,18 @@ const RightPlayerPanelTabs = React.memo(() => {
 	return (
 		<Tabs<Tab>
 			default={Tab.Events}
+			onChange={setTab}
 			pages={{
-				[Tab.Events]: { page: <EventStream />, icon: <IconFire /> },
+				[Tab.Events]: {
+					page: <EventStream />,
+					icon: (
+						<IconFire
+							color={
+								tab === Tab.Events ? colors.purpleP9 : undefined
+							}
+						/>
+					),
+				},
 				[Tab.Threads]: {
 					page: (
 						<SessionFullCommentList
@@ -97,7 +109,15 @@ const RightPlayerPanelTabs = React.memo(() => {
 							sessionCommentsData={sessionCommentsData}
 						/>
 					),
-					icon: <IconChatAlt2 />,
+					icon: (
+						<IconChatAlt2
+							color={
+								tab === Tab.Threads
+									? colors.purpleP9
+									: undefined
+							}
+						/>
+					),
 					badge: (
 						<div
 							style={{
@@ -107,7 +127,9 @@ const RightPlayerPanelTabs = React.memo(() => {
 						>
 							<Badge
 								size="tiny"
-								variant="purple"
+								variant={
+									tab === Tab.Threads ? 'purple' : 'grey'
+								}
 								shape="rounded"
 								label={`${sessionCommentsData?.session_comments?.length}`}
 							/>
@@ -116,7 +138,15 @@ const RightPlayerPanelTabs = React.memo(() => {
 				},
 				[Tab.Metadata]: {
 					page: <MetadataPanel />,
-					icon: <IconHashtag />,
+					icon: (
+						<IconHashtag
+							color={
+								tab === Tab.Metadata
+									? colors.purpleP9
+									: undefined
+							}
+						/>
+					),
 				},
 			}}
 		/>
