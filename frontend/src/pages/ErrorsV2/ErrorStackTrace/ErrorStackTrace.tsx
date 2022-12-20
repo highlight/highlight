@@ -3,6 +3,7 @@ import Tooltip from '@components/Tooltip/Tooltip'
 import { ErrorInstance, Maybe, SourceMappingError } from '@graph/schemas'
 import {
 	Box,
+	Button,
 	ButtonIcon,
 	Callout,
 	IconChevronDown,
@@ -71,13 +72,18 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 					</Text>
 
 					<Stack direction="row" gap="8">
-						<LinkButton
+						<Button
 							kind="secondary"
-							to="https://docs.highlight.run/sourcemaps"
-							target="_blank"
+							emphasis="high"
+							onClick={() => {
+								window.open(
+									'https://docs.highlight.run/sourcemaps',
+									'_blank',
+								)
+							}}
 						>
 							Learn More
-						</LinkButton>
+						</Button>
 						<LinkButton
 							kind="secondary"
 							emphasis="low"
