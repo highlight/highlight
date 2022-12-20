@@ -4297,6 +4297,63 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 	return r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, *metric)
 }
 
+// ErrorGroupTags is the resolver for the errorGroupTags field.
+func (r *queryResolver) ErrorGroupTags(ctx context.Context, projectID int, errorGroupSecureID string) ([]*modelInputs.ErrorGroupTag, error) {
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not error group owner")
+	}
+
+	query := fmt.Sprintf(`
+	{
+		"has_parent": {
+			"parent_type": "parent",
+			"query": {
+				"term": {
+					"value": "%s"
+				}
+			}
+		}
+	}`, errorGroup.SecureID)
+	options := opensearch.SearchOptions{
+		MaxResults: pointy.Int(0),
+		Aggregation: &opensearch.TermsAggregation{
+			Field: "os_name.keyword",
+		},
+	}
+
+	ignored := []struct{}{}
+	_, results, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, -1, query, options, &ignored)
+	if err != nil {
+		return nil, err
+	}
+
+	tags := []*modelInputs.ErrorGroupTag{}
+
+	for _, result := range results {
+		aggregations := []*modelInputs.ErrorGroupTagAggregation{}
+
+		for _, subAggregation := range result.SubAggregationResults {
+			aggregation := modelInputs.ErrorGroupTagAggregation{
+				Key:      subAggregation.Key,
+				DocCount: subAggregation.DocCount,
+			}
+
+			aggregations = append(aggregations, &aggregation)
+		}
+
+		tag := modelInputs.ErrorGroupTag{
+			Term:         result.Key,
+			Aggregations: aggregations,
+		}
+
+		tags = append(tags, &tag)
+
+	}
+
+	return tags, nil
+}
+
 // Referrers is the resolver for the referrers field.
 func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {

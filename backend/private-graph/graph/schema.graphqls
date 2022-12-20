@@ -860,6 +860,16 @@ type ErrorDistributionItem {
 	value: Int64!
 }
 
+type ErrorGroupTagAggregation {
+	key: String!
+	doc_count: Int64!
+}
+
+type ErrorGroupTag {
+	term: String!
+	aggregations: [ErrorGroupTagAggregation!]!
+}
+
 type Dashboard {
 	id: ID!
 	project_id: ID!
@@ -1208,6 +1218,11 @@ type Query {
 		params: ErrorGroupFrequenciesParamsInput!
 		metric: String
 	): [ErrorDistributionItem]!
+	errorGroupTags(
+		project_id: ID!
+		error_group_secure_id: String!
+	): [ErrorGroupTag!]!
+
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
 	topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!

@@ -3827,6 +3827,24 @@ export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorGroupTagsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	error_group_secure_id: Types.Scalars['String']
+}>
+
+export type GetErrorGroupTagsQuery = { __typename?: 'Query' } & {
+	errorGroupTags: Array<
+		{ __typename?: 'ErrorGroupTag' } & Pick<Types.ErrorGroupTag, 'term'> & {
+				aggregations: Array<
+					{ __typename?: 'ErrorGroupTagAggregation' } & Pick<
+						Types.ErrorGroupTagAggregation,
+						'key' | 'doc_count'
+					>
+				>
+			}
+	>
+}
+
 export type GetEmailOptOutsQueryVariables = Types.Exact<{
 	token?: Types.Maybe<Types.Scalars['String']>
 	admin_id?: Types.Maybe<Types.Scalars['ID']>
@@ -3946,6 +3964,7 @@ export const namedOperations = {
 		GetSourcemapVersions: 'GetSourcemapVersions' as const,
 		GetOAuthClientMetadata: 'GetOAuthClientMetadata' as const,
 		GetErrorGroupFrequencies: 'GetErrorGroupFrequencies' as const,
+		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 	},
 	Mutation: {
