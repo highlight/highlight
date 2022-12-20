@@ -85,7 +85,7 @@ require (
 	gopkg.in/DataDog/dd-trace-go.v1 v1.43.1
 	gopkg.in/kothar/brotli-go.v0 v0.0.0-20170728081549-771231d473d6
 	gorm.io/driver/postgres v1.0.8
-	gorm.io/gorm v1.21.9
+	gorm.io/gorm v1.24.2
 )
 
 require (
@@ -171,7 +171,7 @@ require (
 	github.com/jackc/pgtype v1.9.0 // indirect
 	github.com/jackc/pgx/v4 v4.14.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jinzhu/now v1.1.3 // indirect
+	github.com/jinzhu/now v1.1.4 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/klauspost/compress v1.15.0 // indirect
 	github.com/leonelquinteros/hubspot v0.1.0
