@@ -39,6 +39,8 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 					border="neutral"
 					overflow="scroll"
 					boxShadow="small"
+					overflowX="hidden"
+					overflowY="hidden"
 				>
 					<Box
 						padding="8"
