@@ -9,6 +9,7 @@ import { useEffect, useMemo } from 'react'
 const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
 }) => {
+	console.log('zane rendered!!')
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data, loading } = useGetClickUpFoldersQuery({
 		variables: { project_id },
@@ -48,10 +49,10 @@ const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 	}, [selectedClickUpListId, clickUpListOptions, setClickUpListId])
 
 	return (
-		<Form.Item label={`ClickUp List`}>
+		<Form.Item label="ClickUp List">
 			<Select
-				aria-label={`ClickUp List`}
-				placeholder={`Choose a list to create the task in`}
+				aria-label="ClickUp List"
+				placeholder="Choose a list to create the task in"
 				options={clickUpListOptions}
 				onChange={setClickUpListId}
 				value={'' + selectedClickUpListId}

@@ -23,7 +23,6 @@ import { StringParam, useQueryParams } from 'use-query-params'
 interface Props {
 	code: string
 	projectId?: string
-	workspaceId?: string
 	next?: string
 }
 
@@ -280,29 +279,15 @@ const WorkspaceIntegrationCallback = ({
 	return null
 }
 
-const ClickUpIntegrationCallback = ({
-	code,
-	projectId,
-	workspaceId,
-}: Props) => {
+const ClickUpIntegrationCallback = ({ code, projectId }: Props) => {
+	const { addIntegration } = useClickUpIntegration()
 	return (
-		<ApplicationContextProvider
-			value={{
-				currentProject: undefined,
-				allProjects: [],
-				currentWorkspace: workspaceId
-					? { id: workspaceId, name: '' }
-					: undefined,
-				workspaces: [],
-			}}
-		>
-			<WorkspaceIntegrationCallback
-				code={code}
-				name="ClickUp"
-				addIntegration={useClickUpIntegration().addIntegration}
-				projectId={projectId}
-			/>
-		</ApplicationContextProvider>
+		<WorkspaceIntegrationCallback
+			code={code}
+			name="ClickUp"
+			addIntegration={addIntegration}
+			projectId={projectId}
+		/>
 	)
 }
 
@@ -371,11 +356,21 @@ const IntegrationAuthCallbackPage = () => {
 			)
 		case 'clickup':
 			return (
-				<ClickUpIntegrationCallback
-					code={code}
-					projectId={projectId}
-					workspaceId={workspaceId}
-				/>
+				<ApplicationContextProvider
+					value={{
+						currentProject: undefined,
+						allProjects: [],
+						currentWorkspace: workspaceId
+							? { id: workspaceId, name: '' }
+							: undefined,
+						workspaces: [],
+					}}
+				>
+					<ClickUpIntegrationCallback
+						code={code}
+						projectId={projectId}
+					/>
+				</ApplicationContextProvider>
 			)
 	}
 

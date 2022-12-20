@@ -3009,17 +3009,27 @@ func (r *mutationResolver) UpdateClickUpProjectMappings(ctx context.Context, wor
 	configs := []*model.IntegrationProjectMapping{}
 	for _, m := range projectMappings {
 		configs = append(configs, &model.IntegrationProjectMapping{
-			WorkspaceID: workspaceID,
-			ProjectID:   m.ProjectID,
-			ExternalID:  m.ClickupSpaceID,
+			IntegrationType: modelInputs.IntegrationTypeClickUp,
+			ProjectID:       m.ProjectID,
+			ExternalID:      m.ClickupSpaceID,
 		})
 	}
 
-	if err := r.DB.
-		Delete(&model.IntegrationProjectMapping{
-			WorkspaceID: workspaceID, IntegrationType: modelInputs.IntegrationTypeClickUp}).
-		Error; err != nil {
+	if err := r.DB.Exec(`
+		DELETE FROM integration_project_mappings ipm
+		WHERE ipm.integration_type = ?
+		AND EXISTS (
+			SELECT *
+			FROM projects p
+			WHERE p.workspace_id = ?
+			AND ipm.project_id = p.id
+		)
+	`, modelInputs.IntegrationTypeClickUp, workspaceID).Error; err != nil {
 		return false, err
+	}
+
+	if len(projectMappings) == 0 {
+		return true, nil
 	}
 
 	if err := r.DB.Create(configs).Error; err != nil {
@@ -5289,9 +5299,16 @@ func (r *queryResolver) ClickupProjectMappings(ctx context.Context, workspaceID 
 	}
 
 	rows := []*model.IntegrationProjectMapping{}
-	if err := r.DB.Where(&model.IntegrationProjectMapping{
-		WorkspaceID: workspaceID, IntegrationType: modelInputs.IntegrationTypeClickUp}).
-		Find(&rows).Error; err != nil {
+	if err := r.DB.Raw(`
+		SELECT * FROM integration_project_mappings ipm
+		WHERE ipm.integration_type = ?
+		AND EXISTS (
+			SELECT *
+			FROM projects p
+			WHERE p.workspace_id = ?
+			AND ipm.project_id = p.id
+		)
+	`, modelInputs.IntegrationTypeClickUp, workspaceID).Find(&rows).Error; err != nil {
 		return nil, err
 	}
 

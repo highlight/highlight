@@ -1950,9 +1950,16 @@ func (r *Resolver) RemoveClickUpFromWorkspace(workspace *model.Workspace) error 
 		return e.New("workspace does not have a ClickUp access token")
 	}
 
-	if err := r.DB.Delete(&model.IntegrationProjectMapping{
-		WorkspaceID: workspace.ID, IntegrationType: modelInputs.IntegrationTypeClickUp}).
-		Error; err != nil {
+	if err := r.DB.Raw(`
+		DELETE FROM integration_project_mappings ipm
+		WHERE ipm.integration_type = ?
+		AND EXISTS (
+			SELECT *
+			FROM projects p
+			WHERE p.workspace_id = ?
+			AND ipm.project_id = p.id
+		)
+	`, modelInputs.IntegrationTypeClickUp, workspace.ID).Error; err != nil {
 		return err
 	}
 
