@@ -1889,6 +1889,7 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeClickUp {
+		// TODO - see if we can remove this code path
 		if err := r.AddClickUpToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
@@ -1953,6 +1954,11 @@ func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integr
 		if err := r.AddClickUpToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeHeight {
+		if err := r.AddHeightToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
+
 	} else {
 		return false, e.New("invalid integrationType")
 	}

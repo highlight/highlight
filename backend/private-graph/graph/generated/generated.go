@@ -7290,6 +7290,7 @@ enum IntegrationType {
 	Vercel
 	Discord
 	ClickUp
+	Height
 }
 
 enum ErrorState {
@@ -8667,6 +8668,7 @@ type Mutation {
 		workspace_id: ID!
 		project_mappings: [ClickUpProjectMappingInput!]!
 	): Boolean!
+
 	updateEmailOptOut(
 		token: String
 		admin_id: ID

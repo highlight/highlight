@@ -6,7 +6,7 @@ import { useParams } from '@util/react-router/useParams'
 import { Form } from 'antd'
 import { useEffect, useMemo } from 'react'
 
-const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
+const HeightListSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
 }) => {
 	const { project_id } = useParams<{ project_id: string }>()
@@ -62,4 +62,4 @@ const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 	)
 }
 
-export default ClickUpListSelector
+export default HeightListSelector

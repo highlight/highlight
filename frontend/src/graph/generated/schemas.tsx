@@ -560,6 +560,7 @@ export enum IntegrationType {
 	ClickUp = 'ClickUp',
 	Discord = 'Discord',
 	Front = 'Front',
+	Height = 'Height',
 	Linear = 'Linear',
 	Slack = 'Slack',
 	Vercel = 'Vercel',
