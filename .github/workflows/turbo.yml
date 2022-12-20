@@ -26,20 +26,18 @@ jobs:
                   token: ${{ secrets.GH_REPO_TOKEN }}
                   submodules: true
 
+            - name: Set submodule change data
+              run: |
+                  git fetch origin master
+                  changed="$(git diff origin/master --name-only | grep '^highlight-javascript$')"
+                  echo "highlight_javascript_changed=$changed" >> $GITHUB_ENV
+
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
               uses: actions/setup-node@v3
               with:
                   node-version: 16
                   cache: 'yarn'
-
-            - uses: dorny/paths-filter@v2
-              id: filter
-              with:
-                  filters: |
-                      highlight-run:
-                        - 'client/**'
-                        - 'firstload/**'
 
             - name: Install js dependencies
               run: yarn
@@ -58,7 +56,7 @@ jobs:
                   aws-region: us-east-2
 
             - name: Validate project is ready to be published
-              if: steps.filter.outputs.highlight-run == 'true'
+              if: ${{ env.highlight_javascript_changed == 'highlight-javascript' }}
               run: yarn prepublish
 
             # always publish client, even in PRs
@@ -66,7 +64,7 @@ jobs:
             # any previous builds, while doing this in PR will allow the PR frontend preview
             # to reference the PR's latest version of client
             - name: Publish client bundle
-              if: steps.filter.outputs.highlight-run == 'true'
+              if: ${{ env.highlight_javascript_changed == 'highlight-javascript' }}
               run: yarn publish:client
 
             - name: Upload frontend sourcemaps
