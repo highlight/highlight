@@ -1066,8 +1066,11 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 		subscriptionItem := subscription.Items.Data[0]
 		productType, _, _, _ := pricing.GetProductMetadata(subscriptionItem.Price)
-		if productType == nil || *productType != pricing.ProductTypeBase {
-			return nil, e.New("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - expecting base product")
+		if productType == nil {
+			return nil, e.New(fmt.Sprintf("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - nil product from sub %s price %s", subscription.ID, subscriptionItem.Price.ID))
+		}
+		if *productType != pricing.ProductTypeBase {
+			return nil, e.New(fmt.Sprintf("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - expecting base product from sub %s price %s: %s", subscription.ID, subscriptionItem.Price.ID, *productType))
 		}
 
 		subscriptionParams := &stripe.SubscriptionParams{
