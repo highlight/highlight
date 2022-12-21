@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/pkg/errors"
 
 	"golang.org/x/oauth2"
@@ -62,4 +63,17 @@ func GetAccessToken(ctx context.Context, code string) (*oauth2.Token, error) {
 	param := oauth2.SetAuthURLParam("scope", `["api"]`)
 
 	return conf.Exchange(ctx, code, param)
+}
+
+func GetWorkspaces(accessToken string) ([]*model.HeightWorkspace, error) {
+	workspaces := []*model.HeightWorkspace{}
+
+	workspaces = append(workspaces, &model.HeightWorkspace{
+		ID:    "uuid",
+		Model: "workspace",
+		Name:  "My workspace",
+		URL:   "https://height.app/abc123456",
+	})
+
+	return workspaces, nil
 }

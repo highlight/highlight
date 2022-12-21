@@ -3415,6 +3415,12 @@ export type GetHeightIntegrationSettingsQueryVariables = Types.Exact<{
 export type GetHeightIntegrationSettingsQuery = { __typename?: 'Query' } & {
 	is_integrated: Types.Query['is_workspace_integrated_with']
 } & {
+	height_workspaces: Array<
+		{ __typename?: 'HeightWorkspace' } & Pick<
+			Types.HeightWorkspace,
+			'id' | 'model' | 'name' | 'url'
+		>
+	>
 	integration_project_mappings: Array<
 		{ __typename?: 'IntegrationProjectMapping' } & Pick<
 			Types.IntegrationProjectMapping,

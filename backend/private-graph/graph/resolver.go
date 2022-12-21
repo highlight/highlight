@@ -30,6 +30,7 @@ import (
 	"github.com/highlight-run/highlight/backend/clickup"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/height"
+	"github.com/highlight-run/highlight/backend/integrations"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -117,6 +118,7 @@ type Resolver struct {
 	Redis                  *redis.Client
 	StepFunctions          *stepfunctions.Client
 	OAuthServer            *oauth.Server
+	IntegrationsClient     *integrations.Client
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {

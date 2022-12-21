@@ -9731,6 +9731,12 @@ export const GetHeightIntegrationSettingsDocument = gql`
 			integration_type: Height
 			workspace_id: $workspace_id
 		)
+		height_workspaces(workspace_id: $workspace_id) {
+			id
+			model
+			name
+			url
+		}
 		integration_project_mappings(
 			workspace_id: $workspace_id
 			integration_type: Height

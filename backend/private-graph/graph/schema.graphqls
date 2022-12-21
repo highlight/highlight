@@ -190,6 +190,13 @@ type ClickUpTeam {
 	spaces: [ClickUpSpace!]!
 }
 
+type HeightWorkspace {
+	id: String!
+	model: String!
+	name: String!
+	url: String!
+}
+
 type ClickUpFolder {
 	id: String!
 	name: String!
@@ -1277,6 +1284,7 @@ type Query {
 	clickup_project_mappings(workspace_id: ID!): [ClickUpProjectMapping!]!
 	clickup_folders(project_id: ID!): [ClickUpFolder!]!
 	clickup_folderless_lists(project_id: ID!): [ClickUpList!]!
+	height_workspaces(workspace_id: ID!): [HeightWorkspace!]!
 	integration_project_mappings(
 		workspace_id: ID!
 		integration_type: IntegrationType

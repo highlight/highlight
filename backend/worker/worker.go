@@ -435,7 +435,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SecureID, task.PushMetrics.Metrics); err != nil {
-			log.Error(errors.Wrap(err, "failed to process PushMetricsImpl task"))
+			// log.Error(errors.Wrap(err, "failed to process PushMetricsImpl task"))
 			return err
 		}
 	case kafkaqueue.MarkBackendSetup:

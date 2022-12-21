@@ -263,6 +263,13 @@ type ErrorTrace struct {
 	LinesAfter                 *string             `json:"linesAfter"`
 }
 
+type HeightWorkspace struct {
+	ID    string `json:"id"`
+	Model string `json:"model"`
+	Name  string `json:"name"`
+	URL   string `json:"url"`
+}
+
 type HistogramBucket struct {
 	Bucket     float64 `json:"bucket"`
 	RangeStart float64 `json:"range_start"`

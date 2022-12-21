@@ -29,6 +29,7 @@ import (
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/front"
+	"github.com/highlight-run/highlight/backend/height"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
@@ -5278,6 +5279,10 @@ func (r *queryResolver) IsWorkspaceIntegratedWith(ctx context.Context, integrati
 			WorkspaceID:     workspace.ID,
 			IntegrationType: integrationType,
 		}).First(&workspaceMapping).Error; err != nil {
+			return false, err
+		}
+
+		if workspaceMapping == nil {
 			return false, nil
 		}
 	}
@@ -5448,6 +5453,25 @@ func (r *queryResolver) ClickupFolderlessLists(ctx context.Context, projectID in
 	}
 
 	return clickup.GetFolderlessLists(*workspace.ClickupAccessToken, settings.ExternalID)
+}
+
+// HeightWorkspaces is the resolver for the height_workspaces field.
+func (r *queryResolver) HeightWorkspaces(ctx context.Context, workspaceID int) ([]*modelInputs.HeightWorkspace, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(workspace, modelInputs.IntegrationTypeHeight)
+
+	if err != nil {
+		return nil, err
+	}
+
+	workspaces, err := height.GetWorkspaces(*accessToken)
+
+	return workspaces, nil
+
 }
 
 // IntegrationProjectMappings is the resolver for the integration_project_mappings field.

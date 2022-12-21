@@ -183,10 +183,6 @@ export const HeightIntegrationSettings: React.FC<
 		return null
 	}
 
-	const allSpaces = settings.clickup_teams.flatMap((t) =>
-		t.spaces.map((s) => ({ id: s.id, label: `${t.name} > ${s.name}` })),
-	)
-
 	const highlightProjects: any[] = []
 	if (!!allProjects) {
 		for (const p of allProjects) {
@@ -194,7 +190,9 @@ export const HeightIntegrationSettings: React.FC<
 				highlightProjects.push({
 					...p,
 					onUpdateProjectLink: (label: string) => {
-						const match = allSpaces.find((s) => s.label === label)
+						const match = settings.height_workspaces.find(
+							(w) => w.id === label,
+						)
 
 						if (match === undefined) {
 							projectMapDelete(p.id)
@@ -208,10 +206,10 @@ export const HeightIntegrationSettings: React.FC<
 	}
 
 	const selectOptions =
-		allSpaces.map((p) => ({
-			id: p.id,
-			value: p.label,
-			displayValue: p.label,
+		settings.height_workspaces.map((w) => ({
+			id: w.id,
+			value: w.name,
+			displayValue: w.name,
 		})) || []
 
 	const tableColumns = [
@@ -246,8 +244,10 @@ export const HeightIntegrationSettings: React.FC<
 			key: 'heightWorkspaces',
 			width: '55%',
 			render: (_: string, row: any) => {
-				const clickUpSpaceId = projectMap.get(row.id)
-				const opts = allSpaces.find((s) => s.id === clickUpSpaceId)
+				const heightWorkspaceId = projectMap.get(row.id)
+				const opts = settings.height_workspaces.find(
+					(w) => w.id === heightWorkspaceId,
+				)
 				return (
 					<div className={styles.select}>
 						<Select
@@ -266,12 +266,6 @@ export const HeightIntegrationSettings: React.FC<
 
 	const projectMappings: IntegrationProjectMappingInput[] = []
 	for (const [projectId, externalId] of projectMap.entries()) {
-		// Skip for clickUpSpaceIds the user no longer has access to
-		// (could be deleted or have had their permissions revoked)
-		// if (!allSpaces.find((s) => s.id === clickUpSpaceId)) {
-		// 	continue
-		// }
-
 		// If this project hasn't been created yet, pass undefined as the project id
 		projectMappings.push({
 			project_id: projectId,
