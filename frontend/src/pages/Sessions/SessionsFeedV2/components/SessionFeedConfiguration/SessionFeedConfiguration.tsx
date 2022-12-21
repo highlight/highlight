@@ -144,11 +144,11 @@ export const formatDatetime = (
 	const dt = moment(datetime)
 	switch (format) {
 		case 'Smart':
-			if (moment().diff(dt, 'years') > 1) {
+			if (moment().year() !== dt.year()) {
 				return dt.format('M/D/YY')
-			} else if (moment().diff(dt, 'month') > 1) {
+			} else if (moment().month() !== dt.month()) {
 				return dt.format('M/D HH:mm')
-			} else if (moment().diff(dt, 'days') > 1) {
+			} else if (moment().day() !== dt.day()) {
 				return dt.format('MMM D h:mm A')
 			} else {
 				return dt.format('h:mm A')
