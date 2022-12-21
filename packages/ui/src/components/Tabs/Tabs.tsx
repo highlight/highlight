@@ -20,7 +20,7 @@ type Props<T extends string> = styles.Variants & {
 }
 
 export const Tabs = function <T extends string>(props: Props<T>) {
-	const [tab, setTab] = React.useState<string>(props.default)
+	const [tab, setTab] = React.useState<T>(props.default)
 	const [hoveredTab, setHoveredTab] = React.useState<string>()
 	const currentPage = props.pages[tab]
 
@@ -53,7 +53,7 @@ export const Tabs = function <T extends string>(props: Props<T>) {
 								if (props.onChange) {
 									props.onChange(t as T)
 								}
-								setTab(t)
+								setTab(t as T)
 							}}
 						>
 							<Button

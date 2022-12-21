@@ -41,6 +41,7 @@ export const rrwebPlayerSection = style({
 	border: `1px solid ${colors.neutralN6}`,
 	borderRadius: 6,
 	boxShadow: shadows.medium,
+	overflow: 'clip',
 	display: 'flex',
 	flex: 2,
 	height: '100%',

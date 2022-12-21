@@ -268,7 +268,6 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 	const {
 		searchParams,
 		setSearchParams,
-		segmentName,
 		page,
 		setPage,
 		selectedSegment,
@@ -324,7 +323,7 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 		)
 
 		// Handles the case where the user is loading the page from a link shared from another user that has search params in the URL.
-		if (!segmentName && areAnySearchParamsSet) {
+		if (!selectedSegment && areAnySearchParamsSet) {
 			// `undefined` values will not be persisted to the URL.
 			// Because of that, we only want to change the values from `undefined`
 			// to the actual value when the value is different to the empty state.
@@ -349,7 +348,7 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 
 			setSearchParamsToUrlParams(searchParamsToReflectInUrl, 'replaceIn')
 		}
-	}, [setSearchParamsToUrlParams, searchParams, segmentName])
+	}, [setSearchParamsToUrlParams, searchParams, selectedSegment])
 
 	useEffect(() => {
 		if (!isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {
