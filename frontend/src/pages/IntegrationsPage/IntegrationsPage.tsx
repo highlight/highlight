@@ -6,6 +6,7 @@ import { useClearbitIntegration } from '@pages/IntegrationsPage/components/Clear
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
+import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
 import Integration from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
@@ -56,6 +57,13 @@ const IntegrationsPage = () => {
 		},
 	} = useClickUpIntegration()
 
+	const {
+		settings: {
+			isIntegrated: isHeightIntegratedWithProject,
+			loading: loadingHeight,
+		},
+	} = useHeightIntegration()
+
 	const loading =
 		loadingLinear ||
 		loadingSlack ||
@@ -64,7 +72,8 @@ const IntegrationsPage = () => {
 		loadingFront ||
 		loadingVercel ||
 		loadingDiscord ||
-		loadingClickUp
+		loadingClickUp ||
+		loadingHeight
 
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((inter) =>
@@ -80,18 +89,20 @@ const IntegrationsPage = () => {
 				(inter.key === 'front' && isFrontIntegratedWithProject) ||
 				(inter.key === 'vercel' && isVercelIntegratedWithProject) ||
 				(inter.key === 'discord' && isDiscordIntegratedWithProject) ||
-				(inter.key === 'clickup' && isClickUpIntegratedWithProject),
+				(inter.key === 'clickup' && isClickUpIntegratedWithProject) ||
+				(inter.key === 'height' && isHeightIntegratedWithProject),
 		}))
 	}, [
+		isHighlightAdmin,
 		isSlackConnectedToWorkspace,
 		isLinearIntegratedWithProject,
 		isZapierIntegratedWithProject,
-		isFrontIntegratedWithProject,
 		isClearbitIntegratedWithWorkspace,
-		isHighlightAdmin,
+		isFrontIntegratedWithProject,
 		isVercelIntegratedWithProject,
 		isDiscordIntegratedWithProject,
 		isClickUpIntegratedWithProject,
+		isHeightIntegratedWithProject,
 	])
 
 	useEffect(() => analytics.page(), [])

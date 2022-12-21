@@ -1086,7 +1086,7 @@ type VercelIntegrationConfig struct {
 type IntegrationWorkspaceMapping struct {
 	IntegrationType modelInputs.IntegrationType `gorm:"uniqueIndex:idx_integration_workspace_mapping_workspace_id_integration_type;not null"`
 	WorkspaceID     int                         `gorm:"uniqueIndex:idx_integration_workspace_mapping_workspace_id_integration_type;not null"`
-	AccessToken     string
+	AccessToken     string                      `gorm:"not null"`
 }
 
 type IntegrationProjectMapping struct {

@@ -155,7 +155,7 @@ export type AddIntegrationToWorkspaceMutation = {
 } & Pick<Types.Mutation, 'addIntegrationToWorkspace'>
 
 export type RemoveIntegrationFromWorkspaceMutationVariables = Types.Exact<{
-	integration_type?: Types.Maybe<Types.IntegrationType>
+	integration_type: Types.IntegrationType
 	workspace_id: Types.Scalars['ID']
 }>
 
@@ -1159,6 +1159,18 @@ export type UpdateClickUpSettingsMutation = { __typename?: 'Mutation' } & Pick<
 	Types.Mutation,
 	'updateClickUpProjectMappings'
 >
+
+export type UpdateIntegrationProjectSettingsMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	integration_type: Types.IntegrationType
+	project_mappings:
+		| Array<Types.IntegrationProjectMappingInput>
+		| Types.IntegrationProjectMappingInput
+}>
+
+export type UpdateIntegrationProjectSettingsMutation = {
+	__typename?: 'Mutation'
+} & Pick<Types.Mutation, 'updateIntegrationProjectMappings'>
 
 export type UpdateEmailOptOutMutationVariables = Types.Exact<{
 	token?: Types.Maybe<Types.Scalars['String']>
@@ -3396,6 +3408,21 @@ export type GetClickUpIntegrationSettingsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetHeightIntegrationSettingsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetHeightIntegrationSettingsQuery = { __typename?: 'Query' } & {
+	is_integrated: Types.Query['is_workspace_integrated_with']
+} & {
+	integration_project_mappings: Array<
+		{ __typename?: 'IntegrationProjectMapping' } & Pick<
+			Types.IntegrationProjectMapping,
+			'project_id' | 'external_id'
+		>
+	>
+}
+
 export type GetClickUpFoldersQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -3884,6 +3911,7 @@ export const namedOperations = {
 		GetWorkspaceIsIntegratedWithVercel:
 			'GetWorkspaceIsIntegratedWithVercel' as const,
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
+		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
 		GetClickUpFolders: 'GetClickUpFolders' as const,
 		GenerateNewZapierAccessTokenJwt:
 			'GenerateNewZapierAccessTokenJwt' as const,
@@ -3969,6 +3997,8 @@ export const namedOperations = {
 		DeleteSessions: 'DeleteSessions' as const,
 		UpdateVercelSettings: 'UpdateVercelSettings' as const,
 		UpdateClickUpSettings: 'UpdateClickUpSettings' as const,
+		UpdateIntegrationProjectSettings:
+			'UpdateIntegrationProjectSettings' as const,
 		UpdateEmailOptOut: 'UpdateEmailOptOut' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},

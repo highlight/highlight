@@ -1894,7 +1894,7 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 			return false, err
 		}
 	} else {
-		return false, e.New("invalid integrationType")
+		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
 
 	return true, nil
@@ -1937,7 +1937,7 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 			return false, err
 		}
 	} else {
-		return false, e.New("invalid integrationType")
+		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
 
 	return true, nil
@@ -1960,7 +1960,7 @@ func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integr
 		}
 
 	} else {
-		return false, e.New("invalid integrationType")
+		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
 
 	return true, nil
@@ -5260,7 +5260,7 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.DiscordGuildId != nil, nil
 	}
 
-	return false, e.New("invalid integrationType")
+	return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 }
 
 // IsWorkspaceIntegratedWith is the resolver for the is_workspace_integrated_with field.
@@ -5272,9 +5272,17 @@ func (r *queryResolver) IsWorkspaceIntegratedWith(ctx context.Context, integrati
 
 	if integrationType == modelInputs.IntegrationTypeClickUp {
 		return workspace.ClickupAccessToken != nil, nil
+	} else {
+		workspaceMapping := &model.IntegrationWorkspaceMapping{}
+		if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
+			WorkspaceID:     workspace.ID,
+			IntegrationType: integrationType,
+		}).First(&workspaceMapping).Error; err != nil {
+			return false, nil
+		}
 	}
 
-	return false, e.New("invalid integrationType")
+	return true, nil
 }
 
 // VercelProjects is the resolver for the vercel_projects field.

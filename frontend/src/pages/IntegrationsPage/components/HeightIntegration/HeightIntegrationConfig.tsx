@@ -2,7 +2,7 @@ import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
 import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
-import { ClickUpProjectMappingInput } from '@graph/schemas'
+import { IntegrationProjectMappingInput, IntegrationType } from '@graph/schemas'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
@@ -172,8 +172,8 @@ export const HeightIntegrationSettings: React.FC<
 		}
 
 		const t = new Map<string, string>()
-		for (const m of settings.project_mappings) {
-			t.set(m.project_id, m.height_workspace_id)
+		for (const m of settings.integration_project_mappings) {
+			t.set(m.project_id, m.external_id)
 		}
 		projectMapSetMulti([...t.entries()])
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -241,9 +241,9 @@ export const HeightIntegrationSettings: React.FC<
 			render: () => <div className="justify-center">→</div>,
 		},
 		{
-			title: 'ClickUp',
-			dataIndex: 'clickUpSpaces',
-			key: 'clickUpSpaces',
+			title: 'Height',
+			dataIndex: 'heightWorkspaces',
+			key: 'heightWorkspaces',
 			width: '55%',
 			render: (_: string, row: any) => {
 				const clickUpSpaceId = projectMap.get(row.id)
@@ -255,7 +255,7 @@ export const HeightIntegrationSettings: React.FC<
 							value={opts}
 							onChange={row.onUpdateProjectLink}
 							options={selectOptions}
-							placeholder="ClickUp space"
+							placeholder="Height space"
 							allowClear
 						/>
 					</div>
@@ -264,24 +264,25 @@ export const HeightIntegrationSettings: React.FC<
 		},
 	]
 
-	const projectMappings: ClickUpProjectMappingInput[] = []
-	for (const [projectId, clickUpSpaceId] of projectMap.entries()) {
+	const projectMappings: IntegrationProjectMappingInput[] = []
+	for (const [projectId, externalId] of projectMap.entries()) {
 		// Skip for clickUpSpaceIds the user no longer has access to
 		// (could be deleted or have had their permissions revoked)
-		if (!allSpaces.find((s) => s.id === clickUpSpaceId)) {
-			continue
-		}
+		// if (!allSpaces.find((s) => s.id === clickUpSpaceId)) {
+		// 	continue
+		// }
 
 		// If this project hasn't been created yet, pass undefined as the project id
 		projectMappings.push({
 			project_id: projectId,
-			clickup_space_id: clickUpSpaceId,
+			external_id: externalId,
 		})
 	}
 
 	const onSave = () => {
 		updateIntegration({
 			project_mappings: projectMappings,
+			integration_type: IntegrationType.Height,
 		})
 			.then(() => {
 				onSuccess && onSuccess()

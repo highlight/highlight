@@ -57,5 +57,9 @@ func GetAccessToken(ctx context.Context, code string) (*oauth2.Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	return conf.Exchange(ctx, code)
+
+	// Height expects an array here but the oauth2 spec says this should be a string
+	param := oauth2.SetAuthURLParam("scope", `["api"]`)
+
+	return conf.Exchange(ctx, code, param)
 }

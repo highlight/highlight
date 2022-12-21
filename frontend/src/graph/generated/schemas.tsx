@@ -556,6 +556,17 @@ export type HistogramPayload = {
 	min: Scalars['Float']
 }
 
+export type IntegrationProjectMapping = {
+	__typename?: 'IntegrationProjectMapping'
+	external_id: Scalars['String']
+	project_id: Scalars['ID']
+}
+
+export type IntegrationProjectMappingInput = {
+	external_id: Scalars['String']
+	project_id: Scalars['ID']
+}
+
 export enum IntegrationType {
 	ClickUp = 'ClickUp',
 	Discord = 'Discord',
@@ -726,6 +737,7 @@ export type Mutation = {
 	updateErrorAlertIsDisabled?: Maybe<ErrorAlert>
 	updateErrorGroupIsPublic?: Maybe<ErrorGroup>
 	updateErrorGroupState?: Maybe<ErrorGroup>
+	updateIntegrationProjectMappings: Scalars['Boolean']
 	updateMetricMonitor?: Maybe<MetricMonitor>
 	updateMetricMonitorIsDisabled?: Maybe<MetricMonitor>
 	updateSessionAlert?: Maybe<SessionAlert>
@@ -1009,7 +1021,7 @@ export type MutationRemoveIntegrationFromProjectArgs = {
 }
 
 export type MutationRemoveIntegrationFromWorkspaceArgs = {
-	integration_type?: InputMaybe<IntegrationType>
+	integration_type: IntegrationType
 	workspace_id: Scalars['ID']
 }
 
@@ -1120,6 +1132,12 @@ export type MutationUpdateErrorGroupIsPublicArgs = {
 export type MutationUpdateErrorGroupStateArgs = {
 	secure_id: Scalars['String']
 	state: Scalars['String']
+}
+
+export type MutationUpdateIntegrationProjectMappingsArgs = {
+	integration_type: IntegrationType
+	project_mappings: Array<IntegrationProjectMappingInput>
+	workspace_id: Scalars['ID']
 }
 
 export type MutationUpdateMetricMonitorArgs = {
@@ -1300,6 +1318,7 @@ export type Query = {
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
 	identifier_suggestion: Array<Scalars['String']>
+	integration_project_mappings: Array<IntegrationProjectMapping>
 	isBackendIntegrated?: Maybe<Scalars['Boolean']>
 	isIntegrated?: Maybe<Scalars['Boolean']>
 	isSessionPending?: Maybe<Scalars['Boolean']>
@@ -1574,6 +1593,11 @@ export type QueryGet_Source_Map_Upload_UrlsArgs = {
 export type QueryIdentifier_SuggestionArgs = {
 	project_id: Scalars['ID']
 	query: Scalars['String']
+}
+
+export type QueryIntegration_Project_MappingsArgs = {
+	integration_type?: InputMaybe<IntegrationType>
+	workspace_id: Scalars['ID']
 }
 
 export type QueryIsBackendIntegratedArgs = {
