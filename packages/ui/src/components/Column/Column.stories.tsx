@@ -11,7 +11,7 @@ export default {
 } as ComponentMeta<typeof Column>
 
 const Content: React.FC<React.PropsWithChildren> = ({ children }) => (
-	<Box background="neutral100" p="12">
+	<Box background="n2" p="12">
 		<Text align="center">{children}</Text>
 	</Box>
 )

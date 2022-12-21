@@ -46,7 +46,7 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 
 	return (
 		<Box mb="16">
-			<Box borderBottom="neutral" pb="16">
+			<Box borderBottom="secondary" pb="16">
 				<Box display="flex" justifyContent="space-between">
 					<Box alignItems="center" display="flex" gap="10">
 						<Tag

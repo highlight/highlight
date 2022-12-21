@@ -30,6 +30,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 	icon,
 	iconLeft,
 	iconRight,
+	emphasis = styles.defaultEmphasis,
 	shape = styles.defaultShape,
 	size = styles.defaultSize,
 	kind = styles.defaultKind,
@@ -48,6 +49,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 			className={clsx([
 				cssClass,
 				styles.variants({
+					emphasis,
 					kind,
 					size,
 					shape,

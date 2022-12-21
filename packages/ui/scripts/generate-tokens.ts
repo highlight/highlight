@@ -5,7 +5,8 @@ import camelCase from 'lodash.camelcase'
 const inputFile = new URL('../design-tokens.json', import.meta.url).pathname
 const outputColorsFile = new URL('../src/css/colors.ts', import.meta.url)
 	.pathname
-const outputThemeFile = new URL('../src/css/theme.ts', import.meta.url).pathname
+const outputThemeFile = new URL('../src/css/theme.css.ts', import.meta.url)
+	.pathname
 const colorTokens = { inherit: 'inherit' }
 const lightThemeTokens = {}
 

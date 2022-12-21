@@ -276,7 +276,7 @@ const StackSectionError: React.FC<
 	}, [])
 
 	return (
-		<Box borderRadius="6" border="neutral" cursor="default">
+		<Box borderRadius="6" border="secondary" cursor="default">
 			<Box p="8">
 				<Stack gap="12">
 					<Heading level="h4">{title}</Heading>
@@ -309,11 +309,11 @@ const StackSectionError: React.FC<
 										>
 											<th
 												style={{
-													borderRight: `1px solid ${vars.color.neutral100}`,
+													borderRight: `1px solid ${vars.color.n2}`,
 													borderTop:
 														index === 0
 															? undefined
-															: `1px solid ${vars.color.neutral100}`,
+															: `1px solid ${vars.color.n2}`,
 													width: 150,
 												}}
 											>
@@ -326,7 +326,7 @@ const StackSectionError: React.FC<
 													borderTop:
 														index === 0
 															? undefined
-															: `1px solid ${vars.color.neutral100}`,
+															: `1px solid ${vars.color.n2}`,
 												}}
 											>
 												<Box p="4">
@@ -345,7 +345,7 @@ const StackSectionError: React.FC<
 			</Box>
 
 			<Box
-				borderTop="neutral"
+				borderTop="secondary"
 				p="8"
 				display="flex"
 				justifyContent="flex-end"
@@ -381,10 +381,10 @@ const Code: React.FC<{
 			alignItems="center"
 		>
 			<Box
-				backgroundColor="neutral50"
+				backgroundColor="n2"
 				padding="3"
 				borderRadius="3"
-				border="neutral"
+				border="secondary"
 				display="inline-block"
 			>
 				{children && (

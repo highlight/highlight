@@ -14,7 +14,7 @@ export const Basic = () => (
 		color="white"
 		padding="24"
 		borderRadius="6"
-		border="neutralLarge"
+		border="primary"
 	>
 		Hello! 👋
 	</Box>

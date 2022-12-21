@@ -82,19 +82,19 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	}, [body])
 
 	return (
-		<Box border="neutral" borderRadius="6">
+		<Box border="secondary" borderRadius="6">
 			<Box display="flex">
 				<Stat
 					title={
 						<>
 							<Box
-								color="neutral300"
+								color="n9"
 								display="flex"
 								alignItems="center"
 								gap="4"
 							>
 								<FaUsers />
-								<Text color="neutral500">Affected Users</Text>
+								<Text color="n11">Affected Users</Text>
 							</Box>
 							<ButtonLink
 								style={{ cursor: 'pointer' }}
@@ -149,7 +149,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 											margin: -1,
 										}}
 									>
-										<Text size="xSmall" color="neutral500">
+										<Text size="xSmall" color="n11">
 											{numberOfDays}{' '}
 											{numberOfDays === 1
 												? 'day'
@@ -165,13 +165,13 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					title={
 						<>
 							<Box
-								color="neutral300"
+								color="n9"
 								display="flex"
 								alignItems="center"
 								gap="4"
 							>
 								<BsGridFill />
-								<Text color="neutral500">Instances</Text>
+								<Text color="n11">Instances</Text>
 							</Box>
 							<ButtonLink
 								style={{ cursor: 'pointer' }}
@@ -226,7 +226,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 											margin: -1,
 										}}
 									>
-										<Text size="xSmall" color="neutral500">
+										<Text size="xSmall" color="n11">
 											{numberOfDays}{' '}
 											{numberOfDays === 1
 												? 'day'
@@ -238,11 +238,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						) : null}
 					</Box>
 				</Stat>
-				<Stat
-					title={
-						<Text color="neutral500">Last/first occurrence</Text>
-					}
-				>
+				<Stat title={<Text color="n11">Last/first occurrence</Text>}>
 					<Box display="flex" gap="4" alignItems="center">
 						{errorGroup?.last_occurrence && (
 							<Text color="black" size="large" weight="bold">
@@ -252,7 +248,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							</Text>
 						)}
 						{errorGroup?.first_occurrence && (
-							<Text color="neutral500" size="large" weight="bold">
+							<Text color="n11" size="large" weight="bold">
 								{' / '}
 								{moment(errorGroup?.first_occurrence).fromNow(
 									true,
@@ -265,12 +261,12 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				<Stat
 					title={
 						<Box
-							color="neutral300"
+							color="n9"
 							display="flex"
 							alignItems="center"
 							gap="4"
 						>
-							<Text color="neutral500">Last 30 days</Text>
+							<Text color="n11">Last 30 days</Text>
 						</Box>
 					}
 					noBorder
@@ -289,8 +285,8 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 			</Box>
 			<Box py="12" px="16">
 				<Box mb="20" display="flex" gap="6" alignItems="center">
-					<IconCode size={14} color={vars.color.neutral500} />
-					<Text color="neutral500">Error Body</Text>
+					<IconCode size={14} color={vars.color.n11} />
+					<Text color="n11">Error Body</Text>
 				</Box>
 
 				<Text
@@ -323,7 +319,7 @@ const Stat: React.FC<
 	React.PropsWithChildren<{ title: React.ReactElement; noBorder?: boolean }>
 > = ({ title, children, noBorder = false }) => (
 	<Box
-		borderBottom="neutral"
+		borderBottom="secondary"
 		borderRight={noBorder ? undefined : 'neutral'}
 		px="16"
 		py="12"

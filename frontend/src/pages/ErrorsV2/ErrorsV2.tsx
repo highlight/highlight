@@ -163,7 +163,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 								display="flex"
 								alignItems="center"
 								px="12"
-								borderBottom="neutral"
+								borderBottom="secondary"
 								cssClass={controlBar}
 							>
 								<Box display="flex" gap="8">
@@ -202,7 +202,10 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											}}
 											disabled={!canMoveBackward}
 										/>
-										<Box as="span" borderRight="neutral" />
+										<Box
+											as="span"
+											borderRight="secondary"
+										/>
 										<ButtonIcon
 											kind="secondary"
 											size="small"

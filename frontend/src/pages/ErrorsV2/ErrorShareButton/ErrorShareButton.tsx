@@ -36,7 +36,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 				<Box
 					backgroundColor="white"
 					borderRadius="6"
-					border="neutral"
+					border="secondary"
 					overflow="scroll"
 					boxShadow="small"
 					overflowX="hidden"
@@ -44,7 +44,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 				>
 					<Box
 						padding="8"
-						borderBottom="neutral"
+						borderBottom="secondary"
 						gap="8"
 						display="flex"
 						alignItems="center"

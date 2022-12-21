@@ -131,11 +131,15 @@ export const variants = recipe({
 					'&:hover': {
 						backgroundColor:
 							vars.theme.interactive.fill.primary.hover,
+						color: vars.theme.interactive.fill.primary.content
+							.onEnabled,
 					},
 					'&:active': {
 						backgroundColor:
 							vars.theme.interactive.fill.primary.pressed,
 						boxShadow: 'none',
+						color: vars.theme.interactive.fill.primary.content
+							.onEnabled,
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 						backgroundColor:
@@ -152,22 +156,24 @@ export const variants = recipe({
 				emphasis: 'medium',
 			},
 			style: {
-				border: vars.border.interactivePrimaryEnabled,
+				border: vars.border.primary,
 				boxShadow: 'none',
 				color: vars.theme.interactive.fill.primary.content.text,
 				selectors: {
 					'&:hover': {
 						backgroundColor:
 							vars.theme.interactive.overlay.primary.hover,
-						border: vars.border.interactivePrimaryHover,
+						border: vars.border.primaryHover,
+						color: vars.theme.interactive.fill.primary.content.text,
 					},
 					'&:active': {
 						backgroundColor:
 							vars.theme.interactive.overlay.primary.pressed,
-						border: vars.border.interactivePrimaryPressed,
+						border: vars.border.primaryPressed,
+						color: vars.theme.interactive.fill.primary.content.text,
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
-						border: vars.border.interactivePrimaryDisabled,
+						border: vars.border.primaryDisabled,
 						color: vars.theme.interactive.fill.primary.content
 							.onDisabled,
 					},
@@ -187,10 +193,12 @@ export const variants = recipe({
 					'&:hover': {
 						backgroundColor:
 							vars.theme.interactive.overlay.primary.hover,
+						color: vars.theme.interactive.fill.primary.content.text,
 					},
 					'&:active': {
 						backgroundColor:
 							vars.theme.interactive.overlay.primary.pressed,
+						color: vars.theme.interactive.fill.primary.content.text,
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 						color: vars.theme.interactive.fill.primary.content
@@ -212,11 +220,15 @@ export const variants = recipe({
 					'&:hover': {
 						backgroundColor:
 							vars.theme.interactive.fill.secondary.hover,
+						color: vars.theme.interactive.fill.secondary.content
+							.onEnabled,
 					},
 					'&:active': {
 						backgroundColor:
 							vars.theme.interactive.fill.secondary.pressed,
 						boxShadow: 'none',
+						color: vars.theme.interactive.fill.secondary.content
+							.onEnabled,
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 						backgroundColor:
@@ -234,24 +246,28 @@ export const variants = recipe({
 				emphasis: 'medium',
 			},
 			style: {
-				border: vars.border.interactiveSecondaryEnabled,
+				border: vars.border.secondary,
 				boxShadow: 'none',
 				color: vars.theme.interactive.fill.secondary.content.text,
 				selectors: {
 					'&:hover': {
 						backgroundColor:
 							vars.theme.interactive.overlay.secondary.hover,
-						border: vars.border.interactiveSecondaryHover,
+						border: vars.border.secondaryHover,
+						color: vars.theme.interactive.fill.secondary.content
+							.text,
 					},
 					'&:active': {
-						border: vars.border.interactiveSecondaryPressed,
+						border: vars.border.secondaryPressed,
 						backgroundColor:
 							vars.theme.interactive.overlay.secondary.pressed,
+						color: vars.theme.interactive.fill.secondary.content
+							.text,
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 						backgroundColor:
 							vars.theme.interactive.overlay.secondary.disabled,
-						border: vars.border.interactiveSecondaryDisabled,
+						border: vars.border.secondaryDisabled,
 					},
 				},
 			},
@@ -267,10 +283,14 @@ export const variants = recipe({
 					'&:hover': {
 						backgroundColor:
 							vars.theme.interactive.overlay.secondary.hover,
+						color: vars.theme.interactive.fill.secondary.content
+							.text,
 					},
 					'&:active': {
 						backgroundColor:
 							vars.theme.interactive.overlay.secondary.pressed,
+						color: vars.theme.interactive.fill.secondary.content
+							.text,
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 						backgroundColor:

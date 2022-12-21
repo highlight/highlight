@@ -285,7 +285,7 @@ const CustomTooltip: React.FC<{
 		<Box
 			alignItems="center"
 			borderRadius="6"
-			border="neutral"
+			border="secondary"
 			display="flex"
 			gap="4"
 			p="4"
@@ -297,7 +297,7 @@ const CustomTooltip: React.FC<{
 				setTooltipWantHidden(true)
 			}}
 		>
-			<Text color="neutral300" size="xSmall" weight="medium">
+			<Text color="n9" size="xSmall" weight="medium">
 				{moment(currentTime).format('MMM D')}
 			</Text>
 
@@ -314,7 +314,7 @@ const CustomTooltip: React.FC<{
 						backgroundColor={color}
 						p="4"
 					>
-						<Text color={colorIsDark ? 'white' : 'neutral700'}>
+						<Text color={colorIsDark ? 'white' : 'n12'}>
 							{rawValue} {p.name}
 						</Text>
 					</Box>

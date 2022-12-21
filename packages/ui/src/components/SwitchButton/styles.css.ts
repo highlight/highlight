@@ -51,21 +51,21 @@ export const variants = recipe({
 				},
 			},
 			unchecked: {
-				background: vars.color.neutral100,
-				color: vars.color.neutral700,
+				background: vars.color.n2,
+				color: vars.color.n12,
 				boxShadow: shadows.grey,
 				selectors: {
 					'&:hover': {
 						background: vars.color.neutral200,
-						color: vars.color.neutral700,
+						color: vars.color.n12,
 					},
 					'&:focus': {
 						background: vars.color.neutral200,
-						color: vars.color.neutral700,
+						color: vars.color.n12,
 					},
 					'&:disabled': {
 						background: vars.color.white,
-						color: vars.color.neutral300,
+						color: vars.color.n9,
 					},
 				},
 			},

@@ -127,7 +127,7 @@ const SearchPagination = ({
 			display="flex"
 			justifyContent="space-between"
 			gap="8"
-			borderTop="neutral"
+			borderTop="secondary"
 			px="16"
 			pt="8"
 			pb="12"
@@ -145,7 +145,7 @@ const SearchPagination = ({
 			/>
 			<Box
 				display="flex"
-				border="neutral"
+				border="secondary"
 				borderRadius="6"
 				overflow="hidden"
 			>

@@ -1,13 +1,10 @@
 import { Tag } from './Tag'
 import type { ComponentMeta } from '@storybook/react'
 import React from 'react'
-import {
-	IconArrowsExpand,
-	IconArrowSmDown,
-	IconChartBar,
-	IconCog,
-} from '../icons'
+import { IconArrowSmDown, IconCog } from '../icons'
 import { Box } from '../Box/Box'
+import { themeClass } from '../../css/theme.css'
+import { StoryWrapper } from '../../docs/StoryWrapper'
 
 export default {
 	title: 'Components/Tag',
@@ -47,8 +44,7 @@ export const kinds = () => {
 			gap="16"
 		>
 			<Tag kind="primary">Primary</Tag>
-			<Tag kind="white">White</Tag>
-			<Tag kind="grey">Grey</Tag>
+			<Tag kind="secondary">Secondary</Tag>
 		</Box>
 	)
 }
@@ -64,17 +60,6 @@ export const Icons = () => {
 			<Tag size="large" icon={<IconCog />} />
 			<Tag size="large" kind="primary" iconLeft={<IconArrowSmDown />}>
 				Primary
-			</Tag>
-			<Tag size="large" kind="white" iconRight={<IconArrowsExpand />}>
-				White
-			</Tag>
-			<Tag
-				size="large"
-				kind="grey"
-				iconLeft={<IconCog />}
-				iconRight={<IconChartBar />}
-			>
-				Grey
 			</Tag>
 		</Box>
 	)

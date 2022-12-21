@@ -5,13 +5,13 @@ export const variants = recipe({
 	variants: {
 		kind: {
 			error: sprinkles({
-				backgroundColor: 'neutral50',
+				backgroundColor: 'n1',
 			}),
 			info: sprinkles({
 				backgroundColor: 'white',
 			}),
 			warning: sprinkles({
-				backgroundColor: 'neutral50',
+				backgroundColor: 'n1',
 			}),
 		},
 	},

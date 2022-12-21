@@ -15,7 +15,7 @@ const Content: React.FC = () => {
 		<Box
 			padding="4"
 			borderRadius="6"
-			border="neutral"
+			border="secondary"
 			backgroundColor="white"
 		>
 			Some content inside a popover!
@@ -64,7 +64,7 @@ export const Placements = () => {
 		...props
 	}) => (
 		<Box
-			backgroundColor="neutral50"
+			backgroundColor="n2"
 			p="20"
 			my="20"
 			mx="auto"

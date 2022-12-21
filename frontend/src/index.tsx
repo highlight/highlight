@@ -30,6 +30,8 @@ import {
 } from '@graph/hooks'
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
+import { Box } from '@highlight-run/ui'
+import { themeClass } from '@highlight-run/ui/src/css/theme.css'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
@@ -152,44 +154,46 @@ const App = () => {
 	)
 
 	return (
-		<ErrorBoundary
-			showDialog
-			onAfterReportDialogCancelHandler={() => {
-				const { origin } = window.location
-				window.location.href = origin
-			}}
-		>
-			<ApolloProvider client={client}>
-				<QueryParamProvider>
-					<SkeletonTheme
-						baseColor="var(--color-gray-200)"
-						highlightColor="var(--color-primary-background)"
-					>
-						<AppLoadingContext
-							value={{
-								loadingState,
-								setLoadingState,
-							}}
+		<Box cssClass={themeClass}>
+			<ErrorBoundary
+				showDialog
+				onAfterReportDialogCancelHandler={() => {
+					const { origin } = window.location
+					window.location.href = origin
+				}}
+			>
+				<ApolloProvider client={client}>
+					<QueryParamProvider>
+						<SkeletonTheme
+							baseColor="var(--color-gray-200)"
+							highlightColor="var(--color-primary-background)"
 						>
-							<LoadingPage />
-							<Router>
-								<Switch>
-									<Route path="/w/:workspace_id(\d+)/*">
-										<AuthenticationRoleRouter />
-									</Route>
-									<Route path="/:project_id(\d+)/*">
-										<AuthenticationRoleRouter />
-									</Route>
-									<Route path="/">
-										<AuthenticationRoleRouter />
-									</Route>
-								</Switch>
-							</Router>
-						</AppLoadingContext>
-					</SkeletonTheme>
-				</QueryParamProvider>
-			</ApolloProvider>
-		</ErrorBoundary>
+							<AppLoadingContext
+								value={{
+									loadingState,
+									setLoadingState,
+								}}
+							>
+								<LoadingPage />
+								<Router>
+									<Switch>
+										<Route path="/w/:workspace_id(\d+)/*">
+											<AuthenticationRoleRouter />
+										</Route>
+										<Route path="/:project_id(\d+)/*">
+											<AuthenticationRoleRouter />
+										</Route>
+										<Route path="/">
+											<AuthenticationRoleRouter />
+										</Route>
+									</Switch>
+								</Router>
+							</AppLoadingContext>
+						</SkeletonTheme>
+					</QueryParamProvider>
+				</ApolloProvider>
+			</ErrorBoundary>
+		</Box>
 	)
 }
 

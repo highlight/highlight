@@ -143,22 +143,22 @@ export const variants = recipe({
 			},
 			style: {
 				backgroundColor: vars.theme.interactive.overlay.primary.enabled,
-				border: vars.border.interactivePrimaryEnabled,
+				border: vars.border.primary,
 				boxShadow: 'none',
 				color: vars.theme.interactive.fill.primary.enabled,
 				selectors: {
 					'&[disabled]': {
-						border: vars.border.interactivePrimaryDisabled,
+						border: vars.border.primaryDisabled,
 					},
 					'&:hover:enabled': {
 						backgroundColor:
 							vars.theme.interactive.overlay.primary.hover,
-						border: vars.border.interactivePrimaryHover,
+						border: vars.border.primaryHover,
 					},
 					'&:active:enabled': {
 						backgroundColor:
 							vars.theme.interactive.overlay.primary.pressed,
-						border: vars.border.interactivePrimaryPressed,
+						border: vars.border.primaryPressed,
 					},
 				},
 			},
@@ -219,24 +219,24 @@ export const variants = recipe({
 			},
 			style: {
 				backgroundColor: 'transparent',
-				border: vars.border.interactiveSecondaryEnabled,
+				border: vars.border.secondary,
 				boxShadow: 'none',
 				color: vars.theme.interactive.fill.secondary.content.text,
 				selectors: {
 					'&[disabled]': {
-						border: vars.border.interactiveSecondaryDisabled,
+						border: vars.border.secondaryDisabled,
 						color: vars.theme.interactive.fill.secondary.content
 							.onDisabled,
 					},
 					'&:hover:enabled': {
 						backgroundColor:
 							vars.theme.interactive.overlay.secondary.hover,
-						border: vars.border.interactiveSecondaryHover,
+						border: vars.border.secondaryHover,
 					},
 					'&:active:enabled': {
 						backgroundColor:
 							vars.theme.interactive.overlay.secondary.pressed,
-						border: vars.border.interactiveSecondaryPressed,
+						border: vars.border.secondaryPressed,
 					},
 				},
 			},

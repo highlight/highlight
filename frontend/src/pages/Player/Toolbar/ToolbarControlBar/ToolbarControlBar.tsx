@@ -108,7 +108,7 @@ const ToolbarControls = () => {
 			<ExplanatoryPopover
 				content={
 					<>
-						<Text userSelect="none" color="neutral500">
+						<Text userSelect="none" color="n11">
 							Skip back
 						</Text>
 						<Badge
@@ -136,7 +136,7 @@ const ToolbarControls = () => {
 			<ExplanatoryPopover
 				content={
 					<>
-						<Text userSelect="none" color="neutral500">
+						<Text userSelect="none" color="n11">
 							{isPlaybackComplete
 								? 'Restart'
 								: isPaused && !isLiveMode
@@ -179,7 +179,7 @@ const ToolbarControls = () => {
 			<ExplanatoryPopover
 				content={
 					<>
-						<Text userSelect="none" color="neutral500">
+						<Text userSelect="none" color="n11">
 							Skip forward
 						</Text>
 						<Badge
@@ -226,7 +226,7 @@ const ToolbarControls = () => {
 			)}
 			{!isLiveMode && (
 				<>
-					<Text color="neutral500" userSelect="none">
+					<Text color="n11" userSelect="none">
 						{disableControls ? (
 							<Skeleton count={1} width="60.13px" />
 						) : showPlayerAbsoluteTime ? (
@@ -258,7 +258,7 @@ const ToolbarControls = () => {
 						className={style.moveRight}
 						content={
 							<>
-								<Text userSelect="none" color="neutral500">
+								<Text userSelect="none" color="n11">
 									Speed +/-
 								</Text>
 								<Box display="flex" gap="2">
@@ -292,7 +292,7 @@ const ToolbarControls = () => {
 					<ExplanatoryPopover
 						content={
 							<>
-								<Text userSelect="none" color="neutral500">
+								<Text userSelect="none" color="n11">
 									Timeline
 								</Text>
 								<ShortcutTextGuide
@@ -313,7 +313,7 @@ const ToolbarControls = () => {
 					<ExplanatoryPopover
 						content={
 							<>
-								<Text userSelect="none" color="neutral500">
+								<Text userSelect="none" color="n11">
 									Dev tools
 								</Text>
 								<ShortcutTextGuide

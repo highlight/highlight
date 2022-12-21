@@ -44,7 +44,7 @@ export const Borders = () => (
 
 		<br />
 
-		<Card border="neutral">
+		<Card border="secondary">
 			A <code>neutral</code> Border
 		</Card>
 
