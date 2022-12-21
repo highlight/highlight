@@ -19,14 +19,15 @@ export const datetimeText = style({
 })
 
 export const activityGraph = style({
-	width: 80,
+	cursor: 'pointer',
 	paddingTop: 2,
+	width: 80,
 })
 
 export const sessionCard = style({
 	selectors: {
 		'&:hover': {
-			background: colors.neutralN1,
+			background: colors.neutralN4,
 		},
 	},
 })

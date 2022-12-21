@@ -59,7 +59,8 @@ export const rrwebPlayerWrapper = style({
 })
 
 export const rrwebInnerWrapper = style({
-	clipPath: `inset(0% 0% 0% 0% round 8px)`,
+	border: `4px solid ${colors.neutralN6}`,
+	borderRadius: 8,
 })
 
 export const playerCenterColumn = style({
