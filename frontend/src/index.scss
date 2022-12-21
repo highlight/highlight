@@ -11,7 +11,6 @@
 	--color-purple-900: #4c1d95;
 	--color-purple: #5629c6;
 	--color-purple-rgb: 86, 41, 198;
-	--color-purple-800: #302c3a;
 	--color-blue-100: #dbeafe;
 	--color-blue-200: #bfdbfe;
 	--color-blue-300: #93c5fd;
@@ -271,9 +270,10 @@ input {
 	font-weight: 400 !important;
 }
 
+// commandbar overlay modal
 .atom-overlay {
 	color: blue;
-	z-index: 1000;
+	z-index: 1000000;
 }
 
 a {
