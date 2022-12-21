@@ -14,7 +14,7 @@ type Props<T extends string> = styles.Variants & {
 	pages: {
 		[k: string]: Page
 	}
-	default?: T
+	default: T
 	right?: React.ReactNode
 	onChange?: (tab: T) => void
 }
