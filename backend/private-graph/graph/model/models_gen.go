@@ -287,6 +287,11 @@ type HistogramPayload struct {
 	Max     float64            `json:"max"`
 }
 
+type IntegrationProjectMappingInput struct {
+	ProjectID  int    `json:"project_id"`
+	ExternalID string `json:"external_id"`
+}
+
 type Invoice struct {
 	AmountDue    *int64     `json:"amountDue"`
 	AmountPaid   *int64     `json:"amountPaid"`

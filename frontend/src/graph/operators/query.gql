@@ -1527,6 +1527,20 @@ query GetClickUpIntegrationSettings($workspace_id: ID!) {
 	}
 }
 
+query GetHeightIntegrationSettings($workspace_id: ID!) {
+	is_integrated: is_workspace_integrated_with(
+		integration_type: Height
+		workspace_id: $workspace_id
+	)
+	integration_project_mappings(
+		workspace_id: $workspace_id
+		integration_type: Height
+	) {
+		project_id
+		external_id
+	}
+}
+
 query GetClickUpFolders($project_id: ID!) {
 	clickup_folders(project_id: $project_id) {
 		id

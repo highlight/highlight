@@ -3051,6 +3051,54 @@ func (r *mutationResolver) UpdateClickUpProjectMappings(ctx context.Context, wor
 	return true, nil
 }
 
+// UpdateIntegrationProjectMappings is the resolver for the updateIntegrationProjectMappings field.
+func (r *mutationResolver) UpdateIntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType modelInputs.IntegrationType, projectMappings []*modelInputs.IntegrationProjectMappingInput) (bool, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return false, err
+	}
+
+	workspaceMapping := &model.IntegrationWorkspaceMapping{}
+	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: integrationType,
+	}).First(&workspaceMapping).Error; err != nil {
+		return false, e.Wrap(err, fmt.Sprintf("workspace does not have a %s integration", integrationType))
+	}
+
+	configs := []*model.IntegrationProjectMapping{}
+	for _, m := range projectMappings {
+		configs = append(configs, &model.IntegrationProjectMapping{
+			IntegrationType: integrationType,
+			ProjectID:       m.ProjectID,
+			ExternalID:      m.ExternalID,
+		})
+	}
+
+	if err := r.DB.Exec(`
+		DELETE FROM integration_project_mappings ipm
+		WHERE ipm.integration_type = ?
+		AND EXISTS (
+			SELECT *
+			FROM projects p
+			WHERE p.workspace_id = ?
+			AND ipm.project_id = p.id
+		)
+	`, integrationType, workspaceID).Error; err != nil {
+		return false, err
+	}
+
+	if len(projectMappings) == 0 {
+		return true, nil
+	}
+
+	if err := r.DB.Create(configs).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // UpdateEmailOptOut is the resolver for the updateEmailOptOut field.
 func (r *mutationResolver) UpdateEmailOptOut(ctx context.Context, token *string, adminID *int, category modelInputs.EmailOptOutCategory, isOptOut bool) (bool, error) {
 	var adminIdDeref int
@@ -5392,6 +5440,30 @@ func (r *queryResolver) ClickupFolderlessLists(ctx context.Context, projectID in
 	}
 
 	return clickup.GetFolderlessLists(*workspace.ClickupAccessToken, settings.ExternalID)
+}
+
+// IntegrationProjectMappings is the resolver for the integration_project_mappings field.
+func (r *queryResolver) IntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType *modelInputs.IntegrationType) ([]*model.IntegrationProjectMapping, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	rows := []*model.IntegrationProjectMapping{}
+	if err := r.DB.Raw(`
+		SELECT * FROM integration_project_mappings ipm
+		WHERE ipm.integration_type = ?
+		AND EXISTS (
+			SELECT *
+			FROM projects p
+			WHERE p.workspace_id = ?
+			AND ipm.project_id = p.id
+		)
+	`, integrationType, workspaceID).Find(&rows).Error; err != nil {
+		return nil, err
+	}
+
+	return rows, nil
 }
 
 // LinearTeams is the resolver for the linear_teams field.

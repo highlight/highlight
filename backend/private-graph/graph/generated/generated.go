@@ -434,6 +434,11 @@ type ComplexityRoot struct {
 		Min     func(childComplexity int) int
 	}
 
+	IntegrationProjectMapping struct {
+		ExternalID func(childComplexity int) int
+		ProjectID  func(childComplexity int) int
+	}
+
 	Invoice struct {
 		AmountDue    func(childComplexity int) int
 		AmountPaid   func(childComplexity int) int
@@ -547,6 +552,7 @@ type ComplexityRoot struct {
 		UpdateErrorAlertIsDisabled       func(childComplexity int, id int, projectID int, disabled bool) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
 		UpdateErrorGroupState            func(childComplexity int, secureID string, state string) int
+		UpdateIntegrationProjectMappings func(childComplexity int, workspaceID int, integrationType model.IntegrationType, projectMappings []*model.IntegrationProjectMappingInput) int
 		UpdateMetricMonitor              func(childComplexity int, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, emails []*string, disabled *bool, filters []*model.MetricTagFilterInput) int
 		UpdateMetricMonitorIsDisabled    func(childComplexity int, id int, projectID int, disabled bool) int
 		UpdateSessionAlert               func(childComplexity int, id int, input model.SessionAlertInput) int
@@ -642,6 +648,7 @@ type ComplexityRoot struct {
 		GenerateZapierAccessToken    func(childComplexity int, projectID int) int
 		GetSourceMapUploadUrls       func(childComplexity int, apiKey string, paths []string) int
 		IdentifierSuggestion         func(childComplexity int, projectID int, query string) int
+		IntegrationProjectMappings   func(childComplexity int, workspaceID int, integrationType *model.IntegrationType) int
 		IsBackendIntegrated          func(childComplexity int, projectID int) int
 		IsIntegrated                 func(childComplexity int, projectID int) int
 		IsIntegratedWith             func(childComplexity int, integrationType model.IntegrationType, projectID int) int
@@ -1126,6 +1133,7 @@ type MutationResolver interface {
 	DeleteSessions(ctx context.Context, projectID int, query string, sessionCount int) (bool, error)
 	UpdateVercelProjectMappings(ctx context.Context, projectID int, projectMappings []*model.VercelProjectMappingInput) (bool, error)
 	UpdateClickUpProjectMappings(ctx context.Context, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) (bool, error)
+	UpdateIntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType model.IntegrationType, projectMappings []*model.IntegrationProjectMappingInput) (bool, error)
 	UpdateEmailOptOut(ctx context.Context, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool) (bool, error)
 }
 type QueryResolver interface {
@@ -1211,6 +1219,7 @@ type QueryResolver interface {
 	ClickupProjectMappings(ctx context.Context, workspaceID int) ([]*model.ClickUpProjectMapping, error)
 	ClickupFolders(ctx context.Context, projectID int) ([]*model.ClickUpFolder, error)
 	ClickupFolderlessLists(ctx context.Context, projectID int) ([]*model.ClickUpList, error)
+	IntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType *model.IntegrationType) ([]*model1.IntegrationProjectMapping, error)
 	LinearTeams(ctx context.Context, projectID int) ([]*model.LinearTeam, error)
 	Project(ctx context.Context, id int) (*model1.Project, error)
 	Workspace(ctx context.Context, id int) (*model1.Workspace, error)
@@ -3021,6 +3030,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HistogramPayload.Min(childComplexity), true
 
+	case "IntegrationProjectMapping.external_id":
+		if e.complexity.IntegrationProjectMapping.ExternalID == nil {
+			break
+		}
+
+		return e.complexity.IntegrationProjectMapping.ExternalID(childComplexity), true
+
+	case "IntegrationProjectMapping.project_id":
+		if e.complexity.IntegrationProjectMapping.ProjectID == nil {
+			break
+		}
+
+		return e.complexity.IntegrationProjectMapping.ProjectID(childComplexity), true
+
 	case "Invoice.amountDue":
 		if e.complexity.Invoice.AmountDue == nil {
 			break
@@ -3953,6 +3976,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateErrorGroupState(childComplexity, args["secure_id"].(string), args["state"].(string)), true
 
+	case "Mutation.updateIntegrationProjectMappings":
+		if e.complexity.Mutation.UpdateIntegrationProjectMappings == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateIntegrationProjectMappings_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateIntegrationProjectMappings(childComplexity, args["workspace_id"].(int), args["integration_type"].(model.IntegrationType), args["project_mappings"].([]*model.IntegrationProjectMappingInput)), true
+
 	case "Mutation.updateMetricMonitor":
 		if e.complexity.Mutation.UpdateMetricMonitor == nil {
 			break
@@ -4751,6 +4786,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.IdentifierSuggestion(childComplexity, args["project_id"].(int), args["query"].(string)), true
+
+	case "Query.integration_project_mappings":
+		if e.complexity.Query.IntegrationProjectMappings == nil {
+			break
+		}
+
+		args, err := ec.field_Query_integration_project_mappings_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IntegrationProjectMappings(childComplexity, args["workspace_id"].(int), args["integration_type"].(*model.IntegrationType)), true
 
 	case "Query.isBackendIntegrated":
 		if e.complexity.Query.IsBackendIntegrated == nil {
@@ -6973,6 +7020,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputErrorGroupFrequenciesParamsInput,
 		ec.unmarshalInputErrorSearchParamsInput,
 		ec.unmarshalInputHistogramParamsInput,
+		ec.unmarshalInputIntegrationProjectMappingInput,
 		ec.unmarshalInputLengthRangeInput,
 		ec.unmarshalInputMetricTagFilterInput,
 		ec.unmarshalInputNetworkHistogramParamsInput,
@@ -8145,6 +8193,11 @@ input ClickUpProjectMappingInput {
 	clickup_space_id: String!
 }
 
+input IntegrationProjectMappingInput {
+	project_id: ID!
+	external_id: String!
+}
+
 type VercelProjectMapping {
 	vercel_project_id: String!
 	project_id: ID!
@@ -8153,6 +8206,11 @@ type VercelProjectMapping {
 type ClickUpProjectMapping {
 	project_id: ID!
 	clickup_space_id: String!
+}
+
+type IntegrationProjectMapping {
+	project_id: ID!
+	external_id: String!
 }
 
 type OAuthClient {
@@ -8330,6 +8388,10 @@ type Query {
 	clickup_project_mappings(workspace_id: ID!): [ClickUpProjectMapping!]!
 	clickup_folders(project_id: ID!): [ClickUpFolder!]!
 	clickup_folderless_lists(project_id: ID!): [ClickUpList!]!
+	integration_project_mappings(
+		workspace_id: ID!
+		integration_type: IntegrationType
+	): [IntegrationProjectMapping!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
 	project(id: ID!): Project
 	workspace(id: ID!): Workspace
@@ -8667,6 +8729,11 @@ type Mutation {
 	updateClickUpProjectMappings(
 		workspace_id: ID!
 		project_mappings: [ClickUpProjectMappingInput!]!
+	): Boolean!
+	updateIntegrationProjectMappings(
+		workspace_id: ID!
+		integration_type: IntegrationType!
+		project_mappings: [IntegrationProjectMappingInput!]!
 	): Boolean!
 
 	updateEmailOptOut(
@@ -10935,6 +11002,39 @@ func (ec *executionContext) field_Mutation_updateErrorGroupState_args(ctx contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateIntegrationProjectMappings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	var arg1 model.IntegrationType
+	if tmp, ok := rawArgs["integration_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integration_type"))
+		arg1, err = ec.unmarshalNIntegrationType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["integration_type"] = arg1
+	var arg2 []*model.IntegrationProjectMappingInput
+	if tmp, ok := rawArgs["project_mappings"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_mappings"))
+		arg2, err = ec.unmarshalNIntegrationProjectMappingInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationProjectMappingInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_mappings"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateMetricMonitorIsDisabled_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -12231,6 +12331,30 @@ func (ec *executionContext) field_Query_identifier_suggestion_args(ctx context.C
 		}
 	}
 	args["query"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_integration_project_mappings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	var arg1 *model.IntegrationType
+	if tmp, ok := rawArgs["integration_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integration_type"))
+		arg1, err = ec.unmarshalOIntegrationType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["integration_type"] = arg1
 	return args, nil
 }
 
@@ -24485,6 +24609,94 @@ func (ec *executionContext) fieldContext_HistogramPayload_max(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _IntegrationProjectMapping_project_id(ctx context.Context, field graphql.CollectedField, obj *model1.IntegrationProjectMapping) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IntegrationProjectMapping_project_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProjectID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IntegrationProjectMapping_project_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IntegrationProjectMapping",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IntegrationProjectMapping_external_id(ctx context.Context, field graphql.CollectedField, obj *model1.IntegrationProjectMapping) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IntegrationProjectMapping_external_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExternalID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IntegrationProjectMapping_external_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IntegrationProjectMapping",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Invoice_amountDue(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Invoice_amountDue(ctx, field)
 	if err != nil {
@@ -30367,6 +30579,61 @@ func (ec *executionContext) fieldContext_Mutation_updateClickUpProjectMappings(c
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateClickUpProjectMappings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateIntegrationProjectMappings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateIntegrationProjectMappings(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateIntegrationProjectMappings(rctx, fc.Args["workspace_id"].(int), fc.Args["integration_type"].(model.IntegrationType), fc.Args["project_mappings"].([]*model.IntegrationProjectMappingInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateIntegrationProjectMappings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateIntegrationProjectMappings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -36963,6 +37230,67 @@ func (ec *executionContext) fieldContext_Query_clickup_folderless_lists(ctx cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_clickup_folderless_lists_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_integration_project_mappings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_integration_project_mappings(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IntegrationProjectMappings(rctx, fc.Args["workspace_id"].(int), fc.Args["integration_type"].(*model.IntegrationType))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.IntegrationProjectMapping)
+	fc.Result = res
+	return ec.marshalNIntegrationProjectMapping2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐIntegrationProjectMappingᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_integration_project_mappings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "project_id":
+				return ec.fieldContext_IntegrationProjectMapping_project_id(ctx, field)
+			case "external_id":
+				return ec.fieldContext_IntegrationProjectMapping_external_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IntegrationProjectMapping", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_integration_project_mappings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -50833,6 +51161,42 @@ func (ec *executionContext) unmarshalInputHistogramParamsInput(ctx context.Conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputIntegrationProjectMappingInput(ctx context.Context, obj interface{}) (model.IntegrationProjectMappingInput, error) {
+	var it model.IntegrationProjectMappingInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"project_id", "external_id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "project_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+			it.ProjectID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "external_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("external_id"))
+			it.ExternalID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputLengthRangeInput(ctx context.Context, obj interface{}) (model.LengthRangeInput, error) {
 	var it model.LengthRangeInput
 	asMap := map[string]interface{}{}
@@ -54068,6 +54432,41 @@ func (ec *executionContext) _HistogramPayload(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var integrationProjectMappingImplementors = []string{"IntegrationProjectMapping"}
+
+func (ec *executionContext) _IntegrationProjectMapping(ctx context.Context, sel ast.SelectionSet, obj *model1.IntegrationProjectMapping) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, integrationProjectMappingImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IntegrationProjectMapping")
+		case "project_id":
+
+			out.Values[i] = ec._IntegrationProjectMapping_project_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "external_id":
+
+			out.Values[i] = ec._IntegrationProjectMapping_external_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var invoiceImplementors = []string{"Invoice"}
 
 func (ec *executionContext) _Invoice(ctx context.Context, sel ast.SelectionSet, obj *model.Invoice) graphql.Marshaler {
@@ -54901,6 +55300,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateClickUpProjectMappings(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateIntegrationProjectMappings":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateIntegrationProjectMappings(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -56963,6 +57371,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_clickup_folderless_lists(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "integration_project_mappings":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_integration_project_mappings(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -61797,6 +62228,82 @@ func (ec *executionContext) marshalNInt642ᚕᚖint64(ctx context.Context, sel a
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNIntegrationProjectMapping2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐIntegrationProjectMappingᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.IntegrationProjectMapping) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNIntegrationProjectMapping2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐIntegrationProjectMapping(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNIntegrationProjectMapping2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐIntegrationProjectMapping(ctx context.Context, sel ast.SelectionSet, v *model1.IntegrationProjectMapping) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._IntegrationProjectMapping(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNIntegrationProjectMappingInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationProjectMappingInputᚄ(ctx context.Context, v interface{}) ([]*model.IntegrationProjectMappingInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.IntegrationProjectMappingInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNIntegrationProjectMappingInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationProjectMappingInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNIntegrationProjectMappingInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationProjectMappingInput(ctx context.Context, v interface{}) (*model.IntegrationProjectMappingInput, error) {
+	res, err := ec.unmarshalInputIntegrationProjectMappingInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNIntegrationType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx context.Context, v interface{}) (model.IntegrationType, error) {

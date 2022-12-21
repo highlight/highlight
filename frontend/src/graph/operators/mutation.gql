@@ -953,6 +953,18 @@ mutation UpdateClickUpSettings(
 	)
 }
 
+mutation UpdateIntegrationProjectSettings(
+	$workspace_id: ID!
+	$integration_type: IntegrationType!
+	$project_mappings: [IntegrationProjectMappingInput!]!
+) {
+	updateIntegrationProjectMappings(
+		workspace_id: $workspace_id
+		integration_type: $integration_type
+		project_mappings: $project_mappings
+	)
+}
+
 mutation UpdateEmailOptOut(
 	$token: String
 	$admin_id: ID

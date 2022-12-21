@@ -7,6 +7,7 @@ import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
+import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
@@ -294,6 +295,18 @@ const ClickUpIntegrationCallback = ({ code, projectId }: Props) => {
 	)
 }
 
+const HeightIntegrationCallback = ({ code, projectId }: Props) => {
+	const { addIntegration } = useHeightIntegration()
+	return (
+		<WorkspaceIntegrationCallback
+			code={code}
+			name="Height"
+			addIntegration={addIntegration}
+			projectId={projectId}
+		/>
+	)
+}
+
 const IntegrationAuthCallbackPage = () => {
 	const { integrationName } = useParams<{
 		integrationName: string
@@ -370,6 +383,24 @@ const IntegrationAuthCallbackPage = () => {
 					}}
 				>
 					<ClickUpIntegrationCallback
+						code={code}
+						projectId={projectId}
+					/>
+				</ApplicationContextProvider>
+			)
+		case 'height':
+			return (
+				<ApplicationContextProvider
+					value={{
+						currentProject: undefined,
+						allProjects: [],
+						currentWorkspace: workspaceId
+							? { id: workspaceId, name: '' }
+							: undefined,
+						workspaces: [],
+					}}
+				>
+					<HeightIntegrationCallback
 						code={code}
 						projectId={projectId}
 					/>
