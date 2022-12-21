@@ -13,7 +13,7 @@ export const simple = style({
 })
 
 export const rightBorder = style({
-	borderRight: `${borders.neutral} !important`,
+	borderRight: `${borders.secondary} !important`,
 })
 
 export const selected = style({
