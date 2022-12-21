@@ -56,9 +56,10 @@ jobs:
                   submodules: true
             - name: Set submodule change data
               run: |
-                  git fetch origin master
-                  changed="$(git diff origin/master --name-only | grep '^highlight-javascript$')"
-                  echo "highlight_javascript_changed=$changed" >> $GITHUB_ENV
+                  git fetch origin master --depth 1
+                  if git diff --name-only origin/master | grep -q '^highlight-javascript$'; then
+                      echo "highlight_javascript_changed=highlight-javascript" >> $GITHUB_ENV
+                  fi
             # Check paths here instead of using `paths` at the top level because
             # we need to wait until checkout to see if submodules have changed.
             - uses: dorny/paths-filter@v2
