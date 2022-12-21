@@ -30,7 +30,7 @@ jobs:
               run: |
                   git fetch origin master
                   changed="$(git diff origin/master --name-only | grep '^highlight-javascript$')"
-                  echo "highlight_javascript_changed=$changed" >> $GITHUB_ENV
+                  echo "highlight_javascript_changed=$changed" > $GITHUB_ENV
 
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
