@@ -29,8 +29,9 @@ jobs:
             - name: Set submodule change data
               run: |
                   git fetch origin master --depth 1
-                  # changed="$(git diff origin/master --name-only | grep '^highlight-javascript$')"
-                  # echo "highlight_javascript_changed=$changed" >> $GITHUB_ENV
+                  if git diff --name-only HEAD FETCH_HEAD | grep -q highlight-javascript; then
+                      echo "highlight_javascript_changed=highlight-javascript" >> $GITHUB_ENV
+                  fi
 
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
