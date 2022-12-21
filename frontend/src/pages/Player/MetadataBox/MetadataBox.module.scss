@@ -81,13 +81,12 @@ $avatar-size: 36px;
 .enhancedTextSection {
 	display: flex;
 	flex-direction: column;
-	padding-left: calc($avatar-size + var(--size-small));
 	row-gap: var(--size-small);
 }
 
 .userEnhanced {
-	padding: var(--size-medium);
 	position: relative;
+	width: 100%;
 }
 
 .enhancedSocial {

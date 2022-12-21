@@ -286,7 +286,15 @@ export const MetadataBox = React.memo(() => {
 						</Tag>
 					</Box>
 				)}
-				<Box display="flex" alignItems="center">
+				<Box
+					display="flex"
+					alignItems="center"
+					width="full"
+					border="neutral"
+					borderRadius="8"
+					my="8"
+					p="8"
+				>
 					<UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
 				</Box>
 				<Box display="flex" alignItems="center">
