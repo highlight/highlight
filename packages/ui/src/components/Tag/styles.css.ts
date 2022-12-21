@@ -234,7 +234,9 @@ export const variants = recipe({
 				emphasis: 'low',
 			},
 			style: {
-				color: vars.theme.interactive.overlay.secondary.enabled,
+				backgroundColor:
+					vars.theme.interactive.overlay.secondary.enabled,
+				color: vars.theme.interactive.fill.secondary.content.text,
 				selectors: {
 					'&:hover': {
 						backgroundColor:
