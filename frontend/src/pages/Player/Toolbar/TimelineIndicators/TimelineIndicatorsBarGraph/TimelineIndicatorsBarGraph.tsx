@@ -1119,7 +1119,7 @@ const TimelineIndicatorsBarGraph = ({
 
 			<Box
 				ref={timeIndicatorTextRef}
-				background="neutral800"
+				background="n12"
 				borderRadius="10"
 				position="absolute"
 				px="8"
@@ -1144,7 +1144,7 @@ const TimelineIndicatorsBarGraph = ({
 			>
 				<Text
 					ref={timeIndicatorTextRef}
-					color="neutral200"
+					color="n5"
 					size="xSmall"
 					userSelect="none"
 				>

@@ -209,7 +209,7 @@ const ToolbarControls = () => {
 					onClick={() => {
 						setIsLiveMode((isLive) => !isLive)
 					}}
-					kind={isLiveMode ? 'primary' : 'grey'}
+					kind={isLiveMode ? 'primary' : 'secondary'}
 					disabled={disableControls}
 				>
 					Live
@@ -279,7 +279,7 @@ const ToolbarControls = () => {
 						}
 					>
 						<Tag
-							kind="grey"
+							kind="secondary"
 							onClick={() => {
 								setPlayerSpeedIdx(playerSpeedIdx + 1)
 							}}

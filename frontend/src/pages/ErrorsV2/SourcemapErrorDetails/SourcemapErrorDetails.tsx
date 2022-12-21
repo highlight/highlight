@@ -290,7 +290,7 @@ const StackSectionError: React.FC<
 								e.stopPropagation()
 								setShowMetadata(!showMetadata)
 							}}
-							kind="grey"
+							kind="secondary"
 							iconRight={<IconCaretDown />}
 							shape="basic"
 						>

@@ -16,7 +16,7 @@ export const bar = style({
 })
 
 export const barSelected = style({
-	backgroundColor: colors.purpleP9,
+	backgroundColor: colors.p9,
 })
 
 export const barChartWrapper = style({

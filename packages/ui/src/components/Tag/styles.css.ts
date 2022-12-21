@@ -26,19 +26,10 @@ export const iconVariants = recipe({
 			medium: { height: 12, width: 12 },
 			large: { height: 16, width: 16 },
 		},
-		kind: {
-			primary: {
-				color: vars.theme.interactive.fill.primary.content.onEnabled,
-			},
-			secondary: {
-				color: vars.theme.interactive.fill.secondary.content.text,
-			},
-		},
 	},
 
 	defaultVariants: {
 		size: defaultSize,
-		kind: defaultKind,
 	},
 })
 
@@ -131,6 +122,7 @@ export const variants = recipe({
 				emphasis: 'medium',
 			},
 			style: {
+				backgroundColor: vars.theme.interactive.overlay.primary.enabled,
 				border: vars.border.primary,
 				boxShadow: 'none',
 				color: vars.theme.interactive.fill.primary.content.text,
@@ -159,6 +151,7 @@ export const variants = recipe({
 				emphasis: 'low',
 			},
 			style: {
+				backgroundColor: vars.theme.interactive.overlay.primary.enabled,
 				border: vars.border.none,
 				boxShadow: 'none',
 				color: vars.theme.interactive.fill.primary.content.text,

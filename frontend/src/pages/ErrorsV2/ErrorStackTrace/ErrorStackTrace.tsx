@@ -234,7 +234,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 			cursor="pointer"
 			py="8"
 			px="12"
-			bt={isFirst ? 'neutral' : undefined}
+			bt={isFirst ? 'secondary' : undefined}
 			br="secondary"
 			bb="secondary"
 			bl="secondary"
@@ -328,7 +328,7 @@ const SourcemapError: React.FC<{
 		>
 			<Popover placement="bottom-start">
 				<Popover.TagTrigger
-					kind="grey"
+					kind="secondary"
 					shape="basic"
 					iconLeft={<IconExclamationTriangle size={12} />}
 					size="medium"

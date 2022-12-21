@@ -185,7 +185,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 										display="flex"
 										style={{
 											// TODO: Replace with button group once built in UI package.
-											boxShadow: `0 0 0 1px ${vars.color.neutral200} inset`,
+											boxShadow: `0 0 0 1px ${vars.color.n5} inset`,
 										}}
 									>
 										<ButtonIcon

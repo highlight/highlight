@@ -14,8 +14,8 @@ export const variants = recipe({
 		},
 		border: {
 			none: {},
-			neutral: sprinkles({ border: 'secondary' }),
-			purple: sprinkles({ border: 'primary' }),
+			primary: sprinkles({ border: 'primary' }),
+			secondary: sprinkles({ border: 'secondary' }),
 		},
 		rounded: {
 			true: sprinkles({ borderRadius: '6' }),
@@ -24,7 +24,7 @@ export const variants = recipe({
 	},
 
 	defaultVariants: {
-		border: 'neutral',
+		border: 'secondary',
 		rounded: true,
 		size: 'medium',
 	},

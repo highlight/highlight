@@ -20,10 +20,10 @@ export const errorCard = style({
 })
 
 export const errorCardSelected = style({
-	background: colors.neutral200,
+	background: colors.n5,
 	selectors: {
 		'&:hover': {
-			backgroundColor: colors.neutral200,
+			backgroundColor: colors.n5,
 		},
 	},
 })

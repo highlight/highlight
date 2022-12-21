@@ -51,7 +51,7 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 					<Box alignItems="center" display="flex" gap="10">
 						<Tag
 							iconLeft={<FaMapMarker />}
-							kind="grey"
+							kind="secondary"
 							size="medium"
 							shape="basic"
 						>

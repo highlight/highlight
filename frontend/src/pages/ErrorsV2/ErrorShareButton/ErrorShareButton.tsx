@@ -93,7 +93,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 					>
 						<Tag
 							shape="basic"
-							kind="grey"
+							kind="secondary"
 							size="medium"
 							iconLeft={<IconLink size={12} />}
 							onClick={() => {
@@ -107,7 +107,8 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 						</Tag>
 						<Tag
 							shape="basic"
-							kind="transparent"
+							kind="secondary"
+							emphasis="low"
 							size="medium"
 							iconLeft={<IconQuestionMarkCircle size={12} />}
 							onClick={() => {

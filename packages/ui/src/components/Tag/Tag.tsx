@@ -61,7 +61,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 				<Box
 					as="span"
 					display="inline-flex"
-					className={styles.iconVariants({ size, kind })}
+					className={styles.iconVariants({ size })}
 					onClick={onIconLeftClick}
 				>
 					{icon}
@@ -81,7 +81,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 				<Box
 					as="span"
 					display="inline-flex"
-					className={styles.iconVariants({ size, kind })}
+					className={styles.iconVariants({ size })}
 					onClick={onIconRightClick}
 				>
 					{iconRight}

@@ -104,7 +104,7 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 			},
 			{
 				label: 'errors',
-				color: 'blueLB100',
+				color: 'lb100',
 				counts: data?.sessions_histogram.sessions_with_errors,
 			},
 		]

@@ -120,7 +120,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							<Tooltip
 								trigger={
 									<Tag
-										kind="grey"
+										kind="secondary"
 										shape="basic"
 										iconLeft={
 											usersChange > 0 ? (
@@ -145,7 +145,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 										borderRadius="3"
 										p="4"
 										style={{
-											boxShadow: `0 0 0 1px ${vars.color.neutral200}`,
+											boxShadow: `0 0 0 1px ${vars.color.n5}`,
 											margin: -1,
 										}}
 									>
@@ -197,7 +197,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							<Tooltip
 								trigger={
 									<Tag
-										kind="grey"
+										kind="secondary"
 										shape="basic"
 										iconLeft={
 											countChange > 0 ? (
@@ -222,7 +222,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 										borderRadius="3"
 										p="4"
 										style={{
-											boxShadow: `0 0 0 1px ${vars.color.neutral200}`,
+											boxShadow: `0 0 0 1px ${vars.color.n5}`,
 											margin: -1,
 										}}
 									>
@@ -320,7 +320,7 @@ const Stat: React.FC<
 > = ({ title, children, noBorder = false }) => (
 	<Box
 		borderBottom="secondary"
-		borderRight={noBorder ? undefined : 'neutral'}
+		borderRight={noBorder ? undefined : 'secondary'}
 		px="16"
 		py="12"
 		flex="stretch"

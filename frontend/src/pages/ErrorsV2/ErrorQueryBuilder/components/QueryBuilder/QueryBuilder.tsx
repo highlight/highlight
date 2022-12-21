@@ -783,7 +783,7 @@ const SelectPopout = ({
 			>
 				<span className={newStyle.tagPopoverAnchor}>
 					<Tag
-						kind="grey"
+						kind="secondary"
 						size="medium"
 						shape="basic"
 						cssClass={[
@@ -880,7 +880,7 @@ const QueryRule = ({
 			{!readonly && (
 				<Tag
 					size="medium"
-					kind="grey"
+					kind="secondary"
 					shape="basic"
 					cssClass={[newStyle.flatLeft]}
 					onClick={() => {
@@ -940,7 +940,8 @@ export const TimeRangeFilter = ({
 				/>
 			</Popover>
 			<Tag
-				kind="transparent"
+				kind="secondary"
+				emphasis="low"
 				shape="basic"
 				iconRight={!!onReset ? <IconX size={12} /> : undefined}
 				onIconRightClick={!!onReset ? onReset : undefined}
@@ -2486,7 +2487,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 								? [
 										<Tag
 											shape="basic"
-											kind="transparent"
+											kind="secondary"
+											emphasis="low"
 											onClick={toggleIsAnd}
 											key={`separator-${index}`}
 											disabled={readonly}

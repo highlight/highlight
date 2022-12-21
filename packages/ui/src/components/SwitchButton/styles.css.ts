@@ -35,37 +35,42 @@ export const variants = recipe({
 	variants: {
 		variant: {
 			checked: {
-				background: vars.color.purple500,
+				background: vars.theme.interactive.fill.primary.enabled,
 				color: vars.color.white,
 				boxShadow: shadows.primary,
 				selectors: {
 					'&:hover': {
-						background: vars.color.purple700,
+						background: vars.theme.interactive.fill.primary.hover,
 					},
-					'&:focus': {
-						background: vars.color.purple700,
+					'&:active': {
+						background: vars.theme.interactive.fill.primary.pressed,
 					},
 					'&:disabled': {
-						color: vars.color.purple100,
+						color: vars.theme.interactive.fill.primary.disabled,
 					},
 				},
 			},
 			unchecked: {
-				background: vars.color.n2,
-				color: vars.color.n12,
+				background: vars.theme.interactive.fill.secondary.enabled,
 				boxShadow: shadows.grey,
+				color: vars.theme.interactive.fill.secondary.content.text,
 				selectors: {
 					'&:hover': {
-						background: vars.color.neutral200,
-						color: vars.color.n12,
+						background: vars.theme.interactive.fill.secondary.hover,
+						color: vars.theme.interactive.fill.secondary.content
+							.text,
 					},
-					'&:focus': {
-						background: vars.color.neutral200,
-						color: vars.color.n12,
+					'&:active': {
+						background:
+							vars.theme.interactive.fill.secondary.pressed,
+						color: vars.theme.interactive.fill.secondary.content
+							.text,
 					},
 					'&:disabled': {
-						background: vars.color.white,
-						color: vars.color.n9,
+						background:
+							vars.theme.interactive.fill.secondary.disabled,
+						color: vars.theme.interactive.fill.secondary.content
+							.onDisabled,
 					},
 				},
 			},
