@@ -6,7 +6,7 @@ const inputFile = new URL('../design-tokens.json', import.meta.url).pathname
 const outputColorsFile = new URL('../src/css/colors.ts', import.meta.url)
 	.pathname
 const outputThemeFile = new URL('../src/css/theme.ts', import.meta.url).pathname
-const colorTokens = {}
+const colorTokens = { inherit: 'inherit' }
 const lightThemeTokens = {}
 
 readFile(inputFile, 'utf8', (err, data) => {
@@ -20,7 +20,11 @@ readFile(inputFile, 'utf8', (err, data) => {
 	extractThemeVariables(json.values['Light theme'], lightThemeTokens)
 
 	const theme = objectKeysToCamelCase(lightThemeTokens)
-	const themeContent = `export const theme = ${JSON.stringify(theme)}`
+	let themeContent = `import { createTheme } from '@vanilla-extract/css'\n\n`
+	themeContent += `export const [themeClass, themeVars] = createTheme(${JSON.stringify(
+		theme,
+	)})`
+
 	const colors = objectKeysToCamelCase(colorTokens)
 	const colorsContent = `export const colors = ${JSON.stringify(colors)}`
 
