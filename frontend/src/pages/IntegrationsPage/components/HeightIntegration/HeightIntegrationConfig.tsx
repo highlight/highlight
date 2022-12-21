@@ -255,7 +255,7 @@ export const HeightIntegrationSettings: React.FC<
 							value={opts}
 							onChange={row.onUpdateProjectLink}
 							options={selectOptions}
-							placeholder="Height space"
+							placeholder="Height workspace"
 							allowClear
 						/>
 					</div>
