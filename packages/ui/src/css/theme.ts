@@ -1,4 +1,6 @@
-export const theme = {
+import { createTheme } from '@vanilla-extract/css'
+
+export const [themeClass, themeVars] = createTheme({
 	static: {
 		surface: {
 			nested: '#fdfcfd',
@@ -115,4 +117,4 @@ export const theme = {
 			},
 		},
 	},
-}
+})

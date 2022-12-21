@@ -11,12 +11,16 @@ export const variants = recipe({
 			justifyContent: 'center',
 			border: 'none',
 			borderRadius: 6,
+			color: vars.theme.interactive.fill.primary.enabled,
 			cursor: 'pointer',
 			padding: 0,
-			outline: 'none',
 			selectors: {
 				'&[disabled]': {
+					boxShadow: 'none',
+					color: vars.theme.interactive.fill.primary.content
+						.onDisabled,
 					cursor: 'not-allowed',
+					outline: 'none',
 				},
 			},
 		},
@@ -32,16 +36,16 @@ export const variants = recipe({
 			medium: {},
 			high: {},
 			none: {
-				color: colors.neutralN11,
+				color: colors.n11,
 				backgroundColor: 'inherit',
 				selectors: {
 					'&:hover:enabled': {
-						background: vars.color.neutralN4,
-						color: colors.neutralN10,
+						backgroundColor: vars.color.n4,
+						color: colors.n10,
 						boxShadow: shadows.grey,
 					},
 					'&:focus:enabled, &:active:enabled': {
-						background: vars.color.neutralN5,
+						backgroundColor: vars.color.n5,
 						boxShadow: 'none',
 					},
 				},
@@ -112,22 +116,22 @@ export const variants = recipe({
 				kind: 'primary',
 			},
 			style: {
-				background: vars.color.purple500,
-				color: vars.color.white,
+				backgroundColor: vars.theme.interactive.fill.primary.enabled,
 				boxShadow: shadows.primary,
+				color: vars.color.white,
 				selectors: {
 					'&:hover:enabled': {
-						background: vars.color.purple700,
+						backgroundColor:
+							vars.theme.interactive.fill.primary.hover,
 					},
-					'&:focus:enabled, &:active:enabled': {
-						background: vars.color.purple700,
+					'&:active:enabled': {
+						backgroundColor:
+							vars.theme.interactive.fill.primary.pressed,
 						boxShadow: 'none',
 					},
 					'&[disabled]': {
-						background: vars.color.purple100,
-						color: vars.color.neutral50,
-						boxShadow: 'none',
-						outline: 'none',
+						backgroundColor:
+							vars.theme.interactive.fill.primary.disabled,
 					},
 				},
 			},
@@ -138,24 +142,23 @@ export const variants = recipe({
 				kind: 'primary',
 			},
 			style: {
-				background: 'transparent',
-				color: vars.color.purple500,
+				backgroundColor: vars.theme.interactive.overlay.primary.enabled,
+				border: vars.border.interactivePrimaryEnabled,
 				boxShadow: 'none',
-				border: vars.border.neutral,
+				color: vars.theme.interactive.fill.primary.enabled,
 				selectors: {
 					'&[disabled]': {
-						color: vars.color.purple100,
-						border: vars.border.purpleLight,
-						boxShadow: 'none',
-						outline: 'none',
+						border: vars.border.interactivePrimaryDisabled,
 					},
 					'&:hover:enabled': {
-						color: vars.color.purple700,
-						border: vars.border.neutralDark,
+						backgroundColor:
+							vars.theme.interactive.overlay.primary.hover,
+						border: vars.border.interactivePrimaryHover,
 					},
-					'&:focus:enabled, &:active:enabled': {
-						color: vars.color.purple700,
-						border: vars.border.purple,
+					'&:active:enabled': {
+						backgroundColor:
+							vars.theme.interactive.overlay.primary.pressed,
+						border: vars.border.interactivePrimaryPressed,
 					},
 				},
 			},
@@ -166,20 +169,17 @@ export const variants = recipe({
 				kind: 'primary',
 			},
 			style: {
-				background: 'transparent',
-				color: vars.color.purple500,
+				backgroundColor: vars.theme.interactive.overlay.primary.enabled,
 				boxShadow: 'none',
+				color: vars.theme.interactive.fill.primary.enabled,
 				selectors: {
-					'&[disabled]': {
-						color: vars.color.purple100,
-					},
 					'&:hover:enabled': {
-						background: vars.color.neutral200,
-						color: vars.color.purple900,
+						backgroundColor:
+							vars.theme.interactive.overlay.primary.hover,
 					},
-					'&:focus:enabled, &:active:enabled': {
-						background: vars.color.neutral200,
-						color: vars.color.purple700,
+					'&:active:enabled': {
+						backgroundColor:
+							vars.theme.interactive.overlay.primary.pressed,
 					},
 				},
 			},
@@ -190,22 +190,24 @@ export const variants = recipe({
 				kind: 'secondary',
 			},
 			style: {
-				background: vars.color.neutral100,
-				color: vars.color.neutral700,
+				backgroundColor: vars.theme.interactive.fill.secondary.enabled,
+				color: vars.theme.interactive.fill.secondary.content.text,
 				boxShadow: shadows.grey,
 				selectors: {
 					'&:hover:enabled': {
-						background: vars.color.neutral200,
+						backgroundColor:
+							vars.theme.interactive.fill.secondary.hover,
 					},
-					'&:focus:enabled, &:active:enabled': {
-						background: vars.color.neutral200,
+					'&:active:enabled': {
+						backgroundColor:
+							vars.theme.interactive.fill.secondary.pressed,
 						boxShadow: 'none',
 					},
 					'&[disabled]': {
-						background: vars.color.neutral50,
-						color: vars.color.neutral300,
-						boxShadow: 'none',
-						outline: 'none',
+						backgroundColor:
+							vars.theme.interactive.fill.secondary.disabled,
+						color: vars.theme.interactive.fill.secondary.content
+							.onDisabled,
 					},
 				},
 			},
@@ -216,23 +218,25 @@ export const variants = recipe({
 				kind: 'secondary',
 			},
 			style: {
-				background: 'transparent',
-				color: vars.color.neutral700,
+				backgroundColor: 'transparent',
+				border: vars.border.interactiveSecondaryEnabled,
 				boxShadow: 'none',
-				border: vars.border.neutral,
+				color: vars.theme.interactive.fill.secondary.content.text,
 				selectors: {
 					'&[disabled]': {
-						color: vars.color.neutral300,
-						boxShadow: 'none',
-						outline: 'none',
+						border: vars.border.interactiveSecondaryDisabled,
+						color: vars.theme.interactive.fill.secondary.content
+							.onDisabled,
 					},
 					'&:hover:enabled': {
-						background: vars.color.neutral50,
-						border: vars.border.neutralDark,
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.hover,
+						border: vars.border.interactiveSecondaryHover,
 					},
-					'&:focus:enabled, &:active:enabled': {
-						background: vars.color.neutral100,
-						border: vars.border.neutralDark,
+					'&:active:enabled': {
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.pressed,
+						border: vars.border.interactiveSecondaryPressed,
 					},
 				},
 			},
@@ -243,20 +247,22 @@ export const variants = recipe({
 				kind: 'secondary',
 			},
 			style: {
-				background: 'transparent',
-				color: vars.color.neutral500,
+				backgroundColor:
+					vars.theme.interactive.overlay.secondary.enabled,
 				boxShadow: 'none',
+				color: vars.theme.interactive.fill.secondary.content.text,
 				selectors: {
 					'&[disabled]': {
-						color: vars.color.neutral300,
+						color: vars.theme.interactive.fill.secondary.content
+							.onDisabled,
 					},
 					'&:hover:enabled': {
-						background: vars.color.neutral200,
-						color: vars.color.neutral700,
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.hover,
 					},
 					'&:focus:enabled, &:active:enabled': {
-						background: vars.color.neutral200,
-						color: vars.color.neutral500,
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.pressed,
 					},
 				},
 			},

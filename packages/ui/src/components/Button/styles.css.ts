@@ -17,6 +17,7 @@ export const iconVariants = recipe({
 		justifyContent: 'center',
 		selectors: {
 			'&[disabled]': {
+				color: vars.theme.interactive.fill.primary.disabled,
 				pointerEvents: 'none',
 				userSelect: 'none',
 			},
@@ -37,8 +38,12 @@ export const iconVariants = recipe({
 			low: {},
 		},
 		kind: {
-			primary: {},
-			secondary: {},
+			primary: {
+				color: vars.theme.interactive.fill.primary.content.text,
+			},
+			secondary: {
+				color: vars.theme.interactive.fill.secondary.content.text,
+			},
 		},
 	},
 
@@ -46,62 +51,10 @@ export const iconVariants = recipe({
 		{
 			variants: {
 				kind: 'primary',
-				emphasis: 'low',
-			},
-			style: {
-				selectors: {
-					'&:focus, &:active': {
-						color: vars.color.purple500,
-					},
-				},
-			},
-		},
-		{
-			variants: {
-				kind: 'secondary',
 				emphasis: 'high',
 			},
 			style: {
-				color: vars.color.neutral700,
-				selectors: {
-					'&[disabled]': {
-						color: vars.color.neutral300,
-					},
-				},
-			},
-		},
-		{
-			variants: {
-				kind: 'secondary',
-				emphasis: 'medium',
-			},
-			style: {
-				color: vars.color.neutral700,
-				selectors: {
-					'&[disabled]': {
-						color: vars.color.neutral300,
-					},
-				},
-			},
-		},
-		{
-			variants: {
-				kind: 'secondary',
-				emphasis: 'low',
-			},
-			style: {
-				color: vars.color.neutral500,
-				selectors: {
-					'&:hover': {
-						color: vars.color.neutral700,
-					},
-					'&:focus, &:active': {
-						color: vars.color.neutral500,
-					},
-					'&[disabled]': {
-						color: vars.color.neutral300,
-					},
-				},
+				color: vars.theme.interactive.fill.primary.content.onEnabled,
 			},
 		},
 	],
@@ -121,7 +74,7 @@ export const variants = recipe({
 		{
 			lineHeight: '1em',
 			width: 'auto',
-			background: 'transparent',
+			backgroundColor: 'transparent',
 			outline: 'none',
 			selectors: {
 				'&:hover': {
@@ -142,8 +95,12 @@ export const variants = recipe({
 			low: {},
 		},
 		kind: {
-			primary: {},
-			secondary: {},
+			primary: {
+				color: vars.theme.interactive.fill.primary.content.text,
+			},
+			secondary: {
+				color: vars.theme.interactive.fill.primary.content.text,
+			},
 		},
 		size: {
 			xSmall: [
@@ -167,22 +124,23 @@ export const variants = recipe({
 				emphasis: 'high',
 			},
 			style: {
-				background: vars.color.purple500,
-				color: vars.color.white,
+				backgroundColor: vars.theme.interactive.fill.primary.enabled,
 				boxShadow: shadows.primary,
+				color: vars.theme.interactive.fill.primary.content.onEnabled,
 				selectors: {
 					'&:hover': {
-						background: vars.color.purple700,
-						color: vars.color.white,
+						backgroundColor:
+							vars.theme.interactive.fill.primary.hover,
 					},
-					'&:focus, &:active': {
-						background: vars.color.purple700,
-						color: vars.color.white,
+					'&:active': {
+						backgroundColor:
+							vars.theme.interactive.fill.primary.pressed,
 						boxShadow: 'none',
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
-						background: vars.color.purple100,
-						color: vars.color.neutral50,
+						backgroundColor:
+							vars.theme.interactive.fill.primary.disabled,
+						color: vars.theme.interactive.fill.primary.disabled,
 						boxShadow: 'none',
 					},
 				},
@@ -194,21 +152,24 @@ export const variants = recipe({
 				emphasis: 'medium',
 			},
 			style: {
-				color: vars.color.purple500,
+				border: vars.border.interactivePrimaryEnabled,
 				boxShadow: 'none',
-				border: vars.border.neutral,
+				color: vars.theme.interactive.fill.primary.content.text,
 				selectors: {
 					'&:hover': {
-						border: vars.border.neutralDark,
-						color: vars.color.purple700,
+						backgroundColor:
+							vars.theme.interactive.overlay.primary.hover,
+						border: vars.border.interactivePrimaryHover,
 					},
-					'&:focus, &:active': {
-						border: vars.border.purple,
-						color: vars.color.purple700,
+					'&:active': {
+						backgroundColor:
+							vars.theme.interactive.overlay.primary.pressed,
+						border: vars.border.interactivePrimaryPressed,
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
-						border: vars.border.purpleLight,
-						color: vars.color.purple100,
+						border: vars.border.interactivePrimaryDisabled,
+						color: vars.theme.interactive.fill.primary.content
+							.onDisabled,
 					},
 				},
 			},
@@ -219,20 +180,21 @@ export const variants = recipe({
 				emphasis: 'low',
 			},
 			style: {
-				color: vars.color.purple500,
-				boxShadow: 'none',
 				border: vars.border.none,
+				boxShadow: 'none',
+				color: vars.theme.interactive.fill.primary.content.text,
 				selectors: {
 					'&:hover': {
-						color: vars.color.purple700,
-						background: vars.color.neutral200,
+						backgroundColor:
+							vars.theme.interactive.overlay.primary.hover,
 					},
-					'&:focus, &:active': {
-						color: vars.color.purple700,
-						background: vars.color.neutral200,
+					'&:active': {
+						backgroundColor:
+							vars.theme.interactive.overlay.primary.pressed,
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
-						color: vars.color.purple100,
+						color: vars.theme.interactive.fill.primary.content
+							.onDisabled,
 					},
 				},
 			},
@@ -243,22 +205,24 @@ export const variants = recipe({
 				emphasis: 'high',
 			},
 			style: {
-				background: vars.color.neutral100,
-				color: vars.color.neutral800,
+				backgroundColor: vars.theme.interactive.fill.secondary.enabled,
 				boxShadow: shadows.grey,
+				color: vars.theme.interactive.fill.secondary.content.onEnabled,
 				selectors: {
 					'&:hover': {
-						background: vars.color.neutral200,
-						color: vars.color.neutral800,
+						backgroundColor:
+							vars.theme.interactive.fill.secondary.hover,
 					},
-					'&:focus, &:active': {
-						background: vars.color.neutral200,
-						color: vars.color.neutral800,
+					'&:active': {
+						backgroundColor:
+							vars.theme.interactive.fill.secondary.pressed,
 						boxShadow: 'none',
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
-						background: vars.color.neutral50,
-						color: vars.color.neutral300,
+						backgroundColor:
+							vars.theme.interactive.fill.secondary.disabled,
+						color: vars.theme.interactive.fill.secondary.content
+							.onDisabled,
 						boxShadow: 'none',
 					},
 				},
@@ -270,23 +234,24 @@ export const variants = recipe({
 				emphasis: 'medium',
 			},
 			style: {
-				color: vars.color.neutral800,
+				border: vars.border.interactiveSecondaryEnabled,
 				boxShadow: 'none',
-				border: vars.border.neutral,
+				color: vars.theme.interactive.fill.secondary.content.text,
 				selectors: {
 					'&:hover': {
-						border: vars.border.neutralDark,
-						color: vars.color.neutral800,
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.hover,
+						border: vars.border.interactiveSecondaryHover,
 					},
-					'&:focus, &:active': {
-						border: vars.border.neutralDark,
-						background: vars.color.neutral100,
-						color: vars.color.neutral800,
+					'&:active': {
+						border: vars.border.interactiveSecondaryPressed,
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.pressed,
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
-						background: 'transparent',
-						border: vars.border.neutral,
-						color: vars.color.neutral300,
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.disabled,
+						border: vars.border.interactiveSecondaryDisabled,
 					},
 				},
 			},
@@ -297,21 +262,19 @@ export const variants = recipe({
 				emphasis: 'low',
 			},
 			style: {
-				color: vars.color.neutral700,
-				boxShadow: 'none',
-				border: vars.border.none,
+				color: vars.theme.interactive.fill.secondary.content.text,
 				selectors: {
 					'&:hover': {
-						background: vars.color.neutral200,
-						color: vars.color.neutral800,
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.hover,
 					},
-					'&:focus, &:active': {
-						background: vars.color.neutral200,
-						color: vars.color.neutral800,
+					'&:active': {
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.pressed,
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
-						background: 'transparent',
-						color: vars.color.neutral300,
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.disabled,
 					},
 				},
 			},
