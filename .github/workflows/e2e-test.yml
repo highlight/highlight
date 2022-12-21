@@ -57,7 +57,7 @@ jobs:
             - name: Set submodule change data
               run: |
                   git fetch origin master --depth 1
-                  if git diff --name-only HEAD FETCH_HEAD | grep -q '^highlight-javascript$'; then
+                  if git diff --name-only origin/master FETCH_HEAD | grep -q '^highlight-javascript$'; then
                       echo "highlight_javascript_changed=highlight-javascript" >> $GITHUB_ENV
                   fi
             # Check paths here instead of using `paths` at the top level because
