@@ -1,6 +1,6 @@
 export { Badge } from './Badge/Badge'
 export { Box } from './Box/Box'
-export { Button } from './Button/Button'
+export { Button, Props as ButtonProps } from './Button/Button'
 export { ButtonLink } from './ButtonLink/ButtonLink'
 export { ButtonIcon } from './ButtonIcon/ButtonIcon'
 export { Card } from './Card/Card'

@@ -7,7 +7,8 @@ import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
 import clsx, { ClassValue } from 'clsx'
 
-export type Props = ButtonProps &
+export type Props = React.PropsWithChildren &
+	ButtonProps &
 	styles.Variants & {
 		iconLeft?: React.ReactElement<IconProps>
 		onIconLeftClick?: React.MouseEventHandler<HTMLButtonElement>
@@ -25,10 +26,7 @@ const buttonToTextSize = {
 	xLarge: 'large',
 } as const
 
-export const Button = React.forwardRef<
-	HTMLButtonElement,
-	React.PropsWithChildren<Props>
->(
+export const Button = React.forwardRef<HTMLButtonElement, Props>(
 	(
 		{
 			children,
