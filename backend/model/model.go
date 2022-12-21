@@ -174,6 +174,7 @@ var Models = []interface{}{
 	&OAuthClientStore{},
 	&ResthookSubscription{},
 	&IntegrationProjectMapping{},
+	&IntegrationWorkspaceMapping{},
 	&EmailOptOut{},
 }
 
@@ -1080,6 +1081,12 @@ type VercelIntegrationConfig struct {
 	WorkspaceID     int `gorm:"uniqueIndex:idx_workspace_id_vercel_project_id;index"`
 	ProjectID       int
 	VercelProjectID string `gorm:"uniqueIndex:idx_workspace_id_vercel_project_id"`
+}
+
+type IntegrationWorkspaceMapping struct {
+	IntegrationType modelInputs.IntegrationType `gorm:"uniqueIndex:idx_integration_workspace_mapping_workspace_id_integration_type;not null"`
+	WorkspaceID     int                         `gorm:"uniqueIndex:idx_integration_workspace_mapping_workspace_id_integration_type;not null"`
+	AccessToken     string
 }
 
 type IntegrationProjectMapping struct {

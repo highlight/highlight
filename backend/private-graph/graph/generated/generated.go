@@ -529,7 +529,7 @@ type ComplexityRoot struct {
 		MuteErrorCommentThread           func(childComplexity int, id int, hasMuted *bool) int
 		MuteSessionCommentThread         func(childComplexity int, id int, hasMuted *bool) int
 		RemoveIntegrationFromProject     func(childComplexity int, integrationType *model.IntegrationType, projectID int) int
-		RemoveIntegrationFromWorkspace   func(childComplexity int, integrationType *model.IntegrationType, workspaceID int) int
+		RemoveIntegrationFromWorkspace   func(childComplexity int, integrationType model.IntegrationType, workspaceID int) int
 		ReplyToErrorComment              func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		ReplyToSessionComment            func(childComplexity int, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		RequestAccess                    func(childComplexity int, projectID int) int
@@ -1100,7 +1100,7 @@ type MutationResolver interface {
 	AddIntegrationToProject(ctx context.Context, integrationType *model.IntegrationType, projectID int, code string) (bool, error)
 	RemoveIntegrationFromProject(ctx context.Context, integrationType *model.IntegrationType, projectID int) (bool, error)
 	AddIntegrationToWorkspace(ctx context.Context, integrationType *model.IntegrationType, workspaceID int, code string) (bool, error)
-	RemoveIntegrationFromWorkspace(ctx context.Context, integrationType *model.IntegrationType, workspaceID int) (bool, error)
+	RemoveIntegrationFromWorkspace(ctx context.Context, integrationType model.IntegrationType, workspaceID int) (bool, error)
 	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
 	CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) (*bool, error)
 	CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, emails []*string, filters []*model.MetricTagFilterInput) (*model1.MetricMonitor, error)
@@ -3747,7 +3747,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveIntegrationFromWorkspace(childComplexity, args["integration_type"].(*model.IntegrationType), args["workspace_id"].(int)), true
+		return e.complexity.Mutation.RemoveIntegrationFromWorkspace(childComplexity, args["integration_type"].(model.IntegrationType), args["workspace_id"].(int)), true
 
 	case "Mutation.replyToErrorComment":
 		if e.complexity.Mutation.ReplyToErrorComment == nil {
@@ -8539,7 +8539,7 @@ type Mutation {
 		code: String!
 	): Boolean!
 	removeIntegrationFromWorkspace(
-		integration_type: IntegrationType
+		integration_type: IntegrationType!
 		workspace_id: ID!
 	): Boolean!
 	syncSlackIntegration(project_id: ID!): SlackSyncResponse!
@@ -10290,10 +10290,10 @@ func (ec *executionContext) field_Mutation_removeIntegrationFromProject_args(ctx
 func (ec *executionContext) field_Mutation_removeIntegrationFromWorkspace_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.IntegrationType
+	var arg0 model.IntegrationType
 	if tmp, ok := rawArgs["integration_type"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integration_type"))
-		arg0, err = ec.unmarshalOIntegrationType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+		arg0, err = ec.unmarshalNIntegrationType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -28452,7 +28452,7 @@ func (ec *executionContext) _Mutation_removeIntegrationFromWorkspace(ctx context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveIntegrationFromWorkspace(rctx, fc.Args["integration_type"].(*model.IntegrationType), fc.Args["workspace_id"].(int))
+		return ec.resolvers.Mutation().RemoveIntegrationFromWorkspace(rctx, fc.Args["integration_type"].(model.IntegrationType), fc.Args["workspace_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

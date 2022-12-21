@@ -1476,7 +1476,7 @@ type Mutation {
 		code: String!
 	): Boolean!
 	removeIntegrationFromWorkspace(
-		integration_type: IntegrationType
+		integration_type: IntegrationType!
 		workspace_id: ID!
 	): Boolean!
 	syncSlackIntegration(project_id: ID!): SlackSyncResponse!

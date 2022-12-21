@@ -1782,18 +1782,22 @@ func (r *Resolver) AddClickUpToWorkspace(ctx context.Context, workspace *model.W
 }
 
 func (r *Resolver) AddHeightToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
-	_, err := height.GetAccessToken(ctx, code)
+	res, err := height.GetAccessToken(ctx, code)
 	if err != nil {
 		return e.Wrap(err, "error getting Height oauth access token")
 	}
 
+	integrationWorkspaceMapping := &model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: modelInputs.IntegrationTypeHeight,
+		AccessToken:     res.AccessToken,
+	}
+
+	if err := r.DB.Create(integrationWorkspaceMapping).Error; err != nil {
+		return e.Wrap(err, "error creating Height integration for workspace")
+	}
+
 	return nil
-
-	// if err := r.DB.Where(&workspace).Select("clickup_access_token").Updates(&model.Workspace{ClickupAccessToken: &res.AccessToken}).Error; err != nil {
-	// 	return e.Wrap(err, "error updating ClickUp access token in workspace")
-	// }
-
-	// return nil
 }
 
 func (r *Resolver) AddDiscordToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
@@ -1983,6 +1987,36 @@ func (r *Resolver) RemoveClickUpFromWorkspace(workspace *model.Workspace) error 
 		Select("clickup_access_token").
 		Updates(&model.Workspace{ClickupAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing ClickUp access token")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(workspace *model.Workspace, integrationType modelInputs.IntegrationType) error {
+	workspaceMapping := &model.IntegrationWorkspaceMapping{}
+
+	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: integrationType,
+	}).First(&workspaceMapping).Error; err != nil {
+		return e.Wrap(err, fmt.Sprintf("workspace does not have a %s integration", integrationType))
+	}
+
+	if err := r.DB.Raw(`
+		DELETE FROM integration_project_mappings ipm
+		WHERE ipm.integration_type = ?
+		AND EXISTS (
+			SELECT *
+			FROM projects p
+			WHERE p.workspace_id = ?
+			AND ipm.project_id = p.id
+		)
+	`, integrationType, workspace.ID).Error; err != nil {
+		return err
+	}
+
+	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
+		return e.Wrap(err, fmt.Sprintf("error deleting workspace %s integration", integrationType))
 	}
 
 	return nil

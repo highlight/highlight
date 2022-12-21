@@ -1967,18 +1967,21 @@ func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integr
 }
 
 // RemoveIntegrationFromWorkspace is the resolver for the removeIntegrationFromWorkspace field.
-func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, integrationType *modelInputs.IntegrationType, workspaceID int) (bool, error) {
+func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, integrationType modelInputs.IntegrationType, workspaceID int) (bool, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return false, err
 	}
 
-	if *integrationType == modelInputs.IntegrationTypeClickUp {
+	if integrationType == modelInputs.IntegrationTypeClickUp {
 		if err := r.RemoveClickUpFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else {
-		return false, e.New("invalid integrationType")
+		if err := r.RemoveIntegrationFromWorkspaceAndProjects(workspace, integrationType); err != nil {
+			return false, err
+		}
+
 	}
 
 	return true, nil
