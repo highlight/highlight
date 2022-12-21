@@ -2,9 +2,10 @@ package height
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
+
+	"github.com/pkg/errors"
 
 	"golang.org/x/oauth2"
 )
