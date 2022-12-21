@@ -27,7 +27,7 @@ export const Basic = () => (
 			}
 		>
 			<Box display="flex" alignItems="center" gap="4">
-				<Text color="neutralN9" size="xSmall">
+				<Text color="n9" size="xSmall">
 					since
 				</Text>
 				<Badge variant="white" label="30 days" />

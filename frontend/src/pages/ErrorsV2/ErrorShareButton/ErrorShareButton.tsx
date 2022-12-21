@@ -49,7 +49,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 						display="flex"
 						alignItems="center"
 					>
-						<IconGlobeAlt size={16} color={colors.neutralN9} />
+						<IconGlobeAlt size={16} color={colors.n9} />
 						<Box>
 							<Box
 								style={{ height: 20 }}
@@ -59,7 +59,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 								<Text
 									size="small"
 									weight="medium"
-									color="neutralN11"
+									color="n11"
 									userSelect="none"
 								>
 									Web
@@ -73,7 +73,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 								<Text
 									size="xxSmall"
 									weight="regular"
-									color="neutralN10"
+									color="n10"
 									userSelect="none"
 								>
 									Allow anyone with the link to view this

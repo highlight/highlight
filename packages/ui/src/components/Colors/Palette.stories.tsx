@@ -3,6 +3,7 @@ import { ComponentMeta } from '@storybook/react'
 
 import { colors } from '../../css/colors'
 import { Box } from '../Box/Box'
+import { Text } from '../Text/Text'
 
 export const Palette = () => (
 	<>
@@ -14,7 +15,7 @@ export const Palette = () => (
 						padding="10"
 						textTransform="capitalize"
 					>
-						{name}
+						<Text>{name}</Text>
 					</Box>
 					<br />
 				</div>

@@ -9,7 +9,7 @@ export const barDiv = style({
 })
 
 export const bar = style({
-	backgroundColor: colors.neutralN9,
+	backgroundColor: colors.n9,
 	borderRadius: 4,
 	height: 0,
 	width: '100%',

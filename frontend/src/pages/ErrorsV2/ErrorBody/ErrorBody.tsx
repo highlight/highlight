@@ -138,7 +138,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								}
 							>
 								<Box display="flex" alignItems="center" gap="4">
-									<Text color="neutralN9" size="xSmall">
+									<Text color="n9" size="xSmall">
 										since
 									</Text>
 									<Box
@@ -215,7 +215,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								}
 							>
 								<Box display="flex" alignItems="center" gap="4">
-									<Text color="neutralN9" size="xSmall">
+									<Text color="n9" size="xSmall">
 										since
 									</Text>
 									<Box

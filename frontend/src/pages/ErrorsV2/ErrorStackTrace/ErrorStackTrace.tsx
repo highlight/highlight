@@ -230,7 +230,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 
 	const stackTraceTitle = (
 		<Box
-			background="neutralN1"
+			background="n1"
 			cursor="pointer"
 			py="8"
 			px="12"

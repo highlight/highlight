@@ -8,7 +8,7 @@ export const button = style({
 	color: vars.color.purple500,
 	selectors: {
 		'&:hover, &:focus': {
-			color: vars.color.purple900,
+			color: vars.color.p12,
 		},
 		'&:active': {
 			color: vars.color.purple700,

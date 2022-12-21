@@ -10,7 +10,7 @@ export const Card: React.FC<Props> = ({ children, ...rest }) => {
 	const defaultProps: Partial<Sprinkles> = {
 		background: {
 			lightMode: 'white',
-			darkMode: 'purple900',
+			darkMode: 'p12',
 		},
 		color: {
 			lightMode: 'black',
