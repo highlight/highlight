@@ -39,7 +39,7 @@ export const content = style({
 			width: ERROR_FEED_SCROLLBAR_WIDTH,
 		},
 		'&::-webkit-scrollbar-thumb': {
-			backgroundColor: colors.n2,
+			backgroundColor: colors.n4,
 		},
 	},
 })
