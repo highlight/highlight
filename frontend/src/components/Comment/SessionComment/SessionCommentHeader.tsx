@@ -92,6 +92,7 @@ const SessionCommentHeader = ({
 				const [isIntegrated, integration] = item
 				return isIntegrated ? (
 					<MenuItem
+						key={integration.name}
 						icon={<SvgFileText2Icon />}
 						onClick={() => {
 							analytics.track(

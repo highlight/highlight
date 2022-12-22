@@ -40,10 +40,10 @@ const LinearTeamSelector: React.FC<ContainerSelectionProps> = ({
 	}, [selectedlinearTeamId, linearTeamsOptions, setLinearTeamId])
 
 	return (
-		<Form.Item label={`Linear Team`}>
+		<Form.Item label="Linear Team">
 			<Select
-				aria-label={`Linear Team`}
-				placeholder={`Choose a team to create the issue in`}
+				aria-label="Linear Team"
+				placeholder="Choose a team to create the issue in"
 				options={linearTeamsOptions}
 				onChange={setLinearTeamId}
 				value={selectedlinearTeamId}

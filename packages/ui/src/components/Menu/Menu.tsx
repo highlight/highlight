@@ -68,7 +68,7 @@ const List: React.FC<
 	const menu = useMenu()
 
 	return (
-		<AriakitMenu state={menu} className={clsx([styles.menuList, cssClass])}>
+		<AriakitMenu state={menu} className={clsx(styles.menuList, cssClass)}>
 			{children}
 		</AriakitMenu>
 	)

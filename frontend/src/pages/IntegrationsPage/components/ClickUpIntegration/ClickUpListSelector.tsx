@@ -9,7 +9,6 @@ import { useEffect, useMemo } from 'react'
 const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
 }) => {
-	console.log('zane rendered!!')
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data, loading } = useGetClickUpFoldersQuery({
 		variables: { project_id },
