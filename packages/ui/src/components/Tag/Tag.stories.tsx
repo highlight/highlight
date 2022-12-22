@@ -1,11 +1,12 @@
 import { Tag } from './Tag'
+import { Variants } from './styles.css'
 import type { ComponentMeta } from '@storybook/react'
 import React from 'react'
 import {
-	IconArrowsExpand,
 	IconArrowSmDown,
-	IconChartBar,
+	IconCaretDown,
 	IconCog,
+	IconCreateFile,
 } from '../icons'
 import { Box } from '../Box/Box'
 
@@ -14,68 +15,67 @@ export default {
 	component: Tag,
 } as ComponentMeta<typeof Tag>
 
-export const Sizes = () => {
-	return (
-		<Box
-			alignItems="flex-start"
-			display="flex"
-			flexDirection="column"
-			gap="16"
-		>
-			<Tag size="small">Small</Tag>
-			<Tag size="medium">Medium</Tag>
-			<Tag size="large">Large</Tag>
-			<Tag shape="basic" size="small">
-				Small
-			</Tag>
-			<Tag shape="basic" size="medium">
-				Medium
-			</Tag>
-			<Tag shape="basic" size="large">
-				Large
-			</Tag>
-		</Box>
-	)
-}
+export const TagVariants = () => {
+	const emphasis: Variants['emphasis'][] = ['high', 'medium', 'low']
+	const kind: Variants['kind'][] = ['primary', 'secondary']
+	const shape: Variants['shape'][] = ['basic', 'rounded']
+	const size: Variants['size'][] = ['small', 'medium', 'large']
 
-export const kinds = () => {
 	return (
-		<Box
-			alignItems="flex-start"
-			display="flex"
-			flexDirection="column"
-			gap="16"
-		>
-			<Tag kind="primary">Primary</Tag>
-			<Tag kind="white">White</Tag>
-			<Tag kind="grey">Grey</Tag>
-		</Box>
-	)
-}
+		<Box display="flex" gap="12" flexDirection="column">
+			{kind.map(($kind, idx) => (
+				<Box key={idx} display="flex" gap="6" flexDirection="column">
+					{emphasis.map(($emphasis, jdx) => (
+						<Box
+							display="flex"
+							alignItems="center"
+							gap="4"
+							key={`emp-${idx}-${jdx}`}
+						>
+							{size.map(($size, kdx) => (
+								<Box key={kdx} my="12">
+									{shape.map(($shape, sdx) => (
+										<Tag
+											icon={
+												jdx % emphasis.length !== 0 ? (
+													<IconCaretDown />
+												) : null
+											}
+											iconRight={
+												jdx % emphasis.length === 0 ? (
+													<IconCreateFile />
+												) : null
+											}
+											size={$size}
+											kind={$kind}
+											emphasis={$emphasis}
+											key={`b-${idx}-${jdx}-${kdx}-${sdx}`}
+										>
+											k:{$kind}|e:{$emphasis}|s:{$size}|s:
+											{$shape}
+										</Tag>
+									))}
 
-export const Icons = () => {
-	return (
-		<Box
-			alignItems="flex-start"
-			display="flex"
-			flexDirection="column"
-			gap="16"
-		>
-			<Tag size="large" icon={<IconCog />} />
-			<Tag size="large" kind="primary" iconLeft={<IconArrowSmDown />}>
-				Primary
-			</Tag>
-			<Tag size="large" kind="white" iconRight={<IconArrowsExpand />}>
-				White
-			</Tag>
-			<Tag
-				size="large"
-				kind="grey"
-				iconLeft={<IconCog />}
-				iconRight={<IconChartBar />}
-			>
-				Grey
-			</Tag>
+									<Tag
+										kind={$kind}
+										emphasis={$emphasis}
+										key={`b-${idx}-${jdx}-d`}
+										size={$size}
+										iconLeft={
+											jdx % emphasis.length !== 0 ? (
+												<IconCaretDown />
+											) : null
+										}
+										disabled
+									>
+										{$emphasis}|{$kind}|{$size}|disabled
+									</Tag>
+								</Box>
+							))}
+						</Box>
+					))}
+				</Box>
+			))}
 		</Box>
 	)
 }

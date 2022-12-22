@@ -4,9 +4,9 @@ import { recipe } from '@vanilla-extract/recipes'
 
 export const collapsibleContent = recipe({
 	base: {
-		borderRight: vars.border.neutral,
-		borderBottom: vars.border.neutral,
-		borderLeft: vars.border.neutral,
+		borderRight: vars.border.secondary,
+		borderBottom: vars.border.secondary,
+		borderLeft: vars.border.secondary,
 		margin: 0,
 	},
 

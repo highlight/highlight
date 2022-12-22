@@ -54,7 +54,7 @@ const ErrorFeedHistogram = React.memo(() => {
 		histogram.seriesList = [
 			{
 				label: 'errors',
-				color: 'neutralN9',
+				color: 'n9',
 				counts: data?.errors_histogram.error_objects,
 			},
 		]

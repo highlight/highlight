@@ -27,7 +27,7 @@ export const Callout: React.FC<Props> = ({
 
 	return (
 		<Box
-			border="neutral"
+			border="secondary"
 			borderRadius="8"
 			display="flex"
 			gap="8"

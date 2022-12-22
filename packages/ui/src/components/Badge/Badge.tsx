@@ -31,16 +31,16 @@ export const Badge: React.FC<Props> = ({
 			textColor = 'white'
 			break
 		case 'grey':
-			textColor = 'neutral500'
+			textColor = 'n11'
 			break
 		case 'outlineGrey':
-			textColor = 'neutral500'
+			textColor = 'n11'
 			break
 		case 'white':
-			textColor = 'neutralN11'
+			textColor = 'n11'
 			break
 		default:
-			textColor = 'neutralN11'
+			textColor = 'n11'
 	}
 
 	return (

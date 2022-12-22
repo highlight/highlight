@@ -10,7 +10,7 @@ export default {
 } as ComponentMeta<typeof Stack>
 
 const Content: React.FC<React.PropsWithChildren> = ({ children }) => (
-	<Box background="neutral100" p="16">
+	<Box background="n2" p="16">
 		{children}
 	</Box>
 )
