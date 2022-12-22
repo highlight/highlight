@@ -10,11 +10,11 @@ export default {
 
 export const Basic = () => (
 	<Box
-		background="purple700"
+		background="p7"
 		color="white"
 		padding="24"
 		borderRadius="6"
-		border="neutralLarge"
+		border="primary"
 	>
 		Hello! 👋
 	</Box>

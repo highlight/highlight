@@ -7,6 +7,7 @@
 	"types": "./src/index.ts",
 	"scripts": {
 		"build": "vite build",
+		"tokens:generate": "npx ts-node-esm ./scripts/generate-tokens.ts",
 		"docs:dev": "start-storybook -p 6006 --no-manager-cache",
 		"docs:build": "build-storybook",
 		"g": "hygen",
@@ -19,6 +20,7 @@
 		"@vanilla-extract/sprinkles": "^1.5.0",
 		"ariakit": "^2.0.0-next.41",
 		"clsx": "^1.2.1",
+		"lodash": "^4.17.21",
 		"react": "^18.2.0"
 	},
 	"devDependencies": {

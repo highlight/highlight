@@ -14,7 +14,7 @@ export const UnstructuredStackTrace: React.FC<Props> = ({
 	const content = parseOptionalJSON(stackTrace)
 
 	return (
-		<Box border="neutral" p="12" borderRadius="5">
+		<Box border="secondary" p="12" borderRadius="5">
 			{typeof content === 'object' ? (
 				<JsonViewer src={content} collapsed={2} />
 			) : (

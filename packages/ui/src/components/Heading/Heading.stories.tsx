@@ -24,7 +24,7 @@ export const Levels = () => (
 
 export const Clamping = () => (
 	<div style={{ maxWidth: 600 }}>
-		<Box p="24" background="neutral100" borderRadius="6" mb="24">
+		<Box p="24" background="n2" borderRadius="6" mb="24">
 			<Text>1 Line</Text>
 			<br />
 			<Heading lines="1">
@@ -35,7 +35,7 @@ export const Clamping = () => (
 			</Heading>
 		</Box>
 
-		<Box p="24" background="neutral100" borderRadius="6" mb="24">
+		<Box p="24" background="n2" borderRadius="6" mb="24">
 			<Text>2 Lines</Text>
 			<br />
 			<Heading lines="2">
@@ -46,7 +46,7 @@ export const Clamping = () => (
 			</Heading>
 		</Box>
 
-		<Box p="24" background="neutral100" borderRadius="6" mb="24">
+		<Box p="24" background="n2" borderRadius="6" mb="24">
 			<Text>None</Text>
 			<br />
 			<Heading>

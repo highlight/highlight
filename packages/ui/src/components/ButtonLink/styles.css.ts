@@ -5,13 +5,13 @@ export const button = style({
 	background: 'transparent',
 	border: 0,
 	padding: 0,
-	color: vars.color.purple500,
+	color: vars.theme.interactive.fill.primary.enabled,
 	selectors: {
-		'&:hover, &:focus': {
-			color: vars.color.purple900,
+		'&:hover': {
+			color: vars.theme.interactive.fill.primary.hover,
 		},
 		'&:active': {
-			color: vars.color.purple700,
+			color: vars.theme.interactive.fill.primary.pressed,
 		},
 	},
 })

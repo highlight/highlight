@@ -36,7 +36,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 				<Box
 					backgroundColor="white"
 					borderRadius="6"
-					border="neutral"
+					border="secondary"
 					overflow="scroll"
 					boxShadow="small"
 					overflowX="hidden"
@@ -44,12 +44,12 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 				>
 					<Box
 						padding="8"
-						borderBottom="neutral"
+						borderBottom="secondary"
 						gap="8"
 						display="flex"
 						alignItems="center"
 					>
-						<IconGlobeAlt size={16} color={colors.neutralN9} />
+						<IconGlobeAlt size={16} color={colors.n9} />
 						<Box>
 							<Box
 								style={{ height: 20 }}
@@ -59,7 +59,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 								<Text
 									size="small"
 									weight="medium"
-									color="neutralN11"
+									color="n11"
 									userSelect="none"
 								>
 									Web
@@ -73,7 +73,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 								<Text
 									size="xxSmall"
 									weight="regular"
-									color="neutralN10"
+									color="n10"
 									userSelect="none"
 								>
 									Allow anyone with the link to view this
@@ -93,7 +93,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 					>
 						<Tag
 							shape="basic"
-							kind="grey"
+							kind="secondary"
 							size="medium"
 							iconLeft={<IconLink size={12} />}
 							onClick={() => {
@@ -107,7 +107,8 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 						</Tag>
 						<Tag
 							shape="basic"
-							kind="transparent"
+							kind="secondary"
+							emphasis="low"
 							size="medium"
 							iconLeft={<IconQuestionMarkCircle size={12} />}
 							onClick={() => {

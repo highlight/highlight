@@ -3,10 +3,10 @@ import { style } from '@vanilla-extract/css'
 
 export const linkStyle = style({
 	textDecoration: 'none',
-	color: vars.color.neutral800,
+	color: vars.theme.interactive.fill.secondary.content.text,
 	selectors: {
 		'&:hover': {
-			color: vars.color.neutral800,
+			color: vars.theme.interactive.fill.secondary.content.text,
 		},
 	},
 })

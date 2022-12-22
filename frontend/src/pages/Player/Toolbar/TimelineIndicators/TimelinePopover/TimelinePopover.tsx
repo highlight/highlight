@@ -135,8 +135,8 @@ const TimelinePopover = ({ bucket }: Props) => {
 				)}
 			</div>
 			{!!selectedType ? (
-				<Box cssClass={style.infoPanel} background="neutral50">
-					<Text color="neutral500" size="xxSmall">
+				<Box cssClass={style.infoPanel} background="n2">
+					<Text color="n11" size="xxSmall">
 						{selectedTypeName}
 					</Text>
 					<div
@@ -145,7 +145,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 							style.infoPanelCounter,
 						)}
 					>
-						<Text color="neutral500" size="xxSmall">
+						<Text color="n11" size="xxSmall">
 							{selectedCount}
 						</Text>
 					</div>

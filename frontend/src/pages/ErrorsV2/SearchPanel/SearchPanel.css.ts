@@ -35,11 +35,11 @@ export const content = style({
 	height: '100%',
 	selectors: {
 		'&::-webkit-scrollbar': {
-			backgroundColor: colors.neutral50,
+			backgroundColor: colors.n2,
 			width: ERROR_FEED_SCROLLBAR_WIDTH,
 		},
 		'&::-webkit-scrollbar-thumb': {
-			backgroundColor: colors.neutral100,
+			backgroundColor: colors.n4,
 		},
 	},
 })

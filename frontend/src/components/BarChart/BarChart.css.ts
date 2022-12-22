@@ -9,14 +9,14 @@ export const barDiv = style({
 })
 
 export const bar = style({
-	backgroundColor: colors.neutralN9,
+	backgroundColor: colors.n9,
 	borderRadius: 4,
 	height: 0,
 	width: '100%',
 })
 
 export const barSelected = style({
-	backgroundColor: colors.purpleP9,
+	backgroundColor: colors.p9,
 })
 
 export const barChartWrapper = style({

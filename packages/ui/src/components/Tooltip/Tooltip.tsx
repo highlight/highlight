@@ -37,7 +37,7 @@ const TooltipRenderer: React.FC<React.PropsWithChildren> = ({ children }) => {
 	return (
 		<Box
 			backgroundColor="white"
-			border="neutral"
+			border="secondary"
 			p="4"
 			borderRadius="6"
 			shadow="small"

@@ -7,9 +7,10 @@ export const shadows = {
 	primary: 'inset 0px -1px 0px rgba(0, 0, 0, 0.32)',
 } as const
 
+export const defaultEmphasis = 'high'
+export const defaultKind = 'primary'
 export const defaultShape = 'rounded'
 export const defaultSize = 'medium'
-export const defaultKind = 'primary'
 
 export const iconVariants = recipe({
 	base: {
@@ -25,56 +26,10 @@ export const iconVariants = recipe({
 			medium: { height: 12, width: 12 },
 			large: { height: 16, width: 16 },
 		},
-		kind: {
-			transparent: {
-				color: vars.color.neutral500,
-				selectors: {
-					'&:hover': {
-						color: vars.color.neutral700,
-					},
-					'&:focus, &:active': {
-						color: vars.color.neutral500,
-					},
-				},
-			},
-			primary: {
-				color: vars.color.purple100,
-				selectors: {
-					'&:hover': {
-						color: vars.color.white,
-					},
-					'&:focus, &:active': {
-						color: vars.color.purple100,
-					},
-				},
-			},
-			white: {
-				color: vars.color.neutral500,
-				selectors: {
-					'&:hover': {
-						color: vars.color.neutral700,
-					},
-					'&:focus, &:active': {
-						color: vars.color.neutral500,
-					},
-				},
-			},
-			grey: {
-				color: vars.color.neutral500,
-				selectors: {
-					'&:hover': {
-						color: vars.color.neutral700,
-					},
-					'&:focus, &:active': {
-						color: vars.color.neutral500,
-					},
-				},
-			},
-		},
 	},
+
 	defaultVariants: {
 		size: defaultSize,
-		kind: defaultKind,
 	},
 })
 
@@ -92,12 +47,14 @@ export const variants = recipe({
 		{
 			selectors: {
 				'&:disabled, &:disabled:hover, &:disabled:focus': {
-					backgroundColor: vars.color.neutral50,
+					backgroundColor:
+						vars.theme.interactive.overlay.secondary.disabled,
 					border: 0,
 					boxShadow: 'none',
-					color: vars.color.neutral300,
+					color: vars.theme.interactive.fill.secondary.content
+						.onDisabled,
 				},
-				'&:focus, &:active': {
+				'&:active': {
 					boxShadow: 'none',
 					outline: 'none',
 					border: 0,
@@ -110,64 +67,18 @@ export const variants = recipe({
 	],
 
 	variants: {
+		emphasis: {
+			low: {},
+			medium: {},
+			high: {},
+		},
+		kind: {
+			primary: {},
+			secondary: {},
+		},
 		shape: {
 			rounded: {},
 			basic: {},
-		},
-		kind: {
-			transparent: {
-				background: 'none',
-				color: vars.color.neutral700,
-				boxShadow: 'none',
-				selectors: {
-					'&:hover': {
-						background: vars.color.neutral100,
-						boxShadow: shadows.grey,
-					},
-					'&:focus, &:active': {
-						background: vars.color.neutral200,
-					},
-				},
-			},
-			primary: {
-				background: vars.color.purple500,
-				color: vars.color.white,
-				boxShadow: shadows.primary,
-				selectors: {
-					'&:hover': {
-						background: vars.color.purple700,
-					},
-					'&:focus, &:active': {
-						boxShadow: 'none',
-					},
-				},
-			},
-			white: {
-				background: vars.color.white,
-				border: `1px solid ${vars.color.neutral200}`,
-				color: vars.color.neutral800,
-				selectors: {
-					'&:hover': {
-						background: vars.color.neutral50,
-					},
-					'&:focus, &:active': {
-						border: `1px solid ${vars.color.neutral300}`,
-					},
-				},
-			},
-			grey: {
-				background: vars.color.neutral100,
-				color: vars.color.neutral800,
-				boxShadow: shadows.grey,
-				selectors: {
-					'&:hover': {
-						background: vars.color.neutral200,
-					},
-					'&:focus, &:active': {
-						boxShadow: 'none',
-					},
-				},
-			},
 		},
 		size: {
 			small: { height: 16 },
@@ -177,6 +88,172 @@ export const variants = recipe({
 	},
 
 	compoundVariants: [
+		{
+			variants: {
+				kind: 'primary',
+				emphasis: 'high',
+			},
+			style: {
+				backgroundColor: vars.theme.interactive.fill.primary.enabled,
+				boxShadow: shadows.primary,
+				color: vars.theme.interactive.fill.primary.content.onEnabled,
+				selectors: {
+					'&:hover': {
+						backgroundColor:
+							vars.theme.interactive.fill.primary.hover,
+					},
+					'&:active': {
+						backgroundColor:
+							vars.theme.interactive.fill.primary.pressed,
+						boxShadow: 'none',
+					},
+					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+						backgroundColor:
+							vars.theme.interactive.fill.primary.disabled,
+						color: vars.theme.interactive.fill.primary.disabled,
+						boxShadow: 'none',
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				kind: 'primary',
+				emphasis: 'medium',
+			},
+			style: {
+				backgroundColor: vars.theme.interactive.overlay.primary.enabled,
+				border: vars.border.primary,
+				boxShadow: 'none',
+				color: vars.theme.interactive.fill.primary.content.text,
+				selectors: {
+					'&:hover': {
+						backgroundColor:
+							vars.theme.interactive.overlay.primary.hover,
+						border: vars.border.primaryHover,
+					},
+					'&:active': {
+						backgroundColor:
+							vars.theme.interactive.overlay.primary.pressed,
+						border: vars.border.primaryPressed,
+					},
+					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+						border: vars.border.primaryDisabled,
+						color: vars.theme.interactive.fill.primary.content
+							.onDisabled,
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				kind: 'primary',
+				emphasis: 'low',
+			},
+			style: {
+				backgroundColor: vars.theme.interactive.overlay.primary.enabled,
+				border: vars.border.none,
+				boxShadow: 'none',
+				color: vars.theme.interactive.fill.primary.content.text,
+				selectors: {
+					'&:hover': {
+						backgroundColor:
+							vars.theme.interactive.overlay.primary.hover,
+					},
+					'&:active': {
+						backgroundColor:
+							vars.theme.interactive.overlay.primary.pressed,
+					},
+					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+						color: vars.theme.interactive.fill.primary.content
+							.onDisabled,
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				kind: 'secondary',
+				emphasis: 'high',
+			},
+			style: {
+				backgroundColor: vars.theme.interactive.fill.secondary.enabled,
+				boxShadow: shadows.grey,
+				color: vars.theme.interactive.fill.secondary.content.onEnabled,
+				selectors: {
+					'&:hover': {
+						backgroundColor:
+							vars.theme.interactive.fill.secondary.hover,
+					},
+					'&:active': {
+						backgroundColor:
+							vars.theme.interactive.fill.secondary.pressed,
+						boxShadow: 'none',
+					},
+					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+						backgroundColor:
+							vars.theme.interactive.fill.secondary.disabled,
+						color: vars.theme.interactive.fill.secondary.content
+							.onDisabled,
+						boxShadow: 'none',
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				kind: 'secondary',
+				emphasis: 'medium',
+			},
+			style: {
+				backgroundColor: vars.theme.static.surface.default,
+				border: vars.border.secondary,
+				boxShadow: 'none',
+				color: vars.theme.interactive.fill.secondary.content.text,
+				selectors: {
+					'&:hover': {
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.hover,
+						border: vars.border.secondaryHover,
+					},
+					'&:active': {
+						border: vars.border.secondaryPressed,
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.pressed,
+					},
+					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.disabled,
+						border: vars.border.secondaryDisabled,
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				kind: 'secondary',
+				emphasis: 'low',
+			},
+			style: {
+				backgroundColor:
+					vars.theme.interactive.overlay.secondary.enabled,
+				color: vars.theme.interactive.fill.secondary.content.text,
+				selectors: {
+					'&:hover': {
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.hover,
+					},
+					'&:active': {
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.pressed,
+					},
+					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+						backgroundColor:
+							vars.theme.interactive.overlay.secondary.disabled,
+					},
+				},
+			},
+		},
 		{
 			variants: {
 				size: 'small',
@@ -232,7 +309,9 @@ export const variants = recipe({
 			],
 		},
 	],
+
 	defaultVariants: {
+		emphasis: defaultEmphasis,
 		kind: defaultKind,
 		size: defaultSize,
 		shape: defaultShape,
