@@ -87,11 +87,12 @@ const objectKeysToCamelCase = (obj: any) => {
 	}, {})
 }
 
-const hexToRgb = (hex) => {
-	const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+const hexToRgb = (hex: string) => {
+	hex = hex.replace('#', '')
 
-	return `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(
-		result[3],
-		16,
-	)}`
+	const r = parseInt(hex.substring(0, 2), 16)
+	const g = parseInt(hex.substring(2, 4), 16)
+	const b = parseInt(hex.substring(4, 6), 16)
+
+	return `${r}, ${g}, ${b}`
 }
