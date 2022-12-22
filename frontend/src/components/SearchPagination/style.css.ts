@@ -17,10 +17,10 @@ export const rightBorder = style({
 })
 
 export const selected = style({
-	background: vars.color.n2,
+	background: vars.theme.interactive.fill.secondary.hover,
 	selectors: {
 		'&:focus, &:active': {
-			background: vars.color.n2,
+			background: vars.theme.interactive.fill.secondary.pressed,
 		},
 	},
 })
