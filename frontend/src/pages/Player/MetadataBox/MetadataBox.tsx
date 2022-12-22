@@ -366,7 +366,11 @@ export const UserDetailsBox = ({
 					Email: data?.enhanced_user_details?.email,
 					Bio: data?.enhanced_user_details?.bio,
 					Socials: (
-						<Box display="flex" gap="8">
+						<Box
+							display="flex"
+							gap="8"
+							style={{ overflowY: 'hidden', overflowX: 'auto' }}
+						>
 							{data?.enhanced_user_details?.socials?.map(
 								(e: any) =>
 									e && (
@@ -400,7 +404,12 @@ const SocialComponent = ({
 	disabled?: boolean
 }) => {
 	const inner = (
-		<>
+		<Box
+			display="inline-flex"
+			gap="4"
+			alignItems="center"
+			style={{ height: 14 }}
+		>
 			{socialLink?.type === SocialType.Github ? (
 				<FaGithubSquare />
 			) : socialLink?.type === SocialType.Facebook ? (
@@ -414,8 +423,10 @@ const SocialComponent = ({
 			) : (
 				<></>
 			)}
-			<p className={styles.enhancedSocialText}>{socialLink.type}</p>
-		</>
+			<Text size="xSmall" cssClass={clsx(style.secondaryText)}>
+				{socialLink.type}
+			</Text>
+		</Box>
 	)
 	if (disabled) {
 		return <span className={styles.enhancedSocial}>{inner}</span>
