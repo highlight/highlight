@@ -206,6 +206,7 @@ export const variants = recipe({
 				emphasis: 'medium',
 			},
 			style: {
+				backgroundColor: vars.theme.static.surface.default,
 				border: vars.border.secondary,
 				boxShadow: 'none',
 				color: vars.theme.interactive.fill.secondary.content.text,

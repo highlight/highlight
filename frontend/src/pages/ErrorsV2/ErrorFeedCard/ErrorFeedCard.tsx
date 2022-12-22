@@ -83,6 +83,11 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 										? 'primary'
 										: 'secondary'
 								}
+								emphasis={
+									errorGroup?.state === ErrorState.Open
+										? 'medium'
+										: 'high'
+								}
 							>
 								<Text transform="capitalize">
 									{errorGroup?.state.toLowerCase()}
