@@ -16,20 +16,22 @@ const Content: React.FC<{
 	icon?: CalloutProps['icon']
 }> = ({ kind, icon }) => {
 	return (
-		<Callout title="Only see one app version?" kind={kind} icon={icon}>
-			<Box gap="16" display="flex" flexDirection="column">
-				<Text>
-					Are there sourcemaps tied to your javascript code? If yes,
-					you can upload them to Highlight in CI/CD to get enhanced
-					stack traces.
-				</Text>
+		<Box mb="24">
+			<Callout title="Only see one app version?" kind={kind} icon={icon}>
+				<Box gap="16" display="flex" flexDirection="column">
+					<Text>
+						Are there sourcemaps tied to your javascript code? If
+						yes, you can upload them to Highlight in CI/CD to get
+						enhanced stack traces.
+					</Text>
 
-				<Box display="flex" gap="8">
-					<Button kind="primary">Sourcemap settings</Button>
-					<Button kind="secondary">Learn more</Button>
+					<Box display="flex" gap="8">
+						<Button kind="primary">Sourcemap settings</Button>
+						<Button kind="secondary">Learn more</Button>
+					</Box>
 				</Box>
-			</Box>
-		</Callout>
+			</Callout>
+		</Box>
 	)
 }
 

@@ -15,10 +15,11 @@ export const EmptySearchResults = ({ kind }: Props) => {
 	const { admin } = useAuthContext()
 
 	return (
-		<Callout title={`Couldn't find any relevant ${kind}`}>
-			<Text>
+		<Callout title={`Couldn't find any relevant ${kind}`} icon={false}>
+			<Text color="moderate">
 				If you think something's wrong, feel free to reach out to us!
 			</Text>
+
 			<Stack direction="row" gap="8">
 				<Button
 					kind="secondary"
@@ -26,6 +27,7 @@ export const EmptySearchResults = ({ kind }: Props) => {
 				>
 					Contact
 				</Button>
+
 				<Button
 					kind="secondary"
 					emphasis="low"
