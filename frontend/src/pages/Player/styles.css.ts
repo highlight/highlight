@@ -15,7 +15,7 @@ export const PLAYER_PADDING_X = 64
 export const PLAYER_PADDING_Y = 64
 
 export const playerWrapperV2 = style({
-	borderTop: `solid 1px ${colors.neutralN6}`,
+	borderTop: `solid 1px ${colors.n6}`,
 	display: 'flex',
 	flexDirection: 'column',
 	flexGrow: 1,
@@ -26,7 +26,7 @@ export const playerCenterPanel = style({
 	flexDirection: 'column',
 	height: '100%',
 	position: 'relative',
-	background: colors.neutralN1,
+	background: colors.n1,
 })
 
 export const playerContainer = style({
@@ -38,7 +38,7 @@ export const playerContainer = style({
 })
 
 export const rrwebPlayerSection = style({
-	border: `1px solid ${colors.neutralN6}`,
+	border: `1px solid ${colors.n6}`,
 	borderRadius: 6,
 	boxShadow: shadows.medium,
 	overflow: 'clip',
@@ -59,7 +59,7 @@ export const rrwebPlayerWrapper = style({
 })
 
 export const rrwebInnerWrapper = style({
-	border: `4px solid ${colors.neutralN6}`,
+	border: `4px solid ${colors.n6}`,
 	borderRadius: 8,
 })
 
@@ -74,8 +74,8 @@ export const playerCenterColumn = style({
 })
 
 export const playerLeftPanel = style({
-	backgroundColor: colors.neutralN1,
-	borderRight: `1px solid ${colors.neutralN6}`,
+	backgroundColor: colors.n1,
+	borderRight: `1px solid ${colors.n6}`,
 	height: '100%',
 	padding: 0,
 	position: 'relative',

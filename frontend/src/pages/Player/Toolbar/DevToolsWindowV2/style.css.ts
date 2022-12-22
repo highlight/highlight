@@ -1,4 +1,5 @@
 import { colors } from '@highlight-run/ui/src/css/colors'
+import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 
@@ -14,7 +15,7 @@ export const devToolsWindowV2 = style({
 export const controlBarButton = style({
 	backgroundColor: 'white',
 	boxShadow: 'none',
-	color: colors.neutralN11,
+	color: colors.n11,
 })
 
 export const switchInverted = style({
@@ -26,8 +27,8 @@ export const autoScroll = style({
 })
 
 export const pageWrapper = style({
-	backgroundColor: colors.neutralN1,
-	borderTop: `1px solid ${colors.neutralN6}`,
+	backgroundColor: colors.n1,
+	borderTop: `1px solid ${colors.n6}`,
 	width: '100%',
 	height: '100%',
 	paddingBottom: 8,
@@ -44,17 +45,17 @@ export const controlBarVariants = recipe({
 				background: 'none',
 				boxShadow: 'none',
 				borderRadius: 0,
-				color: colors.neutralN11,
+				color: colors.n11,
 			},
 		},
 	},
 	variants: {
 		selected: {
 			true: {
-				color: colors.purpleP9,
+				color: colors.p9,
 			},
 			false: {
-				color: colors.neutralN11,
+				color: colors.n11,
 			},
 		},
 	},
@@ -66,7 +67,7 @@ export const controlBarVariants = recipe({
 
 export const controlBarBottomVariants = recipe({
 	base: {
-		backgroundColor: colors.neutralN11,
+		backgroundColor: colors.n11,
 		borderRadius: '2px 2px 0px 0px',
 		height: 2,
 		transition: 'background-color 1s ease',
@@ -74,12 +75,13 @@ export const controlBarBottomVariants = recipe({
 	variants: {
 		selected: {
 			true: {
-				backgroundColor: colors.purpleP9,
+				backgroundColor: colors.p9,
 			},
 		},
 		hovered: {
 			true: {
-				backgroundColor: colors.interactiveOutlineSecondaryEnabled,
+				backgroundColor:
+					themeVars.interactive.outline.secondary.enabled,
 			},
 		},
 	},
@@ -87,7 +89,7 @@ export const controlBarBottomVariants = recipe({
 		{
 			variants: { hovered: true, selected: true },
 			style: {
-				backgroundColor: colors.purpleP9,
+				backgroundColor: colors.p9,
 			},
 		},
 	],

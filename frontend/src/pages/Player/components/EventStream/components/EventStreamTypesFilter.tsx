@@ -158,7 +158,7 @@ export const EventStreamTypesFilter = () => {
 				trackingId="SessionEventStreamSettings"
 				small
 				className={styles.filtersButton}
-				style={{ background: colors.neutralN1 }}
+				style={{ background: colors.n1 }}
 			>
 				<SvgFilterIcon />
 				Filters ({activeFiltersCount})

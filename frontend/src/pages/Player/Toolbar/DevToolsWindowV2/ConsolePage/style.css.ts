@@ -25,7 +25,7 @@ export const consoleText = style({
 })
 
 export const consoleRow = style({
-	backgroundColor: colors.neutralN1,
+	backgroundColor: colors.n1,
 	display: 'flex',
 	flexDirection: 'row',
 	justifyContent: 'flex-start',
@@ -33,7 +33,7 @@ export const consoleRow = style({
 	margin: '8px 0',
 	selectors: {
 		'&:focus, &:active, &:hover': {
-			backgroundColor: colors.neutral100,
+			backgroundColor: colors.n5,
 		},
 	},
 })
@@ -41,12 +41,12 @@ export const consoleRow = style({
 export const variants = recipe({
 	variants: {
 		type: {
-			trace: { backgroundColor: colors.blue500 },
+			trace: { backgroundColor: colors.lb700 },
 			info: { backgroundColor: 'rgba(26, 21, 35, 0.72)' },
-			log: { backgroundColor: colors.neutralN11 },
+			log: { backgroundColor: colors.n11 },
 			warn: { backgroundColor: colors.orange500 },
 			error: { backgroundColor: colors.red500 },
-			assert: { backgroundColor: colors.redR9 },
+			assert: { backgroundColor: colors.r9 },
 		},
 	},
 
@@ -64,7 +64,7 @@ export const messageRowVariants = recipe({
 	variants: {
 		current: {
 			true: {
-				backgroundColor: colors.neutralN4,
+				backgroundColor: colors.n4,
 			},
 			false: {},
 		},

@@ -3,7 +3,7 @@ import { style } from '@vanilla-extract/css'
 
 export const playerRightPanelContainer = style({
 	background: colors.white,
-	borderLeft: `1px solid ${colors.neutralN6}`,
+	borderLeft: `1px solid ${colors.n6}`,
 	boxSizing: 'content-box',
 	flexShrink: 0,
 	position: 'relative',

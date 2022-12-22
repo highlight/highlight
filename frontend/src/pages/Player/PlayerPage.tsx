@@ -507,7 +507,7 @@ const PlayerPage = ({ integrated }: Props) => {
 										height="full"
 										display="flex"
 										justifyContent="center"
-										borderTop="neutral"
+										borderTop="secondary"
 									>
 										<NoActiveSessionCard />
 									</Box>

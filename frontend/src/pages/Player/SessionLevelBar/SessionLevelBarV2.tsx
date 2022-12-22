@@ -153,10 +153,7 @@ export const SessionLevelBarV2: React.FC<
 							shape="square"
 							emphasis="medium"
 							icon={
-								<IconExitRight
-									size={14}
-									color={colors.neutralN11}
-								/>
+								<IconExitRight size={14} color={colors.n11} />
 							}
 							onClick={() => setShowLeftPanel(true)}
 							className={styles.openLeftPanelButton}
@@ -178,10 +175,7 @@ export const SessionLevelBarV2: React.FC<
 							shape="square"
 							emphasis="low"
 							icon={
-								<IconChevronUp
-									size={14}
-									color={colors.neutralN11}
-								/>
+								<IconChevronUp size={14} color={colors.n11} />
 							}
 							title="k"
 							cssClass={styles.sessionSwitchButton}
@@ -195,17 +189,14 @@ export const SessionLevelBarV2: React.FC<
 							}}
 							disabled={!canMoveBackward}
 						/>
-						<Box as="span" borderRight="neutral" />
+						<Box as="span" borderRight="secondary" />
 						<ButtonIcon
 							kind="secondary"
 							size="small"
 							shape="square"
 							emphasis="low"
 							icon={
-								<IconChevronDown
-									size={14}
-									color={colors.neutralN11}
-								/>
+								<IconChevronDown size={14} color={colors.n11} />
 							}
 							title="j"
 							cssClass={styles.sessionSwitchButton}
@@ -241,33 +232,25 @@ export const SessionLevelBarV2: React.FC<
 								}
 							}}
 						>
-							<IconDocumentDuplicate color={colors.neutralN9} />
+							<IconDocumentDuplicate color={colors.n9} />
 						</Box>
 					)}
 				</Box>
 				{session && (
 					<Box className={styles.rightButtons}>
 						<Box display="flex" align="center" gap="2">
-							<IconTemplate color={colors.neutralN9} />
-							<Text
-								size="medium"
-								color="neutralN11"
-								userSelect="none"
-							>
+							<IconTemplate color={colors.n9} />
+							<Text size="medium" color="n11" userSelect="none">
 								{viewport?.width} x {viewport?.height}
 							</Text>
 						</Box>
 						<Box display="flex" align="center" gap="2">
 							{session?.enable_strict_privacy ? (
-								<IconLockClosed color={colors.neutralN9} />
+								<IconLockClosed color={colors.n9} />
 							) : (
-								<IconLockOpened color={colors.neutralN9} />
+								<IconLockOpened color={colors.n9} />
 							)}
-							<Text
-								size="medium"
-								color="neutralN11"
-								userSelect="none"
-							>
+							<Text size="medium" color="n11" userSelect="none">
 								Privacy{' '}
 								{session?.enable_strict_privacy ? 'on' : 'off'}
 							</Text>
@@ -277,10 +260,7 @@ export const SessionLevelBarV2: React.FC<
 							<ExplanatoryPopover
 								content={
 									<>
-										<Text
-											userSelect="none"
-											color="neutral500"
-										>
+										<Text userSelect="none" color="n11">
 											Comments
 										</Text>
 									</>

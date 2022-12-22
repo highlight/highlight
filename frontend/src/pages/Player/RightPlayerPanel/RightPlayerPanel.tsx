@@ -95,9 +95,7 @@ const RightPlayerPanelTabs = React.memo(() => {
 					page: <EventStream />,
 					icon: (
 						<IconFire
-							color={
-								tab === Tab.Events ? colors.purpleP9 : undefined
-							}
+							color={tab === Tab.Events ? colors.p9 : undefined}
 						/>
 					),
 				},
@@ -111,11 +109,7 @@ const RightPlayerPanelTabs = React.memo(() => {
 					),
 					icon: (
 						<IconChatAlt2
-							color={
-								tab === Tab.Threads
-									? colors.purpleP9
-									: undefined
-							}
+							color={tab === Tab.Threads ? colors.p9 : undefined}
 						/>
 					),
 					badge: (
@@ -140,11 +134,7 @@ const RightPlayerPanelTabs = React.memo(() => {
 					page: <MetadataPanel />,
 					icon: (
 						<IconHashtag
-							color={
-								tab === Tab.Metadata
-									? colors.purpleP9
-									: undefined
-							}
+							color={tab === Tab.Metadata ? colors.p9 : undefined}
 						/>
 					),
 				},

@@ -3,7 +3,7 @@ import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 
 export const container = style({
-	background: colors.neutralN1,
+	background: colors.n1,
 	width: '100%',
 	height: '100%',
 })
@@ -33,11 +33,11 @@ export const timingBarWrapper = style({
 })
 
 export const timingBarEmptySection = style({
-	backgroundColor: colors.neutralN6,
+	backgroundColor: colors.n6,
 })
 
 export const timingBar = style({
-	backgroundColor: colors.purple500,
+	backgroundColor: colors.p10,
 	borderRadius: 4,
 	height: '60%',
 })
@@ -49,24 +49,24 @@ export const networkHeader = style({
 	display: 'grid',
 	gridTemplateColumns,
 	gridGap,
-	borderBottom: `1px solid ${colors.neutralN6}`,
+	borderBottom: `1px solid ${colors.n6}`,
 	padding: '12px 14px 10px',
 })
 
 export const networkRowVariants = recipe({
 	base: {
-		backgroundColor: colors.neutralN1,
-		color: colors.neutralN11,
+		backgroundColor: colors.n1,
+		color: colors.n11,
 		display: 'grid',
 		gridTemplateColumns,
 		gridGap,
 		padding: 6,
 		width: '100%',
 		height: 36,
-		borderBottom: `1px solid ${colors.neutralN6}`,
+		borderBottom: `1px solid ${colors.n6}`,
 		selectors: {
 			'&:hover': {
-				backgroundColor: colors.neutralN4,
+				backgroundColor: colors.n4,
 			},
 		},
 	},

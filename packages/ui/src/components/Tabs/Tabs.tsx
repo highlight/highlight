@@ -63,9 +63,7 @@ export const Tabs = function <T extends string>(props: Props<T>) {
 								})}
 							>
 								<Text
-									color={
-										t === tab ? 'purpleP9' : 'neutralN11'
-									}
+									color={t === tab ? 'p9' : 'n11'}
 									cssClass={styles.tabText}
 								>
 									{t}

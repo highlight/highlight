@@ -15,7 +15,7 @@ export const sessionCardTitleText = style({
 })
 
 export const datetimeText = style({
-	color: colors.neutralN11,
+	color: colors.n11,
 })
 
 export const activityGraph = style({
@@ -27,16 +27,16 @@ export const activityGraph = style({
 export const sessionCard = style({
 	selectors: {
 		'&:hover': {
-			background: colors.neutralN4,
+			background: colors.n4,
 		},
 	},
 })
 
 export const sessionCardSelected = style({
-	background: colors.neutralN5,
+	background: colors.n5,
 	selectors: {
 		'&:hover': {
-			backgroundColor: colors.neutralN5,
+			backgroundColor: colors.n5,
 		},
 	},
 })

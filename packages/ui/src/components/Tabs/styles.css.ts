@@ -2,9 +2,10 @@ import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { sprinkles } from '../../css/sprinkles.css'
 import { colors } from '../../css/colors'
 import { style } from '@vanilla-extract/css'
+import { themeVars } from '../../css/theme.css'
 
 export const pageWrapper = style({
-	borderTop: `1px solid ${colors.neutralN6}`,
+	borderTop: `1px solid ${colors.n6}`,
 	width: '100%',
 	height: '100%',
 })
@@ -29,14 +30,14 @@ export const controlBarVariants = recipe({
 				background: 'none',
 				boxShadow: 'none',
 				borderRadius: 0,
-				color: colors.neutralN11,
+				color: colors.n11,
 			},
 		},
 	},
 	variants: {
 		selected: {
 			true: {
-				color: colors.purpleP9,
+				color: colors.p9,
 			},
 			false: {},
 		},
@@ -55,12 +56,13 @@ export const controlBarBottomVariants = recipe({
 	variants: {
 		selected: {
 			true: {
-				backgroundColor: colors.purpleP9,
+				backgroundColor: colors.p9,
 			},
 		},
 		hovered: {
 			true: {
-				backgroundColor: colors.interactiveOutlineSecondaryEnabled,
+				backgroundColor:
+					themeVars.interactive.outline.secondary.enabled,
 			},
 		},
 	},
@@ -68,7 +70,7 @@ export const controlBarBottomVariants = recipe({
 		{
 			variants: { hovered: true, selected: true },
 			style: {
-				backgroundColor: colors.purpleP9,
+				backgroundColor: colors.p9,
 			},
 		},
 	],
@@ -78,7 +80,7 @@ export const variants = recipe({
 	variants: {
 		mode: {
 			light: sprinkles({ background: 'white', color: 'black' }),
-			dark: sprinkles({ background: 'purple900', color: 'white' }),
+			dark: sprinkles({ background: 'p9', color: 'white' }),
 		},
 	},
 

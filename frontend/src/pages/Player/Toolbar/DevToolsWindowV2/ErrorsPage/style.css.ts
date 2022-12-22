@@ -17,9 +17,9 @@ export const errorsBox = style({
 
 export const errorRowVariants = recipe({
 	base: {
-		backgroundColor: colors.neutralN1,
+		backgroundColor: colors.n1,
 		borderRadius: 6,
-		color: colors.neutralN11,
+		color: colors.n11,
 		display: 'grid',
 		gridTemplateColumns: '3fr 1fr auto 100px',
 		gap: 32,
@@ -28,8 +28,8 @@ export const errorRowVariants = recipe({
 		width: '100%',
 		selectors: {
 			'&:hover': {
-				backgroundColor: colors.neutralN4,
-				borderBottom: `1px solid ${colors.neutralN6}`,
+				backgroundColor: colors.n4,
+				borderBottom: `1px solid ${colors.n6}`,
 				boxShadow: shadows.grey,
 				marginBottom: 0,
 			},
@@ -38,8 +38,8 @@ export const errorRowVariants = recipe({
 	variants: {
 		current: {
 			true: {
-				backgroundColor: colors.neutralN4,
-				borderBottom: `1px solid ${colors.neutralN6}`,
+				backgroundColor: colors.n4,
+				borderBottom: `1px solid ${colors.n6}`,
 				boxShadow: shadows.grey,
 				marginBottom: 0,
 			},

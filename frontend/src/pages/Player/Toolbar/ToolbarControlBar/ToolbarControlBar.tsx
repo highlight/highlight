@@ -305,7 +305,7 @@ export const ToolbarControlBar = () => {
 								setPlayerSpeedIdx(playerSpeedIdx + 1)
 							}}
 							disabled={disableControls}
-							style={{ color: colors.neutralN11 }}
+							style={{ color: colors.n11 }}
 						>
 							{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
 						</Tag>

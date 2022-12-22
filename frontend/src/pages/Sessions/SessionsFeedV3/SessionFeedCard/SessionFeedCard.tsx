@@ -103,7 +103,7 @@ export const SessionFeedCard = React.memo(
 							},
 						]}
 					>
-						<Box color="dark" cssClass={style.sessionCardTitle}>
+						<Box color="n11" cssClass={style.sessionCardTitle}>
 							<Box
 								display="inline-flex"
 								gap="6"
@@ -117,7 +117,7 @@ export const SessionFeedCard = React.memo(
 								<Text
 									lines="1"
 									size="small"
-									color="dark"
+									color="black"
 									cssClass={style.sessionCardTitleText}
 								>
 									{getDisplayName(session)}
@@ -125,7 +125,8 @@ export const SessionFeedCard = React.memo(
 								{backfilled && (
 									<Tag
 										shape="basic"
-										kind="transparent"
+										kind="secondary"
+										emphasis="low"
 										size="small"
 										iconLeft={<IconUsers size={12} />}
 									/>
@@ -164,7 +165,8 @@ export const SessionFeedCard = React.memo(
 									{!viewed && (
 										<Tag
 											shape="basic"
-											kind="transparent"
+											kind="secondary"
+											emphasis="low"
 											size="small"
 											iconLeft={<IconEyeOff size={12} />}
 											onClick={() => {
@@ -178,7 +180,8 @@ export const SessionFeedCard = React.memo(
 									{session.first_time && (
 										<Tag
 											shape="basic"
-											kind="transparent"
+											kind="secondary"
+											emphasis="low"
 											size="small"
 											iconLeft={
 												<IconUserCircle size={12} />
@@ -194,7 +197,8 @@ export const SessionFeedCard = React.memo(
 									{session.has_errors && (
 										<Tag
 											shape="basic"
-											kind="transparent"
+											kind="secondary"
+											emphasis="low"
 											size="small"
 											iconLeft={
 												<IconExclamationTriangle
@@ -206,7 +210,8 @@ export const SessionFeedCard = React.memo(
 									{session.has_rage_clicks && (
 										<Tag
 											shape="basic"
-											kind="transparent"
+											kind="secondary"
+											emphasis="low"
 											size="small"
 											iconLeft={
 												<IconCursorClick size={12} />
@@ -215,7 +220,11 @@ export const SessionFeedCard = React.memo(
 									)}
 								</Box>
 								<Box display="flex" gap="4" alignItems="center">
-									<Tag shape="basic" kind="grey" size="small">
+									<Tag
+										shape="basic"
+										kind="secondary"
+										size="small"
+									>
 										<Text
 											lines="1"
 											size="small"

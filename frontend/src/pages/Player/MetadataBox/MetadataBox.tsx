@@ -33,6 +33,7 @@ import { mustUpgradeForClearbit } from '@util/billing/billing'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
 import { message } from 'antd'
+import clsx from 'clsx'
 import React, { useCallback, useEffect } from 'react'
 import {
 	FaExternalLinkSquareAlt,
@@ -130,7 +131,7 @@ export const MetadataBox = React.memo(() => {
 						shape="rounded"
 						customImage={customAvatarImage || enhancedAvatar}
 					/>
-					<Text weight="bold" color="staticContentDefault">
+					<Text weight="bold" cssClass={style.defaultText}>
 						{displayValue}
 					</Text>
 					{backfilled && (
@@ -144,7 +145,10 @@ export const MetadataBox = React.memo(() => {
 								)
 							}}
 						>
-							<Tag kind="grey" cssClass={style.moreSessionsTag}>
+							<Tag
+								kind="secondary"
+								cssClass={style.moreSessionsTag}
+							>
 								<Box display="flex" alignItems="center">
 									<Tooltip
 										placement="leftTop"
@@ -176,7 +180,7 @@ export const MetadataBox = React.memo(() => {
 				</Box>
 			</Box>
 			<Box
-				borderTop="neutral"
+				borderTop="secondary"
 				display="flex"
 				flexDirection="column"
 				padding="8"
@@ -217,14 +221,14 @@ export const MetadataBox = React.memo(() => {
 				<UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
 				<Box display="flex" alignItems="center" py="8">
 					<Tag
-						kind="grey"
+						kind="secondary"
 						size="medium"
 						iconRight={<IconExternalLink />}
 						onClick={searchIdentifier}
 						cssClass={style.moreSessionsTag}
 					>
 						<Box>
-							<Text color="staticContentDefault">
+							<Text cssClass={style.defaultText}>
 								Show more sessions
 							</Text>
 						</Box>
@@ -254,7 +258,6 @@ const TableList = function ({
 						>
 							<Text
 								size="xSmall"
-								color="staticContentWeak"
 								cssClass={style.sessionAttributeText}
 								lines={lines ? lines[k] : undefined}
 							>
@@ -262,8 +265,10 @@ const TableList = function ({
 							</Text>
 							<Text
 								size="xSmall"
-								color="interactiveFillSecondaryContentText"
-								cssClass={style.sessionAttributeText}
+								cssClass={clsx(
+									style.sessionAttributeText,
+									style.secondaryText,
+								)}
 							>
 								{v}
 							</Text>

@@ -1,3 +1,4 @@
+import { vars } from '@highlight-run/ui/src'
 import { style } from '@vanilla-extract/css'
 
 export const avatar = style({
@@ -14,11 +15,20 @@ export const sessionAttributeRow = style({
 
 export const sessionAttributeText = style({
 	alignItems: 'center',
+	color: vars.theme.static.content.weak,
+	height: 20,
 	overflow: 'hidden',
 	textOverflow: 'ellipsis',
 	whiteSpace: 'nowrap',
 	width: '100%',
-	height: 20,
+})
+
+export const defaultText = style({
+	color: vars.theme.static.content.default,
+})
+
+export const secondaryText = style({
+	color: vars.theme.interactive.fill.secondary.content.text,
 })
 
 export const moreSessionsTag = style({

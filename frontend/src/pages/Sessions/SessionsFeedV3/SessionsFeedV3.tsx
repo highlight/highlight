@@ -106,12 +106,12 @@ export const SessionsHistogram: React.FC<SessionsHistogramProps> = React.memo(
 			histogram.seriesList = [
 				{
 					label: 'sessions',
-					color: 'neutralN11',
+					color: 'n11',
 					counts: data?.sessions_histogram.sessions_without_errors,
 				},
 				{
 					label: 'w/errors',
-					color: 'purpleP11',
+					color: 'p11',
 					counts: data?.sessions_histogram.sessions_with_errors,
 				},
 			]
@@ -302,17 +302,17 @@ export const SessionFeedV3 = React.memo(() => {
 				display="flex"
 				flex="fixed"
 				flexDirection="column"
-				borderRight="neutral"
+				borderRight="secondary"
 				position="relative"
 				cssClass={clsx(style.searchPanel, {
 					[style.searchPanelHidden]: !showLeftPanel,
 					[style.searchPanelWithBanner]: showBanner,
 				})}
-				background="neutralN1"
+				background="n2"
 			>
 				<SessionQueryBuilder />
 				{showHistogram && (
-					<Box borderBottom="neutral" paddingBottom="8" px="8">
+					<Box borderBottom="secondary" paddingBottom="8" px="8">
 						<SessionsHistogram
 							projectHasManySessions={projectHasManySessions}
 						/>

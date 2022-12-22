@@ -152,9 +152,7 @@ const DevToolsWindowV2: React.FC<
 														}}
 													>
 														<IconSearch
-															color={
-																colors.neutral300
-															}
+															color={colors.n8}
 															size={16}
 														/>
 													</Box>

@@ -12,17 +12,17 @@ export const sessionLevelBarV2 = style({
 export const invertedCaret = style({
 	transform: 'rotate(180deg)',
 	height: 14,
-	color: colors.neutralN11,
+	color: colors.n11,
 })
 
 export const caret = style({
 	height: 14,
 	paddingRight: 8,
-	color: colors.neutralN11,
+	color: colors.n11,
 })
 
 export const verticalBar = style({
-	borderLeft: `1px solid ${colors.neutralN6}`,
+	borderLeft: `1px solid ${colors.n6}`,
 	height: 16,
 })
 
@@ -60,7 +60,7 @@ export const sessionSwitchButton = style({
 export const rightPanelButtonShown = style({
 	selectors: {
 		'&:focus:enabled, &:active:enabled': {
-			background: colors.neutral100,
+			background: colors.n5,
 			boxShadow: shadows.grey,
 		},
 	},
@@ -70,7 +70,7 @@ export const rightPanelButtonHidden = style({
 	selectors: {
 		'&:focus:enabled, &:active:enabled': {
 			background: 'transparent',
-			color: colors.neutral500,
+			color: colors.n11,
 		},
 	},
 })

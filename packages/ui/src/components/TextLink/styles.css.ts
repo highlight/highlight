@@ -30,15 +30,15 @@ export const variants = recipe({
 		},
 		color: {
 			none: {
-				color: vars.color.neutralN11,
+				color: vars.color.n11,
 				':hover': {
-					color: vars.color.neutralN11,
+					color: vars.color.n11,
 				},
 				':focus': {
-					color: vars.color.neutralN11,
+					color: vars.color.n11,
 				},
 				':active': {
-					color: vars.color.neutralN11,
+					color: vars.color.n11,
 				},
 			},
 			default: {},

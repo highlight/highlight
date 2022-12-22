@@ -1,4 +1,5 @@
 import { colors } from '@highlight-run/ui/src/css/colors'
+import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import React from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import { Area, ComposedChart } from 'recharts'
@@ -7,8 +8,8 @@ const SOURCE_POINTS = 100
 const DESIRED_POINTS = 12
 const SAMPLE_INTERVAL = Math.floor(SOURCE_POINTS / DESIRED_POINTS)
 const GRADIENT_COLOR = `#6C37F4`
-const LINE_COLOR = colors.purpleP9
-const INACTIVE_LINE_COLOR = colors.interactiveOutlineSecondaryEnabled
+const LINE_COLOR = colors.p9
+const INACTIVE_LINE_COLOR = themeVars.interactive.outline.secondary.enabled
 const GRADIENT_ID = `session-activity-graph-v2-colorUv`
 
 interface Props {

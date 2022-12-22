@@ -8,7 +8,7 @@ export const variants = recipe({
 		alignItems: 'center',
 		justifyContent: 'center',
 		backgroundColor: colors.white,
-		border: `1px solid ${colors.neutralN6}`,
+		border: `1px solid ${colors.n6}`,
 		borderRadius: 6,
 		boxShadow: 'none',
 		padding: '2px 4px',
