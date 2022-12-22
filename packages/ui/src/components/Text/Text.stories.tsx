@@ -69,7 +69,7 @@ export const Elements = () => (
 
 export const Clamping = () => (
 	<div style={{ maxWidth: 400 }}>
-		<Box p="24" background="neutral100" borderRadius="6" mb="24">
+		<Box p="24" background="n2" borderRadius="6" mb="24">
 			<Heading level="h3" mb="16">
 				1 Line
 			</Heading>
@@ -81,7 +81,7 @@ export const Clamping = () => (
 				minima. Nobis labore, officia aliquam debitis voluptatem iure?
 			</Text>
 		</Box>
-		<Box p="24" background="neutral100" borderRadius="6" mb="24">
+		<Box p="24" background="n2" borderRadius="6" mb="24">
 			<Heading level="h3" mb="16">
 				2 Lines
 			</Heading>
@@ -93,7 +93,7 @@ export const Clamping = () => (
 				minima. Nobis labore, officia aliquam debitis voluptatem iure?
 			</Text>
 		</Box>
-		<Box p="24" background="neutral100" borderRadius="6" mb="24">
+		<Box p="24" background="n2" borderRadius="6" mb="24">
 			<Heading level="h3" mb="16">
 				3 Lines
 			</Heading>

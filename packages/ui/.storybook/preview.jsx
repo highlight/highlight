@@ -1,3 +1,14 @@
+import React from 'react'
+import { StoryWrapper } from '../src/docs/StoryWrapper'
+
+export const decorators = [
+	(Story) => (
+		<StoryWrapper>
+			<Story />
+		</StoryWrapper>
+	),
+]
+
 export const parameters = {
 	actions: { argTypesRegex: '^on[A-Z].*' },
 	controls: {

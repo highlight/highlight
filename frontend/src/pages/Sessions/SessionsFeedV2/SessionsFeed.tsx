@@ -99,12 +99,12 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 		histogram.seriesList = [
 			{
 				label: 'sessions',
-				color: 'neutralN9',
+				color: 'n9',
 				counts: data?.sessions_histogram.sessions_without_errors,
 			},
 			{
 				label: 'errors',
-				color: 'blueLB100',
+				color: 'lb100',
 				counts: data?.sessions_histogram.sessions_with_errors,
 			},
 		]

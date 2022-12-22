@@ -9,7 +9,7 @@ export const variants = recipe({
 	variants: {
 		mode: {
 			light: sprinkles({ background: 'white', color: 'black' }),
-			dark: sprinkles({ background: 'purple900', color: 'white' }),
+			dark: sprinkles({ background: 'p12', color: 'white' }),
 		},
 	},
 

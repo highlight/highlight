@@ -99,18 +99,18 @@ const SearchPanel = () => {
 			display="flex"
 			flex="fixed"
 			flexDirection="column"
-			borderRight="neutral"
+			borderRight="secondary"
 			position="relative"
 			cssClass={clsx(style.searchPanel, {
 				[style.searchPanelHidden]: !showLeftPanel,
 				[style.searchPanelWithBanner]: showBanner,
 			})}
-			background="neutral50"
+			background="n2"
 		>
 			<ErrorQueryBuilder />
 			{showHistogram && (
 				<Box
-					borderBottom="neutral"
+					borderBottom="secondary"
 					paddingTop="10"
 					paddingBottom="12"
 					px="8"

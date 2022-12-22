@@ -101,7 +101,7 @@ export const Header = () => {
 	return (
 		<>
 			<CommandBar />
-			<Box background="neutral50" borderBottom="neutral">
+			<Box background="n2" borderBottom="secondary">
 				{!!project_id && getBanner(project_id)}
 				<Box
 					display="flex"
@@ -133,8 +133,12 @@ export const Header = () => {
 															currentPage ===
 															p.key
 																? undefined
-																: vars.color
-																		.neutral700
+																: vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
 														}
 													/>
 												}
@@ -160,9 +164,7 @@ export const Header = () => {
 											icon={
 												<IconDotsHorizontal
 													size={14}
-													color={
-														vars.color.neutral500
-													}
+													color={vars.color.n11}
 												/>
 											}
 											emphasis="low"
@@ -182,8 +184,12 @@ export const Header = () => {
 														<IconStackedBarChart
 															size={14}
 															color={
-																vars.color
-																	.neutral300
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
 															}
 														/>
 														Dashboards
@@ -203,8 +209,12 @@ export const Header = () => {
 														<IconViewGridAdd
 															size={14}
 															color={
-																vars.color
-																	.neutral300
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
 															}
 														/>
 														Integrations
@@ -224,8 +234,12 @@ export const Header = () => {
 														<IconDesktopComputer
 															size={14}
 															color={
-																vars.color
-																	.neutral300
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
 															}
 														/>
 														Setup
@@ -287,7 +301,7 @@ export const Header = () => {
 										icon={
 											<IconCog
 												size={14}
-												color={vars.color.neutral500}
+												color={vars.color.n11}
 											/>
 										}
 									/>
@@ -305,8 +319,10 @@ export const Header = () => {
 													<IconOfficeBuilding
 														size={14}
 														color={
-															vars.color
-																.neutral300
+															vars.theme
+																.interactive
+																.fill.secondary
+																.content.text
 														}
 													/>
 													Workspace settings
@@ -326,8 +342,10 @@ export const Header = () => {
 													<IconUserCircle
 														size={14}
 														color={
-															vars.color
-																.neutral300
+															vars.theme
+																.interactive
+																.fill.secondary
+																.content.text
 														}
 													/>
 													Account settings
@@ -348,8 +366,10 @@ export const Header = () => {
 													<IconSwitchHorizontal
 														size={14}
 														color={
-															vars.color
-																.neutral300
+															vars.theme
+																.interactive
+																.fill.secondary
+																.content.text
 														}
 													/>
 													Switch workspace
@@ -369,7 +389,9 @@ export const Header = () => {
 												<IconQuestionMarkCircle
 													size={14}
 													color={
-														vars.color.neutral300
+														vars.theme.interactive
+															.fill.secondary
+															.content.text
 													}
 												/>
 												Feedback
@@ -388,8 +410,10 @@ export const Header = () => {
 													<IconDocumentText
 														size={14}
 														color={
-															vars.color
-																.neutral300
+															vars.theme
+																.interactive
+																.fill.secondary
+																.content.text
 														}
 													/>
 													Documentation
@@ -411,7 +435,9 @@ export const Header = () => {
 												<IconAtSymbol
 													size={14}
 													color={
-														vars.color.neutral300
+														vars.theme.interactive
+															.fill.secondary
+															.content.text
 													}
 												/>
 												Shortcuts

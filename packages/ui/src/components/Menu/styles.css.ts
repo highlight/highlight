@@ -3,11 +3,10 @@ import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
 import { vars } from '../../css/vars'
 import * as buttonStyles from '../Button/styles.css'
 import { typographyStyles } from '../Text/styles.css'
-import { sprinkles } from '../../css/sprinkles.css'
 
 export const menuList = style({
 	backgroundColor: 'white',
-	border: vars.border.neutral,
+	border: vars.border.secondary,
 	borderRadius: vars.borderRadius[4],
 	paddingBottom: vars.space[4],
 	paddingTop: vars.space[4],
@@ -19,6 +18,7 @@ export const menuList = style({
 
 export const menuItemVariants = recipe({
 	base: {
+		color: vars.theme.interactive.fill.secondary.content.text,
 		cursor: 'pointer',
 		padding: vars.space[8],
 		...typographyStyles.size.small,
@@ -28,15 +28,16 @@ export const menuItemVariants = recipe({
 				opacity: '0.5',
 			},
 			'&[data-active-item], &:hover': {
-				backgroundColor: vars.color.neutral100,
+				backgroundColor: vars.theme.interactive.overlay.secondary.hover,
 			},
 		},
 	},
 	variants: {
 		selected: {
-			true: sprinkles({
-				background: 'neutral100',
-			}),
+			true: {
+				backgroundColor:
+					vars.theme.interactive.overlay.secondary.enabled,
+			},
 			false: {},
 		},
 	},
@@ -46,7 +47,7 @@ export const menuItemVariants = recipe({
 })
 
 export const menuDivider = style({
-	backgroundColor: vars.color.neutral200,
+	backgroundColor: vars.theme.static.divider.default,
 	border: 0,
 	height: 1,
 	marginBottom: vars.space[4],

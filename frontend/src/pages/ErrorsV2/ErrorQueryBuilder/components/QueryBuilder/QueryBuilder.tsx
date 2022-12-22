@@ -783,7 +783,7 @@ const SelectPopout = ({
 			>
 				<span className={newStyle.tagPopoverAnchor}>
 					<Tag
-						kind="grey"
+						kind="secondary"
 						size="medium"
 						shape="basic"
 						cssClass={[
@@ -880,7 +880,7 @@ const QueryRule = ({
 			{!readonly && (
 				<Tag
 					size="medium"
-					kind="grey"
+					kind="secondary"
 					shape="basic"
 					cssClass={[newStyle.flatLeft]}
 					onClick={() => {
@@ -940,7 +940,8 @@ export const TimeRangeFilter = ({
 				/>
 			</Popover>
 			<Tag
-				kind="transparent"
+				kind="secondary"
+				emphasis="low"
 				shape="basic"
 				iconRight={!!onReset ? <IconX size={12} /> : undefined}
 				onIconRightClick={!!onReset ? onReset : undefined}
@@ -949,7 +950,7 @@ export const TimeRangeFilter = ({
 					<Text
 						size="xSmall"
 						weight="medium"
-						color="neutral300"
+						color="n9"
 						userSelect="none"
 					>
 						{value &&
@@ -2294,7 +2295,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				display="flex"
 				alignItems="center"
 				px="12"
-				borderBottom="neutral"
+				borderBottom="secondary"
 				cssClass={styles.controlBar}
 			>
 				<TimeRangeFilter
@@ -2373,7 +2374,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						gap="4"
 						userSelect="none"
 					>
-						<IconCloudUpload size={16} color={colors.neutral300} />
+						<IconCloudUpload size={16} color={colors.n9} />
 						Push segment changes
 					</Box>
 				</Menu.Item>
@@ -2390,7 +2391,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						gap="4"
 						userSelect="none"
 					>
-						<IconPlusCircle size={16} color={colors.neutral300} />
+						<IconPlusCircle size={16} color={colors.n9} />
 						Save as a new segment
 					</Box>
 				</Menu.Item>
@@ -2408,7 +2409,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						gap="4"
 						userSelect="none"
 					>
-						<IconRefresh size={16} color={colors.neutral300} />
+						<IconRefresh size={16} color={colors.n9} />
 						Reset to segment filters
 					</Box>
 				</Menu.Item>
@@ -2461,7 +2462,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 			/>
 			{controlBar}
 			<Box
-				border="neutral"
+				border="secondary"
 				borderRadius="8"
 				display="flex"
 				flexDirection="column"
@@ -2475,7 +2476,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						p="4"
 						paddingBottom="8"
 						background="white"
-						borderBottom="neutral"
+						borderBottom="secondary"
 						display="flex"
 						alignItems="center"
 						flexWrap="wrap"
@@ -2486,7 +2487,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 								? [
 										<Tag
 											shape="basic"
-											kind="transparent"
+											kind="secondary"
+											emphasis="low"
 											onClick={toggleIsAnd}
 											key={`separator-${index}`}
 											disabled={readonly}
@@ -2545,7 +2547,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						<Text
 							size="xSmall"
 							weight="medium"
-							color="neutral300"
+							color="n9"
 							userSelect="none"
 						>
 							{formatNumber(searchResultsCount)} results
@@ -2556,15 +2558,15 @@ function QueryBuilder(props: QueryBuilderProps) {
 							{actionButton}
 							<Menu.List cssClass={styles.menuList}>
 								<Box
-									background="neutral50"
-									borderBottom="neutral"
+									background="n2"
+									borderBottom="secondary"
 									p="8"
 									mb="4"
 								>
 									<Text
 										weight="medium"
 										size="xxSmall"
-										color="neutral500"
+										color="n11"
 										userSelect="none"
 									>
 										Segment settings
@@ -2588,7 +2590,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 									>
 										<IconPencil
 											size={16}
-											color={colors.neutral300}
+											color={colors.n9}
 										/>
 										Edit segment name
 									</Box>
@@ -2611,7 +2613,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 									>
 										<IconDuplicate
 											size={16}
-											color={colors.neutral300}
+											color={colors.n9}
 										/>
 										Duplicate segment
 									</Box>
@@ -2635,7 +2637,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 									>
 										<IconTrash
 											size={16}
-											color={colors.neutral300}
+											color={colors.n9}
 										/>
 										Delete segment
 									</Box>
@@ -2653,15 +2655,15 @@ function QueryBuilder(props: QueryBuilderProps) {
 							/>
 							<Menu.List cssClass={styles.menuList}>
 								<Box
-									background="neutral50"
-									borderBottom="neutral"
+									background="n2"
+									borderBottom="secondary"
 									p="8"
 									mb="4"
 								>
 									<Text
 										weight="medium"
 										size="xxSmall"
-										color="neutral500"
+										color="n11"
 										userSelect="none"
 									>
 										Segments
