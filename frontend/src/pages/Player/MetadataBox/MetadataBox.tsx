@@ -1,13 +1,10 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
-import { Skeleton } from '@components/Skeleton/Skeleton'
 import Tooltip from '@components/Tooltip/Tooltip'
 import {
 	useGetEnhancedUserDetailsQuery,
 	useGetProjectQuery,
 	useGetWorkspaceQuery,
-	useMarkSessionAsStarredMutation,
 } from '@graph/hooks'
 import { GetEnhancedUserDetailsQuery } from '@graph/operations'
 import {
@@ -21,13 +18,11 @@ import {
 	Box,
 	ButtonIcon,
 	IconExternalLink,
-	IconStar,
-	IconX,
+	IconMenuAlt3,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
-import SvgInformationIcon from '@icons/InformationIcon'
+import { Props as TruncateProps } from '@highlight-run/ui/src/components/private/Truncate/Truncate'
 import UserCross from '@icons/UserCross'
 import { PaywallTooltip } from '@pages/Billing/PaywallTooltip/PaywallTooltip'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -57,27 +52,12 @@ import styles from './MetadataBox.module.scss'
 import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
 
 export const MetadataBox = React.memo(() => {
-	const { isLoggedIn } = useAuthContext()
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const { session } = useReplayerContext()
 	const { setSearchParams } = useSearchContext()
 	const { setShowLeftPanel, setShowRightPanel } = usePlayerConfiguration()
 
 	const [enhancedAvatar, setEnhancedAvatar] = React.useState<string>()
-	const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
-		update(cache) {
-			cache.modify({
-				fields: {
-					session(existingSession) {
-						return {
-							...existingSession,
-							starred: !existingSession.starred,
-						}
-					},
-				},
-			})
-		},
-	})
 
 	// clear enhanced avatar when session changes
 	useEffect(() => {
@@ -150,53 +130,45 @@ export const MetadataBox = React.memo(() => {
 						shape="rounded"
 						customImage={customAvatarImage || enhancedAvatar}
 					/>
-					<Text>{displayValue}</Text>
+					<Text weight="bold" color="staticContentDefault">
+						{displayValue}
+					</Text>
+					{backfilled && (
+						<Box
+							display="flex"
+							alignItems="center"
+							onClick={() => {
+								window.open(
+									'https://docs.highlight.run/identifying-users#BXEtr',
+									'_blank',
+								)
+							}}
+						>
+							<Tag kind="grey" cssClass={style.moreSessionsTag}>
+								<Box display="flex" alignItems="center">
+									<Tooltip
+										placement="leftTop"
+										title="This session was not identified. The user information is inferred from a similar session in the same browser. Click to learn more."
+										mouseEnterDelay={0}
+									>
+										<div
+											className={styles.backfillUserIcon}
+										>
+											<UserCross />
+										</div>
+									</Tooltip>
+								</Box>
+							</Tag>
+						</Box>
+					)}
 				</Box>
 				<Box display="flex" alignItems="center">
-					{isLoggedIn && (
-						<ButtonIcon
-							kind="secondary"
-							emphasis="low"
-							shape="square"
-							size="small"
-							icon={
-								<IconStar
-									size={16}
-									color={
-										session?.starred
-											? colors.yellowY6
-											: undefined
-									}
-								/>
-							}
-							onClick={() => {
-								markSessionAsStarred({
-									variables: {
-										secure_id: session_secure_id,
-										starred: !session?.starred,
-									},
-								})
-									.then(() => {
-										message.success(
-											'Updated session status!',
-											3,
-										)
-									})
-									.catch(() => {
-										message.error(
-											'Error updating session status!',
-											3,
-										)
-									})
-							}}
-						/>
-					)}
 					<ButtonIcon
 						kind="secondary"
 						emphasis="low"
 						shape="square"
 						size="small"
-						icon={<IconX size={16} />}
+						icon={<IconMenuAlt3 />}
 						onClick={() => {
 							setShowRightPanel(false)
 						}}
@@ -210,103 +182,51 @@ export const MetadataBox = React.memo(() => {
 				padding="8"
 				gap="4"
 			>
-				{Object.entries({
-					Email: displayValue,
-					UserID: session?.fingerprint?.toString(),
-					Browser:
-						session?.browser_name && session?.browser_version
-							? `${session.browser_name} ${getMajorVersion(
-									session.browser_version,
-							  )}`
-							: undefined,
-					OS:
-						session?.os_name && session?.os_version
-							? `${session.os_name} ${getMajorVersion(
-									session.os_version,
-							  )}`
-							: undefined,
-					Location: geoData,
-					Time: created.toLocaleString('en-us', {
-						hour: '2-digit',
-						minute: '2-digit',
-						timeZoneName: 'short',
-						day: 'numeric',
-						month: 'short',
-						weekday: 'long',
-						year:
-							created.getFullYear() !== new Date().getFullYear()
-								? 'numeric'
+				<TableList
+					items={{
+						Email: displayValue,
+						UserID: session?.fingerprint?.toString(),
+						Browser:
+							session?.browser_name && session?.browser_version
+								? `${session.browser_name} ${getMajorVersion(
+										session.browser_version,
+								  )}`
 								: undefined,
-					}),
-				}).map(
-					([k, v]) =>
-						v && (
-							<Box key={k} className={style.sessionAttributeRow}>
-								<Text
-									size="medium"
-									color="neutralN11"
-									cssClass={style.sessionAttributeText}
-								>
-									{k}
-								</Text>
-								<Text cssClass={style.sessionAttributeText}>
-									{v}
-								</Text>
-							</Box>
-						),
-				)}
-				{backfilled && (
-					<Box
-						display="flex"
-						alignItems="center"
-						py="4"
-						onClick={() => {
-							window.open(
-								'https://docs.highlight.run/identifying-users#BXEtr',
-								'_blank',
-							)
-						}}
-					>
-						<Tag kind="grey" cssClass={style.moreSessionsTag}>
-							<Box display="flex" alignItems="center">
-								<div className={styles.backfillUserIcon}>
-									<UserCross />
-								</div>
-								<div>This session was not identified.</div>
-								<Tooltip
-									placement="leftTop"
-									title="This session was not identified. The user information is inferred from a similar session in the same browser. Click to learn more."
-									mouseEnterDelay={0}
-								>
-									<div className={styles.backfillInfoIcon}>
-										<SvgInformationIcon />
-									</div>
-								</Tooltip>
-							</Box>
-						</Tag>
-					</Box>
-				)}
-				<Box
-					display="flex"
-					alignItems="center"
-					width="full"
-					border="neutral"
-					borderRadius="8"
-					my="8"
-					p="8"
-				>
-					<UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
-				</Box>
-				<Box display="flex" alignItems="center">
+						OS:
+							session?.os_name && session?.os_version
+								? `${session.os_name} ${getMajorVersion(
+										session.os_version,
+								  )}`
+								: undefined,
+						Location: geoData,
+						Time: created.toLocaleString('en-us', {
+							hour: '2-digit',
+							minute: '2-digit',
+							timeZoneName: 'short',
+							day: 'numeric',
+							month: 'short',
+							weekday: 'long',
+							year:
+								created.getFullYear() !==
+								new Date().getFullYear()
+									? 'numeric'
+									: undefined,
+						}),
+					}}
+				/>
+				<UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
+				<Box display="flex" alignItems="center" py="8">
 					<Tag
-						kind="white"
+						kind="grey"
 						size="medium"
 						iconRight={<IconExternalLink />}
 						onClick={searchIdentifier}
 						cssClass={style.moreSessionsTag}
 					>
 						<Box>
-							<Text color="neutralN11">Show more sessions</Text>
+							<Text color="staticContentDefault">
+								Show more sessions
+							</Text>
 						</Box>
 					</Tag>
 				</Box>
@@ -315,135 +235,151 @@ export const MetadataBox = React.memo(() => {
 	)
 })
 
-export const UserDetailsBox = React.memo(
-	({
-		setEnhancedAvatar,
-	}: {
-		setEnhancedAvatar: (avatar: string) => void
-	}) => {
-		const { project_id, session_secure_id } = useParams<{
-			project_id: string
-			session_secure_id: string
-		}>()
-		const { data: project } = useGetProjectQuery({
-			variables: { id: project_id },
-		})
-		const { data: workspace } = useGetWorkspaceQuery({
-			variables: { id: project?.workspace?.id || '' },
-			skip: !project?.workspace?.id,
-		})
-		const { data, loading } = useGetEnhancedUserDetailsQuery({
-			variables: { session_secure_id },
-			fetchPolicy: 'no-cache',
-		})
+const TableList = function ({
+	items,
+	lines,
+}: {
+	items: { [_: string]: any }
+	lines?: { [_: string]: TruncateProps['lines'] }
+}) {
+	return (
+		<Box display="flex" flexDirection="column" gap="4" width="full">
+			{Object.entries(items).map(
+				([k, v]) =>
+					v && (
+						<Box key={k} className={style.sessionAttributeRow}>
+							<Text
+								color="staticContentWeak"
+								cssClass={style.sessionAttributeText}
+								lines={lines ? lines[k] : undefined}
+							>
+								{k}
+							</Text>
+							<Text
+								color="interactiveFillSecondaryContentText"
+								cssClass={style.sessionAttributeText}
+							>
+								{v}
+							</Text>
+						</Box>
+					),
+			)}
+		</Box>
+	)
+}
 
-		useEffect(() => {
-			if (data?.enhanced_user_details?.avatar) {
-				setEnhancedAvatar(data.enhanced_user_details.avatar)
-			}
-		}, [setEnhancedAvatar, data])
+export const UserDetailsBox = ({
+	setEnhancedAvatar,
+}: {
+	setEnhancedAvatar: (avatar: string) => void
+}) => {
+	const { project_id, session_secure_id } = useParams<{
+		project_id: string
+		session_secure_id: string
+	}>()
+	const { data: project } = useGetProjectQuery({
+		variables: { id: project_id },
+	})
+	const { data: workspace } = useGetWorkspaceQuery({
+		variables: { id: project?.workspace?.id || '' },
+		skip: !project?.workspace?.id,
+	})
+	const { data, loading } = useGetEnhancedUserDetailsQuery({
+		variables: { session_secure_id },
+		fetchPolicy: 'no-cache',
+	})
 
-		if (loading) {
-			return null
+	useEffect(() => {
+		if (data?.enhanced_user_details?.avatar) {
+			setEnhancedAvatar(data.enhanced_user_details.avatar)
 		}
+	}, [setEnhancedAvatar, data])
 
-		if (!data?.enhanced_user_details) {
-			if (mustUpgradeForClearbit(workspace?.workspace?.plan_tier)) {
-				return (
-					<PaywallTooltip tier={PlanType.Startup}>
-						<div className={style.userEnhancedGrid}>
-							<div style={{ width: 36 }}>
-								<div className={styles.blurred}>
-									<Avatar
-										seed="test"
-										className={style.avatar}
-									/>
-								</div>
-							</div>
-							<div className={styles.enhancedTextSection}>
-								<div className={styles.blurred}>
-									<SocialComponent
-										disabled
-										socialLink={
-											{
-												link: 'http://example.com',
-												type: 'Github',
-											} as SocialLink
-										}
-										key="example"
-									/>
-								</div>
+	if (loading) {
+		return null
+	}
+
+	if (!data?.enhanced_user_details) {
+		if (mustUpgradeForClearbit(workspace?.workspace?.plan_tier)) {
+			return (
+				<PaywallTooltip tier={PlanType.Startup}>
+					<div className={style.userEnhancedGrid}>
+						<div style={{ width: 36 }}>
+							<div className={styles.blurred}>
+								<Avatar seed="test" className={style.avatar} />
 							</div>
 						</div>
-					</PaywallTooltip>
-				)
-			}
-			if (!workspace?.workspace?.clearbit_enabled) {
-				return (
-					<div className={styles.enableClearbit}>
-						<a
-							href={`/${project_id}/integrations`}
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							Enable Clearbit to collect more user details.
-						</a>
+						<div className={styles.enhancedTextSection}>
+							<div className={styles.blurred}>
+								<SocialComponent
+									disabled
+									socialLink={
+										{
+											link: 'http://example.com',
+											type: 'Github',
+										} as SocialLink
+									}
+									key="example"
+								/>
+							</div>
+						</div>
 					</div>
-				)
-			}
+				</PaywallTooltip>
+			)
 		}
-
-		if (!hasEnrichedData(data)) {
-			return null
-		}
-
-		return (
-			<div className={styles.userEnhanced}>
-				<div className={styles.enhancedTextSection}>
-					{loading ? (
-						<Skeleton height="2rem" />
-					) : (
-						<>
-							{data?.enhanced_user_details?.name && (
-								<h4 id={styles.enhancedName}>
-									<span>
-										{data?.enhanced_user_details?.name}
-									</span>
-									<div className={styles.tooltip}>
-										<InfoTooltip
-											title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is enabled via the Clearbit Integration for the Startup plan and above.`}
-											size="medium"
-											hideArrow
-											placement="topLeft"
-										/>
-									</div>
-								</h4>
-							)}
-							{data?.enhanced_user_details?.bio && (
-								<p className={styles.enhancedBio}>
-									{data?.enhanced_user_details?.bio}
-								</p>
-							)}
-							{hasDiverseSocialLinks(data) && (
-								<div className={styles.enhancedLinksGrid}>
-									{data?.enhanced_user_details?.socials?.map(
-										(e: any) =>
-											e && (
-												<SocialComponent
-													socialLink={e}
-													key={e.type}
-												/>
-											),
-									)}
-								</div>
-							)}
-						</>
-					)}
+		if (!workspace?.workspace?.clearbit_enabled) {
+			return (
+				<div className={styles.enableClearbit}>
+					<a
+						href={`/${project_id}/integrations`}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						Enable Clearbit to collect more user details.
+					</a>
 				</div>
-			</div>
-		)
-	},
-)
+			)
+		}
+	}
+
+	if (!hasEnrichedData(data)) {
+		return null
+	}
+
+	return (
+		<Box display="flex" width="full">
+			<TableList
+				lines={{ Bio: '3' }}
+				items={{
+					Name: data?.enhanced_user_details?.name,
+					Email: data?.enhanced_user_details?.email,
+					Bio: data?.enhanced_user_details?.bio,
+					Socials: (
+						<Box display="flex" gap="8">
+							{data?.enhanced_user_details?.socials?.map(
+								(e: any) =>
+									e && (
+										<SocialComponent
+											socialLink={e}
+											key={e.type}
+										/>
+									),
+							)}
+						</Box>
+					),
+				}}
+			/>
+			<Box paddingTop="8">
+				<InfoTooltip
+					title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is enabled via the Clearbit Integration for the Startup plan and above.`}
+					size="medium"
+					hideArrow
+					placement="topLeft"
+				/>
+			</Box>
+		</Box>
+	)
+}
 
 const SocialComponent = ({
 	socialLink,

@@ -307,21 +307,23 @@ export const SessionLevelBarV2: React.FC<
 									iconLeft={<IconChatAlt2 size={14} />}
 								/>
 							</ExplanatoryPopover>
-							<ButtonIcon
-								kind="secondary"
-								size="small"
-								shape="square"
-								emphasis={showRightPanel ? 'high' : 'low'}
-								cssClass={
-									showRightPanel
-										? styles.rightPanelButtonShown
-										: styles.rightPanelButtonHidden
-								}
-								icon={<IconMenuAlt3 />}
-								onClick={() => {
-									setShowRightPanel(!showRightPanel)
-								}}
-							/>
+							{!showRightPanel && (
+								<ButtonIcon
+									kind="secondary"
+									size="small"
+									shape="square"
+									emphasis={showRightPanel ? 'high' : 'low'}
+									cssClass={
+										showRightPanel
+											? styles.rightPanelButtonShown
+											: styles.rightPanelButtonHidden
+									}
+									icon={<IconMenuAlt3 />}
+									onClick={() => {
+										setShowRightPanel(!showRightPanel)
+									}}
+								/>
+							)}
 						</Box>
 					</Box>
 				)}

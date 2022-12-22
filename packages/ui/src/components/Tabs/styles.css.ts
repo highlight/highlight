@@ -12,7 +12,6 @@ export const pageWrapper = style({
 export const controlBarButton = style({
 	backgroundColor: 'white',
 	boxShadow: 'none',
-	color: colors.neutralN11,
 })
 
 export const tabText = style({
@@ -39,9 +38,7 @@ export const controlBarVariants = recipe({
 			true: {
 				color: colors.purpleP9,
 			},
-			false: {
-				color: colors.neutralN11,
-			},
+			false: {},
 		},
 	},
 
@@ -52,7 +49,6 @@ export const controlBarVariants = recipe({
 
 export const controlBarBottomVariants = recipe({
 	base: {
-		backgroundColor: colors.neutralN11,
 		borderRadius: '2px 2px 0px 0px',
 		height: 2,
 	},

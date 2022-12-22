@@ -14,25 +14,6 @@ $avatar-size: 36px;
 	}
 }
 
-.backfillContainer {
-	background-color: var(--color-gray-600);
-	border-radius: var(--border-radius) var(--border-radius) 0 0;
-	height: $backfill-height;
-	left: 0;
-	position: absolute;
-	right: 0;
-	top: 0;
-}
-
-.backfillContent {
-	align-items: center;
-	color: var(--color-white);
-	display: flex;
-	font-size: 12px;
-	height: $backfill-height;
-	justify-content: center;
-}
-
 .backfillUserIcon {
 	align-items: center;
 	display: flex;
@@ -40,14 +21,6 @@ $avatar-size: 36px;
 
 	svg {
 		width: 18px;
-	}
-}
-
-.backfillInfoIcon {
-	cursor: pointer;
-
-	svg {
-		font-size: 14px;
 	}
 }
 
