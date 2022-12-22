@@ -188,7 +188,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 	const [expanded, setExpanded] = React.useState(isFirst)
 
 	const trigger = (
-		<Box p="12" backgroundColor="neutral50">
+		<Box p="12" backgroundColor="n2">
 			{!!lineContent ? (
 				<ErrorSourcePreview
 					fileName={fileName}
@@ -230,14 +230,14 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 
 	const stackTraceTitle = (
 		<Box
-			background="neutralN1"
+			background="n1"
 			cursor="pointer"
 			py="8"
 			px="12"
-			bt={isFirst ? 'neutral' : undefined}
-			br="neutral"
-			bb="neutral"
-			bl="neutral"
+			bt={isFirst ? 'secondary' : undefined}
+			br="secondary"
+			bb="secondary"
+			bl="secondary"
 			btr={isFirst ? '6' : undefined}
 			bbr={isLast && !expanded ? '6' : undefined}
 			display="flex"
@@ -246,11 +246,11 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 		>
 			<Box display="flex" gap="4">
 				<Text>{truncateFileName(fileName || '')}</Text>
-				<Text color="neutral500" as="span">
+				<Text color="n11" as="span">
 					{functionName ? ' in ' : ''}
 				</Text>
 				<Text>{functionName}</Text>
-				<Text color="neutral500" as="span">
+				<Text color="n11" as="span">
 					{lineNumber ? ' at line ' : ''}
 				</Text>
 				<Text>{lineNumber}</Text>
@@ -328,7 +328,7 @@ const SourcemapError: React.FC<{
 		>
 			<Popover placement="bottom-start">
 				<Popover.TagTrigger
-					kind="grey"
+					kind="secondary"
 					shape="basic"
 					iconLeft={<IconExclamationTriangle size={12} />}
 					size="medium"
@@ -339,7 +339,7 @@ const SourcemapError: React.FC<{
 					<Box
 						backgroundColor="white"
 						borderRadius="6"
-						border="neutral"
+						border="secondary"
 						padding="12"
 						overflow="scroll"
 						boxShadow="small"

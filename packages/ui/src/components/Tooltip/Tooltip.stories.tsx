@@ -3,11 +3,10 @@ import { ComponentMeta } from '@storybook/react'
 
 import { Tooltip } from './Tooltip'
 import { Box } from '../Box/Box'
-import { Button } from '../Button/Button'
 import { Text } from '../Text/Text'
 import { Badge } from '../Badge/Badge'
 import { Tag } from '../Tag/Tag'
-import { IconChartBar, IconTrendingUp } from '../icons'
+import { IconTrendingUp } from '../icons'
 
 export default {
 	title: 'Components/Tooltip',
@@ -19,7 +18,7 @@ export const Basic = () => (
 		<Tooltip
 			trigger={
 				<Tag
-					kind="grey"
+					kind="secondary"
 					shape="basic"
 					iconLeft={<IconTrendingUp size={12} />}
 				>
@@ -28,7 +27,7 @@ export const Basic = () => (
 			}
 		>
 			<Box display="flex" alignItems="center" gap="4">
-				<Text color="neutralN9" size="xSmall">
+				<Text color="n9" size="xSmall">
 					since
 				</Text>
 				<Badge variant="white" label="30 days" />

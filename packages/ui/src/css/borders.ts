@@ -1,23 +1,16 @@
 import { BoxProps } from '../components/Box/Box'
-import { colors } from './colors'
+import { themeVars } from './theme.css'
 
 type BorderKeys =
 	| 'none'
-	| 'black'
-	| 'blackMedium'
-	| 'blackLarge'
-	| 'neutral'
-	| 'neutralMedium'
-	| 'neutralLarge'
-	| 'neutralDark'
-	| 'neutralDarkMedium'
-	| 'neutralDarkLarge'
-	| 'purple'
-	| 'purpleMedium'
-	| 'purpleLarge'
-	| 'purpleLight'
-	| 'purpleLightMedium'
-	| 'purpleLightLarge'
+	| 'primary'
+	| 'primaryHover'
+	| 'primaryPressed'
+	| 'primaryDisabled'
+	| 'secondary'
+	| 'secondaryHover'
+	| 'secondaryPressed'
+	| 'secondaryDisabled'
 
 type Borders = Record<BorderKeys, string>
 
@@ -31,25 +24,15 @@ export const borderWidths = {
 export const borders: Borders = {
 	none: '0',
 
-	black: `${colors.black} solid ${borderWidths.small}`,
-	blackMedium: `${colors.black} solid ${borderWidths.medium}`,
-	blackLarge: `${colors.black} solid ${borderWidths.large}`,
+	primary: `${themeVars.interactive.outline.primary.enabled} solid ${borderWidths.small}`,
+	primaryHover: `${themeVars.interactive.outline.primary.hover} solid ${borderWidths.small}`,
+	primaryPressed: `${themeVars.interactive.outline.primary.pressed} solid ${borderWidths.small}`,
+	primaryDisabled: `${themeVars.interactive.outline.primary.disabled} solid ${borderWidths.small}`,
 
-	neutral: `${colors.neutral200} solid ${borderWidths.small}`,
-	neutralMedium: `${colors.neutral200} solid ${borderWidths.medium}`,
-	neutralLarge: `${colors.neutral200} solid ${borderWidths.large}`,
-
-	neutralDark: `${colors.neutral300} solid ${borderWidths.small}`,
-	neutralDarkMedium: `${colors.neutral300} solid ${borderWidths.medium}`,
-	neutralDarkLarge: `${colors.neutral300} solid ${borderWidths.large}`,
-
-	purpleLight: `${colors.purple100} solid ${borderWidths.small}`,
-	purpleLightMedium: `${colors.purple100} solid ${borderWidths.medium}`,
-	purpleLightLarge: `${colors.purple100} solid ${borderWidths.large}`,
-
-	purple: `${colors.purple700} solid ${borderWidths.small}`,
-	purpleMedium: `${colors.purple700} solid ${borderWidths.medium}`,
-	purpleLarge: `${colors.purple700} solid ${borderWidths.large}`,
+	secondary: `${themeVars.interactive.outline.secondary.enabled} solid ${borderWidths.small}`,
+	secondaryHover: `${themeVars.interactive.outline.secondary.hover} solid ${borderWidths.small}`,
+	secondaryPressed: `${themeVars.interactive.outline.secondary.pressed} solid ${borderWidths.small}`,
+	secondaryDisabled: `${themeVars.interactive.outline.secondary.disabled} solid ${borderWidths.small}`,
 } as const
 
 export interface BorderProps {

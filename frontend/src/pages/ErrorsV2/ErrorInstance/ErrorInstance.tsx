@@ -108,7 +108,10 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 							>
 								Older
 							</Button>
-							<Box borderRight="neutral" style={{ height: 18 }} />
+							<Box
+								borderRight="secondary"
+								style={{ height: 18 }}
+							/>
 							<Button
 								disabled={true}
 								kind="secondary"
@@ -143,7 +146,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				>
 					<div style={{ flexBasis: 0, flexGrow: 1 }}>
 						<Box>
-							<Box bb="neutral" pb="20" my="12">
+							<Box bb="secondary" pb="20" my="12">
 								<Text weight="bold" size="large">
 									Instance metadata
 								</Text>
@@ -167,7 +170,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				<Text size="large" weight="bold">
 					Stack trace
 				</Text>
-				<Box bt="neutral" mt="12" pt="16">
+				<Box bt="secondary" mt="12" pt="16">
 					<Skeleton count={10} />
 				</Box>
 			</Box>
@@ -202,7 +205,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						>
 							Older
 						</Button>
-						<Box borderRight="neutral" style={{ height: 18 }} />
+						<Box borderRight="secondary" style={{ height: 18 }} />
 						<Button
 							onClick={() => {
 								history.push({
@@ -257,7 +260,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			<Text size="large" weight="bold">
 				Stack trace
 			</Text>
-			<Box bt="neutral" mt="12" pt="16">
+			<Box bt="secondary" mt="12" pt="16">
 				<ErrorStackTrace
 					errorObject={
 						errorObject as ErrorInstanceType['error_object']
@@ -286,7 +289,7 @@ const Metadata: React.FC<{
 
 	return (
 		<Box>
-			<Box bb="neutral" pb="20" my="12">
+			<Box bb="secondary" pb="20" my="12">
 				<Text weight="bold" size="large">
 					Instance metadata
 				</Text>
@@ -302,7 +305,7 @@ const Metadata: React.FC<{
 							style={{ width: '33%' }}
 						>
 							<Text
-								color="neutral500"
+								color="n11"
 								transform="capitalize"
 								align="left"
 								lines="1"
@@ -374,9 +377,9 @@ const User: React.FC<{
 					User details
 				</Text>
 			</Box>
-			<Box border="neutral" borderRadius="6">
+			<Box border="secondary" borderRadius="6">
 				<Box
-					bb="neutral"
+					bb="secondary"
 					py="8"
 					px="12"
 					alignItems="center"
@@ -444,7 +447,7 @@ const User: React.FC<{
 										style={{ width: '33%' }}
 									>
 										<Text
-											color="neutral500"
+											color="n11"
 											align="left"
 											transform="capitalize"
 											lines="1"
@@ -473,7 +476,7 @@ const User: React.FC<{
 
 							<Box display="flex" alignItems="center" gap="6">
 								<Box py="10" style={{ width: '33%' }}>
-									<Text color="neutral500" align="left">
+									<Text color="n11" align="left">
 										Location
 									</Text>
 								</Box>

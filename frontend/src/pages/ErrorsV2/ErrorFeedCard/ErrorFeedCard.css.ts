@@ -14,16 +14,16 @@ export const errorCardTitleText = style({
 export const errorCard = style({
 	selectors: {
 		'&:hover': {
-			background: colors.neutral100,
+			background: colors.n2,
 		},
 	},
 })
 
 export const errorCardSelected = style({
-	background: colors.neutral200,
+	background: colors.n5,
 	selectors: {
 		'&:hover': {
-			backgroundColor: colors.neutral200,
+			backgroundColor: colors.n5,
 		},
 	},
 })

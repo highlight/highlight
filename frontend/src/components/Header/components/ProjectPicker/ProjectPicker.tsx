@@ -50,7 +50,7 @@ const ProjectPicker = () => {
 						style={
 							isSelected
 								? {
-										backgroundColor: vars.color.neutral100,
+										backgroundColor: vars.color.n2,
 								  }
 								: undefined
 						}
@@ -123,7 +123,7 @@ const ProjectPicker = () => {
 										>
 											<IconPlusSm
 												size={14}
-												color={vars.color.neutral300}
+												color={vars.color.n9}
 											/>
 											Create new project
 										</Box>
@@ -141,7 +141,7 @@ const ProjectPicker = () => {
 										>
 											<IconCog
 												size={14}
-												color={vars.color.neutral300}
+												color={vars.color.n9}
 											/>
 											Project settings
 										</Box>

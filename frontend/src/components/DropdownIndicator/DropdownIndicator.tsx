@@ -32,7 +32,7 @@ export const DropdownIndicator = React.memo(
 			<div
 				className={classNames(styles.dropdownIndicator, styles.search)}
 			>
-				<IconSearch color={vars.color.neutral500} size={14} />
+				<IconSearch color={vars.color.n11} size={14} />
 			</div>
 		)
 	},

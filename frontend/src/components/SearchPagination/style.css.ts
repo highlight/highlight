@@ -13,14 +13,14 @@ export const simple = style({
 })
 
 export const rightBorder = style({
-	borderRight: `${borders.neutral} !important`,
+	borderRight: `${borders.secondary} !important`,
 })
 
 export const selected = style({
-	background: vars.color.neutral100,
+	background: vars.theme.interactive.fill.secondary.hover,
 	selectors: {
 		'&:focus, &:active': {
-			background: vars.color.neutral100,
+			background: vars.theme.interactive.fill.secondary.pressed,
 		},
 	},
 })

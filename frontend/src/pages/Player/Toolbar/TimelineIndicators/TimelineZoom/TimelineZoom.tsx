@@ -22,7 +22,7 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 	return (
 		<Box
 			cssClass={style.zoomButtons}
-			border="neutral"
+			border="secondary"
 			visibility={isHidden ? 'hidden' : 'visible'}
 		>
 			<ExplanatoryPopover
@@ -32,7 +32,7 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 							<Badge variant="grey" size="tiny" label={cmdKey} />
 							<Badge variant="grey" size="tiny" label="Scroll" />
 						</Box>
-						<Text userSelect="none" color="neutral500">
+						<Text userSelect="none" color="n11">
 							or
 						</Text>
 						<Badge
