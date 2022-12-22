@@ -30,7 +30,6 @@ import {
 } from '@graph/hooks'
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
-import { useTheme } from '@hooks/useTheme'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
@@ -151,8 +150,6 @@ const App = () => {
 	const [loadingState, setLoadingState] = useState<AppLoadingState>(
 		AppLoadingState.LOADING,
 	)
-
-	useTheme('light')
 
 	return (
 		<ErrorBoundary
