@@ -2212,7 +2212,16 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 	return createAttachmentRes, nil
 }
 
-func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string, teamId *string) error {
+func (r *Resolver) CreateLinearIssueAndAttachment(
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueDescription string,
+	commentText string,
+	authorName string,
+	viewLink string,
+	teamId *string,
+) error {
 	if teamId == nil {
 		teamRes, err := r.GetLinearTeams(*workspace.LinearAccessToken)
 		if err != nil {
@@ -2245,7 +2254,16 @@ func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, at
 	return nil
 }
 
-func (r *Resolver) CreateClickUpTaskAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string, teamId *string) error {
+func (r *Resolver) CreateClickUpTaskAndAttachment(
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueDescription string,
+	commentText string,
+	authorName string,
+	viewLink string,
+	teamId *string,
+) error {
 	task, err := clickup.CreateTask(*workspace.ClickupAccessToken, *teamId, issueTitle, issueDescription)
 	if err != nil {
 		return err
