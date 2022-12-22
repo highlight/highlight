@@ -120,16 +120,9 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								Newer
 							</Button>
 							<Button
-								kind="secondary"
+								kind="primary"
 								emphasis="high"
-								disabled={!isLoggedIn}
-								onClick={() =>
-									isLoggedIn
-										? history.push(
-												`/${projectId}/sessions/${errorInstance?.error_object?.session?.secure_id}`,
-										  )
-										: null
-								}
+								disabled={true}
 								iconLeft={<IconPlay />}
 							>
 								Show session
@@ -224,7 +217,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 							Newer
 						</Button>
 						<Button
-							kind="secondary"
+							kind="primary"
 							emphasis="high"
 							disabled={!isLoggedIn}
 							onClick={() =>
