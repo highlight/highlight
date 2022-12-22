@@ -48,7 +48,9 @@ export const Triggers = () => {
 
 			<Box>
 				<Popover>
-					<Popover.TagTrigger kind="grey">Tag</Popover.TagTrigger>
+					<Popover.TagTrigger kind="secondary">
+						Tag
+					</Popover.TagTrigger>
 					<Popover.Content>
 						<Content />
 					</Popover.Content>
@@ -58,44 +60,52 @@ export const Triggers = () => {
 	)
 }
 
-export const Placements = () => {
-	const Content: React.FC<React.PropsWithChildren<PopoverProps>> = ({
-		children,
-		...props
-	}) => (
-		<Box
-			backgroundColor="n2"
-			p="20"
-			my="20"
-			mx="auto"
-			display="flex"
-			alignItems="center"
-			justifyContent="center"
-			style={{ maxWidth: 500 }}
-		>
-			<Popover {...props}>
-				<Popover.ButtonTrigger>{children}</Popover.ButtonTrigger>
-				<Popover.Content>
-					<Content />
-				</Popover.Content>
-			</Popover>
-		</Box>
-	)
-
+export const Placement = () => {
 	return (
 		<>
-			<Content placement="top-end">Top End</Content>
-			<Content placement="top">Top</Content>
-			<Content placement="top-start">Top Start</Content>
-			<Content placement="right-end">Right End</Content>
-			<Content placement="right">Right</Content>
-			<Content placement="right-start">Right Start</Content>
-			<Content placement="bottom-start">Bottom Start</Content>
-			<Content placement="bottom">Bottom</Content>
-			<Content placement="bottom-end">Bottom End</Content>
-			<Content placement="left-start">Left Start</Content>
-			<Content placement="left">Left</Content>
-			<Content placement="left-end">Left End</Content>
+			<PlacementContent placement="top-end">Top End</PlacementContent>
+			<PlacementContent placement="top">Top</PlacementContent>
+			<PlacementContent placement="top-start">Top Start</PlacementContent>
+			<PlacementContent placement="right-end">Right End</PlacementContent>
+			<PlacementContent placement="right">Right</PlacementContent>
+			<PlacementContent placement="right-start">
+				Right Start
+			</PlacementContent>
+			<PlacementContent placement="bottom-start">
+				Bottom Start
+			</PlacementContent>
+			<PlacementContent placement="bottom">Bottom</PlacementContent>
+			<PlacementContent placement="bottom-end">
+				Bottom End
+			</PlacementContent>
+			<PlacementContent placement="left-start">
+				Left Start
+			</PlacementContent>
+			<PlacementContent placement="left">Left</PlacementContent>
+			<PlacementContent placement="left-end">Left End</PlacementContent>
 		</>
 	)
 }
+
+const PlacementContent: React.FC<React.PropsWithChildren<PopoverProps>> = ({
+	children,
+	...props
+}) => (
+	<Box
+		backgroundColor="n2"
+		p="20"
+		my="20"
+		mx="auto"
+		display="flex"
+		alignItems="center"
+		justifyContent="center"
+		style={{ maxWidth: 500 }}
+	>
+		<Popover {...props}>
+			<Popover.ButtonTrigger>{children}</Popover.ButtonTrigger>
+			<Popover.Content>
+				<Content />
+			</Popover.Content>
+		</Popover>
+	</Box>
+)

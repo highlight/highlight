@@ -32,20 +32,14 @@ export const Modes = () => (
 
 export const Borders = () => (
 	<>
-		<Card border="black">
-			A <code>black</code> Border
-		</Card>
-
-		<br />
-
-		<Card border="purple">
-			A <code>purple</code> Border
+		<Card border="primary">
+			A <code>primary</code> Border
 		</Card>
 
 		<br />
 
 		<Card border="secondary">
-			A <code>neutral</code> Border
+			A <code>secondary</code> Border
 		</Card>
 
 		<br />

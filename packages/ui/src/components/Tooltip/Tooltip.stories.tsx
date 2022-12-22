@@ -18,7 +18,7 @@ export const Basic = () => (
 		<Tooltip
 			trigger={
 				<Tag
-					kind="grey"
+					kind="secondary"
 					shape="basic"
 					iconLeft={<IconTrendingUp size={12} />}
 				>
