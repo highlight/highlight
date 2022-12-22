@@ -8018,6 +8018,7 @@ __metadata:
     "@types/lru-cache": ^7.10.10
     "@types/node": 17.0.13
     error-stack-parser: 2.0.7
+    firebase-functions: ^4.1.1
     graphql: 15
     graphql-request: 3.7.0
     graphql-tag: 2.12.6
@@ -12387,6 +12388,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/cors@npm:^2.8.5":
+  version: 2.8.13
+  resolution: "@types/cors@npm:2.8.13"
+  dependencies:
+    "@types/node": "*"
+  checksum: 7ef197ea19d2e5bf1313b8416baa6f3fd6dd887fd70191da1f804f557395357dafd8bc8bed0ac60686923406489262a7c8a525b55748f7b2b8afa686700de907
+  languageName: node
+  linkType: hard
+
 "@types/css-font-loading-module@npm:0.0.7":
   version: 0.0.7
   resolution: "@types/css-font-loading-module@npm:0.0.7"
@@ -12485,6 +12495,17 @@ __metadata:
     "@types/qs": "*"
     "@types/serve-static": "*"
   checksum: 15c1af46d02de834e4a225eccaa9d85c0370fdbb3ed4e1bc2d323d24872309961542b993ae236335aeb3e278630224a6ea002078d39e651d78a3b0356b1eaa79
+  languageName: node
+  linkType: hard
+
+"@types/express@npm:4.17.3":
+  version: 4.17.3
+  resolution: "@types/express@npm:4.17.3"
+  dependencies:
+    "@types/body-parser": "*"
+    "@types/express-serve-static-core": "*"
+    "@types/serve-static": "*"
+  checksum: 9895c322dcddcf17f3fe4c479808be5d8d76a80f05df55843bcccdb06b91b30f3b83a5ce9b02df1d2971f6630588aefcac4bb6326caae4b739ce79d375b5b886
   languageName: node
   linkType: hard
 
@@ -18545,6 +18566,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cors@npm:^2.8.5":
+  version: 2.8.5
+  resolution: "cors@npm:2.8.5"
+  dependencies:
+    object-assign: ^4
+    vary: ^1
+  checksum: ced838404ccd184f61ab4fdc5847035b681c90db7ac17e428f3d81d69e2989d2b680cc254da0e2554f5ed4f8a341820a1ce3d1c16b499f6e2f47a1b9b07b5006
+  languageName: node
+  linkType: hard
+
 "cosmiconfig-toml-loader@npm:1.0.0":
   version: 1.0.0
   resolution: "cosmiconfig-toml-loader@npm:1.0.0"
@@ -23637,6 +23668,23 @@ __metadata:
   dependencies:
     traverse-chain: ~0.1.0
   checksum: 1cc321b24e13b11e088e2c951edef125faefdbd6ecab34d92c22a2d121af4a99b2feaee7712ad9ab38226da793702ab59a6c8a6343db63a0ab3901589241ec8c
+  languageName: node
+  linkType: hard
+
+"firebase-functions@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "firebase-functions@npm:4.1.1"
+  dependencies:
+    "@types/cors": ^2.8.5
+    "@types/express": 4.17.3
+    cors: ^2.8.5
+    express: ^4.17.1
+    node-fetch: ^2.6.7
+  peerDependencies:
+    firebase-admin: ^10.0.0 || ^11.0.0
+  bin:
+    firebase-functions: lib/bin/firebase-functions.js
+  checksum: 4bbc0781745adb4d6b73f3df3aef305a37134f06f8a595e2a8983480d2d34e39c3af35b77ee987824d278cf1ab133158b690a7f28b099c49d60429dde8dedfcc
   languageName: node
   linkType: hard
 
@@ -31515,7 +31563,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"object-assign@npm:^4.0.1, object-assign@npm:^4.1.0, object-assign@npm:^4.1.1":
+"object-assign@npm:^4, object-assign@npm:^4.0.1, object-assign@npm:^4.1.0, object-assign@npm:^4.1.1":
   version: 4.1.1
   resolution: "object-assign@npm:4.1.1"
   checksum: fcc6e4ea8c7fe48abfbb552578b1c53e0d194086e2e6bbbf59e0a536381a292f39943c6e9628af05b5528aa5e3318bb30d6b2e53cadaf5b8fe9e12c4b69af23f
@@ -42460,7 +42508,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vary@npm:~1.1.2":
+"vary@npm:^1, vary@npm:~1.1.2":
   version: 1.1.2
   resolution: "vary@npm:1.1.2"
   checksum: ae0123222c6df65b437669d63dfa8c36cee20a504101b2fcd97b8bf76f91259c17f9f2b4d70a1e3c6bbcee7f51b28392833adb6b2770b23b01abec84e369660b
