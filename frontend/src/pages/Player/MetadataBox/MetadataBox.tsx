@@ -247,8 +247,13 @@ const TableList = function ({
 			{Object.entries(items).map(
 				([k, v]) =>
 					v && (
-						<Box key={k} className={style.sessionAttributeRow}>
+						<Box
+							key={k}
+							className={style.sessionAttributeRow}
+							onClick={() => copyToClipboard(v)}
+						>
 							<Text
+								size="xSmall"
 								color="staticContentWeak"
 								cssClass={style.sessionAttributeText}
 								lines={lines ? lines[k] : undefined}
@@ -256,6 +261,7 @@ const TableList = function ({
 								{k}
 							</Text>
 							<Text
+								size="xSmall"
 								color="interactiveFillSecondaryContentText"
 								cssClass={style.sessionAttributeText}
 							>

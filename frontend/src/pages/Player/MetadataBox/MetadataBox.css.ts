@@ -13,13 +13,12 @@ export const sessionAttributeRow = style({
 })
 
 export const sessionAttributeText = style({
-	display: 'inline-flex',
 	alignItems: 'center',
 	overflow: 'hidden',
 	textOverflow: 'ellipsis',
 	whiteSpace: 'nowrap',
-	height: 20,
 	width: '100%',
+	height: 20,
 })
 
 export const moreSessionsTag = style({
