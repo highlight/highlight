@@ -13,18 +13,10 @@ export const IconOutlinePlayCircle = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-			/>
-			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16ZM2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm7-2.131c0-1.598 1.78-2.55 3.11-1.665l3.197 2.132a2 2 0 0 1 0 3.328l-3.198 2.132C10.78 16.682 9 15.729 9 14.132V9.869ZM14.197 12 11 9.869v4.263L14.197 12Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

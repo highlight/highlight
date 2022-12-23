@@ -11,21 +11,21 @@ import { Maybe, PlanType, Project } from '@graph/schemas'
 import {
 	Box,
 	Button,
-	IconSolidArrowSmallLeft,
-	IconSolidArrowsRightLeft,
+	IconSolidArrowSmLeft,
 	IconSolidAtSymbol,
-	IconSolidBuildingOffice,
 	IconSolidChartBar,
 	IconSolidCog,
-	IconSolidComputerDesktop,
+	IconSolidDesktopComputer,
 	IconSolidDocumentText,
-	IconSolidEllipsisHorizontal,
+	IconSolidDotsHorizontal,
 	IconSolidHome,
-	IconSolidMegaphone,
+	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidQuestionMarkCircle,
+	IconSolidSpeakerphone,
+	IconSolidSwitchHorizontal,
 	IconSolidUserCircle,
-	IconSolidViewColumns,
+	IconSolidViewGridAdd,
 	IconSolidXCircle,
 	LinkButton,
 	Menu,
@@ -91,7 +91,7 @@ export const Header = () => {
 		},
 		{
 			key: 'alerts',
-			icon: IconSolidMegaphone,
+			icon: IconSolidSpeakerphone,
 		},
 	]
 
@@ -162,7 +162,7 @@ export const Header = () => {
 									<Menu>
 										<Menu.Button
 											icon={
-												<IconSolidEllipsisHorizontal
+												<IconSolidDotsHorizontal
 													size={14}
 													color={vars.color.n11}
 												/>
@@ -206,7 +206,7 @@ export const Header = () => {
 														alignItems="center"
 														gap="4"
 													>
-														<IconSolidViewColumns
+														<IconSolidViewGridAdd
 															size={14}
 															color={
 																vars.theme
@@ -231,7 +231,7 @@ export const Header = () => {
 														alignItems="center"
 														gap="4"
 													>
-														<IconSolidComputerDesktop
+														<IconSolidDesktopComputer
 															size={14}
 															color={
 																vars.theme
@@ -263,7 +263,7 @@ export const Header = () => {
 									emphasis="high"
 									size="small"
 									iconLeft={
-										<IconSolidArrowSmallLeft size={14} />
+										<IconSolidArrowSmLeft size={14} />
 									}
 								>
 									Back to Highlight
@@ -318,7 +318,7 @@ export const Header = () => {
 													alignItems="center"
 													gap="4"
 												>
-													<IconSolidBuildingOffice
+													<IconSolidOfficeBuilding
 														size={14}
 														color={
 															vars.theme
@@ -365,7 +365,7 @@ export const Header = () => {
 													alignItems="center"
 													gap="4"
 												>
-													<IconSolidArrowsRightLeft
+													<IconSolidSwitchHorizontal
 														size={14}
 														color={
 															vars.theme

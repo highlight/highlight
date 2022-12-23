@@ -8,14 +8,14 @@ export const IconSolidCheck = (props: IconProps) => {
 			width="16"
 			height="16"
 			fill="none"
-			viewBox="0 0 24 24"
+			viewBox="0 0 20 20"
 			focusable="false"
 			{...props}
 		>
 			<path
 				fill="currentColor"
 				fillRule="evenodd"
-				d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 0 1 1.04-.208Z"
+				d="M16.707 5.293a1 1 0 0 1 0 1.414l-8 8a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 1.414-1.414L8 12.586l7.293-7.293a1 1 0 0 1 1.414 0Z"
 				clipRule="evenodd"
 			/>
 		</svg>

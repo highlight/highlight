@@ -11,20 +11,20 @@ import {
 	Badge,
 	Box,
 	ButtonIcon,
-	IconSolidArrowPath,
-	IconSolidArrowSmallDown,
-	IconSolidArrowSmallLeft,
-	IconSolidArrowSmallRight,
-	IconSolidArrowSmallUp,
-	IconSolidArrowsPointingOut,
-	IconSolidBackward,
+	IconSolidArrowsExpand,
+	IconSolidArrowSmDown,
+	IconSolidArrowSmLeft,
+	IconSolidArrowSmUp,
 	IconSolidChartBar,
 	IconSolidClock,
 	IconSolidCog,
-	IconSolidCommandLine,
-	IconSolidForward,
+	IconSolidFastForward,
 	IconSolidPause,
 	IconSolidPlay,
+	IconSolidRefresh,
+	IconSolidSkip,
+	IconSolidSkipLeft,
+	IconSolidTerminal,
 	SwitchButton,
 	Tag,
 	Text,
@@ -114,7 +114,7 @@ const ToolbarControls = () => {
 						<Badge
 							variant="grey"
 							size="tiny"
-							iconStart={<IconSolidArrowSmallLeft size={12} />}
+							iconStart={<IconSolidArrowSmLeft size={12} />}
 						/>
 					</>
 				}
@@ -126,7 +126,7 @@ const ToolbarControls = () => {
 						setTime(prevTime)
 					}}
 					disabled={disableControls}
-					icon={<IconSolidBackward size={14} />}
+					icon={<IconSolidSkipLeft size={14} />}
 					size="small"
 					shape="square"
 					emphasis="low"
@@ -163,7 +163,7 @@ const ToolbarControls = () => {
 					disabled={disableControls}
 					icon={
 						isPaused && isPlaybackComplete ? (
-							<IconSolidArrowPath size={14} />
+							<IconSolidRefresh size={14} />
 						) : isPaused && !isLiveMode ? (
 							<IconSolidPlay size={14} />
 						) : (
@@ -185,7 +185,7 @@ const ToolbarControls = () => {
 						<Badge
 							variant="grey"
 							size="tiny"
-							iconStart={<IconSolidArrowSmallRight size={12} />}
+							iconStart={<IconSolidSkip size={12} />}
 						/>
 					</>
 				}
@@ -197,7 +197,7 @@ const ToolbarControls = () => {
 						setTime(newTime)
 					}}
 					disabled={disableControls}
-					icon={<IconSolidForward size={14} />}
+					icon={<IconSolidFastForward size={14} />}
 					size="small"
 					shape="square"
 					emphasis="low"
@@ -271,13 +271,11 @@ const ToolbarControls = () => {
 										variant="grey"
 										size="tiny"
 										iconStart={
-											<IconSolidArrowSmallUp size={12} />
+											<IconSolidArrowSmUp size={12} />
 										}
 										label="/"
 										iconEnd={
-											<IconSolidArrowSmallDown
-												size={12}
-											/>
+											<IconSolidArrowSmDown size={12} />
 										}
 									/>
 								</Box>
@@ -334,7 +332,7 @@ const ToolbarControls = () => {
 							}}
 							checked={showDevTools}
 							disabled={isPlayerFullscreen || disableControls}
-							iconLeft={<IconSolidCommandLine size={14} />}
+							iconLeft={<IconSolidTerminal size={14} />}
 						/>
 					</ExplanatoryPopover>
 					<Popover
@@ -381,7 +379,7 @@ const ToolbarControls = () => {
 					onClick={() => {
 						setIsPlayerFullscreen((prev) => !prev)
 					}}
-					icon={<IconSolidArrowsPointingOut size={14} />}
+					icon={<IconSolidArrowsExpand size={14} />}
 					size="small"
 					shape="square"
 					emphasis="low"
@@ -439,7 +437,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				className={style.settingsButton}
 				onClick={() => setShowDevTools(!showDevTools)}
 			>
-				<IconSolidCommandLine />
+				<IconSolidTerminal />
 				<p>Dev tools</p>
 				<ShortcutTextGuide
 					shortcut={DevToolsShortcut}

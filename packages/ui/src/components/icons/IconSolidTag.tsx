@@ -8,14 +8,14 @@ export const IconSolidTag = (props: IconProps) => {
 			width="16"
 			height="16"
 			fill="none"
-			viewBox="0 0 24 24"
+			viewBox="0 0 20 20"
 			focusable="false"
 			{...props}
 		>
 			<path
 				fill="currentColor"
 				fillRule="evenodd"
-				d="M5.25 2.25a3 3 0 0 0-3 3v4.318a3 3 0 0 0 .879 2.121l9.58 9.581c.92.92 2.39 1.186 3.548.428a18.849 18.849 0 0 0 5.441-5.44c.758-1.16.492-2.629-.428-3.548l-9.58-9.581a3 3 0 0 0-2.122-.879H5.25ZM6.375 7.5a1.125 1.125 0 1 0 0-2.25 1.125 1.125 0 0 0 0 2.25Z"
+				d="M17.707 9.293a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414 0l-7-7A.997.997 0 0 1 2 10V5a3 3 0 0 1 3-3h5c.256 0 .512.098.707.293l7 7ZM5 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
 				clipRule="evenodd"
 			/>
 		</svg>

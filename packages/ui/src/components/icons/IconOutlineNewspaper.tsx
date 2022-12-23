@@ -13,11 +13,10 @@ export const IconOutlineNewspaper = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M2 6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3h1a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6Zm14.17 13H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v12c0 .35.06.687.17 1ZM18 8v10a1 1 0 1 0 2 0V9a1 1 0 0 0-1-1h-1ZM6 8a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V8Zm2 1v2h4V9H8Zm-2 7a1 1 0 0 1 1-1h6a1 1 0 1 1 0 2H7a1 1 0 0 1-1-1Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

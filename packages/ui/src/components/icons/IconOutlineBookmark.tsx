@@ -13,11 +13,10 @@ export const IconOutlineBookmark = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M4 5a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v16a1 1 0 0 1-1.447.894L12 18.618l-6.553 3.276A1 1 0 0 1 4 21V5Zm3-1a1 1 0 0 0-1 1v14.382l5.553-2.776a1 1 0 0 1 .894 0L18 19.382V5a1 1 0 0 0-1-1H7Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

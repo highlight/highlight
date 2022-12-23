@@ -13,11 +13,10 @@ export const IconOutlineCheck = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="m4.5 12.75 6 6 9-13.5"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M19.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L9 15.586l9.293-9.293a1 1 0 0 1 1.414 0Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

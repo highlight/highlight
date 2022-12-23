@@ -8,14 +8,14 @@ export const IconSolidPlusCircle = (props: IconProps) => {
 			width="16"
 			height="16"
 			fill="none"
-			viewBox="0 0 24 24"
+			viewBox="0 0 20 20"
 			focusable="false"
 			{...props}
 		>
 			<path
 				fill="currentColor"
 				fillRule="evenodd"
-				d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z"
+				d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm1-11a1 1 0 1 0-2 0v2H7a1 1 0 1 0 0 2h2v2a1 1 0 1 0 2 0v-2h2a1 1 0 1 0 0-2h-2V7Z"
 				clipRule="evenodd"
 			/>
 		</svg>

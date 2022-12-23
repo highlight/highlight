@@ -1,7 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useUpdateErrorGroupStateMutation } from '@graph/hooks'
 import { ErrorState } from '@graph/schemas'
-import { IconSolidChevronDown, Menu, Text } from '@highlight-run/ui'
+import { IconSolidCheveronDown, Menu, Text } from '@highlight-run/ui'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useEffect } from 'react'
@@ -45,7 +45,7 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 				kind="secondary"
 				emphasis="low"
 				disabled={loading || !isLoggedIn}
-				iconRight={<IconSolidChevronDown />}
+				iconRight={<IconSolidCheveronDown />}
 			>
 				<Text case="capital">{initialErrorState.toLowerCase()}</Text>
 			</Menu.Button>

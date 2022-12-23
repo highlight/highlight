@@ -8,7 +8,7 @@ import {
 	Box,
 	Button,
 	IconSolidBell,
-	IconSolidFunnel,
+	IconSolidFilter,
 	Text,
 } from '@highlight-run/ui'
 import SvgEmailPlusIcon from '@icons/EmailPlusIcon'
@@ -424,7 +424,7 @@ const List = ({
 				>
 					<Button
 						kind={filtersCount > 0 ? 'primary' : 'secondary'}
-						iconLeft={<IconSolidFunnel size={12} />}
+						iconLeft={<IconSolidFilter size={12} />}
 						cssClass={styles.filtersButton}
 					>
 						<Text lines="1">

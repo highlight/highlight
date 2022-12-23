@@ -3,7 +3,7 @@ import { ErrorGroup, ErrorState, Maybe } from '@graph/schemas'
 import {
 	Box,
 	IconSolidSparkles,
-	IconSolidSquare_2Stack,
+	IconSolidViewGrid,
 	IconSolidUsers,
 	Tag,
 	Text,
@@ -105,7 +105,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 								shape="basic"
 								kind="secondary"
 								emphasis="low"
-								iconLeft={<IconSolidSquare_2Stack size={12} />}
+								iconLeft={<IconSolidViewGrid size={12} />}
 							>
 								<Text>{totalCount}</Text>
 							</Tag>

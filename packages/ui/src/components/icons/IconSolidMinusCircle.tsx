@@ -8,14 +8,14 @@ export const IconSolidMinusCircle = (props: IconProps) => {
 			width="16"
 			height="16"
 			fill="none"
-			viewBox="0 0 24 24"
+			viewBox="0 0 20 20"
 			focusable="false"
 			{...props}
 		>
 			<path
 				fill="currentColor"
 				fillRule="evenodd"
-				d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm3 10.5a.75.75 0 0 0 0-1.5H9a.75.75 0 0 0 0 1.5h6Z"
+				d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM7 9a1 1 0 0 0 0 2h6a1 1 0 1 0 0-2H7Z"
 				clipRule="evenodd"
 			/>
 		</svg>

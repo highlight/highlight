@@ -3,9 +3,9 @@ import {
 	Badge,
 	Box,
 	ButtonIcon,
-	IconSolidArrowsPointingOut,
-	IconSolidMinusSmall,
-	IconSolidPlusSmall,
+	IconSolidArrowsExpand,
+	IconSolidMinusSm,
+	IconSolidPlusSm,
 	Text,
 } from '@highlight-run/ui'
 import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
@@ -39,7 +39,7 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 							variant="grey"
 							size="tiny"
 							label="Pinch"
-							iconEnd={<IconSolidArrowsPointingOut size={12} />}
+							iconEnd={<IconSolidArrowsExpand size={12} />}
 						/>
 					</>
 				}
@@ -49,14 +49,14 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 					kind="secondary"
 					size="minimal"
 					emphasis="none"
-					icon={<IconSolidPlusSmall />}
+					icon={<IconSolidPlusSm />}
 				/>
 				<ButtonIcon
 					onClick={() => zoom(-PERCENTAGE_STEP)}
 					kind="secondary"
 					size="minimal"
 					emphasis="none"
-					icon={<IconSolidMinusSmall />}
+					icon={<IconSolidMinusSm />}
 				/>
 			</ExplanatoryPopover>
 		</Box>

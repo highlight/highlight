@@ -3,7 +3,7 @@ import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
 import { useGetErrorGroupFrequenciesQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
 import { ErrorGroupFrequenciesParamsInput } from '@graph/schemas'
-import { Box, Heading, IconSolidArrowTrendingUp, Text } from '@highlight-run/ui'
+import { Box, Heading, IconSolidTrendingUp, Text } from '@highlight-run/ui'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
@@ -205,7 +205,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 				>
 					<span className={styles.titleContainer}>
 						<span className={styles.iconContainer}>
-							<IconSolidArrowTrendingUp color="#6b48c7" />
+							<IconSolidTrendingUp color="#6b48c7" />
 						</span>
 						<Text weight="bold">Total occurrences</Text>
 					</span>

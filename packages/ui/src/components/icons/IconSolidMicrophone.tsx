@@ -8,17 +8,17 @@ export const IconSolidMicrophone = (props: IconProps) => {
 			width="16"
 			height="16"
 			fill="none"
-			viewBox="0 0 24 24"
+			viewBox="0 0 20 20"
 			focusable="false"
 			{...props}
 		>
 			<path
 				fill="currentColor"
-				d="M8.25 4.5a3.75 3.75 0 1 1 7.5 0v8.25a3.75 3.75 0 1 1-7.5 0V4.5Z"
+				d="M7 4a3 3 0 0 1 6 0v4a3 3 0 1 1-6 0V4Z"
 			/>
 			<path
 				fill="currentColor"
-				d="M6 10.5a.75.75 0 0 1 .75.75v1.5a5.25 5.25 0 1 0 10.5 0v-1.5a.75.75 0 0 1 1.5 0v1.5a6.751 6.751 0 0 1-6 6.709v2.291h3a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5h3v-2.291a6.751 6.751 0 0 1-6-6.709v-1.5A.75.75 0 0 1 6 10.5Z"
+				d="M11 14.93A7.001 7.001 0 0 0 17 8a1 1 0 1 0-2 0A5 5 0 0 1 5 8a1 1 0 0 0-2 0 7.001 7.001 0 0 0 6 6.93V17H6a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.07Z"
 			/>
 		</svg>
 	)

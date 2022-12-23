@@ -13,11 +13,10 @@ export const IconOutlineCurrencyBangladeshi = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="m8.25 7.5.415-.207a.75.75 0 0 1 1.085.67V10.5m0 0h6m-6 0h-1.5m1.5 0v5.438c0 .354.161.697.473.865a3.751 3.751 0 0 0 5.452-2.553c.083-.409-.263-.75-.68-.75h-.745M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16ZM2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm6-5a1 1 0 0 1 1-1 3 3 0 0 1 3 3v1h3a1 1 0 1 1 0 2h-3v3a1 1 0 1 0 2 0v-1a1 1 0 1 1 2 0v1a3 3 0 1 1-6 0v-3H9a1 1 0 1 1 0-2h1V9a1 1 0 0 0-1-1 1 1 0 0 1-1-1Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

@@ -13,11 +13,10 @@ export const IconOutlineTicket = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 0 1 0 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 0 1 0-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M2 7a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v3a1 1 0 0 1-1 1 1 1 0 1 0 0 2 1 1 0 0 1 1 1v3a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3v-3a1 1 0 0 1 1-1 1 1 0 1 0 0-2 1 1 0 0 1-1-1V7Zm14 11v-1a1 1 0 1 0-2 0v1H5a1 1 0 0 1-1-1v-2.17a3.001 3.001 0 0 0 0-5.66V7a1 1 0 0 1 1-1h9v1a1 1 0 1 0 2 0V6h3a1 1 0 0 1 1 1v2.17a3.001 3.001 0 0 0 0 5.66V17a1 1 0 0 1-1 1h-3Zm-1-8a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

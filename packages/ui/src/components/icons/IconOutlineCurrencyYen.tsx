@@ -13,11 +13,10 @@ export const IconOutlineCurrencyYen = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="m9 7.5 3 4.5m0 0 3-4.5M12 12v5.25M15 12H9m6 3H9m12-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16ZM2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm6.486-4.857a1 1 0 0 1 1.371.343L11.967 11h.067l2.108-3.514a1 1 0 0 1 1.716 1.029L14.366 11H15a1 1 0 1 1 0 2h-1.834l-.166.277V14h2a1 1 0 1 1 0 2h-2v1a1 1 0 1 1-2 0v-1H9a1 1 0 1 1 0-2h2v-.723L10.834 13H9a1 1 0 1 1 0-2h.634L8.143 8.514a1 1 0 0 1 .342-1.371Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

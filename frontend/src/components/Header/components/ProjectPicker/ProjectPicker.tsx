@@ -5,11 +5,11 @@ import {
 import { linkStyle } from '@components/Header/styles.css'
 import {
 	Box,
-	IconSolidArrowSmallLeft,
+	IconSolidArrowSmLeft,
 	IconSolidBriefcase,
 	IconSolidCheck,
 	IconSolidCog,
-	IconSolidPlusSmall,
+	IconSolidPlusSm,
 	Menu,
 	Text,
 } from '@highlight-run/ui'
@@ -98,7 +98,7 @@ const ProjectPicker = () => {
 						size="small"
 						iconLeft={
 							isWorkspaceLevel ? (
-								<IconSolidArrowSmallLeft size={14} />
+								<IconSolidArrowSmLeft size={14} />
 							) : (
 								<IconSolidBriefcase size={14} />
 							)
@@ -121,7 +121,7 @@ const ProjectPicker = () => {
 											alignItems="center"
 											gap="4"
 										>
-											<IconSolidPlusSmall
+											<IconSolidPlusSm
 												size={14}
 												color={vars.color.n9}
 											/>

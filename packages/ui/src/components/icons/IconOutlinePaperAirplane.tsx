@@ -13,11 +13,10 @@ export const IconOutlinePaperAirplane = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="M6 12 3.269 3.126A59.768 59.768 0 0 1 21.485 12 59.77 59.77 0 0 1 3.27 20.876L5.999 12Zm0 0h7.5"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M12 2a1 1 0 0 1 .894.553l9 18a1 1 0 0 1-1.11 1.423L12 20.024l-8.783 1.952a1 1 0 0 1-1.111-1.423l9-18A1 1 0 0 1 12 2Zm1 16.198 6.166 1.37L12 5.236 4.834 19.568 11 18.198V11a1 1 0 1 1 2 0v7.198Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

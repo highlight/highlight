@@ -13,11 +13,10 @@ export const IconOutlineChevronDoubleDown = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="m19.5 5.25-7.5 7.5-7.5-7.5m15 6-7.5 7.5-7.5-7.5"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M4.293 4.293a1 1 0 0 1 1.414 0L12 10.586l6.293-6.293a1 1 0 1 1 1.414 1.414l-7 7a1 1 0 0 1-1.414 0l-7-7a1 1 0 0 1 0-1.414Zm0 8a1 1 0 0 1 1.414 0L12 18.586l6.293-6.293a1 1 0 0 1 1.414 1.414l-7 7a1 1 0 0 1-1.414 0l-7-7a1 1 0 0 1 0-1.414Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

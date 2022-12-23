@@ -8,15 +8,13 @@ export const IconSolidPlay = (props: IconProps) => {
 			width="16"
 			height="16"
 			fill="none"
-			viewBox="0 0 24 24"
+			viewBox="0 0 20 20"
 			focusable="false"
 			{...props}
 		>
 			<path
 				fill="currentColor"
-				fillRule="evenodd"
-				d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653Z"
-				clipRule="evenodd"
+				d="M16.14 11.572c1.311-.706 1.311-2.588 0-3.294L6.756 3.226C5.511 2.556 4 3.458 4 4.873v10.104c0 1.415 1.511 2.318 2.757 1.647l9.382-5.052Z"
 			/>
 		</svg>
 	)

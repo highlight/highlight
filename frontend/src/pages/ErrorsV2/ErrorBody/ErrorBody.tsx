@@ -5,10 +5,10 @@ import {
 	Box,
 	Button,
 	ButtonLink,
-	IconSolidArrowTrendingDown,
-	IconSolidArrowTrendingUp,
-	IconSolidChevronRight,
-	IconSolidCodeBracket,
+	IconSolidTrendingDown,
+	IconSolidTrendingUp,
+	IconSolidCheveronRight,
+	IconSolidCode,
 	Tag,
 	Text,
 	Tooltip,
@@ -106,7 +106,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 									as="span"
 								>
 									<span>Latest</span>{' '}
-									<IconSolidChevronRight size={16} />
+									<IconSolidCheveronRight size={16} />
 								</Box>
 							</ButtonLink>
 						</>
@@ -124,11 +124,11 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 										shape="basic"
 										iconLeft={
 											usersChange > 0 ? (
-												<IconSolidArrowTrendingUp
+												<IconSolidTrendingUp
 													size={12}
 												/>
 											) : (
-												<IconSolidArrowTrendingDown
+												<IconSolidTrendingDown
 													size={12}
 												/>
 											)
@@ -187,7 +187,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 									as="span"
 								>
 									<span>Latest</span>{' '}
-									<IconSolidChevronRight size={16} />
+									<IconSolidCheveronRight size={16} />
 								</Box>
 							</ButtonLink>
 						</>
@@ -205,11 +205,11 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 										shape="basic"
 										iconLeft={
 											countChange > 0 ? (
-												<IconSolidArrowTrendingUp
+												<IconSolidTrendingUp
 													size={12}
 												/>
 											) : (
-												<IconSolidArrowTrendingDown
+												<IconSolidTrendingDown
 													size={12}
 												/>
 											)
@@ -293,7 +293,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 			</Box>
 			<Box py="12" px="16">
 				<Box mb="20" display="flex" gap="6" alignItems="center">
-					<IconSolidCodeBracket size={14} color={vars.color.n11} />
+					<IconSolidCode size={14} color={vars.color.n11} />
 					<Text color="n11">Error Body</Text>
 				</Box>
 

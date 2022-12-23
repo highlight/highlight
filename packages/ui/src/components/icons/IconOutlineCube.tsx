@@ -13,11 +13,10 @@ export const IconOutlineCube = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M11.553 2.106a1 1 0 0 1 .894 0l8 4A1 1 0 0 1 21 7v10a1 1 0 0 1-.553.894l-8 4a1 1 0 0 1-.894 0l-8-4A1 1 0 0 1 3 17V7a1 1 0 0 1 .553-.894l8-4ZM5 8.618l6 3v7.764l-6-3V8.618Zm8 10.764 6-3V8.618l-6 3v7.764Zm-1-9.5L17.764 7 12 4.118 6.236 7 12 9.882Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

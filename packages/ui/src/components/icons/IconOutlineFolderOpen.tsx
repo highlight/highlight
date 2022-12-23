@@ -13,11 +13,10 @@ export const IconOutlineFolderOpen = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M5 6a1 1 0 0 0-1 1v10a1 1 0 1 0 2 0v-5a3 3 0 0 1 3-3h7a1 1 0 0 0-1-1h-4.414l-2-2H5Zm4 5a1 1 0 0 0-1 1v5c0 .35-.06.687-.17 1H19a1 1 0 0 0 1-1v-5a1 1 0 0 0-1-1H9Zm-4 9a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h4.414l2 2H15a3 3 0 0 1 3 3h1a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H5Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

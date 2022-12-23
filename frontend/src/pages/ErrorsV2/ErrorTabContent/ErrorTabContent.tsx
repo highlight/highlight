@@ -1,9 +1,6 @@
 import Tabs from '@components/Tabs/Tabs'
 import { GetErrorGroupQuery } from '@graph/operations'
-import {
-	IconSolidArrowTrendingUp,
-	IconSolidCommandLine,
-} from '@highlight-run/ui'
+import { IconSolidTrendingUp, IconSolidTerminal } from '@highlight-run/ui'
 import ErrorInstance from '@pages/ErrorsV2/ErrorInstance/ErrorInstance'
 import ErrorMetrics from '@pages/ErrorsV2/ErrorMetrics/ErrorMetrics'
 import { useParams } from '@util/react-router/useParams'
@@ -49,7 +46,7 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 						key: 'instances',
 						title: (
 							<TabTitle
-								icon={<IconSolidCommandLine size={14} />}
+								icon={<IconSolidTerminal size={14} />}
 								label="Instances"
 							/>
 						),
@@ -59,7 +56,7 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 						key: 'metrics',
 						title: (
 							<TabTitle
-								icon={<IconSolidArrowTrendingUp />}
+								icon={<IconSolidTrendingUp />}
 								label="Metrics"
 							/>
 						),

@@ -13,10 +13,10 @@ export const IconOutlineVideoCamera = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeWidth={1.5}
-				d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M2 8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v.382l3.106-1.553A2 2 0 0 1 22 8.618v6.764a2 2 0 0 1-2.894 1.789L16 15.618V16a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V8Zm12 5.978a.97.97 0 0 0 0 .042V16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v5.978Zm2-.596 4 2V8.618l-4 2v2.764Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

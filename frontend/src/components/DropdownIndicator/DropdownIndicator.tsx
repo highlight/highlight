@@ -1,5 +1,5 @@
 import { LoadingOutlined } from '@ant-design/icons'
-import { IconSolidMagnifyingGlass } from '@highlight-run/ui'
+import { IconSolidSearch } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
 import { Spin } from 'antd'
 import classNames from 'classnames'
@@ -28,7 +28,7 @@ export const DropdownIndicator = React.memo(
 			<div
 				className={classNames(styles.dropdownIndicator, styles.search)}
 			>
-				<IconSolidMagnifyingGlass color={vars.color.n9} />
+				<IconSolidSearch color={vars.color.n9} />
 			</div>
 		)
 	},

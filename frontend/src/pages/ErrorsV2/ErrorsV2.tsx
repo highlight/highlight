@@ -9,8 +9,8 @@ import {
 	Box,
 	ButtonIcon,
 	Container,
-	IconSolidChevronDown,
-	IconSolidChevronUp,
+	IconSolidCheveronDown,
+	IconSolidCheveronUp,
 	IconSolidExitRight,
 	vars,
 } from '@highlight-run/ui'
@@ -196,7 +196,9 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											shape="square"
 											emphasis="low"
 											icon={
-												<IconSolidChevronUp size={14} />
+												<IconSolidCheveronUp
+													size={14}
+												/>
 											}
 											cssClass={
 												styles.sessionSwitchButton
@@ -216,7 +218,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											shape="square"
 											emphasis="low"
 											icon={
-												<IconSolidChevronDown
+												<IconSolidCheveronDown
 													size={14}
 												/>
 											}

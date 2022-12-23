@@ -13,11 +13,10 @@ export const IconOutlineArrowUp = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M11.293 2.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1-1.414 1.414L13 5.414V21a1 1 0 1 1-2 0V5.414l-5.293 5.293a1 1 0 0 1-1.414-1.414l7-7Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

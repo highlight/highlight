@@ -13,11 +13,10 @@ export const IconOutlineShoppingBag = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M7 7a5 5 0 0 1 10 0v1h2a1 1 0 0 1 .997.917l1 12A1 1 0 0 1 20 22H4a1 1 0 0 1-.997-1.083l1-12A1 1 0 0 1 5 8h2V7Zm0 3v1a1 1 0 1 0 2 0v-1h6v1a1 1 0 1 0 2 0v-1h1.08l.833 10H5.087l.833-10H7Zm8-2H9V7a3 3 0 1 1 6 0v1Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

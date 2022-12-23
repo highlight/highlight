@@ -8,21 +8,17 @@ export const IconSolidChartPie = (props: IconProps) => {
 			width="16"
 			height="16"
 			fill="none"
-			viewBox="0 0 24 24"
+			viewBox="0 0 20 20"
 			focusable="false"
 			{...props}
 		>
 			<path
 				fill="currentColor"
-				fillRule="evenodd"
-				d="M2.25 13.5a8.25 8.25 0 0 1 8.25-8.25.75.75 0 0 1 .75.75v6.75H18a.75.75 0 0 1 .75.75 8.25 8.25 0 0 1-16.5 0Z"
-				clipRule="evenodd"
+				d="M2 10a8 8 0 0 1 8-8v8h8a8 8 0 1 1-16 0Z"
 			/>
 			<path
 				fill="currentColor"
-				fillRule="evenodd"
-				d="M12.75 3a.75.75 0 0 1 .75-.75 8.25 8.25 0 0 1 8.25 8.25.75.75 0 0 1-.75.75h-7.5a.75.75 0 0 1-.75-.75V3Z"
-				clipRule="evenodd"
+				d="M12 2.252A8.014 8.014 0 0 1 17.748 8H12V2.252Z"
 			/>
 		</svg>
 	)

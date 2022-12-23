@@ -13,18 +13,10 @@ export const IconOutlineTag = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607l-9.58-9.58A2.25 2.25 0 0 0 9.568 3Z"
-			/>
-			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="M6 6h.008v.008H6V6Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M7 4a3 3 0 0 0-3 3v5c0 .299.13.566.339.75l.023.02 6.996 6.997A.992.992 0 0 0 12 20a.992.992 0 0 0 .642-.233l6.974-6.974a.96.96 0 0 1 .045-.043.996.996 0 0 0 .106-1.392l-6.974-6.974a.965.965 0 0 1-.043-.045A.995.995 0 0 0 12 4H7ZM2 7a5 5 0 0 1 5-5h5c.884 0 1.68.383 2.227.99l6.98 6.98.043.045c.466.529.75 1.225.75 1.985 0 .884-.383 1.68-.99 2.227l-6.98 6.98A2.992 2.992 0 0 1 12 22a2.992 2.992 0 0 1-2.03-.793l-6.98-6.98A2.995 2.995 0 0 1 2 12V7Zm4 0a1 1 0 0 1 1-1h.01a1 1 0 0 1 0 2H7a1 1 0 0 1-1-1Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

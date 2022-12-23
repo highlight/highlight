@@ -27,19 +27,19 @@ import {
 	Box,
 	Button,
 	ButtonIcon,
-	IconSolidArrowDownOnSquare,
-	IconSolidArrowPath,
-	IconSolidChevronDown,
+	IconSolidCheveronDown,
 	IconSolidClock,
-	IconSolidCloudArrowUp,
+	IconSolidCloudUpload,
 	IconSolidDocumentDuplicate,
 	IconSolidLogout,
 	IconSolidPencil,
 	IconSolidPlusCircle,
-	IconSolidPlusSmall,
-	IconSolidSquare_3Stack_3d,
+	IconSolidPlusSm,
+	IconSolidRefresh,
+	IconSolidSave,
+	IconSolidSegment,
 	IconSolidTrash,
-	IconSolidXMark,
+	IconSolidX,
 	Menu,
 	Tag,
 	Text,
@@ -886,7 +886,7 @@ const QueryRule = ({
 					onClick={() => {
 						onRemove()
 					}}
-					iconRight={<IconSolidXMark size={12} />}
+					iconRight={<IconSolidX size={12} />}
 				/>
 			)}
 		</Box>
@@ -936,14 +936,14 @@ export const TimeRangeFilter = ({
 					size="small"
 					emphasis="high"
 					iconLeft={<IconSolidClock size={14} />}
-					iconRight={<IconSolidChevronDown size={14} />}
+					iconRight={<IconSolidCheveronDown size={14} />}
 				/>
 			</Popover>
 			<Tag
 				kind="secondary"
 				emphasis="low"
 				shape="basic"
-				iconRight={!!onReset ? <IconSolidXMark size={12} /> : undefined}
+				iconRight={!!onReset ? <IconSolidX size={12} /> : undefined}
 				onIconRightClick={!!onReset ? onReset : undefined}
 			>
 				<Box onClick={() => setVisible((visible) => !visible)}>
@@ -2184,7 +2184,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="secondary"
 						size="xSmall"
 						emphasis="low"
-						iconLeft={<IconSolidPlusSmall size={12} />}
+						iconLeft={<IconSolidPlusSm size={12} />}
 						onClick={addNewRule}
 					>
 						Add filter
@@ -2194,7 +2194,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="secondary"
 						size="xSmall"
 						emphasis="low"
-						icon={<IconSolidPlusSmall size={12} />}
+						icon={<IconSolidPlusSm size={12} />}
 						onClick={addNewRule}
 						cssClass={newStyle.addButton}
 					/>
@@ -2252,7 +2252,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="secondary"
 						size="xSmall"
 						emphasis="medium"
-						iconLeft={<IconSolidArrowDownOnSquare size={12} />}
+						iconLeft={<IconSolidSave size={12} />}
 						onClick={() => {
 							setShowCreateSegmentModal(true)
 						}}
@@ -2267,8 +2267,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="secondary"
 						size="xSmall"
 						emphasis="medium"
-						iconLeft={<IconSolidSquare_3Stack_3d size={12} />}
-						iconRight={<IconSolidChevronDown size={12} />}
+						iconLeft={<IconSolidSegment size={12} />}
+						iconRight={<IconSolidCheveronDown size={12} />}
 						onClick={() => {}}
 					>
 						{selectedSegment?.name}
@@ -2280,8 +2280,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="primary"
 						size="xSmall"
 						emphasis="high"
-						iconLeft={<IconSolidSquare_3Stack_3d size={12} />}
-						iconRight={<IconSolidChevronDown size={12} />}
+						iconLeft={<IconSolidSegment size={12} />}
+						iconRight={<IconSolidCheveronDown size={12} />}
 					>
 						{selectedSegment?.name}
 					</Menu.Button>
@@ -2322,7 +2322,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 								size="small"
 								shape="square"
 								emphasis="low"
-								icon={<IconSolidArrowPath size={14} />}
+								icon={<IconSolidRefresh size={14} />}
 								disabled={syncButtonDisabled}
 								onClick={() => {
 									// Re-generate the absolute times used in the serialized query
@@ -2374,7 +2374,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						gap="4"
 						userSelect="none"
 					>
-						<IconSolidCloudArrowUp size={16} color={colors.n9} />
+						<IconSolidCloudUpload size={16} color={colors.n9} />
 						Push segment changes
 					</Box>
 				</Menu.Item>
@@ -2409,7 +2409,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						gap="4"
 						userSelect="none"
 					>
-						<IconSolidArrowPath size={16} color={colors.n9} />
+						<IconSolidRefresh size={16} color={colors.n9} />
 						Reset to segment filters
 					</Box>
 				</Menu.Item>
@@ -2650,7 +2650,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 								kind="secondary"
 								disabled={segmentsLoading}
 								emphasis="high"
-								icon={<IconSolidSquare_3Stack_3d size={12} />}
+								icon={<IconSolidSegment size={12} />}
 								size="xSmall"
 							/>
 							<Menu.List cssClass={styles.menuList}>

@@ -8,14 +8,14 @@ export const IconSolidLogout = (props: IconProps) => {
 			width="16"
 			height="16"
 			fill="none"
-			viewBox="0 0 14 14"
+			viewBox="0 0 20 20"
 			focusable="false"
 			{...props}
 		>
 			<path
 				fill="currentColor"
 				fillRule="evenodd"
-				d="M2.1 2.1a.7.7 0 0 1 .7.7v8.4a.7.7 0 1 1-1.4 0V2.8a.7.7 0 0 1 .7-.7Zm5.395 2.305a.7.7 0 0 1 0 .99L6.59 6.3h5.31a.7.7 0 1 1 0 1.4H6.59l.905.905a.7.7 0 1 1-.99.99l-2.1-2.1a.7.7 0 0 1 0-.99l2.1-2.1a.7.7 0 0 1 .99 0Z"
+				d="M3 3a1 1 0 0 1 1 1v12a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1Zm7.707 3.293a1 1 0 0 1 0 1.414L9.414 9H17a1 1 0 1 1 0 2H9.414l1.293 1.293a1 1 0 0 1-1.414 1.414l-3-3a1 1 0 0 1 0-1.414l3-3a1 1 0 0 1 1.414 0Z"
 				clipRule="evenodd"
 			/>
 		</svg>

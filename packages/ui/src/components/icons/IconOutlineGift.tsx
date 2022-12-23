@@ -13,11 +13,10 @@ export const IconOutlineGift = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M9.5 4a1.5 1.5 0 1 0 0 3H11V5.5A1.5 1.5 0 0 0 9.5 4Zm2.863-.514A3.5 3.5 0 0 0 6.337 7H5a3 3 0 0 0-1 5.83V19a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-6.17A3.001 3.001 0 0 0 19 7h-2.17a3 3 0 0 0-4.467-3.514ZM13 6v1h1a1 1 0 1 0-1-1Zm-2 3H5a1 1 0 0 0 0 2h6V9Zm0 4H6v6a1 1 0 0 0 1 1h4v-7Zm2 7v-7h5v6a1 1 0 0 1-1 1h-4Zm0-9V9h6a1 1 0 1 1 0 2h-6Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)

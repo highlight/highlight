@@ -13,11 +13,10 @@ export const IconOutlineChevronDoubleLeft = (props: IconProps) => {
 			{...props}
 		>
 			<path
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth={1.5}
-				d="m18.75 19.5-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5"
+				fill="currentColor"
+				fillRule="evenodd"
+				d="M11.707 4.293a1 1 0 0 1 0 1.414L5.414 12l6.293 6.293a1 1 0 0 1-1.414 1.414l-7-7a1 1 0 0 1 0-1.414l7-7a1 1 0 0 1 1.414 0Zm8 0a1 1 0 0 1 0 1.414L13.414 12l6.293 6.293a1 1 0 0 1-1.414 1.414l-7-7a1 1 0 0 1 0-1.414l7-7a1 1 0 0 1 1.414 0Z"
+				clipRule="evenodd"
 			/>
 		</svg>
 	)
