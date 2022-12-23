@@ -248,9 +248,11 @@ const WorkspaceIntegrationCallback = ({
 	code,
 	projectId,
 	name,
+	type,
 	addIntegration,
 }: Props & {
 	name: string
+	type: string
 	addIntegration: (code: string) => Promise<unknown>
 }) => {
 	const history = useHistory()
@@ -258,7 +260,7 @@ const WorkspaceIntegrationCallback = ({
 
 	useEffect(() => {
 		if (!addIntegration || !code) return
-		const next = `/${projectId}/integrations`
+		const next = `/${projectId}/integrations/${type}`
 		;(async () => {
 			try {
 				await addIntegration(code)
@@ -285,6 +287,7 @@ const ClickUpIntegrationCallback = ({ code, projectId }: Props) => {
 		<WorkspaceIntegrationCallback
 			code={code}
 			name="ClickUp"
+			type="clickup"
 			addIntegration={addIntegration}
 			projectId={projectId}
 		/>
