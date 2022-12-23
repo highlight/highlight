@@ -8,7 +8,7 @@ import {
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
 import type { ErrorInstance as ErrorInstanceType } from '@graph/schemas'
-import { Box, Button, Heading, IconPlay, Text } from '@highlight-run/ui'
+import { Box, Button, Heading, IconSolidPlay, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
@@ -130,7 +130,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 										  )
 										: null
 								}
-								iconLeft={<IconPlay />}
+								iconLeft={<IconSolidPlay />}
 							>
 								Show session
 							</Button>
@@ -234,7 +234,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									  )
 									: null
 							}
-							iconLeft={<IconPlay />}
+							iconLeft={<IconSolidPlay />}
 						>
 							Show session
 						</Button>

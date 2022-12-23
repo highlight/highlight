@@ -4,7 +4,13 @@ import ConnectHighlightWithSlackButton from '@components/Header/components/Conne
 import Input from '@components/Input/Input'
 import MenuItem from '@components/Menu/MenuItem'
 import Tabs from '@components/Tabs/Tabs'
-import { Box, Button, IconBell, IconFilter, Text } from '@highlight-run/ui'
+import {
+	Box,
+	Button,
+	IconSolidBell,
+	IconSolidFunnel,
+	Text,
+} from '@highlight-run/ui'
 import SvgEmailPlusIcon from '@icons/EmailPlusIcon'
 import SvgMailOpenIcon from '@icons/MailOpenIcon'
 import SvgSearchIcon from '@icons/SearchIcon'
@@ -219,7 +225,7 @@ const Notifications = () => {
 			}}
 		>
 			<Button
-				iconLeft={<IconBell size={14} />}
+				iconLeft={<IconSolidBell size={14} />}
 				emphasis="low"
 				kind="secondary"
 				className={styles.buttonV2}
@@ -418,7 +424,7 @@ const List = ({
 				>
 					<Button
 						kind={filtersCount > 0 ? 'primary' : 'secondary'}
-						iconLeft={<IconFilter size={12} />}
+						iconLeft={<IconSolidFunnel size={12} />}
 						cssClass={styles.filtersButton}
 					>
 						<Text lines="1">

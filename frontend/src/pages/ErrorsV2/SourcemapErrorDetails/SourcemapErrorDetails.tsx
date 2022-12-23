@@ -9,7 +9,7 @@ import {
 	Button,
 	ButtonIcon,
 	Heading,
-	IconCaretDown,
+	IconSolidChevronDown,
 	LinkButton,
 	Stack,
 	Tag,
@@ -291,7 +291,7 @@ const StackSectionError: React.FC<
 								setShowMetadata(!showMetadata)
 							}}
 							kind="secondary"
-							iconRight={<IconCaretDown />}
+							iconRight={<IconSolidChevronDown />}
 							shape="basic"
 						>
 							{showMetadata ? 'Hide' : 'Show'} metadata

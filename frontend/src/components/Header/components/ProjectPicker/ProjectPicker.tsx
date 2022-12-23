@@ -5,11 +5,11 @@ import {
 import { linkStyle } from '@components/Header/styles.css'
 import {
 	Box,
-	IconArrowSmLeft,
-	IconBriefcase,
-	IconCheck,
-	IconCog,
-	IconPlusSm,
+	IconSolidArrowSmallLeft,
+	IconSolidBriefcase,
+	IconSolidCheck,
+	IconSolidCog,
+	IconSolidPlusSmall,
 	Menu,
 	Text,
 } from '@highlight-run/ui'
@@ -74,7 +74,7 @@ const ProjectPicker = () => {
 								width="full"
 							>
 								<Text lines="1">{project?.name ?? ''}</Text>
-								{isSelected && <IconCheck size={14} />}
+								{isSelected && <IconSolidCheck size={14} />}
 							</Box>
 						</Box>
 					</Menu.Item>
@@ -98,9 +98,9 @@ const ProjectPicker = () => {
 						size="small"
 						iconLeft={
 							isWorkspaceLevel ? (
-								<IconArrowSmLeft size={14} />
+								<IconSolidArrowSmallLeft size={14} />
 							) : (
-								<IconBriefcase size={14} />
+								<IconSolidBriefcase size={14} />
 							)
 						}
 					>
@@ -121,7 +121,7 @@ const ProjectPicker = () => {
 											alignItems="center"
 											gap="4"
 										>
-											<IconPlusSm
+											<IconSolidPlusSmall
 												size={14}
 												color={vars.color.n9}
 											/>
@@ -139,7 +139,7 @@ const ProjectPicker = () => {
 											alignItems="center"
 											gap="4"
 										>
-											<IconCog
+											<IconSolidCog
 												size={14}
 												color={vars.color.n9}
 											/>

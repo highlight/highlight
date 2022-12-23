@@ -11,22 +11,22 @@ import { Maybe, PlanType, Project } from '@graph/schemas'
 import {
 	Box,
 	Button,
-	IconArrowSmLeft,
-	IconAtSymbol,
-	IconCog,
-	IconDesktopComputer,
-	IconDocumentText,
-	IconDotsHorizontal,
-	IconHome,
-	IconOfficeBuilding,
-	IconPlayCircle,
-	IconQuestionMarkCircle,
-	IconSpeakerphone,
-	IconStackedBarChart,
-	IconSwitchHorizontal,
-	IconUserCircle,
-	IconViewGridAdd,
-	IconXCircle,
+	IconSolidArrowSmallLeft,
+	IconSolidArrowsRightLeft,
+	IconSolidAtSymbol,
+	IconSolidBuildingOffice,
+	IconSolidChartBar,
+	IconSolidCog,
+	IconSolidComputerDesktop,
+	IconSolidDocumentText,
+	IconSolidEllipsisHorizontal,
+	IconSolidHome,
+	IconSolidMegaphone,
+	IconSolidPlayCircle,
+	IconSolidQuestionMarkCircle,
+	IconSolidUserCircle,
+	IconSolidViewColumns,
+	IconSolidXCircle,
 	LinkButton,
 	Menu,
 } from '@highlight-run/ui'
@@ -79,19 +79,19 @@ export const Header = () => {
 	const pages = [
 		{
 			key: 'home',
-			icon: IconHome,
+			icon: IconSolidHome,
 		},
 		{
 			key: 'errors',
-			icon: IconXCircle,
+			icon: IconSolidXCircle,
 		},
 		{
 			key: 'sessions',
-			icon: IconPlayCircle,
+			icon: IconSolidPlayCircle,
 		},
 		{
 			key: 'alerts',
-			icon: IconSpeakerphone,
+			icon: IconSolidMegaphone,
 		},
 	]
 
@@ -162,7 +162,7 @@ export const Header = () => {
 									<Menu>
 										<Menu.Button
 											icon={
-												<IconDotsHorizontal
+												<IconSolidEllipsisHorizontal
 													size={14}
 													color={vars.color.n11}
 												/>
@@ -181,7 +181,7 @@ export const Header = () => {
 														alignItems="center"
 														gap="4"
 													>
-														<IconStackedBarChart
+														<IconSolidChartBar
 															size={14}
 															color={
 																vars.theme
@@ -206,7 +206,7 @@ export const Header = () => {
 														alignItems="center"
 														gap="4"
 													>
-														<IconViewGridAdd
+														<IconSolidViewColumns
 															size={14}
 															color={
 																vars.theme
@@ -231,7 +231,7 @@ export const Header = () => {
 														alignItems="center"
 														gap="4"
 													>
-														<IconDesktopComputer
+														<IconSolidComputerDesktop
 															size={14}
 															color={
 																vars.theme
@@ -262,7 +262,9 @@ export const Header = () => {
 									kind="secondary"
 									emphasis="high"
 									size="small"
-									iconLeft={<IconArrowSmLeft size={14} />}
+									iconLeft={
+										<IconSolidArrowSmallLeft size={14} />
+									}
 								>
 									Back to Highlight
 								</Button>
@@ -299,7 +301,7 @@ export const Header = () => {
 										emphasis="low"
 										kind="secondary"
 										icon={
-											<IconCog
+											<IconSolidCog
 												size={14}
 												color={vars.color.n11}
 											/>
@@ -316,7 +318,7 @@ export const Header = () => {
 													alignItems="center"
 													gap="4"
 												>
-													<IconOfficeBuilding
+													<IconSolidBuildingOffice
 														size={14}
 														color={
 															vars.theme
@@ -339,7 +341,7 @@ export const Header = () => {
 													alignItems="center"
 													gap="4"
 												>
-													<IconUserCircle
+													<IconSolidUserCircle
 														size={14}
 														color={
 															vars.theme
@@ -363,7 +365,7 @@ export const Header = () => {
 													alignItems="center"
 													gap="4"
 												>
-													<IconSwitchHorizontal
+													<IconSolidArrowsRightLeft
 														size={14}
 														color={
 															vars.theme
@@ -386,7 +388,7 @@ export const Header = () => {
 												alignItems="center"
 												gap="4"
 											>
-												<IconQuestionMarkCircle
+												<IconSolidQuestionMarkCircle
 													size={14}
 													color={
 														vars.theme.interactive
@@ -407,7 +409,7 @@ export const Header = () => {
 													alignItems="center"
 													gap="4"
 												>
-													<IconDocumentText
+													<IconSolidDocumentText
 														size={14}
 														color={
 															vars.theme
@@ -432,7 +434,7 @@ export const Header = () => {
 												alignItems="center"
 												gap="4"
 											>
-												<IconAtSymbol
+												<IconSolidAtSymbol
 													size={14}
 													color={
 														vars.theme.interactive

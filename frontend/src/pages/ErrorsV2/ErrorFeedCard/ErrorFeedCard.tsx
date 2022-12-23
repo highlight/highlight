@@ -2,9 +2,9 @@ import BarChart from '@components/BarChart/BarChart'
 import { ErrorGroup, ErrorState, Maybe } from '@graph/schemas'
 import {
 	Box,
-	IconSparkles,
-	IconUsers,
-	IconViewGrid,
+	IconSolidSparkles,
+	IconSolidSquare_2Stack,
+	IconSolidUsers,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
@@ -97,7 +97,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 								shape="basic"
 								kind="secondary"
 								emphasis="low"
-								iconLeft={<IconUsers size={12} />}
+								iconLeft={<IconSolidUsers size={12} />}
 							>
 								<Text>{userCount}</Text>
 							</Tag>
@@ -105,7 +105,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 								shape="basic"
 								kind="secondary"
 								emphasis="low"
-								iconLeft={<IconViewGrid size={12} />}
+								iconLeft={<IconSolidSquare_2Stack size={12} />}
 							>
 								<Text>{totalCount}</Text>
 							</Tag>
@@ -117,7 +117,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 							<Tag
 								shape="basic"
 								kind="secondary"
-								iconLeft={<IconSparkles size={12} />}
+								iconLeft={<IconSolidSparkles size={12} />}
 							>
 								{createdDate}
 							</Tag>
