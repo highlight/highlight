@@ -1,10 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
 import { Button as UIButton, ButtonProps } from '@highlight-run/ui'
 import analytics from '@util/analytics'
+import * as rudderanalytics from 'rudder-sdk-js'
 
 type Props = ButtonProps & {
 	trackingId: string
-	trackingProperties?: any
+	trackingProperties?: rudderanalytics.apiObject
 }
 
 export const Button: React.FC<Props> = ({
