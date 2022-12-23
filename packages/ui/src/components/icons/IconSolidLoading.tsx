@@ -1,12 +1,12 @@
 import React from 'react'
 import { IconProps } from './types'
 
-export const IconSolidLoading = (props: IconProps) => {
+export const IconSolidLoading = ({ size = '1em', ...props }: IconProps) => {
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
-			width="16"
-			height="16"
+			width={size}
+			height={size}
 			fill="none"
 			viewBox="0 0 142 39"
 			focusable="false"

@@ -1,12 +1,15 @@
 import React from 'react'
 import { IconProps } from './types'
 
-export const IconSolidCurrencyRupee = (props: IconProps) => {
+export const IconSolidCurrencyRupee = ({
+	size = '1em',
+	...props
+}: IconProps) => {
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
-			width="16"
-			height="16"
+			width={size}
+			height={size}
 			fill="none"
 			viewBox="0 0 20 20"
 			focusable="false"

@@ -11,7 +11,9 @@ const componentTemplate: Config['template'] = (variables, { tpl }) => {
 import React from 'react'
 import { IconProps } from './types'
 ${`\n`}
-export const ${variables.componentName} = (props: IconProps) => {
+export const ${
+		variables.componentName
+	} = ({ size = '1em', ...props }: IconProps) => {
 	return ${variables.jsx}
 }
 `
@@ -33,8 +35,8 @@ const updateAttrs = ($el) => {
 const svgrConfig: Config = {
 	svgProps: {
 		focusable: 'false',
-		width: '16',
-		height: '16',
+		width: '{size}',
+		height: '{size}',
 	},
 	icon: true,
 	template: componentTemplate,
