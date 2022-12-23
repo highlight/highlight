@@ -29,7 +29,6 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	"github.com/highlight-run/highlight/backend/clickup"
 	"github.com/highlight-run/highlight/backend/front"
-	"github.com/highlight-run/highlight/backend/height"
 	"github.com/highlight-run/highlight/backend/integrations"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/oauth"
@@ -1784,22 +1783,7 @@ func (r *Resolver) AddClickUpToWorkspace(ctx context.Context, workspace *model.W
 }
 
 func (r *Resolver) AddHeightToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
-	res, err := height.GetAccessToken(ctx, code)
-	if err != nil {
-		return e.Wrap(err, "error getting Height oauth access token")
-	}
-
-	integrationWorkspaceMapping := &model.IntegrationWorkspaceMapping{
-		WorkspaceID:     workspace.ID,
-		IntegrationType: modelInputs.IntegrationTypeHeight,
-		AccessToken:     res.AccessToken,
-	}
-
-	if err := r.DB.Create(integrationWorkspaceMapping).Error; err != nil {
-		return e.Wrap(err, "error creating Height integration for workspace")
-	}
-
-	return nil
+	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeHeight, code)
 }
 
 func (r *Resolver) AddDiscordToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {

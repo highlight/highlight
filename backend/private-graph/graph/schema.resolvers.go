@@ -29,8 +29,8 @@ import (
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/front"
-	"github.com/highlight-run/highlight/backend/height"
 	"github.com/highlight-run/highlight/backend/hlog"
+	"github.com/highlight-run/highlight/backend/integrations/height"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -5462,7 +5462,7 @@ func (r *queryResolver) HeightWorkspaces(ctx context.Context, workspaceID int) (
 		return nil, err
 	}
 
-	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(workspace, modelInputs.IntegrationTypeHeight)
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeHeight)
 
 	if err != nil {
 		return nil, err
@@ -5470,7 +5470,7 @@ func (r *queryResolver) HeightWorkspaces(ctx context.Context, workspaceID int) (
 
 	workspaces, err := height.GetWorkspaces(*accessToken)
 
-	return workspaces, nil
+	return workspaces, err
 
 }
 

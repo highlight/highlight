@@ -1087,6 +1087,8 @@ type IntegrationWorkspaceMapping struct {
 	IntegrationType modelInputs.IntegrationType `gorm:"primary_key;not null"`
 	WorkspaceID     int                         `gorm:"primary_key;not null"`
 	AccessToken     string                      `gorm:"not null"`
+	RefreshToken    string
+	Expiry          time.Time
 }
 
 type IntegrationProjectMapping struct {
