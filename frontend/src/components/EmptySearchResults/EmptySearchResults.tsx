@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { Button, Callout, Stack, Text } from '@highlight-run/ui'
+import { Button } from '@components/Button'
+import { Callout, Stack, Text } from '@highlight-run/ui'
 import { showIntercom } from '@util/window'
 
 export enum SearchResultsKind {
@@ -23,6 +24,7 @@ export const EmptySearchResults = ({ kind }: Props) => {
 				<Button
 					kind="secondary"
 					onClick={() => showIntercom({ admin })}
+					trackingId="emptySearchResultsContact"
 				>
 					Contact
 				</Button>
@@ -37,6 +39,7 @@ export const EmptySearchResults = ({ kind }: Props) => {
 
 						window.open(url, '_blank')
 					}}
+					trackingId="emptySearchResultsLearnMore"
 				>
 					Learn more
 				</Button>

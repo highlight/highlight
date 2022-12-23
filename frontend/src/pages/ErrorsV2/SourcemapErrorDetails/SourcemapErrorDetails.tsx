@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { Button } from '@components/Button'
 import {
 	Maybe,
 	SourceMappingError,
@@ -6,7 +7,6 @@ import {
 } from '@graph/schemas'
 import {
 	Box,
-	Button,
 	ButtonIcon,
 	Heading,
 	IconCaretDown,
@@ -355,6 +355,7 @@ const StackSectionError: React.FC<
 				<Button
 					kind="secondary"
 					onClick={() => showIntercom({ admin })}
+					trackingId="sourcemapErrorContact"
 				>
 					Contact
 				</Button>

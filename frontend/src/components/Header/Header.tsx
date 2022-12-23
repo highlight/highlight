@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { Button } from '@components/Button'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -10,7 +11,6 @@ import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
 import { Maybe, PlanType, Project } from '@graph/schemas'
 import {
 	Box,
-	Button,
 	IconArrowSmLeft,
 	IconAtSymbol,
 	IconCog,
@@ -263,6 +263,7 @@ export const Header = () => {
 									emphasis="high"
 									size="small"
 									iconLeft={<IconArrowSmLeft size={14} />}
+									trackingId="navHomeLink"
 								>
 									Back to Highlight
 								</Button>

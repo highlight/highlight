@@ -1,6 +1,6 @@
+import { Button } from '@components/Button'
 import {
 	Box,
-	Button,
 	ButtonIcon,
 	IconChevronLeft,
 	IconChevronRight,
@@ -187,6 +187,7 @@ const SearchPagination = ({
 									size="small"
 									emphasis="low"
 									kind="secondary"
+									trackingId="searchPagination"
 								>
 									{val}
 								</Button>
