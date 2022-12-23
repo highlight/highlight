@@ -191,7 +191,7 @@ export const HeightIntegrationSettings: React.FC<
 					...p,
 					onUpdateProjectLink: (label: string) => {
 						const match = settings.height_workspaces.find(
-							(w) => w.id === label,
+							(w) => w.name === label,
 						)
 
 						if (match === undefined) {
@@ -245,14 +245,19 @@ export const HeightIntegrationSettings: React.FC<
 			width: '55%',
 			render: (_: string, row: any) => {
 				const heightWorkspaceId = projectMap.get(row.id)
-				const opts = settings.height_workspaces.find(
+				const selectedWorkspace = settings.height_workspaces.find(
 					(w) => w.id === heightWorkspaceId,
 				)
+				const value = {
+					id: selectedWorkspace?.id,
+					value: selectedWorkspace?.id,
+					label: selectedWorkspace?.name,
+				}
 				return (
 					<div className={styles.select}>
 						<Select
 							className="w-full"
-							value={opts}
+							value={value}
 							onChange={row.onUpdateProjectLink}
 							options={selectOptions}
 							placeholder="Height workspace"
