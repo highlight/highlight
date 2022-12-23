@@ -1,10 +1,11 @@
+import { Button } from '@components/Button'
 import CheckboxList from '@components/CheckboxList/CheckboxList'
 import Dot from '@components/Dot/Dot'
 import ConnectHighlightWithSlackButton from '@components/Header/components/ConnectHighlightWithSlackButton/ConnectHighlightWithSlackButton'
 import Input from '@components/Input/Input'
 import MenuItem from '@components/Menu/MenuItem'
 import Tabs from '@components/Tabs/Tabs'
-import { Box, Button, IconBell, IconFilter, Text } from '@highlight-run/ui'
+import { Box, IconBell, IconFilter, Text } from '@highlight-run/ui'
 import SvgEmailPlusIcon from '@icons/EmailPlusIcon'
 import SvgMailOpenIcon from '@icons/MailOpenIcon'
 import SvgSearchIcon from '@icons/SearchIcon'
@@ -223,6 +224,7 @@ const Notifications = () => {
 				emphasis="low"
 				kind="secondary"
 				className={styles.buttonV2}
+				trackingId="toggleNotifications"
 			>
 				<div className={styles.iconContainerV2}>
 					{inboxNotifications.length !== 0 && (
@@ -409,6 +411,7 @@ const List = ({
 										setShowSessionNotifications(true)
 										setTagsToFilterBy([])
 									}}
+									trackingId="clearNotificationsFilters"
 								>
 									Clear Filters
 								</Button>
@@ -420,6 +423,7 @@ const List = ({
 						kind={filtersCount > 0 ? 'primary' : 'secondary'}
 						iconLeft={<IconFilter size={12} />}
 						cssClass={styles.filtersButton}
+						trackingId="notificationsFilters"
 					>
 						<Text lines="1">
 							Filters

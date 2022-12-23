@@ -5,7 +5,7 @@ import {
 	usePopoverState,
 } from 'ariakit'
 import React from 'react'
-import { Button, Props as ButtonProps } from '../Button/Button'
+import { Button, ButtonProps as ButtonProps } from '../Button/Button'
 import { Tag, Props as TagProps } from '../Tag/Tag'
 
 const PopoverContext = React.createContext<PopoverState>({} as PopoverState)

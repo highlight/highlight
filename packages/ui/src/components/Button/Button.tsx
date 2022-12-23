@@ -1,5 +1,8 @@
 import React from 'react'
-import { Button as AriakitButton, ButtonProps } from 'ariakit/button'
+import {
+	Button as AriakitButton,
+	ButtonProps as AriakitButtonProps,
+} from 'ariakit/button'
 import { Text, Props as TextProps } from '../Text/Text'
 
 import * as styles from './styles.css'
@@ -7,8 +10,8 @@ import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
 import clsx, { ClassValue } from 'clsx'
 
-export type Props = React.PropsWithChildren &
-	ButtonProps &
+export type ButtonProps = React.PropsWithChildren &
+	AriakitButtonProps &
 	styles.Variants & {
 		iconLeft?: React.ReactElement<IconProps>
 		onIconLeftClick?: React.MouseEventHandler<HTMLButtonElement>
@@ -26,7 +29,7 @@ const buttonToTextSize = {
 	xLarge: 'large',
 } as const
 
-export const Button = React.forwardRef<HTMLButtonElement, Props>(
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 	(
 		{
 			children,
