@@ -301,6 +301,7 @@ const HeightIntegrationCallback = ({ code, projectId }: Props) => {
 		<WorkspaceIntegrationCallback
 			code={code}
 			name="Height"
+			type="height"
 			addIntegration={addIntegration}
 			projectId={projectId}
 		/>
