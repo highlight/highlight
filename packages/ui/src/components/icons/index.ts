@@ -164,7 +164,7 @@ export { IconOutlinePresentationChartBar } from './IconOutlinePresentationChartB
 export { IconOutlinePresentationChartLine } from './IconOutlinePresentationChartLine'
 export { IconOutlinePrinter } from './IconOutlinePrinter'
 export { IconOutlinePuzzle } from './IconOutlinePuzzle'
-export { IconOutlineQrcode } from './IconOutlineQrcode'
+// export { IconOutlineQrcode } from './IconOutlineQrcode'
 export { IconOutlineQuestionMarkCircle } from './IconOutlineQuestionMarkCircle'
 export { IconOutlineReceiptRefund } from './IconOutlineReceiptRefund'
 export { IconOutlineReceiptTax } from './IconOutlineReceiptTax'
