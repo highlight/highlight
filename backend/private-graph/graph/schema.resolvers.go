@@ -5276,7 +5276,7 @@ func (r *queryResolver) ClickupTeams(ctx context.Context, workspaceID int) ([]*m
 	}
 
 	if workspace.ClickupAccessToken == nil {
-		return nil, e.New("Workspace is not integrated with ClickUp")
+		return []*modelInputs.ClickUpTeam{}, nil
 	}
 
 	teams, err := clickup.GetTeams(*workspace.ClickupAccessToken)
