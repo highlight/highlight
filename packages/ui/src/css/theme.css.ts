@@ -1,6 +1,6 @@
-import { createTheme } from '@vanilla-extract/css'
+import { createGlobalTheme } from '@vanilla-extract/css'
 
-export const [themeClass, themeVars] = createTheme({
+export const themeVars = createGlobalTheme('.highlight-light-theme', {
 	static: {
 		surface: {
 			nested: '#fdfcfd',
