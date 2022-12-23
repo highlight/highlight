@@ -2882,7 +2882,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 	var points []timeseries.Point
 	for _, re := range resources {
 		tags := map[string]string{
-			"SessionID":  strconv.Itoa(sessionObj.ID),
+			"session_id": strconv.Itoa(sessionObj.ID),
 			"group_name": re.RequestResponsePairs.Request.ID,
 		}
 		fields := map[string]interface{}{}

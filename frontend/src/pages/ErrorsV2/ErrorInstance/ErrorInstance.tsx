@@ -92,6 +92,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 	if (!errorInstance || !errorInstance?.error_object) {
 		if (!loading) return null
+
 		return (
 			<Box id="error-instance-container">
 				<Box my="28" display="flex" justifyContent="space-between">
@@ -120,16 +121,9 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								Newer
 							</Button>
 							<Button
-								kind="secondary"
+								kind="primary"
 								emphasis="high"
-								disabled={!isLoggedIn}
-								onClick={() =>
-									isLoggedIn
-										? history.push(
-												`/${projectId}/sessions/${errorInstance?.error_object?.session?.secure_id}`,
-										  )
-										: null
-								}
+								disabled={true}
 								iconLeft={<IconSolidPlay />}
 							>
 								Show session
@@ -224,7 +218,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 							Newer
 						</Button>
 						<Button
-							kind="secondary"
+							kind="primary"
 							emphasis="high"
 							disabled={!isLoggedIn}
 							onClick={() =>
