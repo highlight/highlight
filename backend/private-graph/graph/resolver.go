@@ -2264,6 +2264,11 @@ func (r *Resolver) CreateClickUpTaskAndAttachment(
 	viewLink string,
 	teamId *string,
 ) error {
+	// raise an error if the team id is not set
+	if teamId == nil {
+		return e.New("illegal argument: listId is nil")
+	}
+
 	task, err := clickup.CreateTask(*workspace.ClickupAccessToken, *teamId, issueTitle, issueDescription)
 	if err != nil {
 		return err

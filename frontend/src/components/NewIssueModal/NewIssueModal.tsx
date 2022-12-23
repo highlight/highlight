@@ -85,9 +85,9 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 						issue_team_id: containerId || undefined,
 						issue_description:
 							form.getFieldValue('issueDescription'),
-						integrations: selectedIntegration
-							? ([selectedIntegration.name] as IntegrationType[])
-							: [],
+						integrations: [
+							selectedIntegration.name,
+						] as IntegrationType[],
 						author_name: admin?.name || admin?.email || 'Someone',
 						time: timestamp || 0,
 					},
@@ -103,9 +103,9 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 						issue_team_id: containerId || undefined,
 						issue_description:
 							form.getFieldValue('issueDescription'),
-						integrations: selectedIntegration
-							? ([selectedIntegration.name] as IntegrationType[])
-							: [],
+						integrations: [
+							selectedIntegration.name,
+						] as IntegrationType[],
 						author_name: admin?.name || admin?.email || 'Someone',
 					},
 				})
@@ -155,7 +155,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 					onKeyDown={onFormChangeHandler}
 				>
 					<div>
-						{selectedIntegration?.containerSelection({
+						{selectedIntegration.containerSelection({
 							setSelectionId: setContainerId,
 						})}
 						<Form.Item
