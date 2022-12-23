@@ -18,7 +18,6 @@ import {
 	IconSolidChartBar,
 	IconSolidClock,
 	IconSolidCog,
-	IconSolidFastForward,
 	IconSolidPause,
 	IconSolidPlay,
 	IconSolidRefresh,
@@ -197,7 +196,7 @@ const ToolbarControls = () => {
 						setTime(newTime)
 					}}
 					disabled={disableControls}
-					icon={<IconSolidFastForward size={14} />}
+					icon={<IconSolidSkip size={14} />}
 					size="small"
 					shape="square"
 					emphasis="low"
