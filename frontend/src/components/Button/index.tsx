@@ -6,7 +6,7 @@ import * as rudderanalytics from 'rudder-sdk-js'
 type Props = ButtonProps & {
 	/**
 	 * Unique ID for tracking events. Try to follow convention of:
-	 * camelCase(${page}${action})
+	 * camelCase(${context}${action})
 	 */
 	trackingId: string
 	trackingProperties?: rudderanalytics.apiObject

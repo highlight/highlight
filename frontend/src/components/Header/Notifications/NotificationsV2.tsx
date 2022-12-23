@@ -224,7 +224,7 @@ const Notifications = () => {
 				emphasis="low"
 				kind="secondary"
 				className={styles.buttonV2}
-				trackingId="toggleNotifications"
+				trackingId="navBarNotificationsToggle"
 			>
 				<div className={styles.iconContainerV2}>
 					{inboxNotifications.length !== 0 && (
@@ -411,7 +411,7 @@ const List = ({
 										setShowSessionNotifications(true)
 										setTagsToFilterBy([])
 									}}
-									trackingId="clearNotificationsFilters"
+									trackingId="navBarNotificationsClearFilters"
 								>
 									Clear Filters
 								</Button>
@@ -423,7 +423,7 @@ const List = ({
 						kind={filtersCount > 0 ? 'primary' : 'secondary'}
 						iconLeft={<IconFilter size={12} />}
 						cssClass={styles.filtersButton}
-						trackingId="notificationsFilters"
+						trackingId="navBarNotificationsFilters"
 					>
 						<Text lines="1">
 							Filters
