@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
 import { GetErrorGroupQuery } from '@graph/operations'
 import {
 	Box,
@@ -11,10 +12,6 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import {
-	CreateModalType,
-	ErrorCreateCommentModal,
-} from '@pages/Error/components/ErrorCreateCommentModal/ErrorCreateCommentModal'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
@@ -22,6 +19,7 @@ import {
 	LINEAR_INTEGRATION,
 } from '@pages/IntegrationsPage/Integrations'
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
+import { getErrorBody } from '@util/errors/errorUtils'
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -32,8 +30,6 @@ interface Props {
 
 const ErrorIssueButton = ({ errorGroup }: Props) => {
 	const { isLoggedIn } = useAuthContext()
-	const [showCreateCommentModal, setShowCreateCommentModal] =
-		useState<CreateModalType>(CreateModalType.None)
 	const { projectId } = useProjectId()
 
 	const { isLinearIntegratedWithProject } = useLinearIntegration()
@@ -55,12 +51,26 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 		0,
 	)
 
+	const [showNewIssueModal, setShowNewIssueModal] = useState<
+		IssueTrackerIntegration | undefined
+	>(undefined)
+
+	const defaultIssueTitle = useMemo(() => {
+		if (errorGroup?.event) {
+			return getErrorBody(errorGroup?.event)
+		}
+		return `Issue from this bug`
+	}, [errorGroup])
+
 	const menuOptions = useMemo(() => {
 		return integrations
 			.map(([isIntegrated, integration]) => {
 				if (!isIntegrated) return null
 				return (
-					<Menu.Item key={integration?.name}>
+					<Menu.Item
+						key={integration?.name}
+						onClick={() => setShowNewIssueModal(integration)}
+					>
 						<Box
 							display="flex"
 							alignItems="center"
@@ -133,11 +143,14 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 					</Link>
 				</Box>
 			</Menu.List>
-
-			<ErrorCreateCommentModal
-				show={showCreateCommentModal}
-				onClose={() => setShowCreateCommentModal(CreateModalType.None)}
-				data={{ error_group: errorGroup }}
+			<NewIssueModal
+				selectedIntegration={showNewIssueModal ?? LINEAR_INTEGRATION}
+				visible={!!showNewIssueModal}
+				onClose={() => setShowNewIssueModal(undefined)}
+				commentId={0}
+				commentText={errorGroup?.event?.join('') || ''}
+				commentType="ErrorComment"
+				defaultIssueTitle={defaultIssueTitle}
 			/>
 		</Menu>
 	)

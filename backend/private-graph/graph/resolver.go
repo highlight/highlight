@@ -2209,6 +2209,12 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 		return nil, e.Wrap(err, "error unmarshaling linear oauth token response")
 	}
 
+	if !createAttachmentRes.Data.AttachmentCreate.Success {
+		return nil, e.New("failed to create linear attachment")
+	}
+
+	log.Debugf("::: %+v", createAttachmentRes)
+
 	return createAttachmentRes, nil
 }
 
@@ -2259,9 +2265,6 @@ func (r *Resolver) CreateClickUpTaskAndAttachment(
 	attachment *model.ExternalAttachment,
 	issueTitle string,
 	issueDescription string,
-	commentText string,
-	authorName string,
-	viewLink string,
 	teamId *string,
 ) error {
 	// raise an error if the team id is not set

@@ -497,6 +497,7 @@ type ComplexityRoot struct {
 		CreateErrorComment               func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
 		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
 		CreateIssueForErrorComment       func(childComplexity int, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
+		CreateIssueForErrorGroup         func(childComplexity int, projectID int, errorURL string, errorID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
 		CreateIssueForSessionComment     func(childComplexity int, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
 		CreateMetricMonitor              func(childComplexity int, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, emails []*string, filters []*model.MetricTagFilterInput) int
 		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) int
@@ -1094,6 +1095,7 @@ type MutationResolver interface {
 	ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
 	CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
 	MuteErrorCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error)
+	CreateIssueForErrorGroup(ctx context.Context, projectID int, errorURL string, errorID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
 	CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
 	ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
@@ -3352,6 +3354,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateIssueForErrorComment(childComplexity, args["project_id"].(int), args["error_url"].(string), args["error_comment_id"].(int), args["author_name"].(string), args["text_for_attachment"].(string), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["integrations"].([]*model.IntegrationType)), true
+
+	case "Mutation.createIssueForErrorGroup":
+		if e.complexity.Mutation.CreateIssueForErrorGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createIssueForErrorGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateIssueForErrorGroup(childComplexity, args["project_id"].(int), args["error_url"].(string), args["error_id"].(int), args["author_name"].(string), args["text_for_attachment"].(string), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["integrations"].([]*model.IntegrationType)), true
 
 	case "Mutation.createIssueForSessionComment":
 		if e.complexity.Mutation.CreateIssueForSessionComment == nil {
@@ -8503,6 +8517,17 @@ type Mutation {
 		integrations: [IntegrationType]!
 	): ErrorComment
 	muteErrorCommentThread(id: ID!, has_muted: Boolean): Boolean
+	createIssueForErrorGroup(
+		project_id: ID!
+		error_url: String!
+		error_id: Int!
+		author_name: String!
+		text_for_attachment: String!
+		issue_title: String
+		issue_description: String
+		issue_team_id: String
+		integrations: [IntegrationType]!
+	): ErrorComment
 	createIssueForErrorComment(
 		project_id: ID!
 		error_url: String!
@@ -9127,6 +9152,93 @@ func (ec *executionContext) field_Mutation_createIssueForErrorComment_args(ctx c
 		}
 	}
 	args["error_comment_id"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["author_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("author_name"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["author_name"] = arg3
+	var arg4 string
+	if tmp, ok := rawArgs["text_for_attachment"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_for_attachment"))
+		arg4, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["text_for_attachment"] = arg4
+	var arg5 *string
+	if tmp, ok := rawArgs["issue_title"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("issue_title"))
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["issue_title"] = arg5
+	var arg6 *string
+	if tmp, ok := rawArgs["issue_description"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("issue_description"))
+		arg6, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["issue_description"] = arg6
+	var arg7 *string
+	if tmp, ok := rawArgs["issue_team_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("issue_team_id"))
+		arg7, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["issue_team_id"] = arg7
+	var arg8 []*model.IntegrationType
+	if tmp, ok := rawArgs["integrations"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integrations"))
+		arg8, err = ec.unmarshalNIntegrationType2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["integrations"] = arg8
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createIssueForErrorGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["error_url"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_url"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_url"] = arg1
+	var arg2 int
+	if tmp, ok := rawArgs["error_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_id"))
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_id"] = arg2
 	var arg3 string
 	if tmp, ok := rawArgs["author_name"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("author_name"))
@@ -28075,6 +28187,80 @@ func (ec *executionContext) fieldContext_Mutation_muteErrorCommentThread(ctx con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_muteErrorCommentThread_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createIssueForErrorGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createIssueForErrorGroup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateIssueForErrorGroup(rctx, fc.Args["project_id"].(int), fc.Args["error_url"].(string), fc.Args["error_id"].(int), fc.Args["author_name"].(string), fc.Args["text_for_attachment"].(string), fc.Args["issue_title"].(*string), fc.Args["issue_description"].(*string), fc.Args["issue_team_id"].(*string), fc.Args["integrations"].([]*model.IntegrationType))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.ErrorComment)
+	fc.Result = res
+	return ec.marshalOErrorComment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorComment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createIssueForErrorGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ErrorComment_id(ctx, field)
+			case "project_id":
+				return ec.fieldContext_ErrorComment_project_id(ctx, field)
+			case "created_at":
+				return ec.fieldContext_ErrorComment_created_at(ctx, field)
+			case "error_id":
+				return ec.fieldContext_ErrorComment_error_id(ctx, field)
+			case "error_secure_id":
+				return ec.fieldContext_ErrorComment_error_secure_id(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_ErrorComment_updated_at(ctx, field)
+			case "author":
+				return ec.fieldContext_ErrorComment_author(ctx, field)
+			case "text":
+				return ec.fieldContext_ErrorComment_text(ctx, field)
+			case "attachments":
+				return ec.fieldContext_ErrorComment_attachments(ctx, field)
+			case "replies":
+				return ec.fieldContext_ErrorComment_replies(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ErrorComment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createIssueForErrorGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -54680,6 +54866,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_muteErrorCommentThread(ctx, field)
+			})
+
+		case "createIssueForErrorGroup":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createIssueForErrorGroup(ctx, field)
 			})
 
 		case "createIssueForErrorComment":
