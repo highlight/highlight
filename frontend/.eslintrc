@@ -109,6 +109,11 @@
 						"name": "react-json-view",
 						"importNames": ["ReactJson"],
 						"message": "Please use JsonViewer from @components/JsonViewer instead."
+					},
+					{
+						"name": "@highlight-run/ui",
+						"importNames": ["Button"],
+						"message": "Please use Button from @components/Button instead."
 					}
 				]
 			}

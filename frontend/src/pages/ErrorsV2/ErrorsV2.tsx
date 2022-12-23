@@ -9,9 +9,9 @@ import {
 	Box,
 	ButtonIcon,
 	Container,
-	IconChevronDown,
-	IconChevronUp,
-	IconExitRight,
+	IconSolidCheveronDown,
+	IconSolidCheveronUp,
+	IconSolidExitRight,
 	vars,
 } from '@highlight-run/ui'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
@@ -173,7 +173,9 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											size="small"
 											shape="square"
 											emphasis="medium"
-											icon={<IconExitRight size={14} />}
+											icon={
+												<IconSolidExitRight size={14} />
+											}
 											onClick={() =>
 												setShowLeftPanel(true)
 											}
@@ -193,7 +195,11 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											size="small"
 											shape="square"
 											emphasis="low"
-											icon={<IconChevronUp size={14} />}
+											icon={
+												<IconSolidCheveronUp
+													size={14}
+												/>
+											}
 											cssClass={
 												styles.sessionSwitchButton
 											}
@@ -211,7 +217,11 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											size="small"
 											shape="square"
 											emphasis="low"
-											icon={<IconChevronDown size={14} />}
+											icon={
+												<IconSolidCheveronDown
+													size={14}
+												/>
+											}
 											title="j"
 											cssClass={
 												styles.sessionSwitchButton

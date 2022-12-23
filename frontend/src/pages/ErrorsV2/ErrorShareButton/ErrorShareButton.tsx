@@ -4,10 +4,10 @@ import { useUpdateErrorGroupIsPublicMutation } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
 import {
 	Box,
-	IconGlobeAlt,
-	IconLink,
-	IconQuestionMarkCircle,
-	IconShare,
+	IconSolidGlobeAlt,
+	IconSolidLink,
+	IconSolidQuestionMarkCircle,
+	IconSolidShare,
 	Menu,
 	Tag,
 	Text,
@@ -30,7 +30,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 				size="small"
 				kind="secondary"
 				emphasis="low"
-				iconRight={<IconShare />}
+				iconRight={<IconSolidShare />}
 			>
 				Share
 			</Menu.Button>
@@ -43,7 +43,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 					alignItems="center"
 				>
 					<Box style={{ flexShrink: 0 }}>
-						<IconGlobeAlt size={16} color={colors.n9} />
+						<IconSolidGlobeAlt size={16} color={colors.n9} />
 					</Box>
 					<Box>
 						<Box
@@ -89,7 +89,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 						shape="basic"
 						kind="secondary"
 						size="medium"
-						iconLeft={<IconLink size={12} />}
+						iconLeft={<IconSolidLink size={12} />}
 						onClick={() => {
 							copyToClipboard(window.location.href, {
 								onCopyText: 'Copied error link to clipboard!',
@@ -103,7 +103,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 						kind="secondary"
 						emphasis="low"
 						size="medium"
-						iconLeft={<IconQuestionMarkCircle size={12} />}
+						iconLeft={<IconSolidQuestionMarkCircle size={12} />}
 						onClick={() => {
 							window.open(
 								'https://highlight.io/docs/error-monitoring/error-sharing',

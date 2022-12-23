@@ -2,15 +2,13 @@ import { useAuthContext } from '@authentication/AuthContext'
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
 import { GetErrorGroupQuery } from '@graph/operations'
 import {
-	Box,
-	IconChevronRight,
-	IconClickUp,
-	IconCreateFile,
-	IconLinear,
-	IconPlusSm,
-	Menu,
-	Text,
+	IconSolidCheveronRight,
+	IconSolidClickUp,
+	IconSolidDocumentAdd,
+	IconSolidLinear,
+	IconSolidPlusSm,
 } from '@highlight-run/ui'
+import { Box, Menu, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
@@ -79,10 +77,10 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 							color="n8"
 						>
 							{integration === LINEAR_INTEGRATION && (
-								<IconLinear size={16} />
+								<IconSolidLinear size={16} />
 							)}
 							{integration === CLICKUP_INTEGRATION && (
-								<IconClickUp size={16} />
+								<IconSolidClickUp size={16} />
 							)}
 							<Box mr="auto" cssClass={style.menuOption}>
 								<Text
@@ -93,7 +91,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 									{integration?.name} issue
 								</Text>
 							</Box>
-							<IconChevronRight size={16} />
+							<IconSolidCheveronRight size={16} />
 						</Box>
 					</Menu.Item>
 				)
@@ -108,7 +106,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 				size="small"
 				emphasis="high"
 				disabled={!isLoggedIn}
-				iconLeft={<IconCreateFile />}
+				iconLeft={<IconSolidDocumentAdd />}
 			>
 				Create Issue
 			</Menu.Button>
@@ -135,7 +133,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 							alignItems="center"
 							color="n11"
 						>
-							<IconPlusSm size={16} />
+							<IconSolidPlusSm size={16} />
 							<Text size="small" weight="medium">
 								Add new integration
 							</Text>

@@ -1,6 +1,7 @@
 import { useApolloClient } from '@apollo/client'
 import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
+import { Button } from '@components/Button'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	GetErrorInstanceDocument,
@@ -8,7 +9,7 @@ import {
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
 import type { ErrorInstance as ErrorInstanceType } from '@graph/schemas'
-import { Box, Button, Heading, IconPlay, Text } from '@highlight-run/ui'
+import { Box, Heading, IconSolidPlay, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
@@ -92,6 +93,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 	if (!errorInstance || !errorInstance?.error_object) {
 		if (!loading) return null
+
 		return (
 			<Box id="error-instance-container">
 				<Box my="28" display="flex" justifyContent="space-between">
@@ -105,6 +107,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								disabled={true}
 								kind="secondary"
 								emphasis="low"
+								trackingId="errorInstanceOlder"
 							>
 								Older
 							</Button>
@@ -116,21 +119,16 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								disabled={true}
 								kind="secondary"
 								emphasis="low"
+								trackingId="errorInstanceNewer"
 							>
 								Newer
 							</Button>
 							<Button
-								kind="secondary"
+								kind="primary"
 								emphasis="high"
-								disabled={!isLoggedIn}
-								onClick={() =>
-									isLoggedIn
-										? history.push(
-												`/${projectId}/sessions/${errorInstance?.error_object?.session?.secure_id}`,
-										  )
-										: null
-								}
-								iconLeft={<IconPlay />}
+								disabled={true}
+								iconLeft={<IconSolidPlay />}
+								trackingId="errorInstanceShowSession"
 							>
 								Show session
 							</Button>
@@ -202,6 +200,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 							disabled={Number(errorInstance.previous_id) === 0}
 							kind="secondary"
 							emphasis="low"
+							trackingId="errorInstanceOlder"
 						>
 							Older
 						</Button>
@@ -220,11 +219,12 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 							disabled={Number(errorInstance.next_id) === 0}
 							kind="secondary"
 							emphasis="low"
+							trackingId="errorInstanceNewer"
 						>
 							Newer
 						</Button>
 						<Button
-							kind="secondary"
+							kind="primary"
 							emphasis="high"
 							disabled={!isLoggedIn}
 							onClick={() =>
@@ -234,7 +234,8 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									  )
 									: null
 							}
-							iconLeft={<IconPlay />}
+							iconLeft={<IconSolidPlay />}
+							trackingId="errorInstanceShowSession"
 						>
 							Show session
 						</Button>
@@ -429,6 +430,7 @@ const User: React.FC<{
 								history.push(`/${projectId}/sessions`)
 								setSearchParams(searchParams)
 							}}
+							trackingId="errorInstanceAllSessionsForuser"
 						>
 							All sessions for this user
 						</Button>
@@ -493,6 +495,7 @@ const User: React.FC<{
 									kind="secondary"
 									emphasis="medium"
 									size="xSmall"
+									trackingId="errorInstanceToggleProperties"
 								>
 									Show {truncated ? 'more' : 'less'}
 								</Button>

@@ -28,7 +28,7 @@ const ConnectHighlightWithSlackButton = ({ className, style }: Props) => {
 			href={slackBotUrl}
 			style={style}
 		>
-			{'Connect Highlight with Slack'}
+			Connect Highlight with Slack
 		</Button>
 	)
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -35,14 +36,16 @@ type handlers struct {
 	db               *gorm.DB
 	opensearchClient *opensearch.Client
 	s3Client         *s3.Client
+	s3ClientEast2    *s3.Client
 	sendgridClient   *sendgrid.Client
 }
 
-func InitHandlers(db *gorm.DB, opensearchClient *opensearch.Client, s3Client *s3.Client, sendgridClient *sendgrid.Client) *handlers {
+func InitHandlers(db *gorm.DB, opensearchClient *opensearch.Client, s3Client *s3.Client, s3ClientEast2 *s3.Client, sendgridClient *sendgrid.Client) *handlers {
 	return &handlers{
 		db:               db,
 		opensearchClient: opensearchClient,
 		s3Client:         s3Client,
+		s3ClientEast2:    s3ClientEast2,
 		sendgridClient:   sendgridClient,
 	}
 }
@@ -66,9 +69,28 @@ func NewHandlers() *handlers {
 		o.UsePathStyle = true
 	})
 
+	cfgEast2, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-2"))
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "error loading default from config"))
+	}
+	s3ClientEast2 := s3.NewFromConfig(cfgEast2, func(o *s3.Options) {
+		o.UsePathStyle = true
+	})
+
 	sendgridClient := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 
-	return InitHandlers(db, opensearchClient, s3Client, sendgridClient)
+	return InitHandlers(db, opensearchClient, s3Client, s3ClientEast2, sendgridClient)
+}
+
+func (h *handlers) getSessionClientAndBucket(sessionId int) (*s3.Client, *string) {
+	client := h.s3Client
+	bucket := pointy.String(storage.S3SessionsPayloadBucketName)
+	if storage.UseNewSessionBucket(sessionId) {
+		client = h.s3ClientEast2
+		bucket = pointy.String(storage.S3SessionsPayloadBucketNameNew)
+	}
+
+	return client, bucket
 }
 
 func (h *handlers) DeleteSessionBatchFromOpenSearch(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
@@ -122,24 +144,30 @@ func (h *handlers) DeleteSessionBatchFromS3(ctx context.Context, event utils.Bat
 	}
 
 	for _, sessionId := range sessionIds {
+		client, bucket := h.getSessionClientAndBucket(sessionId)
+
+		versionPart := ""
+		if storage.UseNewSessionBucket(sessionId) {
+			versionPart = "v2/"
+		}
 		devStr := ""
 		if util.IsDevOrTestEnv() {
 			devStr = "dev/"
 		}
 
-		prefix := fmt.Sprintf("%s%d/%d/", devStr, event.ProjectId, sessionId)
+		prefix := fmt.Sprintf("%s%s%d/%d/", versionPart, devStr, event.ProjectId, sessionId)
 		options := s3.ListObjectsV2Input{
-			Bucket: &storage.S3SessionsPayloadBucketName,
+			Bucket: bucket,
 			Prefix: &prefix,
 		}
-		output, err := h.s3Client.ListObjectsV2(ctx, &options)
+		output, err := client.ListObjectsV2(ctx, &options)
 		if err != nil {
 			return nil, errors.Wrap(err, "error listing objects in S3")
 		}
 
 		for _, object := range output.Contents {
 			options := s3.DeleteObjectInput{
-				Bucket: &storage.S3SessionsPayloadBucketName,
+				Bucket: bucket,
 				Key:    object.Key,
 			}
 			if !event.DryRun {
