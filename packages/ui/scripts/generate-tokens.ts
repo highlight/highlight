@@ -21,8 +21,8 @@ readFile(inputFile, 'utf8', (err, data) => {
 	extractThemeVariables(json.values['Light theme'], lightThemeTokens)
 
 	const theme = objectKeysToCamelCase(lightThemeTokens)
-	let themeContent = `import { createTheme } from '@vanilla-extract/css'\n\n`
-	themeContent += `export const [themeClass, themeVars] = createTheme(${JSON.stringify(
+	let themeContent = `import { createGlobalTheme } from '@vanilla-extract/css'\n\n`
+	themeContent += `export const themeVars = createGlobalTheme('.highlight-light-theme', ${JSON.stringify(
 		theme,
 	)})`
 
