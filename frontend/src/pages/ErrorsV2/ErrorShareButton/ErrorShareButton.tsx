@@ -4,10 +4,10 @@ import { useUpdateErrorGroupIsPublicMutation } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
 import {
 	Box,
-	IconGlobeAlt,
-	IconLink,
-	IconQuestionMarkCircle,
-	IconShare,
+	IconSolidGlobeAlt,
+	IconSolidLink,
+	IconSolidQuestionMarkCircle,
+	IconSolidShare,
 	Popover,
 	Tag,
 	Text,
@@ -28,7 +28,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 				size="small"
 				kind="secondary"
 				emphasis="low"
-				iconRight={<IconShare />}
+				iconRight={<IconSolidShare />}
 			>
 				Share
 			</Popover.ButtonTrigger>
@@ -49,7 +49,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 						display="flex"
 						alignItems="center"
 					>
-						<IconGlobeAlt size={16} color={colors.n9} />
+						<IconSolidGlobeAlt size={16} color={colors.n9} />
 						<Box>
 							<Box
 								style={{ height: 20 }}
@@ -95,7 +95,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 							shape="basic"
 							kind="secondary"
 							size="medium"
-							iconLeft={<IconLink size={12} />}
+							iconLeft={<IconSolidLink size={12} />}
 							onClick={() => {
 								copyToClipboard(window.location.href, {
 									onCopyText:
@@ -110,7 +110,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 							kind="secondary"
 							emphasis="low"
 							size="medium"
-							iconLeft={<IconQuestionMarkCircle size={12} />}
+							iconLeft={<IconSolidQuestionMarkCircle size={12} />}
 							onClick={() => {
 								window.open(
 									'https://highlight.io/docs/error-monitoring/error-sharing',

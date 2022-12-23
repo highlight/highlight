@@ -5,10 +5,10 @@ import { ErrorGroup, Maybe } from '@graph/schemas'
 import {
 	Box,
 	ButtonLink,
-	IconChevronRight,
-	IconCode,
-	IconTrendingDown,
-	IconTrendingUp,
+	IconSolidTrendingDown,
+	IconSolidTrendingUp,
+	IconSolidCheveronRight,
+	IconSolidCode,
 	Tag,
 	Text,
 	Tooltip,
@@ -106,7 +106,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 									as="span"
 								>
 									<span>Latest</span>{' '}
-									<IconChevronRight size={16} />
+									<IconSolidCheveronRight size={16} />
 								</Box>
 							</ButtonLink>
 						</>
@@ -124,9 +124,13 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 										shape="basic"
 										iconLeft={
 											usersChange > 0 ? (
-												<IconTrendingUp size={12} />
+												<IconSolidTrendingUp
+													size={12}
+												/>
 											) : (
-												<IconTrendingDown size={12} />
+												<IconSolidTrendingDown
+													size={12}
+												/>
 											)
 										}
 									>
@@ -183,7 +187,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 									as="span"
 								>
 									<span>Latest</span>{' '}
-									<IconChevronRight size={16} />
+									<IconSolidCheveronRight size={16} />
 								</Box>
 							</ButtonLink>
 						</>
@@ -201,9 +205,13 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 										shape="basic"
 										iconLeft={
 											countChange > 0 ? (
-												<IconTrendingUp size={12} />
+												<IconSolidTrendingUp
+													size={12}
+												/>
 											) : (
-												<IconTrendingDown size={12} />
+												<IconSolidTrendingDown
+													size={12}
+												/>
 											)
 										}
 									>
@@ -285,7 +293,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 			</Box>
 			<Box py="12" px="16">
 				<Box mb="20" display="flex" gap="6" alignItems="center">
-					<IconCode size={14} color={vars.color.n11} />
+					<IconSolidCode size={14} color={vars.color.n11} />
 					<Text color="n11">Error Body</Text>
 				</Box>
 

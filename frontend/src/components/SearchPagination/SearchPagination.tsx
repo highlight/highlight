@@ -2,9 +2,9 @@ import { Button } from '@components/Button'
 import {
 	Box,
 	ButtonIcon,
-	IconChevronLeft,
-	IconChevronRight,
-	IconDotsHorizontal,
+	IconSolidCheveronLeft,
+	IconSolidCheveronRight,
+	IconSolidDotsHorizontal,
 } from '@highlight-run/ui'
 import { clamp, range } from '@util/numbers'
 import React, { useEffect, useMemo } from 'react'
@@ -141,7 +141,7 @@ const SearchPagination = ({
 				onClick={() => {
 					skip(-1)
 				}}
-				icon={<IconChevronLeft size={14} />}
+				icon={<IconSolidCheveronLeft size={14} />}
 			/>
 			<Box
 				display="flex"
@@ -160,7 +160,7 @@ const SearchPagination = ({
 									size="small"
 									shape="thin"
 									emphasis="low"
-									icon={<IconDotsHorizontal size={14} />}
+									icon={<IconSolidDotsHorizontal size={14} />}
 									cssClass={[style.simple, style.rightBorder]}
 									key={idx}
 									onClick={() =>
@@ -204,7 +204,7 @@ const SearchPagination = ({
 				onClick={() => {
 					skip(1)
 				}}
-				icon={<IconChevronRight size={14} />}
+				icon={<IconSolidCheveronRight size={14} />}
 			/>
 		</Box>
 	)

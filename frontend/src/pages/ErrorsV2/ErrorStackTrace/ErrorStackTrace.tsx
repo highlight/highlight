@@ -6,9 +6,9 @@ import {
 	Box,
 	ButtonIcon,
 	Callout,
-	IconChevronDown,
-	IconChevronUp,
-	IconExclamationTriangle,
+	IconSolidCheveronDown,
+	IconSolidCheveronUp,
+	IconSolidExclamation,
 	LinkButton,
 	Popover,
 	Stack,
@@ -263,9 +263,9 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 				<ButtonIcon
 					icon={
 						expanded ? (
-							<IconChevronUp size={12} />
+							<IconSolidCheveronUp size={12} />
 						) : (
-							<IconChevronDown size={12} />
+							<IconSolidCheveronDown size={12} />
 						)
 					}
 					kind="secondary"
@@ -331,7 +331,7 @@ const SourcemapError: React.FC<{
 				<Popover.TagTrigger
 					kind="secondary"
 					shape="basic"
-					iconLeft={<IconExclamationTriangle size={12} />}
+					iconLeft={<IconSolidExclamation size={12} />}
 					size="medium"
 				>
 					Stacktrace Issue

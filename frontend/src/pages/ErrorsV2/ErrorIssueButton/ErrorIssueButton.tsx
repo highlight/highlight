@@ -1,7 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import { GetErrorGroupQuery } from '@graph/operations'
-import { IconCreateFile } from '@highlight-run/ui'
+import { IconSolidDocumentAdd } from '@highlight-run/ui'
 import {
 	CreateModalType,
 	ErrorCreateCommentModal,
@@ -29,7 +29,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 						setShowCreateCommentModal(CreateModalType.Issue)
 					}
 				}}
-				iconLeft={<IconCreateFile />}
+				iconLeft={<IconSolidDocumentAdd />}
 				trackingId="errorPageCreateIssue"
 			>
 				Create Issue

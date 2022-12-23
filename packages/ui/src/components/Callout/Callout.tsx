@@ -1,10 +1,10 @@
 import React from 'react'
 import { Box } from '../Box/Box'
 import {
-	IconExclamationTriangle,
-	IconInformationCircle,
-	IconX,
-	IconXCircle,
+	IconSolidExclamation,
+	IconSolidInformationCircle,
+	IconSolidX,
+	IconSolidXCircle,
 } from '../icons'
 
 import * as styles from './styles.css'
@@ -58,7 +58,7 @@ export const Callout: React.FC<Props> = ({
 								emphasis="low"
 								shape="square"
 								size="minimal"
-								icon={<IconX size={16} />}
+								icon={<IconSolidX size={16} />}
 								onClick={handleCloseClick}
 							/>
 						)}
@@ -84,7 +84,7 @@ const InfoIcon = () => (
 			width: 22,
 		}}
 	>
-		<IconInformationCircle
+		<IconSolidInformationCircle
 			size={14}
 			color={vars.theme.static.content.weak}
 		/>
@@ -104,7 +104,7 @@ const WarningIcon = () => (
 			width: 22,
 		}}
 	>
-		<IconExclamationTriangle
+		<IconSolidExclamation
 			size={14}
 			color={vars.theme.static.content.sentiment.caution}
 		/>
@@ -124,7 +124,7 @@ const ErrorIcon = () => (
 			width: 22,
 		}}
 	>
-		<IconXCircle
+		<IconSolidXCircle
 			size={14}
 			color={vars.theme.static.content.sentiment.bad}
 		/>

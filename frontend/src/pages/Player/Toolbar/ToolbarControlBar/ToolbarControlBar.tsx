@@ -11,20 +11,19 @@ import {
 	Badge,
 	Box,
 	ButtonIcon,
-	IconArrowsExpand,
-	IconArrowSmDown,
-	IconArrowSmLeft,
-	IconArrowSmRight,
-	IconArrowSmUp,
-	IconChartBar,
-	IconClock,
-	IconCog,
-	IconPause,
-	IconPlay,
-	IconRestart,
-	IconSkipLeft,
-	IconSkipRight,
-	IconTerminal,
+	IconSolidArrowsExpand,
+	IconSolidArrowSmDown,
+	IconSolidArrowSmLeft,
+	IconSolidArrowSmUp,
+	IconSolidChartBar,
+	IconSolidClock,
+	IconSolidCog,
+	IconSolidPause,
+	IconSolidPlay,
+	IconSolidRefresh,
+	IconSolidSkip,
+	IconSolidSkipLeft,
+	IconSolidTerminal,
 	SwitchButton,
 	Tag,
 	Text,
@@ -114,7 +113,7 @@ const ToolbarControls = () => {
 						<Badge
 							variant="grey"
 							size="tiny"
-							iconStart={<IconArrowSmLeft size={12} />}
+							iconStart={<IconSolidArrowSmLeft size={12} />}
 						/>
 					</>
 				}
@@ -126,7 +125,7 @@ const ToolbarControls = () => {
 						setTime(prevTime)
 					}}
 					disabled={disableControls}
-					icon={<IconSkipLeft size={14} />}
+					icon={<IconSolidSkipLeft size={14} />}
 					size="small"
 					shape="square"
 					emphasis="low"
@@ -163,11 +162,11 @@ const ToolbarControls = () => {
 					disabled={disableControls}
 					icon={
 						isPaused && isPlaybackComplete ? (
-							<IconRestart size={14} />
+							<IconSolidRefresh size={14} />
 						) : isPaused && !isLiveMode ? (
-							<IconPlay size={14} />
+							<IconSolidPlay size={14} />
 						) : (
-							<IconPause size={14} />
+							<IconSolidPause size={14} />
 						)
 					}
 					size="small"
@@ -185,7 +184,7 @@ const ToolbarControls = () => {
 						<Badge
 							variant="grey"
 							size="tiny"
-							iconStart={<IconArrowSmRight size={12} />}
+							iconStart={<IconSolidSkip size={12} />}
 						/>
 					</>
 				}
@@ -197,7 +196,7 @@ const ToolbarControls = () => {
 						setTime(newTime)
 					}}
 					disabled={disableControls}
-					icon={<IconSkipRight size={14} />}
+					icon={<IconSolidSkip size={14} />}
 					size="small"
 					shape="square"
 					emphasis="low"
@@ -270,9 +269,13 @@ const ToolbarControls = () => {
 									<Badge
 										variant="grey"
 										size="tiny"
-										iconStart={<IconArrowSmUp size={12} />}
+										iconStart={
+											<IconSolidArrowSmUp size={12} />
+										}
 										label="/"
-										iconEnd={<IconArrowSmDown size={12} />}
+										iconEnd={
+											<IconSolidArrowSmDown size={12} />
+										}
 									/>
 								</Box>
 							</>
@@ -307,7 +310,7 @@ const ToolbarControls = () => {
 							}}
 							checked={showHistogram}
 							disabled={isPlayerFullscreen || disableControls}
-							iconLeft={<IconChartBar size={14} />}
+							iconLeft={<IconSolidChartBar size={14} />}
 						/>
 					</ExplanatoryPopover>
 					<ExplanatoryPopover
@@ -328,7 +331,7 @@ const ToolbarControls = () => {
 							}}
 							checked={showDevTools}
 							disabled={isPlayerFullscreen || disableControls}
-							iconLeft={<IconTerminal size={14} />}
+							iconLeft={<IconSolidTerminal size={14} />}
 						/>
 					</ExplanatoryPopover>
 					<Popover
@@ -360,7 +363,7 @@ const ToolbarControls = () => {
 						<Box>
 							<ButtonIcon
 								disabled={disableControls}
-								icon={<IconCog size={14} />}
+								icon={<IconSolidCog size={14} />}
 								size="small"
 								shape="square"
 								emphasis="low"
@@ -375,7 +378,7 @@ const ToolbarControls = () => {
 					onClick={() => {
 						setIsPlayerFullscreen((prev) => !prev)
 					}}
-					icon={<IconArrowsExpand size={14} />}
+					icon={<IconSolidArrowsExpand size={14} />}
 					size="small"
 					shape="square"
 					emphasis="low"
@@ -414,7 +417,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				className={style.settingsButton}
 				onClick={() => setShowHistogram(!showHistogram)}
 			>
-				<IconChartBar />
+				<IconSolidChartBar />
 				<p>Timeline</p>
 				<ShortcutTextGuide
 					shortcut={TimelineShortcut}
@@ -433,7 +436,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				className={style.settingsButton}
 				onClick={() => setShowDevTools(!showDevTools)}
 			>
-				<IconTerminal />
+				<IconSolidTerminal />
 				<p>Dev tools</p>
 				<ShortcutTextGuide
 					shortcut={DevToolsShortcut}
@@ -502,7 +505,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 					setShowPlayerAbsoluteTime(!showPlayerAbsoluteTime)
 				}
 			>
-				<IconClock />
+				<IconSolidClock />
 				<p>Absolute time</p>
 				<Switch
 					trackingId="PlayerAbsoluteTimeMenuToggle"

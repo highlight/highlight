@@ -9,7 +9,7 @@ import {
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
 import type { ErrorInstance as ErrorInstanceType } from '@graph/schemas'
-import { Box, Heading, IconPlay, Text } from '@highlight-run/ui'
+import { Box, Heading, IconSolidPlay, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
@@ -93,6 +93,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 	if (!errorInstance || !errorInstance?.error_object) {
 		if (!loading) return null
+
 		return (
 			<Box id="error-instance-container">
 				<Box my="28" display="flex" justifyContent="space-between">
@@ -126,7 +127,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								kind="primary"
 								emphasis="high"
 								disabled={true}
-								iconLeft={<IconPlay />}
+								iconLeft={<IconSolidPlay />}
 								trackingId="errorInstanceShowSession"
 							>
 								Show session
@@ -233,7 +234,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									  )
 									: null
 							}
-							iconLeft={<IconPlay />}
+							iconLeft={<IconSolidPlay />}
 							trackingId="errorInstanceShowSession"
 						>
 							Show session

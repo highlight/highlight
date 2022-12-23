@@ -27,19 +27,19 @@ import {
 import {
 	Box,
 	ButtonIcon,
-	IconChevronDown,
-	IconClock,
-	IconCloudUpload,
-	IconDuplicate,
-	IconLogout,
-	IconPencil,
-	IconPlusCircle,
-	IconPlusSm,
-	IconRefresh,
-	IconSave,
-	IconSegment,
-	IconTrash,
-	IconX,
+	IconSolidCheveronDown,
+	IconSolidClock,
+	IconSolidCloudUpload,
+	IconSolidDocumentDuplicate,
+	IconSolidLogout,
+	IconSolidPencil,
+	IconSolidPlusCircle,
+	IconSolidPlusSm,
+	IconSolidRefresh,
+	IconSolidSave,
+	IconSolidSegment,
+	IconSolidTrash,
+	IconSolidX,
 	Menu,
 	Tag,
 	Text,
@@ -886,7 +886,7 @@ const QueryRule = ({
 					onClick={() => {
 						onRemove()
 					}}
-					iconRight={<IconX size={12} />}
+					iconRight={<IconSolidX size={12} />}
 				/>
 			)}
 		</Box>
@@ -935,8 +935,8 @@ export const TimeRangeFilter = ({
 					kind="secondary"
 					size="small"
 					emphasis="high"
-					iconLeft={<IconClock size={14} />}
-					iconRight={<IconChevronDown size={14} />}
+					iconLeft={<IconSolidClock size={14} />}
+					iconRight={<IconSolidCheveronDown size={14} />}
 					trackingId="searchTimeRangeFilterTooltipToggle"
 				/>
 			</Popover>
@@ -944,7 +944,7 @@ export const TimeRangeFilter = ({
 				kind="secondary"
 				emphasis="low"
 				shape="basic"
-				iconRight={!!onReset ? <IconX size={12} /> : undefined}
+				iconRight={!!onReset ? <IconSolidX size={12} /> : undefined}
 				onIconRightClick={!!onReset ? onReset : undefined}
 			>
 				<Box onClick={() => setVisible((visible) => !visible)}>
@@ -2185,7 +2185,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="secondary"
 						size="xSmall"
 						emphasis="low"
-						iconLeft={<IconPlusSm size={12} />}
+						iconLeft={<IconSolidPlusSm size={12} />}
 						onClick={addNewRule}
 						trackingId="queryBuilderAddFilter"
 					>
@@ -2196,7 +2196,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="secondary"
 						size="xSmall"
 						emphasis="low"
-						icon={<IconPlusSm size={12} />}
+						icon={<IconSolidPlusSm size={12} />}
 						onClick={addNewRule}
 						cssClass={newStyle.addButton}
 					/>
@@ -2254,7 +2254,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="secondary"
 						size="xSmall"
 						emphasis="medium"
-						iconLeft={<IconSave size={12} />}
+						iconLeft={<IconSolidSave size={12} />}
 						onClick={() => {
 							setShowCreateSegmentModal(true)
 						}}
@@ -2269,8 +2269,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="secondary"
 						size="xSmall"
 						emphasis="medium"
-						iconLeft={<IconSegment size={12} />}
-						iconRight={<IconChevronDown size={12} />}
+						iconLeft={<IconSolidSegment size={12} />}
+						iconRight={<IconSolidCheveronDown size={12} />}
 						onClick={() => {}}
 					>
 						{selectedSegment?.name}
@@ -2282,8 +2282,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="primary"
 						size="xSmall"
 						emphasis="high"
-						iconLeft={<IconSegment size={12} />}
-						iconRight={<IconChevronDown size={12} />}
+						iconLeft={<IconSolidSegment size={12} />}
+						iconRight={<IconSolidCheveronDown size={12} />}
 					>
 						{selectedSegment?.name}
 					</Menu.Button>
@@ -2324,7 +2324,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 								size="small"
 								shape="square"
 								emphasis="low"
-								icon={<IconRefresh size={14} />}
+								icon={<IconSolidRefresh size={14} />}
 								disabled={syncButtonDisabled}
 								onClick={() => {
 									// Re-generate the absolute times used in the serialized query
@@ -2341,7 +2341,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						size="small"
 						shape="square"
 						emphasis="medium"
-						icon={<IconLogout size={14} />}
+						icon={<IconSolidLogout size={14} />}
 						onClick={() => setShowLeftPanel(false)}
 					/>
 				</Box>
@@ -2376,7 +2376,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						gap="4"
 						userSelect="none"
 					>
-						<IconCloudUpload size={16} color={colors.n9} />
+						<IconSolidCloudUpload size={16} color={colors.n9} />
 						Push segment changes
 					</Box>
 				</Menu.Item>
@@ -2393,7 +2393,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						gap="4"
 						userSelect="none"
 					>
-						<IconPlusCircle size={16} color={colors.n9} />
+						<IconSolidPlusCircle size={16} color={colors.n9} />
 						Save as a new segment
 					</Box>
 				</Menu.Item>
@@ -2411,7 +2411,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						gap="4"
 						userSelect="none"
 					>
-						<IconRefresh size={16} color={colors.n9} />
+						<IconSolidRefresh size={16} color={colors.n9} />
 						Reset to segment filters
 					</Box>
 				</Menu.Item>
@@ -2590,7 +2590,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 										gap="4"
 										userSelect="none"
 									>
-										<IconPencil
+										<IconSolidPencil
 											size={16}
 											color={colors.n9}
 										/>
@@ -2613,7 +2613,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 										gap="4"
 										userSelect="none"
 									>
-										<IconDuplicate
+										<IconSolidDocumentDuplicate
 											size={16}
 											color={colors.n9}
 										/>
@@ -2637,7 +2637,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 										gap="4"
 										userSelect="none"
 									>
-										<IconTrash
+										<IconSolidTrash
 											size={16}
 											color={colors.n9}
 										/>
@@ -2652,7 +2652,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 								kind="secondary"
 								disabled={segmentsLoading}
 								emphasis="high"
-								icon={<IconSegment size={12} />}
+								icon={<IconSolidSegment size={12} />}
 								size="xSmall"
 							/>
 							<Menu.List cssClass={styles.menuList}>
