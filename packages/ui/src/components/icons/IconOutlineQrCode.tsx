@@ -1,7 +1,7 @@
 import React from 'react'
 import { IconProps } from './types'
 
-export const IconOutlineQrcode = ({ size = '1em', ...props }: IconProps) => {
+export const IconOutlineQrCode = ({ size = '1em', ...props }: IconProps) => {
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

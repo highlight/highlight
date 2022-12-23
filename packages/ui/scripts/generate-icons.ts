@@ -127,7 +127,7 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 	)
 	let iconExports = iconComponentNames
 		.map((componentFile) => path.basename(componentFile, '.tsx'))
-		.map((component) => `export { ${component} } from './${component}';`)
+		.map((component) => `export { ${component} } from './${component}'`)
 		.join('\n')
 		.concat('\n')
 	const iconsIndexPath = path.join(iconComponentsDir, 'index.ts')
