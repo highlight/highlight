@@ -1,9 +1,9 @@
+import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { ErrorInstance, Maybe, SourceMappingError } from '@graph/schemas'
 import {
 	Box,
-	Button,
 	ButtonIcon,
 	Callout,
 	IconSolidCheveronDown,
@@ -81,6 +81,7 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 									'_blank',
 								)
 							}}
+							trackingId="stacktraceErrorLearnMore"
 						>
 							Learn More
 						</Button>

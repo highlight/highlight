@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Popover from '@components/Popover/Popover'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
@@ -25,7 +26,6 @@ import {
 } from '@graph/schemas'
 import {
 	Box,
-	Button,
 	ButtonIcon,
 	IconSolidCheveronDown,
 	IconSolidClock,
@@ -937,6 +937,7 @@ export const TimeRangeFilter = ({
 					emphasis="high"
 					iconLeft={<IconSolidClock size={14} />}
 					iconRight={<IconSolidCheveronDown size={14} />}
+					trackingId="searchTimeRangeFilterTooltipToggle"
 				/>
 			</Popover>
 			<Tag
@@ -2186,6 +2187,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						emphasis="low"
 						iconLeft={<IconSolidPlusSm size={12} />}
 						onClick={addNewRule}
+						trackingId="queryBuilderAddFilter"
 					>
 						Add filter
 					</Button>

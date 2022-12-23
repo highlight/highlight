@@ -14,7 +14,7 @@ import clsx, { ClassValue } from 'clsx'
 import React from 'react'
 import {
 	Button as OriginalButton,
-	Props as ButtonProps,
+	ButtonProps as ButtonProps,
 } from '../Button/Button'
 
 import { ButtonIcon, Props as ButtonIconProps } from '../ButtonIcon/ButtonIcon'

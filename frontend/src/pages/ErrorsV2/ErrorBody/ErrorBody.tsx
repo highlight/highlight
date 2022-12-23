@@ -1,9 +1,9 @@
 import BarChart from '@components/BarChart/BarChart'
+import { Button } from '@components/Button'
 import { GetErrorInstanceDocument } from '@graph/hooks'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import {
 	Box,
-	Button,
 	ButtonLink,
 	IconSolidTrendingDown,
 	IconSolidTrendingUp,
@@ -313,6 +313,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							kind="secondary"
 							emphasis="medium"
 							size="xSmall"
+							trackingId="errorBodyToggleContent"
 						>
 							Show {truncated ? 'more' : 'less'}
 						</Button>
