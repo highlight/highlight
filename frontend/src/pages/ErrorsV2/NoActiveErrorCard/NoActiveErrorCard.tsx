@@ -14,10 +14,12 @@ const NoActiveErrorCard = () => {
 	return (
 		<Box cssClass={styles.card}>
 			<Callout title="Let's squash some bugs!">
-				<Text color="moderate">
-					View a recent error or find a specific error message, URL,
-					or segment.
-				</Text>
+				<Box mb="6">
+					<Text color="moderate">
+						View a recent error or find a specific error message,
+						URL, or segment.
+					</Text>
+				</Box>
 			</Callout>
 		</Box>
 	)
