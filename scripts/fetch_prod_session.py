@@ -85,6 +85,7 @@ def fetch(
     )
 
     session_id = session["id"]
+    useNewBucket = int(session_id) >= 150000000
 
     chunks = run_sql(
         f"SELECT * FROM event_chunks WHERE session_id = {session_id}", prod=True
@@ -157,10 +158,11 @@ def fetch(
         )
 
     logger.info("Copying session files from prod S3 to dev/1...")
-    prefix = f'{session["project_id"]}/{session["id"]}'
+    versionPrefix = "v2/" if useNewBucket else ""
+    prefix = f'{versionPrefix}{session["project_id"]}/{session["id"]}'
     for file in b.objects.filter(Prefix=prefix).all():
         file_name = file.key.split("/")[-1]
-        new_obj = b.Object(f'dev/1/{new_session["id"]}/{file_name}')
+        new_obj = b.Object(f'{versionPrefix}dev/1/{new_session["id"]}/{file_name}')
         new_obj.copy({"Bucket": bucket, "Key": file.key})
         if store and file_name.startswith(SESSIONS_FULL_FILE):
             decompressed_file = f"{file_name}-decompressed"
