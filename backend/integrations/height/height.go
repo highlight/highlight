@@ -234,6 +234,7 @@ func CreateTask(accessToken string, listId string, name string, description stri
 
 	return &model.HeightTask{
 		Name: res.Name,
-		ID:   strings.TrimPrefix(res.URL, "https://height.app/"),
+		// The external attachment data model prepends the URL on the frontend.
+		ID: strings.TrimPrefix(res.URL, "https://height.app/"),
 	}, nil
 }
