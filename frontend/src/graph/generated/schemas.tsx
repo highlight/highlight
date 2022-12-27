@@ -536,6 +536,12 @@ export type HeightList = {
 	name: Scalars['String']
 }
 
+export type HeightTask = {
+	__typename?: 'HeightTask'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
 export type HeightWorkspace = {
 	__typename?: 'HeightWorkspace'
 	id: Scalars['String']

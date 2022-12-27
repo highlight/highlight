@@ -217,6 +217,11 @@ type ClickUpTask {
 	name: String!
 }
 
+type HeightTask {
+	id: String!
+	name: String!
+}
+
 type SocialLink {
 	type: SocialType!
 	link: String

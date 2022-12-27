@@ -69,12 +69,14 @@ func doRequest[T any](method string, accessToken string, relativeUrl string, bod
 	}
 
 	b, err := io.ReadAll(res.Body)
-	if res.StatusCode != 200 {
+
+	statusOK := res.StatusCode >= 200 && res.StatusCode < 300
+	if !statusOK {
 		return unmarshalled, errors.New("Height API responded with error; status_code=" + res.Status + "; body=" + string(b))
 	}
 
 	if err != nil {
-		return unmarshalled, errors.Wrap(err, "error reading response body from ClickUp endpoint")
+		return unmarshalled, errors.Wrap(err, "error reading response body from Height endpoint")
 	}
 
 	err = json.Unmarshal(b, &unmarshalled)
@@ -196,4 +198,23 @@ func GetLists(accessToken string) ([]*model.HeightList, error) {
 	}
 
 	return res.List, nil
+}
+
+// https://www.notion.so/Create-a-task-b50565736830422684b28ae570a53a9e
+func CreateTask(accessToken string, listId string, name string, description string) (*model.HeightTask, error) {
+	listIds := []string{listId}
+
+	input := struct {
+		Name        string   `json:"name"`
+		Description string   `json:"description"`
+		ListIds     []string `json:"listIds"`
+	}{Name: name, Description: description, ListIds: listIds}
+
+	res, err := doPostRequest[*model.HeightTask](accessToken, "/tasks", input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }

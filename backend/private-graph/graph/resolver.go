@@ -30,6 +30,7 @@ import (
 	"github.com/highlight-run/highlight/backend/clickup"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/integrations"
+	"github.com/highlight-run/highlight/backend/integrations/height"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -2283,6 +2284,29 @@ func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, at
 
 func (r *Resolver) CreateClickUpTaskAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string, teamId *string) error {
 	task, err := clickup.CreateTask(*workspace.ClickupAccessToken, *teamId, issueTitle, issueDescription)
+	if err != nil {
+		return err
+	}
+
+	attachment.ExternalID = task.ID
+	attachment.Title = task.Name
+	if err := r.DB.Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
+func (r *Resolver) CreateHeightTaskAndAttachment(ctx context.Context, workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string, teamId *string) error {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeHeight)
+
+	if err != nil {
+		return err
+	}
+
+	if accessToken == nil {
+		return errors.New("No Height integration access token found.")
+	}
+	task, err := height.CreateTask(*accessToken, *teamId, issueTitle, issueDescription)
 	if err != nil {
 		return err
 	}

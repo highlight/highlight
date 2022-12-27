@@ -85,6 +85,10 @@ func (c *Client) GetWorkspaceAccessToken(ctx context.Context, workspace *model.W
 		return nil, err
 	}
 
+	if workspaceMapping == nil {
+		return nil, nil
+	}
+
 	oldToken := new(oauth2.Token)
 	oldToken.AccessToken = workspaceMapping.AccessToken
 	oldToken.RefreshToken = workspaceMapping.RefreshToken

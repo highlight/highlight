@@ -1295,6 +1295,9 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			IntegrationType:  *s,
 			SessionCommentID: sessionComment.ID,
 		}
+		desc := *issueDescription
+		desc += "\n"
+		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink, issueTeamID); err != nil {
@@ -1303,11 +1306,14 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			desc := *issueDescription
-			desc += "\n"
-			desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeHeight {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Height task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -1357,6 +1363,10 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 			SessionCommentID: sessionComment.ID,
 		}
 
+		desc := *issueDescription
+		desc += "\n"
+		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
+
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating linear ticket or workspace")
@@ -1364,11 +1374,14 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			desc := *issueDescription
-			desc += "\n"
-			desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeHeight {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Height task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -1623,6 +1636,10 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			ErrorCommentID:  errorComment.ID,
 		}
 
+		desc := *issueDescription
+		desc += "\n"
+		desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
+
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating linear ticket or workspace")
@@ -1630,11 +1647,14 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			desc := *issueDescription
-			desc += "\n"
-			desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeHeight {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Height task")
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
@@ -1710,6 +1730,9 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 			IntegrationType: *s,
 			ErrorCommentID:  errorComment.ID,
 		}
+		desc := *issueDescription
+		desc += "\n"
+		desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, errorComment.Text, authorName, viewLink, issueTeamID); err != nil {
@@ -1718,11 +1741,14 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			desc := *issueDescription
-			desc += "\n"
-			desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, errorComment.Text, authorName, viewLink, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeHeight {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, errorComment.Text, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Height task")
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
@@ -5476,7 +5502,6 @@ func (r *queryResolver) HeightLists(ctx context.Context, projectID int) ([]*mode
 	lists, err := height.GetLists(*accessToken)
 
 	return lists, err
-
 }
 
 // HeightWorkspaces is the resolver for the height_workspaces field.
