@@ -90,21 +90,21 @@ func (c *Client) GetWorkspaceAccessToken(ctx context.Context, workspace *model.W
 	oldToken.RefreshToken = workspaceMapping.RefreshToken
 	oldToken.Expiry = workspaceMapping.Expiry
 
-	//if !oldToken.Valid() {
-	log.Infof("Refreshing access token for %s integration", integrationType)
+	if !oldToken.Valid() {
+		log.Infof("Refreshing access token for %s integration", integrationType)
 
-	newToken, err := getRefreshOAuthToken(oldToken, integrationType)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get oauth refresh token: %w", err)
+		newToken, err := getRefreshOAuthToken(oldToken, integrationType)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get oauth refresh token: %w", err)
+		}
+
+		err = c.setWorkspaceToken(workspace, integrationType, newToken)
+		if err != nil {
+			return nil, fmt.Errorf("failed to set refreshed oauth token: %w", err)
+		}
+
+		return &newToken.AccessToken, nil
 	}
 
-	err = c.setWorkspaceToken(workspace, integrationType, newToken)
-	if err != nil {
-		return nil, fmt.Errorf("failed to set refreshed oauth token: %w", err)
-	}
-
-	return &newToken.AccessToken, nil
-	//}
-
-	// return &oldToken.AccessToken, nil
+	return &oldToken.AccessToken, nil
 }
