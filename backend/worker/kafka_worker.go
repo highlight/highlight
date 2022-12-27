@@ -6,13 +6,14 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/util"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func (k *KafkaWorker) processWorkerError(task *kafkaqueue.Message, err error) {
-	// log.Errorf("task %+v failed: %s", *task, err)
+	log.Errorf("task %+v failed: %s", *task, err)
 	if task.Failures >= task.MaxRetries {
-		// log.Errorf("task %+v failed after %d retries", *task, task.Failures)
+		log.Errorf("task %+v failed after %d retries", *task, task.Failures)
 	} else {
 		hlog.Histogram("worker.kafka.processed.taskFailures", float64(task.Failures), nil, 1)
 	}

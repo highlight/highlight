@@ -42,7 +42,6 @@ func doPostRequest[TOut any, TIn any](accessToken string, relativeUrl string, in
 	if err != nil {
 		return zero, err
 	}
-
 	return doRequest[TOut]("POST", accessToken, relativeUrl, string(b))
 }
 
@@ -85,6 +84,13 @@ func doRequest[T any](method string, accessToken string, relativeUrl string, bod
 	}
 
 	return unmarshalled, nil
+}
+
+type HeightClient struct {
+}
+
+func NewHeightClient() *HeightClient {
+	return &HeightClient{}
 }
 
 func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {

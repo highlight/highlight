@@ -15,12 +15,14 @@ import (
 )
 
 type Client struct {
-	db *gorm.DB
+	db     *gorm.DB
+	height *height.HeightClient
 }
 
 func NewIntegrationsClient(db *gorm.DB) *Client {
 	client := &Client{
-		db: db,
+		db:     db,
+		height: height.NewHeightClient(),
 	}
 
 	return client
