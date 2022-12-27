@@ -421,6 +421,11 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	HeightList struct {
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
+	}
+
 	HeightWorkspace struct {
 		ID    func(childComplexity int) int
 		Model func(childComplexity int) int
@@ -654,6 +659,7 @@ type ComplexityRoot struct {
 		FieldsOpensearch             func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		GenerateZapierAccessToken    func(childComplexity int, projectID int) int
 		GetSourceMapUploadUrls       func(childComplexity int, apiKey string, paths []string) int
+		HeightLists                  func(childComplexity int, projectID int) int
 		HeightWorkspaces             func(childComplexity int, workspaceID int) int
 		IdentifierSuggestion         func(childComplexity int, projectID int, query string) int
 		IntegrationProjectMappings   func(childComplexity int, workspaceID int, integrationType *model.IntegrationType) int
@@ -1227,6 +1233,7 @@ type QueryResolver interface {
 	ClickupProjectMappings(ctx context.Context, workspaceID int) ([]*model.ClickUpProjectMapping, error)
 	ClickupFolders(ctx context.Context, projectID int) ([]*model.ClickUpFolder, error)
 	ClickupFolderlessLists(ctx context.Context, projectID int) ([]*model.ClickUpList, error)
+	HeightLists(ctx context.Context, projectID int) ([]*model.HeightList, error)
 	HeightWorkspaces(ctx context.Context, workspaceID int) ([]*model.HeightWorkspace, error)
 	IntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType *model.IntegrationType) ([]*model1.IntegrationProjectMapping, error)
 	LinearTeams(ctx context.Context, projectID int) ([]*model.LinearTeam, error)
@@ -2989,6 +2996,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Field.Value(childComplexity), true
+
+	case "HeightList.id":
+		if e.complexity.HeightList.ID == nil {
+			break
+		}
+
+		return e.complexity.HeightList.ID(childComplexity), true
+
+	case "HeightList.name":
+		if e.complexity.HeightList.Name == nil {
+			break
+		}
+
+		return e.complexity.HeightList.Name(childComplexity), true
 
 	case "HeightWorkspace.id":
 		if e.complexity.HeightWorkspace.ID == nil {
@@ -4811,6 +4832,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetSourceMapUploadUrls(childComplexity, args["api_key"].(string), args["paths"].([]string)), true
+
+	case "Query.height_lists":
+		if e.complexity.Query.HeightLists == nil {
+			break
+		}
+
+		args, err := ec.field_Query_height_lists_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.HeightLists(childComplexity, args["project_id"].(int)), true
 
 	case "Query.height_workspaces":
 		if e.complexity.Query.HeightWorkspaces == nil {
@@ -7363,6 +7396,10 @@ type ClickUpFolder {
 	lists: [ClickUpList!]!
 }
 
+type HeightList {
+	id: String!
+	name: String!
+}
 type ClickUpList {
 	id: String!
 	name: String!
@@ -8444,6 +8481,7 @@ type Query {
 	clickup_project_mappings(workspace_id: ID!): [ClickUpProjectMapping!]!
 	clickup_folders(project_id: ID!): [ClickUpFolder!]!
 	clickup_folderless_lists(project_id: ID!): [ClickUpList!]!
+	height_lists(project_id: ID!): [HeightList!]!
 	height_workspaces(workspace_id: ID!): [HeightWorkspace!]!
 	integration_project_mappings(
 		workspace_id: ID!
@@ -12364,6 +12402,21 @@ func (ec *executionContext) field_Query_get_source_map_upload_urls_args(ctx cont
 		}
 	}
 	args["paths"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_height_lists_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -24353,6 +24406,94 @@ func (ec *executionContext) _Field_type(ctx context.Context, field graphql.Colle
 func (ec *executionContext) fieldContext_Field_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Field",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HeightList_id(ctx context.Context, field graphql.CollectedField, obj *model.HeightList) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HeightList_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HeightList_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HeightList",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HeightList_name(ctx context.Context, field graphql.CollectedField, obj *model.HeightList) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HeightList_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HeightList_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HeightList",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -37478,6 +37619,67 @@ func (ec *executionContext) fieldContext_Query_clickup_folderless_lists(ctx cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_clickup_folderless_lists_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_height_lists(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_height_lists(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().HeightLists(rctx, fc.Args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.HeightList)
+	fc.Result = res
+	return ec.marshalNHeightList2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHeightListᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_height_lists(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_HeightList_id(ctx, field)
+			case "name":
+				return ec.fieldContext_HeightList_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HeightList", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_height_lists_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -54654,6 +54856,41 @@ func (ec *executionContext) _Field(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var heightListImplementors = []string{"HeightList"}
+
+func (ec *executionContext) _HeightList(ctx context.Context, sel ast.SelectionSet, obj *model.HeightList) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, heightListImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("HeightList")
+		case "id":
+
+			out.Values[i] = ec._HeightList_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._HeightList_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var heightWorkspaceImplementors = []string{"HeightWorkspace"}
 
 func (ec *executionContext) _HeightWorkspace(ctx context.Context, sel ast.SelectionSet, obj *model.HeightWorkspace) graphql.Marshaler {
@@ -57733,6 +57970,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_clickup_folderless_lists(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "height_lists":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_height_lists(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -62430,6 +62690,60 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNHeightList2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHeightListᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.HeightList) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNHeightList2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHeightList(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNHeightList2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHeightList(ctx context.Context, sel ast.SelectionSet, v *model.HeightList) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._HeightList(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNHeightWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHeightWorkspaceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.HeightWorkspace) graphql.Marshaler {

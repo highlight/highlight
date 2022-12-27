@@ -530,6 +530,12 @@ export type Field = {
 	value: Scalars['String']
 }
 
+export type HeightList = {
+	__typename?: 'HeightList'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
 export type HeightWorkspace = {
 	__typename?: 'HeightWorkspace'
 	id: Scalars['String']
@@ -1325,6 +1331,7 @@ export type Query = {
 	fields_opensearch: Array<Scalars['String']>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
+	height_lists: Array<HeightList>
 	height_workspaces: Array<HeightWorkspace>
 	identifier_suggestion: Array<Scalars['String']>
 	integration_project_mappings: Array<IntegrationProjectMapping>
@@ -1597,6 +1604,10 @@ export type QueryGenerate_Zapier_Access_TokenArgs = {
 export type QueryGet_Source_Map_Upload_UrlsArgs = {
 	api_key: Scalars['String']
 	paths: Array<Scalars['String']>
+}
+
+export type QueryHeight_ListsArgs = {
+	project_id: Scalars['ID']
 }
 
 export type QueryHeight_WorkspacesArgs = {

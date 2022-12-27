@@ -1562,6 +1562,13 @@ query GetClickUpFolders($project_id: ID!) {
 	}
 }
 
+query GetHeightLists($project_id: ID!) {
+	height_lists(project_id: $project_id) {
+		id
+		name
+	}
+}
+
 query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
 	generate_zapier_access_token(project_id: $project_id)
 }

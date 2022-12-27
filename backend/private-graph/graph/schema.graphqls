@@ -203,6 +203,10 @@ type ClickUpFolder {
 	lists: [ClickUpList!]!
 }
 
+type HeightList {
+	id: String!
+	name: String!
+}
 type ClickUpList {
 	id: String!
 	name: String!
@@ -1284,6 +1288,7 @@ type Query {
 	clickup_project_mappings(workspace_id: ID!): [ClickUpProjectMapping!]!
 	clickup_folders(project_id: ID!): [ClickUpFolder!]!
 	clickup_folderless_lists(project_id: ID!): [ClickUpList!]!
+	height_lists(project_id: ID!): [HeightList!]!
 	height_workspaces(workspace_id: ID!): [HeightWorkspace!]!
 	integration_project_mappings(
 		workspace_id: ID!

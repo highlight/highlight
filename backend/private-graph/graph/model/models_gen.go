@@ -263,6 +263,11 @@ type ErrorTrace struct {
 	LinesAfter                 *string             `json:"linesAfter"`
 }
 
+type HeightList struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type HeightWorkspace struct {
 	ID    string `json:"id"`
 	Model string `json:"model"`

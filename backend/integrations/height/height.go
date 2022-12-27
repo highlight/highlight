@@ -102,6 +102,8 @@ func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {
 		return nil, nil, errors.New("REACT_APP_FRONTEND_URI not set")
 	}
 
+	// scope should be a string, not an array (see https://www.rfc-editor.org/rfc/rfc6749#page-23)
+	// We have an email out to Height requesting they fix this.
 	option := oauth2.SetAuthURLParam("scope", `["api"]`)
 	options := []oauth2.AuthCodeOption{
 		option,
@@ -124,9 +126,11 @@ func GetRefreshToken(oldToken *oauth2.Token) (*oauth2.Token, error) {
 	v := url.Values{}
 	v.Add("refresh_token", oldToken.RefreshToken)
 	v.Add("grant_type", "refresh_token")
-	v.Add("redirect_uri", conf.RedirectURL)
 	v.Add("client_id", conf.ClientID)
 	v.Add("client_secret", conf.ClientSecret)
+	// `redirect_uri` and `scope` should not be required to get a refresh token (see https://www.oauth.com/oauth2-servers/access-tokens/refreshing-access-tokens/)
+	// We have an email out to Height requesting they fix this.
+	v.Add("redirect_uri", conf.RedirectURL)
 	v.Add("scope", `["api"]`)
 
 	req, err := http.NewRequest("POST", conf.Endpoint.TokenURL, strings.NewReader(v.Encode()))
@@ -177,4 +181,19 @@ func GetWorkspaces(accessToken string) ([]*model.HeightWorkspace, error) {
 
 	// Even though we can only fetch one workspace, force it into a slice for future compatability
 	return []*model.HeightWorkspace{res}, nil
+}
+
+// https://www.notion.so/List-all-lists-4c0b34cbc33e49cf9fd8a77deb12d43b
+func GetLists(accessToken string) ([]*model.HeightList, error) {
+	type listsResponse struct {
+		List []*model.HeightList `json:"list"`
+	}
+
+	res, err := doGetRequest[listsResponse](accessToken, "/lists")
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res.List, nil
 }

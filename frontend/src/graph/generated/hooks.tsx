@@ -9860,6 +9860,63 @@ export type GetClickUpFoldersQueryResult = Apollo.QueryResult<
 	Types.GetClickUpFoldersQuery,
 	Types.GetClickUpFoldersQueryVariables
 >
+export const GetHeightListsDocument = gql`
+	query GetHeightLists($project_id: ID!) {
+		height_lists(project_id: $project_id) {
+			id
+			name
+		}
+	}
+`
+
+/**
+ * __useGetHeightListsQuery__
+ *
+ * To run a query within a React component, call `useGetHeightListsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetHeightListsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetHeightListsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetHeightListsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetHeightListsQuery,
+		Types.GetHeightListsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetHeightListsQuery,
+		Types.GetHeightListsQueryVariables
+	>(GetHeightListsDocument, baseOptions)
+}
+export function useGetHeightListsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetHeightListsQuery,
+		Types.GetHeightListsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetHeightListsQuery,
+		Types.GetHeightListsQueryVariables
+	>(GetHeightListsDocument, baseOptions)
+}
+export type GetHeightListsQueryHookResult = ReturnType<
+	typeof useGetHeightListsQuery
+>
+export type GetHeightListsLazyQueryHookResult = ReturnType<
+	typeof useGetHeightListsLazyQuery
+>
+export type GetHeightListsQueryResult = Apollo.QueryResult<
+	Types.GetHeightListsQuery,
+	Types.GetHeightListsQueryVariables
+>
 export const GenerateNewZapierAccessTokenJwtDocument = gql`
 	query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
 		generate_zapier_access_token(project_id: $project_id)

@@ -3452,6 +3452,16 @@ export type GetClickUpFoldersQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetHeightListsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetHeightListsQuery = { __typename?: 'Query' } & {
+	height_lists: Array<
+		{ __typename?: 'HeightList' } & Pick<Types.HeightList, 'id' | 'name'>
+	>
+}
+
 export type GenerateNewZapierAccessTokenJwtQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -3919,6 +3929,7 @@ export const namedOperations = {
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
 		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
 		GetClickUpFolders: 'GetClickUpFolders' as const,
+		GetHeightLists: 'GetHeightLists' as const,
 		GenerateNewZapierAccessTokenJwt:
 			'GenerateNewZapierAccessTokenJwt' as const,
 		GetIdentifierSuggestions: 'GetIdentifierSuggestions' as const,

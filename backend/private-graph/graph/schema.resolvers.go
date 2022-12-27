@@ -5455,6 +5455,30 @@ func (r *queryResolver) ClickupFolderlessLists(ctx context.Context, projectID in
 	return clickup.GetFolderlessLists(*workspace.ClickupAccessToken, settings.ExternalID)
 }
 
+// HeightLists is the resolver for the height_lists field.
+func (r *queryResolver) HeightLists(ctx context.Context, projectID int) ([]*modelInputs.HeightList, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeHeight)
+
+	if err != nil {
+		return nil, err
+	}
+
+	lists, err := height.GetLists(*accessToken)
+
+	return lists, err
+
+}
+
 // HeightWorkspaces is the resolver for the height_workspaces field.
 func (r *queryResolver) HeightWorkspaces(ctx context.Context, workspaceID int) ([]*modelInputs.HeightWorkspace, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
@@ -5471,7 +5495,6 @@ func (r *queryResolver) HeightWorkspaces(ctx context.Context, workspaceID int) (
 	workspaces, err := height.GetWorkspaces(*accessToken)
 
 	return workspaces, err
-
 }
 
 // IntegrationProjectMappings is the resolver for the integration_project_mappings field.
