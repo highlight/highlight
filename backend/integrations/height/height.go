@@ -221,11 +221,19 @@ func CreateTask(accessToken string, listId string, name string, description stri
 		ListIds     []string `json:"listIds"`
 	}{Name: name, Description: description, ListIds: listIds}
 
-	res, err := doPostRequest[*model.HeightTask](accessToken, "/tasks", input)
+	type taskResponse struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	}
+
+	res, err := doPostRequest[taskResponse](accessToken, "/tasks", input)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	return &model.HeightTask{
+		Name: res.Name,
+		ID:   strings.TrimPrefix(res.URL, "https://height.app/"),
+	}, nil
 }

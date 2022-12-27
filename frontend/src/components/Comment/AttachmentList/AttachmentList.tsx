@@ -62,6 +62,8 @@ const getAttachmentUrl = (a: Maybe<ExternalAttachment>) => {
 			return `https://linear.app/issue/${a.title}`
 		case IntegrationType.ClickUp:
 			return `https://app.clickup.com/t/${a.external_id}`
+		case IntegrationType.Height:
+			return `https://height.app/${a.external_id}`
 	}
 	return ''
 }
