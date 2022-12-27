@@ -1,6 +1,7 @@
-
-
-import { useGetHeightIntegrationSettingsQuery, useUpdateIntegrationProjectSettingsMutation } from '@graph/hooks'
+import {
+	useGetHeightIntegrationSettingsQuery,
+	useUpdateIntegrationProjectSettingsMutation,
+} from '@graph/hooks'
 import {
 	GetHeightIntegrationSettingsQuery,
 	namedOperations,
