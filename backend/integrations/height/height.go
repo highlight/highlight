@@ -197,12 +197,23 @@ func GetLists(accessToken string) ([]*model.HeightList, error) {
 		return nil, err
 	}
 
-	return res.List, nil
+	filteredLists := []*model.HeightList{}
+
+	for _, list := range res.List {
+		// Filter out irrelevant lists (e.g. trash or user lists)
+		// See https://www.notion.so/The-list-object-fcbc598cbda7422ca518ac8e44bdde42 for other list types
+		if list.Type == "list" {
+			filteredLists = append(filteredLists, list)
+		}
+	}
+
+	return filteredLists, nil
 }
 
 // https://www.notion.so/Create-a-task-b50565736830422684b28ae570a53a9e
 func CreateTask(accessToken string, listId string, name string, description string) (*model.HeightTask, error) {
-	listIds := []string{listId}
+	var listIds []string
+	listIds = append(listIds, listId)
 
 	input := struct {
 		Name        string   `json:"name"`

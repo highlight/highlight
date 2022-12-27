@@ -534,6 +534,7 @@ export type HeightList = {
 	__typename?: 'HeightList'
 	id: Scalars['String']
 	name: Scalars['String']
+	type: Scalars['String']
 }
 
 export type HeightTask = {

@@ -206,6 +206,7 @@ type ClickUpFolder {
 type HeightList {
 	id: String!
 	name: String!
+	type: String!
 }
 type ClickUpList {
 	id: String!
