@@ -6,7 +6,6 @@ import DiscordIntegrationConfig from '@pages/IntegrationsPage/components/Discord
 import FrontIntegrationConfig from '@pages/IntegrationsPage/components/FrontIntegration/FrontIntegrationConfig'
 import FrontPluginConfig from '@pages/IntegrationsPage/components/FrontPlugin/FrontPluginConfig'
 import HeightIntegrationConfig from '@pages/IntegrationsPage/components/HeightIntegration/HeightIntegrationConfig'
-import HeightListSelector from '@pages/IntegrationsPage/components/HeightIntegration/HeightListSelector'
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
 import LinearIntegrationConfig from '@pages/IntegrationsPage/components/LinearIntegration/LinearIntegrationConfig'
 import LinearTeamSelector from '@pages/IntegrationsPage/components/LinearIntegration/LinearTeamSelector'
@@ -152,7 +151,7 @@ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 	modalWidth: 672,
 	containerLabel: 'list',
 	issueLabel: 'task',
-	containerSelection: (opts) => <HeightListSelector {...opts} />,
+	containerSelection: () => <></>,
 }
 
 const INTEGRATIONS: Integration[] = [
