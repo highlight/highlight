@@ -4298,7 +4298,7 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 }
 
 // ErrorGroupTags is the resolver for the errorGroupTags field.
-func (r *queryResolver) ErrorGroupTags(ctx context.Context, projectID int, errorGroupSecureID string) ([]*modelInputs.ErrorGroupTag, error) {
+func (r *queryResolver) ErrorGroupTags(ctx context.Context, projectID int, errorGroupSecureID string) ([]*modelInputs.ErrorGroupTagAggregation, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not error group owner")
@@ -4306,52 +4306,88 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, projectID int, error
 
 	query := fmt.Sprintf(`
 	{
-		"has_parent": {
+		"size": 0,
+		"query": {
+		  "has_parent": {
 			"parent_type": "parent",
 			"query": {
-				"term": {
-					"value": "%s"
-				}
+			  "terms": {
+				"_id": [
+				  "%s"
+				]
+			  }
 			}
-		}
-	}`, errorGroup.SecureID)
-	options := opensearch.SearchOptions{
-		MaxResults: pointy.Int(0),
-		Aggregation: &opensearch.TermsAggregation{
-			Field: "os_name.keyword",
+		  }
 		},
-	}
+		"aggs": {
+		  "os_name": {
+			"terms": {
+			  "field": "os_name.keyword"
+			}
+		  },
+		  "browser": {
+			"terms": {
+			  "field": "browser.keyword"
+			}
+		  }
+		}
+	  }
+	`, errorGroup.SecureID)
 
-	ignored := []struct{}{}
-	_, results, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, -1, query, options, &ignored)
+	res, err := r.OpenSearch.RawSearch(opensearch.IndexErrorsCombined, 1, query)
+
 	if err != nil {
 		return nil, err
 	}
 
-	tags := []*modelInputs.ErrorGroupTag{}
-
-	for _, result := range results {
-		aggregations := []*modelInputs.ErrorGroupTagAggregation{}
-
-		for _, subAggregation := range result.SubAggregationResults {
-			aggregation := modelInputs.ErrorGroupTagAggregation{
-				Key:      subAggregation.Key,
-				DocCount: subAggregation.DocCount,
-			}
-
-			aggregations = append(aggregations, &aggregation)
-		}
-
-		tag := modelInputs.ErrorGroupTag{
-			Term:         result.Key,
-			Aggregations: aggregations,
-		}
-
-		tags = append(tags, &tag)
-
+	var aggregate struct {
+		Aggregations struct {
+			Browser struct {
+				Buckets []struct {
+					Key      string `json:"key"`
+					DocCount int    `json:"doc_count"`
+				} `json:"buckets"`
+			} `json:"browser"`
+			OsName struct {
+				Buckets []struct {
+					Key      string `json:"key"`
+					DocCount int    `json:"doc_count"`
+				} `json:"buckets"`
+			} `json:"os_name"`
+		} `json:"aggregations"`
 	}
 
-	return tags, nil
+	if err := json.Unmarshal(res, &aggregate); err != nil {
+		return nil, e.Wrap(err, "failed to unmarshal aggregations")
+	}
+
+	aggregations := []*modelInputs.ErrorGroupTagAggregation{}
+
+	browserBuckets := []*modelInputs.ErrorGroupTagAggregationBucket{}
+	for _, bucket := range aggregate.Aggregations.Browser.Buckets {
+		browserBuckets = append(browserBuckets, &modelInputs.ErrorGroupTagAggregationBucket{
+			Key:      bucket.Key,
+			DocCount: int64(bucket.DocCount),
+		})
+	}
+	aggregations = append(aggregations, &modelInputs.ErrorGroupTagAggregation{
+		Key:     "browser",
+		Buckets: browserBuckets,
+	})
+
+	osNameBuckets := []*modelInputs.ErrorGroupTagAggregationBucket{}
+	for _, bucket := range aggregate.Aggregations.OsName.Buckets {
+		osNameBuckets = append(osNameBuckets, &modelInputs.ErrorGroupTagAggregationBucket{
+			Key:      bucket.Key,
+			DocCount: int64(bucket.DocCount),
+		})
+	}
+	aggregations = append(aggregations, &modelInputs.ErrorGroupTagAggregation{
+		Key:     "os_name",
+		Buckets: osNameBuckets,
+	})
+
+	return aggregations, nil
 }
 
 // Referrers is the resolver for the referrers field.

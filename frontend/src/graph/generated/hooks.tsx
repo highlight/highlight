@@ -10963,8 +10963,8 @@ export const GetErrorGroupTagsDocument = gql`
 			project_id: $project_id
 			error_group_secure_id: $error_group_secure_id
 		) {
-			term
-			aggregations {
+			key
+			buckets {
 				key
 				doc_count
 			}

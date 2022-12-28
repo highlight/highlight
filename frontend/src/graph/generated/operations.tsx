@@ -3834,10 +3834,13 @@ export type GetErrorGroupTagsQueryVariables = Types.Exact<{
 
 export type GetErrorGroupTagsQuery = { __typename?: 'Query' } & {
 	errorGroupTags: Array<
-		{ __typename?: 'ErrorGroupTag' } & Pick<Types.ErrorGroupTag, 'term'> & {
-				aggregations: Array<
-					{ __typename?: 'ErrorGroupTagAggregation' } & Pick<
-						Types.ErrorGroupTagAggregation,
+		{ __typename?: 'ErrorGroupTagAggregation' } & Pick<
+			Types.ErrorGroupTagAggregation,
+			'key'
+		> & {
+				buckets: Array<
+					{ __typename?: 'ErrorGroupTagAggregationBucket' } & Pick<
+						Types.ErrorGroupTagAggregationBucket,
 						'key' | 'doc_count'
 					>
 				>

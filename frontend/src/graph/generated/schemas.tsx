@@ -395,14 +395,14 @@ export type ErrorGroupFrequenciesParamsInput = {
 	resolution_minutes: Scalars['Int']
 }
 
-export type ErrorGroupTag = {
-	__typename?: 'ErrorGroupTag'
-	aggregations: Array<ErrorGroupTagAggregation>
-	term: Scalars['String']
-}
-
 export type ErrorGroupTagAggregation = {
 	__typename?: 'ErrorGroupTagAggregation'
+	buckets: Array<ErrorGroupTagAggregationBucket>
+	key: Scalars['String']
+}
+
+export type ErrorGroupTagAggregationBucket = {
+	__typename?: 'ErrorGroupTagAggregationBucket'
 	doc_count: Scalars['Int64']
 	key: Scalars['String']
 }
@@ -1329,7 +1329,7 @@ export type Query = {
 	environment_suggestion?: Maybe<Array<Maybe<Field>>>
 	errorDistribution: Array<Maybe<ErrorDistributionItem>>
 	errorGroupFrequencies: Array<Maybe<ErrorDistributionItem>>
-	errorGroupTags: Array<ErrorGroupTag>
+	errorGroupTags: Array<ErrorGroupTagAggregation>
 	error_alerts: Array<Maybe<ErrorAlert>>
 	error_comments: Array<Maybe<ErrorComment>>
 	error_comments_for_admin: Array<Maybe<ErrorComment>>

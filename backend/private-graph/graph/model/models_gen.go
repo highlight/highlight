@@ -224,12 +224,12 @@ type ErrorGroupFrequenciesParamsInput struct {
 	ResolutionMinutes int                     `json:"resolution_minutes"`
 }
 
-type ErrorGroupTag struct {
-	Term         string                      `json:"term"`
-	Aggregations []*ErrorGroupTagAggregation `json:"aggregations"`
+type ErrorGroupTagAggregation struct {
+	Key     string                            `json:"key"`
+	Buckets []*ErrorGroupTagAggregationBucket `json:"buckets"`
 }
 
-type ErrorGroupTagAggregation struct {
+type ErrorGroupTagAggregationBucket struct {
 	Key      string `json:"key"`
 	DocCount int64  `json:"doc_count"`
 }

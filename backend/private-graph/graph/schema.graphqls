@@ -860,14 +860,14 @@ type ErrorDistributionItem {
 	value: Int64!
 }
 
-type ErrorGroupTagAggregation {
+type ErrorGroupTagAggregationBucket {
 	key: String!
 	doc_count: Int64!
 }
 
-type ErrorGroupTag {
-	term: String!
-	aggregations: [ErrorGroupTagAggregation!]!
+type ErrorGroupTagAggregation {
+	key: String!
+	buckets: [ErrorGroupTagAggregationBucket!]!
 }
 
 type Dashboard {
@@ -1221,7 +1221,7 @@ type Query {
 	errorGroupTags(
 		project_id: ID!
 		error_group_secure_id: String!
-	): [ErrorGroupTag!]!
+	): [ErrorGroupTagAggregation!]!
 
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
