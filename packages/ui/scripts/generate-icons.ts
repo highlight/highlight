@@ -21,8 +21,9 @@ export const ${
 
 const VALID_COLORS = ['currentColor', 'none']
 const COLOR_ATTRS = ['stroke', 'fill']
+const KEEPS_ORIGINAL_COLORS = ['Linear', 'ClickUp', 'Height', 'Slack']
 
-const updateAttrs = ($el) => {
+const updateColors = ($el) => {
 	COLOR_ATTRS.forEach((attr) => {
 		const color = $el.attr(attr)
 
@@ -98,10 +99,12 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 			// Replace stroke and fill attributes with 'currentColor'
 			const $ = cheerio.load(optimisedSvg)
 			const $svg = $('svg')
-			updateAttrs($svg)
-			$svg.find('*').each((i, el) => {
-				updateAttrs($(el))
-			})
+			if (!KEEPS_ORIGINAL_COLORS.includes(svgName)) {
+				updateColors($svg)
+				$svg.find('*').each((i, el) => {
+					updateColors($(el))
+				})
+			}
 
 			optimisedSvg = $.html($svg) || ''
 
