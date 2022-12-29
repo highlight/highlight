@@ -72,6 +72,18 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 		svgFilePaths.map(async (svgFilePath) => {
 			const svgName = path.basename(svgFilePath, '.svg')
 			const iconVariant = svgFilePath.split('/')[2]
+			const iconName = `Icon${pascalCase(iconVariant)}${pascalCase(
+				svgName,
+			)}`
+
+			const outPath = path.join(iconComponentsDir, `${iconName}.tsx`)
+			if (
+				KEEPS_ORIGINAL_COLORS.includes(svgName) &&
+				(await fs.pathExists(outPath))
+			) {
+				return
+			}
+
 			const svg = await fs.readFile(svgFilePath, 'utf-8')
 
 			// Run through SVGO to optimize
@@ -108,19 +120,12 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 
 			optimisedSvg = $.html($svg) || ''
 
-			const iconName = `Icon${pascalCase(iconVariant)}${pascalCase(
-				svgName,
-			)}`
 			const svgComponent = await transform(optimisedSvg, svgrConfig, {
 				componentName: iconName,
 			})
 
 			// Write SVG React component
-			await fs.writeFile(
-				path.join(iconComponentsDir, `${iconName}.tsx`),
-				svgComponent,
-				{ encoding: 'utf-8' },
-			)
+			await fs.writeFile(outPath, svgComponent, { encoding: 'utf-8' })
 		}),
 	)
 
