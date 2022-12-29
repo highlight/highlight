@@ -7,33 +7,41 @@ import {
 	FormError as AriaKitFormError,
 	FormErrorProps as AriaKitFormErrorProps,
 	FormInputProps as AriaKitFormInputProps,
+	FormField as AriaKitFormField,
+	FormFieldProps as AriaKitFormFieldProps,
 	useFormState as useAriaKitFormState,
 } from 'ariakit/form'
 
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'
 import { Text } from '../Text/Text'
-import { Button, Props as ButtonProps } from '../Button/Button'
-import clsx from 'clsx'
+import { Select as FormSelect } from './components/Select'
+import { Button, ButtonProps } from '../Button/Button'
+import clsx, { ClassValue } from 'clsx'
 import { Variants } from './styles.css'
-
-type Props = React.PropsWithChildren<{ state?: AriaKitFormState }>
+import { SelectOptions } from 'ariakit'
 
 type FormComponent = React.FC<Props> & {
 	Input: typeof Input
 	Error: typeof Error
 	Submit: typeof Submit
+	Field: typeof Field
+	Select: typeof Select
 }
 
-export const Form: FormComponent = ({ children, state }: Props) => {
-	const form = useFormState({ defaultValues: state })
+const Label = ({ label }: { label: string }) => {
 	return (
-		<AriaKitForm state={form}>
-			<Box display="flex" flexDirection="column">
-				{children}
-			</Box>
-		</AriaKitForm>
+		<Box display="flex" alignItems="center" style={{ height: 16 }}>
+			<Text userSelect="none" size="xSmall" weight="medium" color="weak">
+				{label}
+			</Text>
+		</Box>
 	)
+}
+
+type Props = React.PropsWithChildren<{ state?: AriaKitFormState }>
+export const Form: FormComponent = ({ children, state }: Props) => {
+	return <AriaKitForm state={state}>{children}</AriaKitForm>
 }
 
 export const Error = ({ ...props }: AriaKitFormErrorProps) => {
@@ -44,12 +52,22 @@ export const Submit = ({ ...props }: ButtonProps) => {
 	return <Button type="submit" {...props} />
 }
 
-type InputProps = Omit<AriaKitFormInputProps, 'size'> &
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type InputProps = Omit<AriaKitFormInputProps<any>, 'size'> &
 	Variants & {
 		label?: string
+		cssClass?: ClassValue | ClassValue[]
 	}
 
-export const Input = ({ label, size, collapsed, ...props }: InputProps) => {
+export const Input = ({
+	label,
+	cssClass,
+	size,
+	collapsed,
+	outline,
+	name,
+	...props
+}: InputProps) => {
 	const ref = React.useRef<HTMLInputElement>(null)
 	React.useEffect(() => {
 		if (collapsed && ref.current) {
@@ -60,15 +78,18 @@ export const Input = ({ label, size, collapsed, ...props }: InputProps) => {
 		collapsed = false
 	}
 	return (
-		<Box display={'flex'} flexDirection="column" width="full">
-			{label && <Text cssClass={styles.inputLabel}>{label}</Text>}
+		<Box display="flex" flexDirection="column" width="full" gap="4">
+			{label && <Label label={label} />}
 			<AriaKitFormInput
 				ref={ref}
+				name={name}
 				className={clsx(
-					styles.variants({
+					styles.inputVariants({
 						size,
 						collapsed,
+						outline,
 					}),
+					cssClass,
 				)}
 				{...props}
 			/>
@@ -76,8 +97,68 @@ export const Input = ({ label, size, collapsed, ...props }: InputProps) => {
 	)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FormFieldProps = AriaKitFormFieldProps<any> &
+	React.PropsWithChildren &
+	Variants & {
+		label?: string
+		cssClass?: ClassValue | ClassValue[]
+	}
+
+export const Field = ({
+	children,
+	label,
+	cssClass,
+	size,
+	collapsed,
+	outline,
+	...props
+}: FormFieldProps) => {
+	return (
+		<Box display="flex" flexDirection="column" width="full" gap="4">
+			{label && <Label label={label} />}
+			<AriaKitFormField
+				className={clsx(
+					styles.inputVariants({
+						size,
+						collapsed,
+						outline,
+					}),
+					cssClass,
+				)}
+				{...props}
+			>
+				{children}
+			</AriaKitFormField>
+		</Box>
+	)
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FormSelectProps = AriaKitFormFieldProps<any> &
+	React.PropsWithChildren &
+	Variants & {
+		label?: string
+		cssClass?: ClassValue | ClassValue[]
+	}
+
+export const Select = ({
+	name,
+	value,
+	children,
+	...props
+}: FormSelectProps) => {
+	return (
+		<Field name={name} value={value} as={FormSelect} {...props}>
+			{children}
+		</Field>
+	)
+}
+
 Form.Input = Input
 Form.Error = Error
 Form.Submit = Submit
+Form.Field = Field
+Form.Select = Select
 
 export const useFormState = useAriaKitFormState

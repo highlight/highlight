@@ -1,8 +1,7 @@
-import Select from '@components/Select/Select'
+import { Form } from '@highlight-run/ui'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import useLocalStorage from '@rehooks/local-storage'
-import { Form } from 'antd'
 import { useEffect, useMemo } from 'react'
 
 const LinearTeamSelector: React.FC<ContainerSelectionProps> = ({
@@ -24,32 +23,33 @@ const LinearTeamSelector: React.FC<ContainerSelectionProps> = ({
 		)
 	}, [teams])
 
-	const [selectedlinearTeamId, setLinearTeamId] = useLocalStorage(
+	const [selectedLinearTeamId, setLinearTeamId] = useLocalStorage(
 		'highlight-linear-default-team',
 		'',
 	)
 
 	useEffect(() => {
-		setSelectionId(selectedlinearTeamId)
-	}, [selectedlinearTeamId, setSelectionId])
+		setSelectionId(selectedLinearTeamId)
+	}, [selectedLinearTeamId, setSelectionId])
 
 	useEffect(() => {
-		if (selectedlinearTeamId === '' && linearTeamsOptions.length > 0) {
+		if (selectedLinearTeamId === '' && linearTeamsOptions.length > 0) {
 			setLinearTeamId(linearTeamsOptions[0].value)
 		}
-	}, [selectedlinearTeamId, linearTeamsOptions, setLinearTeamId])
+	}, [selectedLinearTeamId, linearTeamsOptions, setLinearTeamId])
 
 	return (
-		<Form.Item label="Linear Team">
-			<Select
-				aria-label="Linear Team"
-				placeholder="Choose a team to create the issue in"
-				options={linearTeamsOptions}
-				onChange={setLinearTeamId}
-				value={selectedlinearTeamId}
-				notFoundContent={<p>No teams found</p>}
-			/>
-		</Form.Item>
+		<Form.Select
+			name="teamId"
+			label="Linear Team"
+			aria-label="Linear Team"
+			placeholder="Choose a team to create the issue in"
+			onChange={setLinearTeamId}
+			value={selectedLinearTeamId}
+			options={linearTeamsOptions}
+			notFoundContent={<p>No teams found</p>}
+			outline
+		/>
 	)
 }
 

@@ -2213,8 +2213,6 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 		return nil, e.New("failed to create linear attachment")
 	}
 
-	log.Debugf("::: %+v", createAttachmentRes)
-
 	return createAttachmentRes, nil
 }
 

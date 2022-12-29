@@ -1,24 +1,32 @@
-import { style } from '@vanilla-extract/css'
 import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
+import { vars } from '../../css/vars'
 
-export const inputLabel = style({
-	color: '#908e96',
-	fontSize: 11,
-	fontWeight: '500',
-	marginBottom: 6,
-})
-
-export const variants = recipe({
+export const inputVariants = recipe({
 	base: {
-		backgroundColor: 'white',
-		border: 'none',
 		borderRadius: 6,
-		fontSize: 13,
+		border: 'none',
 		padding: '4px 6px',
+		fontSize: 13,
+		color: vars.theme.static.content.default,
+		textOverflow: 'ellipsis',
+		overflow: 'hidden',
+		whiteSpace: 'nowrap',
 		selectors: {
 			'&:focus, &:active, &::selection': {
-				border: 'none',
 				outline: 0,
+			},
+			'&:hover': {
+				background: vars.theme.interactive.overlay.secondary.hover,
+				border: vars.border.secondaryHover,
+			},
+			'&::placeholder': {
+				color: vars.theme.interactive.fill.secondary.content.onDisabled,
+			},
+			'&:-ms-input-placeholder': {
+				color: vars.theme.interactive.fill.secondary.content.onDisabled,
+			},
+			'&::-ms-input-placeholder': {
+				color: vars.theme.interactive.fill.secondary.content.onDisabled,
 			},
 		},
 	},
@@ -41,10 +49,12 @@ export const variants = recipe({
 				width: '100%',
 			},
 		},
-	},
-	defaultVariants: {
-		size: 'small',
+		outline: {
+			true: {
+				border: vars.border.secondary,
+			},
+		},
 	},
 })
 
-export type Variants = RecipeVariants<typeof variants>
+export type Variants = RecipeVariants<typeof inputVariants>

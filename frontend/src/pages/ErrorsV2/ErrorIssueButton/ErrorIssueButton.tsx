@@ -145,8 +145,6 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 				selectedIntegration={showNewIssueModal ?? LINEAR_INTEGRATION}
 				visible={!!showNewIssueModal}
 				onClose={() => setShowNewIssueModal(undefined)}
-				commentId={0}
-				commentText={errorGroup?.event?.join('') || ''}
 				commentType="ErrorComment"
 				defaultIssueTitle={defaultIssueTitle}
 			/>
