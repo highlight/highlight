@@ -11,21 +11,16 @@ export const inputVariants = recipe({
 		textOverflow: 'ellipsis',
 		overflow: 'hidden',
 		whiteSpace: 'nowrap',
+		caretColor: vars.theme.interactive.fill.primary.enabled,
 		selectors: {
 			'&:focus, &:active, &::selection': {
 				outline: 0,
 			},
-			'&:hover': {
+			'&:placeholder-shown:hover': {
 				background: vars.theme.interactive.overlay.secondary.hover,
 				border: vars.border.secondaryHover,
 			},
 			'&::placeholder': {
-				color: vars.theme.interactive.fill.secondary.content.onDisabled,
-			},
-			'&:-ms-input-placeholder': {
-				color: vars.theme.interactive.fill.secondary.content.onDisabled,
-			},
-			'&::-ms-input-placeholder': {
 				color: vars.theme.interactive.fill.secondary.content.onDisabled,
 			},
 		},
