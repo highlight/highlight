@@ -117,7 +117,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 					mb={integrationCount > 0 ? '4' : undefined}
 				>
 					<Text size="xxSmall" weight="medium" color="n11">
-						Create issue
+						Attach an issue
 					</Text>
 				</Box>
 				{menuOptions}

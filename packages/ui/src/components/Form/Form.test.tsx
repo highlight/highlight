@@ -1,20 +1,24 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, renderHook, screen } from '@testing-library/react'
 
-import { Form } from './Form'
+import { Form, useFormState } from './Form'
 
 describe('Form', () => {
 	it('exists', async () => {
-		render(
-			<Form>
-				<Form.Input
-					id="Testing"
-					name="Search"
-					placeholder="Testing"
-					size="xSmall"
-				/>
-			</Form>,
+		const { result } = renderHook(() =>
+			useFormState({
+				defaultValues: {
+					Search: '',
+				},
+			}),
 		)
+		const formComponent = (
+			<Form state={result.current}>
+				<Form.Input name="Search" placeholder="Testing" size="xSmall" />
+			</Form>
+		)
+
+		render(formComponent)
 
 		await screen.findByPlaceholderText('Testing')
 	})
