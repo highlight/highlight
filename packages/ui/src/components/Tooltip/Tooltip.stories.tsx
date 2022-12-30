@@ -6,7 +6,7 @@ import { Box } from '../Box/Box'
 import { Text } from '../Text/Text'
 import { Badge } from '../Badge/Badge'
 import { Tag } from '../Tag/Tag'
-import { IconTrendingUp } from '../icons'
+import { IconSolidTrendingUp } from '../icons'
 
 export default {
 	title: 'Components/Tooltip',
@@ -20,7 +20,7 @@ export const Basic = () => (
 				<Tag
 					kind="secondary"
 					shape="basic"
-					iconLeft={<IconTrendingUp size={12} />}
+					iconLeft={<IconSolidTrendingUp size={12} />}
 				>
 					200%
 				</Tag>
