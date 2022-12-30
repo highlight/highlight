@@ -675,7 +675,6 @@ export type Mutation = {
 	createErrorComment?: Maybe<ErrorComment>
 	createErrorSegment?: Maybe<ErrorSegment>
 	createIssueForErrorComment?: Maybe<ErrorComment>
-	createIssueForErrorGroup?: Maybe<ErrorComment>
 	createIssueForSessionComment?: Maybe<SessionComment>
 	createMetricMonitor?: Maybe<MetricMonitor>
 	createOrUpdateStripeSubscription?: Maybe<Scalars['String']>
@@ -802,18 +801,6 @@ export type MutationCreateErrorSegmentArgs = {
 export type MutationCreateIssueForErrorCommentArgs = {
 	author_name: Scalars['String']
 	error_comment_id: Scalars['Int']
-	error_url: Scalars['String']
-	integrations: Array<InputMaybe<IntegrationType>>
-	issue_description?: InputMaybe<Scalars['String']>
-	issue_team_id?: InputMaybe<Scalars['String']>
-	issue_title?: InputMaybe<Scalars['String']>
-	project_id: Scalars['ID']
-	text_for_attachment: Scalars['String']
-}
-
-export type MutationCreateIssueForErrorGroupArgs = {
-	author_name: Scalars['String']
-	error_id: Scalars['Int']
 	error_url: Scalars['String']
 	integrations: Array<InputMaybe<IntegrationType>>
 	issue_description?: InputMaybe<Scalars['String']>

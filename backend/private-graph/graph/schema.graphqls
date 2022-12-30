@@ -1440,17 +1440,6 @@ type Mutation {
 		integrations: [IntegrationType]!
 	): ErrorComment
 	muteErrorCommentThread(id: ID!, has_muted: Boolean): Boolean
-	createIssueForErrorGroup(
-		project_id: ID!
-		error_url: String!
-		error_id: Int!
-		author_name: String!
-		text_for_attachment: String!
-		issue_title: String
-		issue_description: String
-		issue_team_id: String
-		integrations: [IntegrationType]!
-	): ErrorComment
 	createIssueForErrorComment(
 		project_id: ID!
 		error_url: String!

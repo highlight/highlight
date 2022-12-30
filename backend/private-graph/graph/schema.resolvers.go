@@ -1703,11 +1703,6 @@ func (r *mutationResolver) MuteErrorCommentThread(ctx context.Context, id int, h
 	return &model.T, nil
 }
 
-// CreateIssueForErrorGroup is the resolver for the createIssueForErrorGroup field.
-func (r *mutationResolver) CreateIssueForErrorGroup(ctx context.Context, projectID int, errorURL string, errorID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 // CreateIssueForErrorComment is the resolver for the createIssueForErrorComment field.
 func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	var project model.Project
