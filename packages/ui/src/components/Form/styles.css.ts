@@ -48,7 +48,11 @@ export const inputVariants = recipe({
 			true: {
 				border: vars.border.secondary,
 			},
+			false: {},
 		},
+	},
+	defaultVariants: {
+		outline: true,
 	},
 })
 

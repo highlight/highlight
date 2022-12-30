@@ -15,26 +15,37 @@ import {
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'
 import { Text } from '../Text/Text'
-import { Select as FormSelect } from './components/Select'
 import { Button, ButtonProps } from '../Button/Button'
 import clsx, { ClassValue } from 'clsx'
 import { Variants } from './styles.css'
-import { SelectOptions } from 'ariakit'
 
 type FormComponent = React.FC<Props> & {
 	Input: typeof Input
 	Error: typeof Error
 	Submit: typeof Submit
 	Field: typeof Field
-	Select: typeof Select
+	NamedSection: typeof NamedSection
 }
 
-const Label = ({ label }: { label: string }) => {
+export const Label = ({ label }: { label: string }) => {
 	return (
 		<Box display="flex" alignItems="center" style={{ height: 16 }}>
 			<Text userSelect="none" size="xSmall" weight="medium" color="weak">
 				{label}
 			</Text>
+		</Box>
+	)
+}
+
+type HasLabel = { label?: string }
+export const NamedSection = ({
+	children,
+	label,
+}: React.PropsWithChildren<HasLabel>) => {
+	return (
+		<Box display="flex" flexDirection="column" width="full" gap="4">
+			{label && <Label label={label} />}
+			{children}
 		</Box>
 	)
 }
@@ -54,8 +65,8 @@ export const Submit = ({ ...props }: ButtonProps) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InputProps = Omit<AriaKitFormInputProps<any>, 'size'> &
-	Variants & {
-		label?: string
+	Variants &
+	HasLabel & {
 		cssClass?: ClassValue | ClassValue[]
 	}
 
@@ -78,8 +89,7 @@ export const Input = ({
 		collapsed = false
 	}
 	return (
-		<Box display="flex" flexDirection="column" width="full" gap="4">
-			{label && <Label label={label} />}
+		<NamedSection label={label}>
 			<AriaKitFormInput
 				ref={ref}
 				name={name}
@@ -93,15 +103,15 @@ export const Input = ({
 				)}
 				{...props}
 			/>
-		</Box>
+		</NamedSection>
 	)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FormFieldProps = AriaKitFormFieldProps<any> &
 	React.PropsWithChildren &
-	Variants & {
-		label?: string
+	Variants &
+	HasLabel & {
 		cssClass?: ClassValue | ClassValue[]
 	}
 
@@ -115,8 +125,7 @@ export const Field = ({
 	...props
 }: FormFieldProps) => {
 	return (
-		<Box display="flex" flexDirection="column" width="full" gap="4">
-			{label && <Label label={label} />}
+		<NamedSection label={label}>
 			<AriaKitFormField
 				className={clsx(
 					styles.inputVariants({
@@ -130,28 +139,7 @@ export const Field = ({
 			>
 				{children}
 			</AriaKitFormField>
-		</Box>
-	)
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type FormSelectProps = AriaKitFormFieldProps<any> &
-	React.PropsWithChildren &
-	Variants & {
-		label?: string
-		cssClass?: ClassValue | ClassValue[]
-	}
-
-export const Select = ({
-	name,
-	value,
-	children,
-	...props
-}: FormSelectProps) => {
-	return (
-		<Field name={name} value={value} as={FormSelect} {...props}>
-			{children}
-		</Field>
+		</NamedSection>
 	)
 }
 
@@ -159,6 +147,6 @@ Form.Input = Input
 Form.Error = Error
 Form.Submit = Submit
 Form.Field = Field
-Form.Select = Select
+Form.NamedSection = NamedSection
 
 export const useFormState = useAriaKitFormState

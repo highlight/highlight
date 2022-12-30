@@ -58,7 +58,7 @@ const Modal: React.FC<React.PropsWithChildren<Props>> = ({
 		>
 			{/* adding margin right to make room for the close button */}
 			{title && (
-				<h3 className={minimal ? undefined : 'mb-4 mr-8'}>{title}</h3>
+				<h3 className={minimal ? 'm-0' : 'mb-4 mr-8'}>{title}</h3>
 			)}
 			<main className={styles.modalContent}>{children}</main>
 		</AntDesignModal>
