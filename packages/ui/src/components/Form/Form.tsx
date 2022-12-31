@@ -50,7 +50,8 @@ export const NamedSection = ({
 	)
 }
 
-type Props = React.PropsWithChildren<{ state?: AriaKitFormState }>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Props = React.PropsWithChildren<{ state?: AriaKitFormState<any> }>
 export const Form: FormComponent = ({ children, state }: Props) => {
 	return <AriaKitForm state={state}>{children}</AriaKitForm>
 }
