@@ -4334,7 +4334,7 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, projectID int, error
 	  }
 	`, errorGroup.SecureID)
 
-	res, err := r.OpenSearch.RawSearch(opensearch.IndexErrorsCombined, 1, query)
+	res, err := r.OpenSearch.RawSearch(opensearch.IndexErrorsCombined, query)
 
 	if err != nil {
 		return nil, err

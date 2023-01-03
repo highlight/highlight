@@ -613,15 +613,12 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 	return response.Hits.Total.Value, aggregationResults, nil
 }
 
-func (c *Client) RawSearch(index Index, projectID int, query string) ([]byte, error) {
+func (c *Client) RawSearch(index Index, query string) ([]byte, error) {
 	searchIndexes := []string{GetIndex(index)}
 	search := opensearchapi.SearchRequest{
 		Index: searchIndexes,
 		Body:  strings.NewReader(query),
 	}
-
-	log.Infof("Searching idx: %s", GetIndex(index))
-	log.Infof("Search body: %s", query)
 
 	searchResponse, err := search.Do(context.Background(), c.ReadClient)
 	if err != nil {
