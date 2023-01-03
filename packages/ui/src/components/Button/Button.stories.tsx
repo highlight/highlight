@@ -3,7 +3,7 @@ import { ComponentMeta } from '@storybook/react'
 
 import { Button } from './Button'
 import { Box } from '../Box/Box'
-import { IconCaretDown, IconCreateFile } from '../icons'
+import { IconSolidCheveronDown, IconSolidDocumentAdd } from '../icons'
 import { Variants } from './styles.css'
 
 export default {
@@ -31,12 +31,12 @@ export const ButtonVariants = () => {
 								<Button
 									iconLeft={
 										jdx % emphasis.length !== 0 ? (
-											<IconCaretDown />
+											<IconSolidCheveronDown />
 										) : null
 									}
 									iconRight={
 										jdx % emphasis.length === 0 ? (
-											<IconCreateFile />
+											<IconSolidDocumentAdd />
 										) : null
 									}
 									size={$size}
@@ -54,7 +54,7 @@ export const ButtonVariants = () => {
 								size={size[size.length - 1]}
 								iconLeft={
 									jdx % emphasis.length !== 0 ? (
-										<IconCaretDown />
+										<IconSolidCheveronDown />
 									) : null
 								}
 								disabled

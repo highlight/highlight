@@ -4,9 +4,9 @@ import type { ComponentMeta } from '@storybook/react'
 import React from 'react'
 import {
 	IconArrowSmDown,
-	IconCaretDown,
+	IconSolidCheveronDown,
 	IconCog,
-	IconCreateFile,
+	IconSolidDocumentAdd,
 } from '../icons'
 import { Box } from '../Box/Box'
 
@@ -38,12 +38,12 @@ export const TagVariants = () => {
 										<Tag
 											icon={
 												jdx % emphasis.length !== 0 ? (
-													<IconCaretDown />
+													<IconSolidCheveronDown />
 												) : null
 											}
 											iconRight={
 												jdx % emphasis.length === 0 ? (
-													<IconCreateFile />
+													<IconSolidDocumentAdd />
 												) : null
 											}
 											size={$size}
@@ -63,7 +63,7 @@ export const TagVariants = () => {
 										size={$size}
 										iconLeft={
 											jdx % emphasis.length !== 0 ? (
-												<IconCaretDown />
+												<IconSolidCheveronDown />
 											) : null
 										}
 										disabled
