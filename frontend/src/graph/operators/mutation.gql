@@ -106,7 +106,7 @@ mutation AddIntegrationToWorkspace(
 }
 
 mutation RemoveIntegrationFromWorkspace(
-	$integration_type: IntegrationType
+	$integration_type: IntegrationType!
 	$workspace_id: ID!
 ) {
 	removeIntegrationFromWorkspace(
@@ -949,6 +949,18 @@ mutation UpdateClickUpSettings(
 ) {
 	updateClickUpProjectMappings(
 		workspace_id: $workspace_id
+		project_mappings: $project_mappings
+	)
+}
+
+mutation UpdateIntegrationProjectSettings(
+	$workspace_id: ID!
+	$integration_type: IntegrationType!
+	$project_mappings: [IntegrationProjectMappingInput!]!
+) {
+	updateIntegrationProjectMappings(
+		workspace_id: $workspace_id
+		integration_type: $integration_type
 		project_mappings: $project_mappings
 	)
 }

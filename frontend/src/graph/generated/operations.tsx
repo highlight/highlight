@@ -155,7 +155,7 @@ export type AddIntegrationToWorkspaceMutation = {
 } & Pick<Types.Mutation, 'addIntegrationToWorkspace'>
 
 export type RemoveIntegrationFromWorkspaceMutationVariables = Types.Exact<{
-	integration_type?: Types.Maybe<Types.IntegrationType>
+	integration_type: Types.IntegrationType
 	workspace_id: Types.Scalars['ID']
 }>
 
@@ -1159,6 +1159,18 @@ export type UpdateClickUpSettingsMutation = { __typename?: 'Mutation' } & Pick<
 	Types.Mutation,
 	'updateClickUpProjectMappings'
 >
+
+export type UpdateIntegrationProjectSettingsMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	integration_type: Types.IntegrationType
+	project_mappings:
+		| Array<Types.IntegrationProjectMappingInput>
+		| Types.IntegrationProjectMappingInput
+}>
+
+export type UpdateIntegrationProjectSettingsMutation = {
+	__typename?: 'Mutation'
+} & Pick<Types.Mutation, 'updateIntegrationProjectMappings'>
 
 export type UpdateEmailOptOutMutationVariables = Types.Exact<{
 	token?: Types.Maybe<Types.Scalars['String']>
@@ -3396,6 +3408,27 @@ export type GetClickUpIntegrationSettingsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetHeightIntegrationSettingsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetHeightIntegrationSettingsQuery = { __typename?: 'Query' } & {
+	is_integrated: Types.Query['is_workspace_integrated_with']
+} & {
+	height_workspaces: Array<
+		{ __typename?: 'HeightWorkspace' } & Pick<
+			Types.HeightWorkspace,
+			'id' | 'model' | 'name' | 'url'
+		>
+	>
+	integration_project_mappings: Array<
+		{ __typename?: 'IntegrationProjectMapping' } & Pick<
+			Types.IntegrationProjectMapping,
+			'project_id' | 'external_id'
+		>
+	>
+}
+
 export type GetClickUpFoldersQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -3416,6 +3449,16 @@ export type GetClickUpFoldersQuery = { __typename?: 'Query' } & {
 	>
 	clickup_folderless_lists: Array<
 		{ __typename?: 'ClickUpList' } & Pick<Types.ClickUpList, 'id' | 'name'>
+	>
+}
+
+export type GetHeightListsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetHeightListsQuery = { __typename?: 'Query' } & {
+	height_lists: Array<
+		{ __typename?: 'HeightList' } & Pick<Types.HeightList, 'id' | 'name'>
 	>
 }
 
@@ -3884,7 +3927,9 @@ export const namedOperations = {
 		GetWorkspaceIsIntegratedWithVercel:
 			'GetWorkspaceIsIntegratedWithVercel' as const,
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
+		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
 		GetClickUpFolders: 'GetClickUpFolders' as const,
+		GetHeightLists: 'GetHeightLists' as const,
 		GenerateNewZapierAccessTokenJwt:
 			'GenerateNewZapierAccessTokenJwt' as const,
 		GetIdentifierSuggestions: 'GetIdentifierSuggestions' as const,
@@ -3969,6 +4014,8 @@ export const namedOperations = {
 		DeleteSessions: 'DeleteSessions' as const,
 		UpdateVercelSettings: 'UpdateVercelSettings' as const,
 		UpdateClickUpSettings: 'UpdateClickUpSettings' as const,
+		UpdateIntegrationProjectSettings:
+			'UpdateIntegrationProjectSettings' as const,
 		UpdateEmailOptOut: 'UpdateEmailOptOut' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},

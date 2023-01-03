@@ -29,6 +29,8 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	"github.com/highlight-run/highlight/backend/clickup"
 	"github.com/highlight-run/highlight/backend/front"
+	"github.com/highlight-run/highlight/backend/integrations"
+	"github.com/highlight-run/highlight/backend/integrations/height"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -116,6 +118,7 @@ type Resolver struct {
 	Redis                  *redis.Client
 	StepFunctions          *stepfunctions.Client
 	OAuthServer            *oauth.Server
+	IntegrationsClient     *integrations.Client
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
@@ -1780,6 +1783,10 @@ func (r *Resolver) AddClickUpToWorkspace(ctx context.Context, workspace *model.W
 	return nil
 }
 
+func (r *Resolver) AddHeightToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeHeight, code)
+}
+
 func (r *Resolver) AddDiscordToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	token, err := discord.OAuth(ctx, code)
 
@@ -1967,6 +1974,36 @@ func (r *Resolver) RemoveClickUpFromWorkspace(workspace *model.Workspace) error 
 		Select("clickup_access_token").
 		Updates(&model.Workspace{ClickupAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing ClickUp access token")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(workspace *model.Workspace, integrationType modelInputs.IntegrationType) error {
+	workspaceMapping := &model.IntegrationWorkspaceMapping{}
+
+	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: integrationType,
+	}).First(&workspaceMapping).Error; err != nil {
+		return e.Wrap(err, fmt.Sprintf("workspace does not have a %s integration", integrationType))
+	}
+
+	if err := r.DB.Raw(`
+		DELETE FROM integration_project_mappings ipm
+		WHERE ipm.integration_type = ?
+		AND EXISTS (
+			SELECT *
+			FROM projects p
+			WHERE p.workspace_id = ?
+			AND ipm.project_id = p.id
+		)
+	`, integrationType, workspace.ID).Error; err != nil {
+		return err
+	}
+
+	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
+		return e.Wrap(err, fmt.Sprintf("error deleting workspace %s integration", integrationType))
 	}
 
 	return nil
@@ -2247,6 +2284,29 @@ func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, at
 
 func (r *Resolver) CreateClickUpTaskAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string, teamId *string) error {
 	task, err := clickup.CreateTask(*workspace.ClickupAccessToken, *teamId, issueTitle, issueDescription)
+	if err != nil {
+		return err
+	}
+
+	attachment.ExternalID = task.ID
+	attachment.Title = task.Name
+	if err := r.DB.Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
+func (r *Resolver) CreateHeightTaskAndAttachment(ctx context.Context, workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string, teamId *string) error {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeHeight)
+
+	if err != nil {
+		return err
+	}
+
+	if accessToken == nil {
+		return errors.New("No Height integration access token found.")
+	}
+	task, err := height.CreateTask(*accessToken, *teamId, issueTitle, issueDescription)
 	if err != nil {
 		return err
 	}

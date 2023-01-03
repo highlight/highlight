@@ -27,6 +27,7 @@ import {
 import ArrowLeftIcon from '@icons/ArrowLeftIcon'
 import ArrowRightIcon from '@icons/ArrowRightIcon'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
+import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import ISSUE_TRACKER_INTEGRATIONS, {
 	IssueTrackerIntegration,
@@ -395,6 +396,10 @@ export const NewCommentForm = ({
 		settings: { isIntegrated: isClickupIntegrated },
 	} = useClickUpIntegration()
 
+	const {
+		settings: { isIntegrated: isHeightIntegrated },
+	} = useHeightIntegration()
+
 	const issueIntegrationsOptions = useMemo(() => {
 		const integrations = []
 		if (isLinearIntegratedWithProject) {
@@ -427,8 +432,28 @@ export const NewCommentForm = ({
 				value: IntegrationType.ClickUp,
 			})
 		}
+		if (isHeightIntegrated) {
+			integrations.push({
+				displayValue: (
+					<span>
+						<img
+							className={styles.integrationIcon}
+							src={integrationMap['height']?.icon}
+						/>
+						Create a Height task
+					</span>
+				),
+				id: 'height',
+				value: IntegrationType.Height,
+			})
+		}
 		return integrations
-	}, [isLinearIntegratedWithProject, isClickupIntegrated, integrationMap])
+	}, [
+		isLinearIntegratedWithProject,
+		isClickupIntegrated,
+		isHeightIntegrated,
+		integrationMap,
+	])
 
 	useEffect(() => {
 		const idx = modalHeader?.toLowerCase().indexOf('issue') || -1
