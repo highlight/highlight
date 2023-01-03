@@ -4320,14 +4320,19 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, projectID int, error
 		  }
 		},
 		"aggs": {
-		  "os_name": {
-			"terms": {
-			  "field": "os_name.keyword"
-			}
-		  },
 		  "browser": {
 			"terms": {
 			  "field": "browser.keyword"
+			}
+		  },
+		  "environment": {
+			"terms": {
+			  "field": "environment.keyword"
+			}
+		  }, 
+		  "os_name": {
+			"terms": {
+			  "field": "os_name.keyword"
 			}
 		  }
 		}
@@ -4348,6 +4353,13 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, projectID int, error
 					DocCount int    `json:"doc_count"`
 				} `json:"buckets"`
 			} `json:"browser"`
+			Environment struct {
+				Buckets []struct {
+					Key      string `json:"key"`
+					DocCount int    `json:"doc_count"`
+				} `json:"buckets"`
+			} `json:"environment"`
+
 			OsName struct {
 				Buckets []struct {
 					Key      string `json:"key"`
@@ -4373,6 +4385,18 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, projectID int, error
 	aggregations = append(aggregations, &modelInputs.ErrorGroupTagAggregation{
 		Key:     "browser",
 		Buckets: browserBuckets,
+	})
+
+	environmentBuckets := []*modelInputs.ErrorGroupTagAggregationBucket{}
+	for _, bucket := range aggregate.Aggregations.Environment.Buckets {
+		environmentBuckets = append(environmentBuckets, &modelInputs.ErrorGroupTagAggregationBucket{
+			Key:      bucket.Key,
+			DocCount: int64(bucket.DocCount),
+		})
+	}
+	aggregations = append(aggregations, &modelInputs.ErrorGroupTagAggregation{
+		Key:     "environment",
+		Buckets: environmentBuckets,
 	})
 
 	osNameBuckets := []*modelInputs.ErrorGroupTagAggregationBucket{}
