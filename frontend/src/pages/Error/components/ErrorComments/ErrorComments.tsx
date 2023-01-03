@@ -124,7 +124,7 @@ const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
 
 	const createIssueMenuItems = (
 		<>
-			{issueTrackers?.map((item) => {
+			{issueTrackers.map((item) => {
 				const [isIntegrated, integration] = item
 				return isIntegrated ? (
 					<MenuItem

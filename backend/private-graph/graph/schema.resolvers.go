@@ -1296,7 +1296,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			SessionCommentID: sessionComment.ID,
 		}
 		desc := *issueDescription
-		desc += "\n"
+		desc += "\n\nSee the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
@@ -1306,7 +1306,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
 			}
 
@@ -1364,7 +1364,7 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 		}
 
 		desc := *issueDescription
-		desc += "\n"
+		desc += "\n\nSee the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
@@ -1374,7 +1374,7 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
 			}
 
@@ -1582,11 +1582,14 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 		ErrorSecureId: errorGroup.SecureID,
 		Text:          text,
 	}
+
 	createErrorCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 		tracer.ResourceName("db.createErrorComment"), tracer.Tag("project_id", projectID))
+
 	if err := r.DB.Create(errorComment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating error comment")
 	}
+
 	createErrorCommentSpan.Finish()
 
 	viewLink := fmt.Sprintf("%v?commentId=%v", errorURL, errorComment.ID)
@@ -1637,17 +1640,32 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 		}
 
 		desc := *issueDescription
-		desc += "\n"
+		desc += "\n\nSee the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
-			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateLinearIssueAndAttachment(
+				workspace,
+				attachment,
+				*issueTitle,
+				*issueDescription,
+				textForEmail,
+				authorName,
+				viewLink,
+				issueTeamID,
+			); err != nil {
 				return nil, e.Wrap(err, "error creating linear ticket or workspace")
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateClickUpTaskAndAttachment(
+				workspace,
+				attachment,
+				*issueTitle,
+				desc,
+				issueTeamID,
+			); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
 			}
 
@@ -1725,23 +1743,43 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 
 	viewLink := fmt.Sprintf("%v", errorURL)
 
+	if issueDescription == nil {
+		return nil, e.New("issue description cannot be nil")
+	}
+
+	desc := *issueDescription
+	desc += "\n\nSee the error page on Highlight:\n"
+	desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
+
 	for _, s := range integrations {
 		attachment := &model.ExternalAttachment{
 			IntegrationType: *s,
 			ErrorCommentID:  errorComment.ID,
 		}
-		desc := *issueDescription
-		desc += "\n"
-		desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
-			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, errorComment.Text, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateLinearIssueAndAttachment(
+				workspace,
+				attachment,
+				*issueTitle,
+				desc,
+				errorComment.Text,
+				authorName,
+				viewLink,
+				issueTeamID,
+			); err != nil {
 				return nil, e.Wrap(err, "error creating linear ticket or workspace")
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, errorComment.Text, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateClickUpTaskAndAttachment(
+				workspace,
+				attachment,
+				*issueTitle,
+				desc,
+				issueTeamID,
+			); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
 			}
 

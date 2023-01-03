@@ -21,8 +21,9 @@ export const ${
 
 const VALID_COLORS = ['currentColor', 'none']
 const COLOR_ATTRS = ['stroke', 'fill']
+const KEEPS_ORIGINAL_COLORS = ['Linear', 'ClickUp', 'Height', 'Slack']
 
-const updateAttrs = ($el) => {
+const updateColors = ($el) => {
 	COLOR_ATTRS.forEach((attr) => {
 		const color = $el.attr(attr)
 
@@ -71,6 +72,18 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 		svgFilePaths.map(async (svgFilePath) => {
 			const svgName = path.basename(svgFilePath, '.svg')
 			const iconVariant = svgFilePath.split('/')[2]
+			const iconName = `Icon${pascalCase(iconVariant)}${pascalCase(
+				svgName,
+			)}`
+
+			const outPath = path.join(iconComponentsDir, `${iconName}.tsx`)
+			if (
+				KEEPS_ORIGINAL_COLORS.includes(svgName) &&
+				(await fs.pathExists(outPath))
+			) {
+				return
+			}
+
 			const svg = await fs.readFile(svgFilePath, 'utf-8')
 
 			// Run through SVGO to optimize
@@ -98,26 +111,21 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 			// Replace stroke and fill attributes with 'currentColor'
 			const $ = cheerio.load(optimisedSvg)
 			const $svg = $('svg')
-			updateAttrs($svg)
-			$svg.find('*').each((i, el) => {
-				updateAttrs($(el))
-			})
+			if (!KEEPS_ORIGINAL_COLORS.includes(svgName)) {
+				updateColors($svg)
+				$svg.find('*').each((i, el) => {
+					updateColors($(el))
+				})
+			}
 
 			optimisedSvg = $.html($svg) || ''
 
-			const iconName = `Icon${pascalCase(iconVariant)}${pascalCase(
-				svgName,
-			)}`
 			const svgComponent = await transform(optimisedSvg, svgrConfig, {
 				componentName: iconName,
 			})
 
 			// Write SVG React component
-			await fs.writeFile(
-				path.join(iconComponentsDir, `${iconName}.tsx`),
-				svgComponent,
-				{ encoding: 'utf-8' },
-			)
+			await fs.writeFile(outPath, svgComponent, { encoding: 'utf-8' })
 		}),
 	)
 

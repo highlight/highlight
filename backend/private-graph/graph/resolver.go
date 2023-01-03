@@ -2246,10 +2246,23 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 		return nil, e.Wrap(err, "error unmarshaling linear oauth token response")
 	}
 
+	if !createAttachmentRes.Data.AttachmentCreate.Success {
+		return nil, e.New("failed to create linear attachment")
+	}
+
 	return createAttachmentRes, nil
 }
 
-func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string, teamId *string) error {
+func (r *Resolver) CreateLinearIssueAndAttachment(
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueDescription string,
+	commentText string,
+	authorName string,
+	viewLink string,
+	teamId *string,
+) error {
 	if teamId == nil {
 		teamRes, err := r.GetLinearTeams(*workspace.LinearAccessToken)
 		if err != nil {
@@ -2282,7 +2295,18 @@ func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, at
 	return nil
 }
 
-func (r *Resolver) CreateClickUpTaskAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string, teamId *string) error {
+func (r *Resolver) CreateClickUpTaskAndAttachment(
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueDescription string,
+	teamId *string,
+) error {
+	// raise an error if the team id is not set
+	if teamId == nil {
+		return e.New("illegal argument: listId is nil")
+	}
+
 	task, err := clickup.CreateTask(*workspace.ClickupAccessToken, *teamId, issueTitle, issueDescription)
 	if err != nil {
 		return err

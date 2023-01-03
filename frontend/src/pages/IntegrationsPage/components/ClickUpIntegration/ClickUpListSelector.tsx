@@ -1,10 +1,12 @@
 import Select from '@components/Select/Select'
 import { useGetClickUpFoldersQuery } from '@graph/hooks'
+import { Form } from '@highlight-run/ui'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
-import { Form } from 'antd'
 import { useEffect, useMemo } from 'react'
+
+import * as style from '../style.css'
 
 const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
@@ -48,7 +50,7 @@ const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 	}, [selectedClickUpListId, clickUpListOptions, setClickUpListId])
 
 	return (
-		<Form.Item label="ClickUp List">
+		<Form.NamedSection label="ClickUpList">
 			<Select
 				aria-label="ClickUp List"
 				placeholder="Choose a list to create the task in"
@@ -57,8 +59,9 @@ const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 				value={'' + selectedClickUpListId}
 				notFoundContent={<p>No lists found</p>}
 				loading={loading}
+				className={style.selectContainer}
 			/>
-		</Form.Item>
+		</Form.NamedSection>
 	)
 }
 
