@@ -1,4 +1,5 @@
 import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
+import { colors } from '../../css/colors'
 import { vars } from '../../css/vars'
 
 export const inputVariants = recipe({
@@ -9,9 +10,11 @@ export const inputVariants = recipe({
 		fontSize: 13,
 		color: vars.theme.static.content.default,
 		caretColor: vars.theme.interactive.fill.primary.enabled,
+		outline: 0,
+		width: '100%',
 		selectors: {
-			'&:focus, &:active, &::selection': {
-				outline: 0,
+			'&:focus, &:active': {
+				border: vars.border.secondaryPressed,
 			},
 			'&:placeholder-shown:hover': {
 				background: vars.theme.interactive.overlay.secondary.hover,
@@ -19,6 +22,9 @@ export const inputVariants = recipe({
 			},
 			'&::placeholder': {
 				color: vars.theme.interactive.fill.secondary.content.onDisabled,
+			},
+			'&:disabled': {
+				background: colors.n5,
 			},
 		},
 	},
@@ -45,9 +51,7 @@ export const inputVariants = recipe({
 				padding: 0,
 				border: 'none',
 			},
-			false: {
-				width: '100%',
-			},
+			false: {},
 		},
 		outline: {
 			true: {
