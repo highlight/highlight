@@ -9,6 +9,8 @@ import {
 	useMenuState,
 	MenuProps,
 	MenuButtonProps,
+	MenuHeading as AriakitMenuHeading,
+	MenuHeadingProps,
 } from 'ariakit'
 import clsx, { ClassValue } from 'clsx'
 import React from 'react'
@@ -30,6 +32,7 @@ type MenuComponent = React.FC<Props> & {
 	List: typeof List
 	Item: typeof Item
 	Divider: typeof Divider
+	Heading: typeof Heading
 }
 
 export const Menu: MenuComponent = ({ children, ...props }: Props) => {
@@ -89,7 +92,12 @@ const Divider: React.FC<MenuSeparatorProps> = ({ children, ...props }) => (
 	</MenuSeparator>
 )
 
+const Heading: React.FC<MenuHeadingProps> = ({ children, ...props }) => (
+	<AriakitMenuHeading {...props}>{children}</AriakitMenuHeading>
+)
+
 Menu.Button = Button
 Menu.List = List
 Menu.Item = Item
 Menu.Divider = Divider
+Menu.Heading = Heading

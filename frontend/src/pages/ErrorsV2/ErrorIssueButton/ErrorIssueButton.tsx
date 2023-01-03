@@ -61,7 +61,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 	}, [errorGroup])
 
 	const menuOptions = useMemo(() => {
-		return integrations
+		const options = integrations
 			.map(([isIntegrated, integration]) => {
 				if (!isIntegrated) return null
 				return (
@@ -97,6 +97,12 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 				)
 			})
 			.filter(Boolean)
+		return (
+			<>
+				{options}
+				{options.length > 0 && <Menu.Divider />}
+			</>
+		)
 	}, [integrations])
 
 	return (
@@ -110,22 +116,21 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 			>
 				Create Issue
 			</Menu.Button>
-			<Menu.List cssClass={style.noPadding}>
-				<Box
-					p="8"
-					bb="secondary"
-					mb={integrationCount > 0 ? '4' : undefined}
-				>
-					<Text size="xxSmall" weight="medium" color="n11">
-						Attach an issue
-					</Text>
-				</Box>
+			<Menu.List cssClass={style.menuList}>
+				<Menu.Heading>
+					<Box
+						p="8"
+						bb="secondary"
+						mb={integrationCount > 0 ? '4' : undefined}
+						userSelect="none"
+					>
+						<Text size="xxSmall" weight="medium" color="n11">
+							Attach an issue
+						</Text>
+					</Box>
+				</Menu.Heading>
 				{menuOptions}
-				<Box
-					p="8"
-					bt={integrationCount > 0 ? 'secondary' : undefined}
-					mt={integrationCount > 0 ? '4' : undefined}
-				>
+				<Menu.Item>
 					<Link to={`/${projectId}/integrations`}>
 						<Box
 							gap="4"
@@ -139,7 +144,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 							</Text>
 						</Box>
 					</Link>
-				</Box>
+				</Menu.Item>
 			</Menu.List>
 			<NewIssueModal
 				selectedIntegration={showNewIssueModal ?? LINEAR_INTEGRATION}

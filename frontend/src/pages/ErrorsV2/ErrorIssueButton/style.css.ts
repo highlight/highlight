@@ -1,8 +1,9 @@
 import { vars } from '@highlight-run/ui'
 import { style } from '@vanilla-extract/css'
 
-export const noPadding = style({
+export const menuList = style({
 	padding: 0,
+	paddingBottom: 4,
 })
 
 export const menuOption = style({
