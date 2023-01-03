@@ -145,9 +145,8 @@ const QuickSearch = () => {
 	const {
 		setSearchParams,
 		setExistingParams,
-		setSegmentName,
 		setShowStarredSessions,
-		setSelectedSegment,
+		removeSelectedSegment,
 		setQueryBuilderInput,
 	} = useSearchContext()
 	const selectRef = useRef<any>(null)
@@ -315,9 +314,8 @@ const QuickSearch = () => {
 			history.push(`/${project_id}/sessions`)
 			setExistingParams(searchParams)
 			setSearchParams(searchParams)
-			setSegmentName(null)
 			setShowStarredSessions(false)
-			setSelectedSegment(undefined)
+			removeSelectedSegment()
 		}
 		setLastLoadedQuery('')
 	}

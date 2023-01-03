@@ -25,8 +25,7 @@ type Field = {
 
 const MetadataPanel = () => {
 	const { session, browserExtensionScriptURLs } = useReplayerContext()
-	const { setSearchParams, setSegmentName, setSelectedSegment } =
-		useSearchContext()
+	const { setSearchParams, removeSelectedSegment } = useSearchContext()
 	const { isHighlightAdmin } = useAuthContext()
 
 	const [parsedFields, setParsedFields] = useState<Field[]>([])
@@ -227,8 +226,7 @@ const MetadataPanel = () => {
 						message.success(
 							`Showing sessions created by device #${session.fingerprint}`,
 						)
-						setSegmentName(null)
-						setSelectedSegment(undefined)
+						removeSelectedSegment()
 						setSearchParams({
 							...EmptySessionsSearchParams,
 							device_id: session.fingerprint?.toString(),

@@ -1,14 +1,14 @@
 import BarChart from '@components/BarChart/BarChart'
+import { Button } from '@components/Button'
 import { GetErrorInstanceDocument } from '@graph/hooks'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import {
 	Box,
-	Button,
 	ButtonLink,
-	IconChevronRight,
-	IconCode,
-	IconTrendingDown,
-	IconTrendingUp,
+	IconSolidTrendingDown,
+	IconSolidTrendingUp,
+	IconSolidCheveronRight,
+	IconSolidCode,
 	Tag,
 	Text,
 	Tooltip,
@@ -82,19 +82,19 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	}, [body])
 
 	return (
-		<Box border="neutral" borderRadius="6">
+		<Box border="secondary" borderRadius="6">
 			<Box display="flex">
 				<Stat
 					title={
 						<>
 							<Box
-								color="neutral300"
+								color="n9"
 								display="flex"
 								alignItems="center"
 								gap="4"
 							>
 								<FaUsers />
-								<Text color="neutral500">Affected Users</Text>
+								<Text color="n11">Affected Users</Text>
 							</Box>
 							<ButtonLink
 								style={{ cursor: 'pointer' }}
@@ -106,7 +106,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 									as="span"
 								>
 									<span>Latest</span>{' '}
-									<IconChevronRight size={16} />
+									<IconSolidCheveronRight size={16} />
 								</Box>
 							</ButtonLink>
 						</>
@@ -120,13 +120,17 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							<Tooltip
 								trigger={
 									<Tag
-										kind="grey"
+										kind="secondary"
 										shape="basic"
 										iconLeft={
 											usersChange > 0 ? (
-												<IconTrendingUp size={12} />
+												<IconSolidTrendingUp
+													size={12}
+												/>
 											) : (
-												<IconTrendingDown size={12} />
+												<IconSolidTrendingDown
+													size={12}
+												/>
 											)
 										}
 									>
@@ -138,18 +142,18 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								}
 							>
 								<Box display="flex" alignItems="center" gap="4">
-									<Text color="neutralN9" size="xSmall">
+									<Text color="n9" size="xSmall">
 										since
 									</Text>
 									<Box
 										borderRadius="3"
 										p="4"
 										style={{
-											boxShadow: `0 0 0 1px ${vars.color.neutral200}`,
+											boxShadow: `0 0 0 1px ${vars.color.n5}`,
 											margin: -1,
 										}}
 									>
-										<Text size="xSmall" color="neutral500">
+										<Text size="xSmall" color="n11">
 											{numberOfDays}{' '}
 											{numberOfDays === 1
 												? 'day'
@@ -165,13 +169,13 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					title={
 						<>
 							<Box
-								color="neutral300"
+								color="n9"
 								display="flex"
 								alignItems="center"
 								gap="4"
 							>
 								<BsGridFill />
-								<Text color="neutral500">Instances</Text>
+								<Text color="n11">Instances</Text>
 							</Box>
 							<ButtonLink
 								style={{ cursor: 'pointer' }}
@@ -183,7 +187,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 									as="span"
 								>
 									<span>Latest</span>{' '}
-									<IconChevronRight size={16} />
+									<IconSolidCheveronRight size={16} />
 								</Box>
 							</ButtonLink>
 						</>
@@ -197,13 +201,17 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							<Tooltip
 								trigger={
 									<Tag
-										kind="grey"
+										kind="secondary"
 										shape="basic"
 										iconLeft={
 											countChange > 0 ? (
-												<IconTrendingUp size={12} />
+												<IconSolidTrendingUp
+													size={12}
+												/>
 											) : (
-												<IconTrendingDown size={12} />
+												<IconSolidTrendingDown
+													size={12}
+												/>
 											)
 										}
 									>
@@ -215,18 +223,18 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								}
 							>
 								<Box display="flex" alignItems="center" gap="4">
-									<Text color="neutralN9" size="xSmall">
+									<Text color="n9" size="xSmall">
 										since
 									</Text>
 									<Box
 										borderRadius="3"
 										p="4"
 										style={{
-											boxShadow: `0 0 0 1px ${vars.color.neutral200}`,
+											boxShadow: `0 0 0 1px ${vars.color.n5}`,
 											margin: -1,
 										}}
 									>
-										<Text size="xSmall" color="neutral500">
+										<Text size="xSmall" color="n11">
 											{numberOfDays}{' '}
 											{numberOfDays === 1
 												? 'day'
@@ -238,11 +246,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						) : null}
 					</Box>
 				</Stat>
-				<Stat
-					title={
-						<Text color="neutral500">Last/first occurrence</Text>
-					}
-				>
+				<Stat title={<Text color="n11">Last/first occurrence</Text>}>
 					<Box display="flex" gap="4" alignItems="center">
 						{errorGroup?.last_occurrence && (
 							<Text color="black" size="large" weight="bold">
@@ -252,7 +256,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							</Text>
 						)}
 						{errorGroup?.first_occurrence && (
-							<Text color="neutral500" size="large" weight="bold">
+							<Text color="n11" size="large" weight="bold">
 								{' / '}
 								{moment(errorGroup?.first_occurrence).fromNow(
 									true,
@@ -265,12 +269,12 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				<Stat
 					title={
 						<Box
-							color="neutral300"
+							color="n9"
 							display="flex"
 							alignItems="center"
 							gap="4"
 						>
-							<Text color="neutral500">Last 30 days</Text>
+							<Text color="n11">Last 30 days</Text>
 						</Box>
 					}
 					noBorder
@@ -289,8 +293,8 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 			</Box>
 			<Box py="12" px="16">
 				<Box mb="20" display="flex" gap="6" alignItems="center">
-					<IconCode size={14} color={vars.color.neutral500} />
-					<Text color="neutral500">Error Body</Text>
+					<IconSolidCode size={14} color={vars.color.n11} />
+					<Text color="n11">Error Body</Text>
 				</Box>
 
 				<Text
@@ -309,6 +313,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							kind="secondary"
 							emphasis="medium"
 							size="xSmall"
+							trackingId="errorBodyToggleContent"
 						>
 							Show {truncated ? 'more' : 'less'}
 						</Button>
@@ -323,8 +328,8 @@ const Stat: React.FC<
 	React.PropsWithChildren<{ title: React.ReactElement; noBorder?: boolean }>
 > = ({ title, children, noBorder = false }) => (
 	<Box
-		borderBottom="neutral"
-		borderRight={noBorder ? undefined : 'neutral'}
+		borderBottom="secondary"
+		borderRight={noBorder ? undefined : 'secondary'}
 		px="16"
 		py="12"
 		flex="stretch"

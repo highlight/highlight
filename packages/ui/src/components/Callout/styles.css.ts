@@ -1,18 +1,18 @@
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
-import { sprinkles } from '../../css/sprinkles.css'
+import { vars } from '../../css/vars'
 
 export const variants = recipe({
 	variants: {
 		kind: {
-			error: sprinkles({
-				backgroundColor: 'neutral50',
-			}),
-			info: sprinkles({
-				backgroundColor: 'white',
-			}),
-			warning: sprinkles({
-				backgroundColor: 'neutral50',
-			}),
+			info: {
+				background: 'transparent',
+			},
+			error: {
+				backgroundColor: vars.theme.static.surface.raised,
+			},
+			warning: {
+				backgroundColor: vars.theme.static.surface.raised,
+			},
 		},
 	},
 

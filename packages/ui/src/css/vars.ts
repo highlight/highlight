@@ -2,12 +2,17 @@ import { borderRadii, borders, borderWidths } from './borders'
 import { breakpoints } from './breakpoints'
 import { colors } from './colors'
 import { spaces } from './spaces'
+import { themeVars } from './theme.css'
 
 export const vars = {
 	breakpoint: breakpoints,
 	color: colors,
 	space: spaces,
-	margin: { auto: 'auto', ...spaces },
+	theme: themeVars,
+	margin: {
+		auto: 'auto',
+		...spaces,
+	},
 	border: borders,
 	borderRadius: borderRadii,
 	borderWidth: borderWidths,

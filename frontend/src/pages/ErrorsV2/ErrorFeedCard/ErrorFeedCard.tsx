@@ -2,9 +2,9 @@ import BarChart from '@components/BarChart/BarChart'
 import { ErrorGroup, ErrorState, Maybe } from '@graph/schemas'
 import {
 	Box,
-	IconSparkles,
-	IconUsers,
-	IconViewGrid,
+	IconSolidSparkles,
+	IconSolidViewGrid,
+	IconSolidUsers,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
@@ -53,7 +53,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 				]}
 			>
 				<Box
-					color="dark"
+					color="n12"
 					display="flex"
 					alignItems="center"
 					cssClass={style.errorCardTitle}
@@ -61,7 +61,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 					<Text
 						lines="1"
 						size="small"
-						color="dark"
+						color="n12"
 						display="flex"
 						cssClass={style.errorCardTitleText}
 					>
@@ -81,10 +81,12 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 								kind={
 									errorGroup?.state === ErrorState.Resolved
 										? 'primary'
-										: errorGroup?.state ===
-										  ErrorState.Ignored
-										? 'grey'
-										: 'white'
+										: 'secondary'
+								}
+								emphasis={
+									errorGroup?.state === ErrorState.Open
+										? 'medium'
+										: 'high'
 								}
 							>
 								<Text transform="capitalize">
@@ -93,27 +95,29 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 							</Tag>
 							<Tag
 								shape="basic"
-								kind="transparent"
-								iconLeft={<IconUsers size={12} />}
+								kind="secondary"
+								emphasis="low"
+								iconLeft={<IconSolidUsers size={12} />}
 							>
 								<Text>{userCount}</Text>
 							</Tag>
 							<Tag
 								shape="basic"
-								kind="transparent"
-								iconLeft={<IconViewGrid size={12} />}
+								kind="secondary"
+								emphasis="low"
+								iconLeft={<IconSolidViewGrid size={12} />}
 							>
 								<Text>{totalCount}</Text>
 							</Tag>
 						</Box>
 						<Box display="flex" gap="4" alignItems="center">
-							<Tag shape="basic" kind="grey">
+							<Tag shape="basic" kind="secondary">
 								{updatedDate}
 							</Tag>
 							<Tag
 								shape="basic"
-								kind="grey"
-								iconLeft={<IconSparkles size={12} />}
+								kind="secondary"
+								iconLeft={<IconSolidSparkles size={12} />}
 							>
 								{createdDate}
 							</Tag>

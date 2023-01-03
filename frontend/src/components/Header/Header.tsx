@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { Button } from '@components/Button'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -10,23 +11,22 @@ import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
 import { Maybe, PlanType, Project } from '@graph/schemas'
 import {
 	Box,
-	Button,
-	IconArrowSmLeft,
-	IconAtSymbol,
-	IconCog,
-	IconDesktopComputer,
-	IconDocumentText,
-	IconDotsHorizontal,
-	IconHome,
-	IconOfficeBuilding,
-	IconPlayCircle,
-	IconQuestionMarkCircle,
-	IconSpeakerphone,
-	IconStackedBarChart,
-	IconSwitchHorizontal,
-	IconUserCircle,
-	IconViewGridAdd,
-	IconXCircle,
+	IconSolidArrowSmLeft,
+	IconSolidAtSymbol,
+	IconSolidChartBar,
+	IconSolidCog,
+	IconSolidDesktopComputer,
+	IconSolidDocumentText,
+	IconSolidDotsHorizontal,
+	IconSolidHome,
+	IconSolidOfficeBuilding,
+	IconSolidPlayCircle,
+	IconSolidQuestionMarkCircle,
+	IconSolidSpeakerphone,
+	IconSolidSwitchHorizontal,
+	IconSolidUserCircle,
+	IconSolidViewGridAdd,
+	IconSolidXCircle,
 	LinkButton,
 	Menu,
 } from '@highlight-run/ui'
@@ -79,19 +79,19 @@ export const Header = () => {
 	const pages = [
 		{
 			key: 'home',
-			icon: IconHome,
+			icon: IconSolidHome,
 		},
 		{
 			key: 'errors',
-			icon: IconXCircle,
+			icon: IconSolidXCircle,
 		},
 		{
 			key: 'sessions',
-			icon: IconPlayCircle,
+			icon: IconSolidPlayCircle,
 		},
 		{
 			key: 'alerts',
-			icon: IconSpeakerphone,
+			icon: IconSolidSpeakerphone,
 		},
 	]
 
@@ -101,7 +101,7 @@ export const Header = () => {
 	return (
 		<>
 			<CommandBar />
-			<Box background="neutral50" borderBottom="neutral">
+			<Box background="n2" borderBottom="secondary">
 				{!!project_id && getBanner(project_id)}
 				<Box
 					display="flex"
@@ -133,8 +133,12 @@ export const Header = () => {
 															currentPage ===
 															p.key
 																? undefined
-																: vars.color
-																		.neutral700
+																: vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
 														}
 													/>
 												}
@@ -158,11 +162,9 @@ export const Header = () => {
 									<Menu>
 										<Menu.Button
 											icon={
-												<IconDotsHorizontal
+												<IconSolidDotsHorizontal
 													size={14}
-													color={
-														vars.color.neutral500
-													}
+													color={vars.color.n11}
 												/>
 											}
 											emphasis="low"
@@ -179,11 +181,15 @@ export const Header = () => {
 														alignItems="center"
 														gap="4"
 													>
-														<IconStackedBarChart
+														<IconSolidChartBar
 															size={14}
 															color={
-																vars.color
-																	.neutral300
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
 															}
 														/>
 														Dashboards
@@ -200,11 +206,15 @@ export const Header = () => {
 														alignItems="center"
 														gap="4"
 													>
-														<IconViewGridAdd
+														<IconSolidViewGridAdd
 															size={14}
 															color={
-																vars.color
-																	.neutral300
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
 															}
 														/>
 														Integrations
@@ -221,11 +231,15 @@ export const Header = () => {
 														alignItems="center"
 														gap="4"
 													>
-														<IconDesktopComputer
+														<IconSolidDesktopComputer
 															size={14}
 															color={
-																vars.color
-																	.neutral300
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
 															}
 														/>
 														Setup
@@ -248,7 +262,10 @@ export const Header = () => {
 									kind="secondary"
 									emphasis="high"
 									size="small"
-									iconLeft={<IconArrowSmLeft size={14} />}
+									iconLeft={
+										<IconSolidArrowSmLeft size={14} />
+									}
+									trackingId="navHomeLink"
 								>
 									Back to Highlight
 								</Button>
@@ -285,9 +302,9 @@ export const Header = () => {
 										emphasis="low"
 										kind="secondary"
 										icon={
-											<IconCog
+											<IconSolidCog
 												size={14}
-												color={vars.color.neutral500}
+												color={vars.color.n11}
 											/>
 										}
 									/>
@@ -302,11 +319,13 @@ export const Header = () => {
 													alignItems="center"
 													gap="4"
 												>
-													<IconOfficeBuilding
+													<IconSolidOfficeBuilding
 														size={14}
 														color={
-															vars.color
-																.neutral300
+															vars.theme
+																.interactive
+																.fill.secondary
+																.content.text
 														}
 													/>
 													Workspace settings
@@ -323,11 +342,13 @@ export const Header = () => {
 													alignItems="center"
 													gap="4"
 												>
-													<IconUserCircle
+													<IconSolidUserCircle
 														size={14}
 														color={
-															vars.color
-																.neutral300
+															vars.theme
+																.interactive
+																.fill.secondary
+																.content.text
 														}
 													/>
 													Account settings
@@ -345,11 +366,13 @@ export const Header = () => {
 													alignItems="center"
 													gap="4"
 												>
-													<IconSwitchHorizontal
+													<IconSolidSwitchHorizontal
 														size={14}
 														color={
-															vars.color
-																.neutral300
+															vars.theme
+																.interactive
+																.fill.secondary
+																.content.text
 														}
 													/>
 													Switch workspace
@@ -366,10 +389,12 @@ export const Header = () => {
 												alignItems="center"
 												gap="4"
 											>
-												<IconQuestionMarkCircle
+												<IconSolidQuestionMarkCircle
 													size={14}
 													color={
-														vars.color.neutral300
+														vars.theme.interactive
+															.fill.secondary
+															.content.text
 													}
 												/>
 												Feedback
@@ -385,11 +410,13 @@ export const Header = () => {
 													alignItems="center"
 													gap="4"
 												>
-													<IconDocumentText
+													<IconSolidDocumentText
 														size={14}
 														color={
-															vars.color
-																.neutral300
+															vars.theme
+																.interactive
+																.fill.secondary
+																.content.text
 														}
 													/>
 													Documentation
@@ -408,10 +435,12 @@ export const Header = () => {
 												alignItems="center"
 												gap="4"
 											>
-												<IconAtSymbol
+												<IconSolidAtSymbol
 													size={14}
 													color={
-														vars.color.neutral300
+														vars.theme.interactive
+															.fill.secondary
+															.content.text
 													}
 												/>
 												Shortcuts

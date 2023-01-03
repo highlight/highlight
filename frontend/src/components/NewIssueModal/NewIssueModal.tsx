@@ -1,42 +1,47 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import Button from '@components/Button/Button/Button'
-import Input from '@components/Input/Input'
+import { Button } from '@components/Button'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
-import Select from '@components/Select/Select'
-import TextArea from '@components/TextArea/TextArea'
 import {
 	useCreateIssueForErrorCommentMutation,
 	useCreateIssueForSessionCommentMutation,
 } from '@graph/hooks'
 import { IntegrationType } from '@graph/schemas'
-import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
-	Integration,
+	Box,
+	ButtonIcon,
+	Form,
+	IconSolidClickUp,
+	IconSolidLinear,
+	IconSolidX,
+	Text,
+	useFormState,
+} from '@highlight-run/ui'
+import { vars } from '@highlight-run/ui/src/css/vars'
+import {
+	CLICKUP_INTEGRATION,
 	LINEAR_INTEGRATION,
 } from '@pages/IntegrationsPage/Integrations'
-import useLocalStorage from '@rehooks/local-storage'
+import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
-import { Form, message } from 'antd'
+import { message } from 'antd'
 import { H } from 'highlight.run'
-import React, { useEffect, useMemo, useState } from 'react'
-
-import styles from './NewIssueModal.module.scss'
+import React, { useMemo, useState } from 'react'
 
 interface NewIssueModalProps {
 	visible: boolean
-	changeVisible: (newVal: boolean) => void
-	commentId: number
-	commentText: string
+	onClose: () => void
+	commentId?: number
+	commentText?: string
 	defaultIssueTitle?: string
 	timestamp?: number
-	selectedIntegration: Integration
+	selectedIntegration: IssueTrackerIntegration
 	commentType: 'ErrorComment' | 'SessionComment'
 }
 const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	visible,
-	changeVisible,
+	onClose,
 	commentId,
 	selectedIntegration,
 	commentText,
@@ -44,37 +49,14 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	defaultIssueTitle,
 	timestamp,
 }) => {
-	const [form] = Form.useForm<{
-		issueTitle: string
-		issueDescription: string
-	}>()
+	const form = useFormState({
+		defaultValues: {
+			issueTitle: defaultIssueTitle,
+			issueDescription: commentText,
+		},
+	})
 
-	const { teams } = useLinearIntegration()
-
-	const [selectedlinearTeamId, setLinearTeamId] = useLocalStorage(
-		'highlight-linear-default-team',
-		'',
-	)
-
-	const linearTeamsOptions = useMemo(() => {
-		return (
-			teams?.map((team) => ({
-				value: team.team_id,
-				id: team.team_id,
-				displayValue: (
-					<>
-						{team.name} ({team.key})
-					</>
-				),
-			})) || []
-		)
-	}, [teams])
-
-	useEffect(() => {
-		if (selectedlinearTeamId === '' && linearTeamsOptions.length > 0) {
-			setLinearTeamId(linearTeamsOptions[0].value)
-		}
-	}, [selectedlinearTeamId, linearTeamsOptions, setLinearTeamId])
+	const [containerId, setContainerId] = useState('')
 
 	const { project_id } = useParams<{
 		project_id: string
@@ -93,15 +75,6 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 		window.location.port === '' ? GetBaseURL() : window.location.origin
 	}${window.location.pathname}`
 
-	useEffect(() => {
-		form.setFields([
-			{
-				name: 'issueDescription',
-				value: commentText,
-			},
-		])
-	}, [form, commentText])
-
 	const onFinish = async () => {
 		setLoading(true)
 		try {
@@ -110,15 +83,15 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 					variables: {
 						project_id: project_id,
 						session_url: currentUrl,
-						session_comment_id: commentId,
-						text_for_attachment: commentText || 'Open in Highight',
-						issue_title: form.getFieldValue('issueTitle'),
-						issue_team_id: selectedlinearTeamId || undefined,
+						session_comment_id: commentId ?? 0,
+						text_for_attachment: commentText ?? 'Open in Highight',
+						issue_title: form.getValue(form.names.issueTitle),
+						issue_team_id: containerId || '',
 						issue_description:
-							form.getFieldValue('issueDescription'),
-						integrations: selectedIntegration
-							? ([selectedIntegration.name] as IntegrationType[])
-							: [],
+							form.getValue(form.names.issueDescription) ?? '',
+						integrations: [
+							selectedIntegration.name,
+						] as IntegrationType[],
 						author_name: admin?.name || admin?.email || 'Someone',
 						time: timestamp || 0,
 					},
@@ -128,23 +101,23 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 					variables: {
 						project_id: project_id,
 						error_url: currentUrl,
-						error_comment_id: commentId,
-						text_for_attachment: commentText || 'Open in Highight',
-						issue_title: form.getFieldValue('issueTitle'),
-						issue_team_id: selectedlinearTeamId || undefined,
+						error_comment_id: commentId ?? 0,
+						text_for_attachment: commentText ?? 'Open in Highight',
+						issue_title: form.getValue(form.names.issueTitle),
+						issue_team_id: containerId || '',
 						issue_description:
-							form.getFieldValue('issueDescription'),
-						integrations: selectedIntegration
-							? ([selectedIntegration.name] as IntegrationType[])
-							: [],
+							form.getValue(form.names.issueDescription) ?? '',
+						integrations: [
+							selectedIntegration.name,
+						] as IntegrationType[],
 						author_name: admin?.name || admin?.email || 'Someone',
 					},
 				})
 			} else {
 				throw new Error('Invalid Comment Type: ' + commentType)
 			}
-			changeVisible(false)
-			form.resetFields()
+			onClose()
+			form.reset()
 			message.success('New Issue Created!')
 		} catch (e: any) {
 			H.consumeError(e)
@@ -155,90 +128,118 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 		}
 	}
 
-	const onFormChangeHandler: React.KeyboardEventHandler<HTMLFormElement> = (
-		e,
-	) => {
-		if (e.key === 'Enter' && e.metaKey) {
-			onFinish()
+	const integrationLogo = useMemo(() => {
+		switch (selectedIntegration.key) {
+			case LINEAR_INTEGRATION.key:
+				return <IconSolidLinear size={14} />
+			case CLICKUP_INTEGRATION.key:
+				return <IconSolidClickUp size={14} />
+			default:
+				return <></>
 		}
-	}
+	}, [selectedIntegration.key])
 
+	form.useSubmit(onFinish)
 	return (
 		<Modal
 			title={
-				<>
-					<img
-						src={selectedIntegration.icon}
-						className={styles.integrationIcon}
-					/>
-					Create a new {selectedIntegration.name} issue
-				</>
+				<Box
+					display="flex"
+					alignItems="center"
+					gap="4"
+					flexShrink={0}
+					userSelect="none"
+					p="8"
+					bb="secondary"
+					style={{ height: 32 }}
+				>
+					{integrationLogo}
+					<Text size="xxSmall" color="n11" weight="medium">
+						Create a new {selectedIntegration.name} issue
+					</Text>
+					<Box onClick={onClose} ml="auto">
+						<ButtonIcon
+							shape="square"
+							kind="secondary"
+							emphasis="none"
+							icon={
+								<IconSolidX
+									size={16}
+									color={
+										vars.theme.interactive.fill.secondary
+											.content.text
+									}
+								/>
+							}
+						/>
+					</Box>
+				</Box>
 			}
 			visible={visible}
-			onCancel={() => changeVisible(false)}
+			onCancel={onClose}
+			minimal
+			minimalPaddingSize="0"
+			width="324px"
 		>
 			<ModalBody>
-				<Form
-					name="newComment"
-					onFinish={onFinish}
-					form={form}
-					layout="vertical"
-					onKeyDown={onFormChangeHandler}
-				>
-					<div>
-						{selectedIntegration.key === LINEAR_INTEGRATION.key ? (
-							<Form.Item
-								label={`${selectedIntegration.name} Team`}
-							>
-								<Select
-									aria-label={`${selectedIntegration.name} Team`}
-									placeholder="Choose a team to create the issue in"
-									options={linearTeamsOptions}
-									onChange={setLinearTeamId}
-									value={selectedlinearTeamId}
-									notFoundContent={<p>No teams found</p>}
-								/>
-							</Form.Item>
-						) : null}
-						<Form.Item
-							name="issueTitle"
-							initialValue={defaultIssueTitle}
+				<Form aria-labelledBy="newComment" state={form}>
+					<Box
+						px="12"
+						py="8"
+						gap="12"
+						display="flex"
+						flexDirection="column"
+					>
+						{selectedIntegration.containerSelection({
+							setSelectionId: setContainerId,
+						})}
+						<Form.Input
+							name={form.names.issueTitle}
 							label="Issue Title"
-						>
-							<Input
-								placeholder="Issue Title"
-								required
-								className={styles.textBoxStyles}
-							/>
-						</Form.Item>
-						<Form.Item
-							name="issueDescription"
+							placeholder="Add a concise summary of the issue"
+							outline
+							truncate
+							required
+						/>
+						<Form.Input
+							name={form.names.issueDescription}
 							label="Issue Description"
+							placeholder="Hey, check this out!"
+							as="textarea"
+							outline
+							aria-multiline
+							rows={5}
+						/>
+					</Box>
+					<Box
+						px="6"
+						py="4"
+						display="flex"
+						alignItems="center"
+						gap="6"
+						justifyContent="flex-end"
+						bt="secondary"
+					>
+						<Button
+							trackingId="CreateIssueCancel"
+							type="reset"
+							onClick={onClose}
+							kind="secondary"
+							size="small"
+							emphasis="high"
 						>
-							<TextArea
-								placeholder="Issue Description"
-								rows={3}
-								className={styles.textBoxStyles}
-							/>
-						</Form.Item>
-						<div className={styles.actionButtons}>
-							<Button
-								trackingId="CreateIssueCancel"
-								htmlType="submit"
-								onClick={() => changeVisible(false)}
-							>
-								Cancel
-							</Button>
-							<Button
-								trackingId="createIssueSubmit"
-								type="primary"
-								htmlType="submit"
-								loading={loading}
-							>
-								Create Issue
-							</Button>
-						</div>
-					</div>
+							Cancel
+						</Button>
+						<Button
+							trackingId="createIssueSubmit"
+							type="submit"
+							kind={loading ? 'secondary' : 'primary'}
+							size="small"
+							emphasis="high"
+						>
+							Submit
+						</Button>
+					</Box>
 				</Form>
 			</ModalBody>
 		</Modal>

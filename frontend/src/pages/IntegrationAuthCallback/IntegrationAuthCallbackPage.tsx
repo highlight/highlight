@@ -4,8 +4,10 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
+import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
+import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
@@ -243,6 +245,69 @@ const DiscordIntegrationCallback = ({ code, projectId }: Props) => {
 	return null
 }
 
+const WorkspaceIntegrationCallback = ({
+	code,
+	projectId,
+	name,
+	type,
+	addIntegration,
+}: Props & {
+	name: string
+	type: string
+	addIntegration: (code: string) => Promise<unknown>
+}) => {
+	const history = useHistory()
+	const { setLoadingState } = useAppLoadingContext()
+
+	useEffect(() => {
+		if (!addIntegration || !code) return
+		const next = `/${projectId}/integrations/${type}`
+		;(async () => {
+			try {
+				await addIntegration(code)
+				message.success(`Highlight is now synced with ${name}!`, 5)
+			} catch (e: any) {
+				H.consumeError(e)
+				console.error(e)
+				message.error(
+					'Failed to add integration to project. Please try again.',
+				)
+			} finally {
+				history.push(next)
+				setLoadingState(AppLoadingState.LOADED)
+			}
+		})()
+	}, [history, setLoadingState, code, projectId, addIntegration, name])
+
+	return null
+}
+
+const ClickUpIntegrationCallback = ({ code, projectId }: Props) => {
+	const { addIntegration } = useClickUpIntegration()
+	return (
+		<WorkspaceIntegrationCallback
+			code={code}
+			name="ClickUp"
+			type="clickup"
+			addIntegration={addIntegration}
+			projectId={projectId}
+		/>
+	)
+}
+
+const HeightIntegrationCallback = ({ code, projectId }: Props) => {
+	const { addIntegration } = useHeightIntegration()
+	return (
+		<WorkspaceIntegrationCallback
+			code={code}
+			name="Height"
+			type="height"
+			addIntegration={addIntegration}
+			projectId={projectId}
+		/>
+	)
+}
+
 const IntegrationAuthCallbackPage = () => {
 	const { integrationName } = useParams<{
 		integrationName: string
@@ -253,12 +318,13 @@ const IntegrationAuthCallbackPage = () => {
 		setLoadingState(AppLoadingState.EXTENDED_LOADING)
 	}, [setLoadingState])
 
-	const { code, projectId, next } = useMemo(() => {
+	const { code, projectId, next, workspaceId } = useMemo(() => {
 		const urlParams = new URLSearchParams(window.location.search)
 		const code = urlParams.get('code')!
 		const state = urlParams.get('state') || ''
 		let projectId: string | undefined = undefined
 		let next: string | undefined = undefined
+		let workspaceId: string | undefined = undefined
 		if (state) {
 			let parsedState: any
 			try {
@@ -268,36 +334,79 @@ const IntegrationAuthCallbackPage = () => {
 			}
 			projectId = parsedState['project_id']
 			next = parsedState['next']
+			workspaceId = parsedState['workspace_id']
 		}
 		return {
 			code,
 			projectId,
 			next,
+			workspaceId,
 		}
 	}, [])
 
-	if (integrationName.toLowerCase() === 'slack') {
-		return (
-			<SlackIntegrationCallback
-				code={code}
-				projectId={projectId}
-				next={next}
-			/>
-		)
-	} else if (integrationName.toLowerCase() === 'linear') {
-		return (
-			<LinearIntegrationCallback
-				code={code}
-				projectId={projectId}
-				next={next}
-			/>
-		)
-	} else if (integrationName.toLowerCase() === 'front') {
-		return <FrontIntegrationCallback code={code} projectId={projectId} />
-	} else if (integrationName.toLowerCase() === 'vercel') {
-		return <VercelIntegrationCallback code={code} />
-	} else if (integrationName.toLowerCase() === 'discord') {
-		return <DiscordIntegrationCallback code={code} projectId={projectId} />
+	switch (integrationName.toLowerCase()) {
+		case 'slack':
+			return (
+				<SlackIntegrationCallback
+					code={code}
+					projectId={projectId}
+					next={next}
+				/>
+			)
+		case 'linear':
+			return (
+				<LinearIntegrationCallback
+					code={code}
+					projectId={projectId}
+					next={next}
+				/>
+			)
+		case 'front':
+			return (
+				<FrontIntegrationCallback code={code} projectId={projectId} />
+			)
+		case 'vercel':
+			return <VercelIntegrationCallback code={code} />
+		case 'discord':
+			return (
+				<DiscordIntegrationCallback code={code} projectId={projectId} />
+			)
+		case 'clickup':
+			return (
+				<ApplicationContextProvider
+					value={{
+						currentProject: undefined,
+						allProjects: [],
+						currentWorkspace: workspaceId
+							? { id: workspaceId, name: '' }
+							: undefined,
+						workspaces: [],
+					}}
+				>
+					<ClickUpIntegrationCallback
+						code={code}
+						projectId={projectId}
+					/>
+				</ApplicationContextProvider>
+			)
+		case 'height':
+			return (
+				<ApplicationContextProvider
+					value={{
+						currentProject: undefined,
+						allProjects: [],
+						currentWorkspace: workspaceId
+							? { id: workspaceId, name: '' }
+							: undefined,
+						workspaces: [],
+					}}
+				>
+					<HeightIntegrationCallback
+						code={code}
+						projectId={projectId}
+					/>
+				</ApplicationContextProvider>
+			)
 	}
 
 	return null

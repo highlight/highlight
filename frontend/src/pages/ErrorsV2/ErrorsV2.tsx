@@ -9,12 +9,11 @@ import {
 	Box,
 	ButtonIcon,
 	Container,
-	IconChevronDown,
-	IconChevronUp,
-	IconExitRight,
+	IconSolidCheveronDown,
+	IconSolidCheveronUp,
+	IconSolidExitRight,
 	vars,
 } from '@highlight-run/ui'
-import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
@@ -23,6 +22,7 @@ import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { controlBar } from '@pages/ErrorsV2/SearchPanel/SearchPanel.css'
+import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 import analytics from '@util/analytics'
@@ -163,7 +163,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 								display="flex"
 								alignItems="center"
 								px="12"
-								borderBottom="neutral"
+								borderBottom="secondary"
 								cssClass={controlBar}
 							>
 								<Box display="flex" gap="8">
@@ -173,7 +173,9 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											size="small"
 											shape="square"
 											emphasis="medium"
-											icon={<IconExitRight size={14} />}
+											icon={
+												<IconSolidExitRight size={14} />
+											}
 											onClick={() =>
 												setShowLeftPanel(true)
 											}
@@ -185,7 +187,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 										display="flex"
 										style={{
 											// TODO: Replace with button group once built in UI package.
-											boxShadow: `0 0 0 1px ${vars.color.neutral200} inset`,
+											boxShadow: `0 0 0 1px ${vars.color.n5} inset`,
 										}}
 									>
 										<ButtonIcon
@@ -193,7 +195,11 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											size="small"
 											shape="square"
 											emphasis="low"
-											icon={<IconChevronUp size={14} />}
+											icon={
+												<IconSolidCheveronUp
+													size={14}
+												/>
+											}
 											cssClass={
 												styles.sessionSwitchButton
 											}
@@ -202,13 +208,20 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											}}
 											disabled={!canMoveBackward}
 										/>
-										<Box as="span" borderRight="neutral" />
+										<Box
+											as="span"
+											borderRight="secondary"
+										/>
 										<ButtonIcon
 											kind="secondary"
 											size="small"
 											shape="square"
 											emphasis="low"
-											icon={<IconChevronDown size={14} />}
+											icon={
+												<IconSolidCheveronDown
+													size={14}
+												/>
+											}
 											title="j"
 											cssClass={
 												styles.sessionSwitchButton

@@ -16,7 +16,6 @@ const WithSessionSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 		project_id: string
 	}>()
 
-	const [segmentName, setSegmentName] = useState<string | null>(null)
 	const [showStarredSessions, setShowStarredSessions] =
 		useState<boolean>(false)
 	const [searchParams, setSearchParams] = useState<SearchParamsInput>(
@@ -50,8 +49,6 @@ const WithSessionSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 		setSearchParams,
 		existingParams,
 		setExistingParams,
-		segmentName,
-		setSegmentName,
 		showStarredSessions,
 		setShowStarredSessions,
 		selectedSegment,

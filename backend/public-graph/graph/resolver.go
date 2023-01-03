@@ -2103,8 +2103,10 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			// downsampled bucket.
 			downsampledMetric = downsampledMetric || m.Name == graph.SessionActiveMetricName
 		}
-		if err := r.DB.Create(&newMetrics).Error; err != nil {
-			return err
+		if len(newMetrics) > 0 {
+			if err := r.DB.Create(&newMetrics).Error; err != nil {
+				return err
+			}
 		}
 		if downsampledMetric {
 			aggregatePoints = append(aggregatePoints, timeseries.Point{
@@ -2886,7 +2888,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 	var points []timeseries.Point
 	for _, re := range resources {
 		tags := map[string]string{
-			"SessionID":  strconv.Itoa(sessionObj.ID),
+			"session_id": strconv.Itoa(sessionObj.ID),
 			"group_name": re.RequestResponsePairs.Request.ID,
 		}
 		fields := map[string]interface{}{}

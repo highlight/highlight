@@ -3,8 +3,10 @@ import { useSlackBot } from '@components/Header/components/ConnectHighlightWithS
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'
+import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
+import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
 import Integration from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
@@ -48,6 +50,20 @@ const IntegrationsPage = () => {
 	const { isDiscordIntegratedWithProject, loading: loadingDiscord } =
 		useDiscordIntegration()
 
+	const {
+		settings: {
+			isIntegrated: isClickUpIntegratedWithProject,
+			loading: loadingClickUp,
+		},
+	} = useClickUpIntegration()
+
+	const {
+		settings: {
+			isIntegrated: isHeightIntegratedWithProject,
+			loading: loadingHeight,
+		},
+	} = useHeightIntegration()
+
 	const loading =
 		loadingLinear ||
 		loadingSlack ||
@@ -55,7 +71,9 @@ const IntegrationsPage = () => {
 		loadingClearbit ||
 		loadingFront ||
 		loadingVercel ||
-		loadingDiscord
+		loadingDiscord ||
+		loadingClickUp ||
+		loadingHeight
 
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((inter) =>
@@ -70,17 +88,21 @@ const IntegrationsPage = () => {
 					isClearbitIntegratedWithWorkspace) ||
 				(inter.key === 'front' && isFrontIntegratedWithProject) ||
 				(inter.key === 'vercel' && isVercelIntegratedWithProject) ||
-				(inter.key === 'discord' && isDiscordIntegratedWithProject),
+				(inter.key === 'discord' && isDiscordIntegratedWithProject) ||
+				(inter.key === 'clickup' && isClickUpIntegratedWithProject) ||
+				(inter.key === 'height' && isHeightIntegratedWithProject),
 		}))
 	}, [
+		isHighlightAdmin,
 		isSlackConnectedToWorkspace,
 		isLinearIntegratedWithProject,
 		isZapierIntegratedWithProject,
-		isFrontIntegratedWithProject,
 		isClearbitIntegratedWithWorkspace,
-		isHighlightAdmin,
+		isFrontIntegratedWithProject,
 		isVercelIntegratedWithProject,
 		isDiscordIntegratedWithProject,
+		isClickUpIntegratedWithProject,
+		isHeightIntegratedWithProject,
 	])
 
 	useEffect(() => analytics.page(), [])

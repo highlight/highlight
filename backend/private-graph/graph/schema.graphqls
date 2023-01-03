@@ -179,6 +179,50 @@ type VercelProject {
 	env: [VercelEnv!]!
 }
 
+type ClickUpSpace {
+	id: String!
+	name: String!
+}
+
+type ClickUpTeam {
+	id: String!
+	name: String!
+	spaces: [ClickUpSpace!]!
+}
+
+type HeightWorkspace {
+	id: String!
+	model: String!
+	name: String!
+	url: String!
+}
+
+type ClickUpFolder {
+	id: String!
+	name: String!
+	lists: [ClickUpList!]!
+}
+
+type HeightList {
+	id: String!
+	name: String!
+	type: String!
+}
+type ClickUpList {
+	id: String!
+	name: String!
+}
+
+type ClickUpTask {
+	id: String!
+	name: String!
+}
+
+type HeightTask {
+	id: String!
+	name: String!
+}
+
 type SocialLink {
 	type: SocialType!
 	link: String
@@ -199,6 +243,8 @@ enum IntegrationType {
 	Front
 	Vercel
 	Discord
+	ClickUp
+	Height
 }
 
 enum ErrorState {
@@ -1048,9 +1094,29 @@ input VercelProjectMappingInput {
 	project_id: ID
 }
 
+input ClickUpProjectMappingInput {
+	project_id: ID!
+	clickup_space_id: String!
+}
+
+input IntegrationProjectMappingInput {
+	project_id: ID!
+	external_id: String!
+}
+
 type VercelProjectMapping {
 	vercel_project_id: String!
 	project_id: ID!
+}
+
+type ClickUpProjectMapping {
+	project_id: ID!
+	clickup_space_id: String!
+}
+
+type IntegrationProjectMapping {
+	project_id: ID!
+	external_id: String!
 }
 
 type OAuthClient {
@@ -1219,8 +1285,22 @@ type Query {
 		integration_type: IntegrationType!
 		project_id: ID!
 	): Boolean!
+	is_workspace_integrated_with(
+		integration_type: IntegrationType!
+		workspace_id: ID!
+	): Boolean!
 	vercel_projects(project_id: ID!): [VercelProject!]!
 	vercel_project_mappings(project_id: ID!): [VercelProjectMapping!]!
+	clickup_teams(workspace_id: ID!): [ClickUpTeam!]!
+	clickup_project_mappings(workspace_id: ID!): [ClickUpProjectMapping!]!
+	clickup_folders(project_id: ID!): [ClickUpFolder!]!
+	clickup_folderless_lists(project_id: ID!): [ClickUpList!]!
+	height_lists(project_id: ID!): [HeightList!]!
+	height_workspaces(workspace_id: ID!): [HeightWorkspace!]!
+	integration_project_mappings(
+		workspace_id: ID!
+		integration_type: IntegrationType
+	): [IntegrationProjectMapping!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
 	project(id: ID!): Project
 	workspace(id: ID!): Workspace
@@ -1424,6 +1504,15 @@ type Mutation {
 		integration_type: IntegrationType
 		project_id: ID!
 	): Boolean!
+	addIntegrationToWorkspace(
+		integration_type: IntegrationType
+		workspace_id: ID!
+		code: String!
+	): Boolean!
+	removeIntegrationFromWorkspace(
+		integration_type: IntegrationType!
+		workspace_id: ID!
+	): Boolean!
 	syncSlackIntegration(project_id: ID!): SlackSyncResponse!
 	createDefaultAlerts(
 		project_id: ID!
@@ -1546,6 +1635,16 @@ type Mutation {
 		project_id: ID!
 		project_mappings: [VercelProjectMappingInput!]!
 	): Boolean!
+	updateClickUpProjectMappings(
+		workspace_id: ID!
+		project_mappings: [ClickUpProjectMappingInput!]!
+	): Boolean!
+	updateIntegrationProjectMappings(
+		workspace_id: ID!
+		integration_type: IntegrationType!
+		project_mappings: [IntegrationProjectMappingInput!]!
+	): Boolean!
+
 	updateEmailOptOut(
 		token: String
 		admin_id: ID

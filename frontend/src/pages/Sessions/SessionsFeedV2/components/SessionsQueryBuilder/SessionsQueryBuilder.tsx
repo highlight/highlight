@@ -1,3 +1,4 @@
+import { normalizeParams } from '@context/BaseSearchContext'
 import {
 	useGetFieldsOpensearchQuery,
 	useGetFieldTypesQuery,
@@ -40,26 +41,6 @@ export const TIME_RANGE_FIELD: SelectOption = {
 	label: 'created_at',
 	value: 'custom_created_at',
 }
-
-const InitialSearchParamsForUrl = {
-	browser: undefined,
-	date_range: undefined,
-	device_id: undefined,
-	excluded_properties: undefined,
-	excluded_track_properties: undefined,
-	first_time: undefined,
-	hide_viewed: undefined,
-	identified: undefined,
-	length_range: undefined,
-	os: undefined,
-	referrer: undefined,
-	track_properties: undefined,
-	user_properties: undefined,
-	visited_url: undefined,
-	show_live_sessions: undefined,
-	environments: undefined,
-	app_versions: undefined,
-} as const
 
 const CUSTOM_FIELDS: CustomField[] = [
 	{
@@ -268,7 +249,6 @@ const SessionsQueryBuilder = React.memo(
 		const {
 			searchParams,
 			setSearchParams,
-			segmentName,
 			page,
 			setPage,
 			selectedSegment,
@@ -319,49 +299,6 @@ const SessionsQueryBuilder = React.memo(
 		}, [setPaginationToUrlParams, page])
 
 		useEffect(() => {
-			const areAnySearchParamsSet = !isEqual(
-				EmptySessionsSearchParams,
-				searchParams,
-			)
-
-			// Handles the case where the user is loading the page from a link shared from another user that has search params in the URL.
-			if (!segmentName && areAnySearchParamsSet) {
-				// `undefined` values will not be persisted to the URL.
-				// Because of that, we only want to change the values from `undefined`
-				// to the actual value when the value is different to the empty state.
-				const searchParamsToReflectInUrl = {
-					...InitialSearchParamsForUrl,
-				}
-				Object.keys(searchParams).forEach((key) => {
-					// @ts-expect-error
-					const currentSearchParam = searchParams[key]
-					// @ts-expect-error
-					const emptySearchParam = EmptySessionsSearchParams[key]
-					if (Array.isArray(currentSearchParam)) {
-						if (
-							currentSearchParam.length !==
-							emptySearchParam.length
-						) {
-							// @ts-expect-error
-							searchParamsToReflectInUrl[key] = currentSearchParam
-						}
-					} else if (currentSearchParam !== emptySearchParam) {
-						// @ts-expect-error
-						searchParamsToReflectInUrl[key] = currentSearchParam
-					}
-				})
-
-				setSearchParamsToUrlParams(
-					searchParamsToReflectInUrl,
-					'replaceIn',
-				)
-			}
-		}, [setSearchParamsToUrlParams, searchParams, segmentName])
-
-		useEffect(() => {
-			if (!isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {
-				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
-			}
 			if (
 				paginationToUrlParams.page &&
 				page != paginationToUrlParams.page
@@ -371,6 +308,20 @@ const SessionsQueryBuilder = React.memo(
 			// We only want to run this on mount (i.e. when the page first loads).
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [])
+
+		useEffect(() => {
+			if (!isEqual(searchParams, EmptySessionsSearchParams)) {
+				setSearchParamsToUrlParams(
+					normalizeParams(searchParams),
+					'replaceIn',
+				)
+			}
+		}, [
+			setSearchParamsToUrlParams,
+			searchParams,
+			selectedSegment,
+			activeSegmentUrlParam,
+		])
 
 		// Session Segment Deep Linking
 		useEffect(() => {
@@ -388,6 +339,14 @@ const SessionsQueryBuilder = React.memo(
 			if (activeSegmentUrlParam) {
 				setSelectedSegment(activeSegmentUrlParam)
 			}
+			const params = normalizeParams(
+				searchParamsToUrlParams.query !== undefined
+					? (searchParamsToUrlParams as SearchParamsInput)
+					: EmptySessionsSearchParams,
+			)
+
+			setSearchParams(params)
+
 			// We only want to run this on mount (i.e. when the page first loads).
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [])

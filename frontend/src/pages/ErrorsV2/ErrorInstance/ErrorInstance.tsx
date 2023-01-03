@@ -1,6 +1,7 @@
 import { useApolloClient } from '@apollo/client'
 import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
+import { Button } from '@components/Button'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	GetErrorInstanceDocument,
@@ -8,7 +9,7 @@ import {
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
 import type { ErrorInstance as ErrorInstanceType } from '@graph/schemas'
-import { Box, Button, Heading, IconPlay, Text } from '@highlight-run/ui'
+import { Box, Heading, IconSolidPlay, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
@@ -92,6 +93,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 	if (!errorInstance || !errorInstance?.error_object) {
 		if (!loading) return null
+
 		return (
 			<Box id="error-instance-container">
 				<Box my="28" display="flex" justifyContent="space-between">
@@ -105,29 +107,28 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								disabled={true}
 								kind="secondary"
 								emphasis="low"
+								trackingId="errorInstanceOlder"
 							>
 								Older
 							</Button>
-							<Box borderRight="neutral" style={{ height: 18 }} />
+							<Box
+								borderRight="secondary"
+								style={{ height: 18 }}
+							/>
 							<Button
 								disabled={true}
 								kind="secondary"
 								emphasis="low"
+								trackingId="errorInstanceNewer"
 							>
 								Newer
 							</Button>
 							<Button
-								kind="secondary"
+								kind="primary"
 								emphasis="high"
-								disabled={!isLoggedIn}
-								onClick={() =>
-									isLoggedIn
-										? history.push(
-												`/${projectId}/sessions/${errorInstance?.error_object?.session?.secure_id}`,
-										  )
-										: null
-								}
-								iconLeft={<IconPlay />}
+								disabled={true}
+								iconLeft={<IconSolidPlay />}
+								trackingId="errorInstanceShowSession"
 							>
 								Show session
 							</Button>
@@ -143,7 +144,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				>
 					<div style={{ flexBasis: 0, flexGrow: 1 }}>
 						<Box>
-							<Box bb="neutral" pb="20" my="12">
+							<Box bb="secondary" pb="20" my="12">
 								<Text weight="bold" size="large">
 									Instance metadata
 								</Text>
@@ -167,7 +168,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				<Text size="large" weight="bold">
 					Stack trace
 				</Text>
-				<Box bt="neutral" mt="12" pt="16">
+				<Box bt="secondary" mt="12" pt="16">
 					<Skeleton count={10} />
 				</Box>
 			</Box>
@@ -199,10 +200,11 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 							disabled={Number(errorInstance.previous_id) === 0}
 							kind="secondary"
 							emphasis="low"
+							trackingId="errorInstanceOlder"
 						>
 							Older
 						</Button>
-						<Box borderRight="neutral" style={{ height: 18 }} />
+						<Box borderRight="secondary" style={{ height: 18 }} />
 						<Button
 							onClick={() => {
 								history.push({
@@ -217,11 +219,12 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 							disabled={Number(errorInstance.next_id) === 0}
 							kind="secondary"
 							emphasis="low"
+							trackingId="errorInstanceNewer"
 						>
 							Newer
 						</Button>
 						<Button
-							kind="secondary"
+							kind="primary"
 							emphasis="high"
 							disabled={!isLoggedIn}
 							onClick={() =>
@@ -231,7 +234,8 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									  )
 									: null
 							}
-							iconLeft={<IconPlay />}
+							iconLeft={<IconSolidPlay />}
+							trackingId="errorInstanceShowSession"
 						>
 							Show session
 						</Button>
@@ -257,7 +261,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			<Text size="large" weight="bold">
 				Stack trace
 			</Text>
-			<Box bt="neutral" mt="12" pt="16">
+			<Box bt="secondary" mt="12" pt="16">
 				<ErrorStackTrace
 					errorObject={
 						errorObject as ErrorInstanceType['error_object']
@@ -286,7 +290,7 @@ const Metadata: React.FC<{
 
 	return (
 		<Box>
-			<Box bb="neutral" pb="20" my="12">
+			<Box bb="secondary" pb="20" my="12">
 				<Text weight="bold" size="large">
 					Instance metadata
 				</Text>
@@ -302,7 +306,7 @@ const Metadata: React.FC<{
 							style={{ width: '33%' }}
 						>
 							<Text
-								color="neutral500"
+								color="n11"
 								transform="capitalize"
 								align="left"
 								lines="1"
@@ -374,9 +378,9 @@ const User: React.FC<{
 					User details
 				</Text>
 			</Box>
-			<Box border="neutral" borderRadius="6">
+			<Box border="secondary" borderRadius="6">
 				<Box
-					bb="neutral"
+					bb="secondary"
 					py="8"
 					px="12"
 					alignItems="center"
@@ -426,6 +430,7 @@ const User: React.FC<{
 								history.push(`/${projectId}/sessions`)
 								setSearchParams(searchParams)
 							}}
+							trackingId="errorInstanceAllSessionsForuser"
 						>
 							All sessions for this user
 						</Button>
@@ -444,7 +449,7 @@ const User: React.FC<{
 										style={{ width: '33%' }}
 									>
 										<Text
-											color="neutral500"
+											color="n11"
 											align="left"
 											transform="capitalize"
 											lines="1"
@@ -473,7 +478,7 @@ const User: React.FC<{
 
 							<Box display="flex" alignItems="center" gap="6">
 								<Box py="10" style={{ width: '33%' }}>
-									<Text color="neutral500" align="left">
+									<Text color="n11" align="left">
 										Location
 									</Text>
 								</Box>
@@ -490,6 +495,7 @@ const User: React.FC<{
 									kind="secondary"
 									emphasis="medium"
 									size="xSmall"
+									trackingId="errorInstanceToggleProperties"
 								>
 									Show {truncated ? 'more' : 'less'}
 								</Button>

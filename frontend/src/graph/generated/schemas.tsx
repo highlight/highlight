@@ -116,6 +116,49 @@ export type CategoryHistogramPayload = {
 	buckets: Array<CategoryHistogramBucket>
 }
 
+export type ClickUpFolder = {
+	__typename?: 'ClickUpFolder'
+	id: Scalars['String']
+	lists: Array<ClickUpList>
+	name: Scalars['String']
+}
+
+export type ClickUpList = {
+	__typename?: 'ClickUpList'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
+export type ClickUpProjectMapping = {
+	__typename?: 'ClickUpProjectMapping'
+	clickup_space_id: Scalars['String']
+	project_id: Scalars['ID']
+}
+
+export type ClickUpProjectMappingInput = {
+	clickup_space_id: Scalars['String']
+	project_id: Scalars['ID']
+}
+
+export type ClickUpSpace = {
+	__typename?: 'ClickUpSpace'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
+export type ClickUpTask = {
+	__typename?: 'ClickUpTask'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
+export type ClickUpTeam = {
+	__typename?: 'ClickUpTeam'
+	id: Scalars['String']
+	name: Scalars['String']
+	spaces: Array<ClickUpSpace>
+}
+
 export type CommentReply = {
 	__typename?: 'CommentReply'
 	author: SanitizedAdmin
@@ -488,6 +531,27 @@ export type Field = {
 	value: Scalars['String']
 }
 
+export type HeightList = {
+	__typename?: 'HeightList'
+	id: Scalars['String']
+	name: Scalars['String']
+	type: Scalars['String']
+}
+
+export type HeightTask = {
+	__typename?: 'HeightTask'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
+export type HeightWorkspace = {
+	__typename?: 'HeightWorkspace'
+	id: Scalars['String']
+	model: Scalars['String']
+	name: Scalars['String']
+	url: Scalars['String']
+}
+
 export type HistogramBucket = {
 	__typename?: 'HistogramBucket'
 	bucket: Scalars['Float']
@@ -514,9 +578,22 @@ export type HistogramPayload = {
 	min: Scalars['Float']
 }
 
+export type IntegrationProjectMapping = {
+	__typename?: 'IntegrationProjectMapping'
+	external_id: Scalars['String']
+	project_id: Scalars['ID']
+}
+
+export type IntegrationProjectMappingInput = {
+	external_id: Scalars['String']
+	project_id: Scalars['ID']
+}
+
 export enum IntegrationType {
+	ClickUp = 'ClickUp',
 	Discord = 'Discord',
 	Front = 'Front',
+	Height = 'Height',
 	Linear = 'Linear',
 	Slack = 'Slack',
 	Vercel = 'Vercel',
@@ -625,6 +702,7 @@ export type Mutation = {
 	__typename?: 'Mutation'
 	addAdminToWorkspace?: Maybe<Scalars['ID']>
 	addIntegrationToProject: Scalars['Boolean']
+	addIntegrationToWorkspace: Scalars['Boolean']
 	changeAdminRole: Scalars['Boolean']
 	createDefaultAlerts?: Maybe<Scalars['Boolean']>
 	createErrorAlert?: Maybe<ErrorAlert>
@@ -663,6 +741,7 @@ export type Mutation = {
 	muteErrorCommentThread?: Maybe<Scalars['Boolean']>
 	muteSessionCommentThread?: Maybe<Scalars['Boolean']>
 	removeIntegrationFromProject: Scalars['Boolean']
+	removeIntegrationFromWorkspace: Scalars['Boolean']
 	replyToErrorComment?: Maybe<CommentReply>
 	replyToSessionComment?: Maybe<CommentReply>
 	requestAccess?: Maybe<Scalars['Boolean']>
@@ -674,11 +753,13 @@ export type Mutation = {
 	updateAllowMeterOverage?: Maybe<Workspace>
 	updateAllowedEmailOrigins?: Maybe<Scalars['ID']>
 	updateBillingDetails?: Maybe<Scalars['Boolean']>
+	updateClickUpProjectMappings: Scalars['Boolean']
 	updateEmailOptOut: Scalars['Boolean']
 	updateErrorAlert?: Maybe<ErrorAlert>
 	updateErrorAlertIsDisabled?: Maybe<ErrorAlert>
 	updateErrorGroupIsPublic?: Maybe<ErrorGroup>
 	updateErrorGroupState?: Maybe<ErrorGroup>
+	updateIntegrationProjectMappings: Scalars['Boolean']
 	updateMetricMonitor?: Maybe<MetricMonitor>
 	updateMetricMonitorIsDisabled?: Maybe<MetricMonitor>
 	updateSessionAlert?: Maybe<SessionAlert>
@@ -697,6 +778,12 @@ export type MutationAddIntegrationToProjectArgs = {
 	code: Scalars['String']
 	integration_type?: InputMaybe<IntegrationType>
 	project_id: Scalars['ID']
+}
+
+export type MutationAddIntegrationToWorkspaceArgs = {
+	code: Scalars['String']
+	integration_type?: InputMaybe<IntegrationType>
+	workspace_id: Scalars['ID']
 }
 
 export type MutationChangeAdminRoleArgs = {
@@ -955,6 +1042,11 @@ export type MutationRemoveIntegrationFromProjectArgs = {
 	project_id: Scalars['ID']
 }
 
+export type MutationRemoveIntegrationFromWorkspaceArgs = {
+	integration_type: IntegrationType
+	workspace_id: Scalars['ID']
+}
+
 export type MutationReplyToErrorCommentArgs = {
 	comment_id: Scalars['ID']
 	errorURL: Scalars['String']
@@ -1021,6 +1113,11 @@ export type MutationUpdateBillingDetailsArgs = {
 	workspace_id: Scalars['ID']
 }
 
+export type MutationUpdateClickUpProjectMappingsArgs = {
+	project_mappings: Array<ClickUpProjectMappingInput>
+	workspace_id: Scalars['ID']
+}
+
 export type MutationUpdateEmailOptOutArgs = {
 	admin_id?: InputMaybe<Scalars['ID']>
 	category: EmailOptOutCategory
@@ -1057,6 +1154,12 @@ export type MutationUpdateErrorGroupIsPublicArgs = {
 export type MutationUpdateErrorGroupStateArgs = {
 	secure_id: Scalars['String']
 	state: Scalars['String']
+}
+
+export type MutationUpdateIntegrationProjectMappingsArgs = {
+	integration_type: IntegrationType
+	project_mappings: Array<IntegrationProjectMappingInput>
+	workspace_id: Scalars['ID']
 }
 
 export type MutationUpdateMetricMonitorArgs = {
@@ -1200,6 +1303,10 @@ export type Query = {
 	averageSessionLength?: Maybe<AverageSessionLength>
 	billingDetails: BillingDetails
 	billingDetailsForProject?: Maybe<BillingDetails>
+	clickup_folderless_lists: Array<ClickUpList>
+	clickup_folders: Array<ClickUpFolder>
+	clickup_project_mappings: Array<ClickUpProjectMapping>
+	clickup_teams: Array<ClickUpTeam>
 	customer_portal_url: Scalars['String']
 	dailyErrorFrequency: Array<Scalars['Int64']>
 	dailyErrorsCount: Array<Maybe<DailyErrorCount>>
@@ -1232,11 +1339,15 @@ export type Query = {
 	fields_opensearch: Array<Scalars['String']>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
+	height_lists: Array<HeightList>
+	height_workspaces: Array<HeightWorkspace>
 	identifier_suggestion: Array<Scalars['String']>
+	integration_project_mappings: Array<IntegrationProjectMapping>
 	isBackendIntegrated?: Maybe<Scalars['Boolean']>
 	isIntegrated?: Maybe<Scalars['Boolean']>
 	isSessionPending?: Maybe<Scalars['Boolean']>
 	is_integrated_with: Scalars['Boolean']
+	is_workspace_integrated_with: Scalars['Boolean']
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
@@ -1331,6 +1442,22 @@ export type QueryBillingDetailsArgs = {
 
 export type QueryBillingDetailsForProjectArgs = {
 	project_id: Scalars['ID']
+}
+
+export type QueryClickup_Folderless_ListsArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryClickup_FoldersArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryClickup_Project_MappingsArgs = {
+	workspace_id: Scalars['ID']
+}
+
+export type QueryClickup_TeamsArgs = {
+	workspace_id: Scalars['ID']
 }
 
 export type QueryCustomer_Portal_UrlArgs = {
@@ -1487,9 +1614,22 @@ export type QueryGet_Source_Map_Upload_UrlsArgs = {
 	paths: Array<Scalars['String']>
 }
 
+export type QueryHeight_ListsArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryHeight_WorkspacesArgs = {
+	workspace_id: Scalars['ID']
+}
+
 export type QueryIdentifier_SuggestionArgs = {
 	project_id: Scalars['ID']
 	query: Scalars['String']
+}
+
+export type QueryIntegration_Project_MappingsArgs = {
+	integration_type?: InputMaybe<IntegrationType>
+	workspace_id: Scalars['ID']
 }
 
 export type QueryIsBackendIntegratedArgs = {
@@ -1507,6 +1647,11 @@ export type QueryIsSessionPendingArgs = {
 export type QueryIs_Integrated_WithArgs = {
 	integration_type: IntegrationType
 	project_id: Scalars['ID']
+}
+
+export type QueryIs_Workspace_Integrated_WithArgs = {
+	integration_type: IntegrationType
+	workspace_id: Scalars['ID']
 }
 
 export type QueryLinear_TeamsArgs = {

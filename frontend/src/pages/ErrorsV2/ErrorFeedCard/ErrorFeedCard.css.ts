@@ -1,4 +1,4 @@
-import { colors } from '@highlight-run/ui/src/css/colors'
+import { vars } from '@highlight-run/ui'
 import { style } from '@vanilla-extract/css'
 
 export const ERROR_CARD_PX = 12
@@ -14,16 +14,17 @@ export const errorCardTitleText = style({
 export const errorCard = style({
 	selectors: {
 		'&:hover': {
-			background: colors.neutral100,
+			background: vars.theme.interactive.overlay.secondary.hover,
 		},
 	},
 })
 
 export const errorCardSelected = style({
-	background: colors.neutral200,
+	background: vars.theme.interactive.overlay.secondary.pressed,
+	boxShadow: `0 -1px 0 0 rgba(0, 0, 0, 0.1) inset`,
 	selectors: {
 		'&:hover': {
-			backgroundColor: colors.neutral200,
+			backgroundColor: vars.theme.interactive.overlay.secondary.pressed,
 		},
 	},
 })

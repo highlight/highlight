@@ -1,25 +1,28 @@
 import React from 'react'
 import { Box } from '../Box/Box'
 import {
-	IconExclamationTriangle,
-	IconInformationCircle,
-	IconX,
-	IconXCircle,
+	IconSolidExclamation,
+	IconSolidInformationCircle,
+	IconSolidX,
+	IconSolidXCircle,
 } from '../icons'
 
 import * as styles from './styles.css'
 import { ButtonIcon } from '../ButtonIcon/ButtonIcon'
 import { Text } from '../Text/Text'
+import { vars } from '../../css/vars'
 
-type Props = React.PropsWithChildren &
+export type Props = React.PropsWithChildren &
 	styles.Variants & {
 		title: string
+		icon?: boolean
 		handleCloseClick?: () => void
 	}
 
 export const Callout: React.FC<Props> = ({
 	children,
 	kind = 'info',
+	icon = true,
 	title,
 	handleCloseClick,
 }) => {
@@ -27,14 +30,14 @@ export const Callout: React.FC<Props> = ({
 
 	return (
 		<Box
-			border="neutral"
+			border="secondary"
 			borderRadius="8"
 			display="flex"
 			gap="8"
 			p="8"
 			cssClass={styles.variants({ kind })}
 		>
-			<Icon />
+			{icon && <Icon />}
 
 			<Box gap="16" display="flex" flexDirection="column" width="full">
 				<Box
@@ -55,7 +58,7 @@ export const Callout: React.FC<Props> = ({
 								emphasis="low"
 								shape="square"
 								size="minimal"
-								icon={<IconX size={16} />}
+								icon={<IconSolidX size={16} />}
 								onClick={handleCloseClick}
 							/>
 						)}
@@ -73,7 +76,7 @@ const InfoIcon = () => (
 		borderRadius="5"
 		style={{
 			alignItems: 'center',
-			backgroundColor: '#E9E9E9',
+			backgroundColor: vars.theme.static.surface.sentiment.neutral,
 			display: 'flex',
 			height: 22,
 			justifyContent: 'center',
@@ -81,7 +84,10 @@ const InfoIcon = () => (
 			width: 22,
 		}}
 	>
-		<IconInformationCircle size={14} color="#777777" />
+		<IconSolidInformationCircle
+			size={14}
+			color={vars.theme.static.content.weak}
+		/>
 	</Box>
 )
 
@@ -90,7 +96,7 @@ const WarningIcon = () => (
 		borderRadius="5"
 		style={{
 			alignItems: 'center',
-			backgroundColor: '#FEF3C7',
+			backgroundColor: vars.theme.static.surface.sentiment.caution,
 			display: 'flex',
 			height: 22,
 			justifyContent: 'center',
@@ -98,7 +104,10 @@ const WarningIcon = () => (
 			width: 22,
 		}}
 	>
-		<IconExclamationTriangle size={14} color="#FF9457" />
+		<IconSolidExclamation
+			size={14}
+			color={vars.theme.static.content.sentiment.caution}
+		/>
 	</Box>
 )
 
@@ -107,7 +116,7 @@ const ErrorIcon = () => (
 		borderRadius="5"
 		style={{
 			alignItems: 'center',
-			backgroundColor: '#FEE2E2',
+			backgroundColor: vars.theme.static.surface.sentiment.bad,
 			display: 'flex',
 			height: 22,
 			justifyContent: 'center',
@@ -115,7 +124,10 @@ const ErrorIcon = () => (
 			width: 22,
 		}}
 	>
-		<IconXCircle size={14} color="#777777" />
+		<IconSolidXCircle
+			size={14}
+			color={vars.theme.static.content.sentiment.bad}
+		/>
 	</Box>
 )
 
