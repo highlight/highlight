@@ -76,6 +76,7 @@ export const Input = ({
 	cssClass,
 	size,
 	collapsed,
+	truncate,
 	outline,
 	name,
 	...props
@@ -99,6 +100,7 @@ export const Input = ({
 						size,
 						collapsed,
 						outline,
+						truncate,
 					}),
 					cssClass,
 				)}
@@ -122,6 +124,7 @@ export const Field = ({
 	cssClass,
 	size,
 	collapsed,
+	truncate,
 	outline,
 	...props
 }: FormFieldProps) => {
@@ -133,6 +136,7 @@ export const Field = ({
 						size,
 						collapsed,
 						outline,
+						truncate,
 					}),
 					cssClass,
 				)}

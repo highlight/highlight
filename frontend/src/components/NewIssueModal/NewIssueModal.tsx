@@ -198,6 +198,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							label="Issue Title"
 							placeholder="Add a concise summary of the issue"
 							outline
+							truncate
 							required
 						/>
 						<Form.Input

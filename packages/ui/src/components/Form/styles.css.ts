@@ -8,9 +8,6 @@ export const inputVariants = recipe({
 		padding: '4px 6px',
 		fontSize: 13,
 		color: vars.theme.static.content.default,
-		textOverflow: 'ellipsis',
-		overflow: 'hidden',
-		whiteSpace: 'nowrap',
 		caretColor: vars.theme.interactive.fill.primary.enabled,
 		selectors: {
 			'&:focus, &:active, &::selection': {
@@ -26,6 +23,14 @@ export const inputVariants = recipe({
 		},
 	},
 	variants: {
+		truncate: {
+			true: {
+				textOverflow: 'ellipsis',
+				overflow: 'hidden',
+				whiteSpace: 'nowrap',
+			},
+			false: {},
+		},
 		size: {
 			xSmall: {
 				height: 20,
@@ -53,6 +58,7 @@ export const inputVariants = recipe({
 	},
 	defaultVariants: {
 		outline: true,
+		truncate: false,
 	},
 })
 
