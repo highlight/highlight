@@ -1296,7 +1296,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			SessionCommentID: sessionComment.ID,
 		}
 		desc := *issueDescription
-		desc += "\n"
+		desc += "\n\nSee the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
@@ -1364,7 +1364,7 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 		}
 
 		desc := *issueDescription
-		desc += "\n"
+		desc += "\n\nSee the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
@@ -1374,9 +1374,6 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			desc := *issueDescription
-			desc += "\n"
-			desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
 			}
@@ -1643,7 +1640,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 		}
 
 		desc := *issueDescription
-		desc += "\n"
+		desc += "\n\nSee the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
@@ -1751,9 +1748,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 	}
 
 	desc := *issueDescription
-	desc += "\n\n"
-	desc += "See the error page on Highlight:"
-	desc += "\n"
+	desc += "\n\nSee the error page on Highlight:\n"
 	desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 
 	for _, s := range integrations {
@@ -1761,9 +1756,6 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 			IntegrationType: *s,
 			ErrorCommentID:  errorComment.ID,
 		}
-		desc := *issueDescription
-		desc += "\n"
-		desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(
