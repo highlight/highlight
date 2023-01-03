@@ -1,12 +1,12 @@
 import React from 'react'
 
 import * as styles from './styles.css'
-import { IconCaretDown } from '../icons'
 import { Menu } from '../Menu/Menu'
 import { Text } from '../Text/Text'
 import { Box } from '../Box/Box'
 import { Badge } from '../Badge/Badge'
 import { Variants } from '../Badge/styles.css'
+import { IconSolidCheveronDown } from '../icons'
 
 type Props = styles.Variants & {
 	options: {
@@ -30,7 +30,7 @@ export const MenuButton: React.FC<Props> = ({ ...props }) => {
 			>
 				<Box display={'flex'} alignItems={'center'}>
 					<Text case="capital">{selected}</Text>
-					<IconCaretDown />
+					<IconSolidCheveronDown />
 				</Box>
 			</Menu.Button>
 			<Menu.List>

@@ -2,11 +2,11 @@ import { Avatar } from '@components/Avatar/Avatar'
 import { Session } from '@graph/schemas'
 import {
 	Box,
-	IconCursorClick,
-	IconExclamationTriangle,
-	IconEyeOff,
-	IconUserCircle,
-	IconUsers,
+	IconSolidCursorClick,
+	IconSolidExclamation,
+	IconSolidEyeOff,
+	IconSolidUserCircle,
+	IconSolidUsers,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
@@ -128,7 +128,7 @@ export const SessionFeedCard = React.memo(
 										kind="secondary"
 										emphasis="low"
 										size="small"
-										iconLeft={<IconUsers size={12} />}
+										iconLeft={<IconSolidUsers size={12} />}
 									/>
 								)}
 							</Box>
@@ -168,7 +168,9 @@ export const SessionFeedCard = React.memo(
 											kind="secondary"
 											emphasis="low"
 											size="small"
-											iconLeft={<IconEyeOff size={12} />}
+											iconLeft={
+												<IconSolidEyeOff size={12} />
+											}
 											onClick={() => {
 												setSearchParams({
 													...EmptySessionsSearchParams,
@@ -184,7 +186,9 @@ export const SessionFeedCard = React.memo(
 											emphasis="low"
 											size="small"
 											iconLeft={
-												<IconUserCircle size={12} />
+												<IconSolidUserCircle
+													size={12}
+												/>
 											}
 											onClick={() => {
 												setSearchParams({
@@ -201,7 +205,7 @@ export const SessionFeedCard = React.memo(
 											emphasis="low"
 											size="small"
 											iconLeft={
-												<IconExclamationTriangle
+												<IconSolidExclamation
 													size={12}
 												/>
 											}
@@ -214,7 +218,9 @@ export const SessionFeedCard = React.memo(
 											emphasis="low"
 											size="small"
 											iconLeft={
-												<IconCursorClick size={12} />
+												<IconSolidCursorClick
+													size={12}
+												/>
 											}
 										/>
 									)}

@@ -1,6 +1,7 @@
+import { Button } from '@components/Button'
 import Select from '@components/Select/Select'
 import Switch from '@components/Switch/Switch'
-import { Box, Button, IconDotsHorizontal, Menu, Text } from '@highlight-run/ui'
+import { Box, IconSolidDotsHorizontal, Menu, Text } from '@highlight-run/ui'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import DeleteSessionsModal from '@pages/Sessions/SessionsFeedV2/components/DeleteSessionsModal/DeleteSessionsModal'
 import {
@@ -48,7 +49,7 @@ export const DropdownMenu = function ({
 				kind="secondary"
 				size="small"
 				emphasis="low"
-				iconRight={<IconDotsHorizontal size={14} />}
+				iconRight={<IconSolidDotsHorizontal size={14} />}
 				onClick={() => {
 					setOpen(!open)
 				}}
@@ -159,6 +160,7 @@ export const DropdownMenu = function ({
 							kind="danger"
 							disabled={!canDelete}
 							onClick={() => setShowModal(true)}
+							trackingId="sessionFeedDeleteSessions"
 						>
 							<span className="w-full">
 								Delete {sessionCount} Session

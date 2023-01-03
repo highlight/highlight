@@ -45,21 +45,21 @@ export const variants = recipe({
 			blue: sprinkles({
 				background: 'lb100',
 			}),
-			gray: sprinkles({
+			gray: {
 				background: vars.theme.static.content.weak,
-			}),
-			red: sprinkles({
+			},
+			red: {
 				background: vars.theme.static.surface.sentiment.bad,
 				color: vars.theme.static.content.sentiment.bad,
-			}),
-			yellow: sprinkles({
+			},
+			yellow: {
 				background: vars.theme.static.surface.sentiment.caution,
 				color: vars.theme.static.content.sentiment.caution,
-			}),
-			purple: sprinkles({
+			},
+			purple: {
 				background: vars.theme.static.surface.sentiment.informative,
 				color: vars.theme.static.content.sentiment.informative,
-			}),
+			},
 		},
 	},
 

@@ -1,9 +1,9 @@
 import { useGetSessionCommentsQuery } from '@graph/hooks'
 import {
 	Badge,
-	IconChatAlt2,
-	IconFire,
-	IconHashtag,
+	IconSolidChatAlt_2,
+	IconSolidFire,
+	IconSolidHashtag,
 	Tabs,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
@@ -94,7 +94,7 @@ const RightPlayerPanelTabs = React.memo(() => {
 				[Tab.Events]: {
 					page: <EventStream />,
 					icon: (
-						<IconFire
+						<IconSolidFire
 							color={tab === Tab.Events ? colors.p9 : undefined}
 						/>
 					),
@@ -108,7 +108,7 @@ const RightPlayerPanelTabs = React.memo(() => {
 						/>
 					),
 					icon: (
-						<IconChatAlt2
+						<IconSolidChatAlt_2
 							color={tab === Tab.Threads ? colors.p9 : undefined}
 						/>
 					),
@@ -133,7 +133,7 @@ const RightPlayerPanelTabs = React.memo(() => {
 				[Tab.Metadata]: {
 					page: <MetadataPanel />,
 					icon: (
-						<IconHashtag
+						<IconSolidHashtag
 							color={tab === Tab.Metadata ? colors.p9 : undefined}
 						/>
 					),

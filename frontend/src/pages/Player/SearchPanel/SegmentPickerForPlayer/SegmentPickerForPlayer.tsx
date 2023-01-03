@@ -4,7 +4,7 @@ import { message, Select as AntDesignSelect } from 'antd'
 import classNames from 'classnames'
 const { Option } = AntDesignSelect
 import { useEditSegmentMutation, useGetSegmentsQuery } from '@graph/hooks'
-import { Box, ButtonIcon, IconLogout } from '@highlight-run/ui/src'
+import { Box, ButtonIcon, IconSolidLogout } from '@highlight-run/ui'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
@@ -281,7 +281,7 @@ const SegmentPickerForPlayer = () => {
 					size="medium"
 					shape="square"
 					emphasis="medium"
-					icon={<IconLogout size={14} />}
+					icon={<IconSolidLogout size={14} />}
 					onClick={() => setShowLeftPanel(false)}
 				/>
 			</Box>

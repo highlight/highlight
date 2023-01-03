@@ -17,8 +17,8 @@ import {
 import {
 	Box,
 	ButtonIcon,
-	IconExternalLink,
-	IconMenuAlt3,
+	IconSolidExternalLink,
+	IconSolidMenuAlt_3,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
@@ -172,7 +172,7 @@ export const MetadataBox = React.memo(() => {
 						emphasis="low"
 						shape="square"
 						size="small"
-						icon={<IconMenuAlt3 />}
+						icon={<IconSolidMenuAlt_3 />}
 						onClick={() => {
 							setShowRightPanel(false)
 						}}
@@ -223,7 +223,7 @@ export const MetadataBox = React.memo(() => {
 					<Tag
 						kind="secondary"
 						size="medium"
-						iconRight={<IconExternalLink />}
+						iconRight={<IconSolidExternalLink />}
 						onClick={searchIdentifier}
 						cssClass={style.moreSessionsTag}
 					>

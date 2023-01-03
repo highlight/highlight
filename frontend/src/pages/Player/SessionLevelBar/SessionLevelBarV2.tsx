@@ -4,15 +4,15 @@ import { useGetSessionsOpenSearchQuery } from '@graph/hooks'
 import {
 	Box,
 	ButtonIcon,
-	IconChatAlt2,
-	IconChevronDown,
-	IconChevronUp,
-	IconDocumentDuplicate,
-	IconExitRight,
-	IconLockClosed,
-	IconLockOpened,
-	IconMenuAlt3,
-	IconTemplate,
+	IconSolidChatAlt_2,
+	IconSolidCheveronDown,
+	IconSolidCheveronUp,
+	IconSolidDocumentDuplicate,
+	IconSolidExitRight,
+	IconSolidLockClosed,
+	IconSolidLockOpen,
+	IconSolidMenuAlt_3,
+	IconSolidTemplate,
 	SwitchButton,
 	Text,
 	TextLink,
@@ -153,7 +153,10 @@ export const SessionLevelBarV2: React.FC<
 							shape="square"
 							emphasis="medium"
 							icon={
-								<IconExitRight size={14} color={colors.n11} />
+								<IconSolidExitRight
+									size={14}
+									color={colors.n11}
+								/>
 							}
 							onClick={() => setShowLeftPanel(true)}
 							className={styles.openLeftPanelButton}
@@ -175,7 +178,10 @@ export const SessionLevelBarV2: React.FC<
 							shape="square"
 							emphasis="low"
 							icon={
-								<IconChevronUp size={14} color={colors.n11} />
+								<IconSolidCheveronUp
+									size={14}
+									color={colors.n11}
+								/>
 							}
 							title="k"
 							cssClass={styles.sessionSwitchButton}
@@ -196,7 +202,10 @@ export const SessionLevelBarV2: React.FC<
 							shape="square"
 							emphasis="low"
 							icon={
-								<IconChevronDown size={14} color={colors.n11} />
+								<IconSolidCheveronDown
+									size={14}
+									color={colors.n11}
+								/>
 							}
 							title="j"
 							cssClass={styles.sessionSwitchButton}
@@ -232,23 +241,23 @@ export const SessionLevelBarV2: React.FC<
 								}
 							}}
 						>
-							<IconDocumentDuplicate color={colors.n9} />
+							<IconSolidDocumentDuplicate color={colors.n9} />
 						</Box>
 					)}
 				</Box>
 				{session && (
 					<Box className={styles.rightButtons}>
 						<Box display="flex" align="center" gap="2">
-							<IconTemplate color={colors.n9} />
+							<IconSolidTemplate color={colors.n9} />
 							<Text size="medium" color="n11" userSelect="none">
 								{viewport?.width} x {viewport?.height}
 							</Text>
 						</Box>
 						<Box display="flex" align="center" gap="2">
 							{session?.enable_strict_privacy ? (
-								<IconLockClosed color={colors.n9} />
+								<IconSolidLockClosed color={colors.n9} />
 							) : (
-								<IconLockOpened color={colors.n9} />
+								<IconSolidLockOpen color={colors.n9} />
 							)}
 							<Text size="medium" color="n11" userSelect="none">
 								Privacy{' '}
@@ -284,7 +293,7 @@ export const SessionLevelBarV2: React.FC<
 										showRightPanel &&
 										selectedRightPanelTab === 'Comments'
 									}
-									iconLeft={<IconChatAlt2 size={14} />}
+									iconLeft={<IconSolidChatAlt_2 size={14} />}
 								/>
 							</ExplanatoryPopover>
 							{!showRightPanel && (
@@ -298,7 +307,7 @@ export const SessionLevelBarV2: React.FC<
 											? styles.rightPanelButtonShown
 											: styles.rightPanelButtonHidden
 									}
-									icon={<IconMenuAlt3 />}
+									icon={<IconSolidMenuAlt_3 />}
 									onClick={() => {
 										setShowRightPanel(!showRightPanel)
 									}}

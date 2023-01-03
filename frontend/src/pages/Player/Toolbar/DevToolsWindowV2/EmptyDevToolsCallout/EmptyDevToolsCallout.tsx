@@ -1,9 +1,9 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { Button } from '@components/Button'
 import {
 	Box,
-	Button,
 	Callout,
-	IconCubeTransparent,
+	IconSolidCubeTransparent,
 	Stack,
 	Text,
 } from '@highlight-run/ui'
@@ -52,7 +52,7 @@ export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
 							width: 22,
 						}}
 					>
-						<IconCubeTransparent size={14} color="#777777" />
+						<IconSolidCubeTransparent size={14} color="#777777" />
 					</Box>
 				)}
 			>
@@ -99,6 +99,7 @@ export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
 					<Button
 						kind="secondary"
 						onClick={() => showIntercom({ admin })}
+						trackingId="emptyDevToolsShowIntercom"
 					>
 						Contact
 					</Button>
@@ -113,6 +114,7 @@ export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
 								'_blank',
 							)
 						}}
+						trackingId="emptyDevToolsLearnMore"
 					>
 						Learn more
 					</Button>

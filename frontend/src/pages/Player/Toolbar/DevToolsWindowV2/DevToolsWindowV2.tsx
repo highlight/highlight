@@ -1,9 +1,9 @@
+import { Button } from '@components/Button'
 import {
 	Box,
-	Button,
 	Form,
-	IconSearch,
-	IconSwitchHorizontal,
+	IconSolidSearch,
+	IconSolidSwitchHorizontal,
 	MenuButton,
 	Tabs,
 } from '@highlight-run/ui'
@@ -151,7 +151,7 @@ const DevToolsWindowV2: React.FC<
 															)
 														}}
 													>
-														<IconSearch
+														<IconSolidSearch
 															color={colors.n8}
 															size={16}
 														/>
@@ -225,7 +225,7 @@ const DevToolsWindowV2: React.FC<
 											size="xSmall"
 											cssClass={styles.autoScroll}
 											iconRight={
-												<IconSwitchHorizontal
+												<IconSolidSwitchHorizontal
 													width={12}
 													height={12}
 													className={
@@ -241,6 +241,7 @@ const DevToolsWindowV2: React.FC<
 											onClick={() => {
 												setAutoScroll(!autoScroll)
 											}}
+											trackingId="devToolsAutoScroll"
 										>
 											Auto scroll
 										</Button>
