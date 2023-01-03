@@ -530,6 +530,27 @@ export type Field = {
 	value: Scalars['String']
 }
 
+export type HeightList = {
+	__typename?: 'HeightList'
+	id: Scalars['String']
+	name: Scalars['String']
+	type: Scalars['String']
+}
+
+export type HeightTask = {
+	__typename?: 'HeightTask'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
+export type HeightWorkspace = {
+	__typename?: 'HeightWorkspace'
+	id: Scalars['String']
+	model: Scalars['String']
+	name: Scalars['String']
+	url: Scalars['String']
+}
+
 export type HistogramBucket = {
 	__typename?: 'HistogramBucket'
 	bucket: Scalars['Float']
@@ -556,10 +577,22 @@ export type HistogramPayload = {
 	min: Scalars['Float']
 }
 
+export type IntegrationProjectMapping = {
+	__typename?: 'IntegrationProjectMapping'
+	external_id: Scalars['String']
+	project_id: Scalars['ID']
+}
+
+export type IntegrationProjectMappingInput = {
+	external_id: Scalars['String']
+	project_id: Scalars['ID']
+}
+
 export enum IntegrationType {
 	ClickUp = 'ClickUp',
 	Discord = 'Discord',
 	Front = 'Front',
+	Height = 'Height',
 	Linear = 'Linear',
 	Slack = 'Slack',
 	Vercel = 'Vercel',
@@ -725,6 +758,7 @@ export type Mutation = {
 	updateErrorAlertIsDisabled?: Maybe<ErrorAlert>
 	updateErrorGroupIsPublic?: Maybe<ErrorGroup>
 	updateErrorGroupState?: Maybe<ErrorGroup>
+	updateIntegrationProjectMappings: Scalars['Boolean']
 	updateMetricMonitor?: Maybe<MetricMonitor>
 	updateMetricMonitorIsDisabled?: Maybe<MetricMonitor>
 	updateSessionAlert?: Maybe<SessionAlert>
@@ -1008,7 +1042,7 @@ export type MutationRemoveIntegrationFromProjectArgs = {
 }
 
 export type MutationRemoveIntegrationFromWorkspaceArgs = {
-	integration_type?: InputMaybe<IntegrationType>
+	integration_type: IntegrationType
 	workspace_id: Scalars['ID']
 }
 
@@ -1119,6 +1153,12 @@ export type MutationUpdateErrorGroupIsPublicArgs = {
 export type MutationUpdateErrorGroupStateArgs = {
 	secure_id: Scalars['String']
 	state: Scalars['String']
+}
+
+export type MutationUpdateIntegrationProjectMappingsArgs = {
+	integration_type: IntegrationType
+	project_mappings: Array<IntegrationProjectMappingInput>
+	workspace_id: Scalars['ID']
 }
 
 export type MutationUpdateMetricMonitorArgs = {
@@ -1298,7 +1338,10 @@ export type Query = {
 	fields_opensearch: Array<Scalars['String']>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
+	height_lists: Array<HeightList>
+	height_workspaces: Array<HeightWorkspace>
 	identifier_suggestion: Array<Scalars['String']>
+	integration_project_mappings: Array<IntegrationProjectMapping>
 	isBackendIntegrated?: Maybe<Scalars['Boolean']>
 	isIntegrated?: Maybe<Scalars['Boolean']>
 	isSessionPending?: Maybe<Scalars['Boolean']>
@@ -1570,9 +1613,22 @@ export type QueryGet_Source_Map_Upload_UrlsArgs = {
 	paths: Array<Scalars['String']>
 }
 
+export type QueryHeight_ListsArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryHeight_WorkspacesArgs = {
+	workspace_id: Scalars['ID']
+}
+
 export type QueryIdentifier_SuggestionArgs = {
 	project_id: Scalars['ID']
 	query: Scalars['String']
+}
+
+export type QueryIntegration_Project_MappingsArgs = {
+	integration_type?: InputMaybe<IntegrationType>
+	workspace_id: Scalars['ID']
 }
 
 export type QueryIsBackendIntegratedArgs = {

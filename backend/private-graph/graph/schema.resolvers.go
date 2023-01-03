@@ -30,6 +30,7 @@ import (
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
+	"github.com/highlight-run/highlight/backend/integrations/height"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -1294,6 +1295,9 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			IntegrationType:  *s,
 			SessionCommentID: sessionComment.ID,
 		}
+		desc := *issueDescription
+		desc += "\n"
+		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink, issueTeamID); err != nil {
@@ -1302,11 +1306,14 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			desc := *issueDescription
-			desc += "\n"
-			desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeHeight {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Height task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -1356,6 +1363,10 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 			SessionCommentID: sessionComment.ID,
 		}
 
+		desc := *issueDescription
+		desc += "\n"
+		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
+
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating linear ticket or workspace")
@@ -1368,6 +1379,12 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 			desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeHeight {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Height task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -1625,6 +1642,10 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			ErrorCommentID:  errorComment.ID,
 		}
 
+		desc := *issueDescription
+		desc += "\n"
+		desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
+
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(
 				workspace,
@@ -1641,9 +1662,6 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			desc := *issueDescription
-			desc += "\n"
-			desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 			if err := r.CreateClickUpTaskAndAttachment(
 				workspace,
 				attachment,
@@ -1652,6 +1670,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 				issueTeamID,
 			); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeHeight {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Height task")
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
@@ -1737,6 +1761,9 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 			IntegrationType: *s,
 			ErrorCommentID:  errorComment.ID,
 		}
+		desc := *issueDescription
+		desc += "\n"
+		desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(
@@ -1762,6 +1789,12 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 				issueTeamID,
 			); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeHeight {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, errorComment.Text, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Height task")
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
@@ -1929,11 +1962,12 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeClickUp {
+		// TODO - see if we can remove this code path
 		if err := r.AddClickUpToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
 	} else {
-		return false, e.New("invalid integrationType")
+		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
 
 	return true, nil
@@ -1976,7 +2010,7 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 			return false, err
 		}
 	} else {
-		return false, e.New("invalid integrationType")
+		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
 
 	return true, nil
@@ -1993,26 +2027,34 @@ func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integr
 		if err := r.AddClickUpToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeHeight {
+		if err := r.AddHeightToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
+
 	} else {
-		return false, e.New("invalid integrationType")
+		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
 
 	return true, nil
 }
 
 // RemoveIntegrationFromWorkspace is the resolver for the removeIntegrationFromWorkspace field.
-func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, integrationType *modelInputs.IntegrationType, workspaceID int) (bool, error) {
+func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, integrationType modelInputs.IntegrationType, workspaceID int) (bool, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return false, err
 	}
 
-	if *integrationType == modelInputs.IntegrationTypeClickUp {
+	if integrationType == modelInputs.IntegrationTypeClickUp {
 		if err := r.RemoveClickUpFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else {
-		return false, e.New("invalid integrationType")
+		if err := r.RemoveIntegrationFromWorkspaceAndProjects(workspace, integrationType); err != nil {
+			return false, err
+		}
+
 	}
 
 	return true, nil
@@ -3068,6 +3110,54 @@ func (r *mutationResolver) UpdateClickUpProjectMappings(ctx context.Context, wor
 			AND ipm.project_id = p.id
 		)
 	`, modelInputs.IntegrationTypeClickUp, workspaceID).Error; err != nil {
+		return false, err
+	}
+
+	if len(projectMappings) == 0 {
+		return true, nil
+	}
+
+	if err := r.DB.Create(configs).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// UpdateIntegrationProjectMappings is the resolver for the updateIntegrationProjectMappings field.
+func (r *mutationResolver) UpdateIntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType modelInputs.IntegrationType, projectMappings []*modelInputs.IntegrationProjectMappingInput) (bool, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return false, err
+	}
+
+	workspaceMapping := &model.IntegrationWorkspaceMapping{}
+	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: integrationType,
+	}).First(&workspaceMapping).Error; err != nil {
+		return false, e.Wrap(err, fmt.Sprintf("workspace does not have a %s integration", integrationType))
+	}
+
+	configs := []*model.IntegrationProjectMapping{}
+	for _, m := range projectMappings {
+		configs = append(configs, &model.IntegrationProjectMapping{
+			IntegrationType: integrationType,
+			ProjectID:       m.ProjectID,
+			ExternalID:      m.ExternalID,
+		})
+	}
+
+	if err := r.DB.Exec(`
+		DELETE FROM integration_project_mappings ipm
+		WHERE ipm.integration_type = ?
+		AND EXISTS (
+			SELECT *
+			FROM projects p
+			WHERE p.workspace_id = ?
+			AND ipm.project_id = p.id
+		)
+	`, integrationType, workspaceID).Error; err != nil {
 		return false, err
 	}
 
@@ -5243,7 +5333,7 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.DiscordGuildId != nil, nil
 	}
 
-	return false, e.New("invalid integrationType")
+	return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 }
 
 // IsWorkspaceIntegratedWith is the resolver for the is_workspace_integrated_with field.
@@ -5255,9 +5345,21 @@ func (r *queryResolver) IsWorkspaceIntegratedWith(ctx context.Context, integrati
 
 	if integrationType == modelInputs.IntegrationTypeClickUp {
 		return workspace.ClickupAccessToken != nil, nil
+	} else {
+		workspaceMapping := &model.IntegrationWorkspaceMapping{}
+		if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
+			WorkspaceID:     workspace.ID,
+			IntegrationType: integrationType,
+		}).First(&workspaceMapping).Error; err != nil {
+			return false, err
+		}
+
+		if workspaceMapping == nil {
+			return false, nil
+		}
 	}
 
-	return false, e.New("invalid integrationType")
+	return true, nil
 }
 
 // VercelProjects is the resolver for the vercel_projects field.
@@ -5423,6 +5525,71 @@ func (r *queryResolver) ClickupFolderlessLists(ctx context.Context, projectID in
 	}
 
 	return clickup.GetFolderlessLists(*workspace.ClickupAccessToken, settings.ExternalID)
+}
+
+// HeightLists is the resolver for the height_lists field.
+func (r *queryResolver) HeightLists(ctx context.Context, projectID int) ([]*modelInputs.HeightList, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeHeight)
+
+	if err != nil {
+		return nil, err
+	}
+
+	lists, err := height.GetLists(*accessToken)
+
+	return lists, err
+}
+
+// HeightWorkspaces is the resolver for the height_workspaces field.
+func (r *queryResolver) HeightWorkspaces(ctx context.Context, workspaceID int) ([]*modelInputs.HeightWorkspace, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeHeight)
+
+	if err != nil {
+		return nil, err
+	}
+
+	workspaces, err := height.GetWorkspaces(*accessToken)
+
+	return workspaces, err
+}
+
+// IntegrationProjectMappings is the resolver for the integration_project_mappings field.
+func (r *queryResolver) IntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType *modelInputs.IntegrationType) ([]*model.IntegrationProjectMapping, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	rows := []*model.IntegrationProjectMapping{}
+	if err := r.DB.Raw(`
+		SELECT * FROM integration_project_mappings ipm
+		WHERE ipm.integration_type = ?
+		AND EXISTS (
+			SELECT *
+			FROM projects p
+			WHERE p.workspace_id = ?
+			AND ipm.project_id = p.id
+		)
+	`, integrationType, workspaceID).Find(&rows).Error; err != nil {
+		return nil, err
+	}
+
+	return rows, nil
 }
 
 // LinearTeams is the resolver for the linear_teams field.

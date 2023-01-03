@@ -870,7 +870,7 @@ export type AddIntegrationToWorkspaceMutationOptions =
 	>
 export const RemoveIntegrationFromWorkspaceDocument = gql`
 	mutation RemoveIntegrationFromWorkspace(
-		$integration_type: IntegrationType
+		$integration_type: IntegrationType!
 		$workspace_id: ID!
 	) {
 		removeIntegrationFromWorkspace(
@@ -3958,6 +3958,65 @@ export type UpdateClickUpSettingsMutationOptions = Apollo.BaseMutationOptions<
 	Types.UpdateClickUpSettingsMutation,
 	Types.UpdateClickUpSettingsMutationVariables
 >
+export const UpdateIntegrationProjectSettingsDocument = gql`
+	mutation UpdateIntegrationProjectSettings(
+		$workspace_id: ID!
+		$integration_type: IntegrationType!
+		$project_mappings: [IntegrationProjectMappingInput!]!
+	) {
+		updateIntegrationProjectMappings(
+			workspace_id: $workspace_id
+			integration_type: $integration_type
+			project_mappings: $project_mappings
+		)
+	}
+`
+export type UpdateIntegrationProjectSettingsMutationFn =
+	Apollo.MutationFunction<
+		Types.UpdateIntegrationProjectSettingsMutation,
+		Types.UpdateIntegrationProjectSettingsMutationVariables
+	>
+
+/**
+ * __useUpdateIntegrationProjectSettingsMutation__
+ *
+ * To run a mutation, you first call `useUpdateIntegrationProjectSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateIntegrationProjectSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateIntegrationProjectSettingsMutation, { data, loading, error }] = useUpdateIntegrationProjectSettingsMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      integration_type: // value for 'integration_type'
+ *      project_mappings: // value for 'project_mappings'
+ *   },
+ * });
+ */
+export function useUpdateIntegrationProjectSettingsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpdateIntegrationProjectSettingsMutation,
+		Types.UpdateIntegrationProjectSettingsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpdateIntegrationProjectSettingsMutation,
+		Types.UpdateIntegrationProjectSettingsMutationVariables
+	>(UpdateIntegrationProjectSettingsDocument, baseOptions)
+}
+export type UpdateIntegrationProjectSettingsMutationHookResult = ReturnType<
+	typeof useUpdateIntegrationProjectSettingsMutation
+>
+export type UpdateIntegrationProjectSettingsMutationResult =
+	Apollo.MutationResult<Types.UpdateIntegrationProjectSettingsMutation>
+export type UpdateIntegrationProjectSettingsMutationOptions =
+	Apollo.BaseMutationOptions<
+		Types.UpdateIntegrationProjectSettingsMutation,
+		Types.UpdateIntegrationProjectSettingsMutationVariables
+	>
 export const UpdateEmailOptOutDocument = gql`
 	mutation UpdateEmailOptOut(
 		$token: String
@@ -9666,6 +9725,76 @@ export type GetClickUpIntegrationSettingsQueryResult = Apollo.QueryResult<
 	Types.GetClickUpIntegrationSettingsQuery,
 	Types.GetClickUpIntegrationSettingsQueryVariables
 >
+export const GetHeightIntegrationSettingsDocument = gql`
+	query GetHeightIntegrationSettings($workspace_id: ID!) {
+		is_integrated: is_workspace_integrated_with(
+			integration_type: Height
+			workspace_id: $workspace_id
+		)
+		height_workspaces(workspace_id: $workspace_id) {
+			id
+			model
+			name
+			url
+		}
+		integration_project_mappings(
+			workspace_id: $workspace_id
+			integration_type: Height
+		) {
+			project_id
+			external_id
+		}
+	}
+`
+
+/**
+ * __useGetHeightIntegrationSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetHeightIntegrationSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetHeightIntegrationSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetHeightIntegrationSettingsQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetHeightIntegrationSettingsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetHeightIntegrationSettingsQuery,
+		Types.GetHeightIntegrationSettingsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetHeightIntegrationSettingsQuery,
+		Types.GetHeightIntegrationSettingsQueryVariables
+	>(GetHeightIntegrationSettingsDocument, baseOptions)
+}
+export function useGetHeightIntegrationSettingsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetHeightIntegrationSettingsQuery,
+		Types.GetHeightIntegrationSettingsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetHeightIntegrationSettingsQuery,
+		Types.GetHeightIntegrationSettingsQueryVariables
+	>(GetHeightIntegrationSettingsDocument, baseOptions)
+}
+export type GetHeightIntegrationSettingsQueryHookResult = ReturnType<
+	typeof useGetHeightIntegrationSettingsQuery
+>
+export type GetHeightIntegrationSettingsLazyQueryHookResult = ReturnType<
+	typeof useGetHeightIntegrationSettingsLazyQuery
+>
+export type GetHeightIntegrationSettingsQueryResult = Apollo.QueryResult<
+	Types.GetHeightIntegrationSettingsQuery,
+	Types.GetHeightIntegrationSettingsQueryVariables
+>
 export const GetClickUpFoldersDocument = gql`
 	query GetClickUpFolders($project_id: ID!) {
 		clickup_folders(project_id: $project_id) {
@@ -9730,6 +9859,63 @@ export type GetClickUpFoldersLazyQueryHookResult = ReturnType<
 export type GetClickUpFoldersQueryResult = Apollo.QueryResult<
 	Types.GetClickUpFoldersQuery,
 	Types.GetClickUpFoldersQueryVariables
+>
+export const GetHeightListsDocument = gql`
+	query GetHeightLists($project_id: ID!) {
+		height_lists(project_id: $project_id) {
+			id
+			name
+		}
+	}
+`
+
+/**
+ * __useGetHeightListsQuery__
+ *
+ * To run a query within a React component, call `useGetHeightListsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetHeightListsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetHeightListsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetHeightListsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetHeightListsQuery,
+		Types.GetHeightListsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetHeightListsQuery,
+		Types.GetHeightListsQueryVariables
+	>(GetHeightListsDocument, baseOptions)
+}
+export function useGetHeightListsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetHeightListsQuery,
+		Types.GetHeightListsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetHeightListsQuery,
+		Types.GetHeightListsQueryVariables
+	>(GetHeightListsDocument, baseOptions)
+}
+export type GetHeightListsQueryHookResult = ReturnType<
+	typeof useGetHeightListsQuery
+>
+export type GetHeightListsLazyQueryHookResult = ReturnType<
+	typeof useGetHeightListsLazyQuery
+>
+export type GetHeightListsQueryResult = Apollo.QueryResult<
+	Types.GetHeightListsQuery,
+	Types.GetHeightListsQueryVariables
 >
 export const GenerateNewZapierAccessTokenJwtDocument = gql`
 	query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
