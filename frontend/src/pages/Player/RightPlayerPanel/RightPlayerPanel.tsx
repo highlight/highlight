@@ -7,7 +7,7 @@ import {
 	Tabs,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import EventStream from '@pages/Player/components/EventStream/EventStream'
+import EventStreamV2 from '@pages/Player/components/EventStreamV2/EventStreamV2'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
@@ -92,7 +92,7 @@ const RightPlayerPanelTabs = React.memo(() => {
 			onChange={setTab}
 			pages={{
 				[Tab.Events]: {
-					page: <EventStream />,
+					page: <EventStreamV2 />,
 					icon: (
 						<IconSolidFire
 							color={tab === Tab.Events ? colors.p9 : undefined}

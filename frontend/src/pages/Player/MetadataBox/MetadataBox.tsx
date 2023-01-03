@@ -257,6 +257,7 @@ const TableList = function ({
 							onClick={() => copyToClipboard(v)}
 						>
 							<Text
+								display="flex"
 								size="xSmall"
 								cssClass={style.sessionAttributeText}
 								lines={lines ? lines[k] : undefined}
@@ -264,6 +265,7 @@ const TableList = function ({
 								{k}
 							</Text>
 							<Text
+								display="flex"
 								size="xSmall"
 								cssClass={clsx(
 									style.sessionAttributeText,
@@ -384,7 +386,7 @@ export const UserDetailsBox = ({
 					),
 				}}
 			/>
-			<Box paddingTop="8">
+			<Box>
 				<InfoTooltip
 					title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is enabled via the Clearbit Integration for the Startup plan and above.`}
 					size="medium"
