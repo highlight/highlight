@@ -1,5 +1,6 @@
 import { Avatar } from '@components/Avatar/Avatar'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
+import { TableList } from '@components/TableList/TableList'
 import Tooltip from '@components/Tooltip/Tooltip'
 import {
 	useGetEnhancedUserDetailsQuery,
@@ -22,7 +23,6 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
-import { Props as TruncateProps } from '@highlight-run/ui/src/components/private/Truncate/Truncate'
 import UserCross from '@icons/UserCross'
 import { PaywallTooltip } from '@pages/Billing/PaywallTooltip/PaywallTooltip'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -106,7 +106,7 @@ export const MetadataBox = React.memo(() => {
 	])
 
 	return (
-		<Box display="flex" flexDirection="column">
+		<Box display="flex" flexDirection="column" style={{ width: 300 }}>
 			<Box
 				display="flex"
 				alignItems="center"
@@ -145,10 +145,7 @@ export const MetadataBox = React.memo(() => {
 								)
 							}}
 						>
-							<Tag
-								kind="secondary"
-								cssClass={style.moreSessionsTag}
-							>
+							<Tag kind="secondary" emphasis="low" size="small">
 								<Box display="flex" alignItems="center">
 									<Tooltip
 										placement="leftTop"
@@ -172,6 +169,14 @@ export const MetadataBox = React.memo(() => {
 						emphasis="low"
 						shape="square"
 						size="small"
+						icon={<IconSolidExternalLink />}
+						onClick={searchIdentifier}
+					/>
+					<ButtonIcon
+						kind="secondary"
+						emphasis="low"
+						shape="square"
+						size="small"
 						icon={<IconSolidMenuAlt_3 />}
 						onClick={() => {
 							setShowRightPanel(false)
@@ -183,103 +188,68 @@ export const MetadataBox = React.memo(() => {
 				borderTop="secondary"
 				display="flex"
 				flexDirection="column"
-				padding="8"
+				padding="12"
+				paddingBottom="6"
 				gap="4"
 			>
 				<TableList
-					items={{
-						Email: displayValue,
-						UserID: session?.fingerprint?.toString(),
-						Browser:
-							session?.browser_name && session?.browser_version
-								? `${session.browser_name} ${getMajorVersion(
-										session.browser_version,
-								  )}`
-								: undefined,
-						OS:
-							session?.os_name && session?.os_version
-								? `${session.os_name} ${getMajorVersion(
-										session.os_version,
-								  )}`
-								: undefined,
-						Location: geoData,
-						Time: created.toLocaleString('en-us', {
-							hour: '2-digit',
-							minute: '2-digit',
-							timeZoneName: 'short',
-							day: 'numeric',
-							month: 'short',
-							weekday: 'long',
-							year:
-								created.getFullYear() !==
-								new Date().getFullYear()
-									? 'numeric'
+					data={[
+						{
+							keyDisplayValue: 'Email',
+							valueDisplayValue: displayValue,
+						},
+						{
+							keyDisplayValue: 'UserID',
+							valueDisplayValue: session?.fingerprint?.toString(),
+						},
+						{
+							keyDisplayValue: 'Browser',
+							valueDisplayValue:
+								session?.browser_name &&
+								session?.browser_version
+									? `${
+											session.browser_name
+									  } ${getMajorVersion(
+											session.browser_version,
+									  )}`
 									: undefined,
-						}),
-					}}
+						},
+						{
+							keyDisplayValue: 'OS',
+							valueDisplayValue:
+								session?.os_name && session?.os_version
+									? `${session.os_name} ${getMajorVersion(
+											session.os_version,
+									  )}`
+									: undefined,
+						},
+						{
+							keyDisplayValue: 'Location',
+							valueDisplayValue: geoData,
+						},
+						{
+							keyDisplayValue: 'Time',
+							valueDisplayValue: created.toLocaleString('en-us', {
+								hour: '2-digit',
+								minute: '2-digit',
+								timeZoneName: 'short',
+								day: 'numeric',
+								month: 'short',
+								weekday: 'long',
+								year:
+									created.getFullYear() !==
+									new Date().getFullYear()
+										? 'numeric'
+										: undefined,
+							}),
+						},
+					]}
 				/>
 				<UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
-				<Box display="flex" alignItems="center" py="8">
-					<Tag
-						kind="secondary"
-						size="medium"
-						iconRight={<IconSolidExternalLink />}
-						onClick={searchIdentifier}
-						cssClass={style.moreSessionsTag}
-					>
-						<Box>
-							<Text cssClass={style.defaultText}>
-								Show more sessions
-							</Text>
-						</Box>
-					</Tag>
-				</Box>
 			</Box>
 		</Box>
 	)
 })
-
-const TableList = function ({
-	items,
-	lines,
-}: {
-	items: { [_: string]: any }
-	lines?: { [_: string]: TruncateProps['lines'] }
-}) {
-	return (
-		<Box display="flex" flexDirection="column" gap="4" width="full">
-			{Object.entries(items).map(
-				([k, v]) =>
-					v && (
-						<Box
-							key={k}
-							className={style.sessionAttributeRow}
-							onClick={() => copyToClipboard(v)}
-						>
-							<Text
-								display="flex"
-								size="xSmall"
-								cssClass={style.sessionAttributeText}
-								lines={lines ? lines[k] : undefined}
-							>
-								{k}
-							</Text>
-							<Text
-								display="flex"
-								size="xSmall"
-								cssClass={clsx(
-									style.sessionAttributeText,
-									style.secondaryText,
-								)}
-							>
-								{v}
-							</Text>
-						</Box>
-					),
-			)}
-		</Box>
-	)
-}
 
 export const UserDetailsBox = ({
 	setEnhancedAvatar,
@@ -362,29 +332,44 @@ export const UserDetailsBox = ({
 	return (
 		<Box display="flex" width="full">
 			<TableList
-				lines={{ Bio: '3' }}
-				items={{
-					Name: data?.enhanced_user_details?.name,
-					Email: data?.enhanced_user_details?.email,
-					Bio: data?.enhanced_user_details?.bio,
-					Socials: (
-						<Box
-							display="flex"
-							gap="8"
-							style={{ overflowY: 'hidden', overflowX: 'auto' }}
-						>
-							{data?.enhanced_user_details?.socials?.map(
-								(e: any) =>
-									e && (
-										<SocialComponent
-											socialLink={e}
-											key={e.type}
-										/>
-									),
-							)}
-						</Box>
-					),
-				}}
+				data={[
+					{
+						keyDisplayValue: 'Name',
+						valueDisplayValue: data?.enhanced_user_details?.name,
+					},
+					{
+						keyDisplayValue: 'Email',
+						valueDisplayValue: data?.enhanced_user_details?.email,
+					},
+					{
+						keyDisplayValue: 'Bio',
+						valueDisplayValue: data?.enhanced_user_details?.bio,
+						lines: '3',
+					},
+					{
+						keyDisplayValue: 'Socials',
+						valueDisplayValue: (
+							<Box
+								display="flex"
+								gap="8"
+								style={{
+									overflowY: 'hidden',
+									overflowX: 'auto',
+								}}
+							>
+								{data?.enhanced_user_details?.socials?.map(
+									(e: any) =>
+										e && (
+											<SocialComponent
+												socialLink={e}
+												key={e.type}
+											/>
+										),
+								)}
+							</Box>
+						),
+					},
+				]}
 			/>
 			<Box>
 				<InfoTooltip

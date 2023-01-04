@@ -1,9 +1,9 @@
+import { Box, IconSolidInformationCircle, vars } from '@highlight-run/ui'
 import { Tooltip } from 'antd'
 import { TooltipPropsWithTitle } from 'antd/lib/tooltip'
 import classNames from 'classnames'
 import React from 'react'
 
-import SvgInformationIcon from '../../static/InformationIcon'
 import styles from './InfoTooltip.module.scss'
 
 type Props = Pick<
@@ -33,13 +33,16 @@ const InfoTooltip = ({
 			})}
 			mouseEnterDelay={0}
 		>
-			<SvgInformationIcon
-				onClick={onClick}
-				className={classNames(styles.icon, {
-					[styles.medium]: size === 'medium',
-					[styles.large]: size === 'large',
-				})}
-			/>
+			<Box style={{ height: 12, width: 12 }}>
+				<IconSolidInformationCircle
+					onClick={onClick}
+					color={vars.theme.interactive.fill.secondary.content.text}
+					className={classNames(styles.icon, {
+						[styles.medium]: size === 'medium',
+						[styles.large]: size === 'large',
+					})}
+				/>
+			</Box>
 		</Tooltip>
 	)
 }
