@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/andybalholm/brotli"
 	"github.com/highlight-run/highlight/backend/oauth"
 
 	"github.com/highlight-run/go-resthooks"
@@ -56,7 +57,6 @@ import (
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	storage "github.com/highlight-run/highlight/backend/storage"
 	log "github.com/sirupsen/logrus"
-	brotli_enc "gopkg.in/kothar/brotli-go.v0/enc"
 
 	_ "github.com/urfave/cli/v2"
 	_ "gorm.io/gorm"
@@ -237,9 +237,7 @@ func main() {
 	r.Use(httplog.RequestLogger(errorLogger))
 	compressor := middleware.NewCompressor(5, "application/json")
 	compressor.SetEncoder("br", func(w io.Writer, level int) io.Writer {
-		params := brotli_enc.NewBrotliParams()
-		params.SetQuality(level)
-		return brotli_enc.NewBrotliWriter(params, w)
+		return brotli.NewWriterLevel(w, level)
 	})
 	r.Use(compressor.Handler)
 	r.Use(cors.New(cors.Options{
