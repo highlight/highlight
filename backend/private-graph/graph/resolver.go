@@ -2324,7 +2324,8 @@ func (r *Resolver) CreateHeightTaskAndAttachment(
 	ctx context.Context,
 	workspace *model.Workspace,
 	attachment *model.ExternalAttachment,
-	issueTitle string, issueDescription string,
+	issueTitle string,
+	issueDescription string,
 	teamId *string,
 ) error {
 	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeHeight)
