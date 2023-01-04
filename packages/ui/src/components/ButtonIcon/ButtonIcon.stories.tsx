@@ -3,7 +3,7 @@ import { ComponentMeta } from '@storybook/react'
 
 import { ButtonIcon } from './ButtonIcon'
 import { Box } from '../Box/Box'
-import { IconSolidCheveronDown } from '../icons'
+import { IconChevronDown } from '../icons'
 import { Variants } from './styles.css'
 
 export default {
@@ -32,11 +32,7 @@ export const AllVariants = () => {
 								<>
 									{shape.map(($shape, ldx) => (
 										<ButtonIcon
-											icon={
-												<IconSolidCheveronDown
-													size={12}
-												/>
-											}
+											icon={<IconChevronDown size={12} />}
 											size={$size}
 											kind={$kind}
 											emphasis={$emphasis}
@@ -47,9 +43,7 @@ export const AllVariants = () => {
 
 									<ButtonIcon
 										disabled
-										icon={
-											<IconSolidCheveronDown size={12} />
-										}
+										icon={<IconChevronDown size={12} />}
 										size={$size}
 										kind={$kind}
 										emphasis={$emphasis}

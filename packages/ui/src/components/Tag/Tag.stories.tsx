@@ -2,8 +2,13 @@ import { Tag } from './Tag'
 import { Variants } from './styles.css'
 import type { ComponentMeta } from '@storybook/react'
 import React from 'react'
+import {
+	IconArrowSmDown,
+	IconCaretDown,
+	IconCog,
+	IconCreateFile,
+} from '../icons'
 import { Box } from '../Box/Box'
-import { IconSolidCheveronDown, IconSolidSave } from '../icons'
 
 export default {
 	title: 'Components/Tag',
@@ -33,12 +38,12 @@ export const TagVariants = () => {
 										<Tag
 											icon={
 												jdx % emphasis.length !== 0 ? (
-													<IconSolidCheveronDown />
+													<IconCaretDown />
 												) : null
 											}
 											iconRight={
 												jdx % emphasis.length === 0 ? (
-													<IconSolidSave />
+													<IconCreateFile />
 												) : null
 											}
 											size={$size}
@@ -58,7 +63,7 @@ export const TagVariants = () => {
 										size={$size}
 										iconLeft={
 											jdx % emphasis.length !== 0 ? (
-												<IconSolidCheveronDown />
+												<IconCaretDown />
 											) : null
 										}
 										disabled

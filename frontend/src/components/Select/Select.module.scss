@@ -3,8 +3,23 @@
 	color: var(--text-primary) !important;
 	transition: all 0.2s ease-in-out;
 
+	&:hover {
+		:global(.ant-select-selector) {
+			border-color: var(--color-purple) !important;
+		}
+	}
+
+	&:global(.ant-select-open) {
+		box-shadow: 0 0 0 4px rgba(var(--color-purple-rgb), 0.2) !important;
+
+		:global(.ant-select-selector) {
+			border-color: var(--color-purple) !important;
+			box-shadow: none !important;
+		}
+	}
+
 	:global(.ant-select-selector) {
-		background-color: var(--color-primary-background) !important;
+		background: var(--color-primary-background) !important;
 		border: 1px solid var(--color-gray-300) !important;
 		border-radius: var(--border-radius) !important;
 		font-family: var(--body-font-family);
@@ -24,6 +39,7 @@
 
 	:global(.ant-select-arrow) {
 		align-items: center;
+		color: var(--color-gray-400) !important;
 		display: flex;
 		flex-direction: column;
 		height: 18px;
@@ -49,7 +65,7 @@
 
 	&:global(.ant-select-multiple) {
 		:global(.ant-select-selection-item) {
-			background-color: var(--color-gray-200) !important;
+			background: var(--color-gray-200) !important;
 			border-color: var(--color-gray-200) !important;
 		}
 	}
@@ -101,13 +117,16 @@
 	padding-top: 0 !important;
 	z-index: 99999999999999999 !important;
 
-	:global(.ant-select-item-option-selected) {
-		color: var(--color-white) !important;
+	:global(.ant-select-item) {
+		color: var(--text-primary) !important;
+		padding-bottom: var(--size-small);
+		padding-left: var(--size-xSmall);
+		padding-right: var(--size-xSmall);
+		padding-top: var(--size-small);
 	}
 
-	:global(.ant-select-item-option-content) {
-		align-items: center;
-		display: flex;
+	:global(.ant-select-item-option-selected) {
+		color: var(--color-white) !important;
 	}
 
 	.dropdownIcon {
@@ -117,5 +136,20 @@
 			display: contents;
 			width: 100%;
 		}
+	}
+}
+
+.suffixIconActive {
+	color: var(--text-primary);
+}
+
+.selectHasValue {
+	:global(.ant-select-selector) {
+		background: var(--color-purple-200) !important;
+		border: 1px solid var(--color-purple) !important;
+	}
+
+	:global(.ant-select-clear) {
+		background: var(--color-purple-200) !important;
 	}
 }

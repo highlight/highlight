@@ -1,9 +1,8 @@
 import Select from '@components/Select/Select'
-import { Form, Text } from '@highlight-run/ui'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
-import * as style from '@pages/IntegrationsPage/components/style.css'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import useLocalStorage from '@rehooks/local-storage'
+import { Form } from 'antd'
 import { useEffect, useMemo } from 'react'
 
 const LinearTeamSelector: React.FC<ContainerSelectionProps> = ({
@@ -17,48 +16,40 @@ const LinearTeamSelector: React.FC<ContainerSelectionProps> = ({
 				value: team.team_id,
 				id: team.team_id,
 				displayValue: (
-					<Text size="small" weight="medium">
+					<>
 						{team.name} ({team.key})
-					</Text>
+					</>
 				),
 			})) || []
 		)
 	}, [teams])
 
-	const [selectedLinearTeamId, setLinearTeamId, removeLinearTeamId] =
-		useLocalStorage('highlight-linear-default-team', '')
+	const [selectedlinearTeamId, setLinearTeamId] = useLocalStorage(
+		'highlight-linear-default-team',
+		'',
+	)
 
 	useEffect(() => {
-		setSelectionId(selectedLinearTeamId)
-	}, [selectedLinearTeamId, setSelectionId])
+		setSelectionId(selectedlinearTeamId)
+	}, [selectedlinearTeamId, setSelectionId])
 
 	useEffect(() => {
-		if (linearTeamsOptions.length > 0) {
-			if (selectedLinearTeamId === '') {
-				setLinearTeamId(linearTeamsOptions[0].value)
-			}
-		} else {
-			removeLinearTeamId()
+		if (selectedlinearTeamId === '' && linearTeamsOptions.length > 0) {
+			setLinearTeamId(linearTeamsOptions[0].value)
 		}
-	}, [
-		selectedLinearTeamId,
-		linearTeamsOptions,
-		setLinearTeamId,
-		removeLinearTeamId,
-	])
+	}, [selectedlinearTeamId, linearTeamsOptions, setLinearTeamId])
 
 	return (
-		<Form.NamedSection label="Linear Team">
+		<Form.Item label="Linear Team">
 			<Select
 				aria-label="Linear Team"
 				placeholder="Choose a team to create the issue in"
 				options={linearTeamsOptions}
 				onChange={setLinearTeamId}
-				value={selectedLinearTeamId}
+				value={selectedlinearTeamId}
 				notFoundContent={<p>No teams found</p>}
-				className={style.selectContainer}
 			/>
-		</Form.NamedSection>
+		</Form.Item>
 	)
 }
 

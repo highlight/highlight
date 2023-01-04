@@ -1,5 +1,4 @@
-import { IconSolidCheveronDown } from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
+import SvgChevronDownIcon from '@icons/ChevronDownIcon'
 import {
 	// eslint-disable-next-line no-restricted-imports
 	Select as AntDesignSelect,
@@ -46,13 +45,13 @@ type Props = Pick<
 	| 'optionFilterProp'
 > & {
 	options?: OptionType[]
-	dropdownClassName?: string
+	hasAccent?: boolean
 }
 
 const Select = ({
 	options,
 	className,
-	dropdownClassName,
+	hasAccent = false,
 	children,
 	defaultActiveFirstOption = false,
 	...props
@@ -63,13 +62,19 @@ const Select = ({
 			autoComplete="dontshow"
 			{...props}
 			disabled={props.loading || props.disabled}
-			className={classNames(styles.select, className)}
+			className={classNames(className, styles.select, {
+				[styles.selectHasValue]: hasAccent && !!props.value,
+			})}
 			menuItemSelectedIcon={null}
 			defaultActiveFirstOption={defaultActiveFirstOption}
-			dropdownClassName={classNames(dropdownClassName, styles.dropdown)}
+			dropdownClassName={styles.dropdown}
 			suffixIcon={
 				props.loading ? undefined : (
-					<IconSolidCheveronDown color={colors.n9} />
+					<SvgChevronDownIcon
+						className={classNames({
+							[styles.suffixIconActive]: !!props.value,
+						})}
+					/>
 				)
 			}
 		>
