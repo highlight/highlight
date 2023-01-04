@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 /// <reference types="vitest/globals" />
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
-import react from '@vitejs/plugin-react'
+import react from '@vitejs/plugin-react-swc'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'url'
 import { defineConfig, loadEnv } from 'vite'
@@ -47,12 +47,9 @@ export default defineConfig(({ mode }) => {
 	validateSafeAllowList(env)
 
 	return {
+		esbuild: { jsx: 'automatic' },
 		plugins: [
-			react({
-				babel: {
-					plugins: ['babel-plugin-react-wrapped-display-name'],
-				},
-			}),
+			react(),
 			vanillaExtractPlugin(),
 			tsconfigPaths(),
 			svgr(),
@@ -84,16 +81,13 @@ export default defineConfig(({ mode }) => {
 				clientPort: 3000,
 			},
 		},
-		worker: {
-			format: 'es',
-		},
 		build: {
 			minify: 'esbuild',
 			outDir: 'build',
 			// Vite sourcemaps are totally broken
 			// https://github.com/highlight-run/highlight/pull/3171
 			// sourcemaps significantly slow build and cause build to OOM
-			sourcemap: false,
+			sourcemap: mode !== 'development',
 		},
 		test: {
 			globals: true,
