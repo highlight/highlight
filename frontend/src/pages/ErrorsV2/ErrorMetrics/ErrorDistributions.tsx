@@ -100,14 +100,7 @@ const Distribution: React.FC<
 				flexDirection="row"
 				alignItems="center"
 			>
-				<Box
-					display="flex"
-					justifyContent="space-between"
-					flexDirection="row"
-					alignItems="center"
-				>
-					<Text weight="bold">{title}</Text>
-				</Box>
+				<Text weight="bold">{title}</Text>
 			</Box>
 
 			{aggregation?.buckets && <Buckets buckets={aggregation.buckets} />}
