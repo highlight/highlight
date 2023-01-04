@@ -1,5 +1,6 @@
 import {
 	CLICKUP_INTEGRATION,
+	HEIGHT_INTEGRATION,
 	Integration,
 	LINEAR_INTEGRATION,
 } from '@pages/IntegrationsPage/Integrations'
@@ -18,6 +19,7 @@ export type IssueTrackerIntegration = Integration & {
 const ISSUE_TRACKER_INTEGRATIONS: IssueTrackerIntegration[] = [
 	LINEAR_INTEGRATION,
 	CLICKUP_INTEGRATION,
+	HEIGHT_INTEGRATION,
 ]
 
 export default ISSUE_TRACKER_INTEGRATIONS

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/andybalholm/brotli"
+	"github.com/highlight-run/highlight/backend/integrations"
 	"github.com/highlight-run/highlight/backend/oauth"
 
 	"github.com/highlight-run/go-resthooks"
@@ -206,6 +207,8 @@ func main() {
 		log.Fatalf("error creating oauth client: %v", err)
 	}
 
+	integrationsClient := integrations.NewIntegrationsClient(db)
+
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
 	subscriptionWorkerPool := workerpool.New(1000)
@@ -225,6 +228,7 @@ func main() {
 		Redis:                  redisClient,
 		StepFunctions:          sfnClient,
 		OAuthServer:            oauthSrv,
+		IntegrationsClient:     integrationsClient,
 	}
 	private.SetupAuthClient(oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()

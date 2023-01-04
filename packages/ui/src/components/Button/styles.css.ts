@@ -81,6 +81,8 @@ export const variants = recipe({
 					cursor: 'pointer',
 				},
 				'&[disabled]': {
+					color: vars.theme.interactive.fill.secondary.content
+						.onDisabled,
 					pointerEvents: 'none',
 					userSelect: 'none',
 				},

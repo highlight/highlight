@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { Button } from '@components/Button'
 import {
 	Maybe,
 	SourceMappingError,
@@ -6,10 +7,9 @@ import {
 } from '@graph/schemas'
 import {
 	Box,
-	Button,
 	ButtonIcon,
 	Heading,
-	IconCaretDown,
+	IconSolidCheveronDown,
 	LinkButton,
 	Stack,
 	Tag,
@@ -291,7 +291,7 @@ const StackSectionError: React.FC<
 								setShowMetadata(!showMetadata)
 							}}
 							kind="secondary"
-							iconRight={<IconCaretDown />}
+							iconRight={<IconSolidCheveronDown />}
 							shape="basic"
 						>
 							{showMetadata ? 'Hide' : 'Show'} metadata
@@ -355,6 +355,7 @@ const StackSectionError: React.FC<
 				<Button
 					kind="secondary"
 					onClick={() => showIntercom({ admin })}
+					trackingId="sourcemapErrorContact"
 				>
 					Contact
 				</Button>

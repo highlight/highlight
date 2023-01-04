@@ -28,6 +28,7 @@ export const SwitchButton: React.FC<React.PropsWithChildren<Props>> = ({
 		variant: checked ? 'checked' : 'unchecked',
 	})
 	const checkbox = useCheckboxState()
+
 	return (
 		<Checkbox
 			as="button"

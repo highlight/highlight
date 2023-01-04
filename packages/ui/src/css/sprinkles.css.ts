@@ -8,6 +8,18 @@ import { Breakpoint, mediaQueries } from './breakpoints'
 import { colors } from './colors'
 import { vars } from './vars'
 
+const textColors = {
+	...colors,
+	default: vars.theme.static.content.default,
+	moderate: vars.theme.static.content.moderate,
+	strong: vars.theme.static.content.strong,
+	bad: vars.theme.static.content.sentiment.bad,
+	good: vars.theme.static.content.sentiment.good,
+	caution: vars.theme.static.content.sentiment.caution,
+	informative: vars.theme.static.content.sentiment.informative,
+	weak: vars.theme.static.content.weak,
+} as const
+
 const responsiveProperties = defineProperties({
 	conditions: mediaQueries,
 	defaultCondition: 'mobile',
@@ -120,7 +132,7 @@ const colorProperties = defineProperties({
 		borderStyle: ['hidden', 'solid'],
 		borderWidth: vars.borderWidth,
 		boxShadow: vars.shadows,
-		color: vars.color,
+		color: textColors,
 		textTransform: ['none', 'capitalize', 'uppercase', 'lowercase'],
 	},
 	shorthands: {

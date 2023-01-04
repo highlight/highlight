@@ -25,23 +25,23 @@ export const variants = recipe({
 			rounded: {},
 		},
 		variant: {
-			white: sprinkles({
-				background: 'white',
-				border: 'secondary',
-				color: 'n11',
-			}),
-			grey: sprinkles({
-				background: 'n2',
-				color: 'n7',
-			}),
-			outlineGrey: sprinkles({
-				border: 'secondary',
-				color: 'n7',
-			}),
-			green: sprinkles({
-				background: 'g7',
-				color: 'white',
-			}),
+			white: {
+				background: vars.theme.static.surface.default,
+				border: vars.border.secondary,
+				color: vars.theme.static.content.moderate,
+			},
+			grey: {
+				background: vars.theme.static.surface.sentiment.neutral,
+				color: vars.theme.static.content.moderate,
+			},
+			outlineGrey: {
+				border: vars.border.secondary,
+				color: vars.theme.static.content.moderate,
+			},
+			green: {
+				background: vars.theme.static.surface.sentiment.good,
+				color: vars.theme.static.content.sentiment.good,
+			},
 		},
 	},
 

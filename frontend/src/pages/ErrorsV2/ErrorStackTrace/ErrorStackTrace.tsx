@@ -1,14 +1,14 @@
+import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { ErrorInstance, Maybe, SourceMappingError } from '@graph/schemas'
 import {
 	Box,
-	Button,
 	ButtonIcon,
 	Callout,
-	IconChevronDown,
-	IconChevronUp,
-	IconExclamationTriangle,
+	IconSolidCheveronDown,
+	IconSolidCheveronUp,
+	IconSolidExclamation,
 	LinkButton,
 	Popover,
 	Stack,
@@ -81,6 +81,7 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 									'_blank',
 								)
 							}}
+							trackingId="stacktraceErrorLearnMore"
 						>
 							Learn More
 						</Button>
@@ -262,9 +263,9 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 				<ButtonIcon
 					icon={
 						expanded ? (
-							<IconChevronUp size={12} />
+							<IconSolidCheveronUp size={12} />
 						) : (
-							<IconChevronDown size={12} />
+							<IconSolidCheveronDown size={12} />
 						)
 					}
 					kind="secondary"
@@ -330,7 +331,7 @@ const SourcemapError: React.FC<{
 				<Popover.TagTrigger
 					kind="secondary"
 					shape="basic"
-					iconLeft={<IconExclamationTriangle size={12} />}
+					iconLeft={<IconSolidExclamation size={12} />}
 					size="medium"
 				>
 					Stacktrace Issue

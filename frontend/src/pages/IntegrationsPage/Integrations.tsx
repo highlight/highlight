@@ -5,6 +5,8 @@ import ClickUpListSelector from '@pages/IntegrationsPage/components/ClickUpInteg
 import DiscordIntegrationConfig from '@pages/IntegrationsPage/components/DiscordIntegration/DiscordIntegrationConfig'
 import FrontIntegrationConfig from '@pages/IntegrationsPage/components/FrontIntegration/FrontIntegrationConfig'
 import FrontPluginConfig from '@pages/IntegrationsPage/components/FrontPlugin/FrontPluginConfig'
+import HeightIntegrationConfig from '@pages/IntegrationsPage/components/HeightIntegration/HeightIntegrationConfig'
+import HeightListSelector from '@pages/IntegrationsPage/components/HeightIntegration/HeightListSelector'
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
 import LinearIntegrationConfig from '@pages/IntegrationsPage/components/LinearIntegration/LinearIntegrationConfig'
 import LinearTeamSelector from '@pages/IntegrationsPage/components/LinearIntegration/LinearTeamSelector'
@@ -138,6 +140,21 @@ export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
 	containerSelection: (opts) => <ClickUpListSelector {...opts} />,
 }
 
+export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
+	key: 'height',
+	name: 'Height',
+	configurationPath: 'height',
+	onlyShowForHighlightAdmin: true,
+	description: 'Create Height tasks from your Highlight comments.',
+	configurationPage: (opts) => <HeightIntegrationConfig {...opts} />,
+	icon: '/images/integrations/height.svg',
+	hasSettings: true,
+	modalWidth: 672,
+	containerLabel: 'list',
+	issueLabel: 'task',
+	containerSelection: (opts) => <HeightListSelector {...opts} />,
+}
+
 const INTEGRATIONS: Integration[] = [
 	SLACK_INTEGRATION,
 	LINEAR_INTEGRATION,
@@ -147,6 +164,7 @@ const INTEGRATIONS: Integration[] = [
 	VERCEL_INTEGRATION,
 	DISCORD_INTEGRATION,
 	CLICKUP_INTEGRATION,
+	HEIGHT_INTEGRATION,
 ]
 
 export default INTEGRATIONS

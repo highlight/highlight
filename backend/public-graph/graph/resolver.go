@@ -2099,8 +2099,10 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			// downsampled bucket.
 			downsampledMetric = downsampledMetric || m.Name == graph.SessionActiveMetricName
 		}
-		if err := r.DB.Create(&newMetrics).Error; err != nil {
-			return err
+		if len(newMetrics) > 0 {
+			if err := r.DB.Create(&newMetrics).Error; err != nil {
+				return err
+			}
 		}
 		if downsampledMetric {
 			aggregatePoints = append(aggregatePoints, timeseries.Point{

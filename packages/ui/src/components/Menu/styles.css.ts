@@ -11,7 +11,7 @@ export const menuList = style({
 	paddingBottom: vars.space[4],
 	paddingTop: vars.space[4],
 	width: 'fit-content',
-	maxWidth: 300,
+	maxWidth: 320,
 	minWidth: 200,
 	boxShadow: '0 6px 12px -2px rgba(59, 59, 59, .12)',
 })
