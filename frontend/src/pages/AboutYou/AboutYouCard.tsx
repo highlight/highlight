@@ -18,6 +18,7 @@ import {
 } from '@graph/hooks'
 import { Landing } from '@pages/Landing/Landing'
 import useLocalStorage from '@rehooks/local-storage'
+import { getAttributionData } from '@util/attribution'
 import { message } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -66,6 +67,7 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 
 	const onFormSubmit = async (e: { preventDefault: () => void }) => {
 		e.preventDefault()
+		const attributionData = getAttributionData()
 
 		try {
 			let persona = 'ENGINEERING'
@@ -87,6 +89,7 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 						user_defined_role: role,
 						referral: signUpReferral,
 						user_defined_persona: persona,
+						...attributionData,
 					},
 				},
 			})

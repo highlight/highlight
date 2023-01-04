@@ -483,6 +483,11 @@ type Admin struct {
 	SlackIMChannelID       *string
 	// How/where this user was referred from to sign up to Highlight.
 	Referral *string `json:"referral"`
+	// Attribution properties.
+	Source   *string `json:"source"`
+	Medium   *string `json:"medium"`
+	Campaign *string `json:"campaign"`
+	Referrer *string `json:"referrer"`
 	// This is the role the Admin has specified. This is their role in their organization, not within Highlight. This should not be used for authorization checks.
 	UserDefinedRole    *string `json:"user_defined_role"`
 	UserDefinedPersona *string `json:"user_defined_persona"`
