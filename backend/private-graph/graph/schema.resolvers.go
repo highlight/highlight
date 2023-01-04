@@ -1300,7 +1300,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
-			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating linear ticket or workspace")
 			}
 
@@ -1368,7 +1368,7 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
-			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, desc, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating linear ticket or workspace")
 			}
 
@@ -1648,7 +1648,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 				workspace,
 				attachment,
 				*issueTitle,
-				desc,
+				*issueDescription,
 				textForEmail,
 				authorName,
 				viewLink,
@@ -1762,7 +1762,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 				workspace,
 				attachment,
 				*issueTitle,
-				desc,
+				*issueDescription,
 				errorComment.Text,
 				authorName,
 				viewLink,

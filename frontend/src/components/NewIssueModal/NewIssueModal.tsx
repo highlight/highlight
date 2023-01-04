@@ -89,7 +89,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 				form.getValue(form.names.issueDescription) ?? ''
 
 			const issueTeamId = containerId || ''
-			const text = commentText ?? 'Open in Highight'
+			const text = commentText ?? 'Open in Highlight'
 			const author = admin?.name || admin?.email || 'Someone'
 			const integrations = [selectedIntegration.name] as IntegrationType[]
 			if (commentType === 'SessionComment' && commentId) {
@@ -128,7 +128,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							project_id,
 							error_group_secure_id: errorSecureId,
 							text,
-							text_for_email: text,
+							text_for_email: issueTitle,
 							error_url: currentUrl,
 							tagged_admins: [],
 							tagged_slack_users: [],
