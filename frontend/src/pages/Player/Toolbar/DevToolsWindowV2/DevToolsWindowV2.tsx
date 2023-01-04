@@ -6,6 +6,7 @@ import {
 	IconSolidSwitchHorizontal,
 	MenuButton,
 	Tabs,
+	useFormState,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useWindowSize } from '@hooks/useWindowSize'
@@ -25,7 +26,7 @@ import {
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
-import React, { useState } from 'react'
+import React from 'react'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
@@ -39,13 +40,18 @@ const DevToolsWindowV2: React.FC<
 	const { openDevTools } = useDevToolsContext()
 	const { isPlayerFullscreen } = usePlayerUIContext()
 	const { time } = useReplayerContext()
-	const [filter, setFilter] = useState('')
 	const [tab, setTab] = React.useState<Tab>(Tab.Console)
 	const [requestType, setRequestType] = React.useState<RequestType>(
 		RequestType.All,
 	)
 	const [searchShown, setSearchShown] = React.useState<boolean>(false)
 	const [logLevel, setLogLevel] = React.useState<LogLevel>(LogLevel.All)
+	const form = useFormState({
+		defaultValues: {
+			search: '',
+		},
+	})
+	const filter = form.getValue(form.names.search)
 	const [autoScroll, setAutoScroll] = useLocalStorage<boolean>(
 		'highlight-devtools-v2-autoscroll',
 		false,
@@ -84,7 +90,7 @@ const DevToolsWindowV2: React.FC<
 							default={Tab.Console}
 							onChange={(t: Tab) => {
 								setTab(t)
-								setFilter('')
+								form.reset()
 							}}
 							pages={{
 								[Tab.Console]: {
@@ -135,7 +141,7 @@ const DevToolsWindowV2: React.FC<
 										gap="4"
 										align="center"
 									>
-										<Form>
+										<Form state={form}>
 											<label>
 												<Box
 													display="flex"
@@ -157,16 +163,10 @@ const DevToolsWindowV2: React.FC<
 														/>
 													</Box>
 													<Form.Input
-														id="search"
-														name="Search"
+														name={form.names.search}
 														placeholder="Search"
 														size="xSmall"
 														collapsed={!searchShown}
-														onChange={(e) =>
-															setFilter(
-																e.target.value,
-															)
-														}
 														onBlur={() => {
 															setSearchShown(
 																false,

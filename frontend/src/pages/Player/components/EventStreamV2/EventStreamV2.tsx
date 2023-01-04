@@ -1,5 +1,5 @@
 import { useGetWebVitalsQuery } from '@graph/hooks'
-import { Box, Callout, Form, IconSolidSearch } from '@highlight-run/ui'
+import { Box, Form, IconSolidSearch, useFormState } from '@highlight-run/ui'
 import { useEventTypeFilters } from '@pages/Player/components/EventStream/hooks/useEventTypeFilters'
 import {
 	getFilteredEvents,
@@ -11,6 +11,8 @@ import {
 	ReplayerState,
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
+import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
+import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -30,11 +32,16 @@ const EventStreamV2 = function () {
 		currentEvent,
 		setCurrentEvent,
 	} = useReplayerContext()
-	const [searchQuery, setSearchQuery] = useState('')
-	const eventTypeFilters = useEventTypeFilters()
 	const [isInteractingWithStreamEvents, setIsInteractingWithStreamEvents] =
 		useState(false)
 	const [events, setEvents] = useState<HighlightEvent[]>([])
+	const form = useFormState({
+		defaultValues: {
+			search: '',
+		},
+	})
+	const searchQuery = form.getValue('search')
+	const eventTypeFilters = useEventTypeFilters()
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const { data } = useGetWebVitalsQuery({
 		variables: {
@@ -130,10 +137,10 @@ const EventStreamV2 = function () {
 						}}
 					/>
 				</div>
-			) : replayer && filteredEvents.length > 0 ? (
+			) : (
 				<Box width="full" height="full">
 					<Box px="12" py="8">
-						<Form>
+						<Form state={form}>
 							<label>
 								<Box
 									display="flex"
@@ -144,53 +151,50 @@ const EventStreamV2 = function () {
 										<IconSolidSearch color="n8" size={16} />
 									</Box>
 									<Form.Input
-										id="search"
-										name="Search"
+										name={form.names.search}
 										placeholder="Search"
 										size="xSmall"
-										onChange={(e) =>
-											setSearchQuery(e.target.value)
-										}
 									/>
 								</Box>
 							</label>
 						</Form>
 					</Box>
-					<Virtuoso
-						onMouseEnter={() => {
-							setIsInteractingWithStreamEvents(true)
-						}}
-						onMouseLeave={() => {
-							setIsInteractingWithStreamEvents(false)
-						}}
-						ref={virtuoso}
-						data={filteredEvents}
-						totalCount={filteredEvents.length}
-						itemContent={(index, event) => (
-							<StreamEventV2
-								e={event}
-								key={index}
-								start={sessionMetadata.startTime}
-								isFirstCard={index === 0}
-								isCurrent={
-									event.timestamp -
-										sessionMetadata.startTime ===
-										time ||
-									event.identifier === currentEvent
-								}
-								onGoToHandler={setCurrentEvent}
+					{replayer && filteredEvents.length > 0 ? (
+						<Virtuoso
+							onMouseEnter={() => {
+								setIsInteractingWithStreamEvents(true)
+							}}
+							onMouseLeave={() => {
+								setIsInteractingWithStreamEvents(false)
+							}}
+							ref={virtuoso}
+							data={filteredEvents}
+							totalCount={filteredEvents.length}
+							itemContent={(index, event) => (
+								<StreamEventV2
+									e={event}
+									key={index}
+									start={sessionMetadata.startTime}
+									isFirstCard={index === 0}
+									isCurrent={
+										event.timestamp -
+											sessionMetadata.startTime ===
+											time ||
+										event.identifier === currentEvent
+									}
+									onGoToHandler={setCurrentEvent}
+								/>
+							)}
+						/>
+					) : (
+						<Box p="12">
+							<EmptyDevToolsCallout
+								kind={Tab.Events}
+								filter={searchQuery}
 							/>
-						)}
-					/>
+						</Box>
+					)}
 				</Box>
-			) : (
-				<Callout
-					title={
-						searchQuery === ''
-							? 'There are no events matching your filters.'
-							: `There are no events that match "${searchQuery}".`
-					}
-				></Callout>
 			)}
 		</Box>
 	)
