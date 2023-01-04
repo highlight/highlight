@@ -83,6 +83,7 @@ require (
 	golang.org/x/text v0.4.0
 	google.golang.org/api v0.31.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.43.1
+	gopkg.in/kothar/brotli-go.v0 v0.0.0-20170728081549-771231d473d6
 	gorm.io/driver/postgres v1.0.8
 	gorm.io/gorm v1.21.9
 )
