@@ -399,6 +399,7 @@ export type ErrorGroupTagAggregation = {
 	__typename?: 'ErrorGroupTagAggregation'
 	buckets: Array<ErrorGroupTagAggregationBucket>
 	key: Scalars['String']
+	totalCount: Scalars['Int64']
 }
 
 export type ErrorGroupTagAggregationBucket = {

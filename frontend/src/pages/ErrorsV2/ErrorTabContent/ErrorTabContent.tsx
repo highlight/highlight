@@ -3,7 +3,6 @@ import { GetErrorGroupQuery } from '@graph/operations'
 import { IconSolidTerminal, IconSolidTrendingUp } from '@highlight-run/ui'
 import ErrorInstance from '@pages/ErrorsV2/ErrorInstance/ErrorInstance'
 import ErrorMetrics from '@pages/ErrorsV2/ErrorMetrics/ErrorMetrics'
-import { ErrorTags } from '@pages/ErrorsV2/ErrorTags/ErrorTags'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { Switch } from 'react-router-dom'
@@ -62,16 +61,6 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 							/>
 						),
 						panelContent: <ErrorMetrics errorGroup={errorGroup} />,
-					},
-					{
-						key: 'tags',
-						title: (
-							<TabTitle
-								icon={<IconSolidTrendingUp />}
-								label="Tags"
-							/>
-						),
-						panelContent: <ErrorTags errorGroup={errorGroup} />,
 					},
 				]}
 			/>

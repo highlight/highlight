@@ -10964,6 +10964,7 @@ export const GetErrorGroupTagsDocument = gql`
 			error_group_secure_id: $error_group_secure_id
 		) {
 			key
+			totalCount
 			buckets {
 				key
 				doc_count

@@ -5,6 +5,7 @@ import { GetErrorGroupQuery } from '@graph/operations'
 import { ErrorGroupFrequenciesParamsInput } from '@graph/schemas'
 import { Box, Heading, IconSolidTrendingUp, Text } from '@highlight-run/ui'
 import useDataTimeRange from '@hooks/useDataTimeRange'
+import { ErrorDistributions } from '@pages/ErrorsV2/ErrorMetrics/ErrorDistributions'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 
@@ -160,7 +161,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 	return (
 		<Box>
 			<Box mt="20" mb="32" display="flex" justifyContent="space-between">
-				<Heading level="h4">Metrics</Heading>
+				<Heading level="h3">Metrics</Heading>
 				<div className={styles.timePickerContainer}>
 					<TimeRangePicker />
 				</div>
@@ -212,6 +213,11 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 					<Text>{errorFrequencyTotal}</Text>
 				</Box>
 			</Box>
+
+			<Box borderBottom="secondary" pb="16">
+				<Heading level="h4">Distributions</Heading>
+			</Box>
+			<ErrorDistributions errorGroup={errorGroup} />
 		</Box>
 	)
 }

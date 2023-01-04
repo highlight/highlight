@@ -3836,7 +3836,7 @@ export type GetErrorGroupTagsQuery = { __typename?: 'Query' } & {
 	errorGroupTags: Array<
 		{ __typename?: 'ErrorGroupTagAggregation' } & Pick<
 			Types.ErrorGroupTagAggregation,
-			'key'
+			'key' | 'totalCount'
 		> & {
 				buckets: Array<
 					{ __typename?: 'ErrorGroupTagAggregationBucket' } & Pick<

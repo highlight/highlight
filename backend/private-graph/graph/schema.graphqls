@@ -867,6 +867,7 @@ type ErrorGroupTagAggregationBucket {
 
 type ErrorGroupTagAggregation {
 	key: String!
+	totalCount: Int64!
 	buckets: [ErrorGroupTagAggregationBucket!]!
 }
 

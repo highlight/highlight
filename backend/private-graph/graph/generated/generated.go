@@ -315,8 +315,9 @@ type ComplexityRoot struct {
 	}
 
 	ErrorGroupTagAggregation struct {
-		Buckets func(childComplexity int) int
-		Key     func(childComplexity int) int
+		Buckets    func(childComplexity int) int
+		Key        func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	ErrorGroupTagAggregationBucket struct {
@@ -2510,6 +2511,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorGroupTagAggregation.Key(childComplexity), true
+
+	case "ErrorGroupTagAggregation.totalCount":
+		if e.complexity.ErrorGroupTagAggregation.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroupTagAggregation.TotalCount(childComplexity), true
 
 	case "ErrorGroupTagAggregationBucket.doc_count":
 		if e.complexity.ErrorGroupTagAggregationBucket.DocCount == nil {
@@ -8139,6 +8147,7 @@ type ErrorGroupTagAggregationBucket {
 
 type ErrorGroupTagAggregation {
 	key: String!
+	totalCount: Int64!
 	buckets: [ErrorGroupTagAggregationBucket!]!
 }
 
@@ -21191,6 +21200,50 @@ func (ec *executionContext) fieldContext_ErrorGroupTagAggregation_key(ctx contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorGroupTagAggregation_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.ErrorGroupTagAggregation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorGroupTagAggregation_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorGroupTagAggregation_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorGroupTagAggregation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -35249,6 +35302,8 @@ func (ec *executionContext) fieldContext_Query_errorGroupTags(ctx context.Contex
 			switch field.Name {
 			case "key":
 				return ec.fieldContext_ErrorGroupTagAggregation_key(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_ErrorGroupTagAggregation_totalCount(ctx, field)
 			case "buckets":
 				return ec.fieldContext_ErrorGroupTagAggregation_buckets(ctx, field)
 			}
@@ -54676,6 +54731,13 @@ func (ec *executionContext) _ErrorGroupTagAggregation(ctx context.Context, sel a
 		case "key":
 
 			out.Values[i] = ec._ErrorGroupTagAggregation_key(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalCount":
+
+			out.Values[i] = ec._ErrorGroupTagAggregation_totalCount(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

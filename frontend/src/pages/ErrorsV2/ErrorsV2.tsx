@@ -18,7 +18,6 @@ import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfigurati
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
 import ErrorTabContent from '@pages/ErrorsV2/ErrorTabContent/ErrorTabContent'
-import { ErrorTags } from '@pages/ErrorsV2/ErrorTags/ErrorTags'
 import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
@@ -276,12 +275,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 												/>
 
 												<ErrorBody
-													errorGroup={
-														data?.error_group
-													}
-												/>
-
-												<ErrorTags
 													errorGroup={
 														data?.error_group
 													}

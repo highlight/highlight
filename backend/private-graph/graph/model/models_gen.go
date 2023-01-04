@@ -225,8 +225,9 @@ type ErrorGroupFrequenciesParamsInput struct {
 }
 
 type ErrorGroupTagAggregation struct {
-	Key     string                            `json:"key"`
-	Buckets []*ErrorGroupTagAggregationBucket `json:"buckets"`
+	Key        string                            `json:"key"`
+	TotalCount int64                             `json:"totalCount"`
+	Buckets    []*ErrorGroupTagAggregationBucket `json:"buckets"`
 }
 
 type ErrorGroupTagAggregationBucket struct {

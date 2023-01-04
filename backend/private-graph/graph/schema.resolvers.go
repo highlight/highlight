@@ -19,6 +19,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/errors"
+
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
@@ -4345,73 +4347,12 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, projectID int, error
 		return nil, err
 	}
 
-	var aggregate struct {
-		Aggregations struct {
-			Browser struct {
-				Buckets []struct {
-					Key      string `json:"key"`
-					DocCount int    `json:"doc_count"`
-				} `json:"buckets"`
-			} `json:"browser"`
-			Environment struct {
-				Buckets []struct {
-					Key      string `json:"key"`
-					DocCount int    `json:"doc_count"`
-				} `json:"buckets"`
-			} `json:"environment"`
-
-			OsName struct {
-				Buckets []struct {
-					Key      string `json:"key"`
-					DocCount int    `json:"doc_count"`
-				} `json:"buckets"`
-			} `json:"os_name"`
-		} `json:"aggregations"`
-	}
-
-	if err := json.Unmarshal(res, &aggregate); err != nil {
+	var aggregations errors.TagsAggregations
+	if err := json.Unmarshal(res, &aggregations); err != nil {
 		return nil, e.Wrap(err, "failed to unmarshal aggregations")
 	}
 
-	aggregations := []*modelInputs.ErrorGroupTagAggregation{}
-
-	browserBuckets := []*modelInputs.ErrorGroupTagAggregationBucket{}
-	for _, bucket := range aggregate.Aggregations.Browser.Buckets {
-		browserBuckets = append(browserBuckets, &modelInputs.ErrorGroupTagAggregationBucket{
-			Key:      bucket.Key,
-			DocCount: int64(bucket.DocCount),
-		})
-	}
-	aggregations = append(aggregations, &modelInputs.ErrorGroupTagAggregation{
-		Key:     "browser",
-		Buckets: browserBuckets,
-	})
-
-	environmentBuckets := []*modelInputs.ErrorGroupTagAggregationBucket{}
-	for _, bucket := range aggregate.Aggregations.Environment.Buckets {
-		environmentBuckets = append(environmentBuckets, &modelInputs.ErrorGroupTagAggregationBucket{
-			Key:      bucket.Key,
-			DocCount: int64(bucket.DocCount),
-		})
-	}
-	aggregations = append(aggregations, &modelInputs.ErrorGroupTagAggregation{
-		Key:     "environment",
-		Buckets: environmentBuckets,
-	})
-
-	osNameBuckets := []*modelInputs.ErrorGroupTagAggregationBucket{}
-	for _, bucket := range aggregate.Aggregations.OsName.Buckets {
-		osNameBuckets = append(osNameBuckets, &modelInputs.ErrorGroupTagAggregationBucket{
-			Key:      bucket.Key,
-			DocCount: int64(bucket.DocCount),
-		})
-	}
-	aggregations = append(aggregations, &modelInputs.ErrorGroupTagAggregation{
-		Key:     "os_name",
-		Buckets: osNameBuckets,
-	})
-
-	return aggregations, nil
+	return errors.BuildAggregations(aggregations), nil
 }
 
 // Referrers is the resolver for the referrers field.
