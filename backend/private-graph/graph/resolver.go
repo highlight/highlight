@@ -2320,7 +2320,14 @@ func (r *Resolver) CreateClickUpTaskAndAttachment(
 	return nil
 }
 
-func (r *Resolver) CreateHeightTaskAndAttachment(ctx context.Context, workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string, teamId *string) error {
+func (r *Resolver) CreateHeightTaskAndAttachment(
+	ctx context.Context,
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueDescription string,
+	teamId *string,
+) error {
 	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeHeight)
 
 	if err != nil {
@@ -2330,6 +2337,12 @@ func (r *Resolver) CreateHeightTaskAndAttachment(ctx context.Context, workspace 
 	if accessToken == nil {
 		return errors.New("No Height integration access token found.")
 	}
+
+	// raise an error if the team id is not set
+	if teamId == nil {
+		return e.New("illegal argument: listId is nil")
+	}
+
 	task, err := height.CreateTask(*accessToken, *teamId, issueTitle, issueDescription)
 	if err != nil {
 		return err

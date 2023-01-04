@@ -1312,7 +1312,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 
@@ -1380,7 +1380,7 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 
@@ -1671,7 +1671,14 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(
+				ctx,
+				workspace,
+				attachment,
+				*issueTitle,
+				desc,
+				issueTeamID,
+			); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 
@@ -1785,7 +1792,14 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, errorComment.Text, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(
+				ctx,
+				workspace,
+				attachment,
+				*issueTitle,
+				desc,
+				issueTeamID,
+			); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 

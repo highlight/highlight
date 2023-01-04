@@ -12,6 +12,7 @@ import {
 	ButtonIcon,
 	Form,
 	IconSolidClickUp,
+	IconSolidHeight,
 	IconSolidLinear,
 	IconSolidX,
 	Text,
@@ -20,6 +21,7 @@ import {
 import { vars } from '@highlight-run/ui/src/css/vars'
 import {
 	CLICKUP_INTEGRATION,
+	HEIGHT_INTEGRATION,
 	LINEAR_INTEGRATION,
 } from '@pages/IntegrationsPage/Integrations'
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
@@ -32,7 +34,7 @@ import React, { useMemo, useState } from 'react'
 interface NewIssueModalProps {
 	visible: boolean
 	onClose: () => void
-	commentId?: number
+	commentId: number
 	commentText?: string
 	defaultIssueTitle?: string
 	timestamp?: number
@@ -83,7 +85,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 					variables: {
 						project_id: project_id,
 						session_url: currentUrl,
-						session_comment_id: commentId ?? 0,
+						session_comment_id: commentId,
 						text_for_attachment: commentText ?? 'Open in Highight',
 						issue_title: form.getValue(form.names.issueTitle),
 						issue_team_id: containerId || '',
@@ -101,7 +103,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 					variables: {
 						project_id: project_id,
 						error_url: currentUrl,
-						error_comment_id: commentId ?? 0,
+						error_comment_id: commentId,
 						text_for_attachment: commentText ?? 'Open in Highight',
 						issue_title: form.getValue(form.names.issueTitle),
 						issue_team_id: containerId || '',
@@ -134,6 +136,9 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 				return <IconSolidLinear size={14} />
 			case CLICKUP_INTEGRATION.key:
 				return <IconSolidClickUp size={14} />
+			case HEIGHT_INTEGRATION.key:
+				return <IconSolidHeight size={14} />
+
 			default:
 				return <></>
 		}
