@@ -4309,33 +4309,31 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, projectID int, error
 	{
 		"size": 0,
 		"query": {
-		  "has_parent": {
-			"parent_type": "parent",
-			"query": {
-			  "terms": {
-				"_id": [
-				  "%d"
-				]
-			  }
+			"has_parent": {
+				"parent_type": "parent",
+				"query": {
+					"terms": {
+						"_id": ["%d"]
+					}
+				}
 			}
-		  }
 		},
 		"aggs": {
-		  "browser": {
-			"terms": {
-			  "field": "browser.keyword"
+			"browser": {
+				"terms": {
+					"field": "browser.keyword"
+				}
+			},
+			"environment": {
+				"terms": {
+					"field": "environment.keyword"
+				}
+			},
+			"os_name": {
+				"terms": {
+					"field": "os_name.keyword"
+				}
 			}
-		  },
-		  "environment": {
-			"terms": {
-			  "field": "environment.keyword"
-			}
-		  }, 
-		  "os_name": {
-			"terms": {
-			  "field": "os_name.keyword"
-			}
-		  }
 		}
 	  }
 	`, errorGroup.ID)
