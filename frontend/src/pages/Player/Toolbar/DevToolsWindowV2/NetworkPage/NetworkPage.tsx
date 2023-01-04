@@ -35,11 +35,13 @@ export const NetworkPage = React.memo(
 		autoScroll,
 		filter,
 		requestType,
+		method,
 	}: {
 		time: number
 		autoScroll: boolean
 		filter: string
 		requestType: RequestType
+		method?: string
 	}) => {
 		const {
 			state,
@@ -88,14 +90,14 @@ export const NetworkPage = React.memo(
 		const resourcesToRender = useMemo(() => {
 			const current =
 				(parsedResources
-					?.filter((r) => {
-						if (requestType === RequestType.All) {
-							return true
-						} else if (requestType === r.initiatorType) {
-							return true
-						}
-						return false
-					})
+					?.filter(
+						(r) =>
+							(method === undefined ||
+								method ===
+									r.requestResponsePairs?.request.verb) &&
+							(requestType === RequestType.All ||
+								requestType === r.initiatorType),
+					)
 					.map((event) => ({
 						...event,
 						timestamp: event.startTime + startTime,
