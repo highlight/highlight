@@ -12,9 +12,11 @@ import SvgFileText2Icon from '@icons/FileText2Icon'
 import SvgReferrer from '@icons/Referrer'
 import SvgTrashIcon from '@icons/TrashIcon'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
+import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
 	CLICKUP_INTEGRATION,
+	HEIGHT_INTEGRATION,
 	LINEAR_INTEGRATION,
 } from '@pages/IntegrationsPage/Integrations'
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
@@ -60,6 +62,9 @@ const SessionCommentHeader = ({
 	const {
 		settings: { isIntegrated: isClickupIntegrated },
 	} = useClickUpIntegration()
+	const {
+		settings: { isIntegrated: isHeightIntegrated },
+	} = useHeightIntegration()
 
 	const [showNewIssueModal, setShowNewIssueModal] = useState<
 		IssueTrackerIntegration | undefined
@@ -84,6 +89,7 @@ const SessionCommentHeader = ({
 	const issueTrackers: [boolean | undefined, IssueTrackerIntegration][] = [
 		[isLinearIntegratedWithProject, LINEAR_INTEGRATION],
 		[isClickupIntegrated, CLICKUP_INTEGRATION],
+		[isHeightIntegrated, HEIGHT_INTEGRATION],
 	]
 
 	const createIssueMenuItems = (
@@ -92,6 +98,7 @@ const SessionCommentHeader = ({
 				const [isIntegrated, integration] = item
 				return isIntegrated ? (
 					<MenuItem
+						key={integration.name}
 						icon={<SvgFileText2Icon />}
 						onClick={() => {
 							analytics.track(

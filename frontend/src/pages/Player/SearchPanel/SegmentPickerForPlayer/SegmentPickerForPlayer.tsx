@@ -159,7 +159,6 @@ const SegmentPickerForPlayer = () => {
 				placeholder="Choose Segment"
 				allowClear
 				loading={loading}
-				hasAccent
 				optionLabelProp="label"
 				notFoundContent={
 					<p>

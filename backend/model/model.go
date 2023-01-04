@@ -174,6 +174,7 @@ var Models = []interface{}{
 	&OAuthClientStore{},
 	&ResthookSubscription{},
 	&IntegrationProjectMapping{},
+	&IntegrationWorkspaceMapping{},
 	&EmailOptOut{},
 }
 
@@ -1085,6 +1086,14 @@ type VercelIntegrationConfig struct {
 	WorkspaceID     int `gorm:"uniqueIndex:idx_workspace_id_vercel_project_id;index"`
 	ProjectID       int
 	VercelProjectID string `gorm:"uniqueIndex:idx_workspace_id_vercel_project_id"`
+}
+
+type IntegrationWorkspaceMapping struct {
+	IntegrationType modelInputs.IntegrationType `gorm:"primary_key;not null"`
+	WorkspaceID     int                         `gorm:"primary_key;not null"`
+	AccessToken     string                      `gorm:"not null"`
+	RefreshToken    string
+	Expiry          time.Time
 }
 
 type IntegrationProjectMapping struct {
