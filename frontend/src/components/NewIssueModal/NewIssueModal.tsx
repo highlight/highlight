@@ -91,6 +91,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			const issueTeamId = containerId || ''
 			const text = commentText ?? 'Open in Highight'
 			const author = admin?.name || admin?.email || 'Someone'
+			const integrations = [selectedIntegration.name] as IntegrationType[]
 			if (commentType === 'SessionComment' && commentId) {
 				await createIssueForSessionComment({
 					variables: {
@@ -101,9 +102,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 						issue_title: issueTitle,
 						issue_team_id: issueTeamId,
 						issue_description: issueDescription,
-						integrations: [
-							selectedIntegration.name,
-						] as IntegrationType[],
+						integrations,
 						author_name: author,
 						time: timestamp || 0,
 					},
@@ -119,9 +118,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							issue_title: issueTitle,
 							issue_team_id: issueTeamId,
 							issue_description: issueDescription,
-							integrations: [
-								selectedIntegration.name,
-							] as IntegrationType[],
+							integrations,
 							author_name: author,
 						},
 					})
@@ -136,9 +133,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							tagged_admins: [],
 							tagged_slack_users: [],
 							author_name: author,
-							integrations: [
-								selectedIntegration.name,
-							] as IntegrationType[],
+							integrations,
 							issue_title: issueTitle,
 							issue_team_id: issueTeamId,
 							issue_description: issueDescription,
