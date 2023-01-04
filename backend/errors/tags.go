@@ -50,8 +50,7 @@ func buildAggregation(key string, jsonBuckets []Buckets) *modelInputs.ErrorGroup
 		})
 	}
 	return &modelInputs.ErrorGroupTagAggregation{
-		Key:        key,
-		TotalCount: totalCount,
-		Buckets:    buckets,
+		Key:     key,
+		Buckets: buckets,
 	}
 }

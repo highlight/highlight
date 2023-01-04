@@ -1817,7 +1817,6 @@ query GetErrorGroupTags($project_id: ID!, $error_group_secure_id: String!) {
 		error_group_secure_id: $error_group_secure_id
 	) {
 		key
-		totalCount
 		buckets {
 			key
 			doc_count
