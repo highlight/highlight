@@ -1,67 +1,106 @@
-import Button from '@components/Button/Button/Button'
-import Tooltip from '@components/Tooltip/Tooltip'
-import SvgDownloadIcon from '@icons/DownloadIcon'
+import {
+	Box,
+	ButtonIcon,
+	IconSolidClipboardCopy,
+	IconSolidDownload,
+	Text,
+} from '@highlight-run/ui'
+import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
+import { copyToClipboard } from '@util/string'
 import React from 'react'
+import ReactCollapsible from 'react-collapsible'
 // @ts-expect-error
 import { specific } from 'react-files-hooks'
-import ReactJson, { ReactJsonViewProps } from 'react-json-view'
 
 import * as styles from './JsonViewerV2.css'
 
-type Props = { allowDownload?: boolean; downloadFileName?: string } & Pick<
-	ReactJsonViewProps,
-	'src' | 'collapsed' | 'name'
->
-
-const JsonViewerV2 = ({
-	collapsed = 1,
-	name = null,
-	allowDownload = false,
-	downloadFileName = 'highlight-json',
-	...props
-}: Props) => {
-	const { download } = specific.useJSONDownloader()
-
-	if (props.src === null) {
-		return null
-	}
-
-	return (
-		<div className={styles.container}>
-			{allowDownload && (
-				<Tooltip title="Download this as JSON" placement="left">
-					<Button
-						className={styles.downloadButton}
-						trackingId="JsonViewerDownload"
-						iconButton
-						type="text"
-						size="small"
-						onClick={() => {
-							download({
-								data: JSON.stringify(props.src, undefined, 2),
-								name: downloadFileName,
-							})
-						}}
-					>
-						<SvgDownloadIcon />
-					</Button>
-				</Tooltip>
-			)}
-			<ReactJson
-				{...props}
-				collapsed={collapsed}
-				displayDataTypes={false}
-				collapseStringsAfterLength={100}
-				iconStyle="square"
-				quotesOnKeys={false}
-				name={name}
-				style={{
-					wordBreak: 'break-word',
-					fontFamily: 'var(--monospace-font-family)',
-				}}
-			/>
-		</div>
-	)
+type Props = {
+	title: React.ReactElement
+	data: object
+	downloadFileName?: string
 }
+
+const JsonViewerV2 = React.memo(
+	({ title, data, downloadFileName = 'highlight-json' }: Props) => {
+		const { download } = specific.useJSONDownloader()
+
+		if (data === null) {
+			return null
+		}
+
+		const allKeys = new Set<string>()
+		JSON.stringify(data, (key, value) => {
+			allKeys.add(key)
+			return value
+		})
+		const objectStr = JSON.stringify(data, Array.from(allKeys).sort(), 2)
+
+		return (
+			<Box className={styles.container}>
+				<Box cssClass={styles.downloadButton}>
+					<ExplanatoryPopover
+						content={
+							<>
+								<Text userSelect="none" color="n11">
+									Copy to Clipboard
+								</Text>
+							</>
+						}
+					>
+						<ButtonIcon
+							kind="secondary"
+							size="xSmall"
+							shape="square"
+							emphasis="low"
+							icon={<IconSolidClipboardCopy />}
+							onClick={() => {
+								copyToClipboard(JSON.stringify(data))
+							}}
+						/>
+					</ExplanatoryPopover>
+					<ExplanatoryPopover
+						content={
+							<>
+								<Text userSelect="none" color="n11">
+									Download this as JSON
+								</Text>
+							</>
+						}
+					>
+						<ButtonIcon
+							kind="secondary"
+							size="xSmall"
+							shape="square"
+							emphasis="low"
+							icon={<IconSolidDownload />}
+							onClick={() => {
+								download({
+									data: JSON.stringify(data, undefined, 2),
+									name: downloadFileName,
+								})
+							}}
+						/>
+					</ExplanatoryPopover>
+				</Box>
+				<ReactCollapsible
+					trigger={title}
+					open={true}
+					handleTriggerClick={() => {}}
+					transitionTime={150}
+					contentInnerClassName={styles.jsonContainer}
+				>
+					<Text
+						family="monospace"
+						weight="bold"
+						size="xxSmall"
+						cssClass={styles.consoleText}
+					>
+						{objectStr}
+					</Text>
+				</ReactCollapsible>
+			</Box>
+		)
+	},
+)
 
 export default JsonViewerV2

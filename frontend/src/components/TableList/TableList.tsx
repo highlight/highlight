@@ -18,8 +18,23 @@ export interface TableListItem {
 export const TableList = function ({ data }: { data: TableListItem[] }) {
 	return (
 		<Box display="flex" flexDirection="column" gap="4" width="full">
-			{data.map(
-				(item) =>
+			{data.map((item) => {
+				const title = (
+					<Box
+						display="flex"
+						alignItems="center"
+						style={{ height: 20 }}
+					>
+						<Text
+							size="xSmall"
+							cssClass={style.sessionAttributeText}
+							lines={item.lines}
+						>
+							{item.keyDisplayValue}
+						</Text>
+					</Box>
+				)
+				return (
 					item.valueDisplayValue && (
 						<Box
 							key={item.keyDisplayValue}
@@ -37,55 +52,47 @@ export const TableList = function ({ data }: { data: TableListItem[] }) {
 								)
 							}
 						>
-							<Box
-								display="flex"
-								alignItems="center"
-								style={{ height: 20 }}
-							>
-								<Text
-									size="xSmall"
-									cssClass={style.sessionAttributeText}
-									lines={item.lines}
-								>
-									{item.keyDisplayValue}
-								</Text>
-							</Box>
 							{typeof item.valueDisplayValue === 'object' &&
 							!isValidElement(item.valueDisplayValue) ? (
 								<JsonViewerV2
-									src={item.valueDisplayValue as object}
-									collapsed
-									allowDownload
+									title={title}
+									data={item.valueDisplayValue as object}
 									downloadFileName={item.keyDisplayValue}
 								/>
 							) : (
-								<Box
-									display="flex"
-									gap="4"
-									width="full"
-									alignItems="center"
-									style={{ height: 20 }}
-								>
-									<Text
-										size="xSmall"
-										cssClass={clsx(
-											style.sessionAttributeText,
-											style.secondaryText,
-										)}
+								<>
+									{title}
+									<Box
+										display="flex"
+										gap="4"
+										width="full"
+										alignItems="center"
+										style={{ height: 20 }}
 									>
-										{item.valueDisplayValue}
-									</Text>
-									{item.valueInfoTooltipMessage && (
-										<InfoTooltip
-											title={item.valueInfoTooltipMessage}
-											className={style.infoTooltip}
-										/>
-									)}
-								</Box>
+										<Text
+											size="xSmall"
+											cssClass={clsx(
+												style.sessionAttributeText,
+												style.secondaryText,
+											)}
+										>
+											{item.valueDisplayValue}
+										</Text>
+										{item.valueInfoTooltipMessage && (
+											<InfoTooltip
+												title={
+													item.valueInfoTooltipMessage
+												}
+												className={style.infoTooltip}
+											/>
+										)}
+									</Box>
+								</>
 							)}
 						</Box>
-					),
-			)}
+					)
+				)
+			})}
 		</Box>
 	)
 }
