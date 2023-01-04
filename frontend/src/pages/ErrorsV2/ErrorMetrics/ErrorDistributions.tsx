@@ -1,3 +1,4 @@
+import { getPercentageDisplayValue } from '@components/ProgressBarTable/utils/utils'
 import { useGetErrorGroupTagsQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
 import {
@@ -5,6 +6,7 @@ import {
 	ErrorGroupTagAggregationBucket,
 } from '@graph/schemas'
 import { Box, Stack, Tag, Text } from '@highlight-run/ui'
+import { colors } from '@highlight-run/ui/src/css/colors'
 import { Progress } from 'antd'
 import React, { useEffect, useState } from 'react'
 
@@ -106,7 +108,6 @@ const Distribution: React.FC<
 				>
 					<Text weight="bold">{title}</Text>
 				</Box>
-				{aggregation?.totalCount && <Box>{aggregation.totalCount}</Box>}
 			</Box>
 
 			{aggregation?.buckets && <Buckets buckets={aggregation.buckets} />}
@@ -133,11 +134,13 @@ const Buckets: React.FC<
 						<Text>{bucket.key}</Text>
 						<Stack direction="row" align="center">
 							<Progress
-								percent={bucket.percent}
-								strokeColor="#5629c6"
+								percent={bucket.percent * 100}
+								strokeColor={colors.n8}
 								showInfo={false}
 							/>
-							<Tag kind="secondary">{bucket.percent}%</Tag>
+							<Tag kind="secondary">
+								{getPercentageDisplayValue(bucket.percent)}
+							</Tag>
 							<Text>{bucket.doc_count}</Text>
 						</Stack>
 					</Box>

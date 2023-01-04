@@ -43,13 +43,10 @@ func buildAggregation(key string, jsonBuckets []Buckets) *modelInputs.ErrorGroup
 	}
 
 	for _, bucket := range jsonBuckets {
-		percent := float64(bucket.DocCount) / float64(totalCount) * 100
-		truncatedPercent := float64(int(percent*100)) / 100 // truncates to 2 decimal places
-
 		buckets = append(buckets, &modelInputs.ErrorGroupTagAggregationBucket{
 			Key:      bucket.Key,
 			DocCount: int64(bucket.DocCount),
-			Percent:  truncatedPercent,
+			Percent:  float64(bucket.DocCount) / float64(totalCount),
 		})
 	}
 	return &modelInputs.ErrorGroupTagAggregation{
