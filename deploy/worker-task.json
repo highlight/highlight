@@ -303,6 +303,5 @@
 		{
 			"name": "worker-volume"
 		}
-	],
-	"runtimePlatform": { "cpuArchitecture": "ARM64" }
+	]
 }
