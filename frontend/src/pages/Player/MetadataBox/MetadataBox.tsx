@@ -19,7 +19,6 @@ import {
 	Box,
 	ButtonIcon,
 	IconSolidExternalLink,
-	IconSolidMenuAlt_3,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
@@ -56,7 +55,7 @@ export const MetadataBox = React.memo(() => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const { session } = useReplayerContext()
 	const { setSearchParams } = useSearchContext()
-	const { setShowLeftPanel, setShowRightPanel } = usePlayerConfiguration()
+	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	const [enhancedAvatar, setEnhancedAvatar] = React.useState<string>()
 
@@ -171,16 +170,6 @@ export const MetadataBox = React.memo(() => {
 						size="small"
 						icon={<IconSolidExternalLink />}
 						onClick={searchIdentifier}
-					/>
-					<ButtonIcon
-						kind="secondary"
-						emphasis="low"
-						shape="square"
-						size="small"
-						icon={<IconSolidMenuAlt_3 />}
-						onClick={() => {
-							setShowRightPanel(false)
-						}}
 					/>
 				</Box>
 			</Box>
@@ -298,7 +287,7 @@ export const UserDetailsBox = ({
 									disabled
 									socialLink={
 										{
-											link: 'http://example.com',
+											link: 'https://example.com',
 											type: 'Github',
 										} as SocialLink
 									}
@@ -371,7 +360,7 @@ export const UserDetailsBox = ({
 					},
 				]}
 			/>
-			<Box>
+			<Box style={{ position: 'relative', top: 0, left: -24 }}>
 				<InfoTooltip
 					title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is enabled via the Clearbit Integration for the Startup plan and above.`}
 					size="medium"

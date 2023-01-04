@@ -13,6 +13,7 @@ export const PLAYER_PADDING = 8
 export const MIN_CENTER_COLUMN_WIDTH = 428
 export const PLAYER_PADDING_X = 64
 export const PLAYER_PADDING_Y = 64
+export const LEFT_PANEL_WIDTH = 340
 
 export const playerWrapperV2 = style({
 	borderTop: `solid 1px ${colors.n6}`,

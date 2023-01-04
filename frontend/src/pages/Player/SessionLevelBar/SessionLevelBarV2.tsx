@@ -137,8 +137,7 @@ export const SessionLevelBarV2: React.FC<
 			style={{ width: props.width }}
 		>
 			<Box
-				px="12"
-				py="6"
+				p="6"
 				gap="12"
 				display="flex"
 				width="full"
@@ -245,58 +244,80 @@ export const SessionLevelBarV2: React.FC<
 						</Box>
 					)}
 				</Box>
-				{session && (
-					<Box className={styles.rightButtons}>
-						<Box display="flex" align="center" gap="2">
-							<IconSolidTemplate color={colors.n9} />
-							<Text size="medium" color="n11" userSelect="none">
-								{viewport?.width} x {viewport?.height}
-							</Text>
-						</Box>
-						<Box display="flex" align="center" gap="2">
-							{session?.enable_strict_privacy ? (
-								<IconSolidLockClosed color={colors.n9} />
-							) : (
-								<IconSolidLockOpen color={colors.n9} />
-							)}
-							<Text size="medium" color="n11" userSelect="none">
-								Privacy{' '}
-								{session?.enable_strict_privacy ? 'on' : 'off'}
-							</Text>
-						</Box>
-						<Box display="flex" align="center" gap="6">
-							<SessionShareButtonV2 />
-							<ExplanatoryPopover
-								content={
-									<>
-										<Text userSelect="none" color="n11">
-											Comments
+				<Box className={styles.rightButtons}>
+					{session && (
+						<>
+							<Box display="flex" align="center" gap="2">
+								<IconSolidTemplate color={colors.n9} />
+								<Text
+									size="medium"
+									color="n11"
+									userSelect="none"
+								>
+									{viewport?.width} x {viewport?.height}
+								</Text>
+							</Box>
+							<Box display="flex" align="center" gap="2">
+								<ExplanatoryPopover
+									content={
+										<Text
+											size="medium"
+											color="n11"
+											userSelect="none"
+										>
+											Privacy{' '}
+											{session?.enable_strict_privacy
+												? 'on'
+												: 'off'}
 										</Text>
-									</>
-								}
-							>
-								<SwitchButton
-									size="small"
-									onChange={() => {
-										if (
-											selectedRightPanelTab !== 'Comments'
-										) {
-											setSelectedRightPanelTab('Comments')
-										}
-										setShowRightPanel(
-											!showRightPanel ||
-												selectedRightPanelTab !==
-													'Comments',
-										)
-									}}
-									checked={
-										showRightPanel &&
-										selectedRightPanelTab === 'Comments'
 									}
-									iconLeft={<IconSolidChatAlt_2 size={14} />}
-								/>
-							</ExplanatoryPopover>
-							{!showRightPanel && (
+								>
+									{session?.enable_strict_privacy ? (
+										<IconSolidLockClosed
+											color={colors.n9}
+										/>
+									) : (
+										<IconSolidLockOpen color={colors.n9} />
+									)}
+								</ExplanatoryPopover>
+							</Box>
+							<Box display="flex" align="center" gap="6">
+								<SessionShareButtonV2 />
+								<ExplanatoryPopover
+									content={
+										<>
+											<Text userSelect="none" color="n11">
+												Comments
+											</Text>
+										</>
+									}
+								>
+									<SwitchButton
+										size="small"
+										onChange={() => {
+											if (
+												selectedRightPanelTab !==
+												'Comments'
+											) {
+												setSelectedRightPanelTab(
+													'Comments',
+												)
+											}
+											setShowRightPanel(
+												!showRightPanel ||
+													selectedRightPanelTab !==
+														'Comments',
+											)
+										}}
+										checked={
+											showRightPanel &&
+											selectedRightPanelTab === 'Comments'
+										}
+										iconLeft={
+											<IconSolidChatAlt_2 size={14} />
+										}
+									/>
+								</ExplanatoryPopover>
 								<ButtonIcon
 									kind="secondary"
 									size="small"
@@ -312,10 +333,10 @@ export const SessionLevelBarV2: React.FC<
 										setShowRightPanel(!showRightPanel)
 									}}
 								/>
-							)}
-						</Box>
-					</Box>
-				)}
+							</Box>
+						</>
+					)}
+				</Box>
 			</Box>
 		</Box>
 	)
