@@ -406,6 +406,7 @@ export type ErrorGroupTagAggregationBucket = {
 	__typename?: 'ErrorGroupTagAggregationBucket'
 	doc_count: Scalars['Int64']
 	key: Scalars['String']
+	percent: Scalars['Int']
 }
 
 export type ErrorInstance = {

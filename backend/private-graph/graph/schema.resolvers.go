@@ -19,8 +19,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/errors"
-
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
@@ -30,6 +28,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
+	highlightErrors "github.com/highlight-run/highlight/backend/errors"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/integrations/height"
@@ -4315,7 +4314,7 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, projectID int, error
 			"query": {
 			  "terms": {
 				"_id": [
-				  "%s"
+				  "%d"
 				]
 			  }
 			}
@@ -4339,7 +4338,7 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, projectID int, error
 		  }
 		}
 	  }
-	`, errorGroup.SecureID)
+	`, errorGroup.ID)
 
 	res, err := r.OpenSearch.RawSearch(opensearch.IndexErrorsCombined, query)
 
@@ -4347,12 +4346,12 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, projectID int, error
 		return nil, err
 	}
 
-	var aggregations errors.TagsAggregations
+	var aggregations highlightErrors.TagsAggregations
 	if err := json.Unmarshal(res, &aggregations); err != nil {
 		return nil, e.Wrap(err, "failed to unmarshal aggregations")
 	}
 
-	return errors.BuildAggregations(aggregations), nil
+	return highlightErrors.BuildAggregations(aggregations), nil
 }
 
 // Referrers is the resolver for the referrers field.

@@ -10968,6 +10968,7 @@ export const GetErrorGroupTagsDocument = gql`
 			buckets {
 				key
 				doc_count
+				percent
 			}
 		}
 	}

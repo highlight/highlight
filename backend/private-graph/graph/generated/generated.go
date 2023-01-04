@@ -323,6 +323,7 @@ type ComplexityRoot struct {
 	ErrorGroupTagAggregationBucket struct {
 		DocCount func(childComplexity int) int
 		Key      func(childComplexity int) int
+		Percent  func(childComplexity int) int
 	}
 
 	ErrorInstance struct {
@@ -2532,6 +2533,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorGroupTagAggregationBucket.Key(childComplexity), true
+
+	case "ErrorGroupTagAggregationBucket.percent":
+		if e.complexity.ErrorGroupTagAggregationBucket.Percent == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroupTagAggregationBucket.Percent(childComplexity), true
 
 	case "ErrorInstance.error_object":
 		if e.complexity.ErrorInstance.ErrorObject == nil {
@@ -8143,6 +8151,7 @@ type ErrorDistributionItem {
 type ErrorGroupTagAggregationBucket {
 	key: String!
 	doc_count: Int64!
+	percent: Int!
 }
 
 type ErrorGroupTagAggregation {
@@ -21292,6 +21301,8 @@ func (ec *executionContext) fieldContext_ErrorGroupTagAggregation_buckets(ctx co
 				return ec.fieldContext_ErrorGroupTagAggregationBucket_key(ctx, field)
 			case "doc_count":
 				return ec.fieldContext_ErrorGroupTagAggregationBucket_doc_count(ctx, field)
+			case "percent":
+				return ec.fieldContext_ErrorGroupTagAggregationBucket_percent(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroupTagAggregationBucket", field.Name)
 		},
@@ -21382,6 +21393,50 @@ func (ec *executionContext) fieldContext_ErrorGroupTagAggregationBucket_doc_coun
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorGroupTagAggregationBucket_percent(ctx context.Context, field graphql.CollectedField, obj *model.ErrorGroupTagAggregationBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorGroupTagAggregationBucket_percent(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Percent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorGroupTagAggregationBucket_percent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorGroupTagAggregationBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -54780,6 +54835,13 @@ func (ec *executionContext) _ErrorGroupTagAggregationBucket(ctx context.Context,
 		case "doc_count":
 
 			out.Values[i] = ec._ErrorGroupTagAggregationBucket_doc_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "percent":
+
+			out.Values[i] = ec._ErrorGroupTagAggregationBucket_percent(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

@@ -1,7 +1,11 @@
 import { useGetErrorGroupTagsQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
-import { ErrorGroupTagAggregation } from '@graph/schemas'
-import { Box, Stack, Text } from '@highlight-run/ui'
+import {
+	ErrorGroupTagAggregation,
+	ErrorGroupTagAggregationBucket,
+} from '@graph/schemas'
+import { Box, Stack, Tag, Text } from '@highlight-run/ui'
+import { Progress } from 'antd'
 import React, { useEffect, useState } from 'react'
 
 type Props = {
@@ -12,8 +16,14 @@ const ErrorDistributions = ({ errorGroup }: Props) => {
 	const [environments, setEnvironments] = useState<
 		ErrorGroupTagAggregation | undefined
 	>()
+	const [browsers, setBrowsers] = useState<
+		ErrorGroupTagAggregation | undefined
+	>()
+	const [operatingSystems, setOperatingSystems] = useState<
+		ErrorGroupTagAggregation | undefined
+	>()
 
-	const { data, loading } = useGetErrorGroupTagsQuery({
+	const { data } = useGetErrorGroupTagsQuery({
 		variables: {
 			project_id: `${errorGroup?.project_id}`,
 			error_group_secure_id: `${errorGroup?.secure_id}`,
@@ -21,30 +31,42 @@ const ErrorDistributions = ({ errorGroup }: Props) => {
 		skip: !errorGroup?.secure_id,
 	})
 
-	const buildEnvironments = () => {
-		const environment = data?.errorGroupTags.find((tag) => {
+	useEffect(() => {
+		const foundEnvironmentTag = data?.errorGroupTags.find((tag) => {
 			return tag.key === 'environment'
 		})
 
-		if (environment) {
-			setEnvironments(environment)
+		if (foundEnvironmentTag) {
+			setEnvironments(foundEnvironmentTag)
 		}
-	}
 
-	useEffect(() => {
-		buildEnvironments()
+		const foundBrowserTag = data?.errorGroupTags.find((tag) => {
+			return tag.key === 'browser'
+		})
+
+		if (foundBrowserTag) {
+			setBrowsers(foundBrowserTag)
+		}
+
+		const foundOperatingSytemTag = data?.errorGroupTags.find((tag) => {
+			return tag.key === 'os_name'
+		})
+
+		if (foundOperatingSytemTag) {
+			setOperatingSystems(foundOperatingSytemTag)
+		}
 		// Only invoke on new data.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.errorGroupTags])
 
 	return (
-		<Stack direction="row" align="center" justify="space-between">
+		<Stack direction="row" justify="space-between">
 			<Distribution title="Environments" aggregation={environments} />
-			<Distribution title="Browsers" aggregation={environments} />
+			<Distribution title="Browsers" aggregation={browsers} />
 			<Distribution
 				title="Operating Systems"
 				noBorder
-				aggregation={environments}
+				aggregation={operatingSystems}
 			/>
 		</Stack>
 	)
@@ -56,7 +78,7 @@ const Distribution: React.FC<
 		aggregation?: ErrorGroupTagAggregation
 		noBorder?: boolean
 	}>
-> = ({ title, children, aggregation, noBorder = false }) => (
+> = ({ title, aggregation, noBorder = false }) => (
 	<Box
 		borderRight={noBorder ? undefined : 'secondary'}
 		py="16"
@@ -87,11 +109,42 @@ const Distribution: React.FC<
 				{aggregation?.totalCount && <Box>{aggregation.totalCount}</Box>}
 			</Box>
 
-			<Box display="flex" alignItems="center" style={{ height: 24 }}>
-				{children}
-			</Box>
+			{aggregation?.buckets && <Buckets buckets={aggregation.buckets} />}
 		</Box>
 	</Box>
 )
+
+const Buckets: React.FC<
+	React.PropsWithChildren<{
+		buckets: ErrorGroupTagAggregationBucket[]
+	}>
+> = ({ buckets }) => {
+	return (
+		<Box
+			display="flex"
+			flexDirection="column"
+			gap="12"
+			justifyContent="space-between"
+			style={{ height: '100%' }}
+		>
+			{buckets.map((bucket) => {
+				return (
+					<Box key={bucket.key}>
+						<Text>{bucket.key}</Text>
+						<Stack direction="row" align="center">
+							<Progress
+								percent={bucket.percent}
+								strokeColor="#5629c6"
+								showInfo={false}
+							/>
+							<Tag kind="secondary">{bucket.percent}%</Tag>
+							<Text>{bucket.doc_count}</Text>
+						</Stack>
+					</Box>
+				)
+			})}
+		</Box>
+	)
+}
 
 export { ErrorDistributions }

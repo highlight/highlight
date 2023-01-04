@@ -1821,6 +1821,7 @@ query GetErrorGroupTags($project_id: ID!, $error_group_secure_id: String!) {
 		buckets {
 			key
 			doc_count
+			percent
 		}
 	}
 }

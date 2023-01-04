@@ -44,6 +44,7 @@ func buildAggregation(key string, jsonBuckets []Buckets) *modelInputs.ErrorGroup
 		buckets = append(buckets, &modelInputs.ErrorGroupTagAggregationBucket{
 			Key:      bucket.Key,
 			DocCount: int64(bucket.DocCount),
+			Percent:  34,
 		})
 	}
 	return &modelInputs.ErrorGroupTagAggregation{

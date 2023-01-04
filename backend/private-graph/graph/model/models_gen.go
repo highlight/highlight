@@ -233,6 +233,7 @@ type ErrorGroupTagAggregation struct {
 type ErrorGroupTagAggregationBucket struct {
 	Key      string `json:"key"`
 	DocCount int64  `json:"doc_count"`
+	Percent  int    `json:"percent"`
 }
 
 type ErrorMetadata struct {
