@@ -8151,7 +8151,7 @@ type ErrorDistributionItem {
 type ErrorGroupTagAggregationBucket {
 	key: String!
 	doc_count: Int64!
-	percent: Int!
+	percent: Float!
 }
 
 type ErrorGroupTagAggregation {
@@ -21424,9 +21424,9 @@ func (ec *executionContext) _ErrorGroupTagAggregationBucket_percent(ctx context.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ErrorGroupTagAggregationBucket_percent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -21436,7 +21436,7 @@ func (ec *executionContext) fieldContext_ErrorGroupTagAggregationBucket_percent(
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil

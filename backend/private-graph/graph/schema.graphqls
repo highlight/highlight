@@ -863,7 +863,7 @@ type ErrorDistributionItem {
 type ErrorGroupTagAggregationBucket {
 	key: String!
 	doc_count: Int64!
-	percent: Int!
+	percent: Float!
 }
 
 type ErrorGroupTagAggregation {
