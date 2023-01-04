@@ -39,7 +39,9 @@ export const controlBarVariants = recipe({
 			true: {
 				color: colors.p9,
 			},
-			false: {},
+			false: {
+				color: colors.n11,
+			},
 		},
 	},
 

@@ -4,7 +4,7 @@ import { Box, Text } from '@highlight-run/ui'
 import { Props as TruncateProps } from '@highlight-run/ui/src/components/private/Truncate/Truncate'
 import { copyToClipboard } from '@util/string'
 import clsx from 'clsx'
-import React from 'react'
+import React, { isValidElement } from 'react'
 
 import * as style from './TableList.css'
 
@@ -25,13 +25,10 @@ export const TableList = function ({ data }: { data: TableListItem[] }) {
 							key={item.keyDisplayValue}
 							className={style.sessionAttributeRow({
 								json:
-									typeof item.valueDisplayValue === 'object',
+									typeof item.valueDisplayValue ===
+										'object' &&
+									!isValidElement(item.valueDisplayValue),
 							})}
-							display={
-								typeof item.valueDisplayValue === 'object'
-									? 'block'
-									: undefined
-							}
 							onClick={() =>
 								item.valueDisplayValue &&
 								typeof item.valueDisplayValue !== 'object' &&
@@ -53,7 +50,8 @@ export const TableList = function ({ data }: { data: TableListItem[] }) {
 									{item.keyDisplayValue}
 								</Text>
 							</Box>
-							{typeof item.valueDisplayValue === 'object' ? (
+							{typeof item.valueDisplayValue === 'object' &&
+							!isValidElement(item.valueDisplayValue) ? (
 								<JsonViewerV2
 									src={item.valueDisplayValue as object}
 									collapsed
