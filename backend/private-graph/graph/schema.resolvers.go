@@ -3977,6 +3977,39 @@ func (r *queryResolver) IsSessionPending(ctx context.Context, sessionSecureID st
 	return pointy.Bool(isPending), nil
 }
 
+// ErrorIssue is the resolver for the error_issue field.
+func (r *queryResolver) ErrorIssue(ctx context.Context, errorGroupSecureID string) ([]*model.ExternalAttachment, error) {
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not error owner")
+	}
+
+	errorIssues := []*model.ExternalAttachment{}
+
+	if err := r.DB.Raw(`
+  		SELECT *
+  		FROM
+			external_attachments
+  		WHERE
+			error_comment_id IN (
+	  		SELECT
+				id
+	  		FROM
+				error_comments
+	  		WHERE
+				error_id = ?
+			)
+  		ORDER BY
+			created_at DESC
+		`,
+		errorGroup.ID,
+	).Scan(&errorIssues).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error issues for error_group")
+	}
+
+	return errorIssues, nil
+}
+
 // ErrorComments is the resolver for the error_comments field.
 func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupSecureID string) ([]*model.ErrorComment, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
