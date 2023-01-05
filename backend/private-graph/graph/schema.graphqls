@@ -1173,6 +1173,7 @@ type Query {
 	session_comments_for_admin: [SessionComment]!
 	session_comments_for_project(project_id: ID!): [SessionComment]!
 	isSessionPending(session_secure_id: String!): Boolean
+	error_issue(error_group_secure_id: String!): [ExternalAttachment]!
 	error_comments(error_group_secure_id: String!): [ErrorComment]!
 	error_comments_for_admin: [ErrorComment]!
 	error_comments_for_project(project_id: ID!): [ErrorComment]!

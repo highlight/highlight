@@ -1326,6 +1326,7 @@ export type Query = {
 	error_group?: Maybe<ErrorGroup>
 	error_groups_opensearch: ErrorResults
 	error_instance?: Maybe<ErrorInstance>
+	error_issue: Array<Maybe<ExternalAttachment>>
 	error_object?: Maybe<ErrorObject>
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
@@ -1553,6 +1554,10 @@ export type QueryError_Groups_OpensearchArgs = {
 export type QueryError_InstanceArgs = {
 	error_group_secure_id: Scalars['String']
 	error_object_id?: InputMaybe<Scalars['ID']>
+}
+
+export type QueryError_IssueArgs = {
+	error_group_secure_id: Scalars['String']
 }
 
 export type QueryError_ObjectArgs = {

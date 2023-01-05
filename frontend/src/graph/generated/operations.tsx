@@ -1846,6 +1846,21 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorIssuesQueryVariables = Types.Exact<{
+	error_group_secure_id: Types.Scalars['String']
+}>
+
+export type GetErrorIssuesQuery = { __typename?: 'Query' } & {
+	error_issue: Array<
+		Types.Maybe<
+			{ __typename?: 'ExternalAttachment' } & Pick<
+				Types.ExternalAttachment,
+				'integration_type' | 'external_id' | 'title'
+			>
+		>
+	>
+}
+
 export type GetEnhancedUserDetailsQueryVariables = Types.Exact<{
 	session_secure_id: Types.Scalars['String']
 }>
@@ -3856,6 +3871,7 @@ export const namedOperations = {
 		GetAccounts: 'GetAccounts' as const,
 		GetAccountDetails: 'GetAccountDetails' as const,
 		GetErrorComments: 'GetErrorComments' as const,
+		GetErrorIssues: 'GetErrorIssues' as const,
 		GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
 		GetOnboardingSteps: 'GetOnboardingSteps' as const,
 		GetSessionIntervals: 'GetSessionIntervals' as const,
