@@ -1289,6 +1289,10 @@ type Query {
 		integration_type: IntegrationType!
 		workspace_id: ID!
 	): Boolean!
+	is_project_integrated_with(
+		integration_type: IntegrationType!
+		project_id: ID!
+	): Boolean!
 	vercel_projects(project_id: ID!): [VercelProject!]!
 	vercel_project_mappings(project_id: ID!): [VercelProjectMapping!]!
 	clickup_teams(workspace_id: ID!): [ClickUpTeam!]!

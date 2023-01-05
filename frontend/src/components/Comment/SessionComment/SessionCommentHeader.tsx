@@ -4,7 +4,7 @@ import MenuItem from '@components/Menu/MenuItem'
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
 import { useDeleteSessionCommentMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { SessionCommentType } from '@graph/schemas'
+import { IntegrationType, SessionCommentType } from '@graph/schemas'
 import SvgBallotBoxIcon from '@icons/BallotBoxIcon'
 import SvgClipboardIcon from '@icons/ClipboardIcon'
 import SvgCopyIcon from '@icons/CopyIcon'
@@ -12,7 +12,7 @@ import SvgFileText2Icon from '@icons/FileText2Icon'
 import SvgReferrer from '@icons/Referrer'
 import SvgTrashIcon from '@icons/TrashIcon'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
-import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
+import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
 	CLICKUP_INTEGRATION,
@@ -62,9 +62,10 @@ const SessionCommentHeader = ({
 	const {
 		settings: { isIntegrated: isClickupIntegrated },
 	} = useClickUpIntegration()
-	const {
-		settings: { isIntegrated: isHeightIntegrated },
-	} = useHeightIntegration()
+
+	const { isIntegrated: isHeightIntegrated } = useIsProjectIntegratedWith(
+		IntegrationType.Height,
+	)
 
 	const [showNewIssueModal, setShowNewIssueModal] = useState<
 		IssueTrackerIntegration | undefined

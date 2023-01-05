@@ -8,12 +8,12 @@ import MenuItem from '@components/Menu/MenuItem'
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
 import { useDeleteErrorCommentMutation } from '@graph/hooks'
 import { GetErrorGroupQuery, namedOperations } from '@graph/operations'
-import { ErrorComment, Maybe } from '@graph/schemas'
+import { ErrorComment, IntegrationType, Maybe } from '@graph/schemas'
 import SvgFileText2Icon from '@icons/FileText2Icon'
 import SvgTrashIcon from '@icons/TrashIcon'
 import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
-import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
+import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
 	CLICKUP_INTEGRATION,
@@ -112,9 +112,9 @@ const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
 	const {
 		settings: { isIntegrated: isClickupIntegrated },
 	} = useClickUpIntegration()
-	const {
-		settings: { isIntegrated: isHeightIntegrated },
-	} = useHeightIntegration()
+	const { isIntegrated: isHeightIntegrated } = useIsProjectIntegratedWith(
+		IntegrationType.Height,
+	)
 
 	const issueTrackers: [boolean | undefined, IssueTrackerIntegration][] = [
 		[isLinearIntegratedWithProject, LINEAR_INTEGRATION],
