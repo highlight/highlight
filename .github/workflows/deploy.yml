@@ -175,6 +175,8 @@ jobs:
         needs: migrate-database
         runs-on: ubuntu-latest
         steps:
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v2
             - name: Check out the repo
               uses: actions/checkout@v2
             - name: Configure AWS credentials
