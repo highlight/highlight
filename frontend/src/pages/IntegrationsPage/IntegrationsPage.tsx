@@ -80,15 +80,27 @@ const IntegrationsPage = () => {
 
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((integration) => {
-			if (integration.onlyShowForHighlightAdmin) {
-				return isHighlightAdmin
-			}
+			if (
+				integration.allowlistWorkspaceIds ||
+				integration.onlyShowForHighlightAdmin
+			) {
+				let canSee = false
 
-			if (integration.allowlistWorkspaceIds) {
-				return integration.allowlistWorkspaceIds?.includes(workspace_id)
-			}
+				if (integration.allowlistWorkspaceIds) {
+					canSee =
+						canSee ||
+						integration.allowlistWorkspaceIds?.includes(
+							workspace_id,
+						)
+				}
 
-			return true
+				if (integration.onlyShowForHighlightAdmin) {
+					canSee = canSee || isHighlightAdmin
+				}
+				return canSee
+			} else {
+				return true
+			}
 		}).map((inter) => ({
 			...inter,
 			defaultEnable:
