@@ -7,6 +7,7 @@ import ErrorShareButton from '@pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
 import { ErrorStateSelect } from '@pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
 import { getHeaderFromError, getProjectPrefix } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
+import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { FaMapMarker } from 'react-icons/fa'
 
@@ -23,6 +24,10 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 
 	const event = errorObject?.event ?? errorGroup?.event
 	const headerText = getHeaderFromError(event ?? [])
+	const snoozed =
+		errorGroup?.snoozed_until &&
+		moment().isBefore(moment(errorGroup.snoozed_until))
+	console.log('::: errorGroup', errorGroup)
 
 	useEffect(() => {
 		if (headerText) {
@@ -67,7 +72,9 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 					</Box>
 
 					<Box display="flex" gap="8">
-						<ErrorStateSelect state={errorGroup.state} />
+						<ErrorStateSelect
+							state={snoozed ? 'Snoozed' : errorGroup.state}
+						/>
 						<ErrorShareButton errorGroup={errorGroup} />
 						<ErrorIssueButton errorGroup={errorGroup} />
 					</Box>

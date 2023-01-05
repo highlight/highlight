@@ -92,8 +92,20 @@ const Divider: React.FC<MenuSeparatorProps> = ({ children, ...props }) => (
 	</MenuSeparator>
 )
 
-const Heading: React.FC<MenuHeadingProps> = ({ children, ...props }) => (
-	<AriakitMenuHeading {...props}>{children}</AriakitMenuHeading>
+const Heading: React.FC<MenuHeadingProps> = ({
+	children,
+	className,
+	...props
+}) => (
+	<>
+		<AriakitMenuHeading
+			className={clsx(styles.menuHeading, className)}
+			{...props}
+		>
+			{children}
+		</AriakitMenuHeading>
+		<Divider />
+	</>
 )
 
 Menu.Button = Button

@@ -383,6 +383,7 @@ export type ErrorGroup = {
 	metadata_log: Array<Maybe<ErrorMetadata>>
 	project_id: Scalars['Int']
 	secure_id: Scalars['String']
+	snoozed_until?: Maybe<Scalars['Timestamp']>
 	stack_trace?: Maybe<Scalars['String']>
 	state: ErrorState
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
@@ -1152,6 +1153,7 @@ export type MutationUpdateErrorGroupIsPublicArgs = {
 
 export type MutationUpdateErrorGroupStateArgs = {
 	secure_id: Scalars['String']
+	snoozed_until?: InputMaybe<Scalars['Timestamp']>
 	state: Scalars['String']
 }
 

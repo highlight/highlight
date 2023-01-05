@@ -638,7 +638,7 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID st
 }
 
 // UpdateErrorGroupState is the resolver for the updateErrorGroupState field.
-func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state string) (*model.ErrorGroup, error) {
+func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state string, snoozedUntil *time.Time) (*model.ErrorGroup, error) {
 	errGroup, err := r.canAdminModifyErrorGroup(ctx, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to modify error group")
@@ -647,12 +647,18 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 	errorGroup := &model.ErrorGroup{}
 	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errGroup.ID}}).First(&errorGroup).Updates(&model.ErrorGroup{
 		State: state,
+		// TODO: Figure out how to set this to null when snoozedUntil is nil...
+		SnoozedUntil: snoozedUntil,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
+	fmt.Print("::: errorGroup\n")
+	fmt.Printf("%v+\n", snoozedUntil)
+	fmt.Printf("%v+\n", errorGroup)
 
 	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
-		"state": state,
+		"state":        state,
+		"snoozedUntil": snoozedUntil,
 	}); err != nil {
 		return nil, e.Wrap(err, "error updating error group state in OpenSearch")
 	}

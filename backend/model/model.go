@@ -897,6 +897,7 @@ type ErrorGroup struct {
 	StackTrace       string
 	MappedStackTrace *string
 	State            string        `json:"state" gorm:"default:OPEN"`
+	SnoozedUntil     *time.Time    `json:"snoozed_until"`
 	Fields           []*ErrorField `gorm:"many2many:error_group_fields;" json:"fields"`
 	Fingerprints     []*ErrorFingerprint
 	FieldGroup       *string
@@ -1700,7 +1701,6 @@ func (obj *ErrorAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, inpu
 		message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>  <a href=\"%s\">View Session</a>", *obj.Name, input.Group.Event, errorURL, sessionURL)
 		if err := Email.SendAlertEmail(mailClient, *email, message, "Errors", fmt.Sprintf("%s: %s", *obj.Name, input.Group.Event)); err != nil {
 			log.Error(err)
-
 		}
 	}
 }
@@ -2359,9 +2359,6 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 	alertEvent := &AlertEvent{Type: *obj.Type, ProjectID: obj.ProjectID, AlertID: alertID}
 	switch *obj.Type {
 	case AlertType.ERROR:
-		if input.Group == nil || input.Group.State == ErrorGroupStates.IGNORED {
-			return nil
-		}
 		shortEvent := input.Group.Event
 		if len(input.Group.Event) > 50 {
 			shortEvent = input.Group.Event[:50] + "..."
