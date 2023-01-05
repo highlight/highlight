@@ -1,19 +1,23 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
 import { GetErrorGroupQuery } from '@graph/operations'
+import { IntegrationType } from '@graph/schemas'
 import {
 	IconSolidCheveronRight,
 	IconSolidClickUp,
 	IconSolidDocumentAdd,
+	IconSolidHeight,
 	IconSolidLinear,
 	IconSolidPlusSm,
 } from '@highlight-run/ui'
 import { Box, Menu, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
+import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
 	CLICKUP_INTEGRATION,
+	HEIGHT_INTEGRATION,
 	LINEAR_INTEGRATION,
 } from '@pages/IntegrationsPage/Integrations'
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
@@ -35,13 +39,22 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 		settings: { isIntegrated: isClickupIntegrated },
 	} = useClickUpIntegration()
 
+	const { isIntegrated: isHeightIntegrated } = useIsProjectIntegratedWith(
+		IntegrationType.Height,
+	)
+
 	const integrations: Array<[boolean | undefined, IssueTrackerIntegration]> =
 		useMemo(
 			() => [
 				[isLinearIntegratedWithProject, LINEAR_INTEGRATION],
 				[isClickupIntegrated, CLICKUP_INTEGRATION],
+				[isHeightIntegrated, HEIGHT_INTEGRATION],
 			],
-			[isClickupIntegrated, isLinearIntegratedWithProject],
+			[
+				isClickupIntegrated,
+				isLinearIntegratedWithProject,
+				isHeightIntegrated,
+			],
 		)
 
 	const integrationCount = integrations.reduce(
@@ -81,6 +94,9 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 							)}
 							{integration === CLICKUP_INTEGRATION && (
 								<IconSolidClickUp size={16} />
+							)}
+							{integration === HEIGHT_INTEGRATION && (
+								<IconSolidHeight size={16} />
 							)}
 							<Box mr="auto" cssClass={style.menuOption}>
 								<Text

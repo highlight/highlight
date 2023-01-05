@@ -29,10 +29,11 @@ import {
 	PlayerReducer,
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
+import analytics from '@util/analytics'
 import { indexedDBFetch } from '@util/db'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
-import { timerEnd } from '@util/timer/timer'
+import { timerEnd, timerStart } from '@util/timer/timer'
 import useMapRef from '@util/useMapRef'
 import { H } from 'highlight.run'
 import _ from 'lodash'
@@ -450,6 +451,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				return Promise.resolve()
 			}
 
+			timerStart('timelineChangeTime')
 			dispatch({ type: PlayerActionType.setTime, time: newTime })
 			return new Promise<void>((r) =>
 				requestAnimationFrame(() =>
@@ -461,6 +463,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 						// Log how long it took to move to the new time.
 						const timelineChangeTime =
 							timerEnd('timelineChangeTime')
+						analytics.track('Session play', {
+							time,
+							duration: timelineChangeTime,
+							secure_id: state.session_secure_id,
+						})
 						datadogLogs.logger.info('Timeline Play Time', {
 							duration: timelineChangeTime,
 							sessionId: state.session_secure_id,
@@ -477,6 +484,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		(time?: number) => {
 			return new Promise<void>((r) => {
 				if (time !== undefined) {
+					timerStart('timelineChangeTime')
 					dispatch({ type: PlayerActionType.setTime, time })
 					requestAnimationFrame(() =>
 						ensureChunksLoaded(
@@ -487,6 +495,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 							// Log how long it took to move to the new time.
 							const timelineChangeTime =
 								timerEnd('timelineChangeTime')
+							analytics.track('Session pause', {
+								time,
+								duration: timelineChangeTime,
+								secure_id: state.session_secure_id,
+							})
 							datadogLogs.logger.info('Timeline Pause Time', {
 								duration: timelineChangeTime,
 								sessionId: state.session_secure_id,
@@ -505,6 +518,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const seek = useCallback(
 		(time: number): Promise<void> => {
+			timerStart('timelineChangeTime')
 			if (!state.isLiveMode && skipInactive) {
 				const inactivityEnd = getInactivityEnd(time)
 				if (inactivityEnd) {
@@ -526,7 +540,21 @@ export const usePlayer = (): ReplayerContextInterface => {
 						time,
 						undefined,
 						state.replayerState,
-					).then(r),
+					).then(() => {
+						// Log how long it took to move to the new time.
+						const timelineChangeTime =
+							timerEnd('timelineChangeTime')
+						analytics.track('Session seek', {
+							time,
+							duration: timelineChangeTime,
+							secure_id: state.session_secure_id,
+						})
+						datadogLogs.logger.info('Timeline Seek Time', {
+							duration: timelineChangeTime,
+							sessionId: state.session_secure_id,
+						})
+						r()
+					}),
 				),
 			)
 		},
@@ -536,6 +564,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			skipInactive,
 			state.isLiveMode,
 			state.replayerState,
+			state.session_secure_id,
 		],
 	)
 

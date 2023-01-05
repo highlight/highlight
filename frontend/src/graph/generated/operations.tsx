@@ -1846,6 +1846,21 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorIssuesQueryVariables = Types.Exact<{
+	error_group_secure_id: Types.Scalars['String']
+}>
+
+export type GetErrorIssuesQuery = { __typename?: 'Query' } & {
+	error_issue: Array<
+		Types.Maybe<
+			{ __typename?: 'ExternalAttachment' } & Pick<
+				Types.ExternalAttachment,
+				'integration_type' | 'external_id' | 'title'
+			>
+		>
+	>
+}
+
 export type GetEnhancedUserDetailsQueryVariables = Types.Exact<{
 	session_secure_id: Types.Scalars['String']
 }>
@@ -3429,6 +3444,16 @@ export type GetHeightIntegrationSettingsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetProjectIntegratedWithQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	integration_type: Types.IntegrationType
+}>
+
+export type GetProjectIntegratedWithQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'is_project_integrated_with'
+>
+
 export type GetClickUpFoldersQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -3827,6 +3852,26 @@ export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorGroupTagsQueryVariables = Types.Exact<{
+	error_group_secure_id: Types.Scalars['String']
+}>
+
+export type GetErrorGroupTagsQuery = { __typename?: 'Query' } & {
+	errorGroupTags: Array<
+		{ __typename?: 'ErrorGroupTagAggregation' } & Pick<
+			Types.ErrorGroupTagAggregation,
+			'key'
+		> & {
+				buckets: Array<
+					{ __typename?: 'ErrorGroupTagAggregationBucket' } & Pick<
+						Types.ErrorGroupTagAggregationBucket,
+						'key' | 'doc_count' | 'percent'
+					>
+				>
+			}
+	>
+}
+
 export type GetEmailOptOutsQueryVariables = Types.Exact<{
 	token?: Types.Maybe<Types.Scalars['String']>
 	admin_id?: Types.Maybe<Types.Scalars['ID']>
@@ -3856,6 +3901,7 @@ export const namedOperations = {
 		GetAccounts: 'GetAccounts' as const,
 		GetAccountDetails: 'GetAccountDetails' as const,
 		GetErrorComments: 'GetErrorComments' as const,
+		GetErrorIssues: 'GetErrorIssues' as const,
 		GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
 		GetOnboardingSteps: 'GetOnboardingSteps' as const,
 		GetSessionIntervals: 'GetSessionIntervals' as const,
@@ -3928,6 +3974,7 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithVercel' as const,
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
 		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
+		GetProjectIntegratedWith: 'GetProjectIntegratedWith' as const,
 		GetClickUpFolders: 'GetClickUpFolders' as const,
 		GetHeightLists: 'GetHeightLists' as const,
 		GenerateNewZapierAccessTokenJwt:
@@ -3946,6 +3993,7 @@ export const namedOperations = {
 		GetSourcemapVersions: 'GetSourcemapVersions' as const,
 		GetOAuthClientMetadata: 'GetOAuthClientMetadata' as const,
 		GetErrorGroupFrequencies: 'GetErrorGroupFrequencies' as const,
+		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 	},
 	Mutation: {

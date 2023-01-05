@@ -860,6 +860,17 @@ type ErrorDistributionItem {
 	value: Int64!
 }
 
+type ErrorGroupTagAggregationBucket {
+	key: String!
+	doc_count: Int64!
+	percent: Float!
+}
+
+type ErrorGroupTagAggregation {
+	key: String!
+	buckets: [ErrorGroupTagAggregationBucket!]!
+}
+
 type Dashboard {
 	id: ID!
 	project_id: ID!
@@ -1175,6 +1186,7 @@ type Query {
 	session_comments_for_admin: [SessionComment]!
 	session_comments_for_project(project_id: ID!): [SessionComment]!
 	isSessionPending(session_secure_id: String!): Boolean
+	error_issue(error_group_secure_id: String!): [ExternalAttachment]!
 	error_comments(error_group_secure_id: String!): [ErrorComment]!
 	error_comments_for_admin: [ErrorComment]!
 	error_comments_for_project(project_id: ID!): [ErrorComment]!
@@ -1210,6 +1222,8 @@ type Query {
 		params: ErrorGroupFrequenciesParamsInput!
 		metric: String
 	): [ErrorDistributionItem]!
+	errorGroupTags(error_group_secure_id: String!): [ErrorGroupTagAggregation!]!
+
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
 	topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
@@ -1289,6 +1303,10 @@ type Query {
 	is_workspace_integrated_with(
 		integration_type: IntegrationType!
 		workspace_id: ID!
+	): Boolean!
+	is_project_integrated_with(
+		integration_type: IntegrationType!
+		project_id: ID!
 	): Boolean!
 	vercel_projects(project_id: ID!): [VercelProject!]!
 	vercel_project_mappings(project_id: ID!): [VercelProjectMapping!]!
