@@ -1,10 +1,12 @@
 import Select from '@components/Select/Select'
 import { useGetHeightListsQuery } from '@graph/hooks'
+import { Form } from '@highlight-run/ui'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
-import { Form } from 'antd'
 import { useEffect, useMemo } from 'react'
+
+import * as style from '../style.css'
 
 const HeightListSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
@@ -42,7 +44,7 @@ const HeightListSelector: React.FC<ContainerSelectionProps> = ({
 	}, [selectedHeightListId, heightListOptions, setHeightListId])
 
 	return (
-		<Form.Item label="Height List">
+		<Form.NamedSection label="Height List">
 			<Select
 				aria-label="Height List"
 				placeholder="Choose a list to create the task in"
@@ -51,8 +53,9 @@ const HeightListSelector: React.FC<ContainerSelectionProps> = ({
 				value={'' + selectedHeightListId}
 				notFoundContent={<p>No lists found</p>}
 				loading={loading}
+				className={style.selectContainer}
 			/>
-		</Form.Item>
+		</Form.NamedSection>
 	)
 }
 

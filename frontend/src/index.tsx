@@ -47,14 +47,6 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login'
-import { RequestWorker } from './worker'
-
-export const worker: RequestWorker = new Worker(
-	new URL('./worker.ts', import.meta.url),
-	{
-		type: 'module',
-	},
-)
 
 analytics.initialize()
 const dev = import.meta.env.DEV
@@ -69,6 +61,11 @@ const options: HighlightOptions = {
 			'pri.highlight.run',
 			'pub.highlight.run',
 			'localhost:8082',
+		],
+		urlBlocklist: [
+			'console-messages-compressed',
+			'network-resources-compressed',
+			'session-contents-compressed',
 		],
 	},
 	tracingOrigins: ['highlight.run', 'localhost'],
