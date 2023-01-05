@@ -22,6 +22,9 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 import styles from './IntegrationsPage.module.scss'
 
 const IntegrationsPage = () => {
+	const { workspace_id } = useParams<{
+		workspace_id: string
+	}>()
 	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()
 
 	const { integration_type: configureIntegration } = useParams<{
@@ -76,9 +79,17 @@ const IntegrationsPage = () => {
 		loadingHeight
 
 	const integrations = useMemo(() => {
-		return INTEGRATIONS.filter((inter) =>
-			inter.onlyShowForHighlightAdmin ? isHighlightAdmin : true,
-		).map((inter) => ({
+		return INTEGRATIONS.filter((integration) => {
+			if (integration.onlyShowForHighlightAdmin) {
+				return isHighlightAdmin
+			}
+
+			if (integration.allowlistWorkspaceIds) {
+				return integration.allowlistWorkspaceIds?.includes(workspace_id)
+			}
+
+			return true
+		}).map((inter) => ({
 			...inter,
 			defaultEnable:
 				(inter.key === 'slack' && isSlackConnectedToWorkspace) ||
@@ -103,6 +114,7 @@ const IntegrationsPage = () => {
 		isDiscordIntegratedWithProject,
 		isClickUpIntegratedWithProject,
 		isHeightIntegratedWithProject,
+		workspace_id,
 	])
 
 	useEffect(() => analytics.page(), [])
