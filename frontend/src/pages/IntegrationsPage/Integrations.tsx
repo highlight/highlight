@@ -147,7 +147,7 @@ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 	name: 'Height',
 	configurationPath: 'height',
 	onlyShowForHighlightAdmin: true,
-	allowlistWorkspaceIds: ['1777'], // this for the Height folks to test our integration
+	allowlistWorkspaceIds: ['1587'], // this for the Height folks to test our integration
 	description: 'Create Height tasks from your Highlight comments.',
 	configurationPage: (opts) => <HeightIntegrationConfig {...opts} />,
 	icon: '/images/integrations/height.svg',
