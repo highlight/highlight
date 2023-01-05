@@ -5318,6 +5318,64 @@ export type GetErrorCommentsQueryResult = Apollo.QueryResult<
 	Types.GetErrorCommentsQuery,
 	Types.GetErrorCommentsQueryVariables
 >
+export const GetErrorIssuesDocument = gql`
+	query GetErrorIssues($error_group_secure_id: String!) {
+		error_issue(error_group_secure_id: $error_group_secure_id) {
+			integration_type
+			external_id
+			title
+		}
+	}
+`
+
+/**
+ * __useGetErrorIssuesQuery__
+ *
+ * To run a query within a React component, call `useGetErrorIssuesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorIssuesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorIssuesQuery({
+ *   variables: {
+ *      error_group_secure_id: // value for 'error_group_secure_id'
+ *   },
+ * });
+ */
+export function useGetErrorIssuesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorIssuesQuery,
+		Types.GetErrorIssuesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorIssuesQuery,
+		Types.GetErrorIssuesQueryVariables
+	>(GetErrorIssuesDocument, baseOptions)
+}
+export function useGetErrorIssuesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorIssuesQuery,
+		Types.GetErrorIssuesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorIssuesQuery,
+		Types.GetErrorIssuesQueryVariables
+	>(GetErrorIssuesDocument, baseOptions)
+}
+export type GetErrorIssuesQueryHookResult = ReturnType<
+	typeof useGetErrorIssuesQuery
+>
+export type GetErrorIssuesLazyQueryHookResult = ReturnType<
+	typeof useGetErrorIssuesLazyQuery
+>
+export type GetErrorIssuesQueryResult = Apollo.QueryResult<
+	Types.GetErrorIssuesQuery,
+	Types.GetErrorIssuesQueryVariables
+>
 export const GetEnhancedUserDetailsDocument = gql`
 	query GetEnhancedUserDetails($session_secure_id: String!) {
 		enhanced_user_details(session_secure_id: $session_secure_id) {
