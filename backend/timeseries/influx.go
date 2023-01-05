@@ -264,6 +264,62 @@ func (i *InfluxDB) Stop() {
 	i.Client.Close()
 }
 
+func GetDownsampleQuery(bucket string, config MeasurementConfig, extraFilters string) string {
+	switch config.Name {
+	case Configs["errors"].Name:
+		return fmt.Sprintf(`
+import "join"
+
+counts = from(bucket: "%[2]s")
+		|> range(start: -%[1]dm)
+		|> filter(fn: (r) => r._measurement == "%[3]s")
+		%[5]s
+		|> group(columns: ["%[4]s"])
+		|> aggregateWindow(every: %[1]dm, fn: count)
+		|> keep(columns: ["_measurement","_time","_field","_value", "%[4]s"])
+
+sessionCounts = from(bucket: "%[2]s")
+		|> range(start: -%[1]dm)
+		|> filter(fn: (r) => r._measurement == "%[3]s")
+		%[5]s
+		|> unique(column: "SessionID")
+		|> group(columns: ["%[4]s"])
+		|> aggregateWindow(every: %[1]dm, fn: count)
+		|> keep(columns: ["_measurement","_time","_field","_value", "%[4]s"])
+
+identifierCounts = from(bucket: "%[2]s")
+		|> range(start: -%[1]dm)
+		|> filter(fn: (r) => r._measurement == "%[3]s")
+		|> filter(fn: (r) => r._field == "Identifier")
+		%[5]s
+		|> unique()
+		|> group(columns: ["%[4]s"])
+		|> aggregateWindow(every: %[1]dm, fn: count)
+		|> keep(columns: ["_measurement","_time","_field","_value", "%[4]s"])
+
+environmentCounts = from(bucket: "%[2]s")
+		|> range(start: -%[1]dm)
+		|> filter(fn: (r) => r._measurement == "%[3]s")
+		|> filter(fn: (r) => r._field == "Environment")
+		%[5]s
+		|> unique()
+		|> group(columns: ["%[4]s"])
+		|> aggregateWindow(every: %[1]dm, fn: count)
+		|> keep(columns: ["_measurement","_time","_field","_value", "%[4]s"])
+
+join.time(left: counts, right: sessionCounts, as: (l, r) => ({l with count: l._value, sessionCount: r._value}))
+	|> join.time(right: identifierCounts, as: (l, r) => ({l with identifierCount: r._value}))
+	|> join.time(right: environmentCounts, as: (l, r) => ({l with environmentCount: r._value}))
+	`, int(config.DownsampleInterval.Minutes()), bucket, config.Name, "ErrorGroupID", extraFilters)
+	}
+	return fmt.Sprintf(`
+		from(bucket: "%s")
+			|> range(start: -%dm)
+			|> filter(fn: (r) => r._measurement == "%s")
+			|> aggregateWindow(every: %dm, fn: mean)
+	`, bucket, int(config.DownsampleInterval.Minutes()), config.Name, int(config.DownsampleInterval.Minutes()))
+}
+
 func getDownsampleTask(bucket string, downsampleBucket string, taskName string, config MeasurementConfig) string {
 	switch config.Name {
 	case Configs["errors"].Name:
@@ -271,53 +327,15 @@ func getDownsampleTask(bucket string, downsampleBucket string, taskName string, 
 import "join"
 
 option task = {name: "%[1]s", every: %[2]dm}
-counts = from(bucket: "%[3]s")
-		|> range(start: -task.every)
-		|> filter(fn: (r) => r._measurement == "%[4]s")
-		|> group(columns: ["%[7]s"])
-		|> aggregateWindow(every: %[2]dm, fn: count)
-		|> keep(columns: ["_measurement","_time","_field","_value", "%[7]s"])
-
-sessionCounts = from(bucket: "%[3]s")
-		|> range(start: -task.every)
-		|> filter(fn: (r) => r._measurement == "%[4]s")
-		|> unique(column: "SessionID")
-		|> group(columns: ["%[7]s"])
-		|> aggregateWindow(every: %[2]dm, fn: count)
-		|> keep(columns: ["_measurement","_time","_field","_value", "%[7]s"])
-
-identifierCounts = from(bucket: "%[3]s")
-		|> range(start: -task.every)
-		|> filter(fn: (r) => r._measurement == "%[4]s")
-		|> filter(fn: (r) => r._field == "Identifier")
-		|> unique()
-		|> group(columns: ["%[7]s"])
-		|> aggregateWindow(every: %[2]dm, fn: count)
-		|> keep(columns: ["_measurement","_time","_field","_value", "%[7]s"])
-
-environmentCounts = from(bucket: "%[3]s")
-		|> range(start: -task.every)
-		|> filter(fn: (r) => r._measurement == "%[4]s")
-		|> filter(fn: (r) => r._field == "Environment")
-		|> unique()
-		|> group(columns: ["%[7]s"])
-		|> aggregateWindow(every: %[2]dm, fn: count)
-		|> keep(columns: ["_measurement","_time","_field","_value", "%[7]s"])
-
-join.time(left: counts, right: sessionCounts, as: (l, r) => ({l with count: l._value, sessionCount: r._value}))
-	|> join.time(right: identifierCounts, as: (l, r) => ({l with identifierCount: r._value}))
-	|> join.time(right: environmentCounts, as: (l, r) => ({l with environmentCount: r._value}))
-	|> set(key: "_measurement", value: "%[5]s")
-	|> to(bucket: "%[6]s", fieldFn: (r) => ({"count": r.count, "sessionCount": r.sessionCount, "identifierCount": r.identifierCount, "environmentCount": r.environmentCount}))
-	`, taskName, int(config.DownsampleInterval.Minutes()), bucket, config.Name, config.AggName, downsampleBucket, "ErrorGroupID")
+%[5]s
+	|> set(key: "_measurement", value: "%[3]s")
+	|> to(bucket: "%[4]s", fieldFn: (r) => ({"count": r.count, "sessionCount": r.sessionCount, "identifierCount": r.identifierCount, "environmentCount": r.environmentCount}))
+	`, taskName, int(config.DownsampleInterval.Minutes()), config.AggName, downsampleBucket, GetDownsampleQuery(bucket, config, ""))
 	}
 	return fmt.Sprintf(`
 		option task = {name: "%s", every: %dm}
-		from(bucket: "%s")
-			|> range(start: -task.every)
-			|> filter(fn: (r) => r._measurement == "%s")
-			|> aggregateWindow(every: %dm, fn: mean)
+%s
 			|> set(key: "_measurement", value: "%s")
 			|> to(bucket: "%s")
-	`, taskName, int(config.DownsampleInterval.Minutes()), bucket, config.Name, int(config.DownsampleInterval.Minutes()), config.AggName, downsampleBucket)
+	`, taskName, int(config.DownsampleInterval.Minutes()), GetDownsampleQuery(bucket, config, ""), config.AggName, downsampleBucket)
 }

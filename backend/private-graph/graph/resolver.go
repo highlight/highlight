@@ -448,6 +448,34 @@ func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, 
 	return &results[0].Time, &results[1].Time, nil
 }
 
+func (r *Resolver) GetErrorGroupFrequenciesUnsampled(ctx context.Context, projectID int, errorGroupID int) ([]*modelInputs.ErrorDistributionItem, error) {
+	bucket, _ := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, time.Minute)
+	query := timeseries.GetDownsampleQuery(bucket, timeseries.Error, fmt.Sprintf(`|> filter(fn: (r) => r.ErrorGroupID == "%d")`, errorGroupID))
+	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
+	span.SetTag("projectID", projectID)
+	span.SetTag("errorGroupID", errorGroupID)
+	results, err := r.TDB.Query(ctx, query)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to perform tdb query for error group frequencies")
+	}
+	var response []*modelInputs.ErrorDistributionItem
+	for _, r := range results {
+		if r.Value != nil {
+			for _, k := range []string{
+				"count", "environmentCount", "identifierCount", "sessionCount",
+			} {
+				response = append(response, &modelInputs.ErrorDistributionItem{
+					ErrorGroupID: strconv.Itoa(errorGroupID),
+					Date:         r.Time,
+					Name:         k,
+					Value:        r.Values[k].(int64),
+				})
+			}
+		}
+	}
+	return response, nil
+}
+
 func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupIDs []int, params modelInputs.ErrorGroupFrequenciesParamsInput, metric string) ([]*modelInputs.ErrorDistributionItem, error) {
 	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, params.DateRange.EndDate.Sub(params.DateRange.StartDate))
 	var errorGroupFilters []string

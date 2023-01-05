@@ -12,10 +12,11 @@ export const getErrorGroupStats = function (
 	const counts = errorGroup?.error_metrics
 		?.filter((x) => x?.name === 'count')
 		?.map((x) => x?.value || 0)
-	const totalCount = counts?.reduce((a, b) => a + b, 0)
-	const userCount = errorGroup?.error_metrics
-		?.filter((x) => x?.name === 'identifierCount')
-		?.reduce((a, b) => a + b.value, 0)
+	const totalCount = counts?.reduce((a, b) => a + b, 0) || 1
+	const userCount =
+		errorGroup?.error_metrics
+			?.filter((x) => x?.name === 'identifierCount')
+			?.reduce((a, b) => a + b.value, 0) || 1
 	const weekly: { count: number[]; users: number[] } = {
 		count: [],
 		users: [],
@@ -88,7 +89,7 @@ export const parseErrorDescriptionList = (
 		 * The specifier %s used to interpolate values in a console.(log|info|etc.) call.
 		 * https://developer.mozilla.org/en-US/docs/Web/API/Console#Using_string_substitutions
 		 */
-		const specifierCount = (currentLine.match(/\%s/g) || []).length
+		const specifierCount = (currentLine.match(/%s/g) || []).length
 		if (specifierCount === 0) {
 			result.push(currentLine)
 			index++
