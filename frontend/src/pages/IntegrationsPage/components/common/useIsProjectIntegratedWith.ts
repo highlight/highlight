@@ -1,12 +1,17 @@
 import { useGetProjectIntegratedWithQuery } from '@graph/hooks'
 import { IntegrationType } from '@graph/schemas'
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 
-const useIsProjectIntegratedWith = (projectId: string, integrationType: IntegrationType) => {
+const useIsProjectIntegratedWith = (integrationType: IntegrationType) => {
+    const { currentProject } = useApplicationContext()
+	const projectIdStr = currentProject?.id ?? ''
+
     const { data, loading }  = useGetProjectIntegratedWithQuery({
 		variables: {
-			project_id: projectId,
+			project_id: projectIdStr,
 			integration_type: integrationType
 		},
+		skip: !currentProject,
 	})
 
     if (loading) {

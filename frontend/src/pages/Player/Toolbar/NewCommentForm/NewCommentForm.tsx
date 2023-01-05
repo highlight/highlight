@@ -27,7 +27,7 @@ import {
 import ArrowLeftIcon from '@icons/ArrowLeftIcon'
 import ArrowRightIcon from '@icons/ArrowRightIcon'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
-import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
+import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import ISSUE_TRACKER_INTEGRATIONS, {
 	IssueTrackerIntegration,
@@ -396,9 +396,9 @@ export const NewCommentForm = ({
 		settings: { isIntegrated: isClickupIntegrated },
 	} = useClickUpIntegration()
 
-	const {
-		settings: { isIntegrated: isHeightIntegrated },
-	} = useHeightIntegration()
+	const { isIntegrated: isHeightIntegrated } = useIsProjectIntegratedWith(
+		IntegrationType.Height,
+	)
 
 	const issueIntegrationsOptions = useMemo(() => {
 		const integrations = []

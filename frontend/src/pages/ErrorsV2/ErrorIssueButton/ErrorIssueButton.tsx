@@ -40,7 +40,6 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 	} = useClickUpIntegration()
 
 	const { isIntegrated: isHeightIntegrated } = useIsProjectIntegratedWith(
-		projectId,
 		IntegrationType.Height,
 	)
 
