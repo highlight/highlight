@@ -395,6 +395,19 @@ export type ErrorGroupFrequenciesParamsInput = {
 	resolution_minutes: Scalars['Int']
 }
 
+export type ErrorGroupTagAggregation = {
+	__typename?: 'ErrorGroupTagAggregation'
+	buckets: Array<ErrorGroupTagAggregationBucket>
+	key: Scalars['String']
+}
+
+export type ErrorGroupTagAggregationBucket = {
+	__typename?: 'ErrorGroupTagAggregationBucket'
+	doc_count: Scalars['Int64']
+	key: Scalars['String']
+	percent: Scalars['Float']
+}
+
 export type ErrorInstance = {
 	__typename?: 'ErrorInstance'
 	error_object: ErrorObject
@@ -1317,6 +1330,7 @@ export type Query = {
 	environment_suggestion?: Maybe<Array<Maybe<Field>>>
 	errorDistribution: Array<Maybe<ErrorDistributionItem>>
 	errorGroupFrequencies: Array<Maybe<ErrorDistributionItem>>
+	errorGroupTags: Array<ErrorGroupTagAggregation>
 	error_alerts: Array<Maybe<ErrorAlert>>
 	error_comments: Array<Maybe<ErrorComment>>
 	error_comments_for_admin: Array<Maybe<ErrorComment>>
@@ -1513,6 +1527,10 @@ export type QueryErrorGroupFrequenciesArgs = {
 	metric?: InputMaybe<Scalars['String']>
 	params: ErrorGroupFrequenciesParamsInput
 	project_id: Scalars['ID']
+}
+
+export type QueryErrorGroupTagsArgs = {
+	error_group_secure_id: Scalars['String']
 }
 
 export type QueryError_AlertsArgs = {

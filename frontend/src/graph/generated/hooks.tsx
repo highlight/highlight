@@ -11076,6 +11076,67 @@ export type GetErrorGroupFrequenciesQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupFrequenciesQuery,
 	Types.GetErrorGroupFrequenciesQueryVariables
 >
+export const GetErrorGroupTagsDocument = gql`
+	query GetErrorGroupTags($error_group_secure_id: String!) {
+		errorGroupTags(error_group_secure_id: $error_group_secure_id) {
+			key
+			buckets {
+				key
+				doc_count
+				percent
+			}
+		}
+	}
+`
+
+/**
+ * __useGetErrorGroupTagsQuery__
+ *
+ * To run a query within a React component, call `useGetErrorGroupTagsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorGroupTagsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorGroupTagsQuery({
+ *   variables: {
+ *      error_group_secure_id: // value for 'error_group_secure_id'
+ *   },
+ * });
+ */
+export function useGetErrorGroupTagsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorGroupTagsQuery,
+		Types.GetErrorGroupTagsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorGroupTagsQuery,
+		Types.GetErrorGroupTagsQueryVariables
+	>(GetErrorGroupTagsDocument, baseOptions)
+}
+export function useGetErrorGroupTagsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorGroupTagsQuery,
+		Types.GetErrorGroupTagsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorGroupTagsQuery,
+		Types.GetErrorGroupTagsQueryVariables
+	>(GetErrorGroupTagsDocument, baseOptions)
+}
+export type GetErrorGroupTagsQueryHookResult = ReturnType<
+	typeof useGetErrorGroupTagsQuery
+>
+export type GetErrorGroupTagsLazyQueryHookResult = ReturnType<
+	typeof useGetErrorGroupTagsLazyQuery
+>
+export type GetErrorGroupTagsQueryResult = Apollo.QueryResult<
+	Types.GetErrorGroupTagsQuery,
+	Types.GetErrorGroupTagsQueryVariables
+>
 export const GetEmailOptOutsDocument = gql`
 	query GetEmailOptOuts($token: String, $admin_id: ID) {
 		email_opt_outs(token: $token, admin_id: $admin_id)
