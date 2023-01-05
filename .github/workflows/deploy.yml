@@ -192,7 +192,7 @@ jobs:
                   ECR_REPOSITORY: highlight-production-ecr-repo
                   IMAGE_TAG: ${{ github.sha }}
               run: |
-                  docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f deploy/Dockerfile.prod.arm64 .
+                  docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f deploy/Dockerfile.prod.arm64 .
                   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64
             - name: Build, tag, and push image to Amazon ECR
               env:

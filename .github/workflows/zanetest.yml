@@ -1,0 +1,33 @@
+name: zane-test
+on:
+    push:
+        branches:
+            - '**'
+            - '!master'
+        paths:
+            - 'backend/**'
+            - 'deploy/**'
+            - '.github/workflows/deploy.yml'
+jobs:
+    build_ecr:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@v2
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-east-2
+            - name: Login to Amazon ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v1
+            - name: Build, tag, and push arm64 image to Amazon ECR
+              env:
+                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                  ECR_REPOSITORY: highlight-production-ecr-repo
+                  IMAGE_TAG: ${{ github.sha }}
+              run: |
+                  docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f deploy/Dockerfile.prod.arm64 .
+                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64
