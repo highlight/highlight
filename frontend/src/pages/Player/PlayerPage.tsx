@@ -377,7 +377,7 @@ const PlayerPage = ({ integrated }: Props) => {
 													}
 												/>
 											)}
-											<Box display="flex">
+											<Box display="flex" height="full">
 												<div
 													className={
 														style.playerCenterColumn

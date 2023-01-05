@@ -12,7 +12,7 @@ import { message } from 'antd'
 import * as styles from './StreamEventV2.css'
 
 const EVENT_TYPES_TO_NOT_RENDER_TIME = ['Web Vitals']
-const EVENT_TYPES_TO_VARIANTS: {
+export const EVENT_TYPES_TO_VARIANTS: {
 	[key: string]:
 		| 'red'
 		| 'blue'
@@ -35,7 +35,7 @@ const EVENT_TYPES_TO_VARIANTS: {
 	Identify: 'yellow',
 	'Web Vitals': 'green',
 	Referrer: 'yellow',
-	TabHidden: 'grey',
+	'Tab State': 'grey',
 	Errors: 'red',
 }
 

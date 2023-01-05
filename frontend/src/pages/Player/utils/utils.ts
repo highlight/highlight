@@ -81,3 +81,34 @@ export const getTimelineEventDisplayName = (name: string) => {
 			return name
 	}
 }
+
+export const getTimelineEventTooltipText = (name: string) => {
+	switch (name) {
+		case 'Click':
+			return 'A click was recorded in your application.'
+		case 'Reload':
+			return 'The application was reloaded.'
+		case 'Navigate':
+			return 'A navigation event occurred in the application.'
+		case 'Track':
+			return 'The session emitted a tracked property.'
+		case 'Comments':
+			return 'A comment was added to the session.'
+		case 'Viewport':
+			return 'The viewport of the application changed.'
+		case 'Identify':
+			return 'The user was identified.'
+		case 'Web Vitals':
+			return 'The application recorded web vitals performance metrics.'
+		case 'Referrer':
+			return 'The application was loaded with a referrer header.'
+		case 'Errors':
+			return 'An error occurred in your application.'
+		case 'TabHidden':
+			return 'The application was hidden.'
+		case 'TabShown':
+			return 'The application became visible.'
+		default:
+			return name
+	}
+}

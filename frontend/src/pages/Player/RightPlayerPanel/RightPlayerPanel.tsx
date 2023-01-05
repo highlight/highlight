@@ -15,6 +15,7 @@ import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
 import React, { useEffect } from 'react'
 
+import EventDetails from '../components/EventDetails/EventDetails'
 import { MetadataBox } from '../MetadataBox/MetadataBox'
 import MetadataPanel from '../MetadataPanel/MetadataPanel'
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration'
@@ -27,7 +28,7 @@ const RightPlayerPanel = React.memo(() => {
 		usePlayerConfiguration()
 	const { showBanner } = useGlobalContext()
 	const { canViewSession } = useReplayerContext()
-	const { setSelectedRightPanelTab } = usePlayerUIContext()
+	const { setSelectedRightPanelTab, activeEvent } = usePlayerUIContext()
 
 	const showRightPanel = showRightPanelPreference && canViewSession
 
@@ -49,20 +50,23 @@ const RightPlayerPanel = React.memo(() => {
 					[styles.playerRightPanelContainerHidden]: !showRightPanel,
 				})}
 			>
-				{showRightPanel && (
-					<div
-						className={classNames(
-							styles.playerRightPanelCollapsible,
-							{
-								[styles.playerRightPanelCollapsibleBannerShown]:
-									showBanner,
-							},
-						)}
-					>
-						<MetadataBox />
-						<RightPlayerPanelTabs />
-					</div>
-				)}
+				{showRightPanel &&
+					(activeEvent !== undefined ? (
+						<EventDetails event={activeEvent} />
+					) : (
+						<div
+							className={classNames(
+								styles.playerRightPanelCollapsible,
+								{
+									[styles.playerRightPanelCollapsibleBannerShown]:
+										showBanner,
+								},
+							)}
+						>
+							<MetadataBox />
+							<RightPlayerPanelTabs />
+						</div>
+					))}
 			</div>
 		</>
 	)

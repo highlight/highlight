@@ -72,6 +72,7 @@ export const playerCenterColumn = style({
 	position: 'relative',
 	marginLeft: CENTER_COLUMN_MARGIN - CENTER_COLUMN_OVERLAP,
 	marginRight: CENTER_COLUMN_MARGIN - CENTER_COLUMN_OVERLAP,
+	minWidth: MIN_CENTER_COLUMN_WIDTH,
 })
 
 export const playerLeftPanel = style({
