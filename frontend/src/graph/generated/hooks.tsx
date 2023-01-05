@@ -9853,6 +9853,67 @@ export type GetHeightIntegrationSettingsQueryResult = Apollo.QueryResult<
 	Types.GetHeightIntegrationSettingsQuery,
 	Types.GetHeightIntegrationSettingsQueryVariables
 >
+export const GetProjectIntegratedWithDocument = gql`
+	query GetProjectIntegratedWith(
+		$project_id: ID!
+		$integration_type: IntegrationType!
+	) {
+		is_project_integrated_with(
+			integration_type: $integration_type
+			project_id: $project_id
+		)
+	}
+`
+
+/**
+ * __useGetProjectIntegratedWithQuery__
+ *
+ * To run a query within a React component, call `useGetProjectIntegratedWithQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectIntegratedWithQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectIntegratedWithQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      integration_type: // value for 'integration_type'
+ *   },
+ * });
+ */
+export function useGetProjectIntegratedWithQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetProjectIntegratedWithQuery,
+		Types.GetProjectIntegratedWithQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetProjectIntegratedWithQuery,
+		Types.GetProjectIntegratedWithQueryVariables
+	>(GetProjectIntegratedWithDocument, baseOptions)
+}
+export function useGetProjectIntegratedWithLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetProjectIntegratedWithQuery,
+		Types.GetProjectIntegratedWithQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetProjectIntegratedWithQuery,
+		Types.GetProjectIntegratedWithQueryVariables
+	>(GetProjectIntegratedWithDocument, baseOptions)
+}
+export type GetProjectIntegratedWithQueryHookResult = ReturnType<
+	typeof useGetProjectIntegratedWithQuery
+>
+export type GetProjectIntegratedWithLazyQueryHookResult = ReturnType<
+	typeof useGetProjectIntegratedWithLazyQuery
+>
+export type GetProjectIntegratedWithQueryResult = Apollo.QueryResult<
+	Types.GetProjectIntegratedWithQuery,
+	Types.GetProjectIntegratedWithQueryVariables
+>
 export const GetClickUpFoldersDocument = gql`
 	query GetClickUpFolders($project_id: ID!) {
 		clickup_folders(project_id: $project_id) {

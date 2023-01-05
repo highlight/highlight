@@ -4,7 +4,7 @@ import { getAttachmentUrl } from '@components/Comment/AttachmentList/AttachmentL
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
 import { useGetErrorIssuesQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
-import { ExternalAttachment } from '@graph/schemas'
+import { ExternalAttachment, IntegrationType } from '@graph/schemas'
 import {
 	IconSolidCheveronRight,
 	IconSolidDocumentAdd,
@@ -13,7 +13,7 @@ import {
 import { Box, Menu, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
-import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
+import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
 	CLICKUP_INTEGRATION,
@@ -42,12 +42,9 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 			loading: isLoadingClickUp,
 		},
 	} = useClickUpIntegration()
-	const {
-		settings: {
-			isIntegrated: isHeightIntegrated,
-			loading: isLoadingHeight,
-		},
-	} = useHeightIntegration()
+
+	const { isIntegrated: isHeightIntegrated, loading: isLoadingHeight } =
+		useIsProjectIntegratedWith(IntegrationType.Height)
 
 	const { data: errorIssues, loading: isLoadingErrorIssues } =
 		useGetErrorIssuesQuery({
