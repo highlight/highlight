@@ -7,7 +7,7 @@ on:
         paths:
             - 'backend/**'
             - 'deploy/**'
-            - '.github/workflows/deploy.yml'
+            - '.github/workflows/zanetest.yml'
 jobs:
     qemu:
         runs-on: ubuntu-latest
