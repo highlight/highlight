@@ -8031,7 +8031,7 @@ __metadata:
     react-helmet: ^6.1.0
     react-highlight-words: ^0.17.0
     react-hotkeys-hook: ^3.3.1
-    react-icons: ^3.11.0
+    react-icons: ^4.7.1
     react-infinite-scroll-hook: ^3.0.0
     react-json-view: ^1.21.3
     react-lines-ellipsis: ^0.14.1
@@ -36260,23 +36260,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-icons@npm:^3.11.0":
-  version: 3.11.0
-  resolution: "react-icons@npm:3.11.0"
-  dependencies:
-    camelcase: ^5.0.0
-  peerDependencies:
-    react: "*"
-  checksum: 2d45d47387aa85692ee431abe814c3984bc303b0ff25146de86a3cecf7f144c75bc9755df296c626bf133a05622b812fbf95d99776d9a92c7edd90fa7fbbead1
-  languageName: node
-  linkType: hard
-
 "react-icons@npm:^4.2.0":
   version: 4.4.0
   resolution: "react-icons@npm:4.4.0"
   peerDependencies:
     react: "*"
   checksum: dd93a1dcc8ac8a3cf46a2b33e80b586fa967331fa5fcb90d061abf276155a8363a331643e203d67cb9bab4261d00a757da854bcce1fce2c6e4258bf3e33f711b
+  languageName: node
+  linkType: hard
+
+"react-icons@npm:^4.7.1":
+  version: 4.7.1
+  resolution: "react-icons@npm:4.7.1"
+  peerDependencies:
+    react: "*"
+  checksum: ed3cbdc5fc0c4d7d2debf78fdc8c4c80aeacf85a506a9a3c11b1d5922de393ac0a6542012b7fb81761e9280c54d0f26827d50a92b54ec8f0c8e52364d89970b5
   languageName: node
   linkType: hard
 
