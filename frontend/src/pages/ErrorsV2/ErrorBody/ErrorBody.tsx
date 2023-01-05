@@ -116,7 +116,8 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						<Text color="black" size="large" weight="bold">
 							{userCount}
 						</Text>
-						{Math.abs(usersChange) > showChangeThresholdPercent ? (
+						{Math.abs(usersChange) > showChangeThresholdPercent &&
+						numberOfDays >= 1 ? (
 							<Tooltip
 								trigger={
 									<Tag
@@ -197,7 +198,8 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						<Text color="black" size="large" weight="bold">
 							{totalCount}
 						</Text>
-						{Math.abs(countChange) > showChangeThresholdPercent ? (
+						{Math.abs(countChange) > showChangeThresholdPercent &&
+						numberOfDays >= 1 ? (
 							<Tooltip
 								trigger={
 									<Tag

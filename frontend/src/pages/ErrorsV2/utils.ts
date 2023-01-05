@@ -9,9 +9,13 @@ export const getErrorGroupStats = function (
 	errorGroup?: Maybe<Pick<ErrorGroup, 'error_metrics' | 'created_at'>>,
 ) {
 	const lookbackDays = 30
-	const counts = errorGroup?.error_metrics
-		?.filter((x) => x?.name === 'count')
-		?.map((x) => x?.value || 0)
+	let counts: number[] =
+		errorGroup?.error_metrics
+			?.filter((x) => x?.name === 'count')
+			?.map((x) => x?.value || 0) || []
+	if (counts.length < lookbackDays) {
+		counts = [...Array(lookbackDays - counts.length).fill(0), ...counts]
+	}
 	const totalCount = counts?.reduce((a, b) => a + b, 0) || 1
 	const userCount =
 		errorGroup?.error_metrics
