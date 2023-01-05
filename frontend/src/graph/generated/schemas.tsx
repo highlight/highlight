@@ -1529,7 +1529,6 @@ export type QueryErrorGroupFrequenciesArgs = {
 
 export type QueryErrorGroupTagsArgs = {
 	error_group_secure_id: Scalars['String']
-	project_id: Scalars['ID']
 }
 
 export type QueryError_AlertsArgs = {

@@ -4299,7 +4299,7 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 }
 
 // ErrorGroupTags is the resolver for the errorGroupTags field.
-func (r *queryResolver) ErrorGroupTags(ctx context.Context, projectID int, errorGroupSecureID string) ([]*modelInputs.ErrorGroupTagAggregation, error) {
+func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID string) ([]*modelInputs.ErrorGroupTagAggregation, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not error group owner")

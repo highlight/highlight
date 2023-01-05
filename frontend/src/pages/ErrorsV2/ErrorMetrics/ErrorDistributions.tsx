@@ -27,7 +27,6 @@ const ErrorDistributions = ({ errorGroup }: Props) => {
 
 	const { data } = useGetErrorGroupTagsQuery({
 		variables: {
-			project_id: `${errorGroup?.project_id}`,
 			error_group_secure_id: `${errorGroup?.secure_id}`,
 		},
 		skip: !errorGroup?.secure_id,

@@ -3828,7 +3828,6 @@ export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
 }
 
 export type GetErrorGroupTagsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
 	error_group_secure_id: Types.Scalars['String']
 }>
 

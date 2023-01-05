@@ -10958,11 +10958,8 @@ export type GetErrorGroupFrequenciesQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupFrequenciesQueryVariables
 >
 export const GetErrorGroupTagsDocument = gql`
-	query GetErrorGroupTags($project_id: ID!, $error_group_secure_id: String!) {
-		errorGroupTags(
-			project_id: $project_id
-			error_group_secure_id: $error_group_secure_id
-		) {
+	query GetErrorGroupTags($error_group_secure_id: String!) {
+		errorGroupTags(error_group_secure_id: $error_group_secure_id) {
 			key
 			buckets {
 				key
@@ -10985,7 +10982,6 @@ export const GetErrorGroupTagsDocument = gql`
  * @example
  * const { data, loading, error } = useGetErrorGroupTagsQuery({
  *   variables: {
- *      project_id: // value for 'project_id'
  *      error_group_secure_id: // value for 'error_group_secure_id'
  *   },
  * });

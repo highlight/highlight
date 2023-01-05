@@ -662,7 +662,7 @@ type ComplexityRoot struct {
 		ErrorFieldsOpensearch        func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		ErrorGroup                   func(childComplexity int, secureID string) int
 		ErrorGroupFrequencies        func(childComplexity int, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string) int
-		ErrorGroupTags               func(childComplexity int, projectID int, errorGroupSecureID string) int
+		ErrorGroupTags               func(childComplexity int, errorGroupSecureID string) int
 		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string, page *int) int
 		ErrorInstance                func(childComplexity int, errorGroupSecureID string, errorObjectID *int) int
 		ErrorObject                  func(childComplexity int, id int) int
@@ -1208,7 +1208,7 @@ type QueryResolver interface {
 	DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]int64, error)
 	ErrorDistribution(ctx context.Context, projectID int, errorGroupSecureID string, property string) ([]*model.ErrorDistributionItem, error)
 	ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string) ([]*model.ErrorDistributionItem, error)
-	ErrorGroupTags(ctx context.Context, projectID int, errorGroupSecureID string) ([]*model.ErrorGroupTagAggregation, error)
+	ErrorGroupTags(ctx context.Context, errorGroupSecureID string) ([]*model.ErrorGroupTagAggregation, error)
 	Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.ReferrerTablePayload, error)
 	NewUsersCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.NewUsersCount, error)
 	TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
@@ -4750,7 +4750,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorGroupTags(childComplexity, args["project_id"].(int), args["error_group_secure_id"].(string)), true
+		return e.complexity.Query.ErrorGroupTags(childComplexity, args["error_group_secure_id"].(string)), true
 
 	case "Query.error_groups_opensearch":
 		if e.complexity.Query.ErrorGroupsOpensearch == nil {
@@ -8499,10 +8499,7 @@ type Query {
 		params: ErrorGroupFrequenciesParamsInput!
 		metric: String
 	): [ErrorDistributionItem]!
-	errorGroupTags(
-		project_id: ID!
-		error_group_secure_id: String!
-	): [ErrorGroupTagAggregation!]!
+	errorGroupTags(error_group_secure_id: String!): [ErrorGroupTagAggregation!]!
 
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
@@ -12037,24 +12034,15 @@ func (ec *executionContext) field_Query_errorGroupFrequencies_args(ctx context.C
 func (ec *executionContext) field_Query_errorGroupTags_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
+	var arg0 string
 	if tmp, ok := rawArgs["error_group_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_secure_id"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["error_group_secure_id"] = arg1
+	args["error_group_secure_id"] = arg0
 	return args, nil
 }
 
@@ -35277,7 +35265,7 @@ func (ec *executionContext) _Query_errorGroupTags(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorGroupTags(rctx, fc.Args["project_id"].(int), fc.Args["error_group_secure_id"].(string))
+		return ec.resolvers.Query().ErrorGroupTags(rctx, fc.Args["error_group_secure_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

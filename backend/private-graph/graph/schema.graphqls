@@ -1219,10 +1219,7 @@ type Query {
 		params: ErrorGroupFrequenciesParamsInput!
 		metric: String
 	): [ErrorDistributionItem]!
-	errorGroupTags(
-		project_id: ID!
-		error_group_secure_id: String!
-	): [ErrorGroupTagAggregation!]!
+	errorGroupTags(error_group_secure_id: String!): [ErrorGroupTagAggregation!]!
 
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
