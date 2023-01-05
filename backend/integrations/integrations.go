@@ -131,7 +131,7 @@ func (c *Client) IsProjectIntegrated(ctx context.Context, project *model.Project
 		return false, nil
 	}
 
-	projectMapping := &model.IntegrationProjectMapping{}
+	var projectMapping *model.IntegrationProjectMapping
 	if err := c.db.Where(&model.IntegrationProjectMapping{
 		ProjectID:       project.ID,
 		IntegrationType: integrationType,
