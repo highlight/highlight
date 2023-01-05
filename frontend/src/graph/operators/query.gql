@@ -1547,6 +1547,16 @@ query GetHeightIntegrationSettings($workspace_id: ID!) {
 	}
 }
 
+query GetProjectIntegratedWith(
+	$project_id: ID!
+	$integration_type: IntegrationType!
+) {
+	is_project_integrated_with(
+		integration_type: $integration_type
+		project_id: $project_id
+	)
+}
+
 query GetClickUpFolders($project_id: ID!) {
 	clickup_folders(project_id: $project_id) {
 		id

@@ -1346,6 +1346,7 @@ export type Query = {
 	isIntegrated?: Maybe<Scalars['Boolean']>
 	isSessionPending?: Maybe<Scalars['Boolean']>
 	is_integrated_with: Scalars['Boolean']
+	is_project_integrated_with: Scalars['Boolean']
 	is_workspace_integrated_with: Scalars['Boolean']
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	linear_teams?: Maybe<Array<LinearTeam>>
@@ -1644,6 +1645,11 @@ export type QueryIsSessionPendingArgs = {
 }
 
 export type QueryIs_Integrated_WithArgs = {
+	integration_type: IntegrationType
+	project_id: Scalars['ID']
+}
+
+export type QueryIs_Project_Integrated_WithArgs = {
 	integration_type: IntegrationType
 	project_id: Scalars['ID']
 }

@@ -3429,6 +3429,16 @@ export type GetHeightIntegrationSettingsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetProjectIntegratedWithQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	integration_type: Types.IntegrationType
+}>
+
+export type GetProjectIntegratedWithQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'is_project_integrated_with'
+>
+
 export type GetClickUpFoldersQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -3928,6 +3938,7 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithVercel' as const,
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
 		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
+		GetProjectIntegratedWith: 'GetProjectIntegratedWith' as const,
 		GetClickUpFolders: 'GetClickUpFolders' as const,
 		GetHeightLists: 'GetHeightLists' as const,
 		GenerateNewZapierAccessTokenJwt:

@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
 import { GetErrorGroupQuery } from '@graph/operations'
+import { IntegrationType } from '@graph/schemas'
 import {
 	IconSolidCheveronRight,
 	IconSolidClickUp,
@@ -12,7 +13,7 @@ import {
 import { Box, Menu, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
-import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
+import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
 	CLICKUP_INTEGRATION,
@@ -37,9 +38,11 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 	const {
 		settings: { isIntegrated: isClickupIntegrated },
 	} = useClickUpIntegration()
-	const {
-		settings: { isIntegrated: isHeightIntegrated },
-	} = useHeightIntegration()
+
+	const { isIntegrated: isHeightIntegrated } = useIsProjectIntegratedWith(
+		projectId,
+		IntegrationType.Height,
+	)
 
 	const integrations: Array<[boolean | undefined, IssueTrackerIntegration]> =
 		useMemo(

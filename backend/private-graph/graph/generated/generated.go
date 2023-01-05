@@ -672,6 +672,7 @@ type ComplexityRoot struct {
 		IsBackendIntegrated          func(childComplexity int, projectID int) int
 		IsIntegrated                 func(childComplexity int, projectID int) int
 		IsIntegratedWith             func(childComplexity int, integrationType model.IntegrationType, projectID int) int
+		IsProjectIntegratedWith      func(childComplexity int, integrationType model.IntegrationType, projectID int) int
 		IsSessionPending             func(childComplexity int, sessionSecureID string) int
 		IsWorkspaceIntegratedWith    func(childComplexity int, integrationType model.IntegrationType, workspaceID int) int
 		JoinableWorkspaces           func(childComplexity int) int
@@ -1233,6 +1234,7 @@ type QueryResolver interface {
 	GenerateZapierAccessToken(ctx context.Context, projectID int) (string, error)
 	IsIntegratedWith(ctx context.Context, integrationType model.IntegrationType, projectID int) (bool, error)
 	IsWorkspaceIntegratedWith(ctx context.Context, integrationType model.IntegrationType, workspaceID int) (bool, error)
+	IsProjectIntegratedWith(ctx context.Context, integrationType model.IntegrationType, projectID int) (bool, error)
 	VercelProjects(ctx context.Context, projectID int) ([]*model.VercelProject, error)
 	VercelProjectMappings(ctx context.Context, projectID int) ([]*model.VercelProjectMapping, error)
 	ClickupTeams(ctx context.Context, workspaceID int) ([]*model.ClickUpTeam, error)
@@ -4944,6 +4946,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.IsIntegratedWith(childComplexity, args["integration_type"].(model.IntegrationType), args["project_id"].(int)), true
 
+	case "Query.is_project_integrated_with":
+		if e.complexity.Query.IsProjectIntegratedWith == nil {
+			break
+		}
+
+		args, err := ec.field_Query_is_project_integrated_with_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IsProjectIntegratedWith(childComplexity, args["integration_type"].(model.IntegrationType), args["project_id"].(int)), true
+
 	case "Query.isSessionPending":
 		if e.complexity.Query.IsSessionPending == nil {
 			break
@@ -8507,6 +8521,10 @@ type Query {
 	is_workspace_integrated_with(
 		integration_type: IntegrationType!
 		workspace_id: ID!
+	): Boolean!
+	is_project_integrated_with(
+		integration_type: IntegrationType!
+		project_id: ID!
 	): Boolean!
 	vercel_projects(project_id: ID!): [VercelProject!]!
 	vercel_project_mappings(project_id: ID!): [VercelProjectMapping!]!
@@ -12562,6 +12580,30 @@ func (ec *executionContext) field_Query_isSessionPending_args(ctx context.Contex
 }
 
 func (ec *executionContext) field_Query_is_integrated_with_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.IntegrationType
+	if tmp, ok := rawArgs["integration_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integration_type"))
+		arg0, err = ec.unmarshalNIntegrationType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["integration_type"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_is_project_integrated_with_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 model.IntegrationType
@@ -37418,6 +37460,61 @@ func (ec *executionContext) fieldContext_Query_is_workspace_integrated_with(ctx 
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_is_project_integrated_with(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_is_project_integrated_with(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IsProjectIntegratedWith(rctx, fc.Args["integration_type"].(model.IntegrationType), fc.Args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_is_project_integrated_with(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_is_project_integrated_with_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_vercel_projects(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_vercel_projects(ctx, field)
 	if err != nil {
@@ -58041,6 +58138,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_is_workspace_integrated_with(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "is_project_integrated_with":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_is_project_integrated_with(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
