@@ -281,5 +281,6 @@
 	"status": "ACTIVE",
 	"inferenceAccelerators": null,
 	"proxyConfiguration": null,
-	"volumes": []
+	"volumes": [],
+	"runtimePlatform": { "cpuArchitecture": "ARM64" }
 }
