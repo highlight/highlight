@@ -17,7 +17,7 @@ import {
 	GetWebVitalsDocument,
 } from '@graph/hooks'
 import { ErrorInstance, OpenSearchCalendarInterval } from '@graph/schemas'
-import { indexeddbEnabled, indexedDBFetch, IndexedDBLink } from '@util/db'
+import { indexeddbEnabled, IndexedDBLink } from '@util/db'
 import { client } from '@util/graph'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
@@ -25,6 +25,8 @@ import { roundDateToMinute } from '@util/time'
 import { H } from 'highlight.run'
 import moment from 'moment'
 import { useEffect, useRef } from 'react'
+
+import { worker } from '../index'
 
 const CONCURRENT_PRELOADS = 2
 const PREVIOUS_ERROR_OBJECTS_TO_FETCH = 2
@@ -265,13 +267,22 @@ export const loadSession = async function (secureID: string) {
 		const sess = session?.data?.session
 		if (!sess) return
 		if (sess.resources_url) {
-			await indexedDBFetch(sess.resources_url)
+			worker.postMessage({
+				type: 'fetch',
+				url: sess.resources_url,
+			})
 		}
 		if (sess.messages_url) {
-			await indexedDBFetch(sess.messages_url)
+			worker.postMessage({
+				type: 'fetch',
+				url: sess.messages_url,
+			})
 		}
 		if (sess.direct_download_url) {
-			await indexedDBFetch(sess.direct_download_url)
+			worker.postMessage({
+				type: 'fetch',
+				url: sess.direct_download_url,
+			})
 		}
 		await client.query({
 			query: GetSessionIntervalsDocument,
@@ -311,7 +322,10 @@ export const loadSession = async function (secureID: string) {
 				index: 0,
 			},
 		})
-		await indexedDBFetch(response.data.event_chunk_url)
+		worker.postMessage({
+			type: 'fetch',
+			url: response.data.event_chunk_url,
+		})
 		const preloadTime = window.performance.now() - start
 		log(
 			'preload.ts',
