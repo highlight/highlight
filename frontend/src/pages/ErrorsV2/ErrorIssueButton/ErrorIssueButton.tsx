@@ -187,7 +187,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 				size="small"
 				emphasis="high"
 				disabled={!isLoggedIn}
-				iconLeft={Icon ? <Icon size={14} /> : undefined}
+				iconLeft={Icon ? <Icon /> : undefined}
 				trackingId="errorIssueButton"
 				cssClass={style.issueButton}
 				onClick={() => {
