@@ -146,14 +146,17 @@ func SendBillingNotificationEmail(mailClient *sendgrid.Client, emailType EmailTy
 
 	m.AddPersonalizations(p)
 
-	if resp, sendGridErr := mailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
-		estr := "error sending sendgrid email -> "
-		estr += fmt.Sprintf("resp-code: %v; ", resp)
-		if sendGridErr != nil {
-			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
-		}
-		return e.New(estr)
-	}
+	log.WithFields(log.Fields{"workspace_id": workspaceId, "to_email": toEmail, "email_type": emailType}).
+		Info("BILLING_NOTIFICATION email dry run")
+
+	// if resp, sendGridErr := mailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
+	// 	estr := "error sending sendgrid email -> "
+	// 	estr += fmt.Sprintf("resp-code: %v; ", resp)
+	// 	if sendGridErr != nil {
+	// 		estr += fmt.Sprintf("err: %v", sendGridErr.Error())
+	// 	}
+	// 	return e.New(estr)
+	// }
 
 	return nil
 }
