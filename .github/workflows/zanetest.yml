@@ -9,15 +9,12 @@ on:
             - 'deploy/**'
             - '.github/workflows/zanetest.yml'
 jobs:
-    qemu:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v2
     build_ecr:
         needs: qemu
         runs-on: ubuntu-latest
         steps:
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v2
             - name: Check out the repo
               uses: actions/checkout@v2
             - name: Configure AWS credentials
