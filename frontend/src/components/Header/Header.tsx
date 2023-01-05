@@ -29,6 +29,7 @@ import {
 	IconSolidXCircle,
 	LinkButton,
 	Menu,
+	Text,
 } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
@@ -51,6 +52,7 @@ import { showIntercom } from '@util/window'
 import classNames from 'classnames/bind'
 import moment from 'moment'
 import React, { useEffect } from 'react'
+import { FaDiscord } from 'react-icons/fa'
 import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
@@ -296,6 +298,34 @@ export const Header = () => {
 								</Box>
 							)}
 							<Box display="flex" alignItems="center" gap="4">
+								<Button
+									kind="secondary"
+									size="small"
+									emphasis="high"
+									onClick={() => {
+										window.open(
+											'https://discord.gg/yxaXEAqgwN',
+											'_blank',
+										)
+									}}
+									trackingId="DiscordSupportLinkClicked"
+								>
+									<Box
+										display="flex"
+										alignItems="center"
+										as="span"
+										gap="4"
+									>
+										<FaDiscord
+											style={{ height: 14, width: 14 }}
+											color={
+												vars.theme.interactive.fill
+													.secondary.content.text
+											}
+										/>
+										<Text lines="1">Community</Text>
+									</Box>
+								</Button>
 								{inProjectOrWorkspace && <Notifications />}
 								<Menu>
 									<Menu.Button

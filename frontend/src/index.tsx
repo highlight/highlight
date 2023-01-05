@@ -62,6 +62,11 @@ const options: HighlightOptions = {
 			'pub.highlight.run',
 			'localhost:8082',
 		],
+		urlBlocklist: [
+			'console-messages-compressed',
+			'network-resources-compressed',
+			'session-contents-compressed',
+		],
 	},
 	tracingOrigins: ['highlight.run', 'localhost'],
 	integrations: {
