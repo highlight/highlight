@@ -10,7 +10,6 @@ on:
             - '.github/workflows/zanetest.yml'
 jobs:
     build_ecr:
-        needs: qemu
         runs-on: ubuntu-latest
         steps:
             - name: Set up QEMU
