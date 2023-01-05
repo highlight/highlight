@@ -1829,6 +1829,17 @@ query GetErrorGroupFrequencies(
 	}
 }
 
+query GetErrorGroupTags($error_group_secure_id: String!) {
+	errorGroupTags(error_group_secure_id: $error_group_secure_id) {
+		key
+		buckets {
+			key
+			doc_count
+			percent
+		}
+	}
+}
+
 query GetEmailOptOuts($token: String, $admin_id: ID) {
 	email_opt_outs(token: $token, admin_id: $admin_id)
 }

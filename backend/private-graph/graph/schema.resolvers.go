@@ -28,6 +28,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
+	highlightErrors "github.com/highlight-run/highlight/backend/errors"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/integrations/height"
@@ -4328,6 +4329,60 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 		metric = pointy.String("")
 	}
 	return r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, *metric)
+}
+
+// ErrorGroupTags is the resolver for the errorGroupTags field.
+func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID string) ([]*modelInputs.ErrorGroupTagAggregation, error) {
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not error group owner")
+	}
+
+	query := fmt.Sprintf(`
+	{
+		"size": 0,
+		"query": {
+			"has_parent": {
+				"parent_type": "parent",
+				"query": {
+					"terms": {
+						"_id": ["%d"]
+					}
+				}
+			}
+		},
+		"aggs": {
+			"browser": {
+				"terms": {
+					"field": "browser.keyword"
+				}
+			},
+			"environment": {
+				"terms": {
+					"field": "environment.keyword"
+				}
+			},
+			"os_name": {
+				"terms": {
+					"field": "os_name.keyword"
+				}
+			}
+		}
+	  }
+	`, errorGroup.ID)
+
+	res, err := r.OpenSearch.RawSearch(opensearch.IndexErrorsCombined, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var aggregations highlightErrors.TagsAggregations
+	if err := json.Unmarshal(res, &aggregations); err != nil {
+		return nil, e.Wrap(err, "failed to unmarshal aggregations")
+	}
+
+	return highlightErrors.BuildAggregations(aggregations), nil
 }
 
 // Referrers is the resolver for the referrers field.

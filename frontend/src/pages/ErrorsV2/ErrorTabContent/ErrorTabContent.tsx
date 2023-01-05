@@ -1,6 +1,6 @@
 import Tabs from '@components/Tabs/Tabs'
 import { GetErrorGroupQuery } from '@graph/operations'
-import { IconSolidTrendingUp, IconSolidTerminal } from '@highlight-run/ui'
+import { IconSolidTerminal, IconSolidTrendingUp } from '@highlight-run/ui'
 import ErrorInstance from '@pages/ErrorsV2/ErrorInstance/ErrorInstance'
 import ErrorMetrics from '@pages/ErrorsV2/ErrorMetrics/ErrorMetrics'
 import { useParams } from '@util/react-router/useParams'
