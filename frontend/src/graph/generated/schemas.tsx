@@ -308,6 +308,7 @@ export enum EmailOptOutCategory {
 	All = 'All',
 	Billing = 'Billing',
 	Digests = 'Digests',
+	ZaneTest = 'ZaneTest',
 }
 
 export type EnhancedUserDetailsResult = {
