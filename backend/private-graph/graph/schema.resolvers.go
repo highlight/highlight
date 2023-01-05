@@ -645,16 +645,12 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 	}
 
 	errorGroup := &model.ErrorGroup{}
-	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errGroup.ID}}).First(&errorGroup).Updates(&model.ErrorGroup{
-		State: state,
-		// TODO: Figure out how to set this to null when snoozedUntil is nil...
-		SnoozedUntil: snoozedUntil,
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errGroup.ID}}).First(&errorGroup).Updates(map[string]interface{}{
+		"State":        state,
+		"SnoozedUntil": snoozedUntil,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
-	fmt.Print("::: errorGroup\n")
-	fmt.Printf("%v+\n", snoozedUntil)
-	fmt.Printf("%v+\n", errorGroup)
 
 	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
 		"state":        state,

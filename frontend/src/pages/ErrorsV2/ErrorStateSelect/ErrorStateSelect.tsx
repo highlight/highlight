@@ -1,6 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useUpdateErrorGroupStateMutation } from '@graph/hooks'
-import { ErrorState } from '@graph/schemas'
+import { ErrorState, Maybe } from '@graph/schemas'
 import {
 	Box,
 	IconSolidCheveronDown,
@@ -25,9 +25,10 @@ enum MenuState {
 
 const DATE_FORMAT = 'ddd, h:mm A'
 
-export const ErrorStateSelect: React.FC<{ state: ErrorState | 'Snoozed' }> = ({
-	state: initialErrorState,
-}) => {
+export const ErrorStateSelect: React.FC<{
+	state: ErrorState
+	snoozedUntil?: Maybe<string>
+}> = ({ state: initialErrorState, snoozedUntil }) => {
 	const menuRef = React.useRef<HTMLDivElement | null>(null)
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
@@ -39,6 +40,7 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState | 'Snoozed' }> = ({
 	const [action, setAction] = useQueryParam('action', StringParam)
 	const { isLoggedIn } = useAuthContext()
 	const ErrorStatuses = Object.keys(ErrorState)
+	const snoozed = snoozedUntil && moment().isBefore(moment(snoozedUntil))
 
 	const handleChange = async (
 		newState: ErrorState,
@@ -53,6 +55,7 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState | 'Snoozed' }> = ({
 		})
 
 		showStateUpdateMessage(newState)
+		setMenuState(MenuState.Default)
 	}
 
 	const snoozeMenuItems = () => [
@@ -94,7 +97,11 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState | 'Snoozed' }> = ({
 					iconRight={<IconSolidCheveronDown />}
 				>
 					<Text case="capital">
-						{initialErrorState.toLowerCase()}
+						{snoozed
+							? `Snoozed until ${moment(snoozedUntil).format(
+									DATE_FORMAT,
+							  )}`
+							: initialErrorState.toLowerCase()}
 					</Text>
 				</Menu.Button>
 				{isLoggedIn && (
@@ -191,10 +198,10 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState | 'Snoozed' }> = ({
 					showTime
 					className={classNames(styles.datepicker)}
 					onChange={(datetime) => {
-						console.log('::: snoozed to specific date', datetime)
 						if (datetime) {
 							handleChange(initialErrorState, datetime.format())
 						}
+
 						setDatepickerOpen(false)
 					}}
 				/>
