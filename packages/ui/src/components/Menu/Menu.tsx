@@ -13,7 +13,7 @@ import {
 	MenuHeadingProps,
 } from 'ariakit'
 import clsx, { ClassValue } from 'clsx'
-import React, { useRef } from 'react'
+import React from 'react'
 import {
 	Button as OriginalButton,
 	ButtonProps as ButtonProps,
