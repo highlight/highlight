@@ -51,7 +51,7 @@ export const ErrorStateSelect: React.FC<{
 			},
 		})
 
-		showStateUpdateMessage(newState)
+		showStateUpdateMessage(newState, snoozedUntil)
 		setMenuState(MenuState.Default)
 	}
 
@@ -86,6 +86,7 @@ export const ErrorStateSelect: React.FC<{
 	return (
 		<>
 			<Menu
+				placement="bottom-end"
 				onVisibilityChange={(open) => {
 					if (!open) {
 						setMenuState(MenuState.Default)
@@ -99,16 +100,15 @@ export const ErrorStateSelect: React.FC<{
 					disabled={loading || !isLoggedIn}
 					iconRight={<IconSolidCheveronDown />}
 				>
-					{snoozed ? (
-						<Text>
-							Snoozed until{' '}
-							{moment(snoozedUntil).format(DATE_FORMAT)}
-						</Text>
-					) : (
-						<Text case="capital">
-							{initialErrorState.toLowerCase()}
-						</Text>
-					)}
+					<Text case="capital">
+						{initialErrorState.toLowerCase()}{' '}
+						{snoozed && (
+							<span style={{ textTransform: 'none' }}>
+								(Snoozed until{' '}
+								{moment(snoozedUntil).format(DATE_FORMAT)})
+							</span>
+						)}
+					</Text>
 				</Menu.Button>
 				{isLoggedIn && (
 					<Menu.List cssClass={styles.menu}>
@@ -201,7 +201,9 @@ const DatepickerMenuItem: React.FC<{
 			<div ref={menuRef} />
 			<DatePicker
 				getPopupContainer={() => menuRef?.current || document.body}
-				showTime
+				format="YYYY-MM-DD hh:mm"
+				showTime={{ format: 'hh:mm' }}
+				showNow={false}
 				placement="bottomRight"
 				placeholder="Select day and time"
 				className={styles.datepicker}
@@ -216,18 +218,27 @@ const DatepickerMenuItem: React.FC<{
 	)
 }
 
-const showStateUpdateMessage = (newState: ErrorState) => {
+const showStateUpdateMessage = (newState: ErrorState, snoozedUntil: string) => {
 	let displayMessage = ''
-	switch (newState) {
-		case ErrorState.Open:
-			displayMessage = `This error is set to Open. You will receive alerts when a new error gets thrown.`
-			break
-		case ErrorState.Ignored:
-			displayMessage = `This error is set to Ignored. You will not receive any alerts even if a new error gets thrown.`
-			break
-		case ErrorState.Resolved:
-			displayMessage = `This error is set to Resolved. You will receive alerts when a new error gets thrown.`
-			break
+
+	if (moment().isBefore(moment(snoozedUntil))) {
+		displayMessage = `This error is snoozed until ${moment(
+			snoozedUntil,
+		).format(
+			DATE_FORMAT,
+		)}. You will not receive any alerts even if a new error gets thrown.`
+	} else {
+		switch (newState) {
+			case ErrorState.Open:
+				displayMessage = `This error is set to Open. You will receive alerts when a new error gets thrown.`
+				break
+			case ErrorState.Ignored:
+				displayMessage = `This error is set to Ignored. You will not receive any alerts even if a new error gets thrown.`
+				break
+			case ErrorState.Resolved:
+				displayMessage = `This error is set to Resolved. You will receive alerts when a new error gets thrown.`
+				break
+		}
 	}
 
 	message.success(displayMessage, 10)

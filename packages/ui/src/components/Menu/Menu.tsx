@@ -13,7 +13,7 @@ import {
 	MenuHeadingProps,
 } from 'ariakit'
 import clsx, { ClassValue } from 'clsx'
-import React from 'react'
+import React, { useRef } from 'react'
 import {
 	Button as OriginalButton,
 	ButtonProps as ButtonProps,
@@ -25,7 +25,9 @@ import * as styles from './styles.css'
 const MenuContext = React.createContext<MenuState>({} as MenuState)
 export const useMenu = () => React.useContext(MenuContext)
 
-type Props = React.PropsWithChildren<Partial<MenuState>>
+type Props = React.PropsWithChildren<Partial<MenuState>> & {
+	onVisibilityChange?: (open: boolean) => void
+}
 
 type MenuComponent = React.FC<Props> & {
 	Button: typeof Button
@@ -35,8 +37,22 @@ type MenuComponent = React.FC<Props> & {
 	Heading: typeof Heading
 }
 
-export const Menu: MenuComponent = ({ children, ...props }: Props) => {
+export const Menu: MenuComponent = ({
+	children,
+	onVisibilityChange,
+	...props
+}: Props) => {
 	const menu = useMenuState({ gutter: 6, ...props })
+	const firstUpdate = React.useRef(true)
+
+	React.useEffect(() => {
+		if (firstUpdate.current) {
+			firstUpdate.current = false
+			return
+		}
+
+		onVisibilityChange(menu.open)
+	}, [menu.open])
 
 	return <MenuContext.Provider value={menu}>{children}</MenuContext.Provider>
 }
