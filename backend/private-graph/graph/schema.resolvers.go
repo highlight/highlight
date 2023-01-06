@@ -5432,7 +5432,7 @@ func (r *queryResolver) IsWorkspaceIntegratedWith(ctx context.Context, integrati
 			WorkspaceID:     workspace.ID,
 			IntegrationType: integrationType,
 		}).First(&workspaceMapping).Error; err != nil {
-			return false, err
+			return false, nil
 		}
 
 		if workspaceMapping == nil {
@@ -5654,6 +5654,10 @@ func (r *queryResolver) HeightWorkspaces(ctx context.Context, workspaceID int) (
 
 	if err != nil {
 		return nil, err
+	}
+
+	if accessToken == nil {
+		return []*modelInputs.HeightWorkspace{}, nil
 	}
 
 	workspaces, err := height.GetWorkspaces(*accessToken)
