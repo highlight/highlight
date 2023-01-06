@@ -2470,14 +2470,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	querySessionSpan.SetTag("secure_id", sessionObj.SecureID)
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
-
-	if sessionObj.WithinBillingQuota != nil && !*sessionObj.WithinBillingQuota {
-		log.WithFields(log.Fields{
-			"project_id": sessionObj.ProjectID,
-			"secure_id":  sessionSecureID,
-		}).Info("session data not saved - billing quota exceeded")
-		return nil
-	}
 	sessionID := sessionObj.ID
 
 	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
