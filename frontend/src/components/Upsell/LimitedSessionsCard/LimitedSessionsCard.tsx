@@ -36,15 +36,15 @@ const LimitedSessionCard = () => {
 
 	return (
 		<Card className={styles.container}>
-			<h2>You've reached your session quota for this month 😔</h2>
+			<h2>You've reached your session limit for this month 😔</h2>
 			<p className={styles.description}>
-				There are{' '}
+				Your workspace is configured to stop recording new sessions once
+				the monthly limit is reached. There have been{' '}
 				<b>
 					{data?.billingDetailsForProject?.sessionsOutOfQuota}{' '}
 					sessions
 				</b>{' '}
-				that can be viewed after you upgrade. Sessions recorded before
-				you reached your quota are still viewable.
+				after this limit.
 			</p>
 			<ButtonLink
 				className={styles.center}

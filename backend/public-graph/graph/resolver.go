@@ -1189,6 +1189,12 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	withinBillingQuota, quotaPercent := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
 	setupSpan.Finish()
 
+	if !withinBillingQuota {
+		if err := r.Redis.SetBillingQuotaExceeded(ctx, projectID); err != nil {
+			return nil, e.Wrap(err, "error setting billing quota exceeded")
+		}
+	}
+
 	// Get the user's ip, get geolocation data
 	location := &Location{
 		City:      "",
@@ -2464,6 +2470,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	querySessionSpan.SetTag("secure_id", sessionObj.SecureID)
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
+
+	if sessionObj.WithinBillingQuota != nil && !*sessionObj.WithinBillingQuota {
+		log.WithFields(log.Fields{
+			"project_id": sessionObj.ProjectID,
+			"secure_id":  sessionSecureID,
+		}).Info("session data not saved - billing quota exceeded")
+		return nil
+	}
 	sessionID := sessionObj.ID
 
 	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
