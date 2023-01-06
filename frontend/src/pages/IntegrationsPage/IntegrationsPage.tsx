@@ -116,6 +116,7 @@ const IntegrationsPage = () => {
 		}))
 	}, [
 		currentWorkspace?.id,
+		isHighlightAdmin,
 		isSlackConnectedToWorkspace,
 		isLinearIntegratedWithProject,
 		isZapierIntegratedWithProject,
