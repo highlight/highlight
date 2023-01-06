@@ -599,16 +599,18 @@ type EmailOptOutCategory string
 const (
 	EmailOptOutCategoryAll     EmailOptOutCategory = "All"
 	EmailOptOutCategoryDigests EmailOptOutCategory = "Digests"
+	EmailOptOutCategoryBilling EmailOptOutCategory = "Billing"
 )
 
 var AllEmailOptOutCategory = []EmailOptOutCategory{
 	EmailOptOutCategoryAll,
 	EmailOptOutCategoryDigests,
+	EmailOptOutCategoryBilling,
 }
 
 func (e EmailOptOutCategory) IsValid() bool {
 	switch e {
-	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests:
+	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests, EmailOptOutCategoryBilling:
 		return true
 	}
 	return false

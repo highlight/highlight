@@ -5370,7 +5370,6 @@ func (r *queryResolver) GenerateZapierAccessToken(ctx context.Context, projectID
 }
 
 // IsIntegratedWith is the resolver for the is_integrated_with field.
-// Deprecated - Use IsWorkspaceIntegratedWith or IsProjectIntegratedWith
 func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType modelInputs.IntegrationType, projectID int) (bool, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 
@@ -5454,7 +5453,6 @@ func (r *queryResolver) IsProjectIntegratedWith(ctx context.Context, integration
 	}
 
 	return r.IntegrationsClient.IsProjectIntegrated(ctx, project, integrationType)
-
 }
 
 // VercelProjects is the resolver for the vercel_projects field.

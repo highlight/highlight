@@ -1,3 +1,8 @@
+import {
+	IconSolidClickUp,
+	IconSolidHeight,
+	IconSolidLinear,
+} from '@highlight-run/ui'
 import { VercelSettingsModalWidth } from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import ClearbitIntegrationConfig from '@pages/IntegrationsPage/components/ClearbitIntegration/ClearbitIntegrationConfig'
 import ClickUpIntegrationConfig from '@pages/IntegrationsPage/components/ClickUpIntegration/ClickUpIntegrationConfig'
@@ -59,6 +64,7 @@ export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
 	containerLabel: 'team',
 	issueLabel: 'issue',
 	containerSelection: (opts) => <LinearTeamSelector {...opts} />,
+	Icon: IconSolidLinear,
 }
 
 export const ZAPIER_INTEGRATION: Integration = {
@@ -140,6 +146,7 @@ export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
 	containerLabel: 'list',
 	issueLabel: 'task',
 	containerSelection: (opts) => <ClickUpListSelector {...opts} />,
+	Icon: IconSolidClickUp,
 }
 
 export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
@@ -156,6 +163,7 @@ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 	containerLabel: 'list',
 	issueLabel: 'task',
 	containerSelection: (opts) => <HeightListSelector {...opts} />,
+	Icon: IconSolidHeight,
 }
 
 const INTEGRATIONS: Integration[] = [

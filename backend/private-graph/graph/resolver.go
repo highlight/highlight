@@ -3,7 +3,6 @@ package graph
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -78,7 +77,6 @@ const SessionProcessedMetricName = "sessionProcessed"
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
-	EmailOptOutSalt = os.Getenv("EMAIL_OPT_OUT_SALT")
 )
 
 var BytesConversion = map[string]int64{
@@ -1351,14 +1349,24 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 			"BillingPeriodStart": billingPeriodStart,
 			"BillingPeriodEnd":   billingPeriodEnd,
 			"NextInvoiceDate":    nextInvoiceDate,
-			"AllowMeterOverage":  tier != modelInputs.PlanTypeFree,
 		}).Error; err != nil {
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.ReportUsageForWorkspace(r.DB, r.StripeClient, workspace.ID); err != nil {
+	if err := pricing.ReportUsageForWorkspace(r.DB, r.StripeClient, r.MailClient, workspace.ID); err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
+	}
+
+	// Make previous billing history email records inactive (so new active records can be added)
+	if err := r.DB.Model(&model.BillingEmailHistory{}).
+		Where(model.BillingEmailHistory{Active: true, WorkspaceID: workspace.ID}).
+		Updates(map[string]interface{}{
+			"Active":      false,
+			"WorkspaceID": workspace.ID,
+			"DeletedAt":   time.Now(),
+		}).Error; err != nil {
+		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating BillingEmailHistory objects for workspace %d", workspace.ID)
 	}
 
 	// mark sessions as within billing quota on plan upgrade
@@ -3252,27 +3260,16 @@ func MergeHistogramBucketCounts(bucketCounts []int64, multiple int) []int64 {
 	return newBuckets
 }
 
-func GetOptOutToken(adminID int, previous bool) string {
-	now := time.Now()
-	if previous {
-		now = now.AddDate(0, -1, 0)
-	}
-	h := sha256.New()
-	preHash := strconv.Itoa(adminID) + now.Format("2006-01") + EmailOptOutSalt
-	h.Write([]byte(preHash))
-	return fmt.Sprintf("%x", h.Sum(nil))
-}
-
 func IsOptOutTokenValid(adminID int, token string) bool {
 	if adminID <= 0 {
 		return false
 	}
 
 	// If the token matches the current month's, it's valid
-	if token == GetOptOutToken(adminID, false) {
+	if token == Email.GetOptOutToken(adminID, false) {
 		return true
 	}
 
 	// If the token matches the prior month's, it's valid
-	return token == GetOptOutToken(adminID, true)
+	return token == Email.GetOptOutToken(adminID, true)
 }
