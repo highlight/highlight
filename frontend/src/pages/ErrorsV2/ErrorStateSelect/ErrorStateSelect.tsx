@@ -218,10 +218,13 @@ const DatepickerMenuItem: React.FC<{
 	)
 }
 
-const showStateUpdateMessage = (newState: ErrorState, snoozedUntil: string) => {
+const showStateUpdateMessage = (
+	newState: ErrorState,
+	snoozedUntil?: string,
+) => {
 	let displayMessage = ''
 
-	if (moment().isBefore(moment(snoozedUntil))) {
+	if (snoozedUntil && moment().isBefore(moment(snoozedUntil))) {
 		displayMessage = `This error is snoozed until ${moment(
 			snoozedUntil,
 		).format(
