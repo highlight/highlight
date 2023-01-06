@@ -90,7 +90,17 @@ export const Buttons = () => {
 				<iframe
 					title="Introducing Superhuman"
 					src="https://www.youtube.com/embed/JMsFfX6qTNI?rel=0"
-				></iframe>
+				/>
+				<iframe
+					title="Highlight Landing"
+					src={
+						import.meta.env.DEV
+							? 'http://localhost:3001/'
+							: 'https://www.highlight.io/'
+					}
+					height={300}
+					width={600}
+				/>
 				<div className="highlight-mask">
 					This is masked.{' '}
 					<img src="/images/logo.png" height={16} alt="masked" />
