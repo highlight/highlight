@@ -4,14 +4,13 @@ import { ErrorState, Maybe } from '@graph/schemas'
 import {
 	Box,
 	IconSolidCheveronDown,
-	IconSolidCheveronRight,
 	Menu,
 	Stack,
 	Text,
+	useMenu,
 } from '@highlight-run/ui'
 import { useParams } from '@util/react-router/useParams'
 import { DatePicker, message } from 'antd'
-import classNames from 'classnames'
 import moment from 'moment'
 import React, { useEffect } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
@@ -29,11 +28,9 @@ export const ErrorStateSelect: React.FC<{
 	state: ErrorState
 	snoozedUntil?: Maybe<string>
 }> = ({ state: initialErrorState, snoozedUntil }) => {
-	const menuRef = React.useRef<HTMLDivElement | null>(null)
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
 	)
-	const [datepickerOpen, setDatepickerOpen] = React.useState(false)
 	const { error_secure_id } = useParams<{ error_secure_id: string }>()
 	const [updateErrorGroupState, { loading }] =
 		useUpdateErrorGroupStateMutation()
@@ -88,7 +85,7 @@ export const ErrorStateSelect: React.FC<{
 
 	return (
 		<>
-			<Menu popoverRef={menuRef}>
+			<Menu>
 				<Menu.Button
 					size="small"
 					kind="secondary"
@@ -96,16 +93,19 @@ export const ErrorStateSelect: React.FC<{
 					disabled={loading || !isLoggedIn}
 					iconRight={<IconSolidCheveronDown />}
 				>
-					<Text case="capital">
-						{snoozed
-							? `Snoozed until ${moment(snoozedUntil).format(
-									DATE_FORMAT,
-							  )}`
-							: initialErrorState.toLowerCase()}
-					</Text>
+					{snoozed ? (
+						<Text>
+							Snoozed until{' '}
+							{moment(snoozedUntil).format(DATE_FORMAT)}
+						</Text>
+					) : (
+						<Text case="capital">
+							{initialErrorState.toLowerCase()}
+						</Text>
+					)}
 				</Menu.Button>
 				{isLoggedIn && (
-					<Menu.List>
+					<Menu.List cssClass={styles.menu}>
 						{menuState === MenuState.Default ? (
 							<>
 								<Menu.Heading>
@@ -170,43 +170,43 @@ export const ErrorStateSelect: React.FC<{
 									</Menu.Item>
 								))}
 								<Menu.Divider />
-								<Menu.Item
-									onClick={(e) => {
-										e.preventDefault()
-										setDatepickerOpen(true)
-									}}
-								>
-									<Stack
-										direction="row"
-										justify="space-between"
-										align="center"
-									>
-										<Box color="n11">Pick day</Box>
-										<IconSolidCheveronRight />
-									</Stack>
-								</Menu.Item>
+								<DatepickerMenuItem
+									onChange={handleChange}
+									state={initialErrorState}
+								/>
 							</>
 						)}
 					</Menu.List>
 				)}
 			</Menu>
-			{datepickerOpen && (
-				<DatePicker
-					getPopupContainer={() => menuRef?.current || document.body}
-					open
-					autoFocus
-					showTime
-					className={classNames(styles.datepicker)}
-					onChange={(datetime) => {
-						if (datetime) {
-							handleChange(initialErrorState, datetime.format())
-						}
-
-						setDatepickerOpen(false)
-					}}
-				/>
-			)}
 		</>
+	)
+}
+
+const DatepickerMenuItem: React.FC<{
+	onChange: (newState: ErrorState, snoozedUntil?: string) => Promise<void>
+	state: ErrorState
+}> = ({ onChange, state }) => {
+	const menuRef = React.useRef<HTMLDivElement | null>(null)
+	const menu = useMenu()
+
+	return (
+		<Menu.Item onClick={(e) => e.preventDefault()}>
+			<div ref={menuRef} />
+			<DatePicker
+				getPopupContainer={() => menuRef?.current || document.body}
+				showTime
+				placement="bottomRight"
+				placeholder="Select day and time"
+				className={styles.datepicker}
+				onChange={(datetime) => {
+					if (datetime) {
+						onChange(state, datetime.format())
+						menu.setOpen(false)
+					}
+				}}
+			/>
+		</Menu.Item>
 	)
 }
 

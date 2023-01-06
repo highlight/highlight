@@ -23,7 +23,7 @@ import { ButtonIcon, Props as ButtonIconProps } from '../ButtonIcon/ButtonIcon'
 import * as styles from './styles.css'
 
 const MenuContext = React.createContext<MenuState>({} as MenuState)
-const useMenu = () => React.useContext(MenuContext)
+export const useMenu = () => React.useContext(MenuContext)
 
 type Props = React.PropsWithChildren<Partial<MenuState>>
 
