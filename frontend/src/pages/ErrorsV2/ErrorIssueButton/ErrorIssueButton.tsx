@@ -51,8 +51,9 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 			variables: {
 				error_group_secure_id: errorGroup?.secure_id ?? '',
 			},
-			skip: !errorGroup?.secure_id,
 		})
+
+	console.log(':::', errorIssues)
 
 	const integrations: Array<[boolean | undefined, IssueTrackerIntegration]> =
 		useMemo(

@@ -67,12 +67,16 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	const { admin } = useAuthContext()
 
 	const [loading, setLoading] = useState(false)
-	const [createErrorComment] = useCreateErrorCommentMutation()
+	const [createErrorComment] = useCreateErrorCommentMutation({
+		refetchQueries: [namedOperations.Query.GetErrorIssues],
+	})
+
+	const [createIssueForErrorComment] = useCreateIssueForErrorCommentMutation({
+		refetchQueries: [namedOperations.Query.GetErrorIssues],
+	})
 
 	const [createIssueForSessionComment] =
 		useCreateIssueForSessionCommentMutation()
-
-	const [createIssueForErrorComment] = useCreateIssueForErrorCommentMutation()
 
 	const currentUrl = `${
 		window.location.port === '' ? GetBaseURL() : window.location.origin
