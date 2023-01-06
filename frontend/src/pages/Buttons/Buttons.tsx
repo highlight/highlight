@@ -90,6 +90,7 @@ export const Buttons = () => {
 				<iframe
 					title="Introducing Superhuman"
 					src="https://www.youtube.com/embed/JMsFfX6qTNI?rel=0"
+					style={{ zIndex: 100 }}
 				/>
 				<iframe
 					title="Highlight Landing"
@@ -100,6 +101,7 @@ export const Buttons = () => {
 					}
 					height={300}
 					width={600}
+					style={{ zIndex: 100 }}
 				/>
 				<div className="highlight-mask">
 					This is masked.{' '}
