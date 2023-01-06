@@ -616,14 +616,13 @@ func (r *Resolver) GetOrCreateErrorGroup(errorObj *model.ErrorObject, fingerprin
 		}
 
 		opensearchErrorGroup := &model.ErrorGroup{
-			Model:        newErrorGroup.Model,
-			SecureID:     newErrorGroup.SecureID,
-			ProjectID:    errorObj.ProjectID,
-			Event:        errorObj.Event,
-			Type:         errorObj.Type,
-			State:        privateModel.ErrorStateOpen.String(),
-			Fields:       []*model.ErrorField{},
-			SnoozedUntil: nil,
+			Model:     newErrorGroup.Model,
+			SecureID:  newErrorGroup.SecureID,
+			ProjectID: errorObj.ProjectID,
+			Event:     errorObj.Event,
+			Type:      errorObj.Type,
+			State:     privateModel.ErrorStateOpen.String(),
+			Fields:    []*model.ErrorField{},
 		}
 		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(newErrorGroup.ID), pointy.Int(0), opensearchErrorGroup); err != nil {
 			return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
