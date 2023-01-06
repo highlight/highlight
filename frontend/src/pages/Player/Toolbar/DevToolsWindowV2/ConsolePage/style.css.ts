@@ -25,7 +25,6 @@ export const consoleText = style({
 })
 
 export const consoleRow = style({
-	backgroundColor: colors.n1,
 	display: 'flex',
 	flexDirection: 'row',
 	justifyContent: 'flex-start',

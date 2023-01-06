@@ -12,14 +12,14 @@ import clsx, { ClassValue } from 'clsx'
 
 export type ButtonProps = React.PropsWithChildren &
 	AriakitButtonProps &
-		styles.Variants & {
-			iconLeft?: React.ReactElement<IconProps>
-			onIconLeftClick?: React.MouseEventHandler<HTMLButtonElement>
-			iconRight?: React.ReactElement<IconProps>
-			onIconRightClick?: React.MouseEventHandler<HTMLButtonElement>
-			onPress?: () => void
-			cssClass?: ClassValue | ClassValue[]
-		}
+	styles.Variants & {
+		iconLeft?: React.ReactElement<IconProps>
+		onIconLeftClick?: React.MouseEventHandler<HTMLButtonElement>
+		iconRight?: React.ReactElement<IconProps>
+		onIconRightClick?: React.MouseEventHandler<HTMLButtonElement>
+		onPress?: () => void
+		cssClass?: ClassValue | ClassValue[]
+	}
 
 const buttonToTextSize = {
 	xSmall: 'xSmall',

@@ -1,3 +1,4 @@
+import { vars } from '@highlight-run/ui'
 import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
@@ -60,8 +61,9 @@ export const rrwebPlayerWrapper = style({
 })
 
 export const rrwebInnerWrapper = style({
-	border: `4px solid ${colors.n6}`,
+	border: `1px solid ${vars.theme.static.divider.weak}`,
 	borderRadius: 8,
+	boxShadow: vars.shadows.medium,
 })
 
 export const playerCenterColumn = style({

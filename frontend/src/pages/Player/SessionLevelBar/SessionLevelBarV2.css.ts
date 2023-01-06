@@ -53,8 +53,15 @@ export const openLeftPanelButton = style({
 })
 
 export const sessionSwitchButton = style({
-	border: '0 !important',
-	borderRadius: 0,
+	border: 'none !important',
+})
+
+export const sessionSwitchButtonLeft = style({
+	borderRadius: `6px 0px 0px 6px`,
+})
+
+export const sessionSwitchButtonRight = style({
+	borderRadius: `0px 6px 6px 0px`,
 })
 
 export const rightPanelButtonShown = style({

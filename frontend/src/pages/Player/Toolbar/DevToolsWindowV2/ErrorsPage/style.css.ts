@@ -17,7 +17,6 @@ export const errorsBox = style({
 
 export const errorRowVariants = recipe({
 	base: {
-		backgroundColor: colors.n1,
 		borderRadius: 6,
 		color: colors.n11,
 		display: 'grid',

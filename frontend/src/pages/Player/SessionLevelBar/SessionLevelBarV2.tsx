@@ -17,7 +17,6 @@ import {
 	Text,
 	TextLink,
 } from '@highlight-run/ui'
-import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useProjectId } from '@hooks/useProjectId'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
@@ -30,7 +29,9 @@ import { defaultSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import React, { useEffect, useMemo } from 'react'
+import clsx from 'clsx'
+import { delay } from 'lodash'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useHistory } from 'react-router-dom'
 
@@ -42,12 +43,14 @@ export const SessionLevelBarV2: React.FC<
 		width: number | string
 	}
 > = (props) => {
+	const [copyShown, setCopyShown] = useState<boolean>(false)
+	const delayRef = useRef<number>()
 	const history = useHistory()
 	const { projectId: project_id } = useProjectId()
 	const { session_secure_id } = useParams<{
 		session_secure_id: string
 	}>()
-	const { viewport, currentUrl, sessionResults, setSessionResults } =
+	const { viewport, currentUrl, sessionResults, setSessionResults, session } =
 		useReplayerContext()
 	const { page } = useSearchContext()
 	const { isLoggedIn } = useAuthContext()
@@ -74,7 +77,6 @@ export const SessionLevelBarV2: React.FC<
 	const sessionIdx = sessionResults.sessions.findIndex(
 		(s) => s.secure_id === session_secure_id,
 	)
-	const session = sessionResults.sessions[sessionIdx]
 	const [prev, next] = [sessionIdx - 1, sessionIdx + 1]
 
 	useEffect(() => {
@@ -166,7 +168,6 @@ export const SessionLevelBarV2: React.FC<
 						display="flex"
 						marginRight="8"
 						style={{
-							boxShadow: shadows.neutral,
 							height: 28,
 							width: 56,
 						}}
@@ -183,7 +184,10 @@ export const SessionLevelBarV2: React.FC<
 								/>
 							}
 							title="k"
-							cssClass={styles.sessionSwitchButton}
+							cssClass={clsx(
+								styles.sessionSwitchButton,
+								styles.sessionSwitchButtonLeft,
+							)}
 							onClick={() => {
 								changeSession(
 									project_id,
@@ -207,7 +211,10 @@ export const SessionLevelBarV2: React.FC<
 								/>
 							}
 							title="j"
-							cssClass={styles.sessionSwitchButton}
+							cssClass={clsx(
+								styles.sessionSwitchButton,
+								styles.sessionSwitchButtonRight,
+							)}
 							onClick={() => {
 								changeSession(
 									project_id,
@@ -219,7 +226,22 @@ export const SessionLevelBarV2: React.FC<
 							disabled={!canMoveForward}
 						/>
 					</Box>
-					<Box className={styles.currentUrl}>
+					<Box
+						className={styles.currentUrl}
+						onMouseEnter={() => {
+							if (delayRef.current) {
+								window.clearTimeout(delayRef.current)
+								delayRef.current = 0
+							}
+							setCopyShown(true)
+						}}
+						onMouseLeave={() => {
+							delayRef.current = delay(
+								() => setCopyShown(false),
+								200,
+							)
+						}}
+					>
 						<TextLink
 							href={currentUrl || ''}
 							underline="none"
@@ -233,6 +255,19 @@ export const SessionLevelBarV2: React.FC<
 							paddingLeft="8"
 							display="flex"
 							align="center"
+							onMouseEnter={() => {
+								if (delayRef.current) {
+									window.clearTimeout(delayRef.current)
+									delayRef.current = 0
+								}
+								setCopyShown(true)
+							}}
+							onMouseLeave={() => {
+								delayRef.current = delay(
+									() => setCopyShown(false),
+									200,
+								)
+							}}
 							onClick={() => {
 								if (currentUrl?.length) {
 									navigator.clipboard.writeText(currentUrl)
@@ -240,7 +275,13 @@ export const SessionLevelBarV2: React.FC<
 								}
 							}}
 						>
-							<IconSolidDocumentDuplicate color={colors.n9} />
+							<IconSolidDocumentDuplicate
+								color={colors.n9}
+								style={{
+									opacity: copyShown ? 1 : 0,
+									transition: 'opacity 0.1s ease-in-out',
+								}}
+							/>
 						</Box>
 					)}
 				</Box>
@@ -248,14 +289,26 @@ export const SessionLevelBarV2: React.FC<
 					{session && (
 						<>
 							<Box display="flex" align="center" gap="2">
-								<IconSolidTemplate color={colors.n9} />
-								<Text
-									size="medium"
-									color="n11"
-									userSelect="none"
+								<ExplanatoryPopover
+									content={
+										<Text
+											size="medium"
+											color="n11"
+											userSelect="none"
+										>
+											Application viewport size (pixels)
+										</Text>
+									}
 								>
-									{viewport?.width} x {viewport?.height}
-								</Text>
+									<IconSolidTemplate color={colors.n9} />
+									<Text
+										size="medium"
+										color="n11"
+										userSelect="none"
+									>
+										{viewport?.width} x {viewport?.height}
+									</Text>
+								</ExplanatoryPopover>
 							</Box>
 							<Box display="flex" align="center" gap="2">
 								<ExplanatoryPopover
@@ -265,7 +318,7 @@ export const SessionLevelBarV2: React.FC<
 											color="n11"
 											userSelect="none"
 										>
-											Privacy{' '}
+											Recording strict privacy{' '}
 											{session?.enable_strict_privacy
 												? 'on'
 												: 'off'}
