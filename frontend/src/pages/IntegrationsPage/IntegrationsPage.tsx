@@ -12,6 +12,7 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useMemo } from 'react'
@@ -22,9 +23,6 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 import styles from './IntegrationsPage.module.scss'
 
 const IntegrationsPage = () => {
-	const { workspace_id } = useParams<{
-		workspace_id: string
-	}>()
 	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()
 
 	const { integration_type: configureIntegration } = useParams<{
@@ -34,6 +32,7 @@ const IntegrationsPage = () => {
 	const [popUpModal] = useQueryParam('enable', StringParam)
 
 	const { isHighlightAdmin } = useAuthContext()
+	const { currentWorkspace } = useApplicationContext()
 
 	const { isLinearIntegratedWithProject, loading: loadingLinear } =
 		useLinearIntegration()
@@ -86,12 +85,12 @@ const IntegrationsPage = () => {
 			) {
 				let canSee = false
 
-				if (integration.allowlistWorkspaceIds) {
+				const workspaceID = currentWorkspace?.id
+
+				if (integration.allowlistWorkspaceIds && workspaceID) {
 					canSee =
 						canSee ||
-						integration.allowlistWorkspaceIds?.includes(
-							workspace_id,
-						)
+						integration.allowlistWorkspaceIds?.includes(workspaceID)
 				}
 
 				if (integration.onlyShowForHighlightAdmin) {
@@ -116,6 +115,7 @@ const IntegrationsPage = () => {
 				(inter.key === 'height' && isHeightIntegratedWithProject),
 		}))
 	}, [
+		currentWorkspace?.id,
 		isHighlightAdmin,
 		isSlackConnectedToWorkspace,
 		isLinearIntegratedWithProject,
@@ -126,7 +126,6 @@ const IntegrationsPage = () => {
 		isDiscordIntegratedWithProject,
 		isClickUpIntegratedWithProject,
 		isHeightIntegratedWithProject,
-		workspace_id,
 	])
 
 	useEffect(() => analytics.page(), [])

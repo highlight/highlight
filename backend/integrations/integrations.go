@@ -84,7 +84,7 @@ func (c *Client) GetWorkspaceAccessToken(ctx context.Context, workspace *model.W
 		WorkspaceID:     workspace.ID,
 		IntegrationType: integrationType,
 	}).First(&workspaceMapping).Error; err != nil {
-		return nil, err
+		return nil, nil
 	}
 
 	if workspaceMapping == nil {
@@ -136,7 +136,7 @@ func (c *Client) IsProjectIntegrated(ctx context.Context, project *model.Project
 		ProjectID:       project.ID,
 		IntegrationType: integrationType,
 	}).First(&projectMapping).Error; err != nil {
-		return false, err
+		return false, nil
 	}
 
 	if projectMapping == nil {
