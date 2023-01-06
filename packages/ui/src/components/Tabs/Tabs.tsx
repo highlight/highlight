@@ -14,15 +14,19 @@ type Props<T extends string> = styles.Variants & {
 	pages: {
 		[k: string]: Page
 	}
-	default: T
+	tab: T
+	setTab: (tab: T) => void
 	right?: React.ReactNode
-	onChange?: (tab: T) => void
 }
 
-export const Tabs = function <T extends string>(props: Props<T>) {
-	const [tab, setTab] = React.useState<T>(props.default)
+export const Tabs = function <T extends string>({
+	pages,
+	tab,
+	setTab,
+	right,
+}: Props<T>) {
 	const [hoveredTab, setHoveredTab] = React.useState<string>()
-	const currentPage = props.pages[tab]
+	const currentPage = pages[tab]
 
 	return (
 		<Box display="flex" flexDirection="column" height="full" width="full">
@@ -38,7 +42,7 @@ export const Tabs = function <T extends string>(props: Props<T>) {
 					alignItems="center"
 					justifyContent="flex-start"
 				>
-					{Object.keys(props.pages).map((t) => (
+					{Object.keys(pages).map((t) => (
 						<Box
 							display="flex"
 							flexDirection="column"
@@ -50,14 +54,11 @@ export const Tabs = function <T extends string>(props: Props<T>) {
 							onMouseEnter={() => setHoveredTab(t)}
 							onMouseLeave={() => setHoveredTab(undefined)}
 							onClick={() => {
-								if (props.onChange) {
-									props.onChange(t as T)
-								}
 								setTab(t as T)
 							}}
 						>
 							<Button
-								iconLeft={props.pages[t].icon}
+								iconLeft={pages[t].icon}
 								className={styles.controlBarVariants({
 									selected: t === tab,
 								})}
@@ -67,7 +68,7 @@ export const Tabs = function <T extends string>(props: Props<T>) {
 									cssClass={styles.tabText}
 								>
 									{t}
-									{props.pages[t].badge}
+									{pages[t].badge}
 								</Text>
 							</Button>
 							<div
@@ -79,12 +80,10 @@ export const Tabs = function <T extends string>(props: Props<T>) {
 						</Box>
 					))}
 				</Box>
-				{props.right}
+				{right}
 			</Box>
 			{currentPage && (
-				<Box className={styles.pageWrapper}>
-					{props.pages[tab].page}
-				</Box>
+				<Box className={styles.pageWrapper}>{pages[tab].page}</Box>
 			)}
 		</Box>
 	)

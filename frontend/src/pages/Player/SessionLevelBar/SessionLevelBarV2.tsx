@@ -350,21 +350,21 @@ export const SessionLevelBarV2: React.FC<
 										onChange={() => {
 											if (
 												selectedRightPanelTab !==
-												'Comments'
+												'Threads'
 											) {
 												setSelectedRightPanelTab(
-													'Comments',
+													'Threads',
 												)
 											}
 											setShowRightPanel(
 												!showRightPanel ||
 													selectedRightPanelTab !==
-														'Comments',
+														'Threads',
 											)
 										}}
 										checked={
 											showRightPanel &&
-											selectedRightPanelTab === 'Comments'
+											selectedRightPanelTab === 'Threads'
 										}
 										iconLeft={
 											<IconSolidChatAlt_2 size={14} />

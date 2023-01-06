@@ -1,7 +1,6 @@
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
+import { createContext } from '@util/context/context'
 import React from 'react'
-
-import { createContext } from '../../../util/context/context'
 
 interface DetailedPanelOptions {
 	noHeader?: boolean
@@ -16,6 +15,7 @@ export interface DetailedPanel {
 	id: string
 }
 
+export type RightPlayerTab = 'Events' | 'Threads' | 'Metadata'
 interface PlayerUIContext {
 	isPlayerFullscreen: boolean
 	setIsPlayerFullscreen: React.Dispatch<React.SetStateAction<boolean>>
@@ -25,10 +25,8 @@ interface PlayerUIContext {
 	setDetailedPanel: React.Dispatch<
 		React.SetStateAction<DetailedPanel | undefined>
 	>
-	selectedRightPanelTab: 'Events' | 'Comments' | 'Metadata'
-	setSelectedRightPanelTab: (
-		newValue: 'Events' | 'Comments' | 'Metadata',
-	) => void
+	selectedRightPanelTab: RightPlayerTab
+	setSelectedRightPanelTab: (newValue: RightPlayerTab) => void
 	activeEvent?: HighlightEvent
 	setActiveEvent: React.Dispatch<
 		React.SetStateAction<HighlightEvent | undefined>

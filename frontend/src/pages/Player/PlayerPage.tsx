@@ -132,7 +132,7 @@ const PlayerPage = ({ integrated }: Props) => {
 		undefined,
 	)
 	const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
-		'Events' | 'Comments' | 'Metadata'
+		'Events' | 'Threads' | 'Metadata'
 	>('tabs-PlayerRightPanel-active-tab', 'Events')
 
 	useEffect(() => {

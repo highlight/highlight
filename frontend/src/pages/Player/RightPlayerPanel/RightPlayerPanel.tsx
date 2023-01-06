@@ -8,7 +8,10 @@ import {
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import EventStreamV2 from '@pages/Player/components/EventStreamV2/EventStreamV2'
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import {
+	RightPlayerTab,
+	usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import { useParams } from '@util/react-router/useParams'
@@ -39,7 +42,7 @@ const RightPlayerPanel = React.memo(() => {
 
 		if (commentId) {
 			setShowRightPanel(true)
-			setSelectedRightPanelTab('Comments')
+			setSelectedRightPanelTab('Threads')
 		}
 	}, [setSelectedRightPanelTab, setShowRightPanel])
 
@@ -74,14 +77,9 @@ const RightPlayerPanel = React.memo(() => {
 
 export default RightPlayerPanel
 
-enum Tab {
-	Events = 'Events',
-	Threads = 'Threads',
-	Metadata = 'Metadata',
-}
-
-const RightPlayerPanelTabs = React.memo(() => {
-	const [tab, setTab] = React.useState<string>(Tab.Events)
+const RightPlayerPanelTabs = () => {
+	const { selectedRightPanelTab, setSelectedRightPanelTab } =
+		usePlayerUIContext()
 	const sessionCommentsRef = React.useRef(null)
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const { data: sessionCommentsData, loading } = useGetSessionCommentsQuery({
@@ -91,19 +89,23 @@ const RightPlayerPanelTabs = React.memo(() => {
 	})
 
 	return (
-		<Tabs<Tab>
-			default={Tab.Events}
-			onChange={setTab}
+		<Tabs<RightPlayerTab>
+			tab={selectedRightPanelTab}
+			setTab={setSelectedRightPanelTab}
 			pages={{
-				[Tab.Events]: {
+				['Events']: {
 					page: <EventStreamV2 />,
 					icon: (
 						<IconSolidFire
-							color={tab === Tab.Events ? colors.p9 : undefined}
+							color={
+								selectedRightPanelTab === 'Events'
+									? colors.p9
+									: undefined
+							}
 						/>
 					),
 				},
-				[Tab.Threads]: {
+				['Threads']: {
 					page: (
 						<SessionFullCommentList
 							parentRef={sessionCommentsRef}
@@ -113,7 +115,11 @@ const RightPlayerPanelTabs = React.memo(() => {
 					),
 					icon: (
 						<IconSolidChatAlt_2
-							color={tab === Tab.Threads ? colors.p9 : undefined}
+							color={
+								selectedRightPanelTab === 'Threads'
+									? colors.p9
+									: undefined
+							}
 						/>
 					),
 					badge: (
@@ -126,7 +132,9 @@ const RightPlayerPanelTabs = React.memo(() => {
 							<Badge
 								size="tiny"
 								variant={
-									tab === Tab.Threads ? 'purple' : 'grey'
+									selectedRightPanelTab === 'Threads'
+										? 'purple'
+										: 'grey'
 								}
 								shape="rounded"
 								label={`${sessionCommentsData?.session_comments?.length}`}
@@ -134,15 +142,19 @@ const RightPlayerPanelTabs = React.memo(() => {
 						</div>
 					),
 				},
-				[Tab.Metadata]: {
+				['Metadata']: {
 					page: <MetadataPanel />,
 					icon: (
 						<IconSolidHashtag
-							color={tab === Tab.Metadata ? colors.p9 : undefined}
+							color={
+								selectedRightPanelTab === 'Metadata'
+									? colors.p9
+									: undefined
+							}
 						/>
 					),
 				},
 			}}
 		/>
 	)
-})
+}

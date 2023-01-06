@@ -87,8 +87,8 @@ const DevToolsWindowV2: React.FC<
 							</button>
 						</div>
 						<Tabs<Tab>
-							default={Tab.Console}
-							onChange={(t: Tab) => {
+							tab={Tab.Console}
+							setTab={(t: Tab) => {
 								setTab(t)
 								form.reset()
 							}}
