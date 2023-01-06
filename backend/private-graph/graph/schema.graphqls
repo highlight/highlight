@@ -1140,7 +1140,6 @@ enum EmailOptOutCategory {
 	All
 	Digests
 	Billing
-	ZaneTest
 }
 
 scalar Upload
