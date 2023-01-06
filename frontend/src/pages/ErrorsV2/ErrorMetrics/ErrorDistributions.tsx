@@ -1,11 +1,11 @@
-import { getPercentageDisplayValue } from '@components/ProgressBarTable/utils/utils'
+import { CircularSpinner } from '@components/Loading/Loading'
 import { useGetErrorGroupTagsQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
 import {
 	ErrorGroupTagAggregation,
 	ErrorGroupTagAggregationBucket,
 } from '@graph/schemas'
-import { Box, Stack, Tag, Text } from '@highlight-run/ui'
+import { Box, Stack, Text } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { Progress } from 'antd'
 import React, { useEffect, useState } from 'react'
@@ -25,7 +25,7 @@ const ErrorDistributions = ({ errorGroup }: Props) => {
 		ErrorGroupTagAggregation | undefined
 	>()
 
-	const { data } = useGetErrorGroupTagsQuery({
+	const { loading, data } = useGetErrorGroupTagsQuery({
 		variables: {
 			error_group_secure_id: `${errorGroup?.secure_id}`,
 		},
@@ -38,7 +38,7 @@ const ErrorDistributions = ({ errorGroup }: Props) => {
 		})
 
 		if (foundEnvironmentTag) {
-			setEnvironments(foundEnvironmentTag)
+			setEnvironments(foundEnvironmentTag as ErrorGroupTagAggregation)
 		}
 
 		const foundBrowserTag = data?.errorGroupTags.find((tag) => {
@@ -46,7 +46,7 @@ const ErrorDistributions = ({ errorGroup }: Props) => {
 		})
 
 		if (foundBrowserTag) {
-			setBrowsers(foundBrowserTag)
+			setBrowsers(foundBrowserTag as ErrorGroupTagAggregation)
 		}
 
 		const foundOperatingSytemTag = data?.errorGroupTags.find((tag) => {
@@ -54,20 +54,29 @@ const ErrorDistributions = ({ errorGroup }: Props) => {
 		})
 
 		if (foundOperatingSytemTag) {
-			setOperatingSystems(foundOperatingSytemTag)
+			setOperatingSystems(
+				foundOperatingSytemTag as ErrorGroupTagAggregation,
+			)
 		}
-		// Only invoke on new data.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.errorGroupTags])
 
 	return (
 		<Stack direction="row" justify="space-between">
-			<Distribution title="Environments" aggregation={environments} />
-			<Distribution title="Browsers" aggregation={browsers} />
+			<Distribution
+				title="Environments"
+				aggregation={environments}
+				loading={loading}
+			/>
+			<Distribution
+				title="Browsers"
+				aggregation={browsers}
+				loading={loading}
+			/>
 			<Distribution
 				title="Operating Systems"
 				noBorder
 				aggregation={operatingSystems}
+				loading={loading}
 			/>
 		</Stack>
 	)
@@ -77,35 +86,42 @@ const Distribution: React.FC<
 	React.PropsWithChildren<{
 		title: string
 		aggregation?: ErrorGroupTagAggregation
+		loading: boolean
 		noBorder?: boolean
 	}>
-> = ({ title, aggregation, noBorder = false }) => (
-	<Box
-		borderRight={noBorder ? undefined : 'secondary'}
-		py="16"
-		pr="16"
-		flex="stretch"
-	>
+> = ({ title, aggregation, loading, noBorder = false }) => {
+	const hasBuckets = !loading && aggregation?.buckets
+	return (
 		<Box
-			display="flex"
-			flexDirection="column"
-			gap="12"
-			justifyContent="space-between"
-			style={{ height: '100%' }}
+			borderRight={noBorder ? undefined : 'secondary'}
+			py="16"
+			pr="16"
+			flex="stretch"
 		>
 			<Box
 				display="flex"
-				justifyContent="space-between"
-				flexDirection="row"
-				alignItems="center"
+				flexDirection="column"
+				gap="12"
+				style={{ height: '100%' }}
 			>
-				<Text weight="bold">{title}</Text>
-			</Box>
+				<Box
+					display="flex"
+					justifyContent="space-between"
+					flexDirection="row"
+					alignItems="center"
+				>
+					<Text weight="bold">{title}</Text>
+				</Box>
 
-			{aggregation?.buckets && <Buckets buckets={aggregation.buckets} />}
+				{!hasBuckets ? (
+					<CircularSpinner />
+				) : (
+					<Buckets buckets={aggregation.buckets} />
+				)}
+			</Box>
 		</Box>
-	</Box>
-)
+	)
+}
 
 const Buckets: React.FC<
 	React.PropsWithChildren<{
@@ -113,28 +129,16 @@ const Buckets: React.FC<
 	}>
 > = ({ buckets }) => {
 	return (
-		<Box
-			display="flex"
-			flexDirection="column"
-			gap="12"
-			justifyContent="space-between"
-			style={{ height: '100%' }}
-		>
+		<Box display="flex" flexDirection="column" gap="12">
 			{buckets.map((bucket) => {
 				return (
 					<Box key={bucket.key}>
 						<Text>{bucket.key}</Text>
-						<Stack direction="row" align="center">
-							<Progress
-								percent={bucket.percent * 100}
-								strokeColor={colors.n8}
-								showInfo={false}
-							/>
-							<Tag kind="secondary">
-								{getPercentageDisplayValue(bucket.percent)}
-							</Tag>
-							<Text>{bucket.doc_count}</Text>
-						</Stack>
+						<Progress
+							percent={Math.floor(bucket.percent * 100)}
+							strokeColor={colors.n8}
+							status="normal"
+						/>
 					</Box>
 				)
 			})}
