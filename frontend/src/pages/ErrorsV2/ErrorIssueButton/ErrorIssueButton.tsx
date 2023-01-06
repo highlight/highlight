@@ -1,13 +1,13 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { Button } from '@components/Button'
+import { getAttachmentUrl } from '@components/Comment/AttachmentList/AttachmentList'
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
+import { useGetErrorIssuesQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
-import { IntegrationType } from '@graph/schemas'
+import { ExternalAttachment, IntegrationType } from '@graph/schemas'
 import {
 	IconSolidCheveronRight,
-	IconSolidClickUp,
 	IconSolidDocumentAdd,
-	IconSolidHeight,
-	IconSolidLinear,
 	IconSolidPlusSm,
 } from '@highlight-run/ui'
 import { Box, Menu, Text } from '@highlight-run/ui'
@@ -34,14 +34,25 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 	const { isLoggedIn } = useAuthContext()
 	const { projectId } = useProjectId()
 
-	const { isLinearIntegratedWithProject } = useLinearIntegration()
+	const { isLinearIntegratedWithProject, loading: isLoadingLinear } =
+		useLinearIntegration()
 	const {
-		settings: { isIntegrated: isClickupIntegrated },
+		settings: {
+			isIntegrated: isClickupIntegrated,
+			loading: isLoadingClickUp,
+		},
 	} = useClickUpIntegration()
 
-	const { isIntegrated: isHeightIntegrated } = useIsProjectIntegratedWith(
-		IntegrationType.Height,
-	)
+	const { isIntegrated: isHeightIntegrated, loading: isLoadingHeight } =
+		useIsProjectIntegratedWith(IntegrationType.Height)
+
+	const { data: errorIssues, loading: isLoadingErrorIssues } =
+		useGetErrorIssuesQuery({
+			variables: {
+				error_group_secure_id: errorGroup?.secure_id ?? '',
+			},
+			fetchPolicy: 'network-only',
+		})
 
 	const integrations: Array<[boolean | undefined, IssueTrackerIntegration]> =
 		useMemo(
@@ -73,7 +84,18 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 		return `Issue from this bug`
 	}, [errorGroup])
 
-	const menuOptions = useMemo(() => {
+	const isLoading =
+		isLoadingLinear ||
+		isLoadingClickUp ||
+		isLoadingHeight ||
+		isLoadingErrorIssues
+
+	const hasIssue =
+		!isLoadingErrorIssues &&
+		errorIssues?.error_issue &&
+		errorIssues.error_issue.length > 0
+
+	const menu = useMemo(() => {
 		const options = integrations
 			.map(([isIntegrated, integration]) => {
 				if (!isIntegrated) return null
@@ -89,15 +111,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 							style={{ width: '100%' }}
 							color="n8"
 						>
-							{integration === LINEAR_INTEGRATION && (
-								<IconSolidLinear size={16} />
-							)}
-							{integration === CLICKUP_INTEGRATION && (
-								<IconSolidClickUp size={16} />
-							)}
-							{integration === HEIGHT_INTEGRATION && (
-								<IconSolidHeight size={16} />
-							)}
+							<integration.Icon size={16} />
 							<Box mr="auto" cssClass={style.menuOption}>
 								<Text
 									size="small"
@@ -114,54 +128,85 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 			})
 			.filter(Boolean)
 		return (
-			<>
-				{options}
-				{options.length > 0 && <Menu.Divider />}
-			</>
-		)
-	}, [integrations])
-
-	return (
-		<Menu placement="bottom-end">
-			<Menu.Button
-				kind="secondary"
-				size="small"
-				emphasis="high"
-				disabled={!isLoggedIn}
-				iconLeft={<IconSolidDocumentAdd />}
-			>
-				Create Issue
-			</Menu.Button>
-			<Menu.List cssClass={style.menuList}>
-				<Menu.Heading>
-					<Box
-						p="8"
-						bb="secondary"
-						mb={integrationCount > 0 ? '4' : undefined}
-						userSelect="none"
-					>
-						<Text size="xxSmall" weight="medium" color="n11">
-							Attach an issue
-						</Text>
-					</Box>
-				</Menu.Heading>
-				{menuOptions}
-				<Menu.Item>
-					<Link to={`/${projectId}/integrations`}>
+			<Menu placement="bottom-end">
+				<Menu.Button
+					kind="secondary"
+					size="small"
+					emphasis="high"
+					disabled={!isLoggedIn || isLoading}
+					iconLeft={<IconSolidDocumentAdd />}
+				>
+					Create Issue
+				</Menu.Button>
+				<Menu.List cssClass={style.menuList}>
+					<Menu.Heading>
 						<Box
-							gap="4"
-							display="flex"
-							alignItems="center"
-							color="n11"
+							p="8"
+							bb="secondary"
+							mb={integrationCount > 0 ? '4' : undefined}
+							userSelect="none"
 						>
-							<IconSolidPlusSm size={16} />
-							<Text size="small" weight="medium">
-								Add new integration
+							<Text size="xxSmall" weight="medium" color="n11">
+								Attach an issue
 							</Text>
 						</Box>
-					</Link>
-				</Menu.Item>
-			</Menu.List>
+					</Menu.Heading>
+					{options}
+					{options.length > 0 && <Menu.Divider />}
+					<Menu.Item>
+						<Link to={`/${projectId}/integrations`}>
+							<Box
+								gap="4"
+								display="flex"
+								alignItems="center"
+								color="n11"
+							>
+								<IconSolidPlusSm size={16} />
+								<Text size="small" weight="medium">
+									Add new integration
+								</Text>
+							</Box>
+						</Link>
+					</Menu.Item>
+				</Menu.List>
+			</Menu>
+		)
+	}, [integrationCount, integrations, isLoading, isLoggedIn, projectId])
+
+	const issueButton = useMemo(() => {
+		const issue = errorIssues?.error_issue[0]
+		if (!errorIssues?.error_issue || !issue) {
+			return null
+		}
+		const Icon = integrations.find(
+			(integration) => integration[1]?.name === issue.integration_type,
+		)?.[1]?.Icon
+		return (
+			<Button
+				kind="secondary"
+				size="small"
+				emphasis="medium"
+				disabled={!isLoggedIn}
+				iconLeft={Icon ? <Icon /> : undefined}
+				trackingId="errorIssueButton"
+				cssClass={style.issueButton}
+				onClick={() => {
+					if (issue) {
+						window.open(
+							getAttachmentUrl(issue as ExternalAttachment),
+							'_blank',
+						)
+					}
+				}}
+			>
+				<Text lines="1">{issue.title}</Text>
+			</Button>
+		)
+	}, [errorIssues?.error_issue, integrations, isLoggedIn])
+
+	return (
+		<>
+			{hasIssue ? issueButton : menu}
 			<NewIssueModal
 				selectedIntegration={showNewIssueModal ?? LINEAR_INTEGRATION}
 				visible={!!showNewIssueModal}
@@ -169,7 +214,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 				commentType="ErrorComment"
 				defaultIssueTitle={defaultIssueTitle}
 			/>
-		</Menu>
+		</>
 	)
 }
 
