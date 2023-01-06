@@ -29,6 +29,7 @@ import (
 
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts"
+	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -1185,7 +1186,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	}
 
 	// determine if session is within billing quota
-	withinBillingQuota := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
+	withinBillingQuota, quotaPercent := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
 	setupSpan.Finish()
 
 	// Get the user's ip, get geolocation data
@@ -1287,6 +1288,24 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	go func() {
 		defer util.Recover()
+		workspace, err := r.getWorkspace(project.WorkspaceID)
+		if err != nil {
+			log.Error(e.Wrap(err, "error querying workspace"))
+			return
+		}
+
+		if workspace.PlanTier != privateModel.PlanTypeFree.String() && workspace.AllowMeterOverage {
+			if quotaPercent >= 1 {
+				if err := model.SendBillingNotifications(r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace); err != nil {
+					log.Error(e.Wrap(err, "failed to send billing notifications"))
+				}
+			} else if quotaPercent >= .8 {
+				if err := model.SendBillingNotifications(r.DB, r.MailClient, email.BillingSessionUsage80Percent, workspace); err != nil {
+					log.Error(e.Wrap(err, "failed to send billing notifications"))
+				}
+			}
+		}
+
 		// Sleep for 25 seconds, then query from the DB. If this session is identified, we
 		// want to wait for the H.identify call to be able to create a better Slack message.
 		// If an ECS task is being replaced, there's a 30 second window to do cleanup work.
@@ -1342,12 +1361,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 					}
 				}
 				if isSessionByExcludedIdentifier {
-					return
-				}
-
-				workspace, err := r.getWorkspace(project.WorkspaceID)
-				if err != nil {
-					log.Error(e.Wrap(err, "error querying workspace"))
 					return
 				}
 
@@ -1783,31 +1796,16 @@ func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model.Workspace, now time.Time) bool {
+func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model.Workspace, now time.Time) (bool, float64) {
 	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(now) {
-		return true
+		return true, 0
 	}
 	if util.IsOnPrem() {
-		return true
+		return true, 0
 	}
 
-	if project.FreeTier {
-		sessionCount, err := pricing.GetProjectMeter(r.DB, project)
-		if err != nil {
-			log.Warn(fmt.Sprintf("error getting sessions meter for project %d", project.ID))
-		}
-		withinBillingQuota := int64(pricing.TypeToQuota(privateModel.PlanTypeFree)) > sessionCount
-		return withinBillingQuota
-	}
-
-	if workspace.AllowMeterOverage {
-		return true
-	}
-
-	var (
-		withinBillingQuota bool
-		quota              int
-	)
+	var quota int
+	var stripePlan privateModel.PlanType
 	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
 		quota = *workspace.MonthlySessionLimit
 	} else {
@@ -1819,8 +1817,14 @@ func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model
 	if err != nil {
 		log.Warn(fmt.Sprintf("error getting sessions meter for workspace %d", workspace.ID))
 	}
-	withinBillingQuota = int64(quota) > monthToDateSessionCount
-	return withinBillingQuota
+
+	quotaPercent := float64(monthToDateSessionCount) / float64(quota)
+	// If the workspace is not on the free plan and overage is allowed
+	if stripePlan != privateModel.PlanTypeFree && workspace.AllowMeterOverage {
+		return true, quotaPercent
+	}
+
+	return quotaPercent < 1, quotaPercent
 }
 
 func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, group *model.ErrorGroup, visitedUrl string) {

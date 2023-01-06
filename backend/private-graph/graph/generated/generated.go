@@ -8447,6 +8447,7 @@ type OAuthClient {
 enum EmailOptOutCategory {
 	All
 	Digests
+	Billing
 }
 
 scalar Upload

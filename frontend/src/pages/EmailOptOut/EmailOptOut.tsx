@@ -57,14 +57,6 @@ type Props = {
 }
 
 export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
-	const categories = [
-		{
-			label: 'Digests',
-			info: 'Weekly summaries of user activity and errors for your projects',
-			type: EmailOptOutCategory.Digests,
-		},
-	]
-
 	const [updateEmailOptOut] = useUpdateEmailOptOutMutation({
 		refetchQueries: [namedOperations.Query.GetEmailOptOuts],
 	})
@@ -79,19 +71,6 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 			setLoadingState(AppLoadingState.LOADED)
 		}
 	}, [loading, setLoadingState])
-
-	let optOutAll = false
-	const optOuts = new Set<EmailOptOutCategory>()
-	for (const o of data?.email_opt_outs ?? []) {
-		if (o === EmailOptOutCategory.All) {
-			optOutAll = true
-			for (const c of categories) {
-				optOuts.add(c.type)
-			}
-		} else {
-			optOuts.add(o)
-		}
-	}
 
 	if (loading) {
 		return null
@@ -125,6 +104,32 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 			</>
 		)
 	} else {
+		const categories = [
+			{
+				label: 'Digests',
+				info: 'Weekly summaries of user activity and errors for your projects',
+				type: EmailOptOutCategory.Digests,
+			},
+			{
+				label: 'Billing',
+				info: 'Notifications about billing and plan usage',
+				type: EmailOptOutCategory.Billing,
+			},
+		]
+
+		let optOutAll = false
+		const optOuts = new Set<EmailOptOutCategory>()
+		for (const o of data?.email_opt_outs ?? []) {
+			if (o === EmailOptOutCategory.All) {
+				optOutAll = true
+				for (const c of categories) {
+					optOuts.add(c.type)
+				}
+			} else {
+				optOuts.add(o)
+			}
+		}
+
 		return (
 			<p>
 				<p>I would like to receive the following emails:</p>

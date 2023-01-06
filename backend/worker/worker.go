@@ -1154,7 +1154,7 @@ func (w *Worker) Start() {
 }
 
 func (w *Worker) ReportStripeUsage() {
-	pricing.ReportAllUsage(w.Resolver.DB, w.Resolver.StripeClient)
+	pricing.ReportAllUsage(w.Resolver.DB, w.Resolver.StripeClient, w.Resolver.MailClient)
 }
 
 func (w *Worker) UpdateOpenSearchIndex() {
