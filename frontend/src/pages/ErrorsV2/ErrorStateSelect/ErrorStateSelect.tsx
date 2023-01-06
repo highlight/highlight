@@ -27,7 +27,7 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 			refetchQueries: [namedOperations.Query.GetErrorGroupsOpenSearch],
 			onQueryUpdated: async (observableQuery) => {
 				// wait until the changes propage to openSearch nodes
-				await wait(1000)
+				await wait(5000)
 				await observableQuery.refetch()
 			},
 		})
