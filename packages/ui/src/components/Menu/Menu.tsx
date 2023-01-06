@@ -51,7 +51,9 @@ export const Menu: MenuComponent = ({
 			return
 		}
 
-		onVisibilityChange(menu.open)
+		if (typeof onVisibilityChange === 'function') {
+			onVisibilityChange(menu.open)
+		}
 	}, [menu.open])
 
 	return <MenuContext.Provider value={menu}>{children}</MenuContext.Provider>
