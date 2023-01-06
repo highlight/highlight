@@ -6164,6 +6164,7 @@ export const GetErrorGroupsOpenSearchDocument = gql`
 				event
 				state
 				state
+				snoozed_until
 				environments
 				stack_trace
 				structured_stack_trace {

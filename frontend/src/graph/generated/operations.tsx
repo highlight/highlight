@@ -2102,6 +2102,7 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 					| 'type'
 					| 'event'
 					| 'state'
+					| 'snoozed_until'
 					| 'environments'
 					| 'stack_trace'
 					| 'error_frequency'

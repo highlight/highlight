@@ -24,12 +24,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
 	})
 
 	return (
-		<Box display="inline-block">
-			<TooltipAnchor state={tooltipState}>{trigger}</TooltipAnchor>
+		<>
+			<TooltipAnchor state={tooltipState} as="span">
+				{trigger}
+			</TooltipAnchor>
 			<AriakitTooltip state={tooltipState}>
 				<TooltipRenderer>{children}</TooltipRenderer>
 			</AriakitTooltip>
-		</Box>
+		</>
 	)
 }
 

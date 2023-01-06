@@ -654,8 +654,8 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 	}
 
 	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
-		"state":        state,
-		"snoozedUntil": snoozedUntil,
+		"state":         state,
+		"snoozed_until": snoozedUntil,
 	}); err != nil {
 		return nil, e.Wrap(err, "error updating error group state in OpenSearch")
 	}
