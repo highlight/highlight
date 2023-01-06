@@ -51,9 +51,8 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 			variables: {
 				error_group_secure_id: errorGroup?.secure_id ?? '',
 			},
+			fetchPolicy: 'network-only',
 		})
-
-	console.log(':::', errorIssues)
 
 	const integrations: Array<[boolean | undefined, IssueTrackerIntegration]> =
 		useMemo(
@@ -186,7 +185,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 			<Button
 				kind="secondary"
 				size="small"
-				emphasis="high"
+				emphasis="medium"
 				disabled={!isLoggedIn}
 				iconLeft={Icon ? <Icon /> : undefined}
 				trackingId="errorIssueButton"
