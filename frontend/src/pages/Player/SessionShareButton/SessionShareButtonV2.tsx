@@ -1,74 +1,34 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useUpdateSessionIsPublicMutation } from '@graph/hooks'
-import { Button, Text } from '@highlight-run/ui/src'
+import {
+	Box,
+	IconSolidGlobeAlt,
+	IconSolidLink,
+	IconSolidQuestionMarkCircle,
+	IconSolidShare,
+	Menu,
+	Tag,
+	Text,
+} from '@highlight-run/ui/src'
+import { colors } from '@highlight-run/ui/src/css/colors'
+import {
+	onGetLink,
+	onGetLinkWithTimestamp,
+} from '@pages/Player/SessionShareButton/utils/utils'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
+import { copyToClipboard } from '@util/string'
+import { MillisToMinutesAndSeconds } from '@util/time'
 import React, { useState } from 'react'
 
-import CopyText from '../../../components/CopyText/CopyText'
-import Modal from '../../../components/Modal/Modal'
-import ModalBody from '../../../components/ModalBody/ModalBody'
 import Switch from '../../../components/Switch/Switch'
 import { useReplayerContext } from '../ReplayerContext'
-import styles from './SessionShareButton.module.scss'
-import { onGetLink, onGetLinkWithTimestamp } from './utils/utils'
+import * as styles from './SessionShareButtonV2.css'
 
 const SessionShareButtonV2 = () => {
+	const [shareTimestamp, setShareTimestamp] = useState(false)
 	const { time } = useReplayerContext()
 	const { isLoggedIn } = useAuthContext()
-	const [showModal, setShowModal] = useState(false)
-	const [shareTimestamp, setShareTimestamp] = useState(false)
-
-	return (
-		<>
-			<Button
-				kind="secondary"
-				size="small"
-				onClick={() => {
-					analytics.track('Clicked share button')
-					setShowModal(true)
-				}}
-			>
-				<Text userSelect="none">Share</Text>
-			</Button>
-			<Modal
-				visible={showModal}
-				onCancel={() => {
-					setShowModal(false)
-				}}
-				destroyOnClose
-				centered
-				width={500}
-				title="Session Sharing"
-			>
-				<ModalBody>
-					<CopyText
-						text={
-							shareTimestamp
-								? onGetLinkWithTimestamp(time).toString()
-								: onGetLink().toString()
-						}
-						onCopyTooltipText="Copied session link to clipboard!"
-					/>
-					<hr className={styles.divider} />
-					<h3>Sharing Options</h3>
-					{isLoggedIn && <ExternalSharingToggle />}
-					<Switch
-						checked={shareTimestamp}
-						onChange={(checked: boolean) => {
-							setShareTimestamp(checked)
-						}}
-						label="Include current timestamp"
-						trackingId="SessionShareURLIncludeTimestamp"
-						setMarginForAnimation
-					/>
-				</ModalBody>
-			</Modal>
-		</>
-	)
-}
-
-const ExternalSharingToggle = () => {
 	const { session } = useReplayerContext()
 	const { session_secure_id } = useParams<{
 		session_secure_id: string
@@ -88,27 +48,160 @@ const ExternalSharingToggle = () => {
 			})
 		},
 	})
+
 	return (
-		<div className={styles.externalSharingToggle}>
-			<Switch
-				loading={!session}
-				checked={!!session?.is_public}
-				onChange={(checked: boolean) => {
-					analytics.track('Toggled session isPublic', {
-						is_public: checked,
-					})
-					updateSessionIsPublic({
-						variables: {
-							session_secure_id: session_secure_id,
-							is_public: checked,
-						},
-					})
+		<Menu placement="bottom">
+			<Menu.Button
+				size="small"
+				kind="secondary"
+				emphasis="low"
+				iconRight={<IconSolidShare />}
+				onClick={() => {
+					analytics.track('Clicked session share button')
 				}}
-				label="Allow anyone with the link to access this session."
-				trackingId="SessionSharingExternal"
-				setMarginForAnimation
-			/>
-		</div>
+			>
+				Share
+			</Menu.Button>
+			<Menu.List cssClass={styles.noPadding}>
+				<Box
+					padding="8"
+					borderBottom="secondary"
+					gap="8"
+					display="flex"
+					alignItems="center"
+				>
+					<Box style={{ flexShrink: 0 }}>
+						<IconSolidGlobeAlt size={16} color={colors.n9} />
+					</Box>
+					<Box>
+						<Box
+							style={{ height: 20 }}
+							display="flex"
+							alignItems="center"
+						>
+							<Text
+								size="small"
+								weight="medium"
+								color="n11"
+								userSelect="none"
+							>
+								Web
+							</Text>
+						</Box>
+						<Box
+							style={{ height: 12 }}
+							display="flex"
+							alignItems="center"
+						>
+							<Text
+								size="xxSmall"
+								weight="regular"
+								color="n10"
+								userSelect="none"
+							>
+								Allow anyone with the link to view session.
+							</Text>
+						</Box>
+					</Box>
+					{isLoggedIn && (
+						<Box>
+							<Switch
+								loading={!session}
+								checked={!!session?.is_public}
+								onChange={(checked: boolean) => {
+									analytics.track(
+										'Toggled session isPublic',
+										{
+											is_public: checked,
+										},
+									)
+									updateSessionIsPublic({
+										variables: {
+											session_secure_id:
+												session_secure_id,
+											is_public: checked,
+										},
+									})
+								}}
+								trackingId="SessionSharingExternal"
+								setMarginForAnimation
+							/>
+						</Box>
+					)}
+				</Box>
+				<Box
+					px="8"
+					py="6"
+					display="flex"
+					alignItems="center"
+					justifyContent="space-between"
+				>
+					<Box display="flex" alignItems="center">
+						<Box display="flex" alignItems="center" gap="8">
+							<Tag
+								shape="basic"
+								kind="secondary"
+								size="medium"
+								iconLeft={<IconSolidLink size={12} />}
+								onClick={() => {
+									copyToClipboard(
+										shareTimestamp
+											? onGetLinkWithTimestamp(
+													time,
+											  ).toString()
+											: onGetLink().toString(),
+										{
+											onCopyText:
+												'Copied session link to clipboard!',
+										},
+									)
+								}}
+							>
+								Copy link
+							</Tag>
+							<Text
+								size="xxSmall"
+								weight="medium"
+								color="n11"
+								userSelect="none"
+							>
+								@ {MillisToMinutesAndSeconds(time)}
+							</Text>
+						</Box>
+						<Switch
+							loading={!session}
+							checked={shareTimestamp}
+							onChange={(checked: boolean) => {
+								analytics.track(
+									'Toggled session include timestamp',
+									{
+										timestamp: shareTimestamp,
+									},
+								)
+								setShareTimestamp(checked)
+							}}
+							trackingId="SessionShareURLIncludeTimestamp"
+							setMarginForAnimation
+						/>
+					</Box>
+					<Tag
+						shape="basic"
+						kind="secondary"
+						emphasis="low"
+						size="medium"
+						iconLeft={<IconSolidQuestionMarkCircle size={12} />}
+						onClick={() => {
+							window.open(
+								'https://www.highlight.io/docs/session-replay/session-sharing',
+								'_blank',
+							)
+						}}
+					>
+						Learn more
+					</Tag>
+				</Box>
+			</Menu.List>
+		</Menu>
 	)
 }
 
