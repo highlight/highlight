@@ -38,7 +38,7 @@ const ErrorDistributions = ({ errorGroup }: Props) => {
 		})
 
 		if (foundEnvironmentTag) {
-			setEnvironments(foundEnvironmentTag as ErrorGroupTagAggregation)
+			setEnvironments(foundEnvironmentTag)
 		}
 
 		const foundBrowserTag = data?.errorGroupTags.find((tag) => {
@@ -46,7 +46,7 @@ const ErrorDistributions = ({ errorGroup }: Props) => {
 		})
 
 		if (foundBrowserTag) {
-			setBrowsers(foundBrowserTag as ErrorGroupTagAggregation)
+			setBrowsers(foundBrowserTag)
 		}
 
 		const foundOperatingSytemTag = data?.errorGroupTags.find((tag) => {
@@ -54,9 +54,7 @@ const ErrorDistributions = ({ errorGroup }: Props) => {
 		})
 
 		if (foundOperatingSytemTag) {
-			setOperatingSystems(
-				foundOperatingSytemTag as ErrorGroupTagAggregation,
-			)
+			setOperatingSystems(foundOperatingSytemTag)
 		}
 	}, [data?.errorGroupTags])
 
