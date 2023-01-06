@@ -183,7 +183,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 		)?.[1]?.Icon
 		return (
 			<Button
-				kind="primary"
+				kind="secondary"
 				size="small"
 				emphasis="high"
 				disabled={!isLoggedIn}
