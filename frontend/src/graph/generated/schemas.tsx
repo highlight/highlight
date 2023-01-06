@@ -396,6 +396,19 @@ export type ErrorGroupFrequenciesParamsInput = {
 	resolution_minutes: Scalars['Int']
 }
 
+export type ErrorGroupTagAggregation = {
+	__typename?: 'ErrorGroupTagAggregation'
+	buckets: Array<ErrorGroupTagAggregationBucket>
+	key: Scalars['String']
+}
+
+export type ErrorGroupTagAggregationBucket = {
+	__typename?: 'ErrorGroupTagAggregationBucket'
+	doc_count: Scalars['Int64']
+	key: Scalars['String']
+	percent: Scalars['Float']
+}
+
 export type ErrorInstance = {
 	__typename?: 'ErrorInstance'
 	error_object: ErrorObject
@@ -1319,6 +1332,7 @@ export type Query = {
 	environment_suggestion?: Maybe<Array<Maybe<Field>>>
 	errorDistribution: Array<Maybe<ErrorDistributionItem>>
 	errorGroupFrequencies: Array<Maybe<ErrorDistributionItem>>
+	errorGroupTags: Array<ErrorGroupTagAggregation>
 	error_alerts: Array<Maybe<ErrorAlert>>
 	error_comments: Array<Maybe<ErrorComment>>
 	error_comments_for_admin: Array<Maybe<ErrorComment>>
@@ -1328,6 +1342,7 @@ export type Query = {
 	error_group?: Maybe<ErrorGroup>
 	error_groups_opensearch: ErrorResults
 	error_instance?: Maybe<ErrorInstance>
+	error_issue: Array<Maybe<ExternalAttachment>>
 	error_object?: Maybe<ErrorObject>
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
@@ -1348,6 +1363,7 @@ export type Query = {
 	isIntegrated?: Maybe<Scalars['Boolean']>
 	isSessionPending?: Maybe<Scalars['Boolean']>
 	is_integrated_with: Scalars['Boolean']
+	is_project_integrated_with: Scalars['Boolean']
 	is_workspace_integrated_with: Scalars['Boolean']
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	linear_teams?: Maybe<Array<LinearTeam>>
@@ -1515,6 +1531,10 @@ export type QueryErrorGroupFrequenciesArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryErrorGroupTagsArgs = {
+	error_group_secure_id: Scalars['String']
+}
+
 export type QueryError_AlertsArgs = {
 	project_id: Scalars['ID']
 }
@@ -1555,6 +1575,10 @@ export type QueryError_Groups_OpensearchArgs = {
 export type QueryError_InstanceArgs = {
 	error_group_secure_id: Scalars['String']
 	error_object_id?: InputMaybe<Scalars['ID']>
+}
+
+export type QueryError_IssueArgs = {
+	error_group_secure_id: Scalars['String']
 }
 
 export type QueryError_ObjectArgs = {
@@ -1646,6 +1670,11 @@ export type QueryIsSessionPendingArgs = {
 }
 
 export type QueryIs_Integrated_WithArgs = {
+	integration_type: IntegrationType
+	project_id: Scalars['ID']
+}
+
+export type QueryIs_Project_Integrated_WithArgs = {
 	integration_type: IntegrationType
 	project_id: Scalars['ID']
 }

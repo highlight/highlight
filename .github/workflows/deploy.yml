@@ -175,6 +175,8 @@ jobs:
         needs: migrate-database
         runs-on: ubuntu-latest
         steps:
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v2
             - name: Check out the repo
               uses: actions/checkout@v2
             - name: Configure AWS credentials
@@ -186,14 +188,14 @@ jobs:
             - name: Login to Amazon ECR
               id: login-ecr
               uses: aws-actions/amazon-ecr-login@v1
-            - name: Build, tag, and push image to Amazon ECR
+            - name: Build, tag, and push arm64 image to Amazon ECR
               env:
                   ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
                   ECR_REPOSITORY: highlight-production-ecr-repo
                   IMAGE_TAG: ${{ github.sha }}
               run: |
-                  docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f deploy/Dockerfile.prod .
-                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+                  docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f deploy/Dockerfile.prod.arm64 .
+                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64
             # Edit and deploy private-graph
             - name: Replace image label for private-graph task
               id: image-private-graph
@@ -201,7 +203,7 @@ jobs:
               with:
                   task-definition: deploy/private-graph-task.json
                   container-name: highlight-backend
-                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS private-graph service
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
@@ -215,7 +217,7 @@ jobs:
               with:
                   task-definition: deploy/public-graph-task.json
                   container-name: highlight-backend
-                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS public-graph service
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
@@ -229,7 +231,7 @@ jobs:
               with:
                   task-definition: deploy/worker-task.json
                   container-name: highlight-backend
-                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS worker service
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
@@ -243,7 +245,7 @@ jobs:
               with:
                   task-definition: deploy/metric-monitor-task.json
                   container-name: highlight-backend
-                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS metric monitor service
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
@@ -257,7 +259,7 @@ jobs:
               with:
                   task-definition: deploy/public-worker-service.json
                   container-name: highlight-backend
-                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS public worker service
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:

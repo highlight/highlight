@@ -28,6 +28,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
+	highlightErrors "github.com/highlight-run/highlight/backend/errors"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/integrations/height"
@@ -1314,7 +1315,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 
@@ -1382,7 +1383,7 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 
@@ -1673,7 +1674,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 
@@ -1764,7 +1765,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 				workspace,
 				attachment,
 				*issueTitle,
-				desc,
+				*issueDescription,
 				errorComment.Text,
 				authorName,
 				viewLink,
@@ -1787,7 +1788,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, errorComment.Text, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 
@@ -3979,6 +3980,39 @@ func (r *queryResolver) IsSessionPending(ctx context.Context, sessionSecureID st
 	return pointy.Bool(isPending), nil
 }
 
+// ErrorIssue is the resolver for the error_issue field.
+func (r *queryResolver) ErrorIssue(ctx context.Context, errorGroupSecureID string) ([]*model.ExternalAttachment, error) {
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not error owner")
+	}
+
+	errorIssues := []*model.ExternalAttachment{}
+
+	if err := r.DB.Raw(`
+  		SELECT *
+  		FROM
+			external_attachments
+  		WHERE
+			error_comment_id IN (
+	  		SELECT
+				id
+	  		FROM
+				error_comments
+	  		WHERE
+				error_id = ?
+			)
+  		ORDER BY
+			created_at DESC
+		`,
+		errorGroup.ID,
+	).Scan(&errorIssues).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error issues for error_group")
+	}
+
+	return errorIssues, nil
+}
+
 // ErrorComments is the resolver for the error_comments field.
 func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupSecureID string) ([]*model.ErrorComment, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
@@ -4297,6 +4331,60 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 		metric = pointy.String("")
 	}
 	return r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, *metric)
+}
+
+// ErrorGroupTags is the resolver for the errorGroupTags field.
+func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID string) ([]*modelInputs.ErrorGroupTagAggregation, error) {
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not error group owner")
+	}
+
+	query := fmt.Sprintf(`
+	{
+		"size": 0,
+		"query": {
+			"has_parent": {
+				"parent_type": "parent",
+				"query": {
+					"terms": {
+						"_id": ["%d"]
+					}
+				}
+			}
+		},
+		"aggs": {
+			"browser": {
+				"terms": {
+					"field": "browser.keyword"
+				}
+			},
+			"environment": {
+				"terms": {
+					"field": "environment.keyword"
+				}
+			},
+			"os_name": {
+				"terms": {
+					"field": "os_name.keyword"
+				}
+			}
+		}
+	  }
+	`, errorGroup.ID)
+
+	res, err := r.OpenSearch.RawSearch(opensearch.IndexErrorsCombined, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var aggregations highlightErrors.TagsAggregations
+	if err := json.Unmarshal(res, &aggregations); err != nil {
+		return nil, e.Wrap(err, "failed to unmarshal aggregations")
+	}
+
+	return highlightErrors.BuildAggregations(aggregations), nil
 }
 
 // Referrers is the resolver for the referrers field.
@@ -5282,6 +5370,7 @@ func (r *queryResolver) GenerateZapierAccessToken(ctx context.Context, projectID
 }
 
 // IsIntegratedWith is the resolver for the is_integrated_with field.
+// Deprecated - Use IsWorkspaceIntegratedWith or IsProjectIntegratedWith
 func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType modelInputs.IntegrationType, projectID int) (bool, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 
@@ -5354,6 +5443,18 @@ func (r *queryResolver) IsWorkspaceIntegratedWith(ctx context.Context, integrati
 	}
 
 	return true, nil
+}
+
+// IsProjectIntegratedWith is the resolver for the is_project_integrated_with field.
+func (r *queryResolver) IsProjectIntegratedWith(ctx context.Context, integrationType modelInputs.IntegrationType, projectID int) (bool, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+
+	if err != nil {
+		return false, e.Wrap(err, "error querying project")
+	}
+
+	return r.IntegrationsClient.IsProjectIntegrated(ctx, project, integrationType)
+
 }
 
 // VercelProjects is the resolver for the vercel_projects field.

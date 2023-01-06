@@ -315,6 +315,17 @@ type ComplexityRoot struct {
 		UpdatedAt            func(childComplexity int) int
 	}
 
+	ErrorGroupTagAggregation struct {
+		Buckets func(childComplexity int) int
+		Key     func(childComplexity int) int
+	}
+
+	ErrorGroupTagAggregationBucket struct {
+		DocCount func(childComplexity int) int
+		Key      func(childComplexity int) int
+		Percent  func(childComplexity int) int
+	}
+
 	ErrorInstance struct {
 		ErrorObject func(childComplexity int) int
 		NextID      func(childComplexity int) int
@@ -652,8 +663,10 @@ type ComplexityRoot struct {
 		ErrorFieldsOpensearch        func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		ErrorGroup                   func(childComplexity int, secureID string) int
 		ErrorGroupFrequencies        func(childComplexity int, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string) int
+		ErrorGroupTags               func(childComplexity int, errorGroupSecureID string) int
 		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string, page *int) int
 		ErrorInstance                func(childComplexity int, errorGroupSecureID string, errorObjectID *int) int
+		ErrorIssue                   func(childComplexity int, errorGroupSecureID string) int
 		ErrorObject                  func(childComplexity int, id int) int
 		ErrorSegments                func(childComplexity int, projectID int) int
 		Errors                       func(childComplexity int, sessionSecureID string) int
@@ -673,6 +686,7 @@ type ComplexityRoot struct {
 		IsBackendIntegrated          func(childComplexity int, projectID int) int
 		IsIntegrated                 func(childComplexity int, projectID int) int
 		IsIntegratedWith             func(childComplexity int, integrationType model.IntegrationType, projectID int) int
+		IsProjectIntegratedWith      func(childComplexity int, integrationType model.IntegrationType, projectID int) int
 		IsSessionPending             func(childComplexity int, sessionSecureID string) int
 		IsWorkspaceIntegratedWith    func(childComplexity int, integrationType model.IntegrationType, workspaceID int) int
 		JoinableWorkspaces           func(childComplexity int) int
@@ -1181,6 +1195,7 @@ type QueryResolver interface {
 	SessionCommentsForAdmin(ctx context.Context) ([]*model1.SessionComment, error)
 	SessionCommentsForProject(ctx context.Context, projectID int) ([]*model1.SessionComment, error)
 	IsSessionPending(ctx context.Context, sessionSecureID string) (*bool, error)
+	ErrorIssue(ctx context.Context, errorGroupSecureID string) ([]*model1.ExternalAttachment, error)
 	ErrorComments(ctx context.Context, errorGroupSecureID string) ([]*model1.ErrorComment, error)
 	ErrorCommentsForAdmin(ctx context.Context) ([]*model1.ErrorComment, error)
 	ErrorCommentsForProject(ctx context.Context, projectID int) ([]*model1.ErrorComment, error)
@@ -1197,6 +1212,7 @@ type QueryResolver interface {
 	DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]int64, error)
 	ErrorDistribution(ctx context.Context, projectID int, errorGroupSecureID string, property string) ([]*model.ErrorDistributionItem, error)
 	ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string) ([]*model.ErrorDistributionItem, error)
+	ErrorGroupTags(ctx context.Context, errorGroupSecureID string) ([]*model.ErrorGroupTagAggregation, error)
 	Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.ReferrerTablePayload, error)
 	NewUsersCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.NewUsersCount, error)
 	TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
@@ -1234,6 +1250,7 @@ type QueryResolver interface {
 	GenerateZapierAccessToken(ctx context.Context, projectID int) (string, error)
 	IsIntegratedWith(ctx context.Context, integrationType model.IntegrationType, projectID int) (bool, error)
 	IsWorkspaceIntegratedWith(ctx context.Context, integrationType model.IntegrationType, workspaceID int) (bool, error)
+	IsProjectIntegratedWith(ctx context.Context, integrationType model.IntegrationType, projectID int) (bool, error)
 	VercelProjects(ctx context.Context, projectID int) ([]*model.VercelProject, error)
 	VercelProjectMappings(ctx context.Context, projectID int) ([]*model.VercelProjectMapping, error)
 	ClickupTeams(ctx context.Context, workspaceID int) ([]*model.ClickUpTeam, error)
@@ -2492,6 +2509,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorGroup.UpdatedAt(childComplexity), true
+
+	case "ErrorGroupTagAggregation.buckets":
+		if e.complexity.ErrorGroupTagAggregation.Buckets == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroupTagAggregation.Buckets(childComplexity), true
+
+	case "ErrorGroupTagAggregation.key":
+		if e.complexity.ErrorGroupTagAggregation.Key == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroupTagAggregation.Key(childComplexity), true
+
+	case "ErrorGroupTagAggregationBucket.doc_count":
+		if e.complexity.ErrorGroupTagAggregationBucket.DocCount == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroupTagAggregationBucket.DocCount(childComplexity), true
+
+	case "ErrorGroupTagAggregationBucket.key":
+		if e.complexity.ErrorGroupTagAggregationBucket.Key == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroupTagAggregationBucket.Key(childComplexity), true
+
+	case "ErrorGroupTagAggregationBucket.percent":
+		if e.complexity.ErrorGroupTagAggregationBucket.Percent == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroupTagAggregationBucket.Percent(childComplexity), true
 
 	case "ErrorInstance.error_object":
 		if e.complexity.ErrorInstance.ErrorObject == nil {
@@ -4700,6 +4752,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ErrorGroupFrequencies(childComplexity, args["project_id"].(int), args["error_group_secure_ids"].([]string), args["params"].(model.ErrorGroupFrequenciesParamsInput), args["metric"].(*string)), true
 
+	case "Query.errorGroupTags":
+		if e.complexity.Query.ErrorGroupTags == nil {
+			break
+		}
+
+		args, err := ec.field_Query_errorGroupTags_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ErrorGroupTags(childComplexity, args["error_group_secure_id"].(string)), true
+
 	case "Query.error_groups_opensearch":
 		if e.complexity.Query.ErrorGroupsOpensearch == nil {
 			break
@@ -4723,6 +4787,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ErrorInstance(childComplexity, args["error_group_secure_id"].(string), args["error_object_id"].(*int)), true
+
+	case "Query.error_issue":
+		if e.complexity.Query.ErrorIssue == nil {
+			break
+		}
+
+		args, err := ec.field_Query_error_issue_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ErrorIssue(childComplexity, args["error_group_secure_id"].(string)), true
 
 	case "Query.error_object":
 		if e.complexity.Query.ErrorObject == nil {
@@ -4951,6 +5027,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.IsIntegratedWith(childComplexity, args["integration_type"].(model.IntegrationType), args["project_id"].(int)), true
+
+	case "Query.is_project_integrated_with":
+		if e.complexity.Query.IsProjectIntegratedWith == nil {
+			break
+		}
+
+		args, err := ec.field_Query_is_project_integrated_with_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IsProjectIntegratedWith(childComplexity, args["integration_type"].(model.IntegrationType), args["project_id"].(int)), true
 
 	case "Query.isSessionPending":
 		if e.complexity.Query.IsSessionPending == nil {
@@ -8089,6 +8177,17 @@ type ErrorDistributionItem {
 	value: Int64!
 }
 
+type ErrorGroupTagAggregationBucket {
+	key: String!
+	doc_count: Int64!
+	percent: Float!
+}
+
+type ErrorGroupTagAggregation {
+	key: String!
+	buckets: [ErrorGroupTagAggregationBucket!]!
+}
+
 type Dashboard {
 	id: ID!
 	project_id: ID!
@@ -8402,6 +8501,7 @@ type Query {
 	session_comments_for_admin: [SessionComment]!
 	session_comments_for_project(project_id: ID!): [SessionComment]!
 	isSessionPending(session_secure_id: String!): Boolean
+	error_issue(error_group_secure_id: String!): [ExternalAttachment]!
 	error_comments(error_group_secure_id: String!): [ErrorComment]!
 	error_comments_for_admin: [ErrorComment]!
 	error_comments_for_project(project_id: ID!): [ErrorComment]!
@@ -8437,6 +8537,8 @@ type Query {
 		params: ErrorGroupFrequenciesParamsInput!
 		metric: String
 	): [ErrorDistributionItem]!
+	errorGroupTags(error_group_secure_id: String!): [ErrorGroupTagAggregation!]!
+
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
 	topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
@@ -8516,6 +8618,10 @@ type Query {
 	is_workspace_integrated_with(
 		integration_type: IntegrationType!
 		workspace_id: ID!
+	): Boolean!
+	is_project_integrated_with(
+		integration_type: IntegrationType!
+		project_id: ID!
 	): Boolean!
 	vercel_projects(project_id: ID!): [VercelProject!]!
 	vercel_project_mappings(project_id: ID!): [VercelProjectMapping!]!
@@ -11980,6 +12086,21 @@ func (ec *executionContext) field_Query_errorGroupFrequencies_args(ctx context.C
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_errorGroupTags_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["error_group_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_secure_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_group_secure_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_error_alerts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -12187,6 +12308,21 @@ func (ec *executionContext) field_Query_error_instance_args(ctx context.Context,
 		}
 	}
 	args["error_object_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_error_issue_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["error_group_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_secure_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_group_secure_id"] = arg0
 	return args, nil
 }
 
@@ -12584,6 +12720,30 @@ func (ec *executionContext) field_Query_isSessionPending_args(ctx context.Contex
 }
 
 func (ec *executionContext) field_Query_is_integrated_with_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.IntegrationType
+	if tmp, ok := rawArgs["integration_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integration_type"))
+		arg0, err = ec.unmarshalNIntegrationType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["integration_type"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_is_project_integrated_with_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 model.IntegrationType
@@ -21119,6 +21279,234 @@ func (ec *executionContext) fieldContext_ErrorGroup_last_occurrence(ctx context.
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorGroupTagAggregation_key(ctx context.Context, field graphql.CollectedField, obj *model.ErrorGroupTagAggregation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorGroupTagAggregation_key(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorGroupTagAggregation_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorGroupTagAggregation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorGroupTagAggregation_buckets(ctx context.Context, field graphql.CollectedField, obj *model.ErrorGroupTagAggregation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorGroupTagAggregation_buckets(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Buckets, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ErrorGroupTagAggregationBucket)
+	fc.Result = res
+	return ec.marshalNErrorGroupTagAggregationBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorGroupTagAggregationBucketᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorGroupTagAggregation_buckets(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorGroupTagAggregation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "key":
+				return ec.fieldContext_ErrorGroupTagAggregationBucket_key(ctx, field)
+			case "doc_count":
+				return ec.fieldContext_ErrorGroupTagAggregationBucket_doc_count(ctx, field)
+			case "percent":
+				return ec.fieldContext_ErrorGroupTagAggregationBucket_percent(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ErrorGroupTagAggregationBucket", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorGroupTagAggregationBucket_key(ctx context.Context, field graphql.CollectedField, obj *model.ErrorGroupTagAggregationBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorGroupTagAggregationBucket_key(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorGroupTagAggregationBucket_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorGroupTagAggregationBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorGroupTagAggregationBucket_doc_count(ctx context.Context, field graphql.CollectedField, obj *model.ErrorGroupTagAggregationBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorGroupTagAggregationBucket_doc_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DocCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorGroupTagAggregationBucket_doc_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorGroupTagAggregationBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorGroupTagAggregationBucket_percent(ctx context.Context, field graphql.CollectedField, obj *model.ErrorGroupTagAggregationBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorGroupTagAggregationBucket_percent(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Percent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorGroupTagAggregationBucket_percent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorGroupTagAggregationBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -33943,6 +34331,75 @@ func (ec *executionContext) fieldContext_Query_isSessionPending(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_error_issue(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_error_issue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorIssue(rctx, fc.Args["error_group_secure_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.ExternalAttachment)
+	fc.Result = res
+	return ec.marshalNExternalAttachment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐExternalAttachment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_error_issue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ExternalAttachment_id(ctx, field)
+			case "integration_type":
+				return ec.fieldContext_ExternalAttachment_integration_type(ctx, field)
+			case "external_id":
+				return ec.fieldContext_ExternalAttachment_external_id(ctx, field)
+			case "title":
+				return ec.fieldContext_ExternalAttachment_title(ctx, field)
+			case "session_comment_id":
+				return ec.fieldContext_ExternalAttachment_session_comment_id(ctx, field)
+			case "error_comment_id":
+				return ec.fieldContext_ExternalAttachment_error_comment_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ExternalAttachment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_error_issue_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_error_comments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_error_comments(ctx, field)
 	if err != nil {
@@ -35000,6 +35457,67 @@ func (ec *executionContext) fieldContext_Query_errorGroupFrequencies(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_errorGroupFrequencies_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_errorGroupTags(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_errorGroupTags(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorGroupTags(rctx, fc.Args["error_group_secure_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ErrorGroupTagAggregation)
+	fc.Result = res
+	return ec.marshalNErrorGroupTagAggregation2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorGroupTagAggregationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_errorGroupTags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "key":
+				return ec.fieldContext_ErrorGroupTagAggregation_key(ctx, field)
+			case "buckets":
+				return ec.fieldContext_ErrorGroupTagAggregation_buckets(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ErrorGroupTagAggregation", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_errorGroupTags_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -37483,6 +38001,61 @@ func (ec *executionContext) fieldContext_Query_is_workspace_integrated_with(ctx 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_is_workspace_integrated_with_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_is_project_integrated_with(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_is_project_integrated_with(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IsProjectIntegratedWith(rctx, fc.Args["integration_type"].(model.IntegrationType), fc.Args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_is_project_integrated_with(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_is_project_integrated_with_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -54404,6 +54977,83 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var errorGroupTagAggregationImplementors = []string{"ErrorGroupTagAggregation"}
+
+func (ec *executionContext) _ErrorGroupTagAggregation(ctx context.Context, sel ast.SelectionSet, obj *model.ErrorGroupTagAggregation) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, errorGroupTagAggregationImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ErrorGroupTagAggregation")
+		case "key":
+
+			out.Values[i] = ec._ErrorGroupTagAggregation_key(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "buckets":
+
+			out.Values[i] = ec._ErrorGroupTagAggregation_buckets(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var errorGroupTagAggregationBucketImplementors = []string{"ErrorGroupTagAggregationBucket"}
+
+func (ec *executionContext) _ErrorGroupTagAggregationBucket(ctx context.Context, sel ast.SelectionSet, obj *model.ErrorGroupTagAggregationBucket) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, errorGroupTagAggregationBucketImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ErrorGroupTagAggregationBucket")
+		case "key":
+
+			out.Values[i] = ec._ErrorGroupTagAggregationBucket_key(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "doc_count":
+
+			out.Values[i] = ec._ErrorGroupTagAggregationBucket_doc_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "percent":
+
+			out.Values[i] = ec._ErrorGroupTagAggregationBucket_percent(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var errorInstanceImplementors = []string{"ErrorInstance"}
 
 func (ec *executionContext) _ErrorInstance(ctx context.Context, sel ast.SelectionSet, obj *model1.ErrorInstance) graphql.Marshaler {
@@ -56964,6 +57614,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "error_issue":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_error_issue(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "error_comments":
 			field := field
 
@@ -57301,6 +57974,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_errorGroupFrequencies(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "errorGroupTags":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_errorGroupTags(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -58116,6 +58812,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_is_workspace_integrated_with(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "is_project_integrated_with":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_is_project_integrated_with(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -62600,6 +63319,114 @@ func (ec *executionContext) marshalNErrorGroup2ᚕgithubᚗcomᚋhighlightᚑrun
 func (ec *executionContext) unmarshalNErrorGroupFrequenciesParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorGroupFrequenciesParamsInput(ctx context.Context, v interface{}) (model.ErrorGroupFrequenciesParamsInput, error) {
 	res, err := ec.unmarshalInputErrorGroupFrequenciesParamsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNErrorGroupTagAggregation2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorGroupTagAggregationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorGroupTagAggregation) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNErrorGroupTagAggregation2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorGroupTagAggregation(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNErrorGroupTagAggregation2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorGroupTagAggregation(ctx context.Context, sel ast.SelectionSet, v *model.ErrorGroupTagAggregation) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ErrorGroupTagAggregation(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNErrorGroupTagAggregationBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorGroupTagAggregationBucketᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorGroupTagAggregationBucket) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNErrorGroupTagAggregationBucket2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorGroupTagAggregationBucket(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNErrorGroupTagAggregationBucket2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorGroupTagAggregationBucket(ctx context.Context, sel ast.SelectionSet, v *model.ErrorGroupTagAggregationBucket) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ErrorGroupTagAggregationBucket(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNErrorMetadata2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorMetadata(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorMetadata) graphql.Marshaler {

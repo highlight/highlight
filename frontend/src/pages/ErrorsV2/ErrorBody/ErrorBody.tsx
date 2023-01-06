@@ -5,10 +5,10 @@ import { ErrorGroup, Maybe } from '@graph/schemas'
 import {
 	Box,
 	ButtonLink,
-	IconSolidTrendingDown,
-	IconSolidTrendingUp,
 	IconSolidCheveronRight,
 	IconSolidCode,
+	IconSolidTrendingDown,
+	IconSolidTrendingUp,
 	Tag,
 	Text,
 	Tooltip,
