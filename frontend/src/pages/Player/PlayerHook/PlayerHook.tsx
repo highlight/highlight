@@ -15,7 +15,7 @@ import { EventType } from '@highlight-run/rrweb'
 import {
 	customEvent,
 	viewportResizeDimension,
-} from '@highlight-run/rrweb/typings/types'
+} from '@highlight-run/rrweb-types'
 import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
 import {
 	CHUNKING_DISABLED_PROJECTS,

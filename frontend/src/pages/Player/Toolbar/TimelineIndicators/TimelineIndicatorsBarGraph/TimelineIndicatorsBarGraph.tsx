@@ -1,5 +1,5 @@
 import { Skeleton } from '@components/Skeleton/Skeleton'
-import { customEvent } from '@highlight-run/rrweb/typings/types'
+import { customEvent } from '@highlight-run/rrweb-types'
 import { Box, Text } from '@highlight-run/ui'
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useWindowEvent } from '@hooks/useWindowEvent'
