@@ -1,8 +1,10 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useUpdateErrorGroupStateMutation } from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
 import { ErrorState } from '@graph/schemas'
 import { IconSolidCheveronDown, Menu, Text } from '@highlight-run/ui'
 import { useParams } from '@util/react-router/useParams'
+import { wait } from '@util/time'
 import { message } from 'antd'
 import React, { useEffect } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
@@ -12,14 +14,24 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 }) => {
 	const { error_secure_id } = useParams<{ error_secure_id: string }>()
 	const [updateErrorGroupState, { loading }] =
-		useUpdateErrorGroupStateMutation()
+		useUpdateErrorGroupStateMutation({
+			refetchQueries: [namedOperations.Query.GetErrorGroupsOpenSearch],
+		})
 	const [action, setAction] = useQueryParam('action', StringParam)
 	const { isLoggedIn } = useAuthContext()
 	const ErrorStatuses = Object.keys(ErrorState)
 
 	const handleChange = async (newState: ErrorState) => {
+		if (newState === initialErrorState) return
 		await updateErrorGroupState({
 			variables: { secure_id: error_secure_id, state: newState },
+			refetchQueries: [namedOperations.Query.GetErrorGroupsOpenSearch],
+			onQueryUpdated: (observableQuery) => {
+				// wait until the changes propage to openSearch nodes
+				wait(3500).then(() => {
+					observableQuery.refetch()
+				})
+			},
 		})
 
 		showStateUpdateMessage(newState)

@@ -3,8 +3,8 @@ import { ErrorGroup, ErrorState, Maybe } from '@graph/schemas'
 import {
 	Box,
 	IconSolidSparkles,
-	IconSolidViewGrid,
 	IconSolidUsers,
+	IconSolidViewGrid,
 	Tag,
 	Text,
 } from '@highlight-run/ui'

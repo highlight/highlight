@@ -1208,6 +1208,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 		searchParams,
 		setSearchParams,
 		searchResultsLoading,
+		setPage,
 	} = searchContext
 
 	const { admin } = useAuthContext()
@@ -1804,6 +1805,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 		}
 
 		if (serializedQuery.current) {
+			setPage(1)
 			setBackendSearchQuery(serializedQuery.current)
 		}
 	}, [
@@ -1815,6 +1817,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 		setSearchParams,
 		readonly,
 		setBackendSearchQuery,
+		setPage,
 	])
 
 	const [currentStep, setCurrentStep] = useState<number | undefined>(
