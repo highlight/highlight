@@ -10,8 +10,6 @@
 	},
 	"workspaces": [
 		"packages/*",
-		"experiments/chrome-extension",
-		"experiments/performance",
 		"frontend",
 		"highlight-javascript/client",
 		"highlight-javascript/firstload",
