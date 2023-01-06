@@ -7,7 +7,7 @@ import { useParams } from '@util/react-router/useParams'
 import { wait } from '@util/time'
 import { message } from 'antd'
 import React, { useEffect } from 'react'
-import { StringParam, useQueryParam } from 'use-query-params'
+import { useHistory } from 'react-router-dom'
 
 export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 	state: initialErrorState,
@@ -17,7 +17,6 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 		useUpdateErrorGroupStateMutation({
 			refetchQueries: [namedOperations.Query.GetErrorGroupsOpenSearch],
 		})
-	const [action, setAction] = useQueryParam('action', StringParam)
 	const { isLoggedIn } = useAuthContext()
 	const ErrorStatuses = Object.keys(ErrorState)
 
@@ -26,29 +25,38 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 		await updateErrorGroupState({
 			variables: { secure_id: error_secure_id, state: newState },
 			refetchQueries: [namedOperations.Query.GetErrorGroupsOpenSearch],
-			onQueryUpdated: (observableQuery) => {
+			onQueryUpdated: async (observableQuery) => {
 				// wait until the changes propage to openSearch nodes
-				wait(3500).then(() => {
-					observableQuery.refetch()
-				})
+				await wait(1000)
+				await observableQuery.refetch()
 			},
 		})
 
 		showStateUpdateMessage(newState)
 	}
 
+	const history = useHistory()
+
 	// Sets the state based on the query parameters. This is used for the Slack deep-linked messages.
 	useEffect(() => {
+		const urlParams = new URLSearchParams(location.search)
+		const action = urlParams.get('action')
 		if (action) {
 			const castedAction = action.toUpperCase() as ErrorState
 			if (Object.values(ErrorState).includes(castedAction)) {
-				handleChange(castedAction)
+				handleChange(castedAction).then(() => {
+					const searchParams = new URLSearchParams(location.search)
+					searchParams.delete('action')
+					history.replace(
+						`${
+							history.location.pathname
+						}?${searchParams.toString()}`,
+					)
+				})
 			}
-
-			setAction(undefined)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [action, error_secure_id])
+	}, [error_secure_id])
 
 	return (
 		<Menu>
