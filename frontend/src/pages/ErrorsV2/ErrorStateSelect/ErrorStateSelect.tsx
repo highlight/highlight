@@ -85,7 +85,13 @@ export const ErrorStateSelect: React.FC<{
 
 	return (
 		<>
-			<Menu>
+			<Menu
+				onVisibilityChange={(open) => {
+					if (!open) {
+						setMenuState(MenuState.Default)
+					}
+				}}
+			>
 				<Menu.Button
 					size="small"
 					kind="secondary"
