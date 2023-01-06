@@ -340,8 +340,8 @@ github.com/hasura/go-graphql-client v0.3.0 h1:OazwBX920Fx+FEOPVVe7Xgax/Qbcnc2MoT
 github.com/hasura/go-graphql-client v0.3.0/go.mod h1:ovhXpnBL/+pYmmdYHndovgAc/wmhaXKvKwJETjtMomQ=
 github.com/highlight-run/go-resthooks v0.0.0-20220523054100-bf95aa850a20 h1:fDVd3qWijBuQfAQXg2EE4l61we3LeyYDdLD4vaHrXd4=
 github.com/highlight-run/go-resthooks v0.0.0-20220523054100-bf95aa850a20/go.mod h1:dOtaACP0/P9aQNzT/8yAxueBspswjmZqt5TyPnQbD8A=
-github.com/highlight-run/highlight-go v0.5.3 h1:6nlbijmBHS+bA0MQNQ1CV/strYGSGLyJFaxY+ij9IqQ=
-github.com/highlight-run/highlight-go v0.5.3/go.mod h1:druZYTIQ8Y8hxzRr2ZTQFdnBwLLkdb7EjCRltPq4FEY=
+github.com/highlight-run/highlight-go v0.6.0 h1:lg9ixtTEQPPMYpjwRsEz42V5ETHBT39H4HT2xdYGnNk=
+github.com/highlight-run/highlight-go v0.6.0/go.mod h1:Tng6nc65+1Rxrg0sceteEKx02C9FW9pbZjyc1XLfe0M=
 github.com/highlight-run/opensearch-go v1.0.1 h1:LNe4qAgQnw8YwXpAzK2Uu2RLtx61wka08Kza5c4gj30=
 github.com/highlight-run/opensearch-go v1.0.1/go.mod h1:+6/XHCuTH+fwsMJikZEWsucZ4eZMma3zNSeLrTtVGbo=
 github.com/highlight-run/workerpool v1.3.0 h1:BuOWBJJeGG5ZRpq+IKXDTfASAdJoTkBS0sSH+lvCTgw=
