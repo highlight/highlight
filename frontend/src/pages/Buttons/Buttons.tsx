@@ -83,6 +83,14 @@ export const Buttons = () => {
 		}
 	}, [])
 
+	const messageListener = (message: MessageEvent) => {
+		console.log('Highlight[iframe]', message)
+	}
+	useEffect(() => {
+		window.addEventListener('message', messageListener)
+		return () => window.removeEventListener('message', messageListener)
+	}, [])
+
 	return (
 		<div className={styles.container}>
 			<div className={styles.buttonBody}>
