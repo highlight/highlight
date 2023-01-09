@@ -98,6 +98,10 @@ var PromoCodes = map[string]PromoCode{
 		TrialDays:  60,
 		ValidUntil: time.Date(2023, time.May, 15, 0, 0, 0, 0, time.UTC),
 	},
+	"CATCHMYERRORS": {
+		TrialDays:  7,
+		ValidUntil: time.Date(2023, time.January, 17, 0, 0, 0, 0, time.UTC),
+	},
 }
 
 type Resolver struct {

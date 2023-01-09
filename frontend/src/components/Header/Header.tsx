@@ -566,12 +566,12 @@ const BillingBanner = () => {
 	}
 
 	if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
-		// If date is Oct 19 in PST timezone, show Product Hunt banner
-		const isDec12 = moment().isBetween(
-			'2022-12-12T08:00:00Z',
-			'2022-12-13T08:00:00Z',
+		// show Product Hunt banner at the time of a launch
+		const isPHLaunch = moment().isBetween(
+			'2023-01-10T08:00:00Z',
+			'2023-01-11T08:00:00Z',
 		)
-		if (isDec12) {
+		if (isPHLaunch) {
 			toggleShowBanner(true)
 			return <ProductHuntBanner />
 		}
@@ -732,7 +732,7 @@ const ProductHuntBanner = () => {
 			Highlight is live on Product Hunt 🎉‍{' '}
 			<a
 				target="_blank"
-				href="https://www.producthunt.com/posts/digests-by-highlight"
+				href="https://www.producthunt.com/posts/error-management-by-highlight"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>
