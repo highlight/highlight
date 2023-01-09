@@ -564,6 +564,15 @@ export type MuteErrorCommentThreadMutation = { __typename?: 'Mutation' } & Pick<
 	'muteErrorCommentThread'
 >
 
+export type RemoveErrorIssueMutationVariables = Types.Exact<{
+	error_issue_id: Types.Scalars['ID']
+}>
+
+export type RemoveErrorIssueMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'removeErrorIssue'
+>
+
 export type ReplyToErrorCommentMutationVariables = Types.Exact<{
 	comment_id: Types.Scalars['ID']
 	text: Types.Scalars['String']
@@ -1856,7 +1865,7 @@ export type GetErrorIssuesQuery = { __typename?: 'Query' } & {
 		Types.Maybe<
 			{ __typename?: 'ExternalAttachment' } & Pick<
 				Types.ExternalAttachment,
-				'integration_type' | 'external_id' | 'title'
+				'id' | 'integration_type' | 'external_id' | 'title'
 			>
 		>
 	>
@@ -4036,6 +4045,7 @@ export const namedOperations = {
 		CreateIssueForErrorComment: 'CreateIssueForErrorComment' as const,
 		DeleteErrorComment: 'DeleteErrorComment' as const,
 		MuteErrorCommentThread: 'MuteErrorCommentThread' as const,
+		RemoveErrorIssue: 'RemoveErrorIssue' as const,
 		ReplyToErrorComment: 'ReplyToErrorComment' as const,
 		DeleteErrorSegment: 'DeleteErrorSegment' as const,
 		EditErrorSegment: 'EditErrorSegment' as const,

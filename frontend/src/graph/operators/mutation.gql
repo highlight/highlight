@@ -482,6 +482,10 @@ mutation MuteErrorCommentThread($id: ID!, $has_muted: Boolean) {
 	muteErrorCommentThread(id: $id, has_muted: $has_muted)
 }
 
+mutation RemoveErrorIssue($error_issue_id: ID!) {
+	removeErrorIssue(error_issue_id: $error_issue_id)
+}
+
 mutation ReplyToErrorComment(
 	$comment_id: ID!
 	$text: String!

@@ -1703,12 +1703,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 // RemoveErrorIssue is the resolver for the removeErrorIssue field.
 func (r *mutationResolver) RemoveErrorIssue(ctx context.Context, errorIssueID int) (*bool, error) {
 	var errorCommentID int
-	if err := r.DB.Table("external_attachments").Select("error_comment_id").Where("id=?", errorIssueID).First(&errorCommentID).Error; err != nil {
+	if err := r.DB.Table("external_attachments").Select("error_comment_id").Where("id=?", errorIssueID).Scan(&errorCommentID).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error issues")
 	}
 
 	var errorGroupSecureID string
-	if err := r.DB.Table("error_comments").Select("error_secure_id").Where("id=?", errorCommentID).First(&errorGroupSecureID).Error; err != nil {
+	if err := r.DB.Table("error_comments").Select("error_secure_id").Where("id=?", errorCommentID).Scan(&errorGroupSecureID).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comments")
 	}
 
@@ -1718,7 +1718,7 @@ func (r *mutationResolver) RemoveErrorIssue(ctx context.Context, errorIssueID in
 	}
 
 	var externalAttachment model.ExternalAttachment
-	if err := r.DB.Table("external_attachments").Where("id=?", errorIssueID).First(&externalAttachment).Updates(
+	if err := r.DB.Table("external_attachments").Where("id=?", errorIssueID).Scan(&externalAttachment).Updates(
 		&model.ExternalAttachment{
 			Removed: true,
 		}).Error; err != nil {
@@ -1731,7 +1731,7 @@ func (r *mutationResolver) RemoveErrorIssue(ctx context.Context, errorIssueID in
 // MuteErrorCommentThread is the resolver for the muteErrorCommentThread field.
 func (r *mutationResolver) MuteErrorCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error) {
 	var errorGroupSecureID string
-	if err := r.DB.Table("error_comments").Select("error_secure_id").Where("id=?", id).First(&errorGroupSecureID).Error; err != nil {
+	if err := r.DB.Table("error_comments").Select("error_secure_id").Where("id=?", id).Scan(&errorGroupSecureID).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comments")
 	}
 	_, err := r.canAdminModifyErrorGroup(ctx, errorGroupSecureID)
