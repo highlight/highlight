@@ -60,12 +60,13 @@ const OnboardingBubble = () => {
 		useGetOnboardingStepsQuery({
 			variables: {
 				project_id,
-				admin_id: (admin_data?.admin?.id as string) || '',
+				admin_id: admin_data?.admin?.id as string,
 			},
 			fetchPolicy: 'network-only',
 			skip:
 				temporarilyHideOnboardingBubble ||
-				permanentlyHideOnboardingBubble,
+				permanentlyHideOnboardingBubble ||
+				!admin_data?.admin?.id,
 		})
 
 	useEffect(() => {
