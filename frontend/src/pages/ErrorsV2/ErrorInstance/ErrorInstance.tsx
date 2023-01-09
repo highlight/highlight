@@ -121,11 +121,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		})
 	}
 
-	let errorGroupEvent
-	if (errorGroup?.type === 'console.error' && errorGroup.event.length > 1) {
-		errorGroupEvent = errorGroup.event
-	}
-
 	if (!errorInstance || !errorInstance?.error_object) {
 		if (!loading) return null
 
@@ -304,17 +299,18 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				</div>
 			</Box>
 
-			{errorGroupEvent && (
-				<>
-					<Text size="large" weight="bold">
-						Error event data
-					</Text>
+			{errorGroup?.type === 'console.error' &&
+				errorGroup.event.length > 1 && (
+					<>
+						<Text size="large" weight="bold">
+							Error event data
+						</Text>
 
-					<Box bt="secondary" my="12" py="16">
-						<JsonViewer src={errorGroupEvent} collapsed={1} />
-					</Box>
-				</>
-			)}
+						<Box bt="secondary" my="12" py="16">
+							<JsonViewer src={errorGroup.event} collapsed={1} />
+						</Box>
+					</>
+				)}
 
 			<Text size="large" weight="bold">
 				Stack trace
