@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useUpdateErrorGroupStateMutation } from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
 import { ErrorState, Maybe } from '@graph/schemas'
 import {
 	Box,
@@ -9,6 +10,7 @@ import {
 	Text,
 	useMenu,
 } from '@highlight-run/ui'
+import { indexeddbCache } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
 import { DatePicker, message } from 'antd'
 import moment from 'moment'
@@ -43,12 +45,19 @@ export const ErrorStateSelect: React.FC<{
 		newState: ErrorState,
 		snoozedUntil?: string,
 	) => {
+		await indexeddbCache.deleteItem({
+			operation: 'GetErrorGroup',
+			variables: {
+				secure_id: error_secure_id,
+			},
+		})
 		await updateErrorGroupState({
 			variables: {
 				secure_id: error_secure_id,
 				state: newState,
 				snoozed_until: snoozedUntil,
 			},
+			refetchQueries: [namedOperations.Query.GetErrorGroup],
 		})
 
 		showStateUpdateMessage(newState, snoozedUntil)
