@@ -91,8 +91,7 @@ func GetProjectQuotaOverflow(ctx context.Context, DB *gorm.DB, projectID int) (i
 	defer sessionsOverQuotaCountSpan.Finish()
 	if err := DB.Model(&model.Session{}).
 		Where(`project_id = ?
-			AND within_billing_quota = false
-			AND excluded <> true`, projectID).
+			AND within_billing_quota = false`, projectID).
 		Count(&queriedSessionsOverQuota).Error; err != nil {
 		return 0, e.Wrap(err, "error querying sessions over quota count")
 	}
@@ -304,8 +303,8 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Cli
 
 	customerParams := &stripe.CustomerParams{}
 	customerParams.AddExpand("subscriptions")
-	customerParams.AddExpand("subscriptions.discount")
-	customerParams.AddExpand("subscriptions.discount.coupon")
+	customerParams.AddExpand("subscriptions.data.discount")
+	customerParams.AddExpand("subscriptions.data.discount.coupon")
 	c, err := stripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
 	if err != nil {
 		return e.Wrap(err, "couldn't retrieve stripe customer data")

@@ -13,10 +13,10 @@ export type Props = ButtonProps &
 		icon?: React.ReactElement<IconProps>
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>
+		className?: ClassValue | ClassValue[]
+		lines?: TextProps['lines']
 		onIconLeftClick?: () => void
 		onIconRightClick?: () => void
-		cssClass?: ClassValue | ClassValue[]
-		lines?: TextProps['lines']
 	}
 
 const buttonToTextSize = {
@@ -27,6 +27,7 @@ const buttonToTextSize = {
 
 export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 	children,
+	className,
 	icon,
 	iconLeft,
 	iconRight,
@@ -34,7 +35,6 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 	shape = styles.defaultShape,
 	size = styles.defaultSize,
 	kind = styles.defaultKind,
-	cssClass,
 	onIconLeftClick,
 	onIconRightClick,
 	lines,
@@ -47,7 +47,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 		<AriakitButton
 			as="button"
 			className={clsx([
-				cssClass,
+				className,
 				styles.variants({
 					emphasis,
 					kind,

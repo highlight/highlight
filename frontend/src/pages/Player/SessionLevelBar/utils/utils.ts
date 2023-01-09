@@ -1,4 +1,4 @@
-import { customEvent } from '@highlight-run/rrweb/typings/types'
+import { customEvent } from '@highlight-run/rrweb-types'
 
 import {
 	HighlightEvent,

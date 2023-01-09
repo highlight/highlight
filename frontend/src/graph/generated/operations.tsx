@@ -56,13 +56,14 @@ export type UpdateBillingDetailsMutation = { __typename?: 'Mutation' } & Pick<
 export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
 	secure_id: Types.Scalars['String']
 	state: Types.Scalars['String']
+	snoozed_until?: Types.Maybe<Types.Scalars['Timestamp']>
 }>
 
 export type UpdateErrorGroupStateMutation = { __typename?: 'Mutation' } & {
 	updateErrorGroupState?: Types.Maybe<
 		{ __typename?: 'ErrorGroup' } & Pick<
 			Types.ErrorGroup,
-			'secure_id' | 'state'
+			'secure_id' | 'state' | 'snoozed_until'
 		>
 	>
 }
@@ -561,6 +562,15 @@ export type MuteErrorCommentThreadMutationVariables = Types.Exact<{
 export type MuteErrorCommentThreadMutation = { __typename?: 'Mutation' } & Pick<
 	Types.Mutation,
 	'muteErrorCommentThread'
+>
+
+export type RemoveErrorIssueMutationVariables = Types.Exact<{
+	error_issue_id: Types.Scalars['ID']
+}>
+
+export type RemoveErrorIssueMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'removeErrorIssue'
 >
 
 export type ReplyToErrorCommentMutationVariables = Types.Exact<{
@@ -1855,7 +1865,7 @@ export type GetErrorIssuesQuery = { __typename?: 'Query' } & {
 		Types.Maybe<
 			{ __typename?: 'ExternalAttachment' } & Pick<
 				Types.ExternalAttachment,
-				'integration_type' | 'external_id' | 'title'
+				'id' | 'integration_type' | 'external_id' | 'title'
 			>
 		>
 	>
@@ -2101,6 +2111,7 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 					| 'type'
 					| 'event'
 					| 'state'
+					| 'snoozed_until'
 					| 'environments'
 					| 'stack_trace'
 					| 'error_frequency'
@@ -2588,6 +2599,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 			| 'project_id'
 			| 'event'
 			| 'state'
+			| 'snoozed_until'
 			| 'mapped_stack_trace'
 			| 'stack_trace'
 			| 'error_frequency'
@@ -4033,6 +4045,7 @@ export const namedOperations = {
 		CreateIssueForErrorComment: 'CreateIssueForErrorComment' as const,
 		DeleteErrorComment: 'DeleteErrorComment' as const,
 		MuteErrorCommentThread: 'MuteErrorCommentThread' as const,
+		RemoveErrorIssue: 'RemoveErrorIssue' as const,
 		ReplyToErrorComment: 'ReplyToErrorComment' as const,
 		DeleteErrorSegment: 'DeleteErrorSegment' as const,
 		EditErrorSegment: 'EditErrorSegment' as const,

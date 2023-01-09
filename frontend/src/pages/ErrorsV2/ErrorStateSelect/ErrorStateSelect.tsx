@@ -1,17 +1,38 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useUpdateErrorGroupStateMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { ErrorState } from '@graph/schemas'
-import { IconSolidCheveronDown, Menu, Text } from '@highlight-run/ui'
+import { ErrorState, Maybe } from '@graph/schemas'
+import {
+	Box,
+	IconSolidCheveronDown,
+	Menu,
+	Stack,
+	Text,
+	useMenu,
+} from '@highlight-run/ui'
 import { useParams } from '@util/react-router/useParams'
 import { wait } from '@util/time'
-import { message } from 'antd'
+import { DatePicker, message } from 'antd'
+import moment from 'moment'
 import React, { useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 
-export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
-	state: initialErrorState,
-}) => {
+import * as styles from './style.css'
+
+enum MenuState {
+	Default,
+	Snooze,
+}
+
+const DATE_FORMAT = 'ddd, h:mm A'
+
+export const ErrorStateSelect: React.FC<{
+	state: ErrorState
+	snoozedUntil?: Maybe<string>
+}> = ({ state: initialErrorState, snoozedUntil }) => {
+	const [menuState, setMenuState] = React.useState<MenuState>(
+		MenuState.Default,
+	)
 	const { error_secure_id } = useParams<{ error_secure_id: string }>()
 	const [updateErrorGroupState, { loading }] =
 		useUpdateErrorGroupStateMutation({
@@ -19,11 +40,18 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 		})
 	const { isLoggedIn } = useAuthContext()
 	const ErrorStatuses = Object.keys(ErrorState)
+	const snoozed = snoozedUntil && moment().isBefore(moment(snoozedUntil))
 
-	const handleChange = async (newState: ErrorState) => {
-		if (newState === initialErrorState) return
+	const handleChange = async (
+		newState: ErrorState,
+		snoozedUntil?: string,
+	) => {
 		await updateErrorGroupState({
-			variables: { secure_id: error_secure_id, state: newState },
+			variables: {
+				secure_id: error_secure_id,
+				state: newState,
+				snoozed_until: snoozedUntil,
+			},
 			refetchQueries: [namedOperations.Query.GetErrorGroupsOpenSearch],
 			onQueryUpdated: async (observableQuery) => {
 				// wait until the changes propage to openSearch nodes
@@ -32,10 +60,25 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 			},
 		})
 
-		showStateUpdateMessage(newState)
+		showStateUpdateMessage(newState, snoozedUntil)
+		setMenuState(MenuState.Default)
 	}
 
 	const history = useHistory()
+	const snoozeMenuItems = () => [
+		{
+			title: '1 Hour',
+			time: moment().add(1, 'hour'),
+		},
+		{
+			title: 'Tomorrow',
+			time: moment().add(1, 'day').set({ hour: 8, minute: 0 }),
+		},
+		{
+			title: 'Next Week',
+			time: moment().add(1, 'week').startOf('isoWeek').add(8, 'hours'),
+		},
+	]
 
 	// Sets the state based on the query parameters. This is used for the Slack deep-linked messages.
 	useEffect(() => {
@@ -59,46 +102,164 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 	}, [error_secure_id])
 
 	return (
-		<Menu>
-			<Menu.Button
-				size="small"
-				kind="secondary"
-				emphasis="low"
-				disabled={loading || !isLoggedIn}
-				iconRight={<IconSolidCheveronDown />}
+		<>
+			<Menu
+				placement="bottom-end"
+				onVisibilityChange={(open) => {
+					if (!open) {
+						setMenuState(MenuState.Default)
+					}
+				}}
 			>
-				<Text case="capital">{initialErrorState.toLowerCase()}</Text>
-			</Menu.Button>
-			{isLoggedIn && (
-				<Menu.List>
-					{ErrorStatuses.map((option) => (
-						<Menu.Item
-							onClick={() =>
-								handleChange(option.toUpperCase() as ErrorState)
-							}
-							key={option}
-						>
-							{option}
-						</Menu.Item>
-					))}
-				</Menu.List>
-			)}
-		</Menu>
+				<Menu.Button
+					size="small"
+					kind="secondary"
+					emphasis="low"
+					disabled={loading || !isLoggedIn}
+					iconRight={<IconSolidCheveronDown />}
+				>
+					<Text case="capital">
+						{initialErrorState.toLowerCase()}{' '}
+						{snoozed && (
+							<span style={{ textTransform: 'none' }}>
+								(Snoozed until{' '}
+								{moment(snoozedUntil).format(DATE_FORMAT)})
+							</span>
+						)}
+					</Text>
+				</Menu.Button>
+				{isLoggedIn && (
+					<Menu.List cssClass={styles.menu}>
+						{menuState === MenuState.Default ? (
+							<>
+								<Menu.Heading>
+									<Text>Status</Text>
+								</Menu.Heading>
+								{ErrorStatuses.map((option) => (
+									<Menu.Item
+										onClick={() =>
+											handleChange(
+												option.toUpperCase() as ErrorState,
+											)
+										}
+										key={option}
+									>
+										{option}
+									</Menu.Item>
+								))}
+
+								<Menu.Item
+									onClick={(e) => {
+										e.preventDefault()
+										setMenuState(MenuState.Snooze)
+									}}
+								>
+									Snooze
+								</Menu.Item>
+							</>
+						) : (
+							<>
+								<Menu.Heading>
+									<Text
+										weight="bold"
+										size="xSmall"
+										color="n11"
+									>
+										Until
+									</Text>
+								</Menu.Heading>
+								{snoozeMenuItems().map((option, index) => (
+									<Menu.Item
+										key={index}
+										onClick={() =>
+											handleChange(
+												initialErrorState,
+												option.time.format(),
+											)
+										}
+									>
+										<Stack
+											direction="row"
+											justify="space-between"
+										>
+											<Box color="n11">
+												{option.title}
+											</Box>
+											<Box color="n9">
+												{option.time.format(
+													DATE_FORMAT,
+												)}
+											</Box>
+										</Stack>
+									</Menu.Item>
+								))}
+								<Menu.Divider />
+								<DatepickerMenuItem
+									onChange={handleChange}
+									state={initialErrorState}
+								/>
+							</>
+						)}
+					</Menu.List>
+				)}
+			</Menu>
+		</>
 	)
 }
 
-const showStateUpdateMessage = (newState: ErrorState) => {
+const DatepickerMenuItem: React.FC<{
+	onChange: (newState: ErrorState, snoozedUntil?: string) => Promise<void>
+	state: ErrorState
+}> = ({ onChange, state }) => {
+	const menuRef = React.useRef<HTMLDivElement | null>(null)
+	const menu = useMenu()
+
+	return (
+		<Menu.Item onClick={(e) => e.preventDefault()}>
+			<div ref={menuRef} />
+			<DatePicker
+				getPopupContainer={() => menuRef?.current || document.body}
+				format="YYYY-MM-DD hh:mm"
+				showTime={{ format: 'hh:mm' }}
+				showNow={false}
+				placement="bottomRight"
+				placeholder="Select day and time"
+				className={styles.datepicker}
+				onChange={(datetime) => {
+					if (datetime) {
+						onChange(state, datetime.format())
+						menu.setOpen(false)
+					}
+				}}
+			/>
+		</Menu.Item>
+	)
+}
+
+const showStateUpdateMessage = (
+	newState: ErrorState,
+	snoozedUntil?: string,
+) => {
 	let displayMessage = ''
-	switch (newState) {
-		case ErrorState.Open:
-			displayMessage = `This error is set to Open. You will receive alerts when a new error gets thrown.`
-			break
-		case ErrorState.Ignored:
-			displayMessage = `This error is set to Ignored. You will not receive any alerts even if a new error gets thrown.`
-			break
-		case ErrorState.Resolved:
-			displayMessage = `This error is set to Resolved. You will receive alerts when a new error gets thrown.`
-			break
+
+	if (snoozedUntil && moment().isBefore(moment(snoozedUntil))) {
+		displayMessage = `This error is snoozed until ${moment(
+			snoozedUntil,
+		).format(
+			DATE_FORMAT,
+		)}. You will not receive any alerts even if a new error gets thrown.`
+	} else {
+		switch (newState) {
+			case ErrorState.Open:
+				displayMessage = `This error is set to Open. You will receive alerts when a new error gets thrown.`
+				break
+			case ErrorState.Ignored:
+				displayMessage = `This error is set to Ignored. You will not receive any alerts even if a new error gets thrown.`
+				break
+			case ErrorState.Resolved:
+				displayMessage = `This error is set to Resolved. You will receive alerts when a new error gets thrown.`
+				break
+		}
 	}
 
 	message.success(displayMessage, 10)

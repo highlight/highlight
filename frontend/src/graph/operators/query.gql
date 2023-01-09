@@ -472,6 +472,7 @@ query GetErrorComments($error_group_secure_id: String!) {
 
 query GetErrorIssues($error_group_secure_id: String!) {
 	error_issue(error_group_secure_id: $error_group_secure_id) {
+		id
 		integration_type
 		external_id
 		title
@@ -691,6 +692,7 @@ query GetErrorGroupsOpenSearch(
 			event
 			state
 			state
+			snoozed_until
 			environments
 			stack_trace
 			structured_stack_trace {
@@ -998,6 +1000,7 @@ query GetErrorGroup($secure_id: String!) {
 		project_id
 		event
 		state
+		snoozed_until
 		structured_stack_trace {
 			fileName
 			lineNumber

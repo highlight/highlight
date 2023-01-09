@@ -349,10 +349,19 @@ export type UpdateBillingDetailsMutationOptions = Apollo.BaseMutationOptions<
 	Types.UpdateBillingDetailsMutationVariables
 >
 export const UpdateErrorGroupStateDocument = gql`
-	mutation updateErrorGroupState($secure_id: String!, $state: String!) {
-		updateErrorGroupState(secure_id: $secure_id, state: $state) {
+	mutation updateErrorGroupState(
+		$secure_id: String!
+		$state: String!
+		$snoozed_until: Timestamp
+	) {
+		updateErrorGroupState(
+			secure_id: $secure_id
+			state: $state
+			snoozed_until: $snoozed_until
+		) {
 			secure_id
 			state
+			snoozed_until
 		}
 	}
 `
@@ -376,6 +385,7 @@ export type UpdateErrorGroupStateMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      secure_id: // value for 'secure_id'
  *      state: // value for 'state'
+ *      snoozed_until: // value for 'snoozed_until'
  *   },
  * });
  */
@@ -2135,6 +2145,53 @@ export type MuteErrorCommentThreadMutationResult =
 export type MuteErrorCommentThreadMutationOptions = Apollo.BaseMutationOptions<
 	Types.MuteErrorCommentThreadMutation,
 	Types.MuteErrorCommentThreadMutationVariables
+>
+export const RemoveErrorIssueDocument = gql`
+	mutation RemoveErrorIssue($error_issue_id: ID!) {
+		removeErrorIssue(error_issue_id: $error_issue_id)
+	}
+`
+export type RemoveErrorIssueMutationFn = Apollo.MutationFunction<
+	Types.RemoveErrorIssueMutation,
+	Types.RemoveErrorIssueMutationVariables
+>
+
+/**
+ * __useRemoveErrorIssueMutation__
+ *
+ * To run a mutation, you first call `useRemoveErrorIssueMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveErrorIssueMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeErrorIssueMutation, { data, loading, error }] = useRemoveErrorIssueMutation({
+ *   variables: {
+ *      error_issue_id: // value for 'error_issue_id'
+ *   },
+ * });
+ */
+export function useRemoveErrorIssueMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.RemoveErrorIssueMutation,
+		Types.RemoveErrorIssueMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.RemoveErrorIssueMutation,
+		Types.RemoveErrorIssueMutationVariables
+	>(RemoveErrorIssueDocument, baseOptions)
+}
+export type RemoveErrorIssueMutationHookResult = ReturnType<
+	typeof useRemoveErrorIssueMutation
+>
+export type RemoveErrorIssueMutationResult =
+	Apollo.MutationResult<Types.RemoveErrorIssueMutation>
+export type RemoveErrorIssueMutationOptions = Apollo.BaseMutationOptions<
+	Types.RemoveErrorIssueMutation,
+	Types.RemoveErrorIssueMutationVariables
 >
 export const ReplyToErrorCommentDocument = gql`
 	mutation ReplyToErrorComment(
@@ -5321,6 +5378,7 @@ export type GetErrorCommentsQueryResult = Apollo.QueryResult<
 export const GetErrorIssuesDocument = gql`
 	query GetErrorIssues($error_group_secure_id: String!) {
 		error_issue(error_group_secure_id: $error_group_secure_id) {
+			id
 			integration_type
 			external_id
 			title
@@ -6154,6 +6212,7 @@ export const GetErrorGroupsOpenSearchDocument = gql`
 				event
 				state
 				state
+				snoozed_until
 				environments
 				stack_trace
 				structured_stack_trace {
@@ -7356,6 +7415,7 @@ export const GetErrorGroupDocument = gql`
 			project_id
 			event
 			state
+			snoozed_until
 			structured_stack_trace {
 				fileName
 				lineNumber

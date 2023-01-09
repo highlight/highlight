@@ -32,10 +32,19 @@ mutation UpdateBillingDetails($workspace_id: ID!) {
 	updateBillingDetails(workspace_id: $workspace_id)
 }
 
-mutation updateErrorGroupState($secure_id: String!, $state: String!) {
-	updateErrorGroupState(secure_id: $secure_id, state: $state) {
+mutation updateErrorGroupState(
+	$secure_id: String!
+	$state: String!
+	$snoozed_until: Timestamp
+) {
+	updateErrorGroupState(
+		secure_id: $secure_id
+		state: $state
+		snoozed_until: $snoozed_until
+	) {
 		secure_id
 		state
+		snoozed_until
 	}
 }
 
@@ -471,6 +480,10 @@ mutation DeleteErrorComment($id: ID!) {
 
 mutation MuteErrorCommentThread($id: ID!, $has_muted: Boolean) {
 	muteErrorCommentThread(id: $id, has_muted: $has_muted)
+}
+
+mutation RemoveErrorIssue($error_issue_id: ID!) {
+	removeErrorIssue(error_issue_id: $error_issue_id)
 }
 
 mutation ReplyToErrorComment(

@@ -384,6 +384,7 @@ export type ErrorGroup = {
 	metadata_log: Array<Maybe<ErrorMetadata>>
 	project_id: Scalars['Int']
 	secure_id: Scalars['String']
+	snoozed_until?: Maybe<Scalars['Timestamp']>
 	stack_trace?: Maybe<Scalars['String']>
 	state: ErrorState
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
@@ -753,6 +754,7 @@ export type Mutation = {
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
 	muteErrorCommentThread?: Maybe<Scalars['Boolean']>
 	muteSessionCommentThread?: Maybe<Scalars['Boolean']>
+	removeErrorIssue?: Maybe<Scalars['Boolean']>
 	removeIntegrationFromProject: Scalars['Boolean']
 	removeIntegrationFromWorkspace: Scalars['Boolean']
 	replyToErrorComment?: Maybe<CommentReply>
@@ -1050,6 +1052,10 @@ export type MutationMuteSessionCommentThreadArgs = {
 	id: Scalars['ID']
 }
 
+export type MutationRemoveErrorIssueArgs = {
+	error_issue_id: Scalars['ID']
+}
+
 export type MutationRemoveIntegrationFromProjectArgs = {
 	integration_type?: InputMaybe<IntegrationType>
 	project_id: Scalars['ID']
@@ -1166,6 +1172,7 @@ export type MutationUpdateErrorGroupIsPublicArgs = {
 
 export type MutationUpdateErrorGroupStateArgs = {
 	secure_id: Scalars['String']
+	snoozed_until?: InputMaybe<Scalars['Timestamp']>
 	state: Scalars['String']
 }
 
