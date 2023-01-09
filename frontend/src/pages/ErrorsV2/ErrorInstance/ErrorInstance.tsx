@@ -296,7 +296,7 @@ const Metadata: React.FC<{
 		{
 			key: 'Custom Properties',
 			label: customProperties ? (
-				<JsonViewer src={customProperties} />
+				<JsonViewer src={customProperties} name="Custom Properties" />
 			) : undefined,
 		},
 	].filter((t) => Boolean(t.label))
@@ -331,15 +331,21 @@ const Metadata: React.FC<{
 						<Box
 							cursor="pointer"
 							py="10"
-							onClick={() =>
-								meta.label && copyToClipboard(meta.label)
-							}
+							onClick={() => {
+								if (typeof meta.label === 'string') {
+									meta.label && copyToClipboard(meta.label)
+								}
+							}}
 							style={{ width: '67%' }}
 						>
 							<Text
 								align="left"
 								break="word"
-								lines="4"
+								lines={
+									typeof meta.label === 'string'
+										? '4'
+										: undefined
+								}
 								title={String(meta.label)}
 							>
 								{meta.label}
