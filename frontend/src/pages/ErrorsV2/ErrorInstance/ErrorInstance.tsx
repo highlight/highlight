@@ -121,6 +121,11 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		})
 	}
 
+	let errorGroupEvent
+	if (errorGroup?.type === 'console.error' && errorGroup.event.length > 1) {
+		errorGroupEvent = errorGroup.event[1]
+	}
+
 	if (!errorInstance || !errorInstance?.error_object) {
 		if (!loading) return null
 
@@ -298,6 +303,20 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 					<User errorObject={errorObject} />
 				</div>
 			</Box>
+
+			{errorGroupEvent && (
+				<>
+					<Text size="large" weight="bold">
+						Error Event
+					</Text>
+
+					<Box bt="secondary" my="12" py="16">
+						<Text family="monospace" break="word">
+							{errorGroupEvent}
+						</Text>
+					</Box>
+				</>
+			)}
 
 			<Text size="large" weight="bold">
 				Stack trace
