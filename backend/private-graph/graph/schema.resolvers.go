@@ -1698,6 +1698,34 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	return errorComment, nil
 }
 
+// RemoveErrorIssue is the resolver for the removeErrorIssue field.
+func (r *mutationResolver) RemoveErrorIssue(ctx context.Context, errorIssueID int) (*bool, error) {
+	var errorCommentID int
+	if err := r.DB.Table("external_attachments").Select("error_comment_id").Where("id=?", errorIssueID).Scan(&errorCommentID).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error issues")
+	}
+
+	var errorGroupSecureID string
+	if err := r.DB.Table("error_comments").Select("error_secure_id").Where("id=?", errorCommentID).Scan(&errorGroupSecureID).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error comments")
+	}
+
+	_, err := r.canAdminModifyErrorGroup(ctx, errorGroupSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not authorized to modify error group")
+	}
+
+	var externalAttachment model.ExternalAttachment
+	if err := r.DB.Table("external_attachments").Where("id=?", errorIssueID).First(&externalAttachment).Updates(
+		&model.ExternalAttachment{
+			Removed: true,
+		}).Error; err != nil {
+		return nil, e.Wrap(err, "error changing the muted status")
+	}
+
+	return &model.T, nil
+}
+
 // MuteErrorCommentThread is the resolver for the muteErrorCommentThread field.
 func (r *mutationResolver) MuteErrorCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error) {
 	var errorGroupSecureID string
@@ -3998,7 +4026,7 @@ func (r *queryResolver) ErrorIssue(ctx context.Context, errorGroupSecureID strin
 	  		FROM
 				error_comments
 	  		WHERE
-				error_id = ?
+				error_id = ? AND removed <> true
 			)
   		ORDER BY
 			created_at DESC

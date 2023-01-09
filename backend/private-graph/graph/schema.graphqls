@@ -1492,6 +1492,7 @@ type Mutation {
 		issue_team_id: String
 		integrations: [IntegrationType]!
 	): ErrorComment
+	removeErrorIssue(error_issue_id: ID!): Boolean
 	muteErrorCommentThread(id: ID!, has_muted: Boolean): Boolean
 	createIssueForErrorComment(
 		project_id: ID!

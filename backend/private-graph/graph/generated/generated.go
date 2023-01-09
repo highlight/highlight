@@ -562,6 +562,7 @@ type ComplexityRoot struct {
 		ModifyClearbitIntegration        func(childComplexity int, workspaceID int, enabled bool) int
 		MuteErrorCommentThread           func(childComplexity int, id int, hasMuted *bool) int
 		MuteSessionCommentThread         func(childComplexity int, id int, hasMuted *bool) int
+		RemoveErrorIssue                 func(childComplexity int, errorIssueID int) int
 		RemoveIntegrationFromProject     func(childComplexity int, integrationType *model.IntegrationType, projectID int) int
 		RemoveIntegrationFromWorkspace   func(childComplexity int, integrationType model.IntegrationType, workspaceID int) int
 		ReplyToErrorComment              func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
@@ -1134,6 +1135,7 @@ type MutationResolver interface {
 	MuteSessionCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error)
 	ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
 	CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
+	RemoveErrorIssue(ctx context.Context, errorIssueID int) (*bool, error)
 	MuteErrorCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error)
 	CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
@@ -3884,6 +3886,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.MuteSessionCommentThread(childComplexity, args["id"].(int), args["has_muted"].(*bool)), true
+
+	case "Mutation.removeErrorIssue":
+		if e.complexity.Mutation.RemoveErrorIssue == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeErrorIssue_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveErrorIssue(childComplexity, args["error_issue_id"].(int)), true
 
 	case "Mutation.removeIntegrationFromProject":
 		if e.complexity.Mutation.RemoveIntegrationFromProject == nil {
@@ -8800,6 +8814,7 @@ type Mutation {
 		issue_team_id: String
 		integrations: [IntegrationType]!
 	): ErrorComment
+	removeErrorIssue(error_issue_id: ID!): Boolean
 	muteErrorCommentThread(id: ID!, has_muted: Boolean): Boolean
 	createIssueForErrorComment(
 		project_id: ID!
@@ -10562,6 +10577,21 @@ func (ec *executionContext) field_Mutation_muteSessionCommentThread_args(ctx con
 		}
 	}
 	args["has_muted"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeErrorIssue_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["error_issue_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_issue_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_issue_id"] = arg0
 	return args, nil
 }
 
@@ -29180,6 +29210,58 @@ func (ec *executionContext) fieldContext_Mutation_createErrorComment(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createErrorComment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_removeErrorIssue(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_removeErrorIssue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RemoveErrorIssue(rctx, fc.Args["error_issue_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_removeErrorIssue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_removeErrorIssue_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -56534,6 +56616,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createErrorComment(ctx, field)
+			})
+
+		case "removeErrorIssue":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_removeErrorIssue(ctx, field)
 			})
 
 		case "muteErrorCommentThread":

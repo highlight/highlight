@@ -969,6 +969,8 @@ type ExternalAttachment struct {
 
 	SessionCommentID int `gorm:"index"`
 	ErrorCommentID   int `gorm:"index"`
+
+	Removed bool `gorm:"default:false"`
 }
 
 type SessionCommentTag struct {

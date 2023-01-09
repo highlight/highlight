@@ -2136,6 +2136,53 @@ export type MuteErrorCommentThreadMutationOptions = Apollo.BaseMutationOptions<
 	Types.MuteErrorCommentThreadMutation,
 	Types.MuteErrorCommentThreadMutationVariables
 >
+export const RemoveErrorIssueDocument = gql`
+	mutation RemoveErrorIssue($id: ID!) {
+		removeErrorIssue(error_issue_id: $id)
+	}
+`
+export type RemoveErrorIssueMutationFn = Apollo.MutationFunction<
+	Types.RemoveErrorIssueMutation,
+	Types.RemoveErrorIssueMutationVariables
+>
+
+/**
+ * __useRemoveErrorIssueMutation__
+ *
+ * To run a mutation, you first call `useRemoveErrorIssueMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveErrorIssueMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeErrorIssueMutation, { data, loading, error }] = useRemoveErrorIssueMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useRemoveErrorIssueMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.RemoveErrorIssueMutation,
+		Types.RemoveErrorIssueMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.RemoveErrorIssueMutation,
+		Types.RemoveErrorIssueMutationVariables
+	>(RemoveErrorIssueDocument, baseOptions)
+}
+export type RemoveErrorIssueMutationHookResult = ReturnType<
+	typeof useRemoveErrorIssueMutation
+>
+export type RemoveErrorIssueMutationResult =
+	Apollo.MutationResult<Types.RemoveErrorIssueMutation>
+export type RemoveErrorIssueMutationOptions = Apollo.BaseMutationOptions<
+	Types.RemoveErrorIssueMutation,
+	Types.RemoveErrorIssueMutationVariables
+>
 export const ReplyToErrorCommentDocument = gql`
 	mutation ReplyToErrorComment(
 		$comment_id: ID!
@@ -5321,6 +5368,7 @@ export type GetErrorCommentsQueryResult = Apollo.QueryResult<
 export const GetErrorIssuesDocument = gql`
 	query GetErrorIssues($error_group_secure_id: String!) {
 		error_issue(error_group_secure_id: $error_group_secure_id) {
+			id
 			integration_type
 			external_id
 			title
