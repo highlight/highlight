@@ -56,13 +56,14 @@ export type UpdateBillingDetailsMutation = { __typename?: 'Mutation' } & Pick<
 export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
 	secure_id: Types.Scalars['String']
 	state: Types.Scalars['String']
+	snoozed_until?: Types.Maybe<Types.Scalars['Timestamp']>
 }>
 
 export type UpdateErrorGroupStateMutation = { __typename?: 'Mutation' } & {
 	updateErrorGroupState?: Types.Maybe<
 		{ __typename?: 'ErrorGroup' } & Pick<
 			Types.ErrorGroup,
-			'secure_id' | 'state'
+			'secure_id' | 'state' | 'snoozed_until'
 		>
 	>
 }
@@ -2101,6 +2102,7 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 					| 'type'
 					| 'event'
 					| 'state'
+					| 'snoozed_until'
 					| 'environments'
 					| 'stack_trace'
 					| 'error_frequency'
@@ -2588,6 +2590,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 			| 'project_id'
 			| 'event'
 			| 'state'
+			| 'snoozed_until'
 			| 'mapped_stack_trace'
 			| 'stack_trace'
 			| 'error_frequency'

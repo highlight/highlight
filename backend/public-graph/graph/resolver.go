@@ -1893,6 +1893,12 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				}
 			}
 
+			// Suppress alerts if ignored or snoozed.
+			snoozed := group.SnoozedUntil != nil && group.SnoozedUntil.After(time.Now())
+			if group == nil || group.State == model.ErrorGroupStates.IGNORED || snoozed {
+				return
+			}
+
 			numErrors := int64(-1)
 			if err := r.DB.Raw(`
 				SELECT COUNT(*)

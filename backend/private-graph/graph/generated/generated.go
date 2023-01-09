@@ -307,6 +307,7 @@ type ComplexityRoot struct {
 		MetadataLog          func(childComplexity int) int
 		ProjectID            func(childComplexity int) int
 		SecureID             func(childComplexity int) int
+		SnoozedUntil         func(childComplexity int) int
 		StackTrace           func(childComplexity int) int
 		State                func(childComplexity int) int
 		StructuredStackTrace func(childComplexity int) int
@@ -580,7 +581,7 @@ type ComplexityRoot struct {
 		UpdateErrorAlert                 func(childComplexity int, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) int
 		UpdateErrorAlertIsDisabled       func(childComplexity int, id int, projectID int, disabled bool) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
-		UpdateErrorGroupState            func(childComplexity int, secureID string, state string) int
+		UpdateErrorGroupState            func(childComplexity int, secureID string, state string, snoozedUntil *time.Time) int
 		UpdateIntegrationProjectMappings func(childComplexity int, workspaceID int, integrationType model.IntegrationType, projectMappings []*model.IntegrationProjectMappingInput) int
 		UpdateMetricMonitor              func(childComplexity int, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, emails []*string, disabled *bool, filters []*model.MetricTagFilterInput) int
 		UpdateMetricMonitorIsDisabled    func(childComplexity int, id int, projectID int, disabled bool) int
@@ -1109,7 +1110,7 @@ type MutationResolver interface {
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
 	MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model1.Session, error)
-	UpdateErrorGroupState(ctx context.Context, secureID string, state string) (*model1.ErrorGroup, error)
+	UpdateErrorGroupState(ctx context.Context, secureID string, state string, snoozedUntil *time.Time) (*model1.ErrorGroup, error)
 	DeleteProject(ctx context.Context, id int) (*bool, error)
 	SendAdminProjectInvite(ctx context.Context, projectID int, email string, baseURL string) (*string, error)
 	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error)
@@ -2466,6 +2467,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorGroup.SecureID(childComplexity), true
+
+	case "ErrorGroup.snoozed_until":
+		if e.complexity.ErrorGroup.SnoozedUntil == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.SnoozedUntil(childComplexity), true
 
 	case "ErrorGroup.stack_trace":
 		if e.complexity.ErrorGroup.StackTrace == nil {
@@ -4111,7 +4119,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateErrorGroupState(childComplexity, args["secure_id"].(string), args["state"].(string)), true
+		return e.complexity.Mutation.UpdateErrorGroupState(childComplexity, args["secure_id"].(string), args["state"].(string), args["snoozed_until"].(*time.Time)), true
 
 	case "Mutation.updateIntegrationProjectMappings":
 		if e.complexity.Mutation.UpdateIntegrationProjectMappings == nil {
@@ -7733,6 +7741,7 @@ type ErrorGroup {
 	stack_trace: String
 	fields: [ErrorField]
 	state: ErrorState!
+	snoozed_until: Timestamp
 	environments: String
 	error_frequency: [Int64!]!
 	error_metrics: [ErrorDistributionItem!]!
@@ -8690,7 +8699,11 @@ type Mutation {
 	editWorkspace(id: ID!, name: String): Workspace
 	markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
 	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
-	updateErrorGroupState(secure_id: String!, state: String!): ErrorGroup
+	updateErrorGroupState(
+		secure_id: String!
+		state: String!
+		snoozed_until: Timestamp
+	): ErrorGroup
 	deleteProject(id: ID!): Boolean
 	sendAdminProjectInvite(
 		project_id: ID!
@@ -11234,6 +11247,15 @@ func (ec *executionContext) field_Mutation_updateErrorGroupState_args(ctx contex
 		}
 	}
 	args["state"] = arg1
+	var arg2 *time.Time
+	if tmp, ok := rawArgs["snoozed_until"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("snoozed_until"))
+		arg2, err = ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["snoozed_until"] = arg2
 	return args, nil
 }
 
@@ -20957,6 +20979,47 @@ func (ec *executionContext) fieldContext_ErrorGroup_state(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _ErrorGroup_snoozed_until(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorGroup_snoozed_until(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SnoozedUntil, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorGroup_snoozed_until(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ErrorGroup_environments(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ErrorGroup_environments(ctx, field)
 	if err != nil {
@@ -23245,6 +23308,8 @@ func (ec *executionContext) fieldContext_ErrorResults_error_groups(ctx context.C
 				return ec.fieldContext_ErrorGroup_fields(ctx, field)
 			case "state":
 				return ec.fieldContext_ErrorGroup_state(ctx, field)
+			case "snoozed_until":
+				return ec.fieldContext_ErrorGroup_snoozed_until(ctx, field)
 			case "environments":
 				return ec.fieldContext_ErrorGroup_environments(ctx, field)
 			case "error_frequency":
@@ -27732,7 +27797,7 @@ func (ec *executionContext) _Mutation_updateErrorGroupState(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateErrorGroupState(rctx, fc.Args["secure_id"].(string), fc.Args["state"].(string))
+		return ec.resolvers.Mutation().UpdateErrorGroupState(rctx, fc.Args["secure_id"].(string), fc.Args["state"].(string), fc.Args["snoozed_until"].(*time.Time))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27780,6 +27845,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorGroupState(ctx cont
 				return ec.fieldContext_ErrorGroup_fields(ctx, field)
 			case "state":
 				return ec.fieldContext_ErrorGroup_state(ctx, field)
+			case "snoozed_until":
+				return ec.fieldContext_ErrorGroup_snoozed_until(ctx, field)
 			case "environments":
 				return ec.fieldContext_ErrorGroup_environments(ctx, field)
 			case "error_frequency":
@@ -30981,6 +31048,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorGroupIsPublic(ctx c
 				return ec.fieldContext_ErrorGroup_fields(ctx, field)
 			case "state":
 				return ec.fieldContext_ErrorGroup_state(ctx, field)
+			case "snoozed_until":
+				return ec.fieldContext_ErrorGroup_snoozed_until(ctx, field)
 			case "environments":
 				return ec.fieldContext_ErrorGroup_environments(ctx, field)
 			case "error_frequency":
@@ -33379,6 +33448,8 @@ func (ec *executionContext) fieldContext_Query_error_group(ctx context.Context, 
 				return ec.fieldContext_ErrorGroup_fields(ctx, field)
 			case "state":
 				return ec.fieldContext_ErrorGroup_state(ctx, field)
+			case "snoozed_until":
+				return ec.fieldContext_ErrorGroup_snoozed_until(ctx, field)
 			case "environments":
 				return ec.fieldContext_ErrorGroup_environments(ctx, field)
 			case "error_frequency":
@@ -54846,6 +54917,10 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 				return innerFunc(ctx)
 
 			})
+		case "snoozed_until":
+
+			out.Values[i] = ec._ErrorGroup_snoozed_until(ctx, field, obj)
+
 		case "environments":
 
 			out.Values[i] = ec._ErrorGroup_environments(ctx, field, obj)
