@@ -422,19 +422,23 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	return nil, e.New("admin doesn't exist in project")
 }
 
-func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, errorGroupID int) (*time.Time, *time.Time, error) {
-	bucket := r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors) + timeseries.Error.DownsampleBucketSuffix
+func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, errorGroupID int, errorGroupCreated time.Time) (*time.Time, *time.Time, error) {
+	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, time.Since(errorGroupCreated))
+	var filter string
+	if measurement == timeseries.Error.AggName {
+		filter = `|> filter(fn: (r) => r._value > 0)`
+	}
 	query := fmt.Sprintf(`
       query = () => from(bucket: "%[1]s")
 		|> range(start: 0, stop: now())
 		|> filter(fn: (r) => r._measurement == "%[2]s")
 		|> filter(fn: (r) => r.ErrorGroupID == "%[3]d")
-    	|> filter(fn: (r) => r._value > 0)
+    	%[4]s
 		|> group(columns: ["ErrorGroupID"])
 
       union(tables:[query() |> first(), query() |> last()])
         |> sort(columns: ["ErrorGroupID", "_field", "_time"])
-	`, bucket, timeseries.Error.AggName, errorGroupID)
+	`, bucket, measurement, errorGroupID, filter)
 	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupOccurrences")
 	span.SetTag("projectID", projectID)
 	span.SetTag("errorGroupID", errorGroupID)
@@ -750,7 +754,7 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 		return eg, false, e.Wrap(err, "error validating admin in project")
 	}
 
-	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
+	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID, eg.CreatedAt); err != nil {
 		return nil, false, e.Wrap(err, "error querying error group occurrences")
 	}
 	if err := r.SetErrorFrequenciesInflux(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {

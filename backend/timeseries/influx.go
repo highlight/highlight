@@ -25,6 +25,7 @@ type MeasurementConfig struct {
 	DownsampleThreshold    time.Duration
 	DownsampleRetention    time.Duration
 	DownsampleBucketSuffix string
+	Version                int
 }
 
 const Metrics Measurement = "metrics"
@@ -37,6 +38,7 @@ var Error = MeasurementConfig{
 	DownsampleThreshold:    time.Hour,
 	DownsampleRetention:    0,
 	DownsampleBucketSuffix: "/downsampled",
+	Version:                2,
 }
 
 var Metric = MeasurementConfig{
@@ -145,6 +147,9 @@ func (i *InfluxDB) createWriteAPI(bucket string, measurement Measurement) api.Wr
 		Type:         domain.RetentionRuleTypeExpire,
 	})
 	taskName := fmt.Sprintf("task-%s", downsampleB)
+	if config.Version > 1 {
+		taskName = fmt.Sprintf("%s-v%d", taskName, config.Version)
+	}
 	tasks, err := i.Client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
 		Name:  taskName,
 		OrgID: i.orgID,
@@ -165,6 +170,19 @@ func (i *InfluxDB) createWriteAPI(bucket string, measurement Measurement) api.Wr
 			return tasks[i].CreatedAt.Sub(*tasks[j].CreatedAt) < time.Duration(0)
 		})
 		for _, t := range tasks[1:] {
+			_ = i.Client.TasksAPI().DeleteTaskWithID(context.Background(), t.Id)
+		}
+	}
+	for version := 1; version < config.Version; version++ {
+		taskName := fmt.Sprintf("task-%s", downsampleB)
+		if version > 1 {
+			taskName = fmt.Sprintf("%s-v%d", taskName, version)
+		}
+		tasks, _ = i.Client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
+			Name:  taskName,
+			OrgID: i.orgID,
+		})
+		for _, t := range tasks {
 			_ = i.Client.TasksAPI().DeleteTaskWithID(context.Background(), t.Id)
 		}
 	}
@@ -273,6 +291,7 @@ import "join"
 counts = from(bucket: "%[2]s")
 		|> range(start: -%[1]dm)
 		|> filter(fn: (r) => r._measurement == "%[3]s")
+		|> filter(fn: (r) => r._field == "Identifier")
 		%[5]s
 		|> group(columns: ["%[4]s"])
 		|> aggregateWindow(every: %[1]dm, fn: count)
@@ -281,6 +300,7 @@ counts = from(bucket: "%[2]s")
 sessionCounts = from(bucket: "%[2]s")
 		|> range(start: -%[1]dm)
 		|> filter(fn: (r) => r._measurement == "%[3]s")
+		|> filter(fn: (r) => r._field == "Identifier")
 		%[5]s
 		|> unique(column: "SessionID")
 		|> group(columns: ["%[4]s"])
