@@ -1703,7 +1703,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 // RemoveErrorIssue is the resolver for the removeErrorIssue field.
 func (r *mutationResolver) RemoveErrorIssue(ctx context.Context, errorIssueID int) (*bool, error) {
 	var errorCommentID int
-	if err := r.DB.Table("external_attachments").
+	if err := r.DB.
 		Model(&model.ExternalAttachment{}).
 		Select("error_comment_id").
 		Where("id=?", errorIssueID).
@@ -1713,7 +1713,7 @@ func (r *mutationResolver) RemoveErrorIssue(ctx context.Context, errorIssueID in
 	}
 
 	var errorGroupSecureID string
-	if err := r.DB.Table("error_comments").
+	if err := r.DB.
 		Model(&model.ErrorComment{}).
 		Select("error_secure_id").
 		Where("id=?", errorCommentID).
@@ -1729,7 +1729,6 @@ func (r *mutationResolver) RemoveErrorIssue(ctx context.Context, errorIssueID in
 
 	var externalAttachment model.ExternalAttachment
 	if err := r.DB.
-		Table("external_attachments").
 		Model(&model.ExternalAttachment{}).
 		Where("id=?", errorIssueID).
 		First(&externalAttachment).
@@ -1747,7 +1746,7 @@ func (r *mutationResolver) RemoveErrorIssue(ctx context.Context, errorIssueID in
 // MuteErrorCommentThread is the resolver for the muteErrorCommentThread field.
 func (r *mutationResolver) MuteErrorCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error) {
 	var errorGroupSecureID string
-	if err := r.DB.Table("error_comments").
+	if err := r.DB.
 		Model(&model.ErrorComment{}).
 		Select("error_secure_id").
 		Where("id=?", id).
