@@ -373,7 +373,7 @@ export const PlayerKeyboardShortcuts: ShortcutItem[] = [
 export const ErrorsKeyboardShortcuts: ShortcutItem[] = [
 	{
 		description: `Toggle left sidebar`,
-		shortcut: ['cmd+b'],
+		shortcut: [cmdKey, 'b'],
 	},
 	{
 		description: `Next error`,

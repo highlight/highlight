@@ -2,6 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { useUpdateErrorGroupStateMutation } from '@graph/hooks'
 import { ErrorState, Maybe } from '@graph/schemas'
 import {
+	Badge,
 	Box,
 	IconSolidCheveronDown,
 	Menu,
@@ -117,7 +118,18 @@ export const ErrorStateSelect: React.FC<{
 						{menuState === MenuState.Default ? (
 							<>
 								<Menu.Heading>
-									<Text>Status</Text>
+									<Text
+										weight="bold"
+										size="xSmall"
+										color="n11"
+									>
+										Status
+									</Text>
+									<Badge
+										variant="grey"
+										size="tiny"
+										label="e"
+									/>
 								</Menu.Heading>
 								{ErrorStatuses.map((option) => (
 									<Menu.Item

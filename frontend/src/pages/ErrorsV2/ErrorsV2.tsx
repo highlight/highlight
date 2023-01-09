@@ -1,20 +1,18 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
+import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	useGetErrorGroupQuery,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
 import {
-	Badge,
 	Box,
 	ButtonIcon,
 	Container,
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
 	IconSolidExitRight,
-	Stack,
-	Text,
 	Tooltip,
 	vars,
 } from '@highlight-run/ui'
@@ -199,29 +197,10 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 												/>
 											}
 										>
-											<Stack
-												direction="row"
-												gap="4"
-												align="center"
-											>
-												<Text
-													userSelect="none"
-													color="n11"
-												>
-													Toggle sidebar
-												</Text>
-												<Badge
-													variant="grey"
-													size="tiny"
-													label="Cmd"
-												/>
-												{' + '}
-												<Badge
-													variant="grey"
-													size="tiny"
-													label="B"
-												/>
-											</Stack>
+											<KeyboardShortcut
+												label="Toggle sidebar"
+												shortcut={['cmd', 'b']}
+											/>
 										</Tooltip>
 									)}
 									<Box
@@ -258,23 +237,10 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 												/>
 											}
 										>
-											<Stack
-												direction="row"
-												gap="4"
-												align="center"
-											>
-												<Text
-													userSelect="none"
-													color="n11"
-												>
-													Previous
-												</Text>
-												<Badge
-													variant="grey"
-													size="tiny"
-													label="k"
-												/>
-											</Stack>
+											<KeyboardShortcut
+												label="Previous"
+												shortcut="k"
+											/>
 										</Tooltip>
 
 										<Box
@@ -307,23 +273,10 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 												/>
 											}
 										>
-											<Stack
-												direction="row"
-												gap="4"
-												align="center"
-											>
-												<Text
-													userSelect="none"
-													color="n11"
-												>
-													Next
-												</Text>
-												<Badge
-													variant="grey"
-													size="tiny"
-													label="j"
-												/>
-											</Stack>
+											<KeyboardShortcut
+												label="Next"
+												shortcut="j"
+											/>
 										</Tooltip>
 									</Box>
 								</Box>

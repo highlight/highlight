@@ -3,6 +3,7 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
 import { Button } from '@components/Button'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
+import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	GetErrorInstanceDocument,
@@ -10,15 +11,7 @@ import {
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
 import type { ErrorInstance as ErrorInstanceType, Maybe } from '@graph/schemas'
-import {
-	Badge,
-	Box,
-	Heading,
-	IconSolidPlay,
-	Stack,
-	Text,
-	Tooltip,
-} from '@highlight-run/ui'
+import { Box, Heading, IconSolidPlay, Text, Tooltip } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
@@ -244,12 +237,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								</Button>
 							}
 						>
-							<Stack direction="row" gap="4" align="center">
-								<Text userSelect="none" color="n11">
-									Previous
-								</Text>
-								<Badge variant="grey" size="tiny" label="[" />
-							</Stack>
+							<KeyboardShortcut label="Previous" shortcut="[" />
 						</Tooltip>
 
 						<Box borderRight="secondary" style={{ height: 18 }} />
@@ -274,12 +262,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								</Button>
 							}
 						>
-							<Stack direction="row" gap="4" align="center">
-								<Text userSelect="none" color="n11">
-									Next
-								</Text>
-								<Badge variant="grey" size="tiny" label="]" />
-							</Stack>
+							<KeyboardShortcut label="Next" shortcut="]" />
 						</Tooltip>
 						<Button
 							kind="primary"

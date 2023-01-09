@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
+import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import Popover from '@components/Popover/Popover'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { Skeleton } from '@components/Skeleton/Skeleton'
@@ -25,7 +26,6 @@ import {
 	SearchParamsInput,
 } from '@graph/schemas'
 import {
-	Badge,
 	Box,
 	ButtonIcon,
 	IconSolidCheveronDown,
@@ -42,7 +42,6 @@ import {
 	IconSolidTrash,
 	IconSolidX,
 	Menu,
-	Stack,
 	Tag,
 	Text,
 	Tooltip,
@@ -2352,14 +2351,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 							/>
 						}
 					>
-						<Stack direction="row" gap="4" align="center">
-							<Text userSelect="none" color="n11">
-								Toggle sidebar
-							</Text>
-							<Badge variant="grey" size="tiny" label="Cmd" />
-							{' + '}
-							<Badge variant="grey" size="tiny" label="B" />
-						</Stack>
+						<KeyboardShortcut
+							label="Toggle sidebar"
+							shortcut={['cmd', 'b']}
+						/>
 					</Tooltip>
 				</Box>
 			</Box>
