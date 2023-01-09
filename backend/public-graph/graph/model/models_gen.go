@@ -3,6 +3,9 @@
 package model
 
 import (
+	"fmt"
+	"io"
+	"strconv"
 	"time"
 )
 
@@ -70,4 +73,43 @@ type StackFrameInput struct {
 	IsEval       *bool         `json:"isEval"`
 	IsNative     *bool         `json:"isNative"`
 	Source       *string       `json:"source"`
+}
+
+type PublicGraphError string
+
+const (
+	PublicGraphErrorBillingQuotaExceeded PublicGraphError = "BillingQuotaExceeded"
+)
+
+var AllPublicGraphError = []PublicGraphError{
+	PublicGraphErrorBillingQuotaExceeded,
+}
+
+func (e PublicGraphError) IsValid() bool {
+	switch e {
+	case PublicGraphErrorBillingQuotaExceeded:
+		return true
+	}
+	return false
+}
+
+func (e PublicGraphError) String() string {
+	return string(e)
+}
+
+func (e *PublicGraphError) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PublicGraphError(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PublicGraphError", str)
+	}
+	return nil
+}
+
+func (e PublicGraphError) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
