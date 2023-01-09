@@ -1,5 +1,5 @@
 import { EventType } from '@highlight-run/rrweb'
-import { eventWithTime } from '@highlight-run/rrweb/typings/types'
+import { eventWithTime } from '@highlight-run/rrweb-types'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 
 // used in filter() type methods to fetch events we want

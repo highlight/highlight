@@ -1,6 +1,6 @@
 import { useGetMessagesQuery } from '@graph/hooks'
 import { ConsoleMessage } from '@highlight-run/client'
-import { playerMetaData } from '@highlight-run/rrweb/typings/types'
+import { playerMetaData } from '@highlight-run/rrweb-types'
 import { Box, Text } from '@highlight-run/ui'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import { LogLevel, Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'

@@ -53,6 +53,7 @@ import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import { QueryBuilderStateParam } from '@util/url/params'
 import { Checkbox, message } from 'antd'
+import classNames from 'classnames'
 import clsx, { ClassValue } from 'clsx'
 import { isEqual } from 'lodash'
 import moment, { unitOfTime } from 'moment'
@@ -782,12 +783,9 @@ const SelectPopout = ({
 						kind="secondary"
 						size="medium"
 						shape="basic"
-						cssClass={[
-							cssClass,
-							{
-								[styles.invalid]: invalid && !visible,
-							},
-						]}
+						className={classNames(cssClass, {
+							[styles.invalid]: invalid && !visible,
+						})}
 						lines={limitWidth ? '1' : undefined}
 						disabled={disabled}
 					>
@@ -878,7 +876,7 @@ const QueryRule = ({
 					size="medium"
 					kind="secondary"
 					shape="basic"
-					cssClass={[newStyle.flatLeft]}
+					className={newStyle.flatLeft}
 					onClick={() => {
 						onRemove()
 					}}
