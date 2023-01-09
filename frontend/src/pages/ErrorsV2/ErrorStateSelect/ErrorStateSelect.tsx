@@ -13,6 +13,7 @@ import { useParams } from '@util/react-router/useParams'
 import { DatePicker, message } from 'antd'
 import moment from 'moment'
 import React, { useEffect } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import * as styles from './style.css'
@@ -93,6 +94,7 @@ export const ErrorStateSelect: React.FC<{
 					}
 				}}
 			>
+				<MenuHandler />
 				<Menu.Button
 					size="small"
 					kind="secondary"
@@ -216,6 +218,21 @@ const DatepickerMenuItem: React.FC<{
 			/>
 		</Menu.Item>
 	)
+}
+
+const MenuHandler: React.FC = () => {
+	const menu = useMenu()
+
+	useHotkeys(
+		'e',
+		() => {
+			menu.setOpen(!menu.open)
+			menu.baseRef.current?.focus()
+		},
+		[menu.open],
+	)
+
+	return <></>
 }
 
 const showStateUpdateMessage = (

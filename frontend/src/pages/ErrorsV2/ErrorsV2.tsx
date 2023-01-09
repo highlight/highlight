@@ -6,12 +6,16 @@ import {
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
 import {
+	Badge,
 	Box,
 	ButtonIcon,
 	Container,
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
 	IconSolidExitRight,
+	Stack,
+	Text,
+	Tooltip,
 	vars,
 } from '@highlight-run/ui'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
@@ -136,6 +140,14 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		[canMoveBackward, previousSecureId],
 	)
 
+	useHotkeys(
+		'cmd+b',
+		() => {
+			setShowLeftPanel(!showLeftPanel)
+		},
+		[showLeftPanel],
+	)
+
 	return (
 		<>
 			<Helmet>
@@ -168,18 +180,49 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 							>
 								<Box display="flex" gap="8">
 									{!showLeftPanel && (
-										<ButtonIcon
-											kind="secondary"
-											size="small"
-											shape="square"
-											emphasis="medium"
-											icon={
-												<IconSolidExitRight size={14} />
+										<Tooltip
+											placement="bottom"
+											trigger={
+												<ButtonIcon
+													kind="secondary"
+													size="small"
+													shape="square"
+													emphasis="medium"
+													icon={
+														<IconSolidExitRight
+															size={14}
+														/>
+													}
+													onClick={() =>
+														setShowLeftPanel(true)
+													}
+												/>
 											}
-											onClick={() =>
-												setShowLeftPanel(true)
-											}
-										/>
+										>
+											<Stack
+												direction="row"
+												gap="4"
+												align="center"
+											>
+												<Text
+													userSelect="none"
+													color="n11"
+												>
+													Toggle sidebar
+												</Text>
+												<Badge
+													variant="grey"
+													size="tiny"
+													label="Cmd"
+												/>
+												{' + '}
+												<Badge
+													variant="grey"
+													size="tiny"
+													label="B"
+												/>
+											</Stack>
+										</Tooltip>
 									)}
 									<Box
 										borderRadius="6"
@@ -190,47 +233,98 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											boxShadow: `0 0 0 1px ${vars.color.n5} inset`,
 										}}
 									>
-										<ButtonIcon
-											kind="secondary"
-											size="small"
-											shape="square"
-											emphasis="low"
-											icon={
-												<IconSolidCheveronUp
-													size={14}
+										<Tooltip
+											placement="bottom"
+											trigger={
+												<ButtonIcon
+													kind="secondary"
+													size="small"
+													shape="square"
+													emphasis="low"
+													icon={
+														<IconSolidCheveronUp
+															size={14}
+														/>
+													}
+													cssClass={
+														styles.sessionSwitchButton
+													}
+													onClick={() => {
+														goToErrorGroup(
+															previousSecureId,
+														)
+													}}
+													disabled={!canMoveBackward}
 												/>
 											}
-											cssClass={
-												styles.sessionSwitchButton
-											}
-											onClick={() => {
-												goToErrorGroup(previousSecureId)
-											}}
-											disabled={!canMoveBackward}
-										/>
+										>
+											<Stack
+												direction="row"
+												gap="4"
+												align="center"
+											>
+												<Text
+													userSelect="none"
+													color="n11"
+												>
+													Previous
+												</Text>
+												<Badge
+													variant="grey"
+													size="tiny"
+													label="k"
+												/>
+											</Stack>
+										</Tooltip>
+
 										<Box
 											as="span"
 											borderRight="secondary"
 										/>
-										<ButtonIcon
-											kind="secondary"
-											size="small"
-											shape="square"
-											emphasis="low"
-											icon={
-												<IconSolidCheveronDown
-													size={14}
+										<Tooltip
+											placement="bottom"
+											trigger={
+												<ButtonIcon
+													kind="secondary"
+													size="small"
+													shape="square"
+													emphasis="low"
+													icon={
+														<IconSolidCheveronDown
+															size={14}
+														/>
+													}
+													title="j"
+													cssClass={
+														styles.sessionSwitchButton
+													}
+													onClick={() => {
+														goToErrorGroup(
+															nextSecureId,
+														)
+													}}
+													disabled={!canMoveForward}
 												/>
 											}
-											title="j"
-											cssClass={
-												styles.sessionSwitchButton
-											}
-											onClick={() => {
-												goToErrorGroup(nextSecureId)
-											}}
-											disabled={!canMoveForward}
-										/>
+										>
+											<Stack
+												direction="row"
+												gap="4"
+												align="center"
+											>
+												<Text
+													userSelect="none"
+													color="n11"
+												>
+													Next
+												</Text>
+												<Badge
+													variant="grey"
+													size="tiny"
+													label="j"
+												/>
+											</Stack>
+										</Tooltip>
 									</Box>
 								</Box>
 							</Box>

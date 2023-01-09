@@ -5,7 +5,7 @@ import Popover from '@components/Popover/Popover'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
-import Tooltip from '@components/Tooltip/Tooltip'
+import { default as OldTooltip } from '@components/Tooltip/Tooltip'
 import {
 	BackendSearchQuery,
 	BaseSearchContext,
@@ -25,6 +25,7 @@ import {
 	SearchParamsInput,
 } from '@graph/schemas'
 import {
+	Badge,
 	Box,
 	ButtonIcon,
 	IconSolidCheveronDown,
@@ -41,8 +42,10 @@ import {
 	IconSolidTrash,
 	IconSolidX,
 	Menu,
+	Stack,
 	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
@@ -776,7 +779,7 @@ const SelectPopout = ({
 			visible={visible}
 			destroyTooltipOnHide
 		>
-			<Tooltip
+			<OldTooltip
 				title={tooltipMessage}
 				mouseEnterDelay={1.5}
 				overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
@@ -805,7 +808,7 @@ const SelectPopout = ({
 							value.options[0].label}
 					</Tag>
 				</span>
-			</Tooltip>
+			</OldTooltip>
 		</Popover>
 	)
 }
@@ -2336,14 +2339,28 @@ function QueryBuilder(props: QueryBuilderProps) {
 							/>
 						)}
 
-					<ButtonIcon
-						kind="secondary"
-						size="small"
-						shape="square"
-						emphasis="medium"
-						icon={<IconSolidLogout size={14} />}
-						onClick={() => setShowLeftPanel(false)}
-					/>
+					<Tooltip
+						placement="bottom"
+						trigger={
+							<ButtonIcon
+								kind="secondary"
+								size="small"
+								shape="square"
+								emphasis="medium"
+								icon={<IconSolidLogout size={14} />}
+								onClick={() => setShowLeftPanel(false)}
+							/>
+						}
+					>
+						<Stack direction="row" gap="4" align="center">
+							<Text userSelect="none" color="n11">
+								Toggle sidebar
+							</Text>
+							<Badge variant="grey" size="tiny" label="Cmd" />
+							{' + '}
+							<Badge variant="grey" size="tiny" label="B" />
+						</Stack>
+					</Tooltip>
 				</Box>
 			</Box>
 		)

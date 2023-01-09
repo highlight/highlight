@@ -9,8 +9,16 @@ import {
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
-import type { ErrorInstance as ErrorInstanceType } from '@graph/schemas'
-import { Box, Heading, IconSolidPlay, Text } from '@highlight-run/ui'
+import type { ErrorInstance as ErrorInstanceType, Maybe } from '@graph/schemas'
+import {
+	Badge,
+	Box,
+	Heading,
+	IconSolidPlay,
+	Stack,
+	Text,
+	Tooltip,
+} from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
@@ -25,6 +33,7 @@ import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
 import React, { useEffect, useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { FiExternalLink } from 'react-icons/fi'
 import { useHistory } from 'react-router-dom'
 
@@ -88,9 +97,36 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		},
 	})
 
+	const errorInstance = data?.error_instance
+
 	useEffect(() => analytics.page(), [])
 
-	const errorInstance = data?.error_instance
+	useHotkeys(']', () => goToErrorInstance(errorInstance?.next_id, 'next'), [
+		errorInstance?.next_id,
+	])
+	useHotkeys(
+		'[',
+		() => goToErrorInstance(errorInstance?.previous_id, 'previous'),
+		[errorInstance?.previous_id],
+	)
+
+	const goToErrorInstance = (
+		errorInstanceId: Maybe<string> | undefined,
+		direction: 'next' | 'previous',
+	) => {
+		if (Number(errorInstanceId) === 0) {
+			return
+		}
+
+		history.push({
+			pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstanceId}`,
+			search: window.location.search,
+		})
+
+		analytics.track('Viewed error instance', {
+			direction,
+		})
+	}
 
 	if (!errorInstance || !errorInstance?.error_object) {
 		if (!loading) return null
@@ -187,43 +223,64 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 				<Box>
 					<Box display="flex" gap="8" alignItems="center">
-						<Button
-							onClick={() => {
-								history.push({
-									pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstance.previous_id}`,
-									search: window.location.search,
-								})
-
-								analytics.track('Viewed error instance', {
-									direction: 'previous',
-								})
-							}}
-							disabled={Number(errorInstance.previous_id) === 0}
-							kind="secondary"
-							emphasis="low"
-							trackingId="errorInstanceOlder"
+						<Tooltip
+							trigger={
+								<Button
+									onClick={() => {
+										goToErrorInstance(
+											errorInstance.previous_id,
+											'previous',
+										)
+									}}
+									disabled={
+										Number(errorInstance.previous_id) === 0
+									}
+									kind="secondary"
+									emphasis="low"
+									display="inlineBlock"
+									trackingId="errorInstanceOlder"
+								>
+									Older
+								</Button>
+							}
 						>
-							Older
-						</Button>
+							<Stack direction="row" gap="4" align="center">
+								<Text userSelect="none" color="n11">
+									Previous
+								</Text>
+								<Badge variant="grey" size="tiny" label="[" />
+							</Stack>
+						</Tooltip>
+
 						<Box borderRight="secondary" style={{ height: 18 }} />
-						<Button
-							onClick={() => {
-								history.push({
-									pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstance.next_id}`,
-									search: window.location.search,
-								})
-
-								analytics.track('Viewed error instance', {
-									direction: 'next',
-								})
-							}}
-							disabled={Number(errorInstance.next_id) === 0}
-							kind="secondary"
-							emphasis="low"
-							trackingId="errorInstanceNewer"
+						<Tooltip
+							trigger={
+								<Button
+									onClick={() => {
+										goToErrorInstance(
+											errorInstance.next_id,
+											'next',
+										)
+									}}
+									disabled={
+										Number(errorInstance.next_id) === 0
+									}
+									kind="secondary"
+									emphasis="low"
+									display="inlineBlock"
+									trackingId="errorInstanceNewer"
+								>
+									Newer
+								</Button>
+							}
 						>
-							Newer
-						</Button>
+							<Stack direction="row" gap="4" align="center">
+								<Text userSelect="none" color="n11">
+									Next
+								</Text>
+								<Badge variant="grey" size="tiny" label="]" />
+							</Stack>
+						</Tooltip>
 						<Button
 							kind="primary"
 							emphasis="high"

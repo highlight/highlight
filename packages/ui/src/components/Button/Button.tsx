@@ -41,6 +41,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 			className,
 			cssClass,
 			disabled,
+			display,
 			onIconLeftClick,
 			onIconRightClick,
 			...buttonProps
@@ -59,6 +60,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 						kind,
 						size,
 						emphasis,
+						display,
 					}),
 					className,
 					cssClass,
