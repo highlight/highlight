@@ -33,7 +33,7 @@ const InfoTooltip = ({
 			})}
 			mouseEnterDelay={0}
 		>
-			<Box style={{ height: 12, width: 12, display: 'flex' }}>
+			<Box style={{ height: 12, width: 12, display: 'inline-flex' }}>
 				<IconSolidInformationCircle
 					onClick={onClick}
 					color={vars.theme.interactive.fill.secondary.content.text}

@@ -17,6 +17,7 @@ import SearchPagination, {
 	START_PAGE,
 } from '@components/SearchPagination/SearchPagination'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
+import LimitedSessionCard from '@components/Upsell/LimitedSessionsCard/LimitedSessionsCard'
 import {
 	useGetBillingDetailsForProjectQuery,
 	useGetSessionsHistogramQuery,
@@ -353,34 +354,37 @@ export const SessionFeedV3 = React.memo(() => {
 									/>
 								)
 							) : (
-								filteredSessions?.map(
-									(s: Maybe<Session>, ind: number) =>
-										s && (
-											<SessionFeedCard
-												key={ind}
-												session={s}
-												urlParams={`?page=${
-													page || START_PAGE
-												}`}
-												selected={
-													session_secure_id ===
-													s?.secure_id
-												}
-												showDetailedSessionView={
-													showDetailedSessionView
-												}
-												autoPlaySessions={
-													autoPlaySessions
-												}
-												configuration={{
-													countFormat:
-														sessionFeedConfiguration.countFormat,
-													datetimeFormat:
-														sessionFeedConfiguration.datetimeFormat,
-												}}
-											/>
-										),
-								)
+								<>
+									<LimitedSessionCard />
+									{filteredSessions?.map(
+										(s: Maybe<Session>, ind: number) =>
+											s && (
+												<SessionFeedCard
+													key={ind}
+													session={s}
+													urlParams={`?page=${
+														page || START_PAGE
+													}`}
+													selected={
+														session_secure_id ===
+														s?.secure_id
+													}
+													showDetailedSessionView={
+														showDetailedSessionView
+													}
+													autoPlaySessions={
+														autoPlaySessions
+													}
+													configuration={{
+														countFormat:
+															sessionFeedConfiguration.countFormat,
+														datetimeFormat:
+															sessionFeedConfiguration.datetimeFormat,
+													}}
+												/>
+											),
+									)}
+								</>
 							)}
 						</>
 					)}
