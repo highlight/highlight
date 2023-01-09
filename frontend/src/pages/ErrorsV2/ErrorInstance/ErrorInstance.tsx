@@ -2,6 +2,7 @@ import { useApolloClient } from '@apollo/client'
 import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
 import { Button } from '@components/Button'
+import JsonViewer from '@components/JsonViewer/JsonViewer'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	GetErrorInstanceDocument,
@@ -279,13 +280,25 @@ const Metadata: React.FC<{
 		return null
 	}
 
-	// TODO: Be smarter about how we pull these.
+	let customProperties: any
+	try {
+		if (errorObject.payload) {
+			customProperties = JSON.parse(errorObject.payload)
+		}
+	} catch (e) {}
+
 	const metadata = [
 		{ key: 'environment', label: errorObject?.environment },
 		{ key: 'browser', label: errorObject?.browser },
 		{ key: 'os', label: errorObject?.os },
 		{ key: 'url', label: errorObject?.url },
 		{ key: 'created_at', label: errorObject?.created_at },
+		{
+			key: 'Custom Properties',
+			label: customProperties ? (
+				<JsonViewer src={customProperties} />
+			) : undefined,
+		},
 	].filter((t) => Boolean(t.label))
 
 	return (
