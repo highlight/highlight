@@ -7521,6 +7521,7 @@ __metadata:
     "@graphql-codegen/typescript-operations": ^2.5.2
     "@highlight-run/fingerprintjs": ^3.3.5
     "@highlight-run/rrweb": "workspace:*"
+    "@highlight-run/rrweb-types": "workspace:*"
     "@rollup/plugin-commonjs": ^22.0.1
     "@rollup/plugin-json": ^4.1.0
     "@rollup/plugin-node-resolve": ^13.3.0
@@ -7586,6 +7587,7 @@ __metadata:
     "@highlight-run/react-mentions": 4.4.1
     "@highlight-run/react-select": ^5.2.2
     "@highlight-run/rrweb": "workspace:*"
+    "@highlight-run/rrweb-types": "workspace:*"
     "@highlight-run/ui": "workspace:*"
     "@rehooks/local-storage": ^2.4.0
     "@stripe/stripe-js": ^1.32.0
@@ -7837,6 +7839,7 @@ __metadata:
   resolution: "@highlight-run/rrdom@workspace:rrweb/packages/rrdom"
   dependencies:
     "@highlight-run/rrweb-snapshot": "workspace:*"
+    "@highlight-run/rrweb-types": "workspace:*"
     "@rollup/plugin-commonjs": ^20.0.0
     "@types/jest": ^27.4.1
     "@types/puppeteer": ^5.4.4
@@ -7859,6 +7862,7 @@ __metadata:
   resolution: "@highlight-run/rrweb-player@workspace:rrweb/packages/rrweb-player"
   dependencies:
     "@highlight-run/rrweb": "workspace:*"
+    "@highlight-run/rrweb-types": "workspace:*"
     "@rollup/plugin-commonjs": 22.0.0
     "@rollup/plugin-node-resolve": ^13.2.1
     "@tsconfig/svelte": ^1.0.1
@@ -7908,19 +7912,31 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@highlight-run/rrweb-types@workspace:*, @highlight-run/rrweb-types@workspace:rrweb/packages/types":
+  version: 0.0.0-use.local
+  resolution: "@highlight-run/rrweb-types@workspace:rrweb/packages/types"
+  dependencies:
+    "@highlight-run/rrweb-snapshot": "workspace:*"
+    typescript: ^4.7.3
+    vite: ^3.2.0-beta.2
+    vite-plugin-dts: ^1.6.6
+  languageName: unknown
+  linkType: soft
+
 "@highlight-run/rrweb@workspace:*, @highlight-run/rrweb@workspace:rrweb/packages/rrweb":
   version: 0.0.0-use.local
   resolution: "@highlight-run/rrweb@workspace:rrweb/packages/rrweb"
   dependencies:
     "@highlight-run/rrdom": "workspace:*"
     "@highlight-run/rrweb-snapshot": "workspace:*"
+    "@highlight-run/rrweb-types": "workspace:*"
     "@rollup/plugin-node-resolve": ^13.1.3
     "@types/chai": ^4.1.6
     "@types/css-font-loading-module": 0.0.7
     "@types/dom-mediacapture-transform": ^0.1.3
     "@types/inquirer": ^8.2.1
     "@types/jest": ^27.4.1
-    "@types/jest-image-snapshot": ^4.3.1
+    "@types/jest-image-snapshot": ^5.1.0
     "@types/node": ^18.11.15
     "@types/offscreencanvas": ^2019.6.4
     "@types/prettier": ^2.3.2
@@ -7937,11 +7953,11 @@ __metadata:
     ignore-styles: ^5.0.1
     inquirer: ^9.0.0
     jest: 27.1.1
-    jest-image-snapshot: ^4.5.1
+    jest-image-snapshot: ^5.2.0
     jest-snapshot: ^23.6.0
     mitt: ^3.0.0
     prettier: 2.2.1
-    puppeteer: ^9.1.1
+    puppeteer: ^11.0.0
     rollup: ^2.68.0
     rollup-plugin-esbuild: ^4.9.1
     rollup-plugin-postcss: ^3.1.1
@@ -12121,14 +12137,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest-image-snapshot@npm:^4.3.1":
-  version: 4.3.2
-  resolution: "@types/jest-image-snapshot@npm:4.3.2"
+"@types/jest-image-snapshot@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "@types/jest-image-snapshot@npm:5.1.0"
   dependencies:
     "@types/jest": "*"
     "@types/pixelmatch": "*"
     ssim.js: ^3.1.1
-  checksum: 969a3e43b2c6ef153588335f62fec83aef8f969d5082eb942a736f88fdebea52bf02fd1e2c2265a580b5137167a4f02c2b344023eb2bf4f3fb65c3a2743a7eb7
+  checksum: b38b7a978637243499f2767511960bdaeace1a8ca15fadcd9a6988c3ab9a14fa1de4028b04790b89e5611bf7ce98ee4a574a5d99684682ae83239c2fbc8589aa
   languageName: node
   linkType: hard
 
@@ -18605,7 +18621,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@npm:4":
+"debug@npm:4, debug@npm:4.3.2":
   version: 4.3.2
   resolution: "debug@npm:4.3.2"
   dependencies:
@@ -26246,9 +26262,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-image-snapshot@npm:^4.5.1":
-  version: 4.5.1
-  resolution: "jest-image-snapshot@npm:4.5.1"
+"jest-image-snapshot@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "jest-image-snapshot@npm:5.2.0"
   dependencies:
     chalk: ^1.1.3
     get-stdin: ^5.0.1
@@ -26260,8 +26276,8 @@ __metadata:
     rimraf: ^2.6.2
     ssim.js: ^3.1.1
   peerDependencies:
-    jest: ">=20 <=27"
-  checksum: 9e300ab21c46b84f4b26e19225eda645a2d311ee6c555428342b2401d05e373c1eb6c6b75130a69755b1221f0e7843f7994aaf20481af263b18dc635f125d88b
+    jest: ">=20 <=28"
+  checksum: 37c7e03a9969c484c963a5a7293df63ce73f69e3a54b269966b11555793fe7b21ed3de708208b5234809e2e02f8088a242e13848a6634d191fea81fc0d70fb79
   languageName: node
   linkType: hard
 
@@ -31700,7 +31716,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.20":
+"postcss@npm:^8.4.18, postcss@npm:^8.4.20":
   version: 8.4.20
   resolution: "postcss@npm:8.4.20"
   dependencies:
@@ -32176,6 +32192,26 @@ __metadata:
     rimraf: ^2.6.1
     ws: ^6.1.0
   checksum: 4b470869a0cd626d1b1e830c1e046fa7654034e33cde6698684d9557a1e97e0d6bb1425436e6e595459c5c37fddb9be973212c02ad85552d623364d50b8d5b89
+  languageName: node
+  linkType: hard
+
+"puppeteer@npm:^11.0.0":
+  version: 11.0.0
+  resolution: "puppeteer@npm:11.0.0"
+  dependencies:
+    debug: 4.3.2
+    devtools-protocol: 0.0.901419
+    extract-zip: 2.0.1
+    https-proxy-agent: 5.0.0
+    node-fetch: 2.6.5
+    pkg-dir: 4.2.0
+    progress: 2.0.3
+    proxy-from-env: 1.1.0
+    rimraf: 3.0.2
+    tar-fs: 2.1.1
+    unbzip2-stream: 1.4.3
+    ws: 8.2.3
+  checksum: 36ff07f3f9c4fed1dc36bc2849c5d2e269ed31edcec15423184fb29c62414e8b902777a27741e4b143c35c4a37a03da11ec903a20e288c39de6dc75d1266891d
   languageName: node
   linkType: hard
 
@@ -34938,7 +34974,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^2.45.2, rollup@npm:^2.56.3, rollup@npm:^2.68.0, rollup@npm:^2.71.1, rollup@npm:^2.74.1":
+"rollup@npm:^2.45.2, rollup@npm:^2.56.3, rollup@npm:^2.68.0, rollup@npm:^2.71.1, rollup@npm:^2.74.1, rollup@npm:^2.79.1":
   version: 2.79.1
   resolution: "rollup@npm:2.79.1"
   dependencies:
@@ -39555,6 +39591,44 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vite@npm:^3.2.0-beta.2":
+  version: 3.2.5
+  resolution: "vite@npm:3.2.5"
+  dependencies:
+    esbuild: ^0.15.9
+    fsevents: ~2.3.2
+    postcss: ^8.4.18
+    resolve: ^1.22.1
+    rollup: ^2.79.1
+  peerDependencies:
+    "@types/node": ">= 14"
+    less: "*"
+    sass: "*"
+    stylus: "*"
+    sugarss: "*"
+    terser: ^5.4.0
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    less:
+      optional: true
+    sass:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: ad35b7008c2b62a167d1d1a82f0a0c60fa457733f1969e9eedf0b0077f67a7ac74b4c9477e75a397895150f09b6551f0c17841c5b05c34d9fe302bb0b5dc28a8
+  languageName: node
+  linkType: hard
+
 "vitest@npm:^0.23.4":
   version: 0.23.4
   resolution: "vitest@npm:0.23.4"
@@ -40257,6 +40331,21 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: 3a990b32ed08c72070d5e8913e14dfcd831919205be52a3ff0b4cdd998c8d554f167c9df3841605cde8b11d607768cacab3e823c58c96a5c08c987e093eb767a
+  languageName: node
+  linkType: hard
+
+"ws@npm:8.2.3":
+  version: 8.2.3
+  resolution: "ws@npm:8.2.3"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ^5.0.2
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: c869296ccb45f218ac6d32f8f614cd85b50a21fd434caf11646008eef92173be53490810c5c23aea31bc527902261fbfd7b062197eea341b26128d4be56a85e4
   languageName: node
   linkType: hard
 

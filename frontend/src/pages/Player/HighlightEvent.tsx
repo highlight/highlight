@@ -1,4 +1,4 @@
-import { eventWithTime } from '@highlight-run/rrweb/typings/types'
+import { eventWithTime } from '@highlight-run/rrweb-types'
 
 export type HighlightEvent = eventWithTime & { identifier: string }
 

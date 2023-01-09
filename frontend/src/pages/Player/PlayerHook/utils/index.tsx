@@ -1,10 +1,7 @@
 import { ErrorObject, Session, SessionComment } from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
 import { EventType } from '@highlight-run/rrweb'
-import {
-	playerMetaData,
-	SessionInterval,
-} from '@highlight-run/rrweb/typings/types'
+import { playerMetaData, SessionInterval } from '@highlight-run/rrweb-types'
 import { clamp } from '@util/numbers'
 import { message } from 'antd'
 import * as H from 'history'
