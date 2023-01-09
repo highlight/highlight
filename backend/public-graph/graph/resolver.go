@@ -781,6 +781,12 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 			return nil, e.New("Filtering out noisy MintParty error")
 		}
 	}
+	if projectID == 898 {
+		if errorObj.Event == `["\"LaunchDarklyFlagFetchError: Error fetching flag settings: 414\""]` ||
+			errorObj.Event == `["\"[LaunchDarkly] Error fetching flag settings: 414\""]` {
+			return nil, e.New("Filtering out noisy Superpowered error")
+		}
+	}
 
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
 		errorObj.Event = strings.Repeat(errorObj.Event[:ERROR_EVENT_MAX_LENGTH], 1)
