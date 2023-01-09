@@ -2,6 +2,7 @@ package errors
 
 import (
 	"crypto/tls"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,7 +15,7 @@ import (
 	"github.com/go-sourcemap/sourcemap"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	storage "github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/storage"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/util"
@@ -216,63 +217,79 @@ func getURLSourcemap(projectId int, version *string, stackTraceFileURL string, s
 		sourceMapFileName = strings.Replace(sourceMapFileName, "//# sourceMappingURL=", "", 1)
 	}
 
-	// construct sourcemap url from searched file
-	sourceMapURL := (stackTraceFileURL)[:stackFileNameIndex] + sourceMapFileName
-	// get path from url
-	u2, err := url.Parse(sourceMapURL)
-	stackTraceError.SourceMapURL = &sourceMapURL
-	stackTraceError.ActualSourcemapFetchedPath = &u2.Path
-	if err != nil {
-		if len(sourceMapURL) > 500 {
-			sourceMapURL = sourceMapURL[:500]
+	var sourceMapURL string
+	var sourceMapFileBytes []byte
+	// process an inlined sourcemap
+	if strings.HasPrefix(sourceMapFileName, "data:application/json;base64,") {
+		stackTraceError.SourcemapFetchStrategy = pointy.String("Inlined")
+		sourceMapURL = sourceMapFileName
+		stackTraceError.SourceMapURL = &sourceMapURL
+		sourceMapFileName = strings.Replace(sourceMapFileName, "data:application/json;base64,", "", 1)
+		sourceMapFileBytes, err = base64.StdEncoding.DecodeString(sourceMapFileName)
+		if err != nil {
+			stackTraceErrorCode = privateModel.SourceMappingErrorCodeInvalidSourceMapURL
+			stackTraceError.ErrorCode = &stackTraceErrorCode
+			return "", nil, e.Errorf("error parsing inline source map: %s", err.Error())
 		}
-		// SOURCEMAP_ERROR: sourceMapURL is not a valid URL
-		// (might be good to include the sourceMapURL in the user-facing error message)
-		stackTraceErrorCode = privateModel.SourceMappingErrorCodeInvalidSourceMapURL
-		stackTraceError.ErrorCode = &stackTraceErrorCode
-		err := e.Errorf("error parsing source map url: %s", sourceMapURL)
-		return "", nil, err
-	}
-	sourceMapFilePath := u2.Path
-	if sourceMapFilePath[0:1] == "/" {
-		sourceMapFilePath = sourceMapFilePath[1:]
-	}
-	stackTraceError.ActualSourcemapFetchedPath = &sourceMapFilePath
+	} else {
+		// construct sourcemap url from searched file
+		sourceMapURL = (stackTraceFileURL)[:stackFileNameIndex] + sourceMapFileName
+		// get path from url
+		u2, err := url.Parse(sourceMapURL)
+		stackTraceError.SourceMapURL = &sourceMapURL
+		stackTraceError.ActualSourcemapFetchedPath = &u2.Path
+		if err != nil {
+			if len(sourceMapURL) > 500 {
+				sourceMapURL = sourceMapURL[:500]
+			}
+			// SOURCEMAP_ERROR: sourceMapURL is not a valid URL
+			// (might be good to include the sourceMapURL in the user-facing error message)
+			stackTraceErrorCode = privateModel.SourceMappingErrorCodeInvalidSourceMapURL
+			stackTraceError.ErrorCode = &stackTraceErrorCode
+			err := e.Errorf("error parsing source map url: %s", sourceMapURL)
+			return "", nil, err
+		}
+		sourceMapFilePath := u2.Path
+		if sourceMapFilePath[0:1] == "/" {
+			sourceMapFilePath = sourceMapFilePath[1:]
+		}
+		stackTraceError.ActualSourcemapFetchedPath = &sourceMapFilePath
 
-	// fetch source map file
-	// try to get file from s3
-	sourceMapFileBytes, err := storageClient.ReadSourceMapFileFromS3(projectId, version, sourceMapFilePath)
-	sourcemapFetchStrategy := "S3"
-	stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
-	if err != nil {
-		// if not in s3, get from url and put in s3
-		sourceMapFileBytes, err = fetch.fetchFile(sourceMapURL)
-		sourcemapFetchStrategy = "URL"
+		// fetch source map file
+		// try to get file from s3
+		sourceMapFileBytes, err = storageClient.ReadSourceMapFileFromS3(projectId, version, sourceMapFilePath)
+		sourcemapFetchStrategy := "S3"
 		stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
 		if err != nil {
-			// fallback if we can't get the source file at all
-			// SOURCEMAP_ERROR: source map file does not exist in S3 and could not be found at the URL
-			// (user-facing error message can include the S3 path and URL that was searched)
-			stackTraceErrorCode = privateModel.SourceMappingErrorCodeSourcemapFileMissingInS3AndURL
-			stackTraceError.ErrorCode = &stackTraceErrorCode
-			sourcemapFetchStrategy = "S3 and URL"
+			// if not in s3, get from url and put in s3
+			sourceMapFileBytes, err = fetch.fetchFile(sourceMapURL)
+			sourcemapFetchStrategy = "URL"
 			stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
-			err := e.Wrapf(err, "error fetching source map file: %v", sourceMapURL)
-			return "", nil, err
-		}
-		smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
-		if err != nil || smap == nil {
-			// what we expected to be a source map is not. don't store it in s3
-			// SOURCEMAP_ERROR: sourcemap library could not parse the source map file
-			// (user-facing error message can include sourceMapURL)
-			stackTraceErrorCode = privateModel.SourceMappingErrorCodeSourcemapLibraryCouldntParse
-			stackTraceError.ErrorCode = &stackTraceErrorCode
-			err := e.Wrapf(err, "error parsing fetched source map: %v - %v, %v", sourceMapURL, smap, err)
-			return "", nil, err
-		}
-		_, err = storageClient.PushSourceMapFileToS3(projectId, version, sourceMapFilePath, sourceMapFileBytes)
-		if err != nil {
-			log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
+			if err != nil {
+				// fallback if we can't get the source file at all
+				// SOURCEMAP_ERROR: source map file does not exist in S3 and could not be found at the URL
+				// (user-facing error message can include the S3 path and URL that was searched)
+				stackTraceErrorCode = privateModel.SourceMappingErrorCodeSourcemapFileMissingInS3AndURL
+				stackTraceError.ErrorCode = &stackTraceErrorCode
+				sourcemapFetchStrategy = "S3 and URL"
+				stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
+				err := e.Wrapf(err, "error fetching source map file: %v", sourceMapURL)
+				return "", nil, err
+			}
+			smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
+			if err != nil || smap == nil {
+				// what we expected to be a source map is not. don't store it in s3
+				// SOURCEMAP_ERROR: sourcemap library could not parse the source map file
+				// (user-facing error message can include sourceMapURL)
+				stackTraceErrorCode = privateModel.SourceMappingErrorCodeSourcemapLibraryCouldntParse
+				stackTraceError.ErrorCode = &stackTraceErrorCode
+				err := e.Wrapf(err, "error parsing fetched source map: %v - %v, %v", sourceMapURL, smap, err)
+				return "", nil, err
+			}
+			_, err = storageClient.PushSourceMapFileToS3(projectId, version, sourceMapFilePath, sourceMapFileBytes)
+			if err != nil {
+				log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
+			}
 		}
 	}
 	return sourceMapURL, sourceMapFileBytes, nil

@@ -639,21 +639,23 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID st
 }
 
 // UpdateErrorGroupState is the resolver for the updateErrorGroupState field.
-func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state string) (*model.ErrorGroup, error) {
+func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state string, snoozedUntil *time.Time) (*model.ErrorGroup, error) {
 	errGroup, err := r.canAdminModifyErrorGroup(ctx, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to modify error group")
 	}
 
 	errorGroup := &model.ErrorGroup{}
-	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errGroup.ID}}).First(&errorGroup).Updates(&model.ErrorGroup{
-		State: state,
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errGroup.ID}}).First(&errorGroup).Updates(map[string]interface{}{
+		"State":        state,
+		"SnoozedUntil": snoozedUntil,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
 
 	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
-		"state": state,
+		"state":         state,
+		"snoozed_until": snoozedUntil,
 	}); err != nil {
 		return nil, e.Wrap(err, "error updating error group state in OpenSearch")
 	}
@@ -5431,7 +5433,7 @@ func (r *queryResolver) IsWorkspaceIntegratedWith(ctx context.Context, integrati
 			WorkspaceID:     workspace.ID,
 			IntegrationType: integrationType,
 		}).First(&workspaceMapping).Error; err != nil {
-			return false, err
+			return false, nil
 		}
 
 		if workspaceMapping == nil {
@@ -5652,6 +5654,10 @@ func (r *queryResolver) HeightWorkspaces(ctx context.Context, workspaceID int) (
 
 	if err != nil {
 		return nil, err
+	}
+
+	if accessToken == nil {
+		return []*modelInputs.HeightWorkspace{}, nil
 	}
 
 	workspaces, err := height.GetWorkspaces(*accessToken)

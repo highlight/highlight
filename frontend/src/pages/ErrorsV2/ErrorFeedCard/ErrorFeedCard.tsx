@@ -3,15 +3,18 @@ import { ErrorGroup, ErrorState, Maybe } from '@graph/schemas'
 import {
 	Box,
 	IconSolidSparkles,
-	IconSolidViewGrid,
 	IconSolidUsers,
+	IconSolidViewGrid,
 	Tag,
 	Text,
+	Tooltip,
+	vars,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { formatErrorGroupDate, getErrorGroupStats } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { useParams } from '@util/react-router/useParams'
+import moment from 'moment'
 import { Link } from 'react-router-dom'
 
 import * as style from './ErrorFeedCard.css'
@@ -29,6 +32,9 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 	const updatedDate = formatErrorGroupDate(errorGroup?.updated_at)
 
 	const { totalCount, userCount } = getErrorGroupStats(errorGroup)
+	const snoozed =
+		errorGroup?.snoozed_until &&
+		moment().isBefore(moment(errorGroup.snoozed_until))
 
 	return (
 		<Link
@@ -93,6 +99,44 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 									{errorGroup?.state.toLowerCase()}
 								</Text>
 							</Tag>
+							{snoozed && (
+								<Tooltip
+									trigger={
+										<Tag
+											className={style.snoozedTag}
+											shape="basic"
+											kind="secondary"
+											emphasis="high"
+										>
+											<Text>Snoozed</Text>
+										</Tag>
+									}
+								>
+									<Box
+										display="flex"
+										alignItems="center"
+										gap="4"
+									>
+										<Text color="n9" size="xSmall">
+											Snoozed until{' '}
+										</Text>
+										<Box
+											borderRadius="3"
+											p="4"
+											style={{
+												boxShadow: `0 0 0 1px ${vars.color.n5}`,
+												margin: -1,
+											}}
+										>
+											<Text size="xSmall" color="n11">
+												{moment(
+													errorGroup.snoozed_until,
+												).format('ddd, h:mm A')}
+											</Text>
+										</Box>
+									</Box>
+								</Tooltip>
+							)}
 							<Tag
 								shape="basic"
 								kind="secondary"

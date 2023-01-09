@@ -216,14 +216,10 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 				</Box>
 			</Box>
 
-			{isHighlightAdmin && (
-				<>
-					<Box borderBottom="secondary" pb="16">
-						<Heading level="h4">Distributions</Heading>
-					</Box>
-					<ErrorDistributions errorGroup={errorGroup} />
-				</>
-			)}
+			<Box borderBottom="secondary" pb="16">
+				<Heading level="h4">Distributions</Heading>
+			</Box>
+			<ErrorDistributions errorGroup={errorGroup} />
 		</Box>
 	)
 }

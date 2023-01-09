@@ -786,12 +786,12 @@ const SelectPopout = ({
 						kind="secondary"
 						size="medium"
 						shape="basic"
-						cssClass={[
+						className={clsx([
 							cssClass,
 							{
 								[styles.invalid]: invalid && !visible,
 							},
-						]}
+						])}
 						lines={limitWidth ? '1' : undefined}
 						disabled={disabled}
 					>
@@ -882,7 +882,7 @@ const QueryRule = ({
 					size="medium"
 					kind="secondary"
 					shape="basic"
-					cssClass={[newStyle.flatLeft]}
+					className={newStyle.flatLeft}
 					onClick={() => {
 						onRemove()
 					}}
