@@ -425,6 +425,7 @@ type ErrorGroup {
 	stack_trace: String
 	fields: [ErrorField]
 	state: ErrorState!
+	snoozed_until: Timestamp
 	environments: String
 	error_frequency: [Int64!]!
 	error_metrics: [ErrorDistributionItem!]!
@@ -1382,7 +1383,11 @@ type Mutation {
 	editWorkspace(id: ID!, name: String): Workspace
 	markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
 	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
-	updateErrorGroupState(secure_id: String!, state: String!): ErrorGroup
+	updateErrorGroupState(
+		secure_id: String!
+		state: String!
+		snoozed_until: Timestamp
+	): ErrorGroup
 	deleteProject(id: ID!): Boolean
 	sendAdminProjectInvite(
 		project_id: ID!

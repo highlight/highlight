@@ -349,10 +349,19 @@ export type UpdateBillingDetailsMutationOptions = Apollo.BaseMutationOptions<
 	Types.UpdateBillingDetailsMutationVariables
 >
 export const UpdateErrorGroupStateDocument = gql`
-	mutation updateErrorGroupState($secure_id: String!, $state: String!) {
-		updateErrorGroupState(secure_id: $secure_id, state: $state) {
+	mutation updateErrorGroupState(
+		$secure_id: String!
+		$state: String!
+		$snoozed_until: Timestamp
+	) {
+		updateErrorGroupState(
+			secure_id: $secure_id
+			state: $state
+			snoozed_until: $snoozed_until
+		) {
 			secure_id
 			state
+			snoozed_until
 		}
 	}
 `
@@ -376,6 +385,7 @@ export type UpdateErrorGroupStateMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      secure_id: // value for 'secure_id'
  *      state: // value for 'state'
+ *      snoozed_until: // value for 'snoozed_until'
  *   },
  * });
  */
@@ -6202,6 +6212,7 @@ export const GetErrorGroupsOpenSearchDocument = gql`
 				event
 				state
 				state
+				snoozed_until
 				environments
 				stack_trace
 				structured_stack_trace {
@@ -7404,6 +7415,7 @@ export const GetErrorGroupDocument = gql`
 			project_id
 			event
 			state
+			snoozed_until
 			structured_stack_trace {
 				fileName
 				lineNumber

@@ -138,11 +138,9 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 				>
 					Create Issue
 				</Menu.Button>
-				<Menu.List cssClass={style.menuList}>
+				<Menu.List>
 					<Menu.Heading>
 						<Box
-							p="8"
-							bb="secondary"
 							mb={integrationCount > 0 ? '4' : undefined}
 							userSelect="none"
 						>

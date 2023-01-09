@@ -691,6 +691,7 @@ query GetErrorGroupsOpenSearch(
 			event
 			state
 			state
+			snoozed_until
 			environments
 			stack_trace
 			structured_stack_trace {
@@ -998,6 +999,7 @@ query GetErrorGroup($secure_id: String!) {
 		project_id
 		event
 		state
+		snoozed_until
 		structured_stack_trace {
 			fileName
 			lineNumber
