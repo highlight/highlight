@@ -127,3 +127,7 @@ type Mutation {
 type Query {
 	ignore(id: ID!): Any
 }
+
+enum PublicGraphError {
+	BillingQuotaExceeded
+}

@@ -1195,6 +1195,12 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	withinBillingQuota, quotaPercent := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
 	setupSpan.Finish()
 
+	if !withinBillingQuota {
+		if err := r.Redis.SetBillingQuotaExceeded(ctx, projectID); err != nil {
+			return nil, e.Wrap(err, "error setting billing quota exceeded")
+		}
+	}
+
 	// Get the user's ip, get geolocation data
 	location := &Location{
 		City:      "",
