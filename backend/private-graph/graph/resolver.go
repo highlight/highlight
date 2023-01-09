@@ -821,36 +821,6 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 	return segment, nil
 }
 
-func (r *Resolver) UpdateSessionsVisibility(workspaceID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
-	isPlanUpgrade := true
-	switch originalPlan {
-	case modelInputs.PlanTypeFree:
-		if newPlan == modelInputs.PlanTypeFree {
-			isPlanUpgrade = false
-		}
-	case modelInputs.PlanTypeBasic:
-		if newPlan == modelInputs.PlanTypeFree {
-			isPlanUpgrade = false
-		}
-	case modelInputs.PlanTypeStartup:
-		if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic {
-			isPlanUpgrade = false
-		}
-	case modelInputs.PlanTypeEnterprise:
-		if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic || newPlan == modelInputs.PlanTypeStartup {
-			isPlanUpgrade = false
-		}
-	}
-	if isPlanUpgrade {
-		if err := r.DB.Model(&model.Session{}).
-			Where("project_id in (SELECT id FROM projects WHERE workspace_id=?)", workspaceID).
-			Where(&model.Session{WithinBillingQuota: &model.F}).
-			Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
-			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
-		}
-	}
-}
-
 func (r *Resolver) SendEmailAlert(
 	tos []*mail.Email,
 	ccs []*mail.Email,
@@ -1372,13 +1342,6 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 		}).Error; err != nil {
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating BillingEmailHistory objects for workspace %d", workspace.ID)
 	}
-
-	// mark sessions as within billing quota on plan upgrade
-	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
-	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
-	r.PrivateWorkerPool.SubmitRecover(func() {
-		r.UpdateSessionsVisibility(workspace.ID, tier, modelInputs.PlanTypeFree)
-	})
 
 	return nil
 }

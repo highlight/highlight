@@ -1817,11 +1817,10 @@ func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model
 	}
 
 	var quota int
-	var stripePlan privateModel.PlanType
+	stripePlan := privateModel.PlanType(workspace.PlanTier)
 	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
 		quota = *workspace.MonthlySessionLimit
 	} else {
-		stripePlan := privateModel.PlanType(workspace.PlanTier)
 		quota = pricing.TypeToQuota(stripePlan)
 	}
 
