@@ -1945,8 +1945,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 			}
 			if (searchParamsToUrlParams.query !== undefined) {
 				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
-			} else {
-				setSearchParams(EmptyErrorsSearchParams)
 			}
 		}
 
