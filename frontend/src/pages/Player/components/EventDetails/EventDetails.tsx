@@ -16,6 +16,7 @@ import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
+import WebVitalSimpleRenderer from '@pages/Player/StreamElement/Renderers/WebVitals/WebVitalRender'
 import { getEventRenderDetails } from '@pages/Player/StreamElement/StreamElement'
 import {
 	getTimelineEventDisplayName,
@@ -155,28 +156,37 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 				</Tag>
 			</Box>
 			<Box as="span" mr="12" ml="12" borderBottom="secondary" />
-			<Box display="flex" pt="8" pr="12" pb="8" pl="12">
-				{typeof payload === 'object' ? (
-					<TableList
-						data={Object.entries(payload).map(([k, v]) => ({
-							keyDisplayValue: k,
-							valueDisplayValue: v as any,
-						}))}
+			{payload.vitals ? (
+				<Box p="16">
+					<WebVitalSimpleRenderer
+						showDetailedView
+						vitals={payload.vitals}
 					/>
-				) : (
-					<TableList
-						data={[
-							{
-								keyDisplayValue: 'Payload',
-								valueDisplayValue:
-									typeof payload === 'string'
-										? payload
-										: JSON.stringify(payload),
-							},
-						]}
-					/>
-				)}
-			</Box>
+				</Box>
+			) : (
+				<Box display="flex" pt="8" pr="12" pb="8" pl="12">
+					{typeof payload === 'object' ? (
+						<TableList
+							data={Object.entries(payload).map(([k, v]) => ({
+								keyDisplayValue: k,
+								valueDisplayValue: v as any,
+							}))}
+						/>
+					) : (
+						<TableList
+							data={[
+								{
+									keyDisplayValue: 'Payload',
+									valueDisplayValue:
+										typeof payload === 'string'
+											? payload
+											: JSON.stringify(payload),
+								},
+							]}
+						/>
+					)}
+				</Box>
+			)}
 		</Box>
 	)
 })
