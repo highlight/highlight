@@ -78,15 +78,8 @@ const DevToolsWindowV2: React.FC<
 						ref={panelRef}
 						style={{ width: props.width }}
 					>
-						<div className="absolute flex justify-center align-middle">
-							<button
-								className="flex cursor-ns-resize justify-center border-none bg-transparent p-2 outline-none"
-								ref={handleRef}
-							>
-								<div className="relative h-2 w-10 rounded-full bg-gray-200" />
-							</button>
-						</div>
 						<Tabs<Tab>
+							handleRef={handleRef}
 							tab={Tab.Console}
 							setTab={(t: Tab) => {
 								setTab(t)

@@ -17,6 +17,7 @@ type Props<T extends string> = styles.Variants & {
 	tab: T
 	setTab: (tab: T) => void
 	right?: React.ReactNode
+	handleRef?: (ref: HTMLElement | null) => void
 }
 
 export const Tabs = function <T extends string>({
@@ -24,6 +25,7 @@ export const Tabs = function <T extends string>({
 	tab,
 	setTab,
 	right,
+	handleRef,
 }: Props<T>) {
 	const [hoveredTab, setHoveredTab] = React.useState<string>()
 	const currentPage = pages[tab]
@@ -83,7 +85,10 @@ export const Tabs = function <T extends string>({
 				{right}
 			</Box>
 			{currentPage && (
-				<Box className={styles.pageWrapper}>{pages[tab].page}</Box>
+				<Box className={styles.pageWrapper}>
+					<Box ref={handleRef} className={styles.handle} />
+					{pages[tab].page}
+				</Box>
 			)}
 		</Box>
 	)

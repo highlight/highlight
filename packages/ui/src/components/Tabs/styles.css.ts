@@ -5,7 +5,6 @@ import { style } from '@vanilla-extract/css'
 import { themeVars } from '../../css/theme.css'
 
 export const pageWrapper = style({
-	borderTop: `1px solid ${colors.n6}`,
 	width: '100%',
 	height: '100%',
 })
@@ -17,6 +16,12 @@ export const controlBarButton = style({
 
 export const tabText = style({
 	display: 'flex',
+})
+
+export const handle = style({
+	backgroundColor: colors.n6,
+	height: 1,
+	width: '100%',
 })
 
 export const controlBarVariants = recipe({
