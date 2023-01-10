@@ -299,6 +299,19 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				</div>
 			</Box>
 
+			{errorGroup?.type === 'console.error' &&
+				errorGroup.event.length > 1 && (
+					<>
+						<Text size="large" weight="bold">
+							Error event data
+						</Text>
+
+						<Box bt="secondary" my="12" py="16">
+							<JsonViewer src={errorGroup.event} collapsed={1} />
+						</Box>
+					</>
+				)}
+
 			<Text size="large" weight="bold">
 				Stack trace
 			</Text>
