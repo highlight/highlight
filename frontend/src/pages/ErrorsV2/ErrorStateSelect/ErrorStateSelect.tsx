@@ -11,7 +11,6 @@ import {
 	Text,
 	useMenu,
 } from '@highlight-run/ui'
-import { indexeddbCache } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
 import { wait } from '@util/time'
 import { DatePicker, message } from 'antd'
@@ -46,7 +45,7 @@ export const ErrorStateSelect: React.FC<{
 				namedOperations.Query.GetErrorGroupsOpenSearch,
 			],
 			onQueryUpdated: async (obs) => {
-				await wait(250)
+				await wait(500)
 				await obs.refetch()
 			},
 			awaitRefetchQueries: true,
@@ -66,12 +65,6 @@ export const ErrorStateSelect: React.FC<{
 					snoozed_until: snoozedUntil,
 				},
 				onCompleted: async () => {
-					await indexeddbCache.deleteItem({
-						operation: 'GetErrorGroup',
-						variables: {
-							secure_id: error_secure_id,
-						},
-					})
 					showStateUpdateMessage(newState, snoozedUntil)
 					setMenuState(MenuState.Default)
 					setErrorState(newState)
