@@ -2,6 +2,7 @@ import { DropdownIndicator } from '@components/DropdownIndicator/DropdownIndicat
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { useGetQuickFieldsOpensearchQuery } from '@graph/hooks'
 import AsyncSelect from '@highlight-run/react-select/async'
+import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
@@ -143,12 +144,10 @@ const QuickSearch = () => {
 	const [lastTyped, setLastTyped] = useState('')
 	const [lastLoadedQuery, setLastLoadedQuery] = useState<string>()
 	const [isTyping, setIsTyping] = useState(false)
-	const {
-		setSearchParams,
-		setExistingParams,
-		setShowStarredSessions,
-		removeSelectedSegment,
-	} = useSearchContext()
+	const sessionSearchContext = useSearchContext()
+
+	const errorSearchContext = useErrorSearchContext()
+
 	const selectRef = useRef<any>(null)
 	const {
 		isQuickSearchOpen: isMenuOpen,
@@ -303,8 +302,8 @@ const QuickSearch = () => {
 			}
 
 			history.push(`/${project_id}/errors`)
-			setExistingParams(searchParams)
-			setSearchParams(searchParams)
+			errorSearchContext.setExistingParams(searchParams)
+			errorSearchContext.setSearchParams(searchParams)
 		} else {
 			let verb = 'is'
 			if (CONTAINS_KEYS.has(field.name) || field.value.startsWith('/')) {
@@ -318,10 +317,10 @@ const QuickSearch = () => {
 				}),
 			}
 			history.push(`/${project_id}/sessions`)
-			setExistingParams(searchParams)
-			setSearchParams(searchParams)
-			setShowStarredSessions(false)
-			removeSelectedSegment()
+			sessionSearchContext.setExistingParams(searchParams)
+			sessionSearchContext.setSearchParams(searchParams)
+			sessionSearchContext.setShowStarredSessions(false)
+			sessionSearchContext.removeSelectedSegment()
 		}
 		setLastLoadedQuery('')
 	}
