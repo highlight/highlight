@@ -454,7 +454,7 @@ func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, 
 
 func (r *Resolver) GetErrorGroupFrequenciesUnsampled(ctx context.Context, projectID int, errorGroupID int) ([]*modelInputs.ErrorDistributionItem, error) {
 	bucket, _ := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, time.Minute)
-	query := timeseries.GetDownsampleQuery(bucket, timeseries.Error, fmt.Sprintf(`|> filter(fn: (r) => r.ErrorGroupID == "%d")`, errorGroupID))
+	query := timeseries.GetDownsampleQuery(bucket, timeseries.Error, fmt.Sprintf(`|> filter(fn: (r) => r.ErrorGroupID == "%d")`, errorGroupID), true)
 	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
 	span.SetTag("projectID", projectID)
 	span.SetTag("errorGroupID", errorGroupID)

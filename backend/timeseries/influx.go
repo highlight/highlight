@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -158,7 +159,10 @@ func (i *InfluxDB) createWriteAPI(bucket string, measurement Measurement) api.Wr
 	if err == nil && len(tasks) < 1 {
 		// create a task to downsample data
 		taskFlux := getDownsampleTask(b, downsampleB, taskName, config)
-		_, _ = i.Client.TasksAPI().CreateTaskByFlux(context.Background(), taskFlux, i.orgID)
+		_, err = i.Client.TasksAPI().CreateTaskByFlux(context.Background(), taskFlux, i.orgID)
+		if err != nil {
+			log.WithError(err).Error("failed to create influx task")
+		}
 	}
 	// since the create operation is not idempotent, check if we created duplicate tasks and clean up
 	tasks, _ = i.Client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
@@ -172,6 +176,8 @@ func (i *InfluxDB) createWriteAPI(bucket string, measurement Measurement) api.Wr
 		for _, t := range tasks[1:] {
 			_ = i.Client.TasksAPI().DeleteTaskWithID(context.Background(), t.Id)
 		}
+	} else {
+		log.Errorf("influx.go expected a task to be created for %s:%s but none was found", downsampleB, taskName)
 	}
 	for version := 1; version < config.Version; version++ {
 		taskName := fmt.Sprintf("task-%s", downsampleB)
@@ -282,11 +288,15 @@ func (i *InfluxDB) Stop() {
 	i.Client.Close()
 }
 
-func GetDownsampleQuery(bucket string, config MeasurementConfig, extraFilters string) string {
+func GetDownsampleQuery(bucket string, config MeasurementConfig, extraFilters string, addImports bool) string {
+	var importStmt string
+	if addImports {
+		importStmt = `import "join"`
+	}
 	switch config.Name {
 	case Configs["errors"].Name:
 		return fmt.Sprintf(`
-import "join"
+%[6]s
 
 counts = from(bucket: "%[2]s")
 		|> range(start: -%[1]dm)
@@ -330,7 +340,7 @@ environmentCounts = from(bucket: "%[2]s")
 join.time(left: counts, right: sessionCounts, as: (l, r) => ({l with count: l._value, sessionCount: r._value}))
 	|> join.time(right: identifierCounts, as: (l, r) => ({l with identifierCount: r._value}))
 	|> join.time(right: environmentCounts, as: (l, r) => ({l with environmentCount: r._value}))
-	`, int(config.DownsampleInterval.Minutes()), bucket, config.Name, "ErrorGroupID", extraFilters)
+	`, int(config.DownsampleInterval.Minutes()), bucket, config.Name, "ErrorGroupID", extraFilters, importStmt)
 	}
 	return fmt.Sprintf(`
 		from(bucket: "%s")
@@ -341,8 +351,7 @@ join.time(left: counts, right: sessionCounts, as: (l, r) => ({l with count: l._v
 }
 
 func getDownsampleTask(bucket string, downsampleBucket string, taskName string, config MeasurementConfig) string {
-	switch config.Name {
-	case Configs["errors"].Name:
+	if strings.HasPrefix(string(config.Name), string(Configs["errors"].Name)) {
 		return fmt.Sprintf(`
 import "join"
 
@@ -350,12 +359,12 @@ option task = {name: "%[1]s", every: %[2]dm}
 %[5]s
 	|> set(key: "_measurement", value: "%[3]s")
 	|> to(bucket: "%[4]s", fieldFn: (r) => ({"count": r.count, "sessionCount": r.sessionCount, "identifierCount": r.identifierCount, "environmentCount": r.environmentCount}))
-	`, taskName, int(config.DownsampleInterval.Minutes()), config.AggName, downsampleBucket, GetDownsampleQuery(bucket, config, ""))
+	`, taskName, int(config.DownsampleInterval.Minutes()), config.AggName, downsampleBucket, GetDownsampleQuery(bucket, config, "", false))
 	}
 	return fmt.Sprintf(`
 		option task = {name: "%s", every: %dm}
 %s
 			|> set(key: "_measurement", value: "%s")
 			|> to(bucket: "%s")
-	`, taskName, int(config.DownsampleInterval.Minutes()), GetDownsampleQuery(bucket, config, ""), config.AggName, downsampleBucket)
+	`, taskName, int(config.DownsampleInterval.Minutes()), GetDownsampleQuery(bucket, config, "", false), config.AggName, downsampleBucket)
 }
