@@ -2,6 +2,7 @@ import { DropdownIndicator } from '@components/DropdownIndicator/DropdownIndicat
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { useGetQuickFieldsOpensearchQuery } from '@graph/hooks'
 import AsyncSelect from '@highlight-run/react-select/async'
+import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
@@ -292,7 +293,18 @@ const QuickSearch = () => {
 		}
 
 		if (field.type === ERROR_TYPE) {
+			const verb = 'is'
+			const searchParams = {
+				...EmptyErrorsSearchParams,
+				query: JSON.stringify({
+					isAnd: true,
+					rules: [[getQueryFieldKey(field), verb, field.value]],
+				}),
+			}
+
 			history.push(`/${project_id}/errors`)
+			setExistingParams(searchParams)
+			setSearchParams(searchParams)
 		} else {
 			let verb = 'is'
 			if (CONTAINS_KEYS.has(field.name) || field.value.startsWith('/')) {
