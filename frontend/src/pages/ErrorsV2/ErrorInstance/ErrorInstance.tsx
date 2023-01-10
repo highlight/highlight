@@ -123,7 +123,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 	let errorGroupEvent
 	if (errorGroup?.type === 'console.error' && errorGroup.event.length > 1) {
-		errorGroupEvent = errorGroup.event[1]
+		errorGroupEvent = errorGroup.event
 	}
 
 	if (!errorInstance || !errorInstance?.error_object) {
@@ -307,13 +307,11 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			{errorGroupEvent && (
 				<>
 					<Text size="large" weight="bold">
-						Error Event
+						Error event data
 					</Text>
 
 					<Box bt="secondary" my="12" py="16">
-						<Text family="monospace" break="word">
-							{errorGroupEvent}
-						</Text>
+						<JsonViewer src={errorGroupEvent} collapsed={1} />
 					</Box>
 				</>
 			)}
