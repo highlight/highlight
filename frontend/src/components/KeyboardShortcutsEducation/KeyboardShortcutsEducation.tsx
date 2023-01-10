@@ -372,11 +372,35 @@ export const PlayerKeyboardShortcuts: ShortcutItem[] = [
 
 export const ErrorsKeyboardShortcuts: ShortcutItem[] = [
 	{
+		description: `Toggle left sidebar`,
+		shortcut: [cmdKey, 'b'],
+	},
+	{
 		description: `Next error`,
 		shortcut: ['j'],
 	},
 	{
 		description: `Previous error`,
 		shortcut: ['k'],
+	},
+	{
+		description: `Next error instance`,
+		shortcut: [']'],
+	},
+	{
+		description: `Previous error instance`,
+		shortcut: ['['],
+	},
+	{
+		description: `Toggle error status menu`,
+		shortcut: ['e'],
+	},
+	{
+		description: `Go to Instances tab`,
+		shortcut: ['i'],
+	},
+	{
+		description: `Go to Metrics tab`,
+		shortcut: ['m'],
 	},
 ]

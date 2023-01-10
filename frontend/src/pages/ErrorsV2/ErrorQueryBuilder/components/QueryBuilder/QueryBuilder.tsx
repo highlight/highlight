@@ -1,11 +1,12 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
+import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import Popover from '@components/Popover/Popover'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
-import Tooltip from '@components/Tooltip/Tooltip'
+import { default as OldTooltip } from '@components/Tooltip/Tooltip'
 import {
 	BackendSearchQuery,
 	BaseSearchContext,
@@ -43,6 +44,7 @@ import {
 	Menu,
 	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
@@ -776,7 +778,7 @@ const SelectPopout = ({
 			visible={visible}
 			destroyTooltipOnHide
 		>
-			<Tooltip
+			<OldTooltip
 				title={tooltipMessage}
 				mouseEnterDelay={1.5}
 				overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
@@ -805,7 +807,7 @@ const SelectPopout = ({
 							value.options[0].label}
 					</Tag>
 				</span>
-			</Tooltip>
+			</OldTooltip>
 		</Popover>
 	)
 }
@@ -2336,14 +2338,24 @@ function QueryBuilder(props: QueryBuilderProps) {
 							/>
 						)}
 
-					<ButtonIcon
-						kind="secondary"
-						size="small"
-						shape="square"
-						emphasis="medium"
-						icon={<IconSolidLogout size={14} />}
-						onClick={() => setShowLeftPanel(false)}
-					/>
+					<Tooltip
+						placement="bottom"
+						trigger={
+							<ButtonIcon
+								kind="secondary"
+								size="small"
+								shape="square"
+								emphasis="medium"
+								icon={<IconSolidLogout size={14} />}
+								onClick={() => setShowLeftPanel(false)}
+							/>
+						}
+					>
+						<KeyboardShortcut
+							label="Toggle sidebar"
+							shortcut={['cmd', 'b']}
+						/>
+					</Tooltip>
 				</Box>
 			</Box>
 		)

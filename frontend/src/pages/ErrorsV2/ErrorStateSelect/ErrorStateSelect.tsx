@@ -2,6 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { useUpdateErrorGroupStateMutation } from '@graph/hooks'
 import { ErrorState, Maybe } from '@graph/schemas'
 import {
+	Badge,
 	Box,
 	IconSolidCheveronDown,
 	Menu,
@@ -13,6 +14,7 @@ import { useParams } from '@util/react-router/useParams'
 import { DatePicker, message } from 'antd'
 import moment from 'moment'
 import React, { useEffect } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import * as styles from './style.css'
@@ -93,6 +95,7 @@ export const ErrorStateSelect: React.FC<{
 					}
 				}}
 			>
+				<MenuHandler />
 				<Menu.Button
 					size="small"
 					kind="secondary"
@@ -115,7 +118,18 @@ export const ErrorStateSelect: React.FC<{
 						{menuState === MenuState.Default ? (
 							<>
 								<Menu.Heading>
-									<Text>Status</Text>
+									<Text
+										weight="bold"
+										size="xSmall"
+										color="n11"
+									>
+										Status
+									</Text>
+									<Badge
+										variant="grey"
+										size="tiny"
+										label="e"
+									/>
 								</Menu.Heading>
 								{ErrorStatuses.map((option) => (
 									<Menu.Item
@@ -216,6 +230,21 @@ const DatepickerMenuItem: React.FC<{
 			/>
 		</Menu.Item>
 	)
+}
+
+const MenuHandler: React.FC = () => {
+	const menu = useMenu()
+
+	useHotkeys(
+		'e',
+		() => {
+			menu.setOpen(!menu.open)
+			menu.baseRef.current?.focus()
+		},
+		[menu.open],
+	)
+
+	return <></>
 }
 
 const showStateUpdateMessage = (
