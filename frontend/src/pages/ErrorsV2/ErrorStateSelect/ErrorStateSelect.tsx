@@ -14,7 +14,7 @@ import { useParams } from '@util/react-router/useParams'
 import { wait } from '@util/time'
 import { DatePicker, message } from 'antd'
 import moment from 'moment'
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 
 import * as styles from './style.css'
@@ -33,36 +33,44 @@ export const ErrorStateSelect: React.FC<{
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
 	)
+	const [errorState, setErrorState] = useState<ErrorState>(initialErrorState)
+
 	const { error_secure_id } = useParams<{ error_secure_id: string }>()
 	const [updateErrorGroupState, { loading }] =
 		useUpdateErrorGroupStateMutation({
-			refetchQueries: [namedOperations.Query.GetErrorGroupsOpenSearch],
+			refetchQueries: [
+				namedOperations.Query.GetErrorGroup,
+				namedOperations.Query.GetErrorGroupsOpenSearch,
+			],
+			onQueryUpdated: async (obs) => {
+				await wait(250)
+				await obs.refetch()
+			},
+			awaitRefetchQueries: true,
 		})
+
 	const { isLoggedIn } = useAuthContext()
 	const ErrorStatuses = Object.keys(ErrorState)
 	const snoozed = snoozedUntil && moment().isBefore(moment(snoozedUntil))
 
-	const handleChange = async (
-		newState: ErrorState,
-		snoozedUntil?: string,
-	) => {
-		await updateErrorGroupState({
-			variables: {
-				secure_id: error_secure_id,
-				state: newState,
-				snoozed_until: snoozedUntil,
-			},
-			refetchQueries: [namedOperations.Query.GetErrorGroupsOpenSearch],
-			onQueryUpdated: async (observableQuery) => {
-				// wait until the changes propage to openSearch nodes
-				await wait(5000)
-				await observableQuery.refetch()
-			},
-		})
-
-		showStateUpdateMessage(newState, snoozedUntil)
-		setMenuState(MenuState.Default)
-	}
+	const handleChange = useCallback(
+		async (newState: ErrorState, snoozedUntil?: string) => {
+			if (initialErrorState === newState) return
+			await updateErrorGroupState({
+				variables: {
+					secure_id: error_secure_id,
+					state: newState,
+					snoozed_until: snoozedUntil,
+				},
+				onCompleted: () => {
+					showStateUpdateMessage(newState, snoozedUntil)
+					setMenuState(MenuState.Default)
+					setErrorState(newState)
+				},
+			})
+		},
+		[error_secure_id, initialErrorState, updateErrorGroupState],
+	)
 
 	const history = useHistory()
 	const snoozeMenuItems = () => [
@@ -119,7 +127,7 @@ export const ErrorStateSelect: React.FC<{
 					iconRight={<IconSolidCheveronDown />}
 				>
 					<Text case="capital">
-						{initialErrorState.toLowerCase()}{' '}
+						{errorState.toLowerCase()}{' '}
 						{snoozed && (
 							<span style={{ textTransform: 'none' }}>
 								(Snoozed until{' '}
@@ -227,8 +235,9 @@ const DatepickerMenuItem: React.FC<{
 				className={styles.datepicker}
 				onChange={(datetime) => {
 					if (datetime) {
-						onChange(state, datetime.format())
-						menu.setOpen(false)
+						onChange(state, datetime.format()).then(() => {
+							menu.setOpen(false)
+						})
 					}
 				}}
 			/>

@@ -271,6 +271,38 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 	return nil
 }
 
+func (c *Client) UpdateSynchronous(index Index, id int, obj map[string]interface{}) error {
+	if c == nil || !c.isInitialized {
+		return nil
+	}
+
+	documentId := strconv.Itoa(id)
+
+	b, err := json.Marshal(obj)
+	if err != nil {
+		return e.Wrap(err, "OPENSEARCH_ERROR error marshalling map for update")
+	}
+
+	body := strings.NewReader(fmt.Sprintf("{ \"doc\" : %s }", string(b)))
+
+	indexStr := GetIndex(index)
+
+	req := opensearchapi.UpdateRequest{
+		Index:      indexStr,
+		DocumentID: documentId,
+		Body:       body,
+	}
+
+	_, err = req.Do(context.Background(), c.Client)
+	if err != nil {
+		return e.Wrap(err, "OPENSEARCH_ERROR error updating document")
+	}
+
+	// log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
+
+	return nil
+}
+
 func (c *Client) Delete(index Index, id int) error {
 	if c == nil || !c.isInitialized {
 		return nil
