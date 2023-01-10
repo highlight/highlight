@@ -147,7 +147,6 @@ const QuickSearch = () => {
 		setExistingParams,
 		setShowStarredSessions,
 		removeSelectedSegment,
-		setQueryBuilderInput,
 	} = useSearchContext()
 	const selectRef = useRef<any>(null)
 	const {
@@ -293,11 +292,6 @@ const QuickSearch = () => {
 		}
 
 		if (field.type === ERROR_TYPE) {
-			setQueryBuilderInput({
-				type: 'errors',
-				isAnd: true,
-				rules: [[getQueryFieldKey(field), 'is', field.value]],
-			})
 			history.push(`/${project_id}/errors`)
 		} else {
 			let verb = 'is'

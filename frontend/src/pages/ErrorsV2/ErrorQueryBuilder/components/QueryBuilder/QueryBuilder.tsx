@@ -1301,7 +1301,6 @@ interface QueryBuilderProps {
 	customFields: CustomField[]
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
 	fieldData?: GetFieldTypesQuery
-	getQueryFromParams: (params: any) => QueryBuilderState
 	readonly?: boolean
 }
 
