@@ -1,14 +1,20 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { Button } from '@components/Button'
 import { getAttachmentUrl } from '@components/Comment/AttachmentList/AttachmentList'
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
-import { useGetErrorIssuesQuery } from '@graph/hooks'
-import { GetErrorGroupQuery } from '@graph/operations'
+import {
+	useGetErrorIssuesQuery,
+	useRemoveErrorIssueMutation,
+} from '@graph/hooks'
+import { GetErrorGroupQuery, namedOperations } from '@graph/operations'
 import { ExternalAttachment, IntegrationType } from '@graph/schemas'
 import {
 	IconSolidCheveronRight,
+	IconSolidClipboardCopy,
 	IconSolidDocumentAdd,
+	IconSolidExternalLink,
 	IconSolidPlusSm,
+	IconSolidTrash,
+	vars,
 } from '@highlight-run/ui'
 import { Box, Menu, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -22,6 +28,7 @@ import {
 } from '@pages/IntegrationsPage/Integrations'
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import { getErrorBody } from '@util/errors/errorUtils'
+import { copyToClipboard } from '@util/string'
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -52,6 +59,11 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 				error_group_secure_id: errorGroup?.secure_id ?? '',
 			},
 			fetchPolicy: 'network-only',
+		})
+
+	const [removeErrorIssue, { loading: isDeleting }] =
+		useRemoveErrorIssueMutation({
+			refetchQueries: [namedOperations.Query.GetErrorIssues],
 		})
 
 	const integrations: Array<[boolean | undefined, IssueTrackerIntegration]> =
@@ -90,12 +102,14 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 		isLoadingHeight ||
 		isLoadingErrorIssues
 
+	const [forceIssueCreationMenu, setForceIssueCreationMenu] = useState(false)
 	const hasIssue =
-		!isLoadingErrorIssues &&
+		!forceIssueCreationMenu &&
+		!isLoading &&
 		errorIssues?.error_issue &&
 		errorIssues.error_issue.length > 0
 
-	const menu = useMemo(() => {
+	const newIssueMenu = useMemo(() => {
 		const options = integrations
 			.map(([isIntegrated, integration]) => {
 				if (!isIntegrated) return null
@@ -133,21 +147,21 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 					kind="secondary"
 					size="small"
 					emphasis="high"
-					disabled={!isLoggedIn || isLoading}
+					disabled={!isLoggedIn || isLoading || !!showNewIssueModal}
 					iconLeft={<IconSolidDocumentAdd />}
 				>
 					Create Issue
 				</Menu.Button>
 				<Menu.List>
 					<Menu.Heading>
-						<Box
-							mb={integrationCount > 0 ? '4' : undefined}
+						<Text
+							size="xxSmall"
+							weight="medium"
+							color="n11"
 							userSelect="none"
 						>
-							<Text size="xxSmall" weight="medium" color="n11">
-								Attach an issue
-							</Text>
-						</Box>
+							Attach an issue
+						</Text>
 					</Menu.Heading>
 					{options}
 					{options.length > 0 && <Menu.Divider />}
@@ -157,9 +171,12 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 								gap="4"
 								display="flex"
 								alignItems="center"
-								color="n11"
+								cssClass={style.menuOption}
 							>
-								<IconSolidPlusSm size={16} />
+								<IconSolidPlusSm
+									size={16}
+									color={vars.theme.static.content.weak}
+								/>
 								<Text size="small" weight="medium">
 									Add new integration
 								</Text>
@@ -169,9 +186,9 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 				</Menu.List>
 			</Menu>
 		)
-	}, [integrationCount, integrations, isLoading, isLoggedIn, projectId])
+	}, [integrations, isLoading, isLoggedIn, projectId, showNewIssueModal])
 
-	const issueButton = useMemo(() => {
+	const openIssueMenu = useMemo(() => {
 		const issue = errorIssues?.error_issue[0]
 		if (!errorIssues?.error_issue || !issue) {
 			return null
@@ -179,36 +196,140 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 		const Icon = integrations.find(
 			(integration) => integration[1]?.name === issue.integration_type,
 		)?.[1]?.Icon
+		const url = getAttachmentUrl(issue as ExternalAttachment)
+
 		return (
-			<Button
-				kind="secondary"
-				size="small"
-				emphasis="medium"
-				disabled={!isLoggedIn}
-				iconLeft={Icon ? <Icon /> : undefined}
-				trackingId="errorIssueButton"
-				cssClass={style.issueButton}
-				onClick={() => {
-					if (issue) {
-						window.open(
-							getAttachmentUrl(issue as ExternalAttachment),
-							'_blank',
-						)
-					}
-				}}
-			>
-				<Text lines="1">{issue.title}</Text>
-			</Button>
+			<Menu placement="bottom-end">
+				<Menu.Button
+					kind="secondary"
+					size="small"
+					emphasis="medium"
+					disabled={!isLoggedIn || isDeleting || isLoading}
+					iconLeft={Icon ? <Icon /> : undefined}
+					cssClass={style.issueButton}
+				>
+					<Text lines="1">{issue.title}</Text>
+				</Menu.Button>
+				<Menu.List>
+					<Menu.Heading>
+						<Text
+							size="xxSmall"
+							weight="medium"
+							color="n11"
+							userSelect="none"
+						>
+							Issue details
+						</Text>
+					</Menu.Heading>
+					<Menu.Item
+						onClick={() => {
+							if (issue) {
+								window.open(url, '_blank')
+							}
+						}}
+					>
+						<Box
+							display="flex"
+							alignItems="center"
+							gap="4"
+							style={{ width: '100%' }}
+						>
+							<IconSolidExternalLink
+								size={16}
+								color={vars.theme.static.content.weak}
+							/>
+							<Box mr="auto" cssClass={style.menuOption}>
+								<Text
+									size="small"
+									weight="medium"
+									userSelect="none"
+								>
+									View in {issue.integration_type}
+								</Text>
+							</Box>
+						</Box>
+					</Menu.Item>
+					<Menu.Item
+						onClick={() => {
+							if (issue) {
+								copyToClipboard(url, {
+									onCopyText: `Copied ${issue.integration_type} issue link to clipboard!`,
+								})
+							}
+						}}
+					>
+						<Box
+							display="flex"
+							alignItems="center"
+							gap="4"
+							style={{ width: '100%' }}
+							color="n8"
+						>
+							<IconSolidClipboardCopy
+								size={16}
+								color={vars.theme.static.content.weak}
+							/>
+							<Box mr="auto" cssClass={style.menuOption}>
+								<Text
+									size="small"
+									weight="medium"
+									userSelect="none"
+								>
+									Copy issue link
+								</Text>
+							</Box>
+						</Box>
+					</Menu.Item>
+
+					<Menu.Divider />
+
+					<Menu.Item>
+						<Box
+							gap="4"
+							display="flex"
+							alignItems="center"
+							cssClass={style.menuOption}
+							onClick={() => {
+								removeErrorIssue({
+									variables: { error_issue_id: issue.id },
+									onCompleted: () => {
+										setForceIssueCreationMenu(true)
+									},
+								})
+							}}
+						>
+							<IconSolidTrash
+								size={16}
+								color={vars.theme.static.content.weak}
+							/>
+							<Text size="small" weight="medium">
+								Remove issue
+							</Text>
+						</Box>
+					</Menu.Item>
+				</Menu.List>
+			</Menu>
 		)
-	}, [errorIssues?.error_issue, integrations, isLoggedIn])
+	}, [
+		removeErrorIssue,
+		errorIssues?.error_issue,
+		integrationCount,
+		integrations,
+		isDeleting,
+		isLoading,
+		isLoggedIn,
+	])
 
 	return (
 		<>
-			{hasIssue ? issueButton : menu}
+			{hasIssue ? openIssueMenu : newIssueMenu}
 			<NewIssueModal
 				selectedIntegration={showNewIssueModal ?? LINEAR_INTEGRATION}
 				visible={!!showNewIssueModal}
-				onClose={() => setShowNewIssueModal(undefined)}
+				onClose={() => {
+					setShowNewIssueModal(undefined)
+					setForceIssueCreationMenu(false)
+				}}
 				commentType="ErrorComment"
 				defaultIssueTitle={defaultIssueTitle}
 			/>

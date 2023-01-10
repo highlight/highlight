@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
+import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	useGetErrorGroupQuery,
@@ -12,6 +13,7 @@ import {
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
 	IconSolidExitRight,
+	Tooltip,
 	vars,
 } from '@highlight-run/ui'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
@@ -136,6 +138,14 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		[canMoveBackward, previousSecureId],
 	)
 
+	useHotkeys(
+		'cmd+b',
+		() => {
+			setShowLeftPanel(!showLeftPanel)
+		},
+		[showLeftPanel],
+	)
+
 	return (
 		<>
 			<Helmet>
@@ -168,18 +178,30 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 							>
 								<Box display="flex" gap="8">
 									{!showLeftPanel && (
-										<ButtonIcon
-											kind="secondary"
-											size="small"
-											shape="square"
-											emphasis="medium"
-											icon={
-												<IconSolidExitRight size={14} />
+										<Tooltip
+											placement="bottom"
+											trigger={
+												<ButtonIcon
+													kind="secondary"
+													size="small"
+													shape="square"
+													emphasis="medium"
+													icon={
+														<IconSolidExitRight
+															size={14}
+														/>
+													}
+													onClick={() =>
+														setShowLeftPanel(true)
+													}
+												/>
 											}
-											onClick={() =>
-												setShowLeftPanel(true)
-											}
-										/>
+										>
+											<KeyboardShortcut
+												label="Toggle sidebar"
+												shortcut={['cmd', 'b']}
+											/>
+										</Tooltip>
 									)}
 									<Box
 										borderRadius="6"
@@ -190,47 +212,72 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											boxShadow: `0 0 0 1px ${vars.color.n5} inset`,
 										}}
 									>
-										<ButtonIcon
-											kind="secondary"
-											size="small"
-											shape="square"
-											emphasis="low"
-											icon={
-												<IconSolidCheveronUp
-													size={14}
+										<Tooltip
+											placement="bottom"
+											trigger={
+												<ButtonIcon
+													kind="secondary"
+													size="small"
+													shape="square"
+													emphasis="low"
+													icon={
+														<IconSolidCheveronUp
+															size={14}
+														/>
+													}
+													cssClass={
+														styles.sessionSwitchButton
+													}
+													onClick={() => {
+														goToErrorGroup(
+															previousSecureId,
+														)
+													}}
+													disabled={!canMoveBackward}
 												/>
 											}
-											cssClass={
-												styles.sessionSwitchButton
-											}
-											onClick={() => {
-												goToErrorGroup(previousSecureId)
-											}}
-											disabled={!canMoveBackward}
-										/>
+										>
+											<KeyboardShortcut
+												label="Previous"
+												shortcut="k"
+											/>
+										</Tooltip>
+
 										<Box
 											as="span"
 											borderRight="secondary"
 										/>
-										<ButtonIcon
-											kind="secondary"
-											size="small"
-											shape="square"
-											emphasis="low"
-											icon={
-												<IconSolidCheveronDown
-													size={14}
+										<Tooltip
+											placement="bottom"
+											trigger={
+												<ButtonIcon
+													kind="secondary"
+													size="small"
+													shape="square"
+													emphasis="low"
+													icon={
+														<IconSolidCheveronDown
+															size={14}
+														/>
+													}
+													title="j"
+													cssClass={
+														styles.sessionSwitchButton
+													}
+													onClick={() => {
+														goToErrorGroup(
+															nextSecureId,
+														)
+													}}
+													disabled={!canMoveForward}
 												/>
 											}
-											title="j"
-											cssClass={
-												styles.sessionSwitchButton
-											}
-											onClick={() => {
-												goToErrorGroup(nextSecureId)
-											}}
-											disabled={!canMoveForward}
-										/>
+										>
+											<KeyboardShortcut
+												label="Next"
+												shortcut="j"
+											/>
+										</Tooltip>
 									</Box>
 								</Box>
 							</Box>

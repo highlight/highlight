@@ -116,7 +116,8 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						<Text color="black" size="large" weight="bold">
 							{userCount}
 						</Text>
-						{Math.abs(usersChange) > showChangeThresholdPercent ? (
+						{Math.abs(usersChange) > showChangeThresholdPercent &&
+						numberOfDays >= 1 ? (
 							<Tooltip
 								trigger={
 									<Tag
@@ -197,7 +198,8 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						<Text color="black" size="large" weight="bold">
 							{totalCount}
 						</Text>
-						{Math.abs(countChange) > showChangeThresholdPercent ? (
+						{Math.abs(countChange) > showChangeThresholdPercent &&
+						numberOfDays >= 1 ? (
 							<Tooltip
 								trigger={
 									<Tag
@@ -247,22 +249,30 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					</Box>
 				</Stat>
 				<Stat title={<Text color="n11">Last/first occurrence</Text>}>
-					<Box display="flex" gap="4" alignItems="center">
-						{errorGroup?.last_occurrence && (
-							<Text color="black" size="large" weight="bold">
-								{moment(errorGroup?.last_occurrence).fromNow(
-									true,
-								)}
-							</Text>
-						)}
-						{errorGroup?.first_occurrence && (
-							<Text color="n11" size="large" weight="bold">
-								{' / '}
-								{moment(errorGroup?.first_occurrence).fromNow(
-									true,
-								)}
-							</Text>
-						)}
+					<Box
+						display="flex"
+						gap="4"
+						alignItems="center"
+						flexShrink={0}
+						flexWrap="nowrap"
+					>
+						<Text color="black" size="large" weight="bold">
+							{errorGroup?.last_occurrence
+								? moment(errorGroup.last_occurrence).fromNow(
+										true,
+								  )
+								: 'just now'}
+						</Text>
+						<Text color="n11" size="large" weight="bold">
+							{' / '}
+						</Text>
+						<Text color="n11" size="large" weight="bold">
+							{errorGroup?.first_occurrence
+								? moment(errorGroup.first_occurrence).fromNow(
+										true,
+								  )
+								: 'just now'}
+						</Text>
 					</Box>
 				</Stat>
 

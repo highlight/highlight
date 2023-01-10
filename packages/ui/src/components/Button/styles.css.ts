@@ -91,6 +91,17 @@ export const variants = recipe({
 	],
 
 	variants: {
+		display: {
+			inlineBlock: {
+				display: 'inline-block',
+			},
+			inlineFlex: {
+				display: 'inline-flex',
+			},
+			block: {
+				display: 'block',
+			},
+		},
 		emphasis: {
 			high: {},
 			medium: {},

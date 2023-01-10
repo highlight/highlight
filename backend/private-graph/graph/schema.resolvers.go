@@ -53,7 +53,7 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -218,6 +218,9 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 
 // ErrorMetrics is the resolver for the error_metrics field.
 func (r *errorGroupResolver) ErrorMetrics(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorDistributionItem, error) {
+	if time.Since(obj.CreatedAt) <= time.Hour {
+		return r.GetErrorGroupFrequenciesUnsampled(ctx, obj.ProjectID, obj.ID)
+	}
 	return r.GetErrorGroupFrequencies(ctx, obj.ProjectID, []int{obj.ID}, modelInputs.ErrorGroupFrequenciesParamsInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
 			StartDate: time.Now().Add(-24 * 30 * time.Hour),

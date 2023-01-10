@@ -146,6 +146,8 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							issue_team_id: issueTeamId,
 							issue_description: issueDescription,
 						},
+						refetchQueries: [namedOperations.Query.GetErrorIssues],
+						awaitRefetchQueries: true,
 					})
 				}
 			} else {

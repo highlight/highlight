@@ -424,19 +424,23 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	return nil, e.New("admin doesn't exist in project")
 }
 
-func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, errorGroupID int) (*time.Time, *time.Time, error) {
-	bucket := r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors) + timeseries.Error.DownsampleBucketSuffix
+func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, errorGroupID int, errorGroupCreated time.Time) (*time.Time, *time.Time, error) {
+	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, time.Since(errorGroupCreated))
+	var filter string
+	if measurement == timeseries.Error.AggName {
+		filter = `|> filter(fn: (r) => r._value > 0)`
+	}
 	query := fmt.Sprintf(`
       query = () => from(bucket: "%[1]s")
 		|> range(start: 0, stop: now())
 		|> filter(fn: (r) => r._measurement == "%[2]s")
 		|> filter(fn: (r) => r.ErrorGroupID == "%[3]d")
-    	|> filter(fn: (r) => r._value > 0)
+    	%[4]s
 		|> group(columns: ["ErrorGroupID"])
 
       union(tables:[query() |> first(), query() |> last()])
         |> sort(columns: ["ErrorGroupID", "_field", "_time"])
-	`, bucket, timeseries.Error.AggName, errorGroupID)
+	`, bucket, measurement, errorGroupID, filter)
 	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupOccurrences")
 	span.SetTag("projectID", projectID)
 	span.SetTag("errorGroupID", errorGroupID)
@@ -448,6 +452,34 @@ func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, 
 		return nil, nil, nil
 	}
 	return &results[0].Time, &results[1].Time, nil
+}
+
+func (r *Resolver) GetErrorGroupFrequenciesUnsampled(ctx context.Context, projectID int, errorGroupID int) ([]*modelInputs.ErrorDistributionItem, error) {
+	bucket, _ := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, time.Minute)
+	query := timeseries.GetDownsampleQuery(bucket, timeseries.Error, fmt.Sprintf(`|> filter(fn: (r) => r.ErrorGroupID == "%d")`, errorGroupID), true)
+	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
+	span.SetTag("projectID", projectID)
+	span.SetTag("errorGroupID", errorGroupID)
+	results, err := r.TDB.Query(ctx, query)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to perform tdb query for error group frequencies")
+	}
+	var response []*modelInputs.ErrorDistributionItem
+	for _, r := range results {
+		if r.Value != nil {
+			for _, k := range []string{
+				"count", "environmentCount", "identifierCount", "sessionCount",
+			} {
+				response = append(response, &modelInputs.ErrorDistributionItem{
+					ErrorGroupID: strconv.Itoa(errorGroupID),
+					Date:         r.Time,
+					Name:         k,
+					Value:        r.Values[k].(int64),
+				})
+			}
+		}
+	}
+	return response, nil
 }
 
 func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupIDs []int, params modelInputs.ErrorGroupFrequenciesParamsInput, metric string) ([]*modelInputs.ErrorDistributionItem, error) {
@@ -724,7 +756,7 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 		return eg, false, e.Wrap(err, "error validating admin in project")
 	}
 
-	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
+	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID, eg.CreatedAt); err != nil {
 		return nil, false, e.Wrap(err, "error querying error group occurrences")
 	}
 	if err := r.SetErrorFrequenciesInflux(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
@@ -819,36 +851,6 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 		return nil, e.Wrap(err, "error validating admin in project")
 	}
 	return segment, nil
-}
-
-func (r *Resolver) UpdateSessionsVisibility(workspaceID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
-	isPlanUpgrade := true
-	switch originalPlan {
-	case modelInputs.PlanTypeFree:
-		if newPlan == modelInputs.PlanTypeFree {
-			isPlanUpgrade = false
-		}
-	case modelInputs.PlanTypeBasic:
-		if newPlan == modelInputs.PlanTypeFree {
-			isPlanUpgrade = false
-		}
-	case modelInputs.PlanTypeStartup:
-		if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic {
-			isPlanUpgrade = false
-		}
-	case modelInputs.PlanTypeEnterprise:
-		if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic || newPlan == modelInputs.PlanTypeStartup {
-			isPlanUpgrade = false
-		}
-	}
-	if isPlanUpgrade {
-		if err := r.DB.Model(&model.Session{}).
-			Where("project_id in (SELECT id FROM projects WHERE workspace_id=?)", workspaceID).
-			Where(&model.Session{WithinBillingQuota: &model.F}).
-			Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
-			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
-		}
-	}
 }
 
 func (r *Resolver) SendEmailAlert(
@@ -1372,13 +1374,6 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 		}).Error; err != nil {
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating BillingEmailHistory objects for workspace %d", workspace.ID)
 	}
-
-	// mark sessions as within billing quota on plan upgrade
-	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
-	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
-	r.PrivateWorkerPool.SubmitRecover(func() {
-		r.UpdateSessionsVisibility(workspace.ID, tier, modelInputs.PlanTypeFree)
-	})
 
 	return nil
 }

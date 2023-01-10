@@ -55,7 +55,13 @@ export const menuDivider = style({
 })
 
 export const menuHeading = style({
-	padding: `${vars.space[4]} ${vars.space[8]}`,
+	alignItems: 'center',
+	display: 'flex',
+	height: 16,
+	justifyContent: 'space-between',
+	paddingRight: vars.space[8],
+	paddingLeft: vars.space[8],
+	width: '100%',
 })
 
 export type ButtonVariants = RecipeVariants<typeof buttonStyles.variants>

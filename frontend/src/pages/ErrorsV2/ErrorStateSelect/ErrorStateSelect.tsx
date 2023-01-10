@@ -3,6 +3,7 @@ import { useUpdateErrorGroupStateMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { ErrorState, Maybe } from '@graph/schemas'
 import {
+	Badge,
 	Box,
 	IconSolidCheveronDown,
 	Menu,
@@ -10,11 +11,13 @@ import {
 	Text,
 	useMenu,
 } from '@highlight-run/ui'
+import { indexeddbCache } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
 import { wait } from '@util/time'
 import { DatePicker, message } from 'antd'
 import moment from 'moment'
 import React, { useCallback, useEffect, useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { useHistory } from 'react-router-dom'
 
 import * as styles from './style.css'
@@ -62,7 +65,13 @@ export const ErrorStateSelect: React.FC<{
 					state: newState,
 					snoozed_until: snoozedUntil,
 				},
-				onCompleted: () => {
+				onCompleted: async () => {
+					await indexeddbCache.deleteItem({
+						operation: 'GetErrorGroup',
+						variables: {
+							secure_id: error_secure_id,
+						},
+					})
 					showStateUpdateMessage(newState, snoozedUntil)
 					setMenuState(MenuState.Default)
 					setErrorState(newState)
@@ -119,6 +128,7 @@ export const ErrorStateSelect: React.FC<{
 					}
 				}}
 			>
+				<MenuHandler />
 				<Menu.Button
 					size="small"
 					kind="secondary"
@@ -141,7 +151,18 @@ export const ErrorStateSelect: React.FC<{
 						{menuState === MenuState.Default ? (
 							<>
 								<Menu.Heading>
-									<Text>Status</Text>
+									<Text
+										weight="bold"
+										size="xSmall"
+										color="n11"
+									>
+										Status
+									</Text>
+									<Badge
+										variant="grey"
+										size="tiny"
+										label="e"
+									/>
 								</Menu.Heading>
 								{ErrorStatuses.map((option) => (
 									<Menu.Item
@@ -243,6 +264,21 @@ const DatepickerMenuItem: React.FC<{
 			/>
 		</Menu.Item>
 	)
+}
+
+const MenuHandler: React.FC = () => {
+	const menu = useMenu()
+
+	useHotkeys(
+		'e',
+		() => {
+			menu.setOpen(!menu.open)
+			menu.baseRef.current?.focus()
+		},
+		[menu.open],
+	)
+
+	return <></>
 }
 
 const showStateUpdateMessage = (
