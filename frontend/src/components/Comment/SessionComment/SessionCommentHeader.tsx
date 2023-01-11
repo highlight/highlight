@@ -58,14 +58,17 @@ const SessionCommentHeader = ({
 	})
 	const history = useHistory()
 
-	const { isLinearIntegratedWithProject } = useLinearIntegration()
+	const { isLinearIntegratedWithProject, loading: isLoadingLinear } =
+		useLinearIntegration()
 	const {
-		settings: { isIntegrated: isClickupIntegrated },
+		settings: {
+			isIntegrated: isClickupIntegrated,
+			loading: isLoadingClickUp,
+		},
 	} = useClickUpIntegration()
 
-	const { isIntegrated: isHeightIntegrated } = useIsProjectIntegratedWith(
-		IntegrationType.Height,
-	)
+	const { isIntegrated: isHeightIntegrated, loading: isLoadingHeight } =
+		useIsProjectIntegratedWith(IntegrationType.Height)
 
 	const [showNewIssueModal, setShowNewIssueModal] = useState<
 		IssueTrackerIntegration | undefined
@@ -95,7 +98,7 @@ const SessionCommentHeader = ({
 
 	const createIssueMenuItems = (
 		<>
-			{issueTrackers?.map((item) => {
+			{issueTrackers.map((item) => {
 				const [isIntegrated, integration] = item
 				return isIntegrated ? (
 					<MenuItem
@@ -213,17 +216,6 @@ const SessionCommentHeader = ({
 				icon={<SvgBallotBoxIcon />}
 				onClick={() => {
 					window.open(
-						'https://highlight.canny.io/feature-requests/p/clickup-integration',
-						'_blank',
-					)
-				}}
-			>
-				Vote on ClickUp Integration
-			</MenuItem>
-			<MenuItem
-				icon={<SvgBallotBoxIcon />}
-				onClick={() => {
-					window.open(
 						'https://highlight.canny.io/feature-requests/p/mondaycom-integration',
 						'_blank',
 					)
@@ -264,6 +256,9 @@ const SessionCommentHeader = ({
 			shareMenu={shareMenu}
 			gotoButton={<GoToButton small onClick={handleGotoClick} />}
 			onClose={onClose}
+			isSharingDisabled={
+				isLoadingLinear || isLoadingClickUp || isLoadingHeight
+			}
 		>
 			{children}
 			<NewIssueModal

@@ -65,6 +65,7 @@ export const CommentHeader = ({
 	onClose,
 	small,
 	errorComment,
+	isSharingDisabled,
 }: PropsWithChildren<{
 	comment: any
 	moreMenu?: JSX.Element
@@ -74,6 +75,7 @@ export const CommentHeader = ({
 	footer?: React.ReactNode
 	small?: boolean
 	errorComment?: boolean
+	isSharingDisabled?: boolean
 }>) => {
 	const { isLoggedIn } = useAuthContext()
 
@@ -101,6 +103,7 @@ export const CommentHeader = ({
 										menu={shareMenu}
 										trackingId="CommentsShare"
 										icon={<SvgShare2Icon />}
+										disabled={isSharingDisabled}
 									/>
 								)}
 								{gotoButton!}

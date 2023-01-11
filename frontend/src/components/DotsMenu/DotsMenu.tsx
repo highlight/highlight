@@ -18,6 +18,7 @@ type Props = {
 	trackingId: string
 	/** Override the default ellipsis icon (...) */
 	icon?: React.ReactNode
+	disabled?: boolean
 } & Pick<DropDownProps, 'placement'>
 
 const DotsMenu = ({
@@ -25,6 +26,7 @@ const DotsMenu = ({
 	trackingId,
 	placement,
 	icon = <SvgDotsHorizontalIcon />,
+	disabled,
 }: Props) => {
 	return (
 		<Dropdown
@@ -38,6 +40,7 @@ const DotsMenu = ({
 				onClick={() => {
 					analytics.track(trackingId)
 				}}
+				disabled={disabled}
 			>
 				{icon}
 			</button>
