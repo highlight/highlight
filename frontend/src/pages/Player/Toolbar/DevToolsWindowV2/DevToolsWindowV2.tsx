@@ -142,6 +142,7 @@ const DevToolsWindowV2: React.FC<
 													align="center"
 												>
 													<Box
+														cursor="pointer"
 														display="flex"
 														align="center"
 														onClick={() => {
@@ -160,6 +161,14 @@ const DevToolsWindowV2: React.FC<
 														placeholder="Search"
 														size="xSmall"
 														collapsed={!searchShown}
+														onKeyDown={(e: any) => {
+															if (
+																e.code ===
+																'Escape'
+															) {
+																e.target?.blur()
+															}
+														}}
 														onBlur={() => {
 															setSearchShown(
 																false,

@@ -109,6 +109,7 @@ export enum LogLevel {
 }
 
 export const LogLevelVariants = {
+	[LogLevel.All]: 'white',
 	[LogLevel.Info]: 'white',
 	[LogLevel.Log]: 'blue',
 	[LogLevel.Warn]: 'yellow',
