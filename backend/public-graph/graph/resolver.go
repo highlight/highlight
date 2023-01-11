@@ -174,6 +174,11 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 		}
 	}
 
+	if len(modelFields) > 1000 {
+		modelFields = modelFields[:1000]
+		log.WithField("session_id", sessionID).Warnf("attempted to append more than 1000 fields - truncating")
+	}
+
 	if len(modelFields) > 0 {
 		err := r.AppendFields(outerCtx, modelFields, session)
 		if err != nil {
