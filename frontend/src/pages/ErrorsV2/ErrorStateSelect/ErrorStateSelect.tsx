@@ -57,7 +57,7 @@ export const ErrorStateSelect: React.FC<{
 
 	const handleChange = useCallback(
 		async (newState: ErrorState, snoozedUntil?: string) => {
-			if (initialErrorState === newState) return
+			if (initialErrorState === newState && !snoozed) return
 			await updateErrorGroupState({
 				variables: {
 					secure_id: error_secure_id,
@@ -71,7 +71,7 @@ export const ErrorStateSelect: React.FC<{
 				},
 			})
 		},
-		[error_secure_id, initialErrorState, updateErrorGroupState],
+		[error_secure_id, initialErrorState, snoozed, updateErrorGroupState],
 	)
 
 	const history = useHistory()
