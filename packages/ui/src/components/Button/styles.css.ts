@@ -7,6 +7,7 @@ export const shadows = {
 	grey: 'inset 0px -1px 0px rgba(0, 0, 0, 0.1)',
 	primary: 'inset 0px -1px 0px rgba(0, 0, 0, 0.32)',
 	neutral: `0 0 0 1px ${vars.color.n2} inset`,
+	n5: `0 0 0 1px ${vars.color.n5} inset`,
 	medium: `0px 6px 12px -2px rgba(59, 59, 59, 0.12)`,
 } as const
 

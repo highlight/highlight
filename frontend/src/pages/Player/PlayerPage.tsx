@@ -372,7 +372,9 @@ const PlayerPage = ({ integrated }: Props) => {
 												<SessionLevelBarV2
 													width={
 														width -
-														style.LEFT_PANEL_WIDTH -
+														(showLeftPanel
+															? style.LEFT_PANEL_WIDTH
+															: 0) -
 														3 * style.PLAYER_PADDING
 													}
 												/>
@@ -506,24 +508,28 @@ const PlayerPage = ({ integrated }: Props) => {
 									</div>
 								</div>
 							) : (
-								<Box
-									display="flex"
-									flexDirection="column"
-									width="full"
-									height="full"
-									cssClass={styles.emptyState}
-								>
-									<SessionLevelBarV2 width="100%" />
-									<Box
-										width="full"
-										height="full"
-										display="flex"
-										justifyContent="center"
-										borderTop="secondary"
-									>
-										<NoActiveSessionCard />
-									</Box>
-								</Box>
+								<div className={style.playerContainer}>
+									<div className={style.rrwebPlayerSection}>
+										<Box
+											display="flex"
+											flexDirection="column"
+											width="full"
+											height="full"
+											cssClass={styles.emptyState}
+										>
+											<SessionLevelBarV2 width="100%" />
+											<Box
+												width="full"
+												height="full"
+												display="flex"
+												justifyContent="center"
+												borderTop="secondary"
+											>
+												<NoActiveSessionCard />
+											</Box>
+										</Box>
+									</div>
+								</div>
 							)}
 						</div>
 					)}

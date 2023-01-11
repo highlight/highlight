@@ -14,8 +14,8 @@ import {
 	IconSolidCheveronUp,
 	IconSolidExitRight,
 	Tooltip,
-	vars,
 } from '@highlight-run/ui'
+import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
@@ -208,8 +208,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 										overflow="hidden"
 										display="flex"
 										style={{
-											// TODO: Replace with button group once built in UI package.
-											boxShadow: `0 0 0 1px ${vars.color.n5} inset`,
+											boxShadow: shadows.n5,
 										}}
 									>
 										<Tooltip

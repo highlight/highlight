@@ -26,7 +26,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
 	return (
 		<>
 			<TooltipAnchor state={tooltipState}>{trigger}</TooltipAnchor>
-			<AriakitTooltip state={tooltipState} style={{ zIndex: 10 }}>
+			<AriakitTooltip state={tooltipState} style={{ zIndex: 100 }}>
 				<TooltipRenderer>{children}</TooltipRenderer>
 			</AriakitTooltip>
 		</>

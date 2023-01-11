@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import { useGetSessionsOpenSearchQuery } from '@graph/hooks'
 import {
@@ -16,7 +17,9 @@ import {
 	SwitchButton,
 	Text,
 	TextLink,
+	Tooltip,
 } from '@highlight-run/ui'
+import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useProjectId } from '@hooks/useProjectId'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
@@ -168,63 +171,77 @@ export const SessionLevelBarV2: React.FC<
 						display="flex"
 						marginRight="8"
 						style={{
+							boxShadow: shadows.n5,
 							height: 28,
 							width: 56,
 						}}
 					>
-						<ButtonIcon
-							kind="secondary"
-							size="small"
-							shape="square"
-							emphasis="low"
-							icon={
-								<IconSolidCheveronUp
-									size={14}
-									color={colors.n11}
+						<Tooltip
+							placement="bottom"
+							trigger={
+								<ButtonIcon
+									kind="secondary"
+									size="small"
+									shape="square"
+									emphasis="low"
+									icon={
+										<IconSolidCheveronUp
+											size={14}
+											color={colors.n11}
+										/>
+									}
+									cssClass={clsx(
+										styles.sessionSwitchButton,
+										styles.sessionSwitchButtonLeft,
+									)}
+									onClick={() => {
+										changeSession(
+											project_id,
+											history,
+											sessionResults.sessions[prev],
+											'',
+										)
+									}}
+									disabled={!canMoveBackward}
 								/>
 							}
-							title="k"
-							cssClass={clsx(
-								styles.sessionSwitchButton,
-								styles.sessionSwitchButtonLeft,
-							)}
-							onClick={() => {
-								changeSession(
-									project_id,
-									history,
-									sessionResults.sessions[prev],
-									'',
-								)
-							}}
-							disabled={!canMoveBackward}
-						/>
+						>
+							<KeyboardShortcut label="Previous" shortcut="k" />
+						</Tooltip>
 						<Box as="span" borderRight="secondary" />
-						<ButtonIcon
-							kind="secondary"
-							size="small"
-							shape="square"
-							emphasis="low"
-							icon={
-								<IconSolidCheveronDown
-									size={14}
-									color={colors.n11}
+						<Tooltip
+							placement="bottom"
+							trigger={
+								<ButtonIcon
+									kind="secondary"
+									size="small"
+									shape="square"
+									emphasis="low"
+									icon={
+										<IconSolidCheveronDown
+											size={14}
+											color={colors.n11}
+										/>
+									}
+									title="j"
+									cssClass={clsx(
+										styles.sessionSwitchButton,
+										styles.sessionSwitchButtonRight,
+									)}
+									onClick={() => {
+										changeSession(
+											project_id,
+											history,
+											sessionResults.sessions[next],
+											'',
+										)
+									}}
+									disabled={!canMoveForward}
 								/>
 							}
-							title="j"
-							cssClass={clsx(
-								styles.sessionSwitchButton,
-								styles.sessionSwitchButtonRight,
-							)}
-							onClick={() => {
-								changeSession(
-									project_id,
-									history,
-									sessionResults.sessions[next],
-									'',
-								)
-							}}
-							disabled={!canMoveForward}
-						/>
+						>
+							<KeyboardShortcut label="Next" shortcut="j" />
+						</Tooltip>
 					</Box>
 					<Box
 						className={styles.currentUrl}

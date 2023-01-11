@@ -74,7 +74,6 @@ const EventStreamV2 = function () {
 	}, [data?.web_vitals, replayerEvents])
 
 	const usefulEvents = useMemo(() => events.filter(usefulEvent), [events])
-
 	const filteredEvents = useMemo(
 		() => getFilteredEvents(searchQuery, usefulEvents, eventTypeFilters),
 		[eventTypeFilters, searchQuery, usefulEvents],
@@ -82,43 +81,30 @@ const EventStreamV2 = function () {
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const scrollFunction = useCallback(
-		_.debounce(
-			(
-				currentEventId: string,
-				usefulEventsList: HighlightEvent[],
-				state,
-			) => {
-				if (virtuoso.current) {
-					const matchingEventIndex = usefulEventsList.findIndex(
-						(event) => event.identifier === currentEventId,
-					)
-
-					if (matchingEventIndex > -1) {
-						virtuoso.current.scrollToIndex({
-							index: matchingEventIndex,
-							align: 'center',
-							behavior: 'smooth',
-						})
-					}
-					if (state !== ReplayerState.Playing) {
-					}
-				}
-			},
-			1000 / 60,
-		),
+		_.debounce((eventIndex: number) => {
+			if (virtuoso.current && eventIndex > -1) {
+				virtuoso.current.scrollToIndex({
+					index: eventIndex,
+					align: 'center',
+					behavior: 'smooth',
+				})
+			}
+		}, 1000 / 60),
 		[],
 	)
 
 	useEffect(() => {
 		if (!isInteractingWithStreamEvents) {
-			scrollFunction(currentEvent, filteredEvents, state)
+			const currentEventIndex = usefulEvents.findIndex(
+				(event) => event.identifier === currentEvent,
+			)
+			scrollFunction(currentEventIndex)
 		}
 	}, [
 		currentEvent,
-		scrollFunction,
-		filteredEvents,
 		isInteractingWithStreamEvents,
-		state,
+		scrollFunction,
+		usefulEvents,
 	])
 
 	const isLoading =
