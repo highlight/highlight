@@ -182,6 +182,7 @@ export const MetadataBox = React.memo(() => {
 				gap="4"
 			>
 				<TableList
+					truncateable
 					data={[
 						{
 							keyDisplayValue: 'Email',

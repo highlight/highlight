@@ -8,6 +8,7 @@ export const sessionAttributeRow = recipe({
 		display: 'grid',
 		gridTemplateColumns: `100px 175px`,
 		gridGap: 8,
+		cursor: 'pointer',
 	},
 	variants: {
 		json: {

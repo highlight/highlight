@@ -25,13 +25,13 @@ export const playerRightPanelCollapsible = style({
 	boxSizing: 'content-box',
 	display: 'grid',
 	gridTemplateRows: `auto 1fr`,
-	height: `calc(100vh - var(--header-height) - var(--size-medium) - var(--size-medium))`,
+	height: `calc(100vh - 108px)`,
 	overflowX: 'hidden',
-	overflowY: 'auto',
+	overflowY: 'hidden',
 })
 
 export const playerRightPanelCollapsibleBannerShown = style({
-	height: `calc(100vh - var(--header-height) - var(--size-medium) - var(--size-medium) - var(--banner-height))`,
+	height: `calc(100vh - 108px - var(--banner-height))`,
 })
 
 export const tabContentContainer = style({
@@ -42,3 +42,5 @@ export const tabContentContainer = style({
 export const tabs = style({
 	borderRadius: 8,
 })
+
+export const playerRightTabs = style({})

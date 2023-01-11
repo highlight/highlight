@@ -67,7 +67,9 @@ const RightPlayerPanel = React.memo(() => {
 							)}
 						>
 							<MetadataBox />
-							<RightPlayerPanelTabs />
+							<div className={styles.playerRightTabs}>
+								<RightPlayerPanelTabs />
+							</div>
 						</div>
 					))}
 			</div>

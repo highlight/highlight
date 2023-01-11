@@ -252,6 +252,7 @@ export const SessionLevelBarV2: React.FC<
 					</Box>
 					{currentUrl && (
 						<Box
+							cursor="pointer"
 							paddingLeft="8"
 							display="flex"
 							align="center"
