@@ -27,6 +27,7 @@ import { MillisToMinutesAndSeconds } from '@util/time'
 import clsx from 'clsx'
 import React from 'react'
 
+import * as sessionBarStyles from '../../SessionLevelBar/SessionLevelBarV2.css'
 import { EVENT_TYPES_TO_VARIANTS } from '../EventStreamV2/StreamEventV2/StreamEventV2'
 import * as styles from './EventDetails.css'
 
@@ -76,8 +77,8 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 						}
 						title="k"
 						cssClass={clsx(
-							styles.sessionSwitchButton,
-							styles.sessionSwitchButtonLeft,
+							sessionBarStyles.sessionSwitchButton,
+							sessionBarStyles.sessionSwitchButtonLeft,
 						)}
 						onClick={() => {
 							setActiveEvent(eventsForTimelineIndicator[prev])
@@ -98,8 +99,8 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 						}
 						title="j"
 						cssClass={clsx(
-							styles.sessionSwitchButton,
-							styles.sessionSwitchButtonRight,
+							sessionBarStyles.sessionSwitchButton,
+							sessionBarStyles.sessionSwitchButtonRight,
 						)}
 						onClick={() => {
 							setActiveEvent(eventsForTimelineIndicator[next])
