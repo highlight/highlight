@@ -171,7 +171,7 @@ func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.Payload
 	return nil
 }
 
-func (w *Worker) fetchSessionDataRedis(ctx context.Context, manager *payload.PayloadManager, s *model.Session, payloadType model.RawPayloadType) error {
+func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload.PayloadManager, s *model.Session, payloadType model.RawPayloadType, accumulator EventProcessingAccumulator) error {
 	var compressedWriter *payload.CompressedJSONArrayWriter
 	switch payloadType {
 	case model.PayloadTypeEvents:
@@ -195,6 +195,15 @@ func (w *Worker) fetchSessionDataRedis(ctx context.Context, manager *payload.Pay
 	}
 
 	for _, dataObject := range dataObjects {
+		if payloadType == model.PayloadTypeEvents {
+			accumulator = processEventChunk(accumulator, model.EventsObject{
+				Events: dataObject.Contents(),
+			})
+			if accumulator.Error != nil {
+				return e.Wrap(accumulator.Error, "error processing event chunk")
+			}
+		}
+
 		if err := compressedWriter.WriteObject(&dataObject, &payload.EventsUnmarshalled{}); err != nil {
 			return errors.Wrap(err, "error writing compressed row")
 		}
@@ -205,7 +214,7 @@ func (w *Worker) fetchSessionDataRedis(ctx context.Context, manager *payload.Pay
 		}
 	}
 
-	if err := manager.EventsCompressed.Close(); err != nil {
+	if err := compressedWriter.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed writer")
 	}
 
@@ -219,10 +228,10 @@ func (w *Worker) fetchSessionDataRedis(ctx context.Context, manager *payload.Pay
 	return nil
 }
 
-func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
+func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session, accumulator EventProcessingAccumulator) error {
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 
-	if err := w.fetchSessionDataRedis(ctx, manager, s, model.PayloadTypeEvents); err != nil {
+	if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeEvents, accumulator); err != nil {
 		return errors.Wrap(err, "error fetching events from Redis")
 	}
 	if err := manager.EventsCompressed.Close(); err != nil {
@@ -244,7 +253,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 
 	// Fetch/write resources.
 	if s.ProcessAllWithRedis {
-		if err := w.fetchSessionDataRedis(ctx, manager, s, model.PayloadTypeResources); err != nil {
+		if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeResources, accumulator); err != nil {
 			return errors.Wrap(err, "error fetching resources from Redis")
 		}
 	} else {
@@ -269,7 +278,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 
 	// Fetch/write messages.
 	if s.ProcessAllWithRedis {
-		if err := w.fetchSessionDataRedis(ctx, manager, s, model.PayloadTypeMessages); err != nil {
+		if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeMessages, accumulator); err != nil {
 			return errors.Wrap(err, "error fetching messages from Redis")
 		}
 	} else {
@@ -556,7 +565,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.Error(e.Wrap(err, "error deleting outdated rage click events"))
 	}
 
-	if err := w.scanSessionPayload(ctx, payloadManager, s); err != nil {
+	if err := w.scanSessionPayload(ctx, payloadManager, s, accumulator); err != nil {
 		return errors.Wrap(err, "error scanning session payload")
 	}
 
@@ -566,7 +575,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	//Delete the session if there's no events.
-	if payloadManager.Events.Length == 0 && s.Length <= 0 {
+	if len(accumulator.EventsForTimelineIndicator) == 0 && s.Length <= 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
 		s.Excluded = &model.T
@@ -587,24 +596,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	payloadManager.SeekStart()
-
-	// json.Unmarshal(re)
-	// hasNext := true
-	// for hasNext {
-	// 	se, err := re.Next()
-	// 	if err != nil {
-	// 		if !errors.Is(err, io.EOF) {
-	// 			return e.Wrap(err, "error reading next line")
-	// 		}
-	// 		hasNext = false
-	// 	}
-	// if se != nil && *se != "" {
-	eventsObject := model.EventsObject{Events: *se}
-	accumulator = processEventChunk(accumulator, eventsObject)
-	if accumulator.Error != nil {
-		return e.Wrap(accumulator.Error, "error processing event chunk")
-	}
-	// userInteractionEvents = append(userInteractionEvents, accumulator.UserInteractionEvents...)
 
 	if len(accumulator.EventsForTimelineIndicator) > 0 {
 		var eventsForTimelineIndicator []*model.TimelineIndicatorEvent
@@ -1453,7 +1444,7 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 			}
 
 			// Obtains all user interaction events for calculating active and inactive segments
-			userInteractionEvents = append(userInteractionEvents, event)
+			a.UserInteractionEvents = append(a.UserInteractionEvents, event)
 
 			ts := event.Timestamp.Round(time.Millisecond)
 			if _, ok := a.TimestampCounts[ts]; !ok {
@@ -1522,11 +1513,9 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 				a.TimestampCounts[ts] = 0
 			}
 			a.TimestampCounts[ts] += 1
-			eventsForTimelineIndicator = append(eventsForTimelineIndicator, event)
+			a.EventsForTimelineIndicator = append(a.EventsForTimelineIndicator, event)
 		}
 	}
-	a.EventsForTimelineIndicator = eventsForTimelineIndicator
-	a.UserInteractionEvents = userInteractionEvents
 	return a
 }
 
