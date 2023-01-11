@@ -3,8 +3,10 @@ import { ErrorSearchParamsInput } from '@graph/schemas'
 import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
 import { useParams } from '@util/react-router/useParams'
+import { QueryBuilderStateParam } from '@util/url/params'
 import { useState } from 'react'
 import { useLocalStorage } from 'react-use'
+import { useQueryParams } from 'use-query-params'
 
 const WithErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 	children,
@@ -13,11 +15,19 @@ const WithErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 		project_id: string
 	}>()
 
+	const [searchParamsToUrlParams] = useQueryParams({
+		query: QueryBuilderStateParam,
+	})
+
+	const searchParamsDefaultState = searchParamsToUrlParams.query
+		? searchParamsToUrlParams
+		: EmptyErrorsSearchParams
+
 	// TODO: remove this in favor of selectedSegment after updating the session search query builder
 	const [segmentName, setSegmentName] = useState<string | null>(null)
 
 	const [searchParams, setSearchParams] = useState<ErrorSearchParamsInput>(
-		EmptyErrorsSearchParams,
+		searchParamsDefaultState,
 	)
 	const [searchResultsLoading, setSearchResultsLoading] =
 		useState<boolean>(true)
@@ -28,7 +38,7 @@ const WithErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 	>([])
 
 	const [existingParams, setExistingParams] =
-		useState<ErrorSearchParamsInput>(EmptyErrorsSearchParams)
+		useState<ErrorSearchParamsInput>(searchParamsDefaultState)
 
 	const [backendSearchQuery, setBackendSearchQuery] =
 		useState<BackendSearchQuery>(undefined)

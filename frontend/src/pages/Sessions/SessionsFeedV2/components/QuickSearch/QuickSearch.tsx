@@ -2,6 +2,8 @@ import { DropdownIndicator } from '@components/DropdownIndicator/DropdownIndicat
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { useGetQuickFieldsOpensearchQuery } from '@graph/hooks'
 import AsyncSelect from '@highlight-run/react-select/async'
+import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
@@ -142,13 +144,10 @@ const QuickSearch = () => {
 	const [lastTyped, setLastTyped] = useState('')
 	const [lastLoadedQuery, setLastLoadedQuery] = useState<string>()
 	const [isTyping, setIsTyping] = useState(false)
-	const {
-		setSearchParams,
-		setExistingParams,
-		setShowStarredSessions,
-		removeSelectedSegment,
-		setQueryBuilderInput,
-	} = useSearchContext()
+	const sessionSearchContext = useSearchContext()
+
+	const errorSearchContext = useErrorSearchContext()
+
 	const selectRef = useRef<any>(null)
 	const {
 		isQuickSearchOpen: isMenuOpen,
@@ -293,12 +292,18 @@ const QuickSearch = () => {
 		}
 
 		if (field.type === ERROR_TYPE) {
-			setQueryBuilderInput({
-				type: 'errors',
-				isAnd: true,
-				rules: [[getQueryFieldKey(field), 'is', field.value]],
-			})
+			const verb = 'is'
+			const searchParams = {
+				...EmptyErrorsSearchParams,
+				query: JSON.stringify({
+					isAnd: true,
+					rules: [[getQueryFieldKey(field), verb, field.value]],
+				}),
+			}
+
 			history.push(`/${project_id}/errors`)
+			errorSearchContext.setExistingParams(searchParams)
+			errorSearchContext.setSearchParams(searchParams)
 		} else {
 			let verb = 'is'
 			if (CONTAINS_KEYS.has(field.name) || field.value.startsWith('/')) {
@@ -312,10 +317,10 @@ const QuickSearch = () => {
 				}),
 			}
 			history.push(`/${project_id}/sessions`)
-			setExistingParams(searchParams)
-			setSearchParams(searchParams)
-			setShowStarredSessions(false)
-			removeSelectedSegment()
+			sessionSearchContext.setExistingParams(searchParams)
+			sessionSearchContext.setSearchParams(searchParams)
+			sessionSearchContext.setShowStarredSessions(false)
+			sessionSearchContext.removeSelectedSegment()
 		}
 		setLastLoadedQuery('')
 	}

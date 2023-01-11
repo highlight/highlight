@@ -1303,7 +1303,6 @@ interface QueryBuilderProps {
 	customFields: CustomField[]
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
 	fieldData?: GetFieldTypesQuery
-	getQueryFromParams: (params: any) => QueryBuilderState
 	readonly?: boolean
 }
 
@@ -1948,8 +1947,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 			}
 			if (searchParamsToUrlParams.query !== undefined) {
 				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
-			} else {
-				setSearchParams(EmptyErrorsSearchParams)
 			}
 		}
 
