@@ -4,6 +4,8 @@ import { colors } from '../../css/colors'
 import { style } from '@vanilla-extract/css'
 import { themeVars } from '../../css/theme.css'
 
+export const GRAB_HANDLE_HEIGHT = 20
+
 export const pageWrapper = style({
 	width: '100%',
 	height: '100%',
@@ -19,9 +21,18 @@ export const tabText = style({
 })
 
 export const handle = style({
+	height: GRAB_HANDLE_HEIGHT,
+	width: '100%',
+	position: 'relative',
+	top: -GRAB_HANDLE_HEIGHT / 2,
+})
+
+export const handleLine = style({
 	backgroundColor: colors.n6,
 	height: 1,
 	width: '100%',
+	position: 'relative',
+	top: GRAB_HANDLE_HEIGHT / 2,
 })
 
 export const controlBarVariants = recipe({

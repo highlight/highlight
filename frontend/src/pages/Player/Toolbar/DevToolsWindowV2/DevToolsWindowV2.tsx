@@ -80,7 +80,7 @@ const DevToolsWindowV2: React.FC<
 					>
 						<Tabs<Tab>
 							handleRef={handleRef}
-							tab={Tab.Console}
+							tab={tab}
 							setTab={(t: Tab) => {
 								setTab(t)
 								form.reset()
