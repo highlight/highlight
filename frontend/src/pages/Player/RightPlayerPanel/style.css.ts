@@ -1,4 +1,5 @@
 import { colors } from '@highlight-run/ui/src/css/colors'
+import { SESSION_FEED_SCROLLBAR } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
 import { style } from '@vanilla-extract/css'
 
 export const playerRightPanelContainer = style({
@@ -12,6 +13,7 @@ export const playerRightPanelContainer = style({
 	top: 0,
 	transition: `transform 0.2s ease-in-out`,
 	width: 'var(--right-panel-width)',
+	selectors: SESSION_FEED_SCROLLBAR,
 })
 
 export const playerRightPanelContainerHidden = style({
