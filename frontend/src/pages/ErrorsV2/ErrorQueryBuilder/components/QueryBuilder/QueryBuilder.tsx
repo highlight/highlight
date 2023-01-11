@@ -21,6 +21,7 @@ import { GetFieldTypesQuery, namedOperations } from '@graph/operations'
 import {
 	ErrorSearchParamsInput,
 	ErrorSegment,
+	ErrorState,
 	Exact,
 	Field,
 	SearchParamsInput,
@@ -61,7 +62,7 @@ import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import { QueryBuilderStateParam } from '@util/url/params'
 import { Checkbox, message } from 'antd'
 import clsx, { ClassValue } from 'clsx'
-import { isEqual } from 'lodash'
+import { capitalize, isEqual, remove } from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { components } from 'react-select'
@@ -362,13 +363,7 @@ const getProcessedLabel = (value: string): string => {
 }
 
 const getStateLabel = (value: string): string => {
-	if (value === 'RESOLVED') {
-		return 'Resolved'
-	} else if (value === 'IGNORED') {
-		return 'Ignored'
-	} else {
-		return 'Open'
-	}
+	return capitalize(value.toLowerCase())
 }
 
 const getMultiselectOption = (props: any) => {
@@ -1883,7 +1878,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						value: v,
 					}))
 				} else if (field.value === 'error_state') {
-					options = ['OPEN', 'RESOLVED', 'IGNORED'].map((v) => ({
+					options = Object.values(ErrorState).map((v) => ({
 						label: getStateLabel(v),
 						value: v,
 					}))
@@ -2680,6 +2675,55 @@ function QueryBuilder(props: QueryBuilderProps) {
 										Segments
 									</Text>
 								</Box>
+								{Object.values(ErrorState).map((errorState) => (
+									<Menu.Item
+										key={errorState}
+										onClick={(e) => {
+											e.stopPropagation()
+											const newRules = [...rules]
+											const removed = remove(
+												newRules,
+												(rule) =>
+													rule?.field?.value ===
+													'error_state',
+											)[0]
+
+											if (
+												removed &&
+												removed?.val?.options?.length &&
+												removed.val?.options[0]
+													?.value === errorState
+											) {
+												return
+											}
+
+											const option = [
+												{
+													value: errorState as string,
+													label: getStateLabel(
+														errorState,
+													),
+												},
+											] as const
+											newRules.push({
+												field: {
+													value: 'error_state',
+													kind: 'single',
+													label: 'state',
+												},
+												op: 'is',
+												val: {
+													kind: 'multi',
+													options: option,
+												},
+											})
+											setRules(newRules)
+										}}
+									>
+										{getStateLabel(errorState)} errors
+									</Menu.Item>
+								))}
+								<Menu.Divider />
 								{segmentOptions.map((segment, idx) => (
 									<Menu.Item
 										key={idx}
