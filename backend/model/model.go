@@ -1195,6 +1195,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		Logger:                                   logger.Default.LogMode(logLevel),
 		PrepareStmt:                              true,
 		SkipDefaultTransaction:                   true,
+		CreateBatchSize:                          65535,
 	})
 
 	if err != nil {
