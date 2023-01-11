@@ -28,10 +28,10 @@ export const playerCenterPanel = style({
 	flexDirection: 'column',
 	height: '100%',
 	position: 'relative',
-	background: colors.n1,
 })
 
 export const playerContainer = style({
+	backgroundColor: colors.n2,
 	display: 'flex',
 	flexDirection: 'column',
 	flexGrow: 1,
@@ -40,6 +40,7 @@ export const playerContainer = style({
 })
 
 export const rrwebPlayerSection = style({
+	background: colors.n1,
 	border: `1px solid ${colors.n6}`,
 	borderRadius: 6,
 	boxShadow: shadows.medium,

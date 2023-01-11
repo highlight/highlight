@@ -26,7 +26,6 @@ const EventStreamV2 = function () {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const {
 		sessionMetadata,
-		time,
 		eventsForTimelineIndicator: replayerEvents,
 		state,
 		replayer,
@@ -166,9 +165,6 @@ const EventStreamV2 = function () {
 									start={sessionMetadata.startTime}
 									isFirstCard={index === 0}
 									isCurrent={
-										event.timestamp -
-											sessionMetadata.startTime ===
-											time ||
 										event.identifier === currentEvent
 									}
 									onGoToHandler={(e) => {

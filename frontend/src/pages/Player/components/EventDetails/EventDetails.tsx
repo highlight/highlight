@@ -11,6 +11,7 @@ import {
 	Text,
 	vars,
 } from '@highlight-run/ui'
+import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
@@ -28,7 +29,10 @@ import clsx from 'clsx'
 import React from 'react'
 
 import * as sessionBarStyles from '../../SessionLevelBar/SessionLevelBarV2.css'
-import { EVENT_TYPES_TO_VARIANTS } from '../EventStreamV2/StreamEventV2/StreamEventV2'
+import {
+	EVENT_TYPES_TO_COLORS,
+	EVENT_TYPES_TO_VARIANTS,
+} from '../EventStreamV2/StreamEventV2/StreamEventV2'
 import * as styles from './EventDetails.css'
 
 const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
@@ -60,9 +64,11 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 				justifyContent="space-between"
 			>
 				<Box
+					borderRadius="6"
 					display="flex"
 					marginRight="8"
 					style={{
+						boxShadow: shadows.n5,
 						height: 28,
 						width: 56,
 					}}
@@ -75,7 +81,6 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 						icon={
 							<IconSolidCheveronUp size={14} color={colors.n11} />
 						}
-						title="k"
 						cssClass={clsx(
 							sessionBarStyles.sessionSwitchButton,
 							sessionBarStyles.sessionSwitchButtonLeft,
@@ -97,7 +102,6 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 								color={colors.n11}
 							/>
 						}
-						title="j"
 						cssClass={clsx(
 							sessionBarStyles.sessionSwitchButton,
 							sessionBarStyles.sessionSwitchButtonRight,
@@ -145,6 +149,7 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 							style={{ width: 12, height: 12 }}
 						>
 							<InfoTooltip
+								color={EVENT_TYPES_TO_COLORS[displayName]}
 								title={getTimelineEventTooltipText(
 									details.title || '',
 								)}

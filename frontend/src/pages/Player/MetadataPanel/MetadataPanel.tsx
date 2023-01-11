@@ -307,6 +307,7 @@ const MetadataPanel = () => {
 						<Box
 							py="8"
 							px="12"
+							pr="24"
 							bb={isExpanded ? undefined : 'secondary'}
 							display="flex"
 							justifyContent="space-between"

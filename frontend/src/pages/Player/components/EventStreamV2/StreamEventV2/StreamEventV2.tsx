@@ -1,5 +1,6 @@
 import { EventType } from '@highlight-run/rrweb'
 import { Badge, Box, Tag, Text } from '@highlight-run/ui'
+import { colors } from '@highlight-run/ui/src/css/colors'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
@@ -37,6 +38,23 @@ export const EVENT_TYPES_TO_VARIANTS: {
 	Referrer: 'yellow',
 	'Tab State': 'grey',
 	Errors: 'red',
+}
+export const EVENT_TYPES_TO_COLORS: {
+	[key: string]: string
+} = {
+	Click: colors.p9,
+	Focus: colors.lb700,
+	Reload: colors.g9,
+	Navigate: colors.lb700,
+	Segment: colors.g9,
+	Track: colors.lb700,
+	Comments: colors.g9,
+	Viewport: colors.r9,
+	Identify: colors.y9,
+	'Web Vitals': colors.g9,
+	Referrer: colors.y9,
+	'Tab State': colors.n9,
+	Errors: colors.r9,
 }
 
 export const StreamEventV2 = function ({

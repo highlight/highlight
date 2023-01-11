@@ -13,12 +13,14 @@ type Props = Pick<
 	size?: 'small' | 'medium' | 'large'
 	hideArrow?: boolean
 	onClick?: () => void
+	color?: string
 }
 
 const InfoTooltip = ({
 	size = 'small',
 	hideArrow = false,
 	onClick,
+	color,
 	...props
 }: Props) => {
 	if (props.title == undefined) {
@@ -36,7 +38,10 @@ const InfoTooltip = ({
 			<Box style={{ height: 12, width: 12, display: 'inline-flex' }}>
 				<IconSolidInformationCircle
 					onClick={onClick}
-					color={vars.theme.interactive.fill.secondary.content.text}
+					color={
+						color ??
+						vars.theme.interactive.fill.secondary.content.text
+					}
 					className={classNames(styles.icon, {
 						[styles.medium]: size === 'medium',
 						[styles.large]: size === 'large',
