@@ -1195,6 +1195,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		Logger:                                   logger.Default.LogMode(logLevel),
 		PrepareStmt:                              true,
 		SkipDefaultTransaction:                   true,
+		CreateBatchSize:                          5000, // Postgres only allows 65535 parameters per insert - this would allow 5000 records with 13 inserted fields each.
 	})
 
 	if err != nil {
