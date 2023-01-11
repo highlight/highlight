@@ -50,6 +50,7 @@ func (suite *DiscordChannelsTestSuite) TestSendErrorAlert() {
 		ErrorURL:        "https://localhost:3000/1/errors/8y4uezKfrGgvMZNAMt1Z4lpJq2bt?page=1",
 		ErrorResolveURL: "https://localhost:3000/1/errors/8y4uezKfrGgvMZNAMt1Z4lpJq2bt?action=resolved",
 		ErrorIgnoreURL:  "https://localhost:3000/1/errors/8y4uezKfrGgvMZNAMt1Z4lpJq2bt?action=ignore",
+		ErrorSnoozeURL:  "https://localhost:3000/1/errors/8y4uezKfrGgvMZNAMt1Z4lpJq2bt?action=snooze",
 		VisitedURL:      "http://google.com",
 		UserIdentifier:  "chilly@mcwilly.com",
 	})
