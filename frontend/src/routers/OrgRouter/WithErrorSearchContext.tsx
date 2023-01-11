@@ -19,13 +19,15 @@ const WithErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 		query: QueryBuilderStateParam,
 	})
 
+	const searchParamsDefaultState = searchParamsToUrlParams.query
+		? searchParamsToUrlParams
+		: EmptyErrorsSearchParams
+
 	// TODO: remove this in favor of selectedSegment after updating the session search query builder
 	const [segmentName, setSegmentName] = useState<string | null>(null)
 
 	const [searchParams, setSearchParams] = useState<ErrorSearchParamsInput>(
-		searchParamsToUrlParams.query
-			? searchParamsToUrlParams
-			: EmptyErrorsSearchParams,
+		searchParamsDefaultState,
 	)
 	const [searchResultsLoading, setSearchResultsLoading] =
 		useState<boolean>(true)
@@ -36,11 +38,7 @@ const WithErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 	>([])
 
 	const [existingParams, setExistingParams] =
-		useState<ErrorSearchParamsInput>(
-			searchParamsToUrlParams.query
-				? searchParamsToUrlParams
-				: EmptyErrorsSearchParams,
-		)
+		useState<ErrorSearchParamsInput>(searchParamsDefaultState)
 
 	const [backendSearchQuery, setBackendSearchQuery] =
 		useState<BackendSearchQuery>(undefined)
