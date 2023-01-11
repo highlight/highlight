@@ -598,8 +598,8 @@ type Session struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:session_admins_views;"`
 
-	Chunked          *bool
-	ProcessWithRedis bool
+	Chunked             *bool
+	ProcessAllWithRedis bool
 }
 
 type EventChunk struct {
@@ -772,6 +772,14 @@ type TrackProperty struct {
 
 type Object interface {
 	Contents() string
+}
+
+type SessionData struct {
+	Data string
+}
+
+func (sd *SessionData) Contents() string {
+	return sd.Data
 }
 
 type MessagesObject struct {
@@ -1126,6 +1134,14 @@ type EmailOptOut struct {
 	AdminID  int                             `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
 	Category modelInputs.EmailOptOutCategory `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
 }
+
+type RawPayloadType string
+
+const (
+	PayloadTypeEvents    RawPayloadType = "raw-events"
+	PayloadTypeResources RawPayloadType = "raw-resources"
+	PayloadTypeMessages  RawPayloadType = "raw-messages"
+)
 
 func SetupDB(dbName string) (*gorm.DB, error) {
 	var (

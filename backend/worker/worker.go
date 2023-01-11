@@ -3,10 +3,8 @@ package worker
 import (
 	"container/list"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io"
 	"math"
 	"math/rand"
 	"os"
@@ -105,8 +103,8 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 	return nil
 }
 
-func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.PayloadManager, eventObject *model.EventsObject, s *model.Session) error {
-	events, err := parse.EventsFromString(eventObject.Events)
+func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.PayloadManager, dataObject model.Object, s *model.Session) error {
+	events, err := parse.EventsFromString(dataObject.Contents())
 	if err != nil {
 		return errors.Wrap(err, "error parsing events from string")
 	}
@@ -173,88 +171,50 @@ func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.Payload
 	return nil
 }
 
-func (w *Worker) fetchEventsSql(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
-	var eventRows *sql.Rows
-	var err error
-	var numberOfRows int64 = 0
-	eventsWriter := manager.Events.Writer()
-	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
-
-	// Fetch/write events.
-	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-		tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", EVENTS_READ_TIMEOUT))
-
-		eventRows, err = tx.Table("events_objects_partitioned").Model(&model.EventsObject{}).
-			Where(&model.EventsObject{SessionID: s.ID}).
-			Distinct("events", "substring(events, '\"timestamp\":[0-9]+') as event_time").
-			Order("event_time asc").
-			Rows()
-		if err != nil {
-			return errors.Wrap(err, "error retrieving events objects")
-		}
-
-		for eventRows.Next() {
-			eventObject := model.EventsObject{}
-			err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
-			if err != nil {
-				return errors.Wrap(err, "error scanning event row")
-			}
-			if err := eventsWriter.Write(&eventObject); err != nil {
-				return errors.Wrap(err, "error writing event row")
-			}
-			if err := manager.EventsCompressed.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
-				return errors.Wrap(err, "error writing compressed event row")
-			}
-			numberOfRows += 1
-			if writeChunks {
-				if err := w.writeToEventChunk(ctx, manager, &eventObject, s); err != nil {
-					return errors.Wrap(err, "error writing event chunk")
-				}
-			}
-		}
-
-		return nil
-
-	}); err != nil {
-		return e.Wrap(err, "error reading events_objects")
+func (w *Worker) fetchSessionDataRedis(ctx context.Context, manager *payload.PayloadManager, s *model.Session, payloadType model.RawPayloadType) error {
+	var compressedWriter *payload.CompressedJSONArrayWriter
+	switch payloadType {
+	case model.PayloadTypeEvents:
+		compressedWriter = manager.EventsCompressed
+	case model.PayloadTypeMessages:
+		compressedWriter = manager.MessagesCompressed
+	case model.PayloadTypeResources:
+		compressedWriter = manager.ResourcesCompressed
 	}
 
-	manager.Events.Length = numberOfRows
+	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && payloadType == model.PayloadTypeEvents
 
-	return nil
-}
-
-func (w *Worker) fetchEventsRedis(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
-	var numberOfRows int64 = 0
-	eventsWriter := manager.Events.Writer()
-	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
-
-	s3Events, err := w.Resolver.StorageClient.GetRawEventsFromS3(ctx, s.ID, s.ProjectID)
+	s3Events, err := w.Resolver.StorageClient.GetRawDataFromS3(ctx, s.ID, s.ProjectID, payloadType)
 	if err != nil {
-		return errors.Wrap(err, "error retrieving events objects from S3")
+		return errors.Wrap(err, "error retrieving objects from S3")
 	}
 
-	eventsObjects, err, _ := w.Resolver.Redis.GetEventObjects(ctx, s, model.EventsCursor{}, s3Events)
+	dataObjects, err := w.Resolver.Redis.GetSessionData(ctx, s.ID, payloadType, s3Events)
 	if err != nil {
-		return errors.Wrap(err, "error retrieving events objects from Redis")
+		return errors.Wrap(err, "error retrieving objects from Redis")
 	}
 
-	for _, eventObject := range eventsObjects {
-		if err := eventsWriter.Write(&eventObject); err != nil {
-			return errors.Wrap(err, "error writing event row")
+	for _, dataObject := range dataObjects {
+		if err := compressedWriter.WriteObject(&dataObject, &payload.EventsUnmarshalled{}); err != nil {
+			return errors.Wrap(err, "error writing compressed row")
 		}
-		if err := manager.EventsCompressed.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
-			return errors.Wrap(err, "error writing compressed event row")
-		}
-		numberOfRows += 1
 		if writeChunks {
-			if err := w.writeToEventChunk(ctx, manager, &eventObject, s); err != nil {
-				return errors.Wrap(err, "error writing event chunk")
+			if err := w.writeToEventChunk(ctx, manager, &dataObject, s); err != nil {
+				return errors.Wrap(err, "error writing chunk")
 			}
 		}
 	}
 
-	manager.Events.Length = numberOfRows
+	if err := manager.EventsCompressed.Close(); err != nil {
+		return errors.Wrap(err, "error closing compressed writer")
+	}
+
+	if manager.EventsChunked != nil {
+		if err := manager.EventsChunked.Close(); err != nil {
+			return errors.Wrap(err, "error closing compressed events chunk writer")
+		}
+		manager.EventsChunked = nil
+	}
 
 	return nil
 }
@@ -262,16 +222,9 @@ func (w *Worker) fetchEventsRedis(ctx context.Context, manager *payload.PayloadM
 func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 
-	if s.ProcessWithRedis {
-		if err := w.fetchEventsRedis(ctx, manager, s); err != nil {
-			return errors.Wrap(err, "error fetching events from Redis")
-		}
-	} else {
-		if err := w.fetchEventsSql(ctx, manager, s); err != nil {
-			return errors.Wrap(err, "error fetching events from SQL")
-		}
+	if err := w.fetchSessionDataRedis(ctx, manager, s, model.PayloadTypeEvents); err != nil {
+		return errors.Wrap(err, "error fetching events from Redis")
 	}
-
 	if err := manager.EventsCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed events writer")
 	}
@@ -280,6 +233,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 			return errors.Wrap(err, "error closing compressed events chunk writer")
 		}
 	}
+
 	fileToS3 := manager.GetFile(payload.EventsChunked)
 	if writeChunks && fileToS3 != nil {
 		_, err := w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, fileToS3, storage.GetChunkedPayloadType(manager.ChunkIndex))
@@ -289,53 +243,50 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 
 	// Fetch/write resources.
-	resourcesRows, err := w.Resolver.DB.Model(&model.ResourcesObject{}).Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
-	if err != nil {
-		return errors.Wrap(err, "error retrieving resources objects")
-	}
-	resourceWriter := manager.Resources.Writer()
-	var numberOfRows int64 = 0
-	for resourcesRows.Next() {
-		resourcesObject := model.ResourcesObject{}
-		err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)
+	if s.ProcessAllWithRedis {
+		if err := w.fetchSessionDataRedis(ctx, manager, s, model.PayloadTypeResources); err != nil {
+			return errors.Wrap(err, "error fetching resources from Redis")
+		}
+	} else {
+		resourcesRows, err := w.Resolver.DB.Model(&model.ResourcesObject{}).Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
 		if err != nil {
-			return errors.Wrap(err, "error scanning resource row")
+			return errors.Wrap(err, "error retrieving resources objects")
 		}
-		if err := resourceWriter.Write(&resourcesObject); err != nil {
-			return errors.Wrap(err, "error writing resource row")
+		for resourcesRows.Next() {
+			resourcesObject := model.ResourcesObject{}
+			err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)
+			if err != nil {
+				return errors.Wrap(err, "error scanning resource row")
+			}
+			if err := manager.ResourcesCompressed.WriteObject(&resourcesObject, &payload.ResourcesUnmarshalled{}); err != nil {
+				return errors.Wrap(err, "error writing compressed event row")
+			}
 		}
-		if err := manager.ResourcesCompressed.WriteObject(&resourcesObject, &payload.ResourcesUnmarshalled{}); err != nil {
-			return errors.Wrap(err, "error writing compressed event row")
-		}
-		numberOfRows += 1
 	}
-	manager.Resources.Length = numberOfRows
 	if err := manager.ResourcesCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed resources writer")
 	}
 
 	// Fetch/write messages.
-	messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
-	if err != nil {
-		return errors.Wrap(err, "error retrieving messages objects")
+	if s.ProcessAllWithRedis {
+		if err := w.fetchSessionDataRedis(ctx, manager, s, model.PayloadTypeMessages); err != nil {
+			return errors.Wrap(err, "error fetching messages from Redis")
+		}
+	} else {
+		messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
+		if err != nil {
+			return errors.Wrap(err, "error retrieving messages objects")
+		}
+		for messageRows.Next() {
+			messageObject := model.MessagesObject{}
+			if err := w.Resolver.DB.ScanRows(messageRows, &messageObject); err != nil {
+				return errors.Wrap(err, "error scanning message row")
+			}
+			if err := manager.MessagesCompressed.WriteObject(&messageObject, &payload.MessagesUnmarshalled{}); err != nil {
+				return errors.Wrap(err, "error writing compressed event row")
+			}
+		}
 	}
-
-	numberOfRows = 0
-	messagesWriter := manager.Messages.Writer()
-	for messageRows.Next() {
-		messageObject := model.MessagesObject{}
-		if err := w.Resolver.DB.ScanRows(messageRows, &messageObject); err != nil {
-			return errors.Wrap(err, "error scanning message row")
-		}
-		if err := messagesWriter.Write(&messageObject); err != nil {
-			return errors.Wrap(err, "error writing messages object")
-		}
-		if err := manager.MessagesCompressed.WriteObject(&messageObject, &payload.MessagesUnmarshalled{}); err != nil {
-			return errors.Wrap(err, "error writing compressed event row")
-		}
-		numberOfRows += 1
-	}
-	manager.Messages.Length = numberOfRows
 	if err := manager.MessagesCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed messages writer")
 	}
@@ -563,6 +514,19 @@ func (w *Worker) isSessionUserExcluded(_ context.Context, s *model.Session) bool
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
+	project := &model.Project{}
+	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).First(&project).Error; err != nil {
+		return e.Wrap(err, "error querying project")
+	}
+
+	var rageClickSettings = RageClickSettings{
+		Window: time.Duration(project.RageClickCount) * time.Second,
+		Radius: project.RageClickRadiusPixels,
+		Count:  project.RageClickCount,
+	}
+
+	accumulator := MakeEventProcessingAccumulator(s.SecureID, rageClickSettings)
+
 	sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
 
 	payloadManager, err := payload.NewPayloadManager(sessionIdString)
@@ -624,60 +588,46 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	payloadManager.SeekStart()
 
-	project := &model.Project{}
-	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).First(&project).Error; err != nil {
-		return e.Wrap(err, "error querying project")
+	// json.Unmarshal(re)
+	// hasNext := true
+	// for hasNext {
+	// 	se, err := re.Next()
+	// 	if err != nil {
+	// 		if !errors.Is(err, io.EOF) {
+	// 			return e.Wrap(err, "error reading next line")
+	// 		}
+	// 		hasNext = false
+	// 	}
+	// if se != nil && *se != "" {
+	eventsObject := model.EventsObject{Events: *se}
+	accumulator = processEventChunk(accumulator, eventsObject)
+	if accumulator.Error != nil {
+		return e.Wrap(accumulator.Error, "error processing event chunk")
 	}
+	// userInteractionEvents = append(userInteractionEvents, accumulator.UserInteractionEvents...)
 
-	var rageClickSettings = RageClickSettings{
-		Window: time.Duration(project.RageClickCount) * time.Second,
-		Radius: project.RageClickRadiusPixels,
-		Count:  project.RageClickCount,
-	}
-
-	var userInteractionEvents []*parse.ReplayEvent
-	accumulator := MakeEventProcessingAccumulator(s.SecureID, rageClickSettings)
-	p := payload.NewPayloadReadWriter(payloadManager.GetFile(payload.Events))
-	re := p.Reader()
-	hasNext := true
-	for hasNext {
-		se, err := re.Next()
-		if err != nil {
-			if !errors.Is(err, io.EOF) {
-				return e.Wrap(err, "error reading next line")
+	if len(accumulator.EventsForTimelineIndicator) > 0 {
+		var eventsForTimelineIndicator []*model.TimelineIndicatorEvent
+		for _, customEvent := range accumulator.EventsForTimelineIndicator {
+			var parsedData model.JSONB
+			err = json.Unmarshal(customEvent.Data, &parsedData)
+			if err != nil {
+				return e.Wrap(err, "error unmarshalling event chunk")
 			}
-			hasNext = false
+			eventsForTimelineIndicator = append(eventsForTimelineIndicator, &model.TimelineIndicatorEvent{
+				SessionSecureID: s.SecureID,
+				Timestamp:       customEvent.TimestampRaw,
+				SID:             customEvent.SID,
+				Type:            int(customEvent.Type),
+				Data:            parsedData,
+			})
 		}
-		if se != nil && *se != "" {
-			eventsObject := model.EventsObject{Events: *se}
-			accumulator = processEventChunk(accumulator, eventsObject)
-			if accumulator.Error != nil {
-				return e.Wrap(accumulator.Error, "error processing event chunk")
-			}
-			userInteractionEvents = append(userInteractionEvents, accumulator.UserInteractionEvents...)
-
-			if len(accumulator.EventsForTimelineIndicator) > 0 {
-				var eventsForTimelineIndicator []*model.TimelineIndicatorEvent
-				for _, customEvent := range accumulator.EventsForTimelineIndicator {
-					var parsedData model.JSONB
-					err = json.Unmarshal(customEvent.Data, &parsedData)
-					if err != nil {
-						return e.Wrap(err, "error unmarshalling event chunk")
-					}
-					eventsForTimelineIndicator = append(eventsForTimelineIndicator, &model.TimelineIndicatorEvent{
-						SessionSecureID: s.SecureID,
-						Timestamp:       customEvent.TimestampRaw,
-						SID:             customEvent.SID,
-						Type:            int(customEvent.Type),
-						Data:            parsedData,
-					})
-				}
-				if err := w.Resolver.DB.Create(eventsForTimelineIndicator).Error; err != nil {
-					log.Error(e.Wrap(err, "error creating events for timeline indicator"))
-				}
-			}
+		if err := w.Resolver.DB.Create(eventsForTimelineIndicator).Error; err != nil {
+			log.Error(e.Wrap(err, "error creating events for timeline indicator"))
 		}
 	}
+	// }
+	// }
 
 	for i, r := range accumulator.RageClickSets {
 		r.SessionSecureID = s.SecureID
@@ -695,6 +645,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.Error(e.Wrap(err, "error deleting outdated session intervals"))
 	}
 
+	userInteractionEvents := accumulator.UserInteractionEvents
 	if len(userInteractionEvents) == 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Infof("excluding session due to no user interaction events")
 		return w.excludeSession(ctx, s)
@@ -1438,12 +1389,6 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 		a.Error = err
 		return a
 	}
-
-	var eventsForTimelineIndicator []*parse.ReplayEvent
-	a.EventsForTimelineIndicator = eventsForTimelineIndicator
-
-	var userInteractionEvents []*parse.ReplayEvent
-	a.UserInteractionEvents = userInteractionEvents
 
 	for _, event := range events.Events {
 		if event == nil {

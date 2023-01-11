@@ -57,6 +57,8 @@ const (
 	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
 	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"
 	RawEvents                  PayloadType = "raw-events"
+	RawNetworkResources        PayloadType = "raw-network-resources"
+	RawConsoleMessages         PayloadType = "raw-console-messages"
 )
 
 // StoredPayloadTypes configures what payloads are uploaded with this config.
@@ -145,7 +147,7 @@ func (s *StorageClient) pushFileToS3WithOptions(ctx context.Context, sessionId, 
 		return nil, errors.Wrap(err, "error seeking to beginning of file")
 	}
 
-	key := s.bucketKey(sessionId, projectId, payloadType)
+	key := bucketKey(sessionId, projectId, payloadType)
 	client, bucket := s.getSessionClientAndBucket(sessionId)
 
 	options.Bucket = bucket
@@ -178,7 +180,7 @@ func (s *StorageClient) PushCompressedFileToS3(ctx context.Context, sessionId, p
 	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, payloadType, options)
 }
 
-func (s *StorageClient) PushRawEventsToS3(ctx context.Context, sessionId, projectId int, events []redis.Z) error {
+func (s *StorageClient) PushRawEventsToS3(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType, events []redis.Z) error {
 	buf := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buf)
 	if err := encoder.Encode(events); err != nil {
@@ -186,7 +188,7 @@ func (s *StorageClient) PushRawEventsToS3(ctx context.Context, sessionId, projec
 	}
 
 	// Adding to a separate raw-events folder so these can be expired by prefix with an S3 expiration rule.
-	key := "raw-events/" + *s.bucketKey(sessionId, projectId, RawEvents+"-"+PayloadType(uuid.New().String()))
+	key := "raw-events/" + *bucketKey(sessionId, projectId, string(payloadType)+"-"+uuid.New().String())
 
 	options := s3.PutObjectInput{
 		Bucket: &S3SessionsStagingBucketName,
@@ -201,9 +203,9 @@ func (s *StorageClient) PushRawEventsToS3(ctx context.Context, sessionId, projec
 	return nil
 }
 
-func (s *StorageClient) GetRawEventsFromS3(ctx context.Context, sessionId, projectId int) (map[int]string, error) {
+func (s *StorageClient) GetRawDataFromS3(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType) (map[int]string, error) {
 	// Adding to a separate raw-events folder so these can be expired by prefix with an S3 expiration rule.
-	prefix := "raw-events/" + *s.bucketKey(sessionId, projectId, RawEvents)
+	prefix := "raw-events/" + *bucketKey(sessionId, projectId, payloadType)
 
 	options := s3.ListObjectsV2Input{
 		Bucket: &S3SessionsStagingBucketName,
@@ -307,7 +309,7 @@ func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]inte
 
 	output, err := client.GetObject(context.TODO(), &s3.GetObjectInput{
 		Bucket:                  bucket,
-		Key:                     s.bucketKey(sessionId, projectId, SessionContentsCompressed),
+		Key:                     bucketKey(sessionId, projectId, SessionContentsCompressed),
 		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
 		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
 	})
@@ -337,7 +339,7 @@ func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]inte
 func (s *StorageClient) ReadUncompressedSessionsFromS3(sessionId int, projectId int) ([]interface{}, error) {
 	client, bucket := s.getSessionClientAndBucket(sessionId)
 	output, err := client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: bucket,
-		Key: s.bucketKey(sessionId, projectId, SessionContents)})
+		Key: bucketKey(sessionId, projectId, SessionContents)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}
@@ -368,7 +370,7 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, projectId int) ([]int
 	client, bucket := s.getSessionClientAndBucket(sessionId)
 	output, err := client.GetObject(context.TODO(), &s3.GetObjectInput{
 		Bucket:                  bucket,
-		Key:                     s.bucketKey(sessionId, projectId, NetworkResourcesCompressed),
+		Key:                     bucketKey(sessionId, projectId, NetworkResourcesCompressed),
 		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
 		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
 	})
@@ -397,7 +399,7 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, projectId int) ([]int
 func (s *StorageClient) ReadUncompressedResourcesFromS3(sessionId int, projectId int) ([]interface{}, error) {
 	client, bucket := s.getSessionClientAndBucket(sessionId)
 	output, err := client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: bucket,
-		Key: s.bucketKey(sessionId, projectId, NetworkResources)})
+		Key: bucketKey(sessionId, projectId, NetworkResources)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}
@@ -428,7 +430,7 @@ func (s *StorageClient) ReadMessagesFromS3(sessionId int, projectId int) ([]inte
 	client, bucket := s.getSessionClientAndBucket(sessionId)
 	output, err := client.GetObject(context.TODO(), &s3.GetObjectInput{
 		Bucket:                  bucket,
-		Key:                     s.bucketKey(sessionId, projectId, ConsoleMessagesCompressed),
+		Key:                     bucketKey(sessionId, projectId, ConsoleMessagesCompressed),
 		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
 		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
 	})
@@ -457,7 +459,7 @@ func (s *StorageClient) ReadMessagesFromS3(sessionId int, projectId int) ([]inte
 func (s *StorageClient) ReadUncompressedMessagesFromS3(sessionId int, projectId int) ([]interface{}, error) {
 	client, bucket := s.getSessionClientAndBucket(sessionId)
 	output, err := client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: bucket,
-		Key: s.bucketKey(sessionId, projectId, ConsoleMessages)})
+		Key: bucketKey(sessionId, projectId, ConsoleMessages)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}
@@ -484,15 +486,15 @@ func (s *StorageClient) ReadUncompressedMessagesFromS3(sessionId int, projectId 
 	return retMessages, nil
 }
 
-func (s *StorageClient) bucketKey(sessionId int, projectId int, key PayloadType) *string {
+func bucketKey[T ~string](sessionId int, projectId int, key T) *string {
 	versionPart := ""
 	if UseNewSessionBucket(sessionId) {
 		versionPart = "v2/"
 	}
 	if util.IsDevEnv() {
-		return pointy.String(fmt.Sprintf("%sdev/%v/%v/%v", versionPart, projectId, sessionId, string(key)))
+		return pointy.String(fmt.Sprintf("%sdev/%v/%v/%v", versionPart, projectId, sessionId, key))
 	}
-	return pointy.String(fmt.Sprintf("%s%v/%v/%v", versionPart, projectId, sessionId, string(key)))
+	return pointy.String(fmt.Sprintf("%s%v/%v/%v", versionPart, projectId, sessionId, key))
 }
 
 func (s *StorageClient) sourceMapBucketKey(projectId int, version *string, fileName string) *string {
@@ -551,7 +553,7 @@ func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, paylo
 		return nil, nil
 	}
 
-	key := s.bucketKey(sessionId, projectId, payloadType)
+	key := bucketKey(sessionId, projectId, payloadType)
 	var unsignedURL string
 	if chunkId != nil {
 		unsignedURL = fmt.Sprintf("https://%s/%s-%04d", CloudfrontDomain, *key, *chunkId)

@@ -1181,7 +1181,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ViewedByAdmins:                 []model.Admin{},
 		ClientID:                       input.ClientID,
 		Excluded:                       &model.T, // A session is excluded by default until it receives events
-		ProcessWithRedis:               useRedis,
+		ProcessAllWithRedis:            useRedis,
 	}
 
 	// determine if session is within billing quota
@@ -2433,6 +2433,55 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 	return nil
 }
 
+func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, payloadId int, saveToS3, isBeacon bool, payloadType model.RawPayloadType, data []byte) error {
+	redisSpan, redisCtx := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+		tracer.ResourceName("go.parseEvents.processWithRedis"), tracer.Tag("project_id", projectId))
+	score := float64(payloadId)
+	// A little bit of a hack to encode
+	if isBeacon {
+		score += .5
+	}
+
+	if saveToS3 {
+		zRangeSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
+			tracer.ResourceName("go.parseEvents.processWithRedis.getRawZRange"), tracer.Tag("project_id", projectId))
+		zRange, err := r.Redis.GetRawZRange(ctx, sessionId, payloadId)
+		if err != nil {
+			return e.Wrap(err, "error retrieving previous event objects")
+		}
+		zRangeSpan.Finish()
+
+		// If there are prior events, push them to S3 and remove them from Redis
+		if len(zRange) != 0 {
+			pushToS3Span, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
+				tracer.ResourceName("go.parseEvents.processWithRedis.pushToS3"), tracer.Tag("project_id", projectId))
+			if err := r.StorageClient.PushRawEventsToS3(ctx, sessionId, projectId, payloadType, zRange); err != nil {
+				return e.Wrap(err, "error pushing events to S3")
+			}
+			pushToS3Span.Finish()
+
+			values := []interface{}{}
+			for _, z := range zRange {
+				values = append(values, z.Member)
+			}
+
+			removeValuesSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
+				tracer.ResourceName("go.parseEvents.processWithRedis.removeValues"), tracer.Tag("project_id", projectId))
+			if err := r.Redis.RemoveValues(ctx, sessionId, values); err != nil {
+				return e.Wrap(err, "error removing previous values")
+			}
+			removeValuesSpan.Finish()
+		}
+	}
+
+	if err := r.Redis.AddPayload(ctx, sessionId, score, payloadType, data); err != nil {
+		return e.Wrap(err, "error adding event payload")
+	}
+	redisSpan.Finish()
+
+	return nil
+}
+
 func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionSecureID", sessionSecureID)
@@ -2574,57 +2623,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 			remarshalSpan.Finish()
 
-			if sessionObj.ProcessWithRedis {
-				redisSpan, redisCtx := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-					tracer.ResourceName("go.parseEvents.processWithRedis"), tracer.Tag("project_id", projectID))
-				score := float64(payloadIdDeref)
-				// A little bit of a hack to encode
-				if isBeacon {
-					score += .5
-				}
-
-				if hasFullSnapshot {
-					zRangeSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
-						tracer.ResourceName("go.parseEvents.processWithRedis.getRawZRange"), tracer.Tag("project_id", projectID))
-					zRange, err := r.Redis.GetRawZRange(ctx, sessionID, payloadIdDeref)
-					if err != nil {
-						return e.Wrap(err, "error retrieving previous event objects")
-					}
-					zRangeSpan.Finish()
-
-					// If there are prior events, push them to S3 and remove them from Redis
-					if len(zRange) != 0 {
-						pushToS3Span, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
-							tracer.ResourceName("go.parseEvents.processWithRedis.pushToS3"), tracer.Tag("project_id", projectID))
-						if err := r.StorageClient.PushRawEventsToS3(ctx, sessionID, projectID, zRange); err != nil {
-							return e.Wrap(err, "error pushing events to S3")
-						}
-						pushToS3Span.Finish()
-
-						values := []interface{}{}
-						for _, z := range zRange {
-							values = append(values, z.Member)
-						}
-
-						removeValuesSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
-							tracer.ResourceName("go.parseEvents.processWithRedis.removeValues"), tracer.Tag("project_id", projectID))
-						if err := r.Redis.RemoveValues(ctx, sessionID, values); err != nil {
-							return e.Wrap(err, "error removing previous values")
-						}
-						removeValuesSpan.Finish()
-					}
-				}
-
-				if err := r.Redis.AddEventPayload(ctx, sessionID, score, string(b)); err != nil {
-					return e.Wrap(err, "error adding event payload")
-				}
-				redisSpan.Finish()
-
-			} else {
-				obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
-				if err := r.DB.Table("events_objects_partitioned").Create(obj).Error; err != nil {
-					return e.Wrap(err, "error creating events object")
-				}
+			if err := r.SaveSessionData(parseEventsCtx, projectID, sessionID, payloadIdDeref, hasFullSnapshot, isBeacon, model.PayloadTypeEvents, b); err != nil {
+				return e.Wrap(err, "error saving events data")
 			}
 
 			if !lastUserInteractionTimestamp.IsZero() {
@@ -2642,19 +2642,27 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		defer unmarshalMessagesSpan.Finish()
-		if hasBeacon {
-			r.DB.Where(&model.MessagesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.MessagesObject{})
-		}
-		messagesParsed := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
-			return e.Wrap(err, "error decoding message data")
-		}
-		if len(messagesParsed["messages"]) > 0 {
-			obj := &model.MessagesObject{SessionID: sessionID, Messages: messages, IsBeacon: isBeacon}
-			if err := r.DB.Create(obj).Error; err != nil {
-				return e.Wrap(err, "error creating messages object")
+
+		if sessionObj.ProcessAllWithRedis {
+			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeMessages, []byte(messages)); err != nil {
+				return e.Wrap(err, "error saving messages data")
+			}
+		} else {
+			if hasBeacon {
+				r.DB.Where(&model.MessagesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.MessagesObject{})
+			}
+			messagesParsed := make(map[string][]interface{})
+			if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
+				return e.Wrap(err, "error decoding message data")
+			}
+			if len(messagesParsed["messages"]) > 0 {
+				obj := &model.MessagesObject{SessionID: sessionID, Messages: messages, IsBeacon: isBeacon}
+				if err := r.DB.Create(obj).Error; err != nil {
+					return e.Wrap(err, "error creating messages object")
+				}
 			}
 		}
+
 		return nil
 	})
 
@@ -2664,22 +2672,30 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
 		defer unmarshalResourcesSpan.Finish()
-		if hasBeacon {
-			r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
-		}
-		resourcesParsed := make(map[string][]NetworkResource)
-		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-			return nil
-		}
-		if len(resourcesParsed["resources"]) > 0 {
-			if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
-				return err
+
+		if sessionObj.ProcessAllWithRedis {
+			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
+				return e.Wrap(err, "error saving resources data")
 			}
-			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
-			if err := r.DB.Create(obj).Error; err != nil {
-				return e.Wrap(err, "error creating resources object")
+		} else {
+			if hasBeacon {
+				r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
+			}
+			resourcesParsed := make(map[string][]NetworkResource)
+			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
+				return nil
+			}
+			if len(resourcesParsed["resources"]) > 0 {
+				if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
+					return err
+				}
+				obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
+				if err := r.DB.Create(obj).Error; err != nil {
+					return e.Wrap(err, "error creating resources object")
+				}
 			}
 		}
+
 		return nil
 	})
 

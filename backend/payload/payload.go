@@ -1,12 +1,10 @@
 package payload
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/andybalholm/brotli"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -14,79 +12,6 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
-
-var Delimiter = "\n\n\n"
-
-type PayloadReadWriter struct {
-	file   *os.File
-	Length int64
-}
-
-func NewPayloadReadWriter(file *os.File) *PayloadReadWriter {
-	p := &PayloadReadWriter{file: file}
-	return p
-}
-
-func (p *PayloadReadWriter) Reader() *ObjectReader {
-	return NewObjectReader(p.file)
-}
-
-func (p *PayloadReadWriter) Writer() *ObjectWriter {
-	return NewObjectWriter(p.file)
-}
-
-type ObjectReader struct {
-	reader *bufio.Reader
-}
-
-func NewObjectReader(file *os.File) *ObjectReader {
-	return &ObjectReader{reader: bufio.NewReader(file)}
-}
-
-// {resources: []}
-// {events: []}
-// {messages: []}
-func (o *ObjectReader) Next() (linePtr *string, e error) {
-	// Keep reading until the end of the line has the delimitter.
-	line := ""
-	linePtr = &line
-	for {
-		strBytes, err := o.reader.ReadBytes('\n')
-		str := string(strBytes)
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				line += str
-				e = err
-				break
-			}
-			return nil, errors.Wrap(err, "error reading line from bufio reader")
-		}
-		line += str
-		if strings.HasSuffix(line, Delimiter) {
-			break
-		}
-	}
-	return linePtr, e
-}
-
-type ObjectWriter struct {
-	writer *bufio.Writer
-}
-
-func NewObjectWriter(file *os.File) *ObjectWriter {
-	return &ObjectWriter{writer: bufio.NewWriter(file)}
-}
-
-func (o *ObjectWriter) Write(m model.Object) error {
-	if _, err := o.writer.WriteString(m.Contents()); err != nil {
-		return errors.Wrap(err, "error writing payload to file")
-	}
-	if _, err := o.writer.WriteString(Delimiter); err != nil {
-		return errors.Wrap(err, "error writing message delimiter")
-	}
-	o.writer.Flush()
-	return nil
-}
 
 type CompressedJSONArrayWriter struct {
 	writer      *brotli.Writer
@@ -186,9 +111,6 @@ func (w *CompressedJSONArrayWriter) Close() error {
 }
 
 type PayloadManager struct {
-	Events              *PayloadReadWriter
-	Resources           *PayloadReadWriter
-	Messages            *PayloadReadWriter
 	EventsCompressed    *CompressedJSONArrayWriter
 	ResourcesCompressed *CompressedJSONArrayWriter
 	MessagesCompressed  *CompressedJSONArrayWriter
@@ -200,9 +122,6 @@ type PayloadManager struct {
 type FileType string
 
 const (
-	Events              FileType = "Events"
-	Resources           FileType = "Resources"
-	Messages            FileType = "Messages"
 	EventsCompressed    FileType = "EventsCompressed"
 	ResourcesCompressed FileType = "ResourcesCompressed"
 	MessagesCompressed  FileType = "MessagesCompressed"
@@ -235,20 +154,27 @@ func createFile(name string) (func(), *os.File, error) {
 	}, file, nil
 }
 
+func openFile(name string) (func(), *os.File, error) {
+	file, err := os.Open(name)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "error creating file")
+	}
+	return func() {
+		err := file.Close()
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to close file"))
+			return
+		}
+		err = os.Remove(file.Name())
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to remove file"))
+			return
+		}
+	}, file, nil
+}
+
 func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 	files := map[FileType]*FileInfo{
-		Events: {
-			suffix: ".events.txt",
-			ddTag:  "eventPayloadSize",
-		},
-		Resources: {
-			suffix: ".resources.txt",
-			ddTag:  "resourcePayloadSize",
-		},
-		Messages: {
-			suffix: ".messages.txt",
-			ddTag:  "messagePayloadSize",
-		},
 		EventsCompressed: {
 			suffix: ".events.json.br",
 			ddTag:  "eventsCompressedPayloadSize",
@@ -277,12 +203,6 @@ func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 		fileInfo.close = close
 
 		switch fileType {
-		case Events:
-			manager.Events = NewPayloadReadWriter(fileInfo.file)
-		case Resources:
-			manager.Resources = NewPayloadReadWriter(fileInfo.file)
-		case Messages:
-			manager.Messages = NewPayloadReadWriter(fileInfo.file)
 		case EventsCompressed:
 			manager.EventsCompressed = NewCompressedJSONArrayWriter(fileInfo.file)
 		case ResourcesCompressed:
@@ -302,6 +222,25 @@ func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 }
 
 func (pm *PayloadManager) NewChunkedFile(filenamePrefix string) error {
+	fileInfo := pm.files[EventsChunked]
+	fileInfo.close()
+
+	pm.ChunkIndex += 1
+	suffix := fmt.Sprintf(".eventschunked%04d.json.br", pm.ChunkIndex)
+	fileInfo.suffix = suffix
+	close, file, err := createFile(filenamePrefix + suffix)
+
+	if err != nil {
+		return errors.Wrapf(err, "error creating new EventsChunked file")
+	}
+	fileInfo.file = file
+	fileInfo.close = close
+
+	pm.EventsChunked = NewCompressedJSONArrayWriter(fileInfo.file)
+	return nil
+}
+
+func (pm *PayloadManager) GetChunkedFiles(filenamePrefix string) error {
 	fileInfo := pm.files[EventsChunked]
 	fileInfo.close()
 
