@@ -86,10 +86,10 @@ export const Tabs = function <T extends string>({
 			</Box>
 			{currentPage && (
 				<Box className={styles.pageWrapper}>
+					{pages[tab].page}
 					<Box ref={handleRef} className={styles.handle}>
 						<Box className={styles.handleLine} />
 					</Box>
-					{pages[tab].page}
 				</Box>
 			)}
 		</Box>

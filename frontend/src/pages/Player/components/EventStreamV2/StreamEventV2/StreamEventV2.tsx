@@ -60,7 +60,7 @@ export const StreamEventV2 = function ({
 		e.type === EventType.Custom &&
 		!EVENT_TYPES_TO_NOT_RENDER_TIME.includes(e.data.tag)
 	return (
-		<Box px="8">
+		<Box px="8" cursor="pointer">
 			<Box
 				cssClass={styles.variants({ current: isCurrent })}
 				onClick={(e) => {

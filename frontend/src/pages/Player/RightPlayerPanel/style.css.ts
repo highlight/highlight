@@ -12,8 +12,13 @@ export const playerRightPanelContainer = style({
 	right: 0,
 	top: 0,
 	transition: `transform 0.2s ease-in-out`,
+	height: `calc(100vh - 108px)`,
 	width: 'var(--right-panel-width)',
 	selectors: SESSION_FEED_SCROLLBAR,
+})
+
+export const playerRightPanelContainerBannerShown = style({
+	height: `calc(100vh - 108px - var(--banner-height))`,
 })
 
 export const playerRightPanelContainerHidden = style({

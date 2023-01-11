@@ -30,7 +30,7 @@ const RightPlayerPanel = React.memo(() => {
 	const { showRightPanel: showRightPanelPreference, setShowRightPanel } =
 		usePlayerConfiguration()
 	const { showBanner } = useGlobalContext()
-	const { canViewSession } = useReplayerContext()
+	const { canViewSession, session } = useReplayerContext()
 	const { setSelectedRightPanelTab, activeEvent } = usePlayerUIContext()
 
 	const showRightPanel = showRightPanelPreference && canViewSession
@@ -51,10 +51,11 @@ const RightPlayerPanel = React.memo(() => {
 			<div
 				className={classNames(styles.playerRightPanelContainer, {
 					[styles.playerRightPanelContainerHidden]: !showRightPanel,
+					[styles.playerRightPanelContainerBannerShown]: showBanner,
 				})}
 			>
-				{showRightPanel &&
-					(activeEvent !== undefined ? (
+				{showRightPanel && session ? (
+					activeEvent !== undefined ? (
 						<EventDetails event={activeEvent} />
 					) : (
 						<div
@@ -71,7 +72,8 @@ const RightPlayerPanel = React.memo(() => {
 								<RightPlayerPanelTabs />
 							</div>
 						</div>
-					))}
+					)
+				) : null}
 			</div>
 		</>
 	)

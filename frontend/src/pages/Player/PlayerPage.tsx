@@ -488,14 +488,7 @@ const PlayerPage = ({ integrated }: Props) => {
 															</ToolbarItemsContextProvider>
 														</ResourcesContextProvider>
 													) : (
-														<Box
-															width="full"
-															height="full"
-															display="flex"
-															justifyContent="center"
-														>
-															<NoActiveSessionCard />
-														</Box>
+														<NoActiveSessionCard />
 													)}
 												</div>
 												{!isPlayerFullscreen && (
@@ -518,6 +511,7 @@ const PlayerPage = ({ integrated }: Props) => {
 									flexDirection="column"
 									width="full"
 									height="full"
+									cssClass={styles.emptyState}
 								>
 									<SessionLevelBarV2 width="100%" />
 									<Box

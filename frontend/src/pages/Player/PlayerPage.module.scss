@@ -174,3 +174,7 @@
 	justify-items: center;
 	width: fit-content;
 }
+
+.emptyState {
+	height: calc(100% - var(--header-height) - var(--banner-height));
+}

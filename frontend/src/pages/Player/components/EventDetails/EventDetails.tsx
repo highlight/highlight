@@ -24,6 +24,7 @@ import {
 } from '@pages/Player/utils/utils'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
+import clsx from 'clsx'
 import React from 'react'
 
 import { EVENT_TYPES_TO_VARIANTS } from '../EventStreamV2/StreamEventV2/StreamEventV2'
@@ -74,10 +75,14 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 							<IconSolidCheveronUp size={14} color={colors.n11} />
 						}
 						title="k"
-						disabled={!eventsForTimelineIndicator[prev]}
+						cssClass={clsx(
+							styles.sessionSwitchButton,
+							styles.sessionSwitchButtonLeft,
+						)}
 						onClick={() => {
 							setActiveEvent(eventsForTimelineIndicator[prev])
 						}}
+						disabled={!eventsForTimelineIndicator[prev]}
 					/>
 					<Box as="span" borderRight="secondary" />
 					<ButtonIcon
@@ -92,10 +97,14 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 							/>
 						}
 						title="j"
-						disabled={!eventsForTimelineIndicator[next]}
+						cssClass={clsx(
+							styles.sessionSwitchButton,
+							styles.sessionSwitchButtonRight,
+						)}
 						onClick={() => {
 							setActiveEvent(eventsForTimelineIndicator[next])
 						}}
+						disabled={!eventsForTimelineIndicator[next]}
 					/>
 				</Box>
 				<ButtonIcon
@@ -117,8 +126,11 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 					}}
 				/>
 			</Box>
-			<Box pt="8" pr="12" pb="8" pl="12">
-				<Text>{details.displayValue}</Text>
+			<Box pt="8" pr="12" pb="8" pl="12" width="full">
+				<Text cssClass={styles.overflowText}>
+					{details.displayValue} asdf asdf asdf asdf adsf asdf asdf
+					asdf asdf adsf
+				</Text>
 			</Box>
 			<Box display="flex" pt="8" pr="12" pb="8" pl="12" gap="4">
 				<Badge

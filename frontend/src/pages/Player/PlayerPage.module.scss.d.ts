@@ -4,6 +4,7 @@ export const appBody: string
 export const browserHeader: string
 export const center: string
 export const emptySessionCard: string
+export const emptyState: string
 export const gridBackground: string
 export const header: string
 export const headerLink: string
