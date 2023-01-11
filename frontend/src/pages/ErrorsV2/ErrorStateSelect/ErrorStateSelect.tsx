@@ -11,6 +11,7 @@ import {
 	Text,
 	useMenu,
 } from '@highlight-run/ui'
+import { indexeddbCache } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
 import { wait } from '@util/time'
 import { DatePicker, message } from 'antd'
@@ -46,6 +47,10 @@ export const ErrorStateSelect: React.FC<{
 			],
 			onQueryUpdated: async (obs) => {
 				await wait(500)
+				await indexeddbCache.deleteItem({
+					operation: obs.queryName ?? '',
+					variables: obs.variables,
+				})
 				await obs.refetch()
 			},
 			awaitRefetchQueries: true,
