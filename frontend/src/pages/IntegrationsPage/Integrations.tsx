@@ -126,7 +126,6 @@ export const DISCORD_INTEGRATION: Integration = {
 	key: 'discord',
 	name: 'Discord',
 	configurationPath: 'discord',
-	onlyShowForHighlightAdmin: true,
 	description: 'Bring your Highlight alerts to discord as messages.',
 	icon: '/images/integrations/discord.svg',
 	configurationPage: (opts) => <DiscordIntegrationConfig {...opts} />,
