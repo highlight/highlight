@@ -264,7 +264,7 @@ func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *mod
 // Session is the resolver for the session field.
 func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObject) (*model.Session, error) {
 	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: obj.SessionID}}).First(&session).Error; err != nil {
+	if err := r.DB.Where("id = ?", obj.SessionID).First(&session).Error; err != nil {
 		return nil, e.Wrap(err, "error reading session from error object")
 	}
 	return session, nil
