@@ -1,3 +1,4 @@
+import { vars } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
 
@@ -8,7 +9,7 @@ export const SEPARATOR_HEIGHT = 1
 export const SESSION_MONITOR_HEIGHT = 7
 export const TIME_AXIS_HEIGHT = 24
 export const TIME_INDICATOR_TOP_WIDTH = 10
-export const TIME_INDICATOR_TOP_HEIGHT = 12
+export const TIME_INDICATOR_TOP_HEIGHT = 10
 export const TIME_INDICATOR_TEXT_HEIGHT = 20
 export const TIMELINE_MARGIN = 8
 
@@ -222,7 +223,10 @@ export const animated = style({
 })
 
 export const timeIndicatorHair = style({
-	borderLeft: '2px var(--color-neutral-900) solid',
+	width: 4,
+	backgroundColor: vars.theme.static.content.default,
+	border: `1px solid ${vars.color.white}`,
+	borderTop: 'none',
 	cursor: 'ew-resize',
 	height: HISTOGRAM_AREA_HEIGHT + 1,
 	position: 'absolute',
@@ -235,14 +239,14 @@ export const hairHidden = style({
 })
 
 export const timeIndicatorTop = style({
-	backgroundColor: 'var(--color-neutral-900)',
-	border: '1px solid var(--color-white)',
+	backgroundColor: vars.theme.static.content.default,
+	border: `1px solid ${vars.color.white}`,
 	borderRadius: '1px 1px 12px 12px',
 	cursor: 'grab',
 	height: TIME_INDICATOR_TOP_HEIGHT,
 	position: 'sticky',
 	top: TIME_AXIS_HEIGHT - TIME_INDICATOR_TOP_HEIGHT + 1,
-	width: '8px',
+	width: 8,
 })
 
 export const timeIndicatorText = style({
@@ -250,14 +254,4 @@ export const timeIndicatorText = style({
 	height: TIME_INDICATOR_TEXT_HEIGHT,
 	left: 0,
 	transformOrigin: 'left',
-})
-
-export const toolbarSection = style({
-	background: 'none',
-	borderRadius: `0 0 var(--border-radius) var(--border-radius)`,
-	display: 'flex',
-	flexDirection: 'row',
-	gap: 8,
-	height: 32,
-	zIndex: 30,
 })

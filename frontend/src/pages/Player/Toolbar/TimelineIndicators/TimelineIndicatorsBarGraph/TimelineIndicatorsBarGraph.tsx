@@ -1012,9 +1012,7 @@ const TimelineIndicatorsBarGraph = ({
 	return (
 		<div className={style.timelineContainer} style={{ width }}>
 			{progressBar}
-			<div className={style.toolbarSection} style={{ width }}>
-				<ToolbarControlBar />
-			</div>
+			<ToolbarControlBar />
 			<div
 				className={clsx([
 					style.viewportContainer,
@@ -1048,7 +1046,8 @@ const TimelineIndicatorsBarGraph = ({
 								className={style.timeIndicatorTop}
 								ref={timeIndicatorTopRef}
 							/>
-							<span
+							<Box
+								as="span"
 								className={clsx(style.timeIndicatorHair, {
 									[style.hairHidden]: !showHistogram,
 								})}
@@ -1182,7 +1181,7 @@ const TimelineIndicatorsBarGraph = ({
 					visibility: showIndicatorText ? 'visible' : 'hidden',
 					top:
 						style.PROGRESS_BAR_HEIGHT +
-						(showHistogram ? style.SESSION_MONITOR_HEIGHT : 0) +
+						32 +
 						style.TIME_AXIS_HEIGHT -
 						style.TIME_INDICATOR_TOP_HEIGHT -
 						style.TIME_INDICATOR_TEXT_HEIGHT -
