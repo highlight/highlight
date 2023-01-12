@@ -18,22 +18,28 @@ const NoActiveSessionCard = () => {
 	return (
 		<Box cssClass={styles.card}>
 			<Callout title="Ready to see your app?">
-				<Box mb="6" display="flex" flexDirection="column" gap="16">
+				<Box
+					display="flex"
+					flexDirection="column"
+					gap="16"
+					alignItems="flex-start"
+				>
 					<Text color="moderate">
 						View a recent session or find a specific identifier,
 						URL, or segment.
 					</Text>
-					<Box>
-						<Button
-							trackingId="NoActiveSessionPerformASearch"
-							iconLeft={<SvgSearchIcon />}
-							onClick={() => {
-								setIsQuickSearchOpen(true)
-							}}
-						>
-							<Text size="small">Perform a Search</Text>
-						</Button>
-					</Box>
+					<Button
+						size="xSmall"
+						trackingId="NoActiveSessionPerformASearch"
+						onClick={() => {
+							setIsQuickSearchOpen(true)
+						}}
+					>
+						<Box display="flex" px="2" gap="4" alignItems="center">
+							<SvgSearchIcon height={10} />
+							<Text size="xSmall">Perform a Search</Text>
+						</Box>
+					</Button>
 				</Box>
 			</Callout>
 		</Box>

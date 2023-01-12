@@ -38,7 +38,7 @@ export const Callout: React.FC<Props> = ({
 			p="8"
 			cssClass={styles.variants({ kind, border })}
 		>
-			{icon ? <Icon /> : null}
+			{icon !== false ? <Icon /> : null}
 
 			<Box gap="16" display="flex" flexDirection="column" width="full">
 				<Box
