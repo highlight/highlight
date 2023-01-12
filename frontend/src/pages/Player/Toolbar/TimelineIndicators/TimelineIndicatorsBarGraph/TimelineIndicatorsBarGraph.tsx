@@ -1020,6 +1020,7 @@ const TimelineIndicatorsBarGraph = ({
 					style.viewportContainer,
 					{
 						[style.hideOverflow]: !showHistogram,
+						[style.viewportContainerClosed]: !showHistogram,
 					},
 				])}
 				ref={viewportRef}
