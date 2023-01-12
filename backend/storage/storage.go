@@ -480,6 +480,7 @@ func (s *StorageClient) ReadUncompressedMessagesFromS3(sessionId int, projectId 
 func (s *StorageClient) ReadTimelineIndicatorEventsFromS3(sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error) {
 	client, bucket := s.getSessionClientAndBucket(sessionId)
 
+	var events []*model.TimelineIndicatorEvent
 	output, err := client.GetObject(context.TODO(), &s3.GetObjectInput{
 		Bucket:                  bucket,
 		Key:                     bucketKey(sessionId, projectId, TimelineIndicatorEvents),
@@ -487,8 +488,12 @@ func (s *StorageClient) ReadTimelineIndicatorEventsFromS3(sessionId int, project
 		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), "NoSuchKey") {
+			return events, nil
+		}
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}
+
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(output.Body)
 	if err != nil {
@@ -500,7 +505,6 @@ func (s *StorageClient) ReadTimelineIndicatorEventsFromS3(sessionId int, project
 		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
 	}
 
-	var events []*model.TimelineIndicatorEvent
 	if err := json.Unmarshal(buf.Bytes(), &events); err != nil {
 		return nil, errors.Wrap(err, "error decoding event data")
 	}

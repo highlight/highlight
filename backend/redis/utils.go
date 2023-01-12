@@ -31,6 +31,7 @@ var (
 )
 
 func UseRedis(projectId int, sessionSecureId string) bool {
+	return false
 	sidHash := fnv.New32a()
 	defer sidHash.Reset()
 	if _, err := sidHash.Write([]byte(sessionSecureId)); err != nil {

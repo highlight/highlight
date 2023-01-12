@@ -103,7 +103,7 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 	return nil
 }
 
-func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.PayloadManager, dataObject model.Object, s *model.Session, accumulator EventProcessingAccumulator) error {
+func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.PayloadManager, dataObject model.Object, s *model.Session, accumulator *EventProcessingAccumulator) error {
 	events, err := parse.EventsFromString(dataObject.Contents())
 	if err != nil {
 		return errors.Wrap(err, "error parsing events from string")
@@ -169,15 +169,19 @@ func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.Payload
 	return nil
 }
 
-func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload.PayloadManager, s *model.Session, payloadType model.RawPayloadType, accumulator EventProcessingAccumulator) error {
+func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload.PayloadManager, s *model.Session, payloadType model.RawPayloadType, accumulator *EventProcessingAccumulator) error {
 	var compressedWriter *payload.CompressedWriter
+	var unmarshalled payload.Unmarshalled
 	switch payloadType {
 	case model.PayloadTypeEvents:
 		compressedWriter = manager.EventsCompressed
+		unmarshalled = &payload.EventsUnmarshalled{}
 	case model.PayloadTypeMessages:
 		compressedWriter = manager.MessagesCompressed
+		unmarshalled = &payload.MessagesUnmarshalled{}
 	case model.PayloadTypeResources:
 		compressedWriter = manager.ResourcesCompressed
+		unmarshalled = &payload.ResourcesUnmarshalled{}
 	}
 
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && payloadType == model.PayloadTypeEvents
@@ -194,7 +198,7 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 
 	for _, dataObject := range dataObjects {
 		if payloadType == model.PayloadTypeEvents {
-			accumulator = processEventChunk(accumulator, model.EventsObject{
+			*accumulator = processEventChunk(*accumulator, model.EventsObject{
 				Events: dataObject.Contents(),
 			})
 			if accumulator.Error != nil {
@@ -202,7 +206,7 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 			}
 		}
 
-		if err := compressedWriter.WriteObject(&dataObject, &payload.EventsUnmarshalled{}); err != nil {
+		if err := compressedWriter.WriteObject(&dataObject, unmarshalled); err != nil {
 			return errors.Wrap(err, "error writing compressed row")
 		}
 		if writeChunks {
@@ -232,7 +236,7 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 	return nil
 }
 
-func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session, accumulator EventProcessingAccumulator) error {
+func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session, accumulator *EventProcessingAccumulator) error {
 	if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeEvents, accumulator); err != nil {
 		return errors.Wrap(err, "error fetching events from Redis")
 	}
@@ -260,12 +264,12 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 				return errors.Wrap(err, "error scanning resource row")
 			}
 			if err := manager.ResourcesCompressed.WriteObject(&resourcesObject, &payload.ResourcesUnmarshalled{}); err != nil {
-				return errors.Wrap(err, "error writing compressed event row")
+				return errors.Wrap(err, "error writing compressed resources row")
 			}
 		}
-	}
-	if err := manager.ResourcesCompressed.Close(); err != nil {
-		return errors.Wrap(err, "error closing compressed resources writer")
+		if err := manager.ResourcesCompressed.Close(); err != nil {
+			return errors.Wrap(err, "error closing compressed resources writer")
+		}
 	}
 
 	// Fetch/write messages.
@@ -284,12 +288,12 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 				return errors.Wrap(err, "error scanning message row")
 			}
 			if err := manager.MessagesCompressed.WriteObject(&messageObject, &payload.MessagesUnmarshalled{}); err != nil {
-				return errors.Wrap(err, "error writing compressed event row")
+				return errors.Wrap(err, "error writing compressed message row")
 			}
 		}
-	}
-	if err := manager.MessagesCompressed.Close(); err != nil {
-		return errors.Wrap(err, "error closing compressed messages writer")
+		if err := manager.MessagesCompressed.Close(); err != nil {
+			return errors.Wrap(err, "error closing compressed messages writer")
+		}
 	}
 
 	return nil
@@ -562,7 +566,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.Error(e.Wrap(err, "error deleting outdated session intervals"))
 	}
 
-	if err := w.scanSessionPayload(ctx, payloadManager, s, accumulator); err != nil {
+	if err := w.scanSessionPayload(ctx, payloadManager, s, &accumulator); err != nil {
 		return errors.Wrap(err, "error scanning session payload")
 	}
 
@@ -616,7 +620,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				log.Error(e.Wrap(err, "error marshalling eventsForTimelineIndicator"))
 			}
 			if err := payloadManager.TimelineIndicatorEvents.WriteString(string(eventBytes)); err != nil {
-				log.Error(e.Wrap(err, "error writing compressed eventsForTimelineIndicator"))
+				log.Error(e.Wrap(err, "error writing to TimelineIndicatorEvents"))
+			}
+			if err := payloadManager.TimelineIndicatorEvents.Close(); err != nil {
+				log.Error(e.Wrap(err, "error closing TimelineIndicatorEvents writer"))
 			}
 		} else {
 			if err := w.Resolver.DB.Create(eventsForTimelineIndicator).Error; err != nil {
