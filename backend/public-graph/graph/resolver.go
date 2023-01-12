@@ -2561,9 +2561,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		parseEventsSpan, parseEventsCtx := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
 		defer parseEventsSpan.Finish()
-		if hasBeacon {
-			r.DB.Table("events_objects_partitioned").Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
-		}
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 			// should fix at some point.
