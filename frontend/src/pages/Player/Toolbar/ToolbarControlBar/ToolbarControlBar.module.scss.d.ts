@@ -1,6 +1,5 @@
 export const activeButton: string
 export const button: string
-export const controlContainer: string
 export const currentTime: string
 export const leftClickActionName: string
 export const leftSelection: string

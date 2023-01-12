@@ -42,10 +42,10 @@ export const iconVariants = recipe({
 		},
 		kind: {
 			primary: {
-				color: vars.theme.interactive.fill.primary.content.text,
+				color: vars.theme.interactive.fill.primary.content.onEnabled,
 			},
 			secondary: {
-				color: vars.theme.interactive.fill.secondary.content.text,
+				color: vars.theme.interactive.fill.secondary.content.onEnabled,
 			},
 			danger: {
 				selectors: {
