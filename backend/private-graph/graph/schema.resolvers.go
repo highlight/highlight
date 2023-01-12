@@ -656,7 +656,7 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
 		"state":         state,
 		"snoozed_until": snoozedUntil,
 	}); err != nil {

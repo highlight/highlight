@@ -12,12 +12,12 @@ import { NumberParam, useQueryParams } from 'use-query-params'
 
 import * as style from './style.css'
 
-export const DEFAULT_PAGE_SIZE = 10
+export const PAGE_SIZE = 10
 export const DEFAULT_SIBLING_COUNT = 2
 export const START_PAGE = 1
 
 const OPENSEARCH_MAX_RESULTS = 10000
-const MAX_PAGES = Math.floor(OPENSEARCH_MAX_RESULTS / DEFAULT_PAGE_SIZE) - 1
+const MAX_PAGES = Math.floor(OPENSEARCH_MAX_RESULTS / PAGE_SIZE) - 1
 
 interface Props {
 	page?: number
@@ -40,7 +40,7 @@ const SearchPagination = ({
 	siblingCount,
 }: Props) => {
 	const currentPage = page ?? START_PAGE
-	const $pageSize = pageSize ?? DEFAULT_PAGE_SIZE
+	const $pageSize = pageSize ?? PAGE_SIZE
 	const $siblingCount = siblingCount ?? DEFAULT_SIBLING_COUNT
 
 	const pageCount = Math.min(MAX_PAGES, Math.ceil(totalCount / $pageSize))

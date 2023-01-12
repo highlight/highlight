@@ -1319,6 +1319,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 	} = props
 
 	const {
+		setPage,
 		setBackendSearchQuery,
 		searchParams,
 		setSearchParams,
@@ -2043,6 +2044,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 
 		if (serializedQuery.current) {
+			setPage(1)
 			setBackendSearchQuery(serializedQuery.current)
 		}
 	}, [
@@ -2052,6 +2054,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		readonly,
 		rules,
 		setBackendSearchQuery,
+		setPage,
 		setSearchParams,
 		timeRangeField.value,
 	])
