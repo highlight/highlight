@@ -379,30 +379,39 @@ export const ToolbarControlBar = () => {
 						visible={showSettings}
 						destroyTooltipOnHide
 					>
-						<Box>
-							<ButtonIcon
+						<Box
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								height: 22,
+								width: 22,
+							}}
+						>
+							<SwitchButton
 								disabled={disableControls}
-								icon={<IconSolidCog size={14} />}
-								size="small"
-								shape="square"
-								emphasis="low"
-								kind="secondary"
+								iconLeft={<IconSolidCog size={14} />}
 							/>
 						</Box>
 					</Popover>
 				</>
 			)}
 			<Box cssClass={{ [style.moveRight]: isLiveMode }}>
-				<ButtonIcon
-					onClick={() => {
-						setIsPlayerFullscreen((prev) => !prev)
+				<Box
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						height: 22,
+						width: 22,
 					}}
-					icon={<IconSolidArrowsExpand size={14} />}
-					size="small"
-					shape="square"
-					emphasis="low"
-					kind="secondary"
-				/>
+				>
+					<SwitchButton
+						onChange={() => {
+							setIsPlayerFullscreen((prev) => !prev)
+						}}
+						disabled={disableControls}
+						iconLeft={<IconSolidArrowsExpand size={14} />}
+					/>
+				</Box>
 			</Box>
 		</div>
 	)

@@ -37,7 +37,7 @@ type Field = {
 }
 
 const MetadataPanel = () => {
-	const [expanded, setExpanded] = useState<MetadataSection>(
+	const [expanded, setExpanded] = useState<MetadataSection | undefined>(
 		MetadataSection.Session,
 	)
 	const { session, browserExtensionScriptURLs } = useReplayerContext()
@@ -307,7 +307,7 @@ const MetadataPanel = () => {
 						<Box
 							py="8"
 							px="12"
-							pr="24"
+							pr="32"
 							bb={isExpanded ? undefined : 'secondary'}
 							display="flex"
 							justifyContent="space-between"
@@ -341,7 +341,11 @@ const MetadataPanel = () => {
 							title={title}
 							expanded={isExpanded}
 							setExpanded={(e) => {
-								if (e) setExpanded(k as MetadataSection)
+								if (e) {
+									setExpanded(k as MetadataSection)
+								} else {
+									setExpanded(undefined)
+								}
 							}}
 						>
 							<Box
