@@ -57,6 +57,10 @@ func SessionInitializedKey(sessionSecureId string) string {
 	return fmt.Sprintf("session-init-%s", sessionSecureId)
 }
 
+func BillingQuotaExceededKey(projectId int) string {
+	return fmt.Sprintf("billing-quota-exceeded-%d", projectId)
+}
+
 func NewClient() *Client {
 	if util.IsDevOrTestEnv() {
 		return &Client{
@@ -317,11 +321,10 @@ func (r *Client) setFlag(ctx context.Context, key string, value bool, exp time.D
 	return nil
 }
 
-func (r *Client) IsPendingSession(ctx context.Context, sessionSecureId string) (bool, error) {
-	key := SessionInitializedKey(sessionSecureId)
+func (r *Client) getFlag(ctx context.Context, key string) (bool, error) {
 	val, err := r.redisClient.Get(ctx, key).Result()
 
-	// ignore the non-existing session keys
+	// ignore non-existent keys
 	if err == redis.Nil {
 		return false, nil
 	} else if err != nil {
@@ -330,6 +333,18 @@ func (r *Client) IsPendingSession(ctx context.Context, sessionSecureId string) (
 	return val == "1" || val == "true", nil
 }
 
+func (r *Client) IsPendingSession(ctx context.Context, sessionSecureId string) (bool, error) {
+	return r.getFlag(ctx, SessionInitializedKey(sessionSecureId))
+}
+
 func (r *Client) SetIsPendingSession(ctx context.Context, sessionSecureId string, initialized bool) error {
 	return r.setFlag(ctx, SessionInitializedKey(sessionSecureId), initialized, 24*time.Hour)
+}
+
+func (r *Client) IsBillingQuotaExceeded(ctx context.Context, projectId int) (bool, error) {
+	return r.getFlag(ctx, BillingQuotaExceededKey(projectId))
+}
+
+func (r *Client) SetBillingQuotaExceeded(ctx context.Context, projectId int) error {
+	return r.setFlag(ctx, BillingQuotaExceededKey(projectId), true, 5*time.Minute)
 }

@@ -21,7 +21,7 @@ import {
 	playerMetaData,
 	SessionInterval,
 	viewportResizeDimension,
-} from '@highlight-run/rrweb/typings/types'
+} from '@highlight-run/rrweb-types'
 import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
 import {
 	HighlightEvent,
@@ -49,6 +49,7 @@ import {
 	getAllUrlEvents,
 	getBrowserExtensionScriptURLs,
 } from '@pages/Player/SessionLevelBar/utils/utils'
+import analytics from '@util/analytics'
 import log from '@util/log'
 import { timedCall } from '@util/perf/instrument'
 import { H } from 'highlight.run'
@@ -400,6 +401,12 @@ export const PlayerReducer = (
 							viewed: true,
 						},
 					}).catch(console.error)
+					analytics.track('Viewed session', {
+						project_id: s.project_id,
+						is_guest: !s.isLoggedIn,
+						is_live: s.isLiveMode,
+						secure_id: s.session_secure_id,
+					})
 				}
 				s.sessionViewability = SessionViewability.VIEWABLE
 			} else {
@@ -420,7 +427,7 @@ export const PlayerReducer = (
 				replayer: undefined,
 				replayerState: action.nextState || ReplayerState.Empty,
 				scale: 1,
-				session: undefined,
+				session: action.sessionSecureId ? s.session : undefined,
 				sessionComments: [],
 				sessionEndTime: 0,
 				sessionIntervals: [],

@@ -349,10 +349,19 @@ export type UpdateBillingDetailsMutationOptions = Apollo.BaseMutationOptions<
 	Types.UpdateBillingDetailsMutationVariables
 >
 export const UpdateErrorGroupStateDocument = gql`
-	mutation updateErrorGroupState($secure_id: String!, $state: String!) {
-		updateErrorGroupState(secure_id: $secure_id, state: $state) {
+	mutation updateErrorGroupState(
+		$secure_id: String!
+		$state: String!
+		$snoozed_until: Timestamp
+	) {
+		updateErrorGroupState(
+			secure_id: $secure_id
+			state: $state
+			snoozed_until: $snoozed_until
+		) {
 			secure_id
 			state
+			snoozed_until
 		}
 	}
 `
@@ -376,6 +385,7 @@ export type UpdateErrorGroupStateMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      secure_id: // value for 'secure_id'
  *      state: // value for 'state'
+ *      snoozed_until: // value for 'snoozed_until'
  *   },
  * });
  */
@@ -2135,6 +2145,53 @@ export type MuteErrorCommentThreadMutationResult =
 export type MuteErrorCommentThreadMutationOptions = Apollo.BaseMutationOptions<
 	Types.MuteErrorCommentThreadMutation,
 	Types.MuteErrorCommentThreadMutationVariables
+>
+export const RemoveErrorIssueDocument = gql`
+	mutation RemoveErrorIssue($error_issue_id: ID!) {
+		removeErrorIssue(error_issue_id: $error_issue_id)
+	}
+`
+export type RemoveErrorIssueMutationFn = Apollo.MutationFunction<
+	Types.RemoveErrorIssueMutation,
+	Types.RemoveErrorIssueMutationVariables
+>
+
+/**
+ * __useRemoveErrorIssueMutation__
+ *
+ * To run a mutation, you first call `useRemoveErrorIssueMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveErrorIssueMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeErrorIssueMutation, { data, loading, error }] = useRemoveErrorIssueMutation({
+ *   variables: {
+ *      error_issue_id: // value for 'error_issue_id'
+ *   },
+ * });
+ */
+export function useRemoveErrorIssueMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.RemoveErrorIssueMutation,
+		Types.RemoveErrorIssueMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.RemoveErrorIssueMutation,
+		Types.RemoveErrorIssueMutationVariables
+	>(RemoveErrorIssueDocument, baseOptions)
+}
+export type RemoveErrorIssueMutationHookResult = ReturnType<
+	typeof useRemoveErrorIssueMutation
+>
+export type RemoveErrorIssueMutationResult =
+	Apollo.MutationResult<Types.RemoveErrorIssueMutation>
+export type RemoveErrorIssueMutationOptions = Apollo.BaseMutationOptions<
+	Types.RemoveErrorIssueMutation,
+	Types.RemoveErrorIssueMutationVariables
 >
 export const ReplyToErrorCommentDocument = gql`
 	mutation ReplyToErrorComment(
@@ -5318,6 +5375,65 @@ export type GetErrorCommentsQueryResult = Apollo.QueryResult<
 	Types.GetErrorCommentsQuery,
 	Types.GetErrorCommentsQueryVariables
 >
+export const GetErrorIssuesDocument = gql`
+	query GetErrorIssues($error_group_secure_id: String!) {
+		error_issue(error_group_secure_id: $error_group_secure_id) {
+			id
+			integration_type
+			external_id
+			title
+		}
+	}
+`
+
+/**
+ * __useGetErrorIssuesQuery__
+ *
+ * To run a query within a React component, call `useGetErrorIssuesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorIssuesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorIssuesQuery({
+ *   variables: {
+ *      error_group_secure_id: // value for 'error_group_secure_id'
+ *   },
+ * });
+ */
+export function useGetErrorIssuesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorIssuesQuery,
+		Types.GetErrorIssuesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorIssuesQuery,
+		Types.GetErrorIssuesQueryVariables
+	>(GetErrorIssuesDocument, baseOptions)
+}
+export function useGetErrorIssuesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorIssuesQuery,
+		Types.GetErrorIssuesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorIssuesQuery,
+		Types.GetErrorIssuesQueryVariables
+	>(GetErrorIssuesDocument, baseOptions)
+}
+export type GetErrorIssuesQueryHookResult = ReturnType<
+	typeof useGetErrorIssuesQuery
+>
+export type GetErrorIssuesLazyQueryHookResult = ReturnType<
+	typeof useGetErrorIssuesLazyQuery
+>
+export type GetErrorIssuesQueryResult = Apollo.QueryResult<
+	Types.GetErrorIssuesQuery,
+	Types.GetErrorIssuesQueryVariables
+>
 export const GetEnhancedUserDetailsDocument = gql`
 	query GetEnhancedUserDetails($session_secure_id: String!) {
 		enhanced_user_details(session_secure_id: $session_secure_id) {
@@ -6096,6 +6212,7 @@ export const GetErrorGroupsOpenSearchDocument = gql`
 				event
 				state
 				state
+				snoozed_until
 				environments
 				stack_trace
 				structured_stack_trace {
@@ -7298,6 +7415,7 @@ export const GetErrorGroupDocument = gql`
 			project_id
 			event
 			state
+			snoozed_until
 			structured_stack_trace {
 				fileName
 				lineNumber
@@ -9795,6 +9913,67 @@ export type GetHeightIntegrationSettingsQueryResult = Apollo.QueryResult<
 	Types.GetHeightIntegrationSettingsQuery,
 	Types.GetHeightIntegrationSettingsQueryVariables
 >
+export const GetProjectIntegratedWithDocument = gql`
+	query GetProjectIntegratedWith(
+		$project_id: ID!
+		$integration_type: IntegrationType!
+	) {
+		is_project_integrated_with(
+			integration_type: $integration_type
+			project_id: $project_id
+		)
+	}
+`
+
+/**
+ * __useGetProjectIntegratedWithQuery__
+ *
+ * To run a query within a React component, call `useGetProjectIntegratedWithQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectIntegratedWithQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectIntegratedWithQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      integration_type: // value for 'integration_type'
+ *   },
+ * });
+ */
+export function useGetProjectIntegratedWithQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetProjectIntegratedWithQuery,
+		Types.GetProjectIntegratedWithQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetProjectIntegratedWithQuery,
+		Types.GetProjectIntegratedWithQueryVariables
+	>(GetProjectIntegratedWithDocument, baseOptions)
+}
+export function useGetProjectIntegratedWithLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetProjectIntegratedWithQuery,
+		Types.GetProjectIntegratedWithQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetProjectIntegratedWithQuery,
+		Types.GetProjectIntegratedWithQueryVariables
+	>(GetProjectIntegratedWithDocument, baseOptions)
+}
+export type GetProjectIntegratedWithQueryHookResult = ReturnType<
+	typeof useGetProjectIntegratedWithQuery
+>
+export type GetProjectIntegratedWithLazyQueryHookResult = ReturnType<
+	typeof useGetProjectIntegratedWithLazyQuery
+>
+export type GetProjectIntegratedWithQueryResult = Apollo.QueryResult<
+	Types.GetProjectIntegratedWithQuery,
+	Types.GetProjectIntegratedWithQueryVariables
+>
 export const GetClickUpFoldersDocument = gql`
 	query GetClickUpFolders($project_id: ID!) {
 		clickup_folders(project_id: $project_id) {
@@ -10956,6 +11135,67 @@ export type GetErrorGroupFrequenciesLazyQueryHookResult = ReturnType<
 export type GetErrorGroupFrequenciesQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupFrequenciesQuery,
 	Types.GetErrorGroupFrequenciesQueryVariables
+>
+export const GetErrorGroupTagsDocument = gql`
+	query GetErrorGroupTags($error_group_secure_id: String!) {
+		errorGroupTags(error_group_secure_id: $error_group_secure_id) {
+			key
+			buckets {
+				key
+				doc_count
+				percent
+			}
+		}
+	}
+`
+
+/**
+ * __useGetErrorGroupTagsQuery__
+ *
+ * To run a query within a React component, call `useGetErrorGroupTagsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorGroupTagsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorGroupTagsQuery({
+ *   variables: {
+ *      error_group_secure_id: // value for 'error_group_secure_id'
+ *   },
+ * });
+ */
+export function useGetErrorGroupTagsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorGroupTagsQuery,
+		Types.GetErrorGroupTagsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorGroupTagsQuery,
+		Types.GetErrorGroupTagsQueryVariables
+	>(GetErrorGroupTagsDocument, baseOptions)
+}
+export function useGetErrorGroupTagsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorGroupTagsQuery,
+		Types.GetErrorGroupTagsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorGroupTagsQuery,
+		Types.GetErrorGroupTagsQueryVariables
+	>(GetErrorGroupTagsDocument, baseOptions)
+}
+export type GetErrorGroupTagsQueryHookResult = ReturnType<
+	typeof useGetErrorGroupTagsQuery
+>
+export type GetErrorGroupTagsLazyQueryHookResult = ReturnType<
+	typeof useGetErrorGroupTagsLazyQuery
+>
+export type GetErrorGroupTagsQueryResult = Apollo.QueryResult<
+	Types.GetErrorGroupTagsQuery,
+	Types.GetErrorGroupTagsQueryVariables
 >
 export const GetEmailOptOutsDocument = gql`
 	query GetEmailOptOuts($token: String, $admin_id: ID) {

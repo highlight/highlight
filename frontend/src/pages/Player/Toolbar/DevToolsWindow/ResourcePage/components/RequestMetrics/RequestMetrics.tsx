@@ -11,7 +11,7 @@ import {
 } from '@graph/schemas'
 import { LINE_COLORS } from '@pages/Dashboards/components/DashboardCard/DashboardCard'
 import { findDashboardMetric } from '@pages/Dashboards/pages/Dashboard/DashboardPage'
-import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/ResourcePage'
+import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { getGraphQLResolverName } from '@pages/Player/utils/utils'
 import { useParams } from '@util/react-router/useParams'
 import { Dropdown, Menu } from 'antd'

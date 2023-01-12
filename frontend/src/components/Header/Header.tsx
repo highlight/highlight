@@ -29,6 +29,7 @@ import {
 	IconSolidXCircle,
 	LinkButton,
 	Menu,
+	Text,
 } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
@@ -51,6 +52,7 @@ import { showIntercom } from '@util/window'
 import classNames from 'classnames/bind'
 import moment from 'moment'
 import React, { useEffect } from 'react'
+import { FaDiscord } from 'react-icons/fa'
 import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
@@ -107,7 +109,7 @@ export const Header = () => {
 					display="flex"
 					alignItems="center"
 					px="12"
-					py="8"
+					py={isLoggedIn ? '8' : '0'}
 					justifyContent="space-between"
 				>
 					{inProjectOrWorkspace ||
@@ -296,6 +298,34 @@ export const Header = () => {
 								</Box>
 							)}
 							<Box display="flex" alignItems="center" gap="4">
+								<Button
+									kind="secondary"
+									size="small"
+									emphasis="high"
+									onClick={() => {
+										window.open(
+											'https://discord.gg/yxaXEAqgwN',
+											'_blank',
+										)
+									}}
+									trackingId="DiscordSupportLinkClicked"
+								>
+									<Box
+										display="flex"
+										alignItems="center"
+										as="span"
+										gap="4"
+									>
+										<FaDiscord
+											style={{ height: 14, width: 14 }}
+											color={
+												vars.theme.interactive.fill
+													.secondary.content.text
+											}
+										/>
+										<Text lines="1">Community</Text>
+									</Box>
+								</Button>
 								{inProjectOrWorkspace && <Notifications />}
 								<Menu>
 									<Menu.Button
@@ -536,12 +566,12 @@ const BillingBanner = () => {
 	}
 
 	if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
-		// If date is Oct 19 in PST timezone, show Product Hunt banner
-		const isDec12 = moment().isBetween(
-			'2022-12-12T08:00:00Z',
-			'2022-12-13T08:00:00Z',
+		// show Product Hunt banner at the time of a launch
+		const isPHLaunch = moment().isBetween(
+			'2023-01-10T08:00:00Z',
+			'2023-01-11T08:00:00Z',
 		)
-		if (isDec12) {
+		if (isPHLaunch) {
 			toggleShowBanner(true)
 			return <ProductHuntBanner />
 		}
@@ -702,7 +732,7 @@ const ProductHuntBanner = () => {
 			Highlight is live on Product Hunt 🎉‍{' '}
 			<a
 				target="_blank"
-				href="https://www.producthunt.com/posts/digests-by-highlight"
+				href="https://www.producthunt.com/posts/error-management-by-highlight"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>

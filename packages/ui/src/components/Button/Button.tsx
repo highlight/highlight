@@ -3,7 +3,7 @@ import {
 	Button as AriakitButton,
 	ButtonProps as AriakitButtonProps,
 } from 'ariakit/button'
-import { Text, Props as TextProps } from '../Text/Text'
+import { Props as TextProps, Text } from '../Text/Text'
 
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'
@@ -41,6 +41,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 			className,
 			cssClass,
 			disabled,
+			display,
 			onIconLeftClick,
 			onIconRightClick,
 			...buttonProps
@@ -59,6 +60,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 						kind,
 						size,
 						emphasis,
+						display,
 					}),
 					className,
 					cssClass,

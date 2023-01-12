@@ -56,7 +56,7 @@ const getLogoUrl = (a: Maybe<ExternalAttachment>) => {
 	return ''
 }
 
-const getAttachmentUrl = (a: Maybe<ExternalAttachment>) => {
+export const getAttachmentUrl = (a: Maybe<ExternalAttachment>) => {
 	switch (a?.integration_type) {
 		case IntegrationType.Linear:
 			return `https://linear.app/issue/${a.title}`

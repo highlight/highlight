@@ -4,18 +4,9 @@ import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/Que
 import { createContext } from '@util/context/context'
 import React from 'react'
 
-type QueryBuilderType = 'sessions' | 'errors'
-export type QueryBuilderInput =
-	| (QueryBuilderState & { type: QueryBuilderType })
-	| undefined
-
 type SearchContext = BaseSearchContext<SearchParamsInput> & {
 	showStarredSessions: boolean
 	setShowStarredSessions: React.Dispatch<React.SetStateAction<boolean>>
-	queryBuilderInput: QueryBuilderInput
-	setQueryBuilderInput: React.Dispatch<
-		React.SetStateAction<QueryBuilderInput>
-	>
 	isQuickSearchOpen: boolean
 	setIsQuickSearchOpen: React.Dispatch<React.SetStateAction<boolean>>
 }

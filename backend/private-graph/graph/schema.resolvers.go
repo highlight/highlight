@@ -28,6 +28,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
+	highlightErrors "github.com/highlight-run/highlight/backend/errors"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/integrations/height"
@@ -52,7 +53,7 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -217,6 +218,9 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 
 // ErrorMetrics is the resolver for the error_metrics field.
 func (r *errorGroupResolver) ErrorMetrics(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorDistributionItem, error) {
+	if time.Since(obj.CreatedAt) <= time.Hour {
+		return r.GetErrorGroupFrequenciesUnsampled(ctx, obj.ProjectID, obj.ID)
+	}
 	return r.GetErrorGroupFrequencies(ctx, obj.ProjectID, []int{obj.ID}, modelInputs.ErrorGroupFrequenciesParamsInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
 			StartDate: time.Now().Add(-24 * 30 * time.Hour),
@@ -260,7 +264,7 @@ func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *mod
 // Session is the resolver for the session field.
 func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObject) (*model.Session, error) {
 	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: obj.SessionID}}).First(&session).Error; err != nil {
+	if err := r.DB.Where("id = ?", obj.SessionID).First(&session).Error; err != nil {
 		return nil, e.Wrap(err, "error reading session from error object")
 	}
 	return session, nil
@@ -638,21 +642,23 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID st
 }
 
 // UpdateErrorGroupState is the resolver for the updateErrorGroupState field.
-func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state string) (*model.ErrorGroup, error) {
+func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state string, snoozedUntil *time.Time) (*model.ErrorGroup, error) {
 	errGroup, err := r.canAdminModifyErrorGroup(ctx, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to modify error group")
 	}
 
 	errorGroup := &model.ErrorGroup{}
-	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errGroup.ID}}).First(&errorGroup).Updates(&model.ErrorGroup{
-		State: state,
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errGroup.ID}}).First(&errorGroup).Updates(map[string]interface{}{
+		"State":        state,
+		"SnoozedUntil": snoozedUntil,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
-		"state": state,
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
+		"state":         state,
+		"snoozed_until": snoozedUntil,
 	}); err != nil {
 		return nil, e.Wrap(err, "error updating error group state in OpenSearch")
 	}
@@ -1697,10 +1703,58 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	return errorComment, nil
 }
 
+// RemoveErrorIssue is the resolver for the removeErrorIssue field.
+func (r *mutationResolver) RemoveErrorIssue(ctx context.Context, errorIssueID int) (*bool, error) {
+	var errorCommentID int
+	if err := r.DB.
+		Model(&model.ExternalAttachment{}).
+		Select("error_comment_id").
+		Where("id=?", errorIssueID).
+		First(&errorCommentID).
+		Error; err != nil {
+		return nil, e.Wrap(err, "error querying error issues")
+	}
+
+	var errorGroupSecureID string
+	if err := r.DB.
+		Model(&model.ErrorComment{}).
+		Select("error_secure_id").
+		Where("id=?", errorCommentID).
+		First(&errorGroupSecureID).
+		Error; err != nil {
+		return nil, e.Wrap(err, "error querying error comments")
+	}
+
+	_, err := r.canAdminModifyErrorGroup(ctx, errorGroupSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not authorized to modify error group")
+	}
+
+	var externalAttachment model.ExternalAttachment
+	if err := r.DB.
+		Model(&model.ExternalAttachment{}).
+		Where("id=?", errorIssueID).
+		First(&externalAttachment).
+		Updates(
+			&model.ExternalAttachment{
+				Removed: true,
+			}).
+		Error; err != nil {
+		return nil, e.Wrap(err, "error changing the muted status")
+	}
+
+	return &model.T, nil
+}
+
 // MuteErrorCommentThread is the resolver for the muteErrorCommentThread field.
 func (r *mutationResolver) MuteErrorCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error) {
 	var errorGroupSecureID string
-	if err := r.DB.Table("error_comments").Select("error_secure_id").Where("id=?", id).Scan(&errorGroupSecureID).Error; err != nil {
+	if err := r.DB.
+		Model(&model.ErrorComment{}).
+		Select("error_secure_id").
+		Where("id=?", id).
+		First(&errorGroupSecureID).
+		Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comments")
 	}
 	_, err := r.canAdminModifyErrorGroup(ctx, errorGroupSecureID)
@@ -1714,10 +1768,13 @@ func (r *mutationResolver) MuteErrorCommentThread(ctx context.Context, id int, h
 	}
 
 	var commentFollower model.CommentFollower
-	if err := r.DB.Where(&model.CommentFollower{ErrorCommentID: id, AdminId: admin.ID}).First(&commentFollower).Updates(
-		&model.CommentFollower{
-			HasMuted: hasMuted,
-		}).Error; err != nil {
+	if err := r.DB.Where(&model.CommentFollower{ErrorCommentID: id, AdminId: admin.ID}).
+		First(&commentFollower).
+		Updates(
+			&model.CommentFollower{
+				HasMuted: hasMuted,
+			}).
+		Error; err != nil {
 		return nil, e.Wrap(err, "error changing the muted status")
 	}
 
@@ -3412,7 +3469,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 	}
 
 	s, err := r.canAdminViewSession(ctx, secureID)
-	if err != nil {
+	if s == nil || err != nil {
 		return nil, nil
 	}
 	sessionObj := &model.Session{}
@@ -3984,6 +4041,39 @@ func (r *queryResolver) IsSessionPending(ctx context.Context, sessionSecureID st
 	return pointy.Bool(isPending), nil
 }
 
+// ErrorIssue is the resolver for the error_issue field.
+func (r *queryResolver) ErrorIssue(ctx context.Context, errorGroupSecureID string) ([]*model.ExternalAttachment, error) {
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not error owner")
+	}
+
+	errorIssues := []*model.ExternalAttachment{}
+
+	if err := r.DB.Raw(`
+  		SELECT *
+  		FROM
+			external_attachments
+  		WHERE
+			error_comment_id IN (
+	  		SELECT
+				id
+	  		FROM
+				error_comments
+	  		WHERE
+				error_id = ? AND removed <> true
+			)
+  		ORDER BY
+			created_at DESC
+		`,
+		errorGroup.ID,
+	).Scan(&errorIssues).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error issues for error_group")
+	}
+
+	return errorIssues, nil
+}
+
 // ErrorComments is the resolver for the error_comments field.
 func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupSecureID string) ([]*model.ErrorComment, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
@@ -4302,6 +4392,60 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 		metric = pointy.String("")
 	}
 	return r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, *metric)
+}
+
+// ErrorGroupTags is the resolver for the errorGroupTags field.
+func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID string) ([]*modelInputs.ErrorGroupTagAggregation, error) {
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not error group owner")
+	}
+
+	query := fmt.Sprintf(`
+	{
+		"size": 0,
+		"query": {
+			"has_parent": {
+				"parent_type": "parent",
+				"query": {
+					"terms": {
+						"_id": ["%d"]
+					}
+				}
+			}
+		},
+		"aggs": {
+			"browser": {
+				"terms": {
+					"field": "browser.keyword"
+				}
+			},
+			"environment": {
+				"terms": {
+					"field": "environment.keyword"
+				}
+			},
+			"os_name": {
+				"terms": {
+					"field": "os_name.keyword"
+				}
+			}
+		}
+	  }
+	`, errorGroup.ID)
+
+	res, err := r.OpenSearch.RawSearch(opensearch.IndexErrorsCombined, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var aggregations highlightErrors.TagsAggregations
+	if err := json.Unmarshal(res, &aggregations); err != nil {
+		return nil, e.Wrap(err, "failed to unmarshal aggregations")
+	}
+
+	return highlightErrors.BuildAggregations(aggregations), nil
 }
 
 // Referrers is the resolver for the referrers field.
@@ -5350,7 +5494,7 @@ func (r *queryResolver) IsWorkspaceIntegratedWith(ctx context.Context, integrati
 			WorkspaceID:     workspace.ID,
 			IntegrationType: integrationType,
 		}).First(&workspaceMapping).Error; err != nil {
-			return false, err
+			return false, nil
 		}
 
 		if workspaceMapping == nil {
@@ -5359,6 +5503,17 @@ func (r *queryResolver) IsWorkspaceIntegratedWith(ctx context.Context, integrati
 	}
 
 	return true, nil
+}
+
+// IsProjectIntegratedWith is the resolver for the is_project_integrated_with field.
+func (r *queryResolver) IsProjectIntegratedWith(ctx context.Context, integrationType modelInputs.IntegrationType, projectID int) (bool, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+
+	if err != nil {
+		return false, e.Wrap(err, "error querying project")
+	}
+
+	return r.IntegrationsClient.IsProjectIntegrated(ctx, project, integrationType)
 }
 
 // VercelProjects is the resolver for the vercel_projects field.
@@ -5560,6 +5715,10 @@ func (r *queryResolver) HeightWorkspaces(ctx context.Context, workspaceID int) (
 
 	if err != nil {
 		return nil, err
+	}
+
+	if accessToken == nil {
+		return []*modelInputs.HeightWorkspace{}, nil
 	}
 
 	workspaces, err := height.GetWorkspaces(*accessToken)

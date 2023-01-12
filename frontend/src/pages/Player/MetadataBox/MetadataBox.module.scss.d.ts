@@ -1,8 +1,5 @@
 export const avatar: string
 export const avatarWrapper: string
-export const backfillContainer: string
-export const backfillContent: string
-export const backfillInfoIcon: string
 export const backfillShown: string
 export const backfillUserIcon: string
 export const blurred: string
@@ -28,7 +25,6 @@ export const userAvatarWrapper: string
 export const userBox: string
 export const userDetailsSection: string
 export const userEnhanced: string
-export const userEnhancedGrid: string
 export const userIdentifier: string
 export const userIdHeader: string
 export const userIdSubHeader: string

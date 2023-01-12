@@ -14,6 +14,7 @@ export const menuList = style({
 	maxWidth: 320,
 	minWidth: 200,
 	boxShadow: '0 6px 12px -2px rgba(59, 59, 59, .12)',
+	zIndex: 3,
 })
 
 export const menuItemVariants = recipe({
@@ -52,6 +53,16 @@ export const menuDivider = style({
 	height: 1,
 	marginBottom: vars.space[4],
 	marginTop: vars.space[4],
+})
+
+export const menuHeading = style({
+	alignItems: 'center',
+	display: 'flex',
+	height: 16,
+	justifyContent: 'space-between',
+	paddingRight: vars.space[8],
+	paddingLeft: vars.space[8],
+	width: '100%',
 })
 
 export type ButtonVariants = RecipeVariants<typeof buttonStyles.variants>

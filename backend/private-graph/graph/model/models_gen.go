@@ -224,6 +224,17 @@ type ErrorGroupFrequenciesParamsInput struct {
 	ResolutionMinutes int                     `json:"resolution_minutes"`
 }
 
+type ErrorGroupTagAggregation struct {
+	Key     string                            `json:"key"`
+	Buckets []*ErrorGroupTagAggregationBucket `json:"buckets"`
+}
+
+type ErrorGroupTagAggregationBucket struct {
+	Key      string  `json:"key"`
+	DocCount int64   `json:"doc_count"`
+	Percent  float64 `json:"percent"`
+}
+
 type ErrorMetadata struct {
 	ErrorID         int        `json:"error_id"`
 	SessionID       int        `json:"session_id"`
@@ -588,16 +599,18 @@ type EmailOptOutCategory string
 const (
 	EmailOptOutCategoryAll     EmailOptOutCategory = "All"
 	EmailOptOutCategoryDigests EmailOptOutCategory = "Digests"
+	EmailOptOutCategoryBilling EmailOptOutCategory = "Billing"
 )
 
 var AllEmailOptOutCategory = []EmailOptOutCategory{
 	EmailOptOutCategoryAll,
 	EmailOptOutCategoryDigests,
+	EmailOptOutCategoryBilling,
 }
 
 func (e EmailOptOutCategory) IsValid() bool {
 	switch e {
-	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests:
+	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests, EmailOptOutCategoryBilling:
 		return true
 	}
 	return false

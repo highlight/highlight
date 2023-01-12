@@ -3,7 +3,6 @@ package graph
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -78,7 +77,6 @@ const SessionProcessedMetricName = "sessionProcessed"
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
-	EmailOptOutSalt = os.Getenv("EMAIL_OPT_OUT_SALT")
 )
 
 var BytesConversion = map[string]int64{
@@ -99,6 +97,10 @@ var PromoCodes = map[string]PromoCode{
 	"WEBDEVSIMPLIFIED": {
 		TrialDays:  60,
 		ValidUntil: time.Date(2023, time.May, 15, 0, 0, 0, 0, time.UTC),
+	},
+	"CATCHMYERRORS": {
+		TrialDays:  7,
+		ValidUntil: time.Date(2023, time.January, 17, 0, 0, 0, 0, time.UTC),
 	},
 }
 
@@ -422,19 +424,23 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	return nil, e.New("admin doesn't exist in project")
 }
 
-func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, errorGroupID int) (*time.Time, *time.Time, error) {
-	bucket := r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors) + timeseries.Error.DownsampleBucketSuffix
+func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, errorGroupID int, errorGroupCreated time.Time) (*time.Time, *time.Time, error) {
+	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, time.Since(errorGroupCreated))
+	var filter string
+	if measurement == timeseries.Error.AggName {
+		filter = `|> filter(fn: (r) => r._value > 0)`
+	}
 	query := fmt.Sprintf(`
       query = () => from(bucket: "%[1]s")
 		|> range(start: 0, stop: now())
 		|> filter(fn: (r) => r._measurement == "%[2]s")
 		|> filter(fn: (r) => r.ErrorGroupID == "%[3]d")
-    	|> filter(fn: (r) => r._value > 0)
+    	%[4]s
 		|> group(columns: ["ErrorGroupID"])
 
       union(tables:[query() |> first(), query() |> last()])
         |> sort(columns: ["ErrorGroupID", "_field", "_time"])
-	`, bucket, timeseries.Error.AggName, errorGroupID)
+	`, bucket, measurement, errorGroupID, filter)
 	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupOccurrences")
 	span.SetTag("projectID", projectID)
 	span.SetTag("errorGroupID", errorGroupID)
@@ -446,6 +452,34 @@ func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, 
 		return nil, nil, nil
 	}
 	return &results[0].Time, &results[1].Time, nil
+}
+
+func (r *Resolver) GetErrorGroupFrequenciesUnsampled(ctx context.Context, projectID int, errorGroupID int) ([]*modelInputs.ErrorDistributionItem, error) {
+	bucket, _ := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, time.Minute)
+	query := timeseries.GetDownsampleQuery(bucket, timeseries.Error, fmt.Sprintf(`|> filter(fn: (r) => r.ErrorGroupID == "%d")`, errorGroupID), true)
+	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
+	span.SetTag("projectID", projectID)
+	span.SetTag("errorGroupID", errorGroupID)
+	results, err := r.TDB.Query(ctx, query)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to perform tdb query for error group frequencies")
+	}
+	var response []*modelInputs.ErrorDistributionItem
+	for _, r := range results {
+		if r.Value != nil {
+			for _, k := range []string{
+				"count", "environmentCount", "identifierCount", "sessionCount",
+			} {
+				response = append(response, &modelInputs.ErrorDistributionItem{
+					ErrorGroupID: strconv.Itoa(errorGroupID),
+					Date:         r.Time,
+					Name:         k,
+					Value:        r.Values[k].(int64),
+				})
+			}
+		}
+	}
+	return response, nil
 }
 
 func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupIDs []int, params modelInputs.ErrorGroupFrequenciesParamsInput, metric string) ([]*modelInputs.ErrorDistributionItem, error) {
@@ -722,7 +756,7 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 		return eg, false, e.Wrap(err, "error validating admin in project")
 	}
 
-	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
+	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID, eg.CreatedAt); err != nil {
 		return nil, false, e.Wrap(err, "error querying error group occurrences")
 	}
 	if err := r.SetErrorFrequenciesInflux(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
@@ -817,36 +851,6 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 		return nil, e.Wrap(err, "error validating admin in project")
 	}
 	return segment, nil
-}
-
-func (r *Resolver) UpdateSessionsVisibility(workspaceID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
-	isPlanUpgrade := true
-	switch originalPlan {
-	case modelInputs.PlanTypeFree:
-		if newPlan == modelInputs.PlanTypeFree {
-			isPlanUpgrade = false
-		}
-	case modelInputs.PlanTypeBasic:
-		if newPlan == modelInputs.PlanTypeFree {
-			isPlanUpgrade = false
-		}
-	case modelInputs.PlanTypeStartup:
-		if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic {
-			isPlanUpgrade = false
-		}
-	case modelInputs.PlanTypeEnterprise:
-		if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic || newPlan == modelInputs.PlanTypeStartup {
-			isPlanUpgrade = false
-		}
-	}
-	if isPlanUpgrade {
-		if err := r.DB.Model(&model.Session{}).
-			Where("project_id in (SELECT id FROM projects WHERE workspace_id=?)", workspaceID).
-			Where(&model.Session{WithinBillingQuota: &model.F}).
-			Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
-			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
-		}
-	}
 }
 
 func (r *Resolver) SendEmailAlert(
@@ -1351,22 +1355,25 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 			"BillingPeriodStart": billingPeriodStart,
 			"BillingPeriodEnd":   billingPeriodEnd,
 			"NextInvoiceDate":    nextInvoiceDate,
-			"AllowMeterOverage":  tier != modelInputs.PlanTypeFree,
 		}).Error; err != nil {
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.ReportUsageForWorkspace(r.DB, r.StripeClient, workspace.ID); err != nil {
+	if err := pricing.ReportUsageForWorkspace(r.DB, r.StripeClient, r.MailClient, workspace.ID); err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
 	}
 
-	// mark sessions as within billing quota on plan upgrade
-	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
-	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
-	r.PrivateWorkerPool.SubmitRecover(func() {
-		r.UpdateSessionsVisibility(workspace.ID, tier, modelInputs.PlanTypeFree)
-	})
+	// Make previous billing history email records inactive (so new active records can be added)
+	if err := r.DB.Model(&model.BillingEmailHistory{}).
+		Where(model.BillingEmailHistory{Active: true, WorkspaceID: workspace.ID}).
+		Updates(map[string]interface{}{
+			"Active":      false,
+			"WorkspaceID": workspace.ID,
+			"DeletedAt":   time.Now(),
+		}).Error; err != nil {
+		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating BillingEmailHistory objects for workspace %d", workspace.ID)
+	}
 
 	return nil
 }
@@ -2227,7 +2234,16 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 		Variables GraphQLVars `json:"variables"`
 	}
 
-	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{IssueID: issueID, Title: title, Subtitle: subtitle, Url: url, IconUrl: fmt.Sprintf("%s/logo_with_gradient_bg.png", os.Getenv("FRONTEND_URI"))}}
+	req := GraphQLReq{
+		Query: requestQuery,
+		Variables: GraphQLVars{
+			IssueID:  issueID,
+			Title:    title,
+			Subtitle: subtitle,
+			Url:      url,
+			IconUrl:  fmt.Sprintf("%s/logo_with_gradient_bg.png", os.Getenv("FRONTEND_URI")),
+		},
+	}
 
 	requestBytes, err := json.Marshal(req)
 	if err != nil {
@@ -3203,27 +3219,16 @@ func MergeHistogramBucketCounts(bucketCounts []int64, multiple int) []int64 {
 	return newBuckets
 }
 
-func GetOptOutToken(adminID int, previous bool) string {
-	now := time.Now()
-	if previous {
-		now = now.AddDate(0, -1, 0)
-	}
-	h := sha256.New()
-	preHash := strconv.Itoa(adminID) + now.Format("2006-01") + EmailOptOutSalt
-	h.Write([]byte(preHash))
-	return fmt.Sprintf("%x", h.Sum(nil))
-}
-
 func IsOptOutTokenValid(adminID int, token string) bool {
 	if adminID <= 0 {
 		return false
 	}
 
 	// If the token matches the current month's, it's valid
-	if token == GetOptOutToken(adminID, false) {
+	if token == Email.GetOptOutToken(adminID, false) {
 		return true
 	}
 
 	// If the token matches the prior month's, it's valid
-	return token == GetOptOutToken(adminID, true)
+	return token == Email.GetOptOutToken(adminID, true)
 }

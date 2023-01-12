@@ -12,6 +12,7 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useMemo } from 'react'
@@ -31,6 +32,7 @@ const IntegrationsPage = () => {
 	const [popUpModal] = useQueryParam('enable', StringParam)
 
 	const { isHighlightAdmin } = useAuthContext()
+	const { currentWorkspace } = useApplicationContext()
 
 	const { isLinearIntegratedWithProject, loading: loadingLinear } =
 		useLinearIntegration()
@@ -76,9 +78,29 @@ const IntegrationsPage = () => {
 		loadingHeight
 
 	const integrations = useMemo(() => {
-		return INTEGRATIONS.filter((inter) =>
-			inter.onlyShowForHighlightAdmin ? isHighlightAdmin : true,
-		).map((inter) => ({
+		return INTEGRATIONS.filter((integration) => {
+			if (
+				integration.allowlistWorkspaceIds ||
+				integration.onlyShowForHighlightAdmin
+			) {
+				let canSee = false
+
+				const workspaceID = currentWorkspace?.id
+
+				if (integration.allowlistWorkspaceIds && workspaceID) {
+					canSee =
+						canSee ||
+						integration.allowlistWorkspaceIds?.includes(workspaceID)
+				}
+
+				if (integration.onlyShowForHighlightAdmin) {
+					canSee = canSee || isHighlightAdmin
+				}
+				return canSee
+			} else {
+				return true
+			}
+		}).map((inter) => ({
 			...inter,
 			defaultEnable:
 				(inter.key === 'slack' && isSlackConnectedToWorkspace) ||
@@ -93,6 +115,7 @@ const IntegrationsPage = () => {
 				(inter.key === 'height' && isHeightIntegratedWithProject),
 		}))
 	}, [
+		currentWorkspace?.id,
 		isHighlightAdmin,
 		isSlackConnectedToWorkspace,
 		isLinearIntegratedWithProject,

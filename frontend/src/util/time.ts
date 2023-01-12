@@ -83,3 +83,5 @@ export const serializeAbsoluteTimeRange = (
 export const roundDateToMinute = function (date: string | null) {
 	return moment(moment(date || undefined).format('MM/DD/YYYY HH:mm'))
 }
+
+export const wait = (ms: number) => new Promise((res) => setTimeout(res, ms))

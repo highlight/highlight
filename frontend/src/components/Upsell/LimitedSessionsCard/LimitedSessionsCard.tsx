@@ -1,10 +1,10 @@
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
+import { Box, Card, Text } from '@highlight-run/ui'
+import { isProjectWithinTrial } from '@util/billing/billing'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 
-import { isProjectWithinTrial } from '../../../util/billing/billing'
 import ButtonLink from '../../Button/ButtonLink/ButtonLink'
-import Card from '../../Card/Card'
 import styles from './LimitedSessionsCard.module.scss'
 
 const LimitedSessionCard = () => {
@@ -35,25 +35,32 @@ const LimitedSessionCard = () => {
 	}
 
 	return (
-		<Card className={styles.container}>
-			<h2>You've reached your session quota for this month 😔</h2>
-			<p className={styles.description}>
-				There are{' '}
-				<b>
-					{data?.billingDetailsForProject?.sessionsOutOfQuota}{' '}
-					sessions
-				</b>{' '}
-				that can be viewed after you upgrade. Sessions recorded before
-				you reached your quota are still viewable.
-			</p>
-			<ButtonLink
-				className={styles.center}
-				to={`/w/${data?.workspace_for_project?.id}/upgrade-plan`}
-				trackingId="LimitedSessionsCardUpgradePlan"
-			>
-				Upgrade Plan
-			</ButtonLink>
-		</Card>
+		<Box mb="12" p="16">
+			<Card border="secondary">
+				<Box display="flex" flexDirection="column" gap="16">
+					<Text size="large" weight="bold" align="center">
+						You've reached your session limit for this month 😔
+					</Text>
+					<Text color="n11" align="center">
+						Your workspace is configured to stop recording new
+						sessions once the monthly limit is reached. There have
+						been{' '}
+						<b>
+							{data?.billingDetailsForProject?.sessionsOutOfQuota}{' '}
+							sessions
+						</b>{' '}
+						after this limit.
+					</Text>
+					<ButtonLink
+						className={styles.center}
+						to={`/w/${data?.workspace_for_project?.id}/upgrade-plan`}
+						trackingId="LimitedSessionsCardUpgradePlan"
+					>
+						Upgrade Plan
+					</ButtonLink>
+				</Box>
+			</Card>
+		</Box>
 	)
 }
 

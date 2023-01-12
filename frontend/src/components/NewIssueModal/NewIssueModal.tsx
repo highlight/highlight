@@ -67,12 +67,13 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	const { admin } = useAuthContext()
 
 	const [loading, setLoading] = useState(false)
-	const [createErrorComment] = useCreateErrorCommentMutation()
+
+	const [createIssueForErrorComment] = useCreateIssueForErrorCommentMutation({
+		refetchQueries: [namedOperations.Query.GetErrorIssues],
+	})
 
 	const [createIssueForSessionComment] =
 		useCreateIssueForSessionCommentMutation()
-
-	const [createIssueForErrorComment] = useCreateIssueForErrorCommentMutation()
 
 	const currentUrl = `${
 		window.location.port === '' ? GetBaseURL() : window.location.origin
@@ -80,6 +81,13 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	const { error_secure_id: errorSecureId } = useParams<{
 		error_secure_id?: string
 	}>()
+
+	const [createErrorComment] = useCreateErrorCommentMutation({
+		refetchQueries: [
+			namedOperations.Query.GetErrorComments,
+			namedOperations.Query.GetErrorIssues,
+		],
+	})
 
 	const onFinish = async () => {
 		setLoading(true)
@@ -138,9 +146,8 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							issue_team_id: issueTeamId,
 							issue_description: issueDescription,
 						},
-						refetchQueries: [
-							namedOperations.Query.GetErrorComments,
-						],
+						refetchQueries: [namedOperations.Query.GetErrorIssues],
+						awaitRefetchQueries: true,
 					})
 				}
 			} else {

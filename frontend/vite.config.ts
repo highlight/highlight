@@ -2,7 +2,7 @@
 /// <reference types="vitest/globals" />
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
 import react from '@vitejs/plugin-react-swc'
-import { dirname, join } from 'node:path'
+import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import { defineConfig, loadEnv } from 'vite'
 import vitePluginImp from 'vite-plugin-imp'
@@ -84,10 +84,9 @@ export default defineConfig(({ mode }) => {
 		build: {
 			minify: 'esbuild',
 			outDir: 'build',
-			// Vite sourcemaps are totally broken
+			// Vite sourcemaps are broken in development
 			// https://github.com/highlight-run/highlight/pull/3171
-			// sourcemaps significantly slow build and cause build to OOM
-			sourcemap: mode !== 'development',
+			sourcemap: env.RENDER_PREVIEW !== 'true' && mode !== 'development',
 		},
 		test: {
 			globals: true,

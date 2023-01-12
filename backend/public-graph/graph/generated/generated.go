@@ -456,6 +456,10 @@ type Mutation {
 type Query {
 	ignore(id: ID!): Any
 }
+
+enum PublicGraphError {
+	BillingQuotaExceeded
+}
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
