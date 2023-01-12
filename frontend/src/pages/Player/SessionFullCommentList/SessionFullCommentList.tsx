@@ -1,9 +1,8 @@
 import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment'
-import { useGetSessionCommentsQuery } from '@graph/hooks'
+import { GetSessionCommentsQuery } from '@graph/operations'
 import { SessionCommentType } from '@graph/schemas'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { getFeedbackCommentSessionTimestamp } from '@util/comment/util'
-import { useParams } from '@util/react-router/useParams'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import React, { useEffect, useState } from 'react'
 
@@ -12,16 +11,14 @@ import { PlayerSearchParameters } from '../PlayerHook/utils'
 import styles from './SessionFullCommentList.module.scss'
 
 const SessionFullCommentList = ({
+	loading,
+	sessionCommentsData,
 	parentRef,
 }: {
+	loading: boolean
+	sessionCommentsData?: GetSessionCommentsQuery
 	parentRef?: React.RefObject<HTMLDivElement>
 }) => {
-	const { session_secure_id } = useParams<{ session_secure_id: string }>()
-	const { data: sessionCommentsData, loading } = useGetSessionCommentsQuery({
-		variables: {
-			session_secure_id: session_secure_id,
-		},
-	})
 	const { sessionMetadata } = useReplayerContext()
 	const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
 		new URLSearchParams(location.search).get(

@@ -1,12 +1,12 @@
+import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
 
-export const HISTOGRAM_AREA_HEIGHT = 92
+export const HISTOGRAM_AREA_HEIGHT = 58
 export const HISTOGRAM_OFFSET = 26
 export const PROGRESS_BAR_HEIGHT = 3
 export const SEPARATOR_HEIGHT = 1
-export const SESSION_MONITOR_HEIGHT = 20
+export const SESSION_MONITOR_HEIGHT = 7
 export const TIME_AXIS_HEIGHT = 24
-export const TIME_INDICATOR_ACTIVATION_RADIUS = 15
 export const TIME_INDICATOR_TOP_WIDTH = 10
 export const TIME_INDICATOR_TOP_HEIGHT = 12
 export const TIME_INDICATOR_TEXT_HEIGHT = 20
@@ -14,10 +14,7 @@ export const TIMELINE_MARGIN = 8
 
 export const timelineContainer = style({
 	alignItems: 'center',
-	backgroundColor: 'var(--color-primary-background)',
-	border: '1px solid var(--color-neutral-100)',
-	borderBottom: 0,
-	borderRadius: '2px 2px 0 0',
+	backgroundColor: colors.white,
 	display: 'flex',
 	flexDirection: 'column',
 	zIndex: 5,
@@ -101,6 +98,11 @@ export const inactivityPeriodPlayed = style({
 	zIndex: 4,
 	width: '100%',
 	transformOrigin: 'left',
+})
+
+export const viewportContainerClosed = style({
+	borderBottom: `1px solid ${colors.n6}`,
+	marginTop: 4,
 })
 
 export const viewportContainer = style({
@@ -248,4 +250,14 @@ export const timeIndicatorText = style({
 	height: TIME_INDICATOR_TEXT_HEIGHT,
 	left: 0,
 	transformOrigin: 'left',
+})
+
+export const toolbarSection = style({
+	background: 'none',
+	borderRadius: `0 0 var(--border-radius) var(--border-radius)`,
+	display: 'flex',
+	flexDirection: 'row',
+	gap: 8,
+	height: 32,
+	zIndex: 30,
 })

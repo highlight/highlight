@@ -28,7 +28,7 @@ import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTimeAsAlphanum, formatTimeAsHMS } from '@util/time'
 import clsx from 'clsx'
-import {
+import React, {
 	useCallback,
 	useEffect,
 	useLayoutEffect,
@@ -36,11 +36,12 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { Area, AreaChart } from 'recharts'
 import { NumberParam, useQueryParams } from 'use-query-params'
 
+import { ToolbarControlBar } from '../../ToolbarControlBar/ToolbarControlBar'
 import * as style from './style.css'
 import { TIMELINE_MARGIN } from './style.css'
+
 interface Props {
 	selectedTimelineAnnotationTypes: string[]
 	width: number
@@ -144,7 +145,7 @@ const TimelineIndicatorsBarGraph = ({
 		}
 
 		let durationCut = 0
-		const adjusted = inactivityPeriods.map((interval) => {
+		return inactivityPeriods.map((interval) => {
 			const fracInactive = interval[1] / inactiveDuration
 			const adjustedDuration = Math.max(
 				fracInactive * targetInactiveDuration,
@@ -156,7 +157,6 @@ const TimelineIndicatorsBarGraph = ({
 
 			return [adjustedStart, adjustedDuration] as [number, number]
 		})
-		return adjusted
 	}, [activeDuration, inactiveDuration, inactivityPeriods])
 
 	const adjustedInactiveDuration = adjustedInactivityPeriods.reduce(
@@ -309,28 +309,6 @@ const TimelineIndicatorsBarGraph = ({
 			progressToTime,
 			timeToProgress,
 		],
-	)
-	const areaChartBuckets = useMemo(() => {
-		return buildViewportEventBuckets(
-			events,
-			adjustedDuration,
-			bucketTimestep,
-			selectedTimelineAnnotationTypes,
-			progressToTime,
-			timeToProgress,
-		)
-	}, [
-		adjustedDuration,
-		bucketTimestep,
-		events,
-		selectedTimelineAnnotationTypes,
-		timeToProgress,
-		progressToTime,
-	])
-
-	const areaChartMaxBucketCount = useMemo(
-		() => Math.max(...areaChartBuckets.map(({ totalCount }) => totalCount)),
-		[areaChartBuckets],
 	)
 
 	const maxBucketCount = Math.max(
@@ -486,8 +464,7 @@ const TimelineIndicatorsBarGraph = ({
 				canvasWidth,
 			)
 
-			const newTime = Math.round(progressToTime(x / canvasWidth))
-			return newTime
+			return Math.round(progressToTime(x / canvasWidth))
 		},
 		[progressToTime],
 	)
@@ -957,56 +934,6 @@ const TimelineIndicatorsBarGraph = ({
 		useTransition,
 	])
 
-	const sessionMonitor = useMemo(() => {
-		return areaChartBuckets.length > 200 ? (
-			areaChartBuckets
-				.filter((bucket) => bucket.totalCount > 0)
-				.map(({ totalCount, startPercent }, idx) => (
-					<span
-						key={`bucket-mark-${idx}`}
-						className={style.bucketMark}
-						style={{
-							left: `${startPercent}%`,
-							height: `${clamp(
-								(100 * totalCount) / areaChartMaxBucketCount,
-								0,
-								100,
-							)}%`,
-						}}
-					></span>
-				))
-		) : (
-			<AreaChart
-				width={borderlessWidth}
-				height={style.SESSION_MONITOR_HEIGHT}
-				data={areaChartBuckets}
-				margin={{ top: 4, bottom: 0, left: 0, right: 0 }}
-			>
-				<defs>
-					<linearGradient id="activityBackground" y1="0%" y2="100%">
-						<stop
-							offset="-42.86%"
-							stopColor="var(--color-neutral-700)"
-							stopOpacity="100%"
-						/>
-						<stop
-							offset="100%"
-							stopColor="var(--color-neutral-700)"
-							stopOpacity="48%"
-						/>
-					</linearGradient>
-				</defs>
-				<Area
-					isAnimationActive={false}
-					type="monotone"
-					stroke="transparent"
-					dataKey="totalCount"
-					fill="url(#activityBackground)"
-				></Area>
-			</AreaChart>
-		)
-	}, [areaChartBuckets, areaChartMaxBucketCount, borderlessWidth])
-
 	const showSkeleton =
 		!events.length ||
 		replayerState === ReplayerState.Loading ||
@@ -1085,77 +1012,15 @@ const TimelineIndicatorsBarGraph = ({
 	return (
 		<div className={style.timelineContainer} style={{ width }}>
 			{progressBar}
-			<div
-				className={clsx([
-					style.sessionMonitor,
-					{
-						[style.hidden]: !showHistogram,
-					},
-				])}
-				ref={sessionMonitorRef}
-			>
-				{sessionMonitor}
-				<ZoomArea
-					containerWidth={borderlessWidth}
-					containerLeft={
-						sessionMonitorRef.current?.getBoundingClientRect()
-							.left || 0
-					}
-					update={updateCameraFromZoomArea}
-					minZoomAreaPercent={(100 * zoomAdjustment) / maxZoom}
-				/>
+			<div className={style.toolbarSection} style={{ width }}>
+				<ToolbarControlBar />
 			</div>
-			<TimelineZoom
-				isHidden={!showZoomButtons || !showHistogram}
-				zoom={(percent: number) =>
-					zoom(
-						(viewportBbox?.left ?? 0) +
-							TIMELINE_MARGIN +
-							viewportWidth / 2,
-						-percent / ZOOM_SCALING_FACTOR,
-					)
-				}
-			/>
-
-			<Box
-				ref={timeIndicatorTextRef}
-				background="n12"
-				borderRadius="10"
-				position="absolute"
-				px="8"
-				py="2"
-				display="flex"
-				justifyContent="center"
-				alignItems="center"
-				cssClass={clsx(style.timeIndicatorText, {
-					[style.moveIndicator]: useTransition,
-				})}
-				style={{
-					transform: `translateX(${textStart}px)`,
-					visibility: showIndicatorText ? 'visible' : 'hidden',
-					top:
-						style.PROGRESS_BAR_HEIGHT +
-						(showHistogram ? style.SESSION_MONITOR_HEIGHT : 0) +
-						style.TIME_AXIS_HEIGHT -
-						style.TIME_INDICATOR_TOP_HEIGHT -
-						style.TIME_INDICATOR_TEXT_HEIGHT -
-						4,
-				}}
-			>
-				<Text
-					ref={timeIndicatorTextRef}
-					color="n5"
-					size="xSmall"
-					userSelect="none"
-				>
-					{formatTimeOnTop(shownTime)}
-				</Text>
-			</Box>
 			<div
 				className={clsx([
 					style.viewportContainer,
 					{
 						[style.hideOverflow]: !showHistogram,
+						[style.viewportContainerClosed]: !showHistogram,
 					},
 				])}
 				ref={viewportRef}
@@ -1269,6 +1134,70 @@ const TimelineIndicatorsBarGraph = ({
 					</div>
 				</div>
 			</div>
+			<div
+				className={clsx([
+					style.sessionMonitor,
+					{
+						[style.hidden]: !showHistogram,
+					},
+				])}
+				ref={sessionMonitorRef}
+			>
+				<ZoomArea
+					containerWidth={borderlessWidth}
+					containerLeft={
+						sessionMonitorRef.current?.getBoundingClientRect()
+							.left || 0
+					}
+					update={updateCameraFromZoomArea}
+					minZoomAreaPercent={(100 * zoomAdjustment) / maxZoom}
+				/>
+			</div>
+			<TimelineZoom
+				isHidden={!showZoomButtons || !showHistogram}
+				zoom={(percent: number) =>
+					zoom(
+						(viewportBbox?.left ?? 0) +
+							TIMELINE_MARGIN +
+							viewportWidth / 2,
+						-percent / ZOOM_SCALING_FACTOR,
+					)
+				}
+			/>
+			<Box
+				ref={timeIndicatorTextRef}
+				background="n12"
+				borderRadius="10"
+				position="absolute"
+				px="8"
+				py="2"
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+				cssClass={clsx(style.timeIndicatorText, {
+					[style.moveIndicator]: useTransition,
+				})}
+				style={{
+					transform: `translateX(${textStart}px)`,
+					visibility: showIndicatorText ? 'visible' : 'hidden',
+					top:
+						style.PROGRESS_BAR_HEIGHT +
+						(showHistogram ? style.SESSION_MONITOR_HEIGHT : 0) +
+						style.TIME_AXIS_HEIGHT -
+						style.TIME_INDICATOR_TOP_HEIGHT -
+						style.TIME_INDICATOR_TEXT_HEIGHT -
+						4,
+				}}
+			>
+				<Text
+					ref={timeIndicatorTextRef}
+					color="n5"
+					size="xSmall"
+					userSelect="none"
+				>
+					{formatTimeOnTop(shownTime)}
+				</Text>
+			</Box>
 		</div>
 	)
 }
@@ -1439,7 +1368,7 @@ function buildViewportEventBuckets(
 		eventBuckets[bucketId].identifier[eventType].push(identifier)
 		const details = JSON.stringify(
 			getEventRenderDetails(event as HighlightEvent).displayValue,
-		)?.replaceAll(/^\"|\"$/g, '')
+		)?.replaceAll(/^"|"$/g, '')
 		eventBuckets[bucketId].details[identifier] = !details
 			? identifier
 			: details

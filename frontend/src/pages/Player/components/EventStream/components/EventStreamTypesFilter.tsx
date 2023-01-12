@@ -1,6 +1,7 @@
 import Button from '@components/Button/Button/Button'
 import CheckboxList from '@components/CheckboxList/CheckboxList'
 import Popover from '@components/Popover/Popover'
+import { colors } from '@highlight-run/ui/src/css/colors'
 import SvgFilterIcon from '@icons/FilterIcon'
 import { useEventTypeFilters } from '@pages/Player/components/EventStream/hooks/useEventTypeFilters'
 import { EventsForTimeline } from '@pages/Player/PlayerHook/utils'
@@ -157,6 +158,7 @@ export const EventStreamTypesFilter = () => {
 				trackingId="SessionEventStreamSettings"
 				small
 				className={styles.filtersButton}
+				style={{ background: colors.n1 }}
 			>
 				<SvgFilterIcon />
 				Filters ({activeFiltersCount})

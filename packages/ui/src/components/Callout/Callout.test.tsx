@@ -5,7 +5,7 @@ import { Callout } from './Callout'
 
 describe('Callout', () => {
 	it('exists', async () => {
-		render(<Callout>Testing</Callout>)
+		render(<Callout title={'Test'}>Testing</Callout>)
 
 		await screen.findByText('Testing')
 	})

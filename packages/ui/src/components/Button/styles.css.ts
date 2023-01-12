@@ -6,6 +6,9 @@ import { typographyStyles } from '../Text/styles.css'
 export const shadows = {
 	grey: 'inset 0px -1px 0px rgba(0, 0, 0, 0.1)',
 	primary: 'inset 0px -1px 0px rgba(0, 0, 0, 0.32)',
+	neutral: `0 0 0 1px ${vars.color.n2} inset`,
+	n5: `0 0 0 1px ${vars.color.n5} inset`,
+	medium: `0px 6px 12px -2px rgba(59, 59, 59, 0.12)`,
 } as const
 
 export const defaultSize = 'small'
@@ -43,6 +46,13 @@ export const iconVariants = recipe({
 			},
 			secondary: {
 				color: vars.theme.interactive.fill.secondary.content.text,
+			},
+			danger: {
+				selectors: {
+					'&:focus, &:active': {
+						color: vars.color.n3,
+					},
+				},
 			},
 		},
 	},
@@ -113,6 +123,27 @@ export const variants = recipe({
 			},
 			secondary: {
 				color: vars.theme.interactive.fill.primary.content.text,
+			},
+			danger: {
+				background: vars.color.r8,
+				color: vars.color.white,
+				boxShadow: shadows.primary,
+				selectors: {
+					'&:hover': {
+						background: vars.color.r9,
+						color: vars.color.white,
+					},
+					'&:focus, &:active': {
+						background: vars.color.r9,
+						color: vars.color.white,
+						boxShadow: 'none',
+					},
+					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+						background: vars.color.r7,
+						color: vars.color.n1,
+						boxShadow: 'none',
+					},
+				},
 			},
 		},
 		size: {

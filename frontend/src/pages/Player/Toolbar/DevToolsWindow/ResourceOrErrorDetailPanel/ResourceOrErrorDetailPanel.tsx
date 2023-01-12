@@ -12,7 +12,7 @@ import {
 	findResourceWithMatchingHighlightHeader,
 	getHighlightRequestId,
 	NetworkResource,
-} from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/ResourcePage'
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import React, { useCallback } from 'react'

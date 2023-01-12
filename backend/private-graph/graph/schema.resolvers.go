@@ -3469,7 +3469,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 	}
 
 	s, err := r.canAdminViewSession(ctx, secureID)
-	if err != nil {
+	if s == nil || err != nil {
 		return nil, nil
 	}
 	sessionObj := &model.Session{}

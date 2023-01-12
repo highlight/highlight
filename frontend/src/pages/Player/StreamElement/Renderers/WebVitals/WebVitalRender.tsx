@@ -23,6 +23,13 @@ const WebVitalSimpleRenderer = React.memo(
 			}
 		}, [showDetailedView])
 
+		const deduppedVitals: {
+			[name: string]: { name: string; value: number }
+		} = {}
+		for (const { name, value } of vitals) {
+			deduppedVitals[name] = { name, value }
+		}
+
 		return (
 			<div
 				className={classNames({
@@ -30,7 +37,7 @@ const WebVitalSimpleRenderer = React.memo(
 					[styles.detailedView]: showDetailedView,
 				})}
 			>
-				{vitals.map(({ name, value }) => {
+				{Object.values(deduppedVitals).map(({ name, value }) => {
 					const configuration = WEB_VITALS_CONFIGURATION[name]
 
 					if (showDetailedView) {

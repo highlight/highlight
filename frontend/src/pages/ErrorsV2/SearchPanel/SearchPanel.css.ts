@@ -1,4 +1,4 @@
-import { colors } from '@highlight-run/ui/src/css/colors'
+import { SESSION_FEED_SCROLLBAR } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
 import { style } from '@vanilla-extract/css'
 
 export const ERROR_FEED_LEFT_PANEL_WIDTH = 340
@@ -29,19 +29,10 @@ export const searchPanelToggleButtonHidden = style({
 	right: 'calc(-1 * (var(--sidebar-width) - var(--size-xLarge)))',
 })
 
-export const ERROR_FEED_SCROLLBAR_WIDTH = 8
 export const SEARCH_PANEL_CONTROL_BAR_HEIGHT = 44
 export const content = style({
 	height: '100%',
-	selectors: {
-		'&::-webkit-scrollbar': {
-			backgroundColor: colors.n2,
-			width: ERROR_FEED_SCROLLBAR_WIDTH,
-		},
-		'&::-webkit-scrollbar-thumb': {
-			backgroundColor: colors.n4,
-		},
-	},
+	selectors: SESSION_FEED_SCROLLBAR,
 })
 
 export const controlBar = style({

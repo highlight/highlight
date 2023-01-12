@@ -6,25 +6,23 @@ import * as styles from './styles.css'
 import { Box } from '../Box/Box'
 import { Text } from '../Text/Text'
 
-export type SwitchChangeEventHandler = (
-	checked: boolean,
-	event: React.MouseEvent<HTMLButtonElement>,
-) => void
-
-type Props = CheckboxProps & {
-	iconLeft?: React.ReactElement<IconProps>
-	iconRight?: React.ReactElement<IconProps>
-}
+type Props = Omit<CheckboxProps, 'size'> &
+	styles.Variants & {
+		iconLeft?: React.ReactElement<IconProps>
+		iconRight?: React.ReactElement<IconProps>
+	}
 
 export const SwitchButton: React.FC<React.PropsWithChildren<Props>> = ({
 	onChange,
 	checked,
+	size,
 	iconLeft,
 	iconRight,
 	children,
 	...rest
 }) => {
 	const className = styles.variants({
+		size,
 		variant: checked ? 'checked' : 'unchecked',
 	})
 	const checkbox = useCheckboxState()
@@ -43,7 +41,7 @@ export const SwitchButton: React.FC<React.PropsWithChildren<Props>> = ({
 					{iconLeft}
 				</Box>
 			)}
-			{children && <Text>{children}</Text>}
+			{children && <Text size="xSmall">{children}</Text>}
 			{iconRight && (
 				<Box as="span" display="inline-flex">
 					{iconRight}

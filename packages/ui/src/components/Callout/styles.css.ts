@@ -1,4 +1,5 @@
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
+import { sprinkles } from '../../css/sprinkles.css'
 import { vars } from '../../css/vars'
 
 export const variants = recipe({
@@ -14,10 +15,18 @@ export const variants = recipe({
 				backgroundColor: vars.theme.static.surface.raised,
 			},
 		},
+		border: {
+			true: sprinkles({
+				border: 'secondary',
+				borderRadius: '8',
+			}),
+			false: sprinkles({}),
+		},
 	},
 
 	defaultVariants: {
 		kind: 'info',
+		border: true,
 	},
 })
 

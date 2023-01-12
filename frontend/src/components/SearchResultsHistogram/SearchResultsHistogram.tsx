@@ -160,7 +160,7 @@ export const SearchResultsHistogram = React.memo(
 		)
 
 		return loading ? (
-			<Skeleton style={{ height: '36px', lineHeight: 'inherit' }} />
+			<Skeleton style={{ height: '44px', lineHeight: 'inherit' }} />
 		) : (
 			<Histogram
 				onAreaChanged={onAreaChanged}

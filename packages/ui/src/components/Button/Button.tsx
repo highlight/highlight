@@ -3,7 +3,7 @@ import {
 	Button as AriakitButton,
 	ButtonProps as AriakitButtonProps,
 } from 'ariakit/button'
-import { Text, Props as TextProps } from '../Text/Text'
+import { Props as TextProps, Text } from '../Text/Text'
 
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'

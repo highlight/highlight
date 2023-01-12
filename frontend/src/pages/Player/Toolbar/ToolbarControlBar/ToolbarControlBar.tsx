@@ -28,6 +28,7 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
+import { colors } from '@highlight-run/ui/src/css/colors'
 import ActivityIcon from '@icons/ActivityIcon'
 import { ReactComponent as AnnotationIcon } from '@icons/Solid/annotation.svg'
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
@@ -66,7 +67,24 @@ import style from './ToolbarControlBar.module.scss'
 
 const EventTypeToExclude: readonly string[] = ['Web Vitals']
 
-const ToolbarControls = () => {
+type ShortcutGuideProps = {
+	shortcut: ShortcutItem
+	className?: string
+}
+
+const ShortcutTextGuide: React.FC<ShortcutGuideProps> = React.memo(
+	({ shortcut, className }) => {
+		return (
+			<Box display="flex" gap="2" cssClass={className}>
+				{shortcut.shortcut.map((char, idx) => (
+					<Badge key={idx} variant="grey" size="tiny" label={char} />
+				))}
+			</Box>
+		)
+	},
+)
+
+export const ToolbarControlBar = () => {
 	const {
 		setTime,
 		time,
@@ -287,6 +305,7 @@ const ToolbarControls = () => {
 								setPlayerSpeedIdx(playerSpeedIdx + 1)
 							}}
 							disabled={disableControls}
+							style={{ color: colors.n11 }}
 						>
 							{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
 						</Tag>
@@ -360,30 +379,39 @@ const ToolbarControls = () => {
 						visible={showSettings}
 						destroyTooltipOnHide
 					>
-						<Box>
-							<ButtonIcon
+						<Box
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								height: 22,
+								width: 22,
+							}}
+						>
+							<SwitchButton
 								disabled={disableControls}
-								icon={<IconSolidCog size={14} />}
-								size="small"
-								shape="square"
-								emphasis="low"
-								kind="secondary"
+								iconLeft={<IconSolidCog size={14} />}
 							/>
 						</Box>
 					</Popover>
 				</>
 			)}
 			<Box cssClass={{ [style.moveRight]: isLiveMode }}>
-				<ButtonIcon
-					onClick={() => {
-						setIsPlayerFullscreen((prev) => !prev)
+				<Box
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						height: 22,
+						width: 22,
 					}}
-					icon={<IconSolidArrowsExpand size={14} />}
-					size="small"
-					shape="square"
-					emphasis="low"
-					kind="secondary"
-				/>
+				>
+					<SwitchButton
+						onChange={() => {
+							setIsPlayerFullscreen((prev) => !prev)
+						}}
+						disabled={disableControls}
+						iconLeft={<IconSolidArrowsExpand size={14} />}
+					/>
+				</Box>
 			</Box>
 		</div>
 	)
@@ -640,21 +668,3 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 		</div>
 	)
 }
-
-type ShortcutGuideProps = {
-	shortcut: ShortcutItem
-	className?: string
-}
-const ShortcutTextGuide: React.FC<ShortcutGuideProps> = React.memo(
-	({ shortcut, className }) => {
-		return (
-			<Box display="flex" gap="2" cssClass={className}>
-				{shortcut.shortcut.map((char, idx) => (
-					<Badge key={idx} variant="grey" size="tiny" label={char} />
-				))}
-			</Box>
-		)
-	},
-)
-
-export default ToolbarControls

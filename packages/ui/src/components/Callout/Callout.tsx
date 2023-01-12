@@ -15,18 +15,19 @@ import { vars } from '../../css/vars'
 export type Props = React.PropsWithChildren &
 	styles.Variants & {
 		title: string
-		icon?: boolean
 		handleCloseClick?: () => void
+		icon?: false | (() => JSX.Element)
 	}
 
 export const Callout: React.FC<Props> = ({
 	children,
 	kind = 'info',
-	icon = true,
 	title,
 	handleCloseClick,
+	icon,
+	border,
 }) => {
-	const Icon = kindIconLookup[kind]
+	const Icon = icon || kindIconLookup[kind]
 
 	return (
 		<Box
@@ -35,9 +36,9 @@ export const Callout: React.FC<Props> = ({
 			display="flex"
 			gap="8"
 			p="8"
-			cssClass={styles.variants({ kind })}
+			cssClass={styles.variants({ kind, border })}
 		>
-			{icon && <Icon />}
+			{icon !== false ? <Icon /> : null}
 
 			<Box gap="16" display="flex" flexDirection="column" width="full">
 				<Box

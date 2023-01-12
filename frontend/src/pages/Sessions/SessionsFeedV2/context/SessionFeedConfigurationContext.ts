@@ -1,6 +1,7 @@
 import { createContext } from '@util/context/context'
 
 export const dateTimeFormats = [
+	'Smart',
 	'Relative',
 	'Date Only',
 	'Date and Time',
