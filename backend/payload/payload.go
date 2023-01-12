@@ -13,19 +13,21 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type CompressedJSONArrayWriter struct {
-	writer      *brotli.Writer
-	hasContents bool
+type CompressedWriter struct {
+	writer           *brotli.Writer
+	hasContents      bool
+	hasUnclosedArray bool
 }
 
 const BROTLI_COMPRESSION_LEVEL = 9
 
 // Initializes a new writer with the configured compression level
-func NewCompressedJSONArrayWriter(brFile *os.File) *CompressedJSONArrayWriter {
+func NewCompressedWriter(brFile *os.File) *CompressedWriter {
 	brWriter := brotli.NewWriterLevel(brFile, BROTLI_COMPRESSION_LEVEL)
-	return &CompressedJSONArrayWriter{
-		writer:      (brWriter),
-		hasContents: false,
+	return &CompressedWriter{
+		writer:           brWriter,
+		hasContents:      false,
+		hasUnclosedArray: false,
 	}
 }
 
@@ -58,7 +60,7 @@ func (m *MessagesUnmarshalled) getArray() []interface{} {
 }
 
 // Merges the inner contents of the input events objects into a large JSON array
-func (w *CompressedJSONArrayWriter) WriteObject(events model.Object, unmarshalled Unmarshalled) error {
+func (w *CompressedWriter) WriteObject(events model.Object, unmarshalled Unmarshalled) error {
 	// EventsObject.Events is a string with the format "{events:[{...},{...},...]}"
 	// Unmarshal this string, then marshal the inner array
 	if err := json.Unmarshal([]byte(events.Contents()), unmarshalled); err != nil {
@@ -73,7 +75,7 @@ func (w *CompressedJSONArrayWriter) WriteObject(events model.Object, unmarshalle
 	}
 
 	// If nothing has been written yet, start with an opening bracket
-	if !w.hasContents {
+	if !w.hasUnclosedArray {
 		if _, err := w.writer.Write([]byte("[")); err != nil {
 			return errors.Wrap(err, "error writing message start")
 		}
@@ -89,17 +91,29 @@ func (w *CompressedJSONArrayWriter) WriteObject(events model.Object, unmarshalle
 	}
 
 	w.hasContents = true
+	w.hasUnclosedArray = true
+
+	return nil
+}
+
+func (w *CompressedWriter) WriteString(data string) error {
+	if _, err := w.writer.Write([]byte(data)); err != nil {
+		return errors.Wrap(err, "error writing compressed string to file")
+	}
+
+	w.hasContents = true
+	w.hasUnclosedArray = false
 
 	return nil
 }
 
 // Appends a closing bracket to close the JSON array, and closes the underlying writer
-func (w *CompressedJSONArrayWriter) Close() error {
-	if w.hasContents {
+func (w *CompressedWriter) Close() error {
+	if w.hasUnclosedArray {
 		if _, err := w.writer.Write([]byte("]")); err != nil {
 			return errors.Wrap(err, "error writing message end")
 		}
-	} else {
+	} else if !w.hasContents {
 		if _, err := w.writer.Write([]byte("[]")); err != nil {
 			return errors.Wrap(err, "error writing empty message")
 		}
@@ -111,21 +125,23 @@ func (w *CompressedJSONArrayWriter) Close() error {
 }
 
 type PayloadManager struct {
-	EventsCompressed    *CompressedJSONArrayWriter
-	ResourcesCompressed *CompressedJSONArrayWriter
-	MessagesCompressed  *CompressedJSONArrayWriter
-	EventsChunked       *CompressedJSONArrayWriter
-	ChunkIndex          int
-	files               map[FileType]*FileInfo
+	EventsCompressed        *CompressedWriter
+	ResourcesCompressed     *CompressedWriter
+	MessagesCompressed      *CompressedWriter
+	EventsChunked           *CompressedWriter
+	TimelineIndicatorEvents *CompressedWriter
+	ChunkIndex              int
+	files                   map[FileType]*FileInfo
 }
 
 type FileType string
 
 const (
-	EventsCompressed    FileType = "EventsCompressed"
-	ResourcesCompressed FileType = "ResourcesCompressed"
-	MessagesCompressed  FileType = "MessagesCompressed"
-	EventsChunked       FileType = "EventsChunked"
+	EventsCompressed        FileType = "EventsCompressed"
+	ResourcesCompressed     FileType = "ResourcesCompressed"
+	MessagesCompressed      FileType = "MessagesCompressed"
+	EventsChunked           FileType = "EventsChunked"
+	TimelineIndicatorEvents FileType = "TimelineIndicatorEvents"
 )
 
 type FileInfo struct {
@@ -137,25 +153,6 @@ type FileInfo struct {
 
 func createFile(name string) (func(), *os.File, error) {
 	file, err := os.Create(name)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "error creating file")
-	}
-	return func() {
-		err := file.Close()
-		if err != nil {
-			log.Error(errors.Wrap(err, "failed to close file"))
-			return
-		}
-		err = os.Remove(file.Name())
-		if err != nil {
-			log.Error(errors.Wrap(err, "failed to remove file"))
-			return
-		}
-	}, file, nil
-}
-
-func openFile(name string) (func(), *os.File, error) {
-	file, err := os.Open(name)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "error creating file")
 	}
@@ -187,6 +184,10 @@ func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 			suffix: ".messages.json.br",
 			ddTag:  "messagesCompressedPayloadSize",
 		},
+		TimelineIndicatorEvents: {
+			suffix: ".timelineindicatorevents.json.br",
+			ddTag:  "timelineIndicatorEventsPayloadSize",
+		},
 	}
 
 	manager := &PayloadManager{
@@ -204,11 +205,13 @@ func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 
 		switch fileType {
 		case EventsCompressed:
-			manager.EventsCompressed = NewCompressedJSONArrayWriter(fileInfo.file)
+			manager.EventsCompressed = NewCompressedWriter(fileInfo.file)
 		case ResourcesCompressed:
-			manager.ResourcesCompressed = NewCompressedJSONArrayWriter(fileInfo.file)
+			manager.ResourcesCompressed = NewCompressedWriter(fileInfo.file)
 		case MessagesCompressed:
-			manager.MessagesCompressed = NewCompressedJSONArrayWriter(fileInfo.file)
+			manager.MessagesCompressed = NewCompressedWriter(fileInfo.file)
+		case TimelineIndicatorEvents:
+			manager.TimelineIndicatorEvents = NewCompressedWriter(fileInfo.file)
 		}
 	}
 
@@ -236,7 +239,7 @@ func (pm *PayloadManager) NewChunkedFile(filenamePrefix string) error {
 	fileInfo.file = file
 	fileInfo.close = close
 
-	pm.EventsChunked = NewCompressedJSONArrayWriter(fileInfo.file)
+	pm.EventsChunked = NewCompressedWriter(fileInfo.file)
 	return nil
 }
 
@@ -255,7 +258,7 @@ func (pm *PayloadManager) GetChunkedFiles(filenamePrefix string) error {
 	fileInfo.file = file
 	fileInfo.close = close
 
-	pm.EventsChunked = NewCompressedJSONArrayWriter(fileInfo.file)
+	pm.EventsChunked = NewCompressedWriter(fileInfo.file)
 	return nil
 }
 

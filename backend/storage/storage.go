@@ -56,16 +56,15 @@ const (
 	SessionContentsCompressed  PayloadType = "session-contents-compressed"
 	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
 	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"
-	RawEvents                  PayloadType = "raw-events"
-	RawNetworkResources        PayloadType = "raw-network-resources"
-	RawConsoleMessages         PayloadType = "raw-console-messages"
+	TimelineIndicatorEvents    PayloadType = "timeline-indicator-events"
 )
 
 // StoredPayloadTypes configures what payloads are uploaded with this config.
 var StoredPayloadTypes = map[payload.FileType]PayloadType{
-	payload.EventsCompressed:    SessionContentsCompressed,
-	payload.ResourcesCompressed: NetworkResourcesCompressed,
-	payload.MessagesCompressed:  ConsoleMessagesCompressed,
+	payload.EventsCompressed:        SessionContentsCompressed,
+	payload.ResourcesCompressed:     NetworkResourcesCompressed,
+	payload.MessagesCompressed:      ConsoleMessagesCompressed,
+	payload.TimelineIndicatorEvents: TimelineIndicatorEvents,
 }
 
 func GetChunkedPayloadType(offset int) PayloadType {
@@ -275,15 +274,7 @@ func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId i
 func (s *StorageClient) PushFilesToS3(ctx context.Context, sessionId, projectId int, payloadManager *payload.PayloadManager) (int64, error) {
 	var totalSize int64
 	for fileType, payloadType := range StoredPayloadTypes {
-		var size *int64
-		var err error
-		if payloadType == SessionContentsCompressed ||
-			payloadType == NetworkResourcesCompressed ||
-			payloadType == ConsoleMessagesCompressed {
-			size, err = s.PushCompressedFileToS3(ctx, sessionId, projectId, payloadManager.GetFile(fileType), payloadType)
-		} else {
-			size, err = s.PushFileToS3(ctx, sessionId, projectId, payloadManager.GetFile(fileType), payloadType)
-		}
+		size, err := s.PushCompressedFileToS3(ctx, sessionId, projectId, payloadManager.GetFile(fileType), payloadType)
 
 		if err != nil {
 			return 0, errors.Wrapf(err, "error pushing %s payload to s3", string(payloadType))
@@ -484,6 +475,36 @@ func (s *StorageClient) ReadUncompressedMessagesFromS3(sessionId int, projectId 
 		retMessages = append(retMessages, tempResources.Messages...)
 	}
 	return retMessages, nil
+}
+
+func (s *StorageClient) ReadTimelineIndicatorEventsFromS3(sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error) {
+	client, bucket := s.getSessionClientAndBucket(sessionId)
+
+	output, err := client.GetObject(context.TODO(), &s3.GetObjectInput{
+		Bucket:                  bucket,
+		Key:                     bucketKey(sessionId, projectId, TimelineIndicatorEvents),
+		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
+		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting object from s3")
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+
+	buf, err = s.decompress(buf)
+	if err != nil {
+		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
+	}
+
+	var events []*model.TimelineIndicatorEvent
+	if err := json.Unmarshal(buf.Bytes(), &events); err != nil {
+		return nil, errors.Wrap(err, "error decoding event data")
+	}
+	return events, nil
 }
 
 func bucketKey[T ~string](sessionId int, projectId int, key T) *string {

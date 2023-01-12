@@ -598,8 +598,9 @@ type Session struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:session_admins_views;"`
 
-	Chunked             *bool
-	ProcessAllWithRedis bool
+	Chunked              *bool
+	ProcessWithRedis     bool
+	AvoidPostgresStorage bool
 }
 
 type EventChunk struct {

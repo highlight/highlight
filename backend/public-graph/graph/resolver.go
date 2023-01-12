@@ -1181,7 +1181,8 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ViewedByAdmins:                 []model.Admin{},
 		ClientID:                       input.ClientID,
 		Excluded:                       &model.T, // A session is excluded by default until it receives events
-		ProcessAllWithRedis:            useRedis,
+		ProcessWithRedis:               true,
+		AvoidPostgresStorage:           useRedis,
 	}
 
 	// determine if session is within billing quota
@@ -2643,7 +2644,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		defer unmarshalMessagesSpan.Finish()
 
-		if sessionObj.ProcessAllWithRedis {
+		if sessionObj.AvoidPostgresStorage {
 			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeMessages, []byte(messages)); err != nil {
 				return e.Wrap(err, "error saving messages data")
 			}
@@ -2673,7 +2674,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
 		defer unmarshalResourcesSpan.Finish()
 
-		if sessionObj.ProcessAllWithRedis {
+		if sessionObj.AvoidPostgresStorage {
 			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
 				return e.Wrap(err, "error saving resources data")
 			}
