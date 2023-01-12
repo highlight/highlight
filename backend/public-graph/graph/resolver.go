@@ -1163,7 +1163,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	deviceDetails := GetDeviceDetails(input.UserAgent)
 	n := time.Now()
-	useRedis := redis.UseRedis(projectID, input.SessionSecureID)
 	session := &model.Session{
 		SecureID: input.SessionSecureID,
 		Model: model.Model{
@@ -1194,7 +1193,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ClientID:                       input.ClientID,
 		Excluded:                       &model.T, // A session is excluded by default until it receives events
 		ProcessWithRedis:               true,
-		AvoidPostgresStorage:           useRedis,
+		AvoidPostgresStorage:           true,
 	}
 
 	// determine if session is within billing quota

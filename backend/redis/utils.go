@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"hash/fnv"
 	"os"
 	"sort"
 	"strconv"
@@ -17,8 +16,6 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
-	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 )
 
 type Client struct {
@@ -26,20 +23,11 @@ type Client struct {
 }
 
 var (
-	ServerAddr      = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
-	redisProjectIds = []int{1} // Enabled for Highlight
+	ServerAddr = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
 )
 
 func UseRedis(projectId int, sessionSecureId string) bool {
-	return false
-	sidHash := fnv.New32a()
-	defer sidHash.Reset()
-	if _, err := sidHash.Write([]byte(sessionSecureId)); err != nil {
-		log.Error(errors.Wrap(err, "failed to hash secure id to int"))
-	}
-
-	// Enable Redis for Highlight and 10% of other traffic
-	return lo.Contains(redisProjectIds, projectId) || sidHash.Sum32()%10 == 0
+	return true
 }
 
 func EventsKey(sessionId int) string {
