@@ -243,25 +243,6 @@ func (pm *PayloadManager) NewChunkedFile(filenamePrefix string) error {
 	return nil
 }
 
-func (pm *PayloadManager) GetChunkedFiles(filenamePrefix string) error {
-	fileInfo := pm.files[EventsChunked]
-	fileInfo.close()
-
-	pm.ChunkIndex += 1
-	suffix := fmt.Sprintf(".eventschunked%04d.json.br", pm.ChunkIndex)
-	fileInfo.suffix = suffix
-	close, file, err := createFile(filenamePrefix + suffix)
-
-	if err != nil {
-		return errors.Wrapf(err, "error creating new EventsChunked file")
-	}
-	fileInfo.file = file
-	fileInfo.close = close
-
-	pm.EventsChunked = NewCompressedWriter(fileInfo.file)
-	return nil
-}
-
 func (pm *PayloadManager) Close() {
 	for _, fileInfo := range pm.files {
 		if fileInfo.close != nil {

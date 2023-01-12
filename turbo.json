@@ -2,7 +2,7 @@
 	"$schema": "https://turborepo.org/schema.json",
 	"pipeline": {
 		"codegen": {
-			"inputs": ["**/*.gql", "**/*.graphqls"],
+			"inputs": ["./**/*.gql", "./**/*.graphqls"],
 			"outputs": ["src/graph/generated/**"]
 		},
 		"prepublish": {
