@@ -1,21 +1,34 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { KeyValueTableRow } from '@components/KeyValueTable/KeyValueTable'
+import { TableList } from '@components/TableList/TableList'
+import {
+	Box,
+	ButtonIcon,
+	IconSolidCheveronDown,
+	IconSolidCheveronUp,
+	Text,
+} from '@highlight-run/ui'
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
 import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils'
 import { bytesToPrettyString } from '@util/string'
 import { message } from 'antd'
-import React, { useEffect, useState } from 'react'
+import React, { PropsWithChildren, useEffect, useState } from 'react'
+import ReactCollapsible from 'react-collapsible'
 import Skeleton from 'react-loading-skeleton'
 import { Link } from 'react-router-dom'
 
-import DataCard from '../../../components/DataCard/DataCard'
-import KeyValueTable, {
-	KeyValueTableRow,
-} from '../../../components/KeyValueTable/KeyValueTable'
 import { EmptySessionsSearchParams } from '../../Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '../../Sessions/SearchContext/SearchContext'
 import { useReplayerContext } from '../ReplayerContext'
-import { formatSize } from '../Toolbar/DevToolsWindow/ResourcePage/ResourcePage'
-import styles from './MetadataPanel.module.scss'
+import { formatSize } from '../Toolbar/DevToolsWindowV2/utils'
+import * as styles from './MetadataPanel.css'
+
+enum MetadataSection {
+	Session = 'Session',
+	User = 'User',
+	Device = 'Device',
+	Environment = 'Environment',
+}
 
 type Field = {
 	type: string
@@ -24,6 +37,9 @@ type Field = {
 }
 
 const MetadataPanel = () => {
+	const [expanded, setExpanded] = useState<MetadataSection | undefined>(
+		MetadataSection.Session,
+	)
 	const { session, browserExtensionScriptURLs } = useReplayerContext()
 	const { setSearchParams, removeSelectedSegment } = useSearchContext()
 	const { isHighlightAdmin } = useAuthContext()
@@ -280,24 +296,94 @@ const MetadataPanel = () => {
 					}}
 				/>
 			) : (
-				<>
-					<DataCard title="Session">
-						<KeyValueTable data={sessionData} />
-					</DataCard>
-					<DataCard title="User">
-						<KeyValueTable data={userData} />
-					</DataCard>
+				Object.entries({
+					[MetadataSection.Session]: sessionData,
+					[MetadataSection.User]: userData,
+					[MetadataSection.Device]: deviceData,
+					[MetadataSection.Environment]: environmentData,
+				}).map(([k, v]) => {
+					const isExpanded = expanded === k
+					const title = (
+						<Box
+							py="8"
+							px="12"
+							pr="32"
+							bb={isExpanded ? undefined : 'secondary'}
+							display="flex"
+							justifyContent="space-between"
+							alignItems="center"
+						>
+							<Box display="flex">
+								<Text color="strong" as="span">
+									{k}
+								</Text>
+							</Box>
 
-					<DataCard title="Device">
-						<KeyValueTable data={deviceData} />
-					</DataCard>
-
-					<DataCard title="Environment">
-						<KeyValueTable data={environmentData} />
-					</DataCard>
-				</>
+							<Box display="flex" gap="4" alignItems="center">
+								<ButtonIcon
+									icon={
+										isExpanded ? (
+											<IconSolidCheveronUp size={12} />
+										) : (
+											<IconSolidCheveronDown size={12} />
+										)
+									}
+									kind="secondary"
+									size="minimal"
+									emphasis="low"
+								/>
+							</Box>
+						</Box>
+					)
+					return (
+						<CollapsibleSection
+							key={k}
+							title={title}
+							expanded={isExpanded}
+							setExpanded={(e) => {
+								if (e) {
+									setExpanded(k as MetadataSection)
+								} else {
+									setExpanded(undefined)
+								}
+							}}
+						>
+							<Box
+								px="12"
+								display="flex"
+								justifyContent="space-between"
+								alignItems="center"
+							>
+								<TableList data={v} />
+							</Box>
+						</CollapsibleSection>
+					)
+				})
 			)}
 		</div>
+	)
+}
+
+const CollapsibleSection = function ({
+	children,
+	expanded,
+	setExpanded,
+	title,
+}: PropsWithChildren<{
+	expanded: boolean
+	setExpanded: (expanded: boolean) => void
+	title: React.ReactElement
+}>) {
+	return (
+		<ReactCollapsible
+			trigger={title}
+			open={expanded}
+			handleTriggerClick={() => setExpanded(!expanded)}
+			transitionTime={150}
+			contentInnerClassName={styles.collapsibleContent}
+		>
+			{children}
+		</ReactCollapsible>
 	)
 }
 

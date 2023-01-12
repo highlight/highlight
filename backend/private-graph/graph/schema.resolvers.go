@@ -264,7 +264,7 @@ func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *mod
 // Session is the resolver for the session field.
 func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObject) (*model.Session, error) {
 	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: obj.SessionID}}).First(&session).Error; err != nil {
+	if err := r.DB.Where("id = ?", obj.SessionID).First(&session).Error; err != nil {
 		return nil, e.Wrap(err, "error reading session from error object")
 	}
 	return session, nil
@@ -656,7 +656,7 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
 		"state":         state,
 		"snoozed_until": snoozedUntil,
 	}); err != nil {
@@ -3469,7 +3469,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 	}
 
 	s, err := r.canAdminViewSession(ctx, secureID)
-	if err != nil {
+	if s == nil || err != nil {
 		return nil, nil
 	}
 	sessionObj := &model.Session{}

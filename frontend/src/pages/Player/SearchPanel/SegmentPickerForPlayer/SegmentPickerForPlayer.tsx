@@ -3,27 +3,26 @@ import SvgXIcon from '@icons/XIcon'
 import { message, Select as AntDesignSelect } from 'antd'
 import classNames from 'classnames'
 const { Option } = AntDesignSelect
+import { useEditSegmentMutation, useGetSegmentsQuery } from '@graph/hooks'
+import { Box, ButtonIcon, IconSolidLogout } from '@highlight-run/ui'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
+import { STARRED_SEGMENT_ID } from '@pages/Sessions/SearchSidebar/SegmentPicker/SegmentPicker'
 import { getQueryFromParams } from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
+import { gqlSanitize } from '@util/gqlSanitize'
 import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import TextTransition from 'react-text-transition'
 
 import Button from '../../../../components/Button/Button/Button'
 import Select from '../../../../components/Select/Select'
 import Tooltip from '../../../../components/Tooltip/Tooltip'
-import {
-	useEditSegmentMutation,
-	useGetSegmentsQuery,
-} from '../../../../graph/generated/hooks'
 import SvgEditIcon from '../../../../static/EditIcon'
 import SvgPlusIcon from '../../../../static/PlusIcon'
-import { gqlSanitize } from '../../../../util/gqlSanitize'
-import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams'
-import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext'
 import CreateSegmentModal from '../../../Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
 import DeleteSessionSegmentModal from '../../../Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
-import { STARRED_SEGMENT_ID } from '../../../Sessions/SearchSidebar/SegmentPicker/SegmentPicker'
 import styles from './SegmentPickerForPlayer.module.scss'
 
 const SegmentPickerForPlayer = () => {
@@ -40,6 +39,7 @@ const SegmentPickerForPlayer = () => {
 		setSelectedSegment,
 		removeSelectedSegment,
 	} = useSearchContext()
+	const { setShowLeftPanel } = usePlayerConfiguration()
 	const { loading, data } = useGetSegmentsQuery({
 		variables: { project_id },
 	})
@@ -270,6 +270,21 @@ const SegmentPickerForPlayer = () => {
 					)}
 				</>
 			)}
+			<Box
+				width="full"
+				display="flex"
+				justifyContent="flex-end"
+				alignItems="center"
+			>
+				<ButtonIcon
+					kind="secondary"
+					size="medium"
+					shape="square"
+					emphasis="medium"
+					icon={<IconSolidLogout size={14} />}
+					onClick={() => setShowLeftPanel(false)}
+				/>
+			</Box>
 			<CreateSegmentModal
 				showModal={showCreateSegmentModal}
 				onHideModal={() => {

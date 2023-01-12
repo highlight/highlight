@@ -44,14 +44,6 @@
 	width: 100%;
 }
 
-.playerCenterColumn {
-	align-items: center;
-	display: flex;
-	flex-direction: column;
-	flex-grow: 1;
-	position: relative;
-}
-
 .windowOptions {
 	height: 35%;
 	padding: 10px 0 10px 12px;
@@ -89,58 +81,12 @@
 	width: 100%;
 }
 
-.playerCenterPanel {
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-	padding: var(--size-medium);
-	position: relative;
-
-	.playerContainer {
-		display: flex;
-		flex-direction: column;
-		flex-grow: 1;
-		height: 100%;
-	}
-}
-
-.playerLeftPanel {
-	background-color: var(--color-primary-background);
-	border-right: 1px solid var(--color-gray-300);
-	box-shadow: var(--box-shadow-3);
-	height: 100%;
-	padding-bottom: 0;
-	padding-left: var(--size-xLarge);
-	padding-right: var(--size-xLarge);
-	padding-top: var(--size-large);
-	position: relative;
-	top: 0;
-	transform: translateX(0);
-	transition: transform 0.2s ease-in-out;
-	width: var(--left-panel-width);
-	z-index: 98;
-
-	&.hidden {
-		position: fixed;
-		transform: translateX(calc(-1 * (var(--left-panel-width))));
-	}
-}
-
 .loadingWrapper {
 	align-items: center;
 	display: flex;
 	height: 100vh;
 	justify-content: center;
 	width: 100vw;
-}
-
-.rrwebPlayerSection {
-	column-gap: var(--size-medium);
-	display: flex;
-
-	flex: 2;
-	height: 100%;
-	width: 100%;
 }
 
 .rrwebPlayerWrapper {
@@ -168,9 +114,8 @@
 }
 
 .playerBody {
-	--left-panel-width: 475px;
-	--right-panel-width: 350px;
-	--right-panel-width-no-units: 350;
+	--left-panel-width: 340px;
+	--right-panel-width: 300px;
 
 	display: grid;
 	grid-template-columns: 1fr;
@@ -211,30 +156,6 @@
 	margin-top: var(--size-large);
 }
 
-.panelToggleButton {
-	position: absolute;
-	transform: translateY(calc(112px + var(--size-medium) + 30px));
-	z-index: 999;
-}
-
-.panelToggleButtonLeft {
-	right: calc((-1 * var(--size-xLarge) / 2) - var(--size-medium));
-	top: 97px;
-
-	&.panelShown {
-		right: calc(-1 * (var(--size-xLarge) / 2));
-		top: 16px;
-	}
-}
-
-.panelToggleButtonRight {
-	left: calc((var(--size-xLarge) + var(--size-medium)) * -1);
-
-	&.panelShown {
-		left: calc(-1 * var(--size-medium));
-	}
-}
-
 .intercomLink {
 	cursor: pointer;
 	text-decoration: underline;
@@ -252,4 +173,8 @@
 	height: fit-content;
 	justify-items: center;
 	width: fit-content;
+}
+
+.emptyState {
+	height: calc(100% - var(--header-height) - var(--banner-height));
 }

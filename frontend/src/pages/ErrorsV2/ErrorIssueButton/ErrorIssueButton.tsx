@@ -80,11 +80,6 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 			],
 		)
 
-	const integrationCount = integrations.reduce(
-		(acc, curr) => acc + (Number(curr[0]) ?? 0),
-		0,
-	)
-
 	const [showNewIssueModal, setShowNewIssueModal] = useState<
 		IssueTrackerIntegration | undefined
 	>(undefined)
@@ -313,7 +308,6 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 	}, [
 		removeErrorIssue,
 		errorIssues?.error_issue,
-		integrationCount,
 		integrations,
 		isDeleting,
 		isLoading,

@@ -8,7 +8,7 @@ import { useState } from 'react'
 import { useLocalStorage } from 'react-use'
 import { useQueryParams } from 'use-query-params'
 
-const WithErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
+const WithErrorSearchContext: React.FC<React.PropsWithChildren> = ({
 	children,
 }) => {
 	const { project_id } = useParams<{

@@ -27,6 +27,15 @@ export const Badge: React.FC<Props> = ({
 
 	let textColor: TextProps['color']
 	switch (rest.variant) {
+		case 'red':
+			textColor = 'r11'
+			break
+		case 'blue':
+			textColor = 'lb700'
+			break
+		case 'yellow':
+			textColor = 'y11'
+			break
 		case 'green':
 			textColor = 'good'
 			break
@@ -38,6 +47,9 @@ export const Badge: React.FC<Props> = ({
 			break
 		case 'white':
 			textColor = 'moderate'
+			break
+		case 'purple':
+			textColor = 'p9'
 			break
 		default:
 			textColor = 'moderate'

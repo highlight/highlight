@@ -427,7 +427,7 @@ export const PlayerReducer = (
 				replayer: undefined,
 				replayerState: action.nextState || ReplayerState.Empty,
 				scale: 1,
-				session: undefined,
+				session: action.sessionSecureId ? s.session : undefined,
 				sessionComments: [],
 				sessionEndTime: 0,
 				sessionIntervals: [],

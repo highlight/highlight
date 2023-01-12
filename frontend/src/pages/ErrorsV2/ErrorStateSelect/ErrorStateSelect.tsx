@@ -15,11 +15,12 @@ import {
 } from '@highlight-run/ui'
 import { indexeddbCache } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
+import { wait } from '@util/time'
 import { DatePicker, message } from 'antd'
 import moment from 'moment'
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { StringParam, useQueryParam } from 'use-query-params'
+import { useHistory } from 'react-router-dom'
 
 import * as styles from './style.css'
 
@@ -51,37 +52,50 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
 	)
+	const [errorState, setErrorState] = useState<ErrorState>(initialErrorState)
+
 	const { error_secure_id } = useParams<{ error_secure_id: string }>()
 	const [updateErrorGroupState, { loading }] =
-		useUpdateErrorGroupStateMutation()
-	const [action, setAction] = useQueryParam('action', StringParam)
+		useUpdateErrorGroupStateMutation({
+			refetchQueries: [
+				namedOperations.Query.GetErrorGroup,
+				namedOperations.Query.GetErrorGroupsOpenSearch,
+			],
+			onQueryUpdated: async (obs) => {
+				await wait(500)
+				await indexeddbCache.deleteItem({
+					operation: obs.queryName ?? '',
+					variables: obs.variables,
+				})
+				await obs.refetch()
+			},
+			awaitRefetchQueries: true,
+		})
+
 	const { isLoggedIn } = useAuthContext()
 	const ErrorStatuses = Object.keys(ErrorState)
 	const snoozed = snoozedUntil && moment().isBefore(moment(snoozedUntil))
 
-	const handleChange = async (
-		newState: ErrorState,
-		snoozedUntil?: string,
-	) => {
-		await indexeddbCache.deleteItem({
-			operation: 'GetErrorGroup',
-			variables: {
-				secure_id: error_secure_id,
-			},
-		})
-		await updateErrorGroupState({
-			variables: {
-				secure_id: error_secure_id,
-				state: newState,
-				snoozed_until: snoozedUntil,
-			},
-			refetchQueries: [namedOperations.Query.GetErrorGroup],
-		})
+	const handleChange = useCallback(
+		async (newState: ErrorState, snoozedUntil?: string) => {
+			if (initialErrorState === newState && !snoozed) return
+			await updateErrorGroupState({
+				variables: {
+					secure_id: error_secure_id,
+					state: newState,
+					snoozed_until: snoozedUntil,
+				},
+				onCompleted: async () => {
+					showStateUpdateMessage(newState, snoozedUntil)
+					setMenuState(MenuState.Default)
+					setErrorState(newState)
+				},
+			})
+		},
+		[error_secure_id, initialErrorState, snoozed, updateErrorGroupState],
+	)
 
-		showStateUpdateMessage(newState, snoozedUntil)
-		setMenuState(MenuState.Default)
-	}
-
+	const history = useHistory()
 	const snoozeMenuItems = () => [
 		{
 			title: '1 Hour',
@@ -100,6 +114,9 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 	// Sets the state based on the query parameters. This is used for action
 	// buttons in our Slack and Discord integrations.
 	useEffect(() => {
+		const urlParams = new URLSearchParams(location.search)
+		const action = urlParams.get('action')
+
 		if (action) {
 			if (action.toLowerCase() === 'snooze') {
 				setTimeout(() => {
@@ -109,16 +126,25 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				}, 300)
 			} else {
 				const castedAction = action.toUpperCase() as ErrorState
+
 				if (Object.values(ErrorState).includes(castedAction)) {
-					handleChange(castedAction)
+					handleChange(castedAction).then(() => {
+						const searchParams = new URLSearchParams(
+							location.search,
+						)
+						searchParams.delete('action')
+						history.replace(
+							`${
+								history.location.pathname
+							}?${searchParams.toString()}`,
+						)
+					})
 				}
 			}
-
-			setAction(undefined)
 		}
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [action, error_secure_id])
+	}, [error_secure_id])
 
 	// Reset menu state on close.
 	useEffect(() => {
@@ -146,7 +172,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				iconRight={<IconSolidCheveronDown />}
 			>
 				<Text case="capital">
-					{initialErrorState.toLowerCase()}{' '}
+					{errorState.toLowerCase()}{' '}
 					{snoozed && (
 						<span style={{ textTransform: 'none' }}>
 							(Snoozed until{' '}
@@ -270,8 +296,9 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 											handleChange(
 												initialErrorState,
 												datetime.format(),
-											)
-											menu.setOpen(false)
+											).then(() => {
+												menu.setOpen(false)
+											})
 										}
 									}}
 								/>

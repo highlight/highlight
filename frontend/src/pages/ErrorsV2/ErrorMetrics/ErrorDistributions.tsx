@@ -1,11 +1,12 @@
 import { CircularSpinner } from '@components/Loading/Loading'
+import { getPercentageDisplayValue } from '@components/ProgressBarTable/utils/utils'
 import { useGetErrorGroupTagsQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
 import {
 	ErrorGroupTagAggregation,
 	ErrorGroupTagAggregationBucket,
 } from '@graph/schemas'
-import { Box, Stack, Text } from '@highlight-run/ui'
+import { Badge, Box, Stack, Text } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { Progress } from 'antd'
 import React, { useEffect, useState } from 'react'
@@ -127,14 +128,35 @@ const Buckets: React.FC<
 	}>
 > = ({ buckets }) => {
 	return (
-		<Box display="flex" flexDirection="column" gap="12">
+		<Box display="flex" flexDirection="column" gap="8">
 			{buckets.map((bucket) => {
 				return (
 					<Box key={bucket.key}>
-						<Text>{bucket.key}</Text>
+						<Box
+							display="flex"
+							justifyContent="space-between"
+							alignItems="center"
+						>
+							<Text>{bucket.key}</Text>
+							<Box display="flex" gap="4" alignItems="center">
+								<Badge
+									variant="grey"
+									size="tiny"
+									label={getPercentageDisplayValue(
+										bucket.percent,
+									)}
+								/>
+								<Text weight="bold" as="span">
+									{bucket.doc_count}
+								</Text>
+							</Box>
+						</Box>
 						<Progress
 							percent={Math.floor(bucket.percent * 100)}
+							showInfo={false}
 							strokeColor={colors.n8}
+							trailColor={colors.n4}
+							strokeWidth={4}
 							status="normal"
 						/>
 					</Box>
