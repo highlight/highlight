@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/influxdata/influxdb-client-go/v2"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/influxdata/influxdb-client-go/v2/domain"
 	log "github.com/sirupsen/logrus"
@@ -134,18 +134,19 @@ func (i *InfluxDB) GetBucket(projectID string, measurement Measurement) string {
 func (i *InfluxDB) createWriteAPI(bucket string, measurement Measurement) api.WriteAPI {
 	config := Configs[measurement]
 	b := i.GetBucket(bucket, measurement)
+	ruleType := domain.RetentionRuleTypeExpire
 	// ignore bucket already exists error
 	_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
 		// short data expiry for granular data since we will only store downsampled data long term
 		EverySeconds: int64(config.DownsampleThreshold.Seconds()),
-		Type:         domain.RetentionRuleTypeExpire,
+		Type:         &ruleType,
 	})
 	// create a downsample bucket. ignore bucket already exists error
 	downsampleB := b + config.DownsampleBucketSuffix
 	_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, downsampleB, domain.RetentionRule{
 		// long term data expiry for downsampled data
 		EverySeconds: int64(config.DownsampleRetention.Seconds()),
-		Type:         domain.RetentionRuleTypeExpire,
+		Type:         &ruleType,
 	})
 	taskName := fmt.Sprintf("task-%s", downsampleB)
 	if config.Version > 1 {

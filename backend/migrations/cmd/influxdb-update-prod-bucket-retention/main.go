@@ -28,10 +28,11 @@ func main() {
 			if strings.HasPrefix(b.Name, "prod-") {
 				if !strings.HasSuffix(b.Name, "downsampled") {
 					fmt.Println(b.Name)
+					ruleType := domain.RetentionRuleTypeExpire
 					b.RetentionRules = []domain.RetentionRule{{
 						// short metric expiry for granular data since we will only store downsampled data long term
 						EverySeconds: int64((60 * time.Minute).Seconds()),
-						Type:         domain.RetentionRuleTypeExpire,
+						Type:         &ruleType,
 					}}
 					_, _ = tdb.Client.BucketsAPI().UpdateBucket(context.Background(), &b)
 				}
