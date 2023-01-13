@@ -134,19 +134,18 @@ func (i *InfluxDB) GetBucket(projectID string, measurement Measurement) string {
 func (i *InfluxDB) createWriteAPI(bucket string, measurement Measurement) api.WriteAPI {
 	config := Configs[measurement]
 	b := i.GetBucket(bucket, measurement)
-	ruleType := domain.RetentionRuleTypeExpire
 	// ignore bucket already exists error
 	_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
 		// short data expiry for granular data since we will only store downsampled data long term
 		EverySeconds: int64(config.DownsampleThreshold.Seconds()),
-		Type:         &ruleType,
+		Type:         domain.RetentionRuleTypeExpire,
 	})
 	// create a downsample bucket. ignore bucket already exists error
 	downsampleB := b + config.DownsampleBucketSuffix
 	_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, downsampleB, domain.RetentionRule{
 		// long term data expiry for downsampled data
 		EverySeconds: int64(config.DownsampleRetention.Seconds()),
-		Type:         &ruleType,
+		Type:         domain.RetentionRuleTypeExpire,
 	})
 	taskName := fmt.Sprintf("task-%s", downsampleB)
 	if config.Version > 1 {
