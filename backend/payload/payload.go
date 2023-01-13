@@ -1,12 +1,10 @@
 package payload
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/andybalholm/brotli"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -15,92 +13,21 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var Delimiter = "\n\n\n"
-
-type PayloadReadWriter struct {
-	file   *os.File
-	Length int64
-}
-
-func NewPayloadReadWriter(file *os.File) *PayloadReadWriter {
-	p := &PayloadReadWriter{file: file}
-	return p
-}
-
-func (p *PayloadReadWriter) Reader() *ObjectReader {
-	return NewObjectReader(p.file)
-}
-
-func (p *PayloadReadWriter) Writer() *ObjectWriter {
-	return NewObjectWriter(p.file)
-}
-
-type ObjectReader struct {
-	reader *bufio.Reader
-}
-
-func NewObjectReader(file *os.File) *ObjectReader {
-	return &ObjectReader{reader: bufio.NewReader(file)}
-}
-
-// {resources: []}
-// {events: []}
-// {messages: []}
-func (o *ObjectReader) Next() (linePtr *string, e error) {
-	// Keep reading until the end of the line has the delimitter.
-	line := ""
-	linePtr = &line
-	for {
-		strBytes, err := o.reader.ReadBytes('\n')
-		str := string(strBytes)
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				line += str
-				e = err
-				break
-			}
-			return nil, errors.Wrap(err, "error reading line from bufio reader")
-		}
-		line += str
-		if strings.HasSuffix(line, Delimiter) {
-			break
-		}
-	}
-	return linePtr, e
-}
-
-type ObjectWriter struct {
-	writer *bufio.Writer
-}
-
-func NewObjectWriter(file *os.File) *ObjectWriter {
-	return &ObjectWriter{writer: bufio.NewWriter(file)}
-}
-
-func (o *ObjectWriter) Write(m model.Object) error {
-	if _, err := o.writer.WriteString(m.Contents()); err != nil {
-		return errors.Wrap(err, "error writing payload to file")
-	}
-	if _, err := o.writer.WriteString(Delimiter); err != nil {
-		return errors.Wrap(err, "error writing message delimiter")
-	}
-	o.writer.Flush()
-	return nil
-}
-
-type CompressedJSONArrayWriter struct {
-	writer      *brotli.Writer
-	hasContents bool
+type CompressedWriter struct {
+	writer           *brotli.Writer
+	hasContents      bool
+	hasUnclosedArray bool
 }
 
 const BROTLI_COMPRESSION_LEVEL = 9
 
 // Initializes a new writer with the configured compression level
-func NewCompressedJSONArrayWriter(brFile *os.File) *CompressedJSONArrayWriter {
+func NewCompressedWriter(brFile *os.File) *CompressedWriter {
 	brWriter := brotli.NewWriterLevel(brFile, BROTLI_COMPRESSION_LEVEL)
-	return &CompressedJSONArrayWriter{
-		writer:      (brWriter),
-		hasContents: false,
+	return &CompressedWriter{
+		writer:           brWriter,
+		hasContents:      false,
+		hasUnclosedArray: false,
 	}
 }
 
@@ -133,7 +60,7 @@ func (m *MessagesUnmarshalled) getArray() []interface{} {
 }
 
 // Merges the inner contents of the input events objects into a large JSON array
-func (w *CompressedJSONArrayWriter) WriteObject(events model.Object, unmarshalled Unmarshalled) error {
+func (w *CompressedWriter) WriteObject(events model.Object, unmarshalled Unmarshalled) error {
 	// EventsObject.Events is a string with the format "{events:[{...},{...},...]}"
 	// Unmarshal this string, then marshal the inner array
 	if err := json.Unmarshal([]byte(events.Contents()), unmarshalled); err != nil {
@@ -148,7 +75,7 @@ func (w *CompressedJSONArrayWriter) WriteObject(events model.Object, unmarshalle
 	}
 
 	// If nothing has been written yet, start with an opening bracket
-	if !w.hasContents {
+	if !w.hasUnclosedArray {
 		if _, err := w.writer.Write([]byte("[")); err != nil {
 			return errors.Wrap(err, "error writing message start")
 		}
@@ -164,17 +91,29 @@ func (w *CompressedJSONArrayWriter) WriteObject(events model.Object, unmarshalle
 	}
 
 	w.hasContents = true
+	w.hasUnclosedArray = true
+
+	return nil
+}
+
+func (w *CompressedWriter) WriteString(data string) error {
+	if _, err := w.writer.Write([]byte(data)); err != nil {
+		return errors.Wrap(err, "error writing compressed string to file")
+	}
+
+	w.hasContents = true
+	w.hasUnclosedArray = false
 
 	return nil
 }
 
 // Appends a closing bracket to close the JSON array, and closes the underlying writer
-func (w *CompressedJSONArrayWriter) Close() error {
-	if w.hasContents {
+func (w *CompressedWriter) Close() error {
+	if w.hasUnclosedArray {
 		if _, err := w.writer.Write([]byte("]")); err != nil {
 			return errors.Wrap(err, "error writing message end")
 		}
-	} else {
+	} else if !w.hasContents {
 		if _, err := w.writer.Write([]byte("[]")); err != nil {
 			return errors.Wrap(err, "error writing empty message")
 		}
@@ -186,27 +125,23 @@ func (w *CompressedJSONArrayWriter) Close() error {
 }
 
 type PayloadManager struct {
-	Events              *PayloadReadWriter
-	Resources           *PayloadReadWriter
-	Messages            *PayloadReadWriter
-	EventsCompressed    *CompressedJSONArrayWriter
-	ResourcesCompressed *CompressedJSONArrayWriter
-	MessagesCompressed  *CompressedJSONArrayWriter
-	EventsChunked       *CompressedJSONArrayWriter
-	ChunkIndex          int
-	files               map[FileType]*FileInfo
+	EventsCompressed        *CompressedWriter
+	ResourcesCompressed     *CompressedWriter
+	MessagesCompressed      *CompressedWriter
+	EventsChunked           *CompressedWriter
+	TimelineIndicatorEvents *CompressedWriter
+	ChunkIndex              int
+	files                   map[FileType]*FileInfo
 }
 
 type FileType string
 
 const (
-	Events              FileType = "Events"
-	Resources           FileType = "Resources"
-	Messages            FileType = "Messages"
-	EventsCompressed    FileType = "EventsCompressed"
-	ResourcesCompressed FileType = "ResourcesCompressed"
-	MessagesCompressed  FileType = "MessagesCompressed"
-	EventsChunked       FileType = "EventsChunked"
+	EventsCompressed        FileType = "EventsCompressed"
+	ResourcesCompressed     FileType = "ResourcesCompressed"
+	MessagesCompressed      FileType = "MessagesCompressed"
+	EventsChunked           FileType = "EventsChunked"
+	TimelineIndicatorEvents FileType = "TimelineIndicatorEvents"
 )
 
 type FileInfo struct {
@@ -237,18 +172,6 @@ func createFile(name string) (func(), *os.File, error) {
 
 func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 	files := map[FileType]*FileInfo{
-		Events: {
-			suffix: ".events.txt",
-			ddTag:  "eventPayloadSize",
-		},
-		Resources: {
-			suffix: ".resources.txt",
-			ddTag:  "resourcePayloadSize",
-		},
-		Messages: {
-			suffix: ".messages.txt",
-			ddTag:  "messagePayloadSize",
-		},
 		EventsCompressed: {
 			suffix: ".events.json.br",
 			ddTag:  "eventsCompressedPayloadSize",
@@ -260,6 +183,10 @@ func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 		MessagesCompressed: {
 			suffix: ".messages.json.br",
 			ddTag:  "messagesCompressedPayloadSize",
+		},
+		TimelineIndicatorEvents: {
+			suffix: ".timelineindicatorevents.json.br",
+			ddTag:  "timelineIndicatorEventsPayloadSize",
 		},
 	}
 
@@ -277,18 +204,14 @@ func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 		fileInfo.close = close
 
 		switch fileType {
-		case Events:
-			manager.Events = NewPayloadReadWriter(fileInfo.file)
-		case Resources:
-			manager.Resources = NewPayloadReadWriter(fileInfo.file)
-		case Messages:
-			manager.Messages = NewPayloadReadWriter(fileInfo.file)
 		case EventsCompressed:
-			manager.EventsCompressed = NewCompressedJSONArrayWriter(fileInfo.file)
+			manager.EventsCompressed = NewCompressedWriter(fileInfo.file)
 		case ResourcesCompressed:
-			manager.ResourcesCompressed = NewCompressedJSONArrayWriter(fileInfo.file)
+			manager.ResourcesCompressed = NewCompressedWriter(fileInfo.file)
 		case MessagesCompressed:
-			manager.MessagesCompressed = NewCompressedJSONArrayWriter(fileInfo.file)
+			manager.MessagesCompressed = NewCompressedWriter(fileInfo.file)
+		case TimelineIndicatorEvents:
+			manager.TimelineIndicatorEvents = NewCompressedWriter(fileInfo.file)
 		}
 	}
 
@@ -316,7 +239,7 @@ func (pm *PayloadManager) NewChunkedFile(filenamePrefix string) error {
 	fileInfo.file = file
 	fileInfo.close = close
 
-	pm.EventsChunked = NewCompressedJSONArrayWriter(fileInfo.file)
+	pm.EventsChunked = NewCompressedWriter(fileInfo.file)
 	return nil
 }
 
