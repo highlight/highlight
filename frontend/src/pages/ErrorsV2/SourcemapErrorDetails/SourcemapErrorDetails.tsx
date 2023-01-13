@@ -363,10 +363,10 @@ const StackSectionError: React.FC<
 }
 
 const Code: React.FC<{
-	block?: false
+	block?: boolean
 	children?: Maybe<string | number>
 	lines?: '1' | '4'
-}> = ({ block, children, lines = '1' }) => {
+}> = ({ block = false, children, lines = '1' }) => {
 	const title = String(children)
 	const isBlock = block || title.length > 20
 
