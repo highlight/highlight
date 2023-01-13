@@ -47,7 +47,7 @@ import CreateSegmentModal from '@pages/Sessions/SearchSidebar/SegmentButtons/Cre
 import DeleteSessionSegmentModal from '@pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput'
-import { gqlSanitize } from '@util/gqlSanitize'
+import { gqlSanitize } from '@util/gql'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'

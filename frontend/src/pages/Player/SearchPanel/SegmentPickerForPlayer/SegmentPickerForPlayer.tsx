@@ -10,7 +10,7 @@ import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchPa
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { STARRED_SEGMENT_ID } from '@pages/Sessions/SearchSidebar/SegmentPicker/SegmentPicker'
 import { getQueryFromParams } from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
-import { gqlSanitize } from '@util/gqlSanitize'
+import { gqlSanitize } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'

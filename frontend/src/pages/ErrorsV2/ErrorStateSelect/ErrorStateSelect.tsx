@@ -13,9 +13,8 @@ import {
 	Text,
 	useMenu,
 } from '@highlight-run/ui'
-import { indexeddbCache } from '@util/db'
+import { delayedRefetch } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
-import { wait } from '@util/time'
 import { DatePicker, message } from 'antd'
 import moment from 'moment'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -61,14 +60,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				namedOperations.Query.GetErrorGroup,
 				namedOperations.Query.GetErrorGroupsOpenSearch,
 			],
-			onQueryUpdated: async (observable) => {
-				await indexeddbCache.deleteItem({
-					operation: observable.queryName ?? '',
-					variables: observable.variables,
-				})
-				await wait(500)
-				await observable.refetch()
-			},
+			onQueryUpdated: delayedRefetch,
 			awaitRefetchQueries: true,
 		})
 

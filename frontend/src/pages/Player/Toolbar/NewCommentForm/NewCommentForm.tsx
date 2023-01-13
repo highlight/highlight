@@ -36,11 +36,10 @@ import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBod
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect'
 import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'
-import { indexeddbCache } from '@util/db'
+import { delayedRefetch } from '@util/gql'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
-import { wait } from '@util/time'
 import { Form, message } from 'antd'
 import classNames from 'classnames'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -83,16 +82,11 @@ export const NewCommentForm = ({
 	currentUrl,
 }: Props) => {
 	const [createComment] = useCreateSessionCommentMutation({
-		refetchQueries: [namedOperations.Query.GetSessionsOpenSearch],
-		onQueryUpdated: async (observable) => {
-			await indexeddbCache.deleteItem({
-				operation: observable.queryName ?? '',
-				variables: observable.variables,
-			})
-			await wait(500)
-			await observable.refetch()
-		},
-		awaitRefetchQueries: true,
+		refetchQueries: [
+			namedOperations.Query.GetSessionComments,
+			namedOperations.Query.GetSessionsOpenSearch,
+		],
+		onQueryUpdated: delayedRefetch,
 	})
 	const [createErrorComment] = useCreateErrorCommentMutation()
 	const { admin, isLoggedIn } = useAuthContext()
