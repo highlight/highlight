@@ -40,7 +40,6 @@ import {
 	updateQueriedTimeRange,
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
-import useLocalStorage from '@rehooks/local-storage'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
@@ -157,10 +156,6 @@ export const SessionFeedV3 = React.memo(() => {
 		usePlayerConfiguration()
 
 	const totalPages = useRef<number>(0)
-	const [sessionsCount, setSessionsCount] = useLocalStorage<number>(
-		`sessionsCount-project-${project_id}`,
-		0,
-	)
 	const {
 		showStarredSessions,
 		searchParams,
@@ -170,13 +165,15 @@ export const SessionFeedV3 = React.memo(() => {
 		setPage,
 		searchResultsLoading,
 		setSearchResultsLoading,
+		searchResultsCount,
+		setSearchResultsCount,
 	} = useSearchContext()
 	const { integrated } = useIntegrated()
 	const { showLeftPanel } = usePlayerConfiguration()
 	const { showBanner } = useGlobalContext()
 	const searchParamsChanged = useRef<Date>()
-	const projectHasManySessions = sessionsCount > DEFAULT_PAGE_SIZE
-	const showHistogram = searchResultsLoading || sessionsCount > 0
+	const projectHasManySessions = searchResultsCount > DEFAULT_PAGE_SIZE
+	const showHistogram = searchResultsLoading || searchResultsCount > 0
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id },
@@ -201,7 +198,7 @@ export const SessionFeedV3 = React.memo(() => {
 			totalPages.current = Math.ceil(
 				response?.sessions_opensearch.totalCount / DEFAULT_PAGE_SIZE,
 			)
-			setSessionsCount(response?.sessions_opensearch.totalCount)
+			setSearchResultsCount(response?.sessions_opensearch.totalCount)
 		}
 		setSearchResultsLoading(false)
 	}
@@ -336,7 +333,7 @@ export const SessionFeedV3 = React.memo(() => {
 						/>
 					) : (
 						<>
-							{sessionsCount === 0 ? (
+							{searchResultsCount === 0 ? (
 								showStarredSessions ? (
 									<SearchEmptyState
 										item="sessions"
@@ -392,7 +389,7 @@ export const SessionFeedV3 = React.memo(() => {
 				<SearchPagination
 					page={page}
 					setPage={setPage}
-					totalCount={sessionsCount}
+					totalCount={searchResultsCount}
 					pageSize={DEFAULT_PAGE_SIZE}
 				/>
 			</Box>
