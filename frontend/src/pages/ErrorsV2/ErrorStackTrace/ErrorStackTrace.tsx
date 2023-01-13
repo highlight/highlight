@@ -337,17 +337,7 @@ const SourcemapError: React.FC<{
 					Stacktrace Issue
 				</Popover.TagTrigger>
 				<Popover.Content>
-					<Box
-						backgroundColor="white"
-						borderRadius="6"
-						border="secondary"
-						padding="12"
-						overflow="scroll"
-						boxShadow="small"
-						style={{ maxWidth: '450px' }}
-					>
-						<SourcemapErrorDetails error={metadata} />
-					</Box>
+					<SourcemapErrorDetails error={metadata} />
 				</Popover.Content>
 			</Popover>
 		</Box>
