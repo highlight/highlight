@@ -4,15 +4,12 @@ import {
 	Badge,
 	Box,
 	ButtonIcon,
-	IconSolidCheveronDown,
-	IconSolidCheveronUp,
 	IconSolidX,
 	Tag,
 	Text,
 	vars,
 } from '@highlight-run/ui'
-import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
-import { colors } from '@highlight-run/ui/src/css/colors'
+import { PreviousNextGroup } from '@pages/Player/components/PreviousNextGroup/PreviousNextGroup'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -23,12 +20,12 @@ import {
 	getTimelineEventDisplayName,
 	getTimelineEventTooltipText,
 } from '@pages/Player/utils/utils'
+import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
-import clsx from 'clsx'
 import React from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 
-import * as sessionBarStyles from '../../SessionLevelBar/SessionLevelBarV2.css'
 import {
 	EVENT_TYPES_TO_COLORS,
 	EVENT_TYPES_TO_VARIANTS,
@@ -51,6 +48,30 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 		(e) => e.identifier === event.identifier,
 	)
 	const [prev, next] = [eventIdx - 1, eventIdx + 1]
+	const canMoveBackward = !!eventsForTimelineIndicator[prev]
+	const canMoveForward = !!eventsForTimelineIndicator[next]
+
+	useHotkeys(
+		'h',
+		() => {
+			if (canMoveBackward) {
+				analytics.track('NextSessionEventKeyboardShortcut')
+				setActiveEvent(eventsForTimelineIndicator[prev])
+			}
+		},
+		[canMoveBackward, prev],
+	)
+
+	useHotkeys(
+		'l',
+		() => {
+			if (canMoveForward) {
+				analytics.track('NextSessionEventKeyboardShortcut')
+				setActiveEvent(eventsForTimelineIndicator[next])
+			}
+		},
+		[canMoveForward, next],
+	)
 
 	return (
 		<Box cssClass={styles.container}>
@@ -63,55 +84,18 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 				align="center"
 				justifyContent="space-between"
 			>
-				<Box
-					borderRadius="6"
-					display="flex"
-					marginRight="8"
-					style={{
-						boxShadow: shadows.n5,
-						height: 28,
-						width: 56,
-					}}
-				>
-					<ButtonIcon
-						kind="secondary"
-						size="small"
-						shape="square"
-						emphasis="low"
-						icon={
-							<IconSolidCheveronUp size={14} color={colors.n11} />
-						}
-						cssClass={clsx(
-							sessionBarStyles.sessionSwitchButton,
-							sessionBarStyles.sessionSwitchButtonLeft,
-						)}
-						onClick={() => {
-							setActiveEvent(eventsForTimelineIndicator[prev])
-						}}
-						disabled={!eventsForTimelineIndicator[prev]}
-					/>
-					<Box as="span" borderRight="secondary" />
-					<ButtonIcon
-						kind="secondary"
-						size="small"
-						shape="square"
-						emphasis="low"
-						icon={
-							<IconSolidCheveronDown
-								size={14}
-								color={colors.n11}
-							/>
-						}
-						cssClass={clsx(
-							sessionBarStyles.sessionSwitchButton,
-							sessionBarStyles.sessionSwitchButtonRight,
-						)}
-						onClick={() => {
-							setActiveEvent(eventsForTimelineIndicator[next])
-						}}
-						disabled={!eventsForTimelineIndicator[next]}
-					/>
-				</Box>
+				<PreviousNextGroup
+					onPrev={() =>
+						setActiveEvent(eventsForTimelineIndicator[prev])
+					}
+					canMoveBackward={canMoveBackward}
+					prevShortcut="h"
+					onNext={() =>
+						setActiveEvent(eventsForTimelineIndicator[next])
+					}
+					canMoveForward={canMoveForward}
+					nextShortcut="l"
+				/>
 				<ButtonIcon
 					kind="secondary"
 					size="small"
