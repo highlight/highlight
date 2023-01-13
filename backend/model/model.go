@@ -609,8 +609,9 @@ type Session struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:session_admins_views;"`
 
-	Chunked          *bool
-	ProcessWithRedis bool
+	Chunked              *bool
+	ProcessWithRedis     bool
+	AvoidPostgresStorage bool
 }
 
 type EventChunk struct {
@@ -783,6 +784,14 @@ type TrackProperty struct {
 
 type Object interface {
 	Contents() string
+}
+
+type SessionData struct {
+	Data string
+}
+
+func (sd *SessionData) Contents() string {
+	return sd.Data
 }
 
 type MessagesObject struct {
@@ -1141,6 +1150,14 @@ type EmailOptOut struct {
 	Category modelInputs.EmailOptOutCategory `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
 }
 
+type RawPayloadType string
+
+const (
+	PayloadTypeEvents    RawPayloadType = "raw-events"
+	PayloadTypeResources RawPayloadType = "raw-resources"
+	PayloadTypeMessages  RawPayloadType = "raw-messages"
+)
+
 type BillingEmailHistory struct {
 	Model
 	Active      bool
@@ -1386,62 +1403,6 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 		END;
 	`, PARTITION_SESSION_ID, PARTITION_SESSION_ID).Error; err != nil {
 		return false, e.Wrap(err, "Error setting session id sequence to 30000000")
-	}
-
-	if err := DB.Exec(`
-		CREATE TABLE IF NOT EXISTS events_objects_partitioned
-		(LIKE events_objects INCLUDING DEFAULTS INCLUDING IDENTITY)
-		PARTITION BY RANGE (session_id);
-	`).Error; err != nil {
-		return false, e.Wrap(err, "Error creating events_objects_partitioned")
-	}
-
-	// if err := DB.Exec(`
-	// 	CREATE INDEX IF NOT EXISTS events_objects_partitioned_session_id
-	// 	ON events_objects_partitioned (session_id);
-	// `).Error; err != nil {
-	// 	return false, e.Wrap(err, "Error creating events_objects_partitioned_session_id")
-	// }
-
-	var lastVal int
-	if err := DB.Raw("SELECT last_value FROM sessions_id_seq").Scan(&lastVal).Error; err != nil {
-		return false, e.Wrap(err, "Error selecting max session id")
-	}
-	partitionSize := 100000
-	start := lastVal / partitionSize * partitionSize
-
-	// Make sure partitions are created for the next 5m sessions
-	for i := 0; i < 50; i++ {
-		end := start + partitionSize
-		sql := fmt.Sprintf(`
-			DO $$
-			BEGIN
-				IF
-					(SELECT pg_try_advisory_xact_lock(%d))
-				THEN
-					CREATE TABLE IF NOT EXISTS events_objects_partitioned_%d (
-						LIKE events_objects_partitioned INCLUDING DEFAULTS INCLUDING CONSTRAINTS
-					);
-					IF NOT EXISTS (
-						SELECT 1
-						FROM pg_inherits
-						JOIN pg_class parent            ON pg_inherits.inhparent = parent.oid
-						JOIN pg_class child             ON pg_inherits.inhrelid   = child.oid
-						WHERE parent.relname='events_objects_partitioned' and child.relname='events_objects_partitioned_%d')
-					THEN
-						ALTER TABLE events_objects_partitioned
-						ATTACH PARTITION events_objects_partitioned_%d
-						FOR VALUES FROM (%d) TO (%d);
-					END IF;
-				END IF;
-			END $$;
-		`, EVENTS_OBJECTS_ADVISORY_LOCK_ID, start, start, start, start, end)
-
-		if err := DB.Exec(sql).Error; err != nil {
-			return false, e.Wrapf(err, "Error creating partitioned events_objects for index %d", i)
-		}
-
-		start = end
 	}
 
 	// Create sequence for session_fields.id manually. This started as a join
