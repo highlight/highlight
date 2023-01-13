@@ -40,15 +40,12 @@ export function ResizePanel({
 				}
 			}
 
-			initialHeight = Math.min(
-				maxHeight,
-				Math.max(minHeight ?? 0, initialHeight),
-			)
+			initialHeight = clamp(initialHeight, minHeight ?? 0, maxHeight)
 			if (initialHeight) {
 				element.style.height = `${initialHeight}px`
 			}
 		},
-		[defaultHeight, minHeight, heightPersistenceKey],
+		[defaultHeight, heightPersistenceKey, minHeight, maxHeight],
 	)
 
 	useHTMLElementEvent(handle, 'pointerdown', (event) => {

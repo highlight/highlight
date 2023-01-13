@@ -39,6 +39,7 @@ export const PreviousNextGroup = function ({
 			}}
 		>
 			<ExplanatoryPopover
+				placement="bottom"
 				content={
 					<KeyboardShortcut
 						label="Previous"
@@ -62,6 +63,7 @@ export const PreviousNextGroup = function ({
 			</ExplanatoryPopover>
 			<Box as="span" borderRight="secondary" />
 			<ExplanatoryPopover
+				placement="bottom"
 				content={
 					<KeyboardShortcut
 						label="Next"
