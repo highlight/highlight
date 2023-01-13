@@ -1,13 +1,10 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import { useGetSessionsOpenSearchQuery } from '@graph/hooks'
 import {
 	Box,
 	ButtonIcon,
 	IconSolidChatAlt_2,
-	IconSolidCheveronDown,
-	IconSolidCheveronUp,
 	IconSolidDocumentDuplicate,
 	IconSolidExitRight,
 	IconSolidLockClosed,
@@ -17,11 +14,10 @@ import {
 	SwitchButton,
 	Text,
 	TextLink,
-	Tooltip,
 } from '@highlight-run/ui'
-import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useProjectId } from '@hooks/useProjectId'
+import { PreviousNextGroup } from '@pages/Player/components/PreviousNextGroup/PreviousNextGroup'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { changeSession } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -32,7 +28,6 @@ import { defaultSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import clsx from 'clsx'
 import { delay } from 'lodash'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -166,83 +161,26 @@ export const SessionLevelBarV2: React.FC<
 							className={styles.openLeftPanelButton}
 						/>
 					)}
-					<Box
-						borderRadius="6"
-						display="flex"
-						marginRight="8"
-						style={{
-							boxShadow: shadows.n5,
-							height: 28,
-							width: 56,
+					<PreviousNextGroup
+						onPrev={() => {
+							changeSession(
+								project_id,
+								history,
+								sessionResults.sessions[prev],
+								'',
+							)
 						}}
-					>
-						<Tooltip
-							placement="bottom"
-							trigger={
-								<ButtonIcon
-									kind="secondary"
-									size="small"
-									shape="square"
-									emphasis="low"
-									icon={
-										<IconSolidCheveronUp
-											size={14}
-											color={colors.n11}
-										/>
-									}
-									cssClass={clsx(
-										styles.sessionSwitchButton,
-										styles.sessionSwitchButtonLeft,
-									)}
-									onClick={() => {
-										changeSession(
-											project_id,
-											history,
-											sessionResults.sessions[prev],
-											'',
-										)
-									}}
-									disabled={!canMoveBackward}
-								/>
-							}
-						>
-							<KeyboardShortcut label="Previous" shortcut="k" />
-						</Tooltip>
-						<Box as="span" borderRight="secondary" />
-						<Tooltip
-							placement="bottom"
-							trigger={
-								<ButtonIcon
-									kind="secondary"
-									size="small"
-									shape="square"
-									emphasis="low"
-									icon={
-										<IconSolidCheveronDown
-											size={14}
-											color={colors.n11}
-										/>
-									}
-									title="j"
-									cssClass={clsx(
-										styles.sessionSwitchButton,
-										styles.sessionSwitchButtonRight,
-									)}
-									onClick={() => {
-										changeSession(
-											project_id,
-											history,
-											sessionResults.sessions[next],
-											'',
-										)
-									}}
-									disabled={!canMoveForward}
-								/>
-							}
-						>
-							<KeyboardShortcut label="Next" shortcut="j" />
-						</Tooltip>
-					</Box>
+						canMoveBackward={!!canMoveBackward}
+						onNext={() => {
+							changeSession(
+								project_id,
+								history,
+								sessionResults.sessions[next],
+								'',
+							)
+						}}
+						canMoveForward={!!canMoveForward}
+					/>
 					<Box
 						className={styles.currentUrl}
 						onMouseEnter={() => {

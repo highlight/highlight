@@ -30,7 +30,7 @@ export function ResizePanel({
 			if (!element) return
 			setPanel(element)
 
-			let initialHeight = Math.max(defaultHeight || 0, minHeight || 0)
+			let initialHeight = defaultHeight ?? 0
 			if (heightPersistenceKey) {
 				const storedHeight = Number(
 					localStorage.getItem(heightPersistenceKey),
@@ -40,11 +40,12 @@ export function ResizePanel({
 				}
 			}
 
+			initialHeight = clamp(initialHeight, minHeight ?? 0, maxHeight)
 			if (initialHeight) {
 				element.style.height = `${initialHeight}px`
 			}
 		},
-		[defaultHeight, minHeight, heightPersistenceKey],
+		[defaultHeight, heightPersistenceKey, minHeight, maxHeight],
 	)
 
 	useHTMLElementEvent(handle, 'pointerdown', (event) => {

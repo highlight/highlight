@@ -23,6 +23,7 @@ export const playerRightPanelContainerBannerShown = style({
 
 export const playerRightPanelContainerHidden = style({
 	position: 'fixed',
+	top: 96,
 	transform: `translateX(calc(var(--right-panel-width) + var(--size-medium)))`,
 })
 

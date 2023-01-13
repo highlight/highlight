@@ -1005,6 +1005,7 @@ const TimelineIndicatorsBarGraph = ({
 		return (
 			<div className={style.timelineContainer} style={{ width }}>
 				<div className={style.liveProgressBar} />
+				<ToolbarControlBar />
 			</div>
 		)
 	}
