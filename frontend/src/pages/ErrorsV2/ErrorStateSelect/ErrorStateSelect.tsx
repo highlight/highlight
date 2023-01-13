@@ -45,13 +45,13 @@ export const ErrorStateSelect: React.FC<{
 				namedOperations.Query.GetErrorGroup,
 				namedOperations.Query.GetErrorGroupsOpenSearch,
 			],
-			onQueryUpdated: async (obs) => {
-				await wait(500)
+			onQueryUpdated: async (observable) => {
 				await indexeddbCache.deleteItem({
-					operation: obs.queryName ?? '',
-					variables: obs.variables,
+					operation: observable.queryName ?? '',
+					variables: observable.variables,
 				})
-				await obs.refetch()
+				await wait(500)
+				await observable.refetch()
 			},
 			awaitRefetchQueries: true,
 		})
