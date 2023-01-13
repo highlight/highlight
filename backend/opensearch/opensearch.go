@@ -291,11 +291,24 @@ func (c *Client) UpdateSynchronous(index Index, id int, obj map[string]interface
 		Index:      indexStr,
 		DocumentID: documentId,
 		Body:       body,
+		Refresh:    "true",
 	}
 
-	_, err = req.Do(context.Background(), c.Client)
+	res, err := req.Do(context.Background(), c.Client)
 	if err != nil {
 		return e.Wrap(err, "OPENSEARCH_ERROR error updating document")
+	}
+
+	if res.IsError() {
+		return e.New(
+			fmt.Sprintf(
+				"OPENSEARCH_ERROR (%s : %s) [%d] %s",
+				indexStr,
+				documentId,
+				res.StatusCode,
+				res.String(),
+			),
+		)
 	}
 
 	// log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
@@ -459,9 +472,13 @@ func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
 		Body:       body,
 	}
 
-	_, err = req.Do(context.Background(), c.Client)
+	response, err := req.Do(context.Background(), c.Client)
 	if err != nil {
 		return e.Wrap(err, "OPENSEARCH_ERROR error indexing document")
+	}
+
+	if response.IsError() {
+		return e.New("OPENSEARCH_ERROR error indexing document: " + response.String())
 	}
 
 	// log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
