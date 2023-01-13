@@ -3520,23 +3520,16 @@ func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID st
 
 // TimelineIndicatorEvents is the resolver for the timeline_indicator_events field.
 func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model.TimelineIndicatorEvent, error) {
-	session, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+		_, err := r.canAdminViewSession(ctx, sessionSecureID)
 		if err != nil {
 			return nil, e.Wrap(err, "admin not session owner")
 		}
 	}
 
 	var timelineIndicatorEvents []*model.TimelineIndicatorEvent
-	if session.AvoidPostgresStorage {
-		timelineIndicatorEvents, err = r.StorageClient.ReadTimelineIndicatorEventsFromS3(session.ID, session.ProjectID)
-		if err != nil {
-			return nil, e.Wrap(err, "failed to get timeline indicator events from S3")
-		}
-	} else {
-		if res := r.DB.Order("timestamp ASC").Where(&model.TimelineIndicatorEvent{SessionSecureID: sessionSecureID}).Find(&timelineIndicatorEvents); res.Error != nil {
-			return nil, e.Wrap(res.Error, "failed to get timeline indicator events from Postgres")
-		}
+	if res := r.DB.Order("timestamp ASC").Where(&model.TimelineIndicatorEvent{SessionSecureID: sessionSecureID}).Find(&timelineIndicatorEvents); res.Error != nil {
+		return nil, e.Wrap(res.Error, "failed to get timeline indicator events")
 	}
 
 	return timelineIndicatorEvents, nil

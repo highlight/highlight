@@ -2716,16 +2716,56 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 }
 
 func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
-	isLive := cursor != model.EventsCursor{}
-	s3Events := map[int]string{}
-	if !isLive {
-		var err error
-		s3Events, err = r.StorageClient.GetRawDataFromS3(ctx, s.ID, s.ProjectID, model.PayloadTypeEvents)
-		if err != nil {
-			return nil, errors.Wrap(err, "error retrieving events objects from S3"), nil
+	if s.ProcessWithRedis {
+		isLive := cursor != model.EventsCursor{}
+		s3Events := map[int]string{}
+		if !isLive {
+			var err error
+			s3Events, err = r.StorageClient.GetRawEventsFromS3(ctx, s.ID, s.ProjectID)
+			if err != nil {
+				return nil, errors.Wrap(err, "error retrieving events objects from S3"), nil
+			}
 		}
+		return r.Redis.GetEvents(ctx, s, cursor, s3Events)
 	}
-	return r.Redis.GetEvents(ctx, s, cursor, s3Events)
+	if en := s.ObjectStorageEnabled; en != nil && *en {
+		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
+		defer objectStorageSpan.Finish()
+		ret, err := r.StorageClient.ReadSessionsFromS3(s.ID, s.ProjectID)
+		if err != nil {
+			return nil, err, nil
+		}
+		return ret[cursor.EventIndex:], nil, &model.EventsCursor{EventIndex: len(ret), EventObjectIndex: nil}
+	}
+	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
+	eventObjs := []*model.EventsObject{}
+	offset := 0
+	if cursor.EventObjectIndex != nil {
+		offset = *cursor.EventObjectIndex
+	}
+	if err := r.DB.Table("events_objects_partitioned").Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID, IsBeacon: false}).Offset(offset).Find(&eventObjs).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from events"), nil
+	}
+	eventsQuerySpan.Finish()
+	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+		tracer.ResourceName("parse.eventsObjects"), tracer.Tag("project_id", s.ProjectID))
+	allEvents := make([]interface{}, 0)
+	for _, eventObj := range eventObjs {
+		subEvents := make(map[string][]interface{})
+		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
+			return nil, e.Wrap(err, "error decoding event data"), nil
+		}
+		allEvents = append(allEvents, subEvents["events"]...)
+	}
+	events := allEvents
+	if cursor.EventObjectIndex == nil {
+		events = allEvents[cursor.EventIndex:]
+	}
+	nextCursor := model.EventsCursor{EventIndex: cursor.EventIndex + len(events), EventObjectIndex: pointy.Int(offset + len(eventObjs))}
+	eventsParseSpan.Finish()
+	return events, nil, &nextCursor
 }
 
 func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackChannel, int, error) {
