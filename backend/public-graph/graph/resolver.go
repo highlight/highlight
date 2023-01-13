@@ -1193,7 +1193,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ClientID:                       input.ClientID,
 		Excluded:                       &model.T, // A session is excluded by default until it receives events
 		ProcessWithRedis:               true,
-		AvoidPostgresStorage:           true,
+		AvoidPostgresStorage:           false,
 	}
 
 	// determine if session is within billing quota
