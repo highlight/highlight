@@ -5,7 +5,9 @@ import { ErrorState, Maybe } from '@graph/schemas'
 import {
 	Badge,
 	Box,
+	IconSolidCheck,
 	IconSolidCheveronDown,
+	IconSolidCheveronRight,
 	Menu,
 	Stack,
 	Text,
@@ -29,10 +31,24 @@ enum MenuState {
 
 const DATE_FORMAT = 'ddd, h:mm A'
 
-export const ErrorStateSelect: React.FC<{
+type Props = {
 	state: ErrorState
 	snoozedUntil?: Maybe<string>
-}> = ({ state: initialErrorState, snoozedUntil }) => {
+}
+
+export const ErrorStateSelect: React.FC<Props> = ({ state, snoozedUntil }) => (
+	<Menu placement="bottom-end">
+		{/* Rendering inside wrapper so we can work with menu state via useMenu. */}
+		<ErrorStateSelectImpl state={state} snoozedUntil={snoozedUntil} />
+	</Menu>
+)
+
+const ErrorStateSelectImpl: React.FC<Props> = ({
+	state: initialErrorState,
+	snoozedUntil,
+}) => {
+	const menuRef = React.useRef<HTMLDivElement | null>(null)
+	const menu = useMenu()
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
 	)
@@ -95,177 +111,47 @@ export const ErrorStateSelect: React.FC<{
 		},
 	]
 
-	// Sets the state based on the query parameters. This is used for the Slack deep-linked messages.
+	// Sets the state based on the query parameters. This is used for action
+	// buttons in our Slack and Discord integrations.
 	useEffect(() => {
 		const urlParams = new URLSearchParams(location.search)
 		const action = urlParams.get('action')
+
 		if (action) {
-			const castedAction = action.toUpperCase() as ErrorState
-			if (Object.values(ErrorState).includes(castedAction)) {
-				handleChange(castedAction).then(() => {
-					const searchParams = new URLSearchParams(location.search)
-					searchParams.delete('action')
-					history.replace(
-						`${
-							history.location.pathname
-						}?${searchParams.toString()}`,
-					)
-				})
+			if (action.toLowerCase() === 'snooze') {
+				setTimeout(() => {
+					setMenuState(MenuState.Snooze)
+					menu.setOpen(true)
+					menu.baseRef.current?.focus()
+				}, 300)
+			} else {
+				const castedAction = action.toUpperCase() as ErrorState
+
+				if (Object.values(ErrorState).includes(castedAction)) {
+					handleChange(castedAction).then(() => {
+						const searchParams = new URLSearchParams(
+							location.search,
+						)
+						searchParams.delete('action')
+						history.replace(
+							`${
+								history.location.pathname
+							}?${searchParams.toString()}`,
+						)
+					})
+				}
 			}
 		}
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [error_secure_id])
 
-	return (
-		<>
-			<Menu
-				placement="bottom-end"
-				onVisibilityChange={(open) => {
-					if (!open) {
-						setMenuState(MenuState.Default)
-					}
-				}}
-			>
-				<MenuHandler />
-				<Menu.Button
-					size="small"
-					kind="secondary"
-					emphasis="low"
-					disabled={loading || !isLoggedIn}
-					iconRight={<IconSolidCheveronDown />}
-				>
-					<Text case="capital">
-						{errorState.toLowerCase()}{' '}
-						{snoozed && (
-							<span style={{ textTransform: 'none' }}>
-								(Snoozed until{' '}
-								{moment(snoozedUntil).format(DATE_FORMAT)})
-							</span>
-						)}
-					</Text>
-				</Menu.Button>
-				{isLoggedIn && (
-					<Menu.List cssClass={styles.menu}>
-						{menuState === MenuState.Default ? (
-							<>
-								<Menu.Heading>
-									<Text
-										weight="bold"
-										size="xSmall"
-										color="n11"
-									>
-										Status
-									</Text>
-									<Badge
-										variant="grey"
-										size="tiny"
-										label="e"
-									/>
-								</Menu.Heading>
-								{ErrorStatuses.map((option) => (
-									<Menu.Item
-										onClick={() =>
-											handleChange(
-												option.toUpperCase() as ErrorState,
-											)
-										}
-										key={option}
-									>
-										{option}
-									</Menu.Item>
-								))}
-
-								<Menu.Item
-									onClick={(e) => {
-										e.preventDefault()
-										setMenuState(MenuState.Snooze)
-									}}
-								>
-									Snooze
-								</Menu.Item>
-							</>
-						) : (
-							<>
-								<Menu.Heading>
-									<Text
-										weight="bold"
-										size="xSmall"
-										color="n11"
-									>
-										Until
-									</Text>
-								</Menu.Heading>
-								{snoozeMenuItems().map((option, index) => (
-									<Menu.Item
-										key={index}
-										onClick={() =>
-											handleChange(
-												initialErrorState,
-												option.time.format(),
-											)
-										}
-									>
-										<Stack
-											direction="row"
-											justify="space-between"
-										>
-											<Box color="n11">
-												{option.title}
-											</Box>
-											<Box color="n9">
-												{option.time.format(
-													DATE_FORMAT,
-												)}
-											</Box>
-										</Stack>
-									</Menu.Item>
-								))}
-								<Menu.Divider />
-								<DatepickerMenuItem
-									onChange={handleChange}
-									state={initialErrorState}
-								/>
-							</>
-						)}
-					</Menu.List>
-				)}
-			</Menu>
-		</>
-	)
-}
-
-const DatepickerMenuItem: React.FC<{
-	onChange: (newState: ErrorState, snoozedUntil?: string) => Promise<void>
-	state: ErrorState
-}> = ({ onChange, state }) => {
-	const menuRef = React.useRef<HTMLDivElement | null>(null)
-	const menu = useMenu()
-
-	return (
-		<Menu.Item onClick={(e) => e.preventDefault()}>
-			<div ref={menuRef} />
-			<DatePicker
-				getPopupContainer={() => menuRef?.current || document.body}
-				format="YYYY-MM-DD hh:mm"
-				showTime={{ format: 'hh:mm' }}
-				showNow={false}
-				placement="bottomRight"
-				placeholder="Select day and time"
-				className={styles.datepicker}
-				onChange={(datetime) => {
-					if (datetime) {
-						onChange(state, datetime.format()).then(() => {
-							menu.setOpen(false)
-						})
-					}
-				}}
-			/>
-		</Menu.Item>
-	)
-}
-
-const MenuHandler: React.FC = () => {
-	const menu = useMenu()
+	// Reset menu state on close.
+	useEffect(() => {
+		if (!menu.open) {
+			setMenuState(MenuState.Default)
+		}
+	}, [menu.open])
 
 	useHotkeys(
 		'e',
@@ -273,10 +159,156 @@ const MenuHandler: React.FC = () => {
 			menu.setOpen(!menu.open)
 			menu.baseRef.current?.focus()
 		},
-		[menu.open],
+		[menu.open, error_secure_id],
 	)
 
-	return <></>
+	return (
+		<>
+			<Menu.Button
+				size="small"
+				kind="secondary"
+				emphasis="low"
+				disabled={loading || !isLoggedIn}
+				iconRight={<IconSolidCheveronDown />}
+			>
+				<Text case="capital">
+					{errorState.toLowerCase()}{' '}
+					{snoozed && (
+						<span style={{ textTransform: 'none' }}>
+							(Snoozed until{' '}
+							{moment(snoozedUntil).format(DATE_FORMAT)})
+						</span>
+					)}
+				</Text>
+			</Menu.Button>
+			{isLoggedIn && (
+				<Menu.List cssClass={styles.menu}>
+					{menuState === MenuState.Default ? (
+						<>
+							<Menu.Heading>
+								<Text weight="bold" size="xSmall" color="n11">
+									Status
+								</Text>
+								<Badge variant="grey" size="tiny" label="e" />
+							</Menu.Heading>
+							{ErrorStatuses.map((option) => (
+								<Menu.Item
+									onClick={() =>
+										handleChange(
+											option.toUpperCase() as ErrorState,
+										)
+									}
+									key={option}
+								>
+									<Stack
+										direction="row"
+										gap="4"
+										align="center"
+									>
+										<div style={{ height: 16, width: 16 }}>
+											{!snoozed &&
+												initialErrorState.toLowerCase() ===
+													option.toLowerCase() && (
+													<IconSolidCheck size={16} />
+												)}
+										</div>
+										<Text>{option}</Text>
+									</Stack>
+								</Menu.Item>
+							))}
+
+							<Menu.Divider />
+							<Menu.Item
+								onClick={(e) => {
+									e.preventDefault()
+									setMenuState(MenuState.Snooze)
+								}}
+							>
+								<Stack
+									direction="row"
+									justify="space-between"
+									align="center"
+								>
+									<Stack
+										direction="row"
+										gap="4"
+										align="center"
+									>
+										<div
+											style={{
+												height: 16,
+												width: 16,
+											}}
+										>
+											{snoozed && (
+												<IconSolidCheck size={16} />
+											)}
+										</div>
+										<Text>Snooze</Text>
+									</Stack>
+									<IconSolidCheveronRight size={16} />
+								</Stack>
+							</Menu.Item>
+						</>
+					) : (
+						<>
+							<Menu.Heading>
+								<Text weight="bold" size="xSmall" color="n11">
+									Until
+								</Text>
+							</Menu.Heading>
+							{snoozeMenuItems().map((option, index) => (
+								<Menu.Item
+									key={index}
+									onClick={() =>
+										handleChange(
+											initialErrorState,
+											option.time.format(),
+										)
+									}
+								>
+									<Stack
+										direction="row"
+										justify="space-between"
+									>
+										<Box color="n11">{option.title}</Box>
+										<Box color="n9">
+											{option.time.format(DATE_FORMAT)}
+										</Box>
+									</Stack>
+								</Menu.Item>
+							))}
+							<Menu.Divider />
+							<Menu.Item onClick={(e) => e.preventDefault()}>
+								<div ref={menuRef} />
+								<DatePicker
+									getPopupContainer={() =>
+										menuRef?.current || document.body
+									}
+									format="YYYY-MM-DD hh:mm"
+									showTime={{ format: 'hh:mm' }}
+									showNow={false}
+									placement="bottomRight"
+									placeholder="Select day and time"
+									className={styles.datepicker}
+									onChange={(datetime) => {
+										if (datetime) {
+											handleChange(
+												initialErrorState,
+												datetime.format(),
+											).then(() => {
+												menu.setOpen(false)
+											})
+										}
+									}}
+								/>
+							</Menu.Item>
+						</>
+					)}
+				</Menu.List>
+			)}
+		</>
+	)
 }
 
 const showStateUpdateMessage = (

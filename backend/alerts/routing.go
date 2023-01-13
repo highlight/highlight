@@ -28,6 +28,13 @@ func getErrorIgnoreURL(errorAlert *model.ErrorAlert, errorGroup *model.ErrorGrou
 	return fmt.Sprintf("%s/%d/errors/%s?action=ignored", frontendURL, projectId, errorGroup.SecureID)
 }
 
+func getErrorSnoozeURL(errorAlert *model.ErrorAlert, errorGroup *model.ErrorGroup) string {
+	projectId := errorAlert.ProjectID
+	frontendURL := os.Getenv("FRONTEND_URI")
+
+	return fmt.Sprintf("%s/%d/errors/%s?action=snooze", frontendURL, projectId, errorGroup.SecureID)
+}
+
 func getSessionURL(projectID int, session *model.Session) string {
 	frontendURL := os.Getenv("FRONTEND_URI")
 	return fmt.Sprintf("%s/%d/sessions/%s", frontendURL, projectID, session.SecureID)
