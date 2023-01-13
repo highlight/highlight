@@ -25,9 +25,7 @@ import * as styles from './styles.css'
 const MenuContext = React.createContext<MenuState>({} as MenuState)
 export const useMenu = () => React.useContext(MenuContext)
 
-type Props = React.PropsWithChildren<Partial<MenuState>> & {
-	onVisibilityChange?: (open: boolean) => void
-}
+type Props = React.PropsWithChildren<Partial<MenuState>>
 
 type MenuComponent = React.FC<Props> & {
 	Button: typeof Button
@@ -37,24 +35,8 @@ type MenuComponent = React.FC<Props> & {
 	Heading: typeof Heading
 }
 
-export const Menu: MenuComponent = ({
-	children,
-	onVisibilityChange,
-	...props
-}: Props) => {
+export const Menu: MenuComponent = ({ children, ...props }: Props) => {
 	const menu = useMenuState({ gutter: 6, ...props })
-	const firstUpdate = React.useRef(true)
-
-	React.useEffect(() => {
-		if (firstUpdate.current) {
-			firstUpdate.current = false
-			return
-		}
-
-		if (typeof onVisibilityChange === 'function') {
-			onVisibilityChange(menu.open)
-		}
-	}, [menu.open])
 
 	return <MenuContext.Provider value={menu}>{children}</MenuContext.Provider>
 }

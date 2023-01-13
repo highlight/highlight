@@ -1309,7 +1309,7 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 			IF NOT EXISTS
 				(select * from pg_indexes where indexname = 'email_history_active_workspace_type_idx')
 			THEN
-				CREATE UNIQUE INDEX email_history_active_workspace_type_idx ON billing_email_histories (active, workspace_id, type) WHERE (active = true);			
+				CREATE UNIQUE INDEX email_history_active_workspace_type_idx ON billing_email_histories (active, workspace_id, type) WHERE (active = true);
 			END IF;
 		END $$;
 	`).Error; err != nil {
@@ -2492,6 +2492,20 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 			button.URL = fmt.Sprintf("%s?action=%s", errorLink, strings.ToLower(string(action)))
 			actionBlock = append(actionBlock, button)
 		}
+
+		snoozeButton := slack.NewButtonBlockElement(
+			"",
+			"click",
+			slack.NewTextBlockObject(
+				slack.PlainTextType,
+				"Snooze Error",
+				false,
+				false,
+			),
+		)
+		snoozeButton.URL = fmt.Sprintf("%s?action=snooze", errorLink)
+		actionBlock = append(actionBlock, snoozeButton)
+
 		blockSet = append(blockSet, slack.NewActionBlock(
 			"",
 			actionBlock...,
