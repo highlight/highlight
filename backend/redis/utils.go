@@ -34,6 +34,14 @@ func EventsKey(sessionId int) string {
 	return fmt.Sprintf("events-%d", sessionId)
 }
 
+func NetworkResourcesKey(sessionId int) string {
+	return fmt.Sprintf("network-resources-%d", sessionId)
+}
+
+func ConsoleMessagesKey(sessionId int) string {
+	return fmt.Sprintf("console-messages-%d", sessionId)
+}
+
 func SessionInitializedKey(sessionSecureId string) string {
 	return fmt.Sprintf("session-init-%s", sessionSecureId)
 }
@@ -114,6 +122,69 @@ func (r *Client) GetRawZRange(ctx context.Context, sessionId int, nextPayloadId 
 	}
 
 	return vals, nil
+}
+
+func GetKey(sessionId int, payloadType model.RawPayloadType) string {
+	switch payloadType {
+	case model.PayloadTypeEvents:
+		return EventsKey(sessionId)
+	case model.PayloadTypeResources:
+		return NetworkResourcesKey(sessionId)
+	case model.PayloadTypeMessages:
+		return ConsoleMessagesKey(sessionId)
+	default:
+		return ""
+	}
+}
+
+func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType model.RawPayloadType, objects map[int]string) ([]model.SessionData, error) {
+	key := GetKey(sessionId, payloadType)
+
+	vals, err := r.redisClient.ZRangeByScoreWithScores(ctx, key, &redis.ZRangeBy{
+		Min: "-inf",
+		Max: "+inf",
+	}).Result()
+	if err != nil {
+		return nil, errors.Wrap(err, "error retrieving events from Redis")
+	}
+
+	for idx, z := range vals {
+		intScore := int(z.Score)
+		// Beacon payloads have decimals, skip unless it's the last payload
+		if z.Score != float64(intScore) && idx != len(vals)-1 {
+			continue
+		}
+
+		objects[intScore] = z.Member.(string)
+	}
+
+	keys := make([]int, 0, len(objects))
+	for k := range objects {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+
+	results := []model.SessionData{}
+	if len(keys) == 0 {
+		return results, nil
+	}
+
+	for _, k := range keys {
+		asBytes := []byte(objects[k])
+
+		// Messages may be encoded with `snappy`.
+		// Try decoding them, but if decoding fails, use the original message.
+		decoded, err := snappy.Decode(nil, asBytes)
+		if err != nil {
+			decoded = asBytes
+		}
+
+		results = append(results, model.SessionData{
+			Data: string(decoded),
+		})
+	}
+
+	return results, nil
 }
 
 func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor model.EventsCursor, events map[int]string) ([]model.EventsObject, error, *model.EventsCursor) {
@@ -202,8 +273,8 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 	return allEvents, nil, newCursor
 }
 
-func (r *Client) AddEventPayload(ctx context.Context, sessionID int, score float64, payload string) error {
-	encoded := string(snappy.Encode(nil, []byte(payload)))
+func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, payloadType model.RawPayloadType, payload []byte) error {
+	encoded := string(snappy.Encode(nil, payload))
 
 	// Calls ZADD, and if the key does not exist yet, sets an expiry of 4h10m.
 	var zAddAndExpire = redis.NewScript(`
@@ -221,7 +292,7 @@ func (r *Client) AddEventPayload(ctx context.Context, sessionID int, score float
 		return
 	`)
 
-	keys := []string{EventsKey(sessionID)}
+	keys := []string{GetKey(sessionID, payloadType)}
 	values := []interface{}{score, encoded}
 	cmd := zAddAndExpire.Run(ctx, r.redisClient, keys, values...)
 
