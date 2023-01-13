@@ -139,6 +139,14 @@ const CUSTOM_FIELDS: CustomField[] = [
 			type: 'boolean',
 		},
 	},
+	{
+		type: CUSTOM_TYPE,
+		name: 'has_comments',
+		options: {
+			type: 'boolean',
+			operators: BOOLEAN_OPERATORS,
+		},
+	},
 ]
 
 // If there is no query builder param (for segments saved

@@ -1193,6 +1193,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	}
 	createSessionCommentSpan.Finish()
 
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"has_comments": true}); err != nil {
+		return nil, e.Wrap(err, "error updating session in opensearch")
+	}
+
 	// Create associations between tags and comments.
 	if len(tags) > 0 {
 		// Create the tag if it's a new tag
@@ -1305,20 +1309,46 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		desc += "\n\nSee the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
-		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
-			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+		if *s == modelInputs.IntegrationTypeLinear &&
+			workspace.LinearAccessToken != nil &&
+			*workspace.LinearAccessToken != "" {
+			if err := r.CreateLinearIssueAndAttachment(
+				workspace,
+				attachment,
+				*issueTitle,
+				*issueDescription,
+				textForEmail,
+				authorName,
+				viewLink,
+				issueTeamID,
+			); err != nil {
 				return nil, e.Wrap(err, "error creating linear ticket or workspace")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
-		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
+		} else if *s == modelInputs.IntegrationTypeClickUp &&
+			workspace.ClickupAccessToken != nil &&
+			*workspace.ClickupAccessToken != "" {
+			if err := r.CreateClickUpTaskAndAttachment(
+				workspace,
+				attachment,
+				*issueTitle,
+				desc,
+				issueTeamID,
+			); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(
+				ctx,
+				workspace,
+				attachment,
+				*issueTitle,
+				desc,
+				issueTeamID,
+			); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 
@@ -1403,16 +1433,49 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	if err := r.DB.Where(model.SessionComment{Model: model.Model{ID: id}}).First(&sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comment")
 	}
-	_, err := r.canAdminModifySession(ctx, sessionComment.SessionSecureId)
+
+	session, err := r.canAdminModifySession(ctx, sessionComment.SessionSecureId)
+
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not session owner")
 	}
+
 	if err := r.DB.Delete(&model.SessionComment{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error session comment")
 	}
+
 	if err := r.DB.Where(&model.ExternalAttachment{SessionCommentID: id}).Delete(&model.ExternalAttachment{}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting session comment attachments")
 	}
+
+	if err := r.DB.Where(&model.CommentReply{SessionCommentID: id}).Delete(&model.CommentReply{}).Error; err != nil {
+		return nil, e.Wrap(err, "error deleting session comment replies")
+	}
+
+	if err := r.DB.Where(&model.CommentFollower{SessionCommentID: id}).Delete(&model.CommentFollower{}).Error; err != nil {
+		return nil, e.Wrap(err, "error deleting session comment followers")
+	}
+
+	if err := r.DB.Where(&model.CommentFollower{SessionCommentID: id}).Delete(&model.CommentFollower{}).Error; err != nil {
+		return nil, e.Wrap(err, "error deleting session comment followers")
+	}
+
+	var commentCount int64
+	if err := r.DB.Where(&model.SessionComment{SessionSecureId: sessionComment.SessionSecureId}).Count(&commentCount).Error; err != nil {
+		return nil, e.Wrap(err, "error counting session comments")
+	}
+
+	if commentCount == 0 {
+		if err := r.OpenSearch.UpdateSynchronous(
+			opensearch.IndexSessions,
+			session.ID,
+			map[string]interface{}{"has_comments": false},
+		); err != nil {
+			return nil, e.Wrap(err, "error updating session in opensearch")
+		}
+
+	}
+
 	return &model.T, nil
 }
 

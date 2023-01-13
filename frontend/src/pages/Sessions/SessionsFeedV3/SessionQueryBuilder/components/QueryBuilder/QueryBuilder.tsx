@@ -1100,6 +1100,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	pages_visited: 'Pages Visited',
 	landing_page: 'Landing Page',
 	exit_page: 'Exit Page',
+	has_comments: 'Has Comments',
 }
 
 const getOperator = (
