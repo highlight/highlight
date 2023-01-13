@@ -2460,8 +2460,8 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 }
 
 func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, payloadId int, saveToS3, isBeacon bool, payloadType model.RawPayloadType, data []byte) error {
-	redisSpan, redisCtx := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
-		tracer.ResourceName("go.parseEvents.processWithRedis"), tracer.Tag("project_id", projectId))
+	redisSpan, redisCtx := tracer.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
+		tracer.ResourceName("go.parseEvents.processWithRedis"), tracer.Tag("project_id", projectId), tracer.Tag("payload_type", payloadType))
 	score := float64(payloadId)
 	// A little bit of a hack to encode
 	if isBeacon {
@@ -2469,7 +2469,7 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 	}
 
 	if saveToS3 {
-		zRangeSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
+		zRangeSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.SaveSessionData",
 			tracer.ResourceName("go.parseEvents.processWithRedis.getRawZRange"), tracer.Tag("project_id", projectId))
 		zRange, err := r.Redis.GetRawZRange(ctx, sessionId, payloadId)
 		if err != nil {
@@ -2479,7 +2479,7 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 
 		// If there are prior events, push them to S3 and remove them from Redis
 		if len(zRange) != 0 {
-			pushToS3Span, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
+			pushToS3Span, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.SaveSessionData",
 				tracer.ResourceName("go.parseEvents.processWithRedis.pushToS3"), tracer.Tag("project_id", projectId))
 			if err := r.StorageClient.PushRawEventsToS3(ctx, sessionId, projectId, payloadType, zRange); err != nil {
 				return e.Wrap(err, "error pushing events to S3")
@@ -2491,7 +2491,7 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 				values = append(values, z.Member)
 			}
 
-			removeValuesSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
+			removeValuesSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.SaveSessionData",
 				tracer.ResourceName("go.parseEvents.processWithRedis.removeValues"), tracer.Tag("project_id", projectId))
 			if err := r.Redis.RemoveValues(ctx, sessionId, values); err != nil {
 				return e.Wrap(err, "error removing previous values")
