@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 import { basename, join } from "path";
 import { cwd } from "process";
-import yargs from "yargs/yargs";
-import { hideBin } from "yargs/helpers";
+import { program } from "commander";
 import { readFileSync, statSync } from "fs";
 import glob from "glob";
-import AWS from "aws-sdk";
 import fetch from "cross-fetch";
 
 const VERIFY_API_KEY_QUERY = `
@@ -128,37 +126,25 @@ export const uploadSourcemaps = async ({
   );
 };
 
-yargs(hideBin(process.argv))
-  .command(
-    "upload",
-    "Upload Javascript sourcemaps to Highlight",
-    {},
-    // @ts-ignore-error
-    uploadSourcemaps
+program
+  .name("@highlight-run/sourcemap-uploader")
+  .description("Upload Javascript sourcemaps to Highlight");
+
+program
+  .command("upload")
+  .option("-k, --apiKey <string>", "The Highlight api key")
+  .option("-av, --appVersion <string>", "The current version of your deploy")
+  .option(
+    "-p, --path <string>",
+    "Sets the directory of where the sourcemaps are"
   )
-  .option("apiKey", {
-    alias: "k",
-    type: "string",
-    describe: "The Highlight api key",
-  })
-  .option("appVersion", {
-    alias: "av",
-    type: "string",
-    describe: "The current version of your deploy",
-  })
-  .option("path", {
-    alias: "p",
-    type: "string",
-    default: "/build",
-    describe: "Sets the directory of where the sourcemaps are",
-  })
-  .option("basePath", {
-    alias: "bp",
-    type: "string",
-    default: "",
-    describe: "An optional base path for the uploaded sourcemaps",
-  })
-  .help("help").argv;
+  .option(
+    "-bp, --basePath",
+    "An optional base path for the uploaded sourcemaps"
+  )
+  .action(uploadSourcemaps);
+
+program.parse();
 
 async function getAllSourceMapFiles(paths: string[]) {
   const map: { path: string; name: string }[] = [];
