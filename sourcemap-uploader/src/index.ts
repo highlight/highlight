@@ -126,26 +126,6 @@ export const uploadSourcemaps = async ({
   );
 };
 
-program
-  .name("@highlight-run/sourcemap-uploader")
-  .description("Upload Javascript sourcemaps to Highlight");
-
-program
-  .command("upload")
-  .option("-k, --apiKey <string>", "The Highlight api key")
-  .option("-av, --appVersion <string>", "The current version of your deploy")
-  .option(
-    "-p, --path <string>",
-    "Sets the directory of where the sourcemaps are"
-  )
-  .option(
-    "-bp, --basePath",
-    "An optional base path for the uploaded sourcemaps"
-  )
-  .action(uploadSourcemaps);
-
-program.parse();
-
 async function getAllSourceMapFiles(paths: string[]) {
   const map: { path: string; name: string }[] = [];
 
@@ -201,4 +181,26 @@ async function uploadFile(filePath: string, uploadUrl: string) {
   const fileContent = readFileSync(filePath);
   await fetch(uploadUrl, { method: "put", body: fileContent });
   console.log(`Uploaded ${filePath}`);
+}
+
+program
+  .name("@highlight-run/sourcemap-uploader")
+  .description("Upload Javascript sourcemaps to Highlight");
+
+program
+  .command("upload")
+  .option("-k, --apiKey <string>", "The Highlight api key")
+  .option("-av, --appVersion <string>", "The current version of your deploy")
+  .option(
+    "-p, --path <string>",
+    "Sets the directory of where the sourcemaps are"
+  )
+  .option(
+    "-bp, --basePath",
+    "An optional base path for the uploaded sourcemaps"
+  )
+  .action(uploadSourcemaps);
+
+if (require.main === module) {
+  program.parse();
 }
