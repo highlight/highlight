@@ -27,6 +27,7 @@ import {
 import { onGetLinkWithTimestamp } from '@pages/Player/SessionShareButton/utils/utils'
 import analytics from '@util/analytics'
 import { getFeedbackCommentSessionTimestamp } from '@util/comment/util'
+import { delayedRefetch } from '@util/gql'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { Menu, message } from 'antd'
 import React, { PropsWithChildren, useMemo, useState } from 'react'
@@ -53,7 +54,11 @@ const SessionCommentHeader = ({
 }: PropsWithChildren<Props>) => {
 	const { pause, session, sessionMetadata } = useReplayerContext()
 	const [deleteSessionComment] = useDeleteSessionCommentMutation({
-		refetchQueries: [namedOperations.Query.GetSessionComments],
+		refetchQueries: [
+			namedOperations.Query.GetSessionComments,
+			namedOperations.Query.GetSessionsOpenSearch,
+		],
+		onQueryUpdated: delayedRefetch,
 	})
 	const history = useHistory()
 

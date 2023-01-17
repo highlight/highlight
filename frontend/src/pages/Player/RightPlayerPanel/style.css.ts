@@ -15,6 +15,7 @@ export const playerRightPanelContainer = style({
 	height: `calc(100vh - 108px)`,
 	width: 'var(--right-panel-width)',
 	selectors: SESSION_FEED_SCROLLBAR,
+	zIndex: 5,
 })
 
 export const playerRightPanelContainerBannerShown = style({

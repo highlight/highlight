@@ -35,6 +35,7 @@ import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBod
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect'
 import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'
+import { delayedRefetch } from '@util/gql'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
@@ -79,7 +80,13 @@ export const NewCommentForm = ({
 	modalHeader,
 	currentUrl,
 }: Props) => {
-	const [createComment] = useCreateSessionCommentMutation()
+	const [createComment] = useCreateSessionCommentMutation({
+		refetchQueries: [
+			namedOperations.Query.GetSessionComments,
+			namedOperations.Query.GetSessionsOpenSearch,
+		],
+		onQueryUpdated: delayedRefetch,
+	})
 	const [createErrorComment] = useCreateErrorCommentMutation()
 	const { admin, isLoggedIn } = useAuthContext()
 	const { project_id } = useParams<{ project_id: string }>()
