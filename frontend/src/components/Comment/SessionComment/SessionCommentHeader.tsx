@@ -11,7 +11,6 @@ import SvgCopyIcon from '@icons/CopyIcon'
 import SvgFileText2Icon from '@icons/FileText2Icon'
 import SvgReferrer from '@icons/Referrer'
 import SvgTrashIcon from '@icons/TrashIcon'
-import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
@@ -60,12 +59,9 @@ const SessionCommentHeader = ({
 
 	const { isLinearIntegratedWithProject, loading: isLoadingLinear } =
 		useLinearIntegration()
-	const {
-		settings: {
-			isIntegrated: isClickupIntegrated,
-			loading: isLoadingClickUp,
-		},
-	} = useClickUpIntegration()
+
+	const { isIntegrated: isClickupIntegrated, loading: isLoadingClickUp } =
+		useIsProjectIntegratedWith(IntegrationType.ClickUp)
 
 	const { isIntegrated: isHeightIntegrated, loading: isLoadingHeight } =
 		useIsProjectIntegratedWith(IntegrationType.Height)
