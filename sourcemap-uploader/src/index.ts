@@ -197,7 +197,6 @@ program
   )
   .option(
     "-bp, --basePath",
-    "An optional base path for the uploaded sourcemaps"
     "An optional base path for the uploaded sourcemaps",
     ""
   )
