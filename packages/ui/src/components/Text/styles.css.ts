@@ -2,6 +2,7 @@ import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { createStyleObject } from '@capsizecss/core'
 import plexoFontMetrics from '@capsizecss/metrics/iBMPlexMono'
 import { globalStyle } from '@vanilla-extract/css'
+import { vars } from '../../css/vars'
 
 // Generated at https://seek-oss.github.io/capsize/.
 export const steradianFontMetrics = {
@@ -15,7 +16,7 @@ export const steradianFontMetrics = {
 // Body
 export const xxSmall = createStyleObject({
 	fontSize: 11,
-	lineGap: 1,
+	lineGap: 3,
 	fontMetrics: steradianFontMetrics,
 })
 export const xSmall = createStyleObject({
@@ -40,9 +41,19 @@ export const large = createStyleObject({
 })
 
 // Monospace
-const plexo = createStyleObject({
-	fontSize: 13,
-	lineGap: 7,
+const sMonotype = createStyleObject({
+	fontSize: 14,
+	lineGap: 6,
+	fontMetrics: plexoFontMetrics,
+})
+const xsMonotype = createStyleObject({
+	fontSize: 11,
+	lineGap: 12,
+	fontMetrics: plexoFontMetrics,
+})
+const xxsMonotype = createStyleObject({
+	fontSize: 10,
+	lineGap: 4,
 	fontMetrics: plexoFontMetrics,
 })
 
@@ -58,7 +69,6 @@ const family = {
 	monospace: {
 		fontFamily:
 			'IBM Plex Mono, Menlo, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier, monospace',
-		...plexo,
 	},
 } as const
 
@@ -135,6 +145,18 @@ export const variants = recipe({
 		{
 			variants: { family: 'body', size: 'xxSmall', weight: 'bold' },
 			style: { fontWeight: 700 },
+		},
+		{
+			variants: { family: 'monospace', size: 'small' },
+			style: sMonotype,
+		},
+		{
+			variants: { family: 'monospace', size: 'xSmall' },
+			style: xsMonotype,
+		},
+		{
+			variants: { family: 'monospace', size: 'xxSmall' },
+			style: xxsMonotype,
 		},
 	],
 

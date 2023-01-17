@@ -8,7 +8,6 @@ import {
 import {
 	Box,
 	ButtonIcon,
-	Heading,
 	IconSolidCheveronDown,
 	LinkButton,
 	Stack,
@@ -22,6 +21,8 @@ import SvgCopyIcon from '@icons/CopyIcon'
 import { copyToClipboard } from '@util/string'
 import { showIntercom } from '@util/window'
 import React, { useEffect } from 'react'
+
+import * as styles from './styles.css'
 
 type Props = React.PropsWithChildren & { error: SourceMappingError }
 
@@ -78,12 +79,10 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				keys={missingMinifiedFileMetadata}
 				title={originalFileTitle}
 			>
-				<Text>
-					{originalFileError}. We couldn't find the minified file in
-					Highlight storage at path{' '}
-					<Code>{error.actualMinifiedFetchedPath}</Code> or at URL{' '}
-					<Code>{error.stackTraceFileURL}</Code>
-				</Text>
+				{originalFileError}. We couldn't find the minified file in
+				Highlight storage at path{' '}
+				<Code>{error.actualMinifiedFetchedPath}</Code> or at URL{' '}
+				<Code>{error.stackTraceFileURL}</Code>
 			</StackSectionError>
 		)
 	} else if (
@@ -95,10 +94,8 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				keys={missingMinifiedFileMetadata}
 				title={originalFileTitle}
 			>
-				<Text>
-					{originalFileError}. We couldn't find a filename associated
-					with this stack frame
-				</Text>
+				{originalFileError}. We couldn't find a filename associated with
+				this stack frame
 			</StackSectionError>
 		)
 	} else if (
@@ -110,10 +107,8 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				keys={missingMinifiedFileMetadata}
 				title={originalFileTitle}
 			>
-				<Text>
-					{originalFileError}. We couldn't parse the stack trace file
-					name at URL <Code>{error.stackTraceFileURL}</Code>
-				</Text>
+				{originalFileError}. We couldn't parse the stack trace file name
+				at URL <Code>{error.stackTraceFileURL}</Code>
 			</StackSectionError>
 		)
 	} else if (
@@ -125,11 +120,9 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				keys={missingSourcemapMetadata}
 				title={sourcemapFileTitle}
 			>
-				<Text>
-					{sourcemapFileError}. We couldn't find sourcemap file using
-					the 'file://' syntax in cloud storage at path{' '}
-					<Code>{error.sourceMapURL}</Code>
-				</Text>
+				{sourcemapFileError}. We couldn't find sourcemap file using the
+				'file://' syntax in cloud storage at path{' '}
+				<Code>{error.sourceMapURL}</Code>
 			</StackSectionError>
 		)
 	} else if (
@@ -141,12 +134,10 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				keys={missingSourcemapMetadata}
 				title={sourcemapFileTitle}
 			>
-				<Text>
-					{sourcemapFileError}. We couldn't find the sourcemap file in
-					Highlight storage at path{' '}
-					<Code>{error.actualSourcemapFetchedPath}</Code> or at URL{' '}
-					<Code>{error.sourceMapURL}</Code>
-				</Text>
+				{sourcemapFileError}. We couldn't find the sourcemap file in
+				Highlight storage at path{' '}
+				<Code>{error.actualSourcemapFetchedPath}</Code> or at URL{' '}
+				<Code>{error.sourceMapURL}</Code>
 			</StackSectionError>
 		)
 	} else if (error.errorCode == SourceMappingErrorCode.InvalidSourceMapUrl) {
@@ -156,10 +147,8 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				keys={missingSourcemapMetadata}
 				title={sourcemapFileTitle}
 			>
-				<Text>
-					{sourcemapFileError}. We couldn't parse the sourcemap
-					filename X <Code>{error.actualSourcemapFetchedPath}</Code>
-				</Text>
+				{sourcemapFileError}. We couldn't parse the sourcemap filename X{' '}
+				<Code>{error.actualSourcemapFetchedPath}</Code>
 			</StackSectionError>
 		)
 	} else if (error.errorCode == SourceMappingErrorCode.MinifiedFileLarger) {
@@ -169,11 +158,9 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				keys={fileSizeLimitMetadata}
 				title={fileSizeLimitTitle}
 			>
-				<Text>
-					{fileSizeLimitError}. Minified file{' '}
-					<Code>{error.actualMinifiedFetchedPath}</Code> larger than
-					our max supported size 128MB
-				</Text>
+				{fileSizeLimitError}. Minified file{' '}
+				<Code>{error.actualMinifiedFetchedPath}</Code> larger than our
+				max supported size 128MB
 			</StackSectionError>
 		)
 	} else if (error.errorCode == SourceMappingErrorCode.SourceMapFileLarger) {
@@ -183,11 +170,9 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				keys={fileSizeLimitMetadata}
 				title={fileSizeLimitTitle}
 			>
-				<Text>
-					{fileSizeLimitError}. Sourcemap file{' '}
-					<Code>{error.actualSourcemapFetchedPath}</Code> larger than
-					our max supported size 128MB
-				</Text>
+				{fileSizeLimitError}. Sourcemap file{' '}
+				<Code>{error.actualSourcemapFetchedPath}</Code> larger than our
+				max supported size 128MB
 			</StackSectionError>
 		)
 	} else if (
@@ -199,10 +184,8 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				keys={sourcemapParseErrorMetadata}
 				title={fileParseTitle}
 			>
-				<Text>
-					There was an error parsing the source map file{' '}
-					<Code>{error.sourceMapURL}</Code>{' '}
-				</Text>
+				There was an error parsing the source map file{' '}
+				<Code>{error.sourceMapURL}</Code>{' '}
 			</StackSectionError>
 		)
 	} else if (
@@ -215,12 +198,9 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				keys={sourcemapParseErrorMetadata}
 				title={fileParseTitle}
 			>
-				<Text>
-					Sourcemap library didn't find a valid mapping to the
-					original source with line{' '}
-					<Code>{error.mappedLineNumber}</Code> and col{' '}
-					<Code>{error.mappedColumnNumber}</Code>
-				</Text>
+				Sourcemap library didn't find a valid mapping to the original
+				source with line <Code>{error.mappedLineNumber}</Code> and col{' '}
+				<Code>{error.mappedColumnNumber}</Code>
 			</StackSectionError>
 		)
 	} else {
@@ -276,11 +256,23 @@ const StackSectionError: React.FC<
 	}, [])
 
 	return (
-		<Box borderRadius="6" border="secondary" cursor="default">
+		<Box
+			backgroundColor="white"
+			borderRadius="6"
+			border="secondary"
+			cursor="default"
+			overflow="scroll"
+			boxShadow="small"
+			style={{ maxWidth: '450px' }}
+		>
 			<Box p="8">
-				<Stack gap="12">
-					<Heading level="h4">{title}</Heading>
-					{children}
+				<Stack gap="16">
+					<Text size="small" weight="bold">
+						{title}
+					</Text>
+					<Text size="small" weight="medium" color="default">
+						{children}
+					</Text>
 				</Stack>
 
 				{metadata.length > 0 && (
@@ -299,45 +291,47 @@ const StackSectionError: React.FC<
 
 						{showMetadata && (
 							<Box pt="12">
-								<table style={{ width: '100%' }}>
-									{metadata.map((m, index) => (
-										<tr
-											key={m.label}
-											style={{
-												verticalAlign: 'middle',
-											}}
-										>
-											<th
+								<Box cssClass={styles.metadataTable}>
+									<table style={{ width: '100%' }}>
+										{metadata.map((m, index) => (
+											<tr
+												key={m.label}
 												style={{
-													borderRight: `1px solid ${vars.color.n2}`,
-													borderTop:
-														index === 0
-															? undefined
-															: `1px solid ${vars.color.n2}`,
-													width: 150,
+													verticalAlign: 'middle',
 												}}
 											>
-												<Box p="4">
-													<Text>{m.label}</Text>
-												</Box>
-											</th>
-											<td
-												style={{
-													borderTop:
-														index === 0
-															? undefined
-															: `1px solid ${vars.color.n2}`,
-												}}
-											>
-												<Box p="4">
-													<Code lines="4">
-														{m.value}
-													</Code>
-												</Box>
-											</td>
-										</tr>
-									))}
-								</table>
+												<th
+													style={{
+														borderRight: `1px solid ${vars.theme.static.divider.weak}`,
+														borderTop:
+															index === 0
+																? undefined
+																: `1px solid ${vars.theme.static.divider.weak}`,
+														width: 150,
+													}}
+												>
+													<Box p="8">
+														<Text>{m.label}</Text>
+													</Box>
+												</th>
+												<td
+													style={{
+														borderTop:
+															index === 0
+																? undefined
+																: `1px solid ${vars.theme.static.divider.weak}`,
+													}}
+												>
+													<Box p="4">
+														<Code lines="4" block>
+															{m.value}
+														</Code>
+													</Box>
+												</td>
+											</tr>
+										))}
+									</table>
+								</Box>
 							</Box>
 						)}
 					</Box>
@@ -369,35 +363,45 @@ const StackSectionError: React.FC<
 }
 
 const Code: React.FC<{
+	block?: boolean
 	children?: Maybe<string | number>
 	lines?: '1' | '4'
-}> = ({ children, lines = '1' }) => {
+}> = ({ block = false, children, lines = '1' }) => {
 	const title = String(children)
+	const isBlock = block || title.length > 20
 
-	return (
+	const code = (
+		<Box cssClass={styles.codeContainer}>
+			{children && (
+				<Text
+					color="default"
+					lines={lines}
+					family="monospace"
+					title={title}
+					size="xSmall"
+				>
+					{children}
+				</Text>
+			)}
+		</Box>
+	)
+
+	return isBlock ? (
 		<Box
 			my="4"
 			display={children ? 'flex' : 'inline-flex'}
 			gap="4"
 			alignItems="center"
 		>
-			<Box
-				backgroundColor="n2"
-				padding="3"
-				borderRadius="3"
-				border="secondary"
-				display="inline-block"
-			>
-				{children && (
-					<Text lines={lines} family="monospace" title={title}>
-						{children}
-					</Text>
-				)}
-			</Box>
+			{code}
 			{children && (
-				<Box flexShrink={0}>
+				<Box flexShrink={0} alignItems="center" display="flex">
 					<ButtonIcon
-						onClick={() => copyToClipboard(title)}
+						onClick={() =>
+							copyToClipboard(title, {
+								onCopyText: 'Copied to clipboard',
+							})
+						}
 						emphasis="low"
 						icon={<SvgCopyIcon />}
 						size="minimal"
@@ -405,5 +409,7 @@ const Code: React.FC<{
 				</Box>
 			)}
 		</Box>
+	) : (
+		code
 	)
 }
