@@ -34,7 +34,6 @@
 			"outputs": ["build/**", "dist/**", "esm/**"],
 			"env": [
 				"REACT_APP_COMMIT_SHA",
-				"REACT_APP_ENVIRONMENT",
 				"REACT_APP_FIREBASE_CONFIG_OBJECT",
 				"REACT_APP_FRONT_INTEGRATION_CLIENT_ID",
 				"REACT_APP_FRONTEND_ORG",
