@@ -18,7 +18,6 @@ import {
 } from '@highlight-run/ui'
 import { Box, Menu, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
@@ -43,12 +42,9 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 
 	const { isLinearIntegratedWithProject, loading: isLoadingLinear } =
 		useLinearIntegration()
-	const {
-		settings: {
-			isIntegrated: isClickupIntegrated,
-			loading: isLoadingClickUp,
-		},
-	} = useClickUpIntegration()
+
+	const { isIntegrated: isClickupIntegrated, loading: isLoadingClickUp } =
+		useIsProjectIntegratedWith(IntegrationType.ClickUp)
 
 	const { isIntegrated: isHeightIntegrated, loading: isLoadingHeight } =
 		useIsProjectIntegratedWith(IntegrationType.Height)

@@ -5513,6 +5513,21 @@ func (r *queryResolver) IsProjectIntegratedWith(ctx context.Context, integration
 		return false, e.Wrap(err, "error querying project")
 	}
 
+	if integrationType == modelInputs.IntegrationTypeClickUp {
+		var projectMapping *model.IntegrationProjectMapping
+		if err := r.DB.Where(&model.IntegrationProjectMapping{
+			ProjectID:       project.ID,
+			IntegrationType: integrationType,
+		}).First(&projectMapping).Error; err != nil {
+			return false, nil
+		}
+
+		if projectMapping == nil {
+			return false, nil
+		}
+
+	}
+
 	return r.IntegrationsClient.IsProjectIntegrated(ctx, project, integrationType)
 }
 
