@@ -21,6 +21,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tdewolff/parse/css"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type EventType int
@@ -332,7 +333,7 @@ func getOrCreateUrls(projectId int, originalUrls []string, s *storage.StorageCli
 		}
 
 		if len(newResults) != 0 {
-			if err := db.Create(&newResults).Error; err != nil {
+			if err := db.Clauses(clause.OnConflict{DoNothing: true}).Create(&newResults).Error; err != nil {
 				return nil, errors.Wrap(err, "error saving asset metadata")
 			}
 		}
