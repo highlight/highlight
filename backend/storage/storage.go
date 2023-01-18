@@ -35,7 +35,7 @@ var (
 	S3SessionsPayloadBucketName    = os.Getenv("AWS_S3_BUCKET_NAME")
 	S3SessionsPayloadBucketNameNew = os.Getenv("AWS_S3_BUCKET_NAME_NEW")
 	S3SessionsStagingBucketName    = os.Getenv("AWS_S3_STAGING_BUCKET_NAME")
-	S3SourceMapBucketName          = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME")
+	S3SourceMapBucketNameNew       = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME_NEW")
 	S3ResourcesBucketName          = os.Getenv("AWS_S3_RESOURCES_BUCKET")
 	CloudfrontDomain               = os.Getenv("AWS_CLOUDFRONT_DOMAIN")
 	CloudfrontPublicKeyID          = os.Getenv("AWS_CLOUDFRONT_PUBLIC_KEY_ID")
@@ -72,11 +72,10 @@ func GetChunkedPayloadType(offset int) PayloadType {
 }
 
 type StorageClient struct {
-	S3Client             *s3.Client
-	S3ClientEast2        *s3.Client
-	S3PresignClient      *s3.PresignClient
-	S3PresignClientWest2 *s3.PresignClient
-	URLSigner            *sign.URLSigner
+	S3Client        *s3.Client
+	S3ClientEast2   *s3.Client
+	S3PresignClient *s3.PresignClient
+	URLSigner       *sign.URLSigner
 }
 
 func NewStorageClient() (*StorageClient, error) {
@@ -101,11 +100,10 @@ func NewStorageClient() (*StorageClient, error) {
 	})
 
 	return &StorageClient{
-		S3Client:             client,
-		S3ClientEast2:        clientEast2,
-		S3PresignClient:      s3.NewPresignClient(clientEast2),
-		S3PresignClientWest2: s3.NewPresignClient(client),
-		URLSigner:            getURLSigner(),
+		S3Client:        client,
+		S3ClientEast2:   clientEast2,
+		S3PresignClient: s3.NewPresignClient(clientEast2),
+		URLSigner:       getURLSigner(),
 	}, nil
 }
 
@@ -537,17 +535,17 @@ func (s *StorageClient) sourceMapBucketKey(projectId int, version *string, fileN
 
 func (s *StorageClient) PushSourceMapFileReaderToS3(projectId int, version *string, fileName string, file io.Reader) (*int64, error) {
 	key := s.sourceMapBucketKey(projectId, version, fileName)
-	_, err := s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: pointy.String(S3SourceMapBucketName), Key: key, Body: file,
+	_, err := s.S3ClientEast2.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: pointy.String(S3SourceMapBucketNameNew), Key: key, Body: file,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error 'put'ing sourcemap file in s3 bucket")
 	}
 	headObj := s3.HeadObjectInput{
-		Bucket: pointy.String(S3SourceMapBucketName),
+		Bucket: pointy.String(S3SourceMapBucketNameNew),
 		Key:    key,
 	}
-	result, err := s.S3Client.HeadObject(context.TODO(), &headObj)
+	result, err := s.S3ClientEast2.HeadObject(context.TODO(), &headObj)
 	if err != nil {
 		return nil, errors.New("error retrieving head object")
 	}
@@ -560,7 +558,7 @@ func (s *StorageClient) PushSourceMapFileToS3(projectId int, version *string, fi
 }
 
 func (s *StorageClient) ReadSourceMapFileFromS3(projectId int, version *string, fileName string) ([]byte, error) {
-	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: pointy.String(S3SourceMapBucketName),
+	output, err := s.S3ClientEast2.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: pointy.String(S3SourceMapBucketNameNew),
 		Key: s.sourceMapBucketKey(projectId, version, fileName)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
@@ -595,11 +593,11 @@ func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, paylo
 
 func (s *StorageClient) GetSourceMapUploadUrl(key string) (string, error) {
 	input := s3.PutObjectInput{
-		Bucket: &S3SourceMapBucketName,
+		Bucket: &S3SourceMapBucketNameNew,
 		Key:    pointy.String(key),
 	}
 
-	resp, err := s.S3PresignClientWest2.PresignPutObject(context.TODO(), &input)
+	resp, err := s.S3PresignClient.PresignPutObject(context.TODO(), &input)
 	if err != nil {
 		return "", errors.Wrap(err, "error signing s3 asset URL")
 	}
@@ -645,7 +643,7 @@ func (s *StorageClient) GetSourcemapFilesFromS3(projectId int, version *string) 
 	}
 
 	output, err := s.S3Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
-		Bucket: pointy.String(S3SourceMapBucketName),
+		Bucket: pointy.String(S3SourceMapBucketNameNew),
 		Prefix: pointy.String(fmt.Sprintf("%d/%s/", projectId, *version)),
 	})
 
@@ -658,7 +656,7 @@ func (s *StorageClient) GetSourcemapFilesFromS3(projectId int, version *string) 
 
 func (s *StorageClient) GetSourcemapVersionsFromS3(projectId int) ([]s3Types.CommonPrefix, error) {
 	output, err := s.S3Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
-		Bucket:    pointy.String(S3SourceMapBucketName),
+		Bucket:    pointy.String(S3SourceMapBucketNameNew),
 		Prefix:    pointy.String(fmt.Sprintf("%d/", projectId)),
 		Delimiter: pointy.String("/"),
 	})
