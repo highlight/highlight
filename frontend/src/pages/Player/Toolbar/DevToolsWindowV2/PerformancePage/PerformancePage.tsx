@@ -1,4 +1,4 @@
-import { Skeleton } from '@components/Skeleton/Skeleton'
+import LoadingBox from '@components/LoadingBox'
 import StackedAreaChart from '@components/StackedAreaChart/StackedAreaChart'
 import SvgActivityIcon from '@icons/ActivityIcon'
 import SvgCarDashboardIcon from '@icons/CarDashboardIcon'
@@ -73,11 +73,7 @@ const PerformancePage = React.memo(({ currentTime }: Props) => {
 
 	return (
 		<div className={styles.container}>
-			{isLoading && (
-				<div className={styles.emptyContainer}>
-					<Skeleton height="100%" />
-				</div>
-			)}
+			{isLoading && <LoadingBox />}
 			{hasNoPerformancePayloads && (
 				<div className={styles.emptyContainer}>
 					<div className={styles.messageContainer}>

@@ -1,7 +1,7 @@
 import ConnectHighlightWithSlackButton from '@components/Header/components/ConnectHighlightWithSlackButton/ConnectHighlightWithSlackButton'
+import LoadingBox from '@components/LoadingBox'
 import classNames from 'classnames'
 import React, { useRef } from 'react'
-import Skeleton from 'react-loading-skeleton'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import styles from './FullCommentList.module.scss'
@@ -23,11 +23,7 @@ const FullCommentList = ({
 
 	return (
 		<div className={styles.commentStream}>
-			{loading && (
-				<>
-					<Skeleton className={styles.skeleton} />
-				</>
-			)}
+			{loading && <LoadingBox height={90} />}
 			{!loading && comments.length === 0 ? (
 				<div className={styles.noCommentsContainer}>
 					<div className={styles.noCommentsTextContainer}>

@@ -1,4 +1,4 @@
-import { Skeleton } from '@components/Skeleton/Skeleton'
+import LoadingBox from '@components/LoadingBox'
 import { customEvent } from '@highlight-run/rrweb-types'
 import { Box, Text } from '@highlight-run/ui'
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
@@ -872,14 +872,18 @@ const TimelineIndicatorsBarGraph = ({
 
 	const shownTime = isDragging ? dragTime : time
 	const canvasProgress = timeToProgress(shownTime)
-	const sessionProgress = clamp(
-		(canvasProgress * canvasDuration) / adjustedDuration,
-		0,
-		1,
-	)
 
 	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
 	const useTransition = !isRefreshingDOM && !isDragging && time > 0
+	const showSkeleton =
+		!events.length ||
+		replayerState === ReplayerState.Loading ||
+		!canViewSession ||
+		!isPlayerReady
+
+	const sessionProgress = showSkeleton
+		? 0
+		: clamp((canvasProgress * canvasDuration) / adjustedDuration, 0, 1)
 
 	const progressBar = useMemo(() => {
 		return (
@@ -934,19 +938,6 @@ const TimelineIndicatorsBarGraph = ({
 		useTransition,
 	])
 
-	const showSkeleton =
-		!events.length ||
-		replayerState === ReplayerState.Loading ||
-		!canViewSession ||
-		!isPlayerReady
-
-	const sessionMonitorStyle = clsx([
-		style.sessionMonitor,
-		{
-			[style.hidden]: !showHistogram,
-		},
-	])
-
 	const containerProgress = clamp(
 		canvasWidth * canvasProgress,
 		0,
@@ -967,36 +958,24 @@ const TimelineIndicatorsBarGraph = ({
 
 	if (showSkeleton) {
 		return (
-			<Box cssClass={[style.timelineContainer]} style={{ width }}>
-				<div
-					className={style.progressBarContainer}
-					style={{
-						background: 'none',
-						overflow: 'hidden',
-					}}
-				>
-					<Skeleton
-						style={{
-							height: 20,
-							top: -10,
-							position: 'absolute',
-						}}
-					/>
-				</div>
-				<div className={sessionMonitorStyle}>
-					<Skeleton height={style.SESSION_MONITOR_HEIGHT} />
-				</div>
-				<div className={style.viewportContainer}>
-					<Skeleton
-						height={
-							showHistogram
-								? style.TIME_AXIS_HEIGHT +
-								  style.SEPARATOR_HEIGHT +
-								  style.HISTOGRAM_AREA_HEIGHT
-								: style.TIME_AXIS_HEIGHT
-						}
-					/>
-				</div>
+			<Box
+				cssClass={[style.timelineContainer]}
+				style={{
+					width,
+				}}
+			>
+				{progressBar}
+				<ToolbarControlBar />
+				<LoadingBox
+					height={
+						style.TIME_AXIS_HEIGHT +
+						(showHistogram
+							? style.SEPARATOR_HEIGHT +
+							  style.HISTOGRAM_AREA_HEIGHT +
+							  style.SESSION_MONITOR_HEIGHT
+							: 0)
+					}
+				/>
 			</Box>
 		)
 	}
@@ -1019,7 +998,6 @@ const TimelineIndicatorsBarGraph = ({
 					style.viewportContainer,
 					{
 						[style.hideOverflow]: !showHistogram,
-						[style.viewportContainerClosed]: !showHistogram,
 					},
 				])}
 				ref={viewportRef}

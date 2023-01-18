@@ -1,3 +1,4 @@
+import LoadingBox from '@components/LoadingBox'
 import { useGetSessionCommentsQuery } from '@graph/hooks'
 import {
 	Badge,
@@ -13,6 +14,7 @@ import {
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
+import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
@@ -22,7 +24,6 @@ import EventDetails from '../components/EventDetails/EventDetails'
 import { MetadataBox } from '../MetadataBox/MetadataBox'
 import MetadataPanel from '../MetadataPanel/MetadataPanel'
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration'
-import { useReplayerContext } from '../ReplayerContext'
 import SessionFullCommentList from '../SessionFullCommentList/SessionFullCommentList'
 import * as styles from './style.css'
 
@@ -47,35 +48,35 @@ const RightPlayerPanel = React.memo(() => {
 	}, [setSelectedRightPanelTab, setShowRightPanel])
 
 	return (
-		<>
-			<div
-				className={classNames(styles.playerRightPanelContainer, {
-					[styles.playerRightPanelContainerHidden]: !showRightPanel,
-					[styles.playerRightPanelContainerBannerShown]: showBanner,
-				})}
-			>
-				{showRightPanel && session ? (
-					activeEvent !== undefined ? (
-						<EventDetails event={activeEvent} />
-					) : (
-						<div
-							className={classNames(
-								styles.playerRightPanelCollapsible,
-								{
-									[styles.playerRightPanelCollapsibleBannerShown]:
-										showBanner,
-								},
-							)}
-						>
-							<MetadataBox />
-							<div className={styles.playerRightTabs}>
-								<RightPlayerPanelTabs />
-							</div>
+		<div
+			className={classNames(styles.playerRightPanelContainer, {
+				[styles.playerRightPanelContainerHidden]: !showRightPanel,
+				[styles.playerRightPanelContainerBannerShown]: showBanner,
+			})}
+		>
+			{showRightPanel && session ? (
+				activeEvent !== undefined ? (
+					<EventDetails event={activeEvent} />
+				) : (
+					<div
+						className={classNames(
+							styles.playerRightPanelCollapsible,
+							{
+								[styles.playerRightPanelCollapsibleBannerShown]:
+									showBanner,
+							},
+						)}
+					>
+						<MetadataBox />
+						<div className={styles.playerRightTabs}>
+							<RightPlayerPanelTabs />
 						</div>
-					)
-				) : null}
-			</div>
-		</>
+					</div>
+				)
+			) : (
+				<LoadingBox />
+			)}
+		</div>
 	)
 })
 
@@ -86,11 +87,12 @@ const RightPlayerPanelTabs = () => {
 		usePlayerUIContext()
 	const sessionCommentsRef = React.useRef(null)
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
-	const { data: sessionCommentsData, loading } = useGetSessionCommentsQuery({
-		variables: {
-			session_secure_id: session_secure_id,
-		},
-	})
+	const { data: sessionCommentsData, loading: isLoadingComments } =
+		useGetSessionCommentsQuery({
+			variables: {
+				session_secure_id: session_secure_id,
+			},
+		})
 
 	return (
 		<Tabs<RightPlayerTab>
@@ -113,7 +115,7 @@ const RightPlayerPanelTabs = () => {
 					page: (
 						<SessionFullCommentList
 							parentRef={sessionCommentsRef}
-							loading={loading}
+							loading={isLoadingComments}
 							sessionCommentsData={sessionCommentsData}
 						/>
 					),

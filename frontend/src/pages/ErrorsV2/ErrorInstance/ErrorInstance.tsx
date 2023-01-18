@@ -4,6 +4,7 @@ import { Avatar } from '@components/Avatar/Avatar'
 import { Button } from '@components/Button'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
 import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
+import LoadingBox from '@components/LoadingBox'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	GetErrorInstanceDocument,
@@ -179,7 +180,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									Instance metadata
 								</Text>
 							</Box>
-							<Skeleton count={5} />
+							<LoadingBox height={128} />
 						</Box>
 					</div>
 
@@ -190,7 +191,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									User details
 								</Text>
 							</Box>
-							<Skeleton count={5} />
+							<LoadingBox height={128} />
 						</Box>
 					</div>
 				</Box>

@@ -7,6 +7,7 @@ import {
 	SearchResultsKind,
 } from '@components/EmptySearchResults/EmptySearchResults'
 import { Series } from '@components/Histogram/Histogram'
+import LoadingBox from '@components/LoadingBox'
 import {
 	DEFAULT_PAGE_SIZE,
 	RESET_PAGE_MS,
@@ -46,7 +47,6 @@ import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import clsx from 'clsx'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
-import Skeleton from 'react-loading-skeleton'
 
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '../../Player/ReplayerContext'
@@ -323,14 +323,7 @@ export const SessionFeedV3 = React.memo(() => {
 					cssClass={style.content}
 				>
 					{searchResultsLoading ? (
-						<Skeleton
-							height={80}
-							count={3}
-							style={{
-								borderRadius: 8,
-								marginBottom: 2,
-							}}
-						/>
+						<LoadingBox />
 					) : (
 						<>
 							{searchResultsCount === 0 ? (

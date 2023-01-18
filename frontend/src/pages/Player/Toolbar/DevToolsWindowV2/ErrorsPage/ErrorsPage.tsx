@@ -1,4 +1,5 @@
 import JsonViewer from '@components/JsonViewer/JsonViewer'
+import LoadingBox from '@components/LoadingBox'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { ErrorObject } from '@graph/schemas'
 import { Box, Tag, Text } from '@highlight-run/ui'
@@ -11,7 +12,6 @@ import {
 import { getErrorBody } from '@util/errors/errorUtils'
 import { parseOptionalJSON } from '@util/string'
 import React, { useLayoutEffect, useMemo, useRef } from 'react'
-import Skeleton from 'react-loading-skeleton'
 import { useHistory } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
@@ -92,10 +92,7 @@ const ErrorsPage = React.memo(
 		return (
 			<Box className={styles.errorsBox}>
 				{loading ? (
-					<Skeleton
-						count={16}
-						style={{ height: 25, marginBottom: 11 }}
-					/>
+					<LoadingBox />
 				) : !session || !errorsToRender.length ? (
 					<EmptyDevToolsCallout kind={Tab.Errors} filter={filter} />
 				) : (

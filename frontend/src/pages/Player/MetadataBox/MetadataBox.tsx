@@ -1,5 +1,6 @@
 import { Avatar } from '@components/Avatar/Avatar'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
+import LoadingBox from '@components/LoadingBox'
 import { TableList } from '@components/TableList/TableList'
 import Tooltip from '@components/Tooltip/Tooltip'
 import {
@@ -269,7 +270,7 @@ export const UserDetailsBox = ({
 	}, [setEnhancedAvatar, data])
 
 	if (loading) {
-		return null
+		return <LoadingBox height={64} />
 	}
 
 	if (!data?.enhanced_user_details) {

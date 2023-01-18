@@ -1,3 +1,4 @@
+import LoadingBox from '@components/LoadingBox'
 import { useGetMessagesQuery } from '@graph/hooks'
 import { ConsoleMessage } from '@highlight-run/client'
 import { playerMetaData } from '@highlight-run/rrweb-types'
@@ -10,7 +11,6 @@ import clsx from 'clsx'
 import { H } from 'highlight.run'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Skeleton from 'react-loading-skeleton'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { useReplayerContext } from '../../../ReplayerContext'
@@ -180,12 +180,7 @@ export const ConsolePage = React.memo(
 		return (
 			<Box className={styles.consoleBox}>
 				{loading ? (
-					<Box px="2" py="8">
-						<Skeleton
-							count={16}
-							style={{ height: 25, marginBottom: 11 }}
-						/>
-					</Box>
+					<LoadingBox />
 				) : messagesToRender?.length ? (
 					<Virtuoso
 						ref={virtuoso}
