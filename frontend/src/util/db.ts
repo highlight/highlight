@@ -5,7 +5,6 @@ import {
 	Observable,
 	Operation,
 } from '@apollo/client'
-import { Session } from '@graph/schemas'
 import Dexie, { Table } from 'dexie'
 import moment from 'moment'
 
@@ -115,46 +114,22 @@ export const indexeddbCache = new IndexedDBCache()
 
 export class IndexedDBLink extends ApolloLink {
 	httpLink: ApolloLink
-	static cachedOperations = new Set<string>([
-		'GetEnhancedUserDetails',
-		'GetErrorDistribution',
-		'GetErrorGroup',
-		'GetErrorInstance',
-		'GetErrorGroupsOpenSearch',
-		'GetErrorsHistogram',
-		'GetEventChunks',
-		'GetEventChunkURL',
-		'GetRecentErrors',
-		'GetSessionIntervals',
-		'GetSession',
-		'GetSessionPayload',
-		'GetSessionsHistogram',
-		'GetSessionsOpenSearch',
-		'GetWebVitals',
-	])
 
 	constructor(httpLink: ApolloLink) {
 		super()
 		this.httpLink = httpLink
 	}
 
-	static isCached(operation: Operation) {
-		return (
-			indexeddbEnabled &&
-			IndexedDBLink.cachedOperations.has(operation.operationName)
-		)
+	static isCached({}: { operation: Operation }) {
+		return indexeddbEnabled
 	}
 
 	/* determines whether an operation should be stored in the cache.
-	GetSession should only be cached for non-live sessions since the data will change.
-	* */
-	static shouldCache(
-		operation: Operation,
-		result: FetchResult<Record<string, any>>,
-	): boolean {
-		if (operation.operationName === 'GetSession') {
-			return !!result?.data?.session?.processed
-		}
+	 * */
+	static shouldCache({}: {
+		operation: Operation
+		result: FetchResult<Record<string, any>>
+	}): boolean {
 		return true
 	}
 
@@ -169,7 +144,7 @@ export class IndexedDBLink extends ApolloLink {
 		operation: Operation,
 		forward?: NextLink,
 	): Observable<FetchResult<Record<string, any>>> | null {
-		if (!IndexedDBLink.isCached(operation)) {
+		if (!IndexedDBLink.isCached({ operation })) {
 			return this.httpLink.request(operation, forward)
 		}
 
@@ -180,120 +155,24 @@ export class IndexedDBLink extends ApolloLink {
 					variables: operation.variables,
 				})
 				.then((result) => {
+					const req = this.httpLink.request(operation, forward)!
 					if (result?.data) {
-						// GetSession cache entry is invalid if the `updated_at` value has changed.
-						if (operation.operationName === 'GetSession') {
-							// noinspection TypeScriptValidateJSTypes
-							this.httpLink
-								.request(operation, forward)!
-								.subscribe((newResult) => {
-									// if the cached result payload_updated_at matches a new result,
-									// return the existing cached result
-									if (
-										result.data?.session
-											?.payload_updated_at ===
-										newResult.data?.session
-											.payload_updated_at
-									) {
-										observer.next(result)
-										observer.complete()
-									} else {
-										const sessionSecureID = (
-											newResult.data?.session as
-												| Session
-												| undefined
-										)?.secure_id
-										// otherwise the payload_updated_at has changed
-										// remove any other cache entries that may be related
-										const promises = [
-											indexeddbCache.deleteItem({
-												operation: 'GetEventChunks',
-												variables: {
-													secure_id: sessionSecureID,
-												},
-											}),
-											indexeddbCache.deleteItem({
-												operation:
-													'GetSessionIntervals',
-												variables: {
-													session_secure_id:
-														sessionSecureID,
-												},
-											}),
-											indexeddbCache.deleteItem({
-												operation: 'GetSessionPayload',
-												variables: {
-													session_secure_id:
-														sessionSecureID,
-													skip_events: true,
-												},
-											}),
-											indexeddbCache.deleteItem({
-												operation: 'GetSessionPayload',
-												variables: {
-													session_secure_id:
-														sessionSecureID,
-													skip_events: false,
-												},
-											}),
-											indexeddbCache.deleteItem({
-												operation: 'GetWebVitals',
-												variables: {
-													session_secure_id:
-														sessionSecureID,
-												},
-											}),
-										]
-										Promise.all(promises).then(() => {
-											// store the new value and return it
-											indexeddbCache
-												.setItem(
-													{
-														operation:
-															operation.operationName,
-														variables:
-															operation.variables,
-													},
-													newResult,
-												)
-												.then(() => {
-													observer.next(newResult)
-													observer.complete()
-												})
-										})
-									}
-								})
-						} else {
-							observer.next(result)
-							observer.complete()
-						}
-					} else {
-						// noinspection TypeScriptValidateJSTypes
-						this.httpLink
-							.request(operation, forward)!
-							.subscribe((result) => {
-								if (
-									IndexedDBLink.shouldCache(operation, result)
-								) {
-									indexeddbCache
-										.setItem(
-											{
-												operation:
-													operation.operationName,
-												variables: operation.variables,
-											},
-											result,
-										)
-										.then(() => {
-											observer.next(result)
-											observer.complete()
-										})
-								} else {
-									observer.next(result)
-									observer.complete()
-								}
-							})
+						observer.next(result)
 					}
+					// noinspection TypeScriptValidateJSTypes
+					req.subscribe((result) => {
+						observer.next(result)
+						if (IndexedDBLink.shouldCache({ operation, result })) {
+							indexeddbCache.setItem(
+								{
+									operation: operation.operationName,
+									variables: operation.variables,
+								},
+								result,
+							)
+						}
+						observer.complete()
+					})
 				})
 		})
 	}
