@@ -14,4 +14,4 @@ RUN --mount=type=secret,id=SENDGRID_API_KEY \
   -ldflags="-w -s -X main.SENDGRID_API_KEY=$SENDGRID_API_KEY -X github.com/highlight-run/highlight/backend/private-graph/graph.SLACK_CLIENT_ID=$SLACK_CLIENT_ID -X github.com/highlight-run/highlight/backend/private-graph/graph.SLACK_CLIENT_SECRET=$SLACK_CLIENT_SECRET" \
   -o /bin/backend
 
-CMD ["make", "start"]
+CMD ["/bin/backend"]

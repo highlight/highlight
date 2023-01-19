@@ -43,7 +43,7 @@ services:
         container_name: highlight-frontend
         image: highlight.io/frontend
         ports:
-            - 3000:80
+            - 3000:443
         build:
             context: ..
             dockerfile: docker/frontend.Dockerfile
