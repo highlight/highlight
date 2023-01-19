@@ -34,5 +34,7 @@ ENV NODE_OPTIONS="--max-old-space-size=16384"
 RUN yarn build:frontend
 
 COPY ../docker/nginx.conf /etc/nginx/sites-enabled/default
+COPY ../backend/localhostssl/server.pem /etc/ssl/certs/ssl-cert.pem
+COPY ../backend/localhostssl/server.key /etc/ssl/private/ssl-cert.key
 
 CMD ["nginx", "-g", "daemon off;"]

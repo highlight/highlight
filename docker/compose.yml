@@ -32,12 +32,51 @@ services:
         volumes:
             - postgres-data:/var/lib/postgresql/data
 
+    collector:
+        container_name: highlight-collector
+        image: otel/opentelemetry-collector
+        ports:
+            - 4317:4317
+        command:
+            - '--config=/etc/otel-collector-config.yaml'
+        volumes:
+            - ./otel-collector.yaml:/etc/otel-collector-config.yaml
+
     backend:
         container_name: highlight-backend
         image: highlight.io/backend
         build:
             context: ..
             dockerfile: docker/backend.Dockerfile
+        environment:
+            - COMPOSE_PROJECT_NAME
+            - DEMO_SESSION
+            - DEPLOYMENT_KEY
+            - ENABLE_OBJECT_STORAGE
+            - ENVIRONMENT
+            - FRONTEND_URI
+            - INFLUXDB_BUCKET
+            - INFLUXDB_ORG
+            - KAFKA_SASL_PASSWORD
+            - KAFKA_SASL_USERNAME
+            - KAFKA_SERVERS
+            - KAFKA_TOPIC
+            - PSQL_DB
+            - PSQL_HOST
+            - PSQL_PASSWORD
+            - PSQL_PORT
+            - PSQL_USER
+            - PUBLIC_GRAPH_URI
+            - REACT_APP_DEMO_SESSION
+            - REACT_APP_ENVIRONMENT
+            - REACT_APP_FRONTEND_ORG
+            - REACT_APP_FRONTEND_URI
+            - REACT_APP_ONPREM
+            - REACT_APP_PRIVATE_GRAPH_URI
+            - REACT_APP_PUBLIC_GRAPH_URI
+            - REDIS_ADDRESS
+            - REDIS_EVENTS_STAGING_ENDPOINT
+            - SESSION_FILE_PATH_PREFIX
 
     frontend:
         container_name: highlight-frontend
