@@ -11,9 +11,11 @@ RUN apt update && apt install -y \
 
 RUN mkdir /build
 WORKDIR /build
-COPY ../docker/nginx.conf /etc/nginx/sites-enabled/default
 COPY ../.yarn/plugins ./.yarn/plugins
 COPY ../.yarn/releases ./.yarn/releases
+COPY ../.yarn/install-state.gz ./.yarn/install-state.gz
+COPY .npmignore .yarnrc.yml ./
+COPY tsconfig.json turbo.json package.json yarn.lock ./
 COPY ../.turbo ./.turbo
 COPY ../scripts ./scripts
 COPY ../rrweb ./rrweb
@@ -23,11 +25,6 @@ COPY ../sourcemap-uploader ./sourcemap-uploader
 COPY ../highlight-javascript ./highlight-javascript
 COPY ../frontend ./frontend
 COPY ../backend ./backend
-COPY ../.yarn/install-state.gz ./.yarn/install-state.gz
-COPY ../.git ./.git
-COPY ../.gitmodules ./.gitmodules
-COPY .npmignore .yarnrc.yml ./
-COPY tsconfig.json turbo.json package.json yarn.lock ./
 
 RUN yarn
 
@@ -35,5 +32,7 @@ ENV REACT_APP_ONPREM=true
 ENV RENDER_PREVIEW=true
 ENV NODE_OPTIONS="--max-old-space-size=16384"
 RUN yarn build:frontend
+
+COPY ../docker/nginx.conf /etc/nginx/sites-enabled/default
 
 CMD ["nginx", "-g", "daemon off;"]
