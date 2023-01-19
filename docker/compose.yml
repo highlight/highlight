@@ -1,0 +1,53 @@
+services:
+    redpanda:
+        container_name: highlight-redpanda
+        image: docker.redpanda.com/vectorized/redpanda:v22.3.8
+        command:
+            - redpanda start
+            - --smp 1
+            - --overprovisioned
+            - --node-id 0
+            - --kafka-addr PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+            - --advertise-kafka-addr PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
+            - --pandaproxy-addr 0.0.0.0:8082
+            - --advertise-pandaproxy-addr localhost:8082
+
+    redis:
+        container_name: highlight-redis
+        image: redis
+        volumes:
+            - redis-data:/data
+        command:
+            - redis-server
+            - --save 60 1
+            - --loglevel warning
+
+    postgres:
+        container_name: highlight-postgres
+        image: postgres
+        ports:
+            - 5432:5432
+        environment:
+            POSTGRES_HOST_AUTH_METHOD: trust
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
+
+    backend:
+        container_name: highlight-backend
+        image: highlight.io/backend
+        build:
+            context: ..
+            dockerfile: docker/backend.Dockerfile
+
+    frontend:
+        container_name: highlight-frontend
+        image: highlight.io/frontend
+        ports:
+            - 3000:80
+        build:
+            context: ..
+            dockerfile: docker/frontend.Dockerfile
+
+volumes:
+    postgres-data:
+    redis-data:

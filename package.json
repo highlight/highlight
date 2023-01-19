@@ -39,7 +39,6 @@
 		"frontend:start": "yarn dev:frontend",
 		"g": "yarn generate",
 		"generate": "hygen",
-		"preinstall": "git submodule update --init --recursive",
 		"prepare": "husky install && patch-package",
 		"prepublish": "yarn workspace scripts prepublish:client",
 		"publish:all": "run-p --print-label publish:client publish:turbo publish:render",
@@ -58,7 +57,7 @@
 		"patch-package": "^6.4.7",
 		"prettier": "^2.7.1",
 		"pretty-quick": "^3.1.3",
-		"turbo": "^1.6.3"
+		"turbo": "^1.7.0"
 	},
 	"packageManager": "yarn@3.2.3",
 	"resolutions": {
