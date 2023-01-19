@@ -64,25 +64,31 @@ export const ConsolePage = React.memo(
 				!!session?.messages_url
 			) {
 				setLoading(true)
-				indexedDBFetch(session.messages_url)
-					.then((response) => response.json())
-					.then((data) => {
-						setParsedMessages(
-							(data as any[] | undefined)?.map(
-								(m: ConsoleMessage, i) => {
-									return {
-										...m,
-										id: i,
-									}
-								},
-							) ?? [],
-						)
-					})
-					.catch((e) => {
-						setParsedMessages([])
-						H.consumeError(e, 'Error direct downloading resources')
-					})
-					.finally(() => setLoading(false))
+				const processUpdate = (p: Promise<IteratorResult<Response>>) =>
+					p
+						.then((result) => result.value.json())
+						.then((data) => {
+							setParsedMessages(
+								(data as any[] | undefined)?.map(
+									(m: ConsoleMessage, i) => {
+										return {
+											...m,
+											id: i,
+										}
+									},
+								) ?? [],
+							)
+						})
+						.catch((e) => {
+							setParsedMessages([])
+							H.consumeError(
+								e,
+								'Error direct downloading resources',
+							)
+						})
+						.finally(() => setLoading(false))
+				const req = indexedDBFetch(session.messages_url)
+				processUpdate(req.next()).then(() => processUpdate(req.next()))
 			}
 		}, [session?.messages_url, session?.secure_id, session_secure_id])
 

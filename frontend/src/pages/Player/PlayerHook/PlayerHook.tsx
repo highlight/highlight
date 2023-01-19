@@ -341,20 +341,21 @@ export const usePlayer = (): ReplayerContextInterface => {
 									secure_id: session_secure_id,
 									index: _i,
 								})
-								const chunkResponse = await indexedDBFetch(
+								for await (const chunkResponse of await indexedDBFetch(
 									response.data.event_chunk_url,
-								)
-								chunkEventsSet(
-									_i,
-									toHighlightEvents(
-										await chunkResponse.json(),
-									),
-								)
-								log(
-									'PlayerHook.tsx:ensureChunksLoaded',
-									'set data for chunk',
-									_i,
-								)
+								)) {
+									chunkEventsSet(
+										_i,
+										toHighlightEvents(
+											await chunkResponse.json(),
+										),
+									)
+									log(
+										'PlayerHook.tsx:ensureChunksLoaded',
+										'set data for chunk',
+										_i,
+									)
+								}
 							} catch (e: any) {
 								H.consumeError(
 									e,

@@ -178,7 +178,7 @@ export class IndexedDBLink extends ApolloLink {
 	}
 }
 
-export const indexedDBFetch = async function (
+export const indexedDBFetch = async function* (
 	input: RequestInfo,
 	init?: RequestInit | undefined,
 ) {
@@ -187,32 +187,30 @@ export const indexedDBFetch = async function (
 	}
 	const cacheKey = JSON.stringify({ input, init })
 	const cached = await db.fetch.where('key').equals(cacheKey).first()
-	if (!cached) {
-		const response = await fetch(input, init)
-		const ret = response.clone()
-		const headers: { [key: string]: string } = {}
-		response.headers.forEach((value: string, key: string) => {
-			headers[key] = value
-		})
-		await db.fetch.put({
-			key: cacheKey,
-			created: moment().format(),
-			updated: moment().format(),
-			blob: await response.blob(),
-			options: {
-				status: response.status,
-				statusText: response.statusText,
-				headers,
-			},
-		})
-		return ret
-	} else {
-		db.fetch.update(cached.key, { updated: moment().format() })
-		return new Response(cached.blob, {
+	if (cached) {
+		yield new Response(cached.blob, {
 			...cached.options,
 			status: cached.options.status || 200,
 		})
 	}
+	const response = await fetch(input, init)
+	const ret = response.clone()
+	const headers: { [key: string]: string } = {}
+	response.headers.forEach((value: string, key: string) => {
+		headers[key] = value
+	})
+	await db.fetch.put({
+		key: cacheKey,
+		created: moment().format(),
+		updated: moment().format(),
+		blob: await response.blob(),
+		options: {
+			status: response.status,
+			statusText: response.statusText,
+			headers,
+		},
+	})
+	return ret
 }
 
 const cleanup = async () => {
