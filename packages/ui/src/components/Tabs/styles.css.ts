@@ -26,6 +26,7 @@ export const handle = style({
 	width: '100%',
 	position: 'absolute',
 	top: -GRAB_HANDLE_HEIGHT / 2,
+	cursor: 'grab',
 })
 
 export const handleLine = style({
