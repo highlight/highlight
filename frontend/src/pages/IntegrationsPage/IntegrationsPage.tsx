@@ -1,7 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
-import { Skeleton } from '@components/Skeleton/Skeleton'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
@@ -142,22 +141,17 @@ const IntegrationsPage = () => {
 					tools you use everyday.
 				</p>
 				<div className={styles.integrationsContainer}>
-					{integrations.map((integration) =>
-						loading ? (
-							<Skeleton height={187} key={integration.key} />
-						) : (
-							<Integration
-								integration={integration}
-								key={integration.key}
-								showModalDefault={
-									popUpModal === integration.key
-								}
-								showSettingsDefault={
-									configureIntegration === integration.key
-								}
-							/>
-						),
-					)}
+					{integrations.map((integration) => (
+						<Integration
+							integration={integration}
+							key={integration.key}
+							showModalDefault={popUpModal === integration.key}
+							showSettingsDefault={
+								configureIntegration === integration.key
+							}
+							loading={loading}
+						/>
+					))}
 				</div>
 			</LeadAlignLayout>
 		</>

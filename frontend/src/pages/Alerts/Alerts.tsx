@@ -1,7 +1,7 @@
 import BarChart from '@components/BarChart/BarChart'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import Card from '@components/Card/Card'
-import { CircularSpinner } from '@components/Loading/Loading'
+import LoadingBox from '@components/LoadingBox'
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import Table from '@components/Table/Table'
 import Tag from '@components/Tag/Tag'
@@ -258,14 +258,14 @@ export default function AlertsPage() {
 
 	if (loading) {
 		return (
-			<div>
+			<>
 				<div className={styles.subTitleContainer}>
 					<p>Manage the alerts for your project.</p>
 				</div>
-				<div className="flex justify-center p-8">
-					<CircularSpinner />
-				</div>
-			</div>
+				<Card noPadding>
+					<LoadingBox height={640} />
+				</Card>
+			</>
 		)
 	}
 
