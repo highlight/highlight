@@ -52,7 +52,6 @@ services:
             - COMPOSE_PROJECT_NAME
             - DEMO_SESSION
             - DEPLOYMENT_KEY
-            - ENABLE_OBJECT_STORAGE
             - ENVIRONMENT
             - FRONTEND_URI
             - INFLUXDB_BUCKET
@@ -86,6 +85,9 @@ services:
         build:
             context: ..
             dockerfile: docker/frontend.Dockerfile
+        environment:
+            - REACT_APP_ONPREM
+            - RENDER_PREVIEW
 
 volumes:
     postgres-data:

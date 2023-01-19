@@ -28,8 +28,6 @@ COPY ../backend ./backend
 
 RUN yarn
 
-ENV REACT_APP_ONPREM=true
-ENV RENDER_PREVIEW=true
 ENV NODE_OPTIONS="--max-old-space-size=16384"
 RUN yarn build:frontend
 
