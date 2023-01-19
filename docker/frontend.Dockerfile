@@ -24,7 +24,8 @@ COPY ../render ./render
 COPY ../sourcemap-uploader ./sourcemap-uploader
 COPY ../highlight-javascript ./highlight-javascript
 COPY ../frontend ./frontend
-COPY ../backend ./backend
+COPY ../backend/public-graph ./backend/public-graph
+COPY ../backend/private-graph ./backend/private-graph
 
 RUN yarn
 

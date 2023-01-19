@@ -5,15 +5,18 @@ receivers:
 exporters:
     logging:
         loglevel: debug
+    otlphttp:
+        endpoint: localhost:4317
+        compression: snappy
 processors:
     batch:
 service:
     pipelines:
         traces:
-            receivers: [otlp]
-            exporters: [logging]
+            receivers: [otlphttp]
             processors: [batch]
+            exporters: [logging, otlphttp]
         metrics:
-            receivers: [otlp]
-            exporters: [logging]
+            receivers: [otlphttp]
             processors: [batch]
+            exporters: [logging, otlphttp]

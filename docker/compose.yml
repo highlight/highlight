@@ -11,6 +11,14 @@ services:
             - --advertise-kafka-addr PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
             - --pandaproxy-addr 0.0.0.0:8082
             - --advertise-pandaproxy-addr localhost:8082
+            - --memory 1G
+            - --reserve-memory 0M
+            - --check=false
+            - --set redpanda.empty_seed_starts_cluster=false
+            - --set redpanda.enable_sasl=true
+            - --set redpanda.superusers=["dev"]
+            - --set redpanda.kafka_batch_max_bytes=536870912
+            - --set redpanda.kafka_request_max_bytes=536870912
 
     redis:
         container_name: highlight-redis
