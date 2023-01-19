@@ -400,6 +400,18 @@ export const usePlayer = (): ReplayerContextInterface => {
 					)
 					dispatchAction(startTime)
 					targetTime.current = undefined
+				} else if (targetTime.current !== undefined) {
+					log(
+						'PlayerHook.tsx:ensureChunksLoaded',
+						'calling dispatchAction due to seek while loading',
+						{
+							startTime,
+							startIdx,
+							targetTime: targetTime.current,
+						},
+					)
+					dispatchAction(targetTime.current)
+					targetTime.current = undefined
 				} else {
 					log(
 						'PlayerHook.tsx:ensureChunksLoaded',
