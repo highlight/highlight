@@ -2,11 +2,11 @@ import {
 	EmptySearchResults,
 	SearchResultsKind,
 } from '@components/EmptySearchResults/EmptySearchResults'
+import LoadingBox from '@components/LoadingBox'
 import SearchPagination, {
 	PAGE_SIZE,
 	START_PAGE,
 } from '@components/SearchPagination/SearchPagination'
-import { Skeleton } from '@components/Skeleton/Skeleton'
 import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
@@ -113,14 +113,7 @@ const SearchPanel = () => {
 				cssClass={style.content}
 			>
 				{searchResultsLoading ? (
-					<Skeleton
-						height={80}
-						count={3}
-						style={{
-							borderRadius: 8,
-							marginBottom: 2,
-						}}
-					/>
+					<LoadingBox />
 				) : (
 					<>
 						{searchResultsCount === 0 || !errorGroups ? (

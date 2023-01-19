@@ -5,6 +5,7 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard'
+import LoadingBox from '@components/LoadingBox'
 import { useIsSessionPendingQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
@@ -57,7 +58,6 @@ import React, {
 	useState,
 } from 'react'
 import { Helmet } from 'react-helmet'
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import useResizeAware from 'react-resize-aware'
 
 import WaitingAnimation from '../../lottie/waiting.json'
@@ -585,14 +585,7 @@ const PlayerSkeleton = ({
 	width: number
 	height: number
 }) => {
-	return (
-		<SkeletonTheme
-			baseColor="var(--text-primary-inverted)"
-			highlightColor="#f5f5f5"
-		>
-			<Skeleton height={height} width={width} duration={1} />
-		</SkeletonTheme>
-	)
+	return <LoadingBox style={{ height, width }} />
 }
 
 export default PlayerPage

@@ -1,7 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
-import { Skeleton } from '@components/Skeleton/Skeleton'
+import LoadingBox from '@components/LoadingBox'
 import {
 	useGetErrorGroupQuery,
 	useMuteErrorCommentThreadMutation,
@@ -166,6 +166,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 						display="flex"
 						flexDirection="column"
 						cssClass={clsx({ [styles.emptyState]: isEmptyState })}
+						height="full"
 					>
 						{isLoggedIn && (
 							<Box
@@ -295,23 +296,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 								<div className={styles.errorDetails}>
 									<Container>
 										{loading ? (
-											<>
-												<Skeleton
-													count={1}
-													style={{
-														width: 940,
-														height: 37,
-													}}
-												/>
-
-												<Skeleton
-													count={1}
-													style={{
-														height: '2ch',
-														marginBottom: 0,
-													}}
-												/>
-											</>
+											<LoadingBox />
 										) : (
 											<div>
 												<ErrorTitle

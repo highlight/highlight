@@ -1,3 +1,4 @@
+import LoadingBox from '@components/LoadingBox'
 import { useGetWebVitalsQuery } from '@graph/hooks'
 import { Box, Form, IconSolidSearch, useFormState } from '@highlight-run/ui'
 import { useEventTypeFilters } from '@pages/Player/components/EventStream/hooks/useEventTypeFilters'
@@ -17,7 +18,6 @@ import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Skeleton from 'react-loading-skeleton'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import * as style from './EventStreamV2.css'
@@ -112,19 +112,7 @@ const EventStreamV2 = function () {
 	return (
 		<Box className={style.container}>
 			{isLoading ? (
-				<div>
-					<Skeleton
-						count={20}
-						height={43}
-						width="301px"
-						style={{
-							marginTop: 16,
-							marginLeft: 24,
-							marginRight: 24,
-							borderRadius: 8,
-						}}
-					/>
-				</div>
+				<LoadingBox />
 			) : (
 				<Box width="full" height="full">
 					<Box px="12" py="8">

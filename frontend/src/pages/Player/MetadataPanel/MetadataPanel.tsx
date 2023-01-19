@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { KeyValueTableRow } from '@components/KeyValueTable/KeyValueTable'
+import LoadingBox from '@components/LoadingBox'
 import { TableList } from '@components/TableList/TableList'
 import {
 	Box,
@@ -14,7 +15,6 @@ import { bytesToPrettyString } from '@util/string'
 import { message } from 'antd'
 import React, { PropsWithChildren, useEffect, useState } from 'react'
 import ReactCollapsible from 'react-collapsible'
-import Skeleton from 'react-loading-skeleton'
 import { Link } from 'react-router-dom'
 
 import { EmptySessionsSearchParams } from '../../Sessions/EmptySessionsSearchParams'
@@ -287,14 +287,7 @@ const MetadataPanel = () => {
 	return (
 		<div className={styles.metadataPanel}>
 			{!session ? (
-				<Skeleton
-					count={4}
-					height={35}
-					style={{
-						marginTop: 8,
-						marginBottom: 8,
-					}}
-				/>
+				<LoadingBox />
 			) : (
 				Object.entries({
 					[MetadataSection.Session]: sessionData,

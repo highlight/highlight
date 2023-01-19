@@ -1,4 +1,5 @@
 import Input from '@components/Input/Input'
+import LoadingBox from '@components/LoadingBox'
 import Switch from '@components/Switch/Switch'
 import { useGetWebVitalsQuery } from '@graph/hooks'
 import { EventType } from '@highlight-run/rrweb'
@@ -16,7 +17,6 @@ import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Skeleton from 'react-loading-skeleton'
 import TextTransition from 'react-text-transition'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
@@ -172,19 +172,7 @@ const EventStream = () => {
 						</div>
 					</div>
 					{isLoading ? (
-						<div>
-							<Skeleton
-								count={20}
-								height={43}
-								width="301px"
-								style={{
-									marginTop: 16,
-									marginLeft: 24,
-									marginRight: 24,
-									borderRadius: 8,
-								}}
-							/>
-						</div>
+						<LoadingBox />
 					) : replayer && filteredEvents.length > 0 ? (
 						<Virtuoso
 							onMouseEnter={() => {

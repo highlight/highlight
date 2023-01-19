@@ -101,11 +101,6 @@ export const inactivityPeriodPlayed = style({
 	transformOrigin: 'left',
 })
 
-export const viewportContainerClosed = style({
-	borderBottom: `1px solid ${colors.n6}`,
-	marginTop: 4,
-})
-
 export const viewportContainer = style({
 	height: 'min-content',
 	overflowX: 'clip',

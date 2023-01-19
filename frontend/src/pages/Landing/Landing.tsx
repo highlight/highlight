@@ -13,7 +13,7 @@ export const Landing = ({ children }: { children: ReactNode }) => {
 
 	return (
 		<div
-			className="flex min-h-screen w-full flex-col items-center overflow-y-auto bg-midnight p-8"
+			className="bg-midnight flex min-h-screen w-full flex-col items-center overflow-y-auto p-8"
 			style={{ transform: `translateZ(0)` }} // scroll optimization
 		>
 			<div className="fixed right-5 top-5">

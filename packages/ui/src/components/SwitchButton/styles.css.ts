@@ -56,7 +56,10 @@ export const variants = recipe({
 						background: vars.theme.interactive.fill.primary.pressed,
 					},
 					'&:disabled': {
-						color: vars.theme.interactive.fill.primary.disabled,
+						background:
+							vars.theme.interactive.fill.primary.disabled,
+						color: vars.theme.interactive.fill.primary.content
+							.onDisabled,
 					},
 				},
 			},

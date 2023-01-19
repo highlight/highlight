@@ -1,3 +1,4 @@
+import LoadingBox from '@components/LoadingBox'
 import { Box, Text } from '@highlight-run/ui'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
@@ -21,7 +22,6 @@ import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Skeleton from 'react-loading-skeleton'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter'
@@ -116,7 +116,7 @@ export const NetworkPage = React.memo(
 			}
 
 			return current
-		}, [requestType, filter, parsedResources, startTime])
+		}, [parsedResources, filter, method, requestType, startTime])
 
 		const currentResourceIdx = useMemo(() => {
 			return findLastActiveEventIndex(
@@ -262,12 +262,7 @@ export const NetworkPage = React.memo(
 		return (
 			<Box className={styles.container}>
 				{loading || !session ? (
-					<Box p="16">
-						<Skeleton
-							count={16}
-							style={{ height: 25, marginBottom: 11 }}
-						/>
-					</Box>
+					<LoadingBox />
 				) : resourcesToRender.length > 0 ? (
 					<Box className={styles.container}>
 						<Box className={styles.networkHeader}>
