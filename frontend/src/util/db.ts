@@ -50,17 +50,25 @@ export class DB extends Dexie {
 			headers: { [key: string]: string }
 		}
 	}>
+	map!: Table<{
+		key: string
+		created: string
+		updated: string
+		value: string
+	}>
 
 	constructor() {
 		super('highlight')
-		this.version(5)
+		this.version(6)
 			.stores({
 				apollo: 'key,updated',
 				fetch: 'key,updated',
+				map: 'key,updated',
 			})
 			.upgrade((tx) => {
 				tx.table('apollo').clear()
 				tx.table('fetch').clear()
+				tx.table('map').clear()
 			})
 	}
 }
@@ -178,29 +186,57 @@ export class IndexedDBLink extends ApolloLink {
 	}
 }
 
-export const indexedDBFetch = async function* (
-	input: RequestInfo,
-	init?: RequestInit | undefined,
-) {
+export const indexedDBString = async function* ({
+	key,
+	fn,
+}: {
+	key: string
+	fn: () => Promise<string>
+}) {
 	if (!indexeddbEnabled) {
-		return await fetch(input, init)
+		yield await fn()
+		return
 	}
-	const cacheKey = JSON.stringify({ input, init })
-	const cached = await db.fetch.where('key').equals(cacheKey).first()
+	const cached = await db.map.where('key').equals(key).first()
+	if (cached) {
+		yield cached.value
+	}
+	const response = await fn()
+	await db.map.put({
+		key,
+		created: moment().format(),
+		updated: moment().format(),
+		value: response,
+	})
+	yield response
+}
+
+export const indexedDBWrap = async function* ({
+	key,
+	fn,
+}: {
+	key: string
+	fn: () => Promise<Response>
+}) {
+	if (!indexeddbEnabled) {
+		yield await fn()
+		return
+	}
+	const cached = await db.fetch.where('key').equals(key).first()
 	if (cached) {
 		yield new Response(cached.blob, {
 			...cached.options,
 			status: cached.options.status || 200,
 		})
 	}
-	const response = await fetch(input, init)
+	const response = await fn()
 	const ret = response.clone()
 	const headers: { [key: string]: string } = {}
 	response.headers.forEach((value: string, key: string) => {
 		headers[key] = value
 	})
 	await db.fetch.put({
-		key: cacheKey,
+		key,
 		created: moment().format(),
 		updated: moment().format(),
 		blob: await response.blob(),
@@ -210,13 +246,24 @@ export const indexedDBFetch = async function* (
 			headers,
 		},
 	})
-	return ret
+	yield ret
+}
+
+export const indexedDBFetch = async function* (
+	input: RequestInfo,
+	init?: RequestInit | undefined,
+) {
+	yield* indexedDBWrap({
+		key: JSON.stringify({ input, init }),
+		fn: async () => await fetch(input, init),
+	})
 }
 
 const cleanup = async () => {
 	const fetchElems = await db.fetch.count()
+	const mapElems = await db.map.count()
 	const apolloElems = await db.apollo.count()
-	const totalElems = fetchElems + apolloElems
+	const totalElems = fetchElems + mapElems + apolloElems
 	const size = (await navigator.storage.estimate()) as {
 		quota?: number
 		usage?: number
@@ -224,14 +271,21 @@ const cleanup = async () => {
 	}
 	const usageMB =
 		(size.usageDetails?.indexedDB || size.usage || 0) / 1000 / 1000
-	const avgElemMB = usageMB / (fetchElems + apolloElems)
+	const avgElemMB = usageMB / (fetchElems + mapElems + apolloElems)
 	const numElemsToRemove = (usageMB - CLEANUP_THRESHOLD_MB) / avgElemMB
 	const numFetchElemsToRemove = (fetchElems / totalElems) * numElemsToRemove
+	const numMapElemsToRemove = (mapElems / totalElems) * numElemsToRemove
 	const numApolloElemsToRemove = (apolloElems / totalElems) * numElemsToRemove
 	for (let i = 1; i < numFetchElemsToRemove; ++i) {
 		const toDelete = await db.fetch.orderBy('updated').limit(1).first()
 		if (toDelete) {
 			await db.fetch.delete(toDelete.key)
+		}
+	}
+	for (let i = 1; i < numMapElemsToRemove; ++i) {
+		const toDelete = await db.map.orderBy('updated').limit(1).first()
+		if (toDelete) {
+			await db.map.delete(toDelete.key)
 		}
 	}
 	for (let i = 1; i < numApolloElemsToRemove; ++i) {
@@ -240,7 +294,11 @@ const cleanup = async () => {
 			await db.apollo.delete(toDelete.key)
 		}
 	}
-	if (numFetchElemsToRemove > 1 || numApolloElemsToRemove > 1) {
+	if (
+		numFetchElemsToRemove > 1 ||
+		numMapElemsToRemove > 1 ||
+		numApolloElemsToRemove > 1
+	) {
 		setTimeout(cleanup, CLEANUP_DELAY_MS)
 	} else {
 		setTimeout(cleanup, CLEANUP_CHECK_MS)
