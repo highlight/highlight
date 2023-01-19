@@ -642,7 +642,7 @@ func (s *StorageClient) GetSourcemapFilesFromS3(projectId int, version *string) 
 		version = pointy.String("unversioned")
 	}
 
-	output, err := s.S3Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+	output, err := s.S3ClientEast2.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket: pointy.String(S3SourceMapBucketNameNew),
 		Prefix: pointy.String(fmt.Sprintf("%d/%s/", projectId, *version)),
 	})
@@ -655,7 +655,7 @@ func (s *StorageClient) GetSourcemapFilesFromS3(projectId int, version *string) 
 }
 
 func (s *StorageClient) GetSourcemapVersionsFromS3(projectId int) ([]s3Types.CommonPrefix, error) {
-	output, err := s.S3Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+	output, err := s.S3ClientEast2.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket:    pointy.String(S3SourceMapBucketNameNew),
 		Prefix:    pointy.String(fmt.Sprintf("%d/", projectId)),
 		Delimiter: pointy.String("/"),
