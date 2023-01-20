@@ -44,10 +44,7 @@ export const Menu: MenuComponent = ({ children, ...props }: Props) => {
 const Button: React.FC<
 	React.PropsWithChildren<{ cssClass?: ClassValue | ClassValue[] }> &
 		Omit<MenuButtonProps, 'state'> &
-		Pick<
-			ButtonProps,
-			'iconLeft' | 'iconRight' | 'onIconLeftClick' | 'onIconRightClick'
-		> & {
+		Pick<ButtonProps, 'iconLeft' | 'iconRight'> & {
 			emphasis?: ButtonProps['emphasis']
 			icon?: ButtonIconProps['icon']
 			kind?: ButtonProps['kind']

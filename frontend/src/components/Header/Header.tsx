@@ -7,6 +7,7 @@ import {
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
 import Notifications from '@components/Header/Notifications/NotificationsV2'
 import { linkStyle } from '@components/Header/styles.css'
+import { LinkButton } from '@components/LinkButton'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
 import { Maybe, PlanType, Project } from '@graph/schemas'
 import {
@@ -27,7 +28,6 @@ import {
 	IconSolidUserCircle,
 	IconSolidViewGridAdd,
 	IconSolidXCircle,
-	LinkButton,
 	Menu,
 	Text,
 } from '@highlight-run/ui'
@@ -156,6 +156,7 @@ export const Header = () => {
 												}
 												to={`/${project_id}/${p.key}`}
 												key={p.key}
+												trackingId={`header-link-click-${p.key}`}
 											>
 												{titleCaseString(p.key)}
 											</LinkButton>
