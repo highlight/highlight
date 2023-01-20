@@ -1,6 +1,6 @@
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
-import { LinkButton } from '@components/LinkButton/LinkButton'
+import { LinkButton } from '@components/LinkButton'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { ErrorInstance, Maybe, SourceMappingError } from '@graph/schemas'
 import {
@@ -89,6 +89,7 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 							kind="secondary"
 							emphasis="low"
 							to={`/${projectId}/settings/errors`}
+							trackingId="sourcemap-settings-link-click-stacktrace-not-useful"
 						>
 							Sourcemap Settings
 						</LinkButton>

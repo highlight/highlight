@@ -92,7 +92,7 @@ export const ButtonContent: React.FC<ButtonContentProps> = ({
 	iconLeft,
 	iconRight,
 	kind,
-	size,
+	size = styles.defaultSize,
 }) => {
 	const textSize: TextProps['size'] = buttonToTextSize[size]
 

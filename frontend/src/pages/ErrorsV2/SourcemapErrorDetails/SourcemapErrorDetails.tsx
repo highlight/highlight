@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
+import { LinkButton } from '@components/LinkButton'
 import {
 	Maybe,
 	SourceMappingError,
@@ -9,7 +10,6 @@ import {
 	Box,
 	ButtonIcon,
 	IconSolidCheveronDown,
-	LinkButton,
 	Stack,
 	Tag,
 	Text,
@@ -354,7 +354,10 @@ const StackSectionError: React.FC<
 					Contact
 				</Button>
 
-				<LinkButton to={`/${projectId}/settings/errors`}>
+				<LinkButton
+					to={`/${projectId}/settings/errors`}
+					trackingId="sourcemap-settings-link-click-error-details"
+				>
 					Sourcemap settings
 				</LinkButton>
 			</Box>
