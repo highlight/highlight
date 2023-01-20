@@ -14,7 +14,7 @@ services:
             - --memory 1G
             - --reserve-memory 0M
             - --check=false
-            - --set redpanda.empty_seed_starts_cluster=false
+            - --set redpanda.empty_seed_starts_cluster=true
             - --set redpanda.enable_sasl=true
             - --set redpanda.superusers=["dev"]
             - --set redpanda.kafka_batch_max_bytes=536870912
@@ -53,36 +53,31 @@ services:
     backend:
         container_name: highlight-backend
         image: highlight.io/backend
+        ports:
+            - 8082:8082
         build:
             context: ..
             dockerfile: docker/backend.Dockerfile
         environment:
-            - COMPOSE_PROJECT_NAME
             - DEMO_SESSION
             - DEPLOYMENT_KEY
             - ENVIRONMENT
+            - FIREBASE_SECRET
             - FRONTEND_URI
             - INFLUXDB_BUCKET
             - INFLUXDB_ORG
-            - KAFKA_SASL_PASSWORD
-            - KAFKA_SASL_USERNAME
-            - KAFKA_SERVERS
-            - KAFKA_TOPIC
-            - PSQL_DB
-            - PSQL_HOST
-            - PSQL_PASSWORD
-            - PSQL_PORT
-            - PSQL_USER
+            - KAFKA_SASL_PASSWORD=
+            - KAFKA_SASL_USERNAME=dev
+            - KAFKA_SERVERS=highlight-redpanda:9092
+            - KAFKA_TOPIC=dev
+            - PSQL_DB=postgres
+            - PSQL_HOST=highlight-postgres
+            - PSQL_PASSWORD=
+            - PSQL_PORT=5432
+            - PSQL_USER=postgres
             - PUBLIC_GRAPH_URI
-            - REACT_APP_DEMO_SESSION
-            - REACT_APP_ENVIRONMENT
-            - REACT_APP_FRONTEND_ORG
-            - REACT_APP_FRONTEND_URI
-            - REACT_APP_ONPREM
-            - REACT_APP_PRIVATE_GRAPH_URI
-            - REACT_APP_PUBLIC_GRAPH_URI
-            - REDIS_ADDRESS
-            - REDIS_EVENTS_STAGING_ENDPOINT
+            - REDIS_ADDRESS=highlight-redis:6379
+            - REDIS_EVENTS_STAGING_ENDPOINT=highlight-redis:6379
             - SESSION_FILE_PATH_PREFIX
 
     frontend:
@@ -93,9 +88,17 @@ services:
         build:
             context: ..
             dockerfile: docker/frontend.Dockerfile
+            args:
+                - REACT_APP_DEMO_SESSION
+                - REACT_APP_ENVIRONMENT
+                - REACT_APP_FIREBASE_CONFIG_OBJECT
+                - REACT_APP_FRONTEND_ORG
+                - REACT_APP_FRONTEND_URI
+                - REACT_APP_ONPREM
+                - REACT_APP_PRIVATE_GRAPH_URI
+                - REACT_APP_PUBLIC_GRAPH_URI
         environment:
-            - REACT_APP_ONPREM
-            - RENDER_PREVIEW
+            - RENDER_PREVIEW=true
 
 volumes:
     postgres-data:

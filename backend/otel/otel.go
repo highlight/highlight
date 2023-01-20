@@ -3,6 +3,7 @@ package otel
 import (
 	"github.com/go-chi/chi"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"net/http"
 )
 
@@ -10,10 +11,11 @@ const OTELPort = "4317"
 
 // HandleTokenRequest will process a request for oauth /token command per the RFC spec.
 func Handle(w http.ResponseWriter, r *http.Request) {
-	var err error
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
+	log.Infof("otel %s", body)
 }
 
 func Listen() {

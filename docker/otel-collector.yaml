@@ -13,10 +13,10 @@ processors:
 service:
     pipelines:
         traces:
-            receivers: [otlphttp]
+            receivers: [otlp]
             processors: [batch]
             exporters: [logging, otlphttp]
         metrics:
-            receivers: [otlphttp]
+            receivers: [otlp]
             processors: [batch]
             exporters: [logging, otlphttp]
