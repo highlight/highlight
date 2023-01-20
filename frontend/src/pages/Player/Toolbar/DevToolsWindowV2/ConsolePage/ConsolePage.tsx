@@ -63,28 +63,37 @@ export const ConsolePage = ({
 			!!session?.messages_url
 		) {
 			setLoading(true)
-			const processUpdate = (p: Promise<IteratorResult<Response>>) =>
-				p
-					.then((result) => result.value.json())
-					.then((data) => {
-						setParsedMessages(
-							(data as any[] | undefined)?.map(
-								(m: ConsoleMessage, i) => {
-									return {
-										...m,
-										id: i,
-									}
-								},
-							) ?? [],
-						)
-					})
-					.catch((e) => {
-						setParsedMessages([])
-						H.consumeError(e, 'Error direct downloading resources')
-					})
-					.finally(() => setLoading(false))
-			const req = indexedDBFetch(session.messages_url)
-			processUpdate(req.next()).then(() => processUpdate(req.next()))
+			;(async () => {
+				if (!session.messages_url) return
+				let response
+				for await (const r of indexedDBFetch(session.messages_url)) {
+					response = r
+				}
+				if (response) {
+					response
+						.json()
+						.then((data) => {
+							setParsedMessages(
+								(data as any[] | undefined)?.map(
+									(m: ConsoleMessage, i) => {
+										return {
+											...m,
+											id: i,
+										}
+									},
+								) ?? [],
+							)
+						})
+						.catch((e) => {
+							setParsedMessages([])
+							H.consumeError(
+								e,
+								'Error direct downloading resources',
+							)
+						})
+						.finally(() => setLoading(false))
+				}
+			})()
 		}
 	}, [session?.messages_url, session?.secure_id, session_secure_id])
 

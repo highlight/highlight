@@ -94,38 +94,47 @@ export const useResources = (
 			!!session?.resources_url
 		) {
 			setResourcesLoading(true)
-			const processUpdate = (p: Promise<IteratorResult<Response>>) =>
-				p
-					.then((response) => response.value.json())
-					.then((data) => {
-						setResources(
-							(
-								(data as any[] | undefined)?.map((r, i) => {
-									return { ...r, id: i }
-								}) ?? []
-							)
-								.sort((a, b) => a.startTime - b.startTime)
-								.map((resource) => {
-									const resolverName =
-										getGraphQLResolverName(resource)
+			;(async () => {
+				if (!session.resources_url) return
+				let response
+				for await (const r of indexedDBFetch(session.resources_url)) {
+					response = r
+				}
+				if (response) {
+					response
+						.json()
+						.then((data) => {
+							setResources(
+								(
+									(data as any[] | undefined)?.map((r, i) => {
+										return { ...r, id: i }
+									}) ?? []
+								)
+									.sort((a, b) => a.startTime - b.startTime)
+									.map((resource) => {
+										const resolverName =
+											getGraphQLResolverName(resource)
 
-									if (resolverName) {
-										return {
-											...resource,
-											displayName: `${resolverName} (${resource.name})`,
+										if (resolverName) {
+											return {
+												...resource,
+												displayName: `${resolverName} (${resource.name})`,
+											}
 										}
-									}
-									return resource
-								}),
-						)
-					})
-					.catch((e) => {
-						setResources([])
-						H.consumeError(e, 'Error direct downloading resources')
-					})
-					.finally(() => setResourcesLoading(false))
-			const req = indexedDBFetch(session.resources_url)
-			processUpdate(req.next()).then(() => processUpdate(req.next()))
+										return resource
+									}),
+							)
+						})
+						.catch((e) => {
+							setResources([])
+							H.consumeError(
+								e,
+								'Error direct downloading resources',
+							)
+						})
+						.finally(() => setResourcesLoading(false))
+				}
+			})()
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [sessionSecureId, session?.secure_id])
