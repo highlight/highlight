@@ -3,6 +3,7 @@ import LoadingBox from '@components/LoadingBox'
 import classNames from 'classnames'
 import React, { useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
+import { styledScrollbar } from 'style/common.css'
 
 import styles from './FullCommentList.module.scss'
 
@@ -38,6 +39,7 @@ const FullCommentList = ({
 						ref={virtuoso}
 						overscan={500}
 						data={comments}
+						className={styledScrollbar}
 						itemContent={(index, comment: any) => (
 							<div
 								key={comment.id || index}

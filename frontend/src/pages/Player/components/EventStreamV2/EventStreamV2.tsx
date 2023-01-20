@@ -19,6 +19,7 @@ import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
+import { styledScrollbar } from 'style/common.css'
 
 import * as style from './EventStreamV2.css'
 
@@ -114,7 +115,12 @@ const EventStreamV2 = function () {
 			{isLoading ? (
 				<LoadingBox />
 			) : (
-				<Box width="full" height="full">
+				<Box
+					width="full"
+					height="full"
+					display="flex"
+					flexDirection="column"
+				>
 					<Box px="12" py="8">
 						<Form state={form}>
 							<label>
@@ -146,6 +152,7 @@ const EventStreamV2 = function () {
 							ref={virtuoso}
 							data={filteredEvents}
 							totalCount={filteredEvents.length}
+							className={styledScrollbar}
 							itemContent={(index, event) => (
 								<StreamEventV2
 									e={event}

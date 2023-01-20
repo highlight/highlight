@@ -2,6 +2,7 @@ import LoadingBox from '@components/LoadingBox'
 import { useGetSessionCommentsQuery } from '@graph/hooks'
 import {
 	Badge,
+	Box,
 	IconSolidChatAlt_2,
 	IconSolidFire,
 	IconSolidHashtag,
@@ -68,9 +69,7 @@ const RightPlayerPanel = React.memo(() => {
 						)}
 					>
 						<MetadataBox />
-						<div className={styles.playerRightTabs}>
-							<RightPlayerPanelTabs />
-						</div>
+						<RightPlayerPanelTabs />
 					</div>
 				)
 			) : (
@@ -95,72 +94,74 @@ const RightPlayerPanelTabs = () => {
 		})
 
 	return (
-		<Tabs<RightPlayerTab>
-			tab={selectedRightPanelTab}
-			setTab={setSelectedRightPanelTab}
-			pages={{
-				['Events']: {
-					page: <EventStreamV2 />,
-					icon: (
-						<IconSolidFire
-							color={
-								selectedRightPanelTab === 'Events'
-									? colors.p9
-									: undefined
-							}
-						/>
-					),
-				},
-				['Threads']: {
-					page: (
-						<SessionFullCommentList
-							parentRef={sessionCommentsRef}
-							loading={isLoadingComments}
-							sessionCommentsData={sessionCommentsData}
-						/>
-					),
-					icon: (
-						<IconSolidChatAlt_2
-							color={
-								selectedRightPanelTab === 'Threads'
-									? colors.p9
-									: undefined
-							}
-						/>
-					),
-					badge: (
-						<div
-							style={{
-								display: 'inline-flex',
-								marginLeft: 4,
-							}}
-						>
-							<Badge
-								size="tiny"
-								variant={
-									selectedRightPanelTab === 'Threads'
-										? 'purple'
-										: 'grey'
+		<Box cssClass={styles.tabsContainer}>
+			<Tabs<RightPlayerTab>
+				tab={selectedRightPanelTab}
+				setTab={setSelectedRightPanelTab}
+				pages={{
+					['Events']: {
+						page: <EventStreamV2 />,
+						icon: (
+							<IconSolidFire
+								color={
+									selectedRightPanelTab === 'Events'
+										? colors.p9
+										: undefined
 								}
-								shape="rounded"
-								label={`${sessionCommentsData?.session_comments?.length}`}
 							/>
-						</div>
-					),
-				},
-				['Metadata']: {
-					page: <MetadataPanel />,
-					icon: (
-						<IconSolidHashtag
-							color={
-								selectedRightPanelTab === 'Metadata'
-									? colors.p9
-									: undefined
-							}
-						/>
-					),
-				},
-			}}
-		/>
+						),
+					},
+					['Threads']: {
+						page: (
+							<SessionFullCommentList
+								parentRef={sessionCommentsRef}
+								loading={isLoadingComments}
+								sessionCommentsData={sessionCommentsData}
+							/>
+						),
+						icon: (
+							<IconSolidChatAlt_2
+								color={
+									selectedRightPanelTab === 'Threads'
+										? colors.p9
+										: undefined
+								}
+							/>
+						),
+						badge: (
+							<div
+								style={{
+									display: 'inline-flex',
+									marginLeft: 4,
+								}}
+							>
+								<Badge
+									size="tiny"
+									variant={
+										selectedRightPanelTab === 'Threads'
+											? 'purple'
+											: 'grey'
+									}
+									shape="rounded"
+									label={`${sessionCommentsData?.session_comments?.length}`}
+								/>
+							</div>
+						),
+					},
+					['Metadata']: {
+						page: <MetadataPanel />,
+						icon: (
+							<IconSolidHashtag
+								color={
+									selectedRightPanelTab === 'Metadata'
+										? colors.p9
+										: undefined
+								}
+							/>
+						),
+					},
+				}}
+			/>
+		</Box>
 	)
 }
