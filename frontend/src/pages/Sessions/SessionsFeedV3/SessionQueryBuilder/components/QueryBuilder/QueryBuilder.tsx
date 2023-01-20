@@ -1973,11 +1973,29 @@ function QueryBuilder(props: QueryBuilderProps) {
 				'replaceIn',
 			)
 		}
+		if (searchParams.query !== existingParams.query) {
+			const newQuery = JSON.stringify(
+				props.getQueryFromParams(searchParams),
+			)
+			console.log('vadim', { newQuery })
+			setSearchParams((params) => ({
+				...params,
+				query: newQuery,
+			}))
+			setExistingParams((params) => ({
+				...params,
+				query: newQuery,
+			}))
+		}
 	}, [
 		setSearchParamsToUrlParams,
 		searchParams,
 		selectedSegment,
 		activeSegmentUrlParam,
+		existingParams.query,
+		setSearchParams,
+		setExistingParams,
+		props,
 	])
 
 	useEffect(() => {
