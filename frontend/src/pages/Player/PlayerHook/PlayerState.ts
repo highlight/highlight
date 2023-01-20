@@ -584,6 +584,7 @@ export const PlayerReducer = (
 		'PlayerState.ts',
 		new Set<PlayerActionType>([
 			PlayerActionType.onFrame,
+			PlayerActionType.onEvent,
 			PlayerActionType.updateCurrentUrl,
 		]).has(action.type)
 			? 'PlayerStateUpdate'
