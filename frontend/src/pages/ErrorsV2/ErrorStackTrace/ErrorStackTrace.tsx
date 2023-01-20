@@ -1,5 +1,6 @@
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
+import { LinkButton } from '@components/LinkButton/LinkButton'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { ErrorInstance, Maybe, SourceMappingError } from '@graph/schemas'
 import {
@@ -9,7 +10,6 @@ import {
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
 	IconSolidExclamation,
-	LinkButton,
 	Popover,
 	Stack,
 	Text,

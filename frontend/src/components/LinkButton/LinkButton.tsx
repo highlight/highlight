@@ -1,18 +1,25 @@
+import { ButtonProps } from '@components/Button'
+import { ButtonContent, buttonStyles } from '@highlight-run/ui'
+import analytics from '@util/analytics'
 import clsx from 'clsx'
 import React from 'react'
-import { Box } from '../Box/Box'
-import { IconProps } from '../icons'
 import { Link, LinkProps } from 'react-router-dom'
 
-import * as buttonStyles from '../Button/styles.css'
 import * as styles from './styles.css'
 
 type Props = React.PropsWithChildren &
-	buttonStyles.Variants & {
+	Pick<
+		ButtonProps,
+		| 'disabled'
+		| 'kind'
+		| 'size'
+		| 'emphasis'
+		| 'iconLeft'
+		| 'iconRight'
+		| 'trackingId'
+		| 'trackingProperties'
+	> & {
 		to: LinkProps['to']
-		disabled?: boolean
-		iconLeft?: React.ReactElement<IconProps>
-		iconRight?: React.ReactElement<IconProps>
 		target?: LinkProps['target']
 	}
 
@@ -26,6 +33,8 @@ export const LinkButton: React.FC<Props> = ({
 	iconLeft,
 	iconRight,
 	target,
+	trackingId,
+	trackingProperties,
 }) => {
 	const Component = disabled ? DisabledLink : Link
 
@@ -41,34 +50,19 @@ export const LinkButton: React.FC<Props> = ({
 					emphasis,
 				}),
 			)}
+			onClick={() => {
+				analytics.track(trackingId, trackingProperties)
+			}}
 		>
-			{iconLeft && (
-				<Box
-					as="span"
-					display="inline-flex"
-					className={buttonStyles.iconVariants({
-						kind,
-						size,
-						emphasis,
-					})}
-				>
-					{iconLeft}
-				</Box>
-			)}
-			{children}
-			{iconRight && (
-				<Box
-					as="span"
-					display="inline-flex"
-					className={buttonStyles.iconVariants({
-						kind,
-						size,
-						emphasis,
-					})}
-				>
-					{iconRight}
-				</Box>
-			)}
+			<ButtonContent
+				iconLeft={iconLeft}
+				iconRight={iconRight}
+				kind={kind}
+				size={size}
+				emphasis={emphasis}
+			>
+				{children}
+			</ButtonContent>
 		</Component>
 	)
 }
