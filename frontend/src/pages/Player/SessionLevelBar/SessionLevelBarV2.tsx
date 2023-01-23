@@ -156,7 +156,7 @@ export const SessionLevelBarV2: React.FC<
 								/>
 							}
 							onClick={() => setShowLeftPanel(true)}
-							className={styles.openLeftPanelButton}
+							cssClass={styles.openLeftPanelButton}
 						/>
 					)}
 					<PreviousNextGroup
