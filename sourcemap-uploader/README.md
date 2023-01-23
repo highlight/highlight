@@ -19,3 +19,12 @@ You can also add this as an npm script
   }
 }
 ```
+
+## Contributing
+
+You can test your changes locally by running the following commands:
+
+```sh
+yarn build
+node dist/index.js upload ...
+```

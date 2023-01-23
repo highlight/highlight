@@ -1,15 +1,12 @@
 import Histogram, { Series } from '@components/Histogram/Histogram'
+import LoadingBox from '@components/LoadingBox'
 import {
 	DateHistogramBucketSize,
 	OpenSearchCalendarInterval,
 } from '@graph/schemas'
 import moment from 'moment'
 import React, { useCallback } from 'react'
-import Skeleton from 'react-loading-skeleton'
 
-// Returns a calendar interval as described in
-// https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals
-// If multiples of these units are desired, we can have the client manually combine buckets
 export function GetHistogramBucketSize(
 	timeRange: moment.Duration,
 ): DateHistogramBucketSize {
@@ -160,7 +157,7 @@ export const SearchResultsHistogram = React.memo(
 		)
 
 		return loading ? (
-			<Skeleton style={{ height: '36px', lineHeight: 'inherit' }} />
+			<LoadingBox height={44} />
 		) : (
 			<Histogram
 				onAreaChanged={onAreaChanged}

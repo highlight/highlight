@@ -3,7 +3,7 @@ import {
 	Button as AriakitButton,
 	ButtonProps as AriakitButtonProps,
 } from 'ariakit/button'
-import { Text, Props as TextProps } from '../Text/Text'
+import { Props as TextProps, Text } from '../Text/Text'
 
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'
@@ -14,9 +14,7 @@ export type ButtonProps = React.PropsWithChildren &
 	AriakitButtonProps &
 	styles.Variants & {
 		iconLeft?: React.ReactElement<IconProps>
-		onIconLeftClick?: React.MouseEventHandler<HTMLButtonElement>
 		iconRight?: React.ReactElement<IconProps>
-		onIconRightClick?: React.MouseEventHandler<HTMLButtonElement>
 		onPress?: () => void
 		cssClass?: ClassValue | ClassValue[]
 	}
@@ -41,24 +39,20 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 			className,
 			cssClass,
 			disabled,
-			onIconLeftClick,
-			onIconRightClick,
+			display,
 			...buttonProps
 		},
 		ref,
 	) => {
-		const textSize: TextProps['size'] = buttonToTextSize[size]
-		const hasInternalButtons = !!onIconLeftClick || !!onIconRightClick
-
 		return (
 			<AriakitButton
-				as={hasInternalButtons ? 'div' : 'button'}
 				disabled={disabled}
 				className={clsx(
 					styles.variants({
 						kind,
 						size,
 						emphasis,
+						display,
 					}),
 					className,
 					cssClass,
@@ -66,42 +60,77 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 				ref={ref}
 				{...buttonProps}
 			>
-				{iconLeft && (
-					<Box
-						as={hasInternalButtons ? 'div' : 'span'}
-						display="inline-flex"
-						disabled={disabled}
-						className={styles.iconVariants({
-							size,
-							emphasis,
-							kind,
-						})}
-						onClick={onIconLeftClick}
-					>
-						{iconLeft}
-					</Box>
-				)}
-				{children && (
-					<Text userSelect="none" size={textSize}>
-						{children}
-					</Text>
-				)}
-				{iconRight && (
-					<Box
-						as={hasInternalButtons ? 'div' : 'span'}
-						display="inline-flex"
-						disabled={disabled}
-						className={styles.iconVariants({
-							size,
-							emphasis,
-							kind,
-						})}
-						onClick={onIconRightClick}
-					>
-						{iconRight}
-					</Box>
-				)}
+				<ButtonContent
+					iconLeft={iconLeft}
+					iconRight={iconRight}
+					size={size}
+					kind={kind}
+					emphasis={emphasis}
+					disabled={disabled}
+				>
+					{children}
+				</ButtonContent>
 			</AriakitButton>
 		)
 	},
 )
+
+type ButtonContentProps = Pick<
+	ButtonProps,
+	| 'children'
+	| 'disabled'
+	| 'emphasis'
+	| 'iconLeft'
+	| 'iconRight'
+	| 'kind'
+	| 'size'
+>
+export const ButtonContent: React.FC<ButtonContentProps> = ({
+	children,
+	disabled,
+	emphasis,
+	iconLeft,
+	iconRight,
+	kind,
+	size = styles.defaultSize,
+}) => {
+	const textSize: TextProps['size'] = buttonToTextSize[size]
+
+	return (
+		<>
+			{iconLeft && (
+				<Box
+					as="span"
+					display="inline-flex"
+					disabled={disabled}
+					className={styles.iconVariants({
+						size,
+						emphasis,
+						kind,
+					})}
+				>
+					{iconLeft}
+				</Box>
+			)}
+			{children && (
+				<Text userSelect="none" size={textSize}>
+					{children}
+				</Text>
+			)}
+			{iconRight && (
+				<Box
+					as="span"
+					display="inline-flex"
+					disabled={disabled}
+					className={styles.iconVariants({
+						size,
+						emphasis,
+						kind,
+					})}
+				>
+					{iconRight}
+				</Box>
+			)}
+		</>
+	)
+}

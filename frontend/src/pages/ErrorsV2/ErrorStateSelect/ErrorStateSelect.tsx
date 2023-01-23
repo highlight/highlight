@@ -1,45 +1,161 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useUpdateErrorGroupStateMutation } from '@graph/hooks'
-import { ErrorState } from '@graph/schemas'
-import { IconSolidCheveronDown, Menu, Text } from '@highlight-run/ui'
+import { namedOperations } from '@graph/operations'
+import { ErrorState, Maybe } from '@graph/schemas'
+import {
+	Badge,
+	Box,
+	IconSolidCheck,
+	IconSolidCheveronDown,
+	IconSolidCheveronRight,
+	Menu,
+	Stack,
+	Text,
+	useMenu,
+} from '@highlight-run/ui'
+import { delayedRefetch } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
-import React, { useEffect } from 'react'
-import { StringParam, useQueryParam } from 'use-query-params'
+import { DatePicker, message } from 'antd'
+import moment from 'moment'
+import React, { useCallback, useEffect, useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
+import { useHistory } from 'react-router-dom'
 
-export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
+import * as styles from './style.css'
+
+enum MenuState {
+	Default,
+	Snooze,
+}
+
+const DATE_FORMAT = 'ddd, h:mm A'
+
+type Props = {
+	state: ErrorState
+	snoozedUntil?: Maybe<string>
+}
+
+export const ErrorStateSelect: React.FC<Props> = ({ state, snoozedUntil }) => (
+	<Menu placement="bottom-end">
+		{/* Rendering inside wrapper so we can work with menu state via useMenu. */}
+		<ErrorStateSelectImpl state={state} snoozedUntil={snoozedUntil} />
+	</Menu>
+)
+
+const ErrorStateSelectImpl: React.FC<Props> = ({
 	state: initialErrorState,
+	snoozedUntil,
 }) => {
+	const menuRef = React.useRef<HTMLDivElement | null>(null)
+	const menu = useMenu()
+	const [menuState, setMenuState] = React.useState<MenuState>(
+		MenuState.Default,
+	)
+	const [errorState, setErrorState] = useState<ErrorState>(initialErrorState)
+
 	const { error_secure_id } = useParams<{ error_secure_id: string }>()
 	const [updateErrorGroupState, { loading }] =
-		useUpdateErrorGroupStateMutation()
-	const [action, setAction] = useQueryParam('action', StringParam)
-	const { isLoggedIn } = useAuthContext()
-	const ErrorStatuses = Object.keys(ErrorState)
-
-	const handleChange = async (newState: ErrorState) => {
-		await updateErrorGroupState({
-			variables: { secure_id: error_secure_id, state: newState },
+		useUpdateErrorGroupStateMutation({
+			refetchQueries: [
+				namedOperations.Query.GetErrorGroup,
+				namedOperations.Query.GetErrorGroupsOpenSearch,
+			],
+			onQueryUpdated: delayedRefetch,
+			awaitRefetchQueries: true,
 		})
 
-		showStateUpdateMessage(newState)
-	}
+	const { isLoggedIn } = useAuthContext()
+	const ErrorStatuses = Object.keys(ErrorState)
+	const snoozed = snoozedUntil && moment().isBefore(moment(snoozedUntil))
 
-	// Sets the state based on the query parameters. This is used for the Slack deep-linked messages.
+	const handleChange = useCallback(
+		async (newState: ErrorState, snoozedUntil?: string) => {
+			if (initialErrorState === newState && !snoozed) return
+			await updateErrorGroupState({
+				variables: {
+					secure_id: error_secure_id,
+					state: newState,
+					snoozed_until: snoozedUntil,
+				},
+				onCompleted: async () => {
+					showStateUpdateMessage(newState, snoozedUntil)
+					setMenuState(MenuState.Default)
+					setErrorState(newState)
+				},
+			})
+		},
+		[error_secure_id, initialErrorState, snoozed, updateErrorGroupState],
+	)
+
+	const history = useHistory()
+	const snoozeMenuItems = () => [
+		{
+			title: '1 Hour',
+			time: moment().add(1, 'hour'),
+		},
+		{
+			title: 'Tomorrow',
+			time: moment().add(1, 'day').set({ hour: 8, minute: 0 }),
+		},
+		{
+			title: 'Next Week',
+			time: moment().add(1, 'week').startOf('isoWeek').add(8, 'hours'),
+		},
+	]
+
+	// Sets the state based on the query parameters. This is used for action
+	// buttons in our Slack and Discord integrations.
 	useEffect(() => {
-		if (action) {
-			const castedAction = action.toUpperCase() as ErrorState
-			if (Object.values(ErrorState).includes(castedAction)) {
-				handleChange(castedAction)
-			}
+		const urlParams = new URLSearchParams(location.search)
+		const action = urlParams.get('action')
 
-			setAction(undefined)
+		if (action) {
+			if (action.toLowerCase() === 'snooze') {
+				setTimeout(() => {
+					setMenuState(MenuState.Snooze)
+					menu.setOpen(true)
+					menu.baseRef.current?.focus()
+				}, 300)
+			} else {
+				const castedAction = action.toUpperCase() as ErrorState
+
+				if (Object.values(ErrorState).includes(castedAction)) {
+					handleChange(castedAction).then(() => {
+						const searchParams = new URLSearchParams(
+							location.search,
+						)
+						searchParams.delete('action')
+						history.replace(
+							`${
+								history.location.pathname
+							}?${searchParams.toString()}`,
+						)
+					})
+				}
+			}
 		}
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [action, error_secure_id])
+	}, [error_secure_id])
+
+	// Reset menu state on close.
+	useEffect(() => {
+		if (!menu.open) {
+			setMenuState(MenuState.Default)
+		}
+	}, [menu.open])
+
+	useHotkeys(
+		'e',
+		() => {
+			menu.setOpen(!menu.open)
+			menu.baseRef.current?.focus()
+		},
+		[menu.open, error_secure_id],
+	)
 
 	return (
-		<Menu>
+		<>
 			<Menu.Button
 				size="small"
 				kind="secondary"
@@ -47,38 +163,170 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 				disabled={loading || !isLoggedIn}
 				iconRight={<IconSolidCheveronDown />}
 			>
-				<Text case="capital">{initialErrorState.toLowerCase()}</Text>
+				<Text case="capital">
+					{errorState.toLowerCase()}{' '}
+					{snoozed && (
+						<span style={{ textTransform: 'none' }}>
+							(Snoozed until{' '}
+							{moment(snoozedUntil).format(DATE_FORMAT)})
+						</span>
+					)}
+				</Text>
 			</Menu.Button>
 			{isLoggedIn && (
-				<Menu.List>
-					{ErrorStatuses.map((option) => (
-						<Menu.Item
-							onClick={() =>
-								handleChange(option.toUpperCase() as ErrorState)
-							}
-							key={option}
-						>
-							{option}
-						</Menu.Item>
-					))}
+				<Menu.List cssClass={styles.menu}>
+					{menuState === MenuState.Default ? (
+						<>
+							<Menu.Heading>
+								<Text weight="bold" size="xSmall" color="n11">
+									Status
+								</Text>
+								<Badge variant="grey" size="tiny" label="e" />
+							</Menu.Heading>
+							{ErrorStatuses.map((option) => (
+								<Menu.Item
+									onClick={() =>
+										handleChange(
+											option.toUpperCase() as ErrorState,
+										)
+									}
+									key={option}
+								>
+									<Stack
+										direction="row"
+										gap="4"
+										align="center"
+									>
+										<div style={{ height: 16, width: 16 }}>
+											{!snoozed &&
+												initialErrorState.toLowerCase() ===
+													option.toLowerCase() && (
+													<IconSolidCheck size={16} />
+												)}
+										</div>
+										<Text>{option}</Text>
+									</Stack>
+								</Menu.Item>
+							))}
+
+							<Menu.Divider />
+							<Menu.Item
+								onClick={(e) => {
+									e.preventDefault()
+									setMenuState(MenuState.Snooze)
+								}}
+							>
+								<Stack
+									direction="row"
+									justify="space-between"
+									align="center"
+								>
+									<Stack
+										direction="row"
+										gap="4"
+										align="center"
+									>
+										<div
+											style={{
+												height: 16,
+												width: 16,
+											}}
+										>
+											{snoozed && (
+												<IconSolidCheck size={16} />
+											)}
+										</div>
+										<Text>Snooze</Text>
+									</Stack>
+									<IconSolidCheveronRight size={16} />
+								</Stack>
+							</Menu.Item>
+						</>
+					) : (
+						<>
+							<Menu.Heading>
+								<Text weight="bold" size="xSmall" color="n11">
+									Until
+								</Text>
+							</Menu.Heading>
+							{snoozeMenuItems().map((option, index) => (
+								<Menu.Item
+									key={index}
+									onClick={() =>
+										handleChange(
+											initialErrorState,
+											option.time.format(),
+										)
+									}
+								>
+									<Stack
+										direction="row"
+										justify="space-between"
+									>
+										<Box color="n11">{option.title}</Box>
+										<Box color="n9">
+											{option.time.format(DATE_FORMAT)}
+										</Box>
+									</Stack>
+								</Menu.Item>
+							))}
+							<Menu.Divider />
+							<Menu.Item onClick={(e) => e.preventDefault()}>
+								<div ref={menuRef} />
+								<DatePicker
+									getPopupContainer={() =>
+										menuRef?.current || document.body
+									}
+									format="YYYY-MM-DD hh:mm"
+									showTime={{ format: 'hh:mm' }}
+									showNow={false}
+									placement="bottomRight"
+									placeholder="Select day and time"
+									className={styles.datepicker}
+									onChange={(datetime) => {
+										if (datetime) {
+											handleChange(
+												initialErrorState,
+												datetime.format(),
+											).then(() => {
+												menu.setOpen(false)
+											})
+										}
+									}}
+								/>
+							</Menu.Item>
+						</>
+					)}
 				</Menu.List>
 			)}
-		</Menu>
+		</>
 	)
 }
 
-const showStateUpdateMessage = (newState: ErrorState) => {
+const showStateUpdateMessage = (
+	newState: ErrorState,
+	snoozedUntil?: string,
+) => {
 	let displayMessage = ''
-	switch (newState) {
-		case ErrorState.Open:
-			displayMessage = `This error is set to Open. You will receive alerts when a new error gets thrown.`
-			break
-		case ErrorState.Ignored:
-			displayMessage = `This error is set to Ignored. You will not receive any alerts even if a new error gets thrown.`
-			break
-		case ErrorState.Resolved:
-			displayMessage = `This error is set to Resolved. You will receive alerts when a new error gets thrown.`
-			break
+
+	if (snoozedUntil && moment().isBefore(moment(snoozedUntil))) {
+		displayMessage = `This error is snoozed until ${moment(
+			snoozedUntil,
+		).format(
+			DATE_FORMAT,
+		)}. You will not receive any alerts even if a new error gets thrown.`
+	} else {
+		switch (newState) {
+			case ErrorState.Open:
+				displayMessage = `This error is set to Open. You will receive alerts when a new error gets thrown.`
+				break
+			case ErrorState.Ignored:
+				displayMessage = `This error is set to Ignored. You will not receive any alerts even if a new error gets thrown.`
+				break
+			case ErrorState.Resolved:
+				displayMessage = `This error is set to Resolved. You will receive alerts when a new error gets thrown.`
+				break
+		}
 	}
 
 	message.success(displayMessage, 10)

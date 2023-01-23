@@ -1,43 +1,33 @@
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
+import { Box, Callout, Text } from '@highlight-run/ui'
+import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import React, { useEffect } from 'react'
 
-import Button from '../../../../components/Button/Button/Button'
-import ElevatedCard from '../../../../components/ElevatedCard/ElevatedCard'
-import SvgSearchIcon from '../../../../static/SearchIcon'
-import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration'
 import styles from './NoActiveSessionCard.module.scss'
 
 const NoActiveSessionCard = () => {
-	const { setShowLeftPanel } = usePlayerConfiguration()
-	const { setIsQuickSearchOpen } = useSearchContext()
+	const { setShowLeftPanel } = useErrorPageConfiguration()
 
 	useEffect(() => {
 		setShowLeftPanel(true)
 	}, [setShowLeftPanel])
 
 	return (
-		<ElevatedCard
-			className={styles.card}
-			title="Ready to see what's happening in your app?"
-			actions={
-				<Button
-					trackingId="NoActiveSessionCardPerformASearch"
-					type="primary"
-					className={styles.buttonWrapper}
-					onClick={() => {
-						setIsQuickSearchOpen(true)
-					}}
+		<Box cssClass={styles.card}>
+			<Callout title="Ready to see your app?">
+				<Box
+					display="flex"
+					flexDirection="column"
+					gap="16"
+					alignItems="flex-start"
+					mb="6"
 				>
-					<SvgSearchIcon />
-					Perform a Search
-				</Button>
-			}
-		>
-			<p>
-				View a recent session or find a specific user, event, or
-				segment.
-			</p>
-		</ElevatedCard>
+					<Text color="moderate">
+						View a recent session or find a specific identifier,
+						URL, or segment.
+					</Text>
+				</Box>
+			</Callout>
+		</Box>
 	)
 }
 

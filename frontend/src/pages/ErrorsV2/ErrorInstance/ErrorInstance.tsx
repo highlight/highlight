@@ -2,14 +2,17 @@ import { useApolloClient } from '@apollo/client'
 import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
 import { Button } from '@components/Button'
+import JsonViewer from '@components/JsonViewer/JsonViewer'
+import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
+import LoadingBox from '@components/LoadingBox'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	GetErrorInstanceDocument,
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
-import type { ErrorInstance as ErrorInstanceType } from '@graph/schemas'
-import { Box, Heading, IconSolidPlay, Text } from '@highlight-run/ui'
+import type { ErrorInstance as ErrorInstanceType, Maybe } from '@graph/schemas'
+import { Box, Heading, IconSolidPlay, Text, Tooltip } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
@@ -24,6 +27,7 @@ import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
 import React, { useEffect, useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { FiExternalLink } from 'react-icons/fi'
 import { useHistory } from 'react-router-dom'
 
@@ -87,9 +91,36 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		},
 	})
 
+	const errorInstance = data?.error_instance
+
 	useEffect(() => analytics.page(), [])
 
-	const errorInstance = data?.error_instance
+	useHotkeys(']', () => goToErrorInstance(errorInstance?.next_id, 'next'), [
+		errorInstance?.next_id,
+	])
+	useHotkeys(
+		'[',
+		() => goToErrorInstance(errorInstance?.previous_id, 'previous'),
+		[errorInstance?.previous_id],
+	)
+
+	const goToErrorInstance = (
+		errorInstanceId: Maybe<string> | undefined,
+		direction: 'next' | 'previous',
+	) => {
+		if (Number(errorInstanceId) === 0) {
+			return
+		}
+
+		history.push({
+			pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstanceId}`,
+			search: window.location.search,
+		})
+
+		analytics.track('Viewed error instance', {
+			direction,
+		})
+	}
 
 	if (!errorInstance || !errorInstance?.error_object) {
 		if (!loading) return null
@@ -149,7 +180,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									Instance metadata
 								</Text>
 							</Box>
-							<Skeleton count={5} />
+							<LoadingBox height={128} />
 						</Box>
 					</div>
 
@@ -160,7 +191,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									User details
 								</Text>
 							</Box>
-							<Skeleton count={5} />
+							<LoadingBox height={128} />
 						</Box>
 					</div>
 				</Box>
@@ -186,43 +217,54 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 				<Box>
 					<Box display="flex" gap="8" alignItems="center">
-						<Button
-							onClick={() => {
-								history.push({
-									pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstance.previous_id}`,
-									search: window.location.search,
-								})
-
-								analytics.track('Viewed error instance', {
-									direction: 'previous',
-								})
-							}}
-							disabled={Number(errorInstance.previous_id) === 0}
-							kind="secondary"
-							emphasis="low"
-							trackingId="errorInstanceOlder"
+						<Tooltip
+							trigger={
+								<Button
+									onClick={() => {
+										goToErrorInstance(
+											errorInstance.previous_id,
+											'previous',
+										)
+									}}
+									disabled={
+										Number(errorInstance.previous_id) === 0
+									}
+									kind="secondary"
+									emphasis="low"
+									display="inlineBlock"
+									trackingId="errorInstanceOlder"
+								>
+									Older
+								</Button>
+							}
 						>
-							Older
-						</Button>
+							<KeyboardShortcut label="Previous" shortcut="[" />
+						</Tooltip>
+
 						<Box borderRight="secondary" style={{ height: 18 }} />
-						<Button
-							onClick={() => {
-								history.push({
-									pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstance.next_id}`,
-									search: window.location.search,
-								})
-
-								analytics.track('Viewed error instance', {
-									direction: 'next',
-								})
-							}}
-							disabled={Number(errorInstance.next_id) === 0}
-							kind="secondary"
-							emphasis="low"
-							trackingId="errorInstanceNewer"
+						<Tooltip
+							trigger={
+								<Button
+									onClick={() => {
+										goToErrorInstance(
+											errorInstance.next_id,
+											'next',
+										)
+									}}
+									disabled={
+										Number(errorInstance.next_id) === 0
+									}
+									kind="secondary"
+									emphasis="low"
+									display="inlineBlock"
+									trackingId="errorInstanceNewer"
+								>
+									Newer
+								</Button>
+							}
 						>
-							Newer
-						</Button>
+							<KeyboardShortcut label="Next" shortcut="]" />
+						</Tooltip>
 						<Button
 							kind="primary"
 							emphasis="high"
@@ -258,6 +300,19 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				</div>
 			</Box>
 
+			{errorGroup?.type === 'console.error' &&
+				errorGroup.event.length > 1 && (
+					<>
+						<Text size="large" weight="bold">
+							Error event data
+						</Text>
+
+						<Box bt="secondary" my="12" py="16">
+							<JsonViewer src={errorGroup.event} collapsed={1} />
+						</Box>
+					</>
+				)}
+
 			<Text size="large" weight="bold">
 				Stack trace
 			</Text>
@@ -279,13 +334,25 @@ const Metadata: React.FC<{
 		return null
 	}
 
-	// TODO: Be smarter about how we pull these.
+	let customProperties: any
+	try {
+		if (errorObject.payload) {
+			customProperties = JSON.parse(errorObject.payload)
+		}
+	} catch (e) {}
+
 	const metadata = [
 		{ key: 'environment', label: errorObject?.environment },
 		{ key: 'browser', label: errorObject?.browser },
 		{ key: 'os', label: errorObject?.os },
 		{ key: 'url', label: errorObject?.url },
 		{ key: 'created_at', label: errorObject?.created_at },
+		{
+			key: 'Custom Properties',
+			label: customProperties ? (
+				<JsonViewer src={customProperties} name="Custom Properties" />
+			) : undefined,
+		},
 	].filter((t) => Boolean(t.label))
 
 	return (
@@ -318,15 +385,21 @@ const Metadata: React.FC<{
 						<Box
 							cursor="pointer"
 							py="10"
-							onClick={() =>
-								meta.label && copyToClipboard(meta.label)
-							}
+							onClick={() => {
+								if (typeof meta.label === 'string') {
+									meta.label && copyToClipboard(meta.label)
+								}
+							}}
 							style={{ width: '67%' }}
 						>
 							<Text
 								align="left"
 								break="word"
-								lines="4"
+								lines={
+									typeof meta.label === 'string'
+										? '4'
+										: undefined
+								}
 								title={String(meta.label)}
 							>
 								{meta.label}

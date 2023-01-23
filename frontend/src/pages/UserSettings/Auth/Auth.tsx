@@ -6,7 +6,7 @@ import Space from '@components/Space/Space'
 import { auth } from '@util/auth'
 import { client } from '@util/graph'
 import { message } from 'antd'
-import firebase from 'firebase'
+import firebase from 'firebase/app'
 import moment from 'moment'
 import React, {
 	FormEvent,

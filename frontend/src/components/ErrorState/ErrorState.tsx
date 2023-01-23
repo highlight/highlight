@@ -15,7 +15,7 @@ export const ErrorState = ({
 	message,
 	errorString,
 	joinableWorkspace,
-	title = "Woops, something's wrong!",
+	title = "Whoops, something's wrong!",
 	shownWithHeader = false,
 	showRequestAccess = false,
 }: {

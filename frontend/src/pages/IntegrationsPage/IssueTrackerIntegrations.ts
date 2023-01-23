@@ -1,3 +1,4 @@
+import { IconProps } from '@highlight-run/ui'
 import {
 	CLICKUP_INTEGRATION,
 	HEIGHT_INTEGRATION,
@@ -14,6 +15,7 @@ export type IssueTrackerIntegration = Integration & {
 	containerLabel: string
 	issueLabel: string
 	containerSelection: (opts: ContainerSelectionProps) => React.ReactNode
+	Icon: React.FC<IconProps>
 }
 
 const ISSUE_TRACKER_INTEGRATIONS: IssueTrackerIntegration[] = [

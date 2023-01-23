@@ -171,7 +171,7 @@ func (h *handlers) DeleteSessionBatchFromS3(ctx context.Context, event utils.Bat
 				Key:    object.Key,
 			}
 			if !event.DryRun {
-				_, err := h.s3Client.DeleteObject(ctx, &options)
+				_, err := client.DeleteObject(ctx, &options)
 				if err != nil {
 					return nil, errors.Wrap(err, "error deleting objects from S3")
 				}

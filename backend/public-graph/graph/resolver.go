@@ -29,6 +29,7 @@ import (
 
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts"
+	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -171,6 +172,11 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 		} else {
 			modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: k, Value: fv, Type: string(propType)})
 		}
+	}
+
+	if len(modelFields) > 1000 {
+		modelFields = modelFields[:1000]
+		log.WithField("session_id", sessionID).Warnf("attempted to append more than 1000 fields - truncating")
 	}
 
 	if len(modelFields) > 0 {
@@ -780,6 +786,12 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 			return nil, e.New("Filtering out noisy MintParty error")
 		}
 	}
+	if projectID == 898 {
+		if errorObj.Event == `["\"LaunchDarklyFlagFetchError: Error fetching flag settings: 414\""]` ||
+			errorObj.Event == `["\"[LaunchDarkly] Error fetching flag settings: 414\""]` {
+			return nil, e.New("Filtering out noisy Superpowered error")
+		}
+	}
 
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
 		errorObj.Event = strings.Repeat(errorObj.Event[:ERROR_EVENT_MAX_LENGTH], 1)
@@ -1151,7 +1163,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	deviceDetails := GetDeviceDetails(input.UserAgent)
 	n := time.Now()
-	useRedis := redis.UseRedis(projectID, input.SessionSecureID)
 	session := &model.Session{
 		SecureID: input.SessionSecureID,
 		Model: model.Model{
@@ -1181,12 +1192,19 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ViewedByAdmins:                 []model.Admin{},
 		ClientID:                       input.ClientID,
 		Excluded:                       &model.T, // A session is excluded by default until it receives events
-		ProcessWithRedis:               useRedis,
+		ProcessWithRedis:               true,
+		AvoidPostgresStorage:           true,
 	}
 
 	// determine if session is within billing quota
-	withinBillingQuota := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
+	withinBillingQuota, quotaPercent := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
 	setupSpan.Finish()
+
+	if !withinBillingQuota {
+		if err := r.Redis.SetBillingQuotaExceeded(ctx, projectID); err != nil {
+			return nil, e.Wrap(err, "error setting billing quota exceeded")
+		}
+	}
 
 	// Get the user's ip, get geolocation data
 	location := &Location{
@@ -1287,6 +1305,24 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	go func() {
 		defer util.Recover()
+		workspace, err := r.getWorkspace(project.WorkspaceID)
+		if err != nil {
+			log.Error(e.Wrap(err, "error querying workspace"))
+			return
+		}
+
+		if workspace.PlanTier != privateModel.PlanTypeFree.String() && workspace.AllowMeterOverage {
+			if quotaPercent >= 1 {
+				if err := model.SendBillingNotifications(r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace); err != nil {
+					log.Error(e.Wrap(err, "failed to send billing notifications"))
+				}
+			} else if quotaPercent >= .8 {
+				if err := model.SendBillingNotifications(r.DB, r.MailClient, email.BillingSessionUsage80Percent, workspace); err != nil {
+					log.Error(e.Wrap(err, "failed to send billing notifications"))
+				}
+			}
+		}
+
 		// Sleep for 25 seconds, then query from the DB. If this session is identified, we
 		// want to wait for the H.identify call to be able to create a better Slack message.
 		// If an ECS task is being replaced, there's a 30 second window to do cleanup work.
@@ -1342,12 +1378,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 					}
 				}
 				if isSessionByExcludedIdentifier {
-					return
-				}
-
-				workspace, err := r.getWorkspace(project.WorkspaceID)
-				if err != nil {
-					log.Error(e.Wrap(err, "error querying workspace"))
 					return
 				}
 
@@ -1783,35 +1813,19 @@ func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model.Workspace, now time.Time) bool {
+func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model.Workspace, now time.Time) (bool, float64) {
 	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(now) {
-		return true
+		return true, 0
 	}
 	if util.IsOnPrem() {
-		return true
+		return true, 0
 	}
 
-	if project.FreeTier {
-		sessionCount, err := pricing.GetProjectMeter(r.DB, project)
-		if err != nil {
-			log.Warn(fmt.Sprintf("error getting sessions meter for project %d", project.ID))
-		}
-		withinBillingQuota := int64(pricing.TypeToQuota(privateModel.PlanTypeFree)) > sessionCount
-		return withinBillingQuota
-	}
-
-	if workspace.AllowMeterOverage {
-		return true
-	}
-
-	var (
-		withinBillingQuota bool
-		quota              int
-	)
+	var quota int
+	stripePlan := privateModel.PlanType(workspace.PlanTier)
 	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
 		quota = *workspace.MonthlySessionLimit
 	} else {
-		stripePlan := privateModel.PlanType(workspace.PlanTier)
 		quota = pricing.TypeToQuota(stripePlan)
 	}
 
@@ -1819,8 +1833,14 @@ func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model
 	if err != nil {
 		log.Warn(fmt.Sprintf("error getting sessions meter for workspace %d", workspace.ID))
 	}
-	withinBillingQuota = int64(quota) > monthToDateSessionCount
-	return withinBillingQuota
+
+	quotaPercent := float64(monthToDateSessionCount) / float64(quota)
+	// If the workspace is not on the free plan and overage is allowed
+	if stripePlan != privateModel.PlanTypeFree && workspace.AllowMeterOverage {
+		return true, quotaPercent
+	}
+
+	return quotaPercent < 1, quotaPercent
 }
 
 func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, group *model.ErrorGroup, visitedUrl string) {
@@ -1887,6 +1907,12 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 					log.Warn("error event matches regex group, skipping alert...")
 					continue
 				}
+			}
+
+			// Suppress alerts if ignored or snoozed.
+			snoozed := group.SnoozedUntil != nil && group.SnoozedUntil.After(time.Now())
+			if group == nil || group.State == model.ErrorGroupStates.IGNORED || snoozed {
+				return
 			}
 
 			numErrors := int64(-1)
@@ -2433,6 +2459,55 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 	return nil
 }
 
+func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, payloadId int, saveToS3, isBeacon bool, payloadType model.RawPayloadType, data []byte) error {
+	redisSpan, redisCtx := tracer.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
+		tracer.ResourceName("go.parseEvents.processWithRedis"), tracer.Tag("project_id", projectId), tracer.Tag("payload_type", payloadType))
+	score := float64(payloadId)
+	// A little bit of a hack to encode
+	if isBeacon {
+		score += .5
+	}
+
+	if saveToS3 {
+		zRangeSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.SaveSessionData",
+			tracer.ResourceName("go.parseEvents.processWithRedis.getRawZRange"), tracer.Tag("project_id", projectId))
+		zRange, err := r.Redis.GetRawZRange(ctx, sessionId, payloadId)
+		if err != nil {
+			return e.Wrap(err, "error retrieving previous event objects")
+		}
+		zRangeSpan.Finish()
+
+		// If there are prior events, push them to S3 and remove them from Redis
+		if len(zRange) != 0 {
+			pushToS3Span, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.SaveSessionData",
+				tracer.ResourceName("go.parseEvents.processWithRedis.pushToS3"), tracer.Tag("project_id", projectId))
+			if err := r.StorageClient.PushRawEventsToS3(ctx, sessionId, projectId, payloadType, zRange); err != nil {
+				return e.Wrap(err, "error pushing events to S3")
+			}
+			pushToS3Span.Finish()
+
+			values := []interface{}{}
+			for _, z := range zRange {
+				values = append(values, z.Member)
+			}
+
+			removeValuesSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.SaveSessionData",
+				tracer.ResourceName("go.parseEvents.processWithRedis.removeValues"), tracer.Tag("project_id", projectId))
+			if err := r.Redis.RemoveValues(ctx, sessionId, values); err != nil {
+				return e.Wrap(err, "error removing previous values")
+			}
+			removeValuesSpan.Finish()
+		}
+	}
+
+	if err := r.Redis.AddPayload(ctx, sessionId, score, payloadType, data); err != nil {
+		return e.Wrap(err, "error adding event payload")
+	}
+	redisSpan.Finish()
+
+	return nil
+}
+
 func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionSecureID", sessionSecureID)
@@ -2486,9 +2561,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		parseEventsSpan, parseEventsCtx := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
 		defer parseEventsSpan.Finish()
-		if hasBeacon {
-			r.DB.Table("events_objects_partitioned").Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
-		}
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 			// should fix at some point.
@@ -2574,57 +2646,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 			remarshalSpan.Finish()
 
-			if sessionObj.ProcessWithRedis {
-				redisSpan, redisCtx := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-					tracer.ResourceName("go.parseEvents.processWithRedis"), tracer.Tag("project_id", projectID))
-				score := float64(payloadIdDeref)
-				// A little bit of a hack to encode
-				if isBeacon {
-					score += .5
-				}
-
-				if hasFullSnapshot {
-					zRangeSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
-						tracer.ResourceName("go.parseEvents.processWithRedis.getRawZRange"), tracer.Tag("project_id", projectID))
-					zRange, err := r.Redis.GetRawZRange(ctx, sessionID, payloadIdDeref)
-					if err != nil {
-						return e.Wrap(err, "error retrieving previous event objects")
-					}
-					zRangeSpan.Finish()
-
-					// If there are prior events, push them to S3 and remove them from Redis
-					if len(zRange) != 0 {
-						pushToS3Span, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
-							tracer.ResourceName("go.parseEvents.processWithRedis.pushToS3"), tracer.Tag("project_id", projectID))
-						if err := r.StorageClient.PushRawEventsToS3(ctx, sessionID, projectID, zRange); err != nil {
-							return e.Wrap(err, "error pushing events to S3")
-						}
-						pushToS3Span.Finish()
-
-						values := []interface{}{}
-						for _, z := range zRange {
-							values = append(values, z.Member)
-						}
-
-						removeValuesSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
-							tracer.ResourceName("go.parseEvents.processWithRedis.removeValues"), tracer.Tag("project_id", projectID))
-						if err := r.Redis.RemoveValues(ctx, sessionID, values); err != nil {
-							return e.Wrap(err, "error removing previous values")
-						}
-						removeValuesSpan.Finish()
-					}
-				}
-
-				if err := r.Redis.AddEventPayload(ctx, sessionID, score, string(b)); err != nil {
-					return e.Wrap(err, "error adding event payload")
-				}
-				redisSpan.Finish()
-
-			} else {
-				obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
-				if err := r.DB.Table("events_objects_partitioned").Create(obj).Error; err != nil {
-					return e.Wrap(err, "error creating events object")
-				}
+			if err := r.SaveSessionData(parseEventsCtx, projectID, sessionID, payloadIdDeref, hasFullSnapshot, isBeacon, model.PayloadTypeEvents, b); err != nil {
+				return e.Wrap(err, "error saving events data")
 			}
 
 			if !lastUserInteractionTimestamp.IsZero() {
@@ -2642,19 +2665,27 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		defer unmarshalMessagesSpan.Finish()
-		if hasBeacon {
-			r.DB.Where(&model.MessagesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.MessagesObject{})
-		}
-		messagesParsed := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
-			return e.Wrap(err, "error decoding message data")
-		}
-		if len(messagesParsed["messages"]) > 0 {
-			obj := &model.MessagesObject{SessionID: sessionID, Messages: messages, IsBeacon: isBeacon}
-			if err := r.DB.Create(obj).Error; err != nil {
-				return e.Wrap(err, "error creating messages object")
+
+		if sessionObj.AvoidPostgresStorage {
+			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeMessages, []byte(messages)); err != nil {
+				return e.Wrap(err, "error saving messages data")
+			}
+		} else {
+			if hasBeacon {
+				r.DB.Where(&model.MessagesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.MessagesObject{})
+			}
+			messagesParsed := make(map[string][]interface{})
+			if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
+				return e.Wrap(err, "error decoding message data")
+			}
+			if len(messagesParsed["messages"]) > 0 {
+				obj := &model.MessagesObject{SessionID: sessionID, Messages: messages, IsBeacon: isBeacon}
+				if err := r.DB.Create(obj).Error; err != nil {
+					return e.Wrap(err, "error creating messages object")
+				}
 			}
 		}
+
 		return nil
 	})
 
@@ -2664,22 +2695,30 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
 		defer unmarshalResourcesSpan.Finish()
-		if hasBeacon {
-			r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
-		}
-		resourcesParsed := make(map[string][]NetworkResource)
-		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-			return nil
-		}
-		if len(resourcesParsed["resources"]) > 0 {
-			if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
-				return err
+
+		if sessionObj.AvoidPostgresStorage {
+			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
+				return e.Wrap(err, "error saving resources data")
 			}
-			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
-			if err := r.DB.Create(obj).Error; err != nil {
-				return e.Wrap(err, "error creating resources object")
+		} else {
+			if hasBeacon {
+				r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
+			}
+			resourcesParsed := make(map[string][]NetworkResource)
+			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
+				return nil
+			}
+			if len(resourcesParsed["resources"]) > 0 {
+				if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
+					return err
+				}
+				obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
+				if err := r.DB.Create(obj).Error; err != nil {
+					return e.Wrap(err, "error creating resources object")
+				}
 			}
 		}
+
 		return nil
 	})
 

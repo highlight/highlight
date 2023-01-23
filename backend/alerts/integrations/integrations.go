@@ -9,6 +9,7 @@ type ErrorAlertPayload struct {
 	ErrorURL        string
 	ErrorResolveURL string
 	ErrorIgnoreURL  string
+	ErrorSnoozeURL  string
 	UserIdentifier  string
 	VisitedURL      string
 }

@@ -1,5 +1,6 @@
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
+import { LinkButton } from '@components/LinkButton'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { ErrorInstance, Maybe, SourceMappingError } from '@graph/schemas'
 import {
@@ -9,7 +10,6 @@ import {
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
 	IconSolidExclamation,
-	LinkButton,
 	Popover,
 	Stack,
 	Text,
@@ -89,6 +89,7 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 							kind="secondary"
 							emphasis="low"
 							to={`/${projectId}/settings/errors`}
+							trackingId="sourcemap-settings-link-click-stacktrace-not-useful"
 						>
 							Sourcemap Settings
 						</LinkButton>
@@ -337,17 +338,7 @@ const SourcemapError: React.FC<{
 					Stacktrace Issue
 				</Popover.TagTrigger>
 				<Popover.Content>
-					<Box
-						backgroundColor="white"
-						borderRadius="6"
-						border="secondary"
-						padding="12"
-						overflow="scroll"
-						boxShadow="small"
-						style={{ maxWidth: '450px' }}
-					>
-						<SourcemapErrorDetails error={metadata} />
-					</Box>
+					<SourcemapErrorDetails error={metadata} />
 				</Popover.Content>
 			</Popover>
 		</Box>

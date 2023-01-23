@@ -1,10 +1,10 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import Input from '@components/Input/Input'
+import LoadingBox from '@components/LoadingBox'
 import { useDeleteProjectMutation, useGetProjectQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { FieldsForm } from '@pages/WorkspaceSettings/FieldsForm/FieldsForm'
 import { useParams } from '@util/react-router/useParams'
-import { Skeleton } from 'antd'
 import classNames from 'classnames/bind'
 import React, { useState } from 'react'
 import { Redirect } from 'react-router-dom'
@@ -43,7 +43,7 @@ export const DangerForm = () => {
 
 				<form onSubmit={onSubmit}>
 					{loading ? (
-						<Skeleton />
+						<LoadingBox />
 					) : (
 						<>
 							<p className={styles.dangerSubTitle}>

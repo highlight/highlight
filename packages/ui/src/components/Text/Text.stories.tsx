@@ -28,6 +28,11 @@ export const Sizes = () => {
 						</Box>
 					),
 				)}
+				<Box marginBottom="10">
+					<Text size={size} transform="capitalize" family="monospace">
+						{size} Monospace
+					</Text>
+				</Box>
 			</Box>
 		),
 	)

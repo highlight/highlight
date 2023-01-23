@@ -20,6 +20,10 @@ import (
 
 	"github.com/go-test/deep"
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
+
+	"github.com/ReneKroon/ttlcache"
 	"github.com/lib/pq"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
@@ -32,6 +36,7 @@ import (
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 
+	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
@@ -39,10 +44,11 @@ import (
 )
 
 var (
-	DB     *gorm.DB
-	HashID *hashids.HashID
-	F      = false
-	T      = true
+	DB                *gorm.DB
+	HashID            *hashids.HashID
+	emailHistoryCache *ttlcache.Cache
+	F                 = false
+	T                 = true
 )
 
 const (
@@ -176,6 +182,7 @@ var Models = []interface{}{
 	&IntegrationProjectMapping{},
 	&IntegrationWorkspaceMapping{},
 	&EmailOptOut{},
+	&BillingEmailHistory{},
 }
 
 func init() {
@@ -187,6 +194,10 @@ func init() {
 		log.Fatalf("error creating hash id client: %v", err)
 	}
 	HashID = hid
+
+	emailHistoryCache = ttlcache.NewCache()
+	emailHistoryCache.SetTTL(15 * time.Minute)
+	emailHistoryCache.SkipTtlExtensionOnHit(true)
 }
 
 type Model struct {
@@ -248,7 +259,7 @@ type Workspace struct {
 	MonthlySessionLimit         *int
 	MonthlyMembersLimit         *int
 	TrialEndDate                *time.Time `json:"trial_end_date"`
-	AllowMeterOverage           bool       `gorm:"default:false"`
+	AllowMeterOverage           bool       `gorm:"default:true"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
 	EligibleForTrialExtension   bool       `gorm:"default:false"`
 	TrialExtensionEnabled       bool       `gorm:"default:false"`
@@ -603,8 +614,9 @@ type Session struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:session_admins_views;"`
 
-	Chunked          *bool
-	ProcessWithRedis bool
+	Chunked              *bool
+	ProcessWithRedis     bool
+	AvoidPostgresStorage bool
 }
 
 type EventChunk struct {
@@ -779,6 +791,14 @@ type Object interface {
 	Contents() string
 }
 
+type SessionData struct {
+	Data string
+}
+
+func (sd *SessionData) Contents() string {
+	return sd.Data
+}
+
 type MessagesObject struct {
 	Model
 	ID        int `json:"id"` // Shadow Model.ID to avoid creating a pkey constraint
@@ -902,6 +922,7 @@ type ErrorGroup struct {
 	StackTrace       string
 	MappedStackTrace *string
 	State            string        `json:"state" gorm:"default:OPEN"`
+	SnoozedUntil     *time.Time    `json:"snoozed_until"`
 	Fields           []*ErrorField `gorm:"many2many:error_group_fields;" json:"fields"`
 	Fingerprints     []*ErrorFingerprint
 	FieldGroup       *string
@@ -963,6 +984,8 @@ type ExternalAttachment struct {
 
 	SessionCommentID int `gorm:"index"`
 	ErrorCommentID   int `gorm:"index"`
+
+	Removed bool `gorm:"default:false"`
 }
 
 type SessionCommentTag struct {
@@ -1132,6 +1155,21 @@ type EmailOptOut struct {
 	Category modelInputs.EmailOptOutCategory `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
 }
 
+type RawPayloadType string
+
+const (
+	PayloadTypeEvents    RawPayloadType = "raw-events"
+	PayloadTypeResources RawPayloadType = "raw-resources"
+	PayloadTypeMessages  RawPayloadType = "raw-messages"
+)
+
+type BillingEmailHistory struct {
+	Model
+	Active      bool
+	WorkspaceID int
+	Type        Email.EmailType
+}
+
 func SetupDB(dbName string) (*gorm.DB, error) {
 	var (
 		host     = os.Getenv("PSQL_HOST")
@@ -1179,6 +1217,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		Logger:                                   logger.Default.LogMode(logLevel),
 		PrepareStmt:                              true,
 		SkipDefaultTransaction:                   true,
+		CreateBatchSize:                          5000, // Postgres only allows 65535 parameters per insert - this would allow 5000 records with 13 inserted fields each.
 	})
 
 	if err != nil {
@@ -1285,6 +1324,20 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
 	}
 
+	// Create unique conditional index for billing email history
+	if err := DB.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS
+				(select * from pg_indexes where indexname = 'email_history_active_workspace_type_idx')
+			THEN
+				CREATE UNIQUE INDEX email_history_active_workspace_type_idx ON billing_email_histories (active, workspace_id, type) WHERE (active = true);
+			END IF;
+		END $$;
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error creating email_history_active_workspace_type_idx")
+	}
+
 	if err := DB.Exec(fmt.Sprintf(`
 		DO $$
 			BEGIN
@@ -1355,62 +1408,6 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 		END;
 	`, PARTITION_SESSION_ID, PARTITION_SESSION_ID).Error; err != nil {
 		return false, e.Wrap(err, "Error setting session id sequence to 30000000")
-	}
-
-	if err := DB.Exec(`
-		CREATE TABLE IF NOT EXISTS events_objects_partitioned
-		(LIKE events_objects INCLUDING DEFAULTS INCLUDING IDENTITY)
-		PARTITION BY RANGE (session_id);
-	`).Error; err != nil {
-		return false, e.Wrap(err, "Error creating events_objects_partitioned")
-	}
-
-	// if err := DB.Exec(`
-	// 	CREATE INDEX IF NOT EXISTS events_objects_partitioned_session_id
-	// 	ON events_objects_partitioned (session_id);
-	// `).Error; err != nil {
-	// 	return false, e.Wrap(err, "Error creating events_objects_partitioned_session_id")
-	// }
-
-	var lastVal int
-	if err := DB.Raw("SELECT last_value FROM sessions_id_seq").Scan(&lastVal).Error; err != nil {
-		return false, e.Wrap(err, "Error selecting max session id")
-	}
-	partitionSize := 100000
-	start := lastVal / partitionSize * partitionSize
-
-	// Make sure partitions are created for the next 5m sessions
-	for i := 0; i < 50; i++ {
-		end := start + partitionSize
-		sql := fmt.Sprintf(`
-			DO $$
-			BEGIN
-				IF
-					(SELECT pg_try_advisory_xact_lock(%d))
-				THEN
-					CREATE TABLE IF NOT EXISTS events_objects_partitioned_%d (
-						LIKE events_objects_partitioned INCLUDING DEFAULTS INCLUDING CONSTRAINTS
-					);
-					IF NOT EXISTS (
-						SELECT 1
-						FROM pg_inherits
-						JOIN pg_class parent            ON pg_inherits.inhparent = parent.oid
-						JOIN pg_class child             ON pg_inherits.inhrelid   = child.oid
-						WHERE parent.relname='events_objects_partitioned' and child.relname='events_objects_partitioned_%d')
-					THEN
-						ALTER TABLE events_objects_partitioned
-						ATTACH PARTITION events_objects_partitioned_%d
-						FOR VALUES FROM (%d) TO (%d);
-					END IF;
-				END IF;
-			END $$;
-		`, EVENTS_OBJECTS_ADVISORY_LOCK_ID, start, start, start, start, end)
-
-		if err := DB.Exec(sql).Error; err != nil {
-			return false, e.Wrapf(err, "Error creating partitioned events_objects for index %d", i)
-		}
-
-		start = end
 	}
 
 	// Create sequence for session_fields.id manually. This started as a join
@@ -1705,9 +1702,69 @@ func (obj *ErrorAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, inpu
 		message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>  <a href=\"%s\">View Session</a>", *obj.Name, input.Group.Event, errorURL, sessionURL)
 		if err := Email.SendAlertEmail(mailClient, *email, message, "Errors", fmt.Sprintf("%s: %s", *obj.Name, input.Group.Event)); err != nil {
 			log.Error(err)
-
 		}
 	}
+}
+
+func SendBillingNotifications(db *gorm.DB, mailClient *sendgrid.Client, emailType Email.EmailType, workspace *Workspace) error {
+	// Skip sending email if sending was attempted within the cache TTL
+	cacheKey := fmt.Sprintf("%s;%d", emailType, workspace.ID)
+	_, exists := emailHistoryCache.Get(cacheKey)
+	if exists {
+		return nil
+	}
+	emailHistoryCache.Set(cacheKey, true)
+
+	var toAddrs []struct {
+		AdminID int
+		Email   string
+	}
+	if err := db.Raw(`
+		SELECT a.id as admin_id, a.email
+		FROM workspace_admins wa
+		INNER JOIN admins a
+		ON wa.admin_id = a.id
+		WHERE wa.workspace_id = ?
+		AND NOT EXISTS (
+			SELECT *
+			FROM email_opt_outs eoo
+			WHERE eoo.admin_id = a.id
+			AND eoo.category IN ('All', 'Billing')
+		)
+	`, workspace.ID).Scan(&toAddrs).Error; err != nil {
+		return e.Wrap(err, "error querying recipient emails")
+	}
+
+	history := BillingEmailHistory{
+		WorkspaceID: workspace.ID,
+		Type:        emailType,
+		Active:      true,
+	}
+	if err := db.Create(&history).Error; err != nil {
+		if err != nil {
+			var pgErr *pgconn.PgError
+			// An active BillingEmailHistory may already exist -
+			// in this case, don't send users another email.
+			if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+				return nil
+			}
+		}
+		return e.Wrap(err, "error creating BillingEmailHistory")
+	}
+
+	errors := []string{}
+	for _, toAddr := range toAddrs {
+		err := Email.SendBillingNotificationEmail(mailClient, emailType, workspace.ID, workspace.Name, toAddr.Email, toAddr.AdminID)
+		if err != nil {
+			errors = append(errors, err.Error())
+		}
+	}
+
+	if len(errors) > 0 {
+		return e.New(strings.Join(errors, "\n"))
+	}
+
+	return nil
 }
 
 func (obj *ErrorAlert) GetRegexGroups() ([]*string, error) {
@@ -2364,9 +2421,6 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 	alertEvent := &AlertEvent{Type: *obj.Type, ProjectID: obj.ProjectID, AlertID: alertID}
 	switch *obj.Type {
 	case AlertType.ERROR:
-		if input.Group == nil || input.Group.State == ErrorGroupStates.IGNORED {
-			return nil
-		}
 		shortEvent := input.Group.Event
 		if len(input.Group.Event) > 50 {
 			shortEvent = input.Group.Event[:50] + "..."
@@ -2404,6 +2458,20 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 			button.URL = fmt.Sprintf("%s?action=%s", errorLink, strings.ToLower(string(action)))
 			actionBlock = append(actionBlock, button)
 		}
+
+		snoozeButton := slack.NewButtonBlockElement(
+			"",
+			"click",
+			slack.NewTextBlockObject(
+				slack.PlainTextType,
+				"Snooze Error",
+				false,
+				false,
+			),
+		)
+		snoozeButton.URL = fmt.Sprintf("%s?action=snooze", errorLink)
+		actionBlock = append(actionBlock, snoozeButton)
+
 		blockSet = append(blockSet, slack.NewActionBlock(
 			"",
 			actionBlock...,

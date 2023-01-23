@@ -14,7 +14,13 @@ const NoActiveErrorCard = () => {
 	return (
 		<Box cssClass={styles.card}>
 			<Callout title="Let's squash some bugs!">
-				<Box mb="6">
+				<Box
+					display="flex"
+					flexDirection="column"
+					gap="16"
+					alignItems="flex-start"
+					mb="6"
+				>
 					<Text color="moderate">
 						View a recent error or find a specific error message,
 						URL, or segment.

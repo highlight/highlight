@@ -141,21 +141,32 @@ export const formatDatetime = (
 	datetime: string,
 	format: SESSION_FEED_DATETIME_FORMAT,
 ) => {
+	const dt = moment(datetime)
 	switch (format) {
+		case 'Smart':
+			if (moment().year() !== dt.year()) {
+				return dt.format('M/D/YY')
+			} else if (moment().month() !== dt.month()) {
+				return dt.format('M/D HH:mm')
+			} else if (moment().day() !== dt.day()) {
+				return dt.format('MMM D h:mm A')
+			} else {
+				return dt.format('h:mm A')
+			}
 		case 'Relative':
-			return moment(datetime).fromNow()
+			return dt.fromNow()
 		case 'Date Only':
-			return moment(datetime).format('M/D/YY')
+			return dt.format('M/D/YY')
 		case 'Date and Time':
-			return moment(datetime).format('M/D/YY h:mm A')
+			return dt.format('M/D/YY h:mm A')
 		case 'Date and Time with Milliseconds':
-			return moment(datetime).format('M/D/YY h:mm:s A')
+			return dt.format('M/D/YY h:mm:s A')
 		case 'Unix':
-			return moment(datetime).format('X')
+			return dt.format('X')
 		case 'Unix With Milliseconds':
-			return moment(datetime).format('x')
+			return dt.format('x')
 		case 'ISO':
-			return moment(datetime).toISOString()
+			return dt.toISOString()
 		default:
 			const error = new Error(
 				`Unsupported date format used in formateDatetime: ${format}`,

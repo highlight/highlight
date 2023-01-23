@@ -3,9 +3,11 @@ import { Button } from '@components/Button'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import {
+	useCreateErrorCommentMutation,
 	useCreateIssueForErrorCommentMutation,
 	useCreateIssueForSessionCommentMutation,
 } from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
 import {
 	Box,
@@ -66,53 +68,88 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 
 	const [loading, setLoading] = useState(false)
 
+	const [createIssueForErrorComment] = useCreateIssueForErrorCommentMutation({
+		refetchQueries: [namedOperations.Query.GetErrorIssues],
+	})
+
 	const [createIssueForSessionComment] =
 		useCreateIssueForSessionCommentMutation()
-
-	const [createIssueForErrorComment] = useCreateIssueForErrorCommentMutation()
 
 	const currentUrl = `${
 		window.location.port === '' ? GetBaseURL() : window.location.origin
 	}${window.location.pathname}`
+	const { error_secure_id: errorSecureId } = useParams<{
+		error_secure_id?: string
+	}>()
+
+	const [createErrorComment] = useCreateErrorCommentMutation({
+		refetchQueries: [
+			namedOperations.Query.GetErrorComments,
+			namedOperations.Query.GetErrorIssues,
+		],
+	})
 
 	const onFinish = async () => {
 		setLoading(true)
 		try {
-			if (commentType === 'SessionComment') {
+			const issueTitle = form.getValue(form.names.issueTitle)
+			const issueDescription =
+				form.getValue(form.names.issueDescription) ?? ''
+
+			const issueTeamId = containerId || ''
+			const text = commentText ?? 'Open in Highlight'
+			const author = admin?.name || admin?.email || 'Someone'
+			const integrations = [selectedIntegration.name] as IntegrationType[]
+			if (commentType === 'SessionComment' && commentId) {
 				await createIssueForSessionComment({
 					variables: {
 						project_id: project_id,
 						session_url: currentUrl,
-						session_comment_id: commentId ?? 0,
-						text_for_attachment: commentText ?? 'Open in Highight',
-						issue_title: form.getValue(form.names.issueTitle),
-						issue_team_id: containerId || '',
-						issue_description:
-							form.getValue(form.names.issueDescription) ?? '',
-						integrations: [
-							selectedIntegration.name,
-						] as IntegrationType[],
-						author_name: admin?.name || admin?.email || 'Someone',
+						session_comment_id: commentId,
+						text_for_attachment: text,
+						issue_title: issueTitle,
+						issue_team_id: issueTeamId,
+						issue_description: issueDescription,
+						integrations,
+						author_name: author,
 						time: timestamp || 0,
 					},
 				})
 			} else if (commentType === 'ErrorComment') {
-				await createIssueForErrorComment({
-					variables: {
-						project_id: project_id,
-						error_url: currentUrl,
-						error_comment_id: commentId ?? 0,
-						text_for_attachment: commentText ?? 'Open in Highight',
-						issue_title: form.getValue(form.names.issueTitle),
-						issue_team_id: containerId || '',
-						issue_description:
-							form.getValue(form.names.issueDescription) ?? '',
-						integrations: [
-							selectedIntegration.name,
-						] as IntegrationType[],
-						author_name: admin?.name || admin?.email || 'Someone',
-					},
-				})
+				if (commentId) {
+					await createIssueForErrorComment({
+						variables: {
+							project_id: project_id,
+							error_url: currentUrl,
+							error_comment_id: commentId,
+							text_for_attachment: text,
+							issue_title: issueTitle,
+							issue_team_id: issueTeamId,
+							issue_description: issueDescription,
+							integrations,
+							author_name: author,
+						},
+					})
+				} else if (errorSecureId) {
+					await createErrorComment({
+						variables: {
+							project_id,
+							error_group_secure_id: errorSecureId,
+							text,
+							text_for_email: issueTitle,
+							error_url: currentUrl,
+							tagged_admins: [],
+							tagged_slack_users: [],
+							author_name: author,
+							integrations,
+							issue_title: issueTitle,
+							issue_team_id: issueTeamId,
+							issue_description: issueDescription,
+						},
+						refetchQueries: [namedOperations.Query.GetErrorIssues],
+						awaitRefetchQueries: true,
+					})
+				}
 			} else {
 				throw new Error('Invalid Comment Type: ' + commentType)
 			}

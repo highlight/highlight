@@ -2,13 +2,13 @@ import {
 	EmptySearchResults,
 	SearchResultsKind,
 } from '@components/EmptySearchResults/EmptySearchResults'
+import LoadingBox from '@components/LoadingBox'
 import SearchPagination, {
-	DEFAULT_PAGE_SIZE,
+	PAGE_SIZE,
 	START_PAGE,
 } from '@components/SearchPagination/SearchPagination'
-import { Skeleton } from '@components/Skeleton/Skeleton'
 import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks'
-import { ErrorGroup, ErrorResults, Maybe } from '@graph/schemas'
+import { ErrorGroup, Maybe } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
@@ -16,14 +16,12 @@ import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import ErrorFeedHistogram from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
 import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
-import { gqlSanitize } from '@util/gqlSanitize'
+import { gqlSanitize } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
 import * as style from './SearchPanel.css'
-
-const PAGE_SIZE = DEFAULT_PAGE_SIZE
 
 const SearchPanel = () => {
 	const { showLeftPanel } = useErrorPageConfiguration()
@@ -32,7 +30,6 @@ const SearchPanel = () => {
 		backendSearchQuery,
 		page,
 		setPage,
-		searchResultsLoading,
 		setSearchResultsLoading,
 		searchResultsCount,
 		setSearchResultsCount,
@@ -43,12 +40,7 @@ const SearchPanel = () => {
 
 	const useCachedErrors = searchResultsCount > PAGE_SIZE
 
-	const [fetchedData, setFetchedData] = useState<ErrorResults>({
-		error_groups: [],
-		totalCount: 0,
-	})
-
-	const { loading } = useGetErrorGroupsOpenSearchQuery({
+	const { data: fetchedData, loading } = useGetErrorGroupsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
 			count: PAGE_SIZE,
@@ -63,7 +55,6 @@ const SearchPanel = () => {
 		onCompleted: (r) => {
 			setSearchResultsLoading(false)
 			const results = r?.error_groups_opensearch
-			setFetchedData(gqlSanitize(results))
 			setSearchResultsCount(results.totalCount)
 			setSearchResultSecureIds(
 				results.error_groups.map((eg) => eg.secure_id),
@@ -77,12 +68,12 @@ const SearchPanel = () => {
 		setSearchResultsLoading(loading)
 	}, [loading, setSearchResultsLoading])
 
-	const showHistogram = searchResultsLoading || searchResultsCount > 0
+	const showHistogram = loading || searchResultsCount > 0
 
 	const [, setSyncButtonDisabled] = useState<boolean>(false)
 
 	useEffect(() => {
-		if (!searchResultsLoading) {
+		if (!loading) {
 			const timer = setTimeout(() => {
 				setSyncButtonDisabled(false)
 			}, 3000)
@@ -92,8 +83,9 @@ const SearchPanel = () => {
 		} else {
 			setSyncButtonDisabled(true)
 		}
-	}, [searchResultsLoading])
+	}, [loading])
 
+	const errorGroups = fetchedData?.error_groups_opensearch
 	return (
 		<Box
 			display="flex"
@@ -109,38 +101,26 @@ const SearchPanel = () => {
 		>
 			<ErrorQueryBuilder />
 			{showHistogram && (
-				<Box
-					borderBottom="secondary"
-					paddingTop="10"
-					paddingBottom="12"
-					px="8"
-				>
+				<Box borderBottom="secondary" paddingBottom="8" px="8">
 					<ErrorFeedHistogram />
 				</Box>
 			)}
 			<Box
-				padding="6"
+				padding="8"
 				overflowX="hidden"
 				overflowY="auto"
 				cssClass={style.content}
 			>
-				{searchResultsLoading ? (
-					<Skeleton
-						height={80}
-						count={3}
-						style={{
-							borderRadius: 8,
-							marginBottom: 2,
-						}}
-					/>
+				{loading ? (
+					<LoadingBox />
 				) : (
 					<>
-						{searchResultsCount === 0 ? (
+						{searchResultsCount === 0 || !errorGroups ? (
 							<EmptySearchResults
 								kind={SearchResultsKind.Errors}
 							/>
 						) : (
-							fetchedData.error_groups?.map(
+							gqlSanitize(errorGroups).error_groups.map(
 								(eg: Maybe<ErrorGroup>, ind: number) => (
 									<ErrorFeedCard
 										key={ind}

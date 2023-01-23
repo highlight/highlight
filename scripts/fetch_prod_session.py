@@ -119,28 +119,30 @@ def fetch(
             """,
             insert=True,
         )
-    logger.info(f"Copying {len(indicators)} timeline_indicator_events...")
-    ti_keys = ", ".join(
-        k for k in indicators[0].keys() if k not in DROP_TIMELINE_INDICATORS_KEYS
-    )
-    with tqdm(total=len(indicators), unit="evts") as pbar:
-        for start in range(0, len(indicators), BATCH_INSERT_SIZE):
-            batch = indicators[start : start + BATCH_INSERT_SIZE]
-            indicators_bulk = ", ".join(
-                map(
-                    lambda x: f'({", ".join(serialize_sql(x[k]) for k in x if k not in DROP_TIMELINE_INDICATORS_KEYS)})',
-                    batch,
+
+    if indicators:
+        logger.info(f"Copying {len(indicators)} timeline_indicator_events...")
+        ti_keys = ", ".join(
+            k for k in indicators[0].keys() if k not in DROP_TIMELINE_INDICATORS_KEYS
+        )
+        with tqdm(total=len(indicators), unit="evts") as pbar:
+            for start in range(0, len(indicators), BATCH_INSERT_SIZE):
+                batch = indicators[start : start + BATCH_INSERT_SIZE]
+                indicators_bulk = ", ".join(
+                    map(
+                        lambda x: f'({", ".join(serialize_sql(x[k]) for k in x if k not in DROP_TIMELINE_INDICATORS_KEYS)})',
+                        batch,
+                    )
                 )
-            )
-            run_sql(
-                f"""
-                    INSERT INTO timeline_indicator_events ({ti_keys})
-                    VALUES {indicators_bulk}
-                    ON CONFLICT DO NOTHING
-                """,
-                insert=True,
-            )
-            pbar.update(len(batch))
+                run_sql(
+                    f"""
+                        INSERT INTO timeline_indicator_events ({ti_keys})
+                        VALUES {indicators_bulk}
+                        ON CONFLICT DO NOTHING
+                    """,
+                    insert=True,
+                )
+                pbar.update(len(batch))
 
     inserted_session = run_sql(
         f"SELECT * FROM sessions WHERE secure_id = '{secure_id}'"
@@ -157,12 +159,14 @@ def fetch(
             insert=True,
         )
 
-    logger.info("Copying session files from prod S3 to dev/1...")
     versionPrefix = "v2/" if useNewBucket else ""
     prefix = f'{versionPrefix}{session["project_id"]}/{session["id"]}'
+    logger.info(f"Copying session files from prod S3 prefix {prefix} to dev/1...")
     for file in b.objects.filter(Prefix=prefix).all():
         file_name = file.key.split("/")[-1]
-        new_obj = b.Object(f'{versionPrefix}dev/1/{new_session["id"]}/{file_name}')
+        new_name = f'{versionPrefix}dev/1/{new_session["id"]}/{file_name}'
+        logger.info(f"Copying session file {prefix}/{file_name} to {new_name}...")
+        new_obj = b.Object(new_name)
         new_obj.copy({"Bucket": bucket, "Key": file.key})
         if store and file_name.startswith(SESSIONS_FULL_FILE):
             decompressed_file = f"{file_name}-decompressed"
@@ -286,7 +290,7 @@ def main():
         "-b",
         "--bucket",
         help="the s3 bucket to process",
-        default="highlight-session-s3-test",
+        default="highlight-session-data",
     )
 
     parser.add_argument(

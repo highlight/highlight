@@ -1,15 +1,12 @@
 import { BackendSearchQuery } from '@context/BaseSearchContext'
 import { SearchParamsInput } from '@graph/schemas'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
-import {
-	QueryBuilderInput,
-	SearchContextProvider,
-} from '@pages/Sessions/SearchContext/SearchContext'
+import { SearchContextProvider } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { useState } from 'react'
 import { useLocalStorage } from 'react-use'
 
-const WithSessionSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
+const WithSessionSearchContext: React.FC<React.PropsWithChildren> = ({
 	children,
 }) => {
 	const { project_id } = useParams<{
@@ -22,7 +19,7 @@ const WithSessionSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 		EmptySessionsSearchParams,
 	)
 	const [searchResultsLoading, setSearchResultsLoading] =
-		useState<boolean>(false)
+		useState<boolean>(true)
 	const [searchResultsCount, setSearchResultsCount] = useState<number>(0)
 	const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false)
 
@@ -36,9 +33,6 @@ const WithSessionSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 
 	const [backendSearchQuery, setBackendSearchQuery] =
 		useState<BackendSearchQuery>(undefined)
-
-	const [queryBuilderInput, setQueryBuilderInput] =
-		useState<QueryBuilderInput>(undefined)
 
 	const [existingParams, setExistingParams] = useState<SearchParamsInput>(
 		EmptySessionsSearchParams,
@@ -56,8 +50,6 @@ const WithSessionSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 		removeSelectedSegment,
 		backendSearchQuery,
 		setBackendSearchQuery,
-		queryBuilderInput,
-		setQueryBuilderInput,
 		isQuickSearchOpen,
 		setIsQuickSearchOpen,
 		page,

@@ -4,15 +4,14 @@ import MenuItem from '@components/Menu/MenuItem'
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
 import { useDeleteSessionCommentMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { SessionCommentType } from '@graph/schemas'
+import { IntegrationType, SessionCommentType } from '@graph/schemas'
 import SvgBallotBoxIcon from '@icons/BallotBoxIcon'
 import SvgClipboardIcon from '@icons/ClipboardIcon'
 import SvgCopyIcon from '@icons/CopyIcon'
 import SvgFileText2Icon from '@icons/FileText2Icon'
 import SvgReferrer from '@icons/Referrer'
 import SvgTrashIcon from '@icons/TrashIcon'
-import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
-import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
+import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
 	CLICKUP_INTEGRATION,
@@ -28,6 +27,7 @@ import {
 import { onGetLinkWithTimestamp } from '@pages/Player/SessionShareButton/utils/utils'
 import analytics from '@util/analytics'
 import { getFeedbackCommentSessionTimestamp } from '@util/comment/util'
+import { delayedRefetch } from '@util/gql'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { Menu, message } from 'antd'
 import React, { PropsWithChildren, useMemo, useState } from 'react'
@@ -54,17 +54,22 @@ const SessionCommentHeader = ({
 }: PropsWithChildren<Props>) => {
 	const { pause, session, sessionMetadata } = useReplayerContext()
 	const [deleteSessionComment] = useDeleteSessionCommentMutation({
-		refetchQueries: [namedOperations.Query.GetSessionComments],
+		refetchQueries: [
+			namedOperations.Query.GetSessionComments,
+			namedOperations.Query.GetSessionsOpenSearch,
+		],
+		onQueryUpdated: delayedRefetch,
 	})
 	const history = useHistory()
 
-	const { isLinearIntegratedWithProject } = useLinearIntegration()
-	const {
-		settings: { isIntegrated: isClickupIntegrated },
-	} = useClickUpIntegration()
-	const {
-		settings: { isIntegrated: isHeightIntegrated },
-	} = useHeightIntegration()
+	const { isLinearIntegratedWithProject, loading: isLoadingLinear } =
+		useLinearIntegration()
+
+	const { isIntegrated: isClickupIntegrated, loading: isLoadingClickUp } =
+		useIsProjectIntegratedWith(IntegrationType.ClickUp)
+
+	const { isIntegrated: isHeightIntegrated, loading: isLoadingHeight } =
+		useIsProjectIntegratedWith(IntegrationType.Height)
 
 	const [showNewIssueModal, setShowNewIssueModal] = useState<
 		IssueTrackerIntegration | undefined
@@ -94,7 +99,7 @@ const SessionCommentHeader = ({
 
 	const createIssueMenuItems = (
 		<>
-			{issueTrackers?.map((item) => {
+			{issueTrackers.map((item) => {
 				const [isIntegrated, integration] = item
 				return isIntegrated ? (
 					<MenuItem
@@ -212,17 +217,6 @@ const SessionCommentHeader = ({
 				icon={<SvgBallotBoxIcon />}
 				onClick={() => {
 					window.open(
-						'https://highlight.canny.io/feature-requests/p/clickup-integration',
-						'_blank',
-					)
-				}}
-			>
-				Vote on ClickUp Integration
-			</MenuItem>
-			<MenuItem
-				icon={<SvgBallotBoxIcon />}
-				onClick={() => {
-					window.open(
 						'https://highlight.canny.io/feature-requests/p/mondaycom-integration',
 						'_blank',
 					)
@@ -263,6 +257,9 @@ const SessionCommentHeader = ({
 			shareMenu={shareMenu}
 			gotoButton={<GoToButton small onClick={handleGotoClick} />}
 			onClose={onClose}
+			isSharingDisabled={
+				isLoadingLinear || isLoadingClickUp || isLoadingHeight
+			}
 		>
 			{children}
 			<NewIssueModal

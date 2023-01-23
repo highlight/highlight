@@ -75,7 +75,7 @@ const DeleteSessionsModal = ({
 							}}
 						/>
 						<Button
-							trackingId="DeleteProject"
+							trackingId="ConfirmDeleteSessions"
 							danger
 							type="primary"
 							disabled={confirmationText !== DELETE_SESSIONS_TEXT}

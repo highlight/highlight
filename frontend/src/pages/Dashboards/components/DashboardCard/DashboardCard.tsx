@@ -5,9 +5,9 @@ import { StandardDropdown } from '@components/Dropdown/StandardDropdown/Standard
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import LineChart, { Reference } from '@components/LineChart/LineChart'
 import { LoadingBar } from '@components/Loading/Loading'
+import LoadingBox from '@components/LoadingBox'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
-import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	useGetMetricMonitorsQuery,
 	useGetMetricsHistogramLazyQuery,
@@ -130,7 +130,7 @@ const DashboardCard = ({
 								<div>
 									{metricConfig.name.length ? (
 										metricMonitorsLoading ? (
-											<Skeleton width={111} />
+											<LoadingBox width={111} />
 										) : (
 											<StandardDropdown
 												display={

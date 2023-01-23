@@ -23,7 +23,7 @@ import { ButtonIcon, Props as ButtonIconProps } from '../ButtonIcon/ButtonIcon'
 import * as styles from './styles.css'
 
 const MenuContext = React.createContext<MenuState>({} as MenuState)
-const useMenu = () => React.useContext(MenuContext)
+export const useMenu = () => React.useContext(MenuContext)
 
 type Props = React.PropsWithChildren<Partial<MenuState>>
 
@@ -44,10 +44,7 @@ export const Menu: MenuComponent = ({ children, ...props }: Props) => {
 const Button: React.FC<
 	React.PropsWithChildren<{ cssClass?: ClassValue | ClassValue[] }> &
 		Omit<MenuButtonProps, 'state'> &
-		Pick<
-			ButtonProps,
-			'iconLeft' | 'iconRight' | 'onIconLeftClick' | 'onIconRightClick'
-		> & {
+		Pick<ButtonProps, 'iconLeft' | 'iconRight'> & {
 			emphasis?: ButtonProps['emphasis']
 			icon?: ButtonIconProps['icon']
 			kind?: ButtonProps['kind']
@@ -92,8 +89,20 @@ const Divider: React.FC<MenuSeparatorProps> = ({ children, ...props }) => (
 	</MenuSeparator>
 )
 
-const Heading: React.FC<MenuHeadingProps> = ({ children, ...props }) => (
-	<AriakitMenuHeading {...props}>{children}</AriakitMenuHeading>
+const Heading: React.FC<MenuHeadingProps> = ({
+	children,
+	className,
+	...props
+}) => (
+	<>
+		<AriakitMenuHeading
+			className={clsx(styles.menuHeading, className)}
+			{...props}
+		>
+			{children}
+		</AriakitMenuHeading>
+		<Divider />
+	</>
 )
 
 Menu.Button = Button

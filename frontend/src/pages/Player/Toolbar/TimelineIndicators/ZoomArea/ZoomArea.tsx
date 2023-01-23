@@ -8,7 +8,7 @@ import { clamp } from '@util/numbers'
 import clsx from 'clsx'
 import { useEffect, useRef, useState } from 'react'
 
-import style from './ZoomArea.module.scss'
+import * as style from './ZoomArea.css'
 
 interface Props {
 	containerWidth: number
@@ -16,7 +16,7 @@ interface Props {
 	update: (p: ZoomAreaPercent) => void
 	minZoomAreaPercent: number
 }
-const ZOOM_AREA_SIDE = 15
+const ZOOM_AREA_SIDE = 8
 
 const ZoomArea = ({
 	update,
@@ -159,13 +159,11 @@ const ZoomArea = ({
 	const sideWidth = isWide ? ZOOM_AREA_SIDE : 0
 	const handleWidth = isWide ? 3 : 0
 
-	const isHidden = percentWidth === 100
 	return (
 		<div
 			style={{
 				left: `${left}%`,
 				width: `${percentWidth}%`,
-				visibility: isHidden ? 'hidden' : 'visible',
 			}}
 			className={clsx(style.zoomArea, {
 				[style.animated]: !doesNoAction,

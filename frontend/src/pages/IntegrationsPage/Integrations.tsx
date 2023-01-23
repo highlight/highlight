@@ -1,3 +1,8 @@
+import {
+	IconSolidClickUp,
+	IconSolidHeight,
+	IconSolidLinear,
+} from '@highlight-run/ui'
 import { VercelSettingsModalWidth } from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import ClearbitIntegrationConfig from '@pages/IntegrationsPage/components/ClearbitIntegration/ClearbitIntegrationConfig'
 import ClickUpIntegrationConfig from '@pages/IntegrationsPage/components/ClickUpIntegration/ClickUpIntegrationConfig'
@@ -26,6 +31,8 @@ export interface Integration {
 	icon: string
 	noRoundedIcon?: boolean
 	onlyShowForHighlightAdmin?: boolean
+	allowlistWorkspaceIds?: Array<string>
+
 	/**
 	 * The page to configure the integration. This can be rendered in a modal or on a different page.
 	 */
@@ -57,6 +64,7 @@ export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
 	containerLabel: 'team',
 	issueLabel: 'issue',
 	containerSelection: (opts) => <LinearTeamSelector {...opts} />,
+	Icon: IconSolidLinear,
 }
 
 export const ZAPIER_INTEGRATION: Integration = {
@@ -118,7 +126,6 @@ export const DISCORD_INTEGRATION: Integration = {
 	key: 'discord',
 	name: 'Discord',
 	configurationPath: 'discord',
-	onlyShowForHighlightAdmin: true,
 	description: 'Bring your Highlight alerts to discord as messages.',
 	icon: '/images/integrations/discord.svg',
 	configurationPage: (opts) => <DiscordIntegrationConfig {...opts} />,
@@ -129,7 +136,6 @@ export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
 	key: 'clickup',
 	name: 'ClickUp',
 	configurationPath: 'clickup',
-	onlyShowForHighlightAdmin: true,
 	description: 'Create ClickUp tasks from your Highlight comments.',
 	configurationPage: (opts) => <ClickUpIntegrationConfig {...opts} />,
 	icon: '/images/integrations/clickup.svg',
@@ -138,13 +144,13 @@ export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
 	containerLabel: 'list',
 	issueLabel: 'task',
 	containerSelection: (opts) => <ClickUpListSelector {...opts} />,
+	Icon: IconSolidClickUp,
 }
 
 export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 	key: 'height',
 	name: 'Height',
 	configurationPath: 'height',
-	onlyShowForHighlightAdmin: true,
 	description: 'Create Height tasks from your Highlight comments.',
 	configurationPage: (opts) => <HeightIntegrationConfig {...opts} />,
 	icon: '/images/integrations/height.svg',
@@ -153,6 +159,7 @@ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 	containerLabel: 'list',
 	issueLabel: 'task',
 	containerSelection: (opts) => <HeightListSelector {...opts} />,
+	Icon: IconSolidHeight,
 }
 
 const INTEGRATIONS: Integration[] = [

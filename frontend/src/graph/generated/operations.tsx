@@ -56,13 +56,14 @@ export type UpdateBillingDetailsMutation = { __typename?: 'Mutation' } & Pick<
 export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
 	secure_id: Types.Scalars['String']
 	state: Types.Scalars['String']
+	snoozed_until?: Types.Maybe<Types.Scalars['Timestamp']>
 }>
 
 export type UpdateErrorGroupStateMutation = { __typename?: 'Mutation' } & {
 	updateErrorGroupState?: Types.Maybe<
 		{ __typename?: 'ErrorGroup' } & Pick<
 			Types.ErrorGroup,
-			'secure_id' | 'state'
+			'secure_id' | 'state' | 'snoozed_until'
 		>
 	>
 }
@@ -561,6 +562,15 @@ export type MuteErrorCommentThreadMutationVariables = Types.Exact<{
 export type MuteErrorCommentThreadMutation = { __typename?: 'Mutation' } & Pick<
 	Types.Mutation,
 	'muteErrorCommentThread'
+>
+
+export type RemoveErrorIssueMutationVariables = Types.Exact<{
+	error_issue_id: Types.Scalars['ID']
+}>
+
+export type RemoveErrorIssueMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'removeErrorIssue'
 >
 
 export type ReplyToErrorCommentMutationVariables = Types.Exact<{
@@ -1846,6 +1856,21 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorIssuesQueryVariables = Types.Exact<{
+	error_group_secure_id: Types.Scalars['String']
+}>
+
+export type GetErrorIssuesQuery = { __typename?: 'Query' } & {
+	error_issue: Array<
+		Types.Maybe<
+			{ __typename?: 'ExternalAttachment' } & Pick<
+				Types.ExternalAttachment,
+				'id' | 'integration_type' | 'external_id' | 'title'
+			>
+		>
+	>
+}
+
 export type GetEnhancedUserDetailsQueryVariables = Types.Exact<{
 	session_secure_id: Types.Scalars['String']
 }>
@@ -2086,6 +2111,7 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 					| 'type'
 					| 'event'
 					| 'state'
+					| 'snoozed_until'
 					| 'environments'
 					| 'stack_trace'
 					| 'error_frequency'
@@ -2573,6 +2599,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 			| 'project_id'
 			| 'event'
 			| 'state'
+			| 'snoozed_until'
 			| 'mapped_stack_trace'
 			| 'stack_trace'
 			| 'error_frequency'
@@ -3429,6 +3456,16 @@ export type GetHeightIntegrationSettingsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetProjectIntegratedWithQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	integration_type: Types.IntegrationType
+}>
+
+export type GetProjectIntegratedWithQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'is_project_integrated_with'
+>
+
 export type GetClickUpFoldersQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -3827,6 +3864,26 @@ export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorGroupTagsQueryVariables = Types.Exact<{
+	error_group_secure_id: Types.Scalars['String']
+}>
+
+export type GetErrorGroupTagsQuery = { __typename?: 'Query' } & {
+	errorGroupTags: Array<
+		{ __typename?: 'ErrorGroupTagAggregation' } & Pick<
+			Types.ErrorGroupTagAggregation,
+			'key'
+		> & {
+				buckets: Array<
+					{ __typename?: 'ErrorGroupTagAggregationBucket' } & Pick<
+						Types.ErrorGroupTagAggregationBucket,
+						'key' | 'doc_count' | 'percent'
+					>
+				>
+			}
+	>
+}
+
 export type GetEmailOptOutsQueryVariables = Types.Exact<{
 	token?: Types.Maybe<Types.Scalars['String']>
 	admin_id?: Types.Maybe<Types.Scalars['ID']>
@@ -3856,6 +3913,7 @@ export const namedOperations = {
 		GetAccounts: 'GetAccounts' as const,
 		GetAccountDetails: 'GetAccountDetails' as const,
 		GetErrorComments: 'GetErrorComments' as const,
+		GetErrorIssues: 'GetErrorIssues' as const,
 		GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
 		GetOnboardingSteps: 'GetOnboardingSteps' as const,
 		GetSessionIntervals: 'GetSessionIntervals' as const,
@@ -3928,6 +3986,7 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithVercel' as const,
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
 		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
+		GetProjectIntegratedWith: 'GetProjectIntegratedWith' as const,
 		GetClickUpFolders: 'GetClickUpFolders' as const,
 		GetHeightLists: 'GetHeightLists' as const,
 		GenerateNewZapierAccessTokenJwt:
@@ -3946,6 +4005,7 @@ export const namedOperations = {
 		GetSourcemapVersions: 'GetSourcemapVersions' as const,
 		GetOAuthClientMetadata: 'GetOAuthClientMetadata' as const,
 		GetErrorGroupFrequencies: 'GetErrorGroupFrequencies' as const,
+		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 	},
 	Mutation: {
@@ -3985,6 +4045,7 @@ export const namedOperations = {
 		CreateIssueForErrorComment: 'CreateIssueForErrorComment' as const,
 		DeleteErrorComment: 'DeleteErrorComment' as const,
 		MuteErrorCommentThread: 'MuteErrorCommentThread' as const,
+		RemoveErrorIssue: 'RemoveErrorIssue' as const,
 		ReplyToErrorComment: 'ReplyToErrorComment' as const,
 		DeleteErrorSegment: 'DeleteErrorSegment' as const,
 		EditErrorSegment: 'EditErrorSegment' as const,

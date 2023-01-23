@@ -1,7 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
-import { Skeleton } from '@components/Skeleton/Skeleton'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
@@ -12,6 +11,7 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useMemo } from 'react'
@@ -31,6 +31,7 @@ const IntegrationsPage = () => {
 	const [popUpModal] = useQueryParam('enable', StringParam)
 
 	const { isHighlightAdmin } = useAuthContext()
+	const { currentWorkspace } = useApplicationContext()
 
 	const { isLinearIntegratedWithProject, loading: loadingLinear } =
 		useLinearIntegration()
@@ -76,9 +77,29 @@ const IntegrationsPage = () => {
 		loadingHeight
 
 	const integrations = useMemo(() => {
-		return INTEGRATIONS.filter((inter) =>
-			inter.onlyShowForHighlightAdmin ? isHighlightAdmin : true,
-		).map((inter) => ({
+		return INTEGRATIONS.filter((integration) => {
+			if (
+				integration.allowlistWorkspaceIds ||
+				integration.onlyShowForHighlightAdmin
+			) {
+				let canSee = false
+
+				const workspaceID = currentWorkspace?.id
+
+				if (integration.allowlistWorkspaceIds && workspaceID) {
+					canSee =
+						canSee ||
+						integration.allowlistWorkspaceIds?.includes(workspaceID)
+				}
+
+				if (integration.onlyShowForHighlightAdmin) {
+					canSee = canSee || isHighlightAdmin
+				}
+				return canSee
+			} else {
+				return true
+			}
+		}).map((inter) => ({
 			...inter,
 			defaultEnable:
 				(inter.key === 'slack' && isSlackConnectedToWorkspace) ||
@@ -93,6 +114,7 @@ const IntegrationsPage = () => {
 				(inter.key === 'height' && isHeightIntegratedWithProject),
 		}))
 	}, [
+		currentWorkspace?.id,
 		isHighlightAdmin,
 		isSlackConnectedToWorkspace,
 		isLinearIntegratedWithProject,
@@ -119,22 +141,17 @@ const IntegrationsPage = () => {
 					tools you use everyday.
 				</p>
 				<div className={styles.integrationsContainer}>
-					{integrations.map((integration) =>
-						loading ? (
-							<Skeleton height={187} key={integration.key} />
-						) : (
-							<Integration
-								integration={integration}
-								key={integration.key}
-								showModalDefault={
-									popUpModal === integration.key
-								}
-								showSettingsDefault={
-									configureIntegration === integration.key
-								}
-							/>
-						),
-					)}
+					{integrations.map((integration) => (
+						<Integration
+							integration={integration}
+							key={integration.key}
+							showModalDefault={popUpModal === integration.key}
+							showSettingsDefault={
+								configureIntegration === integration.key
+							}
+							loading={loading}
+						/>
+					))}
 				</div>
 			</LeadAlignLayout>
 		</>

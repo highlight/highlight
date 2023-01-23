@@ -1,11 +1,12 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
+import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import Popover from '@components/Popover/Popover'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
-import Tooltip from '@components/Tooltip/Tooltip'
+import { default as OldTooltip } from '@components/Tooltip/Tooltip'
 import {
 	BackendSearchQuery,
 	BaseSearchContext,
@@ -20,6 +21,7 @@ import { GetFieldTypesQuery, namedOperations } from '@graph/operations'
 import {
 	ErrorSearchParamsInput,
 	ErrorSegment,
+	ErrorState,
 	Exact,
 	Field,
 	SearchParamsInput,
@@ -43,6 +45,7 @@ import {
 	Menu,
 	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
@@ -52,14 +55,14 @@ import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput'
-import { gqlSanitize } from '@util/gqlSanitize'
+import { gqlSanitize } from '@util/gql'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import { QueryBuilderStateParam } from '@util/url/params'
 import { Checkbox, message } from 'antd'
 import clsx, { ClassValue } from 'clsx'
-import { isEqual } from 'lodash'
+import { capitalize, isEqual, remove } from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { components } from 'react-select'
@@ -360,13 +363,7 @@ const getProcessedLabel = (value: string): string => {
 }
 
 const getStateLabel = (value: string): string => {
-	if (value === 'RESOLVED') {
-		return 'Resolved'
-	} else if (value === 'IGNORED') {
-		return 'Ignored'
-	} else {
-		return 'Open'
-	}
+	return capitalize(value.toLowerCase())
 }
 
 const getMultiselectOption = (props: any) => {
@@ -776,7 +773,7 @@ const SelectPopout = ({
 			visible={visible}
 			destroyTooltipOnHide
 		>
-			<Tooltip
+			<OldTooltip
 				title={tooltipMessage}
 				mouseEnterDelay={1.5}
 				overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
@@ -786,12 +783,12 @@ const SelectPopout = ({
 						kind="secondary"
 						size="medium"
 						shape="basic"
-						cssClass={[
+						className={clsx([
 							cssClass,
 							{
 								[styles.invalid]: invalid && !visible,
 							},
-						]}
+						])}
 						lines={limitWidth ? '1' : undefined}
 						disabled={disabled}
 					>
@@ -805,7 +802,7 @@ const SelectPopout = ({
 							value.options[0].label}
 					</Tag>
 				</span>
-			</Tooltip>
+			</OldTooltip>
 		</Popover>
 	)
 }
@@ -882,7 +879,7 @@ const QueryRule = ({
 					size="medium"
 					kind="secondary"
 					shape="basic"
-					cssClass={[newStyle.flatLeft]}
+					className={newStyle.flatLeft}
 					onClick={() => {
 						onRemove()
 					}}
@@ -1301,7 +1298,6 @@ interface QueryBuilderProps {
 	customFields: CustomField[]
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
 	fieldData?: GetFieldTypesQuery
-	getQueryFromParams: (params: any) => QueryBuilderState
 	readonly?: boolean
 }
 
@@ -1323,6 +1319,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 	} = props
 
 	const {
+		setPage,
 		setBackendSearchQuery,
 		searchParams,
 		setSearchParams,
@@ -1882,7 +1879,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						value: v,
 					}))
 				} else if (field.value === 'error_state') {
-					options = ['OPEN', 'RESOLVED', 'IGNORED'].map((v) => ({
+					options = Object.values(ErrorState).map((v) => ({
 						label: getStateLabel(v),
 						value: v,
 					}))
@@ -1946,8 +1943,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 			}
 			if (searchParamsToUrlParams.query !== undefined) {
 				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
-			} else {
-				setSearchParams(EmptyErrorsSearchParams)
 			}
 		}
 
@@ -2034,11 +2029,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		// Update if the state has changed
 		if (
 			newState !== qbState &&
-			(rules.length === 1 &&
-			rules[0].field?.value === timeRangeField.value &&
-			rules[0] === defaultTimeRangeRule
-				? false
-				: true)
+			!(
+				rules.length === 1 &&
+				rules[0].field?.value === timeRangeField.value &&
+				rules[0] === defaultTimeRangeRule
+			)
 		) {
 			setQbState(newState)
 			setSearchParams((params) => ({
@@ -2049,6 +2044,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 
 		if (serializedQuery.current) {
+			setPage(1)
 			setBackendSearchQuery(serializedQuery.current)
 		}
 	}, [
@@ -2058,6 +2054,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		readonly,
 		rules,
 		setBackendSearchQuery,
+		setPage,
 		setSearchParams,
 		timeRangeField.value,
 	])
@@ -2336,14 +2333,24 @@ function QueryBuilder(props: QueryBuilderProps) {
 							/>
 						)}
 
-					<ButtonIcon
-						kind="secondary"
-						size="small"
-						shape="square"
-						emphasis="medium"
-						icon={<IconSolidLogout size={14} />}
-						onClick={() => setShowLeftPanel(false)}
-					/>
+					<Tooltip
+						placement="bottom"
+						trigger={
+							<ButtonIcon
+								kind="secondary"
+								size="small"
+								shape="square"
+								emphasis="medium"
+								icon={<IconSolidLogout size={14} />}
+								onClick={() => setShowLeftPanel(false)}
+							/>
+						}
+					>
+						<KeyboardShortcut
+							label="Toggle sidebar"
+							shortcut={['cmd', 'b']}
+						/>
+					</Tooltip>
 				</Box>
 			</Box>
 		)
@@ -2671,6 +2678,55 @@ function QueryBuilder(props: QueryBuilderProps) {
 										Segments
 									</Text>
 								</Box>
+								{Object.values(ErrorState).map((errorState) => (
+									<Menu.Item
+										key={errorState}
+										onClick={(e) => {
+											e.stopPropagation()
+											const newRules = [...rules]
+											const removed = remove(
+												newRules,
+												(rule) =>
+													rule?.field?.value ===
+													'error_state',
+											)[0]
+
+											if (
+												removed &&
+												removed?.val?.options?.length &&
+												removed.val?.options[0]
+													?.value === errorState
+											) {
+												return
+											}
+
+											const option = [
+												{
+													value: errorState as string,
+													label: getStateLabel(
+														errorState,
+													),
+												},
+											] as const
+											newRules.push({
+												field: {
+													value: 'error_state',
+													kind: 'single',
+													label: 'state',
+												},
+												op: 'is',
+												val: {
+													kind: 'multi',
+													options: option,
+												},
+											})
+											setRules(newRules)
+										}}
+									>
+										{getStateLabel(errorState)} errors
+									</Menu.Item>
+								))}
+								<Menu.Divider />
 								{segmentOptions.map((segment, idx) => (
 									<Menu.Item
 										key={idx}

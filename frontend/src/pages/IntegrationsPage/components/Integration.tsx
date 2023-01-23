@@ -1,5 +1,6 @@
 import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
+import LoadingBox from '@components/LoadingBox'
 import Modal from '@components/Modal/Modal'
 import Switch from '@components/Switch/Switch'
 import SettingsIcon from '@icons/SettingsIcon'
@@ -25,6 +26,7 @@ interface Props {
 	integration: IntegrationType
 	showModalDefault?: boolean
 	showSettingsDefault?: boolean
+	loading?: boolean
 }
 
 const Integration = ({
@@ -41,6 +43,7 @@ const Integration = ({
 	},
 	showModalDefault,
 	showSettingsDefault,
+	loading,
 }: Props) => {
 	const [showConfiguration, setShowConfiguration] = useState(
 		showModalDefault && !defaultEnable,
@@ -54,6 +57,13 @@ const Integration = ({
 	useEffect(() => {
 		setIntegrationEnabled(defaultEnable)
 	}, [defaultEnable, setIntegrationEnabled])
+	if (loading) {
+		return (
+			<Card>
+				<LoadingBox height={156} />
+			</Card>
+		)
+	}
 
 	return (
 		<>

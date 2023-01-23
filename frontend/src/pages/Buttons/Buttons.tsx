@@ -83,6 +83,14 @@ export const Buttons = () => {
 		}
 	}, [])
 
+	const messageListener = (message: MessageEvent) => {
+		console.log('Highlight[iframe]', message)
+	}
+	useEffect(() => {
+		window.addEventListener('message', messageListener)
+		return () => window.removeEventListener('message', messageListener)
+	}, [])
+
 	return (
 		<div className={styles.container}>
 			<div className={styles.buttonBody}>
@@ -90,7 +98,19 @@ export const Buttons = () => {
 				<iframe
 					title="Introducing Superhuman"
 					src="https://www.youtube.com/embed/JMsFfX6qTNI?rel=0"
-				></iframe>
+					style={{ zIndex: 100 }}
+				/>
+				<iframe
+					title="Highlight Landing"
+					src={
+						import.meta.env.DEV
+							? 'http://localhost:3001/'
+							: 'https://www.highlight.io/'
+					}
+					height={300}
+					width={600}
+					style={{ zIndex: 100 }}
+				/>
 				<div className="highlight-mask">
 					This is masked.{' '}
 					<img src="/images/logo.png" height={16} alt="masked" />

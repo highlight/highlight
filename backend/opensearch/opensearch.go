@@ -271,6 +271,51 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 	return nil
 }
 
+func (c *Client) UpdateSynchronous(index Index, id int, obj map[string]interface{}) error {
+	if c == nil || !c.isInitialized {
+		return nil
+	}
+
+	documentId := strconv.Itoa(id)
+
+	b, err := json.Marshal(obj)
+	if err != nil {
+		return e.Wrap(err, "OPENSEARCH_ERROR error marshalling map for update")
+	}
+
+	body := strings.NewReader(fmt.Sprintf("{ \"doc\" : %s }", string(b)))
+
+	indexStr := GetIndex(index)
+
+	req := opensearchapi.UpdateRequest{
+		Index:      indexStr,
+		DocumentID: documentId,
+		Body:       body,
+		Refresh:    "true",
+	}
+
+	res, err := req.Do(context.Background(), c.Client)
+	if err != nil {
+		return e.Wrap(err, "OPENSEARCH_ERROR error updating document")
+	}
+
+	if res.IsError() {
+		return e.New(
+			fmt.Sprintf(
+				"OPENSEARCH_ERROR (%s : %s) [%d] %s",
+				indexStr,
+				documentId,
+				res.StatusCode,
+				res.String(),
+			),
+		)
+	}
+
+	// log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
+
+	return nil
+}
+
 func (c *Client) Delete(index Index, id int) error {
 	if c == nil || !c.isInitialized {
 		return nil
@@ -427,9 +472,13 @@ func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
 		Body:       body,
 	}
 
-	_, err = req.Do(context.Background(), c.Client)
+	response, err := req.Do(context.Background(), c.Client)
 	if err != nil {
 		return e.Wrap(err, "OPENSEARCH_ERROR error indexing document")
+	}
+
+	if response.IsError() {
+		return e.New("OPENSEARCH_ERROR error indexing document: " + response.String())
 	}
 
 	// log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
@@ -611,6 +660,30 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 	}
 
 	return response.Hits.Total.Value, aggregationResults, nil
+}
+
+func (c *Client) RawSearch(index Index, query string) ([]byte, error) {
+	searchIndexes := []string{GetIndex(index)}
+	search := opensearchapi.SearchRequest{
+		Index: searchIndexes,
+		Body:  strings.NewReader(query),
+	}
+
+	searchResponse, err := search.Do(context.Background(), c.ReadClient)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to search index")
+	}
+
+	res, err := io.ReadAll(searchResponse.Body)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to read search response")
+	}
+
+	if err := searchResponse.Body.Close(); err != nil {
+		return nil, e.Wrap(err, "failed to close search response")
+	}
+
+	return res, nil
 }
 
 func (c *Client) PutMapping(index Index, bodyStr string) error {

@@ -1,17 +1,13 @@
 import { ErrorObject, Session, SessionComment } from '@graph/schemas'
-import { Replayer } from '@highlight-run/rrweb'
-import { EventType } from '@highlight-run/rrweb'
-import {
-	playerMetaData,
-	SessionInterval,
-} from '@highlight-run/rrweb/typings/types'
+import { EventType, Replayer } from '@highlight-run/rrweb'
+import { playerMetaData, SessionInterval } from '@highlight-run/rrweb-types'
 import { clamp } from '@util/numbers'
+import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import * as H from 'history'
 import { useCallback, useState } from 'react'
 import { useLocation } from 'react-router'
 
-import { MillisToMinutesAndSeconds } from '../../../../util/time'
 import { HighlightEvent } from '../../HighlightEvent'
 import {
 	ParsedErrorObject,
@@ -53,9 +49,7 @@ export const getSessionIntervals = (
 		]
 	}
 
-	const sliderIntervalMap = getIntervalWithPercentages(metadata, allIntervals)
-
-	return sliderIntervalMap
+	return getIntervalWithPercentages(metadata, allIntervals)
 }
 
 const getIntervalWithPercentages = (
@@ -613,7 +607,9 @@ export const changeSession = (
 	}
 
 	history.push(`/${projectIdRemapped}/sessions/${session.secure_id}`)
-	message.success(successMessageText)
+	if (successMessageText.length) {
+		message.success(successMessageText)
+	}
 }
 
 export const loadiFrameResources = (r: Replayer, project_id: string) => {

@@ -1,5 +1,6 @@
 import tinycolor from '@ctrl/tinycolor'
 import { Box, Text } from '@highlight-run/ui'
+import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -201,6 +202,7 @@ const Histogram = React.memo(
 											? 'hidden'
 											: 'visible',
 										pointerEvents: 'inherit',
+										boxShadow: shadows.medium,
 									}}
 									cursor={{
 										fill:

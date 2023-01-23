@@ -33,6 +33,7 @@ func SendErrorAlert(event SendErrorAlertEvent) error {
 		ErrorURL:        getErrorURL(event.ErrorAlert, event.ErrorGroup),
 		ErrorResolveURL: getErrorResolveURL(event.ErrorAlert, event.ErrorGroup),
 		ErrorIgnoreURL:  getErrorIgnoreURL(event.ErrorAlert, event.ErrorGroup),
+		ErrorSnoozeURL:  getErrorSnoozeURL(event.ErrorAlert, event.ErrorGroup),
 		SessionURL:      getSessionURL(event.ErrorAlert.ProjectID, event.Session),
 		VisitedURL:      event.VisitedURL,
 	}

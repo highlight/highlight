@@ -32,4 +32,7 @@ export const vars = {
 		large: '0 2px 4px 0px rgba(28,28,28,.1), 0 12px 12px -4px rgba(28,28,28,.1), 0 20px 20px -12px rgba(28,28,28,.2)',
 	},
 	overflow: ['auto', 'hidden', 'visible', 'scroll'],
+	zIndex: {
+		tooltip: 10,
+	},
 } as const

@@ -66,7 +66,24 @@ import style from './ToolbarControlBar.module.scss'
 
 const EventTypeToExclude: readonly string[] = ['Web Vitals']
 
-const ToolbarControls = () => {
+type ShortcutGuideProps = {
+	shortcut: ShortcutItem
+	className?: string
+}
+
+const ShortcutTextGuide: React.FC<ShortcutGuideProps> = React.memo(
+	({ shortcut, className }) => {
+		return (
+			<Box display="flex" gap="2" cssClass={className}>
+				{shortcut.shortcut.map((char, idx) => (
+					<Badge key={idx} variant="grey" size="tiny" label={char} />
+				))}
+			</Box>
+		)
+	},
+)
+
+export const ToolbarControlBar = () => {
 	const {
 		setTime,
 		time,
@@ -103,106 +120,117 @@ const ToolbarControls = () => {
 	const [showSettings, setShowSettings] = useState(false)
 
 	return (
-		<div className={style.controlContainer}>
-			<ExplanatoryPopover
-				content={
-					<>
-						<Text userSelect="none" color="n11">
-							Skip back
-						</Text>
-						<Badge
-							variant="grey"
-							size="tiny"
-							iconStart={<IconSolidArrowSmLeft size={12} />}
-						/>
-					</>
-				}
-			>
-				<ButtonIcon
-					onClick={() => {
-						analytics.track('PlayerSkipLeft')
-						const prevTime = Math.max(time - 5000, 0)
-						setTime(prevTime)
-					}}
-					disabled={disableControls}
-					icon={<IconSolidSkipLeft size={14} />}
-					size="small"
-					shape="square"
-					emphasis="low"
-					kind="secondary"
-				/>
-			</ExplanatoryPopover>
-			<ExplanatoryPopover
-				content={
-					<>
-						<Text userSelect="none" color="n11">
-							{isPlaybackComplete
-								? 'Restart'
-								: isPaused && !isLiveMode
-								? 'Play'
-								: 'Pause'}
-						</Text>
-						<Badge variant="grey" size="tiny" label="Space" />
-					</>
-				}
-			>
-				<ButtonIcon
-					onClick={() => {
-						analytics.track('Player Play/Pause Button')
-						if (isPlaybackComplete) {
-							pause(time)
-							const newTime = 0
-							play(newTime)
-						} else if (isPaused && !isLiveMode) {
-							play(time)
-						} else {
-							pause(time)
-						}
-					}}
-					disabled={disableControls}
-					icon={
-						isPaused && isPlaybackComplete ? (
-							<IconSolidRefresh size={14} />
-						) : isPaused && !isLiveMode ? (
-							<IconSolidPlay size={14} />
-						) : (
-							<IconSolidPause size={14} />
-						)
+		<Box
+			display="flex"
+			alignItems="center"
+			width="full"
+			gap="4"
+			px="8"
+			py="4"
+			overflow="hidden"
+		>
+			<Box display="flex" gap="2">
+				<ExplanatoryPopover
+					content={
+						<>
+							<Text userSelect="none" color="n11">
+								Skip back
+							</Text>
+							<Badge
+								variant="grey"
+								size="tiny"
+								iconStart={<IconSolidArrowSmLeft />}
+							/>
+						</>
 					}
-					size="small"
-					shape="square"
-					emphasis="low"
-					kind="secondary"
-				/>
-			</ExplanatoryPopover>
-			<ExplanatoryPopover
-				content={
-					<>
-						<Text userSelect="none" color="n11">
-							Skip forward
-						</Text>
-						<Badge
-							variant="grey"
-							size="tiny"
-							iconStart={<IconSolidSkip size={12} />}
-						/>
-					</>
-				}
-			>
-				<ButtonIcon
-					onClick={() => {
-						analytics.track('PlayerSkipRight')
-						const newTime = Math.max(time + 5000, 0)
-						setTime(newTime)
-					}}
-					disabled={disableControls}
-					icon={<IconSolidSkip size={14} />}
-					size="small"
-					shape="square"
-					emphasis="low"
-					kind="secondary"
-				/>
-			</ExplanatoryPopover>
+				>
+					<ButtonIcon
+						onClick={() => {
+							analytics.track('PlayerSkipLeft')
+							const prevTime = Math.max(time - 5000, 0)
+							setTime(prevTime)
+						}}
+						disabled={disableControls}
+						icon={<IconSolidSkipLeft />}
+						size="xSmall"
+						shape="square"
+						emphasis="low"
+						kind="secondary"
+					/>
+				</ExplanatoryPopover>
+				<ExplanatoryPopover
+					content={
+						<>
+							<Text userSelect="none" color="n11">
+								{isPlaybackComplete
+									? 'Restart'
+									: isPaused && !isLiveMode
+									? 'Play'
+									: 'Pause'}
+							</Text>
+							<Badge variant="grey" size="tiny" label="Space" />
+						</>
+					}
+				>
+					<ButtonIcon
+						onClick={() => {
+							analytics.track('Player Play/Pause Button')
+							if (isPlaybackComplete) {
+								pause(time)
+								const newTime = 0
+								play(newTime)
+							} else if (isPaused && !isLiveMode) {
+								play(time)
+							} else {
+								pause(time)
+							}
+						}}
+						disabled={disableControls}
+						icon={
+							isPaused && isPlaybackComplete ? (
+								<IconSolidRefresh />
+							) : isPaused && !isLiveMode ? (
+								<IconSolidPlay />
+							) : (
+								<IconSolidPause />
+							)
+						}
+						size="xSmall"
+						shape="square"
+						emphasis="low"
+						kind="secondary"
+					/>
+				</ExplanatoryPopover>
+				<ExplanatoryPopover
+					content={
+						<>
+							<Text userSelect="none" color="n11">
+								Skip forward
+							</Text>
+							<Badge
+								variant="grey"
+								size="tiny"
+								iconStart={<IconSolidSkip size={12} />}
+							/>
+						</>
+					}
+				>
+					<ButtonIcon
+						onClick={() => {
+							analytics.track('PlayerSkipRight')
+							const newTime = Math.max(time + 5000, 0)
+							setTime(newTime)
+						}}
+						disabled={disableControls}
+						icon={<IconSolidSkip size={14} />}
+						size="xSmall"
+						shape="square"
+						emphasis="low"
+						kind="secondary"
+					/>
+				</ExplanatoryPopover>
+			</Box>
+
 			{showLiveToggle && (
 				<Tag
 					onClick={() => {
@@ -214,17 +242,17 @@ const ToolbarControls = () => {
 					Live
 				</Tag>
 			)}
-			{isLiveMode && lastActiveString && (
-				<SessionToken
-					className={style.liveUserStatus}
-					icon={<ActivityIcon />}
-					tooltipTitle={`This session is live, but the user was last active ${lastActiveString}.`}
-				>
-					User was last active {lastActiveString}
-				</SessionToken>
-			)}
-			{!isLiveMode && (
-				<>
+			<Box display="flex" gap="4">
+				{isLiveMode && lastActiveString && (
+					<SessionToken
+						className={style.liveUserStatus}
+						icon={<ActivityIcon />}
+						tooltipTitle={`This session is live, but the user was last active ${lastActiveString}.`}
+					>
+						User was last active {lastActiveString}
+					</SessionToken>
+				)}
+				{!isLiveMode && (
 					<Text color="n11" userSelect="none">
 						{disableControls ? (
 							<Skeleton count={1} width="60.13px" />
@@ -253,6 +281,11 @@ const ToolbarControls = () => {
 							</>
 						)}
 					</Text>
+				)}
+			</Box>
+
+			{!isLiveMode && (
+				<>
 					<ExplanatoryPopover
 						className={style.moveRight}
 						content={
@@ -283,6 +316,9 @@ const ToolbarControls = () => {
 					>
 						<Tag
 							kind="secondary"
+							shape="rounded"
+							size="medium"
+							emphasis="low"
 							onClick={() => {
 								setPlayerSpeedIdx(playerSpeedIdx + 1)
 							}}
@@ -360,32 +396,32 @@ const ToolbarControls = () => {
 						visible={showSettings}
 						destroyTooltipOnHide
 					>
-						<Box>
-							<ButtonIcon
-								disabled={disableControls}
-								icon={<IconSolidCog size={14} />}
-								size="small"
-								shape="square"
-								emphasis="low"
-								kind="secondary"
-							/>
-						</Box>
+						<ButtonIcon
+							icon={<IconSolidCog />}
+							disabled={disableControls}
+							size="xSmall"
+							shape="square"
+							emphasis="low"
+							kind="secondary"
+						/>
 					</Popover>
 				</>
 			)}
+
 			<Box cssClass={{ [style.moveRight]: isLiveMode }}>
 				<ButtonIcon
 					onClick={() => {
 						setIsPlayerFullscreen((prev) => !prev)
 					}}
+					disabled={disableControls}
 					icon={<IconSolidArrowsExpand size={14} />}
-					size="small"
+					size="xSmall"
 					shape="square"
 					emphasis="low"
 					kind="secondary"
 				/>
 			</Box>
-		</div>
+		</Box>
 	)
 }
 
@@ -640,21 +676,3 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 		</div>
 	)
 }
-
-type ShortcutGuideProps = {
-	shortcut: ShortcutItem
-	className?: string
-}
-const ShortcutTextGuide: React.FC<ShortcutGuideProps> = React.memo(
-	({ shortcut, className }) => {
-		return (
-			<Box display="flex" gap="2" cssClass={className}>
-				{shortcut.shortcut.map((char, idx) => (
-					<Badge key={idx} variant="grey" size="tiny" label={char} />
-				))}
-			</Box>
-		)
-	},
-)
-
-export default ToolbarControls

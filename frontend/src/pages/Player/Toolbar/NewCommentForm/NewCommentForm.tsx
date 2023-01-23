@@ -26,8 +26,7 @@ import {
 } from '@graph/schemas'
 import ArrowLeftIcon from '@icons/ArrowLeftIcon'
 import ArrowRightIcon from '@icons/ArrowRightIcon'
-import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
-import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
+import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import ISSUE_TRACKER_INTEGRATIONS, {
 	IssueTrackerIntegration,
@@ -36,6 +35,7 @@ import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBod
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect'
 import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'
+import { delayedRefetch } from '@util/gql'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
@@ -80,7 +80,13 @@ export const NewCommentForm = ({
 	modalHeader,
 	currentUrl,
 }: Props) => {
-	const [createComment] = useCreateSessionCommentMutation()
+	const [createComment] = useCreateSessionCommentMutation({
+		refetchQueries: [
+			namedOperations.Query.GetSessionComments,
+			namedOperations.Query.GetSessionsOpenSearch,
+		],
+		onQueryUpdated: delayedRefetch,
+	})
 	const [createErrorComment] = useCreateErrorCommentMutation()
 	const { admin, isLoggedIn } = useAuthContext()
 	const { project_id } = useParams<{ project_id: string }>()
@@ -392,13 +398,13 @@ export const NewCommentForm = ({
 
 	const { isLinearIntegratedWithProject } = useLinearIntegration()
 
-	const {
-		settings: { isIntegrated: isClickupIntegrated },
-	} = useClickUpIntegration()
+	const { isIntegrated: isClickupIntegrated } = useIsProjectIntegratedWith(
+		IntegrationType.ClickUp,
+	)
 
-	const {
-		settings: { isIntegrated: isHeightIntegrated },
-	} = useHeightIntegration()
+	const { isIntegrated: isHeightIntegrated } = useIsProjectIntegratedWith(
+		IntegrationType.Height,
+	)
 
 	const issueIntegrationsOptions = useMemo(() => {
 		const integrations = []

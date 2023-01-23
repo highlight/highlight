@@ -58,6 +58,7 @@ require (
 	github.com/highlight-run/highlight-go v0.5.3
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/influxdata/influxdb-client-go/v2 v2.9.1
+	github.com/jackc/pgconn v1.10.1
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.10.4
 	github.com/lukasbob/srcset v0.0.0-20190730101422-86b742e617f3
@@ -83,7 +84,6 @@ require (
 	golang.org/x/text v0.4.0
 	google.golang.org/api v0.31.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.43.1
-	gopkg.in/kothar/brotli-go.v0 v0.0.0-20170728081549-771231d473d6
 	gorm.io/driver/postgres v1.0.8
 	gorm.io/gorm v1.21.9
 )
@@ -92,6 +92,7 @@ require (
 	github.com/DataDog/datadog-agent/pkg/obfuscate v0.0.0-20211129110424-6491aa3bf583 // indirect
 	github.com/DataDog/datadog-go/v5 v5.0.2 // indirect
 	github.com/PaesslerAG/gval v1.2.0 // indirect
+	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.22 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.16 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -100,6 +101,7 @@ require (
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
+	github.com/fatih/color v1.10.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.7 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
@@ -109,9 +111,11 @@ require (
 	github.com/marconi/go-resthooks v0.0.0-20190225103922-ad217f832acb // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
+	github.com/mattn/go-runewidth v0.0.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/tdewolff/test v1.0.7 // indirect
 	github.com/tidwall/btree v1.1.0 // indirect
@@ -136,6 +140,7 @@ require (
 	github.com/DataDog/gostackparse v0.5.0 // indirect
 	github.com/DataDog/sketches-go v1.2.1 // indirect
 	github.com/Microsoft/go-winio v0.5.1 // indirect
+	github.com/ReneKroon/ttlcache v1.7.0
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/aws/aws-lambda-go v1.34.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.1.4 // indirect
@@ -148,6 +153,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.1.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.2.1 // indirect
 	github.com/bwmarrin/discordgo v0.26.1
+	github.com/cheggaaa/pb/v3 v3.1.0
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/dghubble/sling v1.1.0 // indirect
 	github.com/gammazero/deque v0.1.0 // indirect
@@ -163,7 +169,7 @@ require (
 	github.com/hasura/go-graphql-client v0.3.0 // indirect
 	github.com/highlight-run/go-resthooks v0.0.0-20220523054100-bf95aa850a20
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.10.1 // indirect
+	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.2.0 // indirect

@@ -15,7 +15,7 @@ import { EventType } from '@highlight-run/rrweb'
 import {
 	customEvent,
 	viewportResizeDimension,
-} from '@highlight-run/rrweb/typings/types'
+} from '@highlight-run/rrweb-types'
 import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
 import {
 	CHUNKING_DISABLED_PROJECTS,
@@ -29,10 +29,11 @@ import {
 	PlayerReducer,
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
+import analytics from '@util/analytics'
 import { indexedDBFetch } from '@util/db'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
-import { timerEnd } from '@util/timer/timer'
+import { timerEnd, timerStart } from '@util/timer/timer'
 import useMapRef from '@util/useMapRef'
 import { H } from 'highlight.run'
 import _ from 'lodash'
@@ -296,26 +297,24 @@ export const usePlayer = (): ReplayerContextInterface => {
 				: startIdx
 			if (forceLoadNext) endIdx += 1
 
-			// whether we need to pause the player because we need to load the destination chunk
-			let blockingLoad = false
 			const promises = []
 			log(
-				'PlayerHook.tsx',
+				'PlayerHook.tsx:ensureChunksLoaded',
 				'checking chunk loaded status range',
 				startIdx,
 				endIdx,
 			)
 			for (let i = startIdx; i <= endIdx; i++) {
 				log(
-					'PlayerHook.tsx',
+					'PlayerHook.tsx:ensureChunksLoaded',
 					'hasChunk',
 					i,
 					chunkEventsRef.current.has(i),
 				)
 				if (loadingChunks.current.has(i)) {
 					log(
-						'PlayerHook.tsx',
-						'ensureChunksLoaded waiting for loading chunk',
+						'PlayerHook.tsx:ensureChunksLoaded',
+						'waiting for loading chunk',
 						i,
 					)
 				} else if (!chunkEventsRef.current.has(i)) {
@@ -326,11 +325,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 					if (!promises.length) {
 						if (action || i == startIdx) {
 							log(
-								'PlayerHook.tsx',
-								'ensureChunksLoaded needs blocking load for chunk',
+								'PlayerHook.tsx:ensureChunksLoaded',
+								'needs blocking load for chunk',
 								i,
 							)
-							blockingLoad = true
 							dispatch({
 								type: PlayerActionType.startChunksLoad,
 							})
@@ -352,7 +350,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 										await chunkResponse.json(),
 									),
 								)
-								log('PlayerHook.tsx', 'set data for chunk', _i)
+								log(
+									'PlayerHook.tsx:ensureChunksLoaded',
+									'set data for chunk',
+									_i,
+								)
 							} catch (e: any) {
 								H.consumeError(
 									e,
@@ -375,7 +377,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				if (currentChunkIdx.current) {
 					toRemove.delete(currentChunkIdx.current)
 				}
-				log('PlayerHook.tsx', 'getChunksToRemove', {
+				log('PlayerHook.tsx:ensureChunksLoaded', 'getChunksToRemove', {
 					after: chunkEventsRef.current,
 					toRemove,
 				})
@@ -385,10 +387,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 				await Promise.all(promises)
 				// check that the target chunk has not moved since we started the loading.
 				// eg. if we start loading, then someone clicks to a new spot, we should cancel first action.
-				if (blockingLoad && startTime === targetTime.current) {
+				if (startTime === targetTime.current) {
 					log(
-						'PlayerHook.tsx',
-						'ensureChunksLoaded',
+						'PlayerHook.tsx:ensureChunksLoaded',
 						'calling dispatchAction due to loading',
 						{
 							time: lastTimeRef.current,
@@ -399,10 +400,21 @@ export const usePlayer = (): ReplayerContextInterface => {
 					)
 					dispatchAction(startTime)
 					targetTime.current = undefined
+				} else if (targetTime.current !== undefined) {
+					log(
+						'PlayerHook.tsx:ensureChunksLoaded',
+						'calling dispatchAction due to seek while loading',
+						{
+							startTime,
+							startIdx,
+							targetTime: targetTime.current,
+						},
+					)
+					dispatchAction(targetTime.current)
+					targetTime.current = undefined
 				} else {
 					log(
-						'PlayerHook.tsx',
-						'ensureChunksLoaded',
+						'PlayerHook.tsx:ensureChunksLoaded',
 						'canceling dispatchAction',
 						{
 							startTime,
@@ -413,8 +425,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				}
 			} else if (!loadingChunks.current.has(startIdx) && action) {
 				log(
-					'PlayerHook.tsx',
-					'ensureChunksLoaded',
+					'PlayerHook.tsx:ensureChunksLoaded',
 					'calling dispatchAction due to action',
 					{
 						startTime,
@@ -450,6 +461,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				return Promise.resolve()
 			}
 
+			timerStart('timelineChangeTime')
 			dispatch({ type: PlayerActionType.setTime, time: newTime })
 			return new Promise<void>((r) =>
 				requestAnimationFrame(() =>
@@ -461,6 +473,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 						// Log how long it took to move to the new time.
 						const timelineChangeTime =
 							timerEnd('timelineChangeTime')
+						analytics.track('Session play', {
+							time,
+							duration: timelineChangeTime,
+							secure_id: state.session_secure_id,
+						})
 						datadogLogs.logger.info('Timeline Play Time', {
 							duration: timelineChangeTime,
 							sessionId: state.session_secure_id,
@@ -477,6 +494,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		(time?: number) => {
 			return new Promise<void>((r) => {
 				if (time !== undefined) {
+					timerStart('timelineChangeTime')
 					dispatch({ type: PlayerActionType.setTime, time })
 					requestAnimationFrame(() =>
 						ensureChunksLoaded(
@@ -487,6 +505,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 							// Log how long it took to move to the new time.
 							const timelineChangeTime =
 								timerEnd('timelineChangeTime')
+							analytics.track('Session pause', {
+								time,
+								duration: timelineChangeTime,
+								secure_id: state.session_secure_id,
+							})
 							datadogLogs.logger.info('Timeline Pause Time', {
 								duration: timelineChangeTime,
 								sessionId: state.session_secure_id,
@@ -505,6 +528,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const seek = useCallback(
 		(time: number): Promise<void> => {
+			timerStart('timelineChangeTime')
 			if (!state.isLiveMode && skipInactive) {
 				const inactivityEnd = getInactivityEnd(time)
 				if (inactivityEnd) {
@@ -526,7 +550,21 @@ export const usePlayer = (): ReplayerContextInterface => {
 						time,
 						undefined,
 						state.replayerState,
-					).then(r),
+					).then(() => {
+						// Log how long it took to move to the new time.
+						const timelineChangeTime =
+							timerEnd('timelineChangeTime')
+						analytics.track('Session seek', {
+							time,
+							duration: timelineChangeTime,
+							secure_id: state.session_secure_id,
+						})
+						datadogLogs.logger.info('Timeline Seek Time', {
+							duration: timelineChangeTime,
+							sessionId: state.session_secure_id,
+						})
+						r()
+					}),
 				),
 			)
 		},
@@ -536,6 +574,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			skipInactive,
 			state.isLiveMode,
 			state.replayerState,
+			state.session_secure_id,
 		],
 	)
 

@@ -1166,6 +1166,44 @@ export const propertiesToRules = (
 	return rules
 }
 
+export const defaultSessionsQuery = {
+	bool: {
+		must: [
+			{
+				bool: {
+					should: [
+						{
+							range: {
+								created_at: {
+									gte: moment().subtract(30, 'days').format(),
+									lte: moment().format(),
+								},
+							},
+						},
+					],
+				},
+			},
+			{
+				bool: {
+					must: [
+						{
+							bool: {
+								should: [
+									{
+										term: {
+											processed: 'true',
+										},
+									},
+								],
+							},
+						},
+					],
+				},
+			},
+		],
+	},
+} as const
+
 export type FetchFieldVariables =
 	| Partial<
 			Exact<{
@@ -1208,6 +1246,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 		searchParams,
 		setSearchParams,
 		searchResultsLoading,
+		setPage,
 	} = searchContext
 
 	const { admin } = useAuthContext()
@@ -1804,6 +1843,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 		}
 
 		if (serializedQuery.current) {
+			setPage(1)
 			setBackendSearchQuery(serializedQuery.current)
 		}
 	}, [
@@ -1815,6 +1855,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 		setSearchParams,
 		readonly,
 		setBackendSearchQuery,
+		setPage,
 	])
 
 	const [currentStep, setCurrentStep] = useState<number | undefined>(

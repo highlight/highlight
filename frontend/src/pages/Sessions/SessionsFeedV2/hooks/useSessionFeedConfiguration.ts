@@ -10,8 +10,8 @@ const LOCAL_STORAGE_KEY_PREFIX = 'highlightSessionFeedConfiguration'
 export const useSessionFeedConfiguration = () => {
 	const [datetimeFormat, setDatetimeFormat] =
 		useLocalStorage<SESSION_FEED_DATETIME_FORMAT>(
-			`${LOCAL_STORAGE_KEY_PREFIX}DatetimeFormat`,
-			'Date and Time',
+			`${LOCAL_STORAGE_KEY_PREFIX}DatetimeFormatV2`,
+			'Smart',
 		)
 	const [countFormat, setCountFormat] =
 		useLocalStorage<SESSION_FEED_COUNT_FORMAT>(
