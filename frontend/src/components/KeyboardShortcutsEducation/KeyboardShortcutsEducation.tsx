@@ -377,11 +377,11 @@ export const ErrorsKeyboardShortcuts: ShortcutItem[] = [
 	},
 	{
 		description: `Next error`,
-		shortcut: ['j'],
+		shortcut: ['k'],
 	},
 	{
 		description: `Previous error`,
-		shortcut: ['k'],
+		shortcut: ['j'],
 	},
 	{
 		description: `Next error instance`,

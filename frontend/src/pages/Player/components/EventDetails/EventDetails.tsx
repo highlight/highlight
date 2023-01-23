@@ -9,7 +9,7 @@ import {
 	Text,
 	vars,
 } from '@highlight-run/ui'
-import { PreviousNextGroup } from '@pages/Player/components/PreviousNextGroup/PreviousNextGroup'
+import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'

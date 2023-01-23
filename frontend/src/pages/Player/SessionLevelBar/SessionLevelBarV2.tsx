@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
+import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import { useGetSessionsOpenSearchQuery } from '@graph/hooks'
 import {
 	Box,
@@ -17,7 +18,6 @@ import {
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useProjectId } from '@hooks/useProjectId'
-import { PreviousNextGroup } from '@pages/Player/components/PreviousNextGroup/PreviousNextGroup'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { changeSession } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -100,7 +100,7 @@ export const SessionLevelBarV2: React.FC<
 	const canMoveBackward = sessionResults.sessions[prev]
 
 	useHotkeys(
-		'j',
+		'k',
 		() => {
 			if (canMoveForward) {
 				analytics.track('NextSessionKeyboardShortcut')
@@ -108,7 +108,6 @@ export const SessionLevelBarV2: React.FC<
 					project_id,
 					history,
 					sessionResults.sessions[next],
-					'',
 				)
 			}
 		},
@@ -116,15 +115,14 @@ export const SessionLevelBarV2: React.FC<
 	)
 
 	useHotkeys(
-		'k',
+		'j',
 		() => {
 			if (canMoveBackward) {
-				analytics.track('NextSessionKeyboardShortcut')
+				analytics.track('PrevSessionKeyboardShortcut')
 				changeSession(
 					project_id,
 					history,
 					sessionResults.sessions[prev],
-					'',
 				)
 			}
 		},
@@ -144,7 +142,7 @@ export const SessionLevelBarV2: React.FC<
 				justifyContent="space-between"
 				align="center"
 			>
-				<Box className={styles.leftButtons}>
+				<Box cssClass={styles.leftButtons}>
 					{isLoggedIn && !showLeftPanel && (
 						<ButtonIcon
 							kind="secondary"
@@ -167,7 +165,6 @@ export const SessionLevelBarV2: React.FC<
 								project_id,
 								history,
 								sessionResults.sessions[prev],
-								'',
 							)
 						}}
 						canMoveBackward={!!canMoveBackward}
@@ -176,7 +173,6 @@ export const SessionLevelBarV2: React.FC<
 								project_id,
 								history,
 								sessionResults.sessions[next],
-								'',
 							)
 						}}
 						canMoveForward={!!canMoveForward}

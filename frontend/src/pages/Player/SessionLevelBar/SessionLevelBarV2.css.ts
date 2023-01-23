@@ -38,6 +38,7 @@ export const leftButtons = style({
 	display: 'flex',
 	alignItems: 'center',
 	overflowX: 'hidden',
+	gap: 8,
 })
 
 export const rightButtons = style({
