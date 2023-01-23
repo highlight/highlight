@@ -143,7 +143,10 @@ const RightPlayerPanelTabs = () => {
 											: 'grey'
 									}
 									shape="rounded"
-									label={`${sessionCommentsData?.session_comments?.length}`}
+									label={`${
+										sessionCommentsData?.session_comments
+											?.length ?? 0
+									}`}
 								/>
 							</div>
 						),
