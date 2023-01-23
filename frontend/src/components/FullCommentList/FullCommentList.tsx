@@ -1,4 +1,5 @@
 import ConnectHighlightWithSlackButton from '@components/Header/components/ConnectHighlightWithSlackButton/ConnectHighlightWithSlackButton'
+import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LoadingBox from '@components/LoadingBox'
 import classNames from 'classnames'
 import React, { useRef } from 'react'
@@ -15,16 +16,18 @@ interface Props {
 }
 
 const FullCommentList = ({
-	loading,
+	loading: isLoadingComments,
 	comments = [],
 	commentRender,
 	noCommentsMessage,
 }: Props) => {
 	const virtuoso = useRef<VirtuosoHandle>(null)
+	const { loading: isLoadingSlack } = useSlackBot()
 
+	const loading = isLoadingComments || isLoadingSlack
 	return (
 		<div className={styles.commentStream}>
-			{loading && <LoadingBox height={90} />}
+			{loading && <LoadingBox />}
 			{!loading && comments.length === 0 ? (
 				<div className={styles.noCommentsContainer}>
 					<div className={styles.noCommentsTextContainer}>
