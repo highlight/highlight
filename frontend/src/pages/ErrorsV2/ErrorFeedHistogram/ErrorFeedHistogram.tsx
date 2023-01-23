@@ -11,12 +11,8 @@ import React, { useCallback } from 'react'
 
 const ErrorFeedHistogram = React.memo(() => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const {
-		backendSearchQuery,
-		searchParams,
-		setSearchParams,
-		searchResultsLoading,
-	} = useErrorSearchContext()
+	const { backendSearchQuery, searchParams, setSearchParams } =
+		useErrorSearchContext()
 	const { loading, data } = useGetErrorsHistogramQuery({
 		variables: {
 			query: backendSearchQuery?.childSearchQuery as string,
@@ -80,7 +76,7 @@ const ErrorFeedHistogram = React.memo(() => {
 			seriesList={histogram.seriesList}
 			bucketTimes={histogram.bucketTimes}
 			bucketSize={backendSearchQuery?.histogramBucketSize}
-			loading={loading || searchResultsLoading}
+			loading={loading}
 			updateTimeRange={updateTimeRange}
 			barGap={2.4}
 		/>

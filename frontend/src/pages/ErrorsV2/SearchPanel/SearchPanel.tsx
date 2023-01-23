@@ -30,7 +30,6 @@ const SearchPanel = () => {
 		backendSearchQuery,
 		page,
 		setPage,
-		searchResultsLoading,
 		setSearchResultsLoading,
 		searchResultsCount,
 		setSearchResultsCount,
@@ -69,12 +68,12 @@ const SearchPanel = () => {
 		setSearchResultsLoading(loading)
 	}, [loading, setSearchResultsLoading])
 
-	const showHistogram = searchResultsLoading || searchResultsCount > 0
+	const showHistogram = loading || searchResultsCount > 0
 
 	const [, setSyncButtonDisabled] = useState<boolean>(false)
 
 	useEffect(() => {
-		if (!searchResultsLoading) {
+		if (!loading) {
 			const timer = setTimeout(() => {
 				setSyncButtonDisabled(false)
 			}, 3000)
@@ -84,7 +83,7 @@ const SearchPanel = () => {
 		} else {
 			setSyncButtonDisabled(true)
 		}
-	}, [searchResultsLoading])
+	}, [loading])
 
 	const errorGroups = fetchedData?.error_groups_opensearch
 	return (
@@ -112,7 +111,7 @@ const SearchPanel = () => {
 				overflowY="auto"
 				cssClass={style.content}
 			>
-				{searchResultsLoading ? (
+				{loading ? (
 					<LoadingBox />
 				) : (
 					<>
