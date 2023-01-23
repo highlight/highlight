@@ -7709,7 +7709,6 @@ __metadata:
     recharts: ^2.1.13
     rudder-sdk-js: ^2.20.0
     sass: ^1.54.8
-    simplebar-react: ^3.2.0
     source-map-explorer: ^2.5.2
     stacktrace-js: ^2.0.2
     stylelint: ^14.9.1
@@ -16631,13 +16630,6 @@ __metadata:
   version: 6.2.0
   resolution: "camelcase@npm:6.2.0"
   checksum: 8335cfd0ecc472eae685896a42afd8c9dacd193a91f569120b931c87deb053a1ba82102031b9b48a4dbc1d18066caeacf2e4ace8c3c7f0d02936d348dc0b5a87
-  languageName: node
-  linkType: hard
-
-"can-use-dom@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "can-use-dom@npm:0.1.0"
-  checksum: 488fc94c40f2fcce46ebd41abf17ef0449acf0d6b145116036cd592a8e977e5729918d4b3b7c642ce7b1f5b83d330ade39a172cf6b6ef91093785991a868b308
   languageName: node
   linkType: hard
 
@@ -35888,27 +35880,6 @@ __metadata:
   dependencies:
     semver: ~7.0.0
   checksum: aaadc1f158ad5101b363d1c7aed1f30fc1cac59a760aa31702633e0e6fe423348f07d0e78185aef0aad29130a7b7f0f188c21c7bc7353f897a0ea3682e051a70
-  languageName: node
-  linkType: hard
-
-"simplebar-core@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "simplebar-core@npm:1.2.0"
-  dependencies:
-    can-use-dom: ^0.1.0
-    lodash: ^4.17.21
-  checksum: b71b075498583742900953b44fff8deb794128473e4e8edd701b83b98ce71f33e23c970b7cd650be85595ad35b98e0946a8782d60eb1f630e6abf2d2ea63e114
-  languageName: node
-  linkType: hard
-
-"simplebar-react@npm:^3.2.0":
-  version: 3.2.0
-  resolution: "simplebar-react@npm:3.2.0"
-  dependencies:
-    simplebar-core: ^1.2.0
-  peerDependencies:
-    react: ">=16.8.0"
-  checksum: e5e4c7d9149a765b03d720685b2720e1e3d281a3929047055d17ce0d1991d198b82b5e2a979b83e4ee5a5041e7284af183508ea2c413405963ff2a8814eb51b5
   languageName: node
   linkType: hard
 
