@@ -39,11 +39,11 @@ const KeyValueTable = ({
 								key={`${keyDisplayValue}-${valueDisplayValue}-${valueInfoTooltipMessage}`}
 							>
 								<p className={styles.key}>{keyDisplayValue}</p>
-								<p className={styles.value}>
+								<div className={styles.value}>
 									{renderType === 'string' ? (
 										<>
 											{valueDisplayValue}{' '}
-											{valueInfoTooltipMessage && (
+											{!!valueInfoTooltipMessage && (
 												<InfoTooltip
 													title={
 														valueInfoTooltipMessage
@@ -57,7 +57,7 @@ const KeyValueTable = ({
 									) : renderType === 'react-node' ? (
 										<>
 											{valueDisplayValue}
-											{valueInfoTooltipMessage && (
+											{!!valueInfoTooltipMessage && (
 												<InfoTooltip
 													title={
 														valueInfoTooltipMessage
@@ -78,7 +78,7 @@ const KeyValueTable = ({
 									) : (
 										'undefined'
 									)}
-								</p>
+								</div>
 							</React.Fragment>
 						),
 				  )}
