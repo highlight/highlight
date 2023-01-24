@@ -1,6 +1,5 @@
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { themeVars } from '@highlight-run/ui/src/css/theme.css'
-import { SESSION_FEED_SCROLLBAR } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
 import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 
@@ -11,7 +10,6 @@ export const devToolsWindowV2 = style({
 	flexDirection: 'column',
 	zIndex: 5,
 	position: 'relative',
-	selectors: SESSION_FEED_SCROLLBAR,
 })
 
 export const controlBarButton = style({

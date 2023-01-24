@@ -23,6 +23,7 @@ import { message } from 'antd'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
+import { styledScrollbar } from 'style/common.css'
 
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter'
 import Tooltip from '../../../../../components/Tooltip/Tooltip'
@@ -277,6 +278,7 @@ export const NetworkPage = React.memo(
 								ref={virtuoso}
 								overscan={1024}
 								increaseViewportBy={1024}
+								className={styledScrollbar}
 								components={{
 									ScrollSeekPlaceholder: () => (
 										<div

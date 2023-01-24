@@ -13,7 +13,7 @@ export const networkBox = style({
 	height: 'calc(100% - 32px)',
 	display: 'flex',
 	flexDirection: 'column',
-	padding: '0 8px',
+	paddingLeft: 8,
 	overflowX: 'hidden',
 	overflowY: 'auto',
 	wordWrap: 'break-word',
