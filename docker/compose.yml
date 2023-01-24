@@ -66,14 +66,18 @@ services:
         environment:
             - DEMO_SESSION
             - DEPLOYMENT_KEY
+            - DOPPLER_CONFIG=docker
             - ENVIRONMENT
             - FIREBASE_SECRET
             - FRONTEND_URI
             - INFLUXDB_BUCKET
             - INFLUXDB_ORG
-            - KAFKA_ENV_PREFIX=docker
             - KAFKA_SERVERS=kafka:9092
             - KAFKA_TOPIC=dev
+            - OPENSEARCH_DOMAIN
+            - OPENSEARCH_DOMAIN_READ
+            - OPENSEARCH_PASSWORD
+            - OPENSEARCH_USERNAME
             - PSQL_DB=postgres
             - PSQL_HOST=postgres
             - PSQL_PASSWORD=
