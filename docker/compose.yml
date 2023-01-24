@@ -92,7 +92,10 @@ services:
         container_name: frontend
         image: highlight.io/frontend
         ports:
-            - 3000:443
+            - 3000:3000
+        command:
+            - yarn
+            - dev:frontend
         build:
             context: ..
             dockerfile: docker/frontend.Dockerfile
@@ -107,6 +110,14 @@ services:
                 - REACT_APP_PUBLIC_GRAPH_URI
         environment:
             - RENDER_PREVIEW=true
+            - REACT_APP_DEMO_SESSION
+            - REACT_APP_ENVIRONMENT
+            - REACT_APP_FIREBASE_CONFIG_OBJECT
+            - REACT_APP_FRONTEND_ORG
+            - REACT_APP_FRONTEND_URI
+            - REACT_APP_ONPREM
+            - REACT_APP_PRIVATE_GRAPH_URI
+            - REACT_APP_PUBLIC_GRAPH_URI
 
 volumes:
     postgres-data:

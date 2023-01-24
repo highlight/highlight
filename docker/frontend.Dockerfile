@@ -55,5 +55,7 @@ RUN yarn build:frontend
 COPY ../docker/nginx.conf /etc/nginx/sites-enabled/default
 COPY ../backend/localhostssl/server.pem /etc/ssl/certs/ssl-cert.pem
 COPY ../backend/localhostssl/server.key /etc/ssl/private/ssl-cert.key
+COPY ../backend/localhostssl/server.crt ./backend/localhostssl/server.crt
+COPY ../backend/localhostssl/server.key ./backend/localhostssl/server.key
 
 CMD ["nginx", "-g", "daemon off;"]

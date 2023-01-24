@@ -24,7 +24,7 @@
 		"build:all": "yarn turbo run prepublish build",
 		"build:backend": "cd backend && go build",
 		"build:frontend": "yarn turbo run build --filter frontend...",
-		"ci:backend": "cd backend && doppler run -- ./backend",
+		"ci:backend": "cd backend && ./backend",
 		"ci:build": "run-p --print-label build:frontend build:backend",
 		"ci:frontend": "yarn turbo run dev --filter frontend --filter client --filter firstload --only",
 		"cy:run": "cypress run",

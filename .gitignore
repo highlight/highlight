@@ -19,7 +19,6 @@ yalc.lock
 !.yarn/sdks
 !.yarn/versions
 
-**/*.pem
 **/*.test
 **/.swp
 **/build
