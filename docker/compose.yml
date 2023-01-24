@@ -44,6 +44,23 @@ services:
         volumes:
             - postgres-data:/var/lib/postgresql/data
 
+    elasticsearch:
+        container_name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.17.8
+        environment:
+            discovery.type: single-node
+            xpack.security.enabled: false
+        volumes:
+            - elasticsearch-data:/usr/share/elasticsearch/data
+
+    influxdb:
+        container_name: influxdb
+        image: influxdb:latest
+        ports:
+            - '8086:8086'
+        volumes:
+            - influxdb-data:/var/lib/influxdb
+
     collector:
         container_name: collector
         image: otel/opentelemetry-collector
@@ -71,14 +88,16 @@ services:
             - FIREBASE_SECRET
             - FRONTEND_URI
             - IN_DOCKER=true
-            - INFLUXDB_BUCKET
-            - INFLUXDB_ORG
+            - INFLUXDB_BUCKET=dev_bucket
+            - INFLUXDB_ORG=dev_org
+            - INFLUXDB_SERVER=http://influxdb:8086
+            - INFLUXDB_TOKEN=not_a_secure_token
             - KAFKA_SERVERS=kafka:9092
             - KAFKA_TOPIC=dev
-            - OPENSEARCH_DOMAIN
-            - OPENSEARCH_DOMAIN_READ
-            - OPENSEARCH_PASSWORD
-            - OPENSEARCH_USERNAME
+            - OPENSEARCH_DOMAIN=http://elasticsearch:9200
+            - OPENSEARCH_DOMAIN_READ=http://elasticsearch:9200
+            - OPENSEARCH_PASSWORD=
+            - OPENSEARCH_USERNAME=elasticsearch
             - PSQL_DB=postgres
             - PSQL_HOST=postgres
             - PSQL_PASSWORD=
@@ -124,3 +143,5 @@ services:
 volumes:
     postgres-data:
     redis-data:
+    elasticsearch-data:
+    influxdb-data:
