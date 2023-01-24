@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/andybalholm/brotli"
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
 	"github.com/highlight-run/highlight/backend/oauth"
 
@@ -201,6 +202,11 @@ func main() {
 
 	redisClient := redis.NewClient()
 	sfnClient := stepfunctions.NewClient()
+
+	clickhouseClient, err := clickhouse.NewClient()
+	if err != nil {
+		log.Fatalf("error creating clickhouse client: %v", err)
+	}
 
 	oauthSrv, err := oauth.CreateServer(db)
 	if err != nil {
@@ -437,6 +443,7 @@ func main() {
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
 			Redis:           redisClient,
+			Clickhouse:      clickhouseClient,
 			RH:              &rh,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}

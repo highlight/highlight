@@ -29,6 +29,7 @@ import (
 
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts"
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -61,6 +62,7 @@ type Resolver struct {
 	StorageClient   *storage.StorageClient
 	OpenSearch      *opensearch.Client
 	Redis           *redis.Client
+	Clickhouse      *clickhouse.Client
 	RH              *resthooks.Resthook
 }
 
