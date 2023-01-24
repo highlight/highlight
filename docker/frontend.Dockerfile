@@ -9,10 +9,7 @@ RUN mkdir /build
 WORKDIR /build
 COPY ../.yarn/plugins ./.yarn/plugins
 COPY ../.yarn/releases ./.yarn/releases
-COPY ../.yarn/install-state.gz ./.yarn/install-state.gz
-COPY .npmignore .yarnrc.yml ./
-COPY tsconfig.json turbo.json package.json yarn.lock ./
-COPY ../.turbo ./.turbo
+COPY .npmignore .yarnrc.yml tsconfig.json turbo.json package.json yarn.lock ./
 COPY ../scripts/package.json ./scripts/package.json
 COPY ../rrweb/packages/rrdom/package.json ./rrweb/packages/rrdom/package.json
 COPY ../rrweb/packages/rrdom-nodejs/package.json ./rrweb/packages/rrdom-nodejs/package.json

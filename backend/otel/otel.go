@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-const OTELPort = "4317"
+const OTELPort = "4318"
 
 // HandleTokenRequest will process a request for oauth /token command per the RFC spec.
 func Handle(w http.ResponseWriter, r *http.Request) {

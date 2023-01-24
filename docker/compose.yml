@@ -1,27 +1,31 @@
 services:
-    redpanda:
-        container_name: highlight-redpanda
-        image: docker.redpanda.com/vectorized/redpanda:v22.3.8
-        command:
-            - redpanda start
-            - --smp 1
-            - --overprovisioned
-            - --node-id 0
-            - --kafka-addr PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
-            - --advertise-kafka-addr PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
-            - --pandaproxy-addr 0.0.0.0:8082
-            - --advertise-pandaproxy-addr localhost:8082
-            - --memory 1G
-            - --reserve-memory 0M
-            - --check=false
-            - --set redpanda.empty_seed_starts_cluster=true
-            - --set redpanda.enable_sasl=true
-            - --set redpanda.superusers=["dev"]
-            - --set redpanda.kafka_batch_max_bytes=536870912
-            - --set redpanda.kafka_request_max_bytes=536870912
+    zookeeper:
+        image: confluentinc/cp-zookeeper:7.3.0
+        container_name: zookeeper
+        environment:
+            ZOOKEEPER_CLIENT_PORT: 2181
+            ZOOKEEPER_TICK_TIME: 2000
+
+    broker:
+        image: confluentinc/cp-kafka:7.3.0
+        container_name: kafka
+        ports:
+            # To learn about configuring Kafka for access across networks see
+            # https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/
+            - '9092:9092'
+        depends_on:
+            - zookeeper
+        environment:
+            KAFKA_BROKER_ID: 1
+            KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
 
     redis:
-        container_name: highlight-redis
+        container_name: redis
         image: redis
         volumes:
             - redis-data:/data
@@ -31,7 +35,7 @@ services:
             - --loglevel warning
 
     postgres:
-        container_name: highlight-postgres
+        container_name: postgres
         image: postgres
         ports:
             - 5432:5432
@@ -41,7 +45,7 @@ services:
             - postgres-data:/var/lib/postgresql/data
 
     collector:
-        container_name: highlight-collector
+        container_name: collector
         image: otel/opentelemetry-collector
         ports:
             - 4317:4317
@@ -51,9 +55,10 @@ services:
             - ./otel-collector.yaml:/etc/otel-collector-config.yaml
 
     backend:
-        container_name: highlight-backend
+        container_name: backend
         image: highlight.io/backend
         ports:
+            - 4318:4318
             - 8082:8082
         build:
             context: ..
@@ -66,22 +71,21 @@ services:
             - FRONTEND_URI
             - INFLUXDB_BUCKET
             - INFLUXDB_ORG
-            - KAFKA_SASL_PASSWORD=
-            - KAFKA_SASL_USERNAME=dev
-            - KAFKA_SERVERS=highlight-redpanda:9092
+            - KAFKA_ENV_PREFIX=docker
+            - KAFKA_SERVERS=kafka:9092
             - KAFKA_TOPIC=dev
             - PSQL_DB=postgres
-            - PSQL_HOST=highlight-postgres
+            - PSQL_HOST=postgres
             - PSQL_PASSWORD=
             - PSQL_PORT=5432
             - PSQL_USER=postgres
             - PUBLIC_GRAPH_URI
-            - REDIS_ADDRESS=highlight-redis:6379
-            - REDIS_EVENTS_STAGING_ENDPOINT=highlight-redis:6379
+            - REDIS_ADDRESS=redis:6379
+            - REDIS_EVENTS_STAGING_ENDPOINT=redis:6379
             - SESSION_FILE_PATH_PREFIX
 
     frontend:
-        container_name: highlight-frontend
+        container_name: frontend
         image: highlight.io/frontend
         ports:
             - 3000:443
