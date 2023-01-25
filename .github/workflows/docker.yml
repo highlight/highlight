@@ -22,6 +22,11 @@ jobs:
                   token: ${{ secrets.GH_REPO_TOKEN }}
                   submodules: true
 
+            - name: Pull images
+              run: |
+                  cd docker
+                  docker compose pull
+
             - name: Build docker images
               run: |
                   cd docker
