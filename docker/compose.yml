@@ -88,10 +88,10 @@ services:
             - FIREBASE_SECRET
             - FRONTEND_URI
             - IN_DOCKER=true
-            - INFLUXDB_BUCKET=dev_bucket
-            - INFLUXDB_ORG=dev_org
+            - INFLUXDB_BUCKET=dev-bucket
+            - INFLUXDB_ORG=dev-org
             - INFLUXDB_SERVER=http://influxdb:8086
-            - INFLUXDB_TOKEN=not_a_secure_token
+            - INFLUXDB_TOKEN=not-a-secure-token
             - KAFKA_SERVERS=kafka:9092
             - KAFKA_TOPIC=dev
             - OPENSEARCH_DOMAIN=http://elasticsearch:9200
