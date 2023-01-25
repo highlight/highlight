@@ -5,6 +5,18 @@ on:
         branches:
             - '**'
             - '!master'
+        paths:
+            - '**/package.json'
+            - '**/yarn.lock'
+            - '**/go.mod'
+            - '**/go.sum'
+            - '.github/workflows/e2e-test.yml'
+            - '.gitmodules'
+            - 'cypress.config.js'
+            - 'cypress/**'
+            - 'frontend/**'
+            - 'rrweb/**'
+            - 'sdk/**'
 jobs:
     test:
         name: End-to-end Cypress Testing
@@ -54,55 +66,22 @@ jobs:
               with:
                   token: ${{ secrets.GH_REPO_TOKEN }}
                   submodules: true
-            - name: Set submodule change data
-              run: |
-                  git fetch origin master --depth 1
-                  if git diff --name-only origin/master | grep -q '^highlight-javascript$'; then
-                      echo "highlight_javascript_changed=highlight-javascript" >> $GITHUB_ENV
-                  fi
-            # Check paths here instead of using `paths` at the top level because
-            # we need to wait until checkout to see if submodules have changed.
-            - uses: dorny/paths-filter@v2
-              id: filter
-              with:
-                  filters: |
-                      core:
-                        - '**/package.json'
-                        - '**/yarn.lock'
-                        - '.github/workflows/e2e-test.yml'
-                        - '.gitmodules'
-                        - 'cypress.config.js'
-                        - 'cypress/**'
-                        - 'frontend/**'
-                        - 'rrweb/**'
-            - name: Combine outputs
-              run: |
-                  run_ci="${{ env.highlight_javascript_changed == 'highlight-javascript' || steps.filter.outputs.core == 'true' }}"
-                  echo "env.highlight_javascript_changed: ${{ env.highlight_javascript_changed }}"
-                  echo "steps.filter.outputs.core: ${{ steps.filter.outputs.core }}"
-                  echo "Should CI run? $run_ci"
-                  echo "run_ci=$run_ci" >> $GITHUB_ENV
             - name: Setup Node.js
               uses: actions/setup-node@v3
-              if: ${{ env.run_ci == 'true' }}
               with:
                   node-version: 16
                   cache: 'yarn'
             - name: Install js dependencies
-              if: ${{ env.run_ci == 'true' }}
               run: yarn
             - name: Setup Go
               uses: actions/setup-go@v3
-              if: ${{ env.run_ci == 'true' }}
               with:
                   go-version-file: 'backend/go.mod'
                   cache: true
                   cache-dependency-path: backend/go.sum
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v1
-              if: ${{ env.run_ci == 'true' }}
             - name: Migrate and seed database
-              if: ${{ env.run_ci == 'true' }}
               run: |
                   cd backend/
                   make migrate
@@ -110,11 +89,9 @@ jobs:
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
             - name: Build frontend + backend
-              if: ${{ env.run_ci == 'true' }}
               run: yarn ci:build
             - name: Run Cypress tests
               uses: cypress-io/github-action@v4
-              if: ${{ env.run_ci == 'true' }}
               with:
                   install: false
                   # frontend dependencies of ci:frontend are built prior by ci:build

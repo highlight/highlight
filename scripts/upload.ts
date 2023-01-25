@@ -13,7 +13,7 @@ import yargs from 'yargs'
 import { gte } from 'semver'
 
 const S3_BUCKET = `highlight-client-bundle`
-const FIRSTLOAD_PACKAGE_JSON = './highlight-javascript/firstload/package.json'
+const FIRSTLOAD_PACKAGE_JSON = './sdk/firstload/package.json'
 const DOCS_DIR = './docs'
 
 const client = new S3Client({ region: 'us-east-2' })
