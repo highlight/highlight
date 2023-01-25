@@ -8,7 +8,6 @@ import {
 } from '@context/AppLoadingContext'
 import AboutYouPage from '@pages/AboutYou/AboutYouCard'
 import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard'
-import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
 import { auth, googleProvider } from '@util/auth'
@@ -112,7 +111,6 @@ export default function LoginForm() {
 	)
 	const [resolver, setResolver] =
 		useState<firebase.auth.MultiFactorResolver>()
-	const [, setSignUpReferral] = useLocalStorage('HighlightSignUpReferral', '')
 	const { isAuthLoading, isLoggedIn, admin } = useAuthContext()
 	const [firebaseError, setFirebaseError] = useState('')
 	const { setLoadingState: setIsLoading } = useAppLoadingContext()
@@ -184,14 +182,6 @@ export default function LoginForm() {
 		setFormState(nextState)
 		setError(null)
 	}
-
-	// Record where the new user was referred from.
-	useEffect(() => {
-		const urlParams = new URLSearchParams(window.location.search)
-		const ref = urlParams.get('ref') || document.referrer
-
-		setSignUpReferral(ref)
-	}, [setSignUpReferral])
 
 	useEffect(() => {
 		if (isAuthLoading) {

@@ -142,7 +142,7 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 }
 
 type HubspotApiInterface interface {
-	CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) (*int, error)
+	CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (*int, error)
 	CreateCompanyForWorkspace(workspaceID int, adminEmail string, name string) (*int, error)
 	CreateContactCompanyAssociation(adminID int, workspaceID int) error
 	UpdateContactProperty(adminID int, properties []hubspot.Property) error
