@@ -16,7 +16,7 @@ jobs:
         steps:
             - uses: actions/checkout@v3
             - name: Format
-              uses: Jerome1337/gofmt-action@v1.0.4
+              uses: Jerome1337/gofmt-action@v1.0.5
               with:
                   gofmt-path: './sdk/highlight-go'
                   gofmt-flags: '-l -d'
