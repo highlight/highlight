@@ -13,7 +13,7 @@
   <a href="https://highlight.io/docs">Docs</a> - <a href="https://community.highlight.io">Community (Support & Feedback)</a> - <a href="https://github.com/highlight/highlight/issues/new?assignees=&labels=bug">Bug report</a>
 </p>
 
-# highlight.io: The open-source, fullstack monitoring platform.
+# [highlight.io](https://highlight.io): The open-source, fullstack monitoring platform.
 
 highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a [cohesive](#cohesion), [modern](#for-todays-developer) and [fully-featured](#features) monitoring solution, something we wished WE had. And it's all open source :)
 
