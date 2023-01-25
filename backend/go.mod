@@ -73,7 +73,7 @@ require (
 	github.com/samber/lo v1.13.0
 	github.com/segmentio/kafka-go v0.4.38
 	github.com/sendgrid/sendgrid-go v3.7.0+incompatible
-	github.com/sirupsen/logrus v1.7.0
+	github.com/sirupsen/logrus v1.9.0
 	github.com/slack-go/slack v0.10.3
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stripe/stripe-go/v72 v72.73.1
