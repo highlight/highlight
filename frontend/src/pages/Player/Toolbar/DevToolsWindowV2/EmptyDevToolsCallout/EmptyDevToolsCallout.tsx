@@ -35,8 +35,6 @@ export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
 						? 'console messages'
 						: kind === Tab.Network
 						? 'network requests'
-						: kind === Tab.Performance
-						? 'performance profiles'
 						: kind.toLocaleLowerCase()
 				}.`}
 				icon={() => (

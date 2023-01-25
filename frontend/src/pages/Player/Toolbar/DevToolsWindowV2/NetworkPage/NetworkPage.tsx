@@ -4,7 +4,6 @@ import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
-import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext'
 import { getNetworkResourcesDisplayName } from '@pages/Player/Toolbar/DevToolsWindow/Option/Option'
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
@@ -170,7 +169,7 @@ export const NetworkPage = React.memo(
 							)}.`,
 						)
 					} else {
-						setSelectedDevToolsTab(DevToolTabType.Errors)
+						setSelectedDevToolsTab(Tab.Errors)
 						setErrorPanel(matchingError)
 						const startTime = sessionMetadata.startTime
 						if (startTime && matchingError.timestamp) {
