@@ -216,29 +216,29 @@ export const H: HighlightPublicInterface = {
 			)
 			const highlightUrl = highlight_obj?.getCurrentSessionURL()
 
-			if (window.mixpanel?.track) {
-				window.mixpanel.track(event, {
-					...metadata,
-					highlightSessionURL: highlightUrl,
-				})
+			if (H.options?.integrations?.mixpanel?.projectToken) {
+				if (window.mixpanel?.track) {
+					window.mixpanel?.track(event, {
+						...metadata,
+						highlightSessionURL: highlightUrl,
+					})
+				} else {
+					console.warn(
+						"Mixpanel not loaded, but Highlight is configured to use it. This is usually caused by Mixpanel being blocked by the user's browser.",
+					)
+				}
 			}
 
-			if (
-				!!H.options?.integrations?.mixpanel?.projectToken &&
-				!window?.mixpanel?.track
-			) {
-				console.warn(
-					"Mixpanel not loaded, but Highlight is configured to use it. This is usually caused by Mixpanel being blocked by the user's browser.",
-				)
+			if (H.options?.integrations?.amplitude?.apiKey) {
+				if (window.amplitude?.getInstance) {
+					window.amplitude.getInstance().logEvent(event, {
+						...metadata,
+						highlightSessionURL: highlightUrl,
+					})
+				}
 			}
 
-			if (window.amplitude?.getInstance) {
-				window.amplitude.getInstance().logEvent(event, {
-					...metadata,
-					highlightSessionURL: highlightUrl,
-				})
-			}
-			if (window.Intercom) {
+			if (H.options?.integrations?.intercom?.enabled) {
 				window.Intercom('trackEvent', event, metadata)
 			}
 		} catch (e) {

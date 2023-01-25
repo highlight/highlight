@@ -92,8 +92,9 @@ export declare type NetworkRecordingOptions = {
 }
 
 export declare type IntegrationOptions = {
-	mixpanel?: MixpanelIntegrationOptions
 	amplitude?: AmplitudeIntegrationOptions
+	intercom?: IntercomIntegrationOptions
+	mixpanel?: MixpanelIntegrationOptions
 }
 
 export declare type SessionShortcutOptions = false | string
@@ -113,6 +114,10 @@ export declare interface MixpanelIntegrationOptions {
 
 export declare interface AmplitudeIntegrationOptions {
 	apiKey: string
+}
+
+export declare interface IntercomIntegrationOptions {
+	enabled: boolean
 }
 
 export enum MetricName {

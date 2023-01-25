@@ -74,6 +74,9 @@ const options: HighlightOptions = {
 		amplitude: {
 			apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
 		},
+		intercom: {
+			enabled: true,
+		},
 	},
 	enableSegmentIntegration: true,
 	enableCanvasRecording: true,
