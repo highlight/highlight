@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/otel"
 	"html/template"
 	"io"
 	"net/http"
@@ -196,7 +197,7 @@ func main() {
 
 	lambda, err := lambda.NewLambdaClient()
 	if err != nil {
-		log.Fatalf("error creating lambda client: %v", err)
+		log.Errorf("error creating lambda client: %v", err)
 	}
 
 	redisClient := redis.NewClient()
@@ -458,6 +459,7 @@ func main() {
 				go func() {
 					w.Start()
 				}()
+				go otel.Listen()
 				if util.IsDevEnv() {
 					log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 				} else {
@@ -470,6 +472,7 @@ func main() {
 			}()
 			// for the 'All' worker, explicitly run the PublicWorker as well
 			go w.PublicWorker()
+			go otel.Listen()
 			if util.IsDevEnv() {
 				log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 			} else {
@@ -477,6 +480,7 @@ func main() {
 			}
 		}
 	} else {
+		go otel.Listen()
 		if util.IsDevEnv() {
 			log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 		} else {

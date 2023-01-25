@@ -13,8 +13,6 @@
   <a href="https://highlight.io/docs">Docs</a> - <a href="https://community.highlight.io">Community (Support & Feedback)</a> - <a href="https://github.com/highlight/highlight/issues/new?assignees=&labels=bug">Bug report</a>
 </p>
 
-
-
 ## Highlight is the open-source, fullstack monitoring platform.
 
 Highlight is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools on the market, we want to build a [cohesive](#cohesion) and [modern](#for-todays-developer) monitoring product, something we wished WE had. Oh, and it's all open source :)
@@ -23,7 +21,6 @@ How many times have you heard the term prometheus or grafana or loki? And how ma
 
 In everything that we do, we strive to make Highlight as easy to install as <5 lines of code in your environment. Read more about our [philsophy below](#our-values).
 
-
 ## Our Mission
 
 Our mission is to help you ship with more confidence than ever. We do this by giving you the tools you need to **uncover, resolve, and prevent** issues in your web app.
@@ -31,13 +28,15 @@ Our mission is to help you ship with more confidence than ever. We do this by gi
 ## Our Values
 
 ### Building in Public
-We strive to build in public in every way we can.  
+
+We strive to build in public in every way we can.
 
 ### Cohesion
+
 People may think that we're building multiple products (session replay, error monitoring, etc..). But we see it as one. Before we build anything new, we prioritize making it operate seemlessly with everything else.
 
 ### For Today's Developer
+
 If you're building software, why should you care about grafana or loki or the elk stack? Highlight is built for developers that want to **develop**. Leave the monitoring stuff to us 👍.
 
 Read more about [our values here](highlight.io/docs/company/values).
-

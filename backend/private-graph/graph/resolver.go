@@ -462,7 +462,7 @@ func (r *Resolver) GetErrorGroupFrequenciesUnsampled(ctx context.Context, projec
 	span.SetTag("errorGroupID", errorGroupID)
 	results, err := r.TDB.Query(ctx, query)
 	if err != nil {
-		return nil, e.Wrap(err, "failed to perform tdb query for error group frequencies")
+		log.Error(err, "failed to perform tdb query for error group frequencies")
 	}
 	var response []*modelInputs.ErrorDistributionItem
 	for _, r := range results {
@@ -507,7 +507,7 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 	span.SetTag("errorGroupIDs", errorGroupIDs)
 	results, err := r.TDB.Query(ctx, query)
 	if err != nil {
-		return nil, e.Wrap(err, "failed to perform tdb query for error group frequencies")
+		log.Error(err, "failed to perform tdb query for error group frequencies")
 	}
 	var response []*modelInputs.ErrorDistributionItem
 	for _, r := range results {
