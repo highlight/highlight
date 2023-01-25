@@ -5,7 +5,6 @@ RUN apt update && apt install -y \
   nginx \
   && apt clean
 
-RUN mkdir /build
 WORKDIR /build
 COPY ../.yarn/plugins ./.yarn/plugins
 COPY ../.yarn/releases ./.yarn/releases
