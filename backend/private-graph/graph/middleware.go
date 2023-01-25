@@ -41,13 +41,13 @@ func SetupAuthClient(oauthServer *oauth.Server, wsTokenHandler APITokenHandler) 
 		"https://www.googleapis.com/auth/identitytoolkit",
 		"https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
-		return
 		log.Errorf("error converting credentials from json: %v", err)
+		return
 	}
 	app, err := firebase.NewApp(context.Background(), nil, option.WithCredentials(creds))
 	if err != nil {
-		return
 		log.Errorf("error initializing firebase app: %v", err)
+		return
 	}
 	// create a client to communicate with firebase project
 	if AuthClient, err = app.Auth(context.Background()); err != nil {
