@@ -28,7 +28,7 @@ jobs:
             - name: Run linter
               uses: golangci/golangci-lint-action@v3
               with:
-                  working-directory: ./sdk/highlght-go
+                  working-directory: sdk/highlght-go
                   args: --config ./.golangci.yaml
                   version: latest
     build:
