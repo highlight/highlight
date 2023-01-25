@@ -1,5 +1,5 @@
 import GoToButton from '@components/Button/GoToButton'
-import { LoadingBar } from '@components/Loading/Loading'
+import LoadingBox from '@components/LoadingBox'
 import Tabs from '@components/Tabs/Tabs'
 import { ErrorObject } from '@graph/schemas'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
@@ -29,30 +29,28 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
 	const { errors, isPlayerReady } = useReplayerContext()
 	const { resources, loadResources, resourcesLoading } = useResourcesContext()
 
-	if (resource !== undefined && error === undefined) {
-		const requestId = getHighlightRequestId(resource)
-		if (requestId) {
-			if (!isPlayerReady) {
-				return <LoadingBar />
-			}
-			error = errors.find((e) => e.request_id == requestId)
-		}
+	if (!isPlayerReady || resourcesLoading) {
+		return <LoadingBox />
+	}
+
+	const requestId = getHighlightRequestId(resource)
+	if (
+		resource !== undefined &&
+		error === undefined &&
+		requestId !== undefined
+	) {
+		error = errors.find((e) => e.request_id == requestId)
 	}
 
 	let requestNotFound = false
-	if (error !== undefined && resource === undefined) {
-		if (error.request_id) {
-			loadResources()
-			if (resourcesLoading) {
-				return <LoadingBar />
-			}
-			resource = findResourceWithMatchingHighlightHeader(
-				error.request_id!,
-				// @ts-expect-error
-				resources,
-			)
-			requestNotFound = resource === undefined
-		}
+	if (error !== undefined && resource === undefined && error.request_id) {
+		loadResources()
+		resource = findResourceWithMatchingHighlightHeader(
+			error.request_id!,
+			// @ts-expect-error
+			resources,
+		)
+		requestNotFound = resource === undefined
 	}
 
 	return (
@@ -66,19 +64,13 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
 							{
 								key: 'Request',
 								panelContent: (
-									<>
-										<div>
-											<ResourceDetailsModal
-												selectedNetworkResource={
-													resource
-												}
-												networkRecordingEnabledForSession={
-													session?.enable_recording_network_contents ||
-													false
-												}
-											/>
-										</div>
-									</>
+									<ResourceDetailsModal
+										selectedNetworkResource={resource}
+										networkRecordingEnabledForSession={
+											session?.enable_recording_network_contents ||
+											false
+										}
+									/>
 								),
 							},
 					  ]
@@ -108,12 +100,10 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
 									</div>
 								),
 								panelContent: (
-									<div>
-										<ErrorModal
-											error={error}
-											showRequestAlert={requestNotFound}
-										/>
-									</div>
+									<ErrorModal
+										error={error}
+										showRequestAlert={requestNotFound}
+									/>
 								),
 							},
 					  ]
