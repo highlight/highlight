@@ -130,6 +130,7 @@ services:
                 - REACT_APP_PRIVATE_GRAPH_URI
                 - REACT_APP_PUBLIC_GRAPH_URI
         environment:
+            - ENVIRONMENT=dev
             - RENDER_PREVIEW=true
             - REACT_APP_DEMO_SESSION
             - REACT_APP_ENVIRONMENT
