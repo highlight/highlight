@@ -105,13 +105,11 @@ Our logging product is still in beta, but please [message "Vadim" or "Jay" in di
 
 Have an idea for what we should build next? Please share our [community](https://community.highlight.io) or via a Github Issue!
 
-### Data and infrastructure tools
-
 [Read a full list of Highlight features](https://highlight.io/docs).
 
 ## Our Mission
 
-Our mission is to help you ship with more confidence than ever. We do this by giving you the tools you need to **uncover, resolve, and prevent** issues in your web app.
+Our mission is to support developers like you in shipping with confidence. We do this by giving you the tools you need to **uncover, resolve, and prevent** issues in your web app.
 
 ## Our Values
 
