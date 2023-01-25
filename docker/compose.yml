@@ -49,6 +49,7 @@ services:
         image: otel/opentelemetry-collector
         ports:
             - 4317:4317
+            - 4318:4318
         command:
             - '--config=/etc/otel-collector-config.yaml'
         volumes:
@@ -58,7 +59,6 @@ services:
         container_name: backend
         image: highlight.io/backend
         ports:
-            - 4318:4318
             - 8082:8082
         build:
             context: ..
@@ -93,6 +93,7 @@ services:
         image: highlight.io/frontend
         ports:
             - 3000:3000
+            - 8080:8080
         command:
             - yarn
             - dev:frontend

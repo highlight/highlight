@@ -43,3 +43,5 @@ cypress/videos/
 *.tsbuildinfo
 **/.turbo
 
+__pycache__
+

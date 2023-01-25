@@ -2,11 +2,12 @@ receivers:
     otlp:
         protocols:
             grpc:
+                endpoint: '0.0.0.0:4317'
+            http:
+                endpoint: '0.0.0.0:4318'
 exporters:
-    logging:
-        loglevel: debug
     otlphttp:
-        endpoint: localhost:4317
+        endpoint: 'http://backend:4319'
         compression: snappy
 processors:
     batch:
@@ -15,8 +16,8 @@ service:
         traces:
             receivers: [otlp]
             processors: [batch]
-            exporters: [logging, otlphttp]
+            exporters: [otlphttp]
         metrics:
             receivers: [otlp]
             processors: [batch]
-            exporters: [logging, otlphttp]
+            exporters: [otlphttp]
