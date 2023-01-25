@@ -9,6 +9,7 @@
   <img alt="GitHub closed issues" src="https://img.shields.io/github/issues-closed/highlight/highlight"/>
 </p>
 
+
 <p align="center">
   <a href="https://highlight.io/docs">Docs</a> - <a href="https://community.highlight.io">Community (Support & Feedback)</a> - <a href="https://github.com/highlight/highlight/issues/new?assignees=&labels=bug">Bug report</a>
 </p>
