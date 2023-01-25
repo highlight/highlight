@@ -2668,7 +2668,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		defer unmarshalMessagesSpan.Finish()
 
-		if !sessionObj.AvoidPostgresStorage {
+		if sessionObj.AvoidPostgresStorage {
 			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeMessages, []byte(messages)); err != nil {
 				return e.Wrap(err, "error saving messages data")
 			}
