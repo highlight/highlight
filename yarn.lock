@@ -7528,9 +7528,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@highlight-run/client@workspace:*, @highlight-run/client@workspace:highlight-javascript/client":
+"@highlight-run/client@workspace:*, @highlight-run/client@workspace:sdk/client":
   version: 0.0.0-use.local
-  resolution: "@highlight-run/client@workspace:highlight-javascript/client"
+  resolution: "@highlight-run/client@workspace:sdk/client"
   dependencies:
     "@graphql-codegen/cli": ^2.11.2
     "@graphql-codegen/typescript": ^2.8.1
@@ -7730,9 +7730,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/next@workspace:highlight-javascript/highlight-next":
+"@highlight-run/next@workspace:sdk/highlight-next":
   version: 0.0.0-use.local
-  resolution: "@highlight-run/next@workspace:highlight-javascript/highlight-next"
+  resolution: "@highlight-run/next@workspace:sdk/highlight-next"
   dependencies:
     "@highlight-run/node": "workspace:*"
     "@highlight-run/sourcemap-uploader": "workspace:*"
@@ -7751,9 +7751,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/node@workspace:*, @highlight-run/node@workspace:highlight-javascript/highlight-node":
+"@highlight-run/node@workspace:*, @highlight-run/node@workspace:sdk/highlight-node":
   version: 0.0.0-use.local
-  resolution: "@highlight-run/node@workspace:highlight-javascript/highlight-node"
+  resolution: "@highlight-run/node@workspace:sdk/highlight-node"
   dependencies:
     "@graphql-codegen/cli": 2.11.2
     "@graphql-codegen/typescript": 2.8.1
@@ -23897,9 +23897,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highlight.run@workspace:*, highlight.run@workspace:highlight-javascript/firstload":
+"highlight.run@workspace:*, highlight.run@workspace:sdk/firstload":
   version: 0.0.0-use.local
-  resolution: "highlight.run@workspace:highlight-javascript/firstload"
+  resolution: "highlight.run@workspace:sdk/firstload"
   dependencies:
     "@rollup/plugin-commonjs": ^22.0.1
     "@rollup/plugin-json": ^4.1.0

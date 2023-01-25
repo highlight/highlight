@@ -20,10 +20,10 @@ COPY ../rrweb/packages/types/package.json ./rrweb/packages/types/package.json
 COPY ../packages/ui/package.json ./packages/ui/package.json
 COPY ../render/package.json ./render/package.json
 COPY ../sourcemap-uploader/package.json ./sourcemap-uploader/package.json
-COPY ../highlight-javascript/client/package.json ./highlight-javascript/client/package.json
-COPY ../highlight-javascript/firstload/package.json ./highlight-javascript/firstload/package.json
-COPY ../highlight-javascript/highlight-next/package.json ./highlight-javascript/highlight-next/package.json
-COPY ../highlight-javascript/highlight-node/package.json ./highlight-javascript/highlight-node/package.json
+COPY ../sdk/client/package.json ./sdk/client/package.json
+COPY ../sdk/firstload/package.json ./sdk/firstload/package.json
+COPY ../sdk/highlight-next/package.json ./sdk/highlight-next/package.json
+COPY ../sdk/highlight-node/package.json ./sdk/highlight-node/package.json
 COPY ../frontend/package.json ./frontend/package.json
 RUN yarn
 
@@ -32,7 +32,7 @@ COPY ../rrweb ./rrweb
 COPY ../packages ./packages
 COPY ../render ./render
 COPY ../sourcemap-uploader ./sourcemap-uploader
-COPY ../highlight-javascript ./highlight-javascript
+COPY ../sdk ./sdk
 COPY ../frontend ./frontend
 COPY ../backend/public-graph ./backend/public-graph
 COPY ../backend/private-graph ./backend/private-graph

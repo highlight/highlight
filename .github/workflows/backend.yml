@@ -6,6 +6,7 @@ on:
             - '!master'
         paths:
             - 'backend/**'
+            - 'sdk/highlight-go/**'
             - '.github/workflows/backend.yml'
             - '!backend/migrations'
 jobs:
