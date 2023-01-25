@@ -5,19 +5,15 @@ from flask import Flask
 app = Flask(__name__)
 
 from opentelemetry import trace, _logs
+from opentelemetry._logs.severity import std_to_otel
+from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from opentelemetry.sdk._logs import LoggerProvider, LogRecord
+from opentelemetry.sdk._logs.export import SimpleLogRecordProcessor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider, _Span
-from opentelemetry.sdk.trace.export import (
-    SimpleSpanProcessor,
-)
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk._logs import LoggerProvider, LogRecord
-from opentelemetry._logs.severity import std_to_otel
-from opentelemetry.sdk._logs.export import (
-    SimpleLogRecordProcessor
-)
-from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
-from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 
 provider = TracerProvider()
 provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))

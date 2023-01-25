@@ -2,7 +2,6 @@ package otel
 
 import (
 	"github.com/go-chi/chi"
-	private "github.com/highlight-run/highlight/backend/private-graph/graph"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -29,7 +28,6 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 func Listen() {
 	r := chi.NewMux()
 	r.Route("/v1", func(r chi.Router) {
-		r.Use(private.PrivateMiddleware)
 		r.HandleFunc("/traces", HandleTrace)
 		r.HandleFunc("/logs", HandleLog)
 	})
