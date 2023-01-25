@@ -62,7 +62,7 @@ See our [enterprise self-hosted docs](https://highlight.io/docs/company/open-sou
 -   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/integrations)
 
 <p align="center">
-<img width="9800" alt="Frame 43972" src="https://user-images.githubusercontent.com/20292680/214499701-86b7deb3-ec8f-4cb2-8661-ff4f9d7ade2d.png">
+<img width="800" alt="Frame 43972" src="https://user-images.githubusercontent.com/20292680/214499701-86b7deb3-ec8f-4cb2-8661-ff4f9d7ade2d.png">
 </p>
 
 ### Error Monitoring
