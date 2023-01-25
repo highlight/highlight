@@ -2,7 +2,7 @@ name: Monorepo
 
 on:
     push:
-        branches: ['master']
+        branches: ['main']
     pull_request:
         types: [opened, synchronize]
 
@@ -62,7 +62,7 @@ jobs:
               run: yarn prepublish
 
             # always publish client, even in PRs
-            # this is ok because the final push to master of the version will replace
+            # this is ok because the final push to main of the version will replace
             # any previous builds, while doing this in PR will allow the PR frontend preview
             # to reference the PR's latest version of client
             - name: Publish client bundle
@@ -70,13 +70,13 @@ jobs:
               run: yarn publish:client
 
             - name: Upload frontend sourcemaps
-              if: github.ref == 'refs/heads/master'
+              if: github.ref == 'refs/heads/main'
               run: yarn && yarn sourcemaps:frontend
               env:
                   HIGHLIGHT_API_KEY: ${{ secrets.HIGHLIGHT_SOURCEMAP_API_KEY }}
 
             - name: Configure yarn npm registry credentials
-              if: github.ref == 'refs/heads/master'
+              if: github.ref == 'refs/heads/main'
               run: |
                   yarn config set npmRegistryServer "https://registry.npmjs.org"
                   yarn config set npmAuthToken "${NPM_TOKEN}"
@@ -84,7 +84,7 @@ jobs:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Publish npm packages
-              if: github.ref == 'refs/heads/master'
+              if: github.ref == 'refs/heads/main'
               run: yarn publish:turbo
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
