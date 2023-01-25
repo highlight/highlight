@@ -70,6 +70,7 @@ export default defineConfig(({ mode }) => {
 		],
 		envPrefix: ['VITE_', ...ENVVAR_ALLOWLIST],
 		server: {
+			host: '0.0.0.0',
 			port: 3000,
 			https: {
 				key: join(__dirname, '../backend/localhostssl/server.key'),

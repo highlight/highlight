@@ -33,24 +33,7 @@ Read more about [our values here](highlight.io/docs/company/values).
 
 ### Hosted Highlight (free to get started!)
 
-The fastest and most reliable way to get started with Highlight is signing up for free at [app.highlight.io](https://app.highlight.io). After making an account, getting started is as easy as installing the client SDK snippet; below is an example in React:
-
-```typescript
-import React from 'react'
-import { H } from 'highlight.run'
-import { ErrorBoundary } from '@highlight-run/react'
-
-H.init('<YOUR_PROJECT_ID>') // Get your project ID from https://app.highlight.run/setup
-
-ReactDOM.render(
-	<React.StrictMode>
-		<ErrorBoundary>
-			<App />
-		</ErrorBoundary>
-	</React.StrictMode>,
-	document.getElementById('root'),
-)
-```
+The fastest and most reliable way to get started with Highlight is signing up for free at [app.highlight.io](https://app.highlight.io). After making an account, getting started is as easy as installing the [client SDK snippet](https://www.highlight.io/docs/getting-started/client-sdk/overview).
 
 After this, we recommend configuring alerts, installing Highlight in your backend and more! Refer to your account at [app.highlight.io](https://app.highlightio) on next steps.
 

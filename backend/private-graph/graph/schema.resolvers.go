@@ -455,7 +455,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 		params.AddMetadata("Workspace ID", strconv.Itoa(workspace.ID))
 		c, err = r.StripeClient.Customers.New(params)
 		if err != nil {
-			return nil, e.Wrap(err, "error creating stripe customer")
+			log.Error(err, "error creating stripe customer")
 		}
 	}
 
@@ -1026,7 +1026,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		params := &stripe.CustomerParams{}
 		c, err := r.StripeClient.Customers.New(params)
 		if err != nil {
-			return nil, e.Wrap(err, "error creating stripe customer")
+			log.Error(err, "error creating stripe customer")
 		}
 		if err := r.DB.Model(&workspace).Updates(&model.Workspace{
 			StripeCustomerID: &c.ID,

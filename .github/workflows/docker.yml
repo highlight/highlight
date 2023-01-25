@@ -1,0 +1,26 @@
+name: Docker
+
+on:
+    pull_request:
+        types: [opened, synchronize]
+
+jobs:
+    build:
+        name: Build Docker Images
+        timeout-minutes: 30
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Use HTTPS for checkout
+              run: echo -e '[url "https://github.com/"]\n  insteadOf = "git@github.com:"' >> ~/.gitconfig
+
+            - name: Checkout
+              uses: actions/checkout@v3
+              with:
+                  token: ${{ secrets.GH_REPO_TOKEN }}
+                  submodules: true
+
+            - name: Build images
+              run: |
+                  cd docker
+                  bash run.sh
