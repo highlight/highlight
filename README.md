@@ -27,8 +27,6 @@ In everything that we do, we strive to make Highlight as easy to install as a fe
 -   [Mission](#our-mission)
 -   [Values](#our-values)
 
-Read more about [our values here](highlight.io/docs/company/values).
-
 ## Get started
 
 ### Hosted Highlight (free to get started!)
