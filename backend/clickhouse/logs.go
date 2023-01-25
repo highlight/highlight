@@ -7,6 +7,7 @@ import (
 	"time"
 
 	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 type LogRow struct {
@@ -72,6 +73,8 @@ func (client *Client) BatchWriteMessagesForSession(ctx context.Context, projectI
 	for _, message := range messagesParsed.Messages {
 		logRow, err := makeLogRow(projectID, sessionSecureID, message)
 		if err != nil {
+			// If there's an issue with parsing, we'll log for investigation and try the next one
+			log.WithError(err).Error("failed to parse log message")
 			continue
 		}
 
