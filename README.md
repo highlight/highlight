@@ -13,11 +13,11 @@
   <a href="https://highlight.io/docs">Docs</a> - <a href="https://community.highlight.io">Community (Support & Feedback)</a> - <a href="https://github.com/highlight/highlight/issues/new?assignees=&labels=bug">Bug report</a>
 </p>
 
-# Highlight: The open-source, fullstack monitoring platform.
+# highlight.io: The open-source, fullstack monitoring platform.
 
-Highlight is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a [cohesive](#cohesion), [modern](#for-todays-developer) and [fully-featured](#features) monitoring solution, something we wished WE had. And it's all open source :)
+highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a [cohesive](#cohesion), [modern](#for-todays-developer) and [fully-featured](#features) monitoring solution, something we wished WE had. And it's all open source :)
 
-In everything that we do, we strive to make Highlight as easy to install as a few lines of code in any environment. Read more about our [values](#our-values) and [mission](#our-mission) below.
+In everything that we do, we strive to make highlight.io as easy to install as a few lines of code in any environment. Read more about our [values](#our-values) and [mission](#our-mission) below.
 
 ## Table of Contents
 
@@ -29,11 +29,11 @@ In everything that we do, we strive to make Highlight as easy to install as a fe
 
 ## Get started
 
-### Hosted Highlight (free to get started!)
+### Hosted highlight.io (free to get started!)
 
-The fastest and most reliable way to get started with Highlight is signing up for free at [app.highlight.io](https://app.highlight.io). After making an account, getting started is as easy as installing the [client SDK snippet](https://www.highlight.io/docs/getting-started/client-sdk/overview).
+The fastest and most reliable way to get started with highlight.io is signing up for free at [app.highlight.io](https://app.highlight.io). After making an account, getting started is as easy as installing the [client SDK snippet](https://www.highlight.io/docs/getting-started/client-sdk/overview).
 
-After this, we recommend configuring alerts, installing Highlight in your backend and more! Refer to your account at [app.highlight.io](https://app.highlightio) on next steps.
+After this, we recommend configuring alerts, installing highlight.io in your backend and more! Refer to your account at [app.highlight.io](https://app.highlightio) on next steps.
 
 ### Hobby self-hosted
 
@@ -86,11 +86,11 @@ Our logging product is still in beta, but please [message us in discord](https:/
 
 Have an idea for what we should build next? Please share our [community](https://community.highlight.io) or via a Github Issue!
 
-[Read a full list of Highlight features](https://highlight.io/docs).
+[Read a full list of highlight.io features](https://highlight.io/docs).
 
 ## SDKs
 
-All of our SDKs for Highlight can be found in the `sdk` [directory](https://github.com/highlight/highlight/tree/master/sdk). We currently support:
+All of our SDKs for highlight.io can be found in the `sdk` [directory](https://github.com/highlight/highlight/tree/master/sdk). We currently support:
 
 -   Server Libraries:
     -   Node.js: [repo link](https://github.com/highlight/highlight/tree/master/sdk/highlight-node)
@@ -115,6 +115,6 @@ People may think that we're building multiple products (session replay, error mo
 
 ### We build for today's developer.
 
-If you're building software, why should you care about grafana or loki or the elk stack? Highlight is built for developers that want to **develop**. Leave the monitoring stuff to us 👍.
+If you're building software, why should you care about grafana or loki or the elk stack? highlight.io is built for developers that want to **develop**. Leave the monitoring stuff to us 👍.
 
 Read more about [our values here](https://highlight.io/docs/company/values).
