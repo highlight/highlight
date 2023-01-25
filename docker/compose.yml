@@ -56,10 +56,17 @@ services:
     influxdb:
         container_name: influxdb
         image: influxdb:latest
-        ports:
-            - '8086:8086'
         volumes:
             - influxdb-data:/var/lib/influxdb
+
+    setup-influxdb:
+        image: highlight.io/backend
+        command:
+            - bash
+            - -c
+            - 'influx setup --host http://influxdb:8086 --skip-verify --bucket dev-bucket --org dev-org --username dev --password devdevdevdev --retention 0 --token not-a-secure-token --force'
+        depends_on:
+            - influxdb
 
     collector:
         container_name: collector
@@ -86,6 +93,7 @@ services:
             - postgres
             - elasticsearch
             - influxdb
+            - setup-influxdb
             - collector
         environment:
             - DEMO_SESSION
@@ -115,6 +123,23 @@ services:
             - REDIS_ADDRESS=redis:6379
             - REDIS_EVENTS_STAGING_ENDPOINT=redis:6379
             - SESSION_FILE_PATH_PREFIX
+
+    backend-setup-elasticserch:
+        image: highlight.io/backend
+        build:
+            context: ..
+            dockerfile: docker/backend.Dockerfile
+        command:
+            - /bin/backend
+            - -runtime=worker
+            - -worker-handler=init-opensearch
+        depends_on:
+            - backend
+        environment:
+            - OPENSEARCH_DOMAIN=http://elasticsearch:9200
+            - OPENSEARCH_DOMAIN_READ=http://elasticsearch:9200
+            - OPENSEARCH_PASSWORD=
+            - OPENSEARCH_USERNAME=elasticsearch
 
     frontend:
         container_name: frontend
