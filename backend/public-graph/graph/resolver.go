@@ -2693,8 +2693,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		// Only set for main Highlight project
 		if projectID == 1 {
 			if err := r.Clickhouse.BatchWriteMessagesForSession(ctx, projectID, sessionSecureID, messages); err != nil {
-				return e.Wrap(err, "error writing console messages to clickhouse")
-
+				log.WithError(err).Error("error writing console messages to clickhouse")
 			}
 		}
 
