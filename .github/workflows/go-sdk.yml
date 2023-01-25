@@ -28,7 +28,7 @@ jobs:
             - name: Run linter
               uses: golangci/golangci-lint-action@v3
               with:
-                  args: --config ./.golangci.yml --timeout 5m
+                  args: --config ./.golangci.yaml --timeout 5m
                   working-directory: sdk/highlight-go
                   version: latest
     build:
