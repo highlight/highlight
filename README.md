@@ -61,7 +61,9 @@ See our [enterprise self-hosted docs](https://highlight.io/docs/company/open-sou
 -   **Session Comments**: Comment on errors to communicate with your team on user frustration, bugs, and more! -> [docs](https://www.highlight.io/docs/product-features/comments)
 -   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/integrations)
 
-<img width="1848" alt="Frame 43972" src="https://user-images.githubusercontent.com/20292680/214499701-86b7deb3-ec8f-4cb2-8661-ff4f9d7ade2d.png">
+<p align="center">
+<img width="900" alt="Frame 43972" src="https://user-images.githubusercontent.com/20292680/214499701-86b7deb3-ec8f-4cb2-8661-ff4f9d7ade2d.png">
+<p>
 
 ### Error Monitoring
 
@@ -72,7 +74,9 @@ See our [enterprise self-hosted docs](https://highlight.io/docs/company/open-sou
 -   **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
 -   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/integrations)
 
+<p align="center">
 <img width="1848" alt="error-monitoring" src="https://user-images.githubusercontent.com/20292680/214500108-c8e0e289-276a-4863-816a-7c854c97df4e.png">
+<p>
 
 ### Logging
 
