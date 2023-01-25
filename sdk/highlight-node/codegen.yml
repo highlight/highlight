@@ -1,0 +1,17 @@
+# Endpoint API, the following URL is a example
+schema: '../../backend/public-graph/graph/schema.graphqls'
+overwrite: true
+generates:
+    # Get schemas from server
+    src/graph/generated/schemas.ts:
+        documents: 'src/**/**.gql'
+        plugins:
+            - typescript
+
+    # Create operations based on queries
+    src/graph/generated/operations.ts:
+        documents: 'src/**/**.gql'
+        plugins:
+            - typescript
+            - typescript-operations
+            - typescript-graphql-request
