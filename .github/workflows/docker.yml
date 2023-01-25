@@ -21,7 +21,7 @@ jobs:
                   token: ${{ secrets.GH_REPO_TOKEN }}
                   submodules: true
 
-            - name: Build images
+            - name: Build docker images
               run: |
                   cd docker
-                  bash run.sh
+                  docker compose build --pull
