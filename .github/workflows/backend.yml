@@ -3,7 +3,7 @@ on:
     push:
         branches:
             - '**'
-            - '!master'
+            - '!main'
         paths:
             - 'backend/**'
             - 'sdk/highlight-go/**'
