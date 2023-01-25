@@ -1,15 +1,12 @@
+import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+
 import { createContext } from '../../../../util/context/context'
 
-export enum DevToolTabType {
-	Errors = 'Errors',
-	Console = 'Console',
-	Network = 'Network',
-}
 interface DevToolsContext {
 	openDevTools: boolean
 	setOpenDevTools: (val: boolean) => void
-	devToolsTab: DevToolTabType
-	setDevToolsTab: (val: DevToolTabType) => void
+	devToolsTab: Tab
+	setDevToolsTab: (val: Tab) => void
 }
 
 export const [useDevToolsContext, DevToolsContextProvider] =

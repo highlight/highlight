@@ -10,8 +10,8 @@ import {
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { RightPlayerPanelTabType } from '@pages/Player/RightPlayerPanel/constants'
-import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext'
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
+import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
@@ -77,7 +77,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Comments)
 		} else if (type === 'Errors') {
 			setShowDevTools(true)
-			setSelectedDevToolsTab(DevToolTabType.Errors)
+			setSelectedDevToolsTab(Tab.Errors)
 			const error = errors.find(
 				(error) => error.error_group_secure_id === identifier,
 			)
