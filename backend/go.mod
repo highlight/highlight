@@ -57,8 +57,8 @@ require (
 	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
 	github.com/hashicorp/go-retryablehttp v0.6.6
 	github.com/highlight-run/workerpool v1.3.0
-	github.com/highlight/highlight/sdk/highlight-go v0.9.2
-	github.com/influxdata/influxdb-client-go/v2 v2.9.1
+	github.com/highlight/highlight/sdk/highlight-go v0.9.8
+	github.com/influxdata/influxdb-client-go/v2 v2.12.1
 	github.com/jackc/pgconn v1.10.1
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.10.4
@@ -239,5 +239,4 @@ require (
 	google.golang.org/genproto v0.0.0-20230222225845-10f96fb3dbec // indirect
 	google.golang.org/grpc v1.53.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
