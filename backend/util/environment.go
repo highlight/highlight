@@ -8,6 +8,7 @@ var (
 	TEST_ENV       = "test"
 	ON_PREM        = os.Getenv("REACT_APP_ONPREM")
 	DOPPLER_CONFIG = os.Getenv("DOPPLER_CONFIG")
+	IN_DOCKER      = os.Getenv("IN_DOCKER")
 )
 
 func IsDevEnv() bool {
@@ -24,6 +25,10 @@ func IsDevOrTestEnv() bool {
 
 func IsOnPrem() bool {
 	return ON_PREM == "true"
+}
+
+func IsInDocker() bool {
+	return IN_DOCKER == "true"
 }
 
 func IsOnRender() bool {

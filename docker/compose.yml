@@ -70,6 +70,7 @@ services:
             - ENVIRONMENT
             - FIREBASE_SECRET
             - FRONTEND_URI
+            - IN_DOCKER=true
             - INFLUXDB_BUCKET
             - INFLUXDB_ORG
             - KAFKA_SERVERS=kafka:9092
@@ -96,7 +97,7 @@ services:
             - 8080:8080
         command:
             - yarn
-            - dev:frontend
+            - docker:frontend
         build:
             context: ..
             dockerfile: docker/frontend.Dockerfile

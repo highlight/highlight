@@ -72,10 +72,10 @@ func New(topic string, mode Mode) *Queue {
 
 	tlsConfig := &tls.Config{}
 	var mechanism sasl.Mechanism
-	var client *kafka.Client
-	var transport *kafka.Transport
 	var dialer *kafka.Dialer
-	if util.IsDevOrTestEnv() {
+	var transport *kafka.Transport
+	var client *kafka.Client
+	if util.IsInDocker() {
 		dialer = &kafka.Dialer{
 			Timeout:   KafkaOperationTimeout,
 			DualStack: true,
@@ -87,19 +87,6 @@ func New(topic string, mode Mode) *Queue {
 		client = &kafka.Client{
 			Addr:      kafka.TCP(brokers...),
 			Transport: transport,
-		}
-		// create per-profile consumer and topic to avoid collisions between dev envs
-		groupID = fmt.Sprintf("%s_%s", EnvironmentPrefix, groupID)
-		topic = fmt.Sprintf("%s_%s", EnvironmentPrefix, topic)
-		_, err := client.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{
-			Topics: []kafka.TopicConfig{{
-				Topic:             topic,
-				NumPartitions:     8,
-				ReplicationFactor: 1,
-			}},
-		})
-		if err != nil {
-			log.Error(errors.Wrap(err, "failed to create dev topic"))
 		}
 	} else {
 		var err error
@@ -122,6 +109,22 @@ func New(topic string, mode Mode) *Queue {
 		client = &kafka.Client{
 			Addr:      kafka.TCP(brokers...),
 			Transport: transport,
+		}
+	}
+
+	if util.IsDevOrTestEnv() {
+		// create per-profile consumer and topic to avoid collisions between dev envs
+		groupID = fmt.Sprintf("%s_%s", EnvironmentPrefix, groupID)
+		topic = fmt.Sprintf("%s_%s", EnvironmentPrefix, topic)
+		_, err := client.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{
+			Topics: []kafka.TopicConfig{{
+				Topic:             topic,
+				NumPartitions:     8,
+				ReplicationFactor: 1,
+			}},
+		})
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to create dev topic"))
 		}
 	}
 
