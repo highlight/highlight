@@ -29,6 +29,7 @@ import (
 
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts"
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -61,6 +62,7 @@ type Resolver struct {
 	StorageClient   *storage.StorageClient
 	OpenSearch      *opensearch.Client
 	Redis           *redis.Client
+	Clickhouse      *clickhouse.Client
 	RH              *resthooks.Resthook
 }
 
@@ -2666,11 +2668,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		defer unmarshalMessagesSpan.Finish()
 
-		if sessionObj.AvoidPostgresStorage {
+		if !sessionObj.AvoidPostgresStorage {
 			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeMessages, []byte(messages)); err != nil {
 				return e.Wrap(err, "error saving messages data")
 			}
 		} else {
+			// TODO - this code path is no longer hit.
 			if hasBeacon {
 				r.DB.Where(&model.MessagesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.MessagesObject{})
 			}
@@ -2683,6 +2686,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				if err := r.DB.Create(obj).Error; err != nil {
 					return e.Wrap(err, "error creating messages object")
 				}
+			}
+			// End dead code path
+		}
+
+		// Only set for main Highlight project
+		if projectID == 1 {
+			if err := r.Clickhouse.BatchWriteMessagesForSession(ctx, projectID, sessionSecureID, messages); err != nil {
+				return e.Wrap(err, "error writing console messages to clickhouse")
+
 			}
 		}
 
