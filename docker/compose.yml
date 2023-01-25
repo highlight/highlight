@@ -170,10 +170,10 @@ services:
                 - REACT_APP_PRIVATE_GRAPH_URI
                 - REACT_APP_PUBLIC_GRAPH_URI
         environment:
-            - ENVIRONMENT=dev
-            - RENDER_PREVIEW=true
-            - REACT_APP_DEMO_SESSION=30000001
-            - REACT_APP_ENVIRONMENT=dev
+            - ENVIRONMENT
+            - RENDER_PREVIEW
+            - REACT_APP_DEMO_SESSION
+            - REACT_APP_ENVIRONMENT
             - REACT_APP_FIREBASE_CONFIG_OBJECT
             - REACT_APP_FRONTEND_ORG
             - REACT_APP_FRONTEND_URI
