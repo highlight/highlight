@@ -44,6 +44,7 @@ export class Highlight {
 	metrics: Array<InputMaybe<MetricInput>> = []
 	lastBackendSetupEvent: number = 0
 	_errorContext: ErrorContext | undefined
+	_projectID: string
 
 	constructor(options: NodeOptions) {
 		this._backendUrl = options.backendUrl || 'https://pub.highlight.run'
@@ -60,6 +61,7 @@ export class Highlight {
 				sourceContextCacheSizeMB: options.errorSourceContextCacheSizeMB,
 			})
 		}
+		this._projectID = options.projectID
 	}
 
 	recordMetric(
@@ -82,8 +84,8 @@ export class Highlight {
 
 	consumeCustomError(
 		error: Error,
-		secureSessionId: string,
-		requestId: string,
+		secureSessionId: string | undefined,
+		requestId: string | undefined,
 	) {
 		let res: StackFrameWithSource[] = []
 		try {

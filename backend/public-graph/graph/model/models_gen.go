@@ -10,8 +10,8 @@ import (
 )
 
 type BackendErrorObjectInput struct {
-	SessionSecureID string    `json:"session_secure_id"`
-	RequestID       string    `json:"request_id"`
+	SessionSecureID *string   `json:"session_secure_id"`
+	RequestID       *string   `json:"request_id"`
 	Event           string    `json:"event"`
 	Type            string    `json:"type"`
 	URL             string    `json:"url"`

@@ -2214,17 +2214,19 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, errorsByProject map[in
 	}
 }
 
-func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureID string, errorObjects []*publicModel.BackendErrorObjectInput) {
+func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureID *string, projectID *string, errorObjects []*publicModel.BackendErrorObjectInput) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
 	querySessionSpan.SetTag("numberOfErrors", len(errorObjects))
 	querySessionSpan.SetTag("numberOfSessions", 1)
 
 	session := &model.Session{}
-	if r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session); session.ID == 0 {
-		retErr := e.New("ProcessBackendPayloadImpl failed to find session " + sessionSecureID)
-		querySessionSpan.Finish(tracer.WithError(retErr))
-		log.Error(retErr)
-		return
+	if sessionSecureID != nil {
+		if r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: *sessionSecureID}).Limit(1).Find(&session); session.ID == 0 {
+			retErr := e.New("ProcessBackendPayloadImpl failed to find session " + *sessionSecureID)
+			querySessionSpan.Finish(tracer.WithError(retErr))
+			log.Error(retErr)
+			return
+		}
 	}
 
 	querySessionSpan.Finish()
@@ -2260,7 +2262,9 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	errorsByProject := make(map[int]int64)
 	errorsBySession := make(map[string]int64)
 	for _, err := range errorObjects {
-		errorsBySession[err.SessionSecureID] += 1
+		if err.SessionSecureID != nil {
+			errorsBySession[*err.SessionSecureID] += 1
+		}
 		errorsByProject[session.ProjectID] += 1
 	}
 
@@ -2297,7 +2301,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			StackTrace:  &traceString,
 			Timestamp:   v.Timestamp,
 			Payload:     v.Payload,
-			RequestID:   &v.RequestID,
+			RequestID:   v.RequestID,
 		}
 
 		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, extractErrorFields(session, errorToInsert), projectID)

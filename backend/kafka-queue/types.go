@@ -67,7 +67,8 @@ type AddSessionPropertiesArgs struct {
 	PropertiesObject interface{}
 }
 type PushBackendPayloadArgs struct {
-	SessionSecureID string
+	ProjectID       *string
+	SessionSecureID *string
 	Errors          []*customModels.BackendErrorObjectInput
 }
 

@@ -38,7 +38,7 @@ function processErrorImpl(
  * Exposed as `Handlers.errorHandler`
  */
 export function errorHandler(
-	options: NodeOptions = {},
+	options: NodeOptions,
 ): (
 	error: MiddlewareError,
 	req: http.IncomingMessage,
@@ -69,7 +69,7 @@ export async function trpcOnError(
 		error,
 		req,
 	}: { error: Error; req: { headers?: http.IncomingHttpHeaders } },
-	options: NodeOptions = {},
+	options: NodeOptions,
 ): Promise<void> {
 	try {
 		if (!H.isInitialized()) {
@@ -91,7 +91,7 @@ declare type FirebaseHttpFunctionHandler = (
 ) => void | Promise<void>
 export function firebaseHttpFunctionHandler(
 	origHandler: FirebaseHttpFunctionHandler,
-	options: NodeOptions = {},
+	options: NodeOptions,
 ): FirebaseHttpFunctionHandler {
 	return async (req, res) => {
 		try {
@@ -127,7 +127,7 @@ declare type FirebaseCallableFunctionHandler = (
 ) => any
 export function firebaseCallableFunctionHandler(
 	origHandler: FirebaseCallableFunctionHandler,
-	options: NodeOptions = {},
+	options: NodeOptions,
 ): FirebaseCallableFunctionHandler {
 	return async (data, context) => {
 		try {

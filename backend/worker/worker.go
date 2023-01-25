@@ -385,7 +385,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.PushBackendPayload == nil {
 			break
 		}
-		w.PublicResolver.ProcessBackendPayloadImpl(ctx, task.PushBackendPayload.SessionSecureID, task.PushBackendPayload.Errors)
+		w.PublicResolver.ProcessBackendPayloadImpl(ctx, task.PushBackendPayload.SessionSecureID, task.PushBackendPayload.ProjectID, task.PushBackendPayload.Errors)
 	case kafkaqueue.PushMetrics:
 		if task.PushMetrics == nil {
 			break
