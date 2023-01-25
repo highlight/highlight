@@ -7560,7 +7560,7 @@ __metadata:
     graphql-tag: ^2.12.6
     json-stringify-safe: ^5.0.1
     onchange: ^7.1.0
-    rollup: ^2.75.7
+    rollup: ^2.79.1
     rollup-plugin-consts: ^1.1.0
     rollup-plugin-dev: ^2.0.4
     rollup-plugin-esbuild: ^4.9.1
@@ -23943,7 +23943,7 @@ __metadata:
     "@size-limit/file": ^8.1.0
     "@types/chrome": ^0.0.144
     esbuild: ^0.14.47
-    rollup: ^2.75.7
+    rollup: ^2.79.1
     rollup-plugin-consts: ^1.1.0
     rollup-plugin-esbuild: ^4.9.1
     rollup-plugin-filesize: ^9.1.2
@@ -35178,20 +35178,6 @@ __metadata:
   bin:
     rollup: dist/bin/rollup
   checksum: 6a2bf167b3587d4df709b37d149ad0300692cc5deb510f89ac7bdc77c8738c9546ae3de9322b0968e1ed2b0e984571f5f55aae28fa7de4cfcb1bc5402a4e2be6
-  languageName: node
-  linkType: hard
-
-"rollup@npm:^2.75.7":
-  version: 2.75.7
-  resolution: "rollup@npm:2.75.7"
-  dependencies:
-    fsevents: ~2.3.2
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    rollup: dist/bin/rollup
-  checksum: a6331d46b01062b184efdcb42ce12caf2e1575f989963944534b02f5855f6f3bc239ed0c1a18893572d7695af6d83166f3aef59dbd0365084e1531cb67824674
   languageName: node
   linkType: hard
 
