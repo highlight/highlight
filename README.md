@@ -26,7 +26,7 @@ This means making Highlight as easy as:
 import { H } from 'highlight.run'
 
 H.init(
-	'<YOUR_PROJECT_ID>', // Get your project ID from https://app.highlight.run/setup
+	'<YOUR_PROJECT_ID>'
 )
 ```
 
