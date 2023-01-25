@@ -80,7 +80,7 @@ jobs:
                   cache: true
                   cache-dependency-path: backend/go.sum
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v1
+              uses: dopplerhq/cli-action@v2
             - name: Migrate and seed database
               run: |
                   cd backend/

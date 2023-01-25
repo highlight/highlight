@@ -18,7 +18,7 @@ jobs:
               with:
                   go-version-file: 'backend/go.mod'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v1
+              uses: dopplerhq/cli-action@v2
             - name: Migrate database
               run: |
                   cd backend/
@@ -36,7 +36,7 @@ jobs:
               with:
                   go-version-file: 'backend/go.mod'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v1
+              uses: dopplerhq/cli-action@v2
             - name: Build and zip
               run: |
                   cd backend/
@@ -121,7 +121,7 @@ jobs:
               with:
                   go-version-file: 'backend/go.mod'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v1
+              uses: dopplerhq/cli-action@v2
             - name: Build and zip
               run: |
                   cd backend/
