@@ -79,5 +79,8 @@
 	},
 	"[shellscript]": {
 		"editor.defaultFormatter": "foxundermoon.shell-format"
+	},
+	"[markdown]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	}
 }
