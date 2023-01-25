@@ -35,7 +35,7 @@ Read more about [our values here](highlight.io/docs/company/values).
 
 The fastest and most reliable way to get started with Highlight is signing up for free at [app.highlight.io](https://app.highlight.io). After making an account, getting started is as easy as installing the client SDK snippet; below is an example in React:
 
-```
+```typescript
 import React from 'react'
 import { H } from 'highlight.run'
 import { ErrorBoundary } from '@highlight-run/react'
