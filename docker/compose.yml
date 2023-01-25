@@ -6,7 +6,7 @@ services:
             ZOOKEEPER_CLIENT_PORT: 2181
             ZOOKEEPER_TICK_TIME: 2000
 
-    broker:
+    kafka:
         image: confluentinc/cp-kafka:7.3.0
         container_name: kafka
         ports:
@@ -80,10 +80,18 @@ services:
         build:
             context: ..
             dockerfile: docker/backend.Dockerfile
+        depends_on:
+            - kafka
+            - redis
+            - postgres
+            - elasticsearch
+            - influxdb
+            - collector
         environment:
             - DEMO_SESSION
             - DEPLOYMENT_KEY
             - DOPPLER_CONFIG=docker
+            - ENABLE_OBJECT_STORAGE=false
             - ENVIRONMENT
             - FIREBASE_SECRET
             - FRONTEND_URI
