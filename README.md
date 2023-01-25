@@ -17,7 +17,7 @@
 
 ## Highlight is the open-source, fullstack monitoring platform.
 
-How many times have you heard the term prometheus or grafana or open telemetry? And how many times have you not given a f***?
+How many times have you heard the term prometheus or grafana or open telemetry? And how many times have you not given a f***? [note that we love these tools, we just think developers shouldn't have to worry about them 🙂]
 
 Highlight is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools on the market, we want to build a [cohesive](#cohesion) and [modern](#for-todays-developer) monitoring product, something we wished WE had. 
 
