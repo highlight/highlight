@@ -12,3 +12,40 @@
 <p align="center">
   <a href="https://highlight.io/docs">Docs</a> - <a href="https://community.highlight.io">Community (Support & Feedback)</a> - <a href="https://github.com/highlight/highlight/issues/new?assignees=&labels=bug">Bug report</a>
 </p>
+
+
+
+## Highlight is the open-source, fullstack monitoring platform.
+
+How many times have you heard the term prometheus or grafana or open telemetry? And how many times have you not given a f***?
+
+Highlight is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools on the market, we want to build a [cohesive](#cohesion) and [modern](#for-todays-developer) monitoring product, something we wished WE had. 
+
+This means making Highlight as easy as:
+```javascript
+import { H } from 'highlight.run'
+
+H.init(
+	'<YOUR_PROJECT_ID>', // Get your project ID from https://app.highlight.run/setup
+)
+```
+
+Read more about our [philsophy below](#product-philsophy).
+
+
+## Mission
+
+Highlight gives you the tools to **uncover, prevent, and resolve** issues, so you can ship with more confidence than ever.
+
+## Product Philsophy
+
+### Building in the open
+TODO @jay-khatri
+
+### Cohesion
+TODO @jay-khatri
+
+### For today's developer
+TODO @jay-khatri
+
+
