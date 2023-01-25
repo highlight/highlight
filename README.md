@@ -26,7 +26,7 @@ In everything that we do, we strive to make Highlight as easy to install as <5 l
 
 ## Our Mission
 
-Our mission to help you ship with more confidence than ever. We do this by giving you the tools you need to **uncover, resolve, and prevent** issues in your web app.
+Our mission is to help you ship with more confidence than ever. We do this by giving you the tools you need to **uncover, resolve, and prevent** issues in your web app.
 
 ## Our Values
 
