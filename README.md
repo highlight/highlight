@@ -52,7 +52,7 @@ ReactDOM.render(
 )
 ```
 
-After this, we recommend configuring alerts, installing Highlight in your backend and more! Refer to your account at app.highlight.io on next steps.
+After this, we recommend configuring alerts, installing Highlight in your backend and more! Refer to your account at [app.highlight.io](https://app.highlightio) on next steps.
 
 ### Hobby self-hosted
 
