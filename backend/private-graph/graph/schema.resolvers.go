@@ -364,7 +364,9 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 				*admin.UserDefinedPersona,
 				*admin.FirstName,
 				*admin.LastName,
-				*admin.Phone); err != nil {
+				*admin.Phone,
+				*admin.Referral,
+			); err != nil {
 				log.Error(err, "error creating hubspot contact")
 			}
 		})

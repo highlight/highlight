@@ -32,6 +32,7 @@ import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
+import { setAttributionData } from '@util/attribution'
 import { auth } from '@util/auth'
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils'
 import { showHiringMessage } from '@util/console/hiringMessage'
@@ -142,6 +143,7 @@ if (!isOnPrem) {
 }
 
 showHiringMessage()
+setAttributionData()
 
 const App = () => {
 	const [loadingState, setLoadingState] = useState<AppLoadingState>(

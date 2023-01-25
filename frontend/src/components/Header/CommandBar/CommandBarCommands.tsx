@@ -104,39 +104,6 @@ export const usePlayerCommands = (
 			},
 			name: `${showRightPanel ? 'Hide' : 'Show'} right panel`,
 		},
-		// {
-		//     command: () => {
-		//         if (selectedDevToolsTab === DevToolTabs.Errors) {
-		//             setShowDevTools(false);
-		//         } else {
-		//             setShowDevTools(true);
-		//             setSelectedDevToolsTab(DevToolTabs.Errors);
-		//         }
-		//     },
-		//     name: 'Toggle errors list',
-		// },
-		// {
-		//     command: () => {
-		//         if (selectedDevToolsTab === DevToolTabs.Network) {
-		//             setShowDevTools(false);
-		//         } else {
-		//             setShowDevTools(true);
-		//             setSelectedDevToolsTab(DevToolTabs.Network);
-		//         }
-		//     },
-		//     name: 'Toggle network requests',
-		// },
-		// {
-		//     command: () => {
-		//         if (selectedDevToolsTab === DevToolTabs.Console) {
-		//             setShowDevTools(false);
-		//         } else {
-		//             setShowDevTools(true);
-		//             setSelectedDevToolsTab(DevToolTabs.Console);
-		//         }
-		//     },
-		//     name: 'Toggle console log',
-		// },
 		{
 			command: () => {
 				setAutoPlayVideo(!autoPlayVideo)
