@@ -21,12 +21,7 @@ jobs:
               with:
                   submodules: true
 
-            - name: Pull images
-              run: |
-                  cd docker
-                  docker compose pull
-
             - name: Build docker images
               run: |
                   cd docker
-                  docker compose build --pull
+                  docker compose build
