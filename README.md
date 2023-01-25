@@ -117,4 +117,4 @@ People may think that we're building multiple products (session replay, error mo
 
 If you're building software, why should you care about grafana or loki or the elk stack? Highlight is built for developers that want to **develop**. Leave the monitoring stuff to us 👍.
 
-Read more about [our values here](highlight.io/docs/company/values).
+Read more about [our values here](https://highlight.io/docs/company/values).
