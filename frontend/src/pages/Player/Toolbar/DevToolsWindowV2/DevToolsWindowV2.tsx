@@ -26,7 +26,9 @@ import {
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
+import clsx from 'clsx'
 import React from 'react'
+import { styledScrollbar } from 'style/common.css'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
@@ -74,7 +76,10 @@ const DevToolsWindowV2: React.FC<
 			{({ panelRef, handleRef }) => (
 				<Box>
 					<div
-						className={styles.devToolsWindowV2}
+						className={clsx(
+							styles.devToolsWindowV2,
+							styledScrollbar,
+						)}
 						ref={panelRef}
 						style={{ width: props.width }}
 					>

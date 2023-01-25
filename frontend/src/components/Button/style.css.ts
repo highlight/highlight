@@ -9,4 +9,5 @@ export const loadingIcon = style({
 	animationName: rotate,
 	animationDuration: '1s',
 	animationIterationCount: 'infinite',
+	animationTimingFunction: 'linear',
 })

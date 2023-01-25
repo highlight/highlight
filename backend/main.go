@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/otel"
 	"html/template"
 	"io"
 	"net/http"
@@ -109,7 +110,7 @@ func validateOrigin(request *http.Request, origin string) bool {
 		// From the highlight frontend, only the url is whitelisted.
 		isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
 		// Is this an AWS Amplify environment?
-		isAWSEnv := (strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")) || origin == "https://master.d25bj3loqvp3nx.amplifyapp.com" || origin == "https://beta.d25bj3loqvp3nx.amplifyapp.com"
+		isAWSEnv := strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")
 
 		if origin == frontendURL || origin == "https://app.highlight.run" || origin == "https://app.highlight.io" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv {
 			return true
@@ -196,7 +197,7 @@ func main() {
 
 	lambda, err := lambda.NewLambdaClient()
 	if err != nil {
-		log.Fatalf("error creating lambda client: %v", err)
+		log.Errorf("error creating lambda client: %v", err)
 	}
 
 	redisClient := redis.NewClient()
@@ -458,6 +459,7 @@ func main() {
 				go func() {
 					w.Start()
 				}()
+				go otel.Listen()
 				if util.IsDevEnv() {
 					log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 				} else {
@@ -470,6 +472,7 @@ func main() {
 			}()
 			// for the 'All' worker, explicitly run the PublicWorker as well
 			go w.PublicWorker()
+			go otel.Listen()
 			if util.IsDevEnv() {
 				log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 			} else {
@@ -477,6 +480,7 @@ func main() {
 			}
 		}
 	} else {
+		go otel.Listen()
 		if util.IsDevEnv() {
 			log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 		} else {

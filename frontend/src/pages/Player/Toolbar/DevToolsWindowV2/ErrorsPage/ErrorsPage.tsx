@@ -14,6 +14,7 @@ import { parseOptionalJSON } from '@util/string'
 import React, { useLayoutEffect, useMemo, useRef } from 'react'
 import { useHistory } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
+import { styledScrollbar } from 'style/common.css'
 
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
@@ -90,7 +91,7 @@ const ErrorsPage = React.memo(
 		}, [errors, filter])
 
 		return (
-			<Box className={styles.errorsBox}>
+			<Box className={styles.errorsContainer}>
 				{loading ? (
 					<LoadingBox />
 				) : !session || !errorsToRender.length ? (
@@ -100,6 +101,7 @@ const ErrorsPage = React.memo(
 						ref={virtuoso}
 						overscan={500}
 						data={errorsToRender}
+						className={styledScrollbar}
 						itemContent={(index, error) => (
 							<ErrorRow
 								key={error.error_group_secure_id}

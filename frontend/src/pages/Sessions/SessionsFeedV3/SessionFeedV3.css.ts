@@ -1,4 +1,3 @@
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import { style } from '@vanilla-extract/css'
 
 export const SESSION_FEED_LEFT_PANEL_WIDTH = 340
@@ -29,21 +28,7 @@ export const searchPanelToggleButtonHidden = style({
 	right: 'calc(-1 * (var(--sidebar-width) - var(--size-xLarge)))',
 })
 
-export const SESSION_FEED_SCROLLBAR_WIDTH = 6
-export const SESSION_FEED_SCROLLBAR = {
-	'&::-webkit-scrollbar': {
-		backgroundColor: themeVars.interactive.outline.secondary.enabled,
-		width: SESSION_FEED_SCROLLBAR_WIDTH,
-	},
-	'&::-webkit-scrollbar-thumb': {
-		backgroundColor: themeVars.interactive.outline.secondary.hover,
-	},
-}
 export const SEARCH_PANEL_CONTROL_BAR_HEIGHT = 44
-export const content = style({
-	height: '100%',
-	selectors: SESSION_FEED_SCROLLBAR,
-})
 
 export const controlBar = style({
 	height: SEARCH_PANEL_CONTROL_BAR_HEIGHT,

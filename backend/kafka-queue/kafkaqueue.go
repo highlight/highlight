@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/samber/lo"
+	"github.com/segmentio/kafka-go/sasl"
 	"os"
 	"strings"
 	"time"
@@ -32,7 +33,7 @@ const (
 )
 
 var (
-	EnvironmentPrefix string = func() string {
+	EnvironmentPrefix = func() string {
 		prefix := os.Getenv("KAFKA_ENV_PREFIX")
 		if len(prefix) > 0 {
 			return prefix
@@ -67,29 +68,59 @@ type MessageQueue interface {
 func New(topic string, mode Mode) *Queue {
 	servers := os.Getenv("KAFKA_SERVERS")
 	brokers := strings.Split(servers, ",")
+	groupID := ConsumerGroupName
+
 	tlsConfig := &tls.Config{}
-	mechanism, err := scram.Mechanism(scram.SHA512, os.Getenv("KAFKA_SASL_USERNAME"), os.Getenv("KAFKA_SASL_PASSWORD"))
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "failed to authenticate with kafka"))
+	var mechanism sasl.Mechanism
+	var dialer *kafka.Dialer
+	var transport *kafka.Transport
+	var client *kafka.Client
+	if util.IsInDocker() {
+		dialer = &kafka.Dialer{
+			Timeout:   KafkaOperationTimeout,
+			DualStack: true,
+		}
+		transport = &kafka.Transport{
+			DialTimeout: KafkaOperationTimeout,
+			IdleTimeout: KafkaOperationTimeout,
+		}
+		client = &kafka.Client{
+			Addr:      kafka.TCP(brokers...),
+			Transport: transport,
+		}
+	} else {
+		var err error
+		mechanism, err = scram.Mechanism(scram.SHA512, os.Getenv("KAFKA_SASL_USERNAME"), os.Getenv("KAFKA_SASL_PASSWORD"))
+		if err != nil {
+			log.Fatal(errors.Wrap(err, "failed to authenticate with kafka"))
+		}
+		dialer = &kafka.Dialer{
+			Timeout:       KafkaOperationTimeout,
+			DualStack:     true,
+			SASLMechanism: mechanism,
+			TLS:           tlsConfig,
+		}
+		transport = &kafka.Transport{
+			SASL:        mechanism,
+			TLS:         tlsConfig,
+			DialTimeout: KafkaOperationTimeout,
+			IdleTimeout: KafkaOperationTimeout,
+		}
+		client = &kafka.Client{
+			Addr:      kafka.TCP(brokers...),
+			Transport: transport,
+		}
 	}
 
-	client := &kafka.Client{
-		Addr: kafka.TCP(brokers...),
-		Transport: &kafka.Transport{
-			SASL: mechanism,
-			TLS:  tlsConfig,
-		},
-	}
-	groupID := ConsumerGroupName
 	if util.IsDevOrTestEnv() {
 		// create per-profile consumer and topic to avoid collisions between dev envs
 		groupID = fmt.Sprintf("%s_%s", EnvironmentPrefix, groupID)
 		topic = fmt.Sprintf("%s_%s", EnvironmentPrefix, topic)
-		_, err = client.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{
+		_, err := client.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{
 			Topics: []kafka.TopicConfig{{
 				Topic:             topic,
 				NumPartitions:     8,
-				ReplicationFactor: 2,
+				ReplicationFactor: 1,
 			}},
 		})
 		if err != nil {
@@ -128,13 +159,8 @@ func New(topic string, mode Mode) *Queue {
 	if mode&1 == 1 {
 		log.Debugf("initializing kafka producer for %s", topic)
 		pool.kafkaP = &kafka.Writer{
-			Addr: kafka.TCP(brokers...),
-			Transport: &kafka.Transport{
-				SASL:        mechanism,
-				TLS:         tlsConfig,
-				DialTimeout: KafkaOperationTimeout,
-				IdleTimeout: KafkaOperationTimeout,
-			},
+			Addr:         kafka.TCP(brokers...),
+			Transport:    transport,
 			Topic:        pool.Topic,
 			Balancer:     &kafka.Hash{},
 			RequiredAcks: kafka.RequireAll,
@@ -154,13 +180,8 @@ func New(topic string, mode Mode) *Queue {
 	if (mode>>1)&1 == 1 {
 		log.Debugf("initializing kafka consumer for %s", topic)
 		pool.kafkaC = kafka.NewReader(kafka.ReaderConfig{
-			Brokers: brokers,
-			Dialer: &kafka.Dialer{
-				Timeout:       KafkaOperationTimeout,
-				DualStack:     true,
-				SASLMechanism: mechanism,
-				TLS:           tlsConfig,
-			},
+			Brokers:           brokers,
+			Dialer:            dialer,
 			HeartbeatInterval: time.Second,
 			SessionTimeout:    10 * time.Second,
 			RebalanceTimeout:  10 * time.Second,

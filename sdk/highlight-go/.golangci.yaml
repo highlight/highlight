@@ -1,0 +1,36 @@
+# options for analysis running
+run:
+    timeout: 2m
+
+# output configuration options
+output:
+    # sorts results by: filepath, line and column
+    sort-results: true
+
+linters:
+    enable:
+        - deadcode
+        - errcheck
+        - gosimple
+        - govet
+        - ineffassign
+        - staticcheck
+        - structcheck
+        - typecheck
+        - unused
+        - varcheck
+
+# all available settings of specific linters
+linters-settings:
+    gosimple:
+        go: '1.19'
+
+    staticcheck:
+        go: '1.19'
+        checks: ['all']
+
+    stylecheck:
+        go: '1.19'
+
+    unused:
+        go: '1.19'

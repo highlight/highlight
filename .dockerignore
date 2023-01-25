@@ -1,3 +1,4 @@
 .idea
-node_modules
+.yarn/cache
 build
+**/node_modules

@@ -13,9 +13,11 @@ import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators
 import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils'
 import { bytesToPrettyString } from '@util/string'
 import { message } from 'antd'
+import clsx from 'clsx'
 import React, { PropsWithChildren, useEffect, useState } from 'react'
 import ReactCollapsible from 'react-collapsible'
 import { Link } from 'react-router-dom'
+import { styledScrollbar } from 'style/common.css'
 
 import { EmptySessionsSearchParams } from '../../Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '../../Sessions/SearchContext/SearchContext'
@@ -300,7 +302,6 @@ const MetadataPanel = () => {
 						<Box
 							py="8"
 							px="12"
-							pr="32"
 							bb={isExpanded ? undefined : 'secondary'}
 							display="flex"
 							justifyContent="space-between"
@@ -373,7 +374,10 @@ const CollapsibleSection = function ({
 			open={expanded}
 			handleTriggerClick={() => setExpanded(!expanded)}
 			transitionTime={150}
-			contentInnerClassName={styles.collapsibleContent}
+			contentInnerClassName={clsx(
+				styles.collapsibleContent,
+				styledScrollbar,
+			)}
 		>
 			{children}
 		</ReactCollapsible>

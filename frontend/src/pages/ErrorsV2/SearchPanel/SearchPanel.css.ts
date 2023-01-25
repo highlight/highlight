@@ -1,4 +1,3 @@
-import { SESSION_FEED_SCROLLBAR } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
 import { style } from '@vanilla-extract/css'
 
 export const ERROR_FEED_LEFT_PANEL_WIDTH = 340
@@ -32,7 +31,6 @@ export const searchPanelToggleButtonHidden = style({
 export const SEARCH_PANEL_CONTROL_BAR_HEIGHT = 44
 export const content = style({
 	height: '100%',
-	selectors: SESSION_FEED_SCROLLBAR,
 })
 
 export const controlBar = style({

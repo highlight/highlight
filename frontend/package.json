@@ -88,7 +88,7 @@
 		"xss": "^1.0.14"
 	},
 	"scripts": {
-		"dev": "doppler run -- run-p --print-label --race 'dev:*'",
+		"dev": "run-p --print-label --race 'dev:*'",
 		"dev:vite": "vite",
 		"dev:tsm": "tsm src -w --logLevel=error",
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",

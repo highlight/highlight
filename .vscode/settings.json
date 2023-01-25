@@ -1,5 +1,5 @@
 {
-	"sourcegraph.defaultBranch": "master",
+	"sourcegraph.defaultBranch": "main",
 	"editor.formatOnSave": true,
 	"editor.defaultFormatter": "dbaeumer.vscode-eslint",
 	"editor.codeActionsOnSave": {
@@ -50,7 +50,7 @@
 	"[typescriptreact]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
-	"openInGitHub.defaultBranch": "master",
+	"openInGitHub.defaultBranch": "main",
 	"openInGitHub.defaultRemote": "origin",
 	"openInGithub.maxBuffer": 512000,
 	"openInGitHub.excludeCurrentRevision": false,
