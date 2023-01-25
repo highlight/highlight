@@ -99,13 +99,22 @@ See our [enterprise self-hosted docs](https://highlight.io/docs/company/open-sou
 
 ### Logging
 
-Our logging product is still in beta, but please [message "Vadim" or "Jay" in discord](https://highlight.io) if you'd like a sneak peak of what we're building. We'd love for you to try an early version to share feedback.
+Our logging product is still in beta, but please [message us in discord](https://highlight.io) if you'd like a sneak peak of what we're building. We'd love for you to try an early version to share feedback.
 
 ### More?! Metrics? Traces? Merch?
 
 Have an idea for what we should build next? Please share our [community](https://community.highlight.io) or via a Github Issue!
 
 [Read a full list of Highlight features](https://highlight.io/docs).
+
+## SDKs
+All of our SDKs for Highlight can be found in the `sdk` [directory](https://github.com/highlight/highlight/tree/master/sdk). We currently support:
+- Server Libraries:
+    - Node.js: [repo link](https://github.com/highlight/highlight/tree/master/sdk/highlight-node)
+    - Golang: [repo link](https://github.com/highlight/highlight/tree/master/sdk/highlight-go)
+- Client Libraries:
+    - Javascript: [repo link](https://github.com/highlight/highlight/tree/master/sdk/firstload)
+    - Next.js: [repo link](https://github.com/highlight/highlight/tree/master/sdk/highlight-next)
 
 ## Our Mission
 
