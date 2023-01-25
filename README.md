@@ -23,6 +23,7 @@ In everything that we do, we strive to make Highlight as easy to install as a fe
 
 -   [Get started for free](#get-started)
 -   [Features](#features)
+-   [SDKs](#sdks)
 -   [Mission](#our-mission)
 -   [Values](#our-values)
 
@@ -30,7 +31,7 @@ Read more about [our values here](highlight.io/docs/company/values).
 
 ## Get started
 
-### Hosted Highlight (freemium!)
+### Hosted Highlight (free to get started!)
 
 The fastest and most reliable way to get started with Highlight is signing up for free to [app.highlight.io](https://app.highlighthighlight.io).
 
@@ -50,7 +51,32 @@ Good for <10k sessions and <50k errors ingested monthly. See our [docs for more 
 See our [enterprise self-hosted docs](https://highlight.io/docs/company/open-source/self-host-enterprise) to deploy a scalable, production-ready instance with support from our team.
 
 ## Features
-Good evening. It's Jay.
+### Session Replay: Understand how users interact with your web app and WHY errors are happening.
+- **Dom-based High-fidelity Replay**: Replay every interaction and dom change that happened in a given browser tab (powered by https://github.com/rrweb-io/rrweb)
+- **Outgoing Network Requests**: See all of the network requests (and their contents) in a given session to reproduce the data that was sent/received by your frontend.
+- **Console logs**: Analyze the logs printed (`console.error`, `console.log`, etc..) to the console from your frontend.
+- **Embedded Error Monitoring**: See the errors associated with a given session to understand what the user was doing leading up to them.
+- **Session Comments**: Comment on errors to communicate with your team on user frustration, bugs, and more!
+- **Integrations with your favorite tools**: [docs](https://highlight.io/docs/integrations)
+
+### Error Monitoring
+- **Customizable Error Grouping**: Customize rules to group repeated errors thrown in your web application.
+- **Embedded Session Replay**: See all of the sessions associated with a given error.
+- **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
+- **Integrations with your favorite tools**: [docs](https://highlight.io/docs/integrations)
+
+### Logging
+Our logging product is still in beta, but please [message "Vadim" or "Jay" in discord](https://highlight.io) if you'd like a sneak peak of what we're building. We'd love for you to try an early version to share feedback.
+
+### More?! Metrics? Traces? Merch?
+Have an idea for what we should build next? Please share our [community](https://community.highlight.io) or via a Github Issue!
+
+### Our commitment to building a cohesive product
+We live and breathe by the philosphy that our products are tightly coupled and exist [as one](#we-build-with-cohesion-in-mind).
+
+### Data and infrastructure tools
+
+[Read a full list of Highlight features](https://highlight.io/docs).
 
 ## Our Mission
 
@@ -62,7 +88,7 @@ Our mission is to help you ship with more confidence than ever. We do this by gi
 
 We strive to build in public in every way we can. This means that what we built, what we're building, and what we plan to build is shared with the world.
 
-### We prioritize cohesion.
+### We build a cohesive product.
 
 People may think that we're building multiple products (session replay, error monitoring, etc..). But we see it as one. Before we build anything new, we prioritize making it operate seemlessly with everything else.
 
