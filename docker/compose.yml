@@ -60,7 +60,7 @@ services:
             - influxdb-data:/var/lib/influxdb
 
     setup-influxdb:
-        image: highlight.io/backend
+        image: influxdb:latest
         command:
             - bash
             - -c
@@ -98,30 +98,30 @@ services:
         environment:
             - DEMO_SESSION
             - DEPLOYMENT_KEY
-            - DOPPLER_CONFIG=docker
-            - ENABLE_OBJECT_STORAGE=false
+            - DOPPLER_CONFIG
+            - ENABLE_OBJECT_STORAGE
             - ENVIRONMENT
             - FIREBASE_SECRET
             - FRONTEND_URI
-            - IN_DOCKER=true
-            - INFLUXDB_BUCKET=dev-bucket
-            - INFLUXDB_ORG=dev-org
-            - INFLUXDB_SERVER=http://influxdb:8086
-            - INFLUXDB_TOKEN=not-a-secure-token
-            - KAFKA_SERVERS=kafka:9092
-            - KAFKA_TOPIC=dev
-            - OPENSEARCH_DOMAIN=http://elasticsearch:9200
-            - OPENSEARCH_DOMAIN_READ=http://elasticsearch:9200
-            - OPENSEARCH_PASSWORD=
-            - OPENSEARCH_USERNAME=elasticsearch
-            - PSQL_DB=postgres
-            - PSQL_HOST=postgres
-            - PSQL_PASSWORD=
-            - PSQL_PORT=5432
-            - PSQL_USER=postgres
+            - IN_DOCKER
+            - INFLUXDB_BUCKET
+            - INFLUXDB_ORG
+            - INFLUXDB_SERVER
+            - INFLUXDB_TOKEN
+            - KAFKA_SERVERS
+            - KAFKA_TOPIC
+            - OPENSEARCH_DOMAIN
+            - OPENSEARCH_DOMAIN_READ
+            - OPENSEARCH_PASSWORD
+            - OPENSEARCH_USERNAME
+            - PSQL_DB
+            - PSQL_HOST
+            - PSQL_PASSWORD
+            - PSQL_PORT
+            - PSQL_USER
             - PUBLIC_GRAPH_URI
-            - REDIS_ADDRESS=redis:6379
-            - REDIS_EVENTS_STAGING_ENDPOINT=redis:6379
+            - REDIS_ADDRESS
+            - REDIS_EVENTS_STAGING_ENDPOINT
             - SESSION_FILE_PATH_PREFIX
 
     backend-setup-elasticserch:
@@ -136,10 +136,17 @@ services:
         depends_on:
             - backend
         environment:
-            - OPENSEARCH_DOMAIN=http://elasticsearch:9200
-            - OPENSEARCH_DOMAIN_READ=http://elasticsearch:9200
-            - OPENSEARCH_PASSWORD=
-            - OPENSEARCH_USERNAME=elasticsearch
+            - DEPLOYMENT_KEY
+            - ENVIRONMENT
+            - OPENSEARCH_DOMAIN
+            - OPENSEARCH_DOMAIN_READ
+            - OPENSEARCH_PASSWORD
+            - OPENSEARCH_USERNAME
+            - PSQL_DB
+            - PSQL_HOST
+            - PSQL_PASSWORD
+            - PSQL_PORT
+            - PSQL_USER
 
     frontend:
         container_name: frontend
@@ -165,8 +172,8 @@ services:
         environment:
             - ENVIRONMENT=dev
             - RENDER_PREVIEW=true
-            - REACT_APP_DEMO_SESSION
-            - REACT_APP_ENVIRONMENT
+            - REACT_APP_DEMO_SESSION=30000001
+            - REACT_APP_ENVIRONMENT=dev
             - REACT_APP_FIREBASE_CONFIG_OBJECT
             - REACT_APP_FRONTEND_ORG
             - REACT_APP_FRONTEND_URI
