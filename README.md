@@ -17,7 +17,7 @@
 
 highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a [cohesive](#cohesion), [modern](#for-todays-developer) and [fully-featured](#features) monitoring solution, something we wished WE had. And it's all open source :)
 
-In everything that we do, we strive to make highlight.io as easy to install as a few lines of code in any environment. Read more about our [values](#our-values) and [mission](#our-mission) below.
+We strive to make highlight.io as easy to install as a few lines of code in any environment. Read more about our [values](#our-values) and [mission](#our-mission) below, and get started at https://highlight.io today!
 
 ## Table of Contents
 
