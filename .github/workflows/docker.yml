@@ -2,10 +2,7 @@ name: Docker
 
 on:
     pull_request:
-        types: ['opened', 'synchronize']
-        branches:
-            - '**'
-            - '!master'
+        types: [opened, synchronize]
 
 jobs:
     build:
