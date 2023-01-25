@@ -19,7 +19,7 @@
 
 Highlight is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools on the market, we want to build a [cohesive](#cohesion) and [modern](#for-todays-developer) monitoring product, something we wished WE had. 
 
-How many times have you heard the term prometheus or grafana or loki? And how many times have you wondered why they were relevant? [note that we love these tools, we just think developers shouldn't have to worry about them 🙂]
+How many times have you heard the term prometheus or grafana or loki? And how many times have you wondered why they were relevant? (note that we love these tools, we just think developers shouldn't have to worry about them 🙂)
 
 In everything that we do, we strive to make Highlight as easy to install as <5 lines of code in your environment. Read more about our [philsophy below](#our-values).
 
@@ -37,7 +37,7 @@ We strive to build in public in every way we can.
 People may think that we're building multiple products (session replay, error monitoring, etc..). But we see it as one. Before we build anything new, we prioritize making it operate seemlessly with everything else.
 
 ### For Today's Developer
-Who really cares about grafana or loki or the elk stack? We don't. Highlight is built for developers that want to DEVELOP. Leave the monitoring stuff to us 👍.
+If you're building software, why should you care about grafana or loki or the elk stack? Highlight is built for developers that want to DEVELOP. Leave the monitoring stuff to us 👍.
 
 Read more about [our values here](highlight.io/docs/company/values).
 
