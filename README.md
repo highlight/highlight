@@ -63,7 +63,7 @@ See our [enterprise self-hosted docs](https://highlight.io/docs/company/open-sou
 
 <p align="center">
 <img width="900" alt="Frame 43972" src="https://user-images.githubusercontent.com/20292680/214499701-86b7deb3-ec8f-4cb2-8661-ff4f9d7ade2d.png">
-<p>
+</p>
 
 ### Error Monitoring
 
@@ -76,7 +76,7 @@ See our [enterprise self-hosted docs](https://highlight.io/docs/company/open-sou
 
 <p align="center">
 <img width="1848" alt="error-monitoring" src="https://user-images.githubusercontent.com/20292680/214500108-c8e0e289-276a-4863-816a-7c854c97df4e.png">
-<p>
+</p>
 
 ### Logging
 
