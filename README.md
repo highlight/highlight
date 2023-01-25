@@ -91,13 +91,15 @@ Have an idea for what we should build next? Please share our [community](https:/
 [Read a full list of Highlight features](https://highlight.io/docs).
 
 ## SDKs
+
 All of our SDKs for Highlight can be found in the `sdk` [directory](https://github.com/highlight/highlight/tree/master/sdk). We currently support:
-- Server Libraries:
-    - Node.js: [repo link](https://github.com/highlight/highlight/tree/master/sdk/highlight-node)
-    - Golang: [repo link](https://github.com/highlight/highlight/tree/master/sdk/highlight-go)
-- Client Libraries:
-    - Javascript: [repo link](https://github.com/highlight/highlight/tree/master/sdk/firstload)
-    - Next.js: [repo link](https://github.com/highlight/highlight/tree/master/sdk/highlight-next)
+
+-   Server Libraries:
+    -   Node.js: [repo link](https://github.com/highlight/highlight/tree/master/sdk/highlight-node)
+    -   Golang: [repo link](https://github.com/highlight/highlight/tree/master/sdk/highlight-go)
+-   Client Libraries:
+    -   Javascript: [repo link](https://github.com/highlight/highlight/tree/master/sdk/firstload)
+    -   Next.js: [repo link](https://github.com/highlight/highlight/tree/master/sdk/highlight-next)
 
 ## Our Mission
 
