@@ -18,6 +18,7 @@ import (
 
 const Port = "4319"
 
+// Exception based on opentelemetry spec: https://github.com/open-telemetry/opentelemetry-specification/blob/9fa7c656b26647b27e485a6af7e38dc716eba98a/specification/trace/semantic_conventions/exceptions.md#stacktrace-representation
 type Exception struct {
 	Type       string `json:"exception.type"`
 	Message    string `json:"exception.message"`
@@ -69,6 +70,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			spans := scopeScans.At(j).Spans()
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
+				traceID := span.TraceID().String()
+				spanID := span.SpanID().String()
 				events := span.Events()
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
@@ -76,8 +79,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					excType, hasType := eventAttributes["exception.type"]
 					excMessage, hasMessage := eventAttributes["exception.message"]
 					if hasType || hasMessage {
-						traceID := span.TraceID().String()
-						spanID := span.SpanID().String()
 						exc := Exception{
 							Type:       excType.(string),
 							Message:    excMessage.(string),
@@ -93,7 +94,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							RequestID:       spanID,
 							Event:           exc.Message,
 							Type:            model2.ErrorType.BACKEND,
-							URL:             "",
+							// TODO(vkorolik) span custom attribute?
+							URL: "",
 							Source: strings.Join([]string{
 								resource.Attributes().AsRaw()["telemetry.sdk.language"].(string),
 								resource.Attributes().AsRaw()["service.name"].(string),
@@ -110,6 +112,9 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for traceID, errors := range traceErrors {
+		for _, e := range errors {
+			log.Infof("submitting trace %s error %+v", traceID, *e)
+		}
 		err = o.resolver.ProducerQueue.Submit(&kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
