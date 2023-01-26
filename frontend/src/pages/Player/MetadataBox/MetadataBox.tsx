@@ -149,7 +149,9 @@ export const MetadataBox = React.memo(() => {
 					lines: '3',
 					valueInfoTooltipMessage: enhancedUserDataTooltipMessage,
 				},
-				{
+			]
+			if (data?.enhanced_user_details?.socials?.length) {
+				enrichedData.push({
 					keyDisplayValue: 'Socials',
 					valueDisplayValue: (
 						<Box
@@ -172,8 +174,8 @@ export const MetadataBox = React.memo(() => {
 						</Box>
 					),
 					valueInfoTooltipMessage: enhancedUserDataTooltipMessage,
-				},
-			]
+				})
+			}
 		}
 		return [...userProps, ...enrichedData]
 	}, [data, displayValue, field, loading, session])
