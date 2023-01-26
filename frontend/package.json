@@ -18,6 +18,7 @@
 		"@highlight-run/ui": "workspace:*",
 		"@rehooks/local-storage": "^2.4.0",
 		"@stripe/stripe-js": "^1.32.0",
+		"@types/js-cookie": "^3.0.2",
 		"@types/react-virtualized-auto-sizer": "^1.0.1",
 		"antd": "^4.17.0",
 		"babel-plugin-react-wrapped-display-name": "^1.0.0",
@@ -33,6 +34,7 @@
 		"highlight.run": "workspace:*",
 		"intro.js": "^4.1.0",
 		"intro.js-react": "^0.6.0",
+		"js-cookie": "^3.0.1",
 		"lottie-react": "^2.1.0",
 		"moment": "2.29.4",
 		"postinstall-postinstall": "^2.1.0",
@@ -86,7 +88,7 @@
 		"xss": "^1.0.14"
 	},
 	"scripts": {
-		"dev": "doppler run -- run-p --print-label --race 'dev:*'",
+		"dev": "run-p --print-label --race 'dev:*'",
 		"dev:vite": "vite",
 		"dev:tsm": "tsm src -w --logLevel=error",
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",

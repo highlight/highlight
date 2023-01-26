@@ -7,7 +7,7 @@ export const consoleBox = style({
 	height: '100%',
 	display: 'flex',
 	flexDirection: 'column',
-	padding: '0 8px',
+	paddingLeft: 8,
 	overflowX: 'hidden',
 	overflowY: 'auto',
 	wordWrap: 'break-word',

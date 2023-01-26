@@ -20,6 +20,7 @@ import { gqlSanitize } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
+import { styledScrollbar } from 'style/common.css'
 
 import * as style from './SearchPanel.css'
 
@@ -30,7 +31,6 @@ const SearchPanel = () => {
 		backendSearchQuery,
 		page,
 		setPage,
-		searchResultsLoading,
 		setSearchResultsLoading,
 		searchResultsCount,
 		setSearchResultsCount,
@@ -69,12 +69,12 @@ const SearchPanel = () => {
 		setSearchResultsLoading(loading)
 	}, [loading, setSearchResultsLoading])
 
-	const showHistogram = searchResultsLoading || searchResultsCount > 0
+	const showHistogram = loading || searchResultsCount > 0
 
 	const [, setSyncButtonDisabled] = useState<boolean>(false)
 
 	useEffect(() => {
-		if (!searchResultsLoading) {
+		if (!loading) {
 			const timer = setTimeout(() => {
 				setSyncButtonDisabled(false)
 			}, 3000)
@@ -84,7 +84,7 @@ const SearchPanel = () => {
 		} else {
 			setSyncButtonDisabled(true)
 		}
-	}, [searchResultsLoading])
+	}, [loading])
 
 	const errorGroups = fetchedData?.error_groups_opensearch
 	return (
@@ -110,9 +110,9 @@ const SearchPanel = () => {
 				padding="8"
 				overflowX="hidden"
 				overflowY="auto"
-				cssClass={style.content}
+				cssClass={[style.content, styledScrollbar]}
 			>
-				{searchResultsLoading ? (
+				{loading ? (
 					<LoadingBox />
 				) : (
 					<>

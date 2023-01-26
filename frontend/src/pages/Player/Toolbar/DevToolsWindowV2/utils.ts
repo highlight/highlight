@@ -96,8 +96,8 @@ export const findResourceWithMatchingHighlightHeader = (
 	)
 }
 
-export const getHighlightRequestId = (resource: NetworkResource) => {
-	return resource.requestResponsePairs?.request?.id
+export const getHighlightRequestId = (resource?: NetworkResource) => {
+	return resource?.requestResponsePairs?.request?.id
 }
 
 export enum LogLevel {
@@ -132,6 +132,5 @@ export enum Tab {
 	Errors = 'Errors',
 	Console = 'Console',
 	Network = 'Network',
-	Performance = 'Performance',
 	Events = 'Events',
 }

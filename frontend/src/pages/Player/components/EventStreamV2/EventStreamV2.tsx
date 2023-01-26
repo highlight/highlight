@@ -19,6 +19,7 @@ import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
+import { styledScrollbar } from 'style/common.css'
 
 import * as style from './EventStreamV2.css'
 
@@ -114,25 +115,30 @@ const EventStreamV2 = function () {
 			{isLoading ? (
 				<LoadingBox />
 			) : (
-				<Box width="full" height="full">
+				<Box
+					width="full"
+					height="full"
+					display="flex"
+					flexDirection="column"
+				>
 					<Box px="12" py="8">
 						<Form state={form}>
-							<label>
-								<Box
-									display="flex"
-									justifyContent="space-between"
-									align="center"
-								>
-									<Box display="flex" align="center">
-										<IconSolidSearch color="n8" size={16} />
-									</Box>
-									<Form.Input
-										name={form.names.search}
-										placeholder="Search"
-										size="xSmall"
-									/>
-								</Box>
-							</label>
+							<Box
+								display="flex"
+								justifyContent="space-between"
+								align="center"
+								as="label"
+								gap="6"
+								color="weak"
+							>
+								<IconSolidSearch size={16} />
+								<Form.Input
+									name={form.names.search}
+									placeholder="Search"
+									size="xSmall"
+									outline={false}
+								/>
+							</Box>
 						</Form>
 					</Box>
 					{replayer && filteredEvents.length > 0 ? (
@@ -146,6 +152,7 @@ const EventStreamV2 = function () {
 							ref={virtuoso}
 							data={filteredEvents}
 							totalCount={filteredEvents.length}
+							className={styledScrollbar}
 							itemContent={(index, event) => (
 								<StreamEventV2
 									e={event}

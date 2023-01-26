@@ -101,18 +101,19 @@ func New() *InfluxDB {
 	token := os.Getenv("INFLUXDB_TOKEN")
 	// initialize client
 	client := influxdb2.NewClientWithOptions(server, token, influxdb2.DefaultOptions().SetHTTPRequestTimeout(60))
-	var orgID *string
+	var orgID string
 	orgs, err := client.OrganizationsAPI().GetOrganizations(context.Background())
 	if err != nil {
-		log.Fatalf("failed to get influxdb organization")
+		log.Errorf("failed to get influxdb organization")
+	} else {
+		orgID = *(*orgs)[0].Id
 	}
-	orgID = (*orgs)[0].Id
 	// Get query client
 	queryAPI := client.QueryAPI(org)
 	return &InfluxDB{
 		BucketPrefix: bucketPrefix,
 		org:          org,
-		orgID:        *orgID,
+		orgID:        orgID,
 		Client:       client,
 		writeAPIs:    make(map[string]api.WriteAPI),
 		queryAPI:     queryAPI,

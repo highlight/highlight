@@ -1,5 +1,4 @@
 import { colors } from '@highlight-run/ui/src/css/colors'
-import { SESSION_FEED_SCROLLBAR } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
 import { style } from '@vanilla-extract/css'
 
 export const playerRightPanelContainer = style({
@@ -12,9 +11,8 @@ export const playerRightPanelContainer = style({
 	right: 0,
 	top: 0,
 	transition: `transform 0.2s ease-in-out`,
-	height: `calc(100vh - 108px)`,
+	height: '100%',
 	width: 'var(--right-panel-width)',
-	selectors: SESSION_FEED_SCROLLBAR,
 	zIndex: 5,
 })
 
@@ -50,4 +48,6 @@ export const tabs = style({
 	borderRadius: 8,
 })
 
-export const playerRightTabs = style({})
+export const tabsContainer = style({
+	width: 300,
+})

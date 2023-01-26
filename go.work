@@ -1,3 +1,5 @@
 go 1.19
 
 use ./backend
+
+use ./sdk/highlight-go

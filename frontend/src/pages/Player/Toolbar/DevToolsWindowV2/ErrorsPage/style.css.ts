@@ -3,16 +3,11 @@ import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 
-export const errorsBox = style({
-	display: 'flex',
-	flexDirection: 'column',
+export const errorsContainer = style({
 	fontSize: 13,
 	height: '100%',
 	overflowX: 'hidden',
 	overflowY: 'auto',
-	padding: 8,
-	width: '100%',
-	wordWrap: 'break-word',
 })
 
 export const errorRowVariants = recipe({
@@ -24,7 +19,6 @@ export const errorRowVariants = recipe({
 		gap: 32,
 		marginBottom: 1,
 		padding: 8,
-		width: '100%',
 		selectors: {
 			'&:hover': {
 				backgroundColor: colors.n4,

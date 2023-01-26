@@ -28,7 +28,7 @@ export const useResources = (
 	const [sessionSecureId, setSessionSecureId] = useState<string>()
 	const [downloadResources] = useQueryParam('downloadresources', BooleanParam)
 
-	const [resourcesLoading, setResourcesLoading] = useState(true)
+	const [resourcesLoading, setResourcesLoading] = useState(false)
 	const skipQuery =
 		sessionSecureId === undefined ||
 		session === undefined ||

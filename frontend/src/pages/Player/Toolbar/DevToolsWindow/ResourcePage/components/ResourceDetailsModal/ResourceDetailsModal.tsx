@@ -1,17 +1,20 @@
+import DataCard from '@components/DataCard/DataCard'
+import KeyValueTable, {
+	KeyValueTableRow,
+} from '@components/KeyValueTable/KeyValueTable'
+import Space from '@components/Space/Space'
 import { ErrorObject } from '@graph/schemas'
 import { formatTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
+import { getNetworkResourcesDisplayName } from '@pages/Player/Toolbar/DevToolsWindow/Option/Option'
 import RequestMetrics from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/components/RequestMetrics/RequestMetrics'
 import { UnknownRequestStatusCode } from '@pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
+import {
+	formatSize,
+	NetworkResource,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import React from 'react'
 
-import DataCard from '../../../../../../../components/DataCard/DataCard'
-import KeyValueTable, {
-	KeyValueTableRow,
-} from '../../../../../../../components/KeyValueTable/KeyValueTable'
-import Space from '../../../../../../../components/Space/Space'
-import { formatSize, NetworkResource } from '../../../../DevToolsWindowV2/utils'
-import { getNetworkResourcesDisplayName } from '../../../Option/Option'
 import styles from './ResourceDetailsModal.module.scss'
 
 interface Props {
@@ -187,7 +190,7 @@ const ResourceDetailsModal = ({
 			} catch {
 				requestPayloadData.push({
 					keyDisplayValue: 'body',
-					valueDisplayValue: request.body,
+					valueDisplayValue: JSON.stringify(request.body),
 					renderType: 'string',
 				})
 			}

@@ -8,13 +8,11 @@ import {
 	Tabs,
 	useFormState,
 } from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { useDevToolsContext } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext'
 import { NetworkPage } from '@pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
-import PerformancePage from '@pages/Player/Toolbar/DevToolsWindowV2/PerformancePage/PerformancePage'
 import {
 	DEV_TOOLS_MIN_HEIGHT,
 	ResizePanel,
@@ -26,7 +24,9 @@ import {
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
+import clsx from 'clsx'
 import React from 'react'
+import { styledScrollbar } from 'style/common.css'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
@@ -74,7 +74,10 @@ const DevToolsWindowV2: React.FC<
 			{({ panelRef, handleRef }) => (
 				<Box>
 					<div
-						className={styles.devToolsWindowV2}
+						className={clsx(
+							styles.devToolsWindowV2,
+							styledScrollbar,
+						)}
 						ref={panelRef}
 						style={{ width: props.width }}
 					>
@@ -115,11 +118,6 @@ const DevToolsWindowV2: React.FC<
 										/>
 									),
 								},
-								[Tab.Performance]: {
-									page: (
-										<PerformancePage currentTime={time} />
-									),
-								},
 							}}
 							right={
 								<Box
@@ -150,9 +148,9 @@ const DevToolsWindowV2: React.FC<
 																(s) => !s,
 															)
 														}}
+														color="weak"
 													>
 														<IconSolidSearch
-															color={colors.n8}
 															size={16}
 														/>
 													</Box>
@@ -160,6 +158,7 @@ const DevToolsWindowV2: React.FC<
 														name={form.names.search}
 														placeholder="Search"
 														size="xSmall"
+														outline={false}
 														collapsed={!searchShown}
 														onKeyDown={(e: any) => {
 															if (

@@ -1,0 +1,188 @@
+services:
+    zookeeper:
+        image: confluentinc/cp-zookeeper:7.3.0
+        container_name: zookeeper
+        environment:
+            ZOOKEEPER_CLIENT_PORT: 2181
+            ZOOKEEPER_TICK_TIME: 2000
+
+    kafka:
+        image: confluentinc/cp-kafka:7.3.0
+        container_name: kafka
+        ports:
+            # To learn about configuring Kafka for access across networks see
+            # https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/
+            - '9092:9092'
+        depends_on:
+            - zookeeper
+        environment:
+            KAFKA_BROKER_ID: 1
+            KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+    redis:
+        container_name: redis
+        image: redis
+        volumes:
+            - redis-data:/data
+        command:
+            - redis-server
+            - --save 60 1
+            - --loglevel warning
+
+    postgres:
+        container_name: postgres
+        image: postgres
+        ports:
+            - 5432:5432
+        environment:
+            POSTGRES_HOST_AUTH_METHOD: trust
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
+
+    elasticsearch:
+        container_name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.17.8
+        environment:
+            discovery.type: single-node
+            xpack.security.enabled: false
+        volumes:
+            - elasticsearch-data:/usr/share/elasticsearch/data
+
+    influxdb:
+        container_name: influxdb
+        image: influxdb:latest
+        volumes:
+            - influxdb-data:/var/lib/influxdb
+
+    setup-influxdb:
+        image: influxdb:latest
+        command:
+            - bash
+            - -c
+            - 'influx setup --host http://influxdb:8086 --skip-verify --bucket dev-bucket --org dev-org --username dev --password devdevdevdev --retention 0 --token not-a-secure-token --force'
+        depends_on:
+            - influxdb
+
+    collector:
+        container_name: collector
+        image: otel/opentelemetry-collector
+        ports:
+            - 4317:4317
+            - 4318:4318
+        command:
+            - '--config=/etc/otel-collector-config.yaml'
+        volumes:
+            - ./otel-collector.yaml:/etc/otel-collector-config.yaml
+
+    backend:
+        container_name: backend
+        image: highlight.io/backend
+        ports:
+            - 8082:8082
+        build:
+            context: ..
+            dockerfile: docker/backend.Dockerfile
+        depends_on:
+            - kafka
+            - redis
+            - postgres
+            - elasticsearch
+            - influxdb
+            - setup-influxdb
+            - collector
+        environment:
+            - DEMO_SESSION
+            - DEPLOYMENT_KEY
+            - DOPPLER_CONFIG
+            - ENABLE_OBJECT_STORAGE
+            - ENVIRONMENT
+            - FIREBASE_SECRET
+            - FRONTEND_URI
+            - IN_DOCKER
+            - INFLUXDB_BUCKET
+            - INFLUXDB_ORG
+            - INFLUXDB_SERVER
+            - INFLUXDB_TOKEN
+            - KAFKA_SERVERS
+            - KAFKA_TOPIC
+            - OPENSEARCH_DOMAIN
+            - OPENSEARCH_DOMAIN_READ
+            - OPENSEARCH_PASSWORD
+            - OPENSEARCH_USERNAME
+            - PSQL_DB
+            - PSQL_HOST
+            - PSQL_PASSWORD
+            - PSQL_PORT
+            - PSQL_USER
+            - PUBLIC_GRAPH_URI
+            - REDIS_ADDRESS
+            - REDIS_EVENTS_STAGING_ENDPOINT
+            - SESSION_FILE_PATH_PREFIX
+
+    backend-setup-elasticserch:
+        image: highlight.io/backend
+        build:
+            context: ..
+            dockerfile: docker/backend.Dockerfile
+        command:
+            - /bin/backend
+            - -runtime=worker
+            - -worker-handler=init-opensearch
+        depends_on:
+            - backend
+        environment:
+            - DEPLOYMENT_KEY
+            - ENVIRONMENT
+            - OPENSEARCH_DOMAIN
+            - OPENSEARCH_DOMAIN_READ
+            - OPENSEARCH_PASSWORD
+            - OPENSEARCH_USERNAME
+            - PSQL_DB
+            - PSQL_HOST
+            - PSQL_PASSWORD
+            - PSQL_PORT
+            - PSQL_USER
+
+    frontend:
+        container_name: frontend
+        image: highlight.io/frontend
+        ports:
+            - 3000:3000
+            - 8080:8080
+        command:
+            - yarn
+            - docker:frontend
+        build:
+            context: ..
+            dockerfile: docker/frontend.Dockerfile
+            args:
+                - REACT_APP_DEMO_SESSION
+                - REACT_APP_ENVIRONMENT
+                - REACT_APP_FIREBASE_CONFIG_OBJECT
+                - REACT_APP_FRONTEND_ORG
+                - REACT_APP_FRONTEND_URI
+                - REACT_APP_ONPREM
+                - REACT_APP_PRIVATE_GRAPH_URI
+                - REACT_APP_PUBLIC_GRAPH_URI
+        environment:
+            - ENVIRONMENT
+            - RENDER_PREVIEW
+            - REACT_APP_DEMO_SESSION
+            - REACT_APP_ENVIRONMENT
+            - REACT_APP_FIREBASE_CONFIG_OBJECT
+            - REACT_APP_FRONTEND_ORG
+            - REACT_APP_FRONTEND_URI
+            - REACT_APP_ONPREM
+            - REACT_APP_PRIVATE_GRAPH_URI
+            - REACT_APP_PUBLIC_GRAPH_URI
+
+volumes:
+    postgres-data:
+    redis-data:
+    elasticsearch-data:
+    influxdb-data:

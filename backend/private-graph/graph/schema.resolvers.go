@@ -364,7 +364,9 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 				*admin.UserDefinedPersona,
 				*admin.FirstName,
 				*admin.LastName,
-				*admin.Phone); err != nil {
+				*admin.Phone,
+				*admin.Referral,
+			); err != nil {
 				log.Error(err, "error creating hubspot contact")
 			}
 		})
@@ -455,7 +457,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 		params.AddMetadata("Workspace ID", strconv.Itoa(workspace.ID))
 		c, err = r.StripeClient.Customers.New(params)
 		if err != nil {
-			return nil, e.Wrap(err, "error creating stripe customer")
+			log.Error(err, "error creating stripe customer")
 		}
 	}
 
@@ -1026,7 +1028,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		params := &stripe.CustomerParams{}
 		c, err := r.StripeClient.Customers.New(params)
 		if err != nil {
-			return nil, e.Wrap(err, "error creating stripe customer")
+			log.Error(err, "error creating stripe customer")
 		}
 		if err := r.DB.Model(&workspace).Updates(&model.Workspace{
 			StripeCustomerID: &c.ID,
@@ -3764,24 +3766,68 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 	}
 
 	errorObject := model.ErrorObject{}
-	errorObjectQuery := r.DB.Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID})
+	errorObjectQuery := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID})
+
 	if errorObjectID == nil {
-		if err := errorObjectQuery.Last(&errorObject).Error; err != nil {
-			return nil, e.Wrap(err, "error reading error object for instance")
+		sessionIds := []int{}
+		if err := r.DB.Model(&errorObject).
+			Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
+			Pluck("session_id", &sessionIds).
+			Error; err != nil {
+			return nil, e.Wrap(err, "error reading session ids")
+		}
+
+		processedSessions := []int{}
+		// find all processed sessions
+		if err := r.DB.Model(&model.Session{}).
+			Where("id IN (?) AND processed = ?", sessionIds, true).
+			Pluck("id", &processedSessions).
+			Error; err != nil {
+			return nil, e.Wrap(err, "error querying processed sessions")
+		}
+
+		if len(processedSessions) == 0 {
+			if err := errorObjectQuery.Last(&errorObject).Error; err != nil {
+				return nil, e.Wrap(err, "error reading error object for instance")
+			}
+		} else {
+			// find the most recent object from the processed session
+			if err := errorObjectQuery.
+				Where("session_id IN ?", processedSessions).
+				Order("id desc").
+				First(&errorObject).
+				Error; err != nil {
+				return nil, e.Wrap(err, "error reading error object for instance")
+			}
 		}
 	} else {
-		if err := errorObjectQuery.Where(&model.ErrorObject{Model: model.Model{ID: *errorObjectID}}).First(&errorObject).Error; err != nil {
+		if err := errorObjectQuery.
+			Where(&model.ErrorObject{Model: model.Model{ID: *errorObjectID}}).
+			First(&errorObject).
+			Error; err != nil {
 			return nil, e.Wrap(err, "error reading error object for instance")
 		}
 	}
 
 	nextErrorObject := model.ErrorObject{}
-	if err := r.DB.Model(&errorObject).Select("id").Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Where("id > ?", errorObject.ID).Order("id asc").Limit(1).Find(&nextErrorObject).Error; err != nil {
+	if err := r.DB.Model(&model.ErrorObject{}).
+		Select("id").
+		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
+		Where("id > ?", errorObject.ID).
+		Order("id asc").
+		Limit(1).
+		Find(&nextErrorObject).Error; err != nil {
 		return nil, e.Wrap(err, "error reading next error object in group")
 	}
 
 	previousErrorObject := model.ErrorObject{}
-	if err := r.DB.Model(&errorObject).Select("id").Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Where("id < ?", errorObject.ID).Order("id desc").Limit(1).Find(&previousErrorObject).Error; err != nil {
+	if err := r.DB.Model(&model.ErrorObject{}).
+		Select("id").
+		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
+		Where("id < ?", errorObject.ID).
+		Order("id desc").
+		Limit(1).
+		Find(&previousErrorObject).Error; err != nil {
 		return nil, e.Wrap(err, "error reading previous error object in group")
 	}
 

@@ -2,7 +2,7 @@ name: Deploy to AWS
 on:
     push:
         branches:
-            - 'master'
+            - 'main'
         paths:
             - 'backend/**'
             - 'deploy/**'

@@ -19,7 +19,6 @@ yalc.lock
 !.yarn/sdks
 !.yarn/versions
 
-**/*.pem
 **/*.test
 **/.swp
 **/build
@@ -43,4 +42,6 @@ cypress/videos/
 
 *.tsbuildinfo
 **/.turbo
+
+__pycache__
 

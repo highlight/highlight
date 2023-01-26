@@ -11,6 +11,9 @@ type BorderKeys =
 	| 'secondaryHover'
 	| 'secondaryPressed'
 	| 'secondaryDisabled'
+	| 'divider'
+	| 'dividerWeak'
+	| 'dividerStrong'
 
 type Borders = Record<BorderKeys, string>
 
@@ -33,6 +36,10 @@ export const borders: Borders = {
 	secondaryHover: `${themeVars.interactive.outline.secondary.hover} solid ${borderWidths.small}`,
 	secondaryPressed: `${themeVars.interactive.outline.secondary.pressed} solid ${borderWidths.small}`,
 	secondaryDisabled: `${themeVars.interactive.outline.secondary.disabled} solid ${borderWidths.small}`,
+
+	divider: `${themeVars.static.divider.default} solid ${borderWidths.small}`,
+	dividerWeak: `${themeVars.static.divider.weak} solid ${borderWidths.small}`,
+	dividerStrong: `${themeVars.static.divider.strong} solid ${borderWidths.small}`,
 } as const
 
 export interface BorderProps {

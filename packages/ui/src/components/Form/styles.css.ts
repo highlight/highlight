@@ -13,13 +13,6 @@ export const inputVariants = recipe({
 		outline: 0,
 		width: '100%',
 		selectors: {
-			'&:focus, &:active': {
-				border: vars.border.secondaryPressed,
-			},
-			'&:placeholder-shown:hover': {
-				background: vars.theme.interactive.overlay.secondary.hover,
-				border: vars.border.secondaryHover,
-			},
 			'&::placeholder': {
 				color: vars.theme.interactive.fill.secondary.content.onDisabled,
 			},
@@ -50,14 +43,29 @@ export const inputVariants = recipe({
 				width: 0,
 				padding: 0,
 				border: 'none',
+				'&:focus, &:active, &:placeholder-shown:hover': {
+					border: 'none',
+				},
 			},
 			false: {},
 		},
 		outline: {
 			true: {
 				border: vars.border.secondary,
+				selectors: {
+					'&:focus, &:active': {
+						border: vars.border.secondaryPressed,
+					},
+					'&:placeholder-shown:hover': {
+						background:
+							vars.theme.interactive.overlay.secondary.hover,
+						border: vars.border.secondaryHover,
+					},
+				},
 			},
-			false: {},
+			false: {
+				border: 'none',
+			},
 		},
 	},
 	defaultVariants: {
