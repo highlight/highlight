@@ -251,7 +251,7 @@ func (p *Queue) Receive() (msg *Message) {
 	start := time.Now()
 	ctx, cancel := context.WithTimeout(context.Background(), KafkaOperationTimeout)
 	defer cancel()
-	m, err := p.kafkaC.ReadMessage(ctx)
+	m, err := p.kafkaC.FetchMessage(ctx)
 	if err != nil {
 		if err.Error() != "context deadline exceeded" {
 			log.Error(errors.Wrap(err, "failed to receive message"))
