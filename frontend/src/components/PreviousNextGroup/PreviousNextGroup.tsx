@@ -6,8 +6,9 @@ import {
 	IconSolidCheveronUp,
 	Tooltip,
 } from '@highlight-run/ui'
-import * as styles from '@pages/Player/SessionLevelBar/SessionLevelBarV2.css'
 import React from 'react'
+
+import * as style from './style.css'
 
 export const PreviousNextGroup = function ({
 	onPrev,
@@ -35,16 +36,17 @@ export const PreviousNextGroup = function ({
 						shape="square"
 						emphasis="low"
 						icon={<IconSolidCheveronUp size={14} />}
-						cssClass={styles.sessionSwitchButton}
 						onClick={onPrev}
 						disabled={!canMoveBackward}
+						cssClass={style.leftButton}
 					/>
 				}
 				timeout={1000}
+				disabled={!canMoveBackward}
 			>
 				<KeyboardShortcut
 					label="Previous"
-					shortcut={prevShortcut ?? 'j'}
+					shortcut={prevShortcut ?? 'k'}
 				/>
 			</Tooltip>
 
@@ -60,14 +62,15 @@ export const PreviousNextGroup = function ({
 						emphasis="low"
 						icon={<IconSolidCheveronDown size={14} />}
 						title="j"
-						cssClass={styles.sessionSwitchButton}
 						onClick={onNext}
 						disabled={!canMoveForward}
+						cssClass={style.rightButton}
 					/>
 				}
 				timeout={1000}
+				disabled={!canMoveForward}
 			>
-				<KeyboardShortcut label="Next" shortcut={nextShortcut ?? 'k'} />
+				<KeyboardShortcut label="Next" shortcut={nextShortcut ?? 'j'} />
 			</Tooltip>
 		</Box>
 	)

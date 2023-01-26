@@ -100,7 +100,7 @@ export const SessionLevelBarV2: React.FC<
 	const canMoveBackward = sessionResults.sessions[prev]
 
 	useHotkeys(
-		'k',
+		'j',
 		() => {
 			if (canMoveForward) {
 				analytics.track('NextSessionKeyboardShortcut')
@@ -115,7 +115,7 @@ export const SessionLevelBarV2: React.FC<
 	)
 
 	useHotkeys(
-		'j',
+		'k',
 		() => {
 			if (canMoveBackward) {
 				analytics.track('PrevSessionKeyboardShortcut')

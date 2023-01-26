@@ -115,7 +115,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 	}, [error_secure_id])
 
 	useHotkeys(
-		'k',
+		'j',
 		() => {
 			if (canMoveForward) {
 				analytics.track('NextErrorGroupKeyboardShortcut')
@@ -126,7 +126,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 	)
 
 	useHotkeys(
-		'j',
+		'k',
 		() => {
 			if (canMoveBackward) {
 				analytics.track('PrevErrorGroupKeyboardShortcut')

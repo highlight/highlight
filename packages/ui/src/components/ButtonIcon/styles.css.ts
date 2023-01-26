@@ -14,8 +14,9 @@ export const variants = recipe({
 			color: vars.theme.interactive.fill.primary.enabled,
 			cursor: 'pointer',
 			padding: 0,
+			outline: 'none',
 			selectors: {
-				'&[disabled]': {
+				'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 					boxShadow: 'none',
 					color: vars.theme.interactive.fill.primary.content
 						.onDisabled,
