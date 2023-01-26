@@ -17,6 +17,8 @@ import (
 )
 
 const Port = "4319"
+const HighlightSessionIDAttribute = "highlight_session_id"
+const HighlightRequestIDAttribute = "highlight_request_id"
 
 // Exception based on opentelemetry spec: https://github.com/open-telemetry/opentelemetry-specification/blob/9fa7c656b26647b27e485a6af7e38dc716eba98a/specification/trace/semantic_conventions/exceptions.md#stacktrace-representation
 type Exception struct {
@@ -70,8 +72,9 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			spans := scopeScans.At(j).Spans()
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
-				traceID := span.TraceID().String()
-				spanID := span.SpanID().String()
+				attrs := span.Attributes().AsRaw()
+				sessionID := attrs[HighlightSessionIDAttribute].(string)
+				requestID := attrs[HighlightRequestIDAttribute].(string)
 				events := span.Events()
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
@@ -85,17 +88,15 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							Stacktrace: eventAttributes["exception.stacktrace"].(string),
 							Escaped:    eventAttributes["exception.escaped"].(string) == "true",
 						}
-						if _, ok := traceErrors[traceID]; !ok {
-							traceErrors[traceID] = []*model.BackendErrorObjectInput{}
+						if _, ok := traceErrors[sessionID]; !ok {
+							traceErrors[sessionID] = []*model.BackendErrorObjectInput{}
 						}
-						traceErrors[traceID] = append(traceErrors[traceID], &model.BackendErrorObjectInput{
-							// TODO(vkorolik) session less
-							SessionSecureID: traceID,
-							RequestID:       spanID,
+						traceErrors[sessionID] = append(traceErrors[sessionID], &model.BackendErrorObjectInput{
+							SessionSecureID: sessionID,
+							RequestID:       requestID,
 							Event:           exc.Message,
 							Type:            model2.ErrorType.BACKEND,
-							// TODO(vkorolik) span custom attribute?
-							URL: "",
+							URL:             "",
 							Source: strings.Join([]string{
 								resource.Attributes().AsRaw()["telemetry.sdk.language"].(string),
 								resource.Attributes().AsRaw()["service.name"].(string),
@@ -111,17 +112,16 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	for traceID, errors := range traceErrors {
+	for sessionID, errors := range traceErrors {
 		for _, e := range errors {
-			log.Infof("submitting trace %s error %+v", traceID, *e)
+			log.Infof("submitting session %s error %+v", sessionID, *e)
 		}
 		err = o.resolver.ProducerQueue.Submit(&kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				// TODO(vkorolik) need to make optional to support traceID
-				SessionSecureID: traceID,
+				SessionSecureID: sessionID,
 				Errors:          errors,
-			}}, traceID)
+			}}, sessionID)
 		if err != nil {
 			log.Error(err, "failed to submit otel errors to public worker queue")
 		}

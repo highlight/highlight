@@ -6,8 +6,7 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-from opentelemetry import context, trace, _logs
-from opentelemetry.trace import NonRecordingSpan, SpanContext
+from opentelemetry import trace, _logs
 from opentelemetry._logs.severity import std_to_otel
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -31,43 +30,23 @@ _logs.set_logger_provider(log_provider)
 log = log_provider.get_logger(__name__)
 
 
-def str2int(s, chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'):
-    i = 0
-    for c in reversed(s):
-        i *= len(chars)
-        i += chars.index(c)
-    return i
-
-
 @contextlib.contextmanager
 def highlight_error_handler():
-    token = None
+    session_id, request_id = '', ''
     try:
         session_id, request_id = request.headers[HIGHLIGHT_REQUEST_HEADER].split('/')
-        session_enc, request_enc = str2int(session_id), str2int(request_id)
-        span_context = SpanContext(
-            trace_id=session_enc,
-            span_id=request_enc,
-            is_remote=True,
-        )
-        ctx = trace.set_span_in_context(NonRecordingSpan(span_context))
-        token = context.attach(ctx)
-        logging.info(f'got highlight context {session_id} {request_id} -> {session_enc}, {request_enc}')
+        logging.info(f'got highlight context {session_id} {request_id}')
     except KeyError:
         pass
 
-    try:
-        with tracer.start_as_current_span("highlight-ctx") as span:
-            logging.info(f'created span f{span}')
-            try:
-                yield
-            except Exception as e:
-                span.record_exception(e)
-                # TODO(vkorolik) make sure stack trace reports original exc
-                logging.exception("Highlight caught an error", exc_info=e)
-    finally:
-        if token:
-            context.detach(token)
+    with tracer.start_as_current_span("highlight-ctx") as span:
+        span.set_attributes({'highlight_session_id': session_id})
+        span.set_attributes({'highlight_request_id': request_id})
+        try:
+            yield
+        except Exception as e:
+            span.record_exception(e)
+            logging.exception("Highlight caught an error", exc_info=e)
 
 
 def log_hook(span: _Span, record: logging.LogRecord):
