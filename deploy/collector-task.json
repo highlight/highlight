@@ -1,9 +1,9 @@
 {
-	"taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/opentelemetry-collector-service:4",
+	"taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/opentelemetry-collector-service:8",
 	"containerDefinitions": [
 		{
 			"name": "highlight-collector",
-			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-collector:b8dc0a0ec2030a63cccbbd93fbbb7b77bcd4e963.arm64",
+			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-collector:dd297174659d5afb8dfb61e68d27e35727f5f4bd.arm64",
 			"cpu": 0,
 			"portMappings": [
 				{
@@ -17,6 +17,13 @@
 					"name": "highlight-collector-4318-tcp",
 					"containerPort": 4318,
 					"hostPort": 4318,
+					"protocol": "tcp",
+					"appProtocol": "http2"
+				},
+				{
+					"name": "highlight-collector-4319-tcp",
+					"containerPort": 4319,
+					"hostPort": 4319,
 					"protocol": "tcp",
 					"appProtocol": "http2"
 				}
@@ -38,7 +45,7 @@
 	"family": "opentelemetry-collector-service",
 	"executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
 	"networkMode": "awsvpc",
-	"revision": 4,
+	"revision": 8,
 	"volumes": [],
 	"status": "ACTIVE",
 	"requiresAttributes": [
@@ -72,7 +79,7 @@
 	"runtimePlatform": {
 		"cpuArchitecture": "ARM64"
 	},
-	"registeredAt": "2023-01-26T19:20:44.384Z",
+	"registeredAt": "2023-01-26T21:49:32.433Z",
 	"registeredBy": "arn:aws:iam::173971919437:user/vadim",
 	"tags": [
 		{

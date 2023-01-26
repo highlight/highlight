@@ -1,10 +1,6 @@
 import contextlib
 import logging
-import random
-import time
-from flask import Flask, request
-
-app = Flask(__name__)
+import typing
 
 from opentelemetry import trace, _logs
 from opentelemetry._logs.severity import std_to_otel
@@ -31,10 +27,10 @@ log = log_provider.get_logger(__name__)
 
 
 @contextlib.contextmanager
-def highlight_error_handler():
+def highlight_error_handler(headers: typing.Dict[str, str]):
     session_id, request_id = '', ''
     try:
-        session_id, request_id = request.headers[HIGHLIGHT_REQUEST_HEADER].split('/')
+        session_id, request_id = headers[HIGHLIGHT_REQUEST_HEADER].split('/')
         logging.info(f'got highlight context {session_id} {request_id}')
     except KeyError:
         pass
@@ -51,19 +47,18 @@ def highlight_error_handler():
 
 def log_hook(span: _Span, record: logging.LogRecord):
     if span and span.is_recording():
-        record.custom_user_attribute_from_log_hook = "some-value"
-    ctx = span.get_span_context()
-    r = LogRecord(
-        timestamp=int(record.created),
-        trace_id=ctx.trace_id,
-        span_id=ctx.span_id,
-        trace_flags=ctx.trace_flags,
-        severity_text=record.levelname,
-        severity_number=std_to_otel(record.levelno),
-        body=record.getMessage(),
-        resource=Resource({}),
-    )
-    log.emit(r)
+        ctx = span.get_span_context()
+        r = LogRecord(
+            timestamp=int(record.created),
+            trace_id=ctx.trace_id,
+            span_id=ctx.span_id,
+            trace_flags=ctx.trace_flags,
+            severity_text=record.levelname,
+            severity_number=std_to_otel(record.levelno),
+            body=record.getMessage(),
+            resource=Resource({}),
+        )
+        log.emit(r)
 
 
 LoggingInstrumentor().instrument(set_logging_format=True, log_hook=log_hook)
