@@ -1,7 +1,9 @@
 package clickhouse
 
 import (
+	"context"
 	"crypto/tls"
+	"fmt"
 	"os"
 	"time"
 
@@ -13,9 +15,12 @@ type Client struct {
 	conn driver.Conn
 }
 
+func getDatabase() string {
+	return os.Getenv("DOPPLER_CONFIG")
+}
+
 var (
 	ServerAddr = os.Getenv("CLICKHOUSE_ADDRESS")
-	Database   = os.Getenv("CLICKHOUSE_DATABASE")
 	Username   = os.Getenv("CLICKHOUSE_USERNAME")
 	Password   = os.Getenv("CLICKHOUSE_PASSWORD")
 )
@@ -24,7 +29,7 @@ func NewClient() (*Client, error) {
 	conn, err := clickhouse.Open(&clickhouse.Options{
 		Addr: []string{ServerAddr},
 		Auth: clickhouse.Auth{
-			Database: Database,
+			Database: getDatabase(),
 			Username: Username,
 			Password: Password,
 		},
@@ -35,4 +40,24 @@ func NewClient() (*Client, error) {
 	return &Client{
 		conn: conn,
 	}, err
+}
+
+func CreateDatabase() error {
+	conn, err := clickhouse.Open(&clickhouse.Options{
+		Addr: []string{ServerAddr},
+		Auth: clickhouse.Auth{
+			// we expect this database to exist in order to create a connection
+			// Each "service", a container for databases, should always have this database name present.
+			Database: "default",
+			Username: Username,
+			Password: Password,
+		},
+		TLS: &tls.Config{},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return conn.Exec(context.Background(), fmt.Sprintf("CREATE DATABASE `%s`", getDatabase()))
 }

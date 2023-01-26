@@ -18,24 +18,25 @@ type LogRow struct {
 	SecureSessionID string
 }
 
-// func (client *Client) CreateLogsTable(ctx context.Context) error {
-// 	client.conn.Exec(ctx, "DROP TABLE IF EXISTS logs") //nolint:errcheck
+func (client *Client) CreateLogsTable() error {
+	ctx := context.Background()
+	client.conn.Exec(ctx, "DROP TABLE IF EXISTS logs") //nolint:errcheck
 
-// 	return client.conn.Exec(ctx, `
-// 	CREATE TABLE IF NOT EXISTS logs (
-// 		Timestamp       DateTime64(9) CODEC (Delta, ZSTD(1)),
-// 		SeverityText    LowCardinality(String) CODEC (ZSTD(1)),
-// 		Body            String CODEC (ZSTD(1)),
-// 		ProjectId 		UInt32 CODEC (ZSTD(1)),
-// 		SecureSessionID Nullable(String) CODEC (ZSTD(1))
-// 	)
-// 	ENGINE = MergeTree()
-// 		PARTITION BY toDate(Timestamp)
-// 		ORDER BY (ProjectId, toUnixTimestamp(Timestamp))
-// 		TTL toDateTime(Timestamp) + toIntervalDay(30)
-// 		SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
-// 	`)
-// }
+	return client.conn.Exec(ctx, `
+	CREATE TABLE IF NOT EXISTS logs (
+		Timestamp       DateTime64(9) CODEC (Delta, ZSTD(1)),
+		SeverityText    LowCardinality(String) CODEC (ZSTD(1)),
+		Body            String CODEC (ZSTD(1)),
+		ProjectId 		UInt32 CODEC (ZSTD(1)),
+		SecureSessionID Nullable(String) CODEC (ZSTD(1))
+	)
+	ENGINE = MergeTree()
+		PARTITION BY toDate(Timestamp)
+		ORDER BY (ProjectId, toUnixTimestamp(Timestamp))
+		TTL toDateTime(Timestamp) + toIntervalDay(30)
+		SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
+	`)
+}
 
 type Message struct {
 	Type  string `json:"type"`

@@ -25,6 +25,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/alerts"
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	highlightErrors "github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -1146,6 +1147,14 @@ func (w *Worker) InitializeOpenSearchSessions() {
 	}
 }
 
+func (w *Worker) InitializeClickhouse() {
+	clickhouse.CreateDatabase()
+}
+
+func (w *Worker) InitializeClickhouseLogs() {
+	w.Resolver.ClickhouseClient.CreateLogsTable()
+}
+
 func (w *Worker) InitializeOpenSearchIndex() {
 	w.InitIndexMappings()
 	w.IndexTable(opensearch.IndexFields, &model.Field{}, false)
@@ -1289,6 +1298,10 @@ func (w *Worker) GetHandler(handlerFlag string) func() {
 	switch handlerFlag {
 	case "report-stripe-usage":
 		return w.ReportStripeUsage
+	case "init-clickhouse":
+		return w.InitializeClickhouse
+	case "init-clickhouse-logs":
+		return w.InitializeClickhouseLogs
 	case "init-opensearch":
 		return w.InitializeOpenSearchIndex
 	case "init-opensearch-sessions":
