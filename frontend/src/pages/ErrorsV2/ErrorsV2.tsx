@@ -2,6 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import LoadingBox from '@components/LoadingBox'
+import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import {
 	useGetErrorGroupQuery,
 	useMuteErrorCommentThreadMutation,
@@ -10,12 +11,9 @@ import {
 	Box,
 	ButtonIcon,
 	Container,
-	IconSolidCheveronDown,
-	IconSolidCheveronUp,
 	IconSolidExitRight,
 	Tooltip,
 } from '@highlight-run/ui'
-import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
@@ -53,10 +51,10 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		(secureId) => secureId === error_secure_id,
 	)
 	const canMoveForward =
-		searchResultSecureIds.length &&
+		!!searchResultSecureIds.length &&
 		currentSearchResultIndex < searchResultSecureIds.length - 1
 	const canMoveBackward =
-		searchResultSecureIds.length && currentSearchResultIndex > 0
+		!!searchResultSecureIds.length && currentSearchResultIndex > 0
 	const nextSecureId = searchResultSecureIds[currentSearchResultIndex + 1]
 	const previousSecureId = searchResultSecureIds[currentSearchResultIndex - 1]
 
@@ -131,7 +129,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		'k',
 		() => {
 			if (canMoveBackward) {
-				analytics.track('NextErrorGroupKeyboardShortcut')
+				analytics.track('PrevErrorGroupKeyboardShortcut')
 				goToErrorGroup(previousSecureId)
 			}
 		},
@@ -204,84 +202,20 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											/>
 										</Tooltip>
 									)}
-									<Box
-										borderRadius="6"
-										overflow="hidden"
-										display="flex"
-										style={{
-											boxShadow: shadows.n5,
-										}}
-									>
-										<Tooltip
-											placement="bottom"
-											trigger={
-												<ButtonIcon
-													kind="secondary"
-													size="small"
-													shape="square"
-													emphasis="low"
-													icon={
-														<IconSolidCheveronUp
-															size={14}
-														/>
-													}
-													cssClass={
-														styles.sessionSwitchButton
-													}
-													onClick={() => {
-														goToErrorGroup(
-															previousSecureId,
-														)
-													}}
-													disabled={!canMoveBackward}
-												/>
-											}
-										>
-											<KeyboardShortcut
-												label="Previous"
-												shortcut="k"
-											/>
-										</Tooltip>
-
-										<Box
-											as="span"
-											borderRight="secondary"
-										/>
-										<Tooltip
-											placement="bottom"
-											trigger={
-												<ButtonIcon
-													kind="secondary"
-													size="small"
-													shape="square"
-													emphasis="low"
-													icon={
-														<IconSolidCheveronDown
-															size={14}
-														/>
-													}
-													title="j"
-													cssClass={
-														styles.sessionSwitchButton
-													}
-													onClick={() => {
-														goToErrorGroup(
-															nextSecureId,
-														)
-													}}
-													disabled={!canMoveForward}
-												/>
-											}
-										>
-											<KeyboardShortcut
-												label="Next"
-												shortcut="j"
-											/>
-										</Tooltip>
-									</Box>
+									<PreviousNextGroup
+										canMoveBackward={canMoveBackward}
+										canMoveForward={canMoveForward}
+										onPrev={() =>
+											goToErrorGroup(previousSecureId)
+										}
+										onNext={() =>
+											goToErrorGroup(nextSecureId)
+										}
+									/>
 								</Box>
 							</Box>
 						)}
+
 						{error_secure_id && !errorQueryingErrorGroup ? (
 							<>
 								<Helmet>

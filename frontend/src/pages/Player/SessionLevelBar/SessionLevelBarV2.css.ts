@@ -1,6 +1,5 @@
 import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import { style } from '@vanilla-extract/css'
 
 export const sessionLevelBarV2 = style({
@@ -38,6 +37,7 @@ export const leftButtons = style({
 	display: 'flex',
 	alignItems: 'center',
 	overflowX: 'hidden',
+	gap: 8,
 })
 
 export const rightButtons = style({
@@ -49,31 +49,7 @@ export const rightButtons = style({
 })
 
 export const openLeftPanelButton = style({
-	minWidth: 30,
-	marginRight: 8,
-})
-
-export const sessionSwitchButton = style({
-	border: 'none !important',
-	borderRadius: 0,
-	selectors: {
-		'&:focus:enabled, &:active:enabled': {
-			backgroundColor: colors.white,
-			boxShadow: shadows.n5,
-		},
-		'&:hover:enabled': {
-			backgroundColor: themeVars.interactive.overlay.secondary.hover,
-		},
-	},
-	width: 28,
-})
-
-export const sessionSwitchButtonLeft = style({
-	borderRadius: `6px 0px 0px 6px`,
-})
-
-export const sessionSwitchButtonRight = style({
-	borderRadius: `0px 6px 6px 0px`,
+	flexShrink: 0,
 })
 
 export const rightPanelButtonShown = style({

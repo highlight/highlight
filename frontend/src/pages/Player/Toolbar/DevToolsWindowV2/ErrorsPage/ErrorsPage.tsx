@@ -23,106 +23,103 @@ interface ErrorsPageHistoryState {
 	errorCardIndex: number
 }
 
-const ErrorsPage = React.memo(
-	({
+const ErrorsPage = ({
+	autoScroll,
+	filter,
+	time,
+}: {
+	autoScroll: boolean
+	filter: string
+	time: number
+}) => {
+	const virtuoso = useRef<VirtuosoHandle>(null)
+	const history = useHistory<ErrorsPageHistoryState>()
+	const { errors, state, session, sessionMetadata, setTime } =
+		useReplayerContext()
+	const { setErrorPanel } = useResourceOrErrorDetailPanel()
+
+	const loading = state === ReplayerState.Loading
+
+	/** Only errors recorded after this feature was released will have the timestamp. */
+
+	const hasTimestamp = !loading && errors?.every((error) => !!error.timestamp)
+	const lastActiveErrorIndex = useMemo(() => {
+		if (hasTimestamp) {
+			return findLastActiveEventIndex(
+				time,
+				sessionMetadata.startTime,
+				errors,
+			)
+		}
+		return -1
+	}, [errors, hasTimestamp, sessionMetadata.startTime, time])
+
+	useLayoutEffect(() => {
+		if (virtuoso.current && autoScroll) {
+			if (history.location.state?.errorCardIndex !== undefined) {
+				virtuoso.current.scrollToIndex(
+					history.location.state.errorCardIndex,
+				)
+			} else {
+				virtuoso.current.scrollToIndex(lastActiveErrorIndex)
+			}
+		}
+	}, [
 		autoScroll,
-		filter,
-		time,
-	}: {
-		autoScroll: boolean
-		filter: string
-		time: number
-	}) => {
-		const virtuoso = useRef<VirtuosoHandle>(null)
-		const history = useHistory<ErrorsPageHistoryState>()
-		const { errors, state, session, sessionMetadata, setTime } =
-			useReplayerContext()
-		const { setErrorPanel } = useResourceOrErrorDetailPanel()
+		history.location.state?.errorCardIndex,
+		lastActiveErrorIndex,
+	])
 
-		const loading = state === ReplayerState.Loading
+	const errorsToRender = useMemo(() => {
+		if (!filter.length) {
+			return errors
+		}
 
-		/** Only errors recorded after this feature was released will have the timestamp. */
+		return errors.filter((error) => {
+			const normalizedfilter = filter.toLocaleLowerCase()
 
-		const hasTimestamp =
-			!loading && errors?.every((error) => !!error.timestamp)
-		const lastActiveErrorIndex = useMemo(() => {
-			if (hasTimestamp) {
-				return findLastActiveEventIndex(
-					time,
-					sessionMetadata.startTime,
-					errors,
-				)
-			}
-			return -1
-		}, [errors, hasTimestamp, sessionMetadata.startTime, time])
+			return error.event.some(
+				(line) =>
+					line?.toLocaleLowerCase().includes(normalizedfilter) ||
+					error.source
+						?.toLocaleLowerCase()
+						.includes(normalizedfilter),
+			)
+		})
+	}, [errors, filter])
 
-		useLayoutEffect(() => {
-			if (virtuoso.current && autoScroll) {
-				if (history.location.state?.errorCardIndex !== undefined) {
-					virtuoso.current.scrollToIndex(
-						history.location.state.errorCardIndex,
-					)
-				} else {
-					virtuoso.current.scrollToIndex(lastActiveErrorIndex)
-				}
-			}
-		}, [
-			autoScroll,
-			history.location.state?.errorCardIndex,
-			lastActiveErrorIndex,
-		])
-
-		const errorsToRender = useMemo(() => {
-			if (!filter.length) {
-				return errors
-			}
-
-			return errors.filter((error) => {
-				const normalizedfilter = filter.toLocaleLowerCase()
-
-				return error.event.some(
-					(line) =>
-						line?.toLocaleLowerCase().includes(normalizedfilter) ||
-						error.source
-							?.toLocaleLowerCase()
-							.includes(normalizedfilter),
-				)
-			})
-		}, [errors, filter])
-
-		return (
-			<Box className={styles.errorsContainer}>
-				{loading ? (
-					<LoadingBox />
-				) : !session || !errorsToRender.length ? (
-					<EmptyDevToolsCallout kind={Tab.Errors} filter={filter} />
-				) : (
-					<Virtuoso
-						ref={virtuoso}
-						overscan={500}
-						data={errorsToRender}
-						className={styledScrollbar}
-						itemContent={(index, error) => (
-							<ErrorRow
-								key={error.error_group_secure_id}
-								error={error}
-								setSelectedError={() => {
-									setErrorPanel(error)
-									setTime(
-										new Date(error.timestamp).getTime() -
-											sessionMetadata.startTime,
-									)
-								}}
-								searchQuery={filter}
-								current={index === lastActiveErrorIndex}
-							/>
-						)}
-					/>
-				)}
-			</Box>
-		)
-	},
-)
+	return (
+		<Box className={styles.errorsContainer}>
+			{loading ? (
+				<LoadingBox />
+			) : !session || !errorsToRender.length ? (
+				<EmptyDevToolsCallout kind={Tab.Errors} filter={filter} />
+			) : (
+				<Virtuoso
+					ref={virtuoso}
+					overscan={500}
+					data={errorsToRender}
+					className={styledScrollbar}
+					itemContent={(index, error) => (
+						<ErrorRow
+							key={error.error_group_secure_id}
+							error={error}
+							setSelectedError={() => {
+								setErrorPanel(error)
+								setTime(
+									new Date(error.timestamp).getTime() -
+										sessionMetadata.startTime,
+								)
+							}}
+							searchQuery={filter}
+							current={index === lastActiveErrorIndex}
+						/>
+					)}
+				/>
+			)}
+		</Box>
+	)
+}
 
 export enum ErrorCardState {
 	Unknown,

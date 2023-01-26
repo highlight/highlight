@@ -49,7 +49,7 @@ export const variants = recipe({
 		},
 		{
 			selectors: {
-				'&:disabled, &:disabled:hover, &:disabled:focus': {
+				'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 					backgroundColor:
 						vars.theme.interactive.overlay.secondary.disabled,
 					border: 0,
