@@ -9,6 +9,7 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 type Client struct {
@@ -16,7 +17,11 @@ type Client struct {
 }
 
 func getDatabase() string {
-	return os.Getenv("DOPPLER_CONFIG")
+	if util.IsDevEnv() {
+		return os.Getenv("DOPPLER_CONFIG")
+	} else {
+		return os.Getenv("CLICKHOUSE_DATABASE")
+	}
 }
 
 var (
