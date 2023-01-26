@@ -16,11 +16,6 @@ export const variants = recipe({
 		sprinkles({ borderRadius: '6' }),
 		{
 			selectors: {
-				'&:focus': {
-					border: 0,
-					boxShadow: 'none',
-					outline: 'none',
-				},
 				'&:hover': {
 					cursor: 'pointer',
 				},

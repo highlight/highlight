@@ -44,7 +44,7 @@ export const variants = recipe({
 						color: colors.n10,
 						boxShadow: shadows.grey,
 					},
-					'&:focus:enabled, &:active:enabled': {
+					'&:active:enabled': {
 						backgroundColor: vars.color.n5,
 						boxShadow: 'none',
 					},
@@ -260,7 +260,7 @@ export const variants = recipe({
 						backgroundColor:
 							vars.theme.interactive.overlay.secondary.hover,
 					},
-					'&:focus:enabled, &:active:enabled': {
+					'&:active:enabled': {
 						backgroundColor:
 							vars.theme.interactive.overlay.secondary.pressed,
 					},
