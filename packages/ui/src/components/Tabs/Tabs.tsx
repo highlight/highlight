@@ -52,7 +52,7 @@ export const Tabs = function <T extends string>({
 							paddingTop="4"
 							gap="4"
 							key={t}
-							className={styles.controlBarButton}
+							cssClass={styles.controlBarButton}
 							onMouseEnter={() => setHoveredTab(t)}
 							onMouseLeave={() => setHoveredTab(undefined)}
 							onClick={() => {
@@ -61,7 +61,7 @@ export const Tabs = function <T extends string>({
 						>
 							<Button
 								iconLeft={pages[t].icon}
-								className={styles.controlBarVariants({
+								cssClass={styles.controlBarVariants({
 									selected: t === tab,
 								})}
 							>
@@ -73,8 +73,8 @@ export const Tabs = function <T extends string>({
 									{pages[t].badge}
 								</Text>
 							</Button>
-							<div
-								className={styles.controlBarBottomVariants({
+							<Box
+								cssClass={styles.controlBarBottomVariants({
 									hovered: t === hoveredTab,
 									selected: t === tab,
 								})}
@@ -87,8 +87,14 @@ export const Tabs = function <T extends string>({
 			{currentPage && (
 				<Box className={styles.pageWrapper}>
 					{pages[tab].page}
-					<Box ref={handleRef} className={styles.handle}>
-						<Box className={styles.handleLine} />
+					<Box
+						ref={handleRef}
+						cssClass={[
+							styles.handle,
+							{ [styles.grabbable]: !!handleRef },
+						]}
+					>
+						<Box cssClass={styles.handleLine} />
 					</Box>
 				</Box>
 			)}
