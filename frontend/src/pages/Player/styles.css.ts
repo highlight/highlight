@@ -1,5 +1,4 @@
 import { vars } from '@highlight-run/ui'
-import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
 
@@ -43,7 +42,7 @@ export const rrwebPlayerSection = style({
 	background: colors.n1,
 	border: `1px solid ${colors.n6}`,
 	borderRadius: 6,
-	boxShadow: shadows.medium,
+	boxShadow: vars.shadows.small,
 	overflow: 'clip',
 	display: 'flex',
 	flex: 2,
