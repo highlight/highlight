@@ -77,7 +77,7 @@ func TestResolver_GetSessionChunk(t *testing.T) {
 
 type HubspotMock struct{}
 
-func (h *HubspotMock) CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) (*int, error) {
+func (h *HubspotMock) CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (*int, error) {
 	return nil, nil
 }
 

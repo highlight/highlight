@@ -93,6 +93,7 @@ export type HighlightClassOptions = {
 	tracingOrigins?: boolean | (string | RegExp)[]
 	disableNetworkRecording?: boolean
 	networkRecording?: boolean | NetworkRecordingOptions
+	disableBackgroundRecording?: boolean
 	disableConsoleRecording?: boolean
 	consoleMethodsToRecord?: ConsoleMethods[]
 	enableSegmentIntegration?: boolean
@@ -764,7 +765,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		this._lastVisibilityChangeTime = new Date().getTime()
 		this.logger.log(`Detected window ${hidden ? 'hidden' : 'visible'}.`)
 		if (!hidden) {
-			await this.initialize()
+			if (this.options.disableBackgroundRecording) {
+				await this.initialize()
+			}
 			this.addCustomEvent('TabHidden', false)
 		} else {
 			this.addCustomEvent('TabHidden', true)
@@ -795,7 +798,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					}
 				}
 			}
-			this.stopRecording()
+			if (this.options.disableBackgroundRecording) {
+				this.stopRecording()
+			}
 		}
 	}
 
