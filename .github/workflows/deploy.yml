@@ -271,8 +271,8 @@ jobs:
             # TODO(vkorolik) opentelemetry collector deploys are no expected to be frequent. disable by default
             - name: Build, tag, and push arm64 image to Amazon ECR
               run: |
-                  cd docker
-                  docker buildx build --platform linux/arm64 -t public.ecr.aws/highlight-io/highlight-collector:${{ github.sha }}.arm64 -f deploy/opentelemetry-collector.Dockerfile .
+                  cd deploy
+                  docker buildx build --platform linux/arm64 -t public.ecr.aws/highlight-io/highlight-collector:${{ github.sha }}.arm64 -f opentelemetry-collector.Dockerfile .
                   docker push public.ecr.aws/highlight-io/highlight-collector:${{ github.sha }}.arm64
             - name: Replace image label for opentelemetry collector
               id: image-opentelemetry-collector
