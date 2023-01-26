@@ -89,7 +89,7 @@ export const variants = recipe({
 				'&:hover': {
 					cursor: 'pointer',
 				},
-				'&[disabled]': {
+				'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 					color: vars.theme.interactive.fill.secondary.content
 						.onDisabled,
 					pointerEvents: 'none',

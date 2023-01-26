@@ -1,4 +1,5 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
+import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import { TableList } from '@components/TableList/TableList'
 import {
 	Badge,
@@ -9,7 +10,6 @@ import {
 	Text,
 	vars,
 } from '@highlight-run/ui'
-import { PreviousNextGroup } from '@pages/Player/components/PreviousNextGroup/PreviousNextGroup'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -55,7 +55,7 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 		'h',
 		() => {
 			if (canMoveBackward) {
-				analytics.track('NextSessionEventKeyboardShortcut')
+				analytics.track('PrevSessionEventKeyboardShortcut')
 				setActiveEvent(eventsForTimelineIndicator[prev])
 			}
 		},
