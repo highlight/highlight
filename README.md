@@ -33,8 +33,6 @@ We strive to make highlight.io as easy to install as a few lines of code in any 
 
 The fastest and most reliable way to get started with highlight.io is signing up for free at [app.highlight.io](https://app.highlight.io). After making an account, getting started is as easy as installing the [client SDK snippet](https://www.highlight.io/docs/getting-started/client-sdk/overview).
 
-After this, we recommend configuring alerts, installing highlight.io in your backend and more! Refer to your account at [app.highlight.io](https://app.highlightio) on next steps.
-
 ### Hobby self-hosted
 
 Deploy a hobby instance in one line on Linux with Docker (recommended 32GB memory):
