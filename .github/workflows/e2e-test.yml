@@ -90,7 +90,7 @@ jobs:
             - name: Build frontend + backend
               run: yarn ci:build
             - name: Run Cypress tests
-              uses: cypress-io/github-action@v4
+              uses: cypress-io/github-action@v5
               with:
                   install: false
                   # frontend dependencies of ci:frontend are built prior by ci:build
