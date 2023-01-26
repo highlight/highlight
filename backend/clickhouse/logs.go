@@ -18,11 +18,11 @@ type LogRow struct {
 	SecureSessionID string
 }
 
-func (client *Client) CreateLogsTable() error {
+func (client *Client) CreateLogsTable() {
 	ctx := context.Background()
 	client.conn.Exec(ctx, "DROP TABLE IF EXISTS logs") //nolint:errcheck
 
-	return client.conn.Exec(ctx, `
+	err := client.conn.Exec(ctx, `
 	CREATE TABLE IF NOT EXISTS logs (
 		Timestamp       DateTime64(9) CODEC (Delta, ZSTD(1)),
 		SeverityText    LowCardinality(String) CODEC (ZSTD(1)),
@@ -36,6 +36,10 @@ func (client *Client) CreateLogsTable() error {
 		TTL toDateTime(Timestamp) + toIntervalDay(30)
 		SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
 	`)
+
+	if err != nil {
+		log.Fatalf("CLICKHOUSE_ERROR failed to create `logs` table: %+v", err)
+	}
 }
 
 type Message struct {

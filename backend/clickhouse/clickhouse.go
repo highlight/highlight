@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/highlight-run/highlight/backend/util"
@@ -47,7 +49,7 @@ func NewClient() (*Client, error) {
 	}, err
 }
 
-func CreateDatabase() error {
+func CreateDatabase() {
 	conn, err := clickhouse.Open(&clickhouse.Options{
 		Addr: []string{ServerAddr},
 		Auth: clickhouse.Auth{
@@ -61,8 +63,12 @@ func CreateDatabase() error {
 	})
 
 	if err != nil {
-		return err
+		log.Fatalf("CLICKHOUSE_ERROR failed to connect to `database` database: %+v", err)
 	}
 
-	return conn.Exec(context.Background(), fmt.Sprintf("CREATE DATABASE `%s`", getDatabase()))
+	database := getDatabase()
+	err = conn.Exec(context.Background(), fmt.Sprintf("CREATE DATABASE `%s`", database))
+	if err != nil {
+		log.Fatalf("CLICKHOUSE_ERROR failed to create `%s` database: %+v", database, err)
+	}
 }
