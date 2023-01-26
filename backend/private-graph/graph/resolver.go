@@ -26,6 +26,7 @@ import (
 
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/integrations"
@@ -121,6 +122,7 @@ type Resolver struct {
 	StepFunctions          *stepfunctions.Client
 	OAuthServer            *oauth.Server
 	IntegrationsClient     *integrations.Client
+	ClickhouseClient       *clickhouse.Client
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {

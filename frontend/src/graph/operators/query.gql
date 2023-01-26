@@ -1846,3 +1846,11 @@ query GetErrorGroupTags($error_group_secure_id: String!) {
 query GetEmailOptOuts($token: String, $admin_id: ID) {
 	email_opt_outs(token: $token, admin_id: $admin_id)
 }
+
+query GetLogs($project_id: ID!) {
+	logs(project_id: $project_id) {
+		timestamp
+		severityText
+		body
+	}
+}

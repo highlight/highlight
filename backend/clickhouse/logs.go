@@ -3,9 +3,11 @@ package clickhouse
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"time"
 
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -17,6 +19,8 @@ type LogRow struct {
 	ProjectId       uint32
 	SecureSessionID string
 }
+
+const LogsTable = "logs"
 
 // func (client *Client) CreateLogsTable(ctx context.Context) error {
 // 	client.conn.Exec(ctx, "DROP TABLE IF EXISTS logs") //nolint:errcheck
@@ -55,7 +59,6 @@ type Messages struct {
 }
 
 func (client *Client) BatchWriteMessagesForSession(ctx context.Context, projectID int, sessionSecureID string, messages string) error {
-
 	messagesParsed := Messages{}
 	if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
 		return e.Wrap(err, "error decoding message data")
@@ -64,7 +67,11 @@ func (client *Client) BatchWriteMessagesForSession(ctx context.Context, projectI
 		return nil
 	}
 
-	batch, err := client.conn.PrepareBatch(ctx, "INSERT INTO logs")
+	query := fmt.Sprintf(`
+		INSERT INTO %s
+	`, LogsTable)
+
+	batch, err := client.conn.PrepareBatch(ctx, query)
 
 	if err != nil {
 		return e.Wrap(err, "failed to create logs batch")
@@ -84,6 +91,42 @@ func (client *Client) BatchWriteMessagesForSession(ctx context.Context, projectI
 		}
 	}
 	return batch.Send()
+}
+
+func (client *Client) ReadLogs(ctx context.Context, projectID int) ([]*modelInputs.LogLine, error) {
+	query := fmt.Sprintf(`
+		SELECT Timestamp, SeverityText, Body FROM %s
+		WHERE ProjectId = %d
+		LIMIT 100
+	`, LogsTable, projectID)
+
+	rows, err := client.conn.Query(
+		ctx,
+		query,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	logLines := []*modelInputs.LogLine{}
+
+	for rows.Next() {
+		var (
+			Timestamp    time.Time
+			SeverityText string
+			Body         string
+		)
+		if err := rows.Scan(&Timestamp, &SeverityText, &Body); err != nil {
+			return nil, err
+		}
+		logLines = append(logLines, &modelInputs.LogLine{
+			Timestamp:    Timestamp,
+			SeverityText: SeverityText,
+			Body:         Body,
+		})
+	}
+	rows.Close()
+	return logLines, rows.Err()
 }
 
 func makeLogRow(projectID int, sessionSecureID string, message Message) (*LogRow, error) {

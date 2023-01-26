@@ -11,6 +11,7 @@ import { Redirect, Route, Switch } from 'react-router-dom'
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import LogsPage from '@pages/LogsPage/LogsPage'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { usePreloadErrors, usePreloadSessions } from '@util/preload'
 
@@ -27,7 +28,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 	usePreloadSessions({ page: page || 1 })
 	usePreloadErrors({ page: errorPage || 1 })
 	const { project_id } = useParams<{ project_id: string }>()
-	const { isLoggedIn } = useAuthContext()
+	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 
 	return (
 		<>
@@ -63,6 +64,11 @@ const ApplicationRouter = ({ integrated }: Props) => {
 				<Route path="/:project_id/setup">
 					<SetupRouter integrated={integrated} />
 				</Route>
+				{isHighlightAdmin && (
+					<Route path="/:project_id/logs">
+						<LogsPage />
+					</Route>
+				)}
 				<Route path="/:project_id/integrations/:integration_type?">
 					<IntegrationsPage />
 				</Route>
