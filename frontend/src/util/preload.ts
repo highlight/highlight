@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import {
 	GetEnhancedUserDetailsDocument,
@@ -265,13 +266,16 @@ export const loadSession = async function (secureID: string) {
 		const sess = session?.data?.session
 		if (!sess) return
 		if (sess.resources_url) {
-			await indexedDBFetch(sess.resources_url)
+			for await (const _ of indexedDBFetch(sess.resources_url)) {
+			}
 		}
 		if (sess.messages_url) {
-			await indexedDBFetch(sess.messages_url)
+			for await (const _ of indexedDBFetch(sess.messages_url)) {
+			}
 		}
 		if (sess.direct_download_url) {
-			await indexedDBFetch(sess.direct_download_url)
+			for await (const _ of indexedDBFetch(sess.direct_download_url)) {
+			}
 		}
 		await client.query({
 			query: GetSessionIntervalsDocument,

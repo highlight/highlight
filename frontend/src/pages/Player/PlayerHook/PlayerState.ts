@@ -1,7 +1,5 @@
-import { ApolloQueryResult } from '@apollo/client'
 import { MarkSessionAsViewedMutationFn } from '@graph/hooks'
 import {
-	GetEventChunkUrlQuery,
 	GetSessionIntervalsQuery,
 	GetSessionPayloadQuery,
 	GetSessionQuery,
@@ -9,7 +7,6 @@ import {
 } from '@graph/operations'
 import {
 	ErrorObject,
-	Exact,
 	Session,
 	SessionComment,
 	SessionResults,
@@ -77,11 +74,10 @@ export enum SessionViewability {
 	ERROR,
 }
 
-type FetchEventChunkURLFn = (
-	variables?:
-		| Partial<Exact<{ secure_id: string; index: number }>>
-		| undefined,
-) => Promise<ApolloQueryResult<GetEventChunkUrlQuery>>
+type FetchEventChunkURLFn = ({}: {
+	secure_id: string
+	index: number
+}) => Promise<string>
 
 interface PlayerState {
 	browserExtensionScriptURLs: string[]
