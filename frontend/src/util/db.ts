@@ -5,7 +5,6 @@ import {
 	Observable,
 	Operation,
 } from '@apollo/client'
-import { Session } from '@graph/schemas'
 import Dexie, { Table } from 'dexie'
 import moment from 'moment'
 
@@ -51,17 +50,25 @@ export class DB extends Dexie {
 			headers: { [key: string]: string }
 		}
 	}>
+	map!: Table<{
+		key: string
+		created: string
+		updated: string
+		value: string
+	}>
 
 	constructor() {
 		super('highlight')
-		this.version(5)
+		this.version(6)
 			.stores({
 				apollo: 'key,updated',
 				fetch: 'key,updated',
+				map: 'key,updated',
 			})
 			.upgrade((tx) => {
 				tx.table('apollo').clear()
 				tx.table('fetch').clear()
+				tx.table('map').clear()
 			})
 	}
 }
@@ -115,46 +122,22 @@ export const indexeddbCache = new IndexedDBCache()
 
 export class IndexedDBLink extends ApolloLink {
 	httpLink: ApolloLink
-	static cachedOperations = new Set<string>([
-		'GetEnhancedUserDetails',
-		'GetErrorDistribution',
-		'GetErrorGroup',
-		'GetErrorInstance',
-		'GetErrorGroupsOpenSearch',
-		'GetErrorsHistogram',
-		'GetEventChunks',
-		'GetEventChunkURL',
-		'GetRecentErrors',
-		'GetSessionIntervals',
-		'GetSession',
-		'GetSessionPayload',
-		'GetSessionsHistogram',
-		'GetSessionsOpenSearch',
-		'GetWebVitals',
-	])
 
 	constructor(httpLink: ApolloLink) {
 		super()
 		this.httpLink = httpLink
 	}
 
-	static isCached(operation: Operation) {
-		return (
-			indexeddbEnabled &&
-			IndexedDBLink.cachedOperations.has(operation.operationName)
-		)
+	static isCached({}: { operation: Operation }) {
+		return indexeddbEnabled
 	}
 
 	/* determines whether an operation should be stored in the cache.
-	GetSession should only be cached for non-live sessions since the data will change.
-	* */
-	static shouldCache(
-		operation: Operation,
-		result: FetchResult<Record<string, any>>,
-	): boolean {
-		if (operation.operationName === 'GetSession') {
-			return !!result?.data?.session?.processed
-		}
+	 * */
+	static shouldCache({}: {
+		operation: Operation
+		result: FetchResult<Record<string, any>>
+	}): boolean {
 		return true
 	}
 
@@ -169,7 +152,7 @@ export class IndexedDBLink extends ApolloLink {
 		operation: Operation,
 		forward?: NextLink,
 	): Observable<FetchResult<Record<string, any>>> | null {
-		if (!IndexedDBLink.isCached(operation)) {
+		if (!IndexedDBLink.isCached({ operation })) {
 			return this.httpLink.request(operation, forward)
 		}
 
@@ -180,166 +163,107 @@ export class IndexedDBLink extends ApolloLink {
 					variables: operation.variables,
 				})
 				.then((result) => {
+					const req = this.httpLink.request(operation, forward)!
 					if (result?.data) {
-						// GetSession cache entry is invalid if the `updated_at` value has changed.
-						if (operation.operationName === 'GetSession') {
-							// noinspection TypeScriptValidateJSTypes
-							this.httpLink
-								.request(operation, forward)!
-								.subscribe((newResult) => {
-									// if the cached result payload_updated_at matches a new result,
-									// return the existing cached result
-									if (
-										result.data?.session
-											?.payload_updated_at ===
-										newResult.data?.session
-											.payload_updated_at
-									) {
-										observer.next(result)
-										observer.complete()
-									} else {
-										const sessionSecureID = (
-											newResult.data?.session as
-												| Session
-												| undefined
-										)?.secure_id
-										// otherwise the payload_updated_at has changed
-										// remove any other cache entries that may be related
-										const promises = [
-											indexeddbCache.deleteItem({
-												operation: 'GetEventChunks',
-												variables: {
-													secure_id: sessionSecureID,
-												},
-											}),
-											indexeddbCache.deleteItem({
-												operation:
-													'GetSessionIntervals',
-												variables: {
-													session_secure_id:
-														sessionSecureID,
-												},
-											}),
-											indexeddbCache.deleteItem({
-												operation: 'GetSessionPayload',
-												variables: {
-													session_secure_id:
-														sessionSecureID,
-													skip_events: true,
-												},
-											}),
-											indexeddbCache.deleteItem({
-												operation: 'GetSessionPayload',
-												variables: {
-													session_secure_id:
-														sessionSecureID,
-													skip_events: false,
-												},
-											}),
-											indexeddbCache.deleteItem({
-												operation: 'GetWebVitals',
-												variables: {
-													session_secure_id:
-														sessionSecureID,
-												},
-											}),
-										]
-										Promise.all(promises).then(() => {
-											// store the new value and return it
-											indexeddbCache
-												.setItem(
-													{
-														operation:
-															operation.operationName,
-														variables:
-															operation.variables,
-													},
-													newResult,
-												)
-												.then(() => {
-													observer.next(newResult)
-													observer.complete()
-												})
-										})
-									}
-								})
-						} else {
-							observer.next(result)
-							observer.complete()
-						}
-					} else {
-						// noinspection TypeScriptValidateJSTypes
-						this.httpLink
-							.request(operation, forward)!
-							.subscribe((result) => {
-								if (
-									IndexedDBLink.shouldCache(operation, result)
-								) {
-									indexeddbCache
-										.setItem(
-											{
-												operation:
-													operation.operationName,
-												variables: operation.variables,
-											},
-											result,
-										)
-										.then(() => {
-											observer.next(result)
-											observer.complete()
-										})
-								} else {
-									observer.next(result)
-									observer.complete()
-								}
-							})
+						observer.next(result)
 					}
+					// noinspection TypeScriptValidateJSTypes
+					req.subscribe((result) => {
+						observer.next(result)
+						if (IndexedDBLink.shouldCache({ operation, result })) {
+							indexeddbCache.setItem(
+								{
+									operation: operation.operationName,
+									variables: operation.variables,
+								},
+								result,
+							)
+						}
+						observer.complete()
+					})
 				})
 		})
 	}
 }
 
-export const indexedDBFetch = async function (
-	input: RequestInfo,
-	init?: RequestInit | undefined,
-) {
+export const indexedDBString = async function* ({
+	key,
+	fn,
+}: {
+	key: string
+	fn: () => Promise<string>
+}) {
 	if (!indexeddbEnabled) {
-		return await fetch(input, init)
+		yield await fn()
+		return
 	}
-	const cacheKey = JSON.stringify({ input, init })
-	const cached = await db.fetch.where('key').equals(cacheKey).first()
-	if (!cached) {
-		const response = await fetch(input, init)
-		const ret = response.clone()
-		const headers: { [key: string]: string } = {}
-		response.headers.forEach((value: string, key: string) => {
-			headers[key] = value
-		})
-		await db.fetch.put({
-			key: cacheKey,
-			created: moment().format(),
-			updated: moment().format(),
-			blob: await response.blob(),
-			options: {
-				status: response.status,
-				statusText: response.statusText,
-				headers,
-			},
-		})
-		return ret
-	} else {
-		db.fetch.update(cached.key, { updated: moment().format() })
-		return new Response(cached.blob, {
+	const cached = await db.map.where('key').equals(key).first()
+	if (cached) {
+		yield cached.value
+	}
+	const response = await fn()
+	await db.map.put({
+		key,
+		created: moment().format(),
+		updated: moment().format(),
+		value: response,
+	})
+	yield response
+}
+
+export const indexedDBWrap = async function* ({
+	key,
+	fn,
+}: {
+	key: string
+	fn: () => Promise<Response>
+}) {
+	if (!indexeddbEnabled) {
+		yield await fn()
+		return
+	}
+	const cached = await db.fetch.where('key').equals(key).first()
+	if (cached) {
+		yield new Response(cached.blob, {
 			...cached.options,
 			status: cached.options.status || 200,
 		})
 	}
+	const response = await fn()
+	const ret = response.clone()
+	const headers: { [key: string]: string } = {}
+	response.headers.forEach((value: string, key: string) => {
+		headers[key] = value
+	})
+	await db.fetch.put({
+		key,
+		created: moment().format(),
+		updated: moment().format(),
+		blob: await response.blob(),
+		options: {
+			status: response.status,
+			statusText: response.statusText,
+			headers,
+		},
+	})
+	yield ret
+}
+
+export const indexedDBFetch = async function* (
+	input: RequestInfo,
+	init?: RequestInit | undefined,
+) {
+	yield* indexedDBWrap({
+		key: JSON.stringify({ input, init }),
+		fn: async () => await fetch(input, init),
+	})
 }
 
 const cleanup = async () => {
 	const fetchElems = await db.fetch.count()
+	const mapElems = await db.map.count()
 	const apolloElems = await db.apollo.count()
-	const totalElems = fetchElems + apolloElems
+	const totalElems = fetchElems + mapElems + apolloElems
 	const size = (await navigator.storage.estimate()) as {
 		quota?: number
 		usage?: number
@@ -347,14 +271,21 @@ const cleanup = async () => {
 	}
 	const usageMB =
 		(size.usageDetails?.indexedDB || size.usage || 0) / 1000 / 1000
-	const avgElemMB = usageMB / (fetchElems + apolloElems)
+	const avgElemMB = usageMB / (fetchElems + mapElems + apolloElems)
 	const numElemsToRemove = (usageMB - CLEANUP_THRESHOLD_MB) / avgElemMB
 	const numFetchElemsToRemove = (fetchElems / totalElems) * numElemsToRemove
+	const numMapElemsToRemove = (mapElems / totalElems) * numElemsToRemove
 	const numApolloElemsToRemove = (apolloElems / totalElems) * numElemsToRemove
 	for (let i = 1; i < numFetchElemsToRemove; ++i) {
 		const toDelete = await db.fetch.orderBy('updated').limit(1).first()
 		if (toDelete) {
 			await db.fetch.delete(toDelete.key)
+		}
+	}
+	for (let i = 1; i < numMapElemsToRemove; ++i) {
+		const toDelete = await db.map.orderBy('updated').limit(1).first()
+		if (toDelete) {
+			await db.map.delete(toDelete.key)
 		}
 	}
 	for (let i = 1; i < numApolloElemsToRemove; ++i) {
@@ -363,7 +294,11 @@ const cleanup = async () => {
 			await db.apollo.delete(toDelete.key)
 		}
 	}
-	if (numFetchElemsToRemove > 1 || numApolloElemsToRemove > 1) {
+	if (
+		numFetchElemsToRemove > 1 ||
+		numMapElemsToRemove > 1 ||
+		numApolloElemsToRemove > 1
+	) {
 		setTimeout(cleanup, CLEANUP_DELAY_MS)
 	} else {
 		setTimeout(cleanup, CLEANUP_CHECK_MS)

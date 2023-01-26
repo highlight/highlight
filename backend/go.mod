@@ -50,7 +50,7 @@ require (
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/golang-jwt/jwt/v4 v4.4.2
+	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/golang/snappy v0.0.4
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
@@ -73,7 +73,7 @@ require (
 	github.com/samber/lo v1.13.0
 	github.com/segmentio/kafka-go v0.4.38
 	github.com/sendgrid/sendgrid-go v3.7.0+incompatible
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.9.0
 	github.com/slack-go/slack v0.10.3
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stripe/stripe-go/v72 v72.73.1
