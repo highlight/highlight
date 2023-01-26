@@ -180,6 +180,36 @@ jobs:
               uses: docker/setup-qemu-action@v2
             - name: Check out the repo
               uses: actions/checkout@v2
+            # Edit and deploy opentelemetry collector
+            # TODO(vkorolik) opentelemetry collector deploys are no expected to be frequent. disable by default
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-east-2
+            - name: Login to Amazon ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v1
+            - name: Build, tag, and push arm64 image to Amazon ECR
+              run: |
+                  cd deploy
+                  docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/highlight-collector:${{ github.sha }}.arm64 -f opentelemetry-collector.Dockerfile .
+                  docker push $ECR_REGISTRY/highlight-collector:${{ github.sha }}.arm64
+            - name: Replace image label for opentelemetry collector
+              id: image-opentelemetry-collector
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/collector-task.json
+                  container-name: opentelemetry-collector
+                  image: $ECR_REGISTRY/highlight-collector:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS public worker service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-opentelemetry-collector.outputs.task-definition }}
+                  service: opentelemetry-collector-service
+                  cluster: highlight-production-cluster
+
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v1
               with:
@@ -266,24 +296,4 @@ jobs:
               with:
                   task-definition: ${{ steps.image-public-worker.outputs.task-definition }}
                   service: public-worker-service
-                  cluster: highlight-production-cluster
-            # Edit and deploy opentelemetry collector
-            # TODO(vkorolik) opentelemetry collector deploys are no expected to be frequent. disable by default
-            - name: Build, tag, and push arm64 image to Amazon ECR
-              run: |
-                  cd deploy
-                  docker buildx build --platform linux/arm64 -t public.ecr.aws/highlight-io/highlight-collector:${{ github.sha }}.arm64 -f opentelemetry-collector.Dockerfile .
-                  docker push public.ecr.aws/highlight-io/highlight-collector:${{ github.sha }}.arm64
-            - name: Replace image label for opentelemetry collector
-              id: image-opentelemetry-collector
-              uses: aws-actions/amazon-ecs-render-task-definition@v1
-              with:
-                  task-definition: deploy/collector-task.json
-                  container-name: opentelemetry-collector
-                  image: public.ecr.aws/highlight-io/highlight-collector:${{ github.sha }}.arm64
-            - name: Deploy to Amazon ECS public worker service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-              with:
-                  task-definition: ${{ steps.image-opentelemetry-collector.outputs.task-definition }}
-                  service: opentelemetry-collector-service
                   cluster: highlight-production-cluster
