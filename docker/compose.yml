@@ -70,14 +70,13 @@ services:
 
     collector:
         container_name: collector
-        image: otel/opentelemetry-collector
+        image: public.ecr.aws/k9o6n7l8/opentelemetry-collector
+        build:
+            context: ..
+            dockerfile: docker/opentelemetry-collector.Dockerfile
         ports:
             - 4317:4317
             - 4318:4318
-        command:
-            - '--config=/etc/otel-collector-config.yaml'
-        volumes:
-            - ./otel-collector.yaml:/etc/otel-collector-config.yaml
 
     backend:
         container_name: backend

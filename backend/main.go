@@ -449,6 +449,7 @@ func main() {
 			Clickhouse:      clickhouseClient,
 			RH:              &rh,
 		}
+		otelHandler := otel.New(publicResolver)
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
 		if runtimeParsed == util.Worker {
 			if !util.IsDevOrTestEnv() {
@@ -468,7 +469,7 @@ func main() {
 				go func() {
 					w.Start()
 				}()
-				go otel.Listen()
+				go otelHandler.Listen()
 				if util.IsDevEnv() {
 					log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 				} else {
@@ -481,7 +482,7 @@ func main() {
 			}()
 			// for the 'All' worker, explicitly run the PublicWorker as well
 			go w.PublicWorker()
-			go otel.Listen()
+			go otelHandler.Listen()
 			if util.IsDevEnv() {
 				log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 			} else {
@@ -489,7 +490,6 @@ func main() {
 			}
 		}
 	} else {
-		go otel.Listen()
 		if util.IsDevEnv() {
 			log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 		} else {

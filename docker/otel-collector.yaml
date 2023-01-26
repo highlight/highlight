@@ -8,7 +8,7 @@ receivers:
 exporters:
     otlphttp:
         endpoint: 'http://backend:4319'
-        compression: snappy
+        compression: gzip
 processors:
     batch:
 service:

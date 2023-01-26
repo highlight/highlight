@@ -266,3 +266,22 @@ jobs:
                   task-definition: ${{ steps.image-public-worker.outputs.task-definition }}
                   service: public-worker-service
                   cluster: highlight-production-cluster
+            # Edit and deploy opentelemetry collector
+            - name: Build, tag, and push arm64 image to Amazon ECR
+              run: |
+                  cd docker
+                  docker compose build --platform linux/arm64 collector 
+                  docker push public.ecr.aws/k9o6n7l8/opentelemetry-collector:${{ github.sha }}.arm64
+            - name: Replace image label for opentelemetry collector
+              id: image-opentelemetry-collector
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/opentelemetry-collector.json
+                  container-name: opentelemetry-collector
+                  image: public.ecr.aws/k9o6n7l8/opentelemetry-collector:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS public worker service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-opentelemetry-collector.outputs.task-definition }}
+                  service: opentelemetry-collector-service
+                  cluster: highlight-production-cluster
