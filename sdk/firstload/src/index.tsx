@@ -216,7 +216,7 @@ export const H: HighlightPublicInterface = {
 			)
 			const highlightUrl = highlight_obj?.getCurrentSessionURL()
 
-			if (H.options?.integrations?.mixpanel?.projectToken) {
+			if (!H.options?.integrations?.mixpanel?.disabled) {
 				if (window.mixpanel?.track) {
 					window.mixpanel?.track(event, {
 						...metadata,
@@ -229,7 +229,7 @@ export const H: HighlightPublicInterface = {
 				}
 			}
 
-			if (H.options?.integrations?.amplitude?.apiKey) {
+			if (!H.options?.integrations?.amplitude?.disabled) {
 				if (window.amplitude?.getInstance) {
 					window.amplitude.getInstance().logEvent(event, {
 						...metadata,
@@ -238,7 +238,7 @@ export const H: HighlightPublicInterface = {
 				}
 			}
 
-			if (H.options?.integrations?.intercom?.enabled) {
+			if (!H.options?.integrations?.intercom?.disabled) {
 				window.Intercom('trackEvent', event, metadata)
 			}
 		} catch (e) {
