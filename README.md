@@ -50,7 +50,7 @@ See our [enterprise self-hosted docs](https://highlight.io/docs/company/open-sou
 
 ## Features
 
-### Session Replay: Understand why bugs happen by analyzing how users interact with your web app.
+### Session Replay: Understand WHY bugs happen.
 
 -   **Dom-based High-fidelity Replay**: Replay every interaction and dom change that happened in a given browser session (powered by https://github.com/rrweb-io/rrweb)
 -   **Outgoing Network Requests**: See all the network requests (and their contents) in a given session to reproduce the data that was sent/received by your frontend -> [docs](https://www.highlight.io/docs/session-replay/recording-network-requests-and-responses)
@@ -63,7 +63,7 @@ See our [enterprise self-hosted docs](https://highlight.io/docs/company/open-sou
 <img width="600" alt="Frame 43972" src="https://user-images.githubusercontent.com/20292680/214499701-86b7deb3-ec8f-4cb2-8661-ff4f9d7ade2d.png">
 </p>
 
-### Error Monitoring
+### Error Monitoring: Understand WHAT bugs are happening.
 
 -   **Customizable Error Grouping**: Customize rules for grouping repeated errors -> [docs](https://www.highlight.io/docs/error-monitoring/grouping-errors)
 -   **Customizable Alerting Rules**: Customize how often, and where alerts are sent -> [docs](https://www.highlight.io/docs/product-features/alerts)
