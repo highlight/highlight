@@ -14,8 +14,9 @@ export const variants = recipe({
 			color: vars.theme.interactive.fill.primary.enabled,
 			cursor: 'pointer',
 			padding: 0,
+			outline: 'none',
 			selectors: {
-				'&[disabled]': {
+				'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 					boxShadow: 'none',
 					color: vars.theme.interactive.fill.primary.content
 						.onDisabled,
@@ -44,7 +45,7 @@ export const variants = recipe({
 						color: colors.n10,
 						boxShadow: shadows.grey,
 					},
-					'&:focus:enabled, &:active:enabled': {
+					'&:active:enabled': {
 						backgroundColor: vars.color.n5,
 						boxShadow: 'none',
 					},
@@ -260,7 +261,7 @@ export const variants = recipe({
 						backgroundColor:
 							vars.theme.interactive.overlay.secondary.hover,
 					},
-					'&:focus:enabled, &:active:enabled': {
+					'&:active:enabled': {
 						backgroundColor:
 							vars.theme.interactive.overlay.secondary.pressed,
 					},
