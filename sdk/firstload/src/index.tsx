@@ -218,7 +218,7 @@ export const H: HighlightPublicInterface = {
 
 			if (!H.options?.integrations?.mixpanel?.disabled) {
 				if (window.mixpanel?.track) {
-					window.mixpanel?.track(event, {
+					window.mixpanel.track(event, {
 						...metadata,
 						highlightSessionURL: highlightUrl,
 					})
