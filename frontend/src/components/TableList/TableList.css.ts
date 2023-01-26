@@ -4,9 +4,8 @@ import { recipe } from '@vanilla-extract/recipes'
 
 export const sessionAttributeRow = recipe({
 	base: {
-		alignItems: 'center',
 		display: 'grid',
-		gridTemplateColumns: `100px 175px`,
+		gridTemplateColumns: `100px 168px`,
 		gridGap: 8,
 		cursor: 'pointer',
 	},
@@ -19,29 +18,12 @@ export const sessionAttributeRow = recipe({
 })
 
 export const sessionAttributeText = style({
+	display: 'flex',
 	alignItems: 'center',
 	color: vars.theme.static.content.weak,
-	height: 16,
-	paddingTop: 4,
-	paddingBottom: 4,
-	overflow: 'hidden',
-	textOverflow: 'ellipsis',
-	whiteSpace: 'nowrap',
 })
 
 export const secondaryText = style({
 	color: vars.theme.interactive.fill.secondary.content.text,
-	borderRadius: 8,
-	paddingLeft: 4,
-	paddingRight: 4,
-	selectors: {
-		'&:hover': {
-			background: vars.theme.interactive.overlay.secondary.hover,
-		},
-	},
-})
-
-export const infoTooltip = style({
-	position: 'relative',
-	top: -4,
+	wordBreak: 'break-all',
 })

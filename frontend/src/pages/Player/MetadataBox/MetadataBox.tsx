@@ -3,19 +3,9 @@ import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import LoadingBox from '@components/LoadingBox'
 import { TableList } from '@components/TableList/TableList'
 import Tooltip from '@components/Tooltip/Tooltip'
-import {
-	useGetEnhancedUserDetailsQuery,
-	useGetProjectQuery,
-	useGetWorkspaceQuery,
-} from '@graph/hooks'
+import { useGetEnhancedUserDetailsQuery } from '@graph/hooks'
 import { GetEnhancedUserDetailsQuery } from '@graph/operations'
-import {
-	Maybe,
-	PlanType,
-	Session,
-	SocialLink,
-	SocialType,
-} from '@graph/schemas'
+import { Maybe, Session, SocialLink, SocialType } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
@@ -24,12 +14,10 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import UserCross from '@icons/UserCross'
-import { PaywallTooltip } from '@pages/Billing/PaywallTooltip/PaywallTooltip'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import { mustUpgradeForClearbit } from '@util/billing/billing'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
 import { message } from 'antd'
@@ -131,7 +119,7 @@ export const MetadataBox = React.memo(() => {
 						shape="rounded"
 						customImage={customAvatarImage || enhancedAvatar}
 					/>
-					<Text weight="bold" cssClass={style.defaultText}>
+					<Text weight="bold" cssClass={style.defaultText} lines="1">
 						{displayValue}
 					</Text>
 					{backfilled && (
@@ -174,6 +162,7 @@ export const MetadataBox = React.memo(() => {
 					/>
 				</Box>
 			</Box>
+			<UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
 			<Box
 				borderTop="secondary"
 				display="flex"
@@ -192,6 +181,10 @@ export const MetadataBox = React.memo(() => {
 						{
 							keyDisplayValue: 'UserID',
 							valueDisplayValue: session?.fingerprint?.toString(),
+						},
+						{
+							keyDisplayValue: 'Location',
+							valueDisplayValue: geoData,
 						},
 						{
 							keyDisplayValue: 'Browser',
@@ -215,10 +208,6 @@ export const MetadataBox = React.memo(() => {
 									: undefined,
 						},
 						{
-							keyDisplayValue: 'Location',
-							valueDisplayValue: geoData,
-						},
-						{
 							keyDisplayValue: 'Time',
 							valueDisplayValue: created.toLocaleString('en-us', {
 								hour: '2-digit',
@@ -236,7 +225,6 @@ export const MetadataBox = React.memo(() => {
 						},
 					]}
 				/>
-				<UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
 			</Box>
 		</Box>
 	)
@@ -247,17 +235,10 @@ export const UserDetailsBox = ({
 }: {
 	setEnhancedAvatar: (avatar: string) => void
 }) => {
-	const { project_id, session_secure_id } = useParams<{
+	const { session_secure_id } = useParams<{
 		project_id: string
 		session_secure_id: string
 	}>()
-	const { data: project } = useGetProjectQuery({
-		variables: { id: project_id },
-	})
-	const { data: workspace } = useGetWorkspaceQuery({
-		variables: { id: project?.workspace?.id || '' },
-		skip: !project?.workspace?.id,
-	})
 	const { data, loading } = useGetEnhancedUserDetailsQuery({
 		variables: { session_secure_id },
 		fetchPolicy: 'no-cache',
@@ -271,49 +252,6 @@ export const UserDetailsBox = ({
 
 	if (loading) {
 		return <LoadingBox height={64} />
-	}
-
-	if (!data?.enhanced_user_details) {
-		if (mustUpgradeForClearbit(workspace?.workspace?.plan_tier)) {
-			return (
-				<PaywallTooltip tier={PlanType.Startup}>
-					<div className={style.userEnhancedGrid}>
-						<div style={{ width: 36 }}>
-							<div className={styles.blurred}>
-								<Avatar seed="test" className={style.avatar} />
-							</div>
-						</div>
-						<div className={styles.enhancedTextSection}>
-							<div className={styles.blurred}>
-								<SocialComponent
-									disabled
-									socialLink={
-										{
-											link: 'https://example.com',
-											type: 'Github',
-										} as SocialLink
-									}
-									key="example"
-								/>
-							</div>
-						</div>
-					</div>
-				</PaywallTooltip>
-			)
-		}
-		if (!workspace?.workspace?.clearbit_enabled) {
-			return (
-				<div className={styles.enableClearbit}>
-					<a
-						href={`/${project_id}/integrations`}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Enable Clearbit to collect more user details.
-					</a>
-				</div>
-			)
-		}
 	}
 
 	if (!hasEnrichedData(data)) {
@@ -362,14 +300,12 @@ export const UserDetailsBox = ({
 					},
 				]}
 			/>
-			<Box style={{ position: 'relative', top: 0, left: -24 }}>
-				<InfoTooltip
-					title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is enabled via the Clearbit Integration for the Startup plan and above.`}
-					size="medium"
-					hideArrow
-					placement="topLeft"
-				/>
-			</Box>
+			<InfoTooltip
+				title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is enabled via the Clearbit Integration for the Startup plan and above.`}
+				size="medium"
+				hideArrow
+				placement="topLeft"
+			/>
 		</Box>
 	)
 }
@@ -433,8 +369,7 @@ const hasEnrichedData = (enhancedData?: GetEnhancedUserDetailsQuery) => {
 			enhanced_user_details?.avatar !== '') ||
 		(!!enhanced_user_details?.bio && enhanced_user_details?.bio !== '') ||
 		(!!enhanced_user_details?.name && enhanced_user_details?.name !== '') ||
-		hasDiverseSocialLinks(enhancedData) ||
-		0 > 0
+		hasDiverseSocialLinks(enhancedData)
 	)
 }
 
