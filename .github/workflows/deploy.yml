@@ -205,14 +205,10 @@ jobs:
             - name: Replace image label for opentelemetry collector
               id: image-opentelemetry-collector
               uses: aws-actions/amazon-ecs-render-task-definition@v1
-              env:
-                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-                  ECR_REPOSITORY: highlight-collector
-                  IMAGE_TAG: ${{ github.sha }}
               with:
                   task-definition: deploy/collector-task.json
                   container-name: highlight-collector
-                  image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-collector:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS opentelemetry collector service
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
