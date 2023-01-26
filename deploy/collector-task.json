@@ -1,30 +1,30 @@
 {
-	"taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/opentelemetry-collector-service:1",
+	"taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/opentelemetry-collector-service:4",
 	"containerDefinitions": [
 		{
-			"name": "datadog-agent",
-			"image": "datadog/agent:latest",
+			"name": "highlight-collector",
+			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-collector:b8dc0a0ec2030a63cccbbd93fbbb7b77bcd4e963.arm64",
 			"cpu": 0,
-			"portMappings": [],
-			"essential": true,
-			"environment": [
+			"portMappings": [
 				{
-					"name": "ECS_FARGATE",
-					"value": "true"
+					"name": "highlight-collector-4317-tcp",
+					"containerPort": 4317,
+					"hostPort": 4317,
+					"protocol": "tcp",
+					"appProtocol": "grpc"
 				},
 				{
-					"name": "DD_APM_ENABLED",
-					"value": "true"
+					"name": "highlight-collector-4318-tcp",
+					"containerPort": 4318,
+					"hostPort": 4318,
+					"protocol": "tcp",
+					"appProtocol": "http2"
 				}
 			],
+			"essential": true,
+			"environment": [],
 			"mountPoints": [],
 			"volumesFrom": [],
-			"secrets": [
-				{
-					"name": "DD_API_KEY",
-					"valueFrom": "DD_API_KEY"
-				}
-			],
 			"logConfiguration": {
 				"logDriver": "awslogs",
 				"options": {
@@ -33,74 +33,12 @@
 					"awslogs-stream-prefix": "ecs"
 				}
 			}
-		},
-		{
-			"name": "highlight-collector",
-			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-collector:latest",
-			"cpu": 0,
-			"portMappings": [
-				{
-					"containerPort": 4317,
-					"hostPort": 4317,
-					"protocol": "tcp"
-				},
-				{
-					"containerPort": 4318,
-					"hostPort": 4318,
-					"protocol": "tcp"
-				}
-			],
-			"essential": true,
-			"environment": [],
-			"mountPoints": [],
-			"volumesFrom": [],
-			"logConfiguration": {
-				"logDriver": "awsfirelens",
-				"options": {
-					"Host": "http-intake.logs.datadoghq.com",
-					"Name": "datadog",
-					"TLS": "on",
-					"dd_message_key": "log",
-					"dd_service": "opentelemetry-collector-service",
-					"dd_source": "opentelemetry-collector",
-					"dd_tags": "project:fluentbit",
-					"provider": "ecs"
-				},
-				"secretOptions": [
-					{
-						"name": "apiKey",
-						"valueFrom": "DD_API_KEY"
-					}
-				]
-			}
-		},
-		{
-			"name": "log_router",
-			"image": "906394416424.dkr.ecr.us-east-2.amazonaws.com/aws-for-fluent-bit:stable",
-			"cpu": 0,
-			"portMappings": [],
-			"essential": true,
-			"environment": [],
-			"mountPoints": [],
-			"volumesFrom": [],
-			"user": "0",
-			"logConfiguration": {
-				"logDriver": "awslogs",
-				"options": {
-					"awslogs-group": "/ecs/opentelemetry-collector-task",
-					"awslogs-region": "us-east-2",
-					"awslogs-stream-prefix": "ecs"
-				}
-			},
-			"firelensConfiguration": {
-				"type": "fluentbit"
-			}
 		}
 	],
 	"family": "opentelemetry-collector-service",
 	"executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
 	"networkMode": "awsvpc",
-	"revision": 1,
+	"revision": 4,
 	"volumes": [],
 	"status": "ACTIVE",
 	"requiresAttributes": [
@@ -111,28 +49,13 @@
 			"name": "ecs.capability.execution-role-awslogs"
 		},
 		{
-			"name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
-		},
-		{
 			"name": "com.amazonaws.ecs.capability.ecr-auth"
 		},
 		{
-			"name": "ecs.capability.firelens.fluentbit"
-		},
-		{
-			"name": "com.amazonaws.ecs.capability.docker-remote-api.1.17"
-		},
-		{
-			"name": "com.amazonaws.ecs.capability.logging-driver.awsfirelens"
-		},
-		{
-			"name": "ecs.capability.secrets.ssm.bootstrap.log-driver"
+			"name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
 		},
 		{
 			"name": "ecs.capability.execution-role-ecr-pull"
-		},
-		{
-			"name": "ecs.capability.secrets.ssm.environment-variables"
 		},
 		{
 			"name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
@@ -145,11 +68,16 @@
 	"compatibilities": ["EC2", "FARGATE"],
 	"requiresCompatibilities": ["FARGATE"],
 	"cpu": "1024",
-	"memory": "8192",
+	"memory": "2048",
 	"runtimePlatform": {
 		"cpuArchitecture": "ARM64"
 	},
-	"registeredAt": "2023-01-26T06:44:02.831Z",
+	"registeredAt": "2023-01-26T19:20:44.384Z",
 	"registeredBy": "arn:aws:iam::173971919437:user/vadim",
-	"tags": []
+	"tags": [
+		{
+			"key": "ecs:taskDefinition:createdFrom",
+			"value": "ecs-console-v2"
+		}
+	]
 }

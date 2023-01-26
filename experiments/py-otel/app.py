@@ -20,12 +20,16 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
 
 provider = TracerProvider()
-provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))
+provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(
+    'https://pub.highlight.run:4317'
+)))
 trace.set_tracer_provider(provider)
 tracer = trace.get_tracer(__name__)
 
 log_provider = LoggerProvider()
-log_provider.add_log_record_processor(SimpleLogRecordProcessor(OTLPLogExporter()))
+log_provider.add_log_record_processor(SimpleLogRecordProcessor(OTLPLogExporter(
+    'https://pub.highlight.run:4317'
+)))
 _logs.set_logger_provider(log_provider)
 log = log_provider.get_logger(__name__)
 
