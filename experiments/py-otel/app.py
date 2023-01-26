@@ -18,18 +18,15 @@ from opentelemetry.sdk.trace import TracerProvider, _Span
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 
 HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
+HIGHLIGHT_OTLP_HTTP = 'https://otel.highlight.io:4138'
 
 provider = TracerProvider()
-provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(
-    'https://pub.highlight.run:4318'
-)))
+provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(HIGHLIGHT_OTLP_HTTP)))
 trace.set_tracer_provider(provider)
 tracer = trace.get_tracer(__name__)
 
 log_provider = LoggerProvider()
-log_provider.add_log_record_processor(SimpleLogRecordProcessor(OTLPLogExporter(
-    'https://pub.highlight.run:4318'
-)))
+log_provider.add_log_record_processor(SimpleLogRecordProcessor(OTLPLogExporter(HIGHLIGHT_OTLP_HTTP)))
 _logs.set_logger_provider(log_provider)
 log = log_provider.get_logger(__name__)
 
