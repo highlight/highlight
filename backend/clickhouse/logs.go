@@ -20,7 +20,6 @@ type LogRow struct {
 
 func (client *Client) CreateLogsTable() {
 	ctx := context.Background()
-	client.conn.Exec(ctx, "DROP TABLE IF EXISTS logs") //nolint:errcheck
 
 	err := client.conn.Exec(ctx, `
 	CREATE TABLE IF NOT EXISTS logs (

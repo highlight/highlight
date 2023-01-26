@@ -67,7 +67,7 @@ func CreateDatabase() {
 	}
 
 	database := getDatabase()
-	err = conn.Exec(context.Background(), fmt.Sprintf("CREATE DATABASE `%s`", database))
+	err = conn.Exec(context.Background(), fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`", database))
 	if err != nil {
 		log.Fatalf("CLICKHOUSE_ERROR failed to create `%s` database: %+v", database, err)
 	}
