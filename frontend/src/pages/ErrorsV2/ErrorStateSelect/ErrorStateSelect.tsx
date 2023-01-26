@@ -159,7 +159,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 			<Menu.Button
 				size="small"
 				kind="secondary"
-				emphasis="low"
+				emphasis="medium"
 				disabled={loading || !isLoggedIn}
 				iconRight={<IconSolidCheveronDown />}
 			>
