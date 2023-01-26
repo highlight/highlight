@@ -36,7 +36,7 @@
 		},
 		{
 			"name": "highlight-collector",
-			"image": "public.ecr.aws/k9o6n7l8/highlight-collector:latest",
+			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-collector:latest",
 			"cpu": 0,
 			"portMappings": [
 				{

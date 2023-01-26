@@ -7,8 +7,10 @@ receivers:
                 endpoint: '0.0.0.0:4318'
 exporters:
     otlphttp:
-        endpoint: 'http://backend:4319'
+        endpoint: 'https://backend:8082/otel'
         compression: gzip
+        tls:
+            insecure_skip_verify: true
 processors:
     batch:
 service:

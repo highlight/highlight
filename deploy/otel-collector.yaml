@@ -7,7 +7,7 @@ receivers:
                 endpoint: '0.0.0.0:4318'
 exporters:
     otlphttp:
-        endpoint: 'https://pub.highlight.run:4319'
+        endpoint: 'https://pub.highlight.run/otel'
         compression: gzip
 processors:
     batch:

@@ -344,6 +344,19 @@ func main() {
 			}
 			defer profiler.Stop()
 		}
+		alertWorkerpool := workerpool.New(40)
+		alertWorkerpool.SetPanicHandler(util.Recover)
+		publicResolver := &public.Resolver{
+			DB:              db,
+			TDB:             tdb,
+			ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
+			MailClient:      sendgrid.NewSendClient(sendgridKey),
+			StorageClient:   storage,
+			AlertWorkerPool: alertWorkerpool,
+			OpenSearch:      opensearchClient,
+			Redis:           redisClient,
+			RH:              &rh,
+		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
 			publicEndpoint = "/"
@@ -351,22 +364,10 @@ func main() {
 		r.Route(publicEndpoint, func(r chi.Router) {
 			r.Use(public.PublicMiddleware)
 			r.Use(highlightChi.Middleware)
-			alertWorkerpool := workerpool.New(40)
-			alertWorkerpool.SetPanicHandler(util.Recover)
 
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
-					Resolvers: &public.Resolver{
-						DB:              db,
-						TDB:             tdb,
-						ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
-						MailClient:      sendgrid.NewSendClient(sendgridKey),
-						StorageClient:   storage,
-						AlertWorkerPool: alertWorkerpool,
-						OpenSearch:      opensearchClient,
-						Redis:           redisClient,
-						RH:              &rh,
-					},
+					Resolvers: publicResolver,
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
 			publicServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
@@ -375,6 +376,8 @@ func main() {
 				publicServer,
 			)
 		})
+		otelHandler := otel.New(publicResolver)
+		otelHandler.Listen(r)
 	}
 
 	if util.IsDevOrTestEnv() {
@@ -449,7 +452,6 @@ func main() {
 			Clickhouse:      clickhouseClient,
 			RH:              &rh,
 		}
-		otelHandler := otel.New(publicResolver)
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
 		if runtimeParsed == util.Worker {
 			if !util.IsDevOrTestEnv() {
@@ -469,7 +471,6 @@ func main() {
 				go func() {
 					w.Start()
 				}()
-				go otelHandler.Listen()
 				if util.IsDevEnv() {
 					log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 				} else {
@@ -482,7 +483,6 @@ func main() {
 			}()
 			// for the 'All' worker, explicitly run the PublicWorker as well
 			go w.PublicWorker()
-			go otelHandler.Listen()
 			if util.IsDevEnv() {
 				log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 			} else {

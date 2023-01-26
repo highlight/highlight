@@ -123,6 +123,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			log.Error(err, "failed to submit otel errors to public worker queue")
 		}
 	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
@@ -154,15 +156,15 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
-func (o *Handler) Listen() {
-	r := chi.NewMux()
-	r.Route("/v1", func(r chi.Router) {
+func (o *Handler) Listen(r *chi.Mux) {
+	r.Route("/otel/v1", func(r chi.Router) {
 		r.HandleFunc("/traces", o.HandleTrace)
 		r.HandleFunc("/logs", o.HandleLog)
 	})
-	log.Fatal(http.ListenAndServe(":"+Port, r))
 }
 
 func New(resolver *graph.Resolver) *Handler {
