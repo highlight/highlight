@@ -257,7 +257,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 								</div>
 							</>
 						) : errorQueryingErrorGroup ? (
-							<Box m="auto" style={{ width: 350 }}>
+							<Box m="auto" style={{ maxWidth: 300 }}>
 								<Callout kind="info" title="Can't load error">
 									<Box pb="6">
 										<Text>
