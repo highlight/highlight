@@ -1,6 +1,7 @@
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import JsonViewerV2 from '@components/JsonViewerV2/JsonViewerV2'
+import LoadingBox from '@components/LoadingBox'
 import { Box, Tag, Text } from '@highlight-run/ui'
 import { Props as TruncateProps } from '@highlight-run/ui/src/components/private/Truncate/Truncate'
 import { copyToClipboard } from '@util/string'
@@ -20,9 +21,11 @@ export interface TableListItem {
 export const TableList = function ({
 	data,
 	truncateable,
+	loading,
 }: {
 	data: TableListItem[]
 	truncateable?: boolean
+	loading?: boolean
 }) {
 	const [truncated, setTruncated] = React.useState(true)
 	const filtered = data.filter((x) => x.valueDisplayValue)
@@ -95,8 +98,9 @@ export const TableList = function ({
 						</Box>
 					)
 				})}
+				{!truncated && loading && <LoadingBox />}
 			</Box>
-			{truncateable && filtered.length > TRUNCATED_ITEMS_LIMIT ? (
+			{truncateable && filtered.length > TRUNCATED_ITEMS_LIMIT && (
 				<Box>
 					<Button
 						onClick={() => setTruncated(!truncated)}
@@ -108,7 +112,7 @@ export const TableList = function ({
 						Show {truncated ? 'more' : 'less'}
 					</Button>
 				</Box>
-			) : null}
+			)}
 		</Box>
 	)
 }

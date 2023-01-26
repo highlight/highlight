@@ -1,7 +1,5 @@
 import { Avatar } from '@components/Avatar/Avatar'
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
-import LoadingBox from '@components/LoadingBox'
-import { TableList } from '@components/TableList/TableList'
+import { TableList, TableListItem } from '@components/TableList/TableList'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { useGetEnhancedUserDetailsQuery } from '@graph/hooks'
 import { GetEnhancedUserDetailsQuery } from '@graph/operations'
@@ -22,7 +20,8 @@ import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
 import { message } from 'antd'
 import clsx from 'clsx'
-import React, { useCallback, useEffect } from 'react'
+import { capitalize } from 'lodash'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import {
 	FaExternalLinkSquareAlt,
 	FaFacebookSquare,
@@ -48,22 +47,137 @@ export const MetadataBox = React.memo(() => {
 
 	const [enhancedAvatar, setEnhancedAvatar] = React.useState<string>()
 
+	const { data, loading } = useGetEnhancedUserDetailsQuery({
+		variables: { session_secure_id },
+		fetchPolicy: 'no-cache',
+		onError: () => {
+			setEnhancedAvatar(undefined)
+		},
+		onCompleted: (data) => {
+			if (data?.enhanced_user_details?.avatar) {
+				setEnhancedAvatar(data.enhanced_user_details.avatar)
+			}
+		},
+	})
+
 	// clear enhanced avatar when session changes
 	useEffect(() => {
 		setEnhancedAvatar(undefined)
 	}, [session_secure_id])
 
-	const created = new Date(session?.created_at ?? 0)
 	const customAvatarImage = getIdentifiedUserProfileImage(
 		session as Maybe<Session>,
 	)
 	const backfilled = sessionIsBackfilled(session)
 
-	const geoData = [session?.state, session?.country]
-		.filter((part) => !!part)
-		.join(', ')
-
 	const [displayValue, field] = getDisplayNameAndField(session)
+
+	const userData = useMemo(() => {
+		const created = new Date(session?.created_at ?? 0)
+		const geoData = [session?.state, session?.country]
+			.filter((part) => !!part)
+			.join(', ')
+
+		const userProps: TableListItem[] = [
+			{
+				keyDisplayValue: capitalize(field ?? 'Email'),
+				valueDisplayValue: displayValue,
+			},
+			{
+				keyDisplayValue: 'UserID',
+				valueDisplayValue: session?.fingerprint?.toString(),
+			},
+			{
+				keyDisplayValue: 'Location',
+				valueDisplayValue: geoData,
+			},
+			{
+				keyDisplayValue: 'Browser',
+				valueDisplayValue:
+					session?.browser_name && session?.browser_version
+						? `${session.browser_name} ${getMajorVersion(
+								session.browser_version,
+						  )}`
+						: undefined,
+			},
+			{
+				keyDisplayValue: 'OS',
+				valueDisplayValue:
+					session?.os_name && session?.os_version
+						? `${session.os_name} ${getMajorVersion(
+								session.os_version,
+						  )}`
+						: undefined,
+			},
+			{
+				keyDisplayValue: 'Time',
+				valueDisplayValue: created.toLocaleString('en-us', {
+					hour: '2-digit',
+					minute: '2-digit',
+					timeZoneName: 'short',
+					day: 'numeric',
+					month: 'short',
+					weekday: 'long',
+					year:
+						created.getFullYear() !== new Date().getFullYear()
+							? 'numeric'
+							: undefined,
+				}),
+			},
+		]
+		const enhancedUserDataTooltipMessage =
+			`This is enriched information for ${data?.enhanced_user_details?.email}. ` +
+			`Highlight shows additional information like social handles, website, title, and company. ` +
+			`This feature is enabled via the Clearbit Integration for the Startup plan and above.`
+
+		let enrichedData: TableListItem[] = []
+		if (!loading && hasEnrichedData(data)) {
+			enrichedData = [
+				{
+					keyDisplayValue: 'Name',
+					valueDisplayValue: data?.enhanced_user_details?.name,
+					valueInfoTooltipMessage: enhancedUserDataTooltipMessage,
+				},
+				{
+					keyDisplayValue: 'Email',
+					valueDisplayValue: data?.enhanced_user_details?.email,
+					valueInfoTooltipMessage: enhancedUserDataTooltipMessage,
+				},
+				{
+					keyDisplayValue: 'Bio',
+					valueDisplayValue: data?.enhanced_user_details?.bio,
+					lines: '3',
+					valueInfoTooltipMessage: enhancedUserDataTooltipMessage,
+				},
+				{
+					keyDisplayValue: 'Socials',
+					valueDisplayValue: (
+						<Box
+							display="flex"
+							gap="8"
+							style={{
+								overflowY: 'hidden',
+								overflowX: 'auto',
+							}}
+						>
+							{data?.enhanced_user_details?.socials?.map(
+								(e: any) =>
+									e && (
+										<SocialComponent
+											socialLink={e}
+											key={e.type}
+										/>
+									),
+							)}
+						</Box>
+					),
+					valueInfoTooltipMessage: enhancedUserDataTooltipMessage,
+				},
+			]
+		}
+		return [...userProps, ...enrichedData]
+	}, [data, displayValue, field, loading, session])
+
 	const searchIdentifier = useCallback(() => {
 		const hasIdentifier = !!session?.identifier
 		const newSearchParams = {
@@ -162,7 +276,6 @@ export const MetadataBox = React.memo(() => {
 					/>
 				</Box>
 			</Box>
-			<UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
 			<Box
 				borderTop="secondary"
 				display="flex"
@@ -171,144 +284,11 @@ export const MetadataBox = React.memo(() => {
 				paddingBottom="6"
 				gap="4"
 			>
-				<TableList
-					truncateable
-					data={[
-						{
-							keyDisplayValue: 'Email',
-							valueDisplayValue: displayValue,
-						},
-						{
-							keyDisplayValue: 'UserID',
-							valueDisplayValue: session?.fingerprint?.toString(),
-						},
-						{
-							keyDisplayValue: 'Location',
-							valueDisplayValue: geoData,
-						},
-						{
-							keyDisplayValue: 'Browser',
-							valueDisplayValue:
-								session?.browser_name &&
-								session?.browser_version
-									? `${
-											session.browser_name
-									  } ${getMajorVersion(
-											session.browser_version,
-									  )}`
-									: undefined,
-						},
-						{
-							keyDisplayValue: 'OS',
-							valueDisplayValue:
-								session?.os_name && session?.os_version
-									? `${session.os_name} ${getMajorVersion(
-											session.os_version,
-									  )}`
-									: undefined,
-						},
-						{
-							keyDisplayValue: 'Time',
-							valueDisplayValue: created.toLocaleString('en-us', {
-								hour: '2-digit',
-								minute: '2-digit',
-								timeZoneName: 'short',
-								day: 'numeric',
-								month: 'short',
-								weekday: 'long',
-								year:
-									created.getFullYear() !==
-									new Date().getFullYear()
-										? 'numeric'
-										: undefined,
-							}),
-						},
-					]}
-				/>
+				<TableList truncateable loading={loading} data={userData} />
 			</Box>
 		</Box>
 	)
 })
-
-export const UserDetailsBox = ({
-	setEnhancedAvatar,
-}: {
-	setEnhancedAvatar: (avatar: string) => void
-}) => {
-	const { session_secure_id } = useParams<{
-		project_id: string
-		session_secure_id: string
-	}>()
-	const { data, loading } = useGetEnhancedUserDetailsQuery({
-		variables: { session_secure_id },
-		fetchPolicy: 'no-cache',
-	})
-
-	useEffect(() => {
-		if (data?.enhanced_user_details?.avatar) {
-			setEnhancedAvatar(data.enhanced_user_details.avatar)
-		}
-	}, [setEnhancedAvatar, data])
-
-	if (loading) {
-		return <LoadingBox height={64} />
-	}
-
-	if (!hasEnrichedData(data)) {
-		return null
-	}
-
-	return (
-		<Box display="flex" width="full">
-			<TableList
-				data={[
-					{
-						keyDisplayValue: 'Name',
-						valueDisplayValue: data?.enhanced_user_details?.name,
-					},
-					{
-						keyDisplayValue: 'Email',
-						valueDisplayValue: data?.enhanced_user_details?.email,
-					},
-					{
-						keyDisplayValue: 'Bio',
-						valueDisplayValue: data?.enhanced_user_details?.bio,
-						lines: '3',
-					},
-					{
-						keyDisplayValue: 'Socials',
-						valueDisplayValue: (
-							<Box
-								display="flex"
-								gap="8"
-								style={{
-									overflowY: 'hidden',
-									overflowX: 'auto',
-								}}
-							>
-								{data?.enhanced_user_details?.socials?.map(
-									(e: any) =>
-										e && (
-											<SocialComponent
-												socialLink={e}
-												key={e.type}
-											/>
-										),
-								)}
-							</Box>
-						),
-					},
-				]}
-			/>
-			<InfoTooltip
-				title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is enabled via the Clearbit Integration for the Startup plan and above.`}
-				size="medium"
-				hideArrow
-				placement="topLeft"
-			/>
-		</Box>
-	)
-}
 
 const SocialComponent = ({
 	socialLink,
