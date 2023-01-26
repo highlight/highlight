@@ -70,7 +70,7 @@ services:
 
     collector:
         container_name: collector
-        image: public.ecr.aws/k9o6n7l8/opentelemetry-collector
+        image: public.ecr.aws/k9o6n7l8/highlight-collector
         build:
             context: ..
             dockerfile: docker/opentelemetry-collector.Dockerfile

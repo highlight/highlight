@@ -113,9 +113,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for sessionID, errors := range traceErrors {
-		for _, e := range errors {
-			log.Infof("submitting session %s error %+v", sessionID, *e)
-		}
 		err = o.resolver.ProducerQueue.Submit(&kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
@@ -157,19 +154,6 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	// code for extracting useful data from the log request
-	/* logs := req.Logs().ResourceLogs()
-	for i := 0; i < logs.Len(); i++ {
-		scopeLogs := logs.At(i).ScopeLogs()
-		for j := 0; j < scopeLogs.Len(); j++ {
-			lgs := scopeLogs.At(j).LogRecords()
-			for k := 0; k < lgs.Len(); k++ {
-				lg := lgs.At(k)
-				log.Infof("otel single log %s %+v", lg.Body().Str(), lg.Attributes().AsRaw())
-			}
-		}
-	} */
 }
 
 func (o *Handler) Listen() {
