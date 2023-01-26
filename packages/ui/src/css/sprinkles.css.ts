@@ -20,6 +20,19 @@ const textColors = {
 	weak: vars.theme.static.content.weak,
 } as const
 
+const backgroundColors = {
+	...colors,
+	nested: vars.theme.static.surface.nested,
+	default: vars.theme.static.surface.default,
+	raised: vars.theme.static.surface.raised,
+	elevated: vars.theme.static.surface.elevated,
+	scrim: vars.theme.static.surface.scrim,
+	good: vars.theme.static.content.sentiment.good,
+	caution: vars.theme.static.content.sentiment.caution,
+	bad: vars.theme.static.content.sentiment.bad,
+	informative: vars.theme.static.content.sentiment.informative,
+} as const
+
 const responsiveProperties = defineProperties({
 	conditions: mediaQueries,
 	defaultCondition: 'mobile',
@@ -125,7 +138,7 @@ const colorProperties = defineProperties({
 	},
 	defaultCondition: 'lightMode',
 	properties: {
-		backgroundColor: vars.color,
+		backgroundColor: backgroundColors,
 		border: borders,
 		borderTop: borders,
 		borderRight: borders,
