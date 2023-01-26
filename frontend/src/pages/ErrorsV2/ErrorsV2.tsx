@@ -233,7 +233,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 										{loading ? (
 											<LoadingBox />
 										) : (
-											<div>
+											<Box pt="16" pb="32">
 												<ErrorTitle
 													errorGroup={
 														data?.error_group
@@ -251,7 +251,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 														data?.error_group
 													}
 												/>
-											</div>
+											</Box>
 										)}
 									</Container>
 								</div>

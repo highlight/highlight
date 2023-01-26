@@ -20,7 +20,7 @@ export const errorDetails = style({
 	display: 'flex',
 	height: '100%',
 	marginLeft: '0',
-	padding: `var(--size-large) var(--size-xxLarge)`,
+	overflowY: 'scroll',
 	width: '100%',
 })
 
