@@ -27,3 +27,5 @@ service:
             exporters: [otlphttp]
 extensions:
     health_check:
+        endpoint: '0.0.0.0:4319'
+        path: '/health/status'
