@@ -481,6 +481,11 @@ type SourceMappingError {
 type S3File {
 	key: String
 }
+type LogLine {
+	timestamp: Timestamp!
+	severityText: String!
+	body: String!
+}
 
 type ReferrerTablePayload {
 	host: String!
@@ -1363,6 +1368,7 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
+	logs(project_id: ID!): [LogLine!]!
 }
 
 type Mutation {
