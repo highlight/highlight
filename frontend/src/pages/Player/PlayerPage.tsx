@@ -515,7 +515,6 @@ const PlayerPage = ({ integrated }: Props) => {
 											flexDirection="column"
 											width="full"
 											height="full"
-											cssClass={styles.emptyState}
 										>
 											<SessionLevelBarV2 width="100%" />
 											<Box

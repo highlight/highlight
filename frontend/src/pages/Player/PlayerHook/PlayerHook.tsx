@@ -30,7 +30,7 @@ import {
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
 import analytics from '@util/analytics'
-import { indexedDBFetch } from '@util/db'
+import { indexedDBFetch, indexedDBString } from '@util/db'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
 import { timerEnd, timerStart } from '@util/timer/timer'
@@ -71,10 +71,34 @@ export const usePlayer = (): ReplayerContextInterface => {
 	} = usePlayerConfiguration()
 
 	const [markSessionAsViewed] = useMarkSessionAsViewedMutation()
-	const { refetch: fetchEventChunkURL } = useGetEventChunkUrlQuery({
+	const { refetch: rawFetchEventChunkURL } = useGetEventChunkUrlQuery({
 		fetchPolicy: 'no-cache',
 		skip: true,
 	})
+	const fetchEventChunkURL = useCallback(
+		async function ({
+			secure_id,
+			index,
+		}: {
+			secure_id: string
+			index: number
+		}) {
+			const args = {
+				secure_id,
+				index,
+			}
+			let result = ''
+			for await (const url of indexedDBString({
+				key: JSON.stringify(args),
+				fn: async () =>
+					(await rawFetchEventChunkURL(args)).data.event_chunk_url,
+			})) {
+				result = url
+			}
+			return result
+		},
+		[rawFetchEventChunkURL],
+	)
 	const { data: sessionIntervals } = useGetSessionIntervalsQuery({
 		variables: {
 			session_secure_id: session_secure_id,
@@ -337,24 +361,31 @@ export const usePlayer = (): ReplayerContextInterface => {
 					promises.push(
 						(async (_i: number) => {
 							try {
-								const response = await fetchEventChunkURL({
+								const url = await fetchEventChunkURL({
 									secure_id: session_secure_id,
 									index: _i,
 								})
-								const chunkResponse = await indexedDBFetch(
-									response.data.event_chunk_url,
-								)
-								chunkEventsSet(
-									_i,
-									toHighlightEvents(
-										await chunkResponse.json(),
-									),
-								)
-								log(
-									'PlayerHook.tsx:ensureChunksLoaded',
-									'set data for chunk',
-									_i,
-								)
+								log('PlayerHook.tsx', 'loading chunk', {
+									url,
+								})
+								for await (const chunkResponse of indexedDBFetch(
+									url,
+								)) {
+									log('PlayerHook.tsx', 'chunk data', {
+										chunkResponse,
+									})
+									chunkEventsSet(
+										_i,
+										toHighlightEvents(
+											await chunkResponse.json(),
+										),
+									)
+									log(
+										'PlayerHook.tsx:ensureChunksLoaded',
+										'set data for chunk',
+										_i,
+									)
+								}
 							} catch (e: any) {
 								H.consumeError(
 									e,

@@ -17,7 +17,9 @@
 
 highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a [cohesive](#cohesion), [modern](#for-todays-developer) and [fully-featured](#features) monitoring solution, something we wished WE had. And it's all open source :)
 
-We strive to make highlight.io as easy to install as a few lines of code in any environment. Read more about our [values](#our-values) and [mission](#our-mission) below, and get started at https://highlight.io today!
+We strive to make highlight.io as easy to install as a few lines of code in any environment.
+
+Read more about our [features](#features), [values](#our-values) and [mission](#our-mission) below, and get started at https://highlight.io today!
 
 ## Table of Contents
 
@@ -32,8 +34,6 @@ We strive to make highlight.io as easy to install as a few lines of code in any 
 ### Hosted highlight.io (free to get started!)
 
 The fastest and most reliable way to get started with highlight.io is signing up for free at [app.highlight.io](https://app.highlight.io). After making an account, getting started is as easy as installing the [client SDK snippet](https://www.highlight.io/docs/getting-started/client-sdk/overview).
-
-After this, we recommend configuring alerts, installing highlight.io in your backend and more! Refer to your account at [app.highlight.io](https://app.highlightio) on next steps.
 
 ### Hobby self-hosted
 
@@ -52,7 +52,7 @@ See our [enterprise self-hosted docs](https://highlight.io/docs/company/open-sou
 
 ## Features
 
-### Session Replay: Understand why bugs happen by analyzing how users interact with your web app.
+### Session Replay: Understand WHY bugs happen.
 
 -   **Dom-based High-fidelity Replay**: Replay every interaction and dom change that happened in a given browser session (powered by https://github.com/rrweb-io/rrweb)
 -   **Outgoing Network Requests**: See all the network requests (and their contents) in a given session to reproduce the data that was sent/received by your frontend -> [docs](https://www.highlight.io/docs/session-replay/recording-network-requests-and-responses)
@@ -65,12 +65,11 @@ See our [enterprise self-hosted docs](https://highlight.io/docs/company/open-sou
 <img width="600" alt="Frame 43972" src="https://user-images.githubusercontent.com/20292680/214499701-86b7deb3-ec8f-4cb2-8661-ff4f9d7ade2d.png">
 </p>
 
-### Error Monitoring
+### Error Monitoring: Understand WHAT bugs are happening.
 
--   **Customizable Error Grouping**: Customize rules to group repeated errors thrown in your web application -> [docs](https://www.highlight.io/docs/error-monitoring/grouping-errors)
--   **Customizable Alerting Rules**: Customize how often alerts are sent to your tools (slack, discord, etc..) for errors thrown in Highlight -> [docs](https://www.highlight.io/docs/product-features/alerts)
-
--   **Embedded Session Replay**: See all of the sessions associated with a given error.
+-   **Customizable Error Grouping**: Customize rules for grouping repeated errors -> [docs](https://www.highlight.io/docs/error-monitoring/grouping-errors)
+-   **Customizable Alerting Rules**: Customize how often, and where alerts are sent -> [docs](https://www.highlight.io/docs/product-features/alerts)
+-   **Embedded Session Replay**: See all of the sessions associated with any given error.
 -   **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
 -   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/integrations)
 

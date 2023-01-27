@@ -81,7 +81,7 @@ services:
 
     backend:
         container_name: backend
-        image: highlight.io/backend
+        image: public.ecr.aws/k9o6n7l8/highlight
         ports:
             - 8082:8082
         build:
@@ -125,7 +125,7 @@ services:
             - SESSION_FILE_PATH_PREFIX
 
     backend-setup-elasticserch:
-        image: highlight.io/backend
+        image: public.ecr.aws/k9o6n7l8/highlight
         build:
             context: ..
             dockerfile: docker/backend.Dockerfile
@@ -150,7 +150,7 @@ services:
 
     frontend:
         container_name: frontend
-        image: highlight.io/frontend
+        image: public.ecr.aws/k9o6n7l8/highlight-frontend
         ports:
             - 3000:3000
             - 8080:8080

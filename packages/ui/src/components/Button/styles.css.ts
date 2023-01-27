@@ -8,7 +8,6 @@ export const shadows = {
 	primary: 'inset 0px -1px 0px rgba(0, 0, 0, 0.32)',
 	neutral: `0 0 0 1px ${vars.color.n2} inset`,
 	n5: `0 0 0 1px ${vars.color.n5} inset`,
-	medium: `0px 6px 12px -2px rgba(59, 59, 59, 0.12)`,
 } as const
 
 export const defaultSize = 'small'
@@ -49,7 +48,7 @@ export const iconVariants = recipe({
 			},
 			danger: {
 				selectors: {
-					'&:focus, &:active': {
+					'&:active': {
 						color: vars.color.n3,
 					},
 				},
@@ -85,12 +84,11 @@ export const variants = recipe({
 			lineHeight: '1em',
 			width: 'auto',
 			backgroundColor: 'transparent',
-			outline: 'none',
 			selectors: {
 				'&:hover': {
 					cursor: 'pointer',
 				},
-				'&[disabled]': {
+				'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 					color: vars.theme.interactive.fill.secondary.content
 						.onDisabled,
 					pointerEvents: 'none',
@@ -133,12 +131,12 @@ export const variants = recipe({
 						background: vars.color.r9,
 						color: vars.color.white,
 					},
-					'&:focus, &:active': {
+					'&:active': {
 						background: vars.color.r9,
 						color: vars.color.white,
 						boxShadow: 'none',
 					},
-					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+					'&[disabled], &[disabled]:hover': {
 						background: vars.color.r7,
 						color: vars.color.n1,
 						boxShadow: 'none',
@@ -185,7 +183,7 @@ export const variants = recipe({
 						color: vars.theme.interactive.fill.primary.content
 							.onEnabled,
 					},
-					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+					'&[disabled], &[disabled]:hover': {
 						backgroundColor:
 							vars.theme.interactive.fill.primary.disabled,
 						color: vars.theme.interactive.fill.primary.disabled,
@@ -216,7 +214,7 @@ export const variants = recipe({
 						border: vars.border.primaryPressed,
 						color: vars.theme.interactive.fill.primary.content.text,
 					},
-					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+					'&[disabled], &[disabled]:hover': {
 						border: vars.border.primaryDisabled,
 						color: vars.theme.interactive.fill.primary.content
 							.onDisabled,
@@ -244,7 +242,7 @@ export const variants = recipe({
 							vars.theme.interactive.overlay.primary.pressed,
 						color: vars.theme.interactive.fill.primary.content.text,
 					},
-					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+					'&[disabled], &[disabled]:hover': {
 						color: vars.theme.interactive.fill.primary.content
 							.onDisabled,
 					},
@@ -274,7 +272,7 @@ export const variants = recipe({
 						color: vars.theme.interactive.fill.secondary.content
 							.onEnabled,
 					},
-					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+					'&[disabled], &[disabled]:hover': {
 						backgroundColor:
 							vars.theme.interactive.fill.secondary.disabled,
 						color: vars.theme.interactive.fill.secondary.content
@@ -308,7 +306,7 @@ export const variants = recipe({
 						color: vars.theme.interactive.fill.secondary.content
 							.text,
 					},
-					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+					'&[disabled], &[disabled]:hover': {
 						backgroundColor:
 							vars.theme.interactive.overlay.secondary.disabled,
 						border: vars.border.secondaryDisabled,
@@ -336,7 +334,7 @@ export const variants = recipe({
 						color: vars.theme.interactive.fill.secondary.content
 							.text,
 					},
-					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+					'&[disabled], &[disabled]:hover': {
 						backgroundColor:
 							vars.theme.interactive.overlay.secondary.disabled,
 					},

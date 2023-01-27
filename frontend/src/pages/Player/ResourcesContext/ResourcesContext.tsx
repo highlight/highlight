@@ -94,35 +94,47 @@ export const useResources = (
 			!!session?.resources_url
 		) {
 			setResourcesLoading(true)
-			indexedDBFetch(session.resources_url)
-				.then((response) => response.json())
-				.then((data) => {
-					setResources(
-						(
-							(data as any[] | undefined)?.map((r, i) => {
-								return { ...r, id: i }
-							}) ?? []
-						)
-							.sort((a, b) => a.startTime - b.startTime)
-							.map((resource) => {
-								const resolverName =
-									getGraphQLResolverName(resource)
+			;(async () => {
+				if (!session.resources_url) return
+				let response
+				for await (const r of indexedDBFetch(session.resources_url)) {
+					response = r
+				}
+				if (response) {
+					response
+						.json()
+						.then((data) => {
+							setResources(
+								(
+									(data as any[] | undefined)?.map((r, i) => {
+										return { ...r, id: i }
+									}) ?? []
+								)
+									.sort((a, b) => a.startTime - b.startTime)
+									.map((resource) => {
+										const resolverName =
+											getGraphQLResolverName(resource)
 
-								if (resolverName) {
-									return {
-										...resource,
-										displayName: `${resolverName} (${resource.name})`,
-									}
-								}
-								return resource
-							}),
-					)
-				})
-				.catch((e) => {
-					setResources([])
-					H.consumeError(e, 'Error direct downloading resources')
-				})
-				.finally(() => setResourcesLoading(false))
+										if (resolverName) {
+											return {
+												...resource,
+												displayName: `${resolverName} (${resource.name})`,
+											}
+										}
+										return resource
+									}),
+							)
+						})
+						.catch((e) => {
+							setResources([])
+							H.consumeError(
+								e,
+								'Error direct downloading resources',
+							)
+						})
+						.finally(() => setResourcesLoading(false))
+				}
+			})()
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [sessionSecureId, session?.secure_id])

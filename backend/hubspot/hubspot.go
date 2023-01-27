@@ -188,6 +188,7 @@ func (h *HubspotApi) UpdateContactProperty(adminID int, properties []hubspot.Pro
 			ptr.ToString(admin.FirstName),
 			ptr.ToString(admin.LastName),
 			ptr.ToString(admin.Phone),
+			ptr.ToString(admin.Referral),
 		)
 		if err != nil {
 			return e.Wrap(err, "error creating contact when trying to update contact property")

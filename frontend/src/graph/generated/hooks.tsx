@@ -11252,3 +11252,57 @@ export type GetEmailOptOutsQueryResult = Apollo.QueryResult<
 	Types.GetEmailOptOutsQuery,
 	Types.GetEmailOptOutsQueryVariables
 >
+export const GetLogsDocument = gql`
+	query GetLogs($project_id: ID!) {
+		logs(project_id: $project_id) {
+			timestamp
+			severityText
+			body
+		}
+	}
+`
+
+/**
+ * __useGetLogsQuery__
+ *
+ * To run a query within a React component, call `useGetLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetLogsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLogsQuery,
+		Types.GetLogsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<Types.GetLogsQuery, Types.GetLogsQueryVariables>(
+		GetLogsDocument,
+		baseOptions,
+	)
+}
+export function useGetLogsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLogsQuery,
+		Types.GetLogsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<Types.GetLogsQuery, Types.GetLogsQueryVariables>(
+		GetLogsDocument,
+		baseOptions,
+	)
+}
+export type GetLogsQueryHookResult = ReturnType<typeof useGetLogsQuery>
+export type GetLogsLazyQueryHookResult = ReturnType<typeof useGetLogsLazyQuery>
+export type GetLogsQueryResult = Apollo.QueryResult<
+	Types.GetLogsQuery,
+	Types.GetLogsQueryVariables
+>

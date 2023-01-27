@@ -341,6 +341,12 @@ type LinearTeam struct {
 	Key    string `json:"key"`
 }
 
+type LogLine struct {
+	Timestamp    time.Time `json:"timestamp"`
+	SeverityText string    `json:"severityText"`
+	Body         string    `json:"body"`
+}
+
 type MetricPreview struct {
 	Date  time.Time `json:"date"`
 	Value float64   `json:"value"`

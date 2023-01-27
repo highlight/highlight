@@ -7,7 +7,6 @@ import {
 	IconSolidGlobeAlt,
 	IconSolidLink,
 	IconSolidQuestionMarkCircle,
-	IconSolidShare,
 	Menu,
 	Tag,
 	Text,
@@ -26,12 +25,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 
 	return (
 		<Menu placement="bottom">
-			<Menu.Button
-				size="small"
-				kind="secondary"
-				emphasis="low"
-				iconRight={<IconSolidShare />}
-			>
+			<Menu.Button size="small" kind="secondary" emphasis="low">
 				Share
 			</Menu.Button>
 			<Menu.List cssClass={style.noPadding}>

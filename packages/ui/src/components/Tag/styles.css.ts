@@ -39,14 +39,17 @@ export const variants = recipe({
 			alignItems: 'center',
 			border: 'none',
 			display: 'inline-flex',
+			px: '4',
+			py: '2',
 		}),
 		{
 			lineHeight: '1em',
 			width: 'auto',
+			wordBreak: 'break-all',
 		},
 		{
 			selectors: {
-				'&:disabled, &:disabled:hover, &:disabled:focus': {
+				'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 					backgroundColor:
 						vars.theme.interactive.overlay.secondary.disabled,
 					border: 0,
@@ -81,9 +84,9 @@ export const variants = recipe({
 			basic: {},
 		},
 		size: {
-			small: { height: 16 },
-			medium: { height: 20 },
-			large: { height: 24 },
+			small: { minHeight: 16 },
+			medium: { minHeight: 20 },
+			large: { minHeight: 24 },
 		},
 	},
 

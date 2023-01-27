@@ -3894,6 +3894,19 @@ export type GetEmailOptOutsQuery = { __typename?: 'Query' } & Pick<
 	'email_opt_outs'
 >
 
+export type GetLogsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetLogsQuery = { __typename?: 'Query' } & {
+	logs: Array<
+		{ __typename?: 'LogLine' } & Pick<
+			Types.LogLine,
+			'timestamp' | 'severityText' | 'body'
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4007,6 +4020,7 @@ export const namedOperations = {
 		GetErrorGroupFrequencies: 'GetErrorGroupFrequencies' as const,
 		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
+		GetLogs: 'GetLogs' as const,
 	},
 	Mutation: {
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,

@@ -10,11 +10,13 @@ import { Box } from '../Box/Box'
 export type TooltipProps = Partial<TooltipState> &
 	React.PropsWithChildren<{
 		trigger: React.ReactElement
+		disabled?: boolean
 	}>
 
 export const Tooltip: React.FC<TooltipProps> = ({
 	children,
 	trigger,
+	disabled,
 	...props
 }: TooltipProps) => {
 	const tooltipState = useTooltipState({
@@ -26,9 +28,11 @@ export const Tooltip: React.FC<TooltipProps> = ({
 	return (
 		<>
 			<TooltipAnchor state={tooltipState}>{trigger}</TooltipAnchor>
-			<AriakitTooltip state={tooltipState} style={{ zIndex: 100 }}>
-				<TooltipRenderer>{children}</TooltipRenderer>
-			</AriakitTooltip>
+			{!disabled && (
+				<AriakitTooltip state={tooltipState} style={{ zIndex: 100 }}>
+					<TooltipRenderer>{children}</TooltipRenderer>
+				</AriakitTooltip>
+			)}
 		</>
 	)
 }

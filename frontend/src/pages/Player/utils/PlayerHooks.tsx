@@ -201,7 +201,12 @@ export const usePlayerKeyboardShortcuts = () => {
 					sessionResults.sessions,
 					session_secure_id,
 				)
-				changeSession(project_id, history, nextSession)
+				changeSession(
+					project_id,
+					history,
+					nextSession,
+					'Playing the next session.',
+				)
 			}
 		},
 		[session_secure_id, sessionResults],

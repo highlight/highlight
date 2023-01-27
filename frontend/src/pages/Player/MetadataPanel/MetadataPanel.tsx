@@ -1,7 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { KeyValueTableRow } from '@components/KeyValueTable/KeyValueTable'
 import LoadingBox from '@components/LoadingBox'
-import { TableList } from '@components/TableList/TableList'
+import { TableList, TableListItem } from '@components/TableList/TableList'
 import {
 	Box,
 	ButtonIcon,
@@ -60,7 +59,7 @@ const MetadataPanel = () => {
 		setParsedFields(fields)
 	}, [session?.fields])
 
-	const sessionData: KeyValueTableRow[] = [
+	const sessionData: TableListItem[] = [
 		{
 			keyDisplayValue: 'Environment',
 			valueDisplayValue: session?.environment || 'Production',
@@ -77,7 +76,6 @@ const MetadataPanel = () => {
 					</a>
 				</>
 			),
-			renderType: 'string',
 		},
 		{
 			keyDisplayValue: 'App Version',
@@ -96,14 +94,12 @@ const MetadataPanel = () => {
 					</a>
 				</>
 			),
-			renderType: 'string',
 		},
 		{
 			keyDisplayValue: 'Strict Privacy',
 			valueDisplayValue: session?.enable_strict_privacy
 				? 'Enabled'
 				: 'Disabled',
-			renderType: 'string',
 			valueInfoTooltipMessage: (
 				<>
 					{session?.enable_strict_privacy
@@ -121,10 +117,10 @@ const MetadataPanel = () => {
 		},
 		{
 			keyDisplayValue: 'Record Network Request Contents',
+			lines: '1',
 			valueDisplayValue: session?.enable_recording_network_contents
 				? 'Enabled'
 				: 'Disabled',
-			renderType: 'string',
 			valueInfoTooltipMessage: (
 				<>
 					This specifies whether Highlight records the status codes,
@@ -146,14 +142,12 @@ const MetadataPanel = () => {
 		sessionData.push({
 			keyDisplayValue: 'Duration',
 			valueDisplayValue: formatShortTime(session.length / 1000),
-			renderType: 'string',
 		})
 	}
 	if (session?.active_length) {
 		sessionData.push({
 			keyDisplayValue: 'Active Duration',
 			valueDisplayValue: formatShortTime(session.active_length / 1000),
-			renderType: 'string',
 		})
 	}
 
@@ -165,29 +159,25 @@ const MetadataPanel = () => {
 				valueDisplayValue: session?.payload_size
 					? `${formatSize(session.payload_size)}`
 					: 'Unknown',
-				renderType: 'string',
 			})
 		}
 		sessionData.push({
 			keyDisplayValue: 'Client Version',
 			valueDisplayValue: session?.client_version || 'Unknown',
-			renderType: 'string',
 		})
 		sessionData.push({
 			keyDisplayValue: 'Firstload Version',
 			valueDisplayValue: session?.firstload_version || 'Unknown',
-			renderType: 'string',
 		})
 		if (session?.client_config) {
 			sessionData.push({
 				keyDisplayValue: 'Client Config',
 				valueDisplayValue: JSON.parse(session.client_config),
-				renderType: 'json',
 			})
 		}
 	}
 
-	const userData: KeyValueTableRow[] = [
+	const userData: TableListItem[] = [
 		{
 			keyDisplayValue: 'Identifer',
 			valueDisplayValue: session?.identifier || 'Not Set',
@@ -205,12 +195,10 @@ const MetadataPanel = () => {
 					.
 				</>
 			),
-			renderType: 'string',
 		},
 		{
 			keyDisplayValue: 'Locale',
 			valueDisplayValue: session?.language || 'Unknown',
-			renderType: 'string',
 		},
 	]
 
@@ -218,7 +206,6 @@ const MetadataPanel = () => {
 		userData.push({
 			keyDisplayValue: 'Location',
 			valueDisplayValue: `${session?.city}, ${session?.state} ${session?.postal}`,
-			renderType: 'string',
 		})
 	}
 
@@ -227,12 +214,11 @@ const MetadataPanel = () => {
 			userData.push({
 				keyDisplayValue: field.name,
 				valueDisplayValue: field.value,
-				renderType: 'string',
 			})
 		}
 	})
 
-	const deviceData: KeyValueTableRow[] = []
+	const deviceData: TableListItem[] = []
 
 	if (session?.fingerprint) {
 		deviceData.push({
@@ -254,7 +240,6 @@ const MetadataPanel = () => {
 					#{session?.fingerprint}
 				</Link>
 			),
-			renderType: 'string',
 		})
 	}
 
@@ -264,14 +249,12 @@ const MetadataPanel = () => {
 			valueDisplayValue: bytesToPrettyString(
 				session.deviceMemory! * 1024 * 1024,
 			),
-			renderType: 'string',
 		})
 	}
 
-	const environmentData: KeyValueTableRow[] = browserExtensionScriptURLs.map(
+	const environmentData: TableListItem[] = browserExtensionScriptURLs.map(
 		(scriptUrl) => ({
 			keyDisplayValue: 'Browser Extension',
-			renderType: 'react-node',
 			valueDisplayValue: (
 				<a
 					href={getChromeExtensionURL(scriptUrl)}
@@ -296,8 +279,8 @@ const MetadataPanel = () => {
 					[MetadataSection.User]: userData,
 					[MetadataSection.Device]: deviceData,
 					[MetadataSection.Environment]: environmentData,
-				}).map(([k, v]) => {
-					const isExpanded = expanded === k
+				}).map(([key, value]) => {
+					const isExpanded = expanded === key
 					const title = (
 						<Box
 							py="8"
@@ -307,11 +290,9 @@ const MetadataPanel = () => {
 							justifyContent="space-between"
 							alignItems="center"
 						>
-							<Box display="flex">
-								<Text color="strong" as="span">
-									{k}
-								</Text>
-							</Box>
+							<Text color="strong" as="span">
+								{key}
+							</Text>
 
 							<Box display="flex" gap="4" alignItems="center">
 								<ButtonIcon
@@ -331,12 +312,12 @@ const MetadataPanel = () => {
 					)
 					return (
 						<CollapsibleSection
-							key={k}
+							key={key}
 							title={title}
 							expanded={isExpanded}
 							setExpanded={(e) => {
 								if (e) {
-									setExpanded(k as MetadataSection)
+									setExpanded(key as MetadataSection)
 								} else {
 									setExpanded(undefined)
 								}
@@ -348,7 +329,7 @@ const MetadataPanel = () => {
 								justifyContent="space-between"
 								alignItems="center"
 							>
-								<TableList data={v} />
+								<TableList data={value} />
 							</Box>
 						</CollapsibleSection>
 					)
