@@ -8,21 +8,21 @@ from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LogRecord
-from opentelemetry.sdk._logs.export import SimpleLogRecordProcessor
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider, _Span
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
-HIGHLIGHT_OTLP_HTTP = 'https://otel.highlight.io:4138'
+HIGHLIGHT_OTLP_HTTP = 'https://otel.highlight.io:4318'
 
 provider = TracerProvider()
-provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(HIGHLIGHT_OTLP_HTTP)))
+provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(f'{HIGHLIGHT_OTLP_HTTP}/v1/traces')))
 trace.set_tracer_provider(provider)
 tracer = trace.get_tracer(__name__)
 
 log_provider = LoggerProvider()
-log_provider.add_log_record_processor(SimpleLogRecordProcessor(OTLPLogExporter(HIGHLIGHT_OTLP_HTTP)))
+log_provider.add_log_record_processor(BatchLogRecordProcessor(OTLPLogExporter(f'{HIGHLIGHT_OTLP_HTTP}/v1/logs')))
 _logs.set_logger_provider(log_provider)
 log = log_provider.get_logger(__name__)
 
@@ -62,4 +62,5 @@ def log_hook(span: _Span, record: logging.LogRecord):
         log.emit(r)
 
 
-LoggingInstrumentor().instrument(set_logging_format=True, log_hook=log_hook)
+def instrument_logs():
+    LoggingInstrumentor().instrument(set_logging_format=True, log_hook=log_hook)
