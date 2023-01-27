@@ -2293,6 +2293,8 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		errorToInsert := &model.ErrorObject{
 			ProjectID:   projectID,
 			SessionID:   session.ID,
+			TraceID:     v.TraceID,
+			SpanID:      v.SpanID,
 			Environment: session.Environment,
 			Event:       v.Event,
 			Type:        model.ErrorType.BACKEND,

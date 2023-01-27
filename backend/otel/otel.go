@@ -3,11 +3,12 @@ package otel
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
 	"github.com/go-chi/chi"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
-	model2 "github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
@@ -73,6 +74,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
 				attrs := span.Attributes().AsRaw()
+				tagsBytes, err := json.Marshal(attrs)
+				if err != nil {
+					log.Errorf("failed to format error attributes %s", tagsBytes)
+				}
+				// TODO(vkorolik) could be nil for session-less errors
 				sessionID := attrs[HighlightSessionIDAttribute].(string)
 				requestID := attrs[HighlightRequestIDAttribute].(string)
 				events := span.Events()
@@ -94,9 +100,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						traceErrors[sessionID] = append(traceErrors[sessionID], &model.BackendErrorObjectInput{
 							SessionSecureID: sessionID,
 							RequestID:       requestID,
+							TraceID:         pointy.String(span.TraceID().String()),
+							SpanID:          pointy.String(span.SpanID().String()),
 							Event:           exc.Message,
-							Type:            model2.ErrorType.BACKEND,
-							URL:             "",
+							Type:            excType.(string),
 							Source: strings.Join([]string{
 								resource.Attributes().AsRaw()["telemetry.sdk.language"].(string),
 								resource.Attributes().AsRaw()["service.name"].(string),
@@ -104,7 +111,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							}, "-"),
 							StackTrace: exc.Stacktrace,
 							Timestamp:  event.Timestamp().AsTime(),
-							Payload:    nil,
+							Payload:    pointy.String(string(tagsBytes)),
 						})
 					}
 				}

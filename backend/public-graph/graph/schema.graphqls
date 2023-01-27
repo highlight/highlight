@@ -37,6 +37,8 @@ input ErrorObjectInput {
 input BackendErrorObjectInput {
 	session_secure_id: String!
 	request_id: String!
+	trace_id: String
+	span_id: String
 	event: String!
 	type: String!
 	url: String!
