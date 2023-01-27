@@ -26,6 +26,7 @@ jobs:
                   make migrate
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+
     deploy-session-delete-lambdas:
         needs: migrate-database
         runs-on: ubuntu-latest
@@ -111,6 +112,7 @@ jobs:
                   aws_region: us-east-2
                   function_name: sendEmail
                   zip_file: backend/sendEmail.zip
+
     deploy-digest-lambdas:
         needs: migrate-database
         runs-on: ubuntu-latest
@@ -172,15 +174,109 @@ jobs:
                   aws_region: us-east-2
                   function_name: sendDigestEmails
                   zip_file: backend/sendDigestEmails.zip
-    deploy_backend:
-        needs: migrate-database
+    #
+    #    deploy_backend:
+    #        needs: migrate-database
+    #        runs-on: ubuntu-latest
+    #        steps:
+    #            - name: Set up QEMU
+    #              uses: docker/setup-qemu-action@v2
+    #            - name: Check out the repo
+    #              uses: actions/checkout@v2
+    #
+    #            - name: Configure AWS credentials
+    #              uses: aws-actions/configure-aws-credentials@v1
+    #              with:
+    #                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #                  aws-region: us-east-2
+    #            - name: Login to Amazon ECR
+    #              id: login-ecr
+    #              uses: aws-actions/amazon-ecr-login@v1
+    #
+    #            - name: Build, tag, and push arm64 image to Amazon ECR
+    #              env:
+    #                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+    #                  ECR_REPOSITORY: highlight-production-ecr-repo
+    #                  IMAGE_TAG: ${{ github.sha }}
+    #              run: |
+    #                  docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f deploy/Dockerfile.prod.arm64 .
+    #                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64
+    #
+    #            # Edit and deploy private-graph
+    #            - name: Replace image label for private-graph task
+    #              id: image-private-graph
+    #              uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #              with:
+    #                  task-definition: deploy/private-graph-task.json
+    #                  container-name: highlight-backend
+    #                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+    #            - name: Deploy to Amazon ECS private-graph service
+    #              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #              with:
+    #                  task-definition: ${{ steps.image-private-graph.outputs.task-definition }}
+    #                  service: private-graph-service
+    #                  cluster: highlight-production-cluster
+    #            # Edit and deploy public-graph
+    #            - name: Replace image label for public-graph task
+    #              id: image-public-graph
+    #              uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #              with:
+    #                  task-definition: deploy/public-graph-task.json
+    #                  container-name: highlight-backend
+    #                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+    #            - name: Deploy to Amazon ECS public-graph service
+    #              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #              with:
+    #                  task-definition: ${{ steps.image-public-graph.outputs.task-definition }}
+    #                  service: public-graph-service
+    #                  cluster: highlight-production-cluster
+    #            # Edit and deploy worker
+    #            - name: Replace image label for worker task
+    #              id: image-worker
+    #              uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #              with:
+    #                  task-definition: deploy/worker-task.json
+    #                  container-name: highlight-backend
+    #                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+    #            - name: Deploy to Amazon ECS worker service
+    #              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #              with:
+    #                  task-definition: ${{ steps.image-worker.outputs.task-definition }}
+    #                  service: worker-service-v2
+    #                  cluster: highlight-production-cluster
+    #            # Edit and deploy metric monitors
+    #            - name: Replace image label for metric monitors task
+    #              id: image-metric-monitor
+    #              uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #              with:
+    #                  task-definition: deploy/metric-monitor-task.json
+    #                  container-name: highlight-backend
+    #                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+    #            - name: Deploy to Amazon ECS metric monitor service
+    #              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #              with:
+    #                  task-definition: ${{ steps.image-metric-monitor.outputs.task-definition }}
+    #                  service: metric-monitor
+    #                  cluster: highlight-production-cluster
+    #            # Edit and deploy public worker
+    #            - name: Replace image label for public worker service
+    #              id: image-public-worker
+    #              uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #              with:
+    #                  task-definition: deploy/public-worker-service.json
+    #                  container-name: highlight-backend
+    #                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+    #            - name: Deploy to Amazon ECS public worker service
+    #              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #              with:
+    #                  task-definition: ${{ steps.image-public-worker.outputs.task-definition }}
+    #                  service: public-worker-service
+    #                  cluster: highlight-production-cluster
+
+    deploy_opentelemetry_collector:
         runs-on: ubuntu-latest
         steps:
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v2
-            - name: Check out the repo
-              uses: actions/checkout@v2
-
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v1
               with:
@@ -191,9 +287,22 @@ jobs:
               id: login-ecr
               uses: aws-actions/amazon-ecr-login@v1
 
+            - name: Check out the repo
+              uses: actions/checkout@v2
+            - uses: dorny/paths-filter@v2
+              id: filter
+              with:
+                  filters: |
+                      otel-changed:
+                        - 'deploy/opentelemetry-collector.Dockerfile'
+                        - 'deploy/otel-collector.yaml'
+            - name: Set up QEMU
+              if: steps.filter.outputs.otel-changed == 'true'
+              uses: docker/setup-qemu-action@v2
+
             # Edit and deploy opentelemetry collector
-            # TODO(vkorolik) opentelemetry collector deploys are no expected to be frequent. disable by default
             - name: Build, tag, and push arm64 image to Amazon ECR
+              if: steps.filter.outputs.otel-changed == 'true'
               env:
                   ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
                   ECR_REPOSITORY: highlight-collector
@@ -203,6 +312,7 @@ jobs:
                   docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f opentelemetry-collector.Dockerfile .
                   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64
             - name: Replace image label for opentelemetry collector
+              if: steps.filter.outputs.otel-changed == 'true'
               id: image-opentelemetry-collector
               uses: aws-actions/amazon-ecs-render-task-definition@v1
               with:
@@ -210,88 +320,9 @@ jobs:
                   container-name: highlight-collector
                   image: ${{ steps.login-ecr.outputs.registry }}/highlight-collector:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS opentelemetry collector service
+              if: steps.filter.outputs.otel-changed == 'true'
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
                   task-definition: ${{ steps.image-opentelemetry-collector.outputs.task-definition }}
                   service: opentelemetry-collector-service
                   cluster: highlight-production-cluster
-
-            # TODO(vkorolik) tmp
-#            - name: Build, tag, and push arm64 image to Amazon ECR
-#              env:
-#                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-#                  ECR_REPOSITORY: highlight-production-ecr-repo
-#                  IMAGE_TAG: ${{ github.sha }}
-#              run: |
-#                  docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f deploy/Dockerfile.prod.arm64 .
-#                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64
-# Edit and deploy private-graph
-#            - name: Replace image label for private-graph task
-#              id: image-private-graph
-#              uses: aws-actions/amazon-ecs-render-task-definition@v1
-#              with:
-#                  task-definition: deploy/private-graph-task.json
-#                  container-name: highlight-backend
-#                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
-#            - name: Deploy to Amazon ECS private-graph service
-#              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-#              with:
-#                  task-definition: ${{ steps.image-private-graph.outputs.task-definition }}
-#                  service: private-graph-service
-#                  cluster: highlight-production-cluster
-#            # Edit and deploy public-graph
-#            - name: Replace image label for public-graph task
-#              id: image-public-graph
-#              uses: aws-actions/amazon-ecs-render-task-definition@v1
-#              with:
-#                  task-definition: deploy/public-graph-task.json
-#                  container-name: highlight-backend
-#                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
-#            - name: Deploy to Amazon ECS public-graph service
-#              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-#              with:
-#                  task-definition: ${{ steps.image-public-graph.outputs.task-definition }}
-#                  service: public-graph-service
-#                  cluster: highlight-production-cluster
-#            # Edit and deploy worker
-#            - name: Replace image label for worker task
-#              id: image-worker
-#              uses: aws-actions/amazon-ecs-render-task-definition@v1
-#              with:
-#                  task-definition: deploy/worker-task.json
-#                  container-name: highlight-backend
-#                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
-#            - name: Deploy to Amazon ECS worker service
-#              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-#              with:
-#                  task-definition: ${{ steps.image-worker.outputs.task-definition }}
-#                  service: worker-service-v2
-#                  cluster: highlight-production-cluster
-#            # Edit and deploy metric monitors
-#            - name: Replace image label for metric monitors task
-#              id: image-metric-monitor
-#              uses: aws-actions/amazon-ecs-render-task-definition@v1
-#              with:
-#                  task-definition: deploy/metric-monitor-task.json
-#                  container-name: highlight-backend
-#                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
-#            - name: Deploy to Amazon ECS metric monitor service
-#              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-#              with:
-#                  task-definition: ${{ steps.image-metric-monitor.outputs.task-definition }}
-#                  service: metric-monitor
-#                  cluster: highlight-production-cluster
-#            # Edit and deploy public worker
-#            - name: Replace image label for public worker service
-#              id: image-public-worker
-#              uses: aws-actions/amazon-ecs-render-task-definition@v1
-#              with:
-#                  task-definition: deploy/public-worker-service.json
-#                  container-name: highlight-backend
-#                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
-#            - name: Deploy to Amazon ECS public worker service
-#              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-#              with:
-#                  task-definition: ${{ steps.image-public-worker.outputs.task-definition }}
-#                  service: public-worker-service
-#                  cluster: highlight-production-cluster
