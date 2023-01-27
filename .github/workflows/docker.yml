@@ -2,8 +2,9 @@ name: Docker
 
 on:
     push:
-        branches:
-            - 'main'
+        branches: ['main']
+    pull_request:
+        types: [opened, synchronize]
 
 jobs:
     build:
@@ -18,10 +19,9 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
               with:
-                  token: ${{ secrets.GH_REPO_TOKEN }}
                   submodules: true
 
-            - name: Build images
+            - name: Build docker images
               run: |
                   cd docker
-                  bash run.sh
+                  docker compose build

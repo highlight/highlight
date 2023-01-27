@@ -367,7 +367,9 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 				*admin.UserDefinedPersona,
 				*admin.FirstName,
 				*admin.LastName,
-				*admin.Phone); err != nil {
+				*admin.Phone,
+				*admin.Referral,
+			); err != nil {
 				log.Error(err, "error creating hubspot contact")
 			}
 		})
@@ -6738,6 +6740,16 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 	})
 
 	return results, nil
+}
+
+// Logs is the resolver for the logs field.
+func (r *queryResolver) Logs(ctx context.Context, projectID int) ([]*modelInputs.LogLine, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.ReadLogs(ctx, project.ID)
 }
 
 // Params is the resolver for the params field.

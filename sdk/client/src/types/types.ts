@@ -84,6 +84,12 @@ export declare type HighlightOptions = {
 	 */
 	networkRecording?: boolean | NetworkRecordingOptions
 	/**
+	 * If set, Highlight will not record when your app is not visible (in the background).
+	 * By default, Highlight will record in the background.
+	 * @default false
+	 */
+	disableBackgroundRecording?: boolean
+	/**
 	 * Specifies whether Highlight will record console messages.
 	 * @default false
 	 */

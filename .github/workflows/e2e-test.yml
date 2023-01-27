@@ -64,7 +64,6 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
               with:
-                  token: ${{ secrets.GH_REPO_TOKEN }}
                   submodules: true
             - name: Setup Node.js
               uses: actions/setup-node@v3
@@ -91,7 +90,7 @@ jobs:
             - name: Build frontend + backend
               run: yarn ci:build
             - name: Run Cypress tests
-              uses: cypress-io/github-action@v4
+              uses: cypress-io/github-action@v5
               with:
                   install: false
                   # frontend dependencies of ci:frontend are built prior by ci:build

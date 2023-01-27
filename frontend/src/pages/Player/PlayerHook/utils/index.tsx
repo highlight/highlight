@@ -597,7 +597,7 @@ export const changeSession = (
 	projectId: string,
 	history: H.History,
 	session: Session | null,
-	successMessageText = 'Playing the next session.',
+	successMessageText?: string,
 ) => {
 	const projectIdRemapped = projectId === '0' ? 'demo' : projectId
 
@@ -607,7 +607,7 @@ export const changeSession = (
 	}
 
 	history.push(`/${projectIdRemapped}/sessions/${session.secure_id}`)
-	if (successMessageText.length) {
+	if (successMessageText?.length) {
 		message.success(successMessageText)
 	}
 }

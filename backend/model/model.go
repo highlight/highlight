@@ -886,6 +886,8 @@ type ErrorObject struct {
 	OrganizationID   int
 	ProjectID        int `json:"project_id"`
 	SessionID        *int
+	TraceID          *string
+	SpanID           *string
 	ErrorGroupID     int `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
 	Event            string
 	Type             string

@@ -26,7 +26,15 @@ export const handle = style({
 	width: '100%',
 	position: 'absolute',
 	top: -GRAB_HANDLE_HEIGHT / 2,
+})
+
+export const grabbable = style({
 	cursor: 'grab',
+	selectors: {
+		'&:active': {
+			cursor: 'grabbing',
+		},
+	},
 })
 
 export const handleLine = style({

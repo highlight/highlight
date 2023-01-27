@@ -67,7 +67,7 @@ export const Header = () => {
 		project_id === DEMO_WORKSPACE_APPLICATION_ID
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
-	const { isLoggedIn } = useAuthContext()
+	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
@@ -249,6 +249,33 @@ export const Header = () => {
 													</Box>
 												</Menu.Item>
 											</Link>
+											{isHighlightAdmin && (
+												<Link
+													to={`/${project_id}/logs`}
+													className={linkStyle}
+												>
+													<Menu.Item>
+														<Box
+															display="flex"
+															alignItems="center"
+															gap="4"
+														>
+															<IconSolidCog
+																size={14}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
+																}
+															/>
+															Logs
+														</Box>
+													</Menu.Item>
+												</Link>
+											)}
 										</Menu.List>
 									</Menu>
 								</Box>

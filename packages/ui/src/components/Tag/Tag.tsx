@@ -73,6 +73,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 					size={textSize}
 					userSelect="none"
 					color="inherit"
+					display="inline-flex"
 				>
 					{children}
 				</Text>

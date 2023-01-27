@@ -29,6 +29,7 @@ import (
 
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts"
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -61,6 +62,7 @@ type Resolver struct {
 	StorageClient   *storage.StorageClient
 	OpenSearch      *opensearch.Client
 	Redis           *redis.Client
+	Clickhouse      *clickhouse.Client
 	RH              *resthooks.Resthook
 }
 
@@ -476,17 +478,21 @@ func (r *Resolver) getIncrementedEnvironmentCount(errorGroup *model.ErrorGroup, 
 	return environmentsString
 }
 
-func (r *Resolver) getMappedStackTraceString(stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []privateModel.ErrorTrace, error) {
+func (r *Resolver) GetErrorAppVersion(errorObj *model.ErrorObject) *string {
 	// get version from session
-	var version *string
-	if err := r.DB.Model(&model.Session{}).
+	var session *model.Session
+	if err := r.DB.Model(&session).
 		Where("id = ?", errorObj.SessionID).
-		Select("app_version").Scan(&version).Error; err != nil {
+		Pluck("app_version", &session).Error; err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil, e.Wrap(err, "error getting app version from session")
+			return nil
 		}
 	}
+	return session.AppVersion
+}
 
+func (r *Resolver) getMappedStackTraceString(stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []privateModel.ErrorTrace, error) {
+	version := r.GetErrorAppVersion(errorObj)
 	var newMappedStackTraceString *string
 	mappedStackTrace, err := errors.EnhanceStackTrace(stackTrace, projectID, version, r.StorageClient)
 	if err != nil {
@@ -2310,6 +2316,8 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		errorToInsert := &model.ErrorObject{
 			ProjectID:   projectID,
 			SessionID:   sessionID,
+			TraceID:     v.TraceID,
+			SpanID:      v.SpanID,
 			Environment: session.Environment,
 			Event:       v.Event,
 			Type:        model.ErrorType.BACKEND,
@@ -2697,6 +2705,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				return e.Wrap(err, "error saving messages data")
 			}
 		} else {
+			// TODO - this code path is no longer hit.
 			if hasBeacon {
 				r.DB.Where(&model.MessagesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.MessagesObject{})
 			}
@@ -2709,6 +2718,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				if err := r.DB.Create(obj).Error; err != nil {
 					return e.Wrap(err, "error creating messages object")
 				}
+			}
+			// End dead code path
+		}
+
+		// Only set for main Highlight project
+		if projectID == 1 {
+			if err := r.Clickhouse.BatchWriteMessagesForSession(ctx, projectID, sessionSecureID, messages); err != nil {
+				// If there's an issue with Clickhouse, we'll just log for investigation instead of building up a kafka backlog
+				log.WithError(err).Error("error writing console messages to clickhouse")
 			}
 		}
 

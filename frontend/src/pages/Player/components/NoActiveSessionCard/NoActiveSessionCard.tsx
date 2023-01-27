@@ -2,8 +2,6 @@ import { Box, Callout, Text } from '@highlight-run/ui'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import React, { useEffect } from 'react'
 
-import styles from './NoActiveSessionCard.module.scss'
-
 const NoActiveSessionCard = () => {
 	const { setShowLeftPanel } = useErrorPageConfiguration()
 
@@ -12,7 +10,7 @@ const NoActiveSessionCard = () => {
 	}, [setShowLeftPanel])
 
 	return (
-		<Box cssClass={styles.card}>
+		<Box margin="auto" style={{ maxWidth: 300 }}>
 			<Callout title="Ready to see your app?">
 				<Box
 					display="flex"

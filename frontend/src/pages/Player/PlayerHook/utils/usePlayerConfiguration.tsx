@@ -2,10 +2,10 @@ import {
 	RightPlayerPanelTabsId,
 	RightPlayerPanelTabType,
 } from '@pages/Player/RightPlayerPanel/constants'
+import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import { useCallback, useMemo } from 'react'
 
-import { DevToolTabType } from '../../Toolbar/DevToolsContext/DevToolsContext'
 import { EventsForTimeline } from '.'
 
 export const PLAYBACK_SPEED_OPTIONS: readonly number[] = [1, 2, 4, 8]
@@ -34,11 +34,10 @@ const usePlayerConfiguration = () => {
 		false,
 	)
 
-	const [selectedDevToolsTab, setSelectedDevToolsTab] =
-		useLocalStorage<DevToolTabType>(
-			'tabs-DevTools-active-tab',
-			DevToolTabType.Errors,
-		)
+	const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage<Tab>(
+		'tabs-DevTools-active-tab',
+		Tab.Errors,
+	)
 
 	const [selectedRightPlayerPanelTab, setSelectedRightPlayerPanelTab] =
 		useLocalStorage<RightPlayerPanelTabType>(

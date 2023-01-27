@@ -642,6 +642,13 @@ export type LinearTeam = {
 	team_id: Scalars['String']
 }
 
+export type LogLine = {
+	__typename?: 'LogLine'
+	body: Scalars['String']
+	severityText: Scalars['String']
+	timestamp: Scalars['Timestamp']
+}
+
 export type Metric = {
 	__typename?: 'Metric'
 	name: Scalars['String']
@@ -1374,6 +1381,7 @@ export type Query = {
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
+	logs: Array<LogLine>
 	messages?: Maybe<Array<Maybe<Scalars['Any']>>>
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
@@ -1695,6 +1703,10 @@ export type QueryLinear_TeamsArgs = {
 }
 
 export type QueryLiveUsersCountArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryLogsArgs = {
 	project_id: Scalars['ID']
 }
 

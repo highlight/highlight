@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/otel"
 	"html/template"
 	"io"
 	"net/http"
@@ -11,6 +10,9 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/clickhouse"
+	"github.com/highlight-run/highlight/backend/otel"
 
 	"github.com/andybalholm/brotli"
 	"github.com/highlight-run/highlight/backend/integrations"
@@ -203,6 +205,11 @@ func main() {
 	redisClient := redis.NewClient()
 	sfnClient := stepfunctions.NewClient()
 
+	clickhouseClient, err := clickhouse.NewClient()
+	if err != nil {
+		log.Fatalf("error creating clickhouse client: %v", err)
+	}
+
 	oauthSrv, err := oauth.CreateServer(db)
 	if err != nil {
 		log.Fatalf("error creating oauth client: %v", err)
@@ -230,6 +237,7 @@ func main() {
 		StepFunctions:          sfnClient,
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
+		ClickhouseClient:       clickhouseClient,
 	}
 	private.SetupAuthClient(oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
@@ -336,6 +344,19 @@ func main() {
 			}
 			defer profiler.Stop()
 		}
+		alertWorkerpool := workerpool.New(40)
+		alertWorkerpool.SetPanicHandler(util.Recover)
+		publicResolver := &public.Resolver{
+			DB:              db,
+			TDB:             tdb,
+			ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
+			MailClient:      sendgrid.NewSendClient(sendgridKey),
+			StorageClient:   storage,
+			AlertWorkerPool: alertWorkerpool,
+			OpenSearch:      opensearchClient,
+			Redis:           redisClient,
+			RH:              &rh,
+		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
 			publicEndpoint = "/"
@@ -343,22 +364,10 @@ func main() {
 		r.Route(publicEndpoint, func(r chi.Router) {
 			r.Use(public.PublicMiddleware)
 			r.Use(highlightChi.Middleware)
-			alertWorkerpool := workerpool.New(40)
-			alertWorkerpool.SetPanicHandler(util.Recover)
 
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
-					Resolvers: &public.Resolver{
-						DB:              db,
-						TDB:             tdb,
-						ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
-						MailClient:      sendgrid.NewSendClient(sendgridKey),
-						StorageClient:   storage,
-						AlertWorkerPool: alertWorkerpool,
-						OpenSearch:      opensearchClient,
-						Redis:           redisClient,
-						RH:              &rh,
-					},
+					Resolvers: publicResolver,
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
 			publicServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
@@ -367,6 +376,8 @@ func main() {
 				publicServer,
 			)
 		})
+		otelHandler := otel.New(publicResolver)
+		otelHandler.Listen(r)
 	}
 
 	if util.IsDevOrTestEnv() {
@@ -438,6 +449,7 @@ func main() {
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
 			Redis:           redisClient,
+			Clickhouse:      clickhouseClient,
 			RH:              &rh,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
@@ -459,7 +471,6 @@ func main() {
 				go func() {
 					w.Start()
 				}()
-				go otel.Listen()
 				if util.IsDevEnv() {
 					log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 				} else {
@@ -472,7 +483,6 @@ func main() {
 			}()
 			// for the 'All' worker, explicitly run the PublicWorker as well
 			go w.PublicWorker()
-			go otel.Listen()
 			if util.IsDevEnv() {
 				log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 			} else {
@@ -480,7 +490,6 @@ func main() {
 			}
 		}
 	} else {
-		go otel.Listen()
 		if util.IsDevEnv() {
 			log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 		} else {

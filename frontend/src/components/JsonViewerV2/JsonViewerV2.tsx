@@ -8,8 +8,7 @@ import {
 import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
 import { copyToClipboard } from '@util/string'
 import React from 'react'
-import ReactCollapsible from 'react-collapsible'
-// @ts-expect-error
+// @ts-ignore
 import { specific } from 'react-files-hooks'
 
 import * as styles from './JsonViewerV2.css'
@@ -36,60 +35,71 @@ const JsonViewerV2 = React.memo(
 		const objectStr = JSON.stringify(data, Array.from(allKeys).sort(), 2)
 
 		return (
-			<Box className={styles.container}>
-				<Box cssClass={styles.downloadButton}>
-					<ExplanatoryPopover
-						content={
-							<>
-								<Text userSelect="none" color="n11">
-									Copy to Clipboard
-								</Text>
-							</>
-						}
-					>
-						<ButtonIcon
-							kind="secondary"
-							size="xSmall"
-							shape="square"
-							emphasis="low"
-							icon={<IconSolidClipboardCopy />}
-							onClick={() => {
-								copyToClipboard(JSON.stringify(data))
-							}}
-						/>
-					</ExplanatoryPopover>
-					<ExplanatoryPopover
-						content={
-							<>
-								<Text userSelect="none" color="n11">
-									Download this as JSON
-								</Text>
-							</>
-						}
-					>
-						<ButtonIcon
-							kind="secondary"
-							size="xSmall"
-							shape="square"
-							emphasis="low"
-							icon={<IconSolidDownload />}
-							onClick={() => {
-								download({
-									data: JSON.stringify(data, undefined, 2),
-									name: downloadFileName,
-								})
-							}}
-						/>
-					</ExplanatoryPopover>
+			<Box width="full" display="flex" flexDirection="column" gap="4">
+				<Box display="flex" alignItems="center">
+					{title}
+					<Box ml="auto" display="flex" gap="2">
+						<ExplanatoryPopover
+							content={
+								<>
+									<Text userSelect="none" color="n11">
+										Copy to Clipboard
+									</Text>
+								</>
+							}
+						>
+							<ButtonIcon
+								kind="secondary"
+								size="xSmall"
+								shape="square"
+								emphasis="low"
+								icon={<IconSolidClipboardCopy />}
+								onClick={() => {
+									copyToClipboard(JSON.stringify(data), {
+										onCopyText: 'Copied text to clipboard.',
+									})
+								}}
+							/>
+						</ExplanatoryPopover>
+						<ExplanatoryPopover
+							content={
+								<>
+									<Text userSelect="none" color="n11">
+										Download this as JSON
+									</Text>
+								</>
+							}
+						>
+							<ButtonIcon
+								kind="secondary"
+								size="xSmall"
+								shape="square"
+								emphasis="low"
+								icon={<IconSolidDownload />}
+								onClick={() => {
+									download({
+										data: JSON.stringify(
+											data,
+											undefined,
+											2,
+										),
+										name: downloadFileName,
+									})
+								}}
+							/>
+						</ExplanatoryPopover>
+					</Box>
 				</Box>
-				<ReactCollapsible
-					trigger={title}
-					open={true}
-					handleTriggerClick={() => {}}
-					transitionTime={150}
-					contentInnerClassName={styles.jsonContainer}
+				<Box
+					color="moderate"
+					px="4"
+					py="2"
+					borderRadius="5"
+					border="dividerWeak"
+					background="nested"
 				>
 					<Text
+						as="span"
 						family="monospace"
 						weight="bold"
 						size="xxSmall"
@@ -97,7 +107,7 @@ const JsonViewerV2 = React.memo(
 					>
 						{objectStr}
 					</Text>
-				</ReactCollapsible>
+				</Box>
 			</Box>
 		)
 	},

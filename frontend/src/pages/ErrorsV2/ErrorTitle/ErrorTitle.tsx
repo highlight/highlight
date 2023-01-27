@@ -67,11 +67,11 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 					</Box>
 
 					<Box display="flex" gap="8">
+						<ErrorShareButton errorGroup={errorGroup} />
 						<ErrorStateSelect
 							state={errorGroup.state}
 							snoozedUntil={errorGroup.snoozed_until}
 						/>
-						<ErrorShareButton errorGroup={errorGroup} />
 						<ErrorIssueButton errorGroup={errorGroup} />
 					</Box>
 				</Box>

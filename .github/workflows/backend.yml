@@ -1,14 +1,15 @@
 name: Backend
+
 on:
     push:
-        branches:
-            - '**'
-            - '!main'
+        branches: ['main']
+    pull_request:
+        types: [opened, synchronize]
         paths:
             - 'backend/**'
             - 'sdk/highlight-go/**'
             - '.github/workflows/backend.yml'
-            - '!backend/migrations'
+
 jobs:
     changes:
         runs-on: ubuntu-latest

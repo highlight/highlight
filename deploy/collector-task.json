@@ -1,0 +1,90 @@
+{
+	"taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/opentelemetry-collector-service:8",
+	"containerDefinitions": [
+		{
+			"name": "highlight-collector",
+			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-collector:dd297174659d5afb8dfb61e68d27e35727f5f4bd.arm64",
+			"cpu": 0,
+			"portMappings": [
+				{
+					"name": "highlight-collector-4317-tcp",
+					"containerPort": 4317,
+					"hostPort": 4317,
+					"protocol": "tcp",
+					"appProtocol": "grpc"
+				},
+				{
+					"name": "highlight-collector-4318-tcp",
+					"containerPort": 4318,
+					"hostPort": 4318,
+					"protocol": "tcp",
+					"appProtocol": "http2"
+				},
+				{
+					"name": "highlight-collector-4319-tcp",
+					"containerPort": 4319,
+					"hostPort": 4319,
+					"protocol": "tcp",
+					"appProtocol": "http2"
+				}
+			],
+			"essential": true,
+			"environment": [],
+			"mountPoints": [],
+			"volumesFrom": [],
+			"logConfiguration": {
+				"logDriver": "awslogs",
+				"options": {
+					"awslogs-group": "/ecs/metric-monitor-task",
+					"awslogs-region": "us-east-2",
+					"awslogs-stream-prefix": "ecs"
+				}
+			}
+		}
+	],
+	"family": "opentelemetry-collector-service",
+	"executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+	"networkMode": "awsvpc",
+	"revision": 8,
+	"volumes": [],
+	"status": "ACTIVE",
+	"requiresAttributes": [
+		{
+			"name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+		},
+		{
+			"name": "ecs.capability.execution-role-awslogs"
+		},
+		{
+			"name": "com.amazonaws.ecs.capability.ecr-auth"
+		},
+		{
+			"name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+		},
+		{
+			"name": "ecs.capability.execution-role-ecr-pull"
+		},
+		{
+			"name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+		},
+		{
+			"name": "ecs.capability.task-eni"
+		}
+	],
+	"placementConstraints": [],
+	"compatibilities": ["EC2", "FARGATE"],
+	"requiresCompatibilities": ["FARGATE"],
+	"cpu": "1024",
+	"memory": "2048",
+	"runtimePlatform": {
+		"cpuArchitecture": "ARM64"
+	},
+	"registeredAt": "2023-01-26T21:49:32.433Z",
+	"registeredBy": "arn:aws:iam::173971919437:user/vadim",
+	"tags": [
+		{
+			"key": "ecs:taskDefinition:createdFrom",
+			"value": "ecs-console-v2"
+		}
+	]
+}
