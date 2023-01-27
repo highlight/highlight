@@ -481,7 +481,7 @@ func (r *Resolver) getIncrementedEnvironmentCount(errorGroup *model.ErrorGroup, 
 func (r *Resolver) GetErrorAppVersion(errorObj *model.ErrorObject) *string {
 	// get version from session
 	var session *model.Session
-	if err := r.DB.Debug().Model(&session).
+	if err := r.DB.Model(&session).
 		Where("id = ?", errorObj.SessionID).
 		Pluck("app_version", &session).Error; err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
