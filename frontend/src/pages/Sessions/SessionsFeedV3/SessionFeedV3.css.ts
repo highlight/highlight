@@ -24,10 +24,6 @@ export const searchPanelToggleButton = style({
 	zIndex: 20,
 })
 
-export const searchPanelToggleButtonHidden = style({
-	right: 'calc(-1 * (var(--sidebar-width) - var(--size-xLarge)))',
-})
-
 export const SEARCH_PANEL_CONTROL_BAR_HEIGHT = 44
 
 export const controlBar = style({

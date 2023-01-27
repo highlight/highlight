@@ -1,39 +1,25 @@
 import LoadingBox from '@components/LoadingBox'
-import { useGetSessionCommentsQuery } from '@graph/hooks'
+import { Box } from '@highlight-run/ui'
+import EventDetails from '@pages/Player/components/EventDetails/EventDetails'
 import {
-	Badge,
-	Box,
-	IconSolidChatAlt_2,
-	IconSolidFire,
-	IconSolidHashtag,
-	Tabs,
-} from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
-import EventStreamV2 from '@pages/Player/components/EventStreamV2/EventStreamV2'
-import {
-	RightPlayerTab,
+	RightPanelView,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
+import { MetadataBox } from '@pages/Player/MetadataBox/MetadataBox'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
-import { useParams } from '@util/react-router/useParams'
-import classNames from 'classnames'
-import React, { useEffect } from 'react'
+import RightPanelTabs from '@pages/Player/RightPlayerPanel/components/Tabs'
+import React, { useEffect, useMemo } from 'react'
 
-import EventDetails from '../components/EventDetails/EventDetails'
-import { MetadataBox } from '../MetadataBox/MetadataBox'
-import MetadataPanel from '../MetadataPanel/MetadataPanel'
-import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration'
-import SessionFullCommentList from '../SessionFullCommentList/SessionFullCommentList'
-import * as styles from './style.css'
+import * as style from './style.css'
 
-const RightPlayerPanel = React.memo(() => {
+const RightPlayerPanel = () => {
 	const { showRightPanel: showRightPanelPreference, setShowRightPanel } =
 		usePlayerConfiguration()
-	const { showBanner } = useGlobalContext()
 	const { canViewSession, session } = useReplayerContext()
-	const { setSelectedRightPanelTab, activeEvent } = usePlayerUIContext()
+	const { setSelectedRightPanelTab, activeEvent, rightPanelView } =
+		usePlayerUIContext()
 
 	const showRightPanel = showRightPanelPreference && canViewSession
 
@@ -48,123 +34,38 @@ const RightPlayerPanel = React.memo(() => {
 		}
 	}, [setSelectedRightPanelTab, setShowRightPanel])
 
-	return (
-		<div
-			className={classNames(styles.playerRightPanelContainer, {
-				[styles.playerRightPanelContainerHidden]: !showRightPanel,
-				[styles.playerRightPanelContainerBannerShown]: showBanner,
-			})}
-		>
-			{showRightPanel && session ? (
-				activeEvent !== undefined ? (
-					<EventDetails event={activeEvent} />
-				) : (
-					<div
-						className={classNames(
-							styles.playerRightPanelCollapsible,
-							{
-								[styles.playerRightPanelCollapsibleBannerShown]:
-									showBanner,
-							},
-						)}
-					>
+	const content = useMemo(() => {
+		if (!session) return <LoadingBox />
+
+		switch (rightPanelView) {
+			case RightPanelView.SESSION:
+				return (
+					<Box height="full" display="flex" flexDirection="column">
 						<MetadataBox />
-						<RightPlayerPanelTabs />
-					</div>
+						<RightPanelTabs />
+					</Box>
 				)
-			) : (
-				<LoadingBox />
-			)}
-		</div>
-	)
-})
-
-export default RightPlayerPanel
-
-const RightPlayerPanelTabs = () => {
-	const { selectedRightPanelTab, setSelectedRightPanelTab } =
-		usePlayerUIContext()
-	const sessionCommentsRef = React.useRef(null)
-	const { session_secure_id } = useParams<{ session_secure_id: string }>()
-	const { data: sessionCommentsData, loading: isLoadingComments } =
-		useGetSessionCommentsQuery({
-			variables: {
-				session_secure_id: session_secure_id,
-			},
-		})
+			case RightPanelView.EVENT:
+				return activeEvent ? <EventDetails event={activeEvent} /> : null
+		}
+	}, [activeEvent, rightPanelView, session])
 
 	return (
-		<Box cssClass={styles.tabsContainer}>
-			<Tabs<RightPlayerTab>
-				tab={selectedRightPanelTab}
-				setTab={setSelectedRightPanelTab}
-				pages={{
-					['Events']: {
-						page: <EventStreamV2 />,
-						icon: (
-							<IconSolidFire
-								color={
-									selectedRightPanelTab === 'Events'
-										? colors.p9
-										: undefined
-								}
-							/>
-						),
-					},
-					['Threads']: {
-						page: (
-							<SessionFullCommentList
-								parentRef={sessionCommentsRef}
-								loading={isLoadingComments}
-								sessionCommentsData={sessionCommentsData}
-							/>
-						),
-						icon: (
-							<IconSolidChatAlt_2
-								color={
-									selectedRightPanelTab === 'Threads'
-										? colors.p9
-										: undefined
-								}
-							/>
-						),
-						badge: (
-							<div
-								style={{
-									display: 'inline-flex',
-									marginLeft: 4,
-								}}
-							>
-								<Badge
-									size="tiny"
-									variant={
-										selectedRightPanelTab === 'Threads'
-											? 'purple'
-											: 'grey'
-									}
-									shape="rounded"
-									label={`${
-										sessionCommentsData?.session_comments
-											?.length ?? 0
-									}`}
-								/>
-							</div>
-						),
-					},
-					['Metadata']: {
-						page: <MetadataPanel />,
-						icon: (
-							<IconSolidHashtag
-								color={
-									selectedRightPanelTab === 'Metadata'
-										? colors.p9
-										: undefined
-								}
-							/>
-						),
-					},
-				}}
-			/>
+		<Box
+			flexShrink={0}
+			bt="dividerWeak"
+			bl="dividerWeak"
+			shadow="small"
+			style={{ width: style.RIGHT_PANEL_WIDTH }}
+			cssClass={[
+				{
+					[style.playerRightPanelContainerHidden]: !showRightPanel,
+				},
+			]}
+		>
+			{content}
 		</Box>
 	)
 }
+
+export default RightPlayerPanel

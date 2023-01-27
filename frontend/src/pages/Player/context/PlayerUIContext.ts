@@ -15,6 +15,13 @@ export interface DetailedPanel {
 	id: string
 }
 
+export enum RightPanelView {
+	ERROR = 'ERROR',
+	RESOURCE = 'RESOURCE',
+	SESSION = 'SESSION',
+	EVENT = 'EVENT',
+}
+
 export type RightPlayerTab = 'Events' | 'Threads' | 'Metadata'
 interface PlayerUIContext {
 	isPlayerFullscreen: boolean
@@ -27,10 +34,13 @@ interface PlayerUIContext {
 	>
 	selectedRightPanelTab: RightPlayerTab
 	setSelectedRightPanelTab: (newValue: RightPlayerTab) => void
+
 	activeEvent?: HighlightEvent
 	setActiveEvent: React.Dispatch<
 		React.SetStateAction<HighlightEvent | undefined>
 	>
+	rightPanelView: RightPanelView
+	setRightPanelView: React.Dispatch<React.SetStateAction<RightPanelView>>
 }
 
 export const [usePlayerUIContext, PlayerUIContextProvider] =
