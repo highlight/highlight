@@ -7,14 +7,11 @@ receivers:
                 endpoint: '0.0.0.0:4318'
 exporters:
     otlphttp:
-        endpoint: 'https://backend:8082/otel'
+        endpoint: 'https://pub.highlight.run/otel'
         compression: gzip
-        tls:
-            insecure_skip_verify: true
 processors:
     batch:
 service:
-    extensions: [health_check]
     pipelines:
         traces:
             receivers: [otlp]
