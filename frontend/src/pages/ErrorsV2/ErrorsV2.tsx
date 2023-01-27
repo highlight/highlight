@@ -1,5 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { ErrorState } from '@components/ErrorState/ErrorState'
 import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
@@ -10,8 +9,10 @@ import {
 import {
 	Box,
 	ButtonIcon,
+	Callout,
 	Container,
 	IconSolidExitRight,
+	Text,
 	Tooltip,
 } from '@highlight-run/ui'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
@@ -21,7 +22,6 @@ import ErrorTabContent from '@pages/ErrorsV2/ErrorTabContent/ErrorTabContent'
 import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
-import { controlBar } from '@pages/ErrorsV2/SearchPanel/SearchPanel.css'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
@@ -35,7 +35,7 @@ import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useHistory } from 'react-router'
 
-import styles from './ErrorsV2.module.scss'
+import * as styles from './styles.css'
 
 const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 	const { project_id, error_secure_id } = useParams<{
@@ -161,19 +161,20 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 					{!integrated && <IntegrationCard />}
 
 					<Box
+						background="white"
+						border="secondary"
+						borderRadius="6"
 						display="flex"
 						flexDirection="column"
-						cssClass={clsx({ [styles.emptyState]: isEmptyState })}
 						height="full"
+						shadow="small"
 					>
 						{isLoggedIn && (
 							<Box
-								backgroundColor="white"
 								display="flex"
 								alignItems="center"
-								px="12"
 								borderBottom="secondary"
-								cssClass={controlBar}
+								p="6"
 							>
 								<Box display="flex" gap="8">
 									{!showLeftPanel && (
@@ -232,7 +233,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 										{loading ? (
 											<LoadingBox />
 										) : (
-											<div>
+											<Box pt="16" pb="32">
 												<ErrorTitle
 													errorGroup={
 														data?.error_group
@@ -250,16 +251,22 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 														data?.error_group
 													}
 												/>
-											</div>
+											</Box>
 										)}
 									</Container>
 								</div>
 							</>
 						) : errorQueryingErrorGroup ? (
-							<ErrorState
-								shownWithHeader
-								message="This error does not exist or has not been made public."
-							/>
+							<Box m="auto" style={{ maxWidth: 300 }}>
+								<Callout kind="info" title="Can't load error">
+									<Box pb="6">
+										<Text>
+											This error does not exist or has not
+											been made public.
+										</Text>
+									</Box>
+								</Callout>
+							</Box>
 						) : (
 							<NoActiveErrorCard />
 						)}

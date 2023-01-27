@@ -6,7 +6,6 @@ export const sessionLevelBarV2 = style({
 	alignItems: 'center',
 	backgroundColor: colors.white,
 	display: 'flex',
-	height: 44,
 })
 
 export const invertedCaret = style({
