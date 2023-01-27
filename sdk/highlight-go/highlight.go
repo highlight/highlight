@@ -109,7 +109,6 @@ var (
 
 type graphqlRequester struct{}
 
-// ZANETODO: fix embedded gql code here!
 func (g graphqlRequester) trigger(errorsInput []*BackendErrorObjectInput, metricsInputs []*MetricInput) error {
 	if len(errorsInput) > 0 && len(metricsInputs) > 0 {
 		var mutation struct {

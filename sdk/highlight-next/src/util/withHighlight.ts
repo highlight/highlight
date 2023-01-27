@@ -68,13 +68,9 @@ export const Highlight =
 	<T extends HasHeaders, S extends HasStatus>(
 		origHandler: ApiHandler<T, S>,
 	): ApiHandler<T, S> => {
-		console.log('zane first!')
 		return async (req, res) => {
-			console.log('zane called!')
-
 			if (!NodeH.isInitialized()) {
 				NodeH.init(options)
-				console.log('zane initialized!')
 			}
 
 			const processHighlightHeaders = () => {
@@ -98,19 +94,16 @@ export const Highlight =
 			try {
 				return await origHandler(req, res)
 			} catch (e) {
-				console.log('handling error!')
 				NodeH.consumeEvent(secureSessionId)
 				if (e instanceof Error) {
 					NodeH.consumeError(e, secureSessionId, requestId)
 					await NodeH.flush()
-					console.log('flushed error!')
 				}
 				// Because we're going to finish and send the transaction before passing the error onto nextjs, it won't yet
 				// have had a chance to set the status to 500, so unless we do it ourselves now, we'll incorrectly report that
 				// the transaction was error-free
 				res.statusCode = 500
 				res.statusMessage = 'Internal Server Error'
-				console.log('rethrowing error!')
 
 				// We rethrow here so that nextjs can do with the error whatever it would normally do. (Sometimes "whatever it
 				// would normally do" is to allow the error to bubble up to the global handlers - another reason we need to mark
@@ -129,7 +122,6 @@ export const Highlight =
 					)
 					await NodeH.flush()
 				}
-				console.log('finally!')
 			}
 		}
 	}
