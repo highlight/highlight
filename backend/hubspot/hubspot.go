@@ -140,6 +140,11 @@ func (h *HubspotApi) CreateCompanyForWorkspace(workspaceID int, adminEmail strin
 		return
 	}
 
+	admin := &model.Admin{}
+	if err := h.db.Model(&model.Admin{}).Where("email = ?", adminEmail).First(&admin).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving admin details")
+	}
+
 	if emailproviders.Exists(adminEmail) {
 		adminEmail = ""
 	}
@@ -159,6 +164,11 @@ func (h *HubspotApi) CreateCompanyForWorkspace(workspaceID int, adminEmail strin
 				Property: "domain",
 				Name:     "domain",
 				Value:    domain,
+			},
+			{
+				Property: "referral_url",
+				Name:     "referral_url",
+				Value:    admin.Referral,
 			},
 		},
 	})
