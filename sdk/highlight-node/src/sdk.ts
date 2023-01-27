@@ -12,10 +12,10 @@ export interface HighlightInterface {
 	) => { secureSessionId: string; requestId: string } | undefined
 	consumeError: (
 		error: Error,
-		secureSessionId: string,
-		requestId: string,
+		secureSessionId?: string,
+		requestId?: string,
 	) => void
-	consumeEvent: (secureSessionId: string) => void
+	consumeEvent: (secureSessionId?: string) => void
 	recordMetric: (
 		secureSessionId: string,
 		name: string,
@@ -28,7 +28,7 @@ export interface HighlightInterface {
 
 var highlight_obj: Highlight
 export const H: HighlightInterface = {
-	init: (options: NodeOptions = {}) => {
+	init: (options: NodeOptions) => {
 		try {
 			highlight_obj = new Highlight(options)
 		} catch (e) {
@@ -38,8 +38,8 @@ export const H: HighlightInterface = {
 	isInitialized: () => !!highlight_obj,
 	consumeError: (
 		error: Error,
-		secureSessionId: string,
-		requestId: string,
+		secureSessionId?: string,
+		requestId?: string,
 	) => {
 		try {
 			highlight_obj.consumeCustomError(error, secureSessionId, requestId)
@@ -47,7 +47,7 @@ export const H: HighlightInterface = {
 			console.warn('highlight-node consumeError error: ', e)
 		}
 	},
-	consumeEvent: (secureSessionId: string) => {
+	consumeEvent: (secureSessionId?: string) => {
 		try {
 			highlight_obj.consumeCustomEvent(secureSessionId)
 		} catch (e) {

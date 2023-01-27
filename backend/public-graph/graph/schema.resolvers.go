@@ -140,9 +140,9 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, projectID *st
 		err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				ProjectID:       projectID,
-				SessionSecureID: secureID,
-				Errors:          backendErrors,
+				ProjectVerboseID: projectID,
+				SessionSecureID:  secureID,
+				Errors:           backendErrors,
 			}}, partitionKey)
 		if err != nil {
 			log.WithFields(log.Fields{"project_id": projectID, "secure_id": secureID}).
@@ -158,13 +158,20 @@ func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customMod
 }
 
 // MarkBackendSetup is the resolver for the markBackendSetup field.
-func (r *mutationResolver) MarkBackendSetup(ctx context.Context, sessionSecureID string) (string, error) {
+func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string) (interface{}, error) {
+	var partitionKey string
+	if sessionSecureID != nil {
+		partitionKey = *sessionSecureID
+	} else if projectID != nil {
+		partitionKey = *projectID
+	}
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.MarkBackendSetup,
 		MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
-			SecureID: sessionSecureID,
-		}}, sessionSecureID)
-	return sessionSecureID, err
+			ProjectVerboseID: projectID,
+			SecureID:         sessionSecureID,
+		}}, partitionKey)
+	return nil, err
 }
 
 // AddSessionFeedback is the resolver for the addSessionFeedback field.

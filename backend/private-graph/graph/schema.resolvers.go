@@ -263,6 +263,9 @@ func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *mod
 
 // Session is the resolver for the session field.
 func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObject) (*model.Session, error) {
+	if obj.SessionID == nil {
+		return nil, nil
+	}
 	session := &model.Session{}
 	if err := r.DB.Where("id = ?", obj.SessionID).First(&session).Error; err != nil {
 		return nil, e.Wrap(err, "error reading session from error object")
@@ -3770,6 +3773,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		sessionIds := []int{}
 		if err := r.DB.Model(&errorObject).
 			Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
+			Where("session_id is not null").
 			Pluck("session_id", &sessionIds).
 			Error; err != nil {
 			return nil, e.Wrap(err, "error reading session ids")
@@ -4004,7 +4008,7 @@ func (r *queryResolver) Errors(ctx context.Context, sessionSecureID string) ([]*
 		tracer.ResourceName("db.errorObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
 	defer eventsQuerySpan.Finish()
 	errorsObj := []*model.ErrorObject{}
-	if err := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: s.ID}).Find(&errorsObj).Error; err != nil {
+	if err := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: &s.ID}).Find(&errorsObj).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from errors")
 	}
 	return errorsObj, nil

@@ -18,18 +18,19 @@ function processErrorImpl(
 	req: { headers?: http.IncomingHttpHeaders },
 	error: Error,
 ): void {
+	let secureSessionId: string | undefined
+	let requestId: string | undefined
 	if (req.headers && req.headers[HIGHLIGHT_REQUEST_HEADER]) {
-		const [secureSessionId, requestId] =
+		;[secureSessionId, requestId] =
 			`${req.headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
-		if (secureSessionId && requestId) {
-			if (!H.isInitialized()) {
-				H.init(options)
-			}
-			H.consumeEvent(secureSessionId)
-			if (error instanceof Error) {
-				H.consumeError(error, secureSessionId, requestId)
-			}
-		}
+	}
+
+	if (!H.isInitialized()) {
+		H.init(options)
+	}
+	H.consumeEvent(secureSessionId)
+	if (error instanceof Error) {
+		H.consumeError(error, secureSessionId, requestId)
 	}
 }
 

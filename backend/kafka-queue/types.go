@@ -67,9 +67,9 @@ type AddSessionPropertiesArgs struct {
 	PropertiesObject interface{}
 }
 type PushBackendPayloadArgs struct {
-	ProjectID       *string
-	SessionSecureID *string
-	Errors          []*customModels.BackendErrorObjectInput
+	ProjectVerboseID *string
+	SessionSecureID  *string
+	Errors           []*customModels.BackendErrorObjectInput
 }
 
 type PushMetricsArgs struct {
@@ -80,8 +80,9 @@ type PushMetricsArgs struct {
 }
 
 type MarkBackendSetupArgs struct {
-	SecureID  string
-	ProjectID int
+	SecureID         *string
+	ProjectID        int
+	ProjectVerboseID *string
 }
 
 type AddSessionFeedbackArgs struct {

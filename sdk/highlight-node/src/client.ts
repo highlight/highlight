@@ -125,12 +125,13 @@ export class Highlight {
 		})
 	}
 
-	consumeCustomEvent(secureSessionId: string) {
+	consumeCustomEvent(secureSessionId?: string) {
 		const sendBackendSetup =
 			Date.now() - this.lastBackendSetupEvent > this.BACKEND_SETUP_TIMEOUT
 		if (sendBackendSetup) {
 			this._graphqlSdk
 				.MarkBackendSetup({
+					project_id: this._projectID,
 					session_secure_id: secureSessionId,
 				})
 				.then(() => {
@@ -147,6 +148,7 @@ export class Highlight {
 			return
 		}
 		const variables: PushBackendPayloadMutationVariables = {
+			project_id: this._projectID,
 			errors: this.errors,
 		}
 		this.errors = []
