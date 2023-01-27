@@ -74,8 +74,8 @@ func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefine
 				Value:    phone,
 			},
 			{
-				Property: "referral",
-				Name:     "referral",
+				Property: "referral_url",
+				Name:     "referral_url",
 				Value:    phone,
 			},
 		},
