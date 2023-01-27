@@ -1261,7 +1261,8 @@ func (w *Worker) BackfillStackFrames() {
 				return
 			}
 
-			mappedStackTrace, err := highlightErrors.EnhanceStackTrace(inputs, modelObj.ProjectID, nil, w.Resolver.StorageClient)
+			version := w.PublicResolver.GetErrorAppVersion(modelObj)
+			mappedStackTrace, err := highlightErrors.EnhanceStackTrace(inputs, modelObj.ProjectID, version, w.Resolver.StorageClient)
 			if err != nil {
 				log.Errorf("error getting stack trace string: %+v", err)
 				return
