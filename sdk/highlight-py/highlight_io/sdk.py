@@ -49,7 +49,7 @@ class H(object):
         :return: a configured H instance
         """
         H._instance = self
-        self._project_verbose_id = project_id
+        self._project_id = project_id
         self._integrations = integrations
         self._record_logs = record_logs
         if self._record_logs:
@@ -97,6 +97,7 @@ class H(object):
         :return: None
         """
         with self.tracer.start_as_current_span("highlight-ctx") as span:
+            span.set_attributes({"highlight_project_id": self._project_id})
             span.set_attributes({"highlight_session_id": session_id})
             span.set_attributes({"highlight_trace_id": request_id})
             try:

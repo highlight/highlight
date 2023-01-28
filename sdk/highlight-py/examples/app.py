@@ -8,7 +8,9 @@ import highlight_io
 from highlight_io.integrations.flask import FlaskIntegration
 
 app = Flask(__name__)
-H = highlight_io.H("TODO-PROJECT-ID", integrations=[FlaskIntegration()], record_logs=True)
+H = highlight_io.H(
+    "TODO-PROJECT-ID", integrations=[FlaskIntegration()], record_logs=True
+)
 
 
 @app.route("/")

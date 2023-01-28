@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "highlight-io"
-version = "0.1.1"
+version = "0.1.2"
 description = ""
 authors = ["Vadim Korolik <vadim@highlight.io>"]
 readme = "README.md"
