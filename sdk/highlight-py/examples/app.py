@@ -2,21 +2,25 @@ import logging
 import random
 import time
 
-from flask import Flask, request
+from flask import Flask
 
-from highlight_io.highlight import highlight_error_handler, instrument_logs
+import highlight_io
+from highlight_io.integrations.flask import FlaskIntegration
 
 app = Flask(__name__)
-instrument_logs()
+H = highlight_io.H("1jdkoe52", integrations=[FlaskIntegration()], record_logs=True)
 
 
-@app.route('/')
+@app.route("/")
 def hello():
-    with highlight_error_handler(request.headers):
-        for idx in range(1000):
-            logging.info(f"hello {idx}")
-            time.sleep(0.001)
-            if random.randint(0, 10) == 1:
-                raise Exception(f'random error! {idx}')
-        logging.warning("hi")
-    return '<h1>Hello, World!</h1>'
+    for idx in range(1000):
+        logging.info(f"hello {idx}")
+        time.sleep(0.001)
+        if random.randint(0, 100) == 1:
+            raise Exception(f"random error! {idx}")
+    logging.warning("made it outside the loop!")
+    return "<h1>Hello, World!</h1>"
+
+
+if __name__ == "__main__":
+    app.run()
