@@ -1,0 +1,33 @@
+name: Python SDK
+
+on:
+    push:
+        branches: ['main']
+    pull_request:
+        types: [opened, synchronize]
+        paths:
+            - 'sdk/highlight-py/**'
+            - '.github/workflows/python.yml'
+
+jobs:
+    build:
+        needs: code-quality-check
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./sdk/highlight-py
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-python@v4
+              with:
+                  python-version: '3.10'
+                  cache: 'poetry'
+            - run: poetry install --all-extras
+            - name: Build
+              run: poetry build
+            - name: Build
+              if: github.ref == 'refs/heads/main'
+              run: poetry publish -u $PYPI_USERNAME -p $PYPI_PASSWORD
+              env:
+                  PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+                  PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
