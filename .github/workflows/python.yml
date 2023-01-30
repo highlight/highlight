@@ -2,7 +2,7 @@ name: Python SDK
 
 on:
     push:
-        branches: ['main']
+        branches: ['main', 'vadim/hig-3753-build-python-sdk-for-errors']
     pull_request:
         types: [opened, synchronize]
         paths:
@@ -26,7 +26,7 @@ jobs:
             - name: Build
               run: poetry build
             - name: Build
-              if: github.ref == 'refs/heads/main'
+              #              if: github.ref == 'refs/heads/main'
               run: poetry publish -u $PYPI_USERNAME -p $PYPI_PASSWORD --skip-existing
               env:
                   PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
