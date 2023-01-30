@@ -4,7 +4,6 @@ on:
         types: ['opened', 'synchronize']
         branches:
             - '**'
-            - '!main'
         paths:
             - '**/package.json'
             - '**/yarn.lock'
