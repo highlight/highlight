@@ -2,6 +2,10 @@ import { HighlightOptions } from 'highlight.run'
 
 export interface NodeOptions extends HighlightOptions {
 	/**
+	 * ID used to associate payloads with a Highlight project.
+	 */
+	projectID: string
+	/**
 	 * Disables source code context lines for error reporting.
 	 * This may be useful for performance if your source
 	 * files are particularly large or memory is limited.

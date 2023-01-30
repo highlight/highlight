@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/node",
-	"version": "1.4.3",
+	"version": "2.0.0",
 	"license": "MIT",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
@@ -13,6 +13,7 @@
 		}
 	},
 	"scripts": {
+		"codegen": "graphql-codegen --config codegen.yml",
 		"build": "tsup src/index.ts --format cjs,esm --dts --clean",
 		"test": "jest"
 	},

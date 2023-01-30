@@ -125,20 +125,28 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 }
 
 // PushBackendPayload is the resolver for the pushBackendPayload field.
-func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {
-	errorsBySecureID := map[string][]*customModels.BackendErrorObjectInput{}
+func (r *mutationResolver) PushBackendPayload(ctx context.Context, projectID *string, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {
+	errorsBySecureID := map[*string][]*customModels.BackendErrorObjectInput{}
 	for _, backendError := range errors {
 		errorsBySecureID[backendError.SessionSecureID] = append(errorsBySecureID[backendError.SessionSecureID], backendError)
 	}
 	for secureID, backendErrors := range errorsBySecureID {
+		var partitionKey string
+		if secureID != nil {
+			partitionKey = *secureID
+		} else if projectID != nil {
+			partitionKey = *projectID
+		}
 		err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				SessionSecureID: secureID,
-				Errors:          backendErrors,
-			}}, secureID)
+				ProjectVerboseID: projectID,
+				SessionSecureID:  secureID,
+				Errors:           backendErrors,
+			}}, partitionKey)
 		if err != nil {
-			log.Error(e.Wrapf(err, "failed to send kafka message for push backend payload %s", secureID))
+			log.WithFields(log.Fields{"project_id": projectID, "secure_id": secureID}).
+				Error(e.Wrap(err, "failed to send kafka message for push backend payload"))
 		}
 	}
 	return nil, nil
@@ -150,13 +158,20 @@ func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customMod
 }
 
 // MarkBackendSetup is the resolver for the markBackendSetup field.
-func (r *mutationResolver) MarkBackendSetup(ctx context.Context, sessionSecureID string) (string, error) {
+func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string) (interface{}, error) {
+	var partitionKey string
+	if sessionSecureID != nil {
+		partitionKey = *sessionSecureID
+	} else if projectID != nil {
+		partitionKey = *projectID
+	}
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.MarkBackendSetup,
 		MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
-			SecureID: sessionSecureID,
-		}}, sessionSecureID)
-	return sessionSecureID, err
+			ProjectVerboseID: projectID,
+			SecureID:         sessionSecureID,
+		}}, partitionKey)
+	return nil, err
 }
 
 // AddSessionFeedback is the resolver for the addSessionFeedback field.

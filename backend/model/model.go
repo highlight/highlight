@@ -885,7 +885,7 @@ type ErrorObject struct {
 	ID               int `gorm:"primary_key;type:serial;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
 	OrganizationID   int
 	ProjectID        int `json:"project_id"`
-	SessionID        int
+	SessionID        *int
 	TraceID          *string
 	SpanID           *string
 	ErrorGroupID     int `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`

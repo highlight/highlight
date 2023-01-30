@@ -35,8 +35,8 @@ input ErrorObjectInput {
 }
 
 input BackendErrorObjectInput {
-	session_secure_id: String!
-	request_id: String!
+	session_secure_id: String
+	request_id: String
 	trace_id: String
 	span_id: String
 	event: String!
@@ -114,9 +114,12 @@ type Mutation {
 		highlight_logs: String
 		payload_id: ID # Optional for backwards compatibility with older clients
 	): Int!
-	pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
+	pushBackendPayload(
+		project_id: String
+		errors: [BackendErrorObjectInput]!
+	): Any
 	pushMetrics(metrics: [MetricInput]!): Int!
-	markBackendSetup(session_secure_id: String!): String!
+	markBackendSetup(project_id: String, session_secure_id: String): Any
 	addSessionFeedback(
 		session_secure_id: String!
 		user_name: String

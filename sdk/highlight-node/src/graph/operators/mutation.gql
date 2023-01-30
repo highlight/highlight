@@ -1,9 +1,15 @@
-mutation PushBackendPayload($errors: [BackendErrorObjectInput]!) {
-	pushBackendPayload(errors: $errors)
+mutation PushBackendPayload(
+	$project_id: String!
+	$errors: [BackendErrorObjectInput]!
+) {
+	pushBackendPayload(project_id: $project_id, errors: $errors)
 }
 
-mutation MarkBackendSetup($session_secure_id: String!) {
-	markBackendSetup(session_secure_id: $session_secure_id)
+mutation MarkBackendSetup($project_id: String!, $session_secure_id: String) {
+	markBackendSetup(
+		project_id: $project_id
+		session_secure_id: $session_secure_id
+	)
 }
 
 mutation PushMetrics($metrics: [MetricInput]!) {

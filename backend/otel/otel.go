@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"io"
+	"net/http"
+	"strings"
+
 	"github.com/go-chi/chi"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
@@ -12,9 +16,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
-	"io"
-	"net/http"
-	"strings"
 )
 
 const Port = "4319"
@@ -98,8 +99,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							traceErrors[sessionID] = []*model.BackendErrorObjectInput{}
 						}
 						traceErrors[sessionID] = append(traceErrors[sessionID], &model.BackendErrorObjectInput{
-							SessionSecureID: sessionID,
-							RequestID:       requestID,
+							SessionSecureID: &sessionID,
+							RequestID:       &requestID,
 							TraceID:         pointy.String(span.TraceID().String()),
 							SpanID:          pointy.String(span.SpanID().String()),
 							Event:           exc.Message,
@@ -123,7 +124,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		err = o.resolver.ProducerQueue.Submit(&kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				SessionSecureID: sessionID,
+				SessionSecureID: &sessionID,
 				Errors:          errors,
 			}}, sessionID)
 		if err != nil {

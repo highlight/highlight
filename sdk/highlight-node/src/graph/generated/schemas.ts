@@ -24,8 +24,8 @@ export type Scalars = {
 export type BackendErrorObjectInput = {
 	event: Scalars['String']
 	payload?: InputMaybe<Scalars['String']>
-	request_id: Scalars['String']
-	session_secure_id: Scalars['String']
+	request_id?: InputMaybe<Scalars['String']>
+	session_secure_id?: InputMaybe<Scalars['String']>
 	source: Scalars['String']
 	stackTrace: Scalars['String']
 	timestamp: Scalars['Timestamp']
@@ -45,32 +45,41 @@ export type ErrorObjectInput = {
 	url: Scalars['String']
 }
 
+export type InitializeSessionResponse = {
+	__typename?: 'InitializeSessionResponse'
+	project_id: Scalars['ID']
+	secure_id: Scalars['String']
+}
+
 export type MetricInput = {
 	category?: InputMaybe<Scalars['String']>
 	group?: InputMaybe<Scalars['String']>
 	name: Scalars['String']
 	session_secure_id: Scalars['String']
+	tags?: InputMaybe<Array<MetricTag>>
 	timestamp: Scalars['Timestamp']
-	type?: InputMaybe<Scalars['Any']>
-	url?: InputMaybe<Scalars['String']>
 	value: Scalars['Float']
+}
+
+export type MetricTag = {
+	name: Scalars['String']
+	value: Scalars['String']
 }
 
 export type Mutation = {
 	__typename?: 'Mutation'
-	addSessionFeedback: Scalars['ID']
-	addSessionProperties?: Maybe<Scalars['ID']>
-	addTrackProperties?: Maybe<Scalars['ID']>
-	identifySession?: Maybe<Scalars['ID']>
-	initializeSession?: Maybe<Session>
-	markBackendSetup: Scalars['ID']
+	addSessionFeedback: Scalars['String']
+	addSessionProperties: Scalars['String']
+	identifySession: Scalars['String']
+	initializeSession: InitializeSessionResponse
+	markBackendSetup?: Maybe<Scalars['Any']>
 	pushBackendPayload?: Maybe<Scalars['Any']>
-	pushMetrics: Scalars['ID']
+	pushMetrics: Scalars['Int']
 	pushPayload: Scalars['Int']
 }
 
 export type MutationAddSessionFeedbackArgs = {
-	session_id: Scalars['ID']
+	session_secure_id: Scalars['String']
 	timestamp: Scalars['Timestamp']
 	user_email?: InputMaybe<Scalars['String']>
 	user_name?: InputMaybe<Scalars['String']>
@@ -79,16 +88,11 @@ export type MutationAddSessionFeedbackArgs = {
 
 export type MutationAddSessionPropertiesArgs = {
 	properties_object?: InputMaybe<Scalars['Any']>
-	session_id: Scalars['ID']
-}
-
-export type MutationAddTrackPropertiesArgs = {
-	properties_object?: InputMaybe<Scalars['Any']>
-	session_id: Scalars['ID']
+	session_secure_id: Scalars['String']
 }
 
 export type MutationIdentifySessionArgs = {
-	session_id: Scalars['ID']
+	session_secure_id: Scalars['String']
 	user_identifier: Scalars['String']
 	user_object?: InputMaybe<Scalars['Any']>
 }
@@ -97,22 +101,25 @@ export type MutationInitializeSessionArgs = {
 	appVersion?: InputMaybe<Scalars['String']>
 	clientConfig: Scalars['String']
 	clientVersion: Scalars['String']
-	client_id?: InputMaybe<Scalars['String']>
+	client_id: Scalars['String']
 	enable_recording_network_contents: Scalars['Boolean']
 	enable_strict_privacy: Scalars['Boolean']
 	environment: Scalars['String']
 	fingerprint: Scalars['String']
 	firstloadVersion: Scalars['String']
+	network_recording_domains?: InputMaybe<Array<Scalars['String']>>
 	organization_verbose_id: Scalars['String']
-	session_secure_id?: InputMaybe<Scalars['String']>
+	session_secure_id: Scalars['String']
 }
 
 export type MutationMarkBackendSetupArgs = {
-	session_secure_id: Scalars['String']
+	project_id?: InputMaybe<Scalars['String']>
+	session_secure_id?: InputMaybe<Scalars['String']>
 }
 
 export type MutationPushBackendPayloadArgs = {
 	errors: Array<InputMaybe<BackendErrorObjectInput>>
+	project_id?: InputMaybe<Scalars['String']>
 }
 
 export type MutationPushMetricsArgs = {
@@ -126,8 +133,13 @@ export type MutationPushPayloadArgs = {
 	highlight_logs?: InputMaybe<Scalars['String']>
 	is_beacon?: InputMaybe<Scalars['Boolean']>
 	messages: Scalars['String']
+	payload_id?: InputMaybe<Scalars['ID']>
 	resources: Scalars['String']
-	session_id: Scalars['ID']
+	session_secure_id: Scalars['String']
+}
+
+export enum PublicGraphError {
+	BillingQuotaExceeded = 'BillingQuotaExceeded',
 }
 
 export type Query = {
@@ -152,7 +164,7 @@ export type ReplayEventsInput = {
 
 export type Session = {
 	__typename?: 'Session'
-	id: Scalars['ID']
+	id?: Maybe<Scalars['ID']>
 	organization_id: Scalars['ID']
 	project_id: Scalars['ID']
 	secure_id: Scalars['String']

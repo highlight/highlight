@@ -385,7 +385,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.PushBackendPayload == nil {
 			break
 		}
-		w.PublicResolver.ProcessBackendPayloadImpl(ctx, task.PushBackendPayload.SessionSecureID, task.PushBackendPayload.Errors)
+		w.PublicResolver.ProcessBackendPayloadImpl(ctx, task.PushBackendPayload.SessionSecureID, task.PushBackendPayload.ProjectVerboseID, task.PushBackendPayload.Errors)
 	case kafkaqueue.PushMetrics:
 		if task.PushMetrics == nil {
 			break
@@ -398,7 +398,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.MarkBackendSetup == nil {
 			break
 		}
-		if err := w.PublicResolver.MarkBackendSetupImpl(task.MarkBackendSetup.SecureID, task.MarkBackendSetup.ProjectID); err != nil {
+		if err := w.PublicResolver.MarkBackendSetupImpl(task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SecureID, task.MarkBackendSetup.ProjectID); err != nil {
 			log.Error(errors.Wrap(err, "failed to process MarkBackendSetup task"))
 			return err
 		}

@@ -18,18 +18,19 @@ function processErrorImpl(
 	req: { headers?: http.IncomingHttpHeaders },
 	error: Error,
 ): void {
+	let secureSessionId: string | undefined
+	let requestId: string | undefined
 	if (req.headers && req.headers[HIGHLIGHT_REQUEST_HEADER]) {
-		const [secureSessionId, requestId] =
+		;[secureSessionId, requestId] =
 			`${req.headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
-		if (secureSessionId && requestId) {
-			if (!H.isInitialized()) {
-				H.init(options)
-			}
-			H.consumeEvent(secureSessionId)
-			if (error instanceof Error) {
-				H.consumeError(error, secureSessionId, requestId)
-			}
-		}
+	}
+
+	if (!H.isInitialized()) {
+		H.init(options)
+	}
+	H.consumeEvent(secureSessionId)
+	if (error instanceof Error) {
+		H.consumeError(error, secureSessionId, requestId)
 	}
 }
 
@@ -38,7 +39,7 @@ function processErrorImpl(
  * Exposed as `Handlers.errorHandler`
  */
 export function errorHandler(
-	options: NodeOptions = {},
+	options: NodeOptions,
 ): (
 	error: MiddlewareError,
 	req: http.IncomingMessage,
@@ -69,7 +70,7 @@ export async function trpcOnError(
 		error,
 		req,
 	}: { error: Error; req: { headers?: http.IncomingHttpHeaders } },
-	options: NodeOptions = {},
+	options: NodeOptions,
 ): Promise<void> {
 	try {
 		if (!H.isInitialized()) {
@@ -91,7 +92,7 @@ declare type FirebaseHttpFunctionHandler = (
 ) => void | Promise<void>
 export function firebaseHttpFunctionHandler(
 	origHandler: FirebaseHttpFunctionHandler,
-	options: NodeOptions = {},
+	options: NodeOptions,
 ): FirebaseHttpFunctionHandler {
 	return async (req, res) => {
 		try {
@@ -127,7 +128,7 @@ declare type FirebaseCallableFunctionHandler = (
 ) => any
 export function firebaseCallableFunctionHandler(
 	origHandler: FirebaseCallableFunctionHandler,
-	options: NodeOptions = {},
+	options: NodeOptions,
 ): FirebaseCallableFunctionHandler {
 	return async (data, context) => {
 		try {
