@@ -55,7 +55,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
-	github.com/highlight-run/highlight-go v0.5.3
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/influxdata/influxdb-client-go/v2 v2.9.1
 	github.com/jackc/pgconn v1.10.1
@@ -178,7 +177,6 @@ require (
 	github.com/google/pprof v0.0.0-20210423192551-a2663126120b // indirect
 	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/hasura/go-graphql-client v0.3.0 // indirect
 	github.com/highlight-run/go-resthooks v0.0.0-20220523054100-bf95aa850a20
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
@@ -217,5 +215,4 @@ require (
 	google.golang.org/grpc v1.51.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	nhooyr.io/websocket v1.8.7 // indirect
 )

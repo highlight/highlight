@@ -3,16 +3,15 @@ package gorillamux
 import (
 	"net/http"
 
-	"github.com/highlight-run/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 )
 
 // Middleware is a gorilla/mux compatible middleware
 // use as follows:
 //
-// import highlightgorilla "github.com/highlight-run/highlight-go/middleware/gorillamux"
+// import highlightgorilla "github.com/highlight/highlight/sdk/highlight-go/middleware/gorillamux"
 // ...
 // r.Use(highlightgorilla.Middleware)
-//
 func Middleware(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := highlight.InterceptRequest(r)

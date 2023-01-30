@@ -6,7 +6,6 @@ require (
 	github.com/99designs/gqlgen v0.17.12
 	github.com/gin-gonic/gin v1.7.7
 	github.com/hasura/go-graphql-client v0.3.0
-	github.com/highlight-run/highlight-go v0.5.3
 	github.com/pkg/errors v0.9.1
 	github.com/vektah/gqlparser/v2 v2.4.6
 )
