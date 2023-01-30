@@ -37,7 +37,6 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/httplog"
 	"github.com/gorilla/websocket"
-	H "github.com/highlight-run/highlight-go"
 	highlightChi "github.com/highlight-run/highlight-go/middleware/chi"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -45,6 +44,7 @@ import (
 	"github.com/highlight-run/highlight/backend/worker"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
+	H "github.com/highlight/highlight/sdk/highlight-go"
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/stripe/stripe-go/v72/client"
@@ -384,6 +384,7 @@ func main() {
 		log.Info("overwriting highlight-go graphql client address...")
 		H.SetGraphqlClientAddress("https://localhost:8082/public")
 	}
+	H.SetProjectID("1jdkoe52")
 	H.Start()
 	defer H.Stop()
 	H.SetDebugMode(log.StandardLogger())

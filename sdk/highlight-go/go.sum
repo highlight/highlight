@@ -48,6 +48,7 @@ github.com/graph-gophers/graphql-go v0.0.0-20201112095111-7a585a01e04c/go.mod h1
 github.com/hashicorp/golang-lru v0.5.4/go.mod h1:iADmTwqILo4mZ8BN3D2Q6+9jd8WM5uGBxy+E8yxSoD4=
 github.com/hasura/go-graphql-client v0.3.0 h1:OazwBX920Fx+FEOPVVe7Xgax/Qbcnc2MoTyeVQVPRr8=
 github.com/hasura/go-graphql-client v0.3.0/go.mod h1:ovhXpnBL/+pYmmdYHndovgAc/wmhaXKvKwJETjtMomQ=
+github.com/highlight-run/highlight-go v0.5.3 h1:6nlbijmBHS+bA0MQNQ1CV/strYGSGLyJFaxY+ij9IqQ=
 github.com/json-iterator/go v1.1.9/go.mod h1:KdQUCv79m/52Kvf8AW2vK1V8akMuk1QjK/uOdHXbAo4=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/kevinmbeaulieu/eq-go v1.0.0/go.mod h1:G3S8ajA56gKBZm4UB9AOyoOS37JO3roToPzKNM8dtdM=
