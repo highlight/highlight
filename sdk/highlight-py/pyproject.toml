@@ -1,24 +1,48 @@
 [tool.poetry]
 name = "highlight-io"
 version = "0.1.2"
-description = ""
-authors = ["Vadim Korolik <vadim@highlight.io>"]
+description = "Because a stack trace alone isn't enough."
+license = "Apache-2.0"
+authors = [
+    "Vadim Korolik <vadim@highlight.io>",
+    "Jay Khatri <jay@highlight.io>",
+]
 readme = "README.md"
-packages = [{include = "highlight_io"}]
+homepage = "https://www.highlight.io"
+repository = "https://github.com/highlight/highlight"
+documentation = "https://www.highlight.io/docs"
+keywords = [
+    "web",
+    "framework",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: Flask",
+    "Topic :: Software Development",
+    "Topic :: System :: Monitoring"
+]
+packages = [{ include = "highlight_io" }]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.7"
 opentelemetry-api = "^1.15.0"
 opentelemetry-sdk = "^1.15.0"
 opentelemetry-proto = "^1.15.0"
-flask = "^2.2.2"
 opentelemetry-exporter-otlp-proto-http = "^1.15.0"
 opentelemetry-instrumentation = "^0.36b0"
-opentelemetry-distro = {extras = ["otlp"], version = "^0.36b0"}
+opentelemetry-distro = { extras = ["otlp"], version = "^0.36b0" }
 opentelemetry-instrumentation-logging = "^0.36b0"
-black = "^22.12.0"
-blinker = "^1.5"
 
+[tool.poetry.dev-dependencies]
+black = "^22.10.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.1"
+pytest-mock = "^3.10.0"
+
+[project.optional-dependencies]
+Flask = ["blinker^=1.5", "flask^=2.2.2"]
 
 [build-system]
 requires = ["poetry-core"]
