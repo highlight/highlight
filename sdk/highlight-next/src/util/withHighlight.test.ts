@@ -5,7 +5,7 @@ import { createNextApiHandler } from '@trpc/server/adapters/next'
 import * as trpc from '@trpc/server'
 
 describe('withHighlight', () => {
-	const withHighlight = Highlight()
+	const withHighlight = Highlight({ projectID: 'test' })
 
 	it('compiles when used with the latest NextApiHandler', async () => {
 		const toWrap: NextApiHandler = () => {}
