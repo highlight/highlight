@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "highlight-io"
-version = "0.1.2"
-description = "Because a stack trace alone isn't enough."
+version = "0.1.3"
+description = "Session replay and error monitoring: stop guessing why bugs happen!"
 license = "Apache-2.0"
 authors = [
     "Vadim Korolik <vadim@highlight.io>",
