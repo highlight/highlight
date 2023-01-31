@@ -426,7 +426,7 @@ const User: React.FC<{
 	}
 
 	const { session } = errorObject
-	const userProperties = getUserProperties(session)
+	const userProperties = getUserProperties(session?.user_properties)
 	const [displayName, field] = getDisplayNameAndField(session)
 	const avatarImage = getIdentifiedUserProfileImage(session)
 	const userDisplayPropertyKeys = Object.keys(userProperties)

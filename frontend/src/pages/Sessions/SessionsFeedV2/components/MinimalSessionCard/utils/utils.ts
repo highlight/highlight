@@ -22,10 +22,12 @@ export const getIdentifiedUserProfileImage = (
 	return undefined
 }
 
-export const getUserProperties = (session?: Maybe<Partial<Session>>) => {
+export const getUserProperties = (
+	userProperties?: Session['user_properties'],
+) => {
 	try {
-		if (typeof session?.user_properties === 'string') {
-			return JSON.parse(session?.user_properties || '{}')
+		if (typeof userProperties === 'string') {
+			return JSON.parse(userProperties || '{}')
 		}
 	} catch (e) {
 		if (e instanceof Error) {
@@ -38,7 +40,7 @@ export const getUserProperties = (session?: Maybe<Partial<Session>>) => {
 export const getDisplayNameAndField = (
 	session?: Maybe<Partial<Session>>,
 ): [string, string | null] => {
-	const userProperties = getUserProperties(session)
+	const userProperties = getUserProperties(session?.user_properties)
 
 	if (userProperties?.highlightDisplayName) {
 		return [userProperties?.highlightDisplayName, 'highlightDisplayName']

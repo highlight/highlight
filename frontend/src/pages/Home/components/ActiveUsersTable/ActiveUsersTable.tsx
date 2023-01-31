@@ -11,6 +11,7 @@ import {
 import { useGetTopUsersQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgClockIcon from '@icons/ClockIcon'
+import { getUserDisplayName } from '@pages/Home/utils/HomePageUtils'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { validateEmail } from '@util/string'
@@ -43,7 +44,7 @@ const ActiveUsersTable = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { setSearchParams, removeSelectedSegment } = useSearchContext()
+	const { removeSelectedSegment } = useSearchContext()
 	const { timeRange } = useDataTimeRange()
 	const history = useHistory()
 
@@ -165,7 +166,7 @@ const Columns: ColumnsType<any> = [
 							identifier={user}
 							userProperties={record.userProperties}
 						/>
-						<span>{user}</span>
+						<span>{getUserDisplayName(record)}</span>
 					</ProgressBarTableRowGroup>
 				</div>
 			)

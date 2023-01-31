@@ -11,7 +11,7 @@ import { useGetRageClicksForProjectQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
 import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/DashboardInnerTable'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
+import { getUserDisplayName } from '@pages/Home/utils/HomePageUtils'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { validateEmail } from '@util/string'
@@ -104,22 +104,16 @@ const RageClicksForProjectTable = ({
 					columns={Columns}
 					data={filteredTableData}
 					onClickHandler={(record) => {
-						history.push(
-							`/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
-						)
 						removeSelectedSegment()
-						setSearchParams({
-							...EmptySessionsSearchParams,
-							user_properties: [
-								{
-									id: record.id,
-									name: validateEmail(record.identifier)
-										? 'email'
-										: 'identifier',
-									value: record.identifier,
-								},
-							],
+
+						const userParam = validateEmail(record.identifier)
+							? 'email'
+							: 'identifier'
+						history.push({
+							pathname: `/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
+							search: `?query=and%7C%7Cuser_${userParam}%2Cis%2C${record.identifier}`,
 						})
+
 						message.success(
 							`Showing most recent session for ${record.identifier} with rage clicks.`,
 						)
@@ -165,7 +159,7 @@ const Columns: ColumnsType<any> = [
 							identifier={user}
 							userProperties={record.userProperties}
 						/>
-						<span>{user}</span>
+						<span>{getUserDisplayName(record)}</span>
 					</ProgressBarTableRowGroup>
 				</div>
 			)

@@ -3,7 +3,9 @@ import {
 	DashboardMetricConfig,
 	MetricAggregator,
 	MetricViewComponentType,
+	Session,
 } from '@graph/schemas'
+import { getUserProperties } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 
 export const HOME_DASHBOARD_CONFIGURATION: {
 	[key in string]: DashboardMetricConfig
@@ -107,4 +109,19 @@ export const DEFAULT_HOME_DASHBOARD_LAYOUT = {
 			i: '6',
 		},
 	],
+}
+
+export const getUserDisplayName = (record: {
+	userProperties: Session['user_properties']
+	identifier: string
+	[key: string]: any
+}): string => {
+	const userProperties = getUserProperties(record.userProperties)
+
+	return (
+		userProperties.highlightDisplayName ||
+		userProperties.email ||
+		record.identifier ||
+		'Unidentified'
+	)
 }
