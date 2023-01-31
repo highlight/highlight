@@ -108,6 +108,25 @@ class H(object):
 
     @staticmethod
     def record_exception(e: Exception) -> None:
+        """
+        Record arbitrary exceptions raised within your app.
+
+        Example:
+            import highlight_io
+            H = highlight_io.H('project_id', ...)
+
+            def my_fn():
+                try:
+                    for i in range(20):
+                        result = 100 / (10 - i)
+                        print(f'dangerous: {result}')
+                except Exception as e:
+                    H.record_exception(e)
+
+
+        :param e: the exception to record. the contents and stacktrace will be recorded.
+        :return: None
+        """
         span = trace.get_current_span()
         if not span:
             raise RuntimeError("H.record_exception called without a span context")
