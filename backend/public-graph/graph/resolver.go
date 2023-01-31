@@ -58,6 +58,7 @@ type Resolver struct {
 	DB              *gorm.DB
 	TDB             timeseries.DB
 	ProducerQueue   *kafka_queue.Queue
+	BatchedQueue    *kafka_queue.Queue
 	MailClient      *sendgrid.Client
 	StorageClient   *storage.StorageClient
 	OpenSearch      *opensearch.Client
@@ -2721,15 +2722,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 			// End dead code path
 		}
-
-		// Only set for main Highlight project
-		if projectID == 1 {
-			if err := r.Clickhouse.BatchWriteMessagesForSession(ctx, projectID, sessionSecureID, messages); err != nil {
-				// If there's an issue with Clickhouse, we'll just log for investigation instead of building up a kafka backlog
-				log.WithError(err).Error("error writing console messages to clickhouse")
-			}
-		}
-
 		return nil
 	})
 

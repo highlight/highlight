@@ -423,11 +423,20 @@ func (w *Worker) PublicWorker() {
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
 	// is processed serially, so messages in that slice are processed in order.
 	wg := sync.WaitGroup{}
-	wg.Add(parallelWorkers)
+	wg.Add(parallelWorkers * 2)
 	for i := 0; i < parallelWorkers; i++ {
 		go func(workerId int) {
 			k := KafkaWorker{
 				KafkaQueue:   kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer),
+				Worker:       w,
+				WorkerThread: workerId,
+			}
+			k.ProcessMessages()
+			wg.Done()
+		}(i)
+		go func(workerId int) {
+			k := KafkaBatchWorker{
+				KafkaQueue:   kafkaqueue.New(os.Getenv("KAFKA_BATCH_TOPIC"), kafkaqueue.Consumer),
 				Worker:       w,
 				WorkerThread: workerId,
 			}

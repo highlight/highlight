@@ -58,25 +58,13 @@ type Messages struct {
 	Messages []Message `json:"messages"`
 }
 
-func (client *Client) BatchWriteMessagesForSession(ctx context.Context, projectID int, sessionSecureID string, messages string) error {
+func (client *Client) ParseConsoleMessages(projectID int, sessionSecureID string, messages string) ([]*LogRow, error) {
 	messagesParsed := Messages{}
 	if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
-		return e.Wrap(err, "error decoding message data")
-	}
-	if len(messagesParsed.Messages) == 0 {
-		return nil
+		return nil, e.Wrap(err, "error decoding message data")
 	}
 
-	query := fmt.Sprintf(`
-		INSERT INTO %s
-	`, LogsTable)
-
-	batch, err := client.conn.PrepareBatch(ctx, query)
-
-	if err != nil {
-		return e.Wrap(err, "failed to create logs batch")
-	}
-
+	var logRows []*LogRow
 	for _, message := range messagesParsed.Messages {
 		logRow, err := makeLogRow(projectID, sessionSecureID, message)
 		if err != nil {
@@ -84,7 +72,27 @@ func (client *Client) BatchWriteMessagesForSession(ctx context.Context, projectI
 			log.WithError(err).Error("failed to parse log message")
 			continue
 		}
+		logRows = append(logRows, logRow)
+	}
+	return logRows, nil
+}
 
+func (client *Client) BatchWriteMessagesForSession(ctx context.Context, projectID int, sessionSecureID string, messages string) error {
+	messagesParsed, err := client.ParseConsoleMessages(projectID, sessionSecureID, messages)
+	if err != nil {
+		return e.Wrap(err, "error decoding message data")
+	}
+	return client.BatchWriteLogRows(ctx, messagesParsed)
+}
+
+func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
+	batch, err := client.conn.PrepareBatch(ctx, "INSERT INTO logs")
+
+	if err != nil {
+		return e.Wrap(err, "failed to create logs batch")
+	}
+
+	for _, logRow := range logRows {
 		err = batch.AppendStruct(logRow)
 		if err != nil {
 			return err

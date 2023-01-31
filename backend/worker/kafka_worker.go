@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/clickhouse"
 
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -64,4 +65,40 @@ type KafkaWorker struct {
 	KafkaQueue   *kafkaqueue.Queue
 	Worker       *Worker
 	WorkerThread int
+}
+
+func (k *KafkaBatchWorker) ProcessMessages() {
+	for {
+		func() {
+			defer util.Recover()
+			task := k.KafkaQueue.Receive()
+			if task == nil {
+				return
+			}
+
+			// TODO(vkorolik) make this generic to all message types
+			switch task.Type {
+			case kafkaqueue.PushLogs:
+				k.messageQueue = append(k.messageQueue, task)
+			}
+
+			if len(k.messageQueue) >= k.BatchFlushSize {
+				var logRows []*clickhouse.LogRow
+				for _, msg := range k.messageQueue {
+					logRows = append(logRows, msg.PushLogs.LogRows...)
+				}
+				k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(context.Background(), logRows)
+				k.KafkaQueue.Commit(k.messageQueue[len(k.messageQueue)-1].KafkaMessage)
+			}
+		}()
+	}
+}
+
+type KafkaBatchWorker struct {
+	KafkaQueue   *kafkaqueue.Queue
+	Worker       *Worker
+	WorkerThread int
+
+	BatchFlushSize int
+	messageQueue   []*kafkaqueue.Message
 }
