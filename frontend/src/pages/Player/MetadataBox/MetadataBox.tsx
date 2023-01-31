@@ -186,6 +186,7 @@ export const MetadataBox = React.memo(() => {
 			...EmptySessionsSearchParams,
 		}
 
+		// TODO: Fix redirect
 		if (hasIdentifier && field !== null) {
 			newSearchParams.user_properties = [
 				{

@@ -225,6 +225,7 @@ const MetadataPanel = () => {
 			keyDisplayValue: 'Device ID',
 			valueDisplayValue: (
 				<Link
+					// TODO: Update URL
 					to={window.location.pathname}
 					onClick={() => {
 						message.success(

@@ -52,6 +52,7 @@ const KeyPerformanceIndicators = ({
 			<KeyPerformanceIndicator
 				value={formatLongNumber(data?.newUsersCount?.count || 0)}
 				title="New Users"
+				// TODO: Update route
 				route={`/${projectIdRemapped}/sessions`}
 				onClick={() => {
 					message.success('Showing sessions for new users')

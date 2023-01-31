@@ -81,6 +81,7 @@ const ReferrersTable = ({
 					data={tableData}
 					loading={false}
 					onClickHandler={(record) => {
+						// TODO: Fix redirect
 						history.push(`/${projectIdRemapped}/sessions`)
 						removeSelectedSegment()
 						setSearchParams({
