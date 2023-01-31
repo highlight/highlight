@@ -3,6 +3,18 @@ name: Docker
 on:
     push:
         branches: ['main']
+    pull_request:
+        types: ['opened', 'synchronize']
+        paths:
+            - '.github/workflows/docker.yml'
+            - '.gitmodules'
+            - 'yarn.lock'
+            - 'cypress.config.js'
+            - 'backend/**'
+            - 'cypress/**'
+            - 'frontend/**'
+            - 'rrweb/**'
+            - 'sdk/**'
 
 jobs:
     build:
