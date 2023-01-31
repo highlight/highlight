@@ -4,8 +4,8 @@ export const RIGHT_PANEL_WIDTH = 300
 
 export const playerRightPanelContainer = style({
 	position: 'relative',
-	transform: 'translateX(0)',
 	transition: 'transform 0.2s ease-in-out',
+	transform: 'translateX(0)',
 	zIndex: 5,
 })
 
@@ -15,7 +15,8 @@ export const playerRightPanelContainerBannerShown = style({
 
 export const playerRightPanelContainerHidden = style({
 	position: 'fixed',
-	transform: `translateX(-${RIGHT_PANEL_WIDTH}px)`,
+	left: '100%',
+	transform: `translateX(${RIGHT_PANEL_WIDTH}px)`,
 })
 
 export const tabContentContainer = style({

@@ -85,8 +85,8 @@ const RightPlayerPanel = () => {
 			bt="dividerWeak"
 			bl="dividerWeak"
 			shadow="small"
-			style={{ width: style.RIGHT_PANEL_WIDTH }}
 			cssClass={[
+				style.playerRightPanelContainer,
 				{
 					[style.playerRightPanelContainerHidden]: !showRightPanel,
 				},
