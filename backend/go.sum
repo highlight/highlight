@@ -367,6 +367,10 @@ github.com/highlight-run/opensearch-go v1.0.1 h1:LNe4qAgQnw8YwXpAzK2Uu2RLtx61wka
 github.com/highlight-run/opensearch-go v1.0.1/go.mod h1:+6/XHCuTH+fwsMJikZEWsucZ4eZMma3zNSeLrTtVGbo=
 github.com/highlight-run/workerpool v1.3.0 h1:BuOWBJJeGG5ZRpq+IKXDTfASAdJoTkBS0sSH+lvCTgw=
 github.com/highlight-run/workerpool v1.3.0/go.mod h1:1iJmXJoC39MnWrqrLa+TaIqdveW4XaxPMoXAMH2wDYU=
+github.com/highlight/highlight v4.3.9+incompatible h1:55zBRKRLCeYqevKXpJmK+T8Eq68i28p03zTpHFL2mpo=
+github.com/highlight/highlight v4.3.9+incompatible/go.mod h1:MbXfqlrLhXpi6xEEu8WXrlNaG2pKdlS/y28UjyQm9rI=
+github.com/highlight/highlight v5.0.0+incompatible h1:RyfWv1Xp2PFl8CCtU58Nl+ZoT3NlI7PS7pMhGim8Mrw=
+github.com/highlight/highlight v5.0.0+incompatible/go.mod h1:MbXfqlrLhXpi6xEEu8WXrlNaG2pKdlS/y28UjyQm9rI=
 github.com/highlight/highlight/sdk/highlight-go v0.0.0-20230131021708-5e49c38cebf3 h1:9VDRu9lE75EnUGZwkDjHZAoDsHqJyxPEBssr6mkvpII=
 github.com/highlight/highlight/sdk/highlight-go v0.0.0-20230131021708-5e49c38cebf3/go.mod h1:ztKnuwfJ9MdQ7XgXc2P1zTvRCdtxNs5SW/UsQiL16p0=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
