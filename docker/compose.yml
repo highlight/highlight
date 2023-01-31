@@ -44,6 +44,16 @@ services:
         volumes:
             - postgres-data:/var/lib/postgresql/data
 
+    clickhouse:
+        container_name: clickhouse
+        image: clickhouse/clickhouse-server
+        ports:
+            - 8123:8123
+            - 9000:9000
+        volumes:
+            - clickhouse-data:/var/lib/clickhouse
+            - clickhouse-logs:/var/log/clickhouse-server
+
     elasticsearch:
         container_name: elasticsearch
         image: docker.elastic.co/elasticsearch/elasticsearch:7.17.8
@@ -91,11 +101,16 @@ services:
             - kafka
             - redis
             - postgres
+            - clickhouse
             - elasticsearch
             - influxdb
             - setup-influxdb
             - collector
         environment:
+            - CLICKHOUSE_ADDRESS
+            - CLICKHOUSE_DATABASE
+            - CLICKHOUSE_PASSWORD
+            - CLICKHOUSE_USERNAME
             - DEMO_SESSION
             - DEPLOYMENT_KEY
             - DOPPLER_CONFIG
@@ -183,6 +198,8 @@ services:
 
 volumes:
     postgres-data:
+    clickhouse-data:
+    clickhouse-logs:
     redis-data:
     elasticsearch-data:
     influxdb-data:
