@@ -50,24 +50,24 @@ class H(object):
         """
         H._instance = self
         self._project_id = project_id
-        self._integrations = integrations
+        self._integrations = integrations or []
         self._record_logs = record_logs
         if self._record_logs:
             self._instrument_logs()
 
-        provider = TracerProvider()
-        provider.add_span_processor(
+        self._trace_provider = TracerProvider()
+        self._trace_provider.add_span_processor(
             BatchSpanProcessor(OTLPSpanExporter(f"{H.OTLP_HTTP}/v1/traces"))
         )
-        trace.set_tracer_provider(provider)
+        trace.set_tracer_provider(self._trace_provider)
         self.tracer = trace.get_tracer(__name__)
 
-        log_provider = LoggerProvider()
-        log_provider.add_log_record_processor(
+        self._log_provider = LoggerProvider()
+        self._log_provider.add_log_record_processor(
             BatchLogRecordProcessor(OTLPLogExporter(f"{H.OTLP_HTTP}/v1/logs"))
         )
-        _logs.set_logger_provider(log_provider)
-        self.log = log_provider.get_logger(__name__)
+        _logs.set_logger_provider(self._log_provider)
+        self.log = self._log_provider.get_logger(__name__)
 
         for integration in self._integrations:
             integration.enable()
