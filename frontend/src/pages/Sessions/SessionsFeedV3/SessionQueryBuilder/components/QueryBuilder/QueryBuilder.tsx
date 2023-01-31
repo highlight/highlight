@@ -51,7 +51,7 @@ import { gqlSanitize } from '@util/gql'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
-import { QueryBuilderStateParam } from '@util/url/params'
+import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params'
 import { Checkbox, message } from 'antd'
 import classNames from 'classnames'
 import clsx, { ClassValue } from 'clsx'
@@ -64,7 +64,14 @@ import Creatable from 'react-select/creatable'
 import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
 import { useToggle } from 'react-use'
-import { JsonParam, useQueryParam, useQueryParams } from 'use-query-params'
+import {
+	ArrayParam,
+	BooleanParam,
+	JsonParam,
+	StringParam,
+	useQueryParam,
+	useQueryParams,
+} from 'use-query-params'
 
 import { DropdownMenu } from '../SessionFeedConfigurationV2/SessionFeedConfigurationV2'
 import * as newStyle from './QueryBuilder.css'
@@ -1368,6 +1375,23 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const [searchParamsToUrlParams, setSearchParamsToUrlParams] =
 		useQueryParams({
+			user_properties: FieldArrayParam,
+			identified: BooleanParam,
+			browser: StringParam,
+			date_range: JsonParam,
+			excluded_properties: FieldArrayParam,
+			hide_viewed: BooleanParam,
+			length_range: JsonParam,
+			os: StringParam,
+			referrer: StringParam,
+			track_properties: FieldArrayParam,
+			excluded_track_properties: FieldArrayParam,
+			visited_url: StringParam,
+			first_time: BooleanParam,
+			device_id: StringParam,
+			show_live_sessions: BooleanParam,
+			environments: ArrayParam,
+			app_versions: ArrayParam,
 			query: QueryBuilderStateParam,
 		})
 
