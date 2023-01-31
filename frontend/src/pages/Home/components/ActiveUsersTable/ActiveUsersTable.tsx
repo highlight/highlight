@@ -104,7 +104,7 @@ const ActiveUsersTable = ({
 							: 'identifier'
 						history.push({
 							pathname: `/${projectIdRemapped}/sessions`,
-							search: `?user_${userParam}%2Cis%2C${record.identifier}`,
+							search: `?query=and%7C%7Cuser_${userParam}%2Cis%2C${record.identifier}`,
 						})
 						removeSelectedSegment()
 						message.success(
