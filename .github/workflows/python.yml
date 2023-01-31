@@ -18,6 +18,8 @@ jobs:
                 working-directory: ./sdk/highlight-py
         steps:
             - uses: actions/checkout@v3
+            - name: Install poetry
+              run: pipx install poetry
             - uses: actions/setup-python@v4
               with:
                   python-version: '3.10'
@@ -25,6 +27,8 @@ jobs:
             - run: poetry install --all-extras
             - name: Lint
               run: poetry run black --check .
+            - name: Test
+              run: poetry run pytest
             - name: Build
               run: poetry build
             - name: Publish
