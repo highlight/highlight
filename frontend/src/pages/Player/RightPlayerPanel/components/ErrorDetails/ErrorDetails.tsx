@@ -23,6 +23,7 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
+import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import AffectedUserCount from '@pages/ErrorsV2/ErrorBody/components/AffectedUserCount'
 import ErrorBodyText from '@pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
 import ErrorFrequencyChart from '@pages/ErrorsV2/ErrorBody/components/ErrorFrequencyChart'
@@ -101,6 +102,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 		variables: { id: String(errorGroup?.project_id) },
 		skip: !errorGroup,
 	})
+	const { setShowLeftPanel } = useErrorPageConfiguration()
 
 	useHotkeys(
 		'h',
@@ -272,7 +274,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 			</Box>
 			<Box mt="auto" py="8" display="flex" flexDirection="column">
 				<Button
-					kind="secondary"
+					kind="primary"
 					trackingId="ViewErrorGroup"
 					size="small"
 					emphasis="high"
@@ -281,6 +283,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 						history.push(
 							`/${projectId}/errors/${error.error_group_secure_id}`,
 						)
+						setShowLeftPanel(false)
 					}}
 				>
 					View {getProjectPrefix(projectData?.project)}-
