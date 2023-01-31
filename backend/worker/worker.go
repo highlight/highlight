@@ -427,7 +427,7 @@ func (w *Worker) PublicWorker() {
 	for i := 0; i < parallelWorkers; i++ {
 		go func(workerId int) {
 			k := KafkaWorker{
-				KafkaQueue:   kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer),
+				KafkaQueue:   kafkaqueue.New(kafkaqueue.GetTopic(false), kafkaqueue.Consumer),
 				Worker:       w,
 				WorkerThread: workerId,
 			}
@@ -436,7 +436,7 @@ func (w *Worker) PublicWorker() {
 		}(i)
 		go func(workerId int) {
 			k := KafkaBatchWorker{
-				KafkaQueue:   kafkaqueue.New(os.Getenv("KAFKA_BATCH_TOPIC"), kafkaqueue.Consumer),
+				KafkaQueue:   kafkaqueue.New(kafkaqueue.GetTopic(true), kafkaqueue.Consumer),
 				Worker:       w,
 				WorkerThread: workerId,
 			}
