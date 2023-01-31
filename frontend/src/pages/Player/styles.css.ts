@@ -70,8 +70,6 @@ export const playerCenterColumn = style({
 
 export const playerLeftPanel = style({
 	position: 'relative',
-	transform: 'translateX(0)',
-	transition: 'transform 0.2s ease-in-out',
 	zIndex: 98,
 })
 

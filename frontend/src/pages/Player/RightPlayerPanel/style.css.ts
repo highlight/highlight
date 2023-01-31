@@ -4,8 +4,6 @@ export const RIGHT_PANEL_WIDTH = 300
 
 export const playerRightPanelContainer = style({
 	position: 'relative',
-	transition: 'transform 0.2s ease-in-out',
-	transform: 'translateX(0)',
 	zIndex: 5,
 })
 
