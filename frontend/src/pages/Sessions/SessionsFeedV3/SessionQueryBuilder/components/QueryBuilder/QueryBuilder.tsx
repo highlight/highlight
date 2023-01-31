@@ -2,6 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Popover from '@components/Popover/Popover'
+import { START_PAGE } from '@components/SearchPagination/SearchPagination'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
@@ -1327,6 +1328,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		selectedSegment,
 		setSelectedSegment,
 		removeSelectedSegment,
+		setPage,
 	} = searchContext
 
 	const { project_id: projectId } = useParams<{
@@ -1944,6 +1946,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 			if (searchParamsToUrlParams.query !== undefined) {
 				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
 			} else {
+				setPage(START_PAGE)
 				setSearchParams(EmptySessionsSearchParams)
 			}
 		}

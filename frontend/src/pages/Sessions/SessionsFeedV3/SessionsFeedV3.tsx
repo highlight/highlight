@@ -14,9 +14,7 @@ import {
 	STARTING_PAGE,
 } from '@components/Pagination/Pagination'
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
-import SearchPagination, {
-	START_PAGE,
-} from '@components/SearchPagination/SearchPagination'
+import SearchPagination from '@components/SearchPagination/SearchPagination'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import LimitedSessionCard from '@components/Upsell/LimitedSessionsCard/LimitedSessionsCard'
 import {
@@ -354,9 +352,6 @@ export const SessionFeedV3 = React.memo(() => {
 												<SessionFeedCard
 													key={ind}
 													session={s}
-													urlParams={`?page=${
-														page || START_PAGE
-													}`}
 													selected={
 														session_secure_id ===
 														s?.secure_id
