@@ -18,6 +18,13 @@ updates:
       schedule:
           interval: daily
 
+    # Maintain NPM dependencies for /frontend
+    - package-ecosystem: 'npm'
+      directory: /frontend
+      schedule:
+          interval: daily
+      open-pull-requests-limit: 5
+
     # Maintain git submodules
     - package-ecosystem: 'gitsubmodule'
       directory: /
