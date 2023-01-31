@@ -99,6 +99,8 @@ const ActiveUsersTable = ({
 					columns={Columns}
 					data={filteredTableData}
 					onClickHandler={(record) => {
+						removeSelectedSegment()
+
 						const userParam = validateEmail(record.identifier)
 							? 'email'
 							: 'identifier'
@@ -106,7 +108,7 @@ const ActiveUsersTable = ({
 							pathname: `/${projectIdRemapped}/sessions`,
 							search: `?query=and%7C%7Cuser_${userParam}%2Cis%2C${record.identifier}`,
 						})
-						removeSelectedSegment()
+
 						message.success(
 							`Showing sessions for ${record.identifier}`,
 						)
