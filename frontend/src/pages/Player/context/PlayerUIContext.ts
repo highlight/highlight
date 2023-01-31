@@ -1,4 +1,6 @@
+import { ErrorObject } from '@graph/schemas'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
+import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { createContext } from '@util/context/context'
 import React from 'react'
 
@@ -41,6 +43,16 @@ interface PlayerUIContext {
 	>
 	rightPanelView: RightPanelView
 	setRightPanelView: React.Dispatch<React.SetStateAction<RightPanelView>>
+
+	activeError?: ErrorObject
+	setActiveError: React.Dispatch<
+		React.SetStateAction<ErrorObject | undefined>
+	>
+
+	activeNetworkResource?: NetworkResource
+	setActiveNetworkResource: React.Dispatch<
+		React.SetStateAction<NetworkResource | undefined>
+	>
 }
 
 export const [usePlayerUIContext, PlayerUIContextProvider] =

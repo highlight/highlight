@@ -7,7 +7,7 @@ import { ErrorState } from '@components/ErrorState/ErrorState'
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard'
 import LoadingBox from '@components/LoadingBox'
 import { useIsSessionPendingQuery } from '@graph/hooks'
-import { Session } from '@graph/schemas'
+import { ErrorObject, Session } from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
 import { Box } from '@highlight-run/ui'
 import { useWindowSize } from '@hooks/useWindowSize'
@@ -37,6 +37,7 @@ import {
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
 import SessionLevelBarV2 from '@pages/Player/SessionLevelBar/SessionLevelBarV2'
 import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel'
+import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
@@ -141,6 +142,15 @@ const PlayerPage = ({ integrated }: Props) => {
 	const [activeEvent, setActiveEvent] = useState<HighlightEvent | undefined>(
 		undefined,
 	)
+
+	const [activeError, setActiveError] = useState<ErrorObject | undefined>(
+		undefined,
+	)
+
+	const [activeNetworkResource, setActiveNetworkResource] = useState<
+		NetworkResource | undefined
+	>(undefined)
+
 	const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
 		'Events' | 'Threads' | 'Metadata'
 	>('tabs-PlayerRightPanel-active-tab', 'Events')
@@ -471,6 +481,10 @@ const PlayerPage = ({ integrated }: Props) => {
 				setSelectedRightPanelTab,
 				activeEvent,
 				setActiveEvent,
+				activeError,
+				setActiveError,
+				activeNetworkResource,
+				setActiveNetworkResource,
 				rightPanelView,
 				setRightPanelView,
 			}}

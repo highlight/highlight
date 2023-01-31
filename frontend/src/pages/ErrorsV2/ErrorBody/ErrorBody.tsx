@@ -1,5 +1,3 @@
-import BarChart from '@components/BarChart/BarChart'
-import { Button } from '@components/Button'
 import { GetErrorInstanceDocument } from '@graph/hooks'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import {
@@ -7,25 +5,21 @@ import {
 	ButtonLink,
 	IconSolidCheveronRight,
 	IconSolidCode,
-	IconSolidTrendingDown,
-	IconSolidTrendingUp,
-	Tag,
+	IconSolidUsers,
+	IconSolidViewGrid,
 	Text,
-	Tooltip,
-	vars,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { getErrorGroupStats } from '@pages/ErrorsV2/utils'
-import { getErrorBody } from '@util/errors/errorUtils'
+import AffectedUserCount from '@pages/ErrorsV2/ErrorBody/components/AffectedUserCount'
+import ErrorBodyText from '@pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
+import ErrorFrequencyChart from '@pages/ErrorsV2/ErrorBody/components/ErrorFrequencyChart'
+import ErrorObjectCount from '@pages/ErrorsV2/ErrorBody/components/ErrorObjectCount'
+import ErrorOccurenceDate from '@pages/ErrorsV2/ErrorBody/components/ErrorOccurenceDate'
 import { client } from '@util/graph'
-import moment from 'moment'
 import React from 'react'
-import { BsGridFill } from 'react-icons/bs'
-import { FaUsers } from 'react-icons/fa'
 import { useHistory } from 'react-router-dom'
-import AutoSizer from 'react-virtualized-auto-sizer'
 
-const showChangeThresholdPercent = 1
+export const showChangeThresholdPercent = 1
 
 interface Props {
 	errorGroup?: Maybe<Omit<ErrorGroup, 'metadata_log'>>
@@ -34,22 +28,8 @@ interface Props {
 const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	errorGroup,
 }) => {
-	const [truncated, setTruncated] = React.useState(true)
-	const [truncateable, setTruncateable] = React.useState(true)
 	const { projectId } = useProjectId()
 	const history = useHistory()
-	const body = getErrorBody(errorGroup?.event)
-	const bodyRef = React.useRef<HTMLElement | undefined>()
-
-	const { startDate, weekly, counts, totalCount, userCount } =
-		getErrorGroupStats(errorGroup)
-	const usersChange = weekly.users[0]
-		? ((weekly.users[1] - weekly.users[0]) / weekly.users[0]) * 100
-		: 0
-	const countChange = weekly.count[0]
-		? ((weekly.count[1] - weekly.count[0]) / weekly.count[0]) * 100
-		: 0
-	const numberOfDays = moment(moment()).diff(startDate, 'days')
 
 	const scrollToInstances = () => {
 		// Using client directly here because there was some issues with the
@@ -73,14 +53,6 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 			})
 	}
 
-	React.useEffect(() => {
-		if (bodyRef.current) {
-			setTruncateable(
-				bodyRef.current.offsetHeight + 5 < bodyRef.current.scrollHeight,
-			)
-		}
-	}, [body])
-
 	return (
 		<Box border="secondary" borderRadius="6">
 			<Box display="flex">
@@ -88,13 +60,13 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					title={
 						<>
 							<Box
-								color="n9"
+								color="weak"
 								display="flex"
 								alignItems="center"
 								gap="4"
 							>
-								<FaUsers />
-								<Text color="n11">Affected Users</Text>
+								<IconSolidUsers />
+								<Text color="moderate">Affected Users</Text>
 							</Box>
 							<ButtonLink
 								style={{ cursor: 'pointer' }}
@@ -112,71 +84,19 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						</>
 					}
 				>
-					<Box display="flex" gap="4" alignItems="center">
-						<Text color="black" size="large" weight="bold">
-							{userCount}
-						</Text>
-						{Math.abs(usersChange) > showChangeThresholdPercent &&
-						numberOfDays >= 1 ? (
-							<Tooltip
-								trigger={
-									<Tag
-										kind="secondary"
-										shape="basic"
-										iconLeft={
-											usersChange > 0 ? (
-												<IconSolidTrendingUp
-													size={12}
-												/>
-											) : (
-												<IconSolidTrendingDown
-													size={12}
-												/>
-											)
-										}
-									>
-										<>
-											{usersChange > 0 ? '+' : ''}
-											{usersChange.toFixed(0)}%
-										</>
-									</Tag>
-								}
-							>
-								<Box display="flex" alignItems="center" gap="4">
-									<Text color="n9" size="xSmall">
-										since
-									</Text>
-									<Box
-										borderRadius="3"
-										p="4"
-										style={{
-											boxShadow: `0 0 0 1px ${vars.color.n5}`,
-											margin: -1,
-										}}
-									>
-										<Text size="xSmall" color="n11">
-											{numberOfDays}{' '}
-											{numberOfDays === 1
-												? 'day'
-												: 'days'}
-										</Text>
-									</Box>
-								</Box>
-							</Tooltip>
-						) : null}
-					</Box>
+					<AffectedUserCount errorGroup={errorGroup} />
 				</Stat>
 				<Stat
 					title={
 						<>
 							<Box
-								color="n9"
+								color="weak"
 								display="flex"
 								alignItems="center"
 								gap="4"
 							>
-								<BsGridFill />
-								<Text color="n11">Instances</Text>
+								<IconSolidViewGrid />
+								<Text color="moderate">Instances</Text>
 							</Box>
 							<ButtonLink
 								style={{ cursor: 'pointer' }}
@@ -194,141 +114,33 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						</>
 					}
 				>
-					<Box display="flex" gap="4" alignItems="center">
-						<Text color="black" size="large" weight="bold">
-							{totalCount}
-						</Text>
-						{Math.abs(countChange) > showChangeThresholdPercent &&
-						numberOfDays >= 1 ? (
-							<Tooltip
-								trigger={
-									<Tag
-										kind="secondary"
-										shape="basic"
-										iconLeft={
-											countChange > 0 ? (
-												<IconSolidTrendingUp
-													size={12}
-												/>
-											) : (
-												<IconSolidTrendingDown
-													size={12}
-												/>
-											)
-										}
-									>
-										<>
-											{countChange > 0 ? '+' : ''}
-											{countChange.toFixed(0)}%
-										</>
-									</Tag>
-								}
-							>
-								<Box display="flex" alignItems="center" gap="4">
-									<Text color="n9" size="xSmall">
-										since
-									</Text>
-									<Box
-										borderRadius="3"
-										p="4"
-										style={{
-											boxShadow: `0 0 0 1px ${vars.color.n5}`,
-											margin: -1,
-										}}
-									>
-										<Text size="xSmall" color="n11">
-											{numberOfDays}{' '}
-											{numberOfDays === 1
-												? 'day'
-												: 'days'}
-										</Text>
-									</Box>
-								</Box>
-							</Tooltip>
-						) : null}
-					</Box>
+					<ErrorObjectCount errorGroup={errorGroup} />
 				</Stat>
-				<Stat title={<Text color="n11">Last/first occurrence</Text>}>
-					<Box
-						display="flex"
-						gap="4"
-						alignItems="center"
-						flexShrink={0}
-						flexWrap="nowrap"
-					>
-						<Text color="black" size="large" weight="bold">
-							{errorGroup?.last_occurrence
-								? moment(errorGroup.last_occurrence).fromNow(
-										true,
-								  )
-								: 'just now'}
-						</Text>
-						<Text color="n11" size="large" weight="bold">
-							{' / '}
-						</Text>
-						<Text color="n11" size="large" weight="bold">
-							{errorGroup?.first_occurrence
-								? moment(errorGroup.first_occurrence).fromNow(
-										true,
-								  )
-								: 'just now'}
-						</Text>
-					</Box>
+				<Stat
+					title={<Text color="moderate">Last/first occurrence</Text>}
+				>
+					<ErrorOccurenceDate errorGroup={errorGroup} />
 				</Stat>
 
 				<Stat
-					title={
-						<Box
-							color="n9"
-							display="flex"
-							alignItems="center"
-							gap="4"
-						>
-							<Text color="n11">Last 30 days</Text>
-						</Box>
-					}
+					title={<Text color="moderate">Last 30 days</Text>}
 					noBorder
 				>
-					<AutoSizer disableHeight>
-						{({ width }) => (
-							<BarChart
-								data={counts || []}
-								height={24}
-								width={width}
-								minBarHeight={5}
-							/>
-						)}
-					</AutoSizer>
+					<ErrorFrequencyChart errorGroup={errorGroup} />
 				</Stat>
 			</Box>
 			<Box py="12" px="16">
-				<Box mb="20" display="flex" gap="6" alignItems="center">
-					<IconSolidCode size={14} color={vars.color.n11} />
-					<Text color="n11">Error Body</Text>
-				</Box>
-
-				<Text
-					family="monospace"
-					lines={truncated ? '3' : undefined}
-					ref={bodyRef}
-					break="word"
+				<Box
+					mb="20"
+					display="flex"
+					gap="6"
+					alignItems="center"
+					color="weak"
 				>
-					{body}
-				</Text>
-
-				{truncateable && (
-					<Box mt="8">
-						<Button
-							onClick={() => setTruncated(!truncated)}
-							kind="secondary"
-							emphasis="medium"
-							size="xSmall"
-							trackingId="errorBodyToggleContent"
-						>
-							Show {truncated ? 'more' : 'less'}
-						</Button>
-					</Box>
-				)}
+					<IconSolidCode />
+					<Text color="moderate">Error Body</Text>
+				</Box>
+				<ErrorBodyText errorGroup={errorGroup} />
 			</Box>
 		</Box>
 	)

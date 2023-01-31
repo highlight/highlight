@@ -1,6 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
 import { Box } from '@highlight-run/ui'
-import EventDetails from '@pages/Player/components/EventDetails/EventDetails'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -9,7 +8,10 @@ import { MetadataBox } from '@pages/Player/MetadataBox/MetadataBox'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
+import ErrorDetails from '@pages/Player/RightPlayerPanel/components/ErrorDetails/ErrorDetails'
+import EventDetails from '@pages/Player/RightPlayerPanel/components/EventDetails/EventDetails'
 import RightPanelTabs from '@pages/Player/RightPlayerPanel/components/Tabs'
+import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useMemo } from 'react'
 
 import * as style from './style.css'
@@ -18,10 +20,19 @@ const RightPlayerPanel = () => {
 	const { showRightPanel: showRightPanelPreference, setShowRightPanel } =
 		usePlayerConfiguration()
 	const { canViewSession, session } = useReplayerContext()
-	const { setSelectedRightPanelTab, activeEvent, rightPanelView } =
-		usePlayerUIContext()
+	const {
+		setSelectedRightPanelTab,
+		activeEvent,
+		rightPanelView,
+		setRightPanelView,
+		activeError,
+		activeNetworkResource,
+	} = usePlayerUIContext()
 
 	const showRightPanel = showRightPanelPreference && canViewSession
+	const { session_secure_id: sessionSecureId } = useParams<{
+		session_secure_id: string
+	}>()
 
 	useEffect(() => {
 		const commentId = new URLSearchParams(location.search).get(
@@ -33,6 +44,12 @@ const RightPlayerPanel = () => {
 			setSelectedRightPanelTab('Threads')
 		}
 	}, [setSelectedRightPanelTab, setShowRightPanel])
+
+	useEffect(() => {
+		if (sessionSecureId) {
+			setRightPanelView(RightPanelView.SESSION)
+		}
+	}, [sessionSecureId, setRightPanelView])
 
 	const content = useMemo(() => {
 		if (!session) return <LoadingBox />
@@ -46,9 +63,25 @@ const RightPlayerPanel = () => {
 					</Box>
 				)
 			case RightPanelView.EVENT:
-				return activeEvent ? <EventDetails event={activeEvent} /> : null
+				if (activeEvent) {
+					return <EventDetails event={activeEvent} />
+				} else {
+					setRightPanelView(RightPanelView.SESSION)
+					return null
+				}
+
+			case RightPanelView.ERROR:
+				if (activeError) {
+					return <ErrorDetails error={activeError} />
+				} else {
+					setRightPanelView(RightPanelView.SESSION)
+					return null
+				}
+
+			case RightPanelView.RESOURCE:
+				return null
 		}
-	}, [activeEvent, rightPanelView, session])
+	}, [activeError, activeEvent, rightPanelView, session, setRightPanelView])
 
 	return (
 		<Box

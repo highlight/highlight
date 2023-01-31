@@ -272,16 +272,14 @@ export const MetadataBox = React.memo(() => {
 						</Box>
 					)}
 				</Box>
-				<Box display="flex" alignItems="center">
-					<ButtonIcon
-						kind="secondary"
-						emphasis="low"
-						shape="square"
-						size="small"
-						icon={<IconSolidExternalLink />}
-						onClick={searchIdentifier}
-					/>
-				</Box>
+				<ButtonIcon
+					kind="secondary"
+					emphasis="low"
+					shape="square"
+					size="small"
+					icon={<IconSolidExternalLink />}
+					onClick={searchIdentifier}
+				/>
 			</Box>
 			<Box
 				borderTop="secondary"
