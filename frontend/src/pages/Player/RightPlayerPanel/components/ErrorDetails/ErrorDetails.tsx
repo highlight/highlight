@@ -2,7 +2,11 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
-import { useGetErrorGroupQuery, useGetProjectQuery } from '@graph/hooks'
+import {
+	GetErrorGroupDocument,
+	useGetErrorGroupQuery,
+	useGetProjectQuery,
+} from '@graph/hooks'
 import { ErrorObject } from '@graph/schemas'
 import {
 	Box,
@@ -30,6 +34,7 @@ import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import analytics from '@util/analytics'
 import { getErrorBody } from '@util/errors/errorUtils'
+import { client } from '@util/graph'
 import React, { useMemo } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useHistory } from 'react-router-dom'
@@ -59,6 +64,23 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 		skip: !secureId,
 		onCompleted: () => {
 			analytics.track('Viewed error', { is_guest: !isLoggedIn })
+			if (canMoveBackward) {
+				client.query({
+					query: GetErrorGroupDocument,
+					variables: {
+						secure_id: String(errors[prev].error_group_secure_id),
+					},
+				})
+			}
+
+			if (canMoveForward) {
+				client.query({
+					query: GetErrorGroupDocument,
+					variables: {
+						secure_id: String(errors[next].error_group_secure_id),
+					},
+				})
+			}
 		},
 	})
 
