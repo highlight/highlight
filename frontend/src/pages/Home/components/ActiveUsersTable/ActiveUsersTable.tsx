@@ -11,7 +11,6 @@ import {
 import { useGetTopUsersQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgClockIcon from '@icons/ClockIcon'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { validateEmail } from '@util/string'
@@ -100,20 +99,14 @@ const ActiveUsersTable = ({
 					columns={Columns}
 					data={filteredTableData}
 					onClickHandler={(record) => {
-						history.push(`/${projectIdRemapped}/sessions`)
-						removeSelectedSegment()
-						setSearchParams({
-							...EmptySessionsSearchParams,
-							user_properties: [
-								{
-									id: record.id,
-									name: validateEmail(record.identifier)
-										? 'email'
-										: 'identifier',
-									value: record.identifier,
-								},
-							],
+						const userParam = validateEmail(record.identifier)
+							? 'email'
+							: 'identifier'
+						history.push({
+							pathname: `/${projectIdRemapped}/sessions`,
+							search: `?user_${userParam}%2Cis%2C${record.identifier}`,
 						})
+						removeSelectedSegment()
 						message.success(
 							`Showing sessions for ${record.identifier}`,
 						)
