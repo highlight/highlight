@@ -2,6 +2,7 @@ name: Python SDK
 
 on:
     push:
+        branches: ['main']
     pull_request:
         types: [opened, synchronize]
         paths:
@@ -10,7 +11,7 @@ on:
 
 jobs:
     build:
-        needs: code-quality-check
+        name: Python SDK
         runs-on: ubuntu-latest
         defaults:
             run:
