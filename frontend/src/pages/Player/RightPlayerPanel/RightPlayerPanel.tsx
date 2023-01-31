@@ -26,7 +26,6 @@ const RightPlayerPanel = () => {
 		rightPanelView,
 		setRightPanelView,
 		activeError,
-		activeNetworkResource,
 	} = usePlayerUIContext()
 
 	const showRightPanel = showRightPanelPreference && canViewSession
@@ -77,9 +76,6 @@ const RightPlayerPanel = () => {
 					setRightPanelView(RightPanelView.SESSION)
 					return null
 				}
-
-			case RightPanelView.RESOURCE:
-				return null
 		}
 	}, [activeError, activeEvent, rightPanelView, session, setRightPanelView])
 

@@ -37,8 +37,7 @@ const ErrorsPage = ({
 }) => {
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const history = useHistory<ErrorsPageHistoryState>()
-	const { errors, state, session, sessionMetadata, setTime } =
-		useReplayerContext()
+	const { errors, state, session, sessionMetadata } = useReplayerContext()
 
 	const { setActiveError, setRightPanelView } = usePlayerUIContext()
 
@@ -111,11 +110,6 @@ const ErrorsPage = ({
 							setSelectedError={() => {
 								setActiveError(error)
 								setRightPanelView(RightPanelView.ERROR)
-
-								setTime(
-									new Date(error.timestamp).getTime() -
-										sessionMetadata.startTime,
-								)
 							}}
 							searchQuery={filter}
 							current={index === lastActiveErrorIndex}
