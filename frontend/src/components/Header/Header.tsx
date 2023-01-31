@@ -19,7 +19,7 @@ import {
 	IconSolidDesktopComputer,
 	IconSolidDocumentText,
 	IconSolidDotsHorizontal,
-	IconSolidHome,
+	IconSolidLightningBolt,
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidQuestionMarkCircle,
@@ -27,7 +27,6 @@ import {
 	IconSolidSwitchHorizontal,
 	IconSolidUserCircle,
 	IconSolidViewGridAdd,
-	IconSolidXCircle,
 	Menu,
 	Text,
 } from '@highlight-run/ui'
@@ -80,16 +79,12 @@ export const Header = () => {
 
 	const pages = [
 		{
-			key: 'home',
-			icon: IconSolidHome,
+			key: 'sessions',
+			icon: IconSolidPlayCircle,
 		},
 		{
 			key: 'errors',
-			icon: IconSolidXCircle,
-		},
-		{
-			key: 'sessions',
-			icon: IconSolidPlayCircle,
+			icon: IconSolidLightningBolt,
 		},
 		{
 			key: 'alerts',
