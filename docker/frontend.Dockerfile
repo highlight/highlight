@@ -1,4 +1,4 @@
-FROM node:lts-bullseye as frontend-builder
+FROM node:lts-bullseye as frontend
 RUN apt update && apt install -y \
   build-essential \
   chromium \
@@ -58,3 +58,25 @@ COPY ../backend/localhostssl/server.crt ./backend/localhostssl/server.crt
 COPY ../backend/localhostssl/server.key ./backend/localhostssl/server.key
 
 CMD ["nginx", "-g", "daemon off;"]
+
+FROM frontend as cypress
+
+RUN apt update && apt install -y  \
+    libgtk2.0-0 \
+    libgtk-3-0  \
+    libgbm-dev \
+    libnotify-dev \
+    libgconf-2-4 \
+    libnss3  \
+    libxss1 \
+    libasound2 \
+    libxtst6 \
+    xauth \
+    xvfb \
+  && apt clean
+COPY ../cypress ./cypress
+COPY ../cypress.config.js ./cypress.config.js
+
+ENV REACT_APP_FRONTEND_URI=https://frontend:3000
+ENV REACT_APP_PRIVATE_GRAPH_URI=https://backend:8082/private
+ENV REACT_APP_PUBLIC_GRAPH_URI=https://backend:8082/public
