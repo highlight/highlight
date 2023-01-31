@@ -56,7 +56,6 @@ import (
 
 	"github.com/highlight-run/workerpool"
 
-	H "github.com/highlight-run/highlight-go"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -65,6 +64,7 @@ import (
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
+	H "github.com/highlight/highlight/sdk/highlight-go"
 )
 
 // This file will not be regenerated automatically.

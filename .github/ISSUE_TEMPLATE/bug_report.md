@@ -4,7 +4,6 @@ about: Create a report to help us improve
 title: ''
 labels: external bug / request
 assignees: ''
-
 ---
 
 **Describe the bug**

@@ -1,4 +1,4 @@
-module github.com/highlight-run/highlight-go
+module github.com/highlight/highlight/sdk/highlight-go
 
 go 1.19
 

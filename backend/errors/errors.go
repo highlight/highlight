@@ -250,7 +250,7 @@ func getURLSourcemap(projectId int, version *string, stackTraceFileURL string, s
 			return "", nil, err
 		}
 		sourceMapFilePath := u2.Path
-		if sourceMapFilePath[0:1] == "/" {
+		if len(sourceMapFilePath) > 1 && sourceMapFilePath[0:1] == "/" {
 			sourceMapFilePath = sourceMapFilePath[1:]
 		}
 		stackTraceError.ActualSourcemapFetchedPath = &sourceMapFilePath

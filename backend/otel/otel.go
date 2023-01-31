@@ -18,7 +18,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 )
 
-const Port = "4319"
+const HighlightProjectIDAttribute = "highlight_project_id"
 const HighlightSessionIDAttribute = "highlight_session_id"
 const HighlightRequestIDAttribute = "highlight_request_id"
 
@@ -64,6 +64,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var projectErrors = make(map[string][]*model.BackendErrorObjectInput)
 	var traceErrors = make(map[string][]*model.BackendErrorObjectInput)
 	spans := req.Traces().ResourceSpans()
 	for i := 0; i < spans.Len(); i++ {
@@ -79,8 +80,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					log.Errorf("failed to format error attributes %s", tagsBytes)
 				}
-				// TODO(vkorolik) could be nil for session-less errors
-				sessionID := attrs[HighlightSessionIDAttribute].(string)
+				var projectID, sessionID string
+				if p, ok := attrs[HighlightProjectIDAttribute]; ok {
+					projectID = p.(string)
+				}
+				if s, ok := attrs[HighlightSessionIDAttribute]; ok {
+					sessionID = s.(string)
+				}
 				requestID := attrs[HighlightRequestIDAttribute].(string)
 				events := span.Events()
 				for l := 0; l < events.Len(); l++ {
@@ -95,10 +101,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							Stacktrace: eventAttributes["exception.stacktrace"].(string),
 							Escaped:    eventAttributes["exception.escaped"].(string) == "true",
 						}
-						if _, ok := traceErrors[sessionID]; !ok {
-							traceErrors[sessionID] = []*model.BackendErrorObjectInput{}
-						}
-						traceErrors[sessionID] = append(traceErrors[sessionID], &model.BackendErrorObjectInput{
+						err := &model.BackendErrorObjectInput{
 							SessionSecureID: &sessionID,
 							RequestID:       &requestID,
 							TraceID:         pointy.String(span.TraceID().String()),
@@ -113,7 +116,20 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							StackTrace: exc.Stacktrace,
 							Timestamp:  event.Timestamp().AsTime(),
 							Payload:    pointy.String(string(tagsBytes)),
-						})
+						}
+						if sessionID != "" {
+							if _, ok := traceErrors[sessionID]; !ok {
+								traceErrors[sessionID] = []*model.BackendErrorObjectInput{}
+							}
+							traceErrors[sessionID] = append(traceErrors[sessionID], err)
+						} else if projectID != "" {
+							if _, ok := projectErrors[projectID]; !ok {
+								projectErrors[projectID] = []*model.BackendErrorObjectInput{}
+							}
+							projectErrors[projectID] = append(projectErrors[projectID], err)
+						} else {
+							log.Errorf("otel error got no session and no project %+v", *err)
+						}
 					}
 				}
 			}
@@ -128,7 +144,19 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				Errors:          errors,
 			}}, sessionID)
 		if err != nil {
-			log.Error(err, "failed to submit otel errors to public worker queue")
+			log.Error(err, "failed to submit otel session errors to public worker queue")
+		}
+	}
+
+	for projectID, errors := range projectErrors {
+		err = o.resolver.ProducerQueue.Submit(&kafkaqueue.Message{
+			Type: kafkaqueue.PushBackendPayload,
+			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
+				ProjectVerboseID: &projectID,
+				Errors:           errors,
+			}}, projectID)
+		if err != nil {
+			log.Error(err, "failed to submit otel project errors to public worker queue")
 		}
 	}
 

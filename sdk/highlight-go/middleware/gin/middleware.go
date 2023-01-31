@@ -5,16 +5,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/highlight-run/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 )
 
 // Middleware is a gin compatible middleware
 // use as follows:
 //
-// import highlightgin "github.com/highlight-run/highlight-go/middleware/gin"
+// import highlightgin "github.com/highlight/highlight/sdk/highlight-go/middleware/gin"
 // ...
 // r.Use(highlightgin.Middleware())
-//
 func Middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		highlightReqDetails := c.GetHeader("X-Highlight-Request")

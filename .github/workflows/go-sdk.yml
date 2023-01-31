@@ -4,7 +4,6 @@ on:
     push:
         branches:
             - '**'
-            - '!main'
         paths:
             - 'sdk/highlight-go/**'
             - '.github/workflows/go-sdk.yml'

@@ -1094,7 +1094,7 @@ const GoBackendInstructions = () => {
 					<code>highlight-go</code> package.
 				</p>
 				<CodeBlock
-					text="go get -u github.com/highlight-run/highlight-go"
+					text="go get -u github.com/highlight/highlight/sdk/highlight-go"
 					language="shell"
 				/>
 			</Section>
@@ -1105,7 +1105,7 @@ const GoBackendInstructions = () => {
 				</p>
 				<CodeBlock
 					text={`import (
-    "github.com/highlight-run/highlight-go"
+    "github.com/highlight/highlight/sdk/highlight-go"
 )
 
 func main() {
@@ -1127,7 +1127,7 @@ func main() {
 					<CodeBlock
 						language="go"
 						text={`import (
-    highlightChi "github.com/highlight-run/highlight-go/middleware/chi"
+    highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 )
 
 func main() {
@@ -1145,7 +1145,7 @@ func main() {
 					<CodeBlock
 						language="go"
 						text={`import (
-    highlightGin "github.com/highlight-run/highlight-go/middleware/gin"
+    highlightGin "github.com/highlight/highlight/sdk/highlight-go/middleware/gin"
 )
 
 func main() {
