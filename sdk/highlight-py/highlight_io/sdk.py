@@ -79,7 +79,7 @@ class H(object):
         request_id: typing.Optional[str] = "",
     ) -> None:
         """
-        Catch exceptions raised by your app using the `guard` context manager.
+        Catch exceptions raised by your app using this context manager.
         Exceptions will be recorded with the Highlight project and
         associated with a frontend session when headers are provided.
 
