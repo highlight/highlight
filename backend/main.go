@@ -349,8 +349,8 @@ func main() {
 		publicResolver := &public.Resolver{
 			DB:              db,
 			TDB:             tdb,
-			ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
-			BatchedQueue:    kafka_queue.New(os.Getenv("KAFKA_BATCH_TOPIC"), kafka_queue.Producer),
+			ProducerQueue:   kafka_queue.New(kafka_queue.GetTopic(false), kafka_queue.Producer),
+			BatchedQueue:    kafka_queue.New(kafka_queue.GetTopic(true), kafka_queue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
 			StorageClient:   storage,
 			AlertWorkerPool: alertWorkerpool,
@@ -443,11 +443,10 @@ func main() {
 		alertWorkerpool := workerpool.New(40)
 		alertWorkerpool.SetPanicHandler(util.Recover)
 		publicResolver := &public.Resolver{
-			DB:            db,
-			TDB:           tdb,
-			ProducerQueue: kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
-			// TODO(vkorolik) create topic env var
-			BatchedQueue:    kafka_queue.New(os.Getenv("KAFKA_BATCH_TOPIC"), kafka_queue.Producer),
+			DB:              db,
+			TDB:             tdb,
+			ProducerQueue:   kafka_queue.New(kafka_queue.GetTopic(false), kafka_queue.Producer),
+			BatchedQueue:    kafka_queue.New(kafka_queue.GetTopic(true), kafka_queue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
 			StorageClient:   storage,
 			AlertWorkerPool: alertWorkerpool,

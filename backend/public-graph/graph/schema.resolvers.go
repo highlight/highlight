@@ -108,24 +108,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		payloadID = pointy.Int(0)
 	}
 
-	// TODO(vkorolik) Only set for main Highlight project
-	// TODO(vkorolik) Only set for main Highlight project
-	logRows, err := r.Clickhouse.ParseConsoleMessages(projectID, sessionSecureID, messages)
-	if err != nil {
-		log.WithError(err).Error("failed to parse console messages")
-	} else {
-		if err := r.BatchedQueue.Submit(&kafkaqueue.Message{
-			Type: kafkaqueue.PushLogs,
-			PushLogs: &kafkaqueue.PushLogsArgs{
-				SessionSecureID: sessionSecureID,
-				LogRows:         logRows,
-			}}, sessionSecureID); err != nil {
-			// If there's an issue with Clickhouse, we'll just log for investigation instead of building up a kafka backlog
-			log.WithError(err).Error("error writing console messages to clickhouse")
-		}
-	}
-
-	err = r.ProducerQueue.Submit(&kafkaqueue.Message{
+	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.PushPayload,
 		PushPayload: &kafkaqueue.PushPayloadArgs{
 			SessionSecureID:    sessionSecureID,
@@ -186,7 +169,7 @@ func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *stri
 		Type: kafkaqueue.MarkBackendSetup,
 		MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 			ProjectVerboseID: projectID,
-			SecureID:         sessionSecureID,
+			SessionSecureID:  sessionSecureID,
 		}}, partitionKey)
 	return nil, err
 }
@@ -196,11 +179,11 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionSecure
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.AddSessionFeedback,
 		AddSessionFeedback: &kafkaqueue.AddSessionFeedbackArgs{
-			SecureID:  sessionSecureID,
-			UserName:  userName,
-			UserEmail: userEmail,
-			Verbatim:  verbatim,
-			Timestamp: timestamp,
+			SessionSecureID: sessionSecureID,
+			UserName:        userName,
+			UserEmail:       userEmail,
+			Verbatim:        verbatim,
+			Timestamp:       timestamp,
 		}}, sessionSecureID)
 
 	return sessionSecureID, err

@@ -3,12 +3,12 @@ package worker
 import (
 	"context"
 	"github.com/highlight-run/highlight/backend/clickhouse"
-
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"time"
 )
 
 func (k *KafkaWorker) processWorkerError(task *kafkaqueue.Message, err error) {
@@ -61,34 +61,51 @@ func (k *KafkaWorker) ProcessMessages() {
 	}
 }
 
+const BatchedFlushTimeout = 5 * time.Second
+
 type KafkaWorker struct {
 	KafkaQueue   *kafkaqueue.Queue
 	Worker       *Worker
 	WorkerThread int
 }
 
+func (k *KafkaBatchWorker) flush() {
+	var logRows []*clickhouse.LogRow
+
+	for _, msg := range k.messageQueue {
+		switch msg.Type {
+		case kafkaqueue.PushLogs:
+			logRows = append(logRows, msg.PushLogs.LogRows...)
+		}
+	}
+
+	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(context.Background(), logRows)
+	if err != nil {
+		log.Error(err)
+	}
+
+	k.KafkaQueue.Commit(k.messageQueue[len(k.messageQueue)-1].KafkaMessage)
+	k.messageQueue = []*kafkaqueue.Message{}
+}
+
 func (k *KafkaBatchWorker) ProcessMessages() {
 	for {
 		func() {
 			defer util.Recover()
+
+			oldest := k.messageQueue[0]
+			if time.Since(oldest.KafkaMessage.Time) > BatchedFlushTimeout {
+				k.flush()
+			}
+
 			task := k.KafkaQueue.Receive()
 			if task == nil {
 				return
 			}
 
-			// TODO(vkorolik) make this generic to all message types
-			switch task.Type {
-			case kafkaqueue.PushLogs:
-				k.messageQueue = append(k.messageQueue, task)
-			}
-
+			k.messageQueue = append(k.messageQueue, task)
 			if len(k.messageQueue) >= k.BatchFlushSize {
-				var logRows []*clickhouse.LogRow
-				for _, msg := range k.messageQueue {
-					logRows = append(logRows, msg.PushLogs.LogRows...)
-				}
-				k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(context.Background(), logRows)
-				k.KafkaQueue.Commit(k.messageQueue[len(k.messageQueue)-1].KafkaMessage)
+				k.flush()
 			}
 		}()
 	}
@@ -100,5 +117,6 @@ type KafkaBatchWorker struct {
 	WorkerThread int
 
 	BatchFlushSize int
-	messageQueue   []*kafkaqueue.Message
+	// does not need to be atomic as each goroutine is a KafkaBatchWorker and this buffer is not shared
+	messageQueue []*kafkaqueue.Message
 }
