@@ -56,6 +56,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
 	github.com/highlight-run/workerpool v1.3.0
+	github.com/highlight/highlight/sdk/highlight-go v0.0.0-20230131021708-5e49c38cebf3
 	github.com/influxdata/influxdb-client-go/v2 v2.9.1
 	github.com/jackc/pgconn v1.10.1
 	github.com/kylelemons/godebug v1.1.0
@@ -108,6 +109,7 @@ require (
 	github.com/go-faster/errors v0.6.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
+	github.com/hasura/go-graphql-client v0.3.0 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -141,6 +143,7 @@ require (
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20220617031537-928513b29760 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	inet.af/netaddr v0.0.0-20220617031823-097006376321 // indirect
+	nhooyr.io/websocket v1.8.7 // indirect
 )
 
 require (
