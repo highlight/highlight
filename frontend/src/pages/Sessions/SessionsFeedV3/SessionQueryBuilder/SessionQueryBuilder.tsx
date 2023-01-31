@@ -3,7 +3,6 @@ import {
 	useGetFieldTypesQuery,
 } from '@graph/hooks'
 import { SearchParamsInput } from '@graph/schemas'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import {
 	BOOLEAN_OPERATORS,
@@ -23,21 +22,18 @@ import QueryBuilder, {
 	serializeRules,
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { useParams } from '@util/react-router/useParams'
-import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params'
+import { QueryBuilderStateParam } from '@util/url/params'
 import { isEqual } from 'lodash'
 import moment from 'moment'
 import React, { useEffect } from 'react'
 import {
-	ArrayParam,
-	BooleanParam,
 	JsonParam,
 	NumberParam,
-	StringParam,
 	useQueryParam,
 	useQueryParams,
 } from 'use-query-params'
 
-const InitialSearchParamsForUrl = {
+export const InitialSearchParamsForUrl = {
 	browser: undefined,
 	date_range: undefined,
 	device_id: undefined,
@@ -273,36 +269,7 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 	})
 	const searchContext = useSearchContext()
 
-	const {
-		searchParams,
-		setSearchParams,
-		page,
-		setPage,
-		selectedSegment,
-		setSelectedSegment,
-	} = searchContext
-
-	const [searchParamsToUrlParams, setSearchParamsToUrlParams] =
-		useQueryParams({
-			user_properties: FieldArrayParam,
-			identified: BooleanParam,
-			browser: StringParam,
-			date_range: JsonParam,
-			excluded_properties: FieldArrayParam,
-			hide_viewed: BooleanParam,
-			length_range: JsonParam,
-			os: StringParam,
-			referrer: StringParam,
-			track_properties: FieldArrayParam,
-			excluded_track_properties: FieldArrayParam,
-			visited_url: StringParam,
-			first_time: BooleanParam,
-			device_id: StringParam,
-			show_live_sessions: BooleanParam,
-			environments: ArrayParam,
-			app_versions: ArrayParam,
-			query: QueryBuilderStateParam,
-		})
+	const { page, selectedSegment, setSelectedSegment } = searchContext
 
 	const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
 		'segment',
@@ -323,51 +290,6 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 			)
 		}
 	}, [setPaginationToUrlParams, page])
-
-	useEffect(() => {
-		const areAnySearchParamsSet = !isEqual(
-			EmptySessionsSearchParams,
-			searchParams,
-		)
-
-		// Handles the case where the user is loading the page from a link shared from another user that has search params in the URL.
-		if (!selectedSegment && areAnySearchParamsSet) {
-			// `undefined` values will not be persisted to the URL.
-			// Because of that, we only want to change the values from `undefined`
-			// to the actual value when the value is different to the empty state.
-			const searchParamsToReflectInUrl = {
-				...InitialSearchParamsForUrl,
-			}
-			Object.keys(searchParams).forEach((key) => {
-				// @ts-expect-error
-				const currentSearchParam = searchParams[key]
-				// @ts-expect-error
-				const emptySearchParam = EmptySessionsSearchParams[key]
-				if (Array.isArray(currentSearchParam)) {
-					if (currentSearchParam.length !== emptySearchParam.length) {
-						// @ts-expect-error
-						searchParamsToReflectInUrl[key] = currentSearchParam
-					}
-				} else if (currentSearchParam !== emptySearchParam) {
-					// @ts-expect-error
-					searchParamsToReflectInUrl[key] = currentSearchParam
-				}
-			})
-
-			setSearchParamsToUrlParams(searchParamsToReflectInUrl, 'replaceIn')
-		}
-	}, [setSearchParamsToUrlParams, searchParams, selectedSegment])
-
-	useEffect(() => {
-		if (!isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {
-			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
-		}
-		if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
-			setPage(paginationToUrlParams.page)
-		}
-		// We only want to run this on mount (i.e. when the page first loads).
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
 
 	// Session Segment Deep Linking
 	useEffect(() => {
