@@ -61,6 +61,7 @@ func (k *KafkaWorker) ProcessMessages() {
 	}
 }
 
+const BatchFlushSize = 1000
 const BatchedFlushTimeout = 5 * time.Second
 
 type KafkaWorker struct {
@@ -69,7 +70,10 @@ type KafkaWorker struct {
 	WorkerThread int
 }
 
-func (k *KafkaBatchWorker) flush() {
+func (k *KafkaBatchWorker) flush(ctx context.Context) {
+	s, _ := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.flush"))
+	defer s.Finish()
+
 	var logRows []*clickhouse.LogRow
 
 	for _, msg := range k.messageQueue {
@@ -92,20 +96,25 @@ func (k *KafkaBatchWorker) ProcessMessages() {
 	for {
 		func() {
 			defer util.Recover()
+			s, ctx := tracer.StartSpanFromContext(context.Background(), "kafkaWorker", tracer.ResourceName("worker.kafka.batched.process"))
+			s.SetTag("worker.goroutine", k.WorkerThread)
+			defer s.Finish()
 
 			oldest := k.messageQueue[0]
 			if time.Since(oldest.KafkaMessage.Time) > BatchedFlushTimeout {
-				k.flush()
+				k.flush(ctx)
 			}
 
+			s1, _ := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.receive"))
 			task := k.KafkaQueue.Receive()
+			s1.Finish()
 			if task == nil {
 				return
 			}
 
 			k.messageQueue = append(k.messageQueue, task)
-			if len(k.messageQueue) >= k.BatchFlushSize {
-				k.flush()
+			if len(k.messageQueue) >= BatchFlushSize {
+				k.flush(ctx)
 			}
 		}()
 	}
@@ -116,7 +125,6 @@ type KafkaBatchWorker struct {
 	Worker       *Worker
 	WorkerThread int
 
-	BatchFlushSize int
 	// does not need to be atomic as each goroutine is a KafkaBatchWorker and this buffer is not shared
 	messageQueue []*kafkaqueue.Message
 }
