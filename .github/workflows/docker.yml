@@ -40,5 +40,5 @@ jobs:
               run: |
                   cd docker
                   docker compose up -d --build --remove-orphans
-                  docker compose exec -T postgres psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < ../scripts/migrations/init.sql
+                  docker compose exec -T postgres psql -h postgres -U postgres postgres < ../scripts/migrations/init.sql
                   docker compose run cypress
