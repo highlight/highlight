@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/v2/ast"
+	"go.opentelemetry.io/otel/attribute"
 	"strings"
 	"testing"
 
@@ -18,16 +19,15 @@ func TestConsumeError(t *testing.T) {
 	ctx = context.WithValue(ctx, ContextKeys.SessionSecureID, "0")
 	ctx = context.WithValue(ctx, ContextKeys.RequestID, "0")
 	tests := map[string]struct {
-		errorInput         interface{}
+		errorInput         error
 		contextInput       context.Context
-		tags               []string
+		tags               []attribute.KeyValue
 		expectedFlushSize  int
 		expectedEvent      string
 		expectedStackTrace string
 		expectedError      error
 	}{
 		"test builtin error":                                {expectedFlushSize: 1, contextInput: ctx, errorInput: fmt.Errorf("error here"), expectedEvent: "error here", expectedStackTrace: "error here"},
-		"test builtin error with invalid context":           {expectedFlushSize: 0, contextInput: context.Background(), errorInput: fmt.Errorf("error here"), expectedError: fmt.Errorf(consumeErrorSessionIDMissing)},
 		"test simple github.com/pkg/errors error":           {expectedFlushSize: 1, contextInput: ctx, errorInput: errors.New("error here"), expectedEvent: "error here", expectedStackTrace: `["github.com/highlight/highlight/sdk/highlight-go.TestConsumeError /Users/cameronbrill/Projects/work/Highlight/highlight-go/highlight_test.go:27","testing.tRunner /usr/local/opt/go/libexec/src/testing/testing.go:1259","runtime.goexit /usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1581"]`},
 		"test github.com/pkg/errors error with stack trace": {expectedFlushSize: 1, contextInput: ctx, errorInput: errors.Wrap(errors.New("error here"), "error there"), expectedEvent: "error there: error here", expectedStackTrace: `["github.com/highlight/highlight/sdk/highlight-go.TestConsumeError /Users/cameronbrill/Projects/work/Highlight/highlight-go/highlight_test.go:28","testing.tRunner /usr/local/opt/go/libexec/src/testing/testing.go:1259","runtime.goexit /usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1581"]`},
 	}
@@ -35,7 +35,7 @@ func TestConsumeError(t *testing.T) {
 	for name, input := range tests {
 		t.Run(name, func(t *testing.T) {
 			Start()
-			ConsumeError(input.contextInput, input.errorInput, input.tags...)
+			RecordError(input.contextInput, input.errorInput, input.tags...)
 			a, _ := flush()
 			if len(a) != input.expectedFlushSize {
 				t.Errorf("flush returned the wrong number of errors [%v != %v]", len(a), input.expectedFlushSize)

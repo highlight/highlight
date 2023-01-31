@@ -3,7 +3,6 @@ package highlight
 import (
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -75,9 +74,7 @@ var (
 )
 
 const (
-	consumeErrorSessionIDMissing = "context does not contain highlightSessionSecureID; context must have injected values from highlight.InterceptRequest"
-	consumeErrorRequestIDMissing = "context does not contain highlightRequestID; context must have injected values from highlight.InterceptRequest"
-	consumeErrorWorkerStopped    = "highlight worker stopped"
+	consumeErrorWorkerStopped = "highlight worker stopped"
 )
 
 // Logger is an interface that implements Log and Logf
@@ -161,8 +158,8 @@ func (m mockRequester) trigger(errorsInput []*BackendErrorObjectInput, metricsIn
 }
 
 type BackendErrorObjectInput struct {
-	SessionSecureID graphql.String  `json:"session_secure_id"`
-	RequestID       graphql.String  `json:"request_id"`
+	SessionSecureID *graphql.String `json:"session_secure_id"`
+	RequestID       *graphql.String `json:"request_id"`
 	Event           graphql.String  `json:"event"`
 	Type            graphql.String  `json:"type"`
 	URL             graphql.String  `json:"url"`
@@ -199,6 +196,7 @@ func init() {
 // Start is used to start the Highlight client's collection service.
 func Start() {
 	StartWithContext(context.Background())
+	_, _ = StartOTLP()
 }
 
 // StartWithContext is used to start the Highlight client's collection
@@ -313,70 +311,6 @@ func MarkBackendSetup(ctx context.Context) {
 	}
 }
 
-// ConsumeError adds an error to the queue of errors to be sent to our backend.
-// the provided context must have the injected highlight keys from InterceptRequestWithContext.
-func ConsumeError(ctx context.Context, errorInput interface{}, tags ...string) {
-	sessionSecureID, requestID, err := validateRequest(ctx)
-	if err != nil {
-		logger.Errorf("[highlight-go] %v", err)
-		return
-	}
-
-	defer wg.Done()
-	wg.Add(1)
-	timestamp := time.Now().UTC()
-
-	tagsBytes, err := json.Marshal(tags)
-	if err != nil {
-		logger.Errorf("[highlight-go] %v", errors.Wrap(err, "error marshaling tags"))
-		return
-	}
-	tagsString := string(tagsBytes)
-	convertedError := BackendErrorObjectInput{
-		SessionSecureID: graphql.String(fmt.Sprintf("%v", sessionSecureID)),
-		RequestID:       graphql.String(fmt.Sprintf("%v", requestID)),
-		Type:            metricCategory,
-		Timestamp:       timestamp,
-		Payload:         (*graphql.String)(&tagsString),
-	}
-
-	switch e := errorInput.(type) {
-	case stackTracer:
-		stack := e.StackTrace()
-		if len(stack) < 1 {
-			err := errors.New("no stack frames in stack trace for stackTracer errors")
-			logger.Errorf("[highlight-go] %v", err)
-		}
-		var stackFrames []string
-		for _, frame := range stack {
-			frameBytes, err := frame.MarshalText()
-			if err != nil {
-				logger.Errorf("[highlight-go] %v", errors.Wrap(err, "error marshaling frame text"))
-				return
-			}
-			stackFrames = append(stackFrames, string(frameBytes))
-		}
-		convertedError.Event = graphql.String(fmt.Sprintf("%v", e.Error()))
-		stackFramesBytes, err := json.Marshal(stackFrames)
-		if err != nil {
-			logger.Errorf("[highlight-go] %v", errors.Wrap(err, "error marshaling stack frames"))
-			return
-		}
-		convertedError.StackTrace = graphql.String(stackFramesBytes)
-	case error:
-		convertedError.Event = graphql.String(e.Error())
-		convertedError.StackTrace = graphql.String(e.Error())
-	default:
-		convertedError.Event = graphql.String(fmt.Sprintf("%v", e))
-		convertedError.StackTrace = graphql.String(fmt.Sprintf("%v", e))
-	}
-	select {
-	case errorChan <- convertedError:
-	default:
-		logger.Errorf("[highlight-go] error channel full. discarding value for %s", sessionSecureID)
-	}
-}
-
 // RecordMetric is used to record arbitrary metrics in your golang backend.
 // Highlight will process these metrics in the context of your session and expose them
 // through dashboards. For example, you may want to record the latency of a DB query
@@ -418,23 +352,11 @@ func validateRequest(ctx context.Context) (sessionSecureID string, requestID str
 	}
 	if v := ctx.Value(ContextKeys.SessionSecureID); v != nil {
 		sessionSecureID = v.(string)
-	} else {
-		err = errors.New(consumeErrorSessionIDMissing)
-		return
 	}
 	if v := ctx.Value(ContextKeys.RequestID); v != nil {
 		requestID = v.(string)
-	} else {
-		err = errors.New(consumeErrorRequestIDMissing)
-		return
 	}
 	return
-}
-
-// stackTracer implements the errors.StackTrace() interface function
-type stackTracer interface {
-	StackTrace() errors.StackTrace
-	Error() string
 }
 
 func flush() ([]*BackendErrorObjectInput, []*MetricInput) {
