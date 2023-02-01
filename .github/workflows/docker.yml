@@ -31,14 +31,16 @@ jobs:
               with:
                   submodules: true
 
-            - name: Build docker images
-              run: |
-                  cd docker
-                  docker compose build
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v2
 
-            - name: Start docker containers
+            - name: Build & start docker containers
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
               run: |
                   cd docker;
+                  export FIREBASE_SECRET=$(doppler secrets get --plain FIREBASE_SECRET);
+                  export REACT_APP_FIREBASE_CONFIG_OBJECT=$(doppler secrets get --plain REACT_APP_FIREBASE_CONFIG_OBJECT);
                   docker compose up -d --build --remove-orphans;
                   docker compose exec -T postgres psql -h postgres -U postgres postgres < ../scripts/migrations/init.sql;
                   docker compose run cypress;
