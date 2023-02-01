@@ -11,10 +11,8 @@ import { ErrorContext } from './errorContext.js'
 
 import * as opentelemetry from '@opentelemetry/sdk-node'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
-import {
-	BasicTracerProvider,
-	BatchSpanProcessor,
-} from '@opentelemetry/sdk-trace-base'
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base'
+import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import {
 	diag,
@@ -23,6 +21,7 @@ import {
 	DiagLogLevel,
 	Tracer,
 } from '@opentelemetry/api'
+import { Resource } from '@opentelemetry/resources'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -40,6 +39,7 @@ export class Highlight {
 	private tracer: Tracer
 
 	constructor(options: NodeOptions) {
+		this._projectID = options.projectID
 		this._backendUrl = options.backendUrl || 'https://pub.highlight.run'
 		const client = new GraphQLClient(this._backendUrl, {
 			headers: {},
@@ -50,7 +50,12 @@ export class Highlight {
 			diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG)
 		}
 
-		const provider = new BasicTracerProvider()
+		const resource = Resource.default().merge(
+			new Resource({
+				['highlight_project_id']: this._projectID,
+			}),
+		)
+		const provider = new NodeTracerProvider({ resource: resource })
 		const exporter = new OTLPTraceExporter({
 			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
 		})
@@ -74,7 +79,6 @@ export class Highlight {
 				sourceContextCacheSizeMB: options.errorSourceContextCacheSizeMB,
 			})
 		}
-		this._projectID = options.projectID
 	}
 
 	recordMetric(

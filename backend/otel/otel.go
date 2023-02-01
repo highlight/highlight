@@ -37,6 +37,18 @@ func castString(v interface{}) string {
 	return s
 }
 
+func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID *string) {
+	if p, ok := attrs[HighlightProjectIDAttribute]; ok {
+		*projectID = p.(string)
+	}
+	if s, ok := attrs[HighlightSessionIDAttribute]; ok {
+		*sessionID = s.(string)
+	}
+	if r, ok := attrs[HighlightRequestIDAttribute]; ok {
+		*requestID = r.(string)
+	}
+}
+
 func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -71,7 +83,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	var traceErrors = make(map[string][]*model.BackendErrorObjectInput)
 	spans := req.Traces().ResourceSpans()
 	for i := 0; i < spans.Len(); i++ {
+		var projectID, sessionID, requestID string
 		resource := spans.At(i).Resource()
+		resourceAttributes := resource.Attributes().AsRaw()
+		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID)
 		scopeScans := spans.At(i).ScopeSpans()
 		for j := 0; j < scopeScans.Len(); j++ {
 			scope := scopeScans.At(j).Scope()
@@ -83,20 +98,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					log.Errorf("failed to format error attributes %s", tagsBytes)
 				}
-				var projectID, sessionID, requestID string
-				if p, ok := attrs[highlight.ProjectIDAttribute]; ok {
-					projectID = p.(string)
-				}
-				if s, ok := attrs[highlight.SessionIDAttribute]; ok {
-					sessionID = s.(string)
-				}
-				if r, ok := attrs[highlight.RequestIDAttribute]; ok {
-					requestID = r.(string)
-				}
+				setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID)
 				events := span.Events()
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
 					eventAttributes := event.Attributes().AsRaw()
+					setHighlightAttributes(eventAttributes, &projectID, &sessionID, &requestID)
 					excType, hasType := eventAttributes["exception.type"]
 					excMessage, hasMessage := eventAttributes["exception.message"]
 					if hasType || hasMessage {
@@ -135,7 +142,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							}
 							projectErrors[projectID] = append(projectErrors[projectID], err)
 						} else {
-							log.Errorf("otel error got no session and no project %+v", *err)
+							data, _ := req.MarshalJSON()
+							log.Errorf("otel error got no session and no project %+v %s", *err, data)
 						}
 					}
 				}
