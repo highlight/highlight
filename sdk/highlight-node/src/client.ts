@@ -1,38 +1,24 @@
 import {
-	BackendErrorObjectInput,
 	getSdk,
 	InputMaybe,
 	MetricInput,
-	PushBackendPayloadMutationVariables,
 	PushMetricsMutationVariables,
 	Sdk,
 } from './graph/generated/operations'
-import ErrorStackParser from 'error-stack-parser'
 import { GraphQLClient } from 'graphql-request'
 import { NodeOptions } from './types.js'
 import { ErrorContext } from './errorContext.js'
 
-// Represents a stack frame with added lines of source code
-// before, after, and for the line of the current error
-export interface StackFrameWithSource
-	extends Pick<
-		StackFrame,
-		| 'args'
-		| 'evalOrigin'
-		| 'isConstructor'
-		| 'isEval'
-		| 'isNative'
-		| 'isToplevel'
-		| 'columnNumber'
-		| 'lineNumber'
-		| 'fileName'
-		| 'functionName'
-		| 'source'
-	> {
-	lineContent?: string
-	linesBefore?: string
-	linesAfter?: string
-}
+import * as opentelemetry from '@opentelemetry/sdk-node'
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
+import {
+	BasicTracerProvider,
+	BatchSpanProcessor,
+} from '@opentelemetry/sdk-trace-base'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import { trace, Tracer } from '@opentelemetry/api'
+
+const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
 export class Highlight {
 	readonly FLUSH_TIMEOUT = 10
@@ -40,11 +26,12 @@ export class Highlight {
 	_graphqlSdk: Sdk
 	_backendUrl: string
 	_intervalFunction: ReturnType<typeof setInterval>
-	errors: Array<InputMaybe<BackendErrorObjectInput>> = []
 	metrics: Array<InputMaybe<MetricInput>> = []
 	lastBackendSetupEvent: number = 0
 	_errorContext: ErrorContext | undefined
 	_projectID: string
+	private otel: opentelemetry.NodeSDK
+	private tracer: Tracer
 
 	constructor(options: NodeOptions) {
 		this._backendUrl = options.backendUrl || 'https://pub.highlight.run'
@@ -52,6 +39,22 @@ export class Highlight {
 			headers: {},
 		})
 		this._graphqlSdk = getSdk(client)
+
+		const provider = new BasicTracerProvider()
+		const exporter = new OTLPTraceExporter({
+			url: `${OTLP_HTTP}/v1/traces`,
+		})
+		provider.addSpanProcessor(new BatchSpanProcessor(exporter))
+		provider.register()
+
+		this.otel = new opentelemetry.NodeSDK({
+			traceExporter: exporter,
+			instrumentations: [getNodeAutoInstrumentations()],
+		})
+		this.otel.start()
+
+		this.tracer = trace.getTracer('highlight-node')
+
 		this._intervalFunction = setInterval(
 			() => this.flush(),
 			this.FLUSH_TIMEOUT * 1000,
@@ -87,42 +90,17 @@ export class Highlight {
 		secureSessionId: string | undefined,
 		requestId: string | undefined,
 	) {
-		let res: StackFrameWithSource[] = []
-		try {
-			res = ErrorStackParser.parse(error)
-			res = res.map((frame) => {
-				try {
-					if (
-						frame.fileName !== undefined &&
-						frame.lineNumber !== undefined
-					) {
-						const context =
-							this._errorContext?.getStackFrameContext(
-								frame.fileName,
-								frame.lineNumber,
-							)
-						return { ...frame, ...context }
-					}
-				} catch {}
-
-				// If the frame doesn't have filename or line number defined, or
-				// an error was thrown while getting the stack frame context, return
-				// the original frame.
-				return frame
-			})
-		} catch {}
-		this.errors.push({
-			event: error.message
-				? `${error.name}: ${error.message}`
-				: `${error.name}`,
-			request_id: requestId,
-			session_secure_id: secureSessionId,
-			source: '',
-			stackTrace: JSON.stringify(res),
-			timestamp: new Date().toISOString(),
-			type: 'BACKEND',
-			url: '',
+		let span = trace.getActiveSpan()
+		if (!span) {
+			span = this.tracer.startSpan('highlight-ctx')
+		}
+		span.recordException(error)
+		span.setAttributes({
+			highlight_project_id: this._projectID,
+			highlight_session_id: secureSessionId,
+			highlight_trace_id: requestId,
 		})
+		span.end()
 	}
 
 	consumeCustomEvent(secureSessionId?: string) {
@@ -143,22 +121,6 @@ export class Highlight {
 		}
 	}
 
-	async flushErrors() {
-		if (this.errors.length === 0) {
-			return
-		}
-		const variables: PushBackendPayloadMutationVariables = {
-			project_id: this._projectID,
-			errors: this.errors,
-		}
-		this.errors = []
-		try {
-			await this._graphqlSdk.PushBackendPayload(variables)
-		} catch (e) {
-			console.warn('highlight-node pushErrors error: ', e)
-		}
-	}
-
 	async flushMetrics() {
 		if (this.metrics.length === 0) {
 			return
@@ -175,6 +137,6 @@ export class Highlight {
 	}
 
 	async flush() {
-		await Promise.all([this.flushErrors(), this.flushMetrics()])
+		await Promise.all([this.flushMetrics()])
 	}
 }
