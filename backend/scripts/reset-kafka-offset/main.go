@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	k := kafkaqueue.New(kafkaqueue.GetTopic(false), kafkaqueue.Consumer)
+	k := kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Consumer)
 	err := k.Rewind(24 * 7 * time.Hour)
 	if err != nil {
 		log.Error(err)

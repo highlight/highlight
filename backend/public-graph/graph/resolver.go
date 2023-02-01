@@ -2701,7 +2701,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		defer unmarshalMessagesSpan.Finish()
 
-		logRows, err := r.Clickhouse.ParseConsoleMessages(projectID, sessionSecureID, messages)
+		logRows, err := clickhouse.ParseConsoleMessages(projectID, sessionSecureID, messages)
 		if err != nil {
 			log.WithError(err).Error("failed to parse console messages")
 		} else {
