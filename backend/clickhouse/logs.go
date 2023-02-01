@@ -58,7 +58,7 @@ type Messages struct {
 	Messages []Message `json:"messages"`
 }
 
-func (client *Client) ParseConsoleMessages(projectID int, sessionSecureID string, messages string) ([]*LogRow, error) {
+func ParseConsoleMessages(projectID int, sessionSecureID string, messages string) ([]*LogRow, error) {
 	messagesParsed := Messages{}
 	if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
 		return nil, e.Wrap(err, "error decoding message data")
@@ -78,7 +78,7 @@ func (client *Client) ParseConsoleMessages(projectID int, sessionSecureID string
 }
 
 func (client *Client) BatchWriteMessagesForSession(ctx context.Context, projectID int, sessionSecureID string, messages string) error {
-	messagesParsed, err := client.ParseConsoleMessages(projectID, sessionSecureID, messages)
+	messagesParsed, err := ParseConsoleMessages(projectID, sessionSecureID, messages)
 	if err != nil {
 		return e.Wrap(err, "error decoding message data")
 	}

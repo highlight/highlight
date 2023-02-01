@@ -66,10 +66,14 @@ type MessageQueue interface {
 	LogStats()
 }
 
-func GetTopic(batched bool) string {
+type GetTopicOptions struct {
+	Batched bool
+}
+
+func GetTopic(options GetTopicOptions) string {
 	topic := os.Getenv("KAFKA_TOPIC")
 	topic = fmt.Sprintf("%s_%s", EnvironmentPrefix, topic)
-	if batched {
+	if options.Batched {
 		topic = fmt.Sprintf("%s_%s", topic, BatchedTopicSuffix)
 	}
 	return topic

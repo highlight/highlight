@@ -83,9 +83,9 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 		}
 	}
 
-	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(context.Background(), logRows)
+	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctx, logRows)
 	if err != nil {
-		log.Error(err)
+		log.WithContext(ctx).WithError(err).Error("failed to batch write to clickhouse")
 	}
 
 	k.KafkaQueue.Commit(k.messageQueue[len(k.messageQueue)-1].KafkaMessage)
