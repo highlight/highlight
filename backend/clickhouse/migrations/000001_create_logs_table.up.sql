@@ -23,5 +23,5 @@ CREATE TABLE IF NOT EXISTS logs_new
     ENGINE = MergeTree
         PARTITION BY toDate(Timestamp)
         ORDER BY (ProjectId, toUnixTimestamp(Timestamp), TraceId)
-        TTL toDateTime(Timestamp) + toIntervalDay(3)
+        TTL toDateTime(Timestamp) + toIntervalDay(30)
         SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
