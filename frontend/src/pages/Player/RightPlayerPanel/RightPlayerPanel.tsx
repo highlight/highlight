@@ -44,12 +44,6 @@ const RightPlayerPanel = () => {
 		}
 	}, [setSelectedRightPanelTab, setShowRightPanel])
 
-	useEffect(() => {
-		if (sessionSecureId) {
-			setRightPanelView(RightPanelView.SESSION)
-		}
-	}, [sessionSecureId, setRightPanelView])
-
 	const content = useMemo(() => {
 		if (!session) return <LoadingBox />
 

@@ -11,7 +11,11 @@ import {
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
-import type { ErrorInstance as ErrorInstanceType, Maybe } from '@graph/schemas'
+import type {
+	ErrorInstance as ErrorInstanceType,
+	ErrorObject,
+	Maybe,
+} from '@graph/schemas'
 import {
 	Box,
 	Heading,
@@ -22,6 +26,10 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
+import {
+	RightPanelView,
+	usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
@@ -118,6 +126,8 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		setShowDevTools,
 		setSelectedDevToolsTab,
 	} = usePlayerConfiguration()
+
+	const { setActiveError, setRightPanelView } = usePlayerUIContext()
 
 	const goToErrorInstance = (
 		errorInstanceId: Maybe<string> | undefined,
@@ -297,6 +307,10 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								setShowRightPanel(true)
 								setShowDevTools(true)
 								setSelectedDevToolsTab(Tab.Errors)
+								setActiveError(
+									errorInstance?.error_object as ErrorObject,
+								)
+								setRightPanelView(RightPanelView.ERROR)
 							}}
 							iconLeft={<IconSolidPlay />}
 							trackingId="errorInstanceShowSession"
