@@ -291,7 +291,7 @@ export const H: HighlightPublicInterface = {
 			}
 		}
 
-		if (!H.options?.integrations?.mixpanel?.disabled) {
+		if (!H.options?.integrations?.amplitude?.disabled) {
 			if (window.amplitude?.getInstance) {
 				window.amplitude.getInstance().setUserId(identifier)
 
