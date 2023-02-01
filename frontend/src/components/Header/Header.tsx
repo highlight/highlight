@@ -221,7 +221,7 @@ export const Header = () => {
 												</Menu.Item>
 											</Link>
 											<Link
-												to={`/${project_id}/home`}
+												to={`/${project_id}/analytics`}
 												className={linkStyle}
 											>
 												<Menu.Item>
