@@ -148,7 +148,6 @@ const DashboardsRouter = () => {
 				<title>Dashboards</title>
 			</Helmet>
 			<Switch>
-				{/* TODO: Should we remove? */}
 				<Route exact path="/:project_id/home">
 					<HomePageV2 />
 				</Route>
