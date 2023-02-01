@@ -10,8 +10,8 @@ import {
 } from '@highlight-run/ui'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import { useDevToolsContext } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext'
 import { NetworkPage } from '@pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
 import {
 	DEV_TOOLS_MIN_HEIGHT,
@@ -37,7 +37,6 @@ const DevToolsWindowV2: React.FC<
 		width: number
 	}
 > = (props) => {
-	const { openDevTools } = useDevToolsContext()
 	const { isPlayerFullscreen } = usePlayerUIContext()
 	const { time } = useReplayerContext()
 	const [tab, setTab] = React.useState<Tab>(Tab.Console)
@@ -59,8 +58,9 @@ const DevToolsWindowV2: React.FC<
 	const { height } = useWindowSize()
 	const maxHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, height / 2)
 	const defaultHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, maxHeight / 2)
+	const { showDevTools } = usePlayerConfiguration()
 
-	if (!openDevTools || isPlayerFullscreen) {
+	if (!showDevTools || isPlayerFullscreen) {
 		return null
 	}
 

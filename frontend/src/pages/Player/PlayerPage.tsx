@@ -36,11 +36,13 @@ import {
 } from '@pages/Player/ResourcesContext/ResourcesContext'
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
 import SessionLevelBarV2 from '@pages/Player/SessionLevelBar/SessionLevelBarV2'
+import { DevTools } from '@pages/Player/Toolbar/DevTools'
 import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel'
 import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
+import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks'
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
@@ -59,9 +61,6 @@ import useResizeAware from 'react-resize-aware'
 
 import WaitingAnimation from '../../lottie/waiting.json'
 import * as style from './styles.css'
-import { DevTools } from './Toolbar/DevTools'
-import { DevToolsContextProvider } from './Toolbar/DevToolsContext/DevToolsContext'
-import { ToolbarItemsContextProvider } from './Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 
 interface Props {
 	integrated: boolean
@@ -101,18 +100,8 @@ const PlayerPage = ({ integrated }: Props) => {
 	const {
 		setShowLeftPanel,
 		showLeftPanel: showLeftPanelPreference,
-		showDevTools,
-		setShowDevTools,
-		selectedDevToolsTab,
-		setSelectedDevToolsTab,
 		showRightPanel,
 	} = usePlayerConfiguration()
-	const devToolsContext = {
-		openDevTools: showDevTools,
-		setOpenDevTools: setShowDevTools,
-		devToolsTab: selectedDevToolsTab,
-		setDevToolsTab: setSelectedDevToolsTab,
-	}
 
 	const toolbarContext = useToolbarItems()
 
@@ -492,52 +481,50 @@ const PlayerPage = ({ integrated }: Props) => {
 			<ReplayerContextProvider value={playerContext}>
 				<ResourcesContextProvider value={resourcesContext}>
 					<ToolbarItemsContextProvider value={toolbarContext}>
-						<DevToolsContextProvider value={devToolsContext}>
-							<Helmet>
-								<title>{getTabTitle(session)}</title>
-							</Helmet>
-							{!integrated && <IntegrationCard />}
-							{isPlayerReady && !isLoggedIn && (
-								<PlayerPageProductTour />
-							)}
+						<Helmet>
+							<title>{getTabTitle(session)}</title>
+						</Helmet>
+						{!integrated && <IntegrationCard />}
+						{isPlayerReady && !isLoggedIn && (
+							<PlayerPageProductTour />
+						)}
+						<Box
+							cssClass={clsx(style.playerBody, {
+								[style.withLeftPanel]: showLeftPanel,
+							})}
+							height="full"
+							width="full"
+							overflow="hidden"
+						>
 							<Box
-								cssClass={clsx(style.playerBody, {
-									[style.withLeftPanel]: showLeftPanel,
+								cssClass={clsx(style.playerLeftPanel, {
+									[style.playerLeftPanelHidden]:
+										!showLeftPanel,
 								})}
-								height="full"
-								width="full"
-								overflow="hidden"
 							>
-								<Box
-									cssClass={clsx(style.playerLeftPanel, {
-										[style.playerLeftPanelHidden]:
-											!showLeftPanel,
-									})}
-								>
-									<SessionFeedV3 />
-								</Box>
-								<div
-									id="playerCenterPanel"
-									className={style.playerCenterPanel}
-									ref={playerCenterPanelRef}
-								>
-									{showSession ? sessionView : sessionFiller}
-								</div>
-								<UnauthorizedViewingForm />
-								<NewCommentModal
-									newCommentModalRef={newCommentModalRef}
-									commentModalPosition={commentModalPosition}
-									commentPosition={commentPosition}
-									commentTime={time}
-									session={session}
-									session_secure_id={session_secure_id}
-									onCancel={() => {
-										setCommentModalPosition(undefined)
-									}}
-									currentUrl={currentUrl}
-								/>
+								<SessionFeedV3 />
 							</Box>
-						</DevToolsContextProvider>
+							<div
+								id="playerCenterPanel"
+								className={style.playerCenterPanel}
+								ref={playerCenterPanelRef}
+							>
+								{showSession ? sessionView : sessionFiller}
+							</div>
+							<UnauthorizedViewingForm />
+							<NewCommentModal
+								newCommentModalRef={newCommentModalRef}
+								commentModalPosition={commentModalPosition}
+								commentPosition={commentPosition}
+								commentTime={time}
+								session={session}
+								session_secure_id={session_secure_id}
+								onCancel={() => {
+									setCommentModalPosition(undefined)
+								}}
+								currentUrl={currentUrl}
+							/>
+						</Box>
 					</ToolbarItemsContextProvider>
 				</ResourcesContextProvider>
 			</ReplayerContextProvider>

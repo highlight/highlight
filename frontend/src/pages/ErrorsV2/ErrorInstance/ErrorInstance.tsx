@@ -12,9 +12,18 @@ import {
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
 import type { ErrorInstance as ErrorInstanceType, Maybe } from '@graph/schemas'
-import { Box, Heading, IconSolidPlay, Text, Tooltip } from '@highlight-run/ui'
+import {
+	Box,
+	Heading,
+	IconSolidExternalLink,
+	IconSolidPlay,
+	Text,
+	Tooltip,
+} from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import {
@@ -28,7 +37,6 @@ import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
 import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { FiExternalLink } from 'react-icons/fi'
 import { useHistory } from 'react-router-dom'
 
 const MAX_USER_PROPERTIES = 4
@@ -103,6 +111,13 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		() => goToErrorInstance(errorInstance?.previous_id, 'previous'),
 		[errorInstance?.previous_id],
 	)
+
+	const {
+		setShowLeftPanel,
+		setShowRightPanel,
+		setShowDevTools,
+		setSelectedDevToolsTab,
+	} = usePlayerConfiguration()
 
 	const goToErrorInstance = (
 		errorInstanceId: Maybe<string> | undefined,
@@ -269,13 +284,20 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 							kind="primary"
 							emphasis="high"
 							disabled={!isLoggedIn}
-							onClick={() =>
-								isLoggedIn
-									? history.push(
-											`/${projectId}/sessions/${errorObject.session?.secure_id}`,
-									  )
-									: null
-							}
+							onClick={() => {
+								if (!isLoggedIn) {
+									return
+								}
+
+								history.push(
+									`/${projectId}/sessions/${errorObject.session?.secure_id}` +
+										`?tsAbs=${errorObject.timestamp}`,
+								)
+								setShowLeftPanel(false)
+								setShowRightPanel(true)
+								setShowDevTools(true)
+								setSelectedDevToolsTab(Tab.Errors)
+							}}
 							iconLeft={<IconSolidPlay />}
 							trackingId="errorInstanceShowSession"
 						>
@@ -474,7 +496,7 @@ const User: React.FC<{
 						<Button
 							kind="secondary"
 							emphasis="high"
-							iconRight={<FiExternalLink />}
+							iconRight={<IconSolidExternalLink />}
 							disabled={!isLoggedIn}
 							onClick={() => {
 								if (!isLoggedIn) {
