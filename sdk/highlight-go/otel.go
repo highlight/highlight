@@ -54,11 +54,11 @@ func StartOTLP() (*OTLP, error) {
 // RecordError processes `err` to be recorded as a part of the session or network request.
 // Highlight session and trace are inferred from the context.
 // If no sessionID is set, then the error is associated with the project without a session context.
-func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) {
-	session, request, err := validateRequest(ctx)
-	if err != nil {
-		logger.Errorf("[highlight-go] %v", err)
-		return
+func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) context.Context {
+	session, request, e := validateRequest(ctx)
+	if e != nil {
+		logger.Errorf("[highlight-go] %v", e)
+		return ctx
 	}
 	ctx, span := tracer.Start(ctx, "highlight-ctx")
 	defer span.End()
@@ -67,8 +67,7 @@ func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) {
 		attribute.String("highlight_session_id", session),
 		attribute.String("highlight_trace_id", request),
 	}
-	for _, t := range tags {
-		attrs = append(attrs, t)
-	}
+	attrs = append(attrs, tags...)
 	span.RecordError(err, trace.WithAttributes(attrs...))
+	return ctx
 }

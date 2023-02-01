@@ -6,7 +6,6 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/v2/ast"
 	"go.opentelemetry.io/otel/attribute"
-	"strings"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -36,21 +35,6 @@ func TestConsumeError(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			Start()
 			RecordError(input.contextInput, input.errorInput, input.tags...)
-			a, _ := flush()
-			if len(a) != input.expectedFlushSize {
-				t.Errorf("flush returned the wrong number of errors [%v != %v]", len(a), input.expectedFlushSize)
-				return
-			}
-			if len(a) < 1 {
-				return
-			}
-			if string(a[0].Event) != input.expectedEvent {
-				t.Errorf("event not equal to expected event: %v != %v", a[0].Event, input.expectedEvent)
-			}
-			// strings.Contains() is here because the actual stack trace will differ from machine to machine, because file paths are different.
-			if string(a[0].StackTrace) != input.expectedStackTrace && !strings.Contains(string(a[0].StackTrace), "highlight_test.go") {
-				t.Errorf("stack trace not equal to expected stack trace: %v != %v", a[0].StackTrace, input.expectedStackTrace)
-			}
 		})
 	}
 	Stop()
@@ -80,7 +64,7 @@ func TestRecordMetric(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			Start()
 			RecordMetric(input.contextInput, input.metricInput.name, input.metricInput.value)
-			_, a := flush()
+			a := flush()
 			if len(a) != input.expectedFlushSize {
 				t.Errorf("flush returned the wrong number of metrics [%v != %v]", len(a), input.expectedFlushSize)
 				return
@@ -127,7 +111,7 @@ func TestTracer(t *testing.T) {
 			t.Errorf("got invalid response from intercept field")
 		}
 
-		_, a := flush()
+		a := flush()
 		// size, duration, errorsCount, fields duration
 		if len(a) != 4 {
 			t.Errorf("flush returned the wrong number of metrics [%v != %v]", len(a), 4)
