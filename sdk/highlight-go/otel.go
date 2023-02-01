@@ -3,7 +3,6 @@ package highlight
 import (
 	"context"
 	"fmt"
-	backendOtel "github.com/highlight-run/highlight/backend/otel"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -15,6 +14,9 @@ import (
 )
 
 const OTLPHTTPEndpoint = "https://otel.highlight.io:4318"
+const ProjectIDAttribute = "highlight_project_id"
+const SessionIDAttribute = "highlight_session_id"
+const RequestIDAttribute = "highlight_trace_id"
 
 type OTLP struct {
 	tracerProvider *sdktrace.TracerProvider
@@ -71,9 +73,9 @@ func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) con
 	ctx, span := tracer.Start(ctx, "highlight-ctx")
 	defer span.End()
 	attrs := []attribute.KeyValue{
-		attribute.String(backendOtel.HighlightProjectIDAttribute, projectID),
-		attribute.String(backendOtel.HighlightSessionIDAttribute, sessionID),
-		attribute.String(backendOtel.HighlightRequestIDAttribute, requestID),
+		attribute.String(ProjectIDAttribute, projectID),
+		attribute.String(SessionIDAttribute, sessionID),
+		attribute.String(RequestIDAttribute, requestID),
 	}
 	attrs = append(attrs, tags...)
 	span.RecordError(err, trace.WithAttributes(attrs...))
