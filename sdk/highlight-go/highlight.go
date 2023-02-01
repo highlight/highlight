@@ -59,6 +59,7 @@ const (
 var (
 	state      appState // 0 is idle, 1 is started, 2 is stopped
 	stateMutex sync.RWMutex
+	otlp       *OTLP
 )
 
 const backendSetupCooldown = 15
@@ -167,7 +168,11 @@ func init() {
 // Start is used to start the Highlight client's collection service.
 func Start() {
 	StartWithContext(context.Background())
-	_, _ = StartOTLP()
+	var err error
+	otlp, err = StartOTLP()
+	if err != nil {
+		logger.Errorf("failed to start opentelemetry exporter: %s", err)
+	}
 }
 
 // StartWithContext is used to start the Highlight client's collection
