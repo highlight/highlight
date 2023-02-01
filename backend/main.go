@@ -37,14 +37,14 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/httplog"
 	"github.com/gorilla/websocket"
-	H "github.com/highlight-run/highlight-go"
-	highlightChi "github.com/highlight-run/highlight-go/middleware/chi"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
+	H "github.com/highlight/highlight/sdk/highlight-go"
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/stripe/stripe-go/v72/client"
@@ -344,6 +344,19 @@ func main() {
 			}
 			defer profiler.Stop()
 		}
+		alertWorkerpool := workerpool.New(40)
+		alertWorkerpool.SetPanicHandler(util.Recover)
+		publicResolver := &public.Resolver{
+			DB:              db,
+			TDB:             tdb,
+			ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
+			MailClient:      sendgrid.NewSendClient(sendgridKey),
+			StorageClient:   storage,
+			AlertWorkerPool: alertWorkerpool,
+			OpenSearch:      opensearchClient,
+			Redis:           redisClient,
+			RH:              &rh,
+		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
 			publicEndpoint = "/"
@@ -351,22 +364,10 @@ func main() {
 		r.Route(publicEndpoint, func(r chi.Router) {
 			r.Use(public.PublicMiddleware)
 			r.Use(highlightChi.Middleware)
-			alertWorkerpool := workerpool.New(40)
-			alertWorkerpool.SetPanicHandler(util.Recover)
 
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
-					Resolvers: &public.Resolver{
-						DB:              db,
-						TDB:             tdb,
-						ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
-						MailClient:      sendgrid.NewSendClient(sendgridKey),
-						StorageClient:   storage,
-						AlertWorkerPool: alertWorkerpool,
-						OpenSearch:      opensearchClient,
-						Redis:           redisClient,
-						RH:              &rh,
-					},
+					Resolvers: publicResolver,
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
 			publicServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
@@ -375,12 +376,15 @@ func main() {
 				publicServer,
 			)
 		})
+		otelHandler := otel.New(publicResolver)
+		otelHandler.Listen(r)
 	}
 
 	if util.IsDevOrTestEnv() {
 		log.Info("overwriting highlight-go graphql client address...")
 		H.SetGraphqlClientAddress("https://localhost:8082/public")
 	}
+	H.SetProjectID("1jdkoe52")
 	H.Start()
 	defer H.Stop()
 	H.SetDebugMode(log.StandardLogger())
@@ -468,7 +472,6 @@ func main() {
 				go func() {
 					w.Start()
 				}()
-				go otel.Listen()
 				if util.IsDevEnv() {
 					log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 				} else {
@@ -481,7 +484,6 @@ func main() {
 			}()
 			// for the 'All' worker, explicitly run the PublicWorker as well
 			go w.PublicWorker()
-			go otel.Listen()
 			if util.IsDevEnv() {
 				log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 			} else {
@@ -489,7 +491,6 @@ func main() {
 			}
 		}
 	} else {
-		go otel.Listen()
 		if util.IsDevEnv() {
 			log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 		} else {

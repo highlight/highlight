@@ -3,7 +3,7 @@ package util
 import (
 	"context"
 
-	"github.com/highlight-run/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/pkg/errors"

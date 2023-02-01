@@ -27,8 +27,8 @@ export type Scalars = {
 export type BackendErrorObjectInput = {
 	event: Scalars['String']
 	payload?: InputMaybe<Scalars['String']>
-	request_id: Scalars['String']
-	session_secure_id: Scalars['String']
+	request_id?: InputMaybe<Scalars['String']>
+	session_secure_id?: InputMaybe<Scalars['String']>
 	source: Scalars['String']
 	stackTrace: Scalars['String']
 	timestamp: Scalars['Timestamp']
@@ -121,6 +121,7 @@ export type MutationMarkBackendSetupArgs = {
 
 export type MutationPushBackendPayloadArgs = {
 	errors: Array<InputMaybe<BackendErrorObjectInput>>
+	project_id?: InputMaybe<Scalars['String']>
 }
 
 export type MutationPushMetricsArgs = {

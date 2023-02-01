@@ -478,17 +478,21 @@ func (r *Resolver) getIncrementedEnvironmentCount(errorGroup *model.ErrorGroup, 
 	return environmentsString
 }
 
-func (r *Resolver) getMappedStackTraceString(stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []privateModel.ErrorTrace, error) {
+func (r *Resolver) GetErrorAppVersion(errorObj *model.ErrorObject) *string {
 	// get version from session
-	var version *string
-	if err := r.DB.Model(&model.Session{}).
+	var session *model.Session
+	if err := r.DB.Model(&session).
 		Where("id = ?", errorObj.SessionID).
-		Select("app_version").Scan(&version).Error; err != nil {
+		Pluck("app_version", &session).Error; err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil, e.Wrap(err, "error getting app version from session")
+			return nil
 		}
 	}
+	return session.AppVersion
+}
 
+func (r *Resolver) getMappedStackTraceString(stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []privateModel.ErrorTrace, error) {
+	version := r.GetErrorAppVersion(errorObj)
 	var newMappedStackTraceString *string
 	mappedStackTrace, err := errors.EnhanceStackTrace(stackTrace, projectID, version, r.StorageClient)
 	if err != nil {
@@ -1135,7 +1139,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	projectID, err := model.FromVerboseID(input.ProjectVerboseID)
 	if err != nil {
-		log.Errorf("An unsupported verboseID was used: %s, %s", input.ProjectVerboseID, input.ClientConfig)
+		return nil, e.Wrapf(err, "An unsupported verboseID was used: %s, %s", input.ProjectVerboseID, input.ClientConfig)
 	}
 
 	existingSession, err := r.getExistingSession(projectID, input.SessionSecureID)
@@ -1423,17 +1427,25 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	return session, nil
 }
 
-func (r *Resolver) MarkBackendSetupImpl(sessionSecureID string, projectID int) error {
+func (r *Resolver) MarkBackendSetupImpl(projectVerboseID *string, sessionSecureID *string, projectID int) error {
 	if projectID == 0 {
-		if sessionSecureID == "" {
-			return e.New("MarkBackendSetupImpl called without secureID")
+		if projectVerboseID != nil {
+			var err error
+			projectID, err = model.FromVerboseID(*projectVerboseID)
+			if err != nil {
+				log.Errorf("An unsupported verboseID was used: %v", projectVerboseID)
+			}
+		} else {
+			if sessionSecureID == nil {
+				return e.New("MarkBackendSetupImpl called without secureID")
+			}
+			session := &model.Session{}
+			if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: *sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
+				log.Error(e.Wrapf(err, "no session found for mark backend setup: %v", sessionSecureID))
+				return err
+			}
+			projectID = session.ProjectID
 		}
-		session := &model.Session{}
-		if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
-			log.Error(e.Wrapf(err, "no session found for mark backend setup: %s", sessionSecureID))
-			return err
-		}
-		projectID = session.ProjectID
 	}
 	var backendSetupCount int64
 	if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
@@ -2216,17 +2228,31 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, errorsByProject map[in
 	}
 }
 
-func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureID string, errorObjects []*publicModel.BackendErrorObjectInput) {
+func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureID *string, projectVerboseID *string, errorObjects []*publicModel.BackendErrorObjectInput) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
 	querySessionSpan.SetTag("numberOfErrors", len(errorObjects))
 	querySessionSpan.SetTag("numberOfSessions", 1)
 
+	var sessionID *int
 	session := &model.Session{}
-	if r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session); session.ID == 0 {
-		retErr := e.New("ProcessBackendPayloadImpl failed to find session " + sessionSecureID)
-		querySessionSpan.Finish(tracer.WithError(retErr))
-		log.Error(retErr)
-		return
+	if sessionSecureID != nil {
+		if r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: *sessionSecureID}).Limit(1).Find(&session); session.ID == 0 {
+			retErr := e.New("ProcessBackendPayloadImpl failed to find session " + *sessionSecureID)
+			querySessionSpan.Finish(tracer.WithError(retErr))
+			log.Error(retErr)
+			return
+		}
+		sessionID = &session.ID
+	}
+
+	projectID := session.ProjectID
+	if projectVerboseID != nil {
+		var err error
+		projectID, err = model.FromVerboseID(*projectVerboseID)
+		if err != nil {
+			log.Error(e.Wrapf(err, "An unsupported verboseID was used: %s", *projectVerboseID))
+			return
+		}
 	}
 
 	querySessionSpan.Finish()
@@ -2244,7 +2270,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 				objString = string(objBytes)
 			}
 			log.WithFields(log.Fields{
-				"project_id":        session.ProjectID,
+				"project_id":        projectID,
 				"session_secure_id": errorObject.SessionSecureID,
 				"error_object":      objString,
 			}).Warn("caught empty error, continuing...")
@@ -2262,8 +2288,10 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	errorsByProject := make(map[int]int64)
 	errorsBySession := make(map[string]int64)
 	for _, err := range errorObjects {
-		errorsBySession[err.SessionSecureID] += 1
-		errorsByProject[session.ProjectID] += 1
+		if err.SessionSecureID != nil {
+			errorsBySession[*err.SessionSecureID] += 1
+		}
+		errorsByProject[projectID] += 1
 	}
 
 	r.updateErrorsCount(ctx, errorsByProject, errorsBySession, len(errorObjects), model.ErrorType.BACKEND)
@@ -2285,10 +2313,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 		traceString := string(traceBytes)
 
-		projectID := session.ProjectID
 		errorToInsert := &model.ErrorObject{
 			ProjectID:   projectID,
-			SessionID:   session.ID,
+			SessionID:   sessionID,
+			TraceID:     v.TraceID,
+			SpanID:      v.SpanID,
 			Environment: session.Environment,
 			Event:       v.Event,
 			Type:        model.ErrorType.BACKEND,
@@ -2299,7 +2328,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			StackTrace:  &traceString,
 			Timestamp:   v.Timestamp,
 			Payload:     v.Payload,
-			RequestID:   &v.RequestID,
+			RequestID:   v.RequestID,
 		}
 
 		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, extractErrorFields(session, errorToInsert), projectID)
@@ -2326,7 +2355,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		errorGroup := groups[groupID].Group
 		if err := r.RecordErrorGroupMetrics(errorGroup, errorObjects); err != nil {
 			log.WithFields(log.Fields{
-				"project_id":     session.ProjectID,
+				"project_id":     projectID,
 				"error_group_id": groupID,
 			}).Error(err)
 		}
@@ -2346,22 +2375,25 @@ func (r *Resolver) RecordErrorGroupMetrics(errorGroup *model.ErrorGroup, errors 
 	var points []timeseries.Point
 	sessions := make(map[int]*model.Session)
 	for _, e := range errors {
-		if _, ok := sessions[e.SessionID]; !ok {
+		if e.SessionID == nil {
+			continue
+		}
+		if _, ok := sessions[*e.SessionID]; !ok {
 			var sess model.Session
 			if err := r.DB.Model(&model.Session{}).Where(
-				&model.Session{Model: model.Model{ID: e.SessionID}},
+				&model.Session{Model: model.Model{ID: *e.SessionID}},
 			).First(&sess).Error; err != nil {
 				return err
 			}
-			sessions[e.SessionID] = &sess
+			sessions[*e.SessionID] = &sess
 		}
 		tags := map[string]string{
 			"ErrorGroupID": strconv.Itoa(errorGroup.ID),
-			"SessionID":    strconv.Itoa(e.SessionID),
+			"SessionID":    strconv.Itoa(*e.SessionID),
 		}
-		identifier := sessions[e.SessionID].Identifier
+		identifier := sessions[*e.SessionID].Identifier
 		if identifier == "" {
-			identifier = sessions[e.SessionID].ClientID
+			identifier = sessions[*e.SessionID].ClientID
 		}
 		fields := map[string]interface{}{
 			"Environment": e.Environment,
@@ -2738,7 +2770,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	g.Go(func() error {
 		defer util.Recover()
 		if hasBeacon {
-			r.DB.Where(&model.ErrorObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
+			r.DB.Where(&model.ErrorObject{SessionID: &sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
 		}
 		// filter out empty errors
 		seenEvents := map[string]*publicModel.ErrorObjectInput{}
@@ -2788,7 +2820,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 			errorToInsert := &model.ErrorObject{
 				ProjectID:    projectID,
-				SessionID:    sessionID,
+				SessionID:    &sessionID,
 				Environment:  sessionObj.Environment,
 				Event:        v.Event,
 				Type:         v.Type,

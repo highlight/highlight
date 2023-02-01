@@ -28,7 +28,7 @@ export interface HighlightInterface {
 }
 
 export const H: HighlightInterface = {
-	init: (options: NodeOptions = {}) => {
+	init: (options: NodeOptions) => {
 		if (!NodeH.isInitialized()) {
 			NodeH.init(options)
 		}
@@ -64,19 +64,20 @@ declare type ApiHandler<T extends HasHeaders, S extends HasStatus> = (
 ) => unknown | Promise<unknown>
 
 export const Highlight =
-	(options: NodeOptions = {}) =>
+	(options: NodeOptions) =>
 	<T extends HasHeaders, S extends HasStatus>(
 		origHandler: ApiHandler<T, S>,
 	): ApiHandler<T, S> => {
 		return async (req, res) => {
+			if (!NodeH.isInitialized()) {
+				NodeH.init(options)
+			}
+
 			const processHighlightHeaders = () => {
 				if (req.headers && req.headers[HIGHLIGHT_REQUEST_HEADER]) {
 					const [secureSessionId, requestId] =
 						`${req.headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
 					if (secureSessionId && requestId) {
-						if (!NodeH.isInitialized()) {
-							NodeH.init(options)
-						}
 						;(
 							global as typeof globalThis & HighlightGlobal
 						).__HIGHLIGHT__ = { secureSessionId, requestId }
@@ -93,12 +94,10 @@ export const Highlight =
 			try {
 				return await origHandler(req, res)
 			} catch (e) {
-				if (secureSessionId && requestId) {
-					NodeH.consumeEvent(secureSessionId)
-					if (e instanceof Error) {
-						NodeH.consumeError(e, secureSessionId, requestId)
-						await NodeH.flush()
-					}
+				NodeH.consumeEvent(secureSessionId)
+				if (e instanceof Error) {
+					NodeH.consumeError(e, secureSessionId, requestId)
+					await NodeH.flush()
 				}
 				// Because we're going to finish and send the transaction before passing the error onto nextjs, it won't yet
 				// have had a chance to set the status to 500, so unless we do it ourselves now, we'll incorrectly report that

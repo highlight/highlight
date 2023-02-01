@@ -86,6 +86,8 @@ type Logger interface {
 	Errorf(format string, v ...interface{})
 }
 
+var projectID string
+
 // log is this packages logger
 var logger struct {
 	Logger
@@ -112,12 +114,13 @@ type graphqlRequester struct{}
 func (g graphqlRequester) trigger(errorsInput []*BackendErrorObjectInput, metricsInputs []*MetricInput) error {
 	if len(errorsInput) > 0 && len(metricsInputs) > 0 {
 		var mutation struct {
-			PushBackendPayload string `graphql:"pushBackendPayload(errors: $errors)"`
+			PushBackendPayload string `graphql:"pushBackendPayload(project_id: $project_id, errors: $errors)"`
 			PushMetrics        string `graphql:"pushMetrics(metrics: $metrics)"`
 		}
 		variables := map[string]interface{}{
-			"errors":  errorsInput,
-			"metrics": metricsInputs,
+			"project_id": projectID,
+			"errors":     errorsInput,
+			"metrics":    metricsInputs,
 		}
 		err := client.Mutate(context.Background(), &mutation, variables)
 		if err != nil {
@@ -125,9 +128,12 @@ func (g graphqlRequester) trigger(errorsInput []*BackendErrorObjectInput, metric
 		}
 	} else if len(errorsInput) > 0 {
 		var mutation struct {
-			PushBackendPayload string `graphql:"pushBackendPayload(errors: $errors)"`
+			PushBackendPayload string `graphql:"pushBackendPayload(project_id: $project_id, errors: $errors)"`
 		}
-		variables := map[string]interface{}{"errors": errorsInput}
+		variables := map[string]interface{}{
+			"project_id": projectID,
+			"errors":     errorsInput,
+		}
 		err := client.Mutate(context.Background(), &mutation, variables)
 		if err != nil {
 			return err
@@ -261,6 +267,10 @@ func SetGraphqlClientAddress(newGraphqlClientAddress string) {
 
 func SetDebugMode(l Logger) {
 	logger.Logger = l
+}
+
+func SetProjectID(id string) {
+	projectID = id
 }
 
 // InterceptRequest calls InterceptRequestWithContext using the request object's context

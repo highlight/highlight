@@ -2,15 +2,13 @@ name: Backend
 
 on:
     push:
-        branches:
-            - '**'
+        branches: ['main']
+    pull_request:
+        types: [opened, synchronize]
         paths:
             - 'backend/**'
             - 'sdk/highlight-go/**'
             - '.github/workflows/backend.yml'
-            - '!backend/migrations'
-    pull_request:
-        types: [opened]
 
 jobs:
     changes:
