@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"gorm.io/gorm"
 	"html/template"
 	"io"
 	"net/http"
@@ -99,20 +98,20 @@ func init() {
 	runtimeParsed = util.Runtime(*runtimeFlag)
 }
 
-func healthRouter(runtimeFlag util.Runtime, db *gorm.DB) http.HandlerFunc {
+func healthRouter(runtimeFlag util.Runtime) http.HandlerFunc {
+	// only checks kafka because kafka is the only critical infrastructure needed for public graph to be healthy.
+	topic := kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: false})
+	queue := kafka_queue.New(topic, kafka_queue.Producer)
+	batchedTopic := kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: true})
+	batchedQueue := kafka_queue.New(batchedTopic, kafka_queue.Producer)
 	return func(w http.ResponseWriter, r *http.Request) {
-		var value int
-		if err := db.Raw(`SELECT 1`).First(&value).Error; err != nil || value != 1 {
-			http.Error(w, "failed to query postgres", 500)
+		if err := queue.Submit(&kafka_queue.Message{Type: kafka_queue.HealthCheck}, "health"); err != nil {
+			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", topic), 500)
 			return
 		}
-		for _, batched := range []bool{false, true} {
-			topic := kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: batched})
-			queue := kafka_queue.New(topic, kafka_queue.Producer)
-			if err := queue.Submit(&kafka_queue.Message{Type: kafka_queue.HealthCheck}, "health"); err != nil || value != 1 {
-				http.Error(w, fmt.Sprintf("failed to write message to kafka %s", topic), 500)
-				return
-			}
+		if err := batchedQueue.Submit(&kafka_queue.Message{Type: kafka_queue.HealthCheck}, "health"); err != nil {
+			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", batchedTopic), 500)
+			return
 		}
 		_, err := w.Write([]byte(fmt.Sprintf("%v is healthy", runtimeFlag)))
 		if err != nil {
@@ -272,7 +271,7 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"*"},
 	}).Handler)
-	r.HandleFunc("/health", healthRouter(runtimeParsed, db))
+	r.HandleFunc("/health", healthRouter(runtimeParsed))
 
 	zapierStore := zapier.ZapierResthookStore{
 		DB: db,
