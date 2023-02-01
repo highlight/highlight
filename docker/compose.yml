@@ -188,7 +188,6 @@ services:
             - docker:frontend
         build:
             context: ..
-            target: frontend
             dockerfile: docker/frontend.Dockerfile
             args:
                 - REACT_APP_DEMO_SESSION
@@ -210,36 +209,6 @@ services:
             - REACT_APP_ONPREM
             - REACT_APP_PRIVATE_GRAPH_URI
             - REACT_APP_PUBLIC_GRAPH_URI
-
-    cypress:
-        container_name: cypress
-        profiles:
-            - donotstart
-        command:
-            - bash
-            - -c
-            - 'npx -y wait-on https://frontend:3000/index.html http://frontend:8080/dist/index.js https://backend:8082/health && yarn cy:run'
-        build:
-            context: ..
-            target: cypress
-            dockerfile: docker/frontend.Dockerfile
-            args:
-                - REACT_APP_DEMO_SESSION
-                - REACT_APP_ENVIRONMENT
-                - REACT_APP_FIREBASE_CONFIG_OBJECT
-                - REACT_APP_FRONTEND_ORG
-                - REACT_APP_FRONTEND_URI=https://frontend:3000
-                - REACT_APP_ONPREM
-                - REACT_APP_PRIVATE_GRAPH_URI=https://backend:8082/private
-                - REACT_APP_PUBLIC_GRAPH_URI=https://backend:8082/public
-        environment:
-            - ENVIRONMENT
-            - RENDER_PREVIEW
-            - REACT_APP_DEMO_SESSION
-            - REACT_APP_ENVIRONMENT
-            - REACT_APP_FIREBASE_CONFIG_OBJECT
-            - REACT_APP_FRONTEND_ORG
-            - REACT_APP_ONPREM
 
 volumes:
     postgres-data:

@@ -45,4 +45,14 @@ jobs:
                   docker compose up -d --build --remove-orphans;
 
                   docker compose exec -T postgres psql -h postgres -U postgres postgres < ../scripts/migrations/init.sql;
-                  docker compose run cypress;
+
+            - name: Run Cypress tests
+              uses: cypress-io/github-action@v5
+              with:
+                  install: false
+                  # frontend dependencies of ci:frontend are built prior by ci:build
+                  start: doppler run -- yarn ci:frontend, doppler run -- yarn ci:backend
+                  wait-on: 'https://localhost:3000, http://localhost:8080/dist/index.js, https://localhost:8082/health'
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
+                  NODE_EXTRA_CA_CERTS: ./backend/localhostssl/server.crt
