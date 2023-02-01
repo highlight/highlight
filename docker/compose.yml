@@ -98,6 +98,7 @@ services:
         container_name: backend
         image: public.ecr.aws/k9o6n7l8/highlight
         ports:
+            - 2345:2345
             - 8082:8082
         build:
             context: ..
