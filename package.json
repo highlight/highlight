@@ -9,6 +9,7 @@
 		"concurrently": "^6.5.1"
 	},
 	"workspaces": [
+		"examples/*",
 		"packages/*",
 		"frontend",
 		"sdk/client",

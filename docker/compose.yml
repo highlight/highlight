@@ -129,7 +129,7 @@ services:
             - DEMO_SESSION
             - DEPLOYMENT_KEY
             - DOPPLER_CONFIG
-            - ENABLE_OBJECT_STORAGE=false
+            - ENABLE_OBJECT_STORAGE
             - ENVIRONMENT
             - FIREBASE_SECRET
             - FRONTEND_URI
