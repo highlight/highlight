@@ -169,7 +169,7 @@ func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *stri
 		Type: kafkaqueue.MarkBackendSetup,
 		MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 			ProjectVerboseID: projectID,
-			SessionSecureID:  sessionSecureID,
+			SecureID:         sessionSecureID,
 		}}, partitionKey)
 	return nil, err
 }
@@ -179,11 +179,11 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionSecure
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.AddSessionFeedback,
 		AddSessionFeedback: &kafkaqueue.AddSessionFeedbackArgs{
-			SessionSecureID: sessionSecureID,
-			UserName:        userName,
-			UserEmail:       userEmail,
-			Verbatim:        verbatim,
-			Timestamp:       timestamp,
+			SecureID:  sessionSecureID,
+			UserName:  userName,
+			UserEmail: userEmail,
+			Verbatim:  verbatim,
+			Timestamp: timestamp,
 		}}, sessionSecureID)
 
 	return sessionSecureID, err

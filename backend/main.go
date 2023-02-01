@@ -349,8 +349,7 @@ func main() {
 		publicResolver := &public.Resolver{
 			DB:              db,
 			TDB:             tdb,
-			ProducerQueue:   kafka_queue.New(kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: false}), kafka_queue.Producer),
-			BatchedQueue:    kafka_queue.New(kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: true}), kafka_queue.Producer),
+			ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
 			StorageClient:   storage,
 			AlertWorkerPool: alertWorkerpool,
@@ -445,8 +444,7 @@ func main() {
 		publicResolver := &public.Resolver{
 			DB:              db,
 			TDB:             tdb,
-			ProducerQueue:   kafka_queue.New(kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: false}), kafka_queue.Producer),
-			BatchedQueue:    kafka_queue.New(kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: true}), kafka_queue.Producer),
+			ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
 			StorageClient:   storage,
 			AlertWorkerPool: alertWorkerpool,

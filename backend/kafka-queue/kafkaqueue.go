@@ -24,7 +24,6 @@ import (
 const KafkaOperationTimeout = 25 * time.Second
 
 const ConsumerGroupName = "group-default"
-const BatchedTopicSuffix = "batched"
 
 const (
 	taskRetries           = 5
@@ -64,19 +63,6 @@ type MessageQueue interface {
 	Receive() *Message
 	Submit(*Message, int)
 	LogStats()
-}
-
-type GetTopicOptions struct {
-	Batched bool
-}
-
-func GetTopic(options GetTopicOptions) string {
-	topic := os.Getenv("KAFKA_TOPIC")
-	topic = fmt.Sprintf("%s_%s", EnvironmentPrefix, topic)
-	if options.Batched {
-		topic = fmt.Sprintf("%s_%s", topic, BatchedTopicSuffix)
-	}
-	return topic
 }
 
 func New(topic string, mode Mode) *Queue {
@@ -129,6 +115,7 @@ func New(topic string, mode Mode) *Queue {
 	if util.IsDevOrTestEnv() {
 		// create per-profile consumer and topic to avoid collisions between dev envs
 		groupID = fmt.Sprintf("%s_%s", EnvironmentPrefix, groupID)
+		topic = fmt.Sprintf("%s_%s", EnvironmentPrefix, topic)
 		_, err := client.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{
 			Topics: []kafka.TopicConfig{{
 				Topic:             topic,
@@ -183,7 +170,7 @@ func New(topic string, mode Mode) *Queue {
 			// override batch limit to be our message max size
 			BatchBytes:   messageSizeBytes,
 			BatchSize:    1,
-			ReadTimeout:  5 * time.Second,
+			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
 			// low timeout because we don't want to block WriteMessage calls since we are sync mode
 			BatchTimeout: 1 * time.Millisecond,
