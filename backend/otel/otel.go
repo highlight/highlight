@@ -77,14 +77,16 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					log.Errorf("failed to format error attributes %s", tagsBytes)
 				}
-				var projectID, sessionID string
+				var projectID, sessionID, requestID string
 				if p, ok := attrs[highlight.ProjectIDAttribute]; ok {
 					projectID = p.(string)
 				}
 				if s, ok := attrs[highlight.SessionIDAttribute]; ok {
 					sessionID = s.(string)
 				}
-				requestID := attrs[highlight.RequestIDAttribute].(string)
+				if r, ok := attrs[highlight.RequestIDAttribute]; ok {
+					requestID = r.(string)
+				}
 				events := span.Events()
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
