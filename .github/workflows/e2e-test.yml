@@ -23,6 +23,10 @@ jobs:
         timeout-minutes: 30
         env:
             ENVIRONMENT: test
+            CLICKHOUSE_ADDRESS: 'localhost:9000'
+            CLICKHOUSE_DATABASE: 'default'
+            CLICKHOUSE_USERNAME: 'default'
+            CLICKHOUSE_PASSWORD: ''
             PGPASSWORD: postgres
             PSQL_HOST: localhost
             PSQL_PORT: 5432
@@ -48,6 +52,10 @@ jobs:
                     --health-retries 5
                 ports:
                     - 5432:5432
+            clickhouse:
+                image: clickhouse/clickhouse-server
+                ports:
+                    - 9000:9000
             redis:
                 image: redis
                 options: >-
