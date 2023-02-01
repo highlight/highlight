@@ -99,7 +99,20 @@ func init() {
 }
 
 func healthRouter(runtimeFlag util.Runtime) http.HandlerFunc {
+	// only checks kafka because kafka is the only critical infrastructure needed for public graph to be healthy.
+	topic := kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: false})
+	queue := kafka_queue.New(topic, kafka_queue.Producer)
+	batchedTopic := kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: true})
+	batchedQueue := kafka_queue.New(batchedTopic, kafka_queue.Producer)
 	return func(w http.ResponseWriter, r *http.Request) {
+		if err := queue.Submit(&kafka_queue.Message{Type: kafka_queue.HealthCheck}, "health"); err != nil {
+			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", topic), 500)
+			return
+		}
+		if err := batchedQueue.Submit(&kafka_queue.Message{Type: kafka_queue.HealthCheck}, "health"); err != nil {
+			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", batchedTopic), 500)
+			return
+		}
 		_, err := w.Write([]byte(fmt.Sprintf("%v is healthy", runtimeFlag)))
 		if err != nil {
 			log.Error(e.Wrap(err, "error writing health response"))
@@ -349,7 +362,8 @@ func main() {
 		publicResolver := &public.Resolver{
 			DB:              db,
 			TDB:             tdb,
-			ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
+			ProducerQueue:   kafka_queue.New(kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: false}), kafka_queue.Producer),
+			BatchedQueue:    kafka_queue.New(kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: true}), kafka_queue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
 			StorageClient:   storage,
 			AlertWorkerPool: alertWorkerpool,
@@ -444,7 +458,8 @@ func main() {
 		publicResolver := &public.Resolver{
 			DB:              db,
 			TDB:             tdb,
-			ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
+			ProducerQueue:   kafka_queue.New(kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: false}), kafka_queue.Producer),
+			BatchedQueue:    kafka_queue.New(kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: true}), kafka_queue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
 			StorageClient:   storage,
 			AlertWorkerPool: alertWorkerpool,

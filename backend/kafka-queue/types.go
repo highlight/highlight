@@ -1,6 +1,8 @@
 package kafka_queue
 
 import (
+	"github.com/highlight-run/highlight/backend/clickhouse"
+	"math"
 	"time"
 
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -19,6 +21,8 @@ const (
 	PushMetrics          PayloadType = iota
 	MarkBackendSetup     PayloadType = iota
 	AddSessionFeedback   PayloadType = iota
+	PushLogs             PayloadType = iota
+	HealthCheck          PayloadType = math.MaxInt
 )
 
 type PushPayloadArgs struct {
@@ -73,24 +77,29 @@ type PushBackendPayloadArgs struct {
 }
 
 type PushMetricsArgs struct {
-	SecureID  string
-	SessionID int
-	ProjectID int
-	Metrics   []*customModels.MetricInput
+	SessionSecureID string
+	SessionID       int
+	ProjectID       int
+	Metrics         []*customModels.MetricInput
 }
 
 type MarkBackendSetupArgs struct {
-	SecureID         *string
-	ProjectID        int
 	ProjectVerboseID *string
+	SessionSecureID  *string
+	ProjectID        int
 }
 
 type AddSessionFeedbackArgs struct {
-	SecureID  string
-	UserName  *string
-	UserEmail *string
-	Verbatim  string
-	Timestamp time.Time
+	SessionSecureID string
+	UserName        *string
+	UserEmail       *string
+	Verbatim        string
+	Timestamp       time.Time
+}
+
+type PushLogsArgs struct {
+	SessionSecureID string
+	LogRows         []*clickhouse.LogRow
 }
 
 type Message struct {
@@ -107,6 +116,7 @@ type Message struct {
 	PushMetrics          *PushMetricsArgs
 	MarkBackendSetup     *MarkBackendSetupArgs
 	AddSessionFeedback   *AddSessionFeedbackArgs
+	PushLogs             *PushLogsArgs
 }
 
 type PartitionMessage struct {
