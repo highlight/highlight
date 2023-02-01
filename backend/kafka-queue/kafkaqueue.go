@@ -72,7 +72,7 @@ type GetTopicOptions struct {
 
 func GetTopic(options GetTopicOptions) string {
 	topic := os.Getenv("KAFKA_TOPIC")
-	if len(EnvironmentPrefix) > 0 {
+	if util.IsDevOrTestEnv() {
 		topic = fmt.Sprintf("%s_%s", EnvironmentPrefix, topic)
 	}
 	if options.Batched {
