@@ -20,7 +20,7 @@ import (
 
 const HighlightProjectIDAttribute = "highlight_project_id"
 const HighlightSessionIDAttribute = "highlight_session_id"
-const HighlightRequestIDAttribute = "highlight_request_id"
+const HighlightRequestIDAttribute = "highlight_trace_id"
 
 // Exception based on opentelemetry spec: https://github.com/open-telemetry/opentelemetry-specification/blob/9fa7c656b26647b27e485a6af7e38dc716eba98a/specification/trace/semantic_conventions/exceptions.md#stacktrace-representation
 type Exception struct {

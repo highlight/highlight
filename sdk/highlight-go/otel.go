@@ -3,6 +3,7 @@ package highlight
 import (
 	"context"
 	"fmt"
+	backendOtel "github.com/highlight-run/highlight/backend/otel"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -62,7 +63,7 @@ func (o *OTLP) shutdown() {
 // Highlight session and trace are inferred from the context.
 // If no sessionID is set, then the error is associated with the project without a session context.
 func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) context.Context {
-	session, request, e := validateRequest(ctx)
+	sessionID, requestID, e := validateRequest(ctx)
 	if e != nil {
 		logger.Errorf("[highlight-go] %v", e)
 		return ctx
@@ -70,9 +71,9 @@ func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) con
 	ctx, span := tracer.Start(ctx, "highlight-ctx")
 	defer span.End()
 	attrs := []attribute.KeyValue{
-		attribute.String("highlight_project_id", projectID),
-		attribute.String("highlight_session_id", session),
-		attribute.String("highlight_trace_id", request),
+		attribute.String(backendOtel.HighlightProjectIDAttribute, projectID),
+		attribute.String(backendOtel.HighlightSessionIDAttribute, sessionID),
+		attribute.String(backendOtel.HighlightRequestIDAttribute, requestID),
 	}
 	attrs = append(attrs, tags...)
 	span.RecordError(err, trace.WithAttributes(attrs...))
