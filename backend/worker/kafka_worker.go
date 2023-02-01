@@ -2,12 +2,13 @@ package worker
 
 import (
 	"context"
-
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"time"
 )
 
 func (k *KafkaWorker) processWorkerError(task *kafkaqueue.Message, err error) {
@@ -60,8 +61,72 @@ func (k *KafkaWorker) ProcessMessages() {
 	}
 }
 
+const BatchFlushSize = 1000
+const BatchedFlushTimeout = 5 * time.Second
+
 type KafkaWorker struct {
 	KafkaQueue   *kafkaqueue.Queue
 	Worker       *Worker
 	WorkerThread int
+}
+
+func (k *KafkaBatchWorker) flush(ctx context.Context) {
+	s, _ := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.flush"))
+	defer s.Finish()
+
+	var logRows []*clickhouse.LogRow
+
+	for _, msg := range k.messageQueue {
+		switch msg.Type {
+		case kafkaqueue.PushLogs:
+			logRows = append(logRows, msg.PushLogs.LogRows...)
+		}
+	}
+
+	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctx, logRows)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to batch write to clickhouse")
+	}
+
+	k.KafkaQueue.Commit(k.messageQueue[len(k.messageQueue)-1].KafkaMessage)
+	k.messageQueue = []*kafkaqueue.Message{}
+}
+
+func (k *KafkaBatchWorker) ProcessMessages() {
+	for {
+		func() {
+			defer util.Recover()
+			s, ctx := tracer.StartSpanFromContext(context.Background(), "kafkaWorker", tracer.ResourceName("worker.kafka.batched.process"))
+			s.SetTag("worker.goroutine", k.WorkerThread)
+			defer s.Finish()
+
+			if len(k.messageQueue) > 0 {
+				oldest := k.messageQueue[0]
+				if time.Since(oldest.KafkaMessage.Time) > BatchedFlushTimeout {
+					k.flush(ctx)
+				}
+			}
+
+			s1, _ := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.receive"))
+			task := k.KafkaQueue.Receive()
+			s1.Finish()
+			if task == nil {
+				return
+			}
+
+			k.messageQueue = append(k.messageQueue, task)
+			if len(k.messageQueue) >= BatchFlushSize {
+				k.flush(ctx)
+			}
+		}()
+	}
+}
+
+type KafkaBatchWorker struct {
+	KafkaQueue   *kafkaqueue.Queue
+	Worker       *Worker
+	WorkerThread int
+
+	// does not need to be atomic as each goroutine is a KafkaBatchWorker and this buffer is not shared
+	messageQueue []*kafkaqueue.Message
 }
