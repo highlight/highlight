@@ -20,7 +20,7 @@ jobs:
     build:
         name: Build Docker Images
         timeout-minutes: 45
-        runs-on: ubuntu-latest
+        runs-on: docker-runner
 
         steps:
             - name: Use HTTPS for checkout
