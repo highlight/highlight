@@ -390,7 +390,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.PushMetrics == nil {
 			break
 		}
-		if err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SecureID, task.PushMetrics.Metrics); err != nil {
+		if err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionSecureID, task.PushMetrics.Metrics); err != nil {
 			log.Error(errors.Wrap(err, "failed to process PushMetricsImpl task"))
 			return err
 		}
@@ -398,7 +398,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.MarkBackendSetup == nil {
 			break
 		}
-		if err := w.PublicResolver.MarkBackendSetupImpl(task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SecureID, task.MarkBackendSetup.ProjectID); err != nil {
+		if err := w.PublicResolver.MarkBackendSetupImpl(task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SessionSecureID, task.MarkBackendSetup.ProjectID); err != nil {
 			log.Error(errors.Wrap(err, "failed to process MarkBackendSetup task"))
 			return err
 		}
@@ -418,23 +418,48 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 
 func (w *Worker) PublicWorker() {
 	const parallelWorkers = 64
+	const parallelBatchWorkers = 2
 	// creates N parallel kafka message consumers that process messages.
 	// each consumer is considered part of the same consumer group and gets
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
 	// is processed serially, so messages in that slice are processed in order.
+
 	wg := sync.WaitGroup{}
-	wg.Add(parallelWorkers)
-	for i := 0; i < parallelWorkers; i++ {
-		go func(workerId int) {
-			k := KafkaWorker{
-				KafkaQueue:   kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer),
-				Worker:       w,
-				WorkerThread: workerId,
-			}
-			k.ProcessMessages()
-			wg.Done()
-		}(i)
-	}
+	wg.Add(2)
+	go func(_wg *sync.WaitGroup) {
+		wg := sync.WaitGroup{}
+		wg.Add(parallelWorkers)
+		for i := 0; i < parallelWorkers; i++ {
+			go func(workerId int) {
+				k := KafkaWorker{
+					KafkaQueue:   kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Consumer),
+					Worker:       w,
+					WorkerThread: workerId,
+				}
+				k.ProcessMessages()
+				wg.Done()
+			}(i)
+		}
+		wg.Wait()
+		_wg.Done()
+	}(&wg)
+	go func(_wg *sync.WaitGroup) {
+		wg := sync.WaitGroup{}
+		wg.Add(parallelBatchWorkers)
+		for i := 0; i < parallelBatchWorkers; i++ {
+			go func(workerId int) {
+				k := KafkaBatchWorker{
+					KafkaQueue:   kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Consumer),
+					Worker:       w,
+					WorkerThread: workerId,
+				}
+				k.ProcessMessages()
+				wg.Done()
+			}(i)
+		}
+		wg.Wait()
+		_wg.Done()
+	}(&wg)
 	wg.Wait()
 }
 
