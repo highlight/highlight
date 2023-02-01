@@ -4,12 +4,18 @@ import { H } from 'highlight.run'
 import styles from './page.module.css'
 import HelloButton from '@/components/HelloButton'
 
-H.init('4d7k1xeo', {
+H.init('1jdkoe52', {
+	debug: {
+		clientInteractions: true,
+		domRecording: true,
+	},
 	networkRecording: {
 		enabled: true,
 		recordHeadersAndBody: true,
 	},
 	tracingOrigins: true,
+	scriptUrl: 'http://localhost:8080/dist/index.js',
+	backendUrl: 'https://localhost:8082/public',
 })
 
 const inter = Inter({ subsets: ['latin'] })
