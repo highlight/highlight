@@ -20,4 +20,7 @@ export interface NodeOptions extends HighlightOptions {
 	 * @default 10
 	 */
 	errorSourceContextCacheSizeMB?: number
+
+	debug?: boolean
+	otlpEndpoint?: string
 }

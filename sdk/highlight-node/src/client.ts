@@ -16,7 +16,13 @@ import {
 	BatchSpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { trace, Tracer } from '@opentelemetry/api'
+import {
+	diag,
+	trace,
+	DiagConsoleLogger,
+	DiagLogLevel,
+	Tracer,
+} from '@opentelemetry/api'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -40,9 +46,13 @@ export class Highlight {
 		})
 		this._graphqlSdk = getSdk(client)
 
+		if (options.debug) {
+			diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG)
+		}
+
 		const provider = new BasicTracerProvider()
 		const exporter = new OTLPTraceExporter({
-			url: `${OTLP_HTTP}/v1/traces`,
+			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
 		})
 		provider.addSpanProcessor(new BatchSpanProcessor(exporter))
 		provider.register()

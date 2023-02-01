@@ -69,6 +69,7 @@ const getDefaultOpts = (
 	}
 }
 
+// TODO(vkorolik) allow config to be a fn
 export const withHighlightConfig = (
 	config: NextConfig,
 	highlightOpts?: HighlightConfigOptions,
