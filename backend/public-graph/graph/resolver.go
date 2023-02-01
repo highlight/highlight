@@ -2701,17 +2701,19 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		defer unmarshalMessagesSpan.Finish()
 
-		logRows, err := clickhouse.ParseConsoleMessages(projectID, sessionSecureID, messages)
-		if err != nil {
-			log.WithError(err).Error("failed to parse console messages")
-		} else {
-			if err := r.BatchedQueue.Submit(&kafka_queue.Message{
-				Type: kafka_queue.PushLogs,
-				PushLogs: &kafka_queue.PushLogsArgs{
-					SessionSecureID: sessionSecureID,
-					LogRows:         logRows,
-				}}, sessionSecureID); err != nil {
-				log.WithError(err).Error("error writing console messages to clickhouse")
+		if projectID == 1 {
+			logRows, err := clickhouse.ParseConsoleMessages(projectID, sessionSecureID, messages)
+			if err != nil {
+				log.WithError(err).Error("failed to parse console messages")
+			} else {
+				if err := r.BatchedQueue.Submit(&kafka_queue.Message{
+					Type: kafka_queue.PushLogs,
+					PushLogs: &kafka_queue.PushLogsArgs{
+						SessionSecureID: sessionSecureID,
+						LogRows:         logRows,
+					}}, sessionSecureID); err != nil {
+					log.WithError(err).Error("error writing console messages to clickhouse")
+				}
 			}
 		}
 
