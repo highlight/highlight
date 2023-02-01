@@ -218,10 +218,12 @@ func main() {
 	redisClient := redis.NewClient()
 	sfnClient := stepfunctions.NewClient()
 
-	clickhouseClient, err := clickhouse.NewClient()
+	clickhouseClient, err := clickhouse.NewClient(clickhouse.PrimaryDatabase)
 	if err != nil {
 		log.Fatalf("error creating clickhouse client: %v", err)
 	}
+
+	clickhouse.RunMigrations(clickhouse.PrimaryDatabase)
 
 	oauthSrv, err := oauth.CreateServer(db)
 	if err != nil {
