@@ -418,32 +418,48 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 
 func (w *Worker) PublicWorker() {
 	const parallelWorkers = 64
+	const parallelBatchWorkers = 2
 	// creates N parallel kafka message consumers that process messages.
 	// each consumer is considered part of the same consumer group and gets
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
 	// is processed serially, so messages in that slice are processed in order.
+
 	wg := sync.WaitGroup{}
-	wg.Add(parallelWorkers * 2)
-	for i := 0; i < parallelWorkers; i++ {
-		go func(workerId int) {
-			k := KafkaWorker{
-				KafkaQueue:   kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Consumer),
-				Worker:       w,
-				WorkerThread: workerId,
-			}
-			k.ProcessMessages()
-			wg.Done()
-		}(i)
-		go func(workerId int) {
-			k := KafkaBatchWorker{
-				KafkaQueue:   kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Consumer),
-				Worker:       w,
-				WorkerThread: workerId,
-			}
-			k.ProcessMessages()
-			wg.Done()
-		}(i)
-	}
+	wg.Add(2)
+	go func(_wg *sync.WaitGroup) {
+		wg := sync.WaitGroup{}
+		wg.Add(parallelWorkers)
+		for i := 0; i < parallelWorkers; i++ {
+			go func(workerId int) {
+				k := KafkaWorker{
+					KafkaQueue:   kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Consumer),
+					Worker:       w,
+					WorkerThread: workerId,
+				}
+				k.ProcessMessages()
+				wg.Done()
+			}(i)
+		}
+		wg.Wait()
+		_wg.Done()
+	}(&wg)
+	go func(_wg *sync.WaitGroup) {
+		wg := sync.WaitGroup{}
+		wg.Add(parallelBatchWorkers)
+		for i := 0; i < parallelBatchWorkers; i++ {
+			go func(workerId int) {
+				k := KafkaBatchWorker{
+					KafkaQueue:   kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Consumer),
+					Worker:       w,
+					WorkerThread: workerId,
+				}
+				k.ProcessMessages()
+				wg.Done()
+			}(i)
+		}
+		wg.Wait()
+		_wg.Done()
+	}(&wg)
 	wg.Wait()
 }
 

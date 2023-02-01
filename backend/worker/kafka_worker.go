@@ -100,9 +100,11 @@ func (k *KafkaBatchWorker) ProcessMessages() {
 			s.SetTag("worker.goroutine", k.WorkerThread)
 			defer s.Finish()
 
-			oldest := k.messageQueue[0]
-			if time.Since(oldest.KafkaMessage.Time) > BatchedFlushTimeout {
-				k.flush(ctx)
+			if len(k.messageQueue) > 0 {
+				oldest := k.messageQueue[0]
+				if time.Since(oldest.KafkaMessage.Time) > BatchedFlushTimeout {
+					k.flush(ctx)
+				}
 			}
 
 			s1, _ := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.receive"))
