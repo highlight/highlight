@@ -77,9 +77,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		)
 	}
 
-	const isEmptyState =
-		!error_secure_id && !errorQueryingErrorGroup && !loading
-
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
 	useEffect(() => {
 		const urlParams = new URLSearchParams(location.search)

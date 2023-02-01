@@ -93,48 +93,46 @@ const PlayerPageProductTour = () => {
 	]
 
 	return (
-		<>
-			<Steps
-				onStart={() => {
-					setEnableTour(true)
-					setShowDevTools(false)
-					setPlayerRightPanelActiveTab('Events')
-					setShowRightPanel(true)
-					setShowLeftPanel(false)
-					setSelectedDevToolsTab(Tab.Errors)
-				}}
-				enabled={enableTour}
-				steps={steps}
-				options={{ doneLabel: 'Start Debugging' }}
-				initialStep={0}
-				onExit={() => {
-					setEnableTour(false)
-				}}
-				onBeforeChange={(nextStepIndex) => {
-					switch (nextStepIndex) {
-						case 2:
-							setShowRightPanel(true)
-							setPlayerRightPanelActiveTab('Events')
-							break
-						case 3:
-							setShowRightPanel(true)
-							setPlayerRightPanelActiveTab('Metadata')
-							break
-						case 5:
-							setShowDevTools(true)
-							break
-						case 6:
-							setShowDevTools(true)
-							setSelectedDevToolsTab(Tab.Console)
-							break
-						case 7:
-							setShowDevTools(true)
-							setSelectedDevToolsTab(Tab.Network)
-							break
-					}
-				}}
-			/>
-		</>
+		<Steps
+			onStart={() => {
+				setEnableTour(true)
+				setShowDevTools(false)
+				setPlayerRightPanelActiveTab('Events')
+				setShowRightPanel(true)
+				setShowLeftPanel(false)
+				setSelectedDevToolsTab(Tab.Errors)
+			}}
+			enabled={enableTour}
+			steps={steps}
+			options={{ doneLabel: 'Start Debugging' }}
+			initialStep={0}
+			onExit={() => {
+				setEnableTour(false)
+			}}
+			onBeforeChange={(nextStepIndex) => {
+				switch (nextStepIndex) {
+					case 2:
+						setShowRightPanel(true)
+						setPlayerRightPanelActiveTab('Events')
+						break
+					case 3:
+						setShowRightPanel(true)
+						setPlayerRightPanelActiveTab('Metadata')
+						break
+					case 5:
+						setShowDevTools(true)
+						break
+					case 6:
+						setShowDevTools(true)
+						setSelectedDevToolsTab(Tab.Console)
+						break
+					case 7:
+						setShowDevTools(true)
+						setSelectedDevToolsTab(Tab.Network)
+						break
+				}
+			}}
+		/>
 	)
 }
 

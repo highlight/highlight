@@ -200,19 +200,9 @@ export const useResourceOrErrorDetailPanel = () => {
 		[setDetailedPanel],
 	)
 
-	const setErrorPanel = useCallback(
-		(error: ErrorObject) => {
-			const content = <ResourceOrErrorDetailPanelContent error={error} />
-
-			setDetailedPanel(getOptions(content, error.id.toString()))
-		},
-		[setDetailedPanel],
-	)
-
 	return {
 		setResourceOrErrorPanel,
 		setResourcePanel,
-		setErrorPanel,
 		panelIsOpen: detailedPanel !== undefined,
 	}
 }

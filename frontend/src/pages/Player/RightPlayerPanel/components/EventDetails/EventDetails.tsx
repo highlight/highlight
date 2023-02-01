@@ -10,6 +10,10 @@ import {
 	Text,
 	vars,
 } from '@highlight-run/ui'
+import {
+	EVENT_TYPES_TO_COLORS,
+	EVENT_TYPES_TO_VARIANTS,
+} from '@pages/Player/components/EventStreamV2/StreamEventV2/StreamEventV2'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -26,10 +30,6 @@ import { MillisToMinutesAndSeconds } from '@util/time'
 import React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
-import {
-	EVENT_TYPES_TO_COLORS,
-	EVENT_TYPES_TO_VARIANTS,
-} from '../EventStreamV2/StreamEventV2/StreamEventV2'
 import * as styles from './EventDetails.css'
 
 const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
@@ -76,10 +76,8 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 	return (
 		<Box cssClass={styles.container}>
 			<Box
-				pt="6"
-				pr="8"
-				pb="6"
-				pl="12"
+				py="6"
+				px="8"
 				display="flex"
 				align="center"
 				justifyContent="space-between"
@@ -103,7 +101,6 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 					emphasis="low"
 					icon={
 						<IconSolidX
-							size={16}
 							color={
 								vars.theme.interactive.fill.secondary.content
 									.text
@@ -117,8 +114,7 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 			</Box>
 			<Box pt="8" pr="12" pb="8" pl="12" width="full">
 				<Text cssClass={styles.overflowText}>
-					{details.displayValue} asdf asdf asdf asdf adsf asdf asdf
-					asdf asdf adsf
+					{details.displayValue}
 				</Text>
 			</Box>
 			<Box display="flex" pt="8" pr="12" pb="8" pl="12" gap="4">

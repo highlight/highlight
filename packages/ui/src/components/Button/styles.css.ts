@@ -79,6 +79,7 @@ export const variants = recipe({
 			alignItems: 'center',
 			border: 'none',
 			display: 'inline-flex',
+			justifyContent: 'center',
 		}),
 		{
 			lineHeight: '1em',

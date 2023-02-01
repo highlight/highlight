@@ -81,9 +81,11 @@ const responsiveProperties = defineProperties({
 		marginRight: vars.margin,
 		width: {
 			full: '100%',
+			vw: '100vw',
 		},
 		height: {
 			full: '100%',
+			vh: '100vh',
 		},
 		maxWidth: {
 			full: '100%',

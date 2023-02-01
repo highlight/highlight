@@ -1,6 +1,9 @@
 import LoadingBox from '@components/LoadingBox'
 import { Box, Text } from '@highlight-run/ui'
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import {
+	RightPanelView,
+	usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
@@ -54,14 +57,14 @@ export const NetworkPage = ({
 	const startTime = sessionMetadata.startTime
 	const { setShowDevTools, setSelectedDevToolsTab, showPlayerAbsoluteTime } =
 		usePlayerConfiguration()
+	const { setActiveError, setRightPanelView } = usePlayerUIContext()
 	const [currentActiveIndex, setCurrentActiveIndex] = useState<number>()
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const errorId = new URLSearchParams(location.search).get(
 		PlayerSearchParameters.errorId,
 	)
-	const { setResourcePanel, setErrorPanel, panelIsOpen } =
-		useResourceOrErrorDetailPanel()
+	const { setResourcePanel, panelIsOpen } = useResourceOrErrorDetailPanel()
 
 	const {
 		resources: parsedResources,
@@ -164,7 +167,8 @@ export const NetworkPage = ({
 					)
 				} else {
 					setSelectedDevToolsTab(Tab.Errors)
-					setErrorPanel(matchingError)
+					setActiveError(matchingError)
+					setRightPanelView(RightPanelView.ERROR)
 					const startTime = sessionMetadata.startTime
 					if (startTime && matchingError.timestamp) {
 						const errorDateTime = new Date(matchingError.timestamp)
@@ -192,7 +196,6 @@ export const NetworkPage = ({
 		replayer,
 		scrollFunction,
 		session,
-		setErrorPanel,
 		setResourcePanel,
 		setSelectedDevToolsTab,
 		setShowDevTools,

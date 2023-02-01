@@ -3,7 +3,10 @@ import LoadingBox from '@components/LoadingBox'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { ErrorObject } from '@graph/schemas'
 import { Box, Tag, Text } from '@highlight-run/ui'
-import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
+import {
+	RightPanelView,
+	usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import {
 	findLastActiveEventIndex,
@@ -34,9 +37,9 @@ const ErrorsPage = ({
 }) => {
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const history = useHistory<ErrorsPageHistoryState>()
-	const { errors, state, session, sessionMetadata, setTime } =
-		useReplayerContext()
-	const { setErrorPanel } = useResourceOrErrorDetailPanel()
+	const { errors, state, session, sessionMetadata } = useReplayerContext()
+
+	const { setActiveError, setRightPanelView } = usePlayerUIContext()
 
 	const loading = state === ReplayerState.Loading
 
@@ -105,11 +108,8 @@ const ErrorsPage = ({
 							key={error.error_group_secure_id}
 							error={error}
 							setSelectedError={() => {
-								setErrorPanel(error)
-								setTime(
-									new Date(error.timestamp).getTime() -
-										sessionMetadata.startTime,
-								)
+								setActiveError(error)
+								setRightPanelView(RightPanelView.ERROR)
 							}}
 							searchQuery={filter}
 							current={index === lastActiveErrorIndex}
@@ -179,8 +179,8 @@ const ErrorRow = React.memo(
 					</Text>
 				</Box>
 				<Box display="flex" align="center" justifyContent="flex-end">
-					<Tag kind="secondary">
-						<Text color="n11">{error.type}</Text>
+					<Tag kind="secondary" lines="1">
+						{error.type}
 					</Tag>
 				</Box>
 			</Box>

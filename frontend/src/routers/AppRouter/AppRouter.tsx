@@ -2,32 +2,31 @@ import '../../App.scss'
 
 import { useAuthContext } from '@authentication/AuthContext'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { Box } from '@highlight-run/ui'
 import { AccountsPage } from '@pages/Accounts/Accounts'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import { Landing } from '@pages/Landing/Landing'
 import LoginForm from '@pages/Login/Login'
+import NewMemberPage from '@pages/NewMember/NewMemberPage'
 import NewProjectPage from '@pages/NewProject/NewProjectPage'
 import OAuthApprovalPage from '@pages/OAuthApproval/OAuthApprovalPage'
 import RegistrationForm from '@pages/RegistrationForm/RegistrationForm'
 import SwitchProject from '@pages/SwitchProject/SwitchProject'
 import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace'
+import InternalRouter from '@routers/InternalRouter/InternalRouter'
 import { DefaultWorkspaceRouter } from '@routers/OrgRouter/DefaultWorkspaceRouter'
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter'
+import { ProjectRouter } from '@routers/OrgRouter/OrgRouter'
 import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter'
 import React from 'react'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
-
-import NewMemberPage from '../../pages/NewMember/NewMemberPage'
-import InternalRouter from '../InternalRouter/InternalRouter'
-import { ProjectRouter } from '../OrgRouter/OrgRouter'
-import styles from './AppRouter.module.scss'
 
 export const AppRouter = () => {
 	const { isLoggedIn } = useAuthContext()
 
 	return (
-		<div className={styles.appBody}>
+		<Box height="vh" width="vw">
 			<Router>
 				<Switch>
 					<Route path="/subscriptions">
@@ -100,6 +99,6 @@ export const AppRouter = () => {
 					</Route>
 				</Switch>
 			</Router>
-		</div>
+		</Box>
 	)
 }

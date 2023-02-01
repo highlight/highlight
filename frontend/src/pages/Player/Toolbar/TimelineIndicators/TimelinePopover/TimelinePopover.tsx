@@ -3,6 +3,10 @@ import { ReactComponent as CircleRightArrow } from '@icons/Solid/arrow-circle-ri
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
 import { ReactComponent as ChevronRightIcon } from '@icons/Solid/cheveron-right.svg'
 import {
+	RightPanelView,
+	usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext'
+import {
 	EventsForTimeline,
 	EventsForTimelineKeys,
 	PlayerSearchParameters,
@@ -10,7 +14,6 @@ import {
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { RightPlayerPanelTabType } from '@pages/Player/RightPlayerPanel/constants'
-import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
@@ -33,6 +36,7 @@ const POPOVER_CONTENT_ROW_HEIGHT = 28
 
 const TimelinePopover = ({ bucket }: Props) => {
 	const history = useHistory()
+	const { setActiveError, setRightPanelView } = usePlayerUIContext()
 	const { setCurrentEvent, pause, errors } = useReplayerContext()
 	const {
 		setShowRightPanel,
@@ -40,7 +44,6 @@ const TimelinePopover = ({ bucket }: Props) => {
 		setSelectedDevToolsTab,
 		setSelectedRightPlayerPanelTab,
 	} = usePlayerConfiguration()
-	const { setErrorPanel } = useResourceOrErrorDetailPanel()
 
 	const [selectedType, setSelectedType] = useState<string | null>(null)
 	const selectedTypeName = selectedType
@@ -81,7 +84,11 @@ const TimelinePopover = ({ bucket }: Props) => {
 			const error = errors.find(
 				(error) => error.error_group_secure_id === identifier,
 			)
-			if (error) setErrorPanel(error)
+			if (error) {
+				setShowRightPanel(true)
+				setActiveError(error)
+				setRightPanelView(RightPanelView.ERROR)
+			}
 		} else {
 			setShowRightPanel(true)
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Events)

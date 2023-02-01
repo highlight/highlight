@@ -1,19 +1,13 @@
 import { vars } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
+import { RIGHT_PANEL_WIDTH } from '@pages/Player/RightPlayerPanel/style.css'
+import { SESSION_FEED_LEFT_PANEL_WIDTH } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
 import { style } from '@vanilla-extract/css'
 
-// we use a margin to have auto resizing of the center container when the left/right panels open/close
-// this should be a fairly large number of reduce the number of re-renders needed when the left/right panels open/close.
-// `controllerWidth` is updated until this margin is achieved, so the larger the value the fewer re-renders needed.
-export const CENTER_COLUMN_OVERLAP = 64
-// the negative margin on playerCenterColumn cancels out with the `controllerWidth` to
-// set this as the effective margin
-export const CENTER_COLUMN_MARGIN = 0
 export const PLAYER_PADDING = 8
 export const MIN_CENTER_COLUMN_WIDTH = 428
 export const PLAYER_PADDING_X = 64
 export const PLAYER_PADDING_Y = 64
-export const LEFT_PANEL_WIDTH = 340
 
 export const playerWrapperV2 = style({
 	borderTop: `solid 1px ${colors.n6}`,
@@ -71,27 +65,17 @@ export const playerCenterColumn = style({
 	flexDirection: 'column',
 	flexGrow: 1,
 	position: 'relative',
-	marginLeft: CENTER_COLUMN_MARGIN - CENTER_COLUMN_OVERLAP,
-	marginRight: CENTER_COLUMN_MARGIN - CENTER_COLUMN_OVERLAP,
 	minWidth: MIN_CENTER_COLUMN_WIDTH,
 })
 
 export const playerLeftPanel = style({
-	backgroundColor: colors.n1,
-	borderRight: `1px solid ${colors.n6}`,
-	height: '100%',
-	padding: 0,
 	position: 'relative',
-	top: 0,
-	transform: 'translateX(0)',
-	transition: 'transform 0.2s ease-in-out',
-	width: 340,
 	zIndex: 98,
 })
 
 export const playerLeftPanelHidden = style({
 	position: 'fixed',
-	transform: 'translateX(-340px)',
+	transform: `translateX(-${SESSION_FEED_LEFT_PANEL_WIDTH}px)`,
 })
 
 export const draggable = style({
@@ -104,4 +88,28 @@ export const draggable = style({
 	left: 32,
 	top: -700,
 	zIndex: 200,
+})
+
+export const emptySessionCard = style({
+	alignSelf: 'center !important',
+	height: 'fit-content',
+	justifySelf: 'center !important',
+})
+
+export const intercomLink = style({
+	cursor: 'pointer',
+	textDecoration: 'underline',
+})
+
+export const playerBody = style({
+	display: 'grid',
+	gridTemplateColumns: '1fr',
+})
+
+export const withLeftPanel = style({
+	gridTemplateColumns: `${SESSION_FEED_LEFT_PANEL_WIDTH}px 1fr`,
+})
+
+export const withRightPanel = style({
+	gridTemplateColumns: `1fr ${RIGHT_PANEL_WIDTH}px`,
 })
