@@ -19,7 +19,7 @@ on:
 jobs:
     build:
         name: Build Docker Images
-        timeout-minutes: 45
+        timeout-minutes: 30
         runs-on: docker-runner
 
         steps:
@@ -41,6 +41,10 @@ jobs:
                   cd docker;
                   export FIREBASE_SECRET=$(doppler secrets get --plain FIREBASE_SECRET);
                   export REACT_APP_FIREBASE_CONFIG_OBJECT=$(doppler secrets get --plain REACT_APP_FIREBASE_CONFIG_OBJECT);
+
+                  docker compose pull;
                   docker compose up -d --build --remove-orphans;
+                  docker compose push;
+
                   docker compose exec -T postgres psql -h postgres -U postgres postgres < ../scripts/migrations/init.sql;
                   docker compose run cypress;
