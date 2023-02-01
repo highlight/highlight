@@ -43,6 +43,11 @@ services:
             POSTGRES_HOST_AUTH_METHOD: trust
         volumes:
             - postgres-data:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U postgres']
+            interval: 5s
+            timeout: 5s
+            retries: 5
 
     clickhouse:
         container_name: clickhouse
@@ -98,14 +103,22 @@ services:
             context: ..
             dockerfile: docker/backend.Dockerfile
         depends_on:
-            - kafka
-            - redis
-            - postgres
-            - clickhouse
-            - elasticsearch
-            - influxdb
-            - setup-influxdb
-            - collector
+            kafka:
+                condition: service_started
+            redis:
+                condition: service_started
+            postgres:
+                condition: service_healthy
+            clickhouse:
+                condition: service_started
+            elasticsearch:
+                condition: service_started
+            influxdb:
+                condition: service_started
+            setup-influxdb:
+                condition: service_started
+            collector:
+                condition: service_started
         environment:
             - CLICKHOUSE_ADDRESS
             - CLICKHOUSE_DATABASE
