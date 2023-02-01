@@ -2,7 +2,6 @@ import DemoWorkspaceButton, {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { useGetAdminQuery } from '@graph/hooks'
 import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage'
 import analytics from '@util/analytics'
 import { useIntegrated } from '@util/integrated'
@@ -19,9 +18,6 @@ import styles from './HomePage.module.scss'
 const HomePageV2 = () => {
 	useEffect(() => analytics.page(), [])
 
-	const { loading: adminLoading, data: adminData } = useGetAdminQuery({
-		skip: false,
-	})
 	const { project_id } = useParams<{ project_id: string }>()
 	const projectIdRemapped =
 		project_id === DEMO_WORKSPACE_APPLICATION_ID
@@ -29,14 +25,14 @@ const HomePageV2 = () => {
 			: project_id
 	const { integrated, loading: integratedLoading } = useIntegrated()
 
-	if (integratedLoading || adminLoading) {
+	if (integratedLoading) {
 		return null
 	}
 
 	return (
 		<>
 			<Helmet>
-				<title>Home</title>
+				<title>Analytics</title>
 			</Helmet>
 			<div className={styles.dashboardWrapper}>
 				<div className={styles.dashboard}>
@@ -44,19 +40,7 @@ const HomePageV2 = () => {
 						<DashboardPage
 							header={
 								<div>
-									<h2>
-										{integrated
-											? `${
-													adminData?.admin?.name
-														? `Hey ${
-																adminData.admin.name.split(
-																	' ',
-																)[0]
-														  }, welcome`
-														: `Welcome`
-											  } back to Highlight.`
-											: 'Welcome to Highlight'}
-									</h2>
+									<h2>Analytics</h2>
 								</div>
 							}
 							dashboardName="Home"
