@@ -351,6 +351,9 @@ func shutdown() {
 	if state == stopped || state == idle {
 		return
 	}
+	if otlp != nil {
+		otlp.shutdown()
+	}
 	state = stopped
 	wg.Wait()
 }

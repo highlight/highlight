@@ -51,6 +51,13 @@ func StartOTLP() (*OTLP, error) {
 	return h, nil
 }
 
+func (o *OTLP) shutdown() {
+	err := o.tracerProvider.Shutdown(context.Background())
+	if err != nil {
+		logger.Error(err)
+	}
+}
+
 // RecordError processes `err` to be recorded as a part of the session or network request.
 // Highlight session and trace are inferred from the context.
 // If no sessionID is set, then the error is associated with the project without a session context.
