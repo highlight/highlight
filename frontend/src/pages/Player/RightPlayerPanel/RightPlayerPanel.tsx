@@ -11,7 +11,6 @@ import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import ErrorDetails from '@pages/Player/RightPlayerPanel/components/ErrorDetails/ErrorDetails'
 import EventDetails from '@pages/Player/RightPlayerPanel/components/EventDetails/EventDetails'
 import RightPanelTabs from '@pages/Player/RightPlayerPanel/components/Tabs'
-import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useMemo } from 'react'
 
 import * as style from './style.css'
@@ -29,9 +28,6 @@ const RightPlayerPanel = () => {
 	} = usePlayerUIContext()
 
 	const showRightPanel = showRightPanelPreference && canViewSession
-	const { session_secure_id: sessionSecureId } = useParams<{
-		session_secure_id: string
-	}>()
 
 	useEffect(() => {
 		const commentId = new URLSearchParams(location.search).get(
@@ -78,7 +74,6 @@ const RightPlayerPanel = () => {
 			flexShrink={0}
 			bt="dividerWeak"
 			bl="dividerWeak"
-			shadow="small"
 			cssClass={[
 				style.playerRightPanelContainer,
 				{

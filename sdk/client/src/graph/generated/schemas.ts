@@ -24,11 +24,13 @@ export type Scalars = {
 export type BackendErrorObjectInput = {
 	event: Scalars['String']
 	payload?: InputMaybe<Scalars['String']>
-	request_id: Scalars['String']
-	session_secure_id: Scalars['String']
+	request_id?: InputMaybe<Scalars['String']>
+	session_secure_id?: InputMaybe<Scalars['String']>
 	source: Scalars['String']
+	span_id?: InputMaybe<Scalars['String']>
 	stackTrace: Scalars['String']
 	timestamp: Scalars['Timestamp']
+	trace_id?: InputMaybe<Scalars['String']>
 	type: Scalars['String']
 	url: Scalars['String']
 }
@@ -72,7 +74,7 @@ export type Mutation = {
 	addSessionProperties: Scalars['String']
 	identifySession: Scalars['String']
 	initializeSession: InitializeSessionResponse
-	markBackendSetup: Scalars['String']
+	markBackendSetup?: Maybe<Scalars['Any']>
 	pushBackendPayload?: Maybe<Scalars['Any']>
 	pushMetrics: Scalars['Int']
 	pushPayload: Scalars['Int']
@@ -113,11 +115,13 @@ export type MutationInitializeSessionArgs = {
 }
 
 export type MutationMarkBackendSetupArgs = {
-	session_secure_id: Scalars['String']
+	project_id?: InputMaybe<Scalars['String']>
+	session_secure_id?: InputMaybe<Scalars['String']>
 }
 
 export type MutationPushBackendPayloadArgs = {
 	errors: Array<InputMaybe<BackendErrorObjectInput>>
+	project_id?: InputMaybe<Scalars['String']>
 }
 
 export type MutationPushMetricsArgs = {
