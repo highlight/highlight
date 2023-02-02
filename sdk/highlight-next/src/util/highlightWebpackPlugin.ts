@@ -1,4 +1,4 @@
-import { uploadSourcemaps } from '@highlight-run/sourcemap-uploader'
+import { uploadSourcemaps } from '@highlight-run/sourcemap-uploader/dist/lib'
 
 export default class HighlightWebpackPlugin {
 	apiKey: string
