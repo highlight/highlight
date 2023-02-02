@@ -7,6 +7,7 @@ import {
 	RightPanelView,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import {
 	findLastActiveEventIndex,
@@ -40,6 +41,7 @@ const ErrorsPage = ({
 	const { errors, state, session, sessionMetadata } = useReplayerContext()
 
 	const { setActiveError, setRightPanelView } = usePlayerUIContext()
+	const { setShowRightPanel } = usePlayerConfiguration()
 
 	const loading = state === ReplayerState.Loading
 
@@ -108,6 +110,7 @@ const ErrorsPage = ({
 							key={error.error_group_secure_id}
 							error={error}
 							setSelectedError={() => {
+								setShowRightPanel(true)
 								setActiveError(error)
 								setRightPanelView(RightPanelView.Error)
 							}}

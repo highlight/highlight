@@ -2716,6 +2716,7 @@ export type GetErrorInstanceQuery = { __typename?: 'Query' } & {
 					| 'id'
 					| 'created_at'
 					| 'project_id'
+					| 'session_id'
 					| 'error_group_id'
 					| 'error_group_secure_id'
 					| 'event'
