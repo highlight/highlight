@@ -16,11 +16,11 @@ export const Sizes = () => {
 			<br />
 			<Badge size="large" label="Large" />
 			<br />
-			<Badge shape="round" size="small" label="Small" />
+			<Badge shape="rounded" size="small" label="Small" />
 			<br />
-			<Badge shape="round" size="medium" label="Medium" />
+			<Badge shape="rounded" size="medium" label="Medium" />
 			<br />
-			<Badge shape="round" size="large" label="Large" />
+			<Badge shape="rounded" size="large" label="Large" />
 		</>
 	)
 }
@@ -32,9 +32,9 @@ export const Themes = () => {
 			<br />
 			<Badge variant="white" label="White" />
 			<br />
-			<Badge variant="outlineGrey" label="Outline Grey" />
+			<Badge variant="outlineGray" label="Outline Gray" />
 			<br />
-			<Badge variant="grey" label="Grey" />
+			<Badge variant="gray" label="Gray" />
 		</>
 	)
 }

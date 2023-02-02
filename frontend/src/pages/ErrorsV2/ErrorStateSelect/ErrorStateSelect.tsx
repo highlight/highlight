@@ -181,7 +181,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 								<Text weight="bold" size="xSmall" color="n11">
 									Status
 								</Text>
-								<Badge variant="grey" size="tiny" label="e" />
+								<Badge variant="gray" size="small" label="e" />
 							</Menu.Heading>
 							{ErrorStatuses.map((option) => (
 								<Menu.Item

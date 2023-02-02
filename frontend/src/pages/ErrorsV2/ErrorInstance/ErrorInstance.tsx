@@ -310,7 +310,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								setActiveError(
 									errorInstance?.error_object as ErrorObject,
 								)
-								setRightPanelView(RightPanelView.ERROR)
+								setRightPanelView(RightPanelView.Error)
 							}}
 							iconLeft={<IconSolidPlay />}
 							trackingId="errorInstanceShowSession"

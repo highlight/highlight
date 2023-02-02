@@ -17,13 +17,12 @@ export const EVENT_TYPES_TO_VARIANTS: {
 	[key: string]:
 		| 'red'
 		| 'blue'
-		| 'gray'
 		| 'green'
-		| 'grey'
+		| 'gray'
 		| 'purple'
 		| 'white'
 		| 'yellow'
-		| 'outlineGrey'
+		| 'outlineGray'
 } = {
 	Click: 'purple',
 	Focus: 'blue',
@@ -36,7 +35,7 @@ export const EVENT_TYPES_TO_VARIANTS: {
 	Identify: 'yellow',
 	'Web Vitals': 'green',
 	Referrer: 'yellow',
-	'Tab State': 'grey',
+	'Tab State': 'gray',
 	Errors: 'red',
 }
 export const EVENT_TYPES_TO_COLORS: {

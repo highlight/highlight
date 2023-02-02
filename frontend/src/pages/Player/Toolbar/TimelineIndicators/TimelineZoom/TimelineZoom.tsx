@@ -29,15 +29,15 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 				content={
 					<>
 						<Box display="flex" gap="2">
-							<Badge variant="grey" size="tiny" label={cmdKey} />
-							<Badge variant="grey" size="tiny" label="Scroll" />
+							<Badge variant="gray" size="small" label={cmdKey} />
+							<Badge variant="gray" size="small" label="Scroll" />
 						</Box>
 						<Text userSelect="none" color="n11">
 							or
 						</Text>
 						<Badge
-							variant="grey"
-							size="tiny"
+							variant="gray"
+							size="small"
 							label="Pinch"
 							iconEnd={<IconSolidArrowsExpand size={12} />}
 						/>

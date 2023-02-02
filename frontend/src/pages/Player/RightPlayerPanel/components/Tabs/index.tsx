@@ -71,11 +71,11 @@ const RightPanelTabs = () => {
 							}}
 						>
 							<Badge
-								size="tiny"
+								size="small"
 								variant={
 									selectedRightPanelTab === 'Threads'
 										? 'purple'
-										: 'grey'
+										: 'gray'
 								}
 								shape="rounded"
 								label={`${

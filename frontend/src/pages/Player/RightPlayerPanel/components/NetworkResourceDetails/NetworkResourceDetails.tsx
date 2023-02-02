@@ -1,10 +1,21 @@
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
-import { Box, ButtonIcon, IconSolidX, Text } from '@highlight-run/ui'
+import {
+	Badge,
+	Box,
+	ButtonIcon,
+	IconSolidArrowCircleRight,
+	IconSolidX,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
 import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@util/analytics'
+import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
+import { MillisToMinutesAndSeconds } from '@util/time'
 import React, { useMemo } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
@@ -14,16 +25,17 @@ const NetworkResourceDetails = React.memo(
 		const { resources } = useResourcesContext()
 		const {
 			sessionMetadata: { startTime },
+			setTime,
 		} = useReplayerContext()
 
 		const networkResources = useMemo(() => {
 			return (
 				(resources.map((event) => ({
 					...event,
-					timestamp: event.startTime + startTime,
+					timestamp: event.startTime,
 				})) as NetworkResource[]) ?? []
 			)
-		}, [resources, startTime])
+		}, [resources])
 
 		const resourceIdx = resources.findIndex((r) => resource.id === r.id)
 		const [prev, next] = [resourceIdx - 1, resourceIdx + 1]
@@ -51,6 +63,8 @@ const NetworkResourceDetails = React.memo(
 			},
 			[canMoveForward, next],
 		)
+
+		const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 
 		return (
 			<Box display="flex" flexDirection="column">
@@ -87,19 +101,60 @@ const NetworkResourceDetails = React.memo(
 				</Box>
 				<Box
 					px="12"
-					pb="8"
+					py="8"
 					display="flex"
 					flexDirection="column"
 					gap="8"
 				>
+					<Text
+						size="small"
+						weight="medium"
+						color="strong"
+						wrap="breakWord"
+					>
+						{resource.displayName ?? resource.name}
+					</Text>
 					<Box
-						style={{ height: 20 }}
 						display="flex"
 						alignItems="center"
+						justifyContent="space-between"
 					>
-						<Text size="small" weight="medium" color="strong">
-							Network request
-						</Text>
+						<Badge
+							label={String(
+								showPlayerAbsoluteTime
+									? playerTimeToSessionAbsoluteTime({
+											sessionStartTime: startTime,
+											relativeTime:
+												resource.timestamp as number,
+									  })
+									: MillisToMinutesAndSeconds(
+											resource.timestamp as number,
+									  ),
+							)}
+							size="small"
+							shape="basic"
+							variant="gray"
+							flexShrink={0}
+						/>
+						<Tag
+							shape="basic"
+							kind="secondary"
+							size="medium"
+							emphasis="low"
+							iconRight={<IconSolidArrowCircleRight />}
+							onClick={() => {
+								setTime(
+									new Date(resource.timestamp).getTime() -
+										startTime,
+								)
+							}}
+							style={{
+								marginLeft: 'auto',
+								flexShrink: 0,
+							}}
+						>
+							Go to error
+						</Tag>
 					</Box>
 				</Box>
 			</Box>

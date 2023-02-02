@@ -139,7 +139,7 @@ export const ProjectRouter = () => {
 	>(undefined)
 
 	const [rightPanelView, setRightPanelView] = useState<RightPanelView>(
-		RightPanelView.SESSION,
+		RightPanelView.Session,
 	)
 
 	const [activeEvent, setActiveEvent] = useState<HighlightEvent | undefined>(

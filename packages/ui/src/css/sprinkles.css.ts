@@ -90,6 +90,10 @@ const responsiveProperties = defineProperties({
 		maxWidth: {
 			full: '100%',
 		},
+		overflowWrap: {
+			normal: 'normal',
+			breakWord: 'break-word',
+		},
 	},
 	shorthands: {
 		align: ['alignItems'],
@@ -111,6 +115,7 @@ const responsiveProperties = defineProperties({
 		mr: ['marginRight'],
 		mb: ['marginBottom'],
 		ml: ['marginLeft'],
+		ow: ['overflowWrap'],
 	},
 })
 
