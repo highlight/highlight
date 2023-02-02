@@ -16,6 +16,11 @@
 		"editor.defaultFormatter": "golang.go"
 	},
 	"go.testEnvVars": {
+		"CLICKHOUSE_ADDRESS": "localhost:9000",
+		"CLICKHOUSE_DATABASE": "default",
+		"CLICKHOUSE_TEST_DATABASE": "test",
+		"CLICKHOUSE_USERNAME": "default",
+		"CLICKHOUSE_PASSWORD": "",
 		"LOG_LEVEL": "debug",
 		"PSQL_HOST": "localhost",
 		"PSQL_PORT": "5432",

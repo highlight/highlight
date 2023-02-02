@@ -1,6 +1,6 @@
 {
   "name": "@highlight-run/sourcemap-uploader",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Command line tool to upload source maps to Highlight",
   "bin": "./dist/index.js",
   "author": "Highlight",
@@ -13,10 +13,15 @@
       "require": "./dist/index.js",
       "import": "./dist/index.mjs",
       "types": "./dist/index.d.ts"
+    },
+    "./dist/lib": {
+      "require": "./dist/lib.js",
+      "import": "./dist/lib.mjs",
+      "types": "./dist/lib.d.ts"
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --clean"
+    "build": "tsup src/index.ts src/lib.ts --format cjs,esm --dts --clean"
   },
   "devDependencies": {
     "@types/commander": "^2.12.2",

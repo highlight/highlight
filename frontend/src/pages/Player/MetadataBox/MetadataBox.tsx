@@ -1,6 +1,5 @@
 import { Avatar } from '@components/Avatar/Avatar'
 import { TableList, TableListItem } from '@components/TableList/TableList'
-import Tooltip from '@components/Tooltip/Tooltip'
 import { useGetEnhancedUserDetailsQuery } from '@graph/hooks'
 import { GetEnhancedUserDetailsQuery } from '@graph/operations'
 import { Maybe, Session, SocialLink, SocialType } from '@graph/schemas'
@@ -8,10 +7,11 @@ import {
 	Box,
 	ButtonIcon,
 	IconSolidExternalLink,
+	IconSolidQuestionMarkCircle,
 	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui'
-import UserCross from '@icons/UserCross'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
@@ -36,7 +36,6 @@ import {
 } from '../../Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import { useReplayerContext } from '../ReplayerContext'
 import * as style from './MetadataBox.css'
-import styles from './MetadataBox.module.scss'
 import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
 
 export const MetadataBox = React.memo(() => {
@@ -252,31 +251,35 @@ export const MetadataBox = React.memo(() => {
 							<Tag kind="secondary" emphasis="low" size="small">
 								<Box display="flex" alignItems="center">
 									<Tooltip
-										placement="leftTop"
-										title="This session was not identified. The user information is inferred from a similar session in the same browser. Click to learn more."
-										mouseEnterDelay={0}
+										placement="top-start"
+										trigger={
+											<Box display="flex">
+												<IconSolidQuestionMarkCircle
+													size={18}
+												/>
+											</Box>
+										}
 									>
-										<div
-											className={styles.backfillUserIcon}
-										>
-											<UserCross />
-										</div>
+										<Text color="moderate" size="xSmall">
+											This session was not identified. The
+											user information is inferred from a
+											similar session in the same browser.
+											Click to learn more.
+										</Text>
 									</Tooltip>
 								</Box>
 							</Tag>
 						</Box>
 					)}
 				</Box>
-				<Box display="flex" alignItems="center">
-					<ButtonIcon
-						kind="secondary"
-						emphasis="low"
-						shape="square"
-						size="small"
-						icon={<IconSolidExternalLink />}
-						onClick={searchIdentifier}
-					/>
-				</Box>
+				<ButtonIcon
+					kind="secondary"
+					emphasis="low"
+					shape="square"
+					size="small"
+					icon={<IconSolidExternalLink />}
+					onClick={searchIdentifier}
+				/>
 			</Box>
 			<Box
 				borderTop="secondary"
@@ -325,11 +328,11 @@ const SocialComponent = ({
 		</Box>
 	)
 	if (disabled) {
-		return <span className={styles.enhancedSocial}>{inner}</span>
+		return <span className={style.enhancedSocial}>{inner}</span>
 	}
 	return (
 		<a
-			className={styles.enhancedSocial}
+			className={style.enhancedSocial}
 			href={getAbsoluteUrl(socialLink.link ?? '')}
 			target="_blank"
 			rel="noopener noreferrer"

@@ -27,7 +27,7 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 			gqlerr = gqlerror.Errorf(e.Error())
 		}
 
-		highlight.ConsumeError(ctx, e)
+		highlight.RecordError(ctx, e)
 
 		return gqlerr
 	}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"io"
 	"net/http"
 	"strings"
@@ -17,10 +18,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 )
-
-const HighlightProjectIDAttribute = "highlight_project_id"
-const HighlightSessionIDAttribute = "highlight_session_id"
-const HighlightRequestIDAttribute = "highlight_request_id"
 
 // Exception based on opentelemetry spec: https://github.com/open-telemetry/opentelemetry-specification/blob/9fa7c656b26647b27e485a6af7e38dc716eba98a/specification/trace/semantic_conventions/exceptions.md#stacktrace-representation
 type Exception struct {
@@ -81,13 +78,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					log.Errorf("failed to format error attributes %s", tagsBytes)
 				}
 				var projectID, sessionID string
-				if p, ok := attrs[HighlightProjectIDAttribute]; ok {
+				if p, ok := attrs[highlight.ProjectIDAttribute]; ok {
 					projectID = p.(string)
 				}
-				if s, ok := attrs[HighlightSessionIDAttribute]; ok {
+				if s, ok := attrs[highlight.SessionIDAttribute]; ok {
 					sessionID = s.(string)
 				}
-				requestID := attrs[HighlightRequestIDAttribute].(string)
+				requestID := attrs[highlight.RequestIDAttribute].(string)
 				events := span.Events()
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)

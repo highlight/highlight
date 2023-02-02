@@ -1,7 +1,11 @@
-node_modules
-build
-dist
+*.md
 .yarn
 backend/errors/test-files
+build
+data
+dist
+node_modules
+rrweb
 rrweb/packages/rrweb-snapshot/test
 rrweb/packages/rrweb/test
+scripts/venv

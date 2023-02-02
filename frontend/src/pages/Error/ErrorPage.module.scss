@@ -1,44 +1,5 @@
 @import 'src/static/shared.scss';
 
-.errorPageCenterColumn {
-	height: calc(100vh - var(--header-height));
-	overflow-y: auto;
-	padding-top: var(--size-large);
-
-	&.hidden {
-		padding-left: var(--size-xxLarge);
-	}
-
-	&.bannerShown {
-		height: calc(100vh - var(--header-height) - var(--banner-height));
-	}
-}
-
-.errorPageLeftColumn {
-	width: var(--left-panel-width);
-
-	&.hidden {
-		position: absolute;
-	}
-}
-
-.errorPageRightColumn {
-	display: flex;
-	flex-direction: column;
-	height: calc(100vh - var(--header-height));
-	padding-bottom: var(--size-large);
-	padding-right: var(--size-medium);
-	padding-top: var(--size-large);
-	position: sticky;
-	row-gap: var(--size-large);
-	top: 120px;
-	width: 100%;
-
-	&.bannerShown {
-		height: calc(100vh - var(--header-height) - var(--banner-height));
-	}
-}
-
 .title {
 	display: inline-block;
 	font-size: 26px;
@@ -48,33 +9,6 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-}
-
-.errorPage {
-	--right-panel-width: 370px;
-	--left-panel-width: 475px;
-
-	background: var(--color-gray-200);
-	column-gap: var(--size-large);
-	display: grid;
-	grid-template-columns: var(--left-panel-width) 1fr var(--right-panel-width);
-	height: 100%;
-	justify-content: space-between;
-	padding-bottom: 0;
-	width: 100%;
-	word-break: break-word;
-
-	&.withoutLeftPanel {
-		grid-template-columns: 1fr var(--right-panel-width);
-
-		&.empty {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	&.empty {
-		grid-template-columns: var(--left-panel-width) 1fr;
-	}
 }
 
 .eventText {

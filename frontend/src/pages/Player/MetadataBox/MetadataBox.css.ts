@@ -22,3 +22,10 @@ export const userEnhancedGrid = style({
 	padding: 8,
 	position: 'relative',
 })
+
+export const enhancedSocial = style({
+	alignItems: 'center',
+	color: 'var(--color-gray-500) !important',
+	columnGap: '6px',
+	display: 'flex',
+})
