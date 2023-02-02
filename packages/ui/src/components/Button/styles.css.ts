@@ -15,6 +15,7 @@ export const defaultSize = 'small'
 export const iconVariants = recipe({
 	base: {
 		alignItems: 'center',
+		cursor: 'pointer',
 		display: 'inline-flex',
 		justifyContent: 'center',
 		selectors: {
@@ -83,6 +84,7 @@ export const variants = recipe({
 		}),
 		{
 			backgroundColor: 'transparent',
+			cursor: 'pointer',
 			lineHeight: '1em',
 			selectors: {
 				'&:hover': {

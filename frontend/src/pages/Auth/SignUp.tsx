@@ -2,9 +2,10 @@ import { Button } from '@components/Button'
 import {
 	Box,
 	ButtonIcon,
+	Callout,
 	Form,
 	Heading,
-	IconSolidGithub,
+	IconSolidGoogle,
 	Stack,
 	Text,
 	useFormState,
@@ -12,66 +13,72 @@ import {
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { Landing } from '@pages/Landing/Landing'
 import analytics from '@util/analytics'
-import { auth } from '@util/auth'
+import { auth, googleProvider } from '@util/auth'
+import firebase from 'firebase/app'
 import React from 'react'
 import { Link, useHistory } from 'react-router-dom'
 
-import { ReactComponent as GoogleLogo } from '../../static/google.svg'
 import * as styles from './SignUp.css'
 
-type Props = React.PropsWithChildren & {}
-
-export const SignUp: React.FC<Props> = (props) => {
+export const SignUp: React.FC = () => {
 	const history = useHistory<{ previousPathName?: string }>()
 	const [loading, setLoading] = React.useState(false)
+	const [error, setError] = React.useState('')
 	const formState = useFormState({
 		defaultValues: {
-			name: '',
 			email: '',
 			password: '',
 		},
 	})
-
-	const handleSubmit = () => {
-		console.log(formState)
-		debugger
-		auth.createUserWithEmailAndPassword(formState.email, formState.password)
-			.then(() => {
-				auth.currentUser?.sendEmailVerification()
-
-				if (auth.currentUser?.email) {
-					analytics.track('Sign up', {
-						email: auth.currentUser.email,
-					})
-				}
-			})
-			.catch((error) => {
-				// setError(error.toString())
-			})
-			.finally(() => setLoading(false))
-
-		// Redirect the user to their initial path instead to creating a new workspace.
-		// We do this because this happens when a new user clicks on a Highlight link that was shared to them and they don't have an account yet.
-		if (history.location.state?.previousPathName) {
-			history.push(history.location.state.previousPathName)
-		}
-	}
 
 	return (
 		<Landing>
 			<Form
 				className={styles.container}
 				state={formState}
-				onSubmit={handleSubmit}
+				resetOnSubmit={false}
+				onSubmit={() => {
+					setLoading(true)
+
+					auth.createUserWithEmailAndPassword(
+						formState.values.email,
+						formState.values.password,
+					)
+						.then(() => {
+							auth.currentUser?.sendEmailVerification()
+
+							if (auth.currentUser?.email) {
+								analytics.track('Sign up', {
+									email: auth.currentUser.email,
+								})
+							}
+
+							// Redirect the user to their initial path instead to creating a new
+							// workspace. We do this because this happens when a new user clicks on
+							// a Highlight link that was shared to them and they don't have an
+							// account yet.
+							if (history.location.state?.previousPathName) {
+								history.push(
+									history.location.state.previousPathName,
+								)
+							} else {
+								history.push('/')
+							}
+						})
+						.catch((error) => {
+							setError(error.message || error.toString())
+						})
+						.finally(() => setLoading(false))
+				}}
 			>
 				<Box
 					backgroundColor="n2"
+					borderBottom="dividerWeak"
 					btr="8"
 					p="12"
 					pb="16"
 					px="20"
 					textAlign="center"
-					borderBottom="divider"
 				>
 					<Stack direction="column" gap="16" align="center">
 						<SvgHighlightLogoOnLight height="48" width="48" />
@@ -81,25 +88,26 @@ export const SignUp: React.FC<Props> = (props) => {
 						</Text>
 					</Stack>
 				</Box>
-				<Box backgroundColor="default" py="12" px="20">
+				<Box backgroundColor="default" py="16" px="20">
 					<Stack gap="12">
-						<Form.Input
-							name={formState.names.name}
-							label="Your full name"
-						/>
 						<Form.Input
 							name={formState.names.email}
 							label="Email"
+							type="email"
+							validate
+							autoFocus
 						/>
 						<Form.Input
 							name={formState.names.password}
 							label="Password"
 							type="password"
 						/>
+						{error && <Callout kind="error">{error}</Callout>}
 					</Stack>
 				</Box>
 				<Box
 					backgroundColor="n2"
+					borderTop="dividerWeak"
 					bbr="8"
 					py="12"
 					px="20"
@@ -112,8 +120,9 @@ export const SignUp: React.FC<Props> = (props) => {
 							onClick={() => null}
 							trackingId="sign-up-submit"
 							loading={loading}
+							type="submit"
 						>
-							Continue
+							Sign up
 						</Button>
 						<Stack
 							direction="row"
@@ -121,20 +130,53 @@ export const SignUp: React.FC<Props> = (props) => {
 							justify="space-between"
 						>
 							<Text color="weak">Or sign up with</Text>
-							<ButtonIcon
-								kind="secondary"
-								icon={<GoogleLogo />}
-							/>
-							<ButtonIcon
-								kind="secondary"
-								icon={<IconSolidGithub />}
-							/>
+							<Stack direction="row" gap="6">
+								<ButtonIcon
+									kind="secondary"
+									type="button"
+									onClick={() => {
+										auth.signInWithPopup(
+											googleProvider,
+										).catch(
+											(
+												error: firebase.auth.MultiFactorError,
+											) => {
+												let errorMessage = error.message
+
+												if (
+													error.code ===
+													'auth/popup-closed-by-user'
+												) {
+													errorMessage =
+														'Pop-up closed without successfully authenticating. Please try again.'
+												}
+
+												setError(errorMessage)
+											},
+										)
+									}}
+									icon={<IconSolidGoogle />}
+								/>
+							</Stack>
 						</Stack>
 					</Stack>
 					<Text align="center" color="weak" size="xSmall">
 						By creating an account you agree to our{' '}
-						<a href="">Terms of Service</a>
-						and <a href="">Privacy Policy</a>
+						<a
+							href="https://www.highlight.io/terms"
+							target="_blank"
+							rel="noreferrer"
+						>
+							Terms of Service
+						</a>{' '}
+						and{' '}
+						<a
+							href="https://www.highlight.io/privacy"
+							target="_blank"
+							rel="noreferrer"
+						>
+							Privacy Policy
+						</a>
 					</Text>
 				</Box>
 			</Form>
