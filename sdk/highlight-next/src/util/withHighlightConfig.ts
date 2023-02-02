@@ -166,7 +166,7 @@ const getHighlightConfig = (
 export const withHighlightConfig = (
 	config: NextConfigInput,
 	highlightOpts?: HighlightConfigOptions,
-): NextConfigInput => {
+): NextConfig => {
 	if (typeof config === 'function') {
 		return (
 			phase: string,
