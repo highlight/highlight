@@ -118,7 +118,16 @@ jobs:
                     --health-retries 5
                 ports:
                     - 5432:5432
+            clickhouse:
+                image: clickhouse/clickhouse-server
+                ports:
+                    - 9000:9000
         env:
+            CLICKHOUSE_ADDRESS: 'localhost:9000'
+            CLICKHOUSE_DATABASE: 'default'
+            CLICKHOUSE_TEST_DATABASE: 'test'
+            CLICKHOUSE_USERNAME: 'default'
+            CLICKHOUSE_PASSWORD: ''
             PSQL_HOST: 'localhost'
             PSQL_PORT: '5432'
             PSQL_USER: 'postgres'

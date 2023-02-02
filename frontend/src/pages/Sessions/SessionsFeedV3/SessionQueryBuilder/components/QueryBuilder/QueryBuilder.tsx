@@ -2372,7 +2372,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="secondary"
 						size="small"
 						shape="square"
-						emphasis="medium"
+						emphasis="low"
 						icon={<IconSolidLogout size={14} />}
 						onClick={() => setShowLeftPanel(false)}
 					/>

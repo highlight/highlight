@@ -3,12 +3,24 @@ name: Docker
 on:
     push:
         branches: ['main']
+    pull_request:
+        types: ['opened', 'synchronize']
+        paths:
+            - '.github/workflows/docker.yml'
+            - '.gitmodules'
+            - 'yarn.lock'
+            - 'cypress.config.js'
+            - 'backend/**'
+            - 'cypress/**'
+            - 'frontend/**'
+            - 'rrweb/**'
+            - 'sdk/**'
 
 jobs:
     build:
         name: Build Docker Images
         timeout-minutes: 30
-        runs-on: ubuntu-latest
+        runs-on: docker-runner
 
         steps:
             - name: Use HTTPS for checkout
@@ -19,7 +31,28 @@ jobs:
               with:
                   submodules: true
 
-            - name: Build docker images
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v2
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 16
+                  cache: 'yarn'
+
+            - name: Build & start docker containers
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
               run: |
-                  cd docker
-                  docker compose build
+                  cd docker;
+                  export FIREBASE_SECRET=$(doppler secrets get --plain FIREBASE_SECRET);
+                  export REACT_APP_FIREBASE_CONFIG_OBJECT=$(doppler secrets get --plain REACT_APP_FIREBASE_CONFIG_OBJECT);
+                  export NODE_EXTRA_CA_CERTS="../backend/localhostssl/server.crt";
+
+                  docker compose up -d --build --remove-orphans;
+                  docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql';
+
+                  yarn;
+                  npx -y wait-on https://localhost:3000/index.html http://localhost:8080/dist/index.js https://localhost:8082/health;
+
+                  yarn cy:run;

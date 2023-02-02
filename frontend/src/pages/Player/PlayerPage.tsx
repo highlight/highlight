@@ -14,8 +14,7 @@ import { useWindowSize } from '@hooks/useWindowSize'
 import LoadingLiveSessionCard from '@pages/Player/components/LoadingLiveSessionCard/LoadingLiveSessionCard'
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard'
 import UnauthorizedViewingForm from '@pages/Player/components/UnauthorizedViewingForm/UnauthorizedViewingForm'
-import { PlayerUIContextProvider } from '@pages/Player/context/PlayerUIContext'
-import { HighlightEvent } from '@pages/Player/HighlightEvent'
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import PlayerCommentCanvas, {
 	Coordinates2D,
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
@@ -32,40 +31,29 @@ import {
 	useResources,
 } from '@pages/Player/ResourcesContext/ResourcesContext'
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
-import SearchPanel from '@pages/Player/SearchPanel/SearchPanel'
 import SessionLevelBarV2 from '@pages/Player/SessionLevelBar/SessionLevelBarV2'
+import { DevTools } from '@pages/Player/Toolbar/DevTools'
 import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel'
 import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
-import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks'
+import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
-import useLocalStorage from '@rehooks/local-storage'
+import { SESSION_FEED_LEFT_PANEL_WIDTH } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
+import { SessionFeedV3 } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import analytics from '@util/analytics'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import Lottie from 'lottie-react'
-import React, {
-	FC,
-	Suspense,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import useResizeAware from 'react-resize-aware'
 
 import WaitingAnimation from '../../lottie/waiting.json'
-import styles from './PlayerPage.module.scss'
 import * as style from './styles.css'
-import { DevTools } from './Toolbar/DevTools'
-import { DevToolsContextProvider } from './Toolbar/DevToolsContext/DevToolsContext'
-import { ToolbarItemsContextProvider } from './Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 
 interface Props {
 	integrated: boolean
@@ -81,7 +69,7 @@ const PlayerPage = ({ integrated }: Props) => {
 	const [resizeListener, sizes] = useResizeAware()
 	const { width } = useWindowSize()
 
-	const player = usePlayer()
+	const playerContext = usePlayer()
 	const {
 		state: replayerState,
 		setScale,
@@ -91,7 +79,7 @@ const PlayerPage = ({ integrated }: Props) => {
 		isPlayerReady,
 		session,
 		currentUrl,
-	} = player
+	} = playerContext
 
 	const { data: isSessionPendingData, loading } = useIsSessionPendingQuery({
 		variables: {
@@ -100,27 +88,18 @@ const PlayerPage = ({ integrated }: Props) => {
 		skip: sessionViewability !== SessionViewability.ERROR,
 	})
 
-	const resources = useResources(session)
+	const resourcesContext = useResources(session)
+
 	const {
 		setShowLeftPanel,
 		showLeftPanel: showLeftPanelPreference,
-		showDevTools,
-		setShowDevTools,
-		selectedDevToolsTab,
-		setSelectedDevToolsTab,
+		showRightPanel,
 	} = usePlayerConfiguration()
-	const toolbarItems = useToolbarItems()
+
+	const toolbarContext = useToolbarItems()
+
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
-	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
-		usePlayerFullscreen()
-	const [detailedPanel, setDetailedPanel] = useState<
-		| {
-				title: string | React.ReactNode
-				content: React.ReactNode
-				id: string
-		  }
-		| undefined
-	>(undefined)
+
 	const newCommentModalRef = useRef<HTMLDivElement>(null)
 	const [commentModalPosition, setCommentModalPosition] = useState<
 		Coordinates2D | undefined
@@ -128,12 +107,6 @@ const PlayerPage = ({ integrated }: Props) => {
 	const [commentPosition, setCommentPosition] = useState<
 		Coordinates2D | undefined
 	>(undefined)
-	const [activeEvent, setActiveEvent] = useState<HighlightEvent | undefined>(
-		undefined,
-	)
-	const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
-		'Events' | 'Threads' | 'Metadata'
-	>('tabs-PlayerRightPanel-active-tab', 'Events')
 
 	useEffect(() => {
 		if (!session_secure_id) {
@@ -219,69 +192,135 @@ const PlayerPage = ({ integrated }: Props) => {
 
 	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
 	const controllerWidth = centerColumnSize.width
-		? Math.max(
-				style.MIN_CENTER_COLUMN_WIDTH,
-				(centerColumnSize.width || 0) - 2 * style.CENTER_COLUMN_OVERLAP,
-		  )
+		? Math.max(style.MIN_CENTER_COLUMN_WIDTH, centerColumnSize.width ?? 0)
 		: 0
 
 	const playerFiller = useMemo(() => {
 		const playerHeight =
 			playerWrapperRef.current?.getBoundingClientRect().height
 		const height = ((playerHeight ?? 0) * 3) / 5
-		return (
-			<div className={styles.loadingWrapper}>
-				<PlayerSkeleton width={controllerWidth} height={height} />
-			</div>
-		)
+		return <LoadingBox width={controllerWidth} height={height} />
 	}, [controllerWidth])
 
 	const replayerWrapperBbox = replayer?.wrapper.getBoundingClientRect()
-	return (
-		<PlayerUIContextProvider
-			value={{
-				isPlayerFullscreen,
-				setIsPlayerFullscreen,
-				playerCenterPanelRef,
-				detailedPanel,
-				setDetailedPanel,
-				selectedRightPanelTab,
-				setSelectedRightPanelTab,
-				activeEvent,
-				setActiveEvent,
-			}}
+
+	const showSession =
+		(sessionViewability === SessionViewability.VIEWABLE && !!session) ||
+		replayerState !== ReplayerState.Empty ||
+		(replayerState === ReplayerState.Empty && !!session_secure_id)
+
+	const { isPlayerFullscreen, playerCenterPanelRef } = usePlayerUIContext()
+	const sessionView = showSession ? (
+		<Box
+			background="raised"
+			height="full"
+			p="8"
+			width="full"
+			display="flex"
 		>
-			<Helmet>
-				<title>{getTabTitle(session)}</title>
-			</Helmet>
-			<ReplayerContextProvider value={player}>
-				{!integrated && <IntegrationCard />}
-				{isPlayerReady && !isLoggedIn && (
-					<>
-						<Suspense fallback={null}>
-							<PlayerPageProductTour />
-						</Suspense>
-					</>
-				)}
-				<div
-					className={classNames(styles.playerBody, {
-						[styles.withLeftPanel]: showLeftPanel,
-					})}
+			<div className={style.rrwebPlayerSection}>
+				<Box
+					display="flex"
+					flexDirection="column"
+					width="full"
+					height="full"
 				>
-					<div
-						className={classNames(style.playerLeftPanel, {
-							[style.playerLeftPanelHidden]: !showLeftPanel,
-						})}
-					>
-						<SearchPanel visible={showLeftPanel} />
-					</div>
-					{sessionViewability ===
-						SessionViewability.OVER_BILLING_QUOTA && (
-						<FullBleedCard
-							title="Session quota reached 😔"
-							animation={
-								<Lottie animationData={WaitingAnimation} />
+					{!isPlayerFullscreen && (
+						<SessionLevelBarV2
+							width={
+								width -
+								(showLeftPanel
+									? SESSION_FEED_LEFT_PANEL_WIDTH
+									: 0) -
+								3 * style.PLAYER_PADDING
 							}
+						/>
+					)}
+					<Box
+						height="full"
+						cssClass={[
+							style.playerBody,
+							{
+								[style.withRightPanel]: showRightPanel,
+							},
+						]}
+					>
+						<div className={style.playerCenterColumn}>
+							{centerColumnResizeListener}
+							<div className={style.playerWrapperV2}>
+								<div
+									className={style.rrwebPlayerWrapper}
+									ref={playerWrapperRef}
+								>
+									{resizeListener}
+									{replayerState ===
+										ReplayerState.SessionRecordingStopped && (
+										<Box
+											display="flex"
+											alignItems="center"
+											flexDirection="column"
+											justifyContent="center"
+											position="absolute"
+											style={{
+												height: replayerWrapperBbox?.height,
+												width: replayerWrapperBbox?.width,
+												zIndex: 2,
+											}}
+										>
+											<ManualStopCard />
+										</Box>
+									)}
+									<div
+										style={{
+											visibility: isPlayerReady
+												? 'visible'
+												: 'hidden',
+										}}
+										className="highlight-block"
+										id="player"
+									/>
+									<PlayerCommentCanvas
+										setModalPosition={
+											setCommentModalPosition
+										}
+										modalPosition={commentModalPosition}
+										setCommentPosition={setCommentPosition}
+									/>
+									{!isPlayerReady &&
+										(session?.processed === false ? (
+											<LoadingLiveSessionCard />
+										) : (
+											playerFiller
+										))}
+								</div>
+								<Toolbar width={controllerWidth} />
+							</div>
+							<DevTools width={controllerWidth} />
+						</div>
+						{!isPlayerFullscreen && (
+							<>
+								<RightPlayerPanel />
+								<DetailPanel />
+							</>
+						)}
+					</Box>
+				</Box>
+			</div>
+		</Box>
+	) : null
+
+	const sessionFiller = useMemo(() => {
+		switch (sessionViewability) {
+			case SessionViewability.OVER_BILLING_QUOTA:
+				return (
+					<FullBleedCard
+						title="Session quota reached 😔"
+						animation={<Lottie animationData={WaitingAnimation} />}
+					>
+						<Box
+							display="flex"
+							alignItems="center"
+							flexDirection="column"
 						>
 							<p>
 								This session was recorded after you reached your
@@ -290,267 +329,152 @@ const PlayerPage = ({ integrated }: Props) => {
 							<ButtonLink
 								to={`/w/${currentWorkspace?.id}/upgrade-plan`}
 								trackingId="PlayerPageUpgradePlan"
-								className={styles.center}
 							>
 								Upgrade Plan
 							</ButtonLink>
-						</FullBleedCard>
-					)}
-					<UnauthorizedViewingForm />
-					{sessionViewability === SessionViewability.ERROR ? (
-						loading ? (
-							playerFiller
-						) : isSessionPendingData?.isSessionPending ? (
-							<ErrorState
-								shownWithHeader
-								title="This session is on the way!"
-								message="We are processing the data and will show the recording here soon. Please come back in a minute."
-							/>
-						) : (
-							<ErrorState
-								shownWithHeader
-								message="This session does not exist or has not been made public."
-							/>
-						)
-					) : sessionViewability ===
-					  SessionViewability.EMPTY_SESSION ? (
-						<ElevatedCard
-							className={styles.emptySessionCard}
-							title="Session isn't ready to view yet 😔"
-							animation={
-								<Lottie animationData={WaitingAnimation} />
-							}
+						</Box>
+					</FullBleedCard>
+				)
+			case SessionViewability.ERROR:
+				if (loading) {
+					return playerFiller
+				} else if (isSessionPendingData?.isSessionPending) {
+					return (
+						<ErrorState
+							shownWithHeader
+							title="This session is on the way!"
+							message="We are processing the data and will show the recording here soon. Please come back in a minute."
+						/>
+					)
+				} else {
+					return (
+						<ErrorState
+							shownWithHeader
+							message="This session does not exist or has not been made public."
+						/>
+					)
+				}
+			case SessionViewability.EMPTY_SESSION:
+				return (
+					<ElevatedCard
+						title="Session isn't ready to view yet 😔"
+						animation={<Lottie animationData={WaitingAnimation} />}
+						className={style.emptySessionCard}
+					>
+						<p>
+							We need more time to process this session.{' '}
+							{!isOnPrem ? (
+								<>
+									If this looks like a bug, shoot us a message
+									on{' '}
+									<span
+										className={style.intercomLink}
+										onClick={() => {
+											window.Intercom(
+												'showNewMessage',
+												`I'm seeing an empty session. This is the session ID: "${session_secure_id}"`,
+											)
+										}}
+									>
+										Intercom
+									</span>
+									.
+								</>
+							) : (
+								<>
+									If this looks like a bug, please reach out
+									to us!
+								</>
+							)}
+						</p>
+					</ElevatedCard>
+				)
+			default:
+				return (
+					<div className={style.playerContainer}>
+						<div className={style.rrwebPlayerSection}>
+							<Box
+								display="flex"
+								flexDirection="column"
+								width="full"
+								height="full"
+							>
+								<SessionLevelBarV2 width="100%" />
+								<Box
+									width="full"
+									height="full"
+									display="flex"
+									justifyContent="center"
+									borderTop="secondary"
+								>
+									<NoActiveSessionCard />
+								</Box>
+							</Box>
+						</div>
+					</div>
+				)
+		}
+	}, [
+		currentWorkspace?.id,
+		isSessionPendingData?.isSessionPending,
+		loading,
+		playerFiller,
+		sessionViewability,
+		session_secure_id,
+	])
+
+	return (
+		<ReplayerContextProvider value={playerContext}>
+			<ResourcesContextProvider value={resourcesContext}>
+				<ToolbarItemsContextProvider value={toolbarContext}>
+					<Helmet>
+						<title>{getTabTitle(session)}</title>
+					</Helmet>
+					{!integrated && <IntegrationCard />}
+					{isPlayerReady && !isLoggedIn && <PlayerPageProductTour />}
+					<Box
+						cssClass={clsx(style.playerBody, {
+							[style.withLeftPanel]: showLeftPanel,
+						})}
+						height="full"
+						width="full"
+						overflow="hidden"
+					>
+						<Box
+							cssClass={clsx(style.playerLeftPanel, {
+								[style.playerLeftPanelHidden]: !showLeftPanel,
+							})}
 						>
-							<p>
-								We need more time to process this session.{' '}
-								{!isOnPrem ? (
-									<>
-										If this looks like a bug, shoot us a
-										message on{' '}
-										<span
-											className={styles.intercomLink}
-											onClick={() => {
-												window.Intercom(
-													'showNewMessage',
-													`I'm seeing an empty session. This is the session ID: "${session_secure_id}"`,
-												)
-											}}
-										>
-											Intercom
-										</span>
-										.
-									</>
-								) : (
-									<>
-										If this looks like a bug, please reach
-										out to us!
-									</>
-								)}
-							</p>
-						</ElevatedCard>
-					) : (
+							<SessionFeedV3 />
+						</Box>
 						<div
 							id="playerCenterPanel"
 							className={style.playerCenterPanel}
 							ref={playerCenterPanelRef}
 						>
-							{(sessionViewability ===
-								SessionViewability.VIEWABLE &&
-								!!session) ||
-							replayerState !== ReplayerState.Empty ||
-							(replayerState === ReplayerState.Empty &&
-								!!session_secure_id) ? (
-								<div className={style.playerContainer}>
-									<div className={style.rrwebPlayerSection}>
-										<Box
-											display="flex"
-											flexDirection="column"
-											width="full"
-											height="full"
-										>
-											{!isPlayerFullscreen && (
-												<SessionLevelBarV2
-													width={
-														width -
-														(showLeftPanel
-															? style.LEFT_PANEL_WIDTH
-															: 0) -
-														3 * style.PLAYER_PADDING
-													}
-												/>
-											)}
-											<Box display="flex" height="full">
-												<div
-													className={
-														style.playerCenterColumn
-													}
-												>
-													{centerColumnResizeListener}
-													{(sessionViewability ===
-														SessionViewability.VIEWABLE &&
-														!!session) ||
-													replayerState !==
-														ReplayerState.Empty ||
-													(replayerState ===
-														ReplayerState.Empty &&
-														!!session_secure_id) ? (
-														<ResourcesContextProvider
-															value={resources}
-														>
-															<ToolbarItemsContextProvider
-																value={
-																	toolbarItems
-																}
-															>
-																<DevToolsContextProvider
-																	value={{
-																		openDevTools:
-																			showDevTools,
-																		setOpenDevTools:
-																			setShowDevTools,
-																		devToolsTab:
-																			selectedDevToolsTab,
-																		setDevToolsTab:
-																			setSelectedDevToolsTab,
-																	}}
-																>
-																	<div
-																		className={
-																			style.playerWrapperV2
-																		}
-																	>
-																		<div
-																			className={
-																				style.rrwebPlayerWrapper
-																			}
-																			ref={
-																				playerWrapperRef
-																			}
-																		>
-																			{
-																				resizeListener
-																			}
-																			{replayerState ===
-																				ReplayerState.SessionRecordingStopped && (
-																				<div
-																					className={
-																						styles.manuallyStoppedMessageContainer
-																					}
-																					style={{
-																						height: replayerWrapperBbox?.height,
-																						width: replayerWrapperBbox?.width,
-																					}}
-																				>
-																					<ManualStopCard />
-																				</div>
-																			)}
-																			<div
-																				style={{
-																					visibility:
-																						isPlayerReady
-																							? 'visible'
-																							: 'hidden',
-																				}}
-																				className="highlight-block"
-																				id="player"
-																			/>
-																			<PlayerCommentCanvas
-																				setModalPosition={
-																					setCommentModalPosition
-																				}
-																				modalPosition={
-																					commentModalPosition
-																				}
-																				setCommentPosition={
-																					setCommentPosition
-																				}
-																			/>
-																			{!isPlayerReady &&
-																				sessionViewability ===
-																					SessionViewability.VIEWABLE &&
-																				(session?.processed ===
-																				false ? (
-																					<LoadingLiveSessionCard />
-																				) : (
-																					playerFiller
-																				))}
-																		</div>
-																		<Toolbar
-																			width={
-																				controllerWidth
-																			}
-																		/>
-																	</div>
-																	<DevTools
-																		width={
-																			controllerWidth
-																		}
-																	/>
-																</DevToolsContextProvider>
-															</ToolbarItemsContextProvider>
-														</ResourcesContextProvider>
-													) : (
-														<NoActiveSessionCard />
-													)}
-												</div>
-												{!isPlayerFullscreen && (
-													<>
-														<RightPlayerPanel />
-														<ResourcesContextProvider
-															value={resources}
-														>
-															<DetailPanel />
-														</ResourcesContextProvider>
-													</>
-												)}
-											</Box>
-										</Box>
-									</div>
-								</div>
-							) : (
-								<div className={style.playerContainer}>
-									<div className={style.rrwebPlayerSection}>
-										<Box
-											display="flex"
-											flexDirection="column"
-											width="full"
-											height="full"
-										>
-											<SessionLevelBarV2 width="100%" />
-											<Box
-												width="full"
-												height="full"
-												display="flex"
-												justifyContent="center"
-												borderTop="secondary"
-											>
-												<NoActiveSessionCard />
-											</Box>
-										</Box>
-									</div>
-								</div>
-							)}
+							{showSession ? sessionView : sessionFiller}
 						</div>
-					)}
-					<NewCommentModal
-						newCommentModalRef={newCommentModalRef}
-						commentModalPosition={commentModalPosition}
-						commentPosition={commentPosition}
-						commentTime={time}
-						session={session}
-						session_secure_id={session_secure_id}
-						onCancel={() => {
-							setCommentModalPosition(undefined)
-						}}
-						currentUrl={currentUrl}
-					/>
-				</div>
-			</ReplayerContextProvider>
-		</PlayerUIContextProvider>
+						<UnauthorizedViewingForm />
+						<NewCommentModal
+							newCommentModalRef={newCommentModalRef}
+							commentModalPosition={commentModalPosition}
+							commentPosition={commentPosition}
+							commentTime={time}
+							session={session}
+							session_secure_id={session_secure_id}
+							onCancel={() => {
+								setCommentModalPosition(undefined)
+							}}
+							currentUrl={currentUrl}
+						/>
+					</Box>
+				</ToolbarItemsContextProvider>
+			</ResourcesContextProvider>
+		</ReplayerContextProvider>
 	)
 }
 
-const ManualStopCard: FC = function () {
+const ManualStopCard: React.FC = () => {
 	return (
 		<ElevatedCard title="Session recording manually stopped">
 			<p>
@@ -575,16 +499,6 @@ const ManualStopCard: FC = function () {
 			</p>
 		</ElevatedCard>
 	)
-}
-
-const PlayerSkeleton = ({
-	width,
-	height,
-}: {
-	width: number
-	height: number
-}) => {
-	return <LoadingBox style={{ height, width }} />
 }
 
 export default PlayerPage

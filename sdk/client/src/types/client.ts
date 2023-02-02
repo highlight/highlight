@@ -92,8 +92,9 @@ export declare type NetworkRecordingOptions = {
 }
 
 export declare type IntegrationOptions = {
-	mixpanel?: MixpanelIntegrationOptions
 	amplitude?: AmplitudeIntegrationOptions
+	intercom?: IntercomIntegrationOptions
+	mixpanel?: MixpanelIntegrationOptions
 }
 
 export declare type SessionShortcutOptions = false | string
@@ -107,13 +108,22 @@ export declare interface FeedbackWidgetOptions {
 	onCancel?: () => void
 }
 
-export declare interface MixpanelIntegrationOptions {
+type DefaultIntegrationOptions = {
+	disabled?: boolean
+}
+
+export declare interface MixpanelIntegrationOptions
+	extends DefaultIntegrationOptions {
 	projectToken: string
 }
 
-export declare interface AmplitudeIntegrationOptions {
+export declare interface AmplitudeIntegrationOptions
+	extends DefaultIntegrationOptions {
 	apiKey: string
 }
+
+export declare interface IntercomIntegrationOptions
+	extends DefaultIntegrationOptions {}
 
 export enum MetricName {
 	DeviceMemory = 'DeviceMemory',

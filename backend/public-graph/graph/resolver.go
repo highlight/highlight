@@ -58,6 +58,7 @@ type Resolver struct {
 	DB              *gorm.DB
 	TDB             timeseries.DB
 	ProducerQueue   *kafka_queue.Queue
+	BatchedQueue    *kafka_queue.Queue
 	MailClient      *sendgrid.Client
 	StorageClient   *storage.StorageClient
 	OpenSearch      *opensearch.Client
@@ -1471,7 +1472,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	metadata["timestamp"] = input.Timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("project_id", "environment", "id", "secure_id").Where(&model.Session{SecureID: input.SecureID}).First(&session).Error; err != nil {
+	if err := r.DB.Select("project_id", "environment", "id", "secure_id").Where(&model.Session{SecureID: input.SessionSecureID}).First(&session).Error; err != nil {
 		return e.Wrap(err, "error querying session by sessionSecureID for adding session feedback")
 	}
 
@@ -2017,8 +2018,8 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*publicMo
 		err := r.ProducerQueue.Submit(&kafka_queue.Message{
 			Type: kafka_queue.PushMetrics,
 			PushMetrics: &kafka_queue.PushMetricsArgs{
-				SecureID: secureID,
-				Metrics:  metrics,
+				SessionSecureID: secureID,
+				Metrics:         metrics,
 			}}, secureID)
 		if err != nil {
 			log.Error(err)
@@ -2700,36 +2701,25 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		defer unmarshalMessagesSpan.Finish()
 
-		if sessionObj.AvoidPostgresStorage {
-			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeMessages, []byte(messages)); err != nil {
-				return e.Wrap(err, "error saving messages data")
-			}
-		} else {
-			// TODO - this code path is no longer hit.
-			if hasBeacon {
-				r.DB.Where(&model.MessagesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.MessagesObject{})
-			}
-			messagesParsed := make(map[string][]interface{})
-			if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
-				return e.Wrap(err, "error decoding message data")
-			}
-			if len(messagesParsed["messages"]) > 0 {
-				obj := &model.MessagesObject{SessionID: sessionID, Messages: messages, IsBeacon: isBeacon}
-				if err := r.DB.Create(obj).Error; err != nil {
-					return e.Wrap(err, "error creating messages object")
+		if projectID == 1 {
+			logRows, err := clickhouse.ParseConsoleMessages(projectID, sessionSecureID, messages)
+			if err != nil {
+				log.WithError(err).Error("failed to parse console messages")
+			} else {
+				if err := r.BatchedQueue.Submit(&kafka_queue.Message{
+					Type: kafka_queue.PushLogs,
+					PushLogs: &kafka_queue.PushLogsArgs{
+						SessionSecureID: sessionSecureID,
+						LogRows:         logRows,
+					}}, sessionSecureID); err != nil {
+					log.WithError(err).Error("error writing console messages to clickhouse")
 				}
 			}
-			// End dead code path
 		}
 
-		// Only set for main Highlight project
-		if projectID == 1 {
-			if err := r.Clickhouse.BatchWriteMessagesForSession(ctx, projectID, sessionSecureID, messages); err != nil {
-				// If there's an issue with Clickhouse, we'll just log for investigation instead of building up a kafka backlog
-				log.WithError(err).Error("error writing console messages to clickhouse")
-			}
+		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeMessages, []byte(messages)); err != nil {
+			return e.Wrap(err, "error saving messages data")
 		}
-
 		return nil
 	})
 

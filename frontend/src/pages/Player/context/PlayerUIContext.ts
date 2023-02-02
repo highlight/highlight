@@ -1,4 +1,6 @@
+import { ErrorObject } from '@graph/schemas'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
+import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { createContext } from '@util/context/context'
 import React from 'react'
 
@@ -15,6 +17,13 @@ export interface DetailedPanel {
 	id: string
 }
 
+export enum RightPanelView {
+	ERROR = 'ERROR',
+	RESOURCE = 'RESOURCE',
+	SESSION = 'SESSION',
+	EVENT = 'EVENT',
+}
+
 export type RightPlayerTab = 'Events' | 'Threads' | 'Metadata'
 interface PlayerUIContext {
 	isPlayerFullscreen: boolean
@@ -27,9 +36,22 @@ interface PlayerUIContext {
 	>
 	selectedRightPanelTab: RightPlayerTab
 	setSelectedRightPanelTab: (newValue: RightPlayerTab) => void
+
 	activeEvent?: HighlightEvent
 	setActiveEvent: React.Dispatch<
 		React.SetStateAction<HighlightEvent | undefined>
+	>
+	rightPanelView: RightPanelView
+	setRightPanelView: React.Dispatch<React.SetStateAction<RightPanelView>>
+
+	activeError?: ErrorObject
+	setActiveError: React.Dispatch<
+		React.SetStateAction<ErrorObject | undefined>
+	>
+
+	activeNetworkResource?: NetworkResource
+	setActiveNetworkResource: React.Dispatch<
+		React.SetStateAction<NetworkResource | undefined>
 	>
 }
 

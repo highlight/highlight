@@ -1,4 +1,4 @@
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { PropsWithChildren } from 'react'
 
 import styles from './ElevatedCard.module.scss'
@@ -20,7 +20,7 @@ const ElevatedCard = ({
 }: PropsWithChildren<Props>) => {
 	return (
 		<div
-			className={classNames(
+			className={clsx(
 				styles.card,
 				{
 					[styles.center]: !!animation,

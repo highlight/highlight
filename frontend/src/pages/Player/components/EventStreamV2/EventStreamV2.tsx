@@ -7,7 +7,10 @@ import {
 	usefulEvent,
 } from '@pages/Player/components/EventStream/utils'
 import { StreamEventV2 } from '@pages/Player/components/EventStreamV2/StreamEventV2/StreamEventV2'
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import {
+	RightPanelView,
+	usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import {
 	ReplayerState,
@@ -33,7 +36,7 @@ const EventStreamV2 = function () {
 		currentEvent,
 		setCurrentEvent,
 	} = useReplayerContext()
-	const { setActiveEvent } = usePlayerUIContext()
+	const { setActiveEvent, setRightPanelView } = usePlayerUIContext()
 	const [isInteractingWithStreamEvents, setIsInteractingWithStreamEvents] =
 		useState(false)
 	const [events, setEvents] = useState<HighlightEvent[]>([])
@@ -165,6 +168,7 @@ const EventStreamV2 = function () {
 									onGoToHandler={(e) => {
 										setCurrentEvent(e)
 										setActiveEvent(event)
+										setRightPanelView(RightPanelView.EVENT)
 									}}
 								/>
 							)}

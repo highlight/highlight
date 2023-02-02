@@ -59,7 +59,7 @@ def fetch(
 ):
     s3 = boto3.Session().resource("s3")
     b = s3.Bucket(bucket)
-    sourcemaps_bucket_name = "source-maps-test"
+    sourcemaps_bucket_name = "highlight-source-maps"
     sourcemaps_bucket = s3.Bucket(sourcemaps_bucket_name)
 
     # Get session from prod

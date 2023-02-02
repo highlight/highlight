@@ -1,14 +1,14 @@
-import { useGetProjectQuery } from '@graph/hooks'
+import LoadingBox from '@components/LoadingBox'
 import { GetErrorGroupQuery } from '@graph/operations'
 import { ErrorObject } from '@graph/schemas'
-import { Box, Heading, Tag, Text } from '@highlight-run/ui'
+import { Box, Heading } from '@highlight-run/ui'
 import ErrorIssueButton from '@pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
 import ErrorShareButton from '@pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
 import { ErrorStateSelect } from '@pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
-import { getHeaderFromError, getProjectPrefix } from '@pages/ErrorsV2/utils'
+import ErrorTag from '@pages/ErrorsV2/ErrorTag/ErrorTag'
+import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
-import React, { useEffect, useState } from 'react'
-import { FaMapMarker } from 'react-icons/fa'
+import React, { useMemo } from 'react'
 
 interface Props {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -16,56 +16,27 @@ interface Props {
 }
 
 const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
-	const [headerTextAsJson, setHeaderTextAsJson] = useState<null | any>(null)
-	const { data: projectData } = useGetProjectQuery({
-		variables: { id: String(errorGroup?.project_id) },
-	})
-
 	const event = errorObject?.event ?? errorGroup?.event
-	const headerText = getHeaderFromError(event ?? [])
-
-	useEffect(() => {
-		if (headerText) {
-			if (event) {
-				const title = getErrorBody(event)
-				if (title) {
-					setHeaderTextAsJson(title)
-				} else {
-					setHeaderTextAsJson(null)
-				}
-			} else {
-				setHeaderTextAsJson(null)
+	const headerText = useMemo(() => {
+		let header = getHeaderFromError(event ?? [])
+		if (header && event) {
+			const title = getErrorBody(event)
+			if (title) {
+				header = title
 			}
 		}
-	}, [event, headerText])
+		return header
+	}, [event])
 
 	if (!errorGroup) {
-		// TODO: Render loading state
-		return null
+		return <LoadingBox />
 	}
 
 	return (
 		<Box mb="16">
 			<Box borderBottom="secondary" pb="16">
 				<Box display="flex" justifyContent="space-between">
-					<Box alignItems="center" display="flex" gap="10">
-						<Tag
-							iconLeft={<FaMapMarker />}
-							kind="secondary"
-							size="medium"
-							shape="basic"
-						>
-							{errorGroup.type}
-						</Tag>
-
-						<Box>
-							<Text>
-								{getProjectPrefix(projectData?.project)}-
-								{errorGroup.id}
-							</Text>
-						</Box>
-					</Box>
-
+					<ErrorTag errorGroup={errorGroup} />
 					<Box display="flex" gap="8">
 						<ErrorShareButton errorGroup={errorGroup} />
 						<ErrorStateSelect
@@ -78,7 +49,7 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 			</Box>
 			<Box my="28">
 				<Heading level="h2" lines="2">
-					{headerTextAsJson || headerText}
+					{headerText}
 				</Heading>
 			</Box>
 		</Box>
