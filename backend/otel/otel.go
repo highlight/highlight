@@ -38,13 +38,13 @@ func castString(v interface{}) string {
 }
 
 func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID *string) {
-	if p, ok := attrs[HighlightProjectIDAttribute]; ok {
+	if p, ok := attrs[highlight.ProjectIDAttribute]; ok {
 		*projectID = p.(string)
 	}
-	if s, ok := attrs[HighlightSessionIDAttribute]; ok {
+	if s, ok := attrs[highlight.SessionIDAttribute]; ok {
 		*sessionID = s.(string)
 	}
-	if r, ok := attrs[HighlightRequestIDAttribute]; ok {
+	if r, ok := attrs[highlight.RequestIDAttribute]; ok {
 		*requestID = r.(string)
 	}
 }
