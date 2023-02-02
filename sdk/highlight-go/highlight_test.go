@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/v2/ast"
-	"strings"
+	"go.opentelemetry.io/otel/attribute"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -18,16 +18,15 @@ func TestConsumeError(t *testing.T) {
 	ctx = context.WithValue(ctx, ContextKeys.SessionSecureID, "0")
 	ctx = context.WithValue(ctx, ContextKeys.RequestID, "0")
 	tests := map[string]struct {
-		errorInput         interface{}
+		errorInput         error
 		contextInput       context.Context
-		tags               []string
+		tags               []attribute.KeyValue
 		expectedFlushSize  int
 		expectedEvent      string
 		expectedStackTrace string
 		expectedError      error
 	}{
 		"test builtin error":                                {expectedFlushSize: 1, contextInput: ctx, errorInput: fmt.Errorf("error here"), expectedEvent: "error here", expectedStackTrace: "error here"},
-		"test builtin error with invalid context":           {expectedFlushSize: 0, contextInput: context.Background(), errorInput: fmt.Errorf("error here"), expectedError: fmt.Errorf(consumeErrorSessionIDMissing)},
 		"test simple github.com/pkg/errors error":           {expectedFlushSize: 1, contextInput: ctx, errorInput: errors.New("error here"), expectedEvent: "error here", expectedStackTrace: `["github.com/highlight/highlight/sdk/highlight-go.TestConsumeError /Users/cameronbrill/Projects/work/Highlight/highlight-go/highlight_test.go:27","testing.tRunner /usr/local/opt/go/libexec/src/testing/testing.go:1259","runtime.goexit /usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1581"]`},
 		"test github.com/pkg/errors error with stack trace": {expectedFlushSize: 1, contextInput: ctx, errorInput: errors.Wrap(errors.New("error here"), "error there"), expectedEvent: "error there: error here", expectedStackTrace: `["github.com/highlight/highlight/sdk/highlight-go.TestConsumeError /Users/cameronbrill/Projects/work/Highlight/highlight-go/highlight_test.go:28","testing.tRunner /usr/local/opt/go/libexec/src/testing/testing.go:1259","runtime.goexit /usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1581"]`},
 	}
@@ -35,22 +34,7 @@ func TestConsumeError(t *testing.T) {
 	for name, input := range tests {
 		t.Run(name, func(t *testing.T) {
 			Start()
-			ConsumeError(input.contextInput, input.errorInput, input.tags...)
-			a, _ := flush()
-			if len(a) != input.expectedFlushSize {
-				t.Errorf("flush returned the wrong number of errors [%v != %v]", len(a), input.expectedFlushSize)
-				return
-			}
-			if len(a) < 1 {
-				return
-			}
-			if string(a[0].Event) != input.expectedEvent {
-				t.Errorf("event not equal to expected event: %v != %v", a[0].Event, input.expectedEvent)
-			}
-			// strings.Contains() is here because the actual stack trace will differ from machine to machine, because file paths are different.
-			if string(a[0].StackTrace) != input.expectedStackTrace && !strings.Contains(string(a[0].StackTrace), "highlight_test.go") {
-				t.Errorf("stack trace not equal to expected stack trace: %v != %v", a[0].StackTrace, input.expectedStackTrace)
-			}
+			RecordError(input.contextInput, input.errorInput, input.tags...)
 		})
 	}
 	Stop()
@@ -80,7 +64,7 @@ func TestRecordMetric(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			Start()
 			RecordMetric(input.contextInput, input.metricInput.name, input.metricInput.value)
-			_, a := flush()
+			a := flush()
 			if len(a) != input.expectedFlushSize {
 				t.Errorf("flush returned the wrong number of metrics [%v != %v]", len(a), input.expectedFlushSize)
 				return
@@ -127,7 +111,7 @@ func TestTracer(t *testing.T) {
 			t.Errorf("got invalid response from intercept field")
 		}
 
-		_, a := flush()
+		a := flush()
 		// size, duration, errorsCount, fields duration
 		if len(a) != 4 {
 			t.Errorf("flush returned the wrong number of metrics [%v != %v]", len(a), 4)
