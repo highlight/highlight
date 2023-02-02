@@ -12,17 +12,14 @@ import log from './log'
 
 import * as opentelemetry from '@opentelemetry/sdk-node'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
-import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base'
-import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import {
 	diag,
-	trace,
 	DiagConsoleLogger,
 	DiagLogLevel,
+	trace,
 	Tracer,
 } from '@opentelemetry/api'
-import { Resource } from '@opentelemetry/resources'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -53,25 +50,16 @@ export class Highlight {
 			diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG)
 		}
 
-		const resource = Resource.default().merge(
-			new Resource({
-				['highlight_project_id']: this._projectID,
-			}),
-		)
-		const provider = new NodeTracerProvider({ resource: resource })
+		this.tracer = trace.getTracer('highlight-node')
 		const exporter = new OTLPTraceExporter({
 			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
 		})
-		provider.addSpanProcessor(new BatchSpanProcessor(exporter))
-		provider.register()
 
 		this.otel = new opentelemetry.NodeSDK({
 			traceExporter: exporter,
 			instrumentations: [getNodeAutoInstrumentations()],
 		})
 		this.otel.start()
-
-		this.tracer = trace.getTracer('highlight-node')
 
 		this._intervalFunction = setInterval(
 			() => this.flush(),
@@ -115,8 +103,10 @@ export class Highlight {
 		requestId: string | undefined,
 	) {
 		let span = trace.getActiveSpan()
+		let spanCreated = false
 		if (!span) {
 			span = this.tracer.startSpan('highlight-ctx')
+			spanCreated = true
 		}
 		span.recordException(error)
 		span.setAttributes({
@@ -124,7 +114,9 @@ export class Highlight {
 			highlight_session_id: secureSessionId,
 			highlight_trace_id: requestId,
 		})
-		span.end()
+		if (spanCreated) {
+			span.end()
+		}
 	}
 
 	consumeCustomEvent(secureSessionId?: string) {
