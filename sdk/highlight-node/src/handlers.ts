@@ -24,13 +24,19 @@ function processErrorImpl(
 		;[secureSessionId, requestId] =
 			`${req.headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
 	}
+	H.log('processError', 'extracted from headers', {
+		secureSessionId,
+		requestId,
+	})
 
 	if (!H.isInitialized()) {
 		H.init(options)
+		H.log('initialized H')
 	}
 	H.consumeEvent(secureSessionId)
 	if (error instanceof Error) {
 		H.consumeError(error, secureSessionId, requestId)
+		H.log('consumed error', error)
 	}
 }
 
@@ -46,12 +52,14 @@ export function errorHandler(
 	res: http.ServerResponse,
 	next: (error: MiddlewareError) => void,
 ) => void {
+	H.log('setting up error handler')
 	return async (
 		error: MiddlewareError,
 		req: http.IncomingMessage,
 		res: http.ServerResponse,
 		next: (error: MiddlewareError) => void,
 	) => {
+		H.log('handling request')
 		try {
 			processErrorImpl(options, req, error)
 		} finally {

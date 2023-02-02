@@ -8,6 +8,7 @@ import {
 import { GraphQLClient } from 'graphql-request'
 import { NodeOptions } from './types.js'
 import { ErrorContext } from './errorContext.js'
+import log from './log'
 
 import * as opentelemetry from '@opentelemetry/sdk-node'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
@@ -35,10 +36,12 @@ export class Highlight {
 	lastBackendSetupEvent: number = 0
 	_errorContext: ErrorContext | undefined
 	_projectID: string
+	_debug: boolean
 	private otel: opentelemetry.NodeSDK
 	private tracer: Tracer
 
 	constructor(options: NodeOptions) {
+		this._debug = !!options.debug
 		this._projectID = options.projectID
 		this._backendUrl = options.backendUrl || 'https://pub.highlight.run'
 		const client = new GraphQLClient(this._backendUrl, {
@@ -78,6 +81,13 @@ export class Highlight {
 			this._errorContext = new ErrorContext({
 				sourceContextCacheSizeMB: options.errorSourceContextCacheSizeMB,
 			})
+		}
+		this._log(`Initialized SDK for project ${this._projectID}`)
+	}
+
+	_log(...data: any[]) {
+		if (this._debug) {
+			log('client', ...data)
 		}
 	}
 
