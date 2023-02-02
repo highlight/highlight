@@ -2,6 +2,7 @@ package kafka_queue
 
 import (
 	"github.com/highlight-run/highlight/backend/clickhouse"
+	"math"
 	"time"
 
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -21,6 +22,7 @@ const (
 	MarkBackendSetup     PayloadType = iota
 	AddSessionFeedback   PayloadType = iota
 	PushLogs             PayloadType = iota
+	HealthCheck          PayloadType = math.MaxInt
 )
 
 type PushPayloadArgs struct {

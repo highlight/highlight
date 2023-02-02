@@ -217,30 +217,32 @@ export const H: HighlightPublicInterface = {
 			)
 			const highlightUrl = highlight_obj?.getCurrentSessionURL()
 
-			if (window.mixpanel?.track) {
-				window.mixpanel.track(event, {
-					...metadata,
-					highlightSessionURL: highlightUrl,
-				})
+			if (!H.options?.integrations?.mixpanel?.disabled) {
+				if (window.mixpanel?.track) {
+					window.mixpanel.track(event, {
+						...metadata,
+						highlightSessionURL: highlightUrl,
+					})
+				} else {
+					console.warn(
+						"Mixpanel not loaded, but Highlight is configured to use it. This is usually caused by Mixpanel being blocked by the user's browser.",
+					)
+				}
 			}
 
-			if (
-				!!H.options?.integrations?.mixpanel?.projectToken &&
-				!window?.mixpanel?.track
-			) {
-				console.warn(
-					"Mixpanel not loaded, but Highlight is configured to use it. This is usually caused by Mixpanel being blocked by the user's browser.",
-				)
+			if (!H.options?.integrations?.amplitude?.disabled) {
+				if (window.amplitude?.getInstance) {
+					window.amplitude.getInstance().logEvent(event, {
+						...metadata,
+						highlightSessionURL: highlightUrl,
+					})
+				}
 			}
 
-			if (window.amplitude?.getInstance) {
-				window.amplitude.getInstance().logEvent(event, {
-					...metadata,
-					highlightSessionURL: highlightUrl,
-				})
-			}
-			if (window.Intercom) {
-				window.Intercom('trackEvent', event, metadata)
+			if (!H.options?.integrations?.intercom?.disabled) {
+				if (window.Intercom) {
+					window.Intercom('trackEvent', event, metadata)
+				}
 			}
 		} catch (e) {
 			HighlightWarning('track', e)
@@ -283,23 +285,29 @@ export const H: HighlightPublicInterface = {
 		} catch (e) {
 			HighlightWarning('identify', e)
 		}
-		if (window.mixpanel?.identify) {
-			window.mixpanel.identify(identifier)
+		if (!H.options?.integrations?.mixpanel?.disabled) {
+			if (window.mixpanel?.identify) {
+				window.mixpanel.identify(identifier)
+			}
 		}
-		if (window.amplitude?.getInstance) {
-			window.amplitude.getInstance().setUserId(identifier)
 
-			if (Object.keys(metadata).length > 0) {
-				const amplitudeUserProperties = Object.keys(metadata).reduce(
-					(acc, key) => {
+		if (!H.options?.integrations?.amplitude?.disabled) {
+			if (window.amplitude?.getInstance) {
+				window.amplitude.getInstance().setUserId(identifier)
+
+				if (Object.keys(metadata).length > 0) {
+					const amplitudeUserProperties = Object.keys(
+						metadata,
+					).reduce((acc, key) => {
 						acc.set(key, metadata[key])
 
 						return acc
-					},
-					new window.amplitude.Identify(),
-				)
+					}, new window.amplitude.Identify())
 
-				window.amplitude.getInstance().identify(amplitudeUserProperties)
+					window.amplitude
+						.getInstance()
+						.identify(amplitudeUserProperties)
+				}
 			}
 		}
 	},

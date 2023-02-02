@@ -410,6 +410,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			log.Error(errors.Wrap(err, "failed to process AddSessionFeedback task"))
 			return err
 		}
+	case kafkaqueue.HealthCheck:
 	default:
 		log.Errorf("Unknown task type %+v", task.Type)
 	}

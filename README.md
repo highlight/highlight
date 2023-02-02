@@ -17,6 +17,13 @@
 
 highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a [cohesive](#cohesion), [modern](#for-todays-developer) and [fully-featured](#features) monitoring solution, something we wished WE had. And it's all open source :)
 
+At a high level, highlight.io's feature set is:
+- Session Replay (read more [here](#session-replay-understand-why-bugs-happen))
+- Error Monitoring (read more [here](#error-monitoring-understand-what-bugs-are-happening))
+- Logging (still in beta) (read more [here](#logging))
+
+Read more about our [features](#features) below.
+
 We strive to make highlight.io as easy to install as a few lines of code in any environment.
 
 Read more about our [features](#features), [values](#our-values) and [mission](#our-mission) below, and get started at https://highlight.io today!

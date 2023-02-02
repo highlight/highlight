@@ -11,6 +11,10 @@ declare var window: Window
 export const setupMixpanelIntegration: Integration = ({
 	projectToken,
 }: MixpanelIntegrationOptions) => {
+	if (window.mixpanel) {
+		return
+	}
+
 	;(function (f, b) {
 		if (!b.__SV) {
 			var i, h

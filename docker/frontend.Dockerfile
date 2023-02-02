@@ -1,4 +1,4 @@
-FROM node:lts-bullseye as frontend-builder
+FROM node:lts-bullseye
 RUN apt update && apt install -y \
   build-essential \
   chromium \

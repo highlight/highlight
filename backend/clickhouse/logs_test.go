@@ -1,36 +1,41 @@
 package clickhouse
 
 import (
+	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestMakeLogRow(t *testing.T) {
-	projectID := 1
-	secureSessionID := "session_id"
+func TestReadLogs(t *testing.T) {
+	ctx := context.Background()
+	client, err := setupClickhouseTestDB()
 
-	message := Message{
-		Type: "info",
-		Value: []string{
-			"timestamp",
-			"\"Sending: 120 events, 2 messages, 0 network resources, 0 errors \\nTo: https://localhost:8082/public\\nOrg: 1\\nSessionSecureID: 0L4pKSh2LaG51f1Nq3jYb17OCiaM\"",
+	require.NoError(t, err)
+
+	defer func() {
+		client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", LogsTable)) //nolint:errcheck
+	}()
+
+	now := time.Now()
+	rows := []*LogRow{
+		{
+			Timestamp:    now,
+			ProjectId:    1,
+			Body:         "body",
+			SeverityText: "info",
 		},
-		Time: 1674681864244,
 	}
 
-	logRow, err := makeLogRow(projectID, secureSessionID, message)
+	require.NoError(t, client.BatchWriteLogRows(ctx, rows))
+	logLines, err := client.ReadLogs(ctx, 1)
+	require.NoError(t, err)
 
-	if err != nil {
-		t.Error(err)
-	}
-
-	assert.Equal(t, uint32(projectID), logRow.ProjectId)
-	assert.Equal(t, secureSessionID, logRow.SecureSessionID)
-	assert.Equal(t, "info", logRow.SeverityText)
-	assert.Equal(t, int64(1674681864244), logRow.Timestamp.UnixMilli())
-	assert.Equal(t,
-		"Sending: 120 events, 2 messages, 0 network resources, 0 errors \nTo: https://localhost:8082/public\nOrg: 1\nSessionSecureID: 0L4pKSh2LaG51f1Nq3jYb17OCiaM",
-		logRow.Body,
-	)
+	assert.Len(t, logLines, 1)
+	assert.Equal(t, now.UnixMilli(), logLines[0].Timestamp.UnixMilli())
+	assert.Equal(t, "info", logLines[0].SeverityText)
+	assert.Equal(t, "body", logLines[0].Body)
 }
