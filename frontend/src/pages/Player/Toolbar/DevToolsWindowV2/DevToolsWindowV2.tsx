@@ -10,8 +10,8 @@ import {
 } from '@highlight-run/ui'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import { useDevToolsContext } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext'
 import { NetworkPage } from '@pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
 import {
 	DEV_TOOLS_MIN_HEIGHT,
@@ -37,7 +37,6 @@ const DevToolsWindowV2: React.FC<
 		width: number
 	}
 > = (props) => {
-	const { openDevTools } = useDevToolsContext()
 	const { isPlayerFullscreen } = usePlayerUIContext()
 	const { time } = useReplayerContext()
 	const [tab, setTab] = React.useState<Tab>(Tab.Console)
@@ -59,8 +58,9 @@ const DevToolsWindowV2: React.FC<
 	const { height } = useWindowSize()
 	const maxHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, height / 2)
 	const defaultHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, maxHeight / 2)
+	const { showDevTools, showHistogram } = usePlayerConfiguration()
 
-	if (!openDevTools || isPlayerFullscreen) {
+	if (!showDevTools || isPlayerFullscreen) {
 		return null
 	}
 
@@ -72,185 +72,176 @@ const DevToolsWindowV2: React.FC<
 			heightPersistenceKey="highlight-devToolsPanelHeight"
 		>
 			{({ panelRef, handleRef }) => (
-				<Box>
-					<div
-						className={clsx(
-							styles.devToolsWindowV2,
-							styledScrollbar,
-						)}
-						ref={panelRef}
-						style={{ width: props.width }}
-					>
-						<Tabs<Tab>
-							handleRef={handleRef}
-							tab={tab}
-							setTab={(t: Tab) => {
-								setTab(t)
-								form.reset()
-							}}
-							pages={{
-								[Tab.Console]: {
-									page: (
-										<ConsolePage
-											autoScroll={autoScroll}
-											logLevel={logLevel}
-											filter={filter}
-											time={time}
-										/>
-									),
-								},
-								[Tab.Errors]: {
-									page: (
-										<ErrorsPage
-											autoScroll={autoScroll}
-											filter={filter}
-											time={time}
-										/>
-									),
-								},
-								[Tab.Network]: {
-									page: (
-										<NetworkPage
-											autoScroll={autoScroll}
-											requestType={requestType}
-											filter={filter}
-											time={time}
-										/>
-									),
-								},
-							}}
-							right={
+				<Box
+					bt={showHistogram ? undefined : 'dividerWeak'}
+					cssClass={clsx(styles.devToolsWindowV2, styledScrollbar)}
+					ref={panelRef}
+					style={{ width: props.width }}
+				>
+					<Tabs<Tab>
+						handleRef={handleRef}
+						tab={tab}
+						setTab={(t: Tab) => {
+							setTab(t)
+							form.reset()
+						}}
+						pages={{
+							[Tab.Console]: {
+								page: (
+									<ConsolePage
+										autoScroll={autoScroll}
+										logLevel={logLevel}
+										filter={filter}
+										time={time}
+									/>
+								),
+							},
+							[Tab.Errors]: {
+								page: (
+									<ErrorsPage
+										autoScroll={autoScroll}
+										filter={filter}
+										time={time}
+									/>
+								),
+							},
+							[Tab.Network]: {
+								page: (
+									<NetworkPage
+										autoScroll={autoScroll}
+										requestType={requestType}
+										filter={filter}
+										time={time}
+									/>
+								),
+							},
+						}}
+						right={
+							<Box
+								display="flex"
+								justifyContent="space-between"
+								gap="6"
+								align="center"
+							>
 								<Box
 									display="flex"
 									justifyContent="space-between"
-									gap="6"
+									gap="4"
 									align="center"
 								>
-									<Box
-										display="flex"
-										justifyContent="space-between"
-										gap="4"
-										align="center"
-									>
-										<Form state={form}>
-											<label>
+									<Form state={form}>
+										<label>
+											<Box
+												display="flex"
+												justifyContent="space-between"
+												align="center"
+											>
 												<Box
+													cursor="pointer"
 													display="flex"
-													justifyContent="space-between"
 													align="center"
+													onClick={() => {
+														setSearchShown(
+															(s) => !s,
+														)
+													}}
+													color="weak"
 												>
-													<Box
-														cursor="pointer"
-														display="flex"
-														align="center"
-														onClick={() => {
-															setSearchShown(
-																(s) => !s,
-															)
-														}}
-														color="weak"
-													>
-														<IconSolidSearch
-															size={16}
-														/>
-													</Box>
-													<Form.Input
-														name={form.names.search}
-														placeholder="Search"
-														size="xSmall"
-														outline={false}
-														collapsed={!searchShown}
-														onKeyDown={(e: any) => {
-															if (
-																e.code ===
-																'Escape'
-															) {
-																e.target?.blur()
-															}
-														}}
-														onBlur={() => {
-															setSearchShown(
-																false,
-															)
-														}}
-														onFocus={() => {
-															setSearchShown(true)
-														}}
+													<IconSolidSearch
+														size={16}
 													/>
 												</Box>
-											</label>
-										</Form>
-
-										{tab === Tab.Console ? (
-											<MenuButton
-												divider
-												size="medium"
-												options={Object.values(
-													LogLevel,
-												).map((ll) => ({
-													key: ll,
-													render: ll,
-													variants: LogLevelVariants[
-														ll as keyof typeof LogLevelVariants
-													]
-														? {
-																variant:
-																	LogLevelVariants[
-																		ll as keyof typeof LogLevelVariants
-																	],
-														  }
-														: undefined,
-												}))}
-												onChange={(ll: string) =>
-													setLogLevel(ll as LogLevel)
-												}
-											/>
-										) : tab === Tab.Network ? (
-											<MenuButton
-												size="medium"
-												options={Object.values(
-													RequestType,
-												).map((rt: string) => ({
-													key: rt,
-													render: rt,
-												}))}
-												onChange={(rt: string) =>
-													setRequestType(
-														rt as RequestType,
-													)
-												}
-											/>
-										) : null}
-
-										<Button
-											size="xSmall"
-											cssClass={styles.autoScroll}
-											iconRight={
-												<IconSolidSwitchHorizontal
-													width={12}
-													height={12}
-													className={
-														styles.switchInverted
-													}
+												<Form.Input
+													name={form.names.search}
+													placeholder="Search"
+													size="xSmall"
+													outline={false}
+													collapsed={!searchShown}
+													onKeyDown={(e: any) => {
+														if (
+															e.code === 'Escape'
+														) {
+															e.target?.blur()
+														}
+													}}
+													onBlur={() => {
+														setSearchShown(false)
+													}}
+													onFocus={() => {
+														setSearchShown(true)
+													}}
 												/>
+											</Box>
+										</label>
+									</Form>
+
+									{tab === Tab.Console ? (
+										<MenuButton
+											divider
+											size="medium"
+											options={Object.values(
+												LogLevel,
+											).map((ll) => ({
+												key: ll,
+												render: ll,
+												variants: LogLevelVariants[
+													ll as keyof typeof LogLevelVariants
+												]
+													? {
+															variant:
+																LogLevelVariants[
+																	ll as keyof typeof LogLevelVariants
+																],
+													  }
+													: undefined,
+											}))}
+											onChange={(ll: string) =>
+												setLogLevel(ll as LogLevel)
 											}
-											kind={
-												autoScroll
-													? 'primary'
-													: 'secondary'
+										/>
+									) : tab === Tab.Network ? (
+										<MenuButton
+											size="medium"
+											options={Object.values(
+												RequestType,
+											).map((rt: string) => ({
+												key: rt,
+												render: rt,
+											}))}
+											onChange={(rt: string) =>
+												setRequestType(
+													rt as RequestType,
+												)
 											}
-											onClick={() => {
-												setAutoScroll(!autoScroll)
-											}}
-											trackingId="devToolsAutoScroll"
-										>
-											Auto scroll
-										</Button>
-									</Box>
+										/>
+									) : null}
+
+									<Button
+										size="xSmall"
+										cssClass={styles.autoScroll}
+										iconRight={
+											<IconSolidSwitchHorizontal
+												width={12}
+												height={12}
+												className={
+													styles.switchInverted
+												}
+											/>
+										}
+										kind={
+											autoScroll ? 'primary' : 'secondary'
+										}
+										onClick={() => {
+											setAutoScroll(!autoScroll)
+										}}
+										trackingId="devToolsAutoScroll"
+									>
+										Auto scroll
+									</Button>
 								</Box>
-							}
-						/>
-					</div>
+							</Box>
+						}
+					/>
 				</Box>
 			)}
 		</ResizePanel>

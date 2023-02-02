@@ -7599,6 +7599,7 @@ export const GetErrorInstanceDocument = gql`
 				id
 				created_at
 				project_id
+				session_id
 				session {
 					identifier
 					fingerprint

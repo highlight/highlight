@@ -9,7 +9,15 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
+import { ErrorObject } from '@graph/schemas'
 import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
+import {
+	PlayerUIContextProvider,
+	RightPanelView,
+} from '@pages/Player/context/PlayerUIContext'
+import { HighlightEvent } from '@pages/Player/HighlightEvent'
+import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks'
 import useLocalStorage from '@rehooks/local-storage'
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
 import WithErrorSearchContext from '@routers/OrgRouter/WithErrorSearchContext'
@@ -19,7 +27,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
 import Firebase from 'firebase/app'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Route, Switch } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
@@ -116,14 +124,64 @@ export const ProjectRouter = () => {
 		}
 	}, [error, integratedLoading, loading, setLoadingState])
 
-	if (loading || integratedLoading) {
-		return null
-	}
-
 	// if the user can join this workspace, give them that option via the ErrorState
 	const joinableWorkspace = data?.joinable_workspaces
 		?.filter((w) => w?.projects.map((p) => p?.id).includes(project_id))
 		?.pop()
+
+	const [detailedPanel, setDetailedPanel] = useState<
+		| {
+				title: string | React.ReactNode
+				content: React.ReactNode
+				id: string
+		  }
+		| undefined
+	>(undefined)
+
+	const [rightPanelView, setRightPanelView] = useState<RightPanelView>(
+		RightPanelView.SESSION,
+	)
+
+	const [activeEvent, setActiveEvent] = useState<HighlightEvent | undefined>(
+		undefined,
+	)
+
+	const [activeError, setActiveError] = useState<ErrorObject | undefined>(
+		undefined,
+	)
+
+	const [activeNetworkResource, setActiveNetworkResource] = useState<
+		NetworkResource | undefined
+	>(undefined)
+
+	const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
+		'Events' | 'Threads' | 'Metadata'
+	>('tabs-PlayerRightPanel-active-tab', 'Events')
+
+	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
+		usePlayerFullscreen()
+
+	const playerUIContext = {
+		isPlayerFullscreen,
+		setIsPlayerFullscreen,
+		playerCenterPanelRef,
+		detailedPanel,
+		setDetailedPanel,
+		selectedRightPanelTab,
+		setSelectedRightPanelTab,
+		activeEvent,
+		setActiveEvent,
+		activeError,
+		setActiveError,
+		activeNetworkResource,
+		setActiveNetworkResource,
+		rightPanelView,
+		setRightPanelView,
+	}
+
+	if (loading || integratedLoading) {
+		return null
+	}
 
 	return (
 		<GlobalContextProvider
@@ -142,62 +200,64 @@ export const ProjectRouter = () => {
 					workspaces: data?.workspaces || [],
 				}}
 			>
-				<WithSessionSearchContext>
-					<WithErrorSearchContext>
-						<Switch>
-							<Route path="/:project_id/front" exact>
-								<FrontPlugin />
-							</Route>
-							<Route>
-								<Header />
-								<KeyboardShortcutsEducation />
-								<div
-									className={classNames(
-										commonStyles.bodyWrapper,
-										{
-											[commonStyles.bannerShown]:
-												showBanner,
-										},
-									)}
-								>
-									{/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
-									{isLoggedIn && joinableWorkspace ? (
-										<ErrorState
-											shownWithHeader
-											joinableWorkspace={
-												joinableWorkspace
-											}
-										/>
-									) : isLoggedIn &&
-									  (error || !data?.project) ? (
-										<ErrorState
-											title="Enter this Workspace?"
-											message={`
+				<PlayerUIContextProvider value={playerUIContext}>
+					<WithSessionSearchContext>
+						<WithErrorSearchContext>
+							<Switch>
+								<Route path="/:project_id/front" exact>
+									<FrontPlugin />
+								</Route>
+								<Route>
+									<Header />
+									<KeyboardShortcutsEducation />
+									<div
+										className={classNames(
+											commonStyles.bodyWrapper,
+											{
+												[commonStyles.bannerShown]:
+													showBanner,
+											},
+										)}
+									>
+										{/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
+										{isLoggedIn && joinableWorkspace ? (
+											<ErrorState
+												shownWithHeader
+												joinableWorkspace={
+													joinableWorkspace
+												}
+											/>
+										) : isLoggedIn &&
+										  (error || !data?.project) ? (
+											<ErrorState
+												title="Enter this Workspace?"
+												message={`
                         Sadly, you don’t have access to the workspace 😢
                         Request access and we'll shoot an email to your workspace admin.
                         Alternatively, feel free to make an account!
                         `}
-											shownWithHeader
-											showRequestAccess
-										/>
-									) : (
-										<>
-											{isLoggedIn &&
-												!hasFinishedOnboarding && (
-													<>
-														<OnboardingBubble />
-													</>
-												)}
-											<ApplicationRouter
-												integrated={integrated}
+												shownWithHeader
+												showRequestAccess
 											/>
-										</>
-									)}
-								</div>
-							</Route>
-						</Switch>
-					</WithErrorSearchContext>
-				</WithSessionSearchContext>
+										) : (
+											<>
+												{isLoggedIn &&
+													!hasFinishedOnboarding && (
+														<>
+															<OnboardingBubble />
+														</>
+													)}
+												<ApplicationRouter
+													integrated={integrated}
+												/>
+											</>
+										)}
+									</div>
+								</Route>
+							</Switch>
+						</WithErrorSearchContext>
+					</WithSessionSearchContext>
+				</PlayerUIContextProvider>
 			</ApplicationContextProvider>
 		</GlobalContextProvider>
 	)

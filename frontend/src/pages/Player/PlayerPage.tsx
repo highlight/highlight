@@ -7,18 +7,14 @@ import { ErrorState } from '@components/ErrorState/ErrorState'
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard'
 import LoadingBox from '@components/LoadingBox'
 import { useIsSessionPendingQuery } from '@graph/hooks'
-import { ErrorObject, Session } from '@graph/schemas'
+import { Session } from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
 import { Box } from '@highlight-run/ui'
 import { useWindowSize } from '@hooks/useWindowSize'
 import LoadingLiveSessionCard from '@pages/Player/components/LoadingLiveSessionCard/LoadingLiveSessionCard'
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard'
 import UnauthorizedViewingForm from '@pages/Player/components/UnauthorizedViewingForm/UnauthorizedViewingForm'
-import {
-	PlayerUIContextProvider,
-	RightPanelView,
-} from '@pages/Player/context/PlayerUIContext'
-import { HighlightEvent } from '@pages/Player/HighlightEvent'
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import PlayerCommentCanvas, {
 	Coordinates2D,
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
@@ -36,17 +32,16 @@ import {
 } from '@pages/Player/ResourcesContext/ResourcesContext'
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
 import SessionLevelBarV2 from '@pages/Player/SessionLevelBar/SessionLevelBarV2'
+import { DevTools } from '@pages/Player/Toolbar/DevTools'
 import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel'
-import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
-import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks'
+import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import { SESSION_FEED_LEFT_PANEL_WIDTH } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
 import { SessionFeedV3 } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
-import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import analytics from '@util/analytics'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
@@ -59,9 +54,6 @@ import useResizeAware from 'react-resize-aware'
 
 import WaitingAnimation from '../../lottie/waiting.json'
 import * as style from './styles.css'
-import { DevTools } from './Toolbar/DevTools'
-import { DevToolsContextProvider } from './Toolbar/DevToolsContext/DevToolsContext'
-import { ToolbarItemsContextProvider } from './Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 
 interface Props {
 	integrated: boolean
@@ -101,32 +93,13 @@ const PlayerPage = ({ integrated }: Props) => {
 	const {
 		setShowLeftPanel,
 		showLeftPanel: showLeftPanelPreference,
-		showDevTools,
-		setShowDevTools,
-		selectedDevToolsTab,
-		setSelectedDevToolsTab,
 		showRightPanel,
 	} = usePlayerConfiguration()
-	const devToolsContext = {
-		openDevTools: showDevTools,
-		setOpenDevTools: setShowDevTools,
-		devToolsTab: selectedDevToolsTab,
-		setDevToolsTab: setSelectedDevToolsTab,
-	}
 
 	const toolbarContext = useToolbarItems()
 
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
-	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
-		usePlayerFullscreen()
-	const [detailedPanel, setDetailedPanel] = useState<
-		| {
-				title: string | React.ReactNode
-				content: React.ReactNode
-				id: string
-		  }
-		| undefined
-	>(undefined)
+
 	const newCommentModalRef = useRef<HTMLDivElement>(null)
 	const [commentModalPosition, setCommentModalPosition] = useState<
 		Coordinates2D | undefined
@@ -134,26 +107,6 @@ const PlayerPage = ({ integrated }: Props) => {
 	const [commentPosition, setCommentPosition] = useState<
 		Coordinates2D | undefined
 	>(undefined)
-
-	const [rightPanelView, setRightPanelView] = useState<RightPanelView>(
-		RightPanelView.SESSION,
-	)
-
-	const [activeEvent, setActiveEvent] = useState<HighlightEvent | undefined>(
-		undefined,
-	)
-
-	const [activeError, setActiveError] = useState<ErrorObject | undefined>(
-		undefined,
-	)
-
-	const [activeNetworkResource, setActiveNetworkResource] = useState<
-		NetworkResource | undefined
-	>(undefined)
-
-	const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
-		'Events' | 'Threads' | 'Metadata'
-	>('tabs-PlayerRightPanel-active-tab', 'Events')
 
 	useEffect(() => {
 		if (!session_secure_id) {
@@ -256,6 +209,7 @@ const PlayerPage = ({ integrated }: Props) => {
 		replayerState !== ReplayerState.Empty ||
 		(replayerState === ReplayerState.Empty && !!session_secure_id)
 
+	const { isPlayerFullscreen, playerCenterPanelRef } = usePlayerUIContext()
 	const sessionView = showSession ? (
 		<Box
 			background="raised"
@@ -470,78 +424,53 @@ const PlayerPage = ({ integrated }: Props) => {
 	])
 
 	return (
-		<PlayerUIContextProvider
-			value={{
-				isPlayerFullscreen,
-				setIsPlayerFullscreen,
-				playerCenterPanelRef,
-				detailedPanel,
-				setDetailedPanel,
-				selectedRightPanelTab,
-				setSelectedRightPanelTab,
-				activeEvent,
-				setActiveEvent,
-				activeError,
-				setActiveError,
-				activeNetworkResource,
-				setActiveNetworkResource,
-				rightPanelView,
-				setRightPanelView,
-			}}
-		>
-			<ReplayerContextProvider value={playerContext}>
-				<ResourcesContextProvider value={resourcesContext}>
-					<ToolbarItemsContextProvider value={toolbarContext}>
-						<DevToolsContextProvider value={devToolsContext}>
-							<Helmet>
-								<title>{getTabTitle(session)}</title>
-							</Helmet>
-							{!integrated && <IntegrationCard />}
-							{isPlayerReady && !isLoggedIn && (
-								<PlayerPageProductTour />
-							)}
-							<Box
-								cssClass={clsx(style.playerBody, {
-									[style.withLeftPanel]: showLeftPanel,
-								})}
-								height="full"
-								width="full"
-								overflow="hidden"
-							>
-								<Box
-									cssClass={clsx(style.playerLeftPanel, {
-										[style.playerLeftPanelHidden]:
-											!showLeftPanel,
-									})}
-								>
-									<SessionFeedV3 />
-								</Box>
-								<div
-									id="playerCenterPanel"
-									className={style.playerCenterPanel}
-									ref={playerCenterPanelRef}
-								>
-									{showSession ? sessionView : sessionFiller}
-								</div>
-								<UnauthorizedViewingForm />
-								<NewCommentModal
-									newCommentModalRef={newCommentModalRef}
-									commentModalPosition={commentModalPosition}
-									commentPosition={commentPosition}
-									commentTime={time}
-									session={session}
-									session_secure_id={session_secure_id}
-									onCancel={() => {
-										setCommentModalPosition(undefined)
-									}}
-									currentUrl={currentUrl}
-								/>
-							</Box>
-						</DevToolsContextProvider>
-					</ToolbarItemsContextProvider>
-				</ResourcesContextProvider>
-			</ReplayerContextProvider>
-		</PlayerUIContextProvider>
+		<ReplayerContextProvider value={playerContext}>
+			<ResourcesContextProvider value={resourcesContext}>
+				<ToolbarItemsContextProvider value={toolbarContext}>
+					<Helmet>
+						<title>{getTabTitle(session)}</title>
+					</Helmet>
+					{!integrated && <IntegrationCard />}
+					{isPlayerReady && !isLoggedIn && <PlayerPageProductTour />}
+					<Box
+						cssClass={clsx(style.playerBody, {
+							[style.withLeftPanel]: showLeftPanel,
+						})}
+						height="full"
+						width="full"
+						overflow="hidden"
+					>
+						<Box
+							cssClass={clsx(style.playerLeftPanel, {
+								[style.playerLeftPanelHidden]: !showLeftPanel,
+							})}
+						>
+							<SessionFeedV3 />
+						</Box>
+						<div
+							id="playerCenterPanel"
+							className={style.playerCenterPanel}
+							ref={playerCenterPanelRef}
+						>
+							{showSession ? sessionView : sessionFiller}
+						</div>
+						<UnauthorizedViewingForm />
+						<NewCommentModal
+							newCommentModalRef={newCommentModalRef}
+							commentModalPosition={commentModalPosition}
+							commentPosition={commentPosition}
+							commentTime={time}
+							session={session}
+							session_secure_id={session_secure_id}
+							onCancel={() => {
+								setCommentModalPosition(undefined)
+							}}
+							currentUrl={currentUrl}
+						/>
+					</Box>
+				</ToolbarItemsContextProvider>
+			</ResourcesContextProvider>
+		</ReplayerContextProvider>
 	)
 }
 
