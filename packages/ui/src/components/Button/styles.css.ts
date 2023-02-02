@@ -79,11 +79,11 @@ export const variants = recipe({
 			alignItems: 'center',
 			border: 'none',
 			display: 'inline-flex',
+			justifyContent: 'center',
 		}),
 		{
-			lineHeight: '1em',
-			width: 'auto',
 			backgroundColor: 'transparent',
+			lineHeight: '1em',
 			selectors: {
 				'&:hover': {
 					cursor: 'pointer',
@@ -105,9 +105,6 @@ export const variants = recipe({
 			},
 			inlineFlex: {
 				display: 'inline-flex',
-			},
-			block: {
-				display: 'block',
 			},
 		},
 		emphasis: {

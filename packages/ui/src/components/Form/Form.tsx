@@ -2,8 +2,8 @@ import React from 'react'
 
 import {
 	Form as AriaKitForm,
+	FormProps as AriaKitFormProps,
 	FormInput as AriaKitFormInput,
-	FormState as AriaKitFormState,
 	FormError as AriaKitFormError,
 	FormErrorProps as AriaKitFormErrorProps,
 	FormInputProps as AriaKitFormInputProps,
@@ -30,7 +30,7 @@ type FormComponent = React.FC<Props> & {
 export const Label = ({ label }: { label: string }) => {
 	return (
 		<Box display="flex" alignItems="center" style={{ height: 16 }}>
-			<Text userSelect="none" size="xSmall" weight="medium" color="weak">
+			<Text userSelect="none" size="xSmall" weight="bold" color="weak">
 				{label}
 			</Text>
 		</Box>
@@ -51,9 +51,9 @@ export const NamedSection = ({
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Props = React.PropsWithChildren<{ state: AriaKitFormState<any> }>
-export const Form: FormComponent = ({ children, state }: Props) => {
-	return <AriaKitForm state={state}>{children}</AriaKitForm>
+type Props = AriaKitFormProps
+export const Form: FormComponent = ({ children, ...props }: Props) => {
+	return <AriaKitForm {...props}>{children}</AriaKitForm>
 }
 
 export const Error = ({ ...props }: AriaKitFormErrorProps) => {

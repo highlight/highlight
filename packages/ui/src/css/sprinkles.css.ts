@@ -52,6 +52,7 @@ const responsiveProperties = defineProperties({
 			'inline-flex',
 		],
 		position: ['absolute', 'fixed', 'relative', 'static', 'sticky'],
+		textAlign: ['left', 'center', 'right'],
 		gap: vars.space,
 		flex: {
 			stretch: '1 1 0',
@@ -79,14 +80,29 @@ const responsiveProperties = defineProperties({
 		marginBottom: vars.margin,
 		marginLeft: vars.margin,
 		marginRight: vars.margin,
-		width: {
-			full: '100%',
-		},
 		height: {
 			full: '100%',
+			screen: '100vh',
+		},
+		width: {
+			full: '100%',
+			screen: '100vw',
+		},
+		maxHeight: {
+			full: '100%',
+			screen: '100vh',
 		},
 		maxWidth: {
 			full: '100%',
+			screen: '100vw',
+		},
+		minHeight: {
+			full: '100%',
+			screen: '100vh',
+		},
+		minWidth: {
+			full: '100%',
+			screen: '100vw',
 		},
 	},
 	shorthands: {
