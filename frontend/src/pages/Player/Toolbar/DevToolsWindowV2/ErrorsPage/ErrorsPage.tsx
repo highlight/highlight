@@ -109,7 +109,7 @@ const ErrorsPage = ({
 							error={error}
 							setSelectedError={() => {
 								setActiveError(error)
-								setRightPanelView(RightPanelView.ERROR)
+								setRightPanelView(RightPanelView.Error)
 							}}
 							searchQuery={filter}
 							current={index === lastActiveErrorIndex}

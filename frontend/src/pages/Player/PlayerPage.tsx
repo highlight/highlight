@@ -136,7 +136,7 @@ const PlayerPage = ({ integrated }: Props) => {
 	>(undefined)
 
 	const [rightPanelView, setRightPanelView] = useState<RightPanelView>(
-		RightPanelView.SESSION,
+		RightPanelView.Session,
 	)
 
 	const [activeEvent, setActiveEvent] = useState<HighlightEvent | undefined>(

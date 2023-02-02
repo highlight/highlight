@@ -57,7 +57,8 @@ export const NetworkPage = ({
 	const startTime = sessionMetadata.startTime
 	const { setShowDevTools, setSelectedDevToolsTab, showPlayerAbsoluteTime } =
 		usePlayerConfiguration()
-	const { setActiveError, setRightPanelView } = usePlayerUIContext()
+	const { setActiveError, setActiveNetworkResource, setRightPanelView } =
+		usePlayerUIContext()
 	const [currentActiveIndex, setCurrentActiveIndex] = useState<number>()
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
@@ -88,7 +89,7 @@ export const NetworkPage = ({
 	const resourcesToRender = useMemo(() => {
 		const current =
 			(parsedResources
-				?.filter(
+				.filter(
 					(r) =>
 						(method === undefined ||
 							method === r.requestResponsePairs?.request.verb) &&
@@ -157,7 +158,7 @@ export const NetworkPage = ({
 					resourcesToRender,
 				)
 				if (resource) {
-					setResourcePanel(resource)
+					setActiveNetworkResource(resource)
 					setTime(resource.startTime)
 					scrollFunction(resourcesToRender.indexOf(resource))
 					message.success(
@@ -168,19 +169,7 @@ export const NetworkPage = ({
 				} else {
 					setSelectedDevToolsTab(Tab.Errors)
 					setActiveError(matchingError)
-					setRightPanelView(RightPanelView.ERROR)
-					const startTime = sessionMetadata.startTime
-					if (startTime && matchingError.timestamp) {
-						const errorDateTime = new Date(matchingError.timestamp)
-						const deltaMilliseconds =
-							errorDateTime.getTime() - startTime
-						setTime(deltaMilliseconds)
-						message.success(
-							`Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
-								deltaMilliseconds,
-							)}.`,
-						)
-					}
+					setRightPanelView(RightPanelView.Error)
 					analytics.track(
 						'FailedToMatchHighlightResourceHeaderWithResource',
 					)
@@ -236,7 +225,7 @@ export const NetworkPage = ({
 				setCurrentActiveIndex(nextIndex)
 				if (panelIsOpen) {
 					requestAnimationFrame(() => {
-						setResourcePanel(resourcesToRender[nextIndex])
+						setActiveNetworkResource(resourcesToRender[nextIndex])
 						virtuoso.current?.scrollToIndex(nextIndex - 1)
 					})
 				}
@@ -247,7 +236,13 @@ export const NetworkPage = ({
 		return () => {
 			document.removeEventListener('keydown', listener)
 		}
-	}, [currentActiveIndex, panelIsOpen, resourcesToRender, setResourcePanel])
+	}, [
+		currentActiveIndex,
+		panelIsOpen,
+		resourcesToRender,
+		setActiveNetworkResource,
+		setResourcePanel,
+	])
 
 	return (
 		<Box className={styles.container}>
@@ -299,7 +294,10 @@ export const NetworkPage = ({
 										searchTerm={filter}
 										onClickHandler={() => {
 											setCurrentActiveIndex(index)
-											setResourcePanel(resource)
+											setActiveNetworkResource(resource)
+											setRightPanelView(
+												RightPanelView.NetworkResource,
+											)
 										}}
 										playerStartTime={startTime}
 										hasError={!!error}
