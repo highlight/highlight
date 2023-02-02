@@ -13,6 +13,7 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "jsx": "react",
+    "composite": true,
     "outDir": "dist",
     "removeComments": true
   },

@@ -27,10 +27,8 @@ export type BackendErrorObjectInput = {
 	request_id?: InputMaybe<Scalars['String']>
 	session_secure_id?: InputMaybe<Scalars['String']>
 	source: Scalars['String']
-	span_id?: InputMaybe<Scalars['String']>
 	stackTrace: Scalars['String']
 	timestamp: Scalars['Timestamp']
-	trace_id?: InputMaybe<Scalars['String']>
 	type: Scalars['String']
 	url: Scalars['String']
 }
