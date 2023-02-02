@@ -1,7 +1,7 @@
 ---
-to: frontend/src/<%= name %>/<%= componentName %>.module.scss
+to: frontend/src/<%= name %>.css.ts
 ---
 
-.<%= h.changeCase.camel(componentName) %> {
+import { style } from "@vanilla-extract/css"
 
-}
+export const container = style({})
