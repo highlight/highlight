@@ -3,8 +3,6 @@ package util
 import (
 	"context"
 
-	"github.com/highlight/highlight/sdk/highlight-go"
-
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -26,8 +24,6 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 		default:
 			gqlerr = gqlerror.Errorf(e.Error())
 		}
-
-		highlight.RecordError(ctx, e)
 
 		return gqlerr
 	}
