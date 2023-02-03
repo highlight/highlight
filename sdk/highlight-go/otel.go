@@ -11,9 +11,10 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
+	"strings"
 )
 
-const OTLPHTTPEndpoint = "https://otel.highlight.io:4318"
+const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
 const ProjectIDAttribute = "highlight_project_id"
 const SessionIDAttribute = "highlight_session_id"
 const RequestIDAttribute = "highlight_trace_id"
@@ -31,7 +32,15 @@ var (
 )
 
 func StartOTLP() (*OTLP, error) {
-	client := otlptracehttp.NewClient(otlptracehttp.WithEndpoint(fmt.Sprintf("%s/v1/traces", OTLPHTTPEndpoint)))
+	var options []otlptracehttp.Option
+	if strings.HasPrefix(otlpEndpoint, "http://") {
+		options = append(options, otlptracehttp.WithEndpoint(otlpEndpoint[7:]), otlptracehttp.WithInsecure())
+	} else if strings.HasPrefix(otlpEndpoint, "https://") {
+		options = append(options, otlptracehttp.WithEndpoint(otlpEndpoint[8:]))
+	} else {
+		logger.Errorf("an invalid otlp endpoint was configured %s", otlpEndpoint)
+	}
+	client := otlptracehttp.NewClient(options...)
 	exporter, err := otlptrace.New(context.Background(), client)
 	if err != nil {
 		return nil, fmt.Errorf("creating OTLP trace exporter: %w", err)
@@ -61,23 +70,25 @@ func (o *OTLP) shutdown() {
 	}
 }
 
-// RecordError processes `err` to be recorded as a part of the session or network request.
-// Highlight session and trace are inferred from the context.
-// If no sessionID is set, then the error is associated with the project without a session context.
-func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) context.Context {
-	sessionID, requestID, e := validateRequest(ctx)
-	if e != nil {
-		logger.Errorf("[highlight-go] %v", e)
-		return ctx
-	}
-	ctx, span := tracer.Start(ctx, "highlight-ctx")
-	defer span.End()
+func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+	sessionID, requestID, _ := validateRequest(ctx)
+	ctx, span := tracer.Start(ctx, name)
 	attrs := []attribute.KeyValue{
 		attribute.String(ProjectIDAttribute, projectID),
 		attribute.String(SessionIDAttribute, sessionID),
 		attribute.String(RequestIDAttribute, requestID),
 	}
 	attrs = append(attrs, tags...)
-	span.RecordError(err, trace.WithAttributes(attrs...))
+	span.SetAttributes(attrs...)
+	return span, ctx
+}
+
+// RecordError processes `err` to be recorded as a part of the session or network request.
+// Highlight session and trace are inferred from the context.
+// If no sessionID is set, then the error is associated with the project without a session context.
+func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) context.Context {
+	span, ctx := StartTrace(ctx, "highlight-ctx", tags...)
+	defer span.End()
+	span.RecordError(err)
 	return ctx
 }
