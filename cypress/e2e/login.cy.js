@@ -10,8 +10,8 @@ describe('login spec', () => {
 		cy.visit('/')
 
 		// Fill out login form
-		cy.get('[name="email"]').should('be.visible').type('swag@highlight.run')
-		cy.get('[name="password"]').type('9nsUj7eNoh#qeVPB!LaYCPFLBs!wwPG2')
+		cy.get('[name="email"]').should('be.visible').type('demo@example.com')
+		cy.get('[name="password"]').type('hello,world!')
 		cy.get('button[type="submit"]').click().wait(5000)
 		cy.visit('/1/buttons').wait(5000)
 		cy.title().then((title) => {

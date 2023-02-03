@@ -2,6 +2,7 @@ import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import Tabs from '@components/Tabs/Tabs'
 import { EmailOptOutPanel } from '@pages/EmailOptOut/EmailOptOut'
+import { auth, FirebaseAuth } from '@util/auth'
 import React from 'react'
 import { Helmet } from 'react-helmet'
 import { Route, Switch, useRouteMatch } from 'react-router-dom'
@@ -12,6 +13,33 @@ import Auth from './Auth/Auth'
 
 const UserSettings: React.FC = () => {
 	const match = useRouteMatch()
+
+	const tabs = [
+		...(auth instanceof FirebaseAuth
+			? [
+					{
+						key: 'auth',
+						title: 'Authentication',
+						panelContent: (
+							<>
+								<Auth />
+							</>
+						),
+					},
+			  ]
+			: []),
+		...[
+			{
+				key: 'email-settings',
+				title: 'Email Settings',
+				panelContent: (
+					<FieldsBox>
+						<EmailOptOutPanel />
+					</FieldsBox>
+				),
+			},
+		],
+	]
 
 	return (
 		<>
@@ -48,26 +76,7 @@ const UserSettings: React.FC = () => {
 												noHeaderPadding
 												noPadding
 												id="settingsTabs"
-												tabs={[
-													{
-														key: 'auth',
-														title: 'Authentication',
-														panelContent: (
-															<>
-																<Auth />
-															</>
-														),
-													},
-													{
-														key: 'email-settings',
-														title: 'Email Settings',
-														panelContent: (
-															<FieldsBox>
-																<EmailOptOutPanel />
-															</FieldsBox>
-														),
-													},
-												]}
+												tabs={tabs}
 											/>
 										</Switch>
 									</div>

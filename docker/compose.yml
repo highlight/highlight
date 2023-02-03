@@ -191,6 +191,7 @@ services:
             context: ..
             dockerfile: docker/frontend.Dockerfile
             args:
+                - REACT_APP_AUTH_MODE
                 - REACT_APP_DEMO_SESSION
                 - REACT_APP_ENVIRONMENT
                 - REACT_APP_FIREBASE_CONFIG_OBJECT
@@ -202,6 +203,7 @@ services:
         environment:
             - ENVIRONMENT
             - RENDER_PREVIEW
+            - REACT_APP_AUTH_MODE
             - REACT_APP_DEMO_SESSION
             - REACT_APP_ENVIRONMENT
             - REACT_APP_FIREBASE_CONFIG_OBJECT

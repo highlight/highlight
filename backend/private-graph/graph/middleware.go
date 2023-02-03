@@ -27,46 +27,96 @@ import (
 type APITokenHandler func(ctx context.Context, apiKey string) (*int, error)
 
 var (
-	AuthClient            *auth.Client
+	AuthClient            Client
 	OAuthServer           *oauth.Server
 	workspaceTokenHandler APITokenHandler
 )
 
 var HighlightAdminEmailDomains = []string{"@highlight.run", "@highlight.io", "@runhighlight.com"}
 
-func SetupAuthClient(oauthServer *oauth.Server, wsTokenHandler APITokenHandler) {
-	secret := os.Getenv("FIREBASE_SECRET")
-	creds, err := google.CredentialsFromJSON(context.Background(), []byte(secret),
-		"https://www.googleapis.com/auth/firebase",
-		"https://www.googleapis.com/auth/identitytoolkit",
-		"https://www.googleapis.com/auth/userinfo.email")
-	if err != nil {
-		log.Errorf("error converting credentials from json: %v", err)
-		return
-	}
-	app, err := firebase.NewApp(context.Background(), nil, option.WithCredentials(creds))
-	if err != nil {
-		log.Errorf("error initializing firebase app: %v", err)
-		return
-	}
-	// create a client to communicate with firebase project
-	if AuthClient, err = app.Auth(context.Background()); err != nil {
-		log.Errorf("error creating firebase client: %v", err)
-	}
-	OAuthServer = oauthServer
-	workspaceTokenHandler = wsTokenHandler
+type AuthMode = string
+
+const (
+	Simple   AuthMode = "Simple"
+	Firebase AuthMode = "Firebase"
+)
+
+type Client interface {
+	updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error)
+	GetUser(ctx context.Context, uid string) (*auth.UserRecord, error)
 }
 
-func updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
+type SimpleAuthClient struct{}
+
+type FirebaseAuthClient struct {
+	AuthClient *auth.Client
+}
+
+func (c *FirebaseAuthClient) GetUser(ctx context.Context, uid string) (*auth.UserRecord, error) {
+	return c.AuthClient.GetUser(ctx, uid)
+}
+
+func SetupAuthClient(authMode AuthMode, oauthServer *oauth.Server, wsTokenHandler APITokenHandler) {
+	OAuthServer = oauthServer
+	workspaceTokenHandler = wsTokenHandler
+	if authMode == Firebase {
+		secret := os.Getenv("FIREBASE_SECRET")
+		creds, err := google.CredentialsFromJSON(context.Background(), []byte(secret),
+			"https://www.googleapis.com/auth/firebase",
+			"https://www.googleapis.com/auth/identitytoolkit",
+			"https://www.googleapis.com/auth/userinfo.email")
+		if err != nil {
+			log.Errorf("error converting credentials from json: %v", err)
+			return
+		}
+		app, err := firebase.NewApp(context.Background(), nil, option.WithCredentials(creds))
+		if err != nil {
+			log.Errorf("error initializing firebase app: %v", err)
+			return
+		}
+		// create a client to communicate with firebase project
+		var client *auth.Client
+		if client, err = app.Auth(context.Background()); err != nil {
+			log.Errorf("error creating firebase client: %v", err)
+			return
+		}
+		AuthClient = &FirebaseAuthClient{AuthClient: client}
+	} else if authMode == Simple {
+		AuthClient = &SimpleAuthClient{}
+	} else {
+		log.Fatalf("private graph auth client configured with unknown auth mode")
+	}
+}
+
+func (c *SimpleAuthClient) GetUser(_ context.Context, _ string) (*auth.UserRecord, error) {
+	return &auth.UserRecord{
+		UserInfo: &auth.UserInfo{
+			DisplayName: "Hobby Highlighter",
+			Email:       "demo@example.com",
+			PhoneNumber: "+14081234567",
+			PhotoURL:    "https://avatars.githubusercontent.com/u/1351531?s=40&v=4",
+			ProviderID:  "",
+			UID:         "12345abcdef09876a1b2c3d4e5f",
+		},
+	}, nil
+}
+
+func (c *SimpleAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
+	ctx = context.WithValue(ctx, model.ContextKeys.UID, "Hobby Highlighter")
+	ctx = context.WithValue(ctx, model.ContextKeys.Email, "demo@example.com")
+	return ctx, nil
+}
+
+func (c *FirebaseAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
 	var uid string
 	email := ""
 	if token != "" {
-		t, err := AuthClient.VerifyIDToken(context.Background(), token)
+		t, err := c.AuthClient.VerifyIDToken(context.Background(), token)
 		if err != nil {
 			return ctx, e.Wrap(err, "invalid id token")
 		}
 		uid = t.UID
-		if userRecord, err := AuthClient.GetUser(context.Background(), uid); err == nil {
+		if userRecord, err := c.AuthClient.GetUser(context.Background(), uid); err == nil {
 			email = userRecord.Email
 
 			// This is to prevent attackers from impersonating Highlight staff.
@@ -109,7 +159,7 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 		var err error
 		if token := r.Header.Get("token"); token != "" {
 			span.SetOperationName("tokenHeader")
-			ctx, err = updateContextWithAuthenticatedUser(ctx, token)
+			ctx, err = AuthClient.updateContextWithAuthenticatedUser(ctx, token)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -150,7 +200,7 @@ func WebsocketInitializationFunction() transport.WebsocketInitFunc {
 		if initPayload["token"] != nil {
 			token = fmt.Sprintf("%v", initPayload["token"])
 		}
-		ctx, err := updateContextWithAuthenticatedUser(socketContext, token)
+		ctx, err := AuthClient.updateContextWithAuthenticatedUser(socketContext, token)
 		if err != nil {
 			log.Errorf("Unable to authenticate/initialize websocket: %s", err.Error())
 		}

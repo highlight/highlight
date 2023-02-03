@@ -3,7 +3,7 @@ import Button from '@components/Button/Button/Button'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import Input from '@components/Input/Input'
 import Space from '@components/Space/Space'
-import { auth } from '@util/auth'
+import { auth as firebaseAuth, FirebaseAuth } from '@util/auth'
 import { client } from '@util/graph'
 import { message } from 'antd'
 import firebase from 'firebase/app'
@@ -23,6 +23,8 @@ enum AuthState {
 	Enrolled,
 	Login,
 }
+
+const auth = firebaseAuth as FirebaseAuth
 
 const Auth: React.FC = () => {
 	const [error, setError] = useState<string | null>(null)
