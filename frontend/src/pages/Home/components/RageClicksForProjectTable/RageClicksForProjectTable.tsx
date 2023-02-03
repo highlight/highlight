@@ -106,16 +106,18 @@ const RageClicksForProjectTable = ({
 					onClickHandler={(record) => {
 						removeSelectedSegment()
 
-						const userParam = validateEmail(record.identifier)
+						const displayName = getUserDisplayName(record)
+						const userParam = validateEmail(displayName)
 							? 'email'
 							: 'identifier'
+
 						history.push({
 							pathname: `/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
-							search: `?query=and%7C%7Cuser_${userParam}%2Cis%2C${record.identifier}`,
+							search: `?query=and%7C%7Cuser_${userParam}%2Cis%2C${displayName}`,
 						})
 
 						message.success(
-							`Showing most recent session for ${record.identifier} with rage clicks.`,
+							`Showing most recent session for ${displayName} with rage clicks.`,
 						)
 					}}
 					noDataMessage={

@@ -102,17 +102,17 @@ const ActiveUsersTable = ({
 					onClickHandler={(record) => {
 						removeSelectedSegment()
 
-						const userParam = validateEmail(record.identifier)
+						const displayName = getUserDisplayName(record)
+						const userParam = validateEmail(displayName)
 							? 'email'
 							: 'identifier'
+
 						history.push({
 							pathname: `/${projectIdRemapped}/sessions`,
-							search: `?query=and%7C%7Cuser_${userParam}%2Cis%2C${record.identifier}`,
+							search: `?query=and%7C%7Cuser_${userParam}%2Cis%2C${displayName}`,
 						})
 
-						message.success(
-							`Showing sessions for ${record.identifier}`,
-						)
+						message.success(`Showing sessions for ${displayName}`)
 					}}
 					noDataMessage={
 						filteredTableData.length === 0 &&
