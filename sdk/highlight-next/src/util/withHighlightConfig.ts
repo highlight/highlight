@@ -69,10 +69,24 @@ const getDefaultOpts = (
 	}
 }
 
-export const withHighlightConfig = (
+type NextConfigObject = NextConfig
+type NextConfigFunction = (
+	phase: string,
+	{ defaultConfig }: { defaultConfig: any },
+) => NextConfig
+type NextConfigAsyncFunction = (
+	phase: string,
+	{ defaultConfig }: { defaultConfig: any },
+) => Promise<NextConfig>
+type NextConfigInput =
+	| NextConfigObject
+	| NextConfigFunction
+	| NextConfigAsyncFunction
+
+const getHighlightConfig = (
 	config: NextConfig,
 	highlightOpts?: HighlightConfigOptions,
-): NextConfig => {
+) => {
 	const defaultOpts = getDefaultOpts(config, highlightOpts)
 
 	let newRewrites = config.rewrites
@@ -146,5 +160,29 @@ export const withHighlightConfig = (
 			defaultOpts.uploadSourceMaps || config.productionBrowserSourceMaps,
 		rewrites: newRewrites,
 		webpack: newWebpack,
+	}
+}
+
+export const withHighlightConfig = (
+	config: NextConfigInput,
+	highlightOpts?: HighlightConfigOptions,
+): NextConfig => {
+	if (typeof config === 'function') {
+		return (
+			phase: string,
+			{ defaultConfig }: { defaultConfig: any },
+		): NextConfig | Promise<NextConfig> => {
+			const userNextConfigObject: NextConfig | Promise<NextConfig> =
+				config(phase, { defaultConfig })
+			if (typeof userNextConfigObject === 'function') {
+				return (userNextConfigObject as Promise<NextConfig>).then(
+					(nc) => getHighlightConfig(nc, highlightOpts),
+				)
+			} else {
+				return getHighlightConfig(userNextConfigObject, highlightOpts)
+			}
+		}
+	} else {
+		return getHighlightConfig(config, highlightOpts)
 	}
 }

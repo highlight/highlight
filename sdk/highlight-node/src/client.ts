@@ -1,38 +1,27 @@
 import {
-	BackendErrorObjectInput,
 	getSdk,
 	InputMaybe,
 	MetricInput,
-	PushBackendPayloadMutationVariables,
 	PushMetricsMutationVariables,
 	Sdk,
 } from './graph/generated/operations'
-import ErrorStackParser from 'error-stack-parser'
 import { GraphQLClient } from 'graphql-request'
 import { NodeOptions } from './types.js'
 import { ErrorContext } from './errorContext.js'
+import log from './log'
 
-// Represents a stack frame with added lines of source code
-// before, after, and for the line of the current error
-export interface StackFrameWithSource
-	extends Pick<
-		StackFrame,
-		| 'args'
-		| 'evalOrigin'
-		| 'isConstructor'
-		| 'isEval'
-		| 'isNative'
-		| 'isToplevel'
-		| 'columnNumber'
-		| 'lineNumber'
-		| 'fileName'
-		| 'functionName'
-		| 'source'
-	> {
-	lineContent?: string
-	linesBefore?: string
-	linesAfter?: string
-}
+import * as opentelemetry from '@opentelemetry/sdk-node'
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import {
+	diag,
+	DiagConsoleLogger,
+	DiagLogLevel,
+	trace,
+	Tracer,
+} from '@opentelemetry/api'
+
+const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
 export class Highlight {
 	readonly FLUSH_TIMEOUT = 10
@@ -40,18 +29,38 @@ export class Highlight {
 	_graphqlSdk: Sdk
 	_backendUrl: string
 	_intervalFunction: ReturnType<typeof setInterval>
-	errors: Array<InputMaybe<BackendErrorObjectInput>> = []
 	metrics: Array<InputMaybe<MetricInput>> = []
 	lastBackendSetupEvent: number = 0
 	_errorContext: ErrorContext | undefined
 	_projectID: string
+	_debug: boolean
+	private otel: opentelemetry.NodeSDK
+	private tracer: Tracer
 
 	constructor(options: NodeOptions) {
+		this._debug = !!options.debug
+		this._projectID = options.projectID
 		this._backendUrl = options.backendUrl || 'https://pub.highlight.run'
 		const client = new GraphQLClient(this._backendUrl, {
 			headers: {},
 		})
 		this._graphqlSdk = getSdk(client)
+
+		if (options.debug) {
+			diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG)
+		}
+
+		this.tracer = trace.getTracer('highlight-node')
+		const exporter = new OTLPTraceExporter({
+			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
+		})
+
+		this.otel = new opentelemetry.NodeSDK({
+			traceExporter: exporter,
+			instrumentations: [getNodeAutoInstrumentations()],
+		})
+		this.otel.start()
+
 		this._intervalFunction = setInterval(
 			() => this.flush(),
 			this.FLUSH_TIMEOUT * 1000,
@@ -61,7 +70,13 @@ export class Highlight {
 				sourceContextCacheSizeMB: options.errorSourceContextCacheSizeMB,
 			})
 		}
-		this._projectID = options.projectID
+		this._log(`Initialized SDK for project ${this._projectID}`)
+	}
+
+	_log(...data: any[]) {
+		if (this._debug) {
+			log('client', ...data)
+		}
 	}
 
 	recordMetric(
@@ -87,42 +102,21 @@ export class Highlight {
 		secureSessionId: string | undefined,
 		requestId: string | undefined,
 	) {
-		let res: StackFrameWithSource[] = []
-		try {
-			res = ErrorStackParser.parse(error)
-			res = res.map((frame) => {
-				try {
-					if (
-						frame.fileName !== undefined &&
-						frame.lineNumber !== undefined
-					) {
-						const context =
-							this._errorContext?.getStackFrameContext(
-								frame.fileName,
-								frame.lineNumber,
-							)
-						return { ...frame, ...context }
-					}
-				} catch {}
-
-				// If the frame doesn't have filename or line number defined, or
-				// an error was thrown while getting the stack frame context, return
-				// the original frame.
-				return frame
-			})
-		} catch {}
-		this.errors.push({
-			event: error.message
-				? `${error.name}: ${error.message}`
-				: `${error.name}`,
-			request_id: requestId,
-			session_secure_id: secureSessionId,
-			source: '',
-			stackTrace: JSON.stringify(res),
-			timestamp: new Date().toISOString(),
-			type: 'BACKEND',
-			url: '',
+		let span = trace.getActiveSpan()
+		let spanCreated = false
+		if (!span) {
+			span = this.tracer.startSpan('highlight-ctx')
+			spanCreated = true
+		}
+		span.recordException(error)
+		span.setAttributes({
+			highlight_project_id: this._projectID,
+			highlight_session_id: secureSessionId,
+			highlight_trace_id: requestId,
 		})
+		if (spanCreated) {
+			span.end()
+		}
 	}
 
 	consumeCustomEvent(secureSessionId?: string) {
@@ -143,22 +137,6 @@ export class Highlight {
 		}
 	}
 
-	async flushErrors() {
-		if (this.errors.length === 0) {
-			return
-		}
-		const variables: PushBackendPayloadMutationVariables = {
-			project_id: this._projectID,
-			errors: this.errors,
-		}
-		this.errors = []
-		try {
-			await this._graphqlSdk.PushBackendPayload(variables)
-		} catch (e) {
-			console.warn('highlight-node pushErrors error: ', e)
-		}
-	}
-
 	async flushMetrics() {
 		if (this.metrics.length === 0) {
 			return
@@ -175,6 +153,6 @@ export class Highlight {
 	}
 
 	async flush() {
-		await Promise.all([this.flushErrors(), this.flushMetrics()])
+		await Promise.all([this.flushMetrics()])
 	}
 }
