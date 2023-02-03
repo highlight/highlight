@@ -70,7 +70,13 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 
 	const handleChange = useCallback(
 		async (newState: ErrorState, newSnoozedUntil?: string) => {
-			if (initialErrorState === newState && !newSnoozedUntil) return
+			if (
+				initialErrorState === newState &&
+				!snoozed &&
+				!newSnoozedUntil
+			) {
+				return
+			}
 
 			await updateErrorGroupState({
 				variables: {
@@ -85,7 +91,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				},
 			})
 		},
-		[error_secure_id, initialErrorState, updateErrorGroupState],
+		[error_secure_id, initialErrorState, snoozed, updateErrorGroupState],
 	)
 
 	const history = useHistory()
