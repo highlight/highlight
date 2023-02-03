@@ -1,0 +1,1 @@
+RENAME TABLE logs TO logs_new;

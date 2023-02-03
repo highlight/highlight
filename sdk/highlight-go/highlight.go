@@ -24,6 +24,7 @@ var (
 	signalChan           chan os.Signal
 	wg                   sync.WaitGroup
 	graphqlClientAddress string
+	otlpEndpoint         string
 )
 
 // contextKey represents the keys that highlight may store in the users' context
@@ -159,6 +160,7 @@ func init() {
 
 	signal.Notify(signalChan, syscall.SIGABRT, syscall.SIGTERM, syscall.SIGINT)
 	SetGraphqlClientAddress("https://pub.highlight.run")
+	SetOTLPEndpoint(OTLPDefaultEndpoint)
 	SetFlushInterval(2 * time.Second)
 	SetDebugMode(deadLog{})
 
@@ -237,6 +239,12 @@ func SetFlushInterval(newFlushInterval time.Duration) {
 // in case you are running Highlight on-prem, and need to point to your on-prem instance.
 func SetGraphqlClientAddress(newGraphqlClientAddress string) {
 	graphqlClientAddress = newGraphqlClientAddress
+}
+
+// SetOTLPEndpoint allows you to override the otlp address used for sending errors and traces.
+// Use the root http url. Eg: https://otel.highlight.io:4318
+func SetOTLPEndpoint(newOtlpEndpoint string) {
+	otlpEndpoint = newOtlpEndpoint
 }
 
 func SetDebugMode(l Logger) {
