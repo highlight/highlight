@@ -50,7 +50,6 @@ export const NamedSection = ({
 	)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Props = AriaKitFormProps
 export const Form: FormComponent = ({ children, ...props }: Props) => {
 	return <AriaKitForm {...props}>{children}</AriaKitForm>
@@ -64,8 +63,7 @@ export const Submit = ({ ...props }: ButtonProps) => {
 	return <Button type="submit" {...props} />
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type InputProps = Omit<AriaKitFormInputProps<any>, 'size'> &
+type InputProps = Omit<AriaKitFormInputProps, 'size'> &
 	Variants &
 	HasLabel & {
 		cssClass?: ClassValue | ClassValue[]
@@ -110,8 +108,7 @@ export const Input = ({
 	)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type FormFieldProps = AriaKitFormFieldProps<any> &
+type FormFieldProps = AriaKitFormFieldProps &
 	React.PropsWithChildren &
 	Variants &
 	HasLabel & {
