@@ -20,7 +20,7 @@ export const content = style({
 		},
 	},
 
-	//
+	// Conditionally applies width based on size of container.
 	'@container': {
 		[`(min-width: ${CONTAINER_WIDTH_WITH_PADDING}px)`]: {
 			width: CONTAINER_WIDTH_WITH_PADDING,
