@@ -36,12 +36,16 @@ export const getNewCommentFormCoordinates = (
 	}
 }
 
-const REQUEST_INITIATOR_TYPES = ['xmlhttprequest', 'fetch']
+export const REQUEST_INITIATOR_TYPES = ['xmlhttprequest', 'fetch'] as const
 
 export const getGraphQLResolverName = (
 	resource: NetworkResourceWithID,
 ): null | string => {
-	if (!REQUEST_INITIATOR_TYPES.includes(resource.initiatorType)) {
+	if (
+		!REQUEST_INITIATOR_TYPES.includes(
+			resource.initiatorType as typeof REQUEST_INITIATOR_TYPES[number],
+		)
+	) {
 		return null
 	}
 	if (!resource.requestResponsePairs) {

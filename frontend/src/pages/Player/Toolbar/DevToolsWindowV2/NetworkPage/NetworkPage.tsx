@@ -7,13 +7,12 @@ import {
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
-import { getNetworkResourcesDisplayName } from '@pages/Player/Toolbar/DevToolsWindow/Option/Option'
-import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import {
 	findLastActiveEventIndex,
 	findResourceWithMatchingHighlightHeader,
 	getHighlightRequestId,
+	getNetworkResourcesDisplayName,
 	NetworkResource,
 	RequestType,
 	Tab,
@@ -57,15 +56,18 @@ export const NetworkPage = ({
 	const startTime = sessionMetadata.startTime
 	const { setShowDevTools, setSelectedDevToolsTab, showPlayerAbsoluteTime } =
 		usePlayerConfiguration()
-	const { setActiveError, setActiveNetworkResource, setRightPanelView } =
-		usePlayerUIContext()
+	const {
+		setActiveError,
+		setActiveNetworkResource,
+		rightPanelView,
+		setRightPanelView,
+	} = usePlayerUIContext()
 	const [currentActiveIndex, setCurrentActiveIndex] = useState<number>()
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const errorId = new URLSearchParams(location.search).get(
 		PlayerSearchParameters.errorId,
 	)
-	const { setResourcePanel, panelIsOpen } = useResourceOrErrorDetailPanel()
 
 	const {
 		resources: parsedResources,
@@ -185,7 +187,6 @@ export const NetworkPage = ({
 		replayer,
 		scrollFunction,
 		session,
-		setResourcePanel,
 		setSelectedDevToolsTab,
 		setShowDevTools,
 	])
@@ -223,7 +224,9 @@ export const NetworkPage = ({
 				}
 
 				setCurrentActiveIndex(nextIndex)
-				if (panelIsOpen) {
+				const isPanelOpen =
+					rightPanelView === RightPanelView.NetworkResource
+				if (isPanelOpen) {
 					requestAnimationFrame(() => {
 						setActiveNetworkResource(resourcesToRender[nextIndex])
 						virtuoso.current?.scrollToIndex(nextIndex - 1)
@@ -238,10 +241,9 @@ export const NetworkPage = ({
 		}
 	}, [
 		currentActiveIndex,
-		panelIsOpen,
 		resourcesToRender,
+		rightPanelView,
 		setActiveNetworkResource,
-		setResourcePanel,
 	])
 
 	return (

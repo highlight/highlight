@@ -4,7 +4,6 @@ export const RIGHT_PANEL_WIDTH = 300
 
 export const playerRightPanelContainer = style({
 	position: 'relative',
-	zIndex: 5,
 })
 
 export const playerRightPanelContainerBannerShown = style({

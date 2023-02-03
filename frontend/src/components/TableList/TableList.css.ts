@@ -8,6 +8,7 @@ export const sessionAttributeRow = recipe({
 		gridTemplateColumns: `100px 168px`,
 		gridGap: 8,
 		cursor: 'pointer',
+		alignItems: 'center',
 	},
 	variants: {
 		json: {
@@ -15,12 +16,6 @@ export const sessionAttributeRow = recipe({
 			true: { display: 'block' },
 		},
 	},
-})
-
-export const sessionAttributeText = style({
-	display: 'flex',
-	alignItems: 'center',
-	color: vars.theme.static.content.weak,
 })
 
 export const secondaryText = style({

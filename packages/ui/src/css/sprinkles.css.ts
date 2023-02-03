@@ -18,6 +18,13 @@ const textColors = {
 	caution: vars.theme.static.content.sentiment.caution,
 	informative: vars.theme.static.content.sentiment.informative,
 	weak: vars.theme.static.content.weak,
+	primaryOnEnabled: vars.theme.interactive.fill.primary.content.onEnabled,
+	primaryOnDisabled: vars.theme.interactive.fill.primary.content.onDisabled,
+	primaryText: vars.theme.interactive.fill.primary.content.text,
+	secondaryOnEnabled: vars.theme.interactive.fill.secondary.content.onEnabled,
+	secondaryOnDisabled:
+		vars.theme.interactive.fill.secondary.content.onDisabled,
+	secondaryText: vars.theme.interactive.fill.secondary.content.text,
 } as const
 
 const backgroundColors = {
