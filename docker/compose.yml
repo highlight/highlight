@@ -1,3 +1,56 @@
+x-depends-infra: &depends-infra
+    depends_on:
+        kafka:
+            condition: service_started
+        redis:
+            condition: service_started
+        postgres:
+            condition: service_healthy
+        clickhouse:
+            condition: service_started
+        elasticsearch:
+            condition: service_started
+        influxdb:
+            condition: service_started
+        setup-influxdb:
+            condition: service_started
+        collector:
+            condition: service_started
+
+x-backend-env: &backend-env
+    environment:
+        - CLICKHOUSE_ADDRESS
+        - CLICKHOUSE_DATABASE
+        - CLICKHOUSE_PASSWORD
+        - CLICKHOUSE_USERNAME
+        - DEMO_SESSION
+        - DEPLOYMENT_KEY
+        - DOPPLER_CONFIG
+        - ENABLE_OBJECT_STORAGE
+        - ENVIRONMENT
+        - FIREBASE_SECRET
+        - FRONTEND_URI
+        - IN_DOCKER=true
+        - INFLUXDB_BUCKET
+        - INFLUXDB_ORG
+        - INFLUXDB_SERVER
+        - INFLUXDB_TOKEN
+        - KAFKA_SERVERS
+        - KAFKA_TOPIC
+        - OPENSEARCH_DOMAIN
+        - OPENSEARCH_DOMAIN_READ
+        - OPENSEARCH_PASSWORD
+        - OPENSEARCH_USERNAME
+        - PSQL_DB
+        - PSQL_HOST
+        - PSQL_PASSWORD
+        - PSQL_PORT
+        - PSQL_USER
+        - PUBLIC_GRAPH_URI
+        - REDIS_ADDRESS
+        - REDIS_EVENTS_STAGING_ENDPOINT
+        - SESSION_FILE_PATH_PREFIX
+
 services:
     zookeeper:
         image: confluentinc/cp-zookeeper:7.3.0
@@ -27,6 +80,8 @@ services:
     redis:
         container_name: redis
         image: redis
+        ports:
+            - 6379:6379
         volumes:
             - redis-data:/data
         command:
@@ -95,65 +150,6 @@ services:
         volumes:
             - ./otel-collector.yaml:/etc/otel-collector-config.yaml
 
-    backend:
-        container_name: backend
-        image: public.ecr.aws/k9o6n7l8/highlight
-        ports:
-            - 2345:2345
-            - 8082:8082
-        build:
-            context: ..
-            dockerfile: docker/backend.Dockerfile
-        depends_on:
-            kafka:
-                condition: service_started
-            redis:
-                condition: service_started
-            postgres:
-                condition: service_healthy
-            clickhouse:
-                condition: service_started
-            elasticsearch:
-                condition: service_started
-            influxdb:
-                condition: service_started
-            setup-influxdb:
-                condition: service_started
-            collector:
-                condition: service_started
-        environment:
-            - CLICKHOUSE_ADDRESS
-            - CLICKHOUSE_DATABASE
-            - CLICKHOUSE_PASSWORD
-            - CLICKHOUSE_USERNAME
-            - DEMO_SESSION
-            - DEPLOYMENT_KEY
-            - DOPPLER_CONFIG
-            - ENABLE_OBJECT_STORAGE
-            - ENVIRONMENT
-            - FIREBASE_SECRET
-            - FRONTEND_URI
-            - IN_DOCKER
-            - INFLUXDB_BUCKET
-            - INFLUXDB_ORG
-            - INFLUXDB_SERVER
-            - INFLUXDB_TOKEN
-            - KAFKA_SERVERS
-            - KAFKA_TOPIC
-            - OPENSEARCH_DOMAIN
-            - OPENSEARCH_DOMAIN_READ
-            - OPENSEARCH_PASSWORD
-            - OPENSEARCH_USERNAME
-            - PSQL_DB
-            - PSQL_HOST
-            - PSQL_PASSWORD
-            - PSQL_PORT
-            - PSQL_USER
-            - PUBLIC_GRAPH_URI
-            - REDIS_ADDRESS
-            - REDIS_EVENTS_STAGING_ENDPOINT
-            - SESSION_FILE_PATH_PREFIX
-
     backend-setup-elasticserch:
         image: public.ecr.aws/k9o6n7l8/highlight
         build:
@@ -165,33 +161,36 @@ services:
             - -worker-handler=init-opensearch
         depends_on:
             - backend
-        environment:
-            - DEPLOYMENT_KEY
-            - ENVIRONMENT
-            - OPENSEARCH_DOMAIN
-            - OPENSEARCH_DOMAIN_READ
-            - OPENSEARCH_PASSWORD
-            - OPENSEARCH_USERNAME
-            - PSQL_DB
-            - PSQL_HOST
-            - PSQL_PASSWORD
-            - PSQL_PORT
-            - PSQL_USER
+        <<: *backend-env
+
+    backend:
+        container_name: backend
+        image: public.ecr.aws/k9o6n7l8/highlight
+        profiles:
+            - donotstart
+        ports:
+            - 8082:8082
+        build:
+            context: ..
+            dockerfile: docker/backend.Dockerfile
+            target: backend
+        <<: *depends-infra
+        <<: *backend-env
 
     frontend:
         container_name: frontend
         image: public.ecr.aws/k9o6n7l8/highlight-frontend
+        profiles:
+            - donotstart
         ports:
             - 3000:3000
             - 8080:8080
-        command:
-            - yarn
-            - docker:frontend
         build:
             context: ..
             dockerfile: docker/frontend.Dockerfile
+            target: frontend
             args:
-                - REACT_APP_AUTH_MODE
+                - REACT_APP_AUTH_MODE=simple
                 - REACT_APP_DEMO_SESSION
                 - REACT_APP_ENVIRONMENT
                 - REACT_APP_FIREBASE_CONFIG_OBJECT
@@ -200,18 +199,6 @@ services:
                 - REACT_APP_ONPREM
                 - REACT_APP_PRIVATE_GRAPH_URI
                 - REACT_APP_PUBLIC_GRAPH_URI
-        environment:
-            - ENVIRONMENT
-            - RENDER_PREVIEW
-            - REACT_APP_AUTH_MODE
-            - REACT_APP_DEMO_SESSION
-            - REACT_APP_ENVIRONMENT
-            - REACT_APP_FIREBASE_CONFIG_OBJECT
-            - REACT_APP_FRONTEND_ORG
-            - REACT_APP_FRONTEND_URI
-            - REACT_APP_ONPREM
-            - REACT_APP_PRIVATE_GRAPH_URI
-            - REACT_APP_PUBLIC_GRAPH_URI
 
 volumes:
     postgres-data:

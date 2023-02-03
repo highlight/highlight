@@ -1,4 +1,4 @@
-FROM node:lts-bullseye
+FROM node:lts-bullseye as frontend-base
 RUN apt update && apt install -y \
   build-essential \
   chromium \
@@ -25,6 +25,11 @@ COPY ../sdk/highlight-next/package.json ./sdk/highlight-next/package.json
 COPY ../sdk/highlight-node/package.json ./sdk/highlight-node/package.json
 COPY ../frontend/package.json ./frontend/package.json
 RUN yarn
+
+FROM frontend-base as frontend-dev
+CMD ["yarn", "docker:frontend"]
+
+FROM frontend-base as frontend
 
 COPY ../scripts ./scripts
 COPY ../rrweb ./rrweb

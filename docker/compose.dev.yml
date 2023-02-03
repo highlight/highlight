@@ -1,0 +1,62 @@
+services:
+    backend:
+        extends:
+            file: compose.yml
+            service: backend
+
+        container_name: backend
+        image: public.ecr.aws/k9o6n7l8/highlight
+        profiles:
+            - donotstart
+        volumes:
+            - ../backend:/build/backend
+            - ../sdk/highlight-go:/build/sdk/highlight-go
+        ports:
+            - 2345:2345
+            - 8082:8082
+        build:
+            context: ..
+            dockerfile: docker/backend.Dockerfile
+            target: backend-dev
+
+    frontend:
+        extends:
+            file: compose.yml
+            service: frontend
+
+        container_name: frontend
+        image: public.ecr.aws/k9o6n7l8/highlight-frontend
+        volumes:
+            - ../scripts:/scripts
+            - ../rrweb:/rrweb
+            - ../packages:/packages
+            - ../render:/render
+            - ../sourcemap-uploader:/sourcemap-uploader
+            - ../sdk:/sdk
+            - ../frontend:/frontend
+            - ../backend/public-graph:/backend/public-graph
+            - ../backend/private-graph:/backend/private-graph
+        profiles:
+            - donotstart
+        ports:
+            - 3000:3000
+            - 8080:8080
+        build:
+            context: ..
+            dockerfile: docker/frontend.Dockerfile
+            target: frontend-dev
+        command:
+            - yarn
+            - docker:frontend
+        environment:
+            - ENVIRONMENT
+            - RENDER_PREVIEW
+            - REACT_APP_AUTH_MODE=simple
+            - REACT_APP_DEMO_SESSION
+            - REACT_APP_ENVIRONMENT
+            - REACT_APP_FIREBASE_CONFIG_OBJECT
+            - REACT_APP_FRONTEND_ORG
+            - REACT_APP_FRONTEND_URI
+            - REACT_APP_ONPREM
+            - REACT_APP_PRIVATE_GRAPH_URI
+            - REACT_APP_PUBLIC_GRAPH_URI
