@@ -98,6 +98,7 @@ func (c *SimpleAuthClient) GetUser(_ context.Context, _ string) (*auth.UserRecor
 			ProviderID:  "",
 			UID:         "12345abcdef09876a1b2c3d4e5f",
 		},
+		EmailVerified: true,
 	}, nil
 }
 

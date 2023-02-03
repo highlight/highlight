@@ -41,7 +41,7 @@ import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import analytics from '@util/analytics'
-import { auth } from '@util/auth'
+import { auth, FirebaseAuth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { client } from '@util/graph'
 import { useIntegrated } from '@util/integrated'
@@ -412,7 +412,11 @@ export const Header = () => {
 											</Menu.Item>
 										</Link>
 										<Link
-											to={`/w/${workspaceId}/account/auth`}
+											to={`/w/${workspaceId}/account/${
+												auth instanceof FirebaseAuth
+													? 'auth'
+													: 'email-settings'
+											}`}
 											className={linkStyle}
 										>
 											<Menu.Item>

@@ -14,7 +14,7 @@ import { getMainDefinition } from '@apollo/client/utilities'
 import { namedOperations } from '@graph/operations'
 import { IndexedDBLink } from '@util/db'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import Firebase from 'firebase/app'
+import { auth } from '@util/auth'
 
 const uri =
 	import.meta.env.REACT_APP_PRIVATE_GRAPH_URI ??
@@ -36,7 +36,7 @@ try {
 			lazy: true,
 			reconnect: true,
 			connectionParams: async () => {
-				const token = await Firebase.auth().currentUser?.getIdToken()
+				const token = await auth.currentUser?.getIdToken()
 				return {
 					token,
 				}
@@ -67,7 +67,7 @@ if (isOnPrem) {
 
 const authLink = setContext((_, { headers }) => {
 	// get the authentication token from local storage if it exists
-	const user = Firebase.auth().currentUser
+	const user = auth.currentUser
 	// return the headers to the context so httpLink can read them
 	return user?.getIdToken().then((t) => {
 		return { headers: { ...headers, token: t } }

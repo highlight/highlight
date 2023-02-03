@@ -7,7 +7,7 @@ import { useGetOAuthClientMetadataQuery } from '@graph/hooks'
 import { GenerateSecureRandomString } from '@util/random'
 import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
-import Firebase from 'firebase/app'
+import { auth } from '@util/auth'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParams } from 'use-query-params'
@@ -58,16 +58,16 @@ const OAuthApprovalPage = () => {
 	}
 
 	const onLogin = async () => {
-		const user = Firebase.auth().currentUser
+		const user = auth.currentUser
 		const userToken = (await user?.getIdToken()) || ''
 		const state = GenerateSecureRandomString(32)
 		const redirectUri = `${HighlightFrontend}/oauth/authorize`
-		const auth = await fetch(
+		const a = await fetch(
 			`${OAuthBackend}/oauth/authorize?response_type=code&redirect_uri=${redirectUri}&client_id=${oauthParams.client_id}&state=${state}`,
 			{ headers: { token: userToken } },
 		)
 		const { code, state: returnedState } = new Proxy(
-			new URLSearchParams(new URL(auth.url).search),
+			new URLSearchParams(new URL(a.url).search),
 			{
 				get: (searchParams, prop) => searchParams.get(prop.toString()),
 			},

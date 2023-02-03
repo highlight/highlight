@@ -7,6 +7,7 @@ import GoogleAuthProvider = Firebase.auth.GoogleAuthProvider
 interface User {
 	email: string | null
 	sendEmailVerification(): Promise<void>
+	getIdToken(): Promise<string>
 }
 
 interface AuthClient {
@@ -96,6 +97,9 @@ export class FirebaseAuth implements AuthClient {
 
 class SimpleAuth implements AuthClient {
 	currentUser: User | null = {
+		async getIdToken(): Promise<string> {
+			return Promise.resolve('a1b2c3')
+		},
 		email: 'demo@example.com',
 		async sendEmailVerification(): Promise<void> {
 			console.warn('simple auth does not support email verification')
@@ -124,6 +128,7 @@ class SimpleAuth implements AuthClient {
 		onSignedIn: (user: Firebase.User | null) => void,
 		onError: (error: Firebase.auth.Error) => any,
 	): () => void {
+		onSignedIn(this.currentUser as Firebase.User)
 		return function () {}
 	}
 
@@ -144,6 +149,7 @@ class SimpleAuth implements AuthClient {
 }
 
 // TODO(vkorolik) based on env
-export const auth: AuthClient = import.meta.env.REACT_APP_AUTH_MODE
-	? new SimpleAuth()
-	: new FirebaseAuth()
+export const auth: AuthClient =
+	import.meta.env.REACT_APP_AUTH_MODE === 'simple'
+		? new SimpleAuth()
+		: new FirebaseAuth()
