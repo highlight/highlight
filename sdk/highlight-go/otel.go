@@ -61,23 +61,25 @@ func (o *OTLP) shutdown() {
 	}
 }
 
-// RecordError processes `err` to be recorded as a part of the session or network request.
-// Highlight session and trace are inferred from the context.
-// If no sessionID is set, then the error is associated with the project without a session context.
-func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) context.Context {
-	sessionID, requestID, e := validateRequest(ctx)
-	if e != nil {
-		logger.Errorf("[highlight-go] %v", e)
-		return ctx
-	}
-	ctx, span := tracer.Start(ctx, "highlight-ctx")
-	defer span.End()
+func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+	sessionID, requestID, _ := validateRequest(ctx)
+	ctx, span := tracer.Start(ctx, name)
 	attrs := []attribute.KeyValue{
 		attribute.String(ProjectIDAttribute, projectID),
 		attribute.String(SessionIDAttribute, sessionID),
 		attribute.String(RequestIDAttribute, requestID),
 	}
 	attrs = append(attrs, tags...)
-	span.RecordError(err, trace.WithAttributes(attrs...))
+	span.SetAttributes(attrs...)
+	return span, ctx
+}
+
+// RecordError processes `err` to be recorded as a part of the session or network request.
+// Highlight session and trace are inferred from the context.
+// If no sessionID is set, then the error is associated with the project without a session context.
+func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) context.Context {
+	span, ctx := StartTrace(ctx, "highlight-ctx", tags...)
+	defer span.End()
+	span.RecordError(err)
 	return ctx
 }

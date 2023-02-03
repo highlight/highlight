@@ -41,9 +41,12 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	fc := graphql.GetFieldContext(ctx)
 	name := fmt.Sprintf("operation.field.%s", fc.Field.Name)
 
+	span, ctx := StartTrace(ctx, name)
 	start := graphql.Now()
 	res, err := next(ctx)
 	end := graphql.Now()
+	span.RecordError(err)
+	span.End()
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
 	return res, err
@@ -66,9 +69,11 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	name := fmt.Sprintf("graphql.operation.%s", opName)
 	RecordMetric(ctx, name+".size", float64(len(rc.RawQuery)))
 
+	span, ctx := StartTrace(ctx, name)
 	start := graphql.Now()
 	resp := next(ctx)
 	end := graphql.Now()
+	span.End()
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
 	if resp.Errors != nil {
