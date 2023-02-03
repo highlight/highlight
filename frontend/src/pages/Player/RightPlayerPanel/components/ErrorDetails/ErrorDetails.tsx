@@ -2,11 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
-import {
-	GetErrorGroupDocument,
-	useGetErrorGroupQuery,
-	useGetProjectQuery,
-} from '@graph/hooks'
+import { GetErrorGroupDocument, useGetErrorGroupQuery } from '@graph/hooks'
 import { ErrorObject } from '@graph/schemas'
 import {
 	Badge,
@@ -32,7 +28,6 @@ import ErrorFrequencyChart from '@pages/ErrorsV2/ErrorBody/components/ErrorFrequ
 import ErrorObjectCount from '@pages/ErrorsV2/ErrorBody/components/ErrorObjectCount'
 import ErrorOccurenceDate from '@pages/ErrorsV2/ErrorBody/components/ErrorOccurenceDate'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
-import { getProjectPrefix } from '@pages/ErrorsV2/utils'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
@@ -107,10 +102,6 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 		return header
 	}, [event])
 
-	const { data: projectData } = useGetProjectQuery({
-		variables: { id: String(errorGroup?.project_id) },
-		skip: !errorGroup,
-	})
 	const { setShowLeftPanel } = useErrorPageConfiguration()
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 
@@ -315,8 +306,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 						setShowLeftPanel(false)
 					}}
 				>
-					View {getProjectPrefix(projectData?.project)}-
-					{errorGroup?.id}
+					View error group
 				</Button>
 			</Box>
 		</Box>
