@@ -17,6 +17,7 @@ import {
 	useUpdateAdminAboutYouDetailsMutation,
 } from '@graph/hooks'
 import { Landing } from '@pages/Landing/Landing'
+import analytics from '@util/analytics'
 import { getAttributionData } from '@util/attribution'
 import { message } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -60,7 +61,10 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 		}
 	}, [admin])
 
+	useEffect(() => analytics.page('/about_you'), [])
+
 	const onFormSubmit = async (e: { preventDefault: () => void }) => {
+		analytics.track('about-you-submitted')
 		e.preventDefault()
 		const attributionData = getAttributionData()
 
@@ -88,6 +92,8 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 				},
 			})
 
+			analytics.track('about-you-submitted', { success: true })
+
 			if (window.Intercom) {
 				window.Intercom('update', {
 					isProductPersona: isProductRole,
@@ -97,6 +103,7 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 			getAdminQuery()
 			message.success(`Nice to meet you ${firstName}, let's get started!`)
 		} catch {
+			analytics.track('about-you-submitted', { success: false })
 			message.error('Something went wrong, try again?')
 		}
 	}
