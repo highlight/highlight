@@ -69,22 +69,23 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 	const snoozed = snoozedUntil && moment().isBefore(moment(snoozedUntil))
 
 	const handleChange = useCallback(
-		async (newState: ErrorState, snoozedUntil?: string) => {
-			if (initialErrorState === newState && !snoozed) return
+		async (newState: ErrorState, newSnoozedUntil?: string) => {
+			if (initialErrorState === newState && !newSnoozedUntil) return
+
 			await updateErrorGroupState({
 				variables: {
 					secure_id: error_secure_id,
 					state: newState,
-					snoozed_until: snoozedUntil,
+					snoozed_until: newSnoozedUntil,
 				},
 				onCompleted: async () => {
-					showStateUpdateMessage(newState, snoozedUntil)
+					showStateUpdateMessage(newState, newSnoozedUntil)
 					setMenuState(MenuState.Default)
 					setErrorState(newState)
 				},
 			})
 		},
-		[error_secure_id, initialErrorState, snoozed, updateErrorGroupState],
+		[error_secure_id, initialErrorState, updateErrorGroupState],
 	)
 
 	const history = useHistory()
