@@ -242,6 +242,7 @@ func SetGraphqlClientAddress(newGraphqlClientAddress string) {
 }
 
 // SetOTLPEndpoint allows you to override the otlp address used for sending errors and traces.
+// Use the root http url. Eg: https://otel.highlight.io:4318
 func SetOTLPEndpoint(newOtlpEndpoint string) {
 	otlpEndpoint = newOtlpEndpoint
 }

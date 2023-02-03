@@ -11,6 +11,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
+	"strings"
 )
 
 const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
@@ -31,7 +32,15 @@ var (
 )
 
 func StartOTLP() (*OTLP, error) {
-	client := otlptracehttp.NewClient(otlptracehttp.WithEndpoint(otlpEndpoint))
+	var options []otlptracehttp.Option
+	if strings.HasPrefix(otlpEndpoint, "http://") {
+		options = append(options, otlptracehttp.WithEndpoint(otlpEndpoint), otlptracehttp.WithInsecure())
+	} else if strings.HasPrefix(otlpEndpoint, "https://") {
+		options = append(options, otlptracehttp.WithEndpoint(otlpEndpoint))
+	} else {
+		logger.Errorf("an invalid otlp endpoint was configured %s", otlpEndpoint)
+	}
+	client := otlptracehttp.NewClient(options...)
 	exporter, err := otlptrace.New(context.Background(), client)
 	if err != nil {
 		return nil, fmt.Errorf("creating OTLP trace exporter: %w", err)
