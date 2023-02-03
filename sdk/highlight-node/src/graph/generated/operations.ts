@@ -30,8 +30,10 @@ export type BackendErrorObjectInput = {
 	request_id?: InputMaybe<Scalars['String']>
 	session_secure_id?: InputMaybe<Scalars['String']>
 	source: Scalars['String']
+	span_id?: InputMaybe<Scalars['String']>
 	stackTrace: Scalars['String']
 	timestamp: Scalars['Timestamp']
+	trace_id?: InputMaybe<Scalars['String']>
 	type: Scalars['String']
 	url: Scalars['String']
 }
@@ -184,18 +186,6 @@ export type StackFrameInput = {
 	source?: InputMaybe<Scalars['String']>
 }
 
-export type PushBackendPayloadMutationVariables = Exact<{
-	project_id: Scalars['String']
-	errors:
-		| Array<InputMaybe<BackendErrorObjectInput>>
-		| InputMaybe<BackendErrorObjectInput>
-}>
-
-export type PushBackendPayloadMutation = {
-	__typename?: 'Mutation'
-	pushBackendPayload?: any | null
-}
-
 export type MarkBackendSetupMutationVariables = Exact<{
 	project_id: Scalars['String']
 	session_secure_id?: InputMaybe<Scalars['String']>
@@ -215,14 +205,6 @@ export type PushMetricsMutation = {
 	pushMetrics: number
 }
 
-export const PushBackendPayloadDocument = gql`
-	mutation PushBackendPayload(
-		$project_id: String!
-		$errors: [BackendErrorObjectInput]!
-	) {
-		pushBackendPayload(project_id: $project_id, errors: $errors)
-	}
-`
 export const MarkBackendSetupDocument = gql`
 	mutation MarkBackendSetup(
 		$project_id: String!
@@ -257,21 +239,6 @@ export function getSdk(
 	withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
 	return {
-		PushBackendPayload(
-			variables: PushBackendPayloadMutationVariables,
-			requestHeaders?: Dom.RequestInit['headers'],
-		): Promise<PushBackendPayloadMutation> {
-			return withWrapper(
-				(wrappedRequestHeaders) =>
-					client.request<PushBackendPayloadMutation>(
-						PushBackendPayloadDocument,
-						variables,
-						{ ...requestHeaders, ...wrappedRequestHeaders },
-					),
-				'PushBackendPayload',
-				'mutation',
-			)
-		},
 		MarkBackendSetup(
 			variables: MarkBackendSetupMutationVariables,
 			requestHeaders?: Dom.RequestInit['headers'],
