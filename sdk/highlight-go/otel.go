@@ -13,7 +13,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-const OTLPHTTPEndpoint = "https://otel.highlight.io:4318"
+const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
 const ProjectIDAttribute = "highlight_project_id"
 const SessionIDAttribute = "highlight_session_id"
 const RequestIDAttribute = "highlight_trace_id"
@@ -31,7 +31,7 @@ var (
 )
 
 func StartOTLP() (*OTLP, error) {
-	client := otlptracehttp.NewClient(otlptracehttp.WithEndpoint(fmt.Sprintf("%s/v1/traces", OTLPHTTPEndpoint)))
+	client := otlptracehttp.NewClient(otlptracehttp.WithEndpoint(otlpEndpoint))
 	exporter, err := otlptrace.New(context.Background(), client)
 	if err != nil {
 		return nil, fmt.Errorf("creating OTLP trace exporter: %w", err)
