@@ -34,9 +34,9 @@ var (
 func StartOTLP() (*OTLP, error) {
 	var options []otlptracehttp.Option
 	if strings.HasPrefix(otlpEndpoint, "http://") {
-		options = append(options, otlptracehttp.WithEndpoint(otlpEndpoint), otlptracehttp.WithInsecure())
+		options = append(options, otlptracehttp.WithEndpoint(otlpEndpoint[7:]), otlptracehttp.WithInsecure())
 	} else if strings.HasPrefix(otlpEndpoint, "https://") {
-		options = append(options, otlptracehttp.WithEndpoint(otlpEndpoint))
+		options = append(options, otlptracehttp.WithEndpoint(otlpEndpoint[8:]))
 	} else {
 		logger.Errorf("an invalid otlp endpoint was configured %s", otlpEndpoint)
 	}
