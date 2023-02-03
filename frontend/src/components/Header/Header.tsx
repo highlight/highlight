@@ -15,11 +15,12 @@ import {
 	IconSolidArrowSmLeft,
 	IconSolidAtSymbol,
 	IconSolidChartBar,
+	IconSolidChartPie,
 	IconSolidCog,
 	IconSolidDesktopComputer,
 	IconSolidDocumentText,
 	IconSolidDotsHorizontal,
-	IconSolidHome,
+	IconSolidLightningBolt,
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidQuestionMarkCircle,
@@ -27,7 +28,6 @@ import {
 	IconSolidSwitchHorizontal,
 	IconSolidUserCircle,
 	IconSolidViewGridAdd,
-	IconSolidXCircle,
 	Menu,
 	Text,
 } from '@highlight-run/ui'
@@ -80,16 +80,12 @@ export const Header = () => {
 
 	const pages = [
 		{
-			key: 'home',
-			icon: IconSolidHome,
+			key: 'sessions',
+			icon: IconSolidPlayCircle,
 		},
 		{
 			key: 'errors',
-			icon: IconSolidXCircle,
-		},
-		{
-			key: 'sessions',
-			icon: IconSolidPlayCircle,
+			icon: IconSolidLightningBolt,
 		},
 		{
 			key: 'alerts',
@@ -221,6 +217,31 @@ export const Header = () => {
 															}
 														/>
 														Integrations
+													</Box>
+												</Menu.Item>
+											</Link>
+											<Link
+												to={`/${project_id}/analytics`}
+												className={linkStyle}
+											>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconSolidChartPie
+															size={14}
+															color={
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
+															}
+														/>
+														Analytics
 													</Box>
 												</Menu.Item>
 											</Link>

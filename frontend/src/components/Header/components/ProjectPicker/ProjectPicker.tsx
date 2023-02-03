@@ -45,7 +45,7 @@ const ProjectPicker = () => {
 					<Menu.Item
 						key={project?.id}
 						onClick={() => {
-							history.push(`/${project?.id}/home`)
+							history.push(`/${project?.id}/sessions`)
 						}}
 						style={
 							isSelected
