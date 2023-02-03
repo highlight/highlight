@@ -24,7 +24,7 @@ type LogRow struct {
 	SecureSessionId    string
 }
 
-const LogsTable = "logs_new"
+const LogsTable = "logs"
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
 	query := fmt.Sprintf(`
