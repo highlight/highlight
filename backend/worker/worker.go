@@ -1094,10 +1094,20 @@ func (w *Worker) Start() {
 			ctx := ctx
 			wp.SubmitRecover(func() {
 				vmStat, _ := mem.VirtualMemory()
-				for vmStat.UsedPercent > 70 {
+
+				// If WORKER_MAX_MEMORY_THRESHOLD is defined,
+				// sleep until vmStat.UsedPercent is lower than this value
+				workerMaxMemStr := os.Getenv("WORKER_MAX_MEMORY_THRESHOLD")
+				workerMaxMem := math.Inf(1)
+				if workerMaxMemStr != "" {
+					workerMaxMem, _ = strconv.ParseFloat(workerMaxMemStr, 64)
+				}
+				for vmStat.UsedPercent > workerMaxMem {
 					log.Infof("worker memory use over threshold, sleeping. value: %f", vmStat.UsedPercent)
 					time.Sleep(5 * time.Second)
+					vmStat, _ = mem.VirtualMemory()
 				}
+
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
