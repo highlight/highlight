@@ -56,7 +56,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
 	github.com/highlight-run/workerpool v1.3.0
-	github.com/highlight/highlight/sdk/highlight-go v0.8.2
+	github.com/highlight/highlight/sdk/highlight-go v0.8.3
 	github.com/influxdata/influxdb-client-go/v2 v2.9.1
 	github.com/jackc/pgconn v1.10.1
 	github.com/kylelemons/godebug v1.1.0
