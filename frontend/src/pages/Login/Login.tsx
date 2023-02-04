@@ -10,7 +10,7 @@ import AboutYouPage from '@pages/AboutYou/AboutYouCard'
 import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
-import { auth, FirebaseAuth } from '@util/auth'
+import { auth } from '@util/auth'
 import { showIntercom } from '@util/window'
 import { message } from 'antd'
 import classNames from 'classnames'
@@ -385,7 +385,7 @@ export default function LoginForm() {
 					</Button>
 				</form>
 				{formState !== LoginFormState.ResetPassword &&
-					(auth instanceof FirebaseAuth ? (
+					(auth.googleProvider ? (
 						<>
 							<p className={styles.otherSigninText}>
 								or sign{' '}
@@ -401,7 +401,9 @@ export default function LoginForm() {
 									styles.googleButton,
 								)}
 								onClick={() => {
-									;(auth as FirebaseAuth).onLoginWithGoogle(
+									auth.signInWithPopup(
+										auth.googleProvider!,
+									).catch(
 										(
 											error: firebase.auth.MultiFactorError,
 										) => {

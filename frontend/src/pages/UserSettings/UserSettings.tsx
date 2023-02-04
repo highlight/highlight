@@ -2,7 +2,7 @@ import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import Tabs from '@components/Tabs/Tabs'
 import { EmailOptOutPanel } from '@pages/EmailOptOut/EmailOptOut'
-import { auth, FirebaseAuth } from '@util/auth'
+import { auth } from '@util/auth'
 import React from 'react'
 import { Helmet } from 'react-helmet'
 import { Route, Switch, useRouteMatch } from 'react-router-dom'
@@ -15,7 +15,7 @@ const UserSettings: React.FC = () => {
 	const match = useRouteMatch()
 
 	const tabs = [
-		...(auth instanceof FirebaseAuth
+		...(auth.googleProvider
 			? [
 					{
 						key: 'auth',

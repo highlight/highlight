@@ -415,10 +415,7 @@ export function getSdk(
 					client.request<PushPayloadMutation>(
 						PushPayloadDocument,
 						variables,
-						{
-							...requestHeaders,
-							...wrappedRequestHeaders,
-						},
+						{ ...requestHeaders, ...wrappedRequestHeaders },
 					),
 				'PushPayload',
 				'mutation',
@@ -463,10 +460,7 @@ export function getSdk(
 					client.request<PushMetricsMutation>(
 						PushMetricsDocument,
 						variables,
-						{
-							...requestHeaders,
-							...wrappedRequestHeaders,
-						},
+						{ ...requestHeaders, ...wrappedRequestHeaders },
 					),
 				'pushMetrics',
 				'mutation',
