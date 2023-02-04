@@ -56,3 +56,10 @@ jobs:
                   npx -y wait-on https://localhost:3000/index.html http://localhost:8080/dist/index.js https://localhost:8082/health;
 
                   yarn cy:run;
+
+            - name: Save videos
+              uses: actions/upload-artifact@v2
+              if: failure()
+              with:
+                  name: cypress-videos
+                  path: cypress/videos
