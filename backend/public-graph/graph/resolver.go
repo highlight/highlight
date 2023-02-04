@@ -2297,7 +2297,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		errorsByProject[projectID] += 1
 	}
 
-	//r.updateErrorsCount(ctx, errorsByProject, errorsBySession, len(errorObjects), model.ErrorType.BACKEND)
+	r.updateErrorsCount(ctx, errorsByProject, errorsBySession, len(errorObjects), model.ErrorType.BACKEND)
 
 	// put errors in db
 	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
