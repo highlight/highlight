@@ -56,3 +56,7 @@ jobs:
               with:
                   name: cypress-videos
                   path: cypress/videos
+
+            - name: Run Stoat Action
+              uses: stoat-dev/stoat-action@v0
+              if: always()

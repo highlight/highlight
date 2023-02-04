@@ -32,6 +32,11 @@ jobs:
                         - 'backend/private-graph/graph/schema.graphqls'
                       public-graph:
                         - 'backend/public-graph/graph/schema.graphqls'
+
+            - name: Run Stoat Action
+              uses: stoat-dev/stoat-action@v0
+              if: always()
+
     code-setup:
         runs-on: ubuntu-latest
         steps:
@@ -41,6 +46,11 @@ jobs:
               uses: actions/setup-go@v3
               with:
                   go-version-file: 'backend/go.mod'
+
+            - name: Run Stoat Action
+              uses: stoat-dev/stoat-action@v0
+              if: always()
+
     code-quality-check:
         needs: code-setup
         runs-on: ubuntu-latest
@@ -61,6 +71,11 @@ jobs:
                   args: --config ./.golangci.yml --timeout 5m
                   working-directory: backend
                   version: latest
+
+            - name: Run Stoat Action
+              uses: stoat-dev/stoat-action@v0
+              if: always()
+
     make-check:
         needs: [changes, code-setup]
         if: needs.changes.outputs.private-graph == 'true' || needs.changes.outputs.public-graph == 'true'
@@ -89,6 +104,11 @@ jobs:
             - name: Diff Check
               run: |
                   diff -r backend/ tmp/
+
+            - name: Run Stoat Action
+              uses: stoat-dev/stoat-action@v0
+              if: always()
+
     build:
         needs: code-quality-check
         runs-on: ubuntu-latest
@@ -101,6 +121,11 @@ jobs:
                   go-version-file: 'backend/go.mod'
             - name: Build binary
               run: cd backend/ && go build .
+
+            - name: Run Stoat Action
+              uses: stoat-dev/stoat-action@v0
+              if: always()
+
     test:
         needs: code-quality-check
         runs-on: ubuntu-latest
@@ -143,3 +168,7 @@ jobs:
                   go-version-file: 'backend/go.mod'
             - name: Run tests
               run: cd backend && go test -p 1 ./... -v
+
+            - name: Run Stoat Action
+              uses: stoat-dev/stoat-action@v0
+              if: always()

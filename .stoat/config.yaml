@@ -1,0 +1,18 @@
+---
+version: 1
+enabled: true
+plugins:
+    job_runtime:
+        enabled: true
+  static_hosting:
+    cypress-video:
+      metadata:
+        name: "Docker deploy cypress E2E login"
+      path: cypress/videos/login.cy.js.mp4
+    cypress-vide-clitn:
+      metadata:
+        name: "Docker deploy cypress E2E client"
+      path: cypress/videos/client.cy.js.mp4
+
+  login spec
+
