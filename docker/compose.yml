@@ -166,8 +166,6 @@ services:
     backend:
         container_name: backend
         image: public.ecr.aws/k9o6n7l8/highlight
-        profiles:
-            - donotstart
         ports:
             - 8082:8082
         build:
@@ -180,8 +178,6 @@ services:
     frontend:
         container_name: frontend
         image: public.ecr.aws/k9o6n7l8/highlight-frontend
-        profiles:
-            - donotstart
         ports:
             - 3000:3000
             - 8080:8080

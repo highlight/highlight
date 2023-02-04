@@ -6,8 +6,6 @@ services:
 
         container_name: backend
         image: public.ecr.aws/k9o6n7l8/highlight
-        profiles:
-            - donotstart
         volumes:
             - ../backend:/build/backend
             - ../sdk/highlight-go:/build/sdk/highlight-go
@@ -36,8 +34,6 @@ services:
             - ../frontend:/frontend
             - ../backend/public-graph:/backend/public-graph
             - ../backend/private-graph:/backend/private-graph
-        profiles:
-            - donotstart
         ports:
             - 3000:3000
             - 8080:8080
