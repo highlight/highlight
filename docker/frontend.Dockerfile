@@ -8,7 +8,7 @@ RUN apt update && apt install -y \
 WORKDIR /build
 COPY ../.yarn/plugins ./.yarn/plugins
 COPY ../.yarn/releases ./.yarn/releases
-COPY .npmignore .yarnrc.yml tsconfig.json turbo.json package.json yarn.lock ./
+COPY .npmignore .prettierrc .prettierignore .yarnrc.yml graphql.config.js tsconfig.json turbo.json package.json yarn.lock ./
 COPY ../scripts/package.json ./scripts/package.json
 COPY ../rrweb/packages/rrdom/package.json ./rrweb/packages/rrdom/package.json
 COPY ../rrweb/packages/rrdom-nodejs/package.json ./rrweb/packages/rrdom-nodejs/package.json
