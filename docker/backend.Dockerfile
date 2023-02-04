@@ -11,6 +11,8 @@ COPY ../backend/go.sum ./backend/go.sum
 COPY ../sdk/highlight-go/go.mod ./sdk/highlight-go/go.mod
 COPY ../sdk/highlight-go/go.sum ./sdk/highlight-go/go.sum
 RUN go work sync
+RUN cd /build/backend && go mod download
+RUN cd /build/sdk/highlight-go && go mod download
 
 FROM backend-base as backend-dev
 WORKDIR /build/backend
