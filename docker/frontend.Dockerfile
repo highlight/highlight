@@ -26,11 +26,10 @@ COPY ../sdk/highlight-node/package.json ./sdk/highlight-node/package.json
 COPY ../frontend/package.json ./frontend/package.json
 RUN yarn
 
-FROM frontend-base as frontend-dev
-CMD ["yarn", "docker:frontend"]
-
-FROM frontend-base as frontend
-
+COPY ../backend/localhostssl/server.pem /etc/ssl/certs/ssl-cert.pem
+COPY ../backend/localhostssl/server.key /etc/ssl/private/ssl-cert.key
+COPY ../backend/localhostssl/server.crt ./backend/localhostssl/server.crt
+COPY ../backend/localhostssl/server.key ./backend/localhostssl/server.key
 COPY ../scripts ./scripts
 COPY ../rrweb ./rrweb
 COPY ../packages ./packages
@@ -40,6 +39,11 @@ COPY ../sdk ./sdk
 COPY ../frontend ./frontend
 COPY ../backend/public-graph ./backend/public-graph
 COPY ../backend/private-graph ./backend/private-graph
+
+FROM frontend-base as frontend-dev
+CMD ["yarn", "docker:frontend"]
+
+FROM frontend-base as frontend
 
 # These three 'args' need to be here because they're injected at build time
 # all other env variables are provided in environment.yml.
@@ -57,9 +61,5 @@ ARG TURBO_TEAM
 RUN yarn build:frontend
 
 COPY ../docker/nginx.conf /etc/nginx/sites-enabled/default
-COPY ../backend/localhostssl/server.pem /etc/ssl/certs/ssl-cert.pem
-COPY ../backend/localhostssl/server.key /etc/ssl/private/ssl-cert.key
-COPY ../backend/localhostssl/server.crt ./backend/localhostssl/server.crt
-COPY ../backend/localhostssl/server.key ./backend/localhostssl/server.key
 
 CMD ["nginx", "-g", "daemon off;"]
