@@ -70,6 +70,17 @@ export class Highlight {
 				sourceContextCacheSizeMB: options.errorSourceContextCacheSizeMB,
 			})
 		}
+
+		this._graphqlSdk
+			.MarkBackendSetup({
+				project_id: this._projectID,
+			})
+			.then(() => {
+				this.lastBackendSetupEvent = Date.now()
+			})
+			.catch((e) => {
+				console.warn('highlight-node error: ', e)
+			})
 		this._log(`Initialized SDK for project ${this._projectID}`)
 	}
 
