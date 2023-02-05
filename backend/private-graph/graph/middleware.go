@@ -94,7 +94,7 @@ func (c *SimpleAuthClient) GetUser(_ context.Context, _ string) (*auth.UserRecor
 			DisplayName: "Hobby Highlighter",
 			Email:       "demo@example.com",
 			PhoneNumber: "+14081234567",
-			PhotoURL:    "https://avatars.githubusercontent.com/u/1351531?s=40&v=4",
+			PhotoURL:    "https://picsum.photos/200",
 			ProviderID:  "",
 			UID:         "12345abcdef09876a1b2c3d4e5f",
 		},
