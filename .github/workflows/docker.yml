@@ -21,12 +21,7 @@ jobs:
         strategy:
             matrix:
                 runs-on:
-                    [
-                        buildjet-2vcpu-ubuntu-2204,
-                        buildjet-4vcpu-ubuntu-2204,
-                        buildjet-8vcpu-ubuntu-2204,
-                        buildjet-16vcpu-ubuntu-2204,
-                    ]
+                    [buildjet-4vcpu-ubuntu-2204, buildjet-8vcpu-ubuntu-2204]
         name: Build Docker Images
         timeout-minutes: 30
         runs-on: ${{matrix.runs-on}}
