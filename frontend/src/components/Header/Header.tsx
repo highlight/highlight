@@ -412,7 +412,11 @@ export const Header = () => {
 											</Menu.Item>
 										</Link>
 										<Link
-											to={`/w/${workspaceId}/account/auth`}
+											to={`/w/${workspaceId}/account/${
+												auth.googleProvider
+													? 'auth'
+													: 'email-settings'
+											}`}
 											className={linkStyle}
 										>
 											<Menu.Item>
