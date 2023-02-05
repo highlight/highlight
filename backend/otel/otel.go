@@ -39,13 +39,19 @@ func castString(v interface{}) string {
 
 func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID *string) {
 	if p, ok := attrs[highlight.ProjectIDAttribute]; ok {
-		*projectID = p.(string)
+		if p.(string) != "" {
+			*projectID = p.(string)
+		}
 	}
 	if s, ok := attrs[highlight.SessionIDAttribute]; ok {
-		*sessionID = s.(string)
+		if s.(string) != "" {
+			*sessionID = s.(string)
+		}
 	}
 	if r, ok := attrs[highlight.RequestIDAttribute]; ok {
-		*requestID = r.(string)
+		if r.(string) != "" {
+			*requestID = r.(string)
+		}
 	}
 }
 
@@ -93,12 +99,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			spans := scopeScans.At(j).Spans()
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
-				attrs := span.Attributes().AsRaw()
-				tagsBytes, err := json.Marshal(attrs)
+				spanAttributes := span.Attributes().AsRaw()
+				tagsBytes, err := json.Marshal(spanAttributes)
 				if err != nil {
 					log.Errorf("failed to format error attributes %s", tagsBytes)
 				}
-				setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID)
+				setHighlightAttributes(spanAttributes, &projectID, &sessionID, &requestID)
 				events := span.Events()
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
@@ -143,7 +149,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							projectErrors[projectID] = append(projectErrors[projectID], err)
 						} else {
 							data, _ := req.MarshalJSON()
-							log.Errorf("otel error got no session and no project %+v %s", *err, data)
+							log.WithField("BackendErrorObjectInput", *err).WithField("RequestJSON", data).Errorf("otel error got no session and no project")
 						}
 					}
 				}
