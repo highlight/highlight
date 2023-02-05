@@ -1,7 +1,6 @@
 import * as http from 'http'
 import { NodeOptions } from '.'
 import { H, HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
-import * as functions from 'firebase-functions'
 
 /** JSDoc */
 interface MiddlewareError extends Error {
@@ -95,8 +94,8 @@ export async function trpcOnError(
  * A wrapper for logging errors to Highlight for Firebase HTTP functions
  */
 declare type FirebaseHttpFunctionHandler = (
-	req: functions.https.Request,
-	resp: functions.Response<any>,
+	req: any,
+	resp: any,
 ) => void | Promise<void>
 export function firebaseHttpFunctionHandler(
 	origHandler: FirebaseHttpFunctionHandler,
@@ -130,10 +129,7 @@ export function firebaseHttpFunctionHandler(
 /**
  * A wrapper for logging errors to Highlight for Firebase callable functions
  */
-declare type FirebaseCallableFunctionHandler = (
-	data: any,
-	context: functions.https.CallableContext,
-) => any
+declare type FirebaseCallableFunctionHandler = (data: any, context: any) => any
 export function firebaseCallableFunctionHandler(
 	origHandler: FirebaseCallableFunctionHandler,
 	options: NodeOptions,

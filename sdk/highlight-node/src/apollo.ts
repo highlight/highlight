@@ -7,9 +7,9 @@ import {
 import { H, HIGHLIGHT_REQUEST_HEADER } from './sdk'
 import { NodeOptions } from './types'
 
-export const ApolloServerHighlightIntegration = function <
-	T extends BaseContext,
->(options: NodeOptions): ApolloServerPlugin<T> {
+export const ApolloServerHighlightPlugin = function <T extends BaseContext>(
+	options: NodeOptions,
+): ApolloServerPlugin<T> {
 	return {
 		async requestDidStart(req): Promise<GraphQLRequestListener<T> | void> {
 			let secureSessionId: string | undefined
