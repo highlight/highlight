@@ -20,7 +20,7 @@ jobs:
     build:
         name: Build Docker Images
         timeout-minutes: 30
-        runs-on: docker-runner
+        runs-on: buildjet-4vcpu-ubuntu-2204
 
         steps:
             - name: Use HTTPS for checkout
@@ -37,15 +37,15 @@ jobs:
                   node-version: 16
                   cache: 'yarn'
 
-            - name: Build & start docker containers
+            - name: Start docker containers & run cypress
               run: |
+                  yarn;
                   cd docker;
                   export NODE_EXTRA_CA_CERTS="../backend/localhostssl/server.crt";
 
                   docker compose up -d --build --remove-orphans;
                   docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql';
 
-                  yarn;
                   npx -y wait-on https://localhost:3000/index.html http://localhost:8080/dist/index.js https://localhost:8082/health;
 
                   yarn cy:run;
