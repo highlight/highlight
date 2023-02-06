@@ -1,8 +1,9 @@
 package clickhouse
 
 import (
-	"errors"
 	"testing"
+
+	e "github.com/pkg/errors"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -63,7 +64,7 @@ func TestMakeLogRowWithMultipleValues(t *testing.T) {
 func TestParseConsoleMessages(t *testing.T) {
 	_, err := ParseConsoleMessages(1, "session_id", "message")
 
-	assert.Error(t, errors.New("error decoding message data"), err)
+	assert.Error(t, e.New("error decoding message data"), err)
 
 	_, err = ParseConsoleMessages(1, "session_id", "{\"messages\":[]}")
 	require.NoError(t, err)
