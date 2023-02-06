@@ -89,6 +89,6 @@ func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (t
 func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) context.Context {
 	span, ctx := StartTrace(ctx, "highlight-ctx", tags...)
 	defer span.End()
-	span.RecordError(err)
+	span.RecordError(err, trace.WithStackTrace(true))
 	return ctx
 }
