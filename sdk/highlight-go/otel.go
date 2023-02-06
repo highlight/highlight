@@ -88,7 +88,7 @@ func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (t
 // If no sessionID is set, then the error is associated with the project without a session context.
 func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) context.Context {
 	span, ctx := StartTrace(ctx, "highlight-ctx", tags...)
-	defer span.End()
+	defer span.End(trace.WithStackTrace(true))
 	span.RecordError(err, trace.WithStackTrace(true))
 	return ctx
 }

@@ -56,7 +56,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
 	github.com/highlight-run/workerpool v1.3.0
-	github.com/highlight/highlight/sdk/highlight-go v0.8.4
+	github.com/highlight/highlight/sdk/highlight-go v0.8.5
 	github.com/influxdata/influxdb-client-go/v2 v2.9.1
 	github.com/jackc/pgconn v1.10.1
 	github.com/kylelemons/godebug v1.1.0
@@ -113,9 +113,9 @@ require (
 	github.com/go-chi/chi/v5 v5.0.7 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.6.1 // indirect
-	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.0 // indirect
