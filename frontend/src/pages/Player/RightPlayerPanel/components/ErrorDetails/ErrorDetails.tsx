@@ -2,13 +2,10 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
-import {
-	GetErrorGroupDocument,
-	useGetErrorGroupQuery,
-	useGetProjectQuery,
-} from '@graph/hooks'
+import { GetErrorGroupDocument, useGetErrorGroupQuery } from '@graph/hooks'
 import { ErrorObject } from '@graph/schemas'
 import {
+	Badge,
 	Box,
 	ButtonIcon,
 	Callout,
@@ -21,6 +18,7 @@ import {
 	IconSolidX,
 	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
@@ -30,12 +28,14 @@ import ErrorFrequencyChart from '@pages/ErrorsV2/ErrorBody/components/ErrorFrequ
 import ErrorObjectCount from '@pages/ErrorsV2/ErrorBody/components/ErrorObjectCount'
 import ErrorOccurenceDate from '@pages/ErrorsV2/ErrorBody/components/ErrorOccurenceDate'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
-import { getProjectPrefix } from '@pages/ErrorsV2/utils'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import analytics from '@util/analytics'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { client } from '@util/graph'
+import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
+import { MillisToMinutesAndSeconds } from '@util/time'
 import React, { useMemo } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useHistory } from 'react-router-dom'
@@ -45,7 +45,11 @@ interface Props {
 }
 
 const ErrorDetails = React.memo(({ error }: Props) => {
-	const { errors, setTime, sessionMetadata } = useReplayerContext()
+	const {
+		errors,
+		setTime,
+		sessionMetadata: { startTime },
+	} = useReplayerContext()
 	const { setActiveError } = usePlayerUIContext()
 	const { isLoggedIn } = useAuthContext()
 
@@ -98,11 +102,8 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 		return header
 	}, [event])
 
-	const { data: projectData } = useGetProjectQuery({
-		variables: { id: String(errorGroup?.project_id) },
-		skip: !errorGroup,
-	})
 	const { setShowLeftPanel } = useErrorPageConfiguration()
+	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 
 	useHotkeys(
 		'h',
@@ -148,6 +149,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 		return <LoadingBox />
 	}
 
+	const timestamp = new Date(error.timestamp).getTime() - startTime
 	return (
 		<Box pl="12" pr="8" height="full" display="flex" flexDirection="column">
 			<Box py="6" display="flex" alignItems="center">
@@ -185,34 +187,52 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 				<Text size="small" weight="medium" color="strong">
 					{headerText}
 				</Text>
-				<Box display="flex" alignItems="center">
-					<Tag
-						iconLeft={<IconSolidLocationMarker />}
-						kind="secondary"
+				<Box display="flex" alignItems="center" gap="4">
+					<Tooltip
+						trigger={
+							<Tag
+								iconLeft={<IconSolidLocationMarker />}
+								kind="secondary"
+								size="medium"
+								shape="basic"
+								lines="1"
+							>
+								{errorGroup?.type}
+							</Tag>
+						}
+					>
+						<Text family="monospace">{errorGroup?.type}</Text>
+					</Tooltip>
+					<Badge
+						label={String(
+							showPlayerAbsoluteTime
+								? playerTimeToSessionAbsoluteTime({
+										sessionStartTime: startTime,
+										relativeTime: timestamp,
+								  })
+								: MillisToMinutesAndSeconds(timestamp),
+						)}
 						size="medium"
 						shape="basic"
-						lines="1"
-					>
-						{errorGroup?.type}
-					</Tag>
-					<Button
-						trackingId="GoToErrorGroup"
+						variant="gray"
+						flexShrink={0}
+					/>
+					<Tag
+						shape="basic"
 						kind="secondary"
-						size="small"
+						size="medium"
 						emphasis="low"
 						iconRight={<IconSolidArrowCircleRight />}
 						onClick={() => {
-							setTime(
-								new Date(error.timestamp).getTime() -
-									sessionMetadata.startTime,
-							)
+							setTime(timestamp)
 						}}
 						style={{
 							marginLeft: 'auto',
+							flexShrink: 0,
 						}}
 					>
 						Go to error
-					</Button>
+					</Tag>
 				</Box>
 			</Box>
 			<Box py="8" display="flex" flexDirection="column">
@@ -286,8 +306,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 						setShowLeftPanel(false)
 					}}
 				>
-					View {getProjectPrefix(projectData?.project)}-
-					{errorGroup?.id}
+					View error group
 				</Button>
 			</Box>
 		</Box>

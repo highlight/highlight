@@ -8,21 +8,19 @@ export const variants = recipe({
 			alignItems: 'center',
 			display: 'inline-flex',
 			userSelect: 'none',
+			width: 'max-content',
 		},
 	],
 
 	variants: {
 		size: {
-			tiny: [sprinkles({ px: '4' }), { height: 16 }],
-			small: [sprinkles({ px: '6' }), { height: 16 }],
-			medium: [sprinkles({ px: '8' }), { height: 20 }],
-			large: [sprinkles({ px: '10' }), { height: 24 }],
+			small: [sprinkles({ px: '6' }), { minHeight: 16 }],
+			medium: [sprinkles({ px: '8' }), { minHeight: 20 }],
+			large: [sprinkles({ px: '10' }), { minHeight: 24 }],
 		},
 		shape: {
-			round: {
-				borderRadius: vars.borderRadius.round,
-			},
 			rounded: {},
+			basic: {},
 		},
 		variant: {
 			white: {
@@ -30,11 +28,11 @@ export const variants = recipe({
 				border: vars.border.secondary,
 				color: vars.theme.static.content.moderate,
 			},
-			grey: {
+			gray: {
 				background: vars.theme.static.surface.sentiment.neutral,
 				color: vars.theme.static.content.moderate,
 			},
-			outlineGrey: {
+			outlineGray: {
 				border: vars.border.secondary,
 				color: vars.theme.static.content.moderate,
 			},
@@ -45,9 +43,6 @@ export const variants = recipe({
 			blue: sprinkles({
 				background: 'lb100',
 			}),
-			gray: {
-				background: vars.theme.static.content.weak,
-			},
 			red: {
 				background: vars.theme.static.surface.sentiment.bad,
 				color: vars.theme.static.content.sentiment.bad,
@@ -66,17 +61,8 @@ export const variants = recipe({
 	compoundVariants: [
 		{
 			variants: {
-				size: 'tiny',
-				shape: 'rounded',
-			},
-			style: {
-				borderRadius: vars.borderRadius['3'],
-			},
-		},
-		{
-			variants: {
 				size: 'small',
-				shape: 'rounded',
+				shape: 'basic',
 			},
 			style: {
 				borderRadius: vars.borderRadius['3'],
@@ -85,7 +71,7 @@ export const variants = recipe({
 		{
 			variants: {
 				size: 'medium',
-				shape: 'rounded',
+				shape: 'basic',
 			},
 			style: {
 				borderRadius: vars.borderRadius['5'],
@@ -94,17 +80,45 @@ export const variants = recipe({
 		{
 			variants: {
 				size: 'large',
-				shape: 'rounded',
+				shape: 'basic',
 			},
 			style: {
 				borderRadius: vars.borderRadius['6'],
+			},
+		},
+
+		{
+			variants: {
+				size: 'small',
+				shape: 'rounded',
+			},
+			style: {
+				borderRadius: vars.borderRadius['23'],
+			},
+		},
+		{
+			variants: {
+				size: 'medium',
+				shape: 'rounded',
+			},
+			style: {
+				borderRadius: vars.borderRadius['10'],
+			},
+		},
+		{
+			variants: {
+				size: 'large',
+				shape: 'rounded',
+			},
+			style: {
+				borderRadius: vars.borderRadius['16'],
 			},
 		},
 	],
 
 	defaultVariants: {
 		size: 'small',
-		shape: 'rounded',
+		shape: 'basic',
 		variant: 'white',
 	},
 })

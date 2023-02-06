@@ -87,7 +87,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 			if (error) {
 				setShowRightPanel(true)
 				setActiveError(error)
-				setRightPanelView(RightPanelView.ERROR)
+				setRightPanelView(RightPanelView.Error)
 			}
 		} else {
 			setShowRightPanel(true)

@@ -10,4 +10,5 @@ export const jsonContainer = style({
 
 export const consoleText = style({
 	whiteSpace: 'pre-wrap',
+	overflowWrap: 'break-word',
 })

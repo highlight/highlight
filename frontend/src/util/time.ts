@@ -85,3 +85,17 @@ export const roundDateToMinute = function (date: string | null) {
 }
 
 export const wait = (ms: number) => new Promise((res) => setTimeout(res, ms))
+
+/**
+ * Formats milliseconds to human readable format.
+ * @param {number} time in milliseconds
+ **/
+export const formatTime = (time: number) => {
+	if (time < 1000) {
+		return `${Math.round(time)} ms`
+	}
+	if (time < 60000) {
+		return `${Math.ceil(time / 10) / 100} s`
+	}
+	return `${(Math.ceil(time / 60000) * 100) / 100} m`
+}

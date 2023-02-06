@@ -168,7 +168,7 @@ const EventStreamV2 = function () {
 									onGoToHandler={(e) => {
 										setCurrentEvent(e)
 										setActiveEvent(event)
-										setRightPanelView(RightPanelView.EVENT)
+										setRightPanelView(RightPanelView.Event)
 									}}
 								/>
 							)}
