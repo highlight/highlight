@@ -1,6 +1,7 @@
 import { IncomingHttpHeaders, request } from 'http'
 import { Highlight } from '.'
 import { NodeOptions } from './types.js'
+import log from './log'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
@@ -24,11 +25,14 @@ export interface HighlightInterface {
 		tags?: { name: string; value: string }[],
 	) => void
 	flush: () => Promise<void>
+	log: (...data: any[]) => void
 }
 
-var highlight_obj: Highlight
+let _debug: boolean = false
+let highlight_obj: Highlight
 export const H: HighlightInterface = {
 	init: (options: NodeOptions) => {
+		_debug = !!options.debug
 		try {
 			highlight_obj = new Highlight(options)
 		} catch (e) {
@@ -87,13 +91,20 @@ export const H: HighlightInterface = {
 			if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
 				const [secureSessionId, requestId] =
 					`${headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
-				if (!!secureSessionId && !!requestId) {
-					return { secureSessionId, requestId }
-				}
+				return { secureSessionId, requestId }
+			} else {
+				H.log(
+					`request headers do not contain ${HIGHLIGHT_REQUEST_HEADER}`,
+				)
 			}
 		} catch (e) {
 			console.warn('highlight-node parseHeaders error: ', e)
 		}
 		return undefined
+	},
+	log: (...data: any[]) => {
+		if (_debug) {
+			log('H', ...data)
+		}
 	},
 }

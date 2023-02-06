@@ -10,7 +10,7 @@ import AboutYouPage from '@pages/AboutYou/AboutYouCard'
 import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
-import { auth, googleProvider } from '@util/auth'
+import { auth } from '@util/auth'
 import { showIntercom } from '@util/window'
 import { message } from 'antd'
 import classNames from 'classnames'
@@ -384,53 +384,64 @@ export default function LoginForm() {
 							: 'Reset Password'}
 					</Button>
 				</form>
-				{formState !== LoginFormState.ResetPassword && (
-					<>
-						<p className={styles.otherSigninText}>
-							or sign{' '}
-							{formState === LoginFormState.SignIn ? 'in' : 'up'}{' '}
-							with
-						</p>
-						<Button
-							trackingId="LoginWithGoogle"
-							className={classNames(
-								commonStyles.secondaryButton,
-								styles.googleButton,
-							)}
-							onClick={() => {
-								auth.signInWithPopup(googleProvider).catch(
-									(error: firebase.auth.MultiFactorError) => {
-										if (
-											error.code ===
-											'auth/multi-factor-auth-required'
-										) {
-											setResolver(error.resolver)
-											setFormState(
-												LoginFormState.EnterMultiFactorCode,
-											)
-										} else {
-											setFirebaseError(
-												JSON.stringify(error.message),
-											)
-										}
-									},
-								)
-							}}
-							loading={isLoadingFirebase}
-						>
-							<GoogleLogo className={styles.googleLogoStyle} />
-							<span className={styles.googleText}>
-								Google Sign{' '}
+				{formState !== LoginFormState.ResetPassword &&
+					(auth.googleProvider ? (
+						<>
+							<p className={styles.otherSigninText}>
+								or sign{' '}
 								{formState === LoginFormState.SignIn
-									? 'In'
-									: 'Up'}
-							</span>
-						</Button>
-						<div className={commonStyles.errorMessage}>
-							{firebaseError}
-						</div>
-					</>
-				)}
+									? 'in'
+									: 'up'}{' '}
+								with
+							</p>
+							<Button
+								trackingId="LoginWithGoogle"
+								className={classNames(
+									commonStyles.secondaryButton,
+									styles.googleButton,
+								)}
+								onClick={() => {
+									auth.signInWithPopup(
+										auth.googleProvider!,
+									).catch(
+										(
+											error: firebase.auth.MultiFactorError,
+										) => {
+											if (
+												error.code ===
+												'auth/multi-factor-auth-required'
+											) {
+												setResolver(error.resolver)
+												setFormState(
+													LoginFormState.EnterMultiFactorCode,
+												)
+											} else {
+												setFirebaseError(
+													JSON.stringify(
+														error.message,
+													),
+												)
+											}
+										},
+									)
+								}}
+								loading={isLoadingFirebase}
+							>
+								<GoogleLogo
+									className={styles.googleLogoStyle}
+								/>
+								<span className={styles.googleText}>
+									Google Sign{' '}
+									{formState === LoginFormState.SignIn
+										? 'In'
+										: 'Up'}
+								</span>
+							</Button>
+							<div className={commonStyles.errorMessage}>
+								{firebaseError}
+							</div>
+						</>
+					) : null)}
 			</AuthPageLayout>
 		</Landing>
 	)

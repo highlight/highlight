@@ -26,7 +26,6 @@ import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
-import Firebase from 'firebase/app'
 import React, { useEffect, useState } from 'react'
 import { Route, Switch } from 'react-router-dom'
 import { useToggle } from 'react-use'
@@ -35,6 +34,7 @@ import commonStyles from '../../Common.module.scss'
 import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble'
 import { ApplicationContextProvider } from './ApplicationContext'
 import ApplicationRouter from './ApplicationRouter'
+import { auth } from '@util/auth'
 
 export const ProjectRouter = () => {
 	const { isLoggedIn } = useAuthContext()
@@ -62,21 +62,19 @@ export const ProjectRouter = () => {
 			import.meta.env.REACT_APP_PRIVATE_GRAPH_URI ??
 			window.location.origin + '/private'
 		let intervalId: NodeJS.Timeout
-		Firebase.auth()
-			.currentUser?.getIdToken()
-			.then((t) => {
-				const fetchToken = () => {
-					fetch(`${uri}/project-token/${project_id}`, {
-						credentials: 'include',
-						headers: {
-							token: t,
-						},
-					})
-				}
-				// Fetch a new token now and every 30 mins
-				fetchToken()
-				intervalId = setInterval(fetchToken, 30 * 60 * 1000)
-			})
+		auth.currentUser?.getIdToken().then((t) => {
+			const fetchToken = () => {
+				fetch(`${uri}/project-token/${project_id}`, {
+					credentials: 'include',
+					headers: {
+						token: t,
+					},
+				})
+			}
+			// Fetch a new token now and every 30 mins
+			fetchToken()
+			intervalId = setInterval(fetchToken, 30 * 60 * 1000)
+		})
 		return () => {
 			clearInterval(intervalId)
 		}

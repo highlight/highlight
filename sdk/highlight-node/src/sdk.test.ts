@@ -12,9 +12,9 @@ describe('parseHeaders', () => {
 		expect(H.parseHeaders({})).toBeUndefined()
 	})
 
-	it('returns undefined if headers is invalid', async () => {
+	it('returns session if request is invalid', async () => {
 		expect(
 			H.parseHeaders({ [HIGHLIGHT_REQUEST_HEADER]: 'not valid!' }),
-		).toBeUndefined()
+		).toMatchObject({ secureSessionId: 'not valid!', requestId: undefined })
 	})
 })

@@ -58,7 +58,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 				<Route path="/:project_id/dashboards">
 					<DashboardsRouter />
 				</Route>
-				<Route path="/:project_id/home">
+				<Route path="/:project_id/analytics">
 					<DashboardsRouter />
 				</Route>
 				<Route path="/:project_id/setup">
@@ -84,7 +84,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 				</Route>
 				<Route path="/:project_id">
 					{integrated ? (
-						<Redirect to={`/${project_id}/home`} />
+						<Redirect to={`/${project_id}/sessions`} />
 					) : (
 						<Redirect to={`/${project_id}/setup`} />
 					)}

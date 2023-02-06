@@ -1,7 +1,6 @@
 import * as http from 'http'
 import { NodeOptions } from '.'
 import { H, HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
-import * as functions from 'firebase-functions'
 
 /** JSDoc */
 interface MiddlewareError extends Error {
@@ -24,13 +23,19 @@ function processErrorImpl(
 		;[secureSessionId, requestId] =
 			`${req.headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
 	}
+	H.log('processError', 'extracted from headers', {
+		secureSessionId,
+		requestId,
+	})
 
 	if (!H.isInitialized()) {
 		H.init(options)
+		H.log('initialized H')
 	}
 	H.consumeEvent(secureSessionId)
 	if (error instanceof Error) {
 		H.consumeError(error, secureSessionId, requestId)
+		H.log('consumed error', error)
 	}
 }
 
@@ -46,12 +51,14 @@ export function errorHandler(
 	res: http.ServerResponse,
 	next: (error: MiddlewareError) => void,
 ) => void {
+	H.log('setting up error handler')
 	return async (
 		error: MiddlewareError,
 		req: http.IncomingMessage,
 		res: http.ServerResponse,
 		next: (error: MiddlewareError) => void,
 	) => {
+		H.log('handling request')
 		try {
 			processErrorImpl(options, req, error)
 		} finally {
@@ -87,8 +94,8 @@ export async function trpcOnError(
  * A wrapper for logging errors to Highlight for Firebase HTTP functions
  */
 declare type FirebaseHttpFunctionHandler = (
-	req: functions.https.Request,
-	resp: functions.Response<any>,
+	req: any,
+	resp: any,
 ) => void | Promise<void>
 export function firebaseHttpFunctionHandler(
 	origHandler: FirebaseHttpFunctionHandler,
@@ -122,10 +129,7 @@ export function firebaseHttpFunctionHandler(
 /**
  * A wrapper for logging errors to Highlight for Firebase callable functions
  */
-declare type FirebaseCallableFunctionHandler = (
-	data: any,
-	context: functions.https.CallableContext,
-) => any
+declare type FirebaseCallableFunctionHandler = (data: any, context: any) => any
 export function firebaseCallableFunctionHandler(
 	origHandler: FirebaseCallableFunctionHandler,
 	options: NodeOptions,

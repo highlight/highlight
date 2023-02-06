@@ -254,7 +254,11 @@ func main() {
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
 	}
-	private.SetupAuthClient(oauthSrv, privateResolver.Query().APIKeyToOrgID)
+	authMode := private.Firebase
+	if util.IsInDocker() {
+		authMode = private.Simple
+	}
+	private.SetupAuthClient(authMode, oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
 	errorLogger := httplog.NewLogger(fmt.Sprintf("%v-service", runtimeParsed), httplog.Options{
@@ -399,6 +403,7 @@ func main() {
 	if util.IsDevOrTestEnv() {
 		log.Info("overwriting highlight-go graphql client address...")
 		H.SetGraphqlClientAddress("https://localhost:8082/public")
+		H.SetOTLPEndpoint("http://collector:4318")
 	}
 	H.SetProjectID("1jdkoe52")
 	H.Start()
