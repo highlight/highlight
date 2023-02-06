@@ -10,7 +10,6 @@ import {
 import { useGetReferrersCountQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgReferrer from '@icons/Referrer'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
@@ -81,13 +80,10 @@ const ReferrersTable = ({
 					data={tableData}
 					loading={false}
 					onClickHandler={(record) => {
-						// TODO: Fix redirect
-						history.push(`/${projectIdRemapped}/sessions`)
+						history.push(
+							`/${projectIdRemapped}/sessions?query=and%7C%7Csession_referrer%2Cis%2C${record.host}`,
+						)
 						removeSelectedSegment()
-						setSearchParams({
-							...EmptySessionsSearchParams,
-							referrer: record.host,
-						})
 						message.success(
 							`Showing sessions that were referred by ${record.host}`,
 						)

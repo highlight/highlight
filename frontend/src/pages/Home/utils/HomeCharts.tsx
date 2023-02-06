@@ -104,7 +104,6 @@ export const SessionCountGraph = ({
 				onClickHandler={(payload: any) => {
 					const date = moment(payload.activePayload[0].payload.date)
 					removeSelectedSegment()
-					// TODO: Fix redirect
 					setSearchParams({
 						...EmptySessionsSearchParams,
 						date_range: {

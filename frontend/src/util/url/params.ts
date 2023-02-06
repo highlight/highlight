@@ -110,3 +110,37 @@ export const QueryBuilderStateParam = {
 		}
 	},
 }
+
+// Input: { user_email: 'chris@highlight.io' }
+// Output: '?query=and%7C%7Cuser_email%2Cis%2Cchris@highlight.io`
+export const getQueryBuilderString = (
+	query: { [key: string]: string },
+	options: { isAnd: boolean; onlyParams: boolean } = {
+		isAnd: true,
+		onlyParams: false,
+	},
+) => {
+	const builderParams: QueryBuilderState = {
+		isAnd: options.isAnd,
+		rules: [],
+	}
+
+	for (const key in query) {
+		let value = String(query[key])
+		let op = 'is'
+
+		if (value.indexOf(':') > -1) {
+			;[op, value] = value.split(':')
+		}
+
+		builderParams.rules.push([key, op, value])
+	}
+
+	const encodedParams: any = QueryBuilderStateParam.encode(
+		JSON.stringify(builderParams),
+	)
+
+	return options.onlyParams
+		? encodeURIComponent(encodedParams.replace('and||', ''))
+		: `?query=${encodeURIComponent(encodedParams)}`
+}

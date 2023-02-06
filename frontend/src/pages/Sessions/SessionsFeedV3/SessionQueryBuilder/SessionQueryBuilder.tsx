@@ -22,7 +22,6 @@ import QueryBuilder, {
 	serializeRules,
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { useParams } from '@util/react-router/useParams'
-import { QueryBuilderStateParam } from '@util/url/params'
 import { isEqual } from 'lodash'
 import moment from 'moment'
 import React, { useEffect } from 'react'

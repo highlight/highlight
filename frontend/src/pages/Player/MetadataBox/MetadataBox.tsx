@@ -14,10 +14,10 @@ import {
 } from '@highlight-run/ui'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
-import { copyToClipboard } from '@util/string'
+import { copyToClipboard, validateEmail } from '@util/string'
+import { getQueryBuilderString } from '@util/url/params'
 import { message } from 'antd'
 import clsx from 'clsx'
 import { capitalize } from 'lodash'
@@ -29,8 +29,10 @@ import {
 	FaLinkedin,
 	FaTwitterSquare,
 } from 'react-icons/fa'
+import { useHistory } from 'react-router-dom'
 
 import {
+	getDisplayName,
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
 } from '../../Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
@@ -43,6 +45,7 @@ export const MetadataBox = React.memo(() => {
 	const { session } = useReplayerContext()
 	const { setSearchParams } = useSearchContext()
 	const { setShowLeftPanel } = usePlayerConfiguration()
+	const history = useHistory()
 
 	const [enhancedAvatar, setEnhancedAvatar] = React.useState<string>()
 
@@ -180,34 +183,27 @@ export const MetadataBox = React.memo(() => {
 	}, [data, displayValue, field, loading, session])
 
 	const searchIdentifier = useCallback(() => {
-		const hasIdentifier = !!session?.identifier
-		const newSearchParams = {
-			...EmptySessionsSearchParams,
-		}
+		if (!session) return
 
-		// TODO: Fix redirect
-		if (hasIdentifier && field !== null) {
-			newSearchParams.user_properties = [
-				{
-					id: '0',
-					name: field,
-					value: displayValue,
-				},
-			]
-		} else if (session?.fingerprint) {
-			newSearchParams.device_id = session.fingerprint.toString()
-		}
+		const displayName = getDisplayName(session)
+		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
+		const paramString = getQueryBuilderString(
+			{
+				[`user_${userParam}`]: displayName,
+			},
+			{ isAnd: true, onlyParams: true },
+		)
 
-		setSearchParams(newSearchParams)
+		// TODO: Make sure search state updates, or figure out a way to update the
+		// state instead of the URL.
+		history.push({
+			search: `${history.location.search}${encodeURIComponent(
+				'||',
+			)}${paramString}`,
+		})
+
 		setShowLeftPanel(true)
-	}, [
-		displayValue,
-		field,
-		session?.fingerprint,
-		session?.identifier,
-		setSearchParams,
-		setShowLeftPanel,
-	])
+	}, [history, session, setShowLeftPanel])
 
 	return (
 		<Box display="flex" flexDirection="column" style={{ width: 300 }}>
