@@ -858,8 +858,8 @@ github.com/highlight-run/opensearch-go v1.0.1 h1:LNe4qAgQnw8YwXpAzK2Uu2RLtx61wka
 github.com/highlight-run/opensearch-go v1.0.1/go.mod h1:+6/XHCuTH+fwsMJikZEWsucZ4eZMma3zNSeLrTtVGbo=
 github.com/highlight-run/workerpool v1.3.0 h1:BuOWBJJeGG5ZRpq+IKXDTfASAdJoTkBS0sSH+lvCTgw=
 github.com/highlight-run/workerpool v1.3.0/go.mod h1:1iJmXJoC39MnWrqrLa+TaIqdveW4XaxPMoXAMH2wDYU=
-github.com/highlight/highlight/sdk/highlight-go v0.8.6 h1:ULuxLjCPjLfHAESYf37Fqjs8lZHc/0A/ATB82vBO5es=
-github.com/highlight/highlight/sdk/highlight-go v0.8.6/go.mod h1:QskPKvmBmUATlMVPFKdairQ2FnfG5EbHBm8vO18d2ws=
+github.com/highlight/highlight/sdk/highlight-go v0.8.8 h1:FltlXRNxcMEaFIVmV2JUJSfL2PMXaFT6xLXCnmumxq0=
+github.com/highlight/highlight/sdk/highlight-go v0.8.8/go.mod h1:QskPKvmBmUATlMVPFKdairQ2FnfG5EbHBm8vO18d2ws=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/iancoleman/strcase v0.2.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47ZCWhYzw7ho=
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
