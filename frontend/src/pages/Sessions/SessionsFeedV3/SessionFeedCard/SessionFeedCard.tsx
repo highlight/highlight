@@ -95,7 +95,7 @@ export const SessionFeedCard = React.memo(
 						urlParams || ''
 					}`}
 					onClick={() => {
-						setRightPanelView(RightPanelView.SESSION)
+						setRightPanelView(RightPanelView.Session)
 					}}
 				>
 					<Box

@@ -82,6 +82,7 @@ export const MetadataBox = React.memo(() => {
 			{
 				keyDisplayValue: capitalize(field ?? 'Email'),
 				valueDisplayValue: displayValue,
+				lines: '1',
 			},
 			{
 				keyDisplayValue: 'UserID',

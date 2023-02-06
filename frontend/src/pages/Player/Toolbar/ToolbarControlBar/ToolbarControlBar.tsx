@@ -76,7 +76,7 @@ const ShortcutTextGuide: React.FC<ShortcutGuideProps> = React.memo(
 		return (
 			<Box display="flex" gap="2" cssClass={className}>
 				{shortcut.shortcut.map((char, idx) => (
-					<Badge key={idx} variant="grey" size="tiny" label={char} />
+					<Badge key={idx} variant="gray" size="small" label={char} />
 				))}
 			</Box>
 		)
@@ -137,8 +137,8 @@ export const ToolbarControlBar = () => {
 								Skip back
 							</Text>
 							<Badge
-								variant="grey"
-								size="tiny"
+								variant="gray"
+								size="small"
 								iconStart={<IconSolidArrowSmLeft />}
 							/>
 						</>
@@ -168,7 +168,7 @@ export const ToolbarControlBar = () => {
 									? 'Play'
 									: 'Pause'}
 							</Text>
-							<Badge variant="grey" size="tiny" label="Space" />
+							<Badge variant="gray" size="small" label="Space" />
 						</>
 					}
 				>
@@ -208,8 +208,8 @@ export const ToolbarControlBar = () => {
 								Skip forward
 							</Text>
 							<Badge
-								variant="grey"
-								size="tiny"
+								variant="gray"
+								size="small"
 								iconStart={<IconSolidSkip size={12} />}
 							/>
 						</>
@@ -295,13 +295,13 @@ export const ToolbarControlBar = () => {
 								</Text>
 								<Box display="flex" gap="2">
 									<Badge
-										variant="grey"
-										size="tiny"
+										variant="gray"
+										size="small"
 										label={cmdKey}
 									/>
 									<Badge
-										variant="grey"
-										size="tiny"
+										variant="gray"
+										size="small"
 										iconStart={
 											<IconSolidArrowSmUp size={12} />
 										}

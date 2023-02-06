@@ -119,7 +119,7 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 			</Box>
 			<Box display="flex" pt="8" pr="12" pb="8" pl="12" gap="4">
 				<Badge
-					size="medium"
+					size="small"
 					variant={EVENT_TYPES_TO_VARIANTS[displayName]}
 					label={displayName}
 					iconEnd={

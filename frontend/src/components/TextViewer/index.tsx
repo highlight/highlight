@@ -1,3 +1,4 @@
+import { consoleText } from '@components/TextViewer/TextViewer.css'
 import {
 	Box,
 	ButtonIcon,
@@ -11,16 +12,15 @@ import React from 'react'
 // @ts-ignore
 import { specific } from 'react-files-hooks'
 
-import * as styles from './JsonViewerV2.css'
-
 type Props = {
 	title: React.ReactElement
 	data: object
 	downloadFileName?: string
+	repr?: React.ReactElement
 }
 
-const JsonViewerV2 = React.memo(
-	({ title, data, downloadFileName = 'highlight-json' }: Props) => {
+const TextViewer = React.memo(
+	({ title, data, downloadFileName = 'highlight-json', repr }: Props) => {
 		const { download } = specific.useJSONDownloader()
 
 		if (data === null) {
@@ -98,19 +98,23 @@ const JsonViewerV2 = React.memo(
 					border="dividerWeak"
 					background="nested"
 				>
-					<Text
-						as="span"
-						family="monospace"
-						weight="bold"
-						size="xxSmall"
-						cssClass={styles.consoleText}
-					>
-						{objectStr}
-					</Text>
+					{!!repr ? (
+						repr
+					) : (
+						<Text
+							as="span"
+							family="monospace"
+							weight="bold"
+							size="xxSmall"
+							cssClass={consoleText}
+						>
+							{objectStr}
+						</Text>
+					)}
 				</Box>
 			</Box>
 		)
 	},
 )
 
-export default JsonViewerV2
+export default TextViewer

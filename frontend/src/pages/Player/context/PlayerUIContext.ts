@@ -18,10 +18,10 @@ export interface DetailedPanel {
 }
 
 export enum RightPanelView {
-	ERROR = 'ERROR',
-	RESOURCE = 'RESOURCE',
-	SESSION = 'SESSION',
-	EVENT = 'EVENT',
+	Error = 'ERROR',
+	NetworkResource = 'NETWORK_RESOURCE',
+	Session = 'SESSION',
+	Event = 'EVENT',
 }
 
 export type RightPlayerTab = 'Events' | 'Threads' | 'Metadata'

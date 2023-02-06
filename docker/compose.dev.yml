@@ -6,6 +6,9 @@ services:
 
         container_name: backend
         image: public.ecr.aws/k9o6n7l8/highlight
+        command:
+            - make
+            - start-no-doppler
         volumes:
             - ../backend:/build/backend
             - ../sdk/highlight-go:/build/sdk/highlight-go

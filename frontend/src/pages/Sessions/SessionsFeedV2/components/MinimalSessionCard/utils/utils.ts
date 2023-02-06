@@ -43,7 +43,7 @@ export const getDisplayNameAndField = (
 	const userProperties = getUserProperties(session?.user_properties)
 
 	if (userProperties?.highlightDisplayName) {
-		return [userProperties?.highlightDisplayName, 'highlightDisplayName']
+		return [userProperties?.highlightDisplayName, 'name']
 	} else if (userProperties?.email) {
 		return [userProperties?.email, 'email']
 	} else if (session?.identifier && session.identifier !== 'null') {

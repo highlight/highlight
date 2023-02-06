@@ -10,6 +10,7 @@ import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConf
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import ErrorDetails from '@pages/Player/RightPlayerPanel/components/ErrorDetails/ErrorDetails'
 import EventDetails from '@pages/Player/RightPlayerPanel/components/EventDetails/EventDetails'
+import NetworkResourceDetails from '@pages/Player/RightPlayerPanel/components/NetworkResourceDetails/NetworkResourceDetails'
 import RightPanelTabs from '@pages/Player/RightPlayerPanel/components/Tabs'
 import React, { useEffect, useMemo } from 'react'
 
@@ -25,6 +26,7 @@ const RightPlayerPanel = () => {
 		rightPanelView,
 		setRightPanelView,
 		activeError,
+		activeNetworkResource,
 	} = usePlayerUIContext()
 
 	const showRightPanel = showRightPanelPreference && canViewSession
@@ -44,30 +46,48 @@ const RightPlayerPanel = () => {
 		if (!session) return <LoadingBox />
 
 		switch (rightPanelView) {
-			case RightPanelView.SESSION:
+			case RightPanelView.Session:
 				return (
 					<Box height="full" display="flex" flexDirection="column">
 						<MetadataBox />
 						<RightPanelTabs />
 					</Box>
 				)
-			case RightPanelView.EVENT:
+			case RightPanelView.Event:
 				if (activeEvent) {
 					return <EventDetails event={activeEvent} />
 				} else {
-					setRightPanelView(RightPanelView.SESSION)
+					setRightPanelView(RightPanelView.Session)
 					return null
 				}
 
-			case RightPanelView.ERROR:
+			case RightPanelView.Error:
 				if (activeError) {
 					return <ErrorDetails error={activeError} />
 				} else {
-					setRightPanelView(RightPanelView.SESSION)
+					setRightPanelView(RightPanelView.Session)
+					return null
+				}
+			case RightPanelView.NetworkResource:
+				if (activeNetworkResource) {
+					return (
+						<NetworkResourceDetails
+							resource={activeNetworkResource}
+						/>
+					)
+				} else {
+					setRightPanelView(RightPanelView.Session)
 					return null
 				}
 		}
-	}, [activeError, activeEvent, rightPanelView, session, setRightPanelView])
+	}, [
+		activeError,
+		activeEvent,
+		activeNetworkResource,
+		rightPanelView,
+		session,
+		setRightPanelView,
+	])
 
 	return (
 		<Box

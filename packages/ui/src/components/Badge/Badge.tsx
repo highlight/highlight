@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box } from '../Box/Box'
+import { Box, BoxProps } from '../Box/Box'
 import { Text, Props as TextProps } from '../Text/Text'
 
 import * as styles from './styles.css'
@@ -8,16 +8,22 @@ export type Props = styles.Variants & {
 	iconStart?: React.ReactNode
 	iconEnd?: React.ReactNode
 	label?: string
-}
+	lines?: TextProps['lines']
+} & Omit<BoxProps, 'size'>
 
 export const Badge: React.FC<Props> = ({
 	iconStart,
 	iconEnd,
 	label,
+	lines,
+	cssClass,
+	size,
+	shape,
+	variant,
 	...rest
 }) => {
 	let textSize: TextProps['size']
-	switch (rest.size) {
+	switch (size) {
 		case 'large':
 			textSize = 'small'
 			break
@@ -26,7 +32,7 @@ export const Badge: React.FC<Props> = ({
 	}
 
 	let textColor: TextProps['color']
-	switch (rest.variant) {
+	switch (variant) {
 		case 'red':
 			textColor = 'r11'
 			break
@@ -39,10 +45,10 @@ export const Badge: React.FC<Props> = ({
 		case 'green':
 			textColor = 'good'
 			break
-		case 'grey':
+		case 'gray':
 			textColor = 'moderate'
 			break
-		case 'outlineGrey':
+		case 'outlineGray':
 			textColor = 'moderate'
 			break
 		case 'white':
@@ -61,11 +67,12 @@ export const Badge: React.FC<Props> = ({
 			flexDirection="row"
 			alignItems="center"
 			gap="2"
-			cssClass={[styles.variants({ ...rest })]}
+			cssClass={[styles.variants({ size, shape, variant }), cssClass]}
+			{...rest}
 		>
 			{iconStart}
 			{label && (
-				<Text size={textSize} color={textColor} as="span">
+				<Text size={textSize} color={textColor} as="span" lines={lines}>
 					{label}
 				</Text>
 			)}

@@ -33,10 +33,7 @@ type Handler struct {
 }
 
 func castString(v interface{}) string {
-	s, ok := v.(string)
-	if !ok {
-		log.WithField("v", v).Warnf("failed to cast interface to string %+v", v)
-	}
+	s, _ := v.(string)
 	return s
 }
 
@@ -115,11 +112,14 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					setHighlightAttributes(eventAttributes, &projectID, &sessionID, &requestID)
 					excType, hasType := eventAttributes["exception.type"]
 					excMessage, hasMessage := eventAttributes["exception.message"]
-					if hasType || hasMessage {
+					stackTrace := castString(eventAttributes["exception.stacktrace"])
+					if stackTrace == "" {
+						log.WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received exception with no stacktrace")
+					} else if hasType || hasMessage {
 						exc := Exception{
 							Type:       castString(excType),
 							Message:    castString(excMessage),
-							Stacktrace: castString(eventAttributes["exception.stacktrace"]),
+							Stacktrace: stackTrace,
 							Escaped:    castString(eventAttributes["exception.escaped"]) == "true",
 						}
 						err := &model.BackendErrorObjectInput{

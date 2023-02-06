@@ -140,8 +140,8 @@ const Buckets: React.FC<
 							<Text>{bucket.key}</Text>
 							<Box display="flex" gap="4" alignItems="center">
 								<Badge
-									variant="grey"
-									size="tiny"
+									variant="gray"
+									size="small"
 									label={getPercentageDisplayValue(
 										bucket.percent,
 									)}
