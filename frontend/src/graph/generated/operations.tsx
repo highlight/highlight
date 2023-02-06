@@ -3897,13 +3897,14 @@ export type GetEmailOptOutsQuery = { __typename?: 'Query' } & Pick<
 
 export type GetLogsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
+	params: Types.LogsParamsInput
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
 	logs: Array<
 		{ __typename?: 'LogLine' } & Pick<
 			Types.LogLine,
-			'timestamp' | 'severityText' | 'body'
+			'timestamp' | 'severityText' | 'body' | 'logAttributes'
 		>
 	>
 }

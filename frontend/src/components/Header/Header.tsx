@@ -28,6 +28,7 @@ import {
 	IconSolidSwitchHorizontal,
 	IconSolidUserCircle,
 	IconSolidViewGridAdd,
+	IconSolidViewList,
 	Menu,
 	Text,
 } from '@highlight-run/ui'
@@ -92,6 +93,12 @@ export const Header = () => {
 			icon: IconSolidSpeakerphone,
 		},
 	]
+	if (isHighlightAdmin) {
+		pages.splice(2, 0, {
+			key: 'logs',
+			icon: IconSolidViewList,
+		})
+	}
 
 	const inProjectOrWorkspace =
 		isLoggedIn && (projectIdRemapped || workspaceId)
@@ -270,33 +277,6 @@ export const Header = () => {
 													</Box>
 												</Menu.Item>
 											</Link>
-											{isHighlightAdmin && (
-												<Link
-													to={`/${project_id}/logs`}
-													className={linkStyle}
-												>
-													<Menu.Item>
-														<Box
-															display="flex"
-															alignItems="center"
-															gap="4"
-														>
-															<IconSolidCog
-																size={14}
-																color={
-																	vars.theme
-																		.interactive
-																		.fill
-																		.secondary
-																		.content
-																		.text
-																}
-															/>
-															Logs
-														</Box>
-													</Menu.Item>
-												</Link>
-											)}
 										</Menu.List>
 									</Menu>
 								</Box>
