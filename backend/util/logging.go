@@ -20,7 +20,7 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 		switch t := e.(type) {
 		case *gqlerror.Error:
 			gqlerr = t
-			e = gqlerr.Unwrap()
+			_ = gqlerr.Unwrap()
 		default:
 			gqlerr = gqlerror.Errorf(e.Error())
 		}
