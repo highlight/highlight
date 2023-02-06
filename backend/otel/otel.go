@@ -33,7 +33,10 @@ type Handler struct {
 }
 
 func castString(v interface{}) string {
-	s, _ := v.(string)
+	s, ok := v.(string)
+	if !ok {
+		log.WithField("v", v).Warnf("failed to cast interface to string %+v", v)
+	}
 	return s
 }
 
@@ -149,7 +152,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							projectErrors[projectID] = append(projectErrors[projectID], err)
 						} else {
 							data, _ := req.MarshalJSON()
-							log.WithField("BackendErrorObjectInput", *err).WithField("RequestJSON", data).Errorf("otel error got no session and no project")
+							log.WithField("BackendErrorObjectInput", *err).WithField("RequestJSON", string(data)).Errorf("otel error got no session and no project")
 						}
 					}
 				}
