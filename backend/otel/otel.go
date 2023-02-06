@@ -33,10 +33,7 @@ type Handler struct {
 }
 
 func castString(v interface{}) string {
-	s, ok := v.(string)
-	if !ok {
-		log.WithField("v", v).Warnf("failed to cast interface to string %+v", v)
-	}
+	s, _ := v.(string)
 	return s
 }
 
