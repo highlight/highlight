@@ -9,6 +9,7 @@ const containerName = createContainer()
 export const container = style({
 	containerName,
 	containerType: 'inline-size',
+	overflowY: 'scroll',
 	width: '100%',
 })
 
