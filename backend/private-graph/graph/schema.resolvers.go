@@ -6743,13 +6743,13 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 }
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(ctx context.Context, projectID int) ([]*modelInputs.LogLine, error) {
+func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogLine, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 
-	return r.ClickhouseClient.ReadLogs(ctx, project.ID)
+	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params)
 }
 
 // Params is the resolver for the params field.

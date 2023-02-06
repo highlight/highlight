@@ -490,9 +490,10 @@ type ComplexityRoot struct {
 	}
 
 	LogLine struct {
-		Body         func(childComplexity int) int
-		SeverityText func(childComplexity int) int
-		Timestamp    func(childComplexity int) int
+		Body          func(childComplexity int) int
+		LogAttributes func(childComplexity int) int
+		SeverityText  func(childComplexity int) int
+		Timestamp     func(childComplexity int) int
 	}
 
 	Metric struct {
@@ -699,7 +700,7 @@ type ComplexityRoot struct {
 		JoinableWorkspaces           func(childComplexity int) int
 		LinearTeams                  func(childComplexity int, projectID int) int
 		LiveUsersCount               func(childComplexity int, projectID int) int
-		Logs                         func(childComplexity int, projectID int) int
+		Logs                         func(childComplexity int, projectID int, params model.LogsParamsInput) int
 		Messages                     func(childComplexity int, sessionSecureID string) int
 		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
 		MetricTagValues              func(childComplexity int, projectID int, metricName string, tagName string) int
@@ -1297,7 +1298,7 @@ type QueryResolver interface {
 	SourcemapVersions(ctx context.Context, projectID int) ([]string, error)
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
-	Logs(ctx context.Context, projectID int) ([]*model.LogLine, error)
+	Logs(ctx context.Context, projectID int, params model.LogsParamsInput) ([]*model.LogLine, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -3283,6 +3284,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LogLine.Body(childComplexity), true
 
+	case "LogLine.logAttributes":
+		if e.complexity.LogLine.LogAttributes == nil {
+			break
+		}
+
+		return e.complexity.LogLine.LogAttributes(childComplexity), true
+
 	case "LogLine.severityText":
 		if e.complexity.LogLine.SeverityText == nil {
 			break
@@ -5148,7 +5156,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Logs(childComplexity, args["project_id"].(int)), true
+		return e.complexity.Query.Logs(childComplexity, args["project_id"].(int), args["params"].(model.LogsParamsInput)), true
 
 	case "Query.messages":
 		if e.complexity.Query.Messages == nil {
@@ -7282,6 +7290,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputHistogramParamsInput,
 		ec.unmarshalInputIntegrationProjectMappingInput,
 		ec.unmarshalInputLengthRangeInput,
+		ec.unmarshalInputLogsParamsInput,
 		ec.unmarshalInputMetricTagFilterInput,
 		ec.unmarshalInputNetworkHistogramParamsInput,
 		ec.unmarshalInputSanitizedAdminInput,
@@ -7375,6 +7384,7 @@ scalar Any
 scalar Timestamp
 scalar Int64
 scalar StringArray
+scalar Map
 
 type Field {
 	id: Int64!
@@ -7852,10 +7862,12 @@ type SourceMappingError {
 type S3File {
 	key: String
 }
+
 type LogLine {
 	timestamp: Timestamp!
 	severityText: String!
 	body: String!
+	logAttributes: Map!
 }
 
 type ReferrerTablePayload {
@@ -7931,6 +7943,11 @@ input HistogramParamsInput {
 input ErrorGroupFrequenciesParamsInput {
 	date_range: DateRangeRequiredInput!
 	resolution_minutes: Int!
+}
+
+input LogsParamsInput {
+	query: String!
+	date_range: DateRangeRequiredInput!
 }
 
 enum MetricTagFilterOp {
@@ -8739,7 +8756,7 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
-	logs(project_id: ID!): [LogLine!]!
+	logs(project_id: ID!, params: LogsParamsInput!): [LogLine!]!
 }
 
 type Mutation {
@@ -12911,6 +12928,15 @@ func (ec *executionContext) field_Query_logs_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["project_id"] = arg0
+	var arg1 model.LogsParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg1, err = ec.unmarshalNLogsParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg1
 	return args, nil
 }
 
@@ -26384,6 +26410,50 @@ func (ec *executionContext) fieldContext_LogLine_body(ctx context.Context, field
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LogLine_logAttributes(ctx context.Context, field graphql.CollectedField, obj *model.LogLine) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogLine_logAttributes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogAttributes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalNMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogLine_logAttributes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogLine",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
 		},
 	}
 	return fc, nil
@@ -40676,7 +40746,7 @@ func (ec *executionContext) _Query_logs(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Logs(rctx, fc.Args["project_id"].(int))
+		return ec.resolvers.Query().Logs(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.LogsParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -40707,6 +40777,8 @@ func (ec *executionContext) fieldContext_Query_logs(ctx context.Context, field g
 				return ec.fieldContext_LogLine_severityText(ctx, field)
 			case "body":
 				return ec.fieldContext_LogLine_body(ctx, field)
+			case "logAttributes":
+				return ec.fieldContext_LogLine_logAttributes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type LogLine", field.Name)
 		},
@@ -52899,6 +52971,42 @@ func (ec *executionContext) unmarshalInputLengthRangeInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputLogsParamsInput(ctx context.Context, obj interface{}) (model.LogsParamsInput, error) {
+	var it model.LogsParamsInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"query", "date_range"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "query":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+			it.Query, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "date_range":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
+			it.DateRange, err = ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputMetricTagFilterInput(ctx context.Context, obj interface{}) (model.MetricTagFilterInput, error) {
 	var it model.MetricTagFilterInput
 	asMap := map[string]interface{}{}
@@ -56483,6 +56591,13 @@ func (ec *executionContext) _LogLine(ctx context.Context, sel ast.SelectionSet, 
 		case "body":
 
 			out.Values[i] = ec._LogLine_body(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "logAttributes":
+
+			out.Values[i] = ec._LogLine_logAttributes(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -64729,6 +64844,32 @@ func (ec *executionContext) marshalNLogLine2ᚖgithubᚗcomᚋhighlightᚑrunᚋ
 		return graphql.Null
 	}
 	return ec._LogLine(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNLogsParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsParamsInput(ctx context.Context, v interface{}) (model.LogsParamsInput, error) {
+	res, err := ec.unmarshalInputLogsParamsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+	res, err := graphql.UnmarshalMap(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	res := graphql.MarshalMap(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalNMetric2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.Metric) graphql.Marshaler {

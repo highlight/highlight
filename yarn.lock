@@ -7920,6 +7920,7 @@ __metadata:
     "@rehooks/local-storage": ^2.4.0
     "@stripe/stripe-js": ^1.32.0
     "@svgr/cli": ^5.5.0
+    "@tanstack/react-table": ^8.7.9
     "@testing-library/jest-dom": ^5.1.0
     "@testing-library/react-hooks": ^8.0.1
     "@types/classnames": ^2.2.11
@@ -12877,6 +12878,25 @@ __metadata:
   dependencies:
     tslib: ^2.4.0
   checksum: 273fd3f3fc461a92f3790cc551ea054745c6d6959afbe1232e6d7aa1c722bbc114d308aab96bef5c78fc0303c85c7b472ef00e2253251cc89737f3b1af56e5a5
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-table@npm:^8.7.9":
+  version: 8.7.9
+  resolution: "@tanstack/react-table@npm:8.7.9"
+  dependencies:
+    "@tanstack/table-core": 8.7.9
+  peerDependencies:
+    react: ">=16"
+    react-dom: ">=16"
+  checksum: 3c704ac903405972641c9857e1466025bcdac04ee4890d64b018386cad5a778aca3a8d3f78542ae7a0ed609841d32ef3a7e563b079e87fa93b9ae8570a310499
+  languageName: node
+  linkType: hard
+
+"@tanstack/table-core@npm:8.7.9":
+  version: 8.7.9
+  resolution: "@tanstack/table-core@npm:8.7.9"
+  checksum: 78d2314928c29559088e4bada0248cc7f94e93756e1a2c1f37a651db30276e9ae960d647bd3a61b67b3f0f9f7e4dec5dd58eb49b8adb80ee5952ef417b6e581f
   languageName: node
   linkType: hard
 

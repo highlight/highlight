@@ -342,9 +342,15 @@ type LinearTeam struct {
 }
 
 type LogLine struct {
-	Timestamp    time.Time `json:"timestamp"`
-	SeverityText string    `json:"severityText"`
-	Body         string    `json:"body"`
+	Timestamp     time.Time              `json:"timestamp"`
+	SeverityText  string                 `json:"severityText"`
+	Body          string                 `json:"body"`
+	LogAttributes map[string]interface{} `json:"logAttributes"`
+}
+
+type LogsParamsInput struct {
+	Query     string                  `json:"query"`
+	DateRange *DateRangeRequiredInput `json:"date_range"`
 }
 
 type MetricPreview struct {

@@ -43,6 +43,11 @@ const ApplicationRouter = ({ integrated }: Props) => {
 				>
 					<ErrorsV2 />
 				</Route>
+				{isHighlightAdmin && (
+					<Route path="/:project_id/logs">
+						<LogsPage />
+					</Route>
+				)}
 				{/* If not logged in and project id is numeric and nonzero, redirect to login */}
 				{!isLoggedIn && (
 					<Route path="/:project_id([1-9]+[0-9]*)/*" exact>
@@ -64,11 +69,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 				<Route path="/:project_id/setup">
 					<SetupRouter integrated={integrated} />
 				</Route>
-				{isHighlightAdmin && (
-					<Route path="/:project_id/logs">
-						<LogsPage />
-					</Route>
-				)}
+
 				<Route path="/:project_id/integrations/:integration_type?">
 					<IntegrationsPage />
 				</Route>

@@ -1848,10 +1848,11 @@ query GetEmailOptOuts($token: String, $admin_id: ID) {
 	email_opt_outs(token: $token, admin_id: $admin_id)
 }
 
-query GetLogs($project_id: ID!) {
-	logs(project_id: $project_id) {
+query GetLogs($project_id: ID!, $params: LogsParamsInput!) {
+	logs(project_id: $project_id, params: $params) {
 		timestamp
 		severityText
 		body
+		logAttributes
 	}
 }
