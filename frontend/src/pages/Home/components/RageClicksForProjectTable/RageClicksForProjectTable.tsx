@@ -15,6 +15,7 @@ import { getUserDisplayName } from '@pages/Home/utils/HomePageUtils'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { validateEmail } from '@util/string'
+import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
 import { ColumnsType } from 'antd/lib/table'
 import classNames from 'classnames'
@@ -113,7 +114,9 @@ const RageClicksForProjectTable = ({
 
 						history.push({
 							pathname: `/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
-							search: `?query=and%7C%7Cuser_${userParam}%2Cis%2C${displayName}`,
+							search: buildQueryURLString({
+								[`user_${userParam}`]: displayName,
+							}),
 						})
 
 						message.success(

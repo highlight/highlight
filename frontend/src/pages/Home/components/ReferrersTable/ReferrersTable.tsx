@@ -12,6 +12,7 @@ import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgReferrer from '@icons/Referrer'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
+import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
 import { ColumnsType } from 'antd/lib/table'
 import classNames from 'classnames'
@@ -81,7 +82,9 @@ const ReferrersTable = ({
 					loading={false}
 					onClickHandler={(record) => {
 						history.push(
-							`/${projectIdRemapped}/sessions?query=and%7C%7Csession_referrer%2Cis%2C${record.host}`,
+							`/${projectIdRemapped}/sessions${buildQueryURLString(
+								{ session_referrer: record.host },
+							)}`,
 						)
 						removeSelectedSegment()
 						message.success(
