@@ -47,7 +47,7 @@ import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import clsx from 'clsx'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
-import { styledScrollbar } from 'style/common.css'
+import { styledVerticalScrollbar } from 'style/common.css'
 
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '../../Player/ReplayerContext'
@@ -322,7 +322,7 @@ export const SessionFeedV3 = React.memo(() => {
 					overflowX="hidden"
 					overflowY="auto"
 					height="full"
-					cssClass={styledScrollbar}
+					cssClass={styledVerticalScrollbar}
 				>
 					{searchResultsLoading ? (
 						<LoadingBox />
