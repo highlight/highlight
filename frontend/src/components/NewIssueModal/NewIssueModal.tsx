@@ -242,6 +242,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							name={form.names.issueDescription}
 							label="Issue Description"
 							placeholder="Hey, check this out!"
+							/* @ts-ignore */
 							as="textarea"
 							outline
 							aria-multiline

@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
+	readonly REACT_APP_AUTH_MODE: string
 	readonly REACT_APP_COMMIT_SHA: string
 	readonly REACT_APP_FIREBASE_CONFIG_OBJECT: string
 	readonly REACT_APP_FRONT_INTEGRATION_CLIENT_ID: string

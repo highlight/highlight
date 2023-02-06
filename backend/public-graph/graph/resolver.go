@@ -804,6 +804,8 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		errorObj.Event = strings.Repeat(errorObj.Event[:ERROR_EVENT_MAX_LENGTH], 1)
 	}
 
+	// stackTrace slice is set when we have a structured stacktrace input coming from ProcessPayload (frontend error)
+	// stackTraceString is set when we have a string input coming from ProcessBackendPayload (backend error)
 	// If there was no stackTraceString passed in, marshal it as a JSON string from stackTrace
 	if len(stackTrace) > 0 {
 		if stackTrace[0] != nil && stackTrace[0].Source != nil && (strings.Contains(*stackTrace[0].Source, "https://static.highlight.run/index.js") || strings.Contains(*stackTrace[0].Source, "https://static.highlight.io")) {
@@ -2307,12 +2309,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		SessionObj *model.Session
 	})
 	for _, v := range errorObjects {
-		traceBytes, err := json.Marshal(v.StackTrace)
+		_, err := json.Marshal(v.StackTrace)
 		if err != nil {
 			log.Errorf("Error marshaling trace: %v", v.StackTrace)
 			continue
 		}
-		traceString := string(traceBytes)
 
 		errorToInsert := &model.ErrorObject{
 			ProjectID:   projectID,
@@ -2326,7 +2327,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			Source:      v.Source,
 			OS:          session.OSName,
 			Browser:     session.BrowserName,
-			StackTrace:  &traceString,
+			StackTrace:  &v.StackTrace,
 			Timestamp:   v.Timestamp,
 			Payload:     v.Payload,
 			RequestID:   v.RequestID,

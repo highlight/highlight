@@ -1,10 +1,3 @@
-mutation PushBackendPayload(
-	$project_id: String!
-	$errors: [BackendErrorObjectInput]!
-) {
-	pushBackendPayload(project_id: $project_id, errors: $errors)
-}
-
 mutation MarkBackendSetup($project_id: String!, $session_secure_id: String) {
 	markBackendSetup(
 		project_id: $project_id

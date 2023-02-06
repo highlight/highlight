@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
-	"github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"strings"
@@ -13,6 +13,7 @@ import (
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
@@ -29,6 +30,32 @@ type Exception struct {
 
 type Handler struct {
 	resolver *graph.Resolver
+}
+
+func castString(v interface{}) string {
+	s, ok := v.(string)
+	if !ok {
+		log.WithField("v", v).Warnf("failed to cast interface to string %+v", v)
+	}
+	return s
+}
+
+func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID *string) {
+	if p, ok := attrs[highlight.ProjectIDAttribute]; ok {
+		if p.(string) != "" {
+			*projectID = p.(string)
+		}
+	}
+	if s, ok := attrs[highlight.SessionIDAttribute]; ok {
+		if s.(string) != "" {
+			*sessionID = s.(string)
+		}
+	}
+	if r, ok := attrs[highlight.RequestIDAttribute]; ok {
+		if r.(string) != "" {
+			*requestID = r.(string)
+		}
+	}
 }
 
 func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
@@ -65,38 +92,35 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	var traceErrors = make(map[string][]*model.BackendErrorObjectInput)
 	spans := req.Traces().ResourceSpans()
 	for i := 0; i < spans.Len(); i++ {
+		var projectID, sessionID, requestID string
 		resource := spans.At(i).Resource()
+		resourceAttributes := resource.Attributes().AsRaw()
+		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID)
 		scopeScans := spans.At(i).ScopeSpans()
 		for j := 0; j < scopeScans.Len(); j++ {
 			scope := scopeScans.At(j).Scope()
 			spans := scopeScans.At(j).Spans()
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
-				attrs := span.Attributes().AsRaw()
-				tagsBytes, err := json.Marshal(attrs)
+				spanAttributes := span.Attributes().AsRaw()
+				tagsBytes, err := json.Marshal(spanAttributes)
 				if err != nil {
 					log.Errorf("failed to format error attributes %s", tagsBytes)
 				}
-				var projectID, sessionID string
-				if p, ok := attrs[highlight.ProjectIDAttribute]; ok {
-					projectID = p.(string)
-				}
-				if s, ok := attrs[highlight.SessionIDAttribute]; ok {
-					sessionID = s.(string)
-				}
-				requestID := attrs[highlight.RequestIDAttribute].(string)
+				setHighlightAttributes(spanAttributes, &projectID, &sessionID, &requestID)
 				events := span.Events()
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
 					eventAttributes := event.Attributes().AsRaw()
+					setHighlightAttributes(eventAttributes, &projectID, &sessionID, &requestID)
 					excType, hasType := eventAttributes["exception.type"]
 					excMessage, hasMessage := eventAttributes["exception.message"]
 					if hasType || hasMessage {
 						exc := Exception{
-							Type:       excType.(string),
-							Message:    excMessage.(string),
-							Stacktrace: eventAttributes["exception.stacktrace"].(string),
-							Escaped:    eventAttributes["exception.escaped"].(string) == "true",
+							Type:       castString(excType),
+							Message:    castString(excMessage),
+							Stacktrace: castString(eventAttributes["exception.stacktrace"]),
+							Escaped:    castString(eventAttributes["exception.escaped"]) == "true",
 						}
 						err := &model.BackendErrorObjectInput{
 							SessionSecureID: &sessionID,
@@ -104,12 +128,14 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							TraceID:         pointy.String(span.TraceID().String()),
 							SpanID:          pointy.String(span.SpanID().String()),
 							Event:           exc.Message,
-							Type:            excType.(string),
-							Source: strings.Join([]string{
-								resource.Attributes().AsRaw()["telemetry.sdk.language"].(string),
-								resource.Attributes().AsRaw()["service.name"].(string),
+							Type:            exc.Type,
+							Source: strings.Join(lo.Filter([]string{
+								castString(resource.Attributes().AsRaw()["telemetry.sdk.language"]),
+								castString(resource.Attributes().AsRaw()["service.name"]),
 								scope.Name(),
-							}, "-"),
+							}, func(s string, i int) bool {
+								return s != ""
+							}), "-"),
 							StackTrace: exc.Stacktrace,
 							Timestamp:  event.Timestamp().AsTime(),
 							Payload:    pointy.String(string(tagsBytes)),
@@ -125,7 +151,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							}
 							projectErrors[projectID] = append(projectErrors[projectID], err)
 						} else {
-							log.Errorf("otel error got no session and no project %+v", *err)
+							data, _ := req.MarshalJSON()
+							log.WithField("BackendErrorObjectInput", *err).WithField("RequestJSON", string(data)).Errorf("otel error got no session and no project")
 						}
 					}
 				}

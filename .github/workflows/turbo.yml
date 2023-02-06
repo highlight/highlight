@@ -17,8 +17,8 @@ jobs:
             TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
         steps:
-            - name: Use HTTPS for checkout
-              run: echo -e '[url "https://github.com/"]\n  insteadOf = "git@github.com:"' >> ~/.gitconfig
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v1
 
             - name: Checkout
               uses: actions/checkout@v3
@@ -48,6 +48,8 @@ jobs:
 
             - name: Build & test
               run: yarn test:all
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
 
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v1

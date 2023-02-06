@@ -15,11 +15,12 @@ import {
 	IconSolidArrowSmLeft,
 	IconSolidAtSymbol,
 	IconSolidChartBar,
+	IconSolidChartPie,
 	IconSolidCog,
 	IconSolidDesktopComputer,
 	IconSolidDocumentText,
 	IconSolidDotsHorizontal,
-	IconSolidHome,
+	IconSolidLightningBolt,
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidQuestionMarkCircle,
@@ -27,7 +28,6 @@ import {
 	IconSolidSwitchHorizontal,
 	IconSolidUserCircle,
 	IconSolidViewGridAdd,
-	IconSolidXCircle,
 	Menu,
 	Text,
 } from '@highlight-run/ui'
@@ -80,16 +80,12 @@ export const Header = () => {
 
 	const pages = [
 		{
-			key: 'home',
-			icon: IconSolidHome,
+			key: 'sessions',
+			icon: IconSolidPlayCircle,
 		},
 		{
 			key: 'errors',
-			icon: IconSolidXCircle,
-		},
-		{
-			key: 'sessions',
-			icon: IconSolidPlayCircle,
+			icon: IconSolidLightningBolt,
 		},
 		{
 			key: 'alerts',
@@ -221,6 +217,31 @@ export const Header = () => {
 															}
 														/>
 														Integrations
+													</Box>
+												</Menu.Item>
+											</Link>
+											<Link
+												to={`/${project_id}/analytics`}
+												className={linkStyle}
+											>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconSolidChartPie
+															size={14}
+															color={
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
+															}
+														/>
+														Analytics
 													</Box>
 												</Menu.Item>
 											</Link>
@@ -391,7 +412,11 @@ export const Header = () => {
 											</Menu.Item>
 										</Link>
 										<Link
-											to={`/w/${workspaceId}/account/auth`}
+											to={`/w/${workspaceId}/account/${
+												auth.googleProvider
+													? 'auth'
+													: 'email-settings'
+											}`}
 											className={linkStyle}
 										>
 											<Menu.Item>
@@ -593,6 +618,15 @@ const BillingBanner = () => {
 		return null
 	}
 
+	const isYoutubeLive = moment().isBetween(
+		'2023-02-03T00:00:00Z',
+		'2023-02-03T00:30:00Z',
+	)
+	if (isYoutubeLive) {
+		toggleShowBanner(true)
+		return <HighlightRoadshowBanner />
+	}
+
 	if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
 		// show Product Hunt banner at the time of a launch
 		const isPHLaunch = moment().isBetween(
@@ -772,6 +806,35 @@ const ProductHuntBanner = () => {
 
 	return (
 		<div className={classNames(styles.trialWrapper, styles.productHunt)}>
+			<div className={classNames(styles.trialTimeText)}>
+				{bannerMessage}
+			</div>
+		</div>
+	)
+}
+
+const HighlightRoadshowBanner = () => {
+	const { toggleShowBanner } = useGlobalContext()
+
+	toggleShowBanner(true)
+
+	const bannerMessage = (
+		<span>
+			The Highlight Roadshow is live on Youtube 🎉‍{' '}
+			<a
+				target="_blank"
+				href="https://www.youtube.com/@thestartupstack/streams"
+				className={styles.trialLink}
+				rel="noreferrer"
+			>
+				Check it out
+			</a>{' '}
+			to see the latest features from our engineering team!️
+		</span>
+	)
+
+	return (
+		<div className={classNames(styles.trialWrapper, styles.youtube)}>
 			<div className={classNames(styles.trialTimeText)}>
 				{bannerMessage}
 			</div>

@@ -9,3 +9,4 @@ export const trialCloseStyle: string
 export const trialLink: string
 export const trialTimeText: string
 export const trialWrapper: string
+export const youtube: string

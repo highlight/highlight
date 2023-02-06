@@ -20,4 +20,10 @@ export interface NodeOptions extends HighlightOptions {
 	 * @default 10
 	 */
 	errorSourceContextCacheSizeMB?: number
+
+	/**
+	 * The endpoint string to send opentelemetry data to.
+	 * @default https://otel.highlight.io:4318
+	 */
+	otlpEndpoint?: string
 }
