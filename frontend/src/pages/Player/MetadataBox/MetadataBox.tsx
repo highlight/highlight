@@ -17,7 +17,7 @@ import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard, validateEmail } from '@util/string'
-import { getQueryBuilderString } from '@util/url/params'
+import { buildQueryStateString } from '@util/url/params'
 import { message } from 'antd'
 import clsx from 'clsx'
 import { capitalize } from 'lodash'
@@ -29,7 +29,6 @@ import {
 	FaLinkedin,
 	FaTwitterSquare,
 } from 'react-icons/fa'
-import { useHistory } from 'react-router-dom'
 
 import {
 	getDisplayName,
@@ -43,9 +42,8 @@ import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
 export const MetadataBox = React.memo(() => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const { session } = useReplayerContext()
-	const { setSearchParams } = useSearchContext()
+	const { searchParams, setSearchParams } = useSearchContext()
 	const { setShowLeftPanel } = usePlayerConfiguration()
-	const history = useHistory()
 
 	const [enhancedAvatar, setEnhancedAvatar] = React.useState<string>()
 
@@ -187,23 +185,17 @@ export const MetadataBox = React.memo(() => {
 
 		const displayName = getDisplayName(session)
 		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
-		const paramString = getQueryBuilderString(
-			{
-				[`user_${userParam}`]: displayName,
-			},
-			{ isAnd: true, onlyParams: true },
-		)
 
-		// TODO: Make sure search state updates, or figure out a way to update the
-		// state instead of the URL.
-		history.push({
-			search: `${history.location.search}${encodeURIComponent(
-				'||',
-			)}${paramString}`,
-		})
+		setSearchParams((params) => ({
+			...params,
+			query: buildQueryStateString({
+				query: searchParams.query,
+				[`user_${userParam}`]: displayName,
+			}),
+		}))
 
 		setShowLeftPanel(true)
-	}, [history, session, setShowLeftPanel])
+	}, [searchParams.query, session, setSearchParams, setShowLeftPanel])
 
 	return (
 		<Box display="flex" flexDirection="column" style={{ width: 300 }}>

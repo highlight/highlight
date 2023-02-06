@@ -111,22 +111,62 @@ export const QueryBuilderStateParam = {
 	},
 }
 
+type BuilderParams = {
+	query?: boolean | string | null
+	[key: string]: string | boolean | null | undefined
+}
+type IsAnd = boolean
+
 // Input: { user_email: 'chris@highlight.io' }
 // Output: '?query=and%7C%7Cuser_email%2Cis%2Cchris@highlight.io`
-export const getQueryBuilderString = (
-	query: { [key: string]: string },
-	options: { isAnd: boolean; onlyParams: boolean } = {
-		isAnd: true,
-		onlyParams: false,
-	},
+export const buildQueryURLString = (
+	params: BuilderParams,
+	isAnd: IsAnd = true,
 ) => {
-	const builderParams: QueryBuilderState = {
-		isAnd: options.isAnd,
+	const builderParams = buildQueryParams(params, isAnd)
+
+	const encodedParams: any = QueryBuilderStateParam.encode(
+		JSON.stringify(builderParams),
+	)
+
+	return params.query !== false
+		? `?query=${encodeURIComponent(encodedParams)}`
+		: encodeURIComponent(encodedParams.replace('and||', ''))
+}
+
+// Input: { user_email: 'chris@highlight.io' }
+// Output: '{"isAnd":true,"rules":[["user_email","is","highlight.io"]]}'
+export const buildQueryStateString = (
+	params: BuilderParams,
+	isAnd: IsAnd = true,
+) => {
+	const builderParams = buildQueryParams(params, isAnd)
+
+	return JSON.stringify({
+		isAnd,
+		rules: builderParams.rules,
+	})
+}
+
+export const buildQueryParams = (
+	{ query, ...params }: BuilderParams,
+	isAnd: IsAnd,
+) => {
+	let builderParams: QueryBuilderState = {
+		isAnd: isAnd,
 		rules: [],
 	}
 
-	for (const key in query) {
-		let value = String(query[key])
+	try {
+		if (typeof query === 'string') {
+			builderParams = JSON.parse(query)
+		}
+	} catch (e) {
+		query = undefined
+	}
+
+	for (const key in params) {
+		let value = String(params[key])
 		let op = 'is'
 
 		if (value.indexOf(':') > -1) {
@@ -136,11 +176,5 @@ export const getQueryBuilderString = (
 		builderParams.rules.push([key, op, value])
 	}
 
-	const encodedParams: any = QueryBuilderStateParam.encode(
-		JSON.stringify(builderParams),
-	)
-
-	return options.onlyParams
-		? encodeURIComponent(encodedParams.replace('and||', ''))
-		: `?query=${encodeURIComponent(encodedParams)}`
+	return builderParams
 }
