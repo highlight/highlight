@@ -1425,7 +1425,12 @@ type Mutation {
 		params: SearchParamsInput!
 	): Segment
 	emailSignup(email: String!): String!
-	editSegment(id: ID!, project_id: ID!, params: SearchParamsInput!): Boolean
+	editSegment(
+		id: ID!
+		project_id: ID!
+		params: SearchParamsInput!
+		name: String!
+	): Boolean
 	deleteSegment(segment_id: ID!): Boolean
 	createErrorSegment(
 		project_id: ID!
@@ -1436,6 +1441,7 @@ type Mutation {
 		id: ID!
 		project_id: ID!
 		params: ErrorSearchParamsInput!
+		name: String!
 	): Boolean
 	deleteErrorSegment(segment_id: ID!): Boolean
 	# If this endpoint returns a checkout_id, we initiate a stripe checkout.

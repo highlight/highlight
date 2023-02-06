@@ -999,6 +999,7 @@ export type MutationDeleteSessionsArgs = {
 
 export type MutationEditErrorSegmentArgs = {
 	id: Scalars['ID']
+	name: Scalars['String']
 	params: ErrorSearchParamsInput
 	project_id: Scalars['ID']
 }
@@ -1017,6 +1018,7 @@ export type MutationEditProjectArgs = {
 
 export type MutationEditSegmentArgs = {
 	id: Scalars['ID']
+	name: Scalars['String']
 	params: SearchParamsInput
 	project_id: Scalars['ID']
 }

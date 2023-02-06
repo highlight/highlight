@@ -215,8 +215,13 @@ mutation DeleteSegment($segment_id: ID!) {
 	deleteSegment(segment_id: $segment_id)
 }
 
-mutation EditSegment($project_id: ID!, $id: ID!, $params: SearchParamsInput!) {
-	editSegment(project_id: $project_id, id: $id, params: $params)
+mutation EditSegment(
+	$project_id: ID!
+	$id: ID!
+	$params: SearchParamsInput!
+	$name: String!
+) {
+	editSegment(project_id: $project_id, id: $id, params: $params, name: $name)
 }
 
 mutation CreateSegment(
@@ -523,8 +528,14 @@ mutation EditErrorSegment(
 	$project_id: ID!
 	$id: ID!
 	$params: ErrorSearchParamsInput!
+	$name: String!
 ) {
-	editErrorSegment(project_id: $project_id, id: $id, params: $params)
+	editErrorSegment(
+		project_id: $project_id
+		id: $id
+		params: $params
+		name: $name
+	)
 }
 
 mutation CreateErrorSegment(

@@ -1353,7 +1353,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		name?: string
 		id?: string
 	} | null>(null)
-	const [editSegment] = useEditErrorSegmentMutation({
+	const [editErrorSegment] = useEditErrorSegmentMutation({
 		refetchQueries: [namedOperations.Query.GetErrorSegments],
 	})
 
@@ -2216,11 +2216,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const updateSegment = useCallback(() => {
 		if (canUpdateSegment) {
-			editSegment({
+			editErrorSegment({
 				variables: {
 					project_id: projectId,
 					id: selectedSegment.id,
 					params: searchParams,
+					name: selectedSegment.name,
 				},
 			})
 				.then(() => {
@@ -2233,7 +2234,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [
 		canUpdateSegment,
-		editSegment,
+		editErrorSegment,
 		projectId,
 		searchParams,
 		selectedSegment?.id,
