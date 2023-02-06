@@ -4,6 +4,7 @@ import { vars } from '../../css/vars'
 export const button = style({
 	background: 'transparent',
 	border: 0,
+	cursor: 'pointer',
 	padding: 0,
 	color: vars.theme.interactive.fill.primary.enabled,
 	selectors: {
