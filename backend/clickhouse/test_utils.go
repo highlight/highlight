@@ -11,7 +11,7 @@ func setupClickhouseTestDB() (*Client, error) {
 		return nil, err
 	}
 
-	err = client.conn.Exec(context.Background(), fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", TestDatabase))
+	err = client.Conn.Exec(context.Background(), fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", TestDatabase))
 	if err != nil {
 		return nil, err
 	}

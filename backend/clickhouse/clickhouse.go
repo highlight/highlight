@@ -18,7 +18,7 @@ import (
 )
 
 type Client struct {
-	conn driver.Conn
+	Conn driver.Conn
 }
 
 var (
@@ -30,10 +30,12 @@ var (
 )
 
 func NewClient(dbName string) (*Client, error) {
+	options := getClickhouseOptions(dbName)
+	log.Print(options)
 	conn, err := clickhouse.Open(getClickhouseOptions(dbName))
 
 	return &Client{
-		conn: conn,
+		Conn: conn,
 	}, err
 }
 

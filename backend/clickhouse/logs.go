@@ -31,7 +31,7 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 		INSERT INTO %s
 	`, LogsTable)
 
-	batch, err := client.conn.PrepareBatch(ctx, query)
+	batch, err := client.Conn.PrepareBatch(ctx, query)
 
 	if err != nil {
 		return e.Wrap(err, "failed to create logs batch")
@@ -53,7 +53,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int) ([]*modelInpu
 		LIMIT 100
 	`, LogsTable, projectID)
 
-	rows, err := client.conn.Query(
+	rows, err := client.Conn.Query(
 		ctx,
 		query,
 	)
