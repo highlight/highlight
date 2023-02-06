@@ -1937,13 +1937,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 		],
 	)
 
-	// Track the current state of the query builder to detect changes
-	const [qbState, setQbState] = useState<string | undefined>(undefined)
-
 	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
 		page: NumberParam,
 	})
-
 	useEffect(() => {
 		if (page !== undefined) {
 			setPaginationToUrlParams({ page }, 'replaceIn')
@@ -2019,7 +2015,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [searchResultsLoading])
 
-	// If the search query is updated externally, set the rules and `isAnd` toggle based on it
+	// Track the current state of the query builder to detect changes
+	const [qbState, setQbState] = useState<string | undefined>(undefined)
+
+	// If the search query is updated externally, set the rules and `isAnd` toggle
+	// based on it
 	useEffect(() => {
 		if (
 			initialized &&
