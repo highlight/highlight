@@ -8,7 +8,7 @@ import {
 	vars,
 } from '@highlight-run/ui'
 import React from 'react'
-const { DEMO_SESSION_URL } = import.meta.env
+const { DEMO_ERROR_URL } = import.meta.env
 
 export const CompleteSetup = () => {
 	return (
@@ -39,23 +39,22 @@ export const CompleteSetup = () => {
 			>
 				<Box display="flex" flexDirection="column" gap="16">
 					<Text color="moderate">
-						View your app's sessions by completing the setup
-						process.
+						View your app's errors by completing the setup process.
 					</Text>
 					<Stack gap="6" direction="row">
 						<LinkButton
 							to="/setup"
-							trackingId="finish-setup-sessions-empty-state"
+							trackingId="finish-setup-errors"
 						>
 							Finish setup
 						</LinkButton>
 						<LinkButton
-							to={DEMO_SESSION_URL}
-							trackingId="view-demo-session"
+							to={DEMO_ERROR_URL}
+							trackingId="view-demo-error"
 							kind="secondary"
 							emphasis="low"
 						>
-							View demo session
+							View demo error
 						</LinkButton>
 					</Stack>
 				</Box>

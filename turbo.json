@@ -50,7 +50,8 @@
 				"HEIGHT_CLIENT_ID",
 				"LINEAR_CLIENT_ID",
 				"SLACK_CLIENT_ID",
-				"DEMO_SESSION_URL"
+				"DEMO_SESSION_URL",
+				"DEMO_ERROR_URL"
 			]
 		},
 		"enforce-size": {
