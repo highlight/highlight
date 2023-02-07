@@ -194,12 +194,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 								resourceAttributesMap[k] = castString(v, "")
 							}
 						}
-						eventAttributesMap := make(map[string]string)
+						logAttributesMap := make(map[string]string)
 						for k, v := range eventAttributes {
 							vStr := castString(v, "")
-							if vStr != "" && k != string(hlog.LogMessageKey) {
-								eventAttributesMap[k] = castString(v, "")
+							if vStr == "" || k == string(hlog.LogMessageKey) || k == string(hlog.LogSeverityKey) {
+								continue
 							}
+							logAttributesMap[k] = castString(v, "")
 						}
 						lvl, _ := log.ParseLevel(logSev)
 						logRow := &clickhouse.LogRow{
@@ -211,7 +212,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							ServiceName:        serviceName,
 							Body:               logMessage,
 							ResourceAttributes: resourceAttributesMap,
-							LogAttributes:      eventAttributesMap,
+							LogAttributes:      logAttributesMap,
 							ProjectId:          uint32(projectIDInt),
 							SecureSessionId:    sessionID,
 						}
