@@ -889,6 +889,15 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, projectID int, nam
 	}
 	paramString := string(paramBytes)
 
+	// check if such a segment exists
+	var count int64
+	if err := r.DB.Model(&model.Segment{}).Where("project_id = ? AND name = ?", projectID, name).Count(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error checking if segment exists")
+	}
+	if count > 0 {
+		return nil, e.New("segment with this name already exists")
+	}
+
 	segment := &model.Segment{
 		Name:      &name,
 		Params:    &paramString,
@@ -929,7 +938,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 }
 
 // EditSegment is the resolver for the editSegment field.
-func (r *mutationResolver) EditSegment(ctx context.Context, id int, projectID int, params modelInputs.SearchParamsInput) (*bool, error) {
+func (r *mutationResolver) EditSegment(ctx context.Context, id int, projectID int, params modelInputs.SearchParamsInput, name string) (*bool, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -940,11 +949,23 @@ func (r *mutationResolver) EditSegment(ctx context.Context, id int, projectID in
 		return nil, e.Wrap(err, "error unmarshaling search params")
 	}
 	paramString := string(paramBytes)
+
+	// check if such a segment exists
+	var count int64
+	if err := r.DB.Model(&model.Segment{}).Where("project_id = ? AND name = ?", projectID, name).Count(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error checking if segment exists")
+	}
+	if count > 0 {
+		return nil, e.New("segment with this name already exists")
+	}
+
 	if err := r.DB.Model(&model.Segment{Model: model.Model{ID: id}}).Updates(&model.Segment{
 		Params: &paramString,
+		Name:   &name,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing new recording settings")
 	}
+
 	return &model.T, nil
 }
 
@@ -973,6 +994,15 @@ func (r *mutationResolver) CreateErrorSegment(ctx context.Context, projectID int
 	}
 	paramString := string(paramBytes)
 
+	// check if such a segment exists
+	var count int64
+	if err := r.DB.Model(&model.ErrorSegment{}).Where("project_id = ? AND name = ?", projectID, name).Count(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error checking if segment exists")
+	}
+	if count > 0 {
+		return nil, e.New("segment with this name already exists")
+	}
+
 	segment := &model.ErrorSegment{
 		Name:      &name,
 		Params:    &paramString,
@@ -985,7 +1015,7 @@ func (r *mutationResolver) CreateErrorSegment(ctx context.Context, projectID int
 }
 
 // EditErrorSegment is the resolver for the editErrorSegment field.
-func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, projectID int, params modelInputs.ErrorSearchParamsInput) (*bool, error) {
+func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, projectID int, params modelInputs.ErrorSearchParamsInput, name string) (*bool, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -996,8 +1026,18 @@ func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, project
 		return nil, e.Wrap(err, "error unmarshaling search params")
 	}
 	paramString := string(paramBytes)
+
+	var count int64
+	if err := r.DB.Model(&model.ErrorSegment{}).Where("project_id = ? AND name = ?", projectID, name).Count(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error checking if segment exists")
+	}
+	if count > 0 {
+		return nil, e.New("segment with this name already exists")
+	}
+
 	if err := r.DB.Model(&model.ErrorSegment{Model: model.Model{ID: id}}).Updates(&model.ErrorSegment{
 		Params: &paramString,
+		Name:   &name,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing new recording settings")
 	}

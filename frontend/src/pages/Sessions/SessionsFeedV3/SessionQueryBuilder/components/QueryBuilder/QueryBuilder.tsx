@@ -2221,6 +2221,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					project_id: projectId,
 					id: selectedSegment.id,
 					params: searchParams,
+					name: selectedSegment.name,
 				},
 			})
 				.then(() => {

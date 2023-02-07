@@ -559,9 +559,9 @@ type ComplexityRoot struct {
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment             func(childComplexity int, id int) int
 		DeleteSessions                   func(childComplexity int, projectID int, query string, sessionCount int) int
-		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput) int
+		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput, name string) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray) int
-		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput) int
+		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput, name string) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EmailSignup                      func(childComplexity int, email string) int
 		JoinWorkspace                    func(childComplexity int, workspaceID int) int
@@ -1131,10 +1131,10 @@ type MutationResolver interface {
 	DeleteAdminFromWorkspace(ctx context.Context, workspaceID int, adminID int) (*int, error)
 	CreateSegment(ctx context.Context, projectID int, name string, params model.SearchParamsInput) (*model1.Segment, error)
 	EmailSignup(ctx context.Context, email string) (string, error)
-	EditSegment(ctx context.Context, id int, projectID int, params model.SearchParamsInput) (*bool, error)
+	EditSegment(ctx context.Context, id int, projectID int, params model.SearchParamsInput, name string) (*bool, error)
 	DeleteSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateErrorSegment(ctx context.Context, projectID int, name string, params model.ErrorSearchParamsInput) (*model1.ErrorSegment, error)
-	EditErrorSegment(ctx context.Context, id int, projectID int, params model.ErrorSearchParamsInput) (*bool, error)
+	EditErrorSegment(ctx context.Context, id int, projectID int, params model.ErrorSearchParamsInput, name string) (*bool, error)
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
@@ -3810,7 +3810,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditErrorSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["params"].(model.ErrorSearchParamsInput)), true
+		return e.complexity.Mutation.EditErrorSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["params"].(model.ErrorSearchParamsInput), args["name"].(string)), true
 
 	case "Mutation.editProject":
 		if e.complexity.Mutation.EditProject == nil {
@@ -3834,7 +3834,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["params"].(model.SearchParamsInput)), true
+		return e.complexity.Mutation.EditSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["params"].(model.SearchParamsInput), args["name"].(string)), true
 
 	case "Mutation.editWorkspace":
 		if e.complexity.Mutation.EditWorkspace == nil {
@@ -8813,7 +8813,12 @@ type Mutation {
 		params: SearchParamsInput!
 	): Segment
 	emailSignup(email: String!): String!
-	editSegment(id: ID!, project_id: ID!, params: SearchParamsInput!): Boolean
+	editSegment(
+		id: ID!
+		project_id: ID!
+		params: SearchParamsInput!
+		name: String!
+	): Boolean
 	deleteSegment(segment_id: ID!): Boolean
 	createErrorSegment(
 		project_id: ID!
@@ -8824,6 +8829,7 @@ type Mutation {
 		id: ID!
 		project_id: ID!
 		params: ErrorSearchParamsInput!
+		name: String!
 	): Boolean
 	deleteErrorSegment(segment_id: ID!): Boolean
 	# If this endpoint returns a checkout_id, we initiate a stripe checkout.
@@ -10360,6 +10366,15 @@ func (ec *executionContext) field_Mutation_editErrorSegment_args(ctx context.Con
 		}
 	}
 	args["params"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg3
 	return args, nil
 }
 
@@ -10480,6 +10495,15 @@ func (ec *executionContext) field_Mutation_editSegment_args(ctx context.Context,
 		}
 	}
 	args["params"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg3
 	return args, nil
 }
 
@@ -28754,7 +28778,7 @@ func (ec *executionContext) _Mutation_editSegment(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["params"].(model.SearchParamsInput))
+		return ec.resolvers.Mutation().EditSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["params"].(model.SearchParamsInput), fc.Args["name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28917,7 +28941,7 @@ func (ec *executionContext) _Mutation_editErrorSegment(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditErrorSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["params"].(model.ErrorSearchParamsInput))
+		return ec.resolvers.Mutation().EditErrorSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["params"].(model.ErrorSearchParamsInput), fc.Args["name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
