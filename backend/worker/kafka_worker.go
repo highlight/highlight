@@ -72,6 +72,7 @@ type KafkaWorker struct {
 
 func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	s, _ := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.flush"))
+	s.SetTag("BatchSize", k.messageQueue)
 	defer s.Finish()
 
 	var logRows []*clickhouse.LogRow
