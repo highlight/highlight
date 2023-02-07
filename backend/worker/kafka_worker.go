@@ -62,8 +62,8 @@ func (k *KafkaWorker) ProcessMessages() {
 	}
 }
 
-const BatchFlushSize = 64
-const BatchedFlushTimeout = 60 * time.Second
+const BatchFlushSize = 512
+const BatchedFlushTimeout = 5 * time.Second
 
 type KafkaWorker struct {
 	KafkaQueue   *kafkaqueue.Queue
