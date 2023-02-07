@@ -3770,7 +3770,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 	}
 
 	errorObject := model.ErrorObject{}
-	errorObjectQuery := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID})
+	errorObjectQuery := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Order("id desc")
 
 	if errorObjectID == nil {
 		sessionIds := []int{}
@@ -3792,14 +3792,13 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		}
 
 		if len(processedSessions) == 0 {
-			if err := errorObjectQuery.Last(&errorObject).Error; err != nil {
+			if err := errorObjectQuery.First(&errorObject).Error; err != nil {
 				return nil, e.Wrap(err, "error reading error object for instance")
 			}
 		} else {
 			// find the most recent object from the processed session
 			if err := errorObjectQuery.
 				Where("session_id IN ?", processedSessions).
-				Order("id desc").
 				First(&errorObject).
 				Error; err != nil {
 				return nil, e.Wrap(err, "error reading error object for instance")
