@@ -3792,7 +3792,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		}
 
 		if len(processedSessions) == 0 {
-			if err := errorObjectQuery.Last(&errorObject).Error; err != nil {
+			if err := errorObjectQuery.First(&errorObject).Error; err != nil {
 				return nil, e.Wrap(err, "error reading error object for instance")
 			}
 		} else {
