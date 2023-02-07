@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -13,6 +14,7 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
@@ -20,6 +22,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -51,6 +54,18 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 			*requestID = r.(string)
 		}
 	}
+}
+
+func projectToInt(projectID string) (int, error) {
+	i, err := strconv.ParseInt(projectID, 10, 32)
+	if err == nil {
+		return int(i), nil
+	}
+	i2, err := model2.FromVerboseID(projectID)
+	if err == nil {
+		return i2, nil
+	}
+	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
 }
 
 func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
@@ -167,7 +182,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							log.WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received log with no message")
 							continue
 						}
-						projectIDInt, err := model2.FromVerboseID(projectID)
+						projectIDInt, err := projectToInt(projectID)
 						if err != nil {
 							log.WithField("ProjectVerboseID", projectID).WithField("LogMessage", logMessage).Errorf("otel span log got invalid project id")
 							continue
@@ -306,9 +321,9 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				logRecord := logRecords.At(k)
 				logAttributes := logRecord.Attributes().AsRaw()
 				setHighlightAttributes(logAttributes, &projectID, &sessionID, &requestID)
-				projectIDInt, err := model2.FromVerboseID(projectID)
+				projectIDInt, err := projectToInt(projectID)
 				if err != nil {
-					log.WithField("ProjectVerboseID", projectID).WithField("LogMessage", logRecord.Body().AsRaw()).Errorf("otel log got invalid project id")
+					log.WithField("ProjectID", projectID).WithField("LogMessage", logRecord.Body().AsRaw()).Errorf("otel log got invalid project id")
 					continue
 				}
 				resourceAttributesMap := make(map[string]string)

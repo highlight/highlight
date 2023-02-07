@@ -455,11 +455,14 @@ func FromVerboseID(verboseId string) (int, error) {
 		return projectID, nil
 	}
 	// Otherwise, decode with HashID library
-	ints := HashID.Decode(verboseId)
-	if len(ints) != 1 {
-		return 1, e.Errorf("An unsupported verboseID was used: %s", verboseId)
+	if ints, err := HashID.DecodeWithError(verboseId); err == nil {
+		if len(ints) != 1 {
+			return 1, e.Errorf("An unsupported verboseID was used: %s", verboseId)
+		}
+		return ints[0], nil
 	}
-	return ints[0], nil
+
+	return 0, e.New(fmt.Sprintf("failed to decode %s", verboseId))
 }
 
 func (u *Project) BeforeCreate(tx *gorm.DB) (err error) {
