@@ -16,6 +16,7 @@ interface ImportMetaEnv {
 	readonly SLACK_CLIENT_ID: string
 	readonly DD_CLIENT_TOKEN: string
 	readonly DD_RUM_APPLICATION_ID: string
+	readonly DEMO_SESSION_URL: string
 }
 
 interface ImportMeta {

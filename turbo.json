@@ -49,7 +49,8 @@
 				"DISCORD_CLIENT_ID",
 				"HEIGHT_CLIENT_ID",
 				"LINEAR_CLIENT_ID",
-				"SLACK_CLIENT_ID"
+				"SLACK_CLIENT_ID",
+				"DEMO_SESSION_URL"
 			]
 		},
 		"enforce-size": {
