@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"math/rand"
+	"os"
 	"strconv"
 	"time"
 
@@ -56,6 +58,16 @@ func makeRandProjectId() uint32 {
 	projectIDs := make([]uint32, 0)
 	projectIDs = append(projectIDs, 1, 2, 3, 4, 5)
 	return projectIDs[rand.Intn(len(projectIDs))]
+}
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func makeRandomBody() string {
+	b := make([]rune, 30)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }
 
 func makeRandLogAttributes() map[string]string {
@@ -130,13 +142,14 @@ func makeRandLogAttributes() map[string]string {
 
 func main() {
 	options := &goClickhouse.Options{
-		Addr: []string{"localhost:9000"},
+		Addr: []string{os.Getenv("CLICKHOUSE_ADDRESS")},
 		Auth: goClickhouse.Auth{
-			Database: "performance",
+			Database: "benchmarks",
 			Username: "default",
-			Password: "",
+			Password: os.Getenv("CLICKHOUSE_PASSWORD"),
 		},
 		DialTimeout: time.Duration(10) * time.Second,
+		TLS:         &tls.Config{},
 	}
 
 	conn, err := goClickhouse.Open(options)
@@ -146,16 +159,17 @@ func main() {
 	}
 
 	if err != nil {
-		log.Fatal("could not connect to performance db")
+		log.Fatal("could not connect to benchmarks db")
 	}
 
 	logRows := []*clickhouse.LogRow{}
 
-	for i := 1; i < 1000; i++ {
-		for j := 1; j < 1000; j++ {
+	for i := 1; i < 10000; i++ {
+		for j := 1; j < 10000; j++ {
 			logRows = append(logRows, &clickhouse.LogRow{
 				Timestamp:     makeRandTime(),
 				ProjectId:     makeRandProjectId(),
+				Body:          makeRandomBody(),
 				LogAttributes: makeRandLogAttributes(),
 			})
 		}
@@ -169,36 +183,28 @@ func main() {
 }
 
 // Get all logs for a given project
-// SELECT * from performance.logs where ProjectId = 1 order by Timestamp DESC
-// Elapsed: 18.587 sec, read 94.60 million rows, 10.90 GB.
+// SELECT * from benchmarks.logs where ProjectId = 1 order by Timestamp DESC
 
 // Add a limit to the above query
-// SELECT * from performance.logs where ProjectId = 1 order by Timestamp DESC LIMIT 100
-// Elapsed: 1.775 sec, read 94.60 million rows, 10.90 GB.
+// SELECT * from benchmarks.logs where ProjectId = 1 order by Timestamp DESC LIMIT 100
 
 // Get all facets for a given project
-// SELECT arrayJoin(LogAttributes.keys) as keys, count() as cnt FROM performance.logs WHERE ProjectId = 1 GROUP BY keys ORDER BY cnt DESC;
-// Elapsed: 1.178 sec, read 94.60 million rows, 1.44 GB.
+// SELECT arrayJoin(LogAttributes.keys) as keys, count() as cnt FROM benchmarks.logs WHERE ProjectId = 1 GROUP BY keys ORDER BY cnt DESC;
 
 // Query by one attribute
-// SELECT * from performance.logs where ProjectId = 1 AND LogAttributes['key7'] = 'val4' order by Timestamp DESC
-// Elapsed: 3.053 sec, read 93.92 million rows, 7.45 GB.
+// SELECT * from benchmarks.logs where ProjectId = 1 AND LogAttributes['key7'] = 'val4' order by Timestamp DESC
 
 // Query by two attributes whereby one is fixed across all projects
-// SELECT * from performance.logs where ProjectId = 1 AND LogAttributes['key7'] = 'val4' AND LogAttributes['user_id'] = '98' order by Timestamp DESC
-// Elapsed: 3.177 sec, read 89.30 million rows, 4.44 GB
+// SELECT * from benchmarks.logs where ProjectId = 1 AND LogAttributes['key7'] = 'val4' AND LogAttributes['user_id'] = '98' order by Timestamp DESC
 
 // Query by many attributes
-// SELECT * from performance.logs where ProjectId = 1 AND LogAttributes['workspace_id'] = '60' AND LogAttributes['user_id'] = '28' AND LogAttributes['key8'] = 'val19'
-// Elapsed: 1.897 sec, read 85.52 million rows, 4.33 GB
+// SELECT * from benchmarks.logs where ProjectId = 1 AND LogAttributes['workspace_id'] = '60' AND LogAttributes['user_id'] = '28' AND LogAttributes['key8'] = 'val19'
 
 // Casting
-// SELECT * from performance.logs where ProjectId = 1 AND LogAttributes['service_name'] = 'middleware' AND LogAttributes['workspace_id'] = '46' AND toInt8(LogAttributes['user_id']) > 1 order by Timestamp DESC LIMIT 100
+// SELECT * from benchmarks.logs where ProjectId = 1 AND LogAttributes['service_name'] = 'middleware' AND LogAttributes['workspace_id'] = '46' AND toInt8(LogAttributes['user_id']) > 1 order by Timestamp DESC LIMIT 100
 
 // Wildcard search
-// SELECT * from performance.logs where ProjectId = 1 AND LogAttributes['service_name'] LIKE '%middleware%' AND toInt8(LogAttributes['workspace_id']) < 99 AND toInt8(LogAttributes['user_id']) > 1 order by Timestamp DESC
-// Elapsed: 3.051 sec, read 94.60 million rows, 6.09 GB
+// SELECT * from benchmarks.logs where ProjectId = 1 AND LogAttributes['service_name'] LIKE '%middleware%' AND toInt8(LogAttributes['workspace_id']) < 99 AND toInt8(LogAttributes['user_id']) > 1 order by Timestamp DESC
 
 // Give me all the facets for this query
-// SELECT arrayJoin(LogAttributes.keys) as keys, count() as cnt from performance.logs where ProjectId = 1 AND LogAttributes['service_name'] LIKE '%middleware%' AND toInt8(LogAttributes['workspace_id']) < 99 AND toInt8(LogAttributes['user_id']) > 1 GROUP BY keys ORDER BY cnt DESC
-// Elapsed: 1.568 sec, read 94.60 million rows, 5.01 GB.
+// SELECT arrayJoin(LogAttributes.keys) as keys, count() as cnt from benchmarks.logs where ProjectId = 1 AND LogAttributes['service_name'] LIKE '%middleware%' AND toInt8(LogAttributes['workspace_id']) < 99 AND toInt8(LogAttributes['user_id']) > 1 GROUP BY keys ORDER BY cnt DESC
