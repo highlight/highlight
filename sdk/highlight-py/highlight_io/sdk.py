@@ -140,7 +140,7 @@ class H(object):
         if span and span.is_recording():
             ctx = span.get_span_context()
             # record.created is sec but timestamp should be ns
-            ts = int(record.created * 1000. * 1000. * 1000.)
+            ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
             r = LogRecord(
                 timestamp=ts,
                 trace_id=ctx.trace_id,
