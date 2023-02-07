@@ -6,7 +6,6 @@ require (
 	github.com/99designs/gqlgen v0.17.24
 	github.com/gin-gonic/gin v1.7.7
 	github.com/hasura/go-graphql-client v0.8.1
-	github.com/influxdata/influxdb-client-go/v2 v2.9.1
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/vektah/gqlparser/v2 v2.5.1
