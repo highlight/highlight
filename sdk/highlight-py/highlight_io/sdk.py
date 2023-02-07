@@ -1,5 +1,6 @@
 import contextlib
 import logging
+import time
 import typing
 
 from opentelemetry import trace, _logs
@@ -138,8 +139,10 @@ class H(object):
     def _log_hook(self, span: _Span, record: logging.LogRecord):
         if span and span.is_recording():
             ctx = span.get_span_context()
+            # record.created is sec but timestamp should be ns
+            ts = int(record.created * 1000. * 1000. * 1000.)
             r = LogRecord(
-                timestamp=int(record.created),
+                timestamp=ts,
                 trace_id=ctx.trace_id,
                 span_id=ctx.span_id,
                 trace_flags=ctx.trace_flags,
