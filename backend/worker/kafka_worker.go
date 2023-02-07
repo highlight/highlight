@@ -62,7 +62,7 @@ func (k *KafkaWorker) ProcessMessages() {
 }
 
 const BatchFlushSize = 100
-const BatchedFlushTimeout = 2 * time.Second
+const BatchedFlushTimeout = 5 * time.Second
 
 type KafkaWorker struct {
 	KafkaQueue   *kafkaqueue.Queue
@@ -99,10 +99,12 @@ func (k *KafkaBatchWorker) ProcessMessages() {
 			defer util.Recover()
 			s, ctx := tracer.StartSpanFromContext(context.Background(), "kafkaWorker", tracer.ResourceName("worker.kafka.batched.process"))
 			s.SetTag("worker.goroutine", k.WorkerThread)
+			s.SetTag("BatchSize", len(k.messageQueue))
 			defer s.Finish()
 
 			if len(k.messageQueue) > 0 {
 				oldest := k.messageQueue[0]
+				s.SetTag("OldestMessage", time.Since(oldest.KafkaMessage.Time))
 				if time.Since(oldest.KafkaMessage.Time) > BatchedFlushTimeout {
 					k.flush(ctx)
 				}
