@@ -13,8 +13,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// CREATE database performance
-// CREATE TABLE IF NOT EXISTS performance.logs
+// CREATE database benchmarks
+// CREATE TABLE IF NOT EXISTS benchmarks.logs
 // (
 //     Timestamp          DateTime64(9) CODEC (Delta, ZSTD(1)),
 //     TraceId            String CODEC (ZSTD(1)),
