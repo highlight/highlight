@@ -8,6 +8,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"sync"
 	"time"
 )
 
@@ -61,7 +62,7 @@ func (k *KafkaWorker) ProcessMessages() {
 	}
 }
 
-const BatchFlushSize = 100
+const BatchFlushSize = 512
 const BatchedFlushTimeout = 5 * time.Second
 
 type KafkaWorker struct {
@@ -72,25 +73,38 @@ type KafkaWorker struct {
 
 func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	s, _ := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.flush"))
-	s.SetTag("BatchSize", len(k.messageQueue))
+	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
 	defer s.Finish()
 
 	var logRows []*clickhouse.LogRow
 
-	for _, msg := range k.messageQueue {
-		switch msg.Type {
-		case kafkaqueue.PushLogs:
-			logRows = append(logRows, msg.PushLogs.LogRows...)
+	var received int
+	var lastMsg *kafkaqueue.Message
+	func() {
+		for {
+			select {
+			case lastMsg = <-k.BatchBuffer.messageQueue:
+				switch lastMsg.Type {
+				case kafkaqueue.PushLogs:
+					logRows = append(logRows, lastMsg.PushLogs.LogRows...)
+				}
+				received += 1
+				if received >= BatchFlushSize {
+					return
+				}
+			default:
+				return
+			}
 		}
-	}
+	}()
 
 	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctx, logRows)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to batch write to clickhouse")
 	}
 
-	k.KafkaQueue.Commit(k.messageQueue[len(k.messageQueue)-1].KafkaMessage)
-	k.messageQueue = []*kafkaqueue.Message{}
+	k.KafkaQueue.Commit(lastMsg.KafkaMessage)
+	k.BatchBuffer.lastMessage = nil
 }
 
 func (k *KafkaBatchWorker) ProcessMessages() {
@@ -99,16 +113,15 @@ func (k *KafkaBatchWorker) ProcessMessages() {
 			defer util.Recover()
 			s, ctx := tracer.StartSpanFromContext(context.Background(), "kafkaWorker", tracer.ResourceName("worker.kafka.batched.process"))
 			s.SetTag("worker.goroutine", k.WorkerThread)
-			s.SetTag("BatchSize", len(k.messageQueue))
+			s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
 			defer s.Finish()
 
-			if len(k.messageQueue) > 0 {
-				oldest := k.messageQueue[0]
-				s.SetTag("OldestMessage", time.Since(oldest.KafkaMessage.Time))
-				if time.Since(oldest.KafkaMessage.Time) > BatchedFlushTimeout {
-					k.flush(ctx)
-				}
+			k.BatchBuffer.flushLock.Lock()
+			if k.BatchBuffer.lastMessage != nil && time.Since(*k.BatchBuffer.lastMessage) > BatchedFlushTimeout {
+				s.SetTag("OldestMessage", time.Since(*k.BatchBuffer.lastMessage))
+				k.flush(ctx)
 			}
+			k.BatchBuffer.flushLock.Unlock()
 
 			s1, _ := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.receive"))
 			task := k.KafkaQueue.Receive()
@@ -117,10 +130,17 @@ func (k *KafkaBatchWorker) ProcessMessages() {
 				return
 			}
 
-			k.messageQueue = append(k.messageQueue, task)
-			if len(k.messageQueue) >= BatchFlushSize {
+			k.BatchBuffer.messageQueue <- task
+
+			k.BatchBuffer.flushLock.Lock()
+			if k.BatchBuffer.lastMessage == nil {
+				t := time.Now()
+				k.BatchBuffer.lastMessage = &t
+			}
+			if len(k.BatchBuffer.messageQueue) >= BatchFlushSize {
 				k.flush(ctx)
 			}
+			k.BatchBuffer.flushLock.Unlock()
 		}()
 	}
 }
@@ -129,7 +149,11 @@ type KafkaBatchWorker struct {
 	KafkaQueue   *kafkaqueue.Queue
 	Worker       *Worker
 	WorkerThread int
+	BatchBuffer  *KafkaBatchBuffer
+}
 
-	// does not need to be atomic as each goroutine is a KafkaBatchWorker and this buffer is not shared
-	messageQueue []*kafkaqueue.Message
+type KafkaBatchBuffer struct {
+	lastMessage  *time.Time
+	messageQueue chan *kafkaqueue.Message
+	flushLock    sync.Mutex
 }

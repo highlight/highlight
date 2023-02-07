@@ -448,12 +448,16 @@ func (w *Worker) PublicWorker() {
 	go func(_wg *sync.WaitGroup) {
 		wg := sync.WaitGroup{}
 		wg.Add(parallelBatchWorkers)
+		buffer := &KafkaBatchBuffer{
+			messageQueue: make(chan *kafkaqueue.Message, BatchFlushSize*(parallelBatchWorkers+1)),
+		}
 		for i := 0; i < parallelBatchWorkers; i++ {
 			go func(workerId int) {
 				k := KafkaBatchWorker{
 					KafkaQueue:   kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Consumer),
 					Worker:       w,
 					WorkerThread: workerId,
+					BatchBuffer:  buffer,
 				}
 				k.ProcessMessages()
 				wg.Done()
