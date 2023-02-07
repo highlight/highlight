@@ -3,7 +3,6 @@ package highlight
 import (
 	"context"
 	"fmt"
-	"github.com/influxdata/influxdb-client-go/v2/api/http"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -98,16 +97,11 @@ func EndTrace(span trace.Span) {
 }
 
 func RecordSpanError(span trace.Span, err error, tags ...attribute.KeyValue) {
-	span.SetAttributes(tags...)
-	if httpErr, ok := err.(*http.Error); ok {
-		span.SetAttributes(attribute.Int("StatusCode", httpErr.StatusCode))
-		span.SetAttributes(attribute.Int("Code", httpErr.StatusCode))
-		span.SetAttributes(attribute.Int("Message", httpErr.StatusCode))
-		if urlErr, ok := httpErr.Err.(*url.Error); ok {
-			span.SetAttributes(attribute.String("Op", urlErr.Op))
-			span.SetAttributes(attribute.String(ErrorURLKey, urlErr.URL))
-		}
+	if urlErr, ok := err.(*url.Error); ok {
+		span.SetAttributes(attribute.String("Op", urlErr.Op))
+		span.SetAttributes(attribute.String(ErrorURLKey, urlErr.URL))
 	}
+	span.SetAttributes(tags...)
 	// if this is an error with true stacktrace, then create the event directly since otel doesn't support saving a custom stacktrace
 	if stackErr, ok := err.(ErrorWithStack); ok {
 		RecordSpanErrorWithStack(span, stackErr)
