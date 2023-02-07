@@ -365,7 +365,7 @@ export const PlayerReducer = (
 			s.fetchEventChunkURL = action.fetchEventChunkURL
 			if (action.data.session) {
 				s.session = action.data?.session as Session
-				s.isLiveMode = !s.session?.processed
+				s.isLiveMode = false
 			}
 			if (action.data.session === null) {
 				s.sessionViewability = SessionViewability.ERROR

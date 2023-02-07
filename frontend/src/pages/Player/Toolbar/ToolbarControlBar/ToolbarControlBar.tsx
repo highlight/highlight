@@ -236,13 +236,17 @@ export const ToolbarControlBar = () => {
 					onClick={() => {
 						setIsLiveMode((isLive) => !isLive)
 					}}
+					shape="rounded"
 					kind={isLiveMode ? 'primary' : 'secondary'}
+					emphasis={isLiveMode ? 'high' : 'medium'}
 					disabled={disableControls}
+					lines="1"
 				>
-					Live
+					{isLiveMode ? 'Hide' : 'Show'} live mode
 				</Tag>
 			)}
-			<Box display="flex" gap="4">
+
+			<Box display="flex" gap="4" ml="4">
 				{isLiveMode && lastActiveString && (
 					<SessionToken
 						className={style.liveUserStatus}
@@ -253,7 +257,7 @@ export const ToolbarControlBar = () => {
 					</SessionToken>
 				)}
 				{!isLiveMode && (
-					<Text color="n11" userSelect="none">
+					<Text color="n11" userSelect="none" lines="1">
 						{disableControls ? (
 							<Skeleton count={1} width="60.13px" />
 						) : showPlayerAbsoluteTime ? (
@@ -323,6 +327,7 @@ export const ToolbarControlBar = () => {
 								setPlayerSpeedIdx(playerSpeedIdx + 1)
 							}}
 							disabled={disableControls}
+							lines="1"
 						>
 							{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
 						</Tag>
@@ -349,6 +354,7 @@ export const ToolbarControlBar = () => {
 							iconLeft={<IconSolidChartBar size={14} />}
 						/>
 					</ExplanatoryPopover>
+
 					<ExplanatoryPopover
 						content={
 							<>
@@ -370,6 +376,7 @@ export const ToolbarControlBar = () => {
 							iconLeft={<IconSolidTerminal size={14} />}
 						/>
 					</ExplanatoryPopover>
+
 					<Popover
 						getPopupContainer={
 							getFullScreenPopoverGetPopupContainer
