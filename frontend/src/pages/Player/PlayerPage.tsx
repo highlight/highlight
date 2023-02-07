@@ -407,7 +407,7 @@ const PlayerPage = ({ integrated }: Props) => {
 									justifyContent="center"
 									borderTop="secondary"
 								>
-									{!integrated ? (
+									{integrated ? (
 										<NoActiveSessionCard />
 									) : (
 										<CompleteSetup />

@@ -23,8 +23,8 @@ import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
+import { CompleteSetup } from '@pages/Player/components/CompleteSetup/CompleteSetup'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
-import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 import analytics from '@util/analytics'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
@@ -155,8 +155,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 						[styles.moveDetailsRight]: showLeftPanel,
 					})}
 				>
-					{!integrated && <IntegrationCard />}
-
 					<Box
 						background="white"
 						border="secondary"
@@ -264,8 +262,10 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 									</Box>
 								</Callout>
 							</Box>
-						) : (
+						) : integrated ? (
 							<NoActiveErrorCard />
+						) : (
+							<CompleteSetup />
 						)}
 					</Box>
 				</div>
