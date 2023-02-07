@@ -26,7 +26,6 @@ import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import { CompleteSetup } from '@pages/Player/components/CompleteSetup/CompleteSetup'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import analytics from '@util/analytics'
-import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import clsx from 'clsx'
@@ -37,13 +36,14 @@ import { useHistory } from 'react-router'
 
 import * as styles from './styles.css'
 
-const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
+const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
+	integrated,
+}) => {
 	const { project_id, error_secure_id } = useParams<{
 		project_id: string
 		error_secure_id: string
 	}>()
 	const { isLoggedIn } = useAuthContext()
-	const integrated = useIntegrated()
 	const { searchResultSecureIds } = useErrorSearchContext()
 	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
 
