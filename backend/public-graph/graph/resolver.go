@@ -2710,9 +2710,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				if err := r.BatchedQueue.Submit(&kafka_queue.Message{
 					Type: kafka_queue.PushLogs,
 					PushLogs: &kafka_queue.PushLogsArgs{
-						SessionSecureID: sessionSecureID,
-						LogRows:         logRows,
-					}}, sessionSecureID); err != nil {
+						LogRows: logRows,
+					}}, strconv.Itoa(projectID)); err != nil {
 					log.WithError(err).Error("error writing console messages to clickhouse")
 				}
 			}

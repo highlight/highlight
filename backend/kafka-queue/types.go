@@ -98,8 +98,7 @@ type AddSessionFeedbackArgs struct {
 }
 
 type PushLogsArgs struct {
-	SessionSecureID string
-	LogRows         []*clickhouse.LogRow
+	LogRows []*clickhouse.LogRow
 }
 
 type Message struct {

@@ -3,6 +3,8 @@ package highlight
 import (
 	"context"
 	"fmt"
+	"github.com/influxdata/influxdb-client-go/v2/api/http"
+	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -11,6 +13,8 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
+	"net/url"
+	"reflect"
 	"strings"
 )
 
@@ -18,9 +22,15 @@ const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
 const ProjectIDAttribute = "highlight_project_id"
 const SessionIDAttribute = "highlight_session_id"
 const RequestIDAttribute = "highlight_trace_id"
+const ErrorURLKey = "URL"
 
 type OTLP struct {
 	tracerProvider *sdktrace.TracerProvider
+}
+
+type ErrorWithStack interface {
+	Error() string
+	StackTrace() errors.StackTrace
 }
 
 var (
@@ -89,7 +99,21 @@ func EndTrace(span trace.Span) {
 
 func RecordSpanError(span trace.Span, err error, tags ...attribute.KeyValue) {
 	span.SetAttributes(tags...)
-	span.RecordError(err, trace.WithStackTrace(true))
+	if httpErr, ok := err.(*http.Error); ok {
+		span.SetAttributes(attribute.Int("StatusCode", httpErr.StatusCode))
+		span.SetAttributes(attribute.Int("Code", httpErr.StatusCode))
+		span.SetAttributes(attribute.Int("Message", httpErr.StatusCode))
+		if urlErr, ok := httpErr.Err.(*url.Error); ok {
+			span.SetAttributes(attribute.String("Op", urlErr.Op))
+			span.SetAttributes(attribute.String(ErrorURLKey, urlErr.URL))
+		}
+	}
+	// if this is an error with true stacktrace, then create the event directly since otel doesn't support saving a custom stacktrace
+	if stackErr, ok := err.(ErrorWithStack); ok {
+		RecordSpanErrorWithStack(span, stackErr)
+	} else {
+		span.RecordError(err, trace.WithStackTrace(true))
+	}
 }
 
 // RecordError processes `err` to be recorded as a part of the session or network request.
@@ -100,4 +124,13 @@ func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) con
 	defer EndTrace(span)
 	RecordSpanError(span, err)
 	return ctx
+}
+
+func RecordSpanErrorWithStack(span trace.Span, err ErrorWithStack) {
+	stackTrace := fmt.Sprintf("%+v", err.StackTrace())
+	span.AddEvent(semconv.ExceptionEventName, trace.WithAttributes(
+		semconv.ExceptionTypeKey.String(reflect.TypeOf(err).String()),
+		semconv.ExceptionMessageKey.String(err.Error()),
+		semconv.ExceptionStacktraceKey.String(stackTrace),
+	))
 }
