@@ -30,10 +30,6 @@ interface PlayerUIContext {
 	setIsPlayerFullscreen: React.Dispatch<React.SetStateAction<boolean>>
 	playerCenterPanelRef: React.RefObject<HTMLDivElement>
 	/** Used to show detailed information. */
-	detailedPanel?: DetailedPanel
-	setDetailedPanel: React.Dispatch<
-		React.SetStateAction<DetailedPanel | undefined>
-	>
 	selectedRightPanelTab: RightPlayerTab
 	setSelectedRightPanelTab: (newValue: RightPlayerTab) => void
 

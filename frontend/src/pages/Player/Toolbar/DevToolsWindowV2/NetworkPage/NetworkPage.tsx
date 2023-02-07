@@ -54,8 +54,12 @@ export const NetworkPage = ({
 		sessionMetadata,
 	} = useReplayerContext()
 	const startTime = sessionMetadata.startTime
-	const { setShowDevTools, setSelectedDevToolsTab, showPlayerAbsoluteTime } =
-		usePlayerConfiguration()
+	const {
+		setShowDevTools,
+		setSelectedDevToolsTab,
+		setShowRightPanel,
+		showPlayerAbsoluteTime,
+	} = usePlayerConfiguration()
 	const {
 		setActiveError,
 		setActiveNetworkResource,
@@ -297,6 +301,7 @@ export const NetworkPage = ({
 										onClickHandler={() => {
 											setCurrentActiveIndex(index)
 											setActiveNetworkResource(resource)
+											setShowRightPanel(true)
 											setRightPanelView(
 												RightPanelView.NetworkResource,
 											)
@@ -352,18 +357,20 @@ const ResourceRow = ({
 	hasError,
 	showPlayerAbsoluteTime,
 }: ResourceRowProps) => {
-	const { detailedPanel } = usePlayerUIContext()
 	const leftPaddingPercent = (resource.startTime / networkRange) * 100
 	const actualPercent = Math.max(
 		((resource.responseEnd - resource.startTime) / networkRange) * 100,
 		0.1,
 	)
 	const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent
+	const { activeNetworkResource } = usePlayerUIContext()
 
+	const showingDetails = activeNetworkResource?.id === resource.id
 	return (
 		<Box key={resource.id.toString()} onClick={onClickHandler}>
 			<Box
-				className={styles.networkRowVariants({
+				borderBottom="dividerWeak"
+				cssClass={styles.networkRowVariants({
 					current: isCurrentResource,
 					failedResource: !!(
 						hasError ||
@@ -373,11 +380,14 @@ const ResourceRow = ({
 								resource.requestResponsePairs.response.status >=
 									400))
 					),
-					showingDetails:
-						detailedPanel?.id === resource.id.toString(),
+					showingDetails,
 				})}
 			>
-				<Box>
+				<Text
+					size="small"
+					weight={showingDetails ? 'bold' : 'medium'}
+					lines="1"
+				>
 					{resource.initiatorType === 'xmlhttprequest' ||
 					resource.initiatorType === 'fetch'
 						? resource.requestResponsePairs?.response.status ?? (
@@ -388,10 +398,14 @@ const ResourceRow = ({
 								/>
 						  )
 						: '200'}
-				</Box>
-				<Box>
+				</Text>
+				<Text
+					size="small"
+					weight={showingDetails ? 'bold' : 'medium'}
+					lines="1"
+				>
 					{getNetworkResourcesDisplayName(resource.initiatorType)}
-				</Box>
+				</Text>
 				<Tooltip title={resource.displayName || resource.name}>
 					<TextHighlighter
 						className={styles.nameSection}
@@ -400,14 +414,18 @@ const ResourceRow = ({
 						textToHighlight={resource.displayName || resource.name}
 					/>
 				</Tooltip>
-				<Box>
+				<Text
+					size="small"
+					weight={showingDetails ? 'bold' : 'medium'}
+					lines="1"
+				>
 					{showPlayerAbsoluteTime
 						? playerTimeToSessionAbsoluteTime({
 								sessionStartTime: playerStartTime,
 								relativeTime: resource.startTime,
 						  })
 						: MillisToMinutesAndSeconds(resource.startTime)}
-				</Box>
+				</Text>
 				<Box className={styles.timingBarWrapper}>
 					<Box
 						style={{
