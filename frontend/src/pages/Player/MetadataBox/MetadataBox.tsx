@@ -14,10 +14,10 @@ import {
 } from '@highlight-run/ui'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
-import { copyToClipboard } from '@util/string'
+import { copyToClipboard, validateEmail } from '@util/string'
+import { buildQueryStateString } from '@util/url/params'
 import { message } from 'antd'
 import clsx from 'clsx'
 import { capitalize } from 'lodash'
@@ -31,6 +31,7 @@ import {
 } from 'react-icons/fa'
 
 import {
+	getDisplayName,
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
 } from '../../Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
@@ -41,7 +42,7 @@ import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
 export const MetadataBox = React.memo(() => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const { session } = useReplayerContext()
-	const { setSearchParams } = useSearchContext()
+	const { searchParams, setSearchParams } = useSearchContext()
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	const [enhancedAvatar, setEnhancedAvatar] = React.useState<string>()
@@ -181,33 +182,21 @@ export const MetadataBox = React.memo(() => {
 	}, [data, displayValue, field, loading, session])
 
 	const searchIdentifier = useCallback(() => {
-		const hasIdentifier = !!session?.identifier
-		const newSearchParams = {
-			...EmptySessionsSearchParams,
-		}
+		if (!session) return
 
-		if (hasIdentifier && field !== null) {
-			newSearchParams.user_properties = [
-				{
-					id: '0',
-					name: field,
-					value: displayValue,
-				},
-			]
-		} else if (session?.fingerprint) {
-			newSearchParams.device_id = session.fingerprint.toString()
-		}
+		const displayName = getDisplayName(session)
+		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
 
-		setSearchParams(newSearchParams)
+		setSearchParams((params) => ({
+			...params,
+			query: buildQueryStateString({
+				query: searchParams.query,
+				[`user_${userParam}`]: displayName,
+			}),
+		}))
+
 		setShowLeftPanel(true)
-	}, [
-		displayValue,
-		field,
-		session?.fingerprint,
-		session?.identifier,
-		setSearchParams,
-		setShowLeftPanel,
-	])
+	}, [searchParams.query, session, setSearchParams, setShowLeftPanel])
 
 	return (
 		<Box display="flex" flexDirection="column" style={{ width: 300 }}>

@@ -5,6 +5,7 @@ import { TableList, TableListItem } from '@components/TableList/TableList'
 import {
 	Box,
 	ButtonIcon,
+	ButtonLink,
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
 	Text,
@@ -12,11 +13,10 @@ import {
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
 import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils'
 import { bytesToPrettyString } from '@util/string'
+import { buildQueryStateString } from '@util/url/params'
 import { message } from 'antd'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 
-import { EmptySessionsSearchParams } from '../../Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '../../Sessions/SearchContext/SearchContext'
 import { useReplayerContext } from '../ReplayerContext'
 import { formatSize } from '../Toolbar/DevToolsWindowV2/utils'
@@ -222,21 +222,24 @@ const MetadataPanel = () => {
 		deviceData.push({
 			keyDisplayValue: 'Device ID',
 			valueDisplayValue: (
-				<Link
-					to={window.location.pathname}
-					onClick={() => {
+				<ButtonLink
+					onClick={(e) => {
+						e.stopPropagation()
+
 						message.success(
 							`Showing sessions created by device #${session.fingerprint}`,
 						)
 						removeSelectedSegment()
 						setSearchParams({
-							...EmptySessionsSearchParams,
-							device_id: session.fingerprint?.toString(),
+							query: buildQueryStateString({
+								session_device_id:
+									session.fingerprint?.toString(),
+							}),
 						})
 					}}
 				>
 					#{session?.fingerprint}
-				</Link>
+				</ButtonLink>
 			),
 		})
 	}
