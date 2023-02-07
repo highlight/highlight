@@ -419,7 +419,6 @@ const ResourceRow = ({
 						className={styles.timingBar}
 						style={{
 							width: `${actualPercent}%`,
-							zIndex: 100,
 						}}
 					/>
 					<Box
