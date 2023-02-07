@@ -3770,7 +3770,10 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 	}
 
 	errorObject := model.ErrorObject{}
-	errorObjectQuery := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Order("id desc")
+	errorObjectQuery := r.DB.
+		Model(&model.ErrorObject{}).
+		Where("error_group_id = ?", errorGroup.ID).
+		Order("id desc")
 
 	if errorObjectID == nil {
 		sessionIds := []int{}
@@ -3792,14 +3795,15 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		}
 
 		if len(processedSessions) == 0 {
-			if err := errorObjectQuery.First(&errorObject).Error; err != nil {
+			if err := errorObjectQuery.Limit(1).Find(&errorObject).Error; err != nil {
 				return nil, e.Wrap(err, "error reading error object for instance")
 			}
 		} else {
 			// find the most recent object from the processed session
 			if err := errorObjectQuery.
 				Where("session_id IN ?", processedSessions).
-				First(&errorObject).
+				Limit(1).
+				Find(&errorObject).
 				Error; err != nil {
 				return nil, e.Wrap(err, "error reading error object for instance")
 			}
@@ -3807,38 +3811,40 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 	} else {
 		if err := errorObjectQuery.
 			Where(&model.ErrorObject{Model: model.Model{ID: *errorObjectID}}).
-			First(&errorObject).
+			Limit(1).
+			Find(&errorObject).
 			Error; err != nil {
 			return nil, e.Wrap(err, "error reading error object for instance")
 		}
 	}
-
-	nextErrorObject := model.ErrorObject{}
-	if err := r.DB.Model(&model.ErrorObject{}).
+	var nextID int
+	if err := r.DB.
+		Model(&model.ErrorObject{}).
 		Select("id").
-		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
+		Where("error_group_id = ?", errorGroup.ID).
 		Where("id > ?", errorObject.ID).
 		Order("id asc").
 		Limit(1).
-		Find(&nextErrorObject).Error; err != nil {
+		Pluck("id", &nextID).Error; err != nil {
 		return nil, e.Wrap(err, "error reading next error object in group")
 	}
 
-	previousErrorObject := model.ErrorObject{}
-	if err := r.DB.Model(&model.ErrorObject{}).
+	var previousID int
+	if err := r.DB.
+		Model(&model.ErrorObject{}).
 		Select("id").
-		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
+		Where("error_group_id = ?", errorGroup.ID).
 		Where("id < ?", errorObject.ID).
 		Order("id desc").
 		Limit(1).
-		Find(&previousErrorObject).Error; err != nil {
+		Pluck("id", &previousID).Error; err != nil {
 		return nil, e.Wrap(err, "error reading previous error object in group")
 	}
 
 	errorInstance := model.ErrorInstance{
 		ErrorObject: errorObject,
-		NextID:      &nextErrorObject.ID,
-		PreviousID:  &previousErrorObject.ID,
+		NextID:      &nextID,
+		PreviousID:  &previousID,
 	}
 
 	return &errorInstance, nil
