@@ -197,7 +197,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						eventAttributesMap := make(map[string]string)
 						for k, v := range eventAttributes {
 							vStr := castString(v, "")
-							if vStr != "" {
+							if vStr != "" && k != string(hlog.LogMessageKey) {
 								eventAttributesMap[k] = castString(v, "")
 							}
 						}

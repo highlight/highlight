@@ -9,7 +9,10 @@ from highlight_io.integrations.flask import FlaskIntegration
 
 app = Flask(__name__)
 H = highlight_io.H(
-    "YOUR_PROJECT_ID", integrations=[FlaskIntegration()], record_logs=True
+    "1",
+    integrations=[FlaskIntegration()],
+    record_logs=True,
+    otlp_endpoint="http://localhost:4318",
 )
 
 
