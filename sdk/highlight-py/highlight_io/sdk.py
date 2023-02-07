@@ -9,7 +9,6 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LogRecord
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider, _Span
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
@@ -144,7 +143,8 @@ class H(object):
                 severity_text=record.levelname,
                 severity_number=std_to_otel(record.levelno),
                 body=record.getMessage(),
-                resource=Resource({}),
+                resource=span.resource,
+                attributes=span.attributes,
             )
             self.log.emit(r)
 
