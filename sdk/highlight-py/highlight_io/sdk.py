@@ -17,7 +17,7 @@ from highlight_io.integrations import Integration
 
 class H(object):
     REQUEST_HEADER = "X-Highlight-Request"
-    OTLP_HTTP = "http://localhost:4318"
+    OTLP_HTTP = "https://otel.highlight.io:4318"
     _instance: "H" = None
 
     @classmethod
