@@ -8,7 +8,6 @@ import (
 
 	"github.com/google/uuid"
 	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 type Message struct {
@@ -38,9 +37,7 @@ func ParseConsoleMessages(projectID int, sessionSecureID string, messages string
 	for _, message := range messagesParsed.Messages {
 		logRow, err := makeLogRow(projectID, sessionSecureID, message)
 		if err != nil {
-			// If there's an issue with parsing, we'll log for investigation and try the next one
-			log.WithError(err).Error("failed to parse log message")
-			continue
+			return nil, err
 		}
 		logRows = append(logRows, logRow)
 	}
