@@ -39,7 +39,8 @@ const DevToolsWindowV2: React.FC<
 > = (props) => {
 	const { isPlayerFullscreen } = usePlayerUIContext()
 	const { time } = useReplayerContext()
-	const [tab, setTab] = React.useState<Tab>(Tab.Console)
+	const { selectedDevToolsTab, setSelectedDevToolsTab } =
+		usePlayerConfiguration()
 	const [requestType, setRequestType] = React.useState<RequestType>(
 		RequestType.All,
 	)
@@ -80,9 +81,9 @@ const DevToolsWindowV2: React.FC<
 				>
 					<Tabs<Tab>
 						handleRef={handleRef}
-						tab={tab}
+						tab={selectedDevToolsTab}
 						setTab={(t: Tab) => {
-							setTab(t)
+							setSelectedDevToolsTab(t)
 							form.reset()
 						}}
 						pages={{
@@ -175,7 +176,7 @@ const DevToolsWindowV2: React.FC<
 										</label>
 									</Form>
 
-									{tab === Tab.Console ? (
+									{selectedDevToolsTab === Tab.Console ? (
 										<MenuButton
 											divider
 											size="medium"
@@ -199,7 +200,7 @@ const DevToolsWindowV2: React.FC<
 												setLogLevel(ll as LogLevel)
 											}
 										/>
-									) : tab === Tab.Network ? (
+									) : selectedDevToolsTab === Tab.Network ? (
 										<MenuButton
 											size="medium"
 											options={Object.values(

@@ -21,7 +21,7 @@ import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import { formatTimeAsHMS, MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import classNames from 'classnames'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
@@ -37,7 +37,8 @@ const POPOVER_CONTENT_ROW_HEIGHT = 28
 const TimelinePopover = ({ bucket }: Props) => {
 	const history = useHistory()
 	const { setActiveError, setRightPanelView } = usePlayerUIContext()
-	const { setCurrentEvent, pause, errors } = useReplayerContext()
+	const { setCurrentEvent, pause, errors, isPlayerReady } =
+		useReplayerContext()
 	const {
 		setShowRightPanel,
 		setShowDevTools,
@@ -45,7 +46,24 @@ const TimelinePopover = ({ bucket }: Props) => {
 		setSelectedRightPlayerPanelTab,
 	} = usePlayerConfiguration()
 
+	const { activeError } = usePlayerUIContext()
+
 	const [selectedType, setSelectedType] = useState<string | null>(null)
+
+	useEffect(() => {
+		if (
+			isPlayerReady &&
+			activeError?.error_group_secure_id &&
+			bucket.identifier.Errors.includes(
+				activeError?.error_group_secure_id as string,
+			)
+		) {
+			setSelectedType('Errors')
+		}
+		// run once
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isPlayerReady])
+
 	const selectedTypeName = selectedType
 		? getTimelineEventDisplayName(selectedType)
 		: ''
