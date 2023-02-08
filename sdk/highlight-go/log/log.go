@@ -18,7 +18,7 @@ var (
 	LogMessageKey  = attribute.Key("log.message")
 )
 
-func SubmitFrontendConsoleMessages(projectID int, sessionSecureID string, messages string) error {
+func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSecureID string, messages string) error {
 	logRows, err := ParseConsoleMessages(messages)
 	if err != nil {
 		return err
@@ -29,7 +29,7 @@ func SubmitFrontendConsoleMessages(projectID int, sessionSecureID string, messag
 	}
 
 	span, _ := highlight.StartTrace(
-		context.TODO(), "highlight-ctx",
+		ctx, "highlight-ctx",
 		attribute.String("Source", "SubmitFrontendConsoleMessages"),
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 		attribute.String(highlight.SessionIDAttribute, sessionSecureID),

@@ -2703,7 +2703,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		defer unmarshalMessagesSpan.Finish()
 
-		if err := hlog.SubmitFrontendConsoleMessages(projectID, sessionSecureID, messages); err != nil {
+		if err := hlog.SubmitFrontendConsoleMessages(ctx, projectID, sessionSecureID, messages); err != nil {
 			log.WithError(err).Error("failed to parse console messages")
 		}
 
