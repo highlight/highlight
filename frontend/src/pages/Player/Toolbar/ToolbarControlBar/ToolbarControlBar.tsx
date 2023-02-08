@@ -91,6 +91,7 @@ export const ToolbarControlBar = () => {
 		play,
 		pause,
 		canViewSession,
+		isPlayerReady,
 		isLiveMode,
 		setIsLiveMode,
 		session,
@@ -114,7 +115,8 @@ export const ToolbarControlBar = () => {
 	const sessionDuration = sessionMetadata.totalTime ?? 0
 	const isPlaybackComplete = time >= sessionDuration && !isLiveMode
 
-	const disableControls = state === ReplayerState.Loading || !canViewSession
+	const disableControls =
+		state === ReplayerState.Loading || !canViewSession || !isPlayerReady
 	const showLiveToggle = session?.processed === false && !disableControls
 
 	const [showSettings, setShowSettings] = useState(false)

@@ -38,7 +38,8 @@ const ErrorsPage = ({
 }) => {
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const history = useHistory<ErrorsPageHistoryState>()
-	const { errors, state, session, sessionMetadata } = useReplayerContext()
+	const { errors, state, session, sessionMetadata, isPlayerReady } =
+		useReplayerContext()
 
 	const { setActiveError, setRightPanelView } = usePlayerUIContext()
 	const { setShowRightPanel } = usePlayerConfiguration()
@@ -95,7 +96,7 @@ const ErrorsPage = ({
 
 	return (
 		<Box className={styles.errorsContainer}>
-			{loading ? (
+			{loading || !isPlayerReady ? (
 				<LoadingBox />
 			) : !session || !errorsToRender.length ? (
 				<EmptyDevToolsCallout kind={Tab.Errors} filter={filter} />
