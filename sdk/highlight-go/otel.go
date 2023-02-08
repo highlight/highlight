@@ -34,7 +34,7 @@ type ErrorWithStack interface {
 
 var (
 	tracer = otel.GetTracerProvider().Tracer(
-		"github.com/highlight",
+		"github.com/highlight/highlight/sdk/highlight-go",
 		trace.WithInstrumentationVersion("v0.1.0"),
 		trace.WithSchemaURL(semconv.SchemaURL),
 	)
