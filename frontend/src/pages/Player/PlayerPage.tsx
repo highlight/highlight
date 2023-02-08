@@ -12,7 +12,6 @@ import { Replayer } from '@highlight-run/rrweb'
 import { Box } from '@highlight-run/ui'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { CompleteSetup } from '@pages/Player/components/CompleteSetup/CompleteSetup'
-import LoadingLiveSessionCard from '@pages/Player/components/LoadingLiveSessionCard/LoadingLiveSessionCard'
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard'
 import UnauthorizedViewingForm from '@pages/Player/components/UnauthorizedViewingForm/UnauthorizedViewingForm'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
@@ -285,12 +284,7 @@ const PlayerPage = ({ integrated }: Props) => {
 										modalPosition={commentModalPosition}
 										setCommentPosition={setCommentPosition}
 									/>
-									{!isPlayerReady &&
-										(session?.processed === false ? (
-											<LoadingLiveSessionCard />
-										) : (
-											playerFiller
-										))}
+									{!isPlayerReady && playerFiller}
 								</div>
 								<Toolbar width={controllerWidth} />
 							</div>
