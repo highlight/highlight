@@ -35,7 +35,6 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 	const { admin } = useAuthContext()
 	const [firstName, setFirstName] = useState('')
 	const [lastName, setLastName] = useState('')
-	const [phone, setPhone] = useState('')
 	const [isEngineeringRole, toggleIsEngineeringRole] = useToggle(false)
 	const [isProductRole, toggleIsProductRole] = useToggle(false)
 	const [role, setRole] = useState('')
@@ -57,7 +56,6 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 			const [adminFirstName, adminLastName] = admin.name.split(' ')
 			setFirstName(adminFirstName || '')
 			setLastName(adminLastName || '')
-			setPhone(admin.phone || '')
 		}
 	}, [admin])
 
@@ -84,7 +82,6 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 					adminDetails: {
 						first_name: firstName,
 						last_name: lastName,
-						phone: phone,
 						user_defined_role: role,
 						user_defined_persona: persona,
 						...attributionData,
@@ -141,19 +138,6 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 							/>
 						</div>
 					</section>
-					<section className={styles.section}>
-						<h3>What's your phone number?</h3>
-						<Input
-							placeholder="Phone #"
-							name="Phone #"
-							type="tel"
-							value={phone}
-							onChange={(e) => {
-								setPhone(e.target.value)
-							}}
-							autoFocus
-						/>
-					</section>
 
 					<section className={styles.section}>
 						<h3>What's your role?</h3>
@@ -196,7 +180,6 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 								firstName.length === 0 ||
 								lastName.length === 0 ||
 								role.length === 0 ||
-								(phone.length > 0 && phone.length < 10) ||
 								(!isEngineeringRole && !isProductRole)
 							}
 						>
