@@ -141,6 +141,11 @@ class H(object):
             ctx = span.get_span_context()
             # record.created is sec but timestamp should be ns
             ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
+            attributes = span.attributes.copy()
+            attributes["code.function"] = record.funcName
+            attributes["code.namespace"] = record.module
+            attributes["code.filepath"] = record.pathname
+            attributes["code.lineno"] = record.lineno
             r = LogRecord(
                 timestamp=ts,
                 trace_id=ctx.trace_id,
@@ -150,7 +155,7 @@ class H(object):
                 severity_number=std_to_otel(record.levelno),
                 body=record.getMessage(),
                 resource=span.resource,
-                attributes=span.attributes,
+                attributes=attributes,
             )
             self.log.emit(r)
 

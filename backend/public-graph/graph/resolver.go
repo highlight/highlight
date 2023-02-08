@@ -46,6 +46,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 )
 
 // This file will not be regenerated automatically.
@@ -2703,17 +2704,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		defer unmarshalMessagesSpan.Finish()
 
 		if projectID == 1 {
-			logRows, err := clickhouse.ParseConsoleMessages(projectID, sessionSecureID, messages)
-			if err != nil {
+			if err := hlog.SubmitFrontendConsoleMessages(ctx, projectID, sessionSecureID, messages); err != nil {
 				log.WithError(err).Error("failed to parse console messages")
-			} else {
-				if err := r.BatchedQueue.Submit(&kafka_queue.Message{
-					Type: kafka_queue.PushLogs,
-					PushLogs: &kafka_queue.PushLogsArgs{
-						LogRows: logRows,
-					}}, strconv.Itoa(projectID)); err != nil {
-					log.WithError(err).Error("error writing console messages to clickhouse")
-				}
 			}
 		}
 
