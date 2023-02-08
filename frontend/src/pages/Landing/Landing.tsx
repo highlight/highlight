@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { UserDropdown } from '@components/Header/UserDropdown/UserDropdown'
+import { Box } from '@highlight-run/ui'
 import { ReactNode, useEffect } from 'react'
 
 export const Landing = ({ children }: { children: ReactNode }) => {
@@ -12,14 +13,19 @@ export const Landing = ({ children }: { children: ReactNode }) => {
 	}, [])
 
 	return (
-		<div
-			className="bg-midnight flex min-h-screen w-full flex-col items-center overflow-y-auto p-8"
-			style={{ transform: `translateZ(0)` }} // scroll optimization
+		<Box
+			backgroundColor="p12"
+			alignItems="center"
+			display="flex"
+			minHeight="screen"
+			minWidth="screen"
+			overflowY="scroll"
+			p="32"
 		>
-			<div className="fixed right-5 top-5">
+			<Box cssClass="fixed right-5 top-5">
 				{isLoggedIn && <UserDropdown border />}
-			</div>
-			<div className="m-auto">{children}</div>
-		</div>
+			</Box>
+			<Box m="auto">{children}</Box>
+		</Box>
 	)
 }

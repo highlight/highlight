@@ -30,6 +30,7 @@ import {
 } from '@graph/hooks'
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
+import { SignUp } from '@pages/Auth/SignUp'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { setAttributionData } from '@util/attribution'
@@ -428,6 +429,9 @@ get in contact with us!
 					>
 						{/* Allow guests to access this route without being asked to log in */}
 						<AuthAdminRouter />
+					</Route>
+					<Route path="/sign_up">
+						<SignUp />
 					</Route>
 					<Route path="/">
 						<LoginForm />

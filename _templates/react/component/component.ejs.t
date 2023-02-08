@@ -1,17 +1,19 @@
 ---
-to: frontend/src/<%= name %>/<%= componentName %>.tsx
+to: frontend/src/<%= name %>.tsx
 ---
 
+import { Box, Text } from '@highlight-run/ui'
 import React from 'react'
 
-import styles from './<%= componentName %>.module.scss'
+import * as styles from './<%= componentName %>.css'
 
 type Props = React.PropsWithChildren & {}
 
-const <%= componentName %>: React.FC<Props> = (props) => {
+export const <%= componentName %>: React.FC<Props> = (props) => {
 	return (
-		<div className={styles.<%= h.changeCase.camel(componentName) %>}>Hello from <%= componentName %>!</div>
+		<Box cssClass={styles.container}>
+			<Text>Hello from <%= componentName %>!</Text>
+		</Box>
 	)
 }
 
-export default <%= componentName %>

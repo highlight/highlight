@@ -113,7 +113,7 @@ export const ButtonContent: React.FC<ButtonContentProps> = ({
 				</Box>
 			)}
 			{children && (
-				<Text userSelect="none" size={textSize}>
+				<Text userSelect="none" size={textSize} align="center">
 					{children}
 				</Text>
 			)}

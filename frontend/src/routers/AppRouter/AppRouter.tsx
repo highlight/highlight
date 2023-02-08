@@ -26,7 +26,7 @@ export const AppRouter = () => {
 	const { isLoggedIn } = useAuthContext()
 
 	return (
-		<Box height="vh" width="vw">
+		<Box height="screen" width="screen">
 			<Router>
 				<Switch>
 					<Route path="/subscriptions">
