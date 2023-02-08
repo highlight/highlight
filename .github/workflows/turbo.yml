@@ -75,6 +75,7 @@ jobs:
               run: yarn && yarn sourcemaps:frontend
               env:
                   HIGHLIGHT_API_KEY: ${{ secrets.HIGHLIGHT_SOURCEMAP_API_KEY }}
+                  APP_VERSION: ${{ github.sha }}
 
             - name: Configure yarn npm registry credentials
               if: github.ref == 'refs/heads/main'
