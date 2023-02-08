@@ -13,7 +13,7 @@ import {
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { Landing } from '@pages/Landing/Landing'
 import analytics from '@util/analytics'
-import { auth, googleProvider } from '@util/auth'
+import { auth } from '@util/auth'
 import firebase from 'firebase/app'
 import React from 'react'
 import { Link, useHistory } from 'react-router-dom'
@@ -94,7 +94,6 @@ export const SignUp: React.FC = () => {
 							name={formState.names.email}
 							label="Email"
 							type="email"
-							validate
 							autoFocus
 						/>
 						<Form.Input
@@ -136,7 +135,7 @@ export const SignUp: React.FC = () => {
 									type="button"
 									onClick={() => {
 										auth.signInWithPopup(
-											googleProvider,
+											auth.googleProvider!,
 										).catch(
 											(
 												error: firebase.auth.MultiFactorError,
