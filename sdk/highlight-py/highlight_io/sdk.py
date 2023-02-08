@@ -142,10 +142,10 @@ class H(object):
             # record.created is sec but timestamp should be ns
             ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
             attributes = {k: v for k, v in span.attributes.items()}
-            attributes['code.function'] = record.funcName
-            attributes['code.namespace'] = record.module
-            attributes['code.filepath'] = record.pathname
-            attributes['code.lineno'] = record.lineno
+            attributes["code.function"] = record.funcName
+            attributes["code.namespace"] = record.module
+            attributes["code.filepath"] = record.pathname
+            attributes["code.lineno"] = record.lineno
             r = LogRecord(
                 timestamp=ts,
                 trace_id=ctx.trace_id,
