@@ -141,6 +141,19 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 							/>
 						</div>
 					</section>
+					<section className={styles.section}>
+						<h3>What's your phone number?</h3>
+						<Input
+							placeholder="Phone #"
+							name="Phone #"
+							type="tel"
+							value={phone}
+							onChange={(e) => {
+								setPhone(e.target.value)
+							}}
+							autoFocus
+						/>
+					</section>
 
 					<section className={styles.section}>
 						<h3>What's your role?</h3>
