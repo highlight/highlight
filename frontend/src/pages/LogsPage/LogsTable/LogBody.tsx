@@ -3,11 +3,13 @@ import React from 'react'
 
 type Props = {
 	body: string
-	searchWord: string
+	query: string
 }
 
-const LogBody = ({ body, searchWord }: Props) => {
-	return <TextHighlighter searchWords={[searchWord]} textToHighlight={body} />
+const LogBody = ({ body, query }: Props) => {
+	const searchWords = query.split(' ')
+
+	return <TextHighlighter searchWords={searchWords} textToHighlight={body} />
 }
 
 export { LogBody }

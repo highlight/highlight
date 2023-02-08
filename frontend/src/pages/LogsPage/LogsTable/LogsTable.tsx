@@ -68,7 +68,7 @@ const LogsTable = ({ data, loading, query }: Props) => {
 			{
 				accessorKey: 'body',
 				cell: ({ getValue }) => (
-					<LogBody searchWord={query} body={getValue() as string} />
+					<LogBody query={query} body={getValue() as string} />
 				),
 			},
 		],
