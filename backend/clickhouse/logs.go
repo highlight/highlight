@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -86,11 +87,48 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 
 		logLines = append(logLines, &modelInputs.LogLine{
 			Timestamp:     Timestamp,
-			SeverityText:  SeverityText,
+			SeverityText:  makeSeverityText(SeverityText),
 			Body:          Body,
 			LogAttributes: gqlLogAttributes,
 		})
 	}
 	rows.Close()
 	return logLines, rows.Err()
+}
+
+func makeSeverityText(severityText string) modelInputs.SeverityText {
+	switch strings.ToLower(severityText) {
+	case "trace":
+		{
+			return modelInputs.SeverityTextTrace
+
+		}
+	case "debug":
+		{
+			return modelInputs.SeverityTextDebug
+
+		}
+	case "info":
+		{
+			return modelInputs.SeverityTextInfo
+
+		}
+	case "warn":
+		{
+			return modelInputs.SeverityTextWarn
+		}
+	case "error":
+		{
+			return modelInputs.SeverityTextError
+		}
+
+	case "fatal":
+		{
+			return modelInputs.SeverityTextFatal
+		}
+
+	default:
+		return modelInputs.SeverityTextInfo
+	}
+
 }

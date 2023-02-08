@@ -28,16 +28,28 @@ func buildLogAttributes(userQuery string) string {
 	queries := strings.Split(userQuery, " ")
 
 	logAttributes := []string{}
+	bodyParams := []string{}
 
 	for _, query := range queries {
 		parts := strings.Split(query, ":")
 
-		if len(parts) == 2 {
+		if len(parts) == 1 && len(parts[0]) > 0 {
+			bodyParams = append(bodyParams, parts[0])
+		} else if len(parts) == 2 {
 			key := parts[0]
 			value := parts[1]
 			logAttributes = append(logAttributes, fmt.Sprintf("LogAttributes['%s'] = '%s'", key, value))
 		}
 	}
 
+	if len(bodyParams) > 0 {
+		wildcardBodyParams := "%" + strings.Join(bodyParams, " ") + "%"
+		logAttributes = append(logAttributes, fmt.Sprintf("Body ILIKE %s", quoteString(wildcardBodyParams)))
+	}
+
 	return strings.Join(logAttributes, " AND ")
+}
+
+func quoteString(str string) string {
+	return "'" + strings.ReplaceAll(str, "'", "''") + "'"
 }

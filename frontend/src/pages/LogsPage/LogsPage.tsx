@@ -1,23 +1,67 @@
-import LoadingBox from '@components/LoadingBox'
-import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
 import { useGetLogsQuery } from '@graph/hooks'
-import { Container, Stack } from '@highlight-run/ui'
-import useDataTimeRange from '@hooks/useDataTimeRange'
+import { Box } from '@highlight-run/ui'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useParams } from '@util/react-router/useParams'
-import React from 'react'
+import moment from 'moment'
+import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { StringParam, useQueryParam, withDefault } from 'use-query-params'
+import { useHistory, useLocation } from 'react-router-dom'
 
-const QueryParam = withDefault(StringParam, '')
+const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
+
+function useQuery() {
+	const { search } = useLocation()
+
+	return React.useMemo(() => new URLSearchParams(search), [search])
+}
+
+const defaultEndDate = moment().format(FORMAT)
+const defaultStartDate = moment(defaultEndDate)
+	.subtract('30', 'days')
+	.format(FORMAT)
 
 const LogsPage = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const [query, setQuery] = useQueryParam('query', QueryParam)
-	const { timeRange } = useDataTimeRange()
+	const queryParams = useQuery()
+
+	return (
+		<LogsPageInner
+			project_id={project_id}
+			queryParam={queryParams.get('query') ?? ''}
+			start_date={defaultStartDate}
+			end_date={defaultEndDate}
+		/>
+	)
+}
+
+type Props = {
+	project_id: string
+	queryParam: string
+	start_date: string
+	end_date: string
+}
+
+const LogsPageInner = ({
+	project_id,
+	queryParam,
+	start_date,
+	end_date,
+}: Props) => {
+	const [query, setQuery] = useState(queryParam)
+	const history = useHistory()
+
+	useEffect(() => {
+		const params = new URLSearchParams()
+		if (query) {
+			params.append('query', query)
+		} else {
+			params.delete('query')
+		}
+		history.push({ search: params.toString() })
+	}, [query, history])
 
 	const { data, loading } = useGetLogsQuery({
 		variables: {
@@ -25,15 +69,15 @@ const LogsPage = () => {
 			params: {
 				query,
 				date_range: {
-					start_date: timeRange.start_date,
-					end_date: timeRange.end_date,
+					start_date,
+					end_date,
 				},
 			},
 		},
 	})
 
-	if (loading) {
-		return <LoadingBox />
+	const handleFormSubmit = (value: string) => {
+		setQuery(value)
 	}
 
 	return (
@@ -41,13 +85,17 @@ const LogsPage = () => {
 			<Helmet>
 				<title>Logs</title>
 			</Helmet>
-			<Container>
-				<Stack direction="row">
-					<SearchForm query={query} onFormSubmit={setQuery} />
-					<TimeRangePicker />
-				</Stack>
-				{data?.logs && <LogsTable data={data.logs} />}
-			</Container>
+			<Box background="n2" padding="8" flex="stretch">
+				<Box background="white" borderRadius="12">
+					<SearchForm
+						initialQuery={query}
+						onFormSubmit={handleFormSubmit}
+						startDate={start_date}
+						endDate={end_date}
+					/>
+					<LogsTable data={data} loading={loading} query={query} />
+				</Box>
+			</Box>
 		</>
 	)
 }
