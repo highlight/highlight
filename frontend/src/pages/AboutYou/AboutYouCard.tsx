@@ -64,7 +64,6 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 	useEffect(() => analytics.page('/about_you'), [])
 
 	const onFormSubmit = async (e: { preventDefault: () => void }) => {
-		analytics.track('about-you-submitted')
 		e.preventDefault()
 		const attributionData = getAttributionData()
 
