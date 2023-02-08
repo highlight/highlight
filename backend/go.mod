@@ -87,8 +87,8 @@ require (
 	golang.org/x/text v0.6.0
 	google.golang.org/api v0.103.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.43.1
-	gorm.io/driver/postgres v1.0.8
-	gorm.io/gorm v1.21.9
+	gorm.io/driver/postgres v1.4.7
+	gorm.io/gorm v1.24.2
 )
 
 require (
@@ -125,6 +125,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hasura/go-graphql-client v0.8.1 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
+	github.com/jackc/pgx/v5 v5.2.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -206,11 +207,9 @@ require (
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.2.0 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
-	github.com/jackc/pgtype v1.9.0 // indirect
-	github.com/jackc/pgx/v4 v4.14.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jinzhu/now v1.1.3 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.15.15 // indirect
 	github.com/leonelquinteros/hubspot v0.1.0
 	github.com/philhofer/fwd v1.1.1 // indirect
@@ -223,7 +222,7 @@ require (
 	github.com/xdg/scram v1.0.5 // indirect
 	github.com/xdg/stringprep v1.0.3 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
+	golang.org/x/crypto v0.4.0 // indirect
 	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/net v0.5.0 // indirect
 	golang.org/x/sys v0.4.0 // indirect
