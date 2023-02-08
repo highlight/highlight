@@ -20,7 +20,7 @@ import { gqlSanitize } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
-import { styledScrollbar } from 'style/common.css'
+import { styledVerticalScrollbar } from 'style/common.css'
 
 import * as style from './SearchPanel.css'
 
@@ -110,7 +110,7 @@ const SearchPanel = () => {
 				padding="8"
 				overflowX="hidden"
 				overflowY="auto"
-				cssClass={[style.content, styledScrollbar]}
+				cssClass={[style.content, styledVerticalScrollbar]}
 			>
 				{loading ? (
 					<LoadingBox />
