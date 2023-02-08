@@ -1,5 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import classNames from 'classnames'
 import React from 'react'
 
 interface Props {
@@ -21,7 +20,7 @@ const HighlightGate: React.FC<React.PropsWithChildren<Props>> = ({
 			{React.Children.map(children, (child) => {
 				// @ts-expect-error
 				return React.cloneElement(child, {
-					className: classNames(
+					className: clsx(
 						// @ts-expect-error
 						child?.props.className,
 					),

@@ -26,9 +26,9 @@ import { auth } from '@util/auth'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
-import { Route, Switch } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import commonStyles from '../../Common.module.scss'
@@ -47,8 +47,8 @@ export const ProjectRouter = () => {
 	const { setLoadingState } = useAppLoadingContext()
 
 	const { data, loading, error } = useGetProjectDropdownOptionsQuery({
-		variables: { project_id },
-		skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
+		variables: { project_id: project_id ?? '' },
+		skip: !isLoggedIn || !project_id, // Higher level routers decide when guests are allowed to hit this router
 	})
 
 	const { integrated, loading: integratedLoading } = useIntegrated()
@@ -190,58 +190,66 @@ export const ProjectRouter = () => {
 				<PlayerUIContextProvider value={playerUIContext}>
 					<WithSessionSearchContext>
 						<WithErrorSearchContext>
-							<Switch>
-								<Route path="/:project_id/front" exact>
-									<FrontPlugin />
-								</Route>
-								<Route>
-									<Header />
-									<KeyboardShortcutsEducation />
-									<div
-										className={classNames(
-											commonStyles.bodyWrapper,
-											{
-												[commonStyles.bannerShown]:
-													showBanner,
-											},
-										)}
-									>
-										{/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
-										{isLoggedIn && joinableWorkspace ? (
-											<ErrorState
-												shownWithHeader
-												joinableWorkspace={
-													joinableWorkspace
-												}
-											/>
-										) : isLoggedIn &&
-										  (error || !data?.project) ? (
-											<ErrorState
-												title="Enter this Workspace?"
-												message={`
+							<Routes>
+								<Route
+									path="/front"
+									element={<FrontPlugin />}
+								/>
+								<Route
+									element={
+										<>
+											<Header />
+											<KeyboardShortcutsEducation />
+											<div
+												className={clsx(
+													commonStyles.bodyWrapper,
+													{
+														[commonStyles.bannerShown]:
+															showBanner,
+													},
+												)}
+											>
+												{/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
+												{isLoggedIn &&
+												joinableWorkspace ? (
+													<ErrorState
+														shownWithHeader
+														joinableWorkspace={
+															joinableWorkspace
+														}
+													/>
+												) : isLoggedIn &&
+												  (error || !data?.project) ? (
+													<ErrorState
+														title="Enter this Workspace?"
+														message={`
                         Sadly, you don’t have access to the workspace 😢
                         Request access and we'll shoot an email to your workspace admin.
                         Alternatively, feel free to make an account!
                         `}
-												shownWithHeader
-												showRequestAccess
-											/>
-										) : (
-											<>
-												{isLoggedIn &&
-													!hasFinishedOnboarding && (
-														<>
-															<OnboardingBubble />
-														</>
-													)}
-												<ApplicationRouter
-													integrated={integrated}
-												/>
-											</>
-										)}
-									</div>
-								</Route>
-							</Switch>
+														shownWithHeader
+														showRequestAccess
+													/>
+												) : (
+													<>
+														{isLoggedIn &&
+															!hasFinishedOnboarding && (
+																<>
+																	<OnboardingBubble />
+																</>
+															)}
+														<ApplicationRouter
+															integrated={
+																integrated
+															}
+														/>
+													</>
+												)}
+											</div>
+										</>
+									}
+								/>
+							</Routes>
 						</WithErrorSearchContext>
 					</WithSessionSearchContext>
 				</PlayerUIContextProvider>

@@ -13,7 +13,6 @@ import {
 	ErrorCountGraph,
 	SessionCountGraph,
 } from '@pages/Home/utils/HomeCharts'
-import classNames from 'classnames'
 import React, { FunctionComponent, useState } from 'react'
 
 import DashboardInnerCard from '../DashboardInnerCard/DashboardInnerCard'
@@ -109,7 +108,7 @@ export const DashboardComponentCard = ({
 								style={{ width: 1, height: 32 }}
 							/>
 							<div
-								className={classNames(styles.draggable)}
+								className={clsx(styles.draggable)}
 								data-drag-handle=""
 							>
 								<SvgDragIcon />
@@ -124,7 +123,7 @@ export const DashboardComponentCard = ({
 				</div>
 			}
 		>
-			<div className={classNames(styles.card, styles.componentCard)}>
+			<div className={clsx(styles.card, styles.componentCard)}>
 				{React.createElement(PrebuiltComponentMap[componentType].fc, {
 					setUpdatingData,
 					filterSearchTerm,

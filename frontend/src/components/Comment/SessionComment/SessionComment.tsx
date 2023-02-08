@@ -12,7 +12,6 @@ import SvgSpeechBubbleIcon from '@icons/SpeechBubbleIcon'
 import { ParsedSessionComment } from '@pages/Player/ReplayerContext'
 import { message } from 'antd'
 import Menu from 'antd/lib/menu'
-import classNames from 'classnames'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 
@@ -45,7 +44,7 @@ export const SessionCommentCard = ({
 }: Props) => {
 	return (
 		<div
-			className={classNames(styles.container, {
+			className={clsx(styles.container, {
 				[styles.deepLinkedComment]: deepLinkedCommentId === comment.id,
 				[styles.hasShadow]: hasShadow,
 			})}
@@ -192,10 +191,7 @@ export const ExperimentalSessionCommentFooter: React.FC<
 				<Button
 					trackingId="SessionCommentReply"
 					type="text"
-					className={classNames(
-						styles.iconLabel,
-						styles.actionButton,
-					)}
+					className={clsx(styles.iconLabel, styles.actionButton)}
 					onClick={() => {
 						message.success(
 							`Hi ${

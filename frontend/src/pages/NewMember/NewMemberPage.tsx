@@ -7,7 +7,7 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
-import { Redirect } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 import commonStyles from '../../Common.module.scss'
 import Button from '../../components/Button/Button/Button'
@@ -38,7 +38,7 @@ const NewMemberPage = () => {
 	}, [adminLoading, setLoadingState])
 
 	if (adminAdded) {
-		return <Redirect to={`/w/${workspace_id}`} />
+		return <Navigate replace to={`/w/${workspace_id}`} />
 	}
 
 	return (
@@ -55,8 +55,8 @@ const NewMemberPage = () => {
 				onClick={() => {
 					addAdmin({
 						variables: {
-							workspace_id,
-							invite_id,
+							workspace_id: workspace_id!,
+							invite_id: invite_id!,
 						},
 					})
 						.then((result) => {

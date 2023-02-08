@@ -8,7 +8,7 @@ import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
 
@@ -42,8 +42,8 @@ const KeyPerformanceIndicators = ({
 
 	return (
 		<div
-			className={classNames(
-				'flex flex-wrap justify-between gap-8 h-full mb-8 p-6 w-full',
+			className={clsx(
+				'mb-8 flex h-full w-full flex-wrap justify-between gap-8 p-6',
 				{
 					['blur-xs']: loading,
 				},

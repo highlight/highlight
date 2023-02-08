@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import React, { HTMLProps } from 'react'
 
 import styles from './ModalBody.module.scss'
@@ -8,10 +7,7 @@ const ModalBody: React.FC<
 	React.PropsWithChildren<HTMLProps<HTMLDivElement>>
 > = ({ children, ...props }) => {
 	return (
-		<div
-			{...props}
-			className={classNames(styles.modalBody, props.className)}
-		>
+		<div {...props} className={clsx(styles.modalBody, props.className)}>
 			{children}
 		</div>
 	)

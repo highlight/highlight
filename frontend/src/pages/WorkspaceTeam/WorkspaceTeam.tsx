@@ -26,7 +26,6 @@ import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { useParams } from '@util/react-router/useParams'
 import { getDisplayNameFromEmail, titleCaseString } from '@util/string'
 import { message } from 'antd'
-import classNames from 'classnames/bind'
 import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { useToggle } from 'react-use'
@@ -165,7 +164,7 @@ const WorkspaceTeam = () => {
 							<Button
 								trackingId="WorkspaceInviteMember"
 								type="primary"
-								className={classNames(
+								className={clsx(
 									commonStyles.submitButton,
 									styles.inviteButton,
 								)}
@@ -238,12 +237,7 @@ const WorkspaceTeam = () => {
 					Invite Member
 				</Button>
 			</div>
-			<div
-				className={classNames(
-					styles.memberCardWrapper,
-					'highlight-mask',
-				)}
-			>
+			<div className={clsx(styles.memberCardWrapper, 'highlight-mask')}>
 				<Card noPadding>
 					<Table
 						columns={

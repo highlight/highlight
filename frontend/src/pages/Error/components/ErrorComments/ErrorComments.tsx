@@ -23,7 +23,6 @@ import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerInt
 import analytics from '@util/analytics'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { Menu } from 'antd'
-import classNames from 'classnames'
 import React, { useMemo, useState } from 'react'
 
 import CommentTextBody from '../../../Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
@@ -69,7 +68,7 @@ export const ErrorCommentCard = ({
 	if (!comment) return null
 	return (
 		<div
-			className={classNames(styles.commentDiv, {
+			className={clsx(styles.commentDiv, {
 				[styles.deepLinked]: !!deepLinked,
 			})}
 		>

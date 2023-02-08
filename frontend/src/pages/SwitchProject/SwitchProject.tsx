@@ -10,7 +10,7 @@ import { useGetWorkspaceQuery } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { Redirect } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 import styles from './SwitchProject.module.scss'
 
@@ -19,7 +19,8 @@ const SwitchProject = () => {
 		workspace_id: string
 	}>()
 	const { data, loading } = useGetWorkspaceQuery({
-		variables: { id: workspace_id },
+		variables: { id: workspace_id! },
+		skip: !workspace_id,
 	})
 	const { setLoadingState } = useAppLoadingContext()
 
@@ -48,11 +49,11 @@ const SwitchProject = () => {
 	)
 
 	if (shouldRedirect) {
-		return <Redirect to={`/${selectedProject}/setup`} />
+		return <Navigate replace to={`/${selectedProject}/setup`} />
 	}
 
 	if (data?.workspace && data?.workspace?.projects.length < 1) {
-		return <Redirect to={`/w/${workspace_id}/new`} />
+		return <Navigate replace to={`/w/${workspace_id}/new`} />
 	}
 
 	return (

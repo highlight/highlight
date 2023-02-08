@@ -11,7 +11,7 @@ import { useGetWorkspacesQuery, useJoinWorkspaceMutation } from '@graph/hooks'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { Redirect, useLocation } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import styles from './SwitchWorkspace.module.scss'
@@ -125,9 +125,9 @@ const SwitchWorkspace = () => {
 
 	if (shouldRedirect) {
 		if (actionText === 'Join') {
-			return <Redirect to={`/w/${selectedWorkspace}/switch${search}`} />
+			return <Navigate to={`/w/${selectedWorkspace}/switch${search}`} />
 		}
-		return <Redirect to={`/w/${selectedWorkspace}${search}`} />
+		return <Navigate to={`/w/${selectedWorkspace}${search}`} />
 	}
 
 	return (

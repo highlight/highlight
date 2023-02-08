@@ -9,7 +9,7 @@ import {
 } from '@pages/IntegrationsPage/components/Integration'
 import { message } from 'antd'
 import React, { useEffect } from 'react'
-import { Redirect, useHistory } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 
 import styles from './ClearbitIntegrationConfig.module.scss'
 
@@ -24,7 +24,7 @@ const ClearbitIntegrationConfig: React.FC<
 		workspaceID,
 		modifyClearbit,
 	} = useClearbitIntegration()
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	useEffect(() => {
 		if (
@@ -79,7 +79,7 @@ const ClearbitIntegrationConfig: React.FC<
 		)
 	}
 	if (redirectToBilling) {
-		return <Redirect to={`/w/${workspaceID}/upgrade-plan`} />
+		return <Navigate replace to={`/w/${workspaceID}/upgrade-plan`} />
 	}
 
 	return (
@@ -114,7 +114,7 @@ const ClearbitIntegrationConfig: React.FC<
 							className={styles.modalBtn}
 							type="primary"
 							onClick={() => {
-								history.push(`/${projectID}/integrations`)
+								navigate(`/${projectID}/integrations`)
 								setRedirectToBilling(true)
 							}}
 						>

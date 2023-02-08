@@ -69,7 +69,7 @@ const UserSettings: React.FC = () => {
 													'recording'
 												}
 												onChange={(key) => {
-													history.push(
+													navigate(
 														`${match.url}/${key}`,
 													)
 												}}

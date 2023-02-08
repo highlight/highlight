@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import React from 'react'
 
 import SvgShareIcon from '../../../static/ShareIcon'
@@ -13,7 +12,7 @@ const ShareButton = (props: Props) => {
 		<Button
 			type="link"
 			{...props}
-			className={classNames(props.className, styles.button)}
+			className={clsx(props.className, styles.button)}
 		>
 			<SvgShareIcon />
 			Share

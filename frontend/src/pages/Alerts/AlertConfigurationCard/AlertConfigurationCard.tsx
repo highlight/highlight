@@ -20,11 +20,11 @@ import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSl
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { Divider, Form, message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { useHistory } from 'react-router'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router'
+import { Link, useLocation } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
 
 import Button from '../../../components/Button/Button/Button'
@@ -95,13 +95,13 @@ export const AlertConfigurationCard = ({
 	)
 	const [searchQuery, setSearchQuery] = useState('')
 	const [identifierQuery, setIdentifierQuery] = useState('')
-	const { project_id } = useParams<{ project_id: string }>()
+	const { project_id: projectIdFromUrl } = useParams<{ project_id: string }>()
+	const projectId = projectIdFromUrl ?? '0'
 	const [form] = Form.useForm()
 	const [updateErrorAlert] = useUpdateErrorAlertMutation()
-	const history = useHistory()
 	const [createErrorAlert, {}] = useCreateErrorAlertMutation({
 		variables: {
-			project_id,
+			project_id: projectId,
 			count_threshold: 1,
 			environments: [],
 			slack_channels: [],
@@ -126,15 +126,21 @@ export const AlertConfigurationCard = ({
 		alert.Name || defaultName
 	}-excludedIdentifiers`
 
+	const navigate = useNavigate()
+	const location = useLocation()
+
 	useEffect(() => {
-		history.replace(history.location.pathname, {
-			errorName: alert.Name || defaultName,
+		navigate(location.pathname, {
+			state: {
+				errorName: alert.Name || defaultName,
+			},
+			replace: true,
 		})
-	}, [alert.Name, defaultName, history])
+	}, [alert.Name, defaultName, location.pathname, navigate])
 
 	const onSubmit = async () => {
 		const requestVariables = {
-			project_id,
+			project_id: projectId,
 			environments: form.getFieldValue(excludedEnvironmentsFormName),
 			count_threshold: form.getFieldValue('threshold'),
 			slack_channels: form
@@ -298,7 +304,7 @@ export const AlertConfigurationCard = ({
 						break
 				}
 				message.success(`Created ${requestVariables.name} alert!`)
-				history.push(`/${project_id}/alerts`)
+				navigate(`/${projectId}/alerts`)
 			} catch (e) {
 				console.log(e)
 			}
@@ -471,9 +477,10 @@ export const AlertConfigurationCard = ({
 		refetch: refetchUserSuggestions,
 	} = useGetUserSuggestionQuery({
 		variables: {
-			project_id,
+			project_id: projectId,
 			query: '',
 		},
+		skip: !projectId,
 	})
 
 	const {
@@ -482,9 +489,10 @@ export const AlertConfigurationCard = ({
 		data: trackSuggestionsApiResponse,
 	} = useGetTrackSuggestionQuery({
 		variables: {
-			project_id,
+			project_id: projectId,
 			query: '',
 		},
+		skip: !projectId,
 	})
 
 	const {
@@ -493,9 +501,10 @@ export const AlertConfigurationCard = ({
 		data: identifierSuggestionsApiResponse,
 	} = useGetIdentifierSuggestionsQuery({
 		variables: {
-			project_id,
+			project_id: projectId,
 			query: '',
 		},
+		skip: !projectId,
 	})
 
 	const channels = channelSuggestions.map(
@@ -551,16 +560,16 @@ export const AlertConfigurationCard = ({
 
 	/** Searches for a user property  */
 	const handleUserPropertiesSearch = (query = '') => {
-		refetchUserSuggestions({ query, project_id })
+		refetchUserSuggestions({ query, project_id: projectId })
 	}
 
 	const handleTrackPropertiesSearch = (query = '') => {
-		refetchTrackSuggestions({ query, project_id })
+		refetchTrackSuggestions({ query, project_id: projectId })
 	}
 
 	const handleIdentifierSearch = (query = '') => {
 		setIdentifierQuery(query)
-		refetchIdentifierSuggestions({ query, project_id })
+		refetchIdentifierSuggestions({ query, project_id: projectId })
 	}
 
 	const onChannelsChange = (channels: string[]) => {
@@ -650,12 +659,7 @@ export const AlertConfigurationCard = ({
 				</Helmet>
 			)}
 			<div className={styles.alertConfigurationCard}>
-				<p
-					className={classNames(
-						layoutStyles.subTitle,
-						styles.subTitle,
-					)}
-				>
+				<p className={clsx(layoutStyles.subTitle, styles.subTitle)}>
 					This is an{' '}
 					<strong style={{ color: getAlertTypeColor(defaultName) }}>
 						{defaultName}
@@ -690,7 +694,7 @@ export const AlertConfigurationCard = ({
 							[excludedIdentifiersFormName]: alert.ExcludeRules,
 							frequency: [frequency],
 						}}
-						key={project_id}
+						key={projectId}
 					>
 						<section>
 							<h3>Name</h3>

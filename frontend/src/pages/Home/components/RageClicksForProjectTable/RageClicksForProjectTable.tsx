@@ -18,10 +18,10 @@ import { validateEmail } from '@util/string'
 import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
 import { ColumnsType } from 'antd/lib/table'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
 import Tooltip from '../../../../components/Tooltip/Tooltip'
@@ -51,13 +51,13 @@ const RageClicksForProjectTable = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { setSearchParams, removeSelectedSegment } = useSearchContext()
+	const { removeSelectedSegment } = useSearchContext()
 	const { timeRange } = useDataTimeRange()
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const { loading } = useGetRageClicksForProjectQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			lookBackPeriod: moment
 				.duration(timeRange.lookback, 'minutes')
 				.as('days'),
@@ -98,7 +98,7 @@ const RageClicksForProjectTable = ({
 	}
 
 	return (
-		<div className={classNames({ [styles.loading]: loading })}>
+		<div className={clsx({ [styles.loading]: loading })}>
 			<DashboardInnerTable>
 				<ProgressBarTable
 					loading={false}
@@ -112,7 +112,7 @@ const RageClicksForProjectTable = ({
 							? 'email'
 							: 'identifier'
 
-						history.push({
+						navigate({
 							pathname: `/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
 							search: buildQueryURLString({
 								[`user_${userParam}`]: displayName,

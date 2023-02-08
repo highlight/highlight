@@ -4,7 +4,6 @@ import { PlanType, SubscriptionInterval } from '@graph/schemas'
 import MessageIcon from '@icons/MessageIcon'
 import { MEMBERS_PRICE } from '@pages/Billing/BillingStatusCard/BillingStatusCard'
 import { formatNumberWithDelimiters } from '@util/numbers'
-import classNames from 'classnames/bind'
 import React from 'react'
 
 import commonStyles from '../../../Common.module.scss'
@@ -40,7 +39,7 @@ export const BillingPlanCard = ({
 
 	return (
 		<div
-			className={classNames(styles.billingPlanCard, {
+			className={clsx(styles.billingPlanCard, {
 				[styles.currentPlan]: current,
 				[styles.glowingPlan]: glowing,
 			})}
@@ -49,7 +48,7 @@ export const BillingPlanCard = ({
 			{billingPlan.type === PlanType.Enterprise ? (
 				<div className={styles.enterpriseRow}>
 					<span
-						className={classNames(
+						className={clsx(
 							commonStyles.title,
 							styles.billingPlanPrice,
 						)}
@@ -61,7 +60,7 @@ export const BillingPlanCard = ({
 			) : (
 				<div>
 					<span
-						className={classNames(
+						className={clsx(
 							commonStyles.title,
 							styles.billingPlanPrice,
 						)}

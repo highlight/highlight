@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import React from 'react'
 
 import styles from './DataCard.module.scss'
@@ -17,7 +16,7 @@ const DataCard: React.FC<React.PropsWithChildren<Props>> = ({
 }) => {
 	return (
 		<article
-			className={classNames(styles.card, props.className, {
+			className={clsx(styles.card, props.className, {
 				[styles.fullWidth]: fullWidth,
 			})}
 		>

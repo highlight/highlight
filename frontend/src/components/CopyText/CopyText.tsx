@@ -1,6 +1,5 @@
 import SvgCopyIcon from '@icons/CopyIcon'
 import { message } from 'antd'
-import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 
 import Button from '../Button/Button/Button'
@@ -44,7 +43,7 @@ const CopyText: React.FC<React.PropsWithChildren<Props>> = ({
 	}
 
 	return (
-		<div className={classNames(className, styles.container)}>
+		<div className={clsx(className, styles.container)}>
 			<span className={styles.link}>{text}</span>
 			<Button
 				type="primary"

@@ -45,7 +45,7 @@ import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
 import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
@@ -64,7 +64,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		error_object_id: string
 	}>()
 	const { projectId } = useProjectId()
-	const history = useHistory()
+	const navigate = useNavigate()
 	const client = useApolloClient()
 	const { isLoggedIn } = useAuthContext()
 
@@ -137,7 +137,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			return
 		}
 
-		history.push({
+		navigate({
 			pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstanceId}`,
 			search: window.location.search,
 		})
@@ -299,7 +299,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									return
 								}
 
-								history.push(
+								navigate(
 									`/${projectId}/sessions/${errorObject.session?.secure_id}` +
 										`?tsAbs=${errorObject.timestamp}`,
 								)
@@ -451,7 +451,7 @@ const Metadata: React.FC<{
 const User: React.FC<{
 	errorObject?: GetErrorObjectQuery['error_object']
 }> = ({ errorObject }) => {
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
 	const { setSearchParams } = useSearchContext()
@@ -536,7 +536,7 @@ const User: React.FC<{
 									)
 								}
 
-								history.push(`/${projectId}/sessions`)
+								navigate(`/${projectId}/sessions`)
 								setSearchParams(searchParams)
 							}}
 							trackingId="errorInstanceAllSessionsForuser"

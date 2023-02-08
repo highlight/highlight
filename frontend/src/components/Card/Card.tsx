@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import React from 'react'
 
 import styles from './Card.module.scss'
@@ -23,7 +22,7 @@ const Card: React.FC<React.PropsWithChildren<CardProps>> = ({
 	return (
 		<article
 			{...props}
-			className={classNames(styles.card, props.className, {
+			className={clsx(styles.card, props.className, {
 				[styles.noPadding]: noPadding,
 				[styles.interactable]: interactable,
 				[styles.full]: full,
@@ -31,7 +30,7 @@ const Card: React.FC<React.PropsWithChildren<CardProps>> = ({
 		>
 			{title && (
 				<div
-					className={classNames(styles.titleContainer, {
+					className={clsx(styles.titleContainer, {
 						[styles.noTitleBottomMargin]:
 							typeof title !== 'string' || noTitleBottomMargin,
 					})}
@@ -62,10 +61,7 @@ export const CardForm: React.FC<
 	React.PropsWithChildren<React.FormHTMLAttributes<HTMLFormElement>>
 > = ({ children, ...props }) => {
 	return (
-		<form
-			{...props}
-			className={classNames(props.className, styles.cardForm)}
-		>
+		<form {...props} className={clsx(props.className, styles.cardForm)}>
 			{children}
 		</form>
 	)

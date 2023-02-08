@@ -21,16 +21,15 @@ import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
-import { Route, Switch, useRouteMatch } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 
 const DashboardsRouter = () => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const { path } = useRouteMatch()
 	const { data: adminsData } = useGetWorkspaceAdminsByProjectIdQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
 	})
 	const { data, loading, called } = useGetDashboardDefinitionsQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
 	})
 	const [upsertDashboardMutation] = useUpsertDashboardMutation({
 		refetchQueries: [namedOperations.Query.GetDashboardDefinitions],
@@ -46,7 +45,7 @@ const DashboardsRouter = () => {
 		) {
 			upsertDashboardMutation({
 				variables: {
-					project_id,
+					project_id: project_id!,
 					metrics: Object.values(WEB_VITALS_CONFIGURATION),
 					name: 'Web Vitals',
 					layout: JSON.stringify(DEFAULT_METRICS_LAYOUT),
@@ -61,7 +60,7 @@ const DashboardsRouter = () => {
 		if (!homeDashboard?.metrics?.length) {
 			upsertDashboardMutation({
 				variables: {
-					project_id,
+					project_id: project_id!,
 					metrics: Object.values(HOME_DASHBOARD_CONFIGURATION),
 					name: 'Home',
 					layout: JSON.stringify(DEFAULT_HOME_DASHBOARD_LAYOUT),
@@ -112,7 +111,7 @@ const DashboardsRouter = () => {
 			) {
 				upsertDashboardMutation({
 					variables: {
-						project_id,
+						project_id: project_id!,
 						metrics: Object.values(
 							FRONTEND_OBSERVABILITY_CONFIGURATION,
 						),
@@ -135,7 +134,7 @@ const DashboardsRouter = () => {
 					return upsertDashboardMutation({
 						variables: {
 							id,
-							project_id,
+							project_id: project_id!,
 							metrics,
 							name,
 							layout,
@@ -147,17 +146,11 @@ const DashboardsRouter = () => {
 			<Helmet>
 				<title>Dashboards</title>
 			</Helmet>
-			<Switch>
-				<Route exact path="/:project_id/analytics">
-					<HomePageV2 />
-				</Route>
-				<Route exact path={path}>
-					<DashboardsHomePage />
-				</Route>
-				<Route path={`${path}/:id`}>
-					<DashboardPage />
-				</Route>
-			</Switch>
+			<Routes>
+				<Route path="/:project_id/analytics" element={<HomePageV2 />} />
+				<Route path="/*" element={<DashboardsHomePage />} />
+				<Route path="/:id" element={<DashboardPage />} />
+			</Routes>
 		</DashboardsContextProvider>
 	)
 }

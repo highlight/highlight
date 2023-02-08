@@ -40,7 +40,6 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
 import { Form, message } from 'antd'
-import classNames from 'classnames'
 import React, { useEffect, useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
 import { Link } from 'react-router-dom'
@@ -478,21 +477,17 @@ export const NewCommentForm = ({
 			form={form}
 			layout="vertical"
 			onKeyDown={onFormChangeHandler}
-			className={classNames(styles.form, styles.formItemSpacer)}
+			className={clsx(styles.form, styles.formItemSpacer)}
 		>
 			<div className={styles.slidesContainer}>
 				<div
-					className={classNames(
-						styles.formItemSpacer,
-						styles.slides,
-						{
-							[styles.showSecondSlide]:
-								section === CommentFormSection.NewIssueForm,
-						},
-					)}
+					className={clsx(styles.formItemSpacer, styles.slides, {
+						[styles.showSecondSlide]:
+							section === CommentFormSection.NewIssueForm,
+					})}
 				>
 					<div
-						className={classNames(styles.formItemSpacer, {
+						className={clsx(styles.formItemSpacer, {
 							[styles.hide]:
 								section !== CommentFormSection.CommentForm,
 						})}
@@ -537,14 +532,14 @@ export const NewCommentForm = ({
 						</div>
 					</div>
 					<div
-						className={classNames(styles.formItemSpacer, {
+						className={clsx(styles.formItemSpacer, {
 							[styles.hide]:
 								section !== CommentFormSection.NewIssueForm,
 						})}
 					>
 						<h3>
 							<img
-								className={classNames(
+								className={clsx(
 									styles.integrationIcon,
 									styles.largeSize,
 								)}
@@ -627,7 +622,7 @@ export const NewCommentForm = ({
 										? 'button'
 										: 'submit'
 								}
-								className={classNames(styles.submitButton, {
+								className={clsx(styles.submitButton, {
 									[styles.loading]: isCreatingComment,
 								})}
 								disabled={commentText.length === 0}

@@ -1,6 +1,5 @@
 import useDataTimeRange, { DataTimeRange } from '@hooks/useDataTimeRange'
 import { DatePicker } from 'antd'
-import classNames from 'classnames'
 import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -94,7 +93,7 @@ const TimeRangePicker: React.FC<React.PropsWithChildren<unknown>> = () => {
 
 	return (
 		<div
-			className={classNames(styles.container, { [styles.open]: open })}
+			className={clsx(styles.container, { [styles.open]: open })}
 			ref={containerRef}
 		>
 			<div
@@ -108,7 +107,7 @@ const TimeRangePicker: React.FC<React.PropsWithChildren<unknown>> = () => {
 			</div>
 
 			{open && (
-				<div className={classNames(styles.dateOptionsContainer)}>
+				<div className={clsx(styles.dateOptionsContainer)}>
 					{datepickerPanelOpen && (
 						<div className={styles.datepickerContainer}>
 							<h3>Set Custom Time Range</h3>

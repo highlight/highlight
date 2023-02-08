@@ -6,7 +6,6 @@ import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import classNames from 'classnames/bind'
 import React, { useEffect, useState } from 'react'
 
 import commonStyles from '../../../Common.module.scss'
@@ -87,7 +86,7 @@ export const NetworkRecordingForm = () => {
 							trackingId="NetworkRecordingSettingsUpdate"
 							htmlType="submit"
 							type="primary"
-							className={classNames(
+							className={clsx(
 								commonStyles.submitButton,
 								styles.saveButton,
 							)}

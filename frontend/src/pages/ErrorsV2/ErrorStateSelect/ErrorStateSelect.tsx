@@ -19,7 +19,7 @@ import { DatePicker, message } from 'antd'
 import moment from 'moment'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import * as styles from './style.css'
 
@@ -94,7 +94,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 		[error_secure_id, initialErrorState, snoozed, updateErrorGroupState],
 	)
 
-	const history = useHistory()
+	const navigate = useNavigate()
 	const snoozeMenuItems = () => [
 		{
 			title: '1 Hour',

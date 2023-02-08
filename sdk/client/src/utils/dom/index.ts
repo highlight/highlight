@@ -134,7 +134,7 @@ function bottomUpSearch(
 	while (current && current !== config.root.parentElement) {
 		let level: Node[] = maybe(id(current)) ||
 			maybe(...attr(current)) ||
-			maybe(...classNames(current)) ||
+			maybe(...clsx(current)) ||
 			maybe(tagName(current)) || [any()]
 
 		const nth = index(current)
@@ -269,7 +269,7 @@ function attr(input: Element): Node[] {
 	)
 }
 
-function classNames(input: Element): Node[] {
+function clsx(input: Element): Node[] {
 	const names = Array.from(input.classList).filter(config.className)
 
 	return names.map(

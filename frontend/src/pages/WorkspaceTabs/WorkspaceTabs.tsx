@@ -6,7 +6,7 @@ import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { Suspense, useEffect } from 'react'
 import { Helmet } from 'react-helmet'
-import { useHistory } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import styles from './WorkspaceTabs.module.scss'
 
@@ -28,19 +28,20 @@ const getTitle = (tab: SettingsTab): string => {
 }
 
 export const WorkspaceTabs = () => {
-	const history = useHistory()
+	const location = useLocation()
+	const navigate = useNavigate()
 
 	const { workspace_id, page_id } = useParams<{
 		workspace_id: string
 		page_id: SettingsTab
 	}>()
 
-	useEffect(() => analytics.page(), [history.location.pathname])
+	useEffect(() => analytics.page(), [location.pathname])
 
 	return (
 		<>
 			<Helmet key={page_id}>
-				<title>Workspace {getTitle(page_id)}</title>
+				<title>Workspace {getTitle(page_id ?? 'team')}</title>
 			</Helmet>
 			<LeadAlignLayout fullWidth>
 				<div>
@@ -52,7 +53,7 @@ export const WorkspaceTabs = () => {
 					noHeaderPadding
 					activeKeyOverride={page_id}
 					onChange={(activeKey) =>
-						history.push(`/w/${workspace_id}/${activeKey}`)
+						navigate(`/w/${workspace_id}/${activeKey}`)
 					}
 					tabs={[
 						{

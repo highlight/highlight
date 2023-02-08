@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import React from 'react'
 
 import styles from './ActivityIcon.module.scss'
@@ -14,7 +13,7 @@ const ActivityIcon = ({
 	return (
 		<div
 			{...props}
-			className={classNames(
+			className={clsx(
 				styles.activityIcon,
 				{
 					[styles.active]: isActive,

@@ -3,7 +3,6 @@ import CloseButton from '@components/CloseButton/CloseButton'
 import { Admin, SanitizedAdminInput, SessionCommentType } from '@graph/schemas'
 import SvgShare2Icon from '@icons/Share2Icon'
 import { CommentSuggestion } from '@util/comment/util'
-import classNames from 'classnames'
 import React, { PropsWithChildren } from 'react'
 import { SuggestionDataItem } from 'react-mentions'
 
@@ -83,7 +82,7 @@ export const CommentHeader = ({
 		<>
 			{!small && (
 				<div
-					className={classNames(styles.topBar, {
+					className={clsx(styles.topBar, {
 						[styles.errorTopBar]: errorComment,
 					})}
 				>
@@ -119,7 +118,7 @@ export const CommentHeader = ({
 				</div>
 			)}
 			<div
-				className={classNames(styles.commentHeader, {
+				className={clsx(styles.commentHeader, {
 					[styles.small]: !!small,
 				})}
 			>
@@ -136,7 +135,7 @@ export const CommentHeader = ({
 					<AdminAvatar adminInfo={comment.author} size={30} />
 				)}
 				<div
-					className={classNames(styles.textContainer, {
+					className={clsx(styles.textContainer, {
 						[styles.small]: !!small,
 					})}
 				>
@@ -153,7 +152,7 @@ export const CommentHeader = ({
 					</span>
 				</div>
 				<div
-					className={classNames(styles.childrenContainer, {
+					className={clsx(styles.childrenContainer, {
 						[styles.small]: !!small,
 					})}
 				>

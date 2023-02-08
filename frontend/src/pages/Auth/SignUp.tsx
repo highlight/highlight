@@ -16,12 +16,12 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import firebase from 'firebase/app'
 import React from 'react'
-import { Link, useHistory } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import * as styles from './SignUp.css'
 
 export const SignUp: React.FC = () => {
-	const history = useHistory<{ previousPathName?: string }>()
+	const navigate = useNavigate<{ previousPathName?: string }>()
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
 	const formState = useFormState({
@@ -58,11 +58,11 @@ export const SignUp: React.FC = () => {
 							// a Highlight link that was shared to them and they don't have an
 							// account yet.
 							if (history.location.state?.previousPathName) {
-								history.push(
+								navigate(
 									history.location.state.previousPathName,
 								)
 							} else {
-								history.push('/')
+								navigate('/')
 							}
 						})
 						.catch((error) => {

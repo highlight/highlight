@@ -1,6 +1,5 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import { DashboardMetricConfig } from '@graph/schemas'
-import classNames from 'classnames'
 import { motion } from 'framer-motion'
 import React from 'react'
 
@@ -17,7 +16,7 @@ const SimpleMetric = ({ configuration, value, name }: Props) => {
 
 	return (
 		<div
-			className={classNames(styles.simpleMetric, styles.metric, {
+			className={clsx(styles.simpleMetric, styles.metric, {
 				[styles.goodScore]: valueScore === MetricValueScore.Good,
 				[styles.needsImprovementScore]:
 					valueScore === MetricValueScore.NeedsImprovement,
@@ -34,7 +33,7 @@ export const DetailedMetric = ({ configuration, value, name }: Props) => {
 
 	return (
 		<div
-			className={classNames(styles.metric, styles.detailedMetric, {
+			className={clsx(styles.metric, styles.detailedMetric, {
 				[styles.goodScore]: valueScore === MetricValueScore.Good,
 				[styles.needsImprovementScore]:
 					valueScore === MetricValueScore.NeedsImprovement,
@@ -157,7 +156,7 @@ const ScoreVisualization = ({
 				}}
 			>
 				<span
-					className={classNames(styles.value, {
+					className={clsx(styles.value, {
 						[styles.mirror]: valueScore === MetricValueScore.Poor,
 					})}
 				>
@@ -166,18 +165,18 @@ const ScoreVisualization = ({
 				</span>
 			</motion.div>
 			<div
-				className={classNames(styles.good, {
+				className={clsx(styles.good, {
 					[styles.active]: valueScore === MetricValueScore.Good,
 				})}
 			></div>
 			<div
-				className={classNames(styles.needsImprovement, {
+				className={clsx(styles.needsImprovement, {
 					[styles.active]:
 						valueScore === MetricValueScore.NeedsImprovement,
 				})}
 			></div>
 			<div
-				className={classNames(styles.poor, {
+				className={clsx(styles.poor, {
 					[styles.active]: valueScore === MetricValueScore.Poor,
 				})}
 			></div>

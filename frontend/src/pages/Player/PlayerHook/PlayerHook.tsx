@@ -38,7 +38,7 @@ import useMapRef from '@util/useMapRef'
 import { H } from 'highlight.run'
 import _ from 'lodash'
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
 import { HighlightEvent } from '../HighlightEvent'
@@ -57,7 +57,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		session_secure_id: string
 		project_id: string
 	}>()
-	const history = useHistory()
+	const navigate = useNavigate()
 	const [download] = useQueryParam('download', BooleanParam)
 
 	const {
@@ -101,26 +101,27 @@ export const usePlayer = (): ReplayerContextInterface => {
 	)
 	const { data: sessionIntervals } = useGetSessionIntervalsQuery({
 		variables: {
-			session_secure_id: session_secure_id,
+			session_secure_id: session_secure_id!,
 		},
 		skip: !session_secure_id,
 	})
 	const { data: eventChunksData } = useGetEventChunksQuery({
-		variables: { secure_id: session_secure_id },
+		variables: { secure_id: session_secure_id! },
 		skip:
 			!session_secure_id ||
+			!project_id ||
 			CHUNKING_DISABLED_PROJECTS.includes(project_id),
 	})
 	const { data: timelineIndicatorEvents } =
 		useGetTimelineIndicatorEventsQuery({
 			variables: {
-				session_secure_id: session_secure_id,
+				session_secure_id: session_secure_id!,
 			},
 			skip: !session_secure_id,
 		})
 	const { data: sessionData } = useGetSessionQuery({
 		variables: {
-			secure_id: session_secure_id,
+			secure_id: session_secure_id!,
 		},
 		onCompleted: useCallback(
 			(data: GetSessionQuery) => {
@@ -146,9 +147,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 		useGetSessionPayloadQuery({
 			fetchPolicy: 'no-cache',
 			variables: {
-				session_secure_id: session_secure_id,
+				session_secure_id: session_secure_id!,
 				skip_events: !!sessionData?.session?.direct_download_url,
 			},
+			skip: !session_secure_id,
 		})
 
 	// the index of the chunk we are moving to.
@@ -196,6 +198,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 			loadingChunks.current.clear()
 			currentChunkIdx.current = 0
 			chunkEventsReset()
+			if (!project_id || !session_secure_id) {
+				return
+			}
 			dispatch({
 				type: PlayerActionType.reset,
 				projectId: project_id,
@@ -304,6 +309,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			forceLoadNext?: boolean,
 		) => {
 			if (
+				!project_id ||
 				CHUNKING_DISABLED_PROJECTS.includes(project_id) ||
 				!state.session?.chunked
 			) {
@@ -362,7 +368,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						(async (_i: number) => {
 							try {
 								const url = await fetchEventChunkURL({
-									secure_id: session_secure_id,
+									secure_id: session_secure_id!,
 									index: _i,
 								})
 								log('PlayerHook.tsx', 'loading chunk', {
@@ -892,6 +898,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// Finds the next session in the session feed to play if autoplay is enabled.
 	useEffect(() => {
 		if (
+			!!session_secure_id &&
 			state.replayerState === ReplayerState.SessionEnded &&
 			autoPlaySessions &&
 			state.sessionResults.sessions.length > 0
@@ -904,7 +911,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			if (nextSessionInList) {
 				pause(state.time).then(() => {
 					resetPlayer(ReplayerState.Empty)
-					history.push(
+					navigate(
 						`/${project_id}/sessions/${nextSessionInList.secure_id}`,
 					)
 				})

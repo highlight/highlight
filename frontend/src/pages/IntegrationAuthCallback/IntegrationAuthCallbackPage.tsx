@@ -18,7 +18,7 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
 import { useEffect, useMemo } from 'react'
-import { Redirect, useHistory, useLocation } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 interface Props {
@@ -37,7 +37,7 @@ const logError = (e: any) => {
 }
 
 const SlackIntegrationCallback = ({ code, projectId, next }: Props) => {
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 
 	const { addSlackToWorkspace } = useSlackBot()
@@ -57,16 +57,16 @@ const SlackIntegrationCallback = ({ code, projectId, next }: Props) => {
 			} catch (e: any) {
 				logError(e)
 			} finally {
-				history.push(nextUrl)
+				navigate(nextUrl)
 				setLoadingState(AppLoadingState.LOADED)
 			}
 		})()
-	}, [code, projectId, next, addSlackToWorkspace, history, setLoadingState])
+	}, [code, projectId, next, addSlackToWorkspace, setLoadingState, navigate])
 
 	return null
 }
 const LinearIntegrationCallback = ({ code, projectId, next }: Props) => {
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 
 	const { addLinearIntegrationToProject } = useLinearIntegration()
@@ -88,7 +88,7 @@ const LinearIntegrationCallback = ({ code, projectId, next }: Props) => {
 			} catch (e: any) {
 				logError(e)
 			} finally {
-				history.push(nextUrl)
+				navigate(nextUrl)
 				setLoadingState(AppLoadingState.LOADED)
 			}
 		})()
@@ -96,14 +96,14 @@ const LinearIntegrationCallback = ({ code, projectId, next }: Props) => {
 		code,
 		projectId,
 		next,
-		history,
 		setLoadingState,
 		addLinearIntegrationToProject,
+		navigate,
 	])
 	return null
 }
 const FrontIntegrationCallback = ({ code, projectId }: Props) => {
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 	const { addFrontIntegrationToProject } = useFrontIntegration()
 
@@ -121,23 +121,23 @@ const FrontIntegrationCallback = ({ code, projectId }: Props) => {
 					'Failed to add integration to project. Please try again.',
 				)
 			} finally {
-				history.push(next)
+				navigate(next)
 				setLoadingState(AppLoadingState.LOADED)
 			}
 		})()
 	}, [
-		history,
 		setLoadingState,
 		addFrontIntegrationToProject,
 		code,
 		projectId,
+		navigate,
 	])
 
 	return null
 }
 
 const VercelIntegrationCallback = ({ code }: Props) => {
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const [{ next }] = useQueryParams({
 		configurationId: StringParam,
@@ -164,10 +164,11 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 	// If there are no projects, redirect to create one
 	if (data?.projects?.length === 0) {
 		return (
-			<Redirect
+			<Navigate
 				to={`/new?next=${encodeURIComponent(
 					`/callback/vercel${search}`,
 				)}`}
+				replace
 			/>
 		)
 	}
@@ -190,14 +191,14 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 								if (next) {
 									window.location.href = next
 								} else {
-									history.push(`/${projectId}/integrations`)
+									navigate(`/${projectId}/integrations`)
 								}
 							}}
 							onCancel={() => {
 								if (next) {
 									window.close()
 								} else {
-									history.push(`/${projectId}/integrations`)
+									navigate(`/${projectId}/integrations`)
 								}
 							}}
 							setIntegrationEnabled={() => {}}
@@ -212,7 +213,7 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 }
 
 const DiscordIntegrationCallback = ({ code, projectId }: Props) => {
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 	const { addDiscordIntegrationToProject } = useDiscordIntegration()
 
@@ -230,16 +231,16 @@ const DiscordIntegrationCallback = ({ code, projectId }: Props) => {
 					'Failed to add integration to project. Please try again.',
 				)
 			} finally {
-				history.push(next)
+				navigate(next)
 				setLoadingState(AppLoadingState.LOADED)
 			}
 		})()
 	}, [
-		history,
 		setLoadingState,
 		addDiscordIntegrationToProject,
 		code,
 		projectId,
+		navigate,
 	])
 
 	return null
@@ -256,7 +257,7 @@ const WorkspaceIntegrationCallback = ({
 	type: string
 	addIntegration: (code: string) => Promise<unknown>
 }) => {
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 
 	useEffect(() => {
@@ -273,11 +274,11 @@ const WorkspaceIntegrationCallback = ({
 					'Failed to add integration to project. Please try again.',
 				)
 			} finally {
-				history.push(next)
+				navigate(next)
 				setLoadingState(AppLoadingState.LOADED)
 			}
 		})()
-	}, [history, setLoadingState, code, projectId, addIntegration, name])
+	}, [setLoadingState, code, projectId, addIntegration, name, type, navigate])
 
 	return null
 }
@@ -344,7 +345,7 @@ const IntegrationAuthCallbackPage = () => {
 		}
 	}, [])
 
-	switch (integrationName.toLowerCase()) {
+	switch (integrationName?.toLowerCase()) {
 		case 'slack':
 			return (
 				<SlackIntegrationCallback

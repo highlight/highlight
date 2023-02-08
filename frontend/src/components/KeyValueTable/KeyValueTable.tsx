@@ -1,5 +1,4 @@
 import JsonViewer from '@components/JsonViewer/JsonViewer'
-import classNames from 'classnames'
 import React from 'react'
 
 import InfoTooltip from '../InfoTooltip/InfoTooltip'
@@ -25,7 +24,7 @@ const KeyValueTable = ({
 	noDataMessage = <p>No data</p>,
 }: Props) => {
 	return (
-		<div className={classNames(styles.table, tableClassName)}>
+		<div className={clsx(styles.table, tableClassName)}>
 			{data.length === 0
 				? noDataMessage
 				: data.map(

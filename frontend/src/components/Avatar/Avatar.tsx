@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import React, { useMemo } from 'react'
 import ReactNiceAvatar, { genConfig } from 'react-nice-avatar'
 
@@ -104,7 +103,7 @@ export const Avatar = ({
 			<img
 				src={customImage}
 				style={style}
-				className={classNames(userAvatar, className)}
+				className={clsx(userAvatar, className)}
 			/>
 		)
 	}
@@ -146,7 +145,7 @@ export const AdminAvatar = ({
 
 	return (
 		<div
-			className={classNames(userAvatarWrapper, {
+			className={clsx(userAvatarWrapper, {
 				[userAvatarBorder]: !!border,
 			})}
 		>

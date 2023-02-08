@@ -16,7 +16,7 @@ import {
 } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
-import { useHistory, useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { useApplicationContext } from '../../../../routers/OrgRouter/ApplicationContext'
 import SvgPlusIcon from '../../../../static/PlusIcon'
@@ -36,7 +36,7 @@ const ApplicationPicker = () => {
 			: project_id
 	const { isLoggedIn } = useAuthContext()
 	const isWorkspaceLevel = workspace_id !== undefined
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { pathname } = useLocation()
 	const isInDemoProject =
 		projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
@@ -100,7 +100,7 @@ const ApplicationPicker = () => {
 									displayName: 'Create a New Project',
 									icon: <SvgPlusIcon />,
 									action: () => {
-										history.push(
+										navigate(
 											`/w/${currentWorkspace?.id}/new`,
 										)
 									},
@@ -109,21 +109,21 @@ const ApplicationPicker = () => {
 									displayName: 'Project Settings',
 									icon: <SvgBriefcase2Icon />,
 									action: () => {
-										history.push(`/${project_id}/settings`)
+										navigate(`/${project_id}/settings`)
 									},
 								},
 								{
 									displayName: 'Switch Workspace',
 									icon: <SvgArrowRightIcon />,
 									action: () => {
-										history.push(`/switch`)
+										navigate(`/switch`)
 									},
 								},
 								{
 									displayName: 'Workspace Settings',
 									icon: <SvgSettingsIcon />,
 									action: () => {
-										history.push(
+										navigate(
 											`/w/${currentWorkspace?.id}/team`,
 										)
 									},
@@ -156,7 +156,7 @@ const ApplicationPicker = () => {
 												.filter(
 													(token) => token.length,
 												)[1]
-									history.push(`/${project.id}/${path}`)
+									navigate(`/${project.id}/${path}`)
 								},
 								icon: null,
 								active: project?.id === project_id,

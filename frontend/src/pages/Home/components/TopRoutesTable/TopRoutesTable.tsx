@@ -9,7 +9,7 @@ import useDataTimeRange from '@hooks/useDataTimeRange'
 import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/DashboardInnerTable'
 import { useParams } from '@util/react-router/useParams'
 import { ColumnsType } from 'antd/lib/table'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -74,7 +74,7 @@ const TopRoutesTable = ({
 	}
 
 	return (
-		<div className={classNames({ [styles.loading]: loading })}>
+		<div className={clsx({ [styles.loading]: loading })}>
 			<DashboardInnerTable>
 				<ProgressBarTable
 					loading={false}

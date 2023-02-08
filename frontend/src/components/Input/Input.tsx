@@ -1,5 +1,4 @@
 import { Input as AntDesignInput, InputProps } from 'antd'
-import classNames from 'classnames'
 import React from 'react'
 
 import styles from './Input.module.scss'
@@ -12,7 +11,7 @@ const Input = (props: Props) => {
 	return (
 		<AntDesignInput
 			{...props}
-			className={classNames(props.className, styles.input)}
+			className={clsx(props.className, styles.input)}
 		/>
 	)
 }

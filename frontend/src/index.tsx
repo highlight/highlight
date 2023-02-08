@@ -45,7 +45,7 @@ import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login'
@@ -174,17 +174,20 @@ const App = () => {
 						>
 							<LoadingPage />
 							<Router>
-								<Switch>
-									<Route path="/w/:workspace_id(\d+)/*">
-										<AuthenticationRoleRouter />
-									</Route>
-									<Route path="/:project_id(\d+)/*">
-										<AuthenticationRoleRouter />
-									</Route>
-									<Route path="/">
-										<AuthenticationRoleRouter />
-									</Route>
-								</Switch>
+								<Routes>
+									<Route
+										path="/w/:workspace_id/*"
+										element={<AuthenticationRoleRouter />}
+									/>
+									<Route
+										path="/:project_id/*"
+										element={<AuthenticationRoleRouter />}
+									/>
+									<Route
+										path="/*"
+										element={<AuthenticationRoleRouter />}
+									/>
+								</Routes>
 							</Router>
 						</AppLoadingContext>
 					</SkeletonTheme>
@@ -400,43 +403,35 @@ get in contact with us!
 					errorString={JSON.stringify(adminError)}
 				/>
 			) : (
-				<Switch>
-					<Route path="/subscriptions">
-						{/* This route uses a token for authentication */}
-						<AuthAdminRouter />
-					</Route>
-					<Route path="/:project_id(0)/*" exact>
-						{/* Allow guests to access this route without being asked to log in */}
-						<AuthAdminRouter />
-					</Route>
+				<Routes>
+					{/* This route uses a token for authentication */}
+					<Route
+						path="/subscriptions"
+						element={<AuthAdminRouter />}
+					/>
+					{/* Allow guests to access this route without being asked to log in */}
+					<Route
+						path="/:project_id(0)/*"
+						element={<AuthAdminRouter />}
+					/>
+					{/* Allow guests to access this route without being asked to log in */}
 					<Route
 						path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
-						exact
-					>
-						{/* Allow guests to access this route without being asked to log in */}
-						<AuthAdminRouter />
-					</Route>
+						element={<AuthAdminRouter />}
+					/>
+					{/* Allow guests to access this route without being asked to log in */}
 					<Route
 						path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
-						exact
-					>
-						{/* Allow guests to access this route without being asked to log in */}
-						<AuthAdminRouter />
-					</Route>
+						element={<AuthAdminRouter />}
+					/>
+					{/* Allow guests to access this route without being asked to log in */}
 					<Route
 						path="/:project_id(\d+)/errors/:error_secure_id(\w+)/:error_tab_key(\w+)?/:error_object_id(\d+)?"
-						exact
-					>
-						{/* Allow guests to access this route without being asked to log in */}
-						<AuthAdminRouter />
-					</Route>
-					<Route path="/sign_up">
-						<SignUp />
-					</Route>
-					<Route path="/">
-						<LoginForm />
-					</Route>
-				</Switch>
+						element={<AuthAdminRouter />}
+					/>
+					<Route path="/sign_up" element={<SignUp />} />
+					<Route path="/" element={<LoginForm />} />
+				</Routes>
 			)}
 		</AuthContextProvider>
 	)

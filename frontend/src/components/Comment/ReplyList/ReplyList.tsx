@@ -1,7 +1,6 @@
 import { CommentHeader } from '@components/Comment/CommentHeader'
 import { CommentReply, Maybe } from '@graph/schemas'
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
-import classNames from 'classnames'
 import React from 'react'
 
 import styles from './ReplyList.module.scss'
@@ -18,7 +17,7 @@ const ReplyList: React.FC<React.PropsWithChildren<ReplyListProps>> = ({
 }) => {
 	return (
 		<div
-			className={classNames(styles.repliesList, {
+			className={clsx(styles.repliesList, {
 				[styles.scrollReplies]: scrollReplies,
 			})}
 		>

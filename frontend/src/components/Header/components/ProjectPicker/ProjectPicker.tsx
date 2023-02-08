@@ -18,7 +18,7 @@ import { generateRandomColor } from '@util/color'
 import { DEMO_PROJECT_NAME } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
-import { Link, useHistory } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { useApplicationContext } from '../../../../routers/OrgRouter/ApplicationContext'
 
@@ -34,7 +34,7 @@ const ProjectPicker = () => {
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 	const isWorkspaceLevel = workspace_id !== undefined
-	const history = useHistory()
+	const navigate = useNavigate()
 	const isInDemoProject =
 		projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
 
@@ -45,7 +45,7 @@ const ProjectPicker = () => {
 					<Menu.Item
 						key={project?.id}
 						onClick={() => {
-							history.push(`/${project?.id}/sessions`)
+							navigate(`/${project?.id}/sessions`)
 						}}
 						style={
 							isSelected

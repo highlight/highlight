@@ -1,5 +1,4 @@
 import Tooltip from '@components/Tooltip/Tooltip'
-import classNames from 'classnames'
 import React from 'react'
 
 import * as style from './BarChart.css'
@@ -53,7 +52,7 @@ const BarChart = ({
 							}}
 						>
 							<div
-								className={classNames(style.bar, {
+								className={clsx(style.bar, {
 									[style.barSelected]: !!selected,
 								})}
 								style={{

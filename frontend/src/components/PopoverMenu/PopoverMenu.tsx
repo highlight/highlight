@@ -1,5 +1,4 @@
 import { PopoverProps } from 'antd'
-import classNames from 'classnames'
 import React from 'react'
 
 import Button from '../Button/Button/Button'
@@ -106,7 +105,7 @@ export const PopoverMenuItem = ({
 				onClick={action}
 				trackingId={`HelpMenu-${displayName}`}
 				type={active ? 'primary' : 'text'}
-				className={classNames(styles.button, {
+				className={clsx(styles.button, {
 					[styles.active]: active,
 				})}
 			>

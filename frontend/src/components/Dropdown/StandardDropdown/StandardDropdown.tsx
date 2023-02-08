@@ -1,5 +1,4 @@
 import { Dropdown } from 'antd'
-import classNames from 'classnames'
 import React, { useEffect, useState } from 'react'
 
 import { ReactComponent as DownIcon } from '../../../static/chevron-down-icon.svg'
@@ -78,7 +77,7 @@ export const StandardDropdown = ({
 			overlayClassName={styles.overlay}
 		>
 			<div
-				className={classNames(styles.dropdownHandler, {
+				className={clsx(styles.dropdownHandler, {
 					[styles.dropdownGray]: gray,
 				})}
 				onClick={(e) => e.preventDefault()}
@@ -86,12 +85,7 @@ export const StandardDropdown = ({
 				{display ? (
 					display
 				) : (
-					<div
-						className={classNames(
-							styles.labelNameText,
-							labelClassName,
-						)}
-					>
+					<div className={clsx(styles.labelNameText, labelClassName)}>
 						{selection ? (
 							selection?.label
 						) : placeholder ? (

@@ -1,5 +1,4 @@
 import useLocalStorage from '@rehooks/local-storage'
-import classNames from 'classnames'
 import React, { useState } from 'react'
 import ReactCollapsible from 'react-collapsible'
 
@@ -26,34 +25,34 @@ const CollapsibleImpl: React.FC<React.PropsWithChildren<InnerProps>> = ({
 			{...props}
 			trigger={
 				<div
-					className={classNames(styles.header, {
+					className={clsx(styles.header, {
 						[styles.collapsed]: !expanded,
 					})}
 				>
 					<h2
-						className={classNames({
+						className={clsx({
 							[styles.collapsed]: !expanded,
 						})}
 					>
 						{title}
 					</h2>
 					<SvgChevronDownIcon
-						className={classNames({ [styles.expanded]: expanded })}
+						className={clsx({ [styles.expanded]: expanded })}
 					/>
 				</div>
 			}
 			transitionTime={150}
 			classParentString={
 				stacked
-					? classNames(styles.collapsibleStacked, parentClassName)
-					: classNames(styles.collapsible, parentClassName)
+					? clsx(styles.collapsibleStacked, parentClassName)
+					: clsx(styles.collapsible, parentClassName)
 			}
 			handleTriggerClick={() => {
 				setExpanded(!expanded)
 			}}
 			open={expanded}
 		>
-			<div className={classNames(styles.content, contentClassName)}>
+			<div className={clsx(styles.content, contentClassName)}>
 				{children}
 			</div>
 		</ReactCollapsible>

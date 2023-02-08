@@ -11,7 +11,7 @@ import { message } from 'antd'
 import React from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
-import { useHistory } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 
 const EditAlertsPage = () => {
 	const { id, project_id } = useParams<{ id: string; project_id: string }>()
@@ -21,7 +21,7 @@ const EditAlertsPage = () => {
 	const [deleteErrorAlert, {}] = useDeleteErrorAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
-	const history = useHistory()
+	const navigate = useNavigate()
 	const [deleteSessionAlert, {}] = useDeleteSessionAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 		update(cache, data) {
@@ -81,23 +81,25 @@ const EditAlertsPage = () => {
 						if (!alert) {
 							return
 						}
-						if (alert?.Type === 'ERROR_ALERT') {
-							deleteErrorAlert({
-								variables: {
-									error_alert_id: alertId,
-									project_id,
-								},
-							})
-						} else {
-							deleteSessionAlert({
-								variables: {
-									session_alert_id: alertId,
-									project_id,
-								},
-							})
+						if (project_id) {
+							if (alert?.Type === 'ERROR_ALERT') {
+								deleteErrorAlert({
+									variables: {
+										error_alert_id: alertId,
+										project_id: project_id,
+									},
+								})
+							} else {
+								deleteSessionAlert({
+									variables: {
+										session_alert_id: alertId,
+										project_id: project_id,
+									},
+								})
+							}
 						}
 						message.success(`Deleted ${alert.Name} alert.`)
-						history.push(`/${project_id}/alerts`)
+						navigate(`/${project_id}/alerts`)
 					}}
 				/>
 			)}

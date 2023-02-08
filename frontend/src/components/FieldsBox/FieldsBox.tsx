@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import React from 'react'
 import { useLocation } from 'react-router'
 
@@ -21,7 +20,7 @@ export const FieldsBox = ({
 		<div
 			id={id}
 			ref={divRef}
-			className={classNames(styles.fieldsBox, {
+			className={clsx(styles.fieldsBox, {
 				[styles.focus]: location.hash === `#${id}`,
 			})}
 		>

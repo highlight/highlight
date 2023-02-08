@@ -6,7 +6,6 @@ import SvgSearchIcon from '@icons/SearchIcon'
 import { PLAYER_SKIP_DURATION } from '@pages/Player/utils/PlayerHooks'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import analytics from '@util/analytics'
-import classNames from 'classnames'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -116,7 +115,7 @@ const KeyboardShortcutsEducation = () => {
 				<>
 					<motion.div
 						key="backdrop"
-						className={classNames(styles.backdrop)}
+						className={clsx(styles.backdrop)}
 						onClick={() => {
 							if (showKeyboardShortcutsGuide) {
 								toggleShowKeyboardShortcutsGuide()
@@ -149,7 +148,7 @@ const KeyboardShortcutsEducation = () => {
 									</ButtonLink>
 								</div>
 							}
-							className={classNames(styles.elevatedCard)}
+							className={clsx(styles.elevatedCard)}
 						>
 							<main className={styles.container}>
 								<Input
@@ -190,7 +189,7 @@ const KeyboardShortcutsEducation = () => {
 											anchor
 											href="https://feedback.highlight.run/feature-requests"
 											trackingId="SuggestKeyboardShortcutFromSearch"
-											className={classNames(
+											className={clsx(
 												styles.suggestionButton,
 												styles.cta,
 											)}
@@ -240,7 +239,7 @@ const KeyboardShortcutDoc: React.FC<{
 }> = ({ disabled, title, searchQuery, shortcuts }) => {
 	return (
 		<section
-			className={classNames({
+			className={clsx({
 				[styles.disabled]: disabled,
 			})}
 		>
@@ -277,7 +276,7 @@ const KeyboardShortcut = ({ shortcut }: Pick<ShortcutItem, 'shortcut'>) => {
 			{shortcut.map((key) => (
 				<kbd
 					key={key}
-					className={classNames(styles.kbd, {
+					className={clsx(styles.kbd, {
 						[styles.symbol]: key === '⌘',
 					})}
 				>

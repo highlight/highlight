@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import React from 'react'
 
 import { generateRandomColor } from '../../../util/color'
@@ -13,7 +12,7 @@ export const MiniWorkspaceIcon = ({ projectName, className }: Props) => {
 	return (
 		<div>
 			<div
-				className={classNames(styles.workspaceIcon, className)}
+				className={clsx(styles.workspaceIcon, className)}
 				style={{
 					backgroundColor: generateRandomColor(projectName ?? ''),
 				}}

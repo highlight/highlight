@@ -7,10 +7,10 @@ import { useSubmitRegistrationFormMutation } from '@graph/hooks'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { Redirect } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 import commonStyles from '../../Common.module.scss'
 import Button from '../../components/Button/Button/Button'
@@ -56,14 +56,18 @@ const RegistrationForm = () => {
 
 	// Redirect to the default page for the workspace
 	if (redirect) {
-		return <Redirect to={`/w/${workspace_id}`} />
+		return <Navigate replace to={`/w/${workspace_id}`} />
 	}
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
+		if (!workspace_id) {
+			return
+		}
+
 		submitRegistrationForm({
 			variables: {
-				workspace_id: workspace_id,
+				workspace_id: workspace_id!,
 				team_size: teamSize,
 				role: role,
 				use_case: useCase,
@@ -189,7 +193,7 @@ const RegistrationForm = () => {
 					<Button
 						trackingId="SubmitRegistrationForm"
 						type="primary"
-						className={classNames(styles.button)}
+						className={clsx(styles.button)}
 						block
 						htmlType="submit"
 						disabled={!isValid}

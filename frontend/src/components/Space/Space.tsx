@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import React from 'react'
 
 import styles from './Space.module.scss'
@@ -29,7 +28,7 @@ const Space: React.FC<React.PropsWithChildren<Props>> = ({
 }) => {
 	return (
 		<div
-			className={classNames(styles.space, {
+			className={clsx(styles.space, {
 				[styles.alignStart]: align === 'start',
 				[styles.alignEnd]: align === 'end',
 				[styles.alignCenter]: align === 'center',

@@ -32,7 +32,7 @@ import clsx from 'clsx'
 import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useHistory } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import * as styles from './styles.css'
 
@@ -70,11 +70,9 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 		},
 	})
 
-	const history = useHistory()
+	const navigate = useNavigate()
 	const goToErrorGroup = (secureId: string) => {
-		history.push(
-			`/${project_id}/errors/${secureId}${history.location.search}`,
-		)
+		navigate(`/${project_id}/errors/${secureId}${history.location.search}`)
 	}
 
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()

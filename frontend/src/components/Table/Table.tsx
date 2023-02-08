@@ -1,6 +1,5 @@
 import { CircularSpinner } from '@components/Loading/Loading'
 import { ConfigProvider, Table as AntDesignTable, TableProps } from 'antd'
-import classNames from 'classnames'
 import React from 'react'
 
 import styles from './Table.module.scss'
@@ -31,7 +30,7 @@ const Table = ({
 		>
 			<AntDesignTable
 				{...props}
-				className={classNames(styles.table, {
+				className={clsx(styles.table, {
 					[styles.normalTableSizing]: !smallPadding,
 					[styles.smallTableSizing]: smallPadding,
 					[styles.rowHasPadding]: rowHasPadding,

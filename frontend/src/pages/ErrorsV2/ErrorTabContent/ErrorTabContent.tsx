@@ -13,7 +13,7 @@ import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Switch } from 'react-router-dom'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import styles from './ErrorTabContent.module.scss'
 
@@ -22,7 +22,7 @@ type Props = React.PropsWithChildren & {
 }
 
 const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
-	const history = useHistory()
+	const navigate = useNavigate()
 	const {
 		project_id,
 		error_secure_id,
@@ -40,7 +40,7 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 				return
 			}
 
-			history.push(`/${project_id}/errors/${error_secure_id}/metrics`)
+			navigate(`/${project_id}/errors/${error_secure_id}/metrics`)
 		},
 		[project_id, error_secure_id, error_tab_key],
 	)
@@ -52,7 +52,7 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 				return
 			}
 
-			history.push(`/${project_id}/errors/${error_secure_id}/instances`)
+			navigate(`/${project_id}/errors/${error_secure_id}/instances`)
 		},
 		[project_id, error_secure_id, error_tab_key],
 	)
@@ -68,7 +68,7 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 				unsetOverflowY
 				activeKeyOverride={error_tab_key}
 				onChange={(activeKey) =>
-					history.push(
+					navigate(
 						`/${project_id}/errors/${error_secure_id}/${activeKey}`,
 					)
 				}

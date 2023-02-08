@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import React, { useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
@@ -29,7 +28,7 @@ const PopoverListContent = ({
 
 	return (
 		<ul
-			className={classNames(styles.list, className)}
+			className={clsx(styles.list, className)}
 			style={{
 				height: virtual ? `${virtualListHeight}px` : 'initial',
 				maxHeight,
@@ -39,7 +38,7 @@ const PopoverListContent = ({
 				listItems.map((listItem, index) => (
 					<li
 						key={index}
-						className={classNames(styles.item, {
+						className={clsx(styles.item, {
 							[styles.small]: small,
 							[styles.noHoverChange]: noHoverChange,
 						})}
@@ -58,14 +57,10 @@ const PopoverListContent = ({
 						itemContent={(index, item: any) => (
 							<li
 								key={`${index}-${item.id}`}
-								className={classNames(
-									styles.item,
-									styles.virtual,
-									{
-										[styles.small]: small,
-										[styles.noHoverChange]: noHoverChange,
-									},
-								)}
+								className={clsx(styles.item, styles.virtual, {
+									[styles.small]: small,
+									[styles.noHoverChange]: noHoverChange,
+								})}
 							>
 								{item}
 							</li>

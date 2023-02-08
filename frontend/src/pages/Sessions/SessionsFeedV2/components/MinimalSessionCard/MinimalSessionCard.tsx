@@ -18,7 +18,6 @@ import { formatDatetime } from '@pages/Sessions/SessionsFeedV2/components/Sessio
 import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
 import { useParams } from '@util/react-router/useParams'
 import { MillisToMinutesAndSecondsVerbose } from '@util/time'
-import classNames from 'classnames'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
@@ -114,13 +113,13 @@ const MinimalSessionCard = React.memo(
 
 		const innerContent = (
 			<div
-				className={classNames(styles.sessionCard, {
+				className={clsx(styles.sessionCard, {
 					[styles.selected]: selected,
 					[styles.linkDisabled]: linkDisabled,
 				})}
 			>
 				<div
-					className={classNames(styles.sessionCardContentWrapper, {
+					className={clsx(styles.sessionCardContentWrapper, {
 						[styles.detailed]: showDetailedSessionView,
 						[styles.errorVersion]: errorVersion,
 						[styles.compact]: compact,
@@ -137,13 +136,13 @@ const MinimalSessionCard = React.memo(
 					)}
 					<div className={styles.sessionTextSectionWrapper}>
 						<div
-							className={classNames(styles.sessionTextSection, {
+							className={clsx(styles.sessionTextSection, {
 								[styles.detailed]: showDetailedSessionView,
 								[styles.errorVersion]: errorVersion,
 							})}
 						>
 							<div
-								className={classNames(
+								className={clsx(
 									styles.middleText,
 									styles.identifier,
 									'highlight-block',
@@ -159,7 +158,7 @@ const MinimalSessionCard = React.memo(
 							</div>
 						</div>
 						<div
-							className={classNames(styles.sessionTextSection, {
+							className={clsx(styles.sessionTextSection, {
 								[styles.detailedSection]:
 									showDetailedSessionView,
 								[styles.withLongDatetimeFormat]:
@@ -266,12 +265,9 @@ const MinimalSessionCard = React.memo(
 
 					{!errorVersion && (
 						<div
-							className={classNames(
-								styles.cardAnnotationContainer,
-								{
-									[styles.detailed]: showDetailedSessionView,
-								},
-							)}
+							className={clsx(styles.cardAnnotationContainer, {
+								[styles.detailed]: showDetailedSessionView,
+							})}
 						>
 							<Tooltip
 								title={

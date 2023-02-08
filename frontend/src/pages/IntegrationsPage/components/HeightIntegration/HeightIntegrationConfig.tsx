@@ -16,7 +16,7 @@ import { useParams } from '@util/react-router/useParams'
 import useMap from '@util/useMap'
 import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useEffect } from 'react'
 
 import styles from './HeightIntegrationConfig.module.scss'
@@ -295,7 +295,7 @@ export const HeightIntegrationSettings: React.FC<
 
 	return (
 		<div>
-			<p className={classNames(styles.modalSubTitle)}>
+			<p className={clsx(styles.modalSubTitle)}>
 				Select Height workspaces to use for each of your Highlight
 				projects.
 			</p>

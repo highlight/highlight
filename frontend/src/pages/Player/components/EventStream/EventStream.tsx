@@ -14,7 +14,6 @@ import {
 } from '@pages/Player/ReplayerContext'
 import { StreamElement } from '@pages/Player/StreamElement/StreamElement'
 import { useParams } from '@util/react-router/useParams'
-import classNames from 'classnames'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import TextTransition from 'react-text-transition'
@@ -124,7 +123,7 @@ const EventStream = () => {
 			<div id="wrapper" className={styles.eventStreamContainer}>
 				<div className={styles.container}>
 					<div
-						className={classNames(styles.header, {
+						className={clsx(styles.header, {
 							[styles.withBottomBorder]: !listIsInTopPosition,
 						})}
 					>

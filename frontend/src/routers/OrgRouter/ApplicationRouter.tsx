@@ -6,7 +6,7 @@ import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
 import SetupRouter from '@pages/Setup/SetupRouter/SetupRouter'
 import { useParams } from '@util/react-router/useParams'
 import React, { Suspense } from 'react'
-import { Redirect, Route, Switch } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
@@ -32,65 +32,63 @@ const ApplicationRouter = ({ integrated }: Props) => {
 
 	return (
 		<>
-			<Switch>
+			<Routes>
 				{/* These two routes do not require login */}
-				<Route path="/:project_id/sessions/:session_secure_id?" exact>
+				<Route path="/sessions/:session_secure_id?">
 					<PlayerPage integrated={integrated} />
 				</Route>
-				<Route
-					path="/:project_id/errors/:error_secure_id?/:error_tab_key?/:error_object_id?"
-					exact
-				>
+				<Route path="/errors/:error_secure_id?/:error_tab_key?/:error_object_id?">
 					<ErrorsV2 integrated={integrated} />
 				</Route>
 				{isHighlightAdmin && (
-					<Route path="/:project_id/logs">
+					<Route path="/logs">
 						<LogsPage />
 					</Route>
 				)}
-				{/* If not logged in and project id is numeric and nonzero, redirect to login */}
+				{/* If not logged in and project id is numeric and nonzero, Navigate to login */}
 				{!isLoggedIn && (
-					<Route path="/:project_id([1-9]+[0-9]*)/*" exact>
-						<Redirect to="/" />
-					</Route>
+					<Route path="/*" element={<Navigate to="/" replace />} />
 				)}
-				<Route path="/:project_id/settings">
-					<ProjectSettings />
-				</Route>
-				<Route path="/:project_id/alerts">
-					<AlertsRouter />
-				</Route>
-				<Route path="/:project_id/dashboards">
-					<DashboardsRouter />
-				</Route>
-				<Route path="/:project_id/analytics">
-					<DashboardsRouter />
-				</Route>
-				<Route path="/:project_id/setup">
-					<SetupRouter integrated={integrated} />
-				</Route>
+				<Route path="/settings" element={<ProjectSettings />} />
+				<Route path="/alerts" element={<AlertsRouter />} />
+				<Route path="/dashboards" element={<DashboardsRouter />} />
+				<Route path="/analytics" element={<DashboardsRouter />} />
+				<Route
+					path="/setup"
+					element={<SetupRouter integrated={integrated} />}
+				/>
 
-				<Route path="/:project_id/integrations/:integration_type?">
-					<IntegrationsPage />
-				</Route>
-				<Route path="/:project_id/buttons">
-					<Suspense fallback={null}>
-						<Buttons />
-					</Suspense>
-				</Route>
-				<Route path="/:project_id/hit-targets">
-					<Suspense fallback={null}>
-						<HitTargets />
-					</Suspense>
-				</Route>
-				<Route path="/:project_id">
-					{integrated ? (
-						<Redirect to={`/${project_id}/sessions`} />
-					) : (
-						<Redirect to={`/${project_id}/setup`} />
-					)}
-				</Route>
-			</Switch>
+				<Route
+					path="/integrations/:integration_type"
+					element={<IntegrationsPage />}
+				/>
+				<Route
+					path="/buttons"
+					element={
+						<Suspense fallback={null}>
+							<Buttons />
+						</Suspense>
+					}
+				/>
+				<Route
+					path="/hit-targets"
+					element={
+						<Suspense fallback={null}>
+							<HitTargets />
+						</Suspense>
+					}
+				/>
+				<Route
+					path="/*"
+					element={
+						integrated ? (
+							<Navigate to={`/${project_id}/sessions`} replace />
+						) : (
+							<Navigate to={`/${project_id}/setup`} replace />
+						)
+					}
+				/>
+			</Routes>
 		</>
 	)
 }

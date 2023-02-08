@@ -17,7 +17,7 @@ import ErrorObjectCount from '@pages/ErrorsV2/ErrorBody/components/ErrorObjectCo
 import ErrorOccurenceDate from '@pages/ErrorsV2/ErrorBody/components/ErrorOccurenceDate'
 import { client } from '@util/graph'
 import React from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 export const showChangeThresholdPercent = 1
 
@@ -29,7 +29,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	errorGroup,
 }) => {
 	const { projectId } = useProjectId()
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const scrollToInstances = () => {
 		// Using client directly here because there was some issues with the
@@ -42,7 +42,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				},
 			})
 			.then((response) => {
-				history.push({
+				navigate({
 					pathname: `/${projectId}/errors/${errorGroup?.secure_id}/instances/${response.data.error_instance?.error_object.id}`,
 					search: window.location.search,
 				})

@@ -25,7 +25,6 @@ import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuil
 import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import { Checkbox } from 'antd'
-import classNames from 'classnames'
 import _ from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -175,7 +174,7 @@ const OptionLabelName: React.FC<React.PropsWithChildren<unknown>> = (props) => {
 		const showRightShadow = scrollLeft + offsetWidth < scrollWidth
 		const showLeftShadow = scrollLeft > 0
 		setClassName(
-			classNames(styles.shadowContainer, {
+			clsx(styles.shadowContainer, {
 				[styles.shadowRight]: showRightShadow && !showLeftShadow,
 				[styles.shadowLeft]: showLeftShadow && !showRightShadow,
 				[styles.shadowBoth]: showLeftShadow && showRightShadow,
@@ -743,7 +742,7 @@ const SelectPopout = ({
 				<span>
 					<Button
 						trackingId="SessionsQuerySelect"
-						className={classNames(styles.ruleItem, {
+						className={clsx(styles.ruleItem, {
 							[styles.invalid]: invalid && !visible,
 						})}
 						disabled={disabled}
@@ -820,7 +819,7 @@ const QueryRule = ({
 			{!readonly && (
 				<Button
 					trackingId="SessionsQueryRemoveRule"
-					className={classNames(styles.ruleItem, styles.removeRule)}
+					className={clsx(styles.ruleItem, styles.removeRule)}
 					onClick={() => {
 						onRemove()
 					}}
@@ -1871,7 +1870,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 		<div className={styles.builderContainer}>
 			<div className={styles.rulesContainer}>
 				<div
-					className={classNames(
+					className={clsx(
 						styles.ruleContainer,
 						styles.timeRangeContainer,
 					)}
@@ -1887,7 +1886,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 							defaultTimeRangeRule.val?.options[0].value && (
 							<Button
 								trackingId="resetTimeRangeRule"
-								className={classNames(
+								className={clsx(
 									styles.ruleItem,
 									styles.removeRule,
 								)}
@@ -1906,10 +1905,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 						timeRangeRule.val?.options[0].value,
 					) && (
 						<Button
-							className={classNames(
-								styles.ruleItem,
-								styles.syncButton,
-							)}
+							className={clsx(styles.ruleItem, styles.syncButton)}
 							onClick={() => {
 								// Re-generate the absolute times used in the serialized query
 								updateSerializedQuery(isAnd, rules)

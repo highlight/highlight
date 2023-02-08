@@ -1,6 +1,5 @@
 import analytics from '@util/analytics'
 import { Button as AntDesignButton, ButtonProps } from 'antd'
-import classNames from 'classnames'
 import React from 'react'
 
 import styles from './ToggleButton.module.scss'
@@ -36,7 +35,7 @@ const ToggleButton: React.FC<React.PropsWithChildren<Props>> = ({
 				}
 				analytics.track(`ToggleButton-${trackingId}`)
 			}}
-			className={classNames(styles.toggleButtonBase, className, {
+			className={clsx(styles.toggleButtonBase, className, {
 				[styles.toggled]: toggled,
 				[styles.iconButton]: iconButton,
 			})}

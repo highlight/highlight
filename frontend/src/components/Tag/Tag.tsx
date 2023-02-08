@@ -1,5 +1,4 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
-import classNames from 'classnames'
 import ColorHash from 'color-hash'
 import React from 'react'
 
@@ -32,7 +31,7 @@ const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 				backgroundColor: backgroundColor || hashBackgroundColor,
 				color,
 			}}
-			className={classNames(className, styles.tag)}
+			className={clsx(className, styles.tag)}
 		>
 			{children}
 			{infoTooltipText && <InfoTooltip title={infoTooltipText} />}

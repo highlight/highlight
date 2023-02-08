@@ -15,7 +15,7 @@ import { WorkspaceRedirectionRouter } from '@routers/OrgRouter/WorkspaceRedirect
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect } from 'react'
-import { Route, Switch } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import commonStyles from '../../Common.module.scss'
@@ -33,8 +33,8 @@ export const WorkspaceRouter = () => {
 	const { setLoadingState } = useAppLoadingContext()
 
 	const { data, loading } = useGetWorkspaceDropdownOptionsQuery({
-		variables: { workspace_id },
-		skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
+		variables: { workspace_id: workspace_id ?? '' },
+		skip: !isLoggedIn || !workspace_id, // Higher level routers decide when guests are allowed to hit this router
 	})
 
 	useEffect(() => {
@@ -104,32 +104,40 @@ export const WorkspaceRouter = () => {
 						/>
 					) : (
 						<>
-							<Switch>
-								<Route path="/w/:page_id(team|settings|current-plan|upgrade-plan)">
-									{isLoggedIn ? (
-										<WorkspaceRedirectionRouter />
-									) : (
-										<LoginForm />
-									)}
-								</Route>
-								<Route path="/w/:workspace_id(\d+)/:page_id(team|settings|current-plan|upgrade-plan)">
-									<WorkspaceTabs />
-								</Route>
+							<Routes>
+								<Route
+									path="/w/:page_id"
+									element={
+										isLoggedIn ? (
+											<WorkspaceRedirectionRouter />
+										) : (
+											<LoginForm />
+										)
+									}
+								/>
+								<Route
+									path="/w/:workspace_id"
+									element={<WorkspaceTabs />}
+								/>
 								{/*
 								Probably doesn't belong here, but we wanted to reuse the Header,
 								which requires context of a project or workspace.
 								*/}
-								<Route path="/w/:workspace_id/account">
-									<UserSettings />
-								</Route>
-								<Route path="/w/:workspace_id(\d+)">
-									{isLoggedIn ? (
-										<WorkspaceRedirectionRouter />
-									) : (
-										<LoginForm />
-									)}
-								</Route>
-							</Switch>
+								<Route
+									path="/w/:workspace_id/account"
+									element={<UserSettings />}
+								/>
+								<Route
+									path="/w/:workspace_id"
+									element={
+										isLoggedIn ? (
+											<WorkspaceRedirectionRouter />
+										) : (
+											<LoginForm />
+										)
+									}
+								/>
+							</Routes>
 						</>
 					)}
 				</div>

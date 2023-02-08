@@ -14,10 +14,10 @@ import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { dailyCountData } from '@util/dashboardCalculations'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import moment from 'moment/moment'
 import React, { useEffect, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ResponsiveContainer } from 'recharts'
 
 import styles from './HomeCharts.module.scss'
@@ -46,11 +46,11 @@ export const SessionCountGraph = ({
 	const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
 		[],
 	)
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const { loading, refetch } = useGetDailySessionsCountQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			date_range: {
 				start_date: timeRange.start_date,
 				end_date: timeRange.end_date,
@@ -97,7 +97,7 @@ export const SessionCountGraph = ({
 	}, [setUpdatingData, loading])
 
 	return (
-		<div className={classNames({ [styles.loading]: loading })}>
+		<div className={clsx({ [styles.loading]: loading })}>
 			<DailyChart
 				data={sessionCountData}
 				name="Sessions"
@@ -115,7 +115,7 @@ export const SessionCountGraph = ({
 					message.success(
 						`Showing sessions that were recorded on ${payload.activeLabel}`,
 					)
-					history.push(`/${projectIdRemapped}/sessions`)
+					navigate(`/${projectIdRemapped}/sessions`)
 				}}
 			/>
 		</div>
@@ -137,11 +137,11 @@ export const ErrorCountGraph = ({
 
 	const { timeRange } = useDataTimeRange()
 	const [errorCountData, setErrorCountData] = useState<Array<DailyCount>>([])
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const { loading } = useGetDailyErrorsCountQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			date_range: {
 				start_date: timeRange.start_date,
 				end_date: timeRange.end_date,
@@ -182,13 +182,13 @@ export const ErrorCountGraph = ({
 	}, [setUpdatingData, loading])
 
 	return (
-		<div className={classNames({ [styles.loading]: loading })}>
+		<div className={clsx({ [styles.loading]: loading })}>
 			<DailyChart
 				data={errorCountData}
 				lineColor="var(--color-orange-400)"
 				name="Errors"
 				onClickHandler={(payload: any) => {
-					history.push(
+					navigate(
 						`/${projectIdRemapped}/errors?${
 							SessionPageSearchParams.date
 						}=${payload.activePayload[0].payload.date.toDate()}`,

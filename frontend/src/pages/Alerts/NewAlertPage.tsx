@@ -12,20 +12,21 @@ import { useParams } from '@util/react-router/useParams'
 import { snakeCaseString } from '@util/string'
 import React from 'react'
 import { Helmet } from 'react-helmet'
-import { Link, useHistory, useRouteMatch } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 import styles from './NewAlertPage.module.scss'
 
 const NewAlertPage = () => {
-	const { url } = useRouteMatch()
 	const { type, project_id } = useParams<{
 		type?: ALERT_NAMES
 		project_id: string
 	}>()
 	const { alertsPayload, slackUrl } = useAlertsContext()
-	const history = useHistory()
+	const location = useLocation()
+	const navigate = useNavigate()
 
+	const url = location.pathname
 	// Redirect the user if the alert type is not valid.
 	if (
 		type &&
@@ -33,7 +34,7 @@ const NewAlertPage = () => {
 			.map((alert) => snakeCaseString(alert.toString()))
 			.includes(type)
 	) {
-		history.replace(`/${project_id}/alerts/new`)
+		navigate(`/${project_id}/alerts/new`, { replace: true })
 		return null
 	}
 
@@ -65,14 +66,12 @@ const NewAlertPage = () => {
 								<Link
 									className={styles.cardContent}
 									key={key}
-									to={{
-										pathname: `${url}/${snakeCaseString(
-											configuration.name,
-										)}`,
-										state: {
-											errorName: `${configuration.name} Alert`,
-										},
+									state={{
+										errorName: `${configuration.name} Alert`,
 									}}
+									to={`${url}/${snakeCaseString(
+										configuration.name,
+									)}`}
 								>
 									<Card
 										interactable
@@ -101,11 +100,9 @@ const NewAlertPage = () => {
 						})}
 						<Link
 							className={styles.cardContent}
-							to={{
-								pathname: `${url}/monitor`,
-								state: {
-									errorName: `New Monitor`,
-								},
+							to={`${url}/monitor`}
+							state={{
+								errorName: `New Monitor`,
 							}}
 						>
 							<Card interactable className={styles.cardContainer}>

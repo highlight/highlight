@@ -5,7 +5,6 @@ import { useSyncSlackIntegrationMutation } from '@graph/hooks'
 import Reload from '@icons/Reload'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import classNames from 'classnames'
 import React from 'react'
 
 import styles from './SyncWithSlackButton.module.scss'
@@ -55,11 +54,9 @@ const SyncWithSlackButton = ({
 
 	return (
 		<div
-			className={classNames(
-				styles.selectMessage,
-				styles.notFoundMessage,
-				{ [styles.small]: small },
-			)}
+			className={clsx(styles.selectMessage, styles.notFoundMessage, {
+				[styles.small]: small,
+			})}
 		>
 			{small ? null : "Can't find the channel or person here? "}
 			{project_id !== DEMO_WORKSPACE_APPLICATION_ID &&

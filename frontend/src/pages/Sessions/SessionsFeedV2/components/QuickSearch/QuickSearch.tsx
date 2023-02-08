@@ -11,11 +11,11 @@ import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import { validateEmail } from '@util/string'
 import { isUrl } from '@util/url/isUrl'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import _ from 'lodash'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import AnimateHeight from 'react-animate-height'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { components, Styles } from 'react-select'
 
 import styles from './QuickSearch.module.scss'
@@ -136,7 +136,7 @@ export const styleProps: Styles<any, false> = {
 }
 
 const QuickSearch = () => {
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -174,11 +174,12 @@ const QuickSearch = () => {
 
 	const { loading, refetch } = useGetQuickFieldsOpensearchQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			count: RESULT_COUNT,
 			query: '',
 		},
 		notifyOnNetworkStatusChange: true,
+		skip: !project_id,
 	})
 
 	const getOption = (props: any) => {
@@ -301,7 +302,7 @@ const QuickSearch = () => {
 				}),
 			}
 
-			history.push(`/${project_id}/errors`)
+			navigate(`/${project_id}/errors`)
 			errorSearchContext.setExistingParams(searchParams)
 			errorSearchContext.setSearchParams(searchParams)
 		} else {
@@ -316,7 +317,7 @@ const QuickSearch = () => {
 					rules: [[getQueryFieldKey(field), verb, field.value]],
 				}),
 			}
-			history.push(`/${project_id}/sessions`)
+			navigate(`/${project_id}/sessions`)
 			sessionSearchContext.setExistingParams(searchParams)
 			sessionSearchContext.setSearchParams(searchParams)
 			sessionSearchContext.setShowStarredSessions(false)
@@ -387,7 +388,7 @@ const QuickSearch = () => {
 				value={null}
 				escapeClearsValue={true}
 				onChange={onChange}
-				className={classNames(styles.select, {
+				className={clsx(styles.select, {
 					[styles.menuIsOpen]: isMenuOpen,
 				})}
 				onMenuOpen={() => {
@@ -451,7 +452,7 @@ const QuickSearch = () => {
 				menuIsOpen={isMenuOpen === true ? true : undefined}
 			/>
 			<div
-				className={classNames(styles.backdrop, {
+				className={clsx(styles.backdrop, {
 					[styles.visible]: isMenuOpen,
 				})}
 			></div>

@@ -50,7 +50,6 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
 import { showIntercom } from '@util/window'
-import classNames from 'classnames/bind'
 import moment from 'moment'
 import React, { useEffect } from 'react'
 import { FaDiscord } from 'react-icons/fa'
@@ -557,7 +556,8 @@ const BillingBanner = () => {
 	)
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
-		variables: { project_id },
+		variables: { project_id: project_id ?? '' },
+		skip: !project_id,
 	})
 	const [hasReportedTrialExtension, setHasReportedTrialExtension] =
 		useLocalStorage('highlightReportedTrialExtension', false)
@@ -684,11 +684,11 @@ const BillingBanner = () => {
 
 	return (
 		<div
-			className={classNames(styles.trialWrapper, {
+			className={clsx(styles.trialWrapper, {
 				[styles.error]: hasExceededSessionsForMonth,
 			})}
 		>
-			<div className={classNames(styles.trialTimeText)}>
+			<div className={clsx(styles.trialTimeText)}>
 				{bannerMessage}
 				{!canExtend && (
 					<>
@@ -730,7 +730,7 @@ const OnPremiseBanner = () => {
 				backgroundColor: 'var(--color-primary-inverted-background)',
 			}}
 		>
-			<div className={classNames(styles.trialTimeText)}>
+			<div className={clsx(styles.trialTimeText)}>
 				Running Highlight On-premise{' '}
 				{`v${import.meta.env.REACT_APP_COMMIT_SHA}`}
 			</div>
@@ -754,7 +754,7 @@ const DemoWorkspaceBanner = () => {
 				background: 'var(--color-green-600)',
 			}}
 		>
-			<div className={classNames(styles.trialTimeText)}>
+			<div className={clsx(styles.trialTimeText)}>
 				Viewing Demo Project.{' '}
 				<Link className={styles.demoLink} to={redirectLink}>
 					Go back to your project.
@@ -785,10 +785,8 @@ const ProductHuntBanner = () => {
 	)
 
 	return (
-		<div className={classNames(styles.trialWrapper, styles.productHunt)}>
-			<div className={classNames(styles.trialTimeText)}>
-				{bannerMessage}
-			</div>
+		<div className={clsx(styles.trialWrapper, styles.productHunt)}>
+			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
 		</div>
 	)
 }
@@ -814,10 +812,8 @@ const HighlightRoadshowBanner = () => {
 	)
 
 	return (
-		<div className={classNames(styles.trialWrapper, styles.youtube)}>
-			<div className={classNames(styles.trialTimeText)}>
-				{bannerMessage}
-			</div>
+		<div className={clsx(styles.trialWrapper, styles.youtube)}>
+			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
 		</div>
 	)
 }
@@ -843,10 +839,8 @@ const BillingIssuesBanner = () => {
 	)
 
 	return (
-		<div className={classNames(styles.trialWrapper, styles.error)}>
-			<div className={classNames(styles.trialTimeText)}>
-				{bannerMessage}
-			</div>
+		<div className={clsx(styles.trialWrapper, styles.error)}>
+			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
 		</div>
 	)
 }

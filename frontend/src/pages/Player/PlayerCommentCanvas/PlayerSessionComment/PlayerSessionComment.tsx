@@ -1,7 +1,6 @@
 import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
-import classNames from 'classnames'
 import React, { useEffect, useRef, useState } from 'react'
 
 import TransparentPopover from '../../../../components/Popover/TransparentPopover'
@@ -156,7 +155,7 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 							)}.`,
 						)
 					}}
-					className={classNames(
+					className={clsx(
 						commentButtonStyles.commentIndicator,
 						styles.commentPinButton,
 					)}
