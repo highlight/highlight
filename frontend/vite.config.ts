@@ -88,6 +88,13 @@ export default defineConfig(({ mode }) => {
 			// Vite sourcemaps are broken in development
 			// https://github.com/highlight-run/highlight/pull/3171
 			sourcemap: env.RENDER_PREVIEW !== 'true' && mode !== 'development',
+			rollupOptions: {
+				output: {
+					entryFileNames: `assets/[name].js`,
+					chunkFileNames: `assets/[name].js`,
+					assetFileNames: `assets/[name].[ext]`,
+				},
+			},
 		},
 		test: {
 			globals: true,

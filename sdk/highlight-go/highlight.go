@@ -170,11 +170,6 @@ func init() {
 // Start is used to start the Highlight client's collection service.
 func Start() {
 	StartWithContext(context.Background())
-	var err error
-	otlp, err = StartOTLP()
-	if err != nil {
-		logger.Errorf("failed to start opentelemetry exporter: %s", err)
-	}
 }
 
 // StartWithContext is used to start the Highlight client's collection
@@ -185,6 +180,11 @@ func StartWithContext(ctx context.Context) {
 	defer stateMutex.Unlock()
 	if state == started {
 		return
+	}
+	var err error
+	otlp, err = StartOTLP()
+	if err != nil {
+		logger.Errorf("failed to start opentelemetry exporter: %s", err)
 	}
 	var httpClient *http.Client = nil
 	if graphqlClientAddress == "https://localhost:8082/public" {

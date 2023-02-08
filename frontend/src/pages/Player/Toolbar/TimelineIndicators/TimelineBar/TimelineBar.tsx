@@ -1,5 +1,8 @@
 import Popover from '@components/Popover/Popover'
-import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext'
+import {
+	getFullScreenPopoverGetPopupContainer,
+	usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext'
 import { EventsForTimeline } from '@pages/Player/PlayerHook/utils'
 import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import TimelinePopover from '@pages/Player/Toolbar/TimelineIndicators/TimelinePopover/TimelinePopover'
@@ -7,8 +10,8 @@ import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import { clamp } from '@util/numbers'
 import { TooltipPlacement } from 'antd/lib/tooltip'
-import classNames from 'classnames'
-import { useLayoutEffect, useMemo, useState } from 'react'
+import clsx from 'clsx'
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 
 import styles from './TimelineBar.module.scss'
 
@@ -38,7 +41,6 @@ const TimelineIndicatorsBar = ({
 					name: getTimelineEventDisplayName(eventType || ''),
 					color,
 					count: bucket.identifier[eventType].length,
-					firstId: bucket.identifier[eventType][0],
 					percent:
 						(bucket.identifier[eventType].length /
 							bucket.totalCount) *
@@ -54,6 +56,24 @@ const TimelineIndicatorsBar = ({
 	const [isInsideBar, setIsInsideBar] = useState(false)
 	const [isInsidePopover, setIsInsidePopover] = useState(false)
 	const [isSelected, setIsSelected] = useState(false)
+	const { activeError } = usePlayerUIContext()
+
+	useEffect(() => {
+		if (
+			activeError?.error_group_secure_id &&
+			bucket.identifier.Errors.includes(
+				activeError?.error_group_secure_id as string,
+			) &&
+			bucket.instance[activeError?.error_group_secure_id].includes(
+				activeError.id,
+			)
+		) {
+			setIsSelected(true)
+		}
+		// run once
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
 	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
 		if (!viewportDiv) {
@@ -144,7 +164,7 @@ const TimelineIndicatorsBar = ({
 			destroyTooltipOnHide
 		>
 			<div
-				className={classNames(styles.bar, {
+				className={clsx(styles.bar, {
 					[styles.isShaded]: isInsideBar || isSelected,
 				})}
 				style={{
@@ -174,7 +194,7 @@ const TimelineIndicatorsBar = ({
 										idx === data.length - 1 ? 0 : undefined,
 								}}
 								key={idx}
-							></div>
+							/>
 						)
 					})}
 				</div>

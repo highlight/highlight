@@ -76,6 +76,8 @@ const NewProjectPage = () => {
 	// User is creating a workspace if workspace is not specified in the URL
 	const isWorkspace = !workspace_id
 
+	analytics.page('/new', { workspace_id })
+
 	const onSubmit = async (e: { preventDefault: () => void }) => {
 		e.preventDefault()
 		if (isWorkspace) {

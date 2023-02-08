@@ -12,13 +12,7 @@ const NoActiveSessionCard = () => {
 	return (
 		<Box margin="auto" style={{ maxWidth: 300 }}>
 			<Callout title="Ready to see your app?">
-				<Box
-					display="flex"
-					flexDirection="column"
-					gap="16"
-					alignItems="flex-start"
-					mb="6"
-				>
+				<Box mb="6">
 					<Text color="moderate">
 						View a recent session or find a specific identifier,
 						URL, or segment.

@@ -26,7 +26,7 @@ import {
 import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
 import React from 'react'
-import { styledScrollbar } from 'style/common.css'
+import { styledVerticalScrollbar } from 'style/common.css'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
@@ -39,7 +39,8 @@ const DevToolsWindowV2: React.FC<
 > = (props) => {
 	const { isPlayerFullscreen } = usePlayerUIContext()
 	const { time } = useReplayerContext()
-	const [tab, setTab] = React.useState<Tab>(Tab.Console)
+	const { selectedDevToolsTab, setSelectedDevToolsTab } =
+		usePlayerConfiguration()
 	const [requestType, setRequestType] = React.useState<RequestType>(
 		RequestType.All,
 	)
@@ -74,15 +75,18 @@ const DevToolsWindowV2: React.FC<
 			{({ panelRef, handleRef }) => (
 				<Box
 					bt={showHistogram ? undefined : 'dividerWeak'}
-					cssClass={clsx(styles.devToolsWindowV2, styledScrollbar)}
+					cssClass={clsx(
+						styles.devToolsWindowV2,
+						styledVerticalScrollbar,
+					)}
 					ref={panelRef}
 					style={{ width: props.width }}
 				>
 					<Tabs<Tab>
 						handleRef={handleRef}
-						tab={tab}
+						tab={selectedDevToolsTab}
 						setTab={(t: Tab) => {
-							setTab(t)
+							setSelectedDevToolsTab(t)
 							form.reset()
 						}}
 						pages={{
@@ -175,7 +179,7 @@ const DevToolsWindowV2: React.FC<
 										</label>
 									</Form>
 
-									{tab === Tab.Console ? (
+									{selectedDevToolsTab === Tab.Console ? (
 										<MenuButton
 											divider
 											size="medium"
@@ -199,7 +203,7 @@ const DevToolsWindowV2: React.FC<
 												setLogLevel(ll as LogLevel)
 											}
 										/>
-									) : tab === Tab.Network ? (
+									) : selectedDevToolsTab === Tab.Network ? (
 										<MenuButton
 											size="medium"
 											options={Object.values(

@@ -8,15 +8,18 @@ import * as styles from './styles.css'
 // `as?: styles.Variants['level']` was producing a type error so pulled this out
 // to a separate type.
 type Levels = 'h1' | 'h2' | 'h3' | 'h4'
+type Alignments = 'center'
 
 type Props = React.PropsWithChildren &
 	Pick<Sprinkles, 'my' | 'mt' | 'mb' | 'marginTop' | 'marginBottom'> & {
+		align?: Alignments
 		as?: Levels
 		level?: Levels
 		lines?: TruncateProps['lines']
 	}
 
 export const Heading: React.FC<Props> = ({
+	align,
 	as,
 	children,
 	level = 'h2',
@@ -30,7 +33,11 @@ export const Heading: React.FC<Props> = ({
 	)
 
 	return (
-		<Box as={as || level} cssClass={styles.variants({ level })} {...props}>
+		<Box
+			as={as || level}
+			cssClass={styles.variants({ align, level })}
+			{...props}
+		>
 			{content}
 		</Box>
 	)

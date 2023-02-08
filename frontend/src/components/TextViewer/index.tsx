@@ -11,6 +11,7 @@ import { copyToClipboard } from '@util/string'
 import React from 'react'
 // @ts-ignore
 import { specific } from 'react-files-hooks'
+import { styledHorizontalScrollbar } from 'style/common.css'
 
 type Props = {
 	title: React.ReactElement
@@ -97,6 +98,9 @@ const TextViewer = React.memo(
 					borderRadius="5"
 					border="dividerWeak"
 					background="nested"
+					overflowX="auto"
+					overflowY="hidden"
+					cssClass={styledHorizontalScrollbar}
 				>
 					{!!repr ? (
 						repr

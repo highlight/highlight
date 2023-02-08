@@ -96,7 +96,7 @@
 		"codegen": "graphql-codegen --config codegen.yml",
 		"build": "yarn types:check && NODE_OPTIONS='--max-old-space-size=7168' vite build",
 		"lint": "eslint ./src",
-		"sourcemaps": "npx --yes @highlight-run/sourcemap-uploader upload --apiKey \"${HIGHLIGHT_API_KEY}\" --path ./build",
+		"sourcemaps": "npx --yes @highlight-run/sourcemap-uploader upload --apiKey \"${HIGHLIGHT_API_KEY}\" --appVersion \"${APP_VERSION}\" --path ./build",
 		"test": "TZ=UTC vitest --run",
 		"test:watch": "TZ=UTC vitest",
 		"types:check": "tsc -noEmit",

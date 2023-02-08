@@ -41,7 +41,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 					path="/:project_id/errors/:error_secure_id?/:error_tab_key?/:error_object_id?"
 					exact
 				>
-					<ErrorsV2 />
+					<ErrorsV2 integrated={integrated} />
 				</Route>
 				{isHighlightAdmin && (
 					<Route path="/:project_id/logs">

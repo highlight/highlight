@@ -29,6 +29,10 @@ export const Button: React.FC<ButtonProps> = ({
 	...props
 }) => {
 	const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+		if (loading) {
+			return
+		}
+
 		analytics.track(trackingId, trackingProperties)
 
 		if (onClick) {

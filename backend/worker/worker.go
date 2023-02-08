@@ -420,7 +420,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 
 func (w *Worker) PublicWorker() {
 	const parallelWorkers = 64
-	const parallelBatchWorkers = 2
+	const parallelBatchWorkers = 8
 	// creates N parallel kafka message consumers that process messages.
 	// each consumer is considered part of the same consumer group and gets
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
@@ -448,12 +448,16 @@ func (w *Worker) PublicWorker() {
 	go func(_wg *sync.WaitGroup) {
 		wg := sync.WaitGroup{}
 		wg.Add(parallelBatchWorkers)
+		buffer := &KafkaBatchBuffer{
+			messageQueue: make(chan *kafkaqueue.Message, BatchFlushSize*(parallelBatchWorkers+1)),
+		}
 		for i := 0; i < parallelBatchWorkers; i++ {
 			go func(workerId int) {
 				k := KafkaBatchWorker{
 					KafkaQueue:   kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Consumer),
 					Worker:       w,
 					WorkerThread: workerId,
+					BatchBuffer:  buffer,
 				}
 				k.ProcessMessages()
 				wg.Done()

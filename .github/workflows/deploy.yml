@@ -188,10 +188,8 @@ jobs:
 
     deploy_backend:
         needs: migrate-database
-        runs-on: ubuntu-latest
+        runs-on: buildjet-2vcpu-ubuntu-2204-arm
         steps:
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v2
             - name: Check out the repo
               uses: actions/checkout@v2
 
@@ -290,7 +288,7 @@ jobs:
               if: always()
 
     deploy_opentelemetry_collector:
-        runs-on: ubuntu-latest
+        runs-on: buildjet-2vcpu-ubuntu-2204-arm
         steps:
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v1
@@ -311,9 +309,6 @@ jobs:
                       otel-changed:
                         - 'deploy/opentelemetry-collector.Dockerfile'
                         - 'deploy/otel-collector.yaml'
-            - name: Set up QEMU
-              if: steps.filter.outputs.otel-changed == 'true'
-              uses: docker/setup-qemu-action@v2
 
             # Edit and deploy opentelemetry collector
             - name: Build, tag, and push arm64 image to Amazon ECR
