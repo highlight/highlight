@@ -141,6 +141,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							log.WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received exception with no type and no message")
 							continue
 						}
+						stackTrace = formatStructureStackTrace(stackTrace)
 						err := &model.BackendErrorObjectInput{
 							SessionSecureID: &sessionID,
 							RequestID:       &requestID,
