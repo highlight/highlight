@@ -33,7 +33,6 @@ import {
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
 import SessionLevelBarV2 from '@pages/Player/SessionLevelBar/SessionLevelBarV2'
 import { DevTools } from '@pages/Player/Toolbar/DevTools'
-import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel'
 import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
@@ -291,12 +290,7 @@ const PlayerPage = ({ integrated }: Props) => {
 							</div>
 							<DevTools width={controllerWidth} />
 						</div>
-						{!isPlayerFullscreen && (
-							<>
-								<RightPlayerPanel />
-								<DetailPanel />
-							</>
-						)}
+						{!isPlayerFullscreen && <RightPlayerPanel />}
 					</Box>
 				</Box>
 			</div>
