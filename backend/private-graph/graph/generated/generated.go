@@ -490,9 +490,10 @@ type ComplexityRoot struct {
 	}
 
 	LogLine struct {
-		Body         func(childComplexity int) int
-		SeverityText func(childComplexity int) int
-		Timestamp    func(childComplexity int) int
+		Body          func(childComplexity int) int
+		LogAttributes func(childComplexity int) int
+		SeverityText  func(childComplexity int) int
+		Timestamp     func(childComplexity int) int
 	}
 
 	Metric struct {
@@ -558,9 +559,9 @@ type ComplexityRoot struct {
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment             func(childComplexity int, id int) int
 		DeleteSessions                   func(childComplexity int, projectID int, query string, sessionCount int) int
-		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput) int
+		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput, name string) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray) int
-		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput) int
+		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput, name string) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EmailSignup                      func(childComplexity int, email string) int
 		JoinWorkspace                    func(childComplexity int, workspaceID int) int
@@ -699,7 +700,7 @@ type ComplexityRoot struct {
 		JoinableWorkspaces           func(childComplexity int) int
 		LinearTeams                  func(childComplexity int, projectID int) int
 		LiveUsersCount               func(childComplexity int, projectID int) int
-		Logs                         func(childComplexity int, projectID int) int
+		Logs                         func(childComplexity int, projectID int, params model.LogsParamsInput) int
 		Messages                     func(childComplexity int, sessionSecureID string) int
 		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
 		MetricTagValues              func(childComplexity int, projectID int, metricName string, tagName string) int
@@ -1130,10 +1131,10 @@ type MutationResolver interface {
 	DeleteAdminFromWorkspace(ctx context.Context, workspaceID int, adminID int) (*int, error)
 	CreateSegment(ctx context.Context, projectID int, name string, params model.SearchParamsInput) (*model1.Segment, error)
 	EmailSignup(ctx context.Context, email string) (string, error)
-	EditSegment(ctx context.Context, id int, projectID int, params model.SearchParamsInput) (*bool, error)
+	EditSegment(ctx context.Context, id int, projectID int, params model.SearchParamsInput, name string) (*bool, error)
 	DeleteSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateErrorSegment(ctx context.Context, projectID int, name string, params model.ErrorSearchParamsInput) (*model1.ErrorSegment, error)
-	EditErrorSegment(ctx context.Context, id int, projectID int, params model.ErrorSearchParamsInput) (*bool, error)
+	EditErrorSegment(ctx context.Context, id int, projectID int, params model.ErrorSearchParamsInput, name string) (*bool, error)
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
@@ -1297,7 +1298,7 @@ type QueryResolver interface {
 	SourcemapVersions(ctx context.Context, projectID int) ([]string, error)
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
-	Logs(ctx context.Context, projectID int) ([]*model.LogLine, error)
+	Logs(ctx context.Context, projectID int, params model.LogsParamsInput) ([]*model.LogLine, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -3283,6 +3284,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LogLine.Body(childComplexity), true
 
+	case "LogLine.logAttributes":
+		if e.complexity.LogLine.LogAttributes == nil {
+			break
+		}
+
+		return e.complexity.LogLine.LogAttributes(childComplexity), true
+
 	case "LogLine.severityText":
 		if e.complexity.LogLine.SeverityText == nil {
 			break
@@ -3802,7 +3810,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditErrorSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["params"].(model.ErrorSearchParamsInput)), true
+		return e.complexity.Mutation.EditErrorSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["params"].(model.ErrorSearchParamsInput), args["name"].(string)), true
 
 	case "Mutation.editProject":
 		if e.complexity.Mutation.EditProject == nil {
@@ -3826,7 +3834,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["params"].(model.SearchParamsInput)), true
+		return e.complexity.Mutation.EditSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["params"].(model.SearchParamsInput), args["name"].(string)), true
 
 	case "Mutation.editWorkspace":
 		if e.complexity.Mutation.EditWorkspace == nil {
@@ -5148,7 +5156,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Logs(childComplexity, args["project_id"].(int)), true
+		return e.complexity.Query.Logs(childComplexity, args["project_id"].(int), args["params"].(model.LogsParamsInput)), true
 
 	case "Query.messages":
 		if e.complexity.Query.Messages == nil {
@@ -7282,6 +7290,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputHistogramParamsInput,
 		ec.unmarshalInputIntegrationProjectMappingInput,
 		ec.unmarshalInputLengthRangeInput,
+		ec.unmarshalInputLogsParamsInput,
 		ec.unmarshalInputMetricTagFilterInput,
 		ec.unmarshalInputNetworkHistogramParamsInput,
 		ec.unmarshalInputSanitizedAdminInput,
@@ -7375,6 +7384,7 @@ scalar Any
 scalar Timestamp
 scalar Int64
 scalar StringArray
+scalar Map
 
 type Field {
 	id: Int64!
@@ -7852,10 +7862,12 @@ type SourceMappingError {
 type S3File {
 	key: String
 }
+
 type LogLine {
 	timestamp: Timestamp!
 	severityText: String!
 	body: String!
+	logAttributes: Map!
 }
 
 type ReferrerTablePayload {
@@ -7931,6 +7943,11 @@ input HistogramParamsInput {
 input ErrorGroupFrequenciesParamsInput {
 	date_range: DateRangeRequiredInput!
 	resolution_minutes: Int!
+}
+
+input LogsParamsInput {
+	query: String!
+	date_range: DateRangeRequiredInput!
 }
 
 enum MetricTagFilterOp {
@@ -8739,7 +8756,7 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
-	logs(project_id: ID!): [LogLine!]!
+	logs(project_id: ID!, params: LogsParamsInput!): [LogLine!]!
 }
 
 type Mutation {
@@ -8796,7 +8813,12 @@ type Mutation {
 		params: SearchParamsInput!
 	): Segment
 	emailSignup(email: String!): String!
-	editSegment(id: ID!, project_id: ID!, params: SearchParamsInput!): Boolean
+	editSegment(
+		id: ID!
+		project_id: ID!
+		params: SearchParamsInput!
+		name: String!
+	): Boolean
 	deleteSegment(segment_id: ID!): Boolean
 	createErrorSegment(
 		project_id: ID!
@@ -8807,6 +8829,7 @@ type Mutation {
 		id: ID!
 		project_id: ID!
 		params: ErrorSearchParamsInput!
+		name: String!
 	): Boolean
 	deleteErrorSegment(segment_id: ID!): Boolean
 	# If this endpoint returns a checkout_id, we initiate a stripe checkout.
@@ -10343,6 +10366,15 @@ func (ec *executionContext) field_Mutation_editErrorSegment_args(ctx context.Con
 		}
 	}
 	args["params"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg3
 	return args, nil
 }
 
@@ -10463,6 +10495,15 @@ func (ec *executionContext) field_Mutation_editSegment_args(ctx context.Context,
 		}
 	}
 	args["params"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg3
 	return args, nil
 }
 
@@ -12911,6 +12952,15 @@ func (ec *executionContext) field_Query_logs_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["project_id"] = arg0
+	var arg1 model.LogsParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg1, err = ec.unmarshalNLogsParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg1
 	return args, nil
 }
 
@@ -26389,6 +26439,50 @@ func (ec *executionContext) fieldContext_LogLine_body(ctx context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _LogLine_logAttributes(ctx context.Context, field graphql.CollectedField, obj *model.LogLine) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogLine_logAttributes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogAttributes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalNMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogLine_logAttributes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogLine",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Metric_name(ctx context.Context, field graphql.CollectedField, obj *model1.Metric) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Metric_name(ctx, field)
 	if err != nil {
@@ -27342,7 +27436,6 @@ func (ec *executionContext) _Mutation_updateAdminAboutYouDetails(ctx context.Con
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -27397,7 +27490,6 @@ func (ec *executionContext) _Mutation_createProject(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -27475,7 +27567,6 @@ func (ec *executionContext) _Mutation_createWorkspace(ctx context.Context, field
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -27561,7 +27652,6 @@ func (ec *executionContext) _Mutation_editProject(ctx context.Context, field gra
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -27639,7 +27729,6 @@ func (ec *executionContext) _Mutation_editWorkspace(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -27725,7 +27814,6 @@ func (ec *executionContext) _Mutation_markSessionAsViewed(ctx context.Context, f
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -27875,7 +27963,6 @@ func (ec *executionContext) _Mutation_markSessionAsStarred(ctx context.Context, 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28025,7 +28112,6 @@ func (ec *executionContext) _Mutation_updateErrorGroupState(ctx context.Context,
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28119,7 +28205,6 @@ func (ec *executionContext) _Mutation_deleteProject(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28171,7 +28256,6 @@ func (ec *executionContext) _Mutation_sendAdminProjectInvite(ctx context.Context
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28223,7 +28307,6 @@ func (ec *executionContext) _Mutation_sendAdminWorkspaceInvite(ctx context.Conte
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28275,7 +28358,6 @@ func (ec *executionContext) _Mutation_addAdminToWorkspace(ctx context.Context, f
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28327,7 +28409,6 @@ func (ec *executionContext) _Mutation_joinWorkspace(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28379,7 +28460,6 @@ func (ec *executionContext) _Mutation_updateAllowedEmailOrigins(ctx context.Cont
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28431,7 +28511,6 @@ func (ec *executionContext) _Mutation_changeAdminRole(ctx context.Context, field
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -28486,7 +28565,6 @@ func (ec *executionContext) _Mutation_deleteAdminFromProject(ctx context.Context
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28538,7 +28616,6 @@ func (ec *executionContext) _Mutation_deleteAdminFromWorkspace(ctx context.Conte
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28590,7 +28667,6 @@ func (ec *executionContext) _Mutation_createSegment(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28652,7 +28728,6 @@ func (ec *executionContext) _Mutation_emailSignup(ctx context.Context, field gra
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -28703,11 +28778,10 @@ func (ec *executionContext) _Mutation_editSegment(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["params"].(model.SearchParamsInput))
+		return ec.resolvers.Mutation().EditSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["params"].(model.SearchParamsInput), fc.Args["name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28759,7 +28833,6 @@ func (ec *executionContext) _Mutation_deleteSegment(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28811,7 +28884,6 @@ func (ec *executionContext) _Mutation_createErrorSegment(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28869,11 +28941,10 @@ func (ec *executionContext) _Mutation_editErrorSegment(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditErrorSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["params"].(model.ErrorSearchParamsInput))
+		return ec.resolvers.Mutation().EditErrorSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["params"].(model.ErrorSearchParamsInput), fc.Args["name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28925,7 +28996,6 @@ func (ec *executionContext) _Mutation_deleteErrorSegment(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -28977,7 +29047,6 @@ func (ec *executionContext) _Mutation_createOrUpdateStripeSubscription(ctx conte
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -29029,7 +29098,6 @@ func (ec *executionContext) _Mutation_updateBillingDetails(ctx context.Context, 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -29081,7 +29149,6 @@ func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -29167,7 +29234,6 @@ func (ec *executionContext) _Mutation_createIssueForSessionComment(ctx context.C
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -29253,7 +29319,6 @@ func (ec *executionContext) _Mutation_deleteSessionComment(ctx context.Context, 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -29305,7 +29370,6 @@ func (ec *executionContext) _Mutation_muteSessionCommentThread(ctx context.Conte
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -29357,7 +29421,6 @@ func (ec *executionContext) _Mutation_replyToSessionComment(ctx context.Context,
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -29421,7 +29484,6 @@ func (ec *executionContext) _Mutation_createErrorComment(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -29495,7 +29557,6 @@ func (ec *executionContext) _Mutation_removeErrorIssue(ctx context.Context, fiel
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -29547,7 +29608,6 @@ func (ec *executionContext) _Mutation_muteErrorCommentThread(ctx context.Context
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -29599,7 +29659,6 @@ func (ec *executionContext) _Mutation_createIssueForErrorComment(ctx context.Con
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -29673,7 +29732,6 @@ func (ec *executionContext) _Mutation_deleteErrorComment(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -29725,7 +29783,6 @@ func (ec *executionContext) _Mutation_replyToErrorComment(ctx context.Context, f
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -29789,7 +29846,6 @@ func (ec *executionContext) _Mutation_addIntegrationToProject(ctx context.Contex
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -29844,7 +29900,6 @@ func (ec *executionContext) _Mutation_removeIntegrationFromProject(ctx context.C
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -29899,7 +29954,6 @@ func (ec *executionContext) _Mutation_addIntegrationToWorkspace(ctx context.Cont
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -29954,7 +30008,6 @@ func (ec *executionContext) _Mutation_removeIntegrationFromWorkspace(ctx context
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -30009,7 +30062,6 @@ func (ec *executionContext) _Mutation_syncSlackIntegration(ctx context.Context, 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -30070,7 +30122,6 @@ func (ec *executionContext) _Mutation_createDefaultAlerts(ctx context.Context, f
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -30122,7 +30173,6 @@ func (ec *executionContext) _Mutation_createMetricMonitor(ctx context.Context, f
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -30204,7 +30254,6 @@ func (ec *executionContext) _Mutation_updateMetricMonitor(ctx context.Context, f
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -30286,7 +30335,6 @@ func (ec *executionContext) _Mutation_createErrorAlert(ctx context.Context, fiel
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -30370,7 +30418,6 @@ func (ec *executionContext) _Mutation_updateErrorAlert(ctx context.Context, fiel
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -30454,7 +30501,6 @@ func (ec *executionContext) _Mutation_deleteErrorAlert(ctx context.Context, fiel
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -30538,7 +30584,6 @@ func (ec *executionContext) _Mutation_deleteMetricMonitor(ctx context.Context, f
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -30620,7 +30665,6 @@ func (ec *executionContext) _Mutation_updateSessionAlertIsDisabled(ctx context.C
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -30706,7 +30750,6 @@ func (ec *executionContext) _Mutation_updateErrorAlertIsDisabled(ctx context.Con
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -30790,7 +30833,6 @@ func (ec *executionContext) _Mutation_updateMetricMonitorIsDisabled(ctx context.
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -30872,7 +30914,6 @@ func (ec *executionContext) _Mutation_updateSessionAlert(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -30958,7 +30999,6 @@ func (ec *executionContext) _Mutation_createSessionAlert(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -31044,7 +31084,6 @@ func (ec *executionContext) _Mutation_deleteSessionAlert(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -31130,7 +31169,6 @@ func (ec *executionContext) _Mutation_updateSessionIsPublic(ctx context.Context,
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -31280,7 +31318,6 @@ func (ec *executionContext) _Mutation_updateErrorGroupIsPublic(ctx context.Conte
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -31374,7 +31411,6 @@ func (ec *executionContext) _Mutation_updateAllowMeterOverage(ctx context.Contex
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -31460,7 +31496,6 @@ func (ec *executionContext) _Mutation_submitRegistrationForm(ctx context.Context
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -31512,7 +31547,6 @@ func (ec *executionContext) _Mutation_requestAccess(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -31564,7 +31598,6 @@ func (ec *executionContext) _Mutation_modifyClearbitIntegration(ctx context.Cont
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -31616,7 +31649,6 @@ func (ec *executionContext) _Mutation_upsertDashboard(ctx context.Context, field
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -31671,7 +31703,6 @@ func (ec *executionContext) _Mutation_deleteDashboard(ctx context.Context, field
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -31726,7 +31757,6 @@ func (ec *executionContext) _Mutation_deleteSessions(ctx context.Context, field 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -31781,7 +31811,6 @@ func (ec *executionContext) _Mutation_updateVercelProjectMappings(ctx context.Co
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -31836,7 +31865,6 @@ func (ec *executionContext) _Mutation_updateClickUpProjectMappings(ctx context.C
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -31891,7 +31919,6 @@ func (ec *executionContext) _Mutation_updateIntegrationProjectMappings(ctx conte
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -31946,7 +31973,6 @@ func (ec *executionContext) _Mutation_updateEmailOptOut(ctx context.Context, fie
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -32942,7 +32968,6 @@ func (ec *executionContext) _Query_accounts(ctx context.Context, field graphql.C
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -33019,7 +33044,6 @@ func (ec *executionContext) _Query_account_details(ctx context.Context, field gr
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -33088,7 +33112,6 @@ func (ec *executionContext) _Query_session(ctx context.Context, field graphql.Co
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -33238,7 +33261,6 @@ func (ec *executionContext) _Query_events(ctx context.Context, field graphql.Col
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -33290,7 +33312,6 @@ func (ec *executionContext) _Query_session_intervals(ctx context.Context, field 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -33357,7 +33378,6 @@ func (ec *executionContext) _Query_timeline_indicator_events(ctx context.Context
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -33424,7 +33444,6 @@ func (ec *executionContext) _Query_rage_clicks(ctx context.Context, field graphq
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -33493,7 +33512,6 @@ func (ec *executionContext) _Query_rageClicksForProject(ctx context.Context, fie
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -33558,7 +33576,6 @@ func (ec *executionContext) _Query_error_groups_opensearch(ctx context.Context, 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -33619,7 +33636,6 @@ func (ec *executionContext) _Query_errors_histogram(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -33680,7 +33696,6 @@ func (ec *executionContext) _Query_error_group(ctx context.Context, field graphq
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -33774,7 +33789,6 @@ func (ec *executionContext) _Query_error_object(ctx context.Context, field graph
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -33870,7 +33884,6 @@ func (ec *executionContext) _Query_error_instance(ctx context.Context, field gra
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -33930,7 +33943,6 @@ func (ec *executionContext) _Query_messages(ctx context.Context, field graphql.C
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -33982,7 +33994,6 @@ func (ec *executionContext) _Query_enhanced_user_details(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -34048,7 +34059,6 @@ func (ec *executionContext) _Query_errors(ctx context.Context, field graphql.Col
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -34144,7 +34154,6 @@ func (ec *executionContext) _Query_resources(ctx context.Context, field graphql.
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -34196,7 +34205,6 @@ func (ec *executionContext) _Query_web_vitals(ctx context.Context, field graphql
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -34257,7 +34265,6 @@ func (ec *executionContext) _Query_session_comments(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -34346,7 +34353,6 @@ func (ec *executionContext) _Query_session_comment_tags_for_project(ctx context.
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -34407,7 +34413,6 @@ func (ec *executionContext) _Query_session_comments_for_admin(ctx context.Contex
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -34485,7 +34490,6 @@ func (ec *executionContext) _Query_session_comments_for_project(ctx context.Cont
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -34574,7 +34578,6 @@ func (ec *executionContext) _Query_isSessionPending(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -34626,7 +34629,6 @@ func (ec *executionContext) _Query_error_issue(ctx context.Context, field graphq
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -34695,7 +34697,6 @@ func (ec *executionContext) _Query_error_comments(ctx context.Context, field gra
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -34772,7 +34773,6 @@ func (ec *executionContext) _Query_error_comments_for_admin(ctx context.Context,
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -34838,7 +34838,6 @@ func (ec *executionContext) _Query_error_comments_for_project(ctx context.Contex
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -34915,7 +34914,6 @@ func (ec *executionContext) _Query_workspace_admins(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -34976,7 +34974,6 @@ func (ec *executionContext) _Query_workspace_admins_by_project_id(ctx context.Co
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -35037,7 +35034,6 @@ func (ec *executionContext) _Query_isIntegrated(ctx context.Context, field graph
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -35089,7 +35085,6 @@ func (ec *executionContext) _Query_isBackendIntegrated(ctx context.Context, fiel
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -35141,7 +35136,6 @@ func (ec *executionContext) _Query_unprocessedSessionsCount(ctx context.Context,
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -35193,7 +35187,6 @@ func (ec *executionContext) _Query_liveUsersCount(ctx context.Context, field gra
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -35245,7 +35238,6 @@ func (ec *executionContext) _Query_adminHasCreatedComment(ctx context.Context, f
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -35297,7 +35289,6 @@ func (ec *executionContext) _Query_projectHasViewedASession(ctx context.Context,
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -35447,7 +35438,6 @@ func (ec *executionContext) _Query_dailySessionsCount(ctx context.Context, field
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -35510,7 +35500,6 @@ func (ec *executionContext) _Query_dailyErrorsCount(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -35573,7 +35562,6 @@ func (ec *executionContext) _Query_dailyErrorFrequency(ctx context.Context, fiel
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -35628,7 +35616,6 @@ func (ec *executionContext) _Query_errorDistribution(ctx context.Context, field 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -35693,7 +35680,6 @@ func (ec *executionContext) _Query_errorGroupFrequencies(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -35758,7 +35744,6 @@ func (ec *executionContext) _Query_errorGroupTags(ctx context.Context, field gra
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -35819,7 +35804,6 @@ func (ec *executionContext) _Query_referrers(ctx context.Context, field graphql.
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -35882,7 +35866,6 @@ func (ec *executionContext) _Query_newUsersCount(ctx context.Context, field grap
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -35938,7 +35921,6 @@ func (ec *executionContext) _Query_topUsers(ctx context.Context, field graphql.C
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -36005,7 +35987,6 @@ func (ec *executionContext) _Query_averageSessionLength(ctx context.Context, fie
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -36061,7 +36042,6 @@ func (ec *executionContext) _Query_userFingerprintCount(ctx context.Context, fie
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -36117,7 +36097,6 @@ func (ec *executionContext) _Query_sessions_opensearch(ctx context.Context, fiel
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -36178,7 +36157,6 @@ func (ec *executionContext) _Query_sessions_histogram(ctx context.Context, field
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -36243,7 +36221,6 @@ func (ec *executionContext) _Query_field_types(ctx context.Context, field graphq
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -36308,7 +36285,6 @@ func (ec *executionContext) _Query_fields_opensearch(ctx context.Context, field 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -36363,7 +36339,6 @@ func (ec *executionContext) _Query_error_fields_opensearch(ctx context.Context, 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -36418,7 +36393,6 @@ func (ec *executionContext) _Query_quickFields_opensearch(ctx context.Context, f
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -36483,7 +36457,6 @@ func (ec *executionContext) _Query_billingDetailsForProject(ctx context.Context,
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -36545,7 +36518,6 @@ func (ec *executionContext) _Query_billingDetails(ctx context.Context, field gra
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -36610,7 +36582,6 @@ func (ec *executionContext) _Query_field_suggestion(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -36672,7 +36643,6 @@ func (ec *executionContext) _Query_property_suggestion(ctx context.Context, fiel
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -36734,7 +36704,6 @@ func (ec *executionContext) _Query_error_field_suggestion(ctx context.Context, f
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -36794,7 +36763,6 @@ func (ec *executionContext) _Query_projects(ctx context.Context, field graphql.C
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -36861,7 +36829,6 @@ func (ec *executionContext) _Query_workspaces(ctx context.Context, field graphql
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -36936,7 +36903,6 @@ func (ec *executionContext) _Query_workspaces_count(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -36980,7 +36946,6 @@ func (ec *executionContext) _Query_joinable_workspaces(ctx context.Context, fiel
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -37055,7 +37020,6 @@ func (ec *executionContext) _Query_error_alerts(ctx context.Context, field graph
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -37142,7 +37106,6 @@ func (ec *executionContext) _Query_session_feedback_alerts(ctx context.Context, 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -37231,7 +37194,6 @@ func (ec *executionContext) _Query_new_user_alerts(ctx context.Context, field gr
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -37317,7 +37279,6 @@ func (ec *executionContext) _Query_track_properties_alerts(ctx context.Context, 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -37406,7 +37367,6 @@ func (ec *executionContext) _Query_user_properties_alerts(ctx context.Context, f
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -37495,7 +37455,6 @@ func (ec *executionContext) _Query_new_session_alerts(ctx context.Context, field
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -37584,7 +37543,6 @@ func (ec *executionContext) _Query_rage_click_alerts(ctx context.Context, field 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -37673,7 +37631,6 @@ func (ec *executionContext) _Query_projectSuggestion(ctx context.Context, field 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -37754,7 +37711,6 @@ func (ec *executionContext) _Query_workspaceSuggestion(ctx context.Context, fiel
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -37843,7 +37799,6 @@ func (ec *executionContext) _Query_environment_suggestion(ctx context.Context, f
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -37905,7 +37860,6 @@ func (ec *executionContext) _Query_app_version_suggestion(ctx context.Context, f
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -37960,7 +37914,6 @@ func (ec *executionContext) _Query_identifier_suggestion(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38015,7 +37968,6 @@ func (ec *executionContext) _Query_slack_channel_suggestion(ctx context.Context,
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38076,7 +38028,6 @@ func (ec *executionContext) _Query_discord_channel_suggestions(ctx context.Conte
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38137,7 +38088,6 @@ func (ec *executionContext) _Query_generate_zapier_access_token(ctx context.Cont
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38192,7 +38142,6 @@ func (ec *executionContext) _Query_is_integrated_with(ctx context.Context, field
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38247,7 +38196,6 @@ func (ec *executionContext) _Query_is_workspace_integrated_with(ctx context.Cont
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38302,7 +38250,6 @@ func (ec *executionContext) _Query_is_project_integrated_with(ctx context.Contex
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38357,7 +38304,6 @@ func (ec *executionContext) _Query_vercel_projects(ctx context.Context, field gr
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38420,7 +38366,6 @@ func (ec *executionContext) _Query_vercel_project_mappings(ctx context.Context, 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38481,7 +38426,6 @@ func (ec *executionContext) _Query_clickup_teams(ctx context.Context, field grap
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38544,7 +38488,6 @@ func (ec *executionContext) _Query_clickup_project_mappings(ctx context.Context,
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38605,7 +38548,6 @@ func (ec *executionContext) _Query_clickup_folders(ctx context.Context, field gr
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38668,7 +38610,6 @@ func (ec *executionContext) _Query_clickup_folderless_lists(ctx context.Context,
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38729,7 +38670,6 @@ func (ec *executionContext) _Query_height_lists(ctx context.Context, field graph
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38792,7 +38732,6 @@ func (ec *executionContext) _Query_height_workspaces(ctx context.Context, field 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38857,7 +38796,6 @@ func (ec *executionContext) _Query_integration_project_mappings(ctx context.Cont
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -38918,7 +38856,6 @@ func (ec *executionContext) _Query_linear_teams(ctx context.Context, field graph
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -38978,7 +38915,6 @@ func (ec *executionContext) _Query_project(ctx context.Context, field graphql.Co
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -39056,7 +38992,6 @@ func (ec *executionContext) _Query_workspace(ctx context.Context, field graphql.
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -39142,7 +39077,6 @@ func (ec *executionContext) _Query_workspace_invite_links(ctx context.Context, f
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -39209,7 +39143,6 @@ func (ec *executionContext) _Query_workspace_for_project(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -39295,7 +39228,6 @@ func (ec *executionContext) _Query_admin(ctx context.Context, field graphql.Coll
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -39362,7 +39294,6 @@ func (ec *executionContext) _Query_admin_role(ctx context.Context, field graphql
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -39420,7 +39351,6 @@ func (ec *executionContext) _Query_admin_role_by_project(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -39478,7 +39408,6 @@ func (ec *executionContext) _Query_segments(ctx context.Context, field graphql.C
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -39540,7 +39469,6 @@ func (ec *executionContext) _Query_error_segments(ctx context.Context, field gra
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -39602,7 +39530,6 @@ func (ec *executionContext) _Query_api_key_to_org_id(ctx context.Context, field 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -39654,7 +39581,6 @@ func (ec *executionContext) _Query_get_source_map_upload_urls(ctx context.Contex
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -39709,7 +39635,6 @@ func (ec *executionContext) _Query_customer_portal_url(ctx context.Context, fiel
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -39764,7 +39689,6 @@ func (ec *executionContext) _Query_subscription_details(ctx context.Context, fie
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -39829,7 +39753,6 @@ func (ec *executionContext) _Query_dashboard_definitions(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -39902,7 +39825,6 @@ func (ec *executionContext) _Query_suggested_metrics(ctx context.Context, field 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -39957,7 +39879,6 @@ func (ec *executionContext) _Query_metric_tags(ctx context.Context, field graphq
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -40012,7 +39933,6 @@ func (ec *executionContext) _Query_metric_tag_values(ctx context.Context, field 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -40067,7 +39987,6 @@ func (ec *executionContext) _Query_metrics_timeline(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -40132,7 +40051,6 @@ func (ec *executionContext) _Query_metrics_histogram(ctx context.Context, field 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -40192,7 +40110,6 @@ func (ec *executionContext) _Query_network_histogram(ctx context.Context, field 
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -40248,7 +40165,6 @@ func (ec *executionContext) _Query_metric_monitors(ctx context.Context, field gr
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -40333,7 +40249,6 @@ func (ec *executionContext) _Query_event_chunk_url(ctx context.Context, field gr
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -40388,7 +40303,6 @@ func (ec *executionContext) _Query_event_chunks(ctx context.Context, field graph
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -40451,7 +40365,6 @@ func (ec *executionContext) _Query_sourcemap_files(ctx context.Context, field gr
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -40510,7 +40423,6 @@ func (ec *executionContext) _Query_sourcemap_versions(ctx context.Context, field
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -40565,7 +40477,6 @@ func (ec *executionContext) _Query_oauth_client_metadata(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -40625,7 +40536,6 @@ func (ec *executionContext) _Query_email_opt_outs(ctx context.Context, field gra
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -40676,11 +40586,10 @@ func (ec *executionContext) _Query_logs(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Logs(rctx, fc.Args["project_id"].(int))
+		return ec.resolvers.Query().Logs(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.LogsParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -40707,6 +40616,8 @@ func (ec *executionContext) fieldContext_Query_logs(ctx context.Context, field g
 				return ec.fieldContext_LogLine_severityText(ctx, field)
 			case "body":
 				return ec.fieldContext_LogLine_body(ctx, field)
+			case "logAttributes":
+				return ec.fieldContext_LogLine_logAttributes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type LogLine", field.Name)
 		},
@@ -40743,7 +40654,6 @@ func (ec *executionContext) _Query___type(ctx context.Context, field graphql.Col
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -40817,7 +40727,6 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		return graphql.Null
@@ -47898,7 +47807,6 @@ func (ec *executionContext) _Subscription_session_payload_appended(ctx context.C
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return nil
 	}
 	if resTmp == nil {
 		return nil
@@ -52899,6 +52807,42 @@ func (ec *executionContext) unmarshalInputLengthRangeInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputLogsParamsInput(ctx context.Context, obj interface{}) (model.LogsParamsInput, error) {
+	var it model.LogsParamsInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"query", "date_range"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "query":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+			it.Query, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "date_range":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
+			it.DateRange, err = ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputMetricTagFilterInput(ctx context.Context, obj interface{}) (model.MetricTagFilterInput, error) {
 	var it model.MetricTagFilterInput
 	asMap := map[string]interface{}{}
@@ -56487,6 +56431,13 @@ func (ec *executionContext) _LogLine(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "logAttributes":
+
+			out.Values[i] = ec._LogLine_logAttributes(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -56781,7 +56732,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	})
 
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
 	for i, field := range fields {
 		innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
 			Object: field.Name,
@@ -56797,9 +56747,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_updateAdminAboutYouDetails(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "createProject":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -56884,9 +56831,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_changeAdminRole(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "deleteAdminFromProject":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -56911,9 +56855,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_emailSignup(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "editSegment":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -57028,45 +56969,30 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_addIntegrationToProject(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "removeIntegrationFromProject":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_removeIntegrationFromProject(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "addIntegrationToWorkspace":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_addIntegrationToWorkspace(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "removeIntegrationFromWorkspace":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_removeIntegrationFromWorkspace(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "syncSlackIntegration":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_syncSlackIntegration(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "createDefaultAlerts":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -57187,71 +57113,47 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_upsertDashboard(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "deleteDashboard":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteDashboard(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "deleteSessions":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteSessions(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "updateVercelProjectMappings":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateVercelProjectMappings(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "updateClickUpProjectMappings":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateClickUpProjectMappings(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "updateIntegrationProjectMappings":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateIntegrationProjectMappings(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "updateEmailOptOut":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateEmailOptOut(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
 	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
 	return out
 }
 
@@ -57496,7 +57398,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	})
 
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
 	for i, field := range fields {
 		innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
 			Object: field.Name,
@@ -57536,9 +57437,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_account_details(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -57599,9 +57497,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_session_intervals(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -57622,9 +57517,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_timeline_indicator_events(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -57645,9 +57537,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_rage_clicks(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -57668,9 +57557,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_rageClicksForProject(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -57691,9 +57577,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_error_groups_opensearch(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -57714,9 +57597,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_errors_histogram(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -57877,9 +57757,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_web_vitals(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -57900,9 +57777,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_session_comments(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -57923,9 +57797,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_session_comment_tags_for_project(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -57946,9 +57817,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_session_comments_for_admin(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -57969,9 +57837,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_session_comments_for_project(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58012,9 +57877,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_error_issue(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58035,9 +57897,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_error_comments(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58058,9 +57917,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_error_comments_for_admin(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58081,9 +57937,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_error_comments_for_project(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58104,9 +57957,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_workspace_admins(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58127,9 +57977,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_workspace_admins_by_project_id(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58270,9 +58117,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_dailySessionsCount(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58293,9 +58137,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_dailyErrorsCount(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58316,9 +58157,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_dailyErrorFrequency(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58339,9 +58177,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_errorDistribution(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58362,9 +58197,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_errorGroupFrequencies(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58385,9 +58217,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_errorGroupTags(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58408,9 +58237,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_referrers(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58451,9 +58277,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_topUsers(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58514,9 +58337,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_sessions_opensearch(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58537,9 +58357,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_sessions_histogram(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58560,9 +58377,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_field_types(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58583,9 +58397,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_fields_opensearch(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58606,9 +58417,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_error_fields_opensearch(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58629,9 +58437,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_quickFields_opensearch(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58672,9 +58477,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_billingDetails(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58795,9 +58597,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_workspaces_count(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58838,9 +58637,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_error_alerts(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58861,9 +58657,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_session_feedback_alerts(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58904,9 +58697,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_track_properties_alerts(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58927,9 +58717,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_user_properties_alerts(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58950,9 +58737,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_new_session_alerts(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58973,9 +58757,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_rage_click_alerts(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -58996,9 +58777,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_projectSuggestion(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59019,9 +58797,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_workspaceSuggestion(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59062,9 +58837,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_app_version_suggestion(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59085,9 +58857,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_identifier_suggestion(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59108,9 +58877,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_slack_channel_suggestion(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59131,9 +58897,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_discord_channel_suggestions(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59154,9 +58917,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_generate_zapier_access_token(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59177,9 +58937,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_is_integrated_with(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59200,9 +58957,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_is_workspace_integrated_with(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59223,9 +58977,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_is_project_integrated_with(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59246,9 +58997,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_vercel_projects(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59269,9 +59017,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_vercel_project_mappings(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59292,9 +59037,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_clickup_teams(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59315,9 +59057,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_clickup_project_mappings(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59338,9 +59077,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_clickup_folders(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59361,9 +59097,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_clickup_folderless_lists(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59384,9 +59117,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_height_lists(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59407,9 +59137,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_height_workspaces(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59430,9 +59157,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_integration_project_mappings(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59513,9 +59237,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_workspace_invite_links(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59676,9 +59397,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_get_source_map_upload_urls(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59699,9 +59417,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_customer_portal_url(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59722,9 +59437,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_subscription_details(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59745,9 +59457,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_dashboard_definitions(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59768,9 +59477,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_suggested_metrics(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59791,9 +59497,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_metric_tags(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59814,9 +59517,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_metric_tag_values(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59837,9 +59537,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_metrics_timeline(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59900,9 +59597,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_metric_monitors(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59923,9 +59617,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_event_chunk_url(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59946,9 +59637,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_event_chunks(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59969,9 +59657,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_sourcemap_files(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -59992,9 +59677,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_sourcemap_versions(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -60035,9 +59717,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_email_opt_outs(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -60058,9 +59737,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_logs(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -60088,9 +59764,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		}
 	}
 	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
 	return out
 }
 
@@ -64729,6 +64402,32 @@ func (ec *executionContext) marshalNLogLine2ᚖgithubᚗcomᚋhighlightᚑrunᚋ
 		return graphql.Null
 	}
 	return ec._LogLine(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNLogsParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsParamsInput(ctx context.Context, v interface{}) (model.LogsParamsInput, error) {
+	res, err := ec.unmarshalInputLogsParamsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+	res, err := graphql.UnmarshalMap(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	res := graphql.MarshalMap(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalNMetric2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.Metric) graphql.Marshaler {

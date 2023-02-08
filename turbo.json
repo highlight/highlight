@@ -33,6 +33,7 @@
 			"dependsOn": ["codegen", "typegen", "^prepublish", "^build"],
 			"outputs": ["build/**", "dist/**", "esm/**"],
 			"env": [
+				"REACT_APP_AUTH_MODE",
 				"REACT_APP_COMMIT_SHA",
 				"REACT_APP_FIREBASE_CONFIG_OBJECT",
 				"REACT_APP_FRONT_INTEGRATION_CLIENT_ID",
@@ -48,7 +49,9 @@
 				"DISCORD_CLIENT_ID",
 				"HEIGHT_CLIENT_ID",
 				"LINEAR_CLIENT_ID",
-				"SLACK_CLIENT_ID"
+				"SLACK_CLIENT_ID",
+				"DEMO_SESSION_URL",
+				"DEMO_ERROR_URL"
 			]
 		},
 		"enforce-size": {

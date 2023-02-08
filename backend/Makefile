@@ -1,7 +1,11 @@
 start:
 		doppler run -- air -c .air.toml
+start-no-doppler:
+		air -c .air.toml
 debug:
 		doppler run -- dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient
+debug-no-doppler:
+		dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient
 public-gen:
 		(cd ./public-graph; go run github.com/99designs/gqlgen)
 private-gen:

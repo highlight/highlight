@@ -310,7 +310,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								setActiveError(
 									errorInstance?.error_object as ErrorObject,
 								)
-								setRightPanelView(RightPanelView.ERROR)
+								setRightPanelView(RightPanelView.Error)
 							}}
 							iconLeft={<IconSolidPlay />}
 							trackingId="errorInstanceShowSession"
@@ -462,7 +462,7 @@ const User: React.FC<{
 	}
 
 	const { session } = errorObject
-	const userProperties = getUserProperties(session)
+	const userProperties = getUserProperties(session?.user_properties)
 	const [displayName, field] = getDisplayNameAndField(session)
 	const avatarImage = getIdentifiedUserProfileImage(session)
 	const userDisplayPropertyKeys = Object.keys(userProperties)

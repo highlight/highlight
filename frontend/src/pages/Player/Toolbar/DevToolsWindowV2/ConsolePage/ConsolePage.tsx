@@ -12,7 +12,7 @@ import { H } from 'highlight.run'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
-import { styledScrollbar } from 'style/common.css'
+import { styledVerticalScrollbar } from 'style/common.css'
 
 import { useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
@@ -199,7 +199,7 @@ export const ConsolePage = ({
 					overscan={1024}
 					increaseViewportBy={1024}
 					data={messagesToRender}
-					className={styledScrollbar}
+					className={styledVerticalScrollbar}
 					itemContent={(_index, message: ParsedMessage) => (
 						<MessageRow
 							key={message.id.toString()}

@@ -4,9 +4,9 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useGetKeyPerformanceIndicatorsQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
+import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
 import classNames from 'classnames'
 import moment from 'moment'
@@ -52,14 +52,12 @@ const KeyPerformanceIndicators = ({
 			<KeyPerformanceIndicator
 				value={formatLongNumber(data?.newUsersCount?.count || 0)}
 				title="New Users"
-				route={`/${projectIdRemapped}/sessions`}
+				route={`/${projectIdRemapped}/sessions${buildQueryURLString({
+					custom_first_time: true,
+				})}`}
 				onClick={() => {
 					message.success('Showing sessions for new users')
 					removeSelectedSegment()
-					setSearchParams({
-						...EmptySessionsSearchParams,
-						first_time: true,
-					})
 				}}
 				tooltipText={
 					<>

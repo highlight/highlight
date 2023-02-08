@@ -111,7 +111,6 @@ const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
 	const { isIntegrated: isClickupIntegrated } = useIsProjectIntegratedWith(
 		IntegrationType.ClickUp,
 	)
-	debugger
 	const { isIntegrated: isHeightIntegrated } = useIsProjectIntegratedWith(
 		IntegrationType.Height,
 	)

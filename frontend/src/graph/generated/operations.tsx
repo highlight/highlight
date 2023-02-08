@@ -271,6 +271,7 @@ export type EditSegmentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	id: Types.Scalars['ID']
 	params: Types.SearchParamsInput
+	name: Types.Scalars['String']
 }>
 
 export type EditSegmentMutation = { __typename?: 'Mutation' } & Pick<
@@ -613,6 +614,7 @@ export type EditErrorSegmentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	id: Types.Scalars['ID']
 	params: Types.ErrorSearchParamsInput
+	name: Types.Scalars['String']
 }>
 
 export type EditErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
@@ -3897,13 +3899,14 @@ export type GetEmailOptOutsQuery = { __typename?: 'Query' } & Pick<
 
 export type GetLogsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
+	params: Types.LogsParamsInput
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
 	logs: Array<
 		{ __typename?: 'LogLine' } & Pick<
 			Types.LogLine,
-			'timestamp' | 'severityText' | 'body'
+			'timestamp' | 'severityText' | 'body' | 'logAttributes'
 		>
 	>
 }

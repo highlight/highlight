@@ -69,16 +69,23 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 	const snoozed = snoozedUntil && moment().isBefore(moment(snoozedUntil))
 
 	const handleChange = useCallback(
-		async (newState: ErrorState, snoozedUntil?: string) => {
-			if (initialErrorState === newState && !snoozed) return
+		async (newState: ErrorState, newSnoozedUntil?: string) => {
+			if (
+				initialErrorState === newState &&
+				!snoozed &&
+				!newSnoozedUntil
+			) {
+				return
+			}
+
 			await updateErrorGroupState({
 				variables: {
 					secure_id: error_secure_id,
 					state: newState,
-					snoozed_until: snoozedUntil,
+					snoozed_until: newSnoozedUntil,
 				},
 				onCompleted: async () => {
-					showStateUpdateMessage(newState, snoozedUntil)
+					showStateUpdateMessage(newState, newSnoozedUntil)
 					setMenuState(MenuState.Default)
 					setErrorState(newState)
 				},
@@ -181,7 +188,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 								<Text weight="bold" size="xSmall" color="n11">
 									Status
 								</Text>
-								<Badge variant="grey" size="tiny" label="e" />
+								<Badge variant="gray" size="small" label="e" />
 							</Menu.Heading>
 							{ErrorStatuses.map((option) => (
 								<Menu.Item

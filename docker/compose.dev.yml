@@ -1,0 +1,61 @@
+services:
+    backend:
+        extends:
+            file: compose.yml
+            service: backend
+
+        container_name: backend
+        image: public.ecr.aws/k9o6n7l8/highlight
+        command:
+            - make
+            - start-no-doppler
+        volumes:
+            - ../backend:/build/backend
+            - ../sdk/highlight-go:/build/sdk/highlight-go
+        ports:
+            - 2345:2345
+            - 8082:8082
+        build:
+            context: ..
+            dockerfile: docker/backend.Dockerfile
+            target: backend-dev
+
+    frontend:
+        extends:
+            file: compose.yml
+            service: frontend
+
+        container_name: frontend
+        image: public.ecr.aws/k9o6n7l8/highlight-frontend
+        volumes:
+            - ../packages/ui/src:/build/packages/ui/src
+            - ../sdk/client/src:/build/sdk/client/src
+            - ../sdk/firstload/src:/build/sdk/firstload/src
+            - ../sdk/highlight-node/src:/build/sdk/highlight-node/src
+            - ../sdk/highlight-next/src:/build/sdk/highlight-next/src
+            - ../sourcemap-uploader/src:/build/sourcemap-uploader/src
+            - ../frontend/src:/build/frontend/src
+            - ../backend/public-graph:/build/backend/public-graph
+            - ../backend/private-graph:/build/backend/private-graph
+        ports:
+            - 3000:3000
+            - 8080:8080
+        build:
+            context: ..
+            dockerfile: docker/frontend.Dockerfile
+            target: frontend-dev
+        command:
+            - yarn
+            - docker:frontend
+        environment:
+            - ENVIRONMENT
+            - RENDER_PREVIEW
+            - REACT_APP_AUTH_MODE=simple
+            - REACT_APP_DEMO_SESSION
+            - REACT_APP_ENVIRONMENT
+            - REACT_APP_FIREBASE_CONFIG_OBJECT
+            - REACT_APP_FRONTEND_ORG
+            - REACT_APP_FRONTEND_URI
+            - REACT_APP_ONPREM
+            - REACT_APP_PRIVATE_GRAPH_URI
+            - REACT_APP_PUBLIC_GRAPH_URI

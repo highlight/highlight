@@ -9,7 +9,10 @@ from highlight_io.integrations.flask import FlaskIntegration
 
 app = Flask(__name__)
 H = highlight_io.H(
-    "TODO-PROJECT-ID", integrations=[FlaskIntegration()], record_logs=True
+    "1",
+    integrations=[FlaskIntegration()],
+    record_logs=True,
+    otlp_endpoint="http://localhost:4318",
 )
 
 
@@ -25,4 +28,4 @@ def hello():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(port=8085)

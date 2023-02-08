@@ -10,9 +10,9 @@ import {
 import { useGetReferrersCountQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgReferrer from '@icons/Referrer'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
+import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
 import { ColumnsType } from 'antd/lib/table'
 import classNames from 'classnames'
@@ -81,12 +81,12 @@ const ReferrersTable = ({
 					data={tableData}
 					loading={false}
 					onClickHandler={(record) => {
-						history.push(`/${projectIdRemapped}/sessions`)
+						history.push(
+							`/${projectIdRemapped}/sessions${buildQueryURLString(
+								{ session_referrer: record.host },
+							)}`,
+						)
 						removeSelectedSegment()
-						setSearchParams({
-							...EmptySessionsSearchParams,
-							referrer: record.host,
-						})
 						message.success(
 							`Showing sessions that were referred by ${record.host}`,
 						)

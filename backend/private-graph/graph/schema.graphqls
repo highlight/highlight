@@ -4,6 +4,7 @@ scalar Any
 scalar Timestamp
 scalar Int64
 scalar StringArray
+scalar Map
 
 type Field {
 	id: Int64!
@@ -481,10 +482,12 @@ type SourceMappingError {
 type S3File {
 	key: String
 }
+
 type LogLine {
 	timestamp: Timestamp!
 	severityText: String!
 	body: String!
+	logAttributes: Map!
 }
 
 type ReferrerTablePayload {
@@ -560,6 +563,11 @@ input HistogramParamsInput {
 input ErrorGroupFrequenciesParamsInput {
 	date_range: DateRangeRequiredInput!
 	resolution_minutes: Int!
+}
+
+input LogsParamsInput {
+	query: String!
+	date_range: DateRangeRequiredInput!
 }
 
 enum MetricTagFilterOp {
@@ -1368,7 +1376,7 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
-	logs(project_id: ID!): [LogLine!]!
+	logs(project_id: ID!, params: LogsParamsInput!): [LogLine!]!
 }
 
 type Mutation {
@@ -1425,7 +1433,12 @@ type Mutation {
 		params: SearchParamsInput!
 	): Segment
 	emailSignup(email: String!): String!
-	editSegment(id: ID!, project_id: ID!, params: SearchParamsInput!): Boolean
+	editSegment(
+		id: ID!
+		project_id: ID!
+		params: SearchParamsInput!
+		name: String!
+	): Boolean
 	deleteSegment(segment_id: ID!): Boolean
 	createErrorSegment(
 		project_id: ID!
@@ -1436,6 +1449,7 @@ type Mutation {
 		id: ID!
 		project_id: ID!
 		params: ErrorSearchParamsInput!
+		name: String!
 	): Boolean
 	deleteErrorSegment(segment_id: ID!): Boolean
 	# If this endpoint returns a checkout_id, we initiate a stripe checkout.

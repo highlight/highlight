@@ -7,12 +7,6 @@ describe('login spec', () => {
 	})
 
 	it('allows you to log in', () => {
-		cy.visit('/')
-
-		// Fill out login form
-		cy.get('[name="email"]').should('be.visible').type('swag@highlight.run')
-		cy.get('[name="password"]').type('9nsUj7eNoh#qeVPB!LaYCPFLBs!wwPG2')
-		cy.get('button[type="submit"]').click().wait(5000)
 		cy.visit('/1/buttons').wait(5000)
 		cy.title().then((title) => {
 			if (title === 'About You') {

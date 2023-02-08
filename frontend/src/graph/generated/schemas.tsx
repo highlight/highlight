@@ -18,6 +18,7 @@ export type Scalars = {
 	Float: number
 	Any: any
 	Int64: number
+	Map: any
 	StringArray: string[]
 	Timestamp: string
 	Upload: any
@@ -645,8 +646,14 @@ export type LinearTeam = {
 export type LogLine = {
 	__typename?: 'LogLine'
 	body: Scalars['String']
+	logAttributes: Scalars['Map']
 	severityText: Scalars['String']
 	timestamp: Scalars['Timestamp']
+}
+
+export type LogsParamsInput = {
+	date_range: DateRangeRequiredInput
+	query: Scalars['String']
 }
 
 export type Metric = {
@@ -999,6 +1006,7 @@ export type MutationDeleteSessionsArgs = {
 
 export type MutationEditErrorSegmentArgs = {
 	id: Scalars['ID']
+	name: Scalars['String']
 	params: ErrorSearchParamsInput
 	project_id: Scalars['ID']
 }
@@ -1017,6 +1025,7 @@ export type MutationEditProjectArgs = {
 
 export type MutationEditSegmentArgs = {
 	id: Scalars['ID']
+	name: Scalars['String']
 	params: SearchParamsInput
 	project_id: Scalars['ID']
 }
@@ -1707,6 +1716,7 @@ export type QueryLiveUsersCountArgs = {
 }
 
 export type QueryLogsArgs = {
+	params: LogsParamsInput
 	project_id: Scalars['ID']
 }
 

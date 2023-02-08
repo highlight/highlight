@@ -22,7 +22,7 @@ import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
-import { styledScrollbar } from 'style/common.css'
+import { styledVerticalScrollbar } from 'style/common.css'
 
 import * as style from './EventStreamV2.css'
 
@@ -155,7 +155,7 @@ const EventStreamV2 = function () {
 							ref={virtuoso}
 							data={filteredEvents}
 							totalCount={filteredEvents.length}
-							className={styledScrollbar}
+							className={styledVerticalScrollbar}
 							itemContent={(index, event) => (
 								<StreamEventV2
 									e={event}
@@ -168,7 +168,7 @@ const EventStreamV2 = function () {
 									onGoToHandler={(e) => {
 										setCurrentEvent(e)
 										setActiveEvent(event)
-										setRightPanelView(RightPanelView.EVENT)
+										setRightPanelView(RightPanelView.Event)
 									}}
 								/>
 							)}

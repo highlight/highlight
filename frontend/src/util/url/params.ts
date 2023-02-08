@@ -110,3 +110,71 @@ export const QueryBuilderStateParam = {
 		}
 	},
 }
+
+type BuilderParams = {
+	query?: boolean | string | null
+	[key: string]: string | boolean | null | undefined
+}
+type IsAnd = boolean
+
+// Input: { user_email: 'chris@highlight.io' }
+// Output: '?query=and%7C%7Cuser_email%2Cis%2Cchris@highlight.io`
+export const buildQueryURLString = (
+	params: BuilderParams,
+	isAnd: IsAnd = true,
+) => {
+	const builderParams = buildQueryParams(params, isAnd)
+
+	const encodedParams: any = QueryBuilderStateParam.encode(
+		JSON.stringify(builderParams),
+	)
+
+	return params.query !== false
+		? `?query=${encodeURIComponent(encodedParams)}`
+		: encodeURIComponent(encodedParams.replace('and||', ''))
+}
+
+// Input: { user_email: 'chris@highlight.io' }
+// Output: '{"isAnd":true,"rules":[["user_email","is","highlight.io"]]}'
+export const buildQueryStateString = (
+	params: BuilderParams,
+	isAnd: IsAnd = true,
+) => {
+	const builderParams = buildQueryParams(params, isAnd)
+
+	return JSON.stringify({
+		isAnd,
+		rules: builderParams.rules,
+	})
+}
+
+export const buildQueryParams = (
+	{ query, ...params }: BuilderParams,
+	isAnd: IsAnd,
+) => {
+	let builderParams: QueryBuilderState = {
+		isAnd: isAnd,
+		rules: [],
+	}
+
+	try {
+		if (typeof query === 'string') {
+			builderParams = JSON.parse(query)
+		}
+	} catch (e) {
+		query = undefined
+	}
+
+	for (const key in params) {
+		let value = String(params[key])
+		let op = 'is'
+
+		if (value.indexOf(':') > -1) {
+			;[op, value] = value.split(':')
+		}
+
+		builderParams.rules.push([key, op, value])
+	}
+
+	return builderParams
+}

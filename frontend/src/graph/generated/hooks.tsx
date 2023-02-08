@@ -1391,8 +1391,14 @@ export const EditSegmentDocument = gql`
 		$project_id: ID!
 		$id: ID!
 		$params: SearchParamsInput!
+		$name: String!
 	) {
-		editSegment(project_id: $project_id, id: $id, params: $params)
+		editSegment(
+			project_id: $project_id
+			id: $id
+			params: $params
+			name: $name
+		)
 	}
 `
 export type EditSegmentMutationFn = Apollo.MutationFunction<
@@ -1416,6 +1422,7 @@ export type EditSegmentMutationFn = Apollo.MutationFunction<
  *      project_id: // value for 'project_id'
  *      id: // value for 'id'
  *      params: // value for 'params'
+ *      name: // value for 'name'
  *   },
  * });
  */
@@ -2322,8 +2329,14 @@ export const EditErrorSegmentDocument = gql`
 		$project_id: ID!
 		$id: ID!
 		$params: ErrorSearchParamsInput!
+		$name: String!
 	) {
-		editErrorSegment(project_id: $project_id, id: $id, params: $params)
+		editErrorSegment(
+			project_id: $project_id
+			id: $id
+			params: $params
+			name: $name
+		)
 	}
 `
 export type EditErrorSegmentMutationFn = Apollo.MutationFunction<
@@ -2347,6 +2360,7 @@ export type EditErrorSegmentMutationFn = Apollo.MutationFunction<
  *      project_id: // value for 'project_id'
  *      id: // value for 'id'
  *      params: // value for 'params'
+ *      name: // value for 'name'
  *   },
  * });
  */
@@ -11254,11 +11268,12 @@ export type GetEmailOptOutsQueryResult = Apollo.QueryResult<
 	Types.GetEmailOptOutsQueryVariables
 >
 export const GetLogsDocument = gql`
-	query GetLogs($project_id: ID!) {
-		logs(project_id: $project_id) {
+	query GetLogs($project_id: ID!, $params: LogsParamsInput!) {
+		logs(project_id: $project_id, params: $params) {
 			timestamp
 			severityText
 			body
+			logAttributes
 		}
 	}
 `
@@ -11276,6 +11291,7 @@ export const GetLogsDocument = gql`
  * const { data, loading, error } = useGetLogsQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
  *   },
  * });
  */

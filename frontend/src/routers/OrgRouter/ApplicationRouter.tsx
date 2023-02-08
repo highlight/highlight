@@ -41,8 +41,13 @@ const ApplicationRouter = ({ integrated }: Props) => {
 					path="/:project_id/errors/:error_secure_id?/:error_tab_key?/:error_object_id?"
 					exact
 				>
-					<ErrorsV2 />
+					<ErrorsV2 integrated={integrated} />
 				</Route>
+				{isHighlightAdmin && (
+					<Route path="/:project_id/logs">
+						<LogsPage />
+					</Route>
+				)}
 				{/* If not logged in and project id is numeric and nonzero, redirect to login */}
 				{!isLoggedIn && (
 					<Route path="/:project_id([1-9]+[0-9]*)/*" exact>
@@ -58,17 +63,13 @@ const ApplicationRouter = ({ integrated }: Props) => {
 				<Route path="/:project_id/dashboards">
 					<DashboardsRouter />
 				</Route>
-				<Route path="/:project_id/home">
+				<Route path="/:project_id/analytics">
 					<DashboardsRouter />
 				</Route>
 				<Route path="/:project_id/setup">
 					<SetupRouter integrated={integrated} />
 				</Route>
-				{isHighlightAdmin && (
-					<Route path="/:project_id/logs">
-						<LogsPage />
-					</Route>
-				)}
+
 				<Route path="/:project_id/integrations/:integration_type?">
 					<IntegrationsPage />
 				</Route>
@@ -84,7 +85,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 				</Route>
 				<Route path="/:project_id">
 					{integrated ? (
-						<Redirect to={`/${project_id}/home`} />
+						<Redirect to={`/${project_id}/sessions`} />
 					) : (
 						<Redirect to={`/${project_id}/setup`} />
 					)}

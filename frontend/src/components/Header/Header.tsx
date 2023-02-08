@@ -15,11 +15,12 @@ import {
 	IconSolidArrowSmLeft,
 	IconSolidAtSymbol,
 	IconSolidChartBar,
+	IconSolidChartPie,
 	IconSolidCog,
 	IconSolidDesktopComputer,
 	IconSolidDocumentText,
 	IconSolidDotsHorizontal,
-	IconSolidHome,
+	IconSolidLightningBolt,
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidQuestionMarkCircle,
@@ -27,7 +28,7 @@ import {
 	IconSolidSwitchHorizontal,
 	IconSolidUserCircle,
 	IconSolidViewGridAdd,
-	IconSolidXCircle,
+	IconSolidViewList,
 	Menu,
 	Text,
 } from '@highlight-run/ui'
@@ -80,22 +81,24 @@ export const Header = () => {
 
 	const pages = [
 		{
-			key: 'home',
-			icon: IconSolidHome,
+			key: 'sessions',
+			icon: IconSolidPlayCircle,
 		},
 		{
 			key: 'errors',
-			icon: IconSolidXCircle,
-		},
-		{
-			key: 'sessions',
-			icon: IconSolidPlayCircle,
+			icon: IconSolidLightningBolt,
 		},
 		{
 			key: 'alerts',
 			icon: IconSolidSpeakerphone,
 		},
 	]
+	if (isHighlightAdmin) {
+		pages.splice(2, 0, {
+			key: 'logs',
+			icon: IconSolidViewList,
+		})
+	}
 
 	const inProjectOrWorkspace =
 		isLoggedIn && (projectIdRemapped || workspaceId)
@@ -225,6 +228,31 @@ export const Header = () => {
 												</Menu.Item>
 											</Link>
 											<Link
+												to={`/${project_id}/analytics`}
+												className={linkStyle}
+											>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconSolidChartPie
+															size={14}
+															color={
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
+															}
+														/>
+														Analytics
+													</Box>
+												</Menu.Item>
+											</Link>
+											<Link
 												to={`/${project_id}/setup`}
 												className={linkStyle}
 											>
@@ -249,33 +277,6 @@ export const Header = () => {
 													</Box>
 												</Menu.Item>
 											</Link>
-											{isHighlightAdmin && (
-												<Link
-													to={`/${project_id}/logs`}
-													className={linkStyle}
-												>
-													<Menu.Item>
-														<Box
-															display="flex"
-															alignItems="center"
-															gap="4"
-														>
-															<IconSolidCog
-																size={14}
-																color={
-																	vars.theme
-																		.interactive
-																		.fill
-																		.secondary
-																		.content
-																		.text
-																}
-															/>
-															Logs
-														</Box>
-													</Menu.Item>
-												</Link>
-											)}
 										</Menu.List>
 									</Menu>
 								</Box>
@@ -391,7 +392,11 @@ export const Header = () => {
 											</Menu.Item>
 										</Link>
 										<Link
-											to={`/w/${workspaceId}/account/auth`}
+											to={`/w/${workspaceId}/account/${
+												auth.googleProvider
+													? 'auth'
+													: 'email-settings'
+											}`}
 											className={linkStyle}
 										>
 											<Menu.Item>

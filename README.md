@@ -44,12 +44,14 @@ The fastest and most reliable way to get started with highlight.io is signing up
 
 ### Hobby self-hosted
 
-Deploy a hobby instance in one line on Linux with Docker (recommended 32GB memory):
+Deploy a hobby instance in one line on Linux with Docker (recommended 16 CPU cores, 32GB RAM, 256GB disk):
 
 ```bash
 git clone https://github.com/highlight/highlight
 cd docker && docker compose up -d --build
 ```
+
+After a brief frontend load time, the app should be accessible at https://localhost:3000
 
 Good for <10k sessions and <50k errors ingested monthly. See our [docs for more info and limitations](https://highlight.io/docs/company/open-source/self-host-hobby).
 

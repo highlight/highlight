@@ -7,6 +7,7 @@ import (
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 type LogRow struct {
@@ -24,7 +25,7 @@ type LogRow struct {
 	SecureSessionId    string
 }
 
-const LogsTable = "logs_new"
+const LogsTable = "logs"
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
 	query := fmt.Sprintf(`
@@ -46,12 +47,16 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 	return batch.Send()
 }
 
-func (client *Client) ReadLogs(ctx context.Context, projectID int) ([]*modelInputs.LogLine, error) {
+func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogLine, error) {
+	whereClause := buildWhereClause(projectID, params)
+
 	query := fmt.Sprintf(`
-		SELECT Timestamp, SeverityText, Body FROM %s
-		WHERE ProjectId = %d
+		SELECT Timestamp, SeverityText, Body, LogAttributes FROM %s
+		%s
 		LIMIT 100
-	`, LogsTable, projectID)
+	`, LogsTable, whereClause)
+
+	log.Info(query)
 
 	rows, err := client.conn.Query(
 		ctx,
@@ -65,17 +70,25 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int) ([]*modelInpu
 
 	for rows.Next() {
 		var (
-			Timestamp    time.Time
-			SeverityText string
-			Body         string
+			Timestamp     time.Time
+			SeverityText  string
+			Body          string
+			LogAttributes map[string]string
 		)
-		if err := rows.Scan(&Timestamp, &SeverityText, &Body); err != nil {
+		if err := rows.Scan(&Timestamp, &SeverityText, &Body, &LogAttributes); err != nil {
 			return nil, err
 		}
+
+		gqlLogAttributes := make(map[string]interface{}, len(LogAttributes))
+		for i, v := range LogAttributes {
+			gqlLogAttributes[i] = v
+		}
+
 		logLines = append(logLines, &modelInputs.LogLine{
-			Timestamp:    Timestamp,
-			SeverityText: SeverityText,
-			Body:         Body,
+			Timestamp:     Timestamp,
+			SeverityText:  SeverityText,
+			Body:          Body,
+			LogAttributes: gqlLogAttributes,
 		})
 	}
 	rows.Close()

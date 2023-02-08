@@ -44,6 +44,7 @@ import (
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
 	H "github.com/highlight/highlight/sdk/highlight-go"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
@@ -254,7 +255,11 @@ func main() {
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
 	}
-	private.SetupAuthClient(oauthSrv, privateResolver.Query().APIKeyToOrgID)
+	authMode := private.Firebase
+	if util.IsInDocker() {
+		authMode = private.Simple
+	}
+	private.SetupAuthClient(authMode, oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
 	errorLogger := httplog.NewLogger(fmt.Sprintf("%v-service", runtimeParsed), httplog.Options{
@@ -386,6 +391,7 @@ func main() {
 					Resolvers: publicResolver,
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
+			publicServer.Use(H.NewGraphqlTracer(string(util.PublicGraph)))
 			publicServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
 			publicServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/",
@@ -399,11 +405,20 @@ func main() {
 	if util.IsDevOrTestEnv() {
 		log.Info("overwriting highlight-go graphql client address...")
 		H.SetGraphqlClientAddress("https://localhost:8082/public")
+		H.SetOTLPEndpoint("http://collector:4318")
 	}
 	H.SetProjectID("1jdkoe52")
 	H.Start()
 	defer H.Stop()
 	H.SetDebugMode(log.StandardLogger())
+	// setup highlight logrus hook
+	log.AddHook(hlog.NewHook(hlog.WithLevels(
+		log.PanicLevel,
+		log.FatalLevel,
+		log.ErrorLevel,
+		log.WarnLevel,
+		log.InfoLevel,
+	)))
 
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.

@@ -11,10 +11,11 @@ import { useGetRageClicksForProjectQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
 import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/DashboardInnerTable'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
+import { getUserDisplayName } from '@pages/Home/utils/HomePageUtils'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { validateEmail } from '@util/string'
+import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
 import { ColumnsType } from 'antd/lib/table'
 import classNames from 'classnames'
@@ -104,24 +105,22 @@ const RageClicksForProjectTable = ({
 					columns={Columns}
 					data={filteredTableData}
 					onClickHandler={(record) => {
-						history.push(
-							`/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
-						)
 						removeSelectedSegment()
-						setSearchParams({
-							...EmptySessionsSearchParams,
-							user_properties: [
-								{
-									id: record.id,
-									name: validateEmail(record.identifier)
-										? 'email'
-										: 'identifier',
-									value: record.identifier,
-								},
-							],
+
+						const displayName = getUserDisplayName(record)
+						const userParam = validateEmail(displayName)
+							? 'email'
+							: 'identifier'
+
+						history.push({
+							pathname: `/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
+							search: buildQueryURLString({
+								[`user_${userParam}`]: displayName,
+							}),
 						})
+
 						message.success(
-							`Showing most recent session for ${record.identifier} with rage clicks.`,
+							`Showing most recent session for ${displayName} with rage clicks.`,
 						)
 					}}
 					noDataMessage={
@@ -165,7 +164,7 @@ const Columns: ColumnsType<any> = [
 							identifier={user}
 							userProperties={record.userProperties}
 						/>
-						<span>{user}</span>
+						<span>{getUserDisplayName(record)}</span>
 					</ProgressBarTableRowGroup>
 				</div>
 			)

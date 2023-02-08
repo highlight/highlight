@@ -18,7 +18,7 @@ import { parseOptionalJSON } from '@util/string'
 import React, { useLayoutEffect, useMemo, useRef } from 'react'
 import { useHistory } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
-import { styledScrollbar } from 'style/common.css'
+import { styledVerticalScrollbar } from 'style/common.css'
 
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
@@ -104,7 +104,7 @@ const ErrorsPage = ({
 					ref={virtuoso}
 					overscan={500}
 					data={errorsToRender}
-					className={styledScrollbar}
+					className={styledVerticalScrollbar}
 					itemContent={(index, error) => (
 						<ErrorRow
 							key={error.error_group_secure_id}
@@ -112,7 +112,7 @@ const ErrorsPage = ({
 							setSelectedError={() => {
 								setShowRightPanel(true)
 								setActiveError(error)
-								setRightPanelView(RightPanelView.ERROR)
+								setRightPanelView(RightPanelView.Error)
 							}}
 							searchQuery={filter}
 							current={index === lastActiveErrorIndex}

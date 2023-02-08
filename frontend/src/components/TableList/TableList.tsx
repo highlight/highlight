@@ -1,11 +1,11 @@
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
-import JsonViewerV2 from '@components/JsonViewerV2/JsonViewerV2'
 import LoadingBox from '@components/LoadingBox'
+import TextViewer from '@components/TextViewer'
 import { Box, Tag, Text } from '@highlight-run/ui'
 import { Props as TruncateProps } from '@highlight-run/ui/src/components/private/Truncate/Truncate'
 import { copyToClipboard } from '@util/string'
-import React, { isValidElement } from 'react'
+import React, { isValidElement, ReactElement } from 'react'
 
 import * as style from './TableList.css'
 
@@ -16,17 +16,20 @@ export interface TableListItem {
 	valueDisplayValue: React.ReactNode | object | undefined
 	valueInfoTooltipMessage?: React.ReactNode
 	lines?: TruncateProps['lines']
+	data?: object
 }
 
-export const TableList = function ({
+export const TableList = ({
 	data,
 	truncateable,
 	loading,
+	noDataMessage,
 }: {
 	data: TableListItem[]
 	truncateable?: boolean
 	loading?: boolean
-}) {
+	noDataMessage?: string | React.ReactNode
+}) => {
 	const [truncated, setTruncated] = React.useState(true)
 	const filtered = data.filter((x) => x.valueDisplayValue)
 	const items =
@@ -43,8 +46,9 @@ export const TableList = function ({
 					const title = (
 						<Text
 							size="xSmall"
-							cssClass={style.sessionAttributeText}
 							lines={item.lines}
+							as="span"
+							color="weak"
 						>
 							{item.keyDisplayValue}
 						</Text>
@@ -54,9 +58,12 @@ export const TableList = function ({
 							key={item.keyDisplayValue}
 							className={style.sessionAttributeRow({
 								json:
-									typeof item.valueDisplayValue ===
+									(typeof item.valueDisplayValue ===
 										'object' &&
-									!isValidElement(item.valueDisplayValue),
+										!isValidElement(
+											item.valueDisplayValue,
+										)) ||
+									!!item.data,
 							})}
 							onClick={() =>
 								item.valueDisplayValue &&
@@ -68,12 +75,12 @@ export const TableList = function ({
 						>
 							{typeof item.valueDisplayValue === 'object' &&
 							!isValidElement(item.valueDisplayValue) ? (
-								<JsonViewerV2
+								<TextViewer
 									title={title}
 									data={item.valueDisplayValue as object}
 									downloadFileName={item.keyDisplayValue}
 								/>
-							) : (
+							) : !item.data ? (
 								<>
 									{title}
 									<Tag
@@ -94,11 +101,21 @@ export const TableList = function ({
 										{item.valueDisplayValue}
 									</Tag>
 								</>
+							) : (
+								<TextViewer
+									title={title}
+									data={item.data}
+									downloadFileName={item.keyDisplayValue}
+									repr={
+										item.valueDisplayValue as ReactElement
+									}
+								/>
 							)}
 						</Box>
 					)
 				})}
 				{!truncated && loading && <LoadingBox />}
+				{!loading && filtered.length === 0 && noDataMessage}
 			</Box>
 			{truncateable && filtered.length > TRUNCATED_ITEMS_LIMIT && (
 				<Box>

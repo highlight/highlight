@@ -113,7 +113,7 @@ const TabTitle: React.FC<TabTitleProps> = ({ icon, label, shortcut }) => {
 			<Stack direction="row" gap="6" align="center">
 				{icon}
 				{label}
-				<Badge variant="grey" size="tiny" label={shortcut} />
+				<Badge variant="gray" size="small" label={shortcut} />
 			</Stack>
 		</Box>
 	)

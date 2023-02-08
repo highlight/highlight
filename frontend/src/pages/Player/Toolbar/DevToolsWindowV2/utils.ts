@@ -134,3 +134,23 @@ export enum Tab {
 	Network = 'Network',
 	Events = 'Events',
 }
+
+const DISPLAY_NAMES: { [key: string]: string } = {
+	iframe: 'iFrame',
+	other: 'Other',
+	css: 'CSS',
+	xmlhttprequest: 'XHR',
+	script: 'Script',
+	link: 'Link',
+	fetch: 'Fetch',
+} as const
+
+export const getNetworkResourcesDisplayName = (value: string): string => {
+	switch (true) {
+		case value in DISPLAY_NAMES: {
+			return DISPLAY_NAMES[value]
+		}
+		default:
+			return value?.charAt(0).toUpperCase() + value?.slice(1)
+	}
+}

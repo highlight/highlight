@@ -11,6 +11,7 @@ import { Session } from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
 import { Box } from '@highlight-run/ui'
 import { useWindowSize } from '@hooks/useWindowSize'
+import { CompleteSetup } from '@pages/Player/components/CompleteSetup/CompleteSetup'
 import LoadingLiveSessionCard from '@pages/Player/components/LoadingLiveSessionCard/LoadingLiveSessionCard'
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard'
 import UnauthorizedViewingForm from '@pages/Player/components/UnauthorizedViewingForm/UnauthorizedViewingForm'
@@ -38,7 +39,6 @@ import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommen
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
-import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import { SESSION_FEED_LEFT_PANEL_WIDTH } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
 import { SessionFeedV3 } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
@@ -407,7 +407,11 @@ const PlayerPage = ({ integrated }: Props) => {
 									justifyContent="center"
 									borderTop="secondary"
 								>
-									<NoActiveSessionCard />
+									{integrated ? (
+										<NoActiveSessionCard />
+									) : (
+										<CompleteSetup />
+									)}
 								</Box>
 							</Box>
 						</div>
@@ -421,6 +425,7 @@ const PlayerPage = ({ integrated }: Props) => {
 		playerFiller,
 		sessionViewability,
 		session_secure_id,
+		integrated,
 	])
 
 	return (
@@ -430,7 +435,6 @@ const PlayerPage = ({ integrated }: Props) => {
 					<Helmet>
 						<title>{getTabTitle(session)}</title>
 					</Helmet>
-					{!integrated && <IntegrationCard />}
 					{isPlayerReady && !isLoggedIn && <PlayerPageProductTour />}
 					<Box
 						cssClass={clsx(style.playerBody, {

@@ -24,18 +24,22 @@ enum AuthState {
 	Login,
 }
 
+const firebaseAuth = auth as firebase.auth.Auth
+
 const Auth: React.FC = () => {
 	const [error, setError] = useState<string | null>(null)
 	const [status, setStatus] = useState<AuthState>(AuthState.Enroll)
 	const Component = STATUS_COMPONENT_MAP[status]
 
 	useEffect(() => {
-		if (auth.currentUser?.multiFactor.enrolledFactors.length) {
+		if (firebaseAuth.currentUser?.multiFactor.enrolledFactors.length) {
 			setStatus(AuthState.Enrolled)
 		} else if (
 			// Firebase won't allow a user to modify 2FA unless they recently
 			// authenticated. If they haven't recently, make them log in.
-			moment().diff(moment(auth.currentUser?.metadata.lastSignInTime)) >
+			moment().diff(
+				moment(firebaseAuth.currentUser?.metadata.lastSignInTime),
+			) >
 			2 * 60 * 1000
 		) {
 			setStatus(AuthState.Login)
@@ -43,7 +47,7 @@ const Auth: React.FC = () => {
 		// Passing dependency because this component isn't unmounted when logged out
 		// so the state never gets reset after logging in.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [auth.currentUser?.metadata.lastSignInTime])
+	}, [firebaseAuth.currentUser?.metadata.lastSignInTime])
 
 	return (
 		<FieldsBox>
@@ -89,7 +93,7 @@ const Login: React.FC<Props> = () => {
 				trackingId="logInAgainFor2fa"
 				type="primary"
 				onClick={() => {
-					auth.signOut()
+					firebaseAuth.signOut()
 					client.clearStore()
 				}}
 			>
@@ -134,7 +138,7 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 		await recaptchaVerifier.current?.verify()
 
 		const multiFactorSession =
-			await auth.currentUser?.multiFactor.getSession()
+			await firebaseAuth.currentUser?.multiFactor.getSession()
 		const phoneAuthProvider = new firebase.auth.PhoneAuthProvider()
 
 		// Send SMS verification code.
@@ -229,7 +233,7 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 
 			// Complete enrollment.
 			try {
-				await auth.currentUser?.multiFactor.enroll(
+				await firebaseAuth.currentUser?.multiFactor.enroll(
 					multiFactorAssertion,
 					`***-***-${phoneNumber.slice(-4)}`,
 				)
@@ -293,7 +297,10 @@ const Enrolled: React.FC<Props> = ({ setError, setStatus }) => {
 		<Space direction="vertical" size="medium">
 			<p>
 				You are enrolled in two-factor authentication with{' '}
-				{auth.currentUser?.multiFactor.enrolledFactors[0].displayName}{' '}
+				{
+					firebaseAuth.currentUser?.multiFactor.enrolledFactors[0]
+						.displayName
+				}{' '}
 				set as your backup phone number.
 			</p>
 
@@ -302,11 +309,11 @@ const Enrolled: React.FC<Props> = ({ setError, setStatus }) => {
 				type="primary"
 				onClick={async () => {
 					const currentFactor =
-						auth.currentUser?.multiFactor.enrolledFactors[0]
+						firebaseAuth.currentUser?.multiFactor.enrolledFactors[0]
 
 					if (currentFactor) {
 						try {
-							await auth.currentUser?.multiFactor.unenroll(
+							await firebaseAuth.currentUser?.multiFactor.unenroll(
 								currentFactor,
 							)
 
