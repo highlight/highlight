@@ -18,6 +18,7 @@ import {
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@util/analytics'
+import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
@@ -66,6 +67,9 @@ export const NetworkPage = ({
 		rightPanelView,
 		setRightPanelView,
 	} = usePlayerUIContext()
+
+	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+
 	const [currentActiveIndex, setCurrentActiveIndex] = useState<number>()
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
@@ -81,7 +85,7 @@ export const NetworkPage = ({
 	useEffect(() => {
 		loadResources()
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	}, [session_secure_id])
 
 	const networkRange = useMemo(() => {
 		if (parsedResources.length > 0) {
@@ -252,7 +256,7 @@ export const NetworkPage = ({
 
 	return (
 		<Box className={styles.container}>
-			{loading || !session ? (
+			{!isPlayerReady || loading || !session ? (
 				<LoadingBox />
 			) : resourcesToRender.length > 0 ? (
 				<Box className={styles.container}>
