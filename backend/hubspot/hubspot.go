@@ -36,7 +36,7 @@ type CustomContactsResponse struct {
 	ProfileURL   string `json:"profile-url"`
 }
 
-func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
+func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, referral string) (contactId *int, err error) {
 	var hubspotContactId int
 	if emailproviders.Exists(email) {
 		email = ""
@@ -69,14 +69,9 @@ func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefine
 				Value:    last,
 			},
 			{
-				Property: "phone",
-				Name:     "phone",
-				Value:    phone,
-			},
-			{
 				Property: "referral",
 				Name:     "referral",
-				Value:    phone,
+				Value:    referral,
 			},
 		},
 	}); err != nil {
@@ -187,7 +182,6 @@ func (h *HubspotApi) UpdateContactProperty(adminID int, properties []hubspot.Pro
 			ptr.ToString(admin.UserDefinedPersona),
 			ptr.ToString(admin.FirstName),
 			ptr.ToString(admin.LastName),
-			ptr.ToString(admin.Phone),
 			ptr.ToString(admin.Referral),
 		)
 		if err != nil {

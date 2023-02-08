@@ -642,7 +642,6 @@ input AdminAboutYouDetails {
 	user_defined_role: String!
 	user_defined_persona: String!
 	referral: String!
-	phone: String
 }
 
 input ErrorSearchParamsInput {

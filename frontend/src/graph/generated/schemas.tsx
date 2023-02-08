@@ -82,7 +82,6 @@ export type Admin = {
 export type AdminAboutYouDetails = {
 	first_name: Scalars['String']
 	last_name: Scalars['String']
-	phone?: InputMaybe<Scalars['String']>
 	referral: Scalars['String']
 	user_defined_persona: Scalars['String']
 	user_defined_role: Scalars['String']
