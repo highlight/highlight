@@ -4,19 +4,6 @@ import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { createContext } from '@util/context/context'
 import React from 'react'
 
-interface DetailedPanelOptions {
-	noHeader?: boolean
-	noPadding?: boolean
-}
-
-export interface DetailedPanel {
-	title: string | React.ReactNode
-	content: React.ReactNode
-	options?: DetailedPanelOptions
-	/** The ID of the object that is being showed details for. */
-	id: string
-}
-
 export enum RightPanelView {
 	Error = 'ERROR',
 	NetworkResource = 'NETWORK_RESOURCE',
