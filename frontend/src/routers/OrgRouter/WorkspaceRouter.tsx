@@ -7,7 +7,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetWorkspaceDropdownOptionsQuery } from '@graph/hooks'
-import LoginForm from '@pages/Login/Login'
+import { AuthRouter } from '@pages/Auth/AuthRouter'
 import UserSettings from '@pages/UserSettings/UserSettings'
 import { WorkspaceTabs } from '@pages/WorkspaceTabs/WorkspaceTabs'
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
@@ -109,7 +109,7 @@ export const WorkspaceRouter = () => {
 									{isLoggedIn ? (
 										<WorkspaceRedirectionRouter />
 									) : (
-										<LoginForm />
+										<AuthRouter />
 									)}
 								</Route>
 								<Route path="/w/:workspace_id(\d+)/:page_id(team|settings|current-plan|upgrade-plan)">
@@ -126,7 +126,7 @@ export const WorkspaceRouter = () => {
 									{isLoggedIn ? (
 										<WorkspaceRedirectionRouter />
 									) : (
-										<LoginForm />
+										<AuthRouter />
 									)}
 								</Route>
 							</Switch>

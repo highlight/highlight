@@ -4,10 +4,10 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { Box } from '@highlight-run/ui'
 import { AccountsPage } from '@pages/Accounts/Accounts'
+import { AuthRouter } from '@pages/Auth/AuthRouter'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import { Landing } from '@pages/Landing/Landing'
-import LoginForm from '@pages/Login/Login'
 import NewMemberPage from '@pages/NewMember/NewMemberPage'
 import NewProjectPage from '@pages/NewProject/NewProjectPage'
 import OAuthApprovalPage from '@pages/OAuthApproval/OAuthApprovalPage'
@@ -94,7 +94,7 @@ export const AppRouter = () => {
 						{isLoggedIn ? (
 							<ProjectRedirectionRouter />
 						) : (
-							<LoginForm />
+							<AuthRouter />
 						)}
 					</Route>
 				</Switch>

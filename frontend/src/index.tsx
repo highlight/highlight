@@ -30,7 +30,7 @@ import {
 } from '@graph/hooks'
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
-import { SignUp } from '@pages/Auth/SignUp'
+import { AuthRouter } from '@pages/Auth/AuthRouter'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { setAttributionData } from '@util/attribution'
@@ -48,7 +48,7 @@ import { SkeletonTheme } from 'react-loading-skeleton'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 
-import LoginForm, { AuthAdminRouter } from './pages/Login/Login'
+import { AuthAdminRouter } from './pages/Login/Login'
 
 analytics.initialize()
 const dev = import.meta.env.DEV
@@ -430,11 +430,8 @@ get in contact with us!
 						{/* Allow guests to access this route without being asked to log in */}
 						<AuthAdminRouter />
 					</Route>
-					<Route path="/sign_up">
-						<SignUp />
-					</Route>
 					<Route path="/">
-						<LoginForm />
+						<AuthRouter />
 					</Route>
 				</Switch>
 			)}

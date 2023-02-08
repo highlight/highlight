@@ -9,6 +9,7 @@ import {
 	FormInputProps as AriaKitFormInputProps,
 	FormField as AriaKitFormField,
 	FormFieldProps as AriaKitFormFieldProps,
+	FormState as AriaKitFormState,
 	useFormState as useAriaKitFormState,
 } from 'ariakit/form'
 
@@ -151,4 +152,5 @@ Form.Submit = Submit
 Form.Field = Field
 Form.NamedSection = NamedSection
 
+export type FormState = AriaKitFormState<any>
 export const useFormState = useAriaKitFormState

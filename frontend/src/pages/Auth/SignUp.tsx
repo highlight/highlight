@@ -11,14 +11,12 @@ import {
 	useFormState,
 } from '@highlight-run/ui'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
-import { Landing } from '@pages/Landing/Landing'
+import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import firebase from 'firebase/app'
 import React from 'react'
 import { Link, useHistory } from 'react-router-dom'
-
-import * as styles from './SignUp.css'
 
 export const SignUp: React.FC = () => {
 	const history = useHistory<{ previousPathName?: string }>()
@@ -32,153 +30,135 @@ export const SignUp: React.FC = () => {
 	})
 
 	return (
-		<Landing>
-			<Form
-				className={styles.container}
-				state={formState}
-				resetOnSubmit={false}
-				onSubmit={() => {
-					setLoading(true)
+		<Form
+			state={formState}
+			resetOnSubmit={false}
+			onSubmit={() => {
+				setLoading(true)
 
-					auth.createUserWithEmailAndPassword(
-						formState.values.email,
-						formState.values.password,
-					)
-						.then(() => {
-							auth.currentUser?.sendEmailVerification()
+				auth.createUserWithEmailAndPassword(
+					formState.values.email,
+					formState.values.password,
+				)
+					.then(() => {
+						auth.currentUser?.sendEmailVerification()
 
-							if (auth.currentUser?.email) {
-								analytics.track('Sign up', {
-									email: auth.currentUser.email,
-								})
-							}
+						if (auth.currentUser?.email) {
+							analytics.track('Sign up', {
+								email: auth.currentUser.email,
+							})
+						}
 
-							// Redirect the user to their initial path instead to creating a new
-							// workspace. We do this because this happens when a new user clicks on
-							// a Highlight link that was shared to them and they don't have an
-							// account yet.
-							if (history.location.state?.previousPathName) {
-								history.push(
-									history.location.state.previousPathName,
-								)
-							} else {
-								history.push('/')
-							}
-						})
-						.catch((error) => {
-							setError(error.message || error.toString())
-						})
-						.finally(() => setLoading(false))
-				}}
-			>
-				<Box
-					backgroundColor="n2"
-					borderBottom="dividerWeak"
-					btr="8"
-					p="12"
-					pb="16"
-					px="20"
-					textAlign="center"
-				>
+						// Redirect the user to their initial path instead to creating a new
+						// workspace. We do this because this happens when a new user clicks on
+						// a Highlight link that was shared to them and they don't have an
+						// account yet.
+						if (history.location.state?.previousPathName) {
+							history.push(
+								history.location.state.previousPathName,
+							)
+						} else {
+							history.push('/')
+						}
+					})
+					.catch((error) => {
+						setError(error.message || error.toString())
+					})
+					.finally(() => setLoading(false))
+			}}
+		>
+			<AuthHeader>
+				<Box mb="4">
 					<Stack direction="column" gap="16" align="center">
 						<SvgHighlightLogoOnLight height="48" width="48" />
-						<Heading level="h4">Welcome to Highlight</Heading>
+						<Heading level="h4">Welcome to Highlight.</Heading>
 						<Text>
-							Have an account? <Link to="/">Sign in</Link>.
+							Have an account? <Link to="/sing_in">Sign in</Link>.
 						</Text>
 					</Stack>
 				</Box>
-				<Box backgroundColor="default" py="16" px="20">
-					<Stack gap="12">
-						<Form.Input
-							name={formState.names.email}
-							label="Email"
-							type="email"
-							autoFocus
-						/>
-						<Form.Input
-							name={formState.names.password}
-							label="Password"
-							type="password"
-						/>
-						{error && <Callout kind="error">{error}</Callout>}
-					</Stack>
-				</Box>
-				<Box
-					backgroundColor="n2"
-					borderTop="dividerWeak"
-					bbr="8"
-					py="12"
-					px="20"
-					display="flex"
-					flexDirection="column"
-					gap="16"
-				>
-					<Stack gap="8">
-						<Button
-							onClick={() => null}
-							trackingId="sign-up-submit"
-							loading={loading}
-							type="submit"
-						>
-							Sign up
-						</Button>
-						<Stack
-							direction="row"
-							align="center"
-							justify="space-between"
-						>
-							<Text color="weak">Or sign up with</Text>
-							<Stack direction="row" gap="6">
-								<ButtonIcon
-									kind="secondary"
-									type="button"
-									onClick={() => {
-										auth.signInWithPopup(
-											auth.googleProvider!,
-										).catch(
-											(
-												error: firebase.auth.MultiFactorError,
-											) => {
-												let errorMessage = error.message
+			</AuthHeader>
+			<AuthBody>
+				<Stack gap="12">
+					<Form.Input
+						name={formState.names.email}
+						label="Email"
+						type="email"
+						autoFocus
+					/>
+					<Form.Input
+						name={formState.names.password}
+						label="Password"
+						type="password"
+					/>
+					{error && <Callout kind="error">{error}</Callout>}
+				</Stack>
+			</AuthBody>
+			<AuthFooter>
+				<Stack gap="8">
+					<Button
+						onClick={() => null}
+						trackingId="sign-up-submit"
+						loading={loading}
+						type="submit"
+					>
+						Sign up
+					</Button>
+					<Stack
+						direction="row"
+						align="center"
+						justify="space-between"
+					>
+						<Text color="weak">Or sign up with</Text>
+						<Stack direction="row" gap="6">
+							<ButtonIcon
+								kind="secondary"
+								type="button"
+								onClick={() => {
+									auth.signInWithPopup(
+										auth.googleProvider!,
+									).catch(
+										(
+											error: firebase.auth.MultiFactorError,
+										) => {
+											let errorMessage = error.message
 
-												if (
-													error.code ===
-													'auth/popup-closed-by-user'
-												) {
-													errorMessage =
-														'Pop-up closed without successfully authenticating. Please try again.'
-												}
+											if (
+												error.code ===
+												'auth/popup-closed-by-user'
+											) {
+												errorMessage =
+													'Pop-up closed without successfully authenticating. Please try again.'
+											}
 
-												setError(errorMessage)
-											},
-										)
-									}}
-									icon={<IconSolidGoogle />}
-								/>
-							</Stack>
+											setError(errorMessage)
+										},
+									)
+								}}
+								icon={<IconSolidGoogle />}
+							/>
 						</Stack>
 					</Stack>
-					<Text align="center" color="weak" size="xSmall">
-						By creating an account you agree to our{' '}
-						<a
-							href="https://www.highlight.io/terms"
-							target="_blank"
-							rel="noreferrer"
-						>
-							Terms of Service
-						</a>{' '}
-						and{' '}
-						<a
-							href="https://www.highlight.io/privacy"
-							target="_blank"
-							rel="noreferrer"
-						>
-							Privacy Policy
-						</a>
-					</Text>
-				</Box>
-			</Form>
-		</Landing>
+				</Stack>
+				<Text align="center" color="weak" size="xSmall">
+					By creating an account you agree to our{' '}
+					<a
+						href="https://www.highlight.io/terms"
+						target="_blank"
+						rel="noreferrer"
+					>
+						Terms of Service
+					</a>{' '}
+					and{' '}
+					<a
+						href="https://www.highlight.io/privacy"
+						target="_blank"
+						rel="noreferrer"
+					>
+						Privacy Policy
+					</a>
+				</Text>
+			</AuthFooter>
+		</Form>
 	)
 }
