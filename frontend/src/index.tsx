@@ -386,7 +386,7 @@ const AuthenticationRoleRouter = () => {
 			}}
 		>
 			<Helmet>
-				<title>Highlight App</title>
+				<title>highlight.io</title>
 			</Helmet>
 			{adminError ? (
 				<ErrorState
