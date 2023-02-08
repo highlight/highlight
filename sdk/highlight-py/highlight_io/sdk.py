@@ -141,7 +141,7 @@ class H(object):
             ctx = span.get_span_context()
             # record.created is sec but timestamp should be ns
             ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
-            attributes = {k: v for k, v in span.attributes.items()}
+            attributes = span.attributes.copy()
             attributes["code.function"] = record.funcName
             attributes["code.namespace"] = record.module
             attributes["code.filepath"] = record.pathname
