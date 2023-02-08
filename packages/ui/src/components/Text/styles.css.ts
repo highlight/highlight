@@ -2,12 +2,11 @@ import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { createStyleObject } from '@capsizecss/core'
 import plexoFontMetrics from '@capsizecss/metrics/iBMPlexMono'
 import { globalStyle } from '@vanilla-extract/css'
-import { vars } from '../../css/vars'
 
 // Generated at https://seek-oss.github.io/capsize/.
 export const steradianFontMetrics = {
-	ascent: 1000,
-	descent: 300,
+	ascent: 995,
+	descent: 305,
 	capHeight: 703,
 	lineGap: 0,
 	unitsPerEm: 1000,
@@ -16,44 +15,44 @@ export const steradianFontMetrics = {
 // Body
 export const xxSmall = createStyleObject({
 	fontSize: 11,
-	lineGap: 3,
+	leading: 12,
 	fontMetrics: steradianFontMetrics,
 })
 export const xSmall = createStyleObject({
 	fontSize: 12,
-	lineGap: 4,
+	leading: 16,
 	fontMetrics: steradianFontMetrics,
 })
 export const small = createStyleObject({
 	fontSize: 13,
-	lineGap: 7,
+	leading: 20,
 	fontMetrics: steradianFontMetrics,
 })
 export const medium = createStyleObject({
 	fontSize: 14,
-	lineGap: 6,
+	leading: 20,
 	fontMetrics: steradianFontMetrics,
 })
 export const large = createStyleObject({
 	fontSize: 16,
-	lineGap: 8,
+	leading: 24,
 	fontMetrics: steradianFontMetrics,
 })
 
 // Monospace
 const sMonotype = createStyleObject({
 	fontSize: 14,
-	lineGap: 6,
+	leading: 20,
 	fontMetrics: plexoFontMetrics,
 })
 const xsMonotype = createStyleObject({
 	fontSize: 11,
-	lineGap: 12,
+	leading: 23,
 	fontMetrics: plexoFontMetrics,
 })
 const xxsMonotype = createStyleObject({
 	fontSize: 10,
-	lineGap: 4,
+	leading: 14,
 	fontMetrics: plexoFontMetrics,
 })
 
@@ -161,7 +160,6 @@ export const variants = recipe({
 	],
 
 	defaultVariants: {
-		align: 'left',
 		family: 'body',
 		size: 'small',
 		weight: 'medium',

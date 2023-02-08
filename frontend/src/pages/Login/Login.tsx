@@ -134,16 +134,24 @@ export default function LoginForm() {
 					} else {
 						setError(error.toString())
 					}
+
+					analytics.track('Authentication error', {
+						error: error.code,
+					})
 				})
 				.finally(() => setIsLoadingFirebase(false))
 		} else if (formState === LoginFormState.ResetPassword) {
+			analytics.track('Reset password submission')
+
 			if (!email.length) {
 				message.warning('Please enter your email.')
+				analytics.track('Reset password submission error')
 				return
 			}
 			auth.sendPasswordResetEmail(email)
 				.catch(() => {
 					// swallow error if user does not exist
+					analytics.track('Reset password submission error')
 				})
 				.finally(() => {
 					message.success(
@@ -167,6 +175,7 @@ export default function LoginForm() {
 				})
 				.catch((error) => {
 					setError(error.toString())
+					analytics.track('Sign up error', { error: error.code })
 				})
 				.finally(() => setIsLoadingFirebase(false))
 
@@ -174,6 +183,9 @@ export default function LoginForm() {
 			// We do this because this happens when a new user clicks on a Highlight link that was shared to them and they don't have an account yet.
 			if (history.location.state?.previousPathName) {
 				history.push(history.location.state.previousPathName)
+				analytics.track('Sign in with redirect', {
+					redirect: history.location.state.previousPathName,
+				})
 			}
 		}
 	}

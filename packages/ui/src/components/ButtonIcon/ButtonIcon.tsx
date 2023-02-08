@@ -21,6 +21,7 @@ export const ButtonIcon: React.FC<Props> = ({
 	disabled,
 	cssClass,
 	className,
+	type = 'button',
 }) => {
 	return (
 		<Box
@@ -33,6 +34,7 @@ export const ButtonIcon: React.FC<Props> = ({
 			)}
 			onClick={onClick}
 			disabled={disabled}
+			type={type}
 		>
 			{icon}
 		</Box>
