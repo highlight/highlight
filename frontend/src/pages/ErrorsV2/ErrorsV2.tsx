@@ -17,6 +17,7 @@ import {
 } from '@highlight-run/ui'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import { CompleteSetup } from '@pages/ErrorsV2/CompleteSetup/CompleteSetup'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
 import ErrorTabContent from '@pages/ErrorsV2/ErrorTabContent/ErrorTabContent'
 import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
@@ -24,9 +25,7 @@ import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCa
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
-import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 import analytics from '@util/analytics'
-import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import clsx from 'clsx'
@@ -37,13 +36,14 @@ import { useHistory } from 'react-router'
 
 import * as styles from './styles.css'
 
-const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
+const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
+	integrated,
+}) => {
 	const { project_id, error_secure_id } = useParams<{
 		project_id: string
 		error_secure_id: string
 	}>()
 	const { isLoggedIn } = useAuthContext()
-	const integrated = useIntegrated()
 	const { searchResultSecureIds } = useErrorSearchContext()
 	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
 
@@ -155,8 +155,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 						[styles.moveDetailsRight]: showLeftPanel,
 					})}
 				>
-					{!integrated && <IntegrationCard />}
-
 					<Box
 						background="white"
 						border="secondary"
@@ -264,8 +262,10 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 									</Box>
 								</Callout>
 							</Box>
-						) : (
+						) : integrated ? (
 							<NoActiveErrorCard />
+						) : (
+							<CompleteSetup />
 						)}
 					</Box>
 				</div>
