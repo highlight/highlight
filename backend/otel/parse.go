@@ -35,6 +35,9 @@ func structureStackTrace(stackTrace string) ([]*model3.ErrorTrace, error) {
 			errMsg = line
 			continue
 		}
+		if errMsg == "" {
+			errMsg = line
+		}
 		if frame == nil {
 			frame = &model3.ErrorTrace{
 				Error: &errMsg,
@@ -43,7 +46,8 @@ func structureStackTrace(stackTrace string) ([]*model3.ErrorTrace, error) {
 		jsPattern := regexp.MustCompile(` {4}at ((.+) )?\(?(.+):(\d+):(\d+)\)?`)
 		jsAnonPattern := regexp.MustCompile(` {4}at (.+) \((.+)\)`)
 		pyPattern := regexp.MustCompile(` {2}File "(.+)", line (\d+), in (\w+)`)
-		goLinePattern := regexp.MustCompile(`\t(.+):(\d+)`)
+		goLinePattern := regexp.MustCompile(`\t(.+):(\d+)( 0x[0-f]+)?`)
+		goFuncPattern := regexp.MustCompile(`^(.+)\.(.+)\([^()]*\)$`)
 		generalPattern := regexp.MustCompile(`^(.+)`)
 		if matches := jsPattern.FindSubmatch([]byte(line)); matches != nil {
 			language = "js"
@@ -72,6 +76,9 @@ func structureStackTrace(stackTrace string) ([]*model3.ErrorTrace, error) {
 			frame.FileName = pointy.String(string(matches[1]))
 			line, _ := strconv.ParseInt(string(matches[2]), 10, 32)
 			frame.LineNumber = pointy.Int(int(line))
+		} else if matches := goFuncPattern.FindSubmatch([]byte(line)); language == "golang" && matches != nil {
+			frame.FunctionName = pointy.String(string(matches[2]))
+			continue
 		} else if matches := generalPattern.FindSubmatch([]byte(line)); matches != nil {
 			if language == "golang" {
 				frame.FunctionName = pointy.String(string(matches[1]))
