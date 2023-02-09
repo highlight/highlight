@@ -521,7 +521,9 @@ export const NewCommentForm = ({
 								value={selectedIssueService}
 								notFoundContent={
 									<p>
-										<Link to="../integrations">
+										<Link
+											to={`/${project_id}/integrations`}
+										>
 											Add issue tracker integrations
 										</Link>{' '}
 										and then they should show up here

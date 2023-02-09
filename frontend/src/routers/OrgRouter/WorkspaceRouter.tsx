@@ -17,7 +17,7 @@ import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import commonStyles from '../../Common.module.scss'
-import { ApplicationContextProvider } from './ApplicationContext'
+import { ApplicationContextProvider } from './context/ApplicationContext'
 
 export const WorkspaceRouter = () => {
 	const { isLoggedIn } = useAuthContext()

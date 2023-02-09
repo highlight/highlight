@@ -148,7 +148,7 @@ const DashboardsRouter = () => {
 			</Helmet>
 			<Routes>
 				<Route path="/:project_id/analytics" element={<HomePageV2 />} />
-				<Route path="/*" element={<DashboardsHomePage />} />
+				<Route path="*" element={<DashboardsHomePage />} />
 				<Route path="/:id" element={<DashboardPage />} />
 			</Routes>
 		</DashboardsContextProvider>

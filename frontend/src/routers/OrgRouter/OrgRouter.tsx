@@ -33,8 +33,8 @@ import { useToggle } from 'react-use'
 
 import commonStyles from '../../Common.module.scss'
 import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble'
-import { ApplicationContextProvider } from './ApplicationContext'
 import ApplicationRouter from './ApplicationRouter'
+import { ApplicationContextProvider } from './context/ApplicationContext'
 
 export const ProjectRouter = () => {
 	const { isLoggedIn } = useAuthContext()
@@ -184,10 +184,10 @@ export const ProjectRouter = () => {
 		>
 			<ApplicationContextProvider
 				value={{
-					currentProject: data?.project || undefined,
-					allProjects: data?.workspace?.projects || [],
-					currentWorkspace: data?.workspace || undefined,
-					workspaces: data?.workspaces || [],
+					currentProject: data?.project ?? undefined,
+					allProjects: data?.workspace?.projects ?? [],
+					currentWorkspace: data?.workspace ?? undefined,
+					workspaces: data?.workspaces ?? [],
 				}}
 			>
 				<PlayerUIContextProvider value={playerUIContext}>
@@ -199,7 +199,7 @@ export const ProjectRouter = () => {
 									element={<FrontPlugin />}
 								/>
 								<Route
-									path="/*"
+									path="*"
 									element={
 										<>
 											<Header />
@@ -238,9 +238,7 @@ export const ProjectRouter = () => {
 													<>
 														{isLoggedIn &&
 															!hasFinishedOnboarding && (
-																<>
-																	<OnboardingBubble />
-																</>
+																<OnboardingBubble />
 															)}
 														<ApplicationRouter
 															integrated={

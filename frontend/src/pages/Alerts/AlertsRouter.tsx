@@ -56,38 +56,38 @@ const AlertsRouter = () => {
 					linkRenderAs="h2"
 				/>
 				<Routes>
-					<Route path="/*" element={<AlertsPage />} />
-					<Route path="/new" element={<NewAlertPage />} />
+					<Route path="*" element={<AlertsPage />} />
+					<Route path="new" element={<NewAlertPage />} />
 					<Route
-						path="/monitor"
+						path="monitor"
 						element={
 							<Navigate to={`/${project_id}/alerts`} replace />
 						}
 					/>
 					<Route
-						path="/new/monitor"
+						path="new/monitor"
 						element={
 							<NewMonitorPage
 								channelSuggestions={
-									data?.slack_channel_suggestion || []
+									data?.slack_channel_suggestion ?? []
 								}
 								discordChannelSuggestions={
-									data?.discord_channel_suggestions || []
+									data?.discord_channel_suggestions ?? []
 								}
 								isSlackIntegrated={
-									data?.is_integrated_with_slack || false
+									data?.is_integrated_with_slack ?? false
 								}
 								isDiscordIntegrated={
-									data?.is_integrated_with_discord || false
+									data?.is_integrated_with_discord ?? false
 								}
-								emailSuggestions={(data?.admins || []).map(
+								emailSuggestions={(data?.admins ?? []).map(
 									(wa) => wa.admin!.email,
 								)}
 							/>
 						}
 					/>
 					<Route
-						path="/monitor/:id"
+						path="monitor/:id"
 						element={
 							<EditMonitorPage
 								channelSuggestions={
@@ -108,8 +108,8 @@ const AlertsRouter = () => {
 							/>
 						}
 					/>
-					<Route path="/new/:type" element={<NewAlertPage />} />
-					<Route path="/:id" element={<EditAlertsPage />} />
+					<Route path="new/:type" element={<NewAlertPage />} />
+					<Route path=":id" element={<EditAlertsPage />} />
 				</Routes>
 			</LeadAlignLayout>
 		</AlertsContextProvider>

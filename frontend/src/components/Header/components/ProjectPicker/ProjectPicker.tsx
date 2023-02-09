@@ -20,7 +20,7 @@ import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { useApplicationContext } from '../../../../routers/OrgRouter/ApplicationContext'
+import { useApplicationContext } from '../../../../routers/OrgRouter/context/ApplicationContext'
 
 const ProjectPicker = () => {
 	const { allProjects, currentProject, currentWorkspace } =

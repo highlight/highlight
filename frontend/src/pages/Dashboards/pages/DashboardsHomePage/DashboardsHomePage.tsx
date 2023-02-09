@@ -67,7 +67,7 @@ const DashboardsHomePage = () => {
 						}
 						onRow={(record) => ({
 							onClick: () => {
-								navigate(`dashboards/${record.id}`, {
+								navigate(`/dashboards/${record.id}`, {
 									state: {
 										dashboardName: record.name,
 									},

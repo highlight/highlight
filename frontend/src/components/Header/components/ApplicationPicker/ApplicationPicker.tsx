@@ -10,6 +10,7 @@ import PopoverMenu from '@components/PopoverMenu/PopoverMenu'
 import SvgArrowRightIcon from '@icons/ArrowRightIcon'
 import SvgBriefcase2Icon from '@icons/Briefcase2Icon'
 import SvgSwitch2Icon from '@icons/Switch2Icon'
+import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
 import {
 	DEMO_PROJECT_NAME,
 	DEMO_WORKSPACE_NAME,
@@ -18,7 +19,6 @@ import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { useApplicationContext } from '../../../../routers/OrgRouter/ApplicationContext'
 import SvgPlusIcon from '../../../../static/PlusIcon'
 import SvgSettingsIcon from '../../../../static/SettingsIcon'
 import styles from './ApplicationPicker.module.scss'

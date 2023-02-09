@@ -398,7 +398,7 @@ const AuthenticationRoleRouter = () => {
 						element={<AuthAdminRouter />}
 					/>
 					<Route path="/sign_up" element={<SignUp />} />
-					<Route path="/*" element={<LoginForm />} />
+					<Route path="*" element={<LoginForm />} />
 				</Routes>
 			)}
 		</AuthContextProvider>

@@ -47,7 +47,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 				)}
 				{/* If not logged in and project id is numeric and nonzero, Navigate to login */}
 				{!isLoggedIn && (
-					<Route path="/*" element={<Navigate to="/" replace />} />
+					<Route path="*" element={<Navigate to="/" replace />} />
 				)}
 				<Route path="/settings" element={<ProjectSettings />} />
 				<Route path="/alerts" element={<AlertsRouter />} />
@@ -79,7 +79,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 					}
 				/>
 				<Route
-					path="/*"
+					path="*"
 					element={
 						integrated ? (
 							<Navigate to={`/${project_id}/sessions`} replace />
