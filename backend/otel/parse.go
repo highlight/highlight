@@ -73,9 +73,11 @@ func structureStackTrace(stackTrace string) ([]*model3.ErrorTrace, error) {
 			line, _ := strconv.ParseInt(string(matches[2]), 10, 32)
 			frame.LineNumber = pointy.Int(int(line))
 		} else if matches := generalPattern.FindSubmatch([]byte(line)); matches != nil {
-			frame.FunctionName = pointy.String(string(matches[1]))
 			if language == "golang" {
+				frame.FunctionName = pointy.String(string(matches[1]))
 				continue
+			} else {
+				frame.LineContent = pointy.String(string(matches[1]))
 			}
 		}
 		frames = append(frames, frame)

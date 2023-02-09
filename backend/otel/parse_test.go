@@ -30,6 +30,7 @@ func TestFormatStructureStackTrace(t *testing.T) {
 				assert.NotNil(t, frame)
 				assert.NotNil(t, frame.FileName)
 				assert.GreaterOrEqual(t, len(*frame.FileName), 1)
+				assert.Equal(t, input.expectedFrameError, *frame.Error)
 			}
 		})
 	}

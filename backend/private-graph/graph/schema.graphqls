@@ -380,7 +380,7 @@ type ErrorObject {
 	id: ID!
 	created_at: Timestamp!
 	project_id: Int!
-	session_id: Int!
+	session_id: Int
 	error_group_id: Int!
 	error_group_secure_id: String!
 	event: [String]!

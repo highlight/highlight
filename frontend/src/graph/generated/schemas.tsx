@@ -451,7 +451,7 @@ export type ErrorObject = {
 	project_id: Scalars['Int']
 	request_id?: Maybe<Scalars['String']>
 	session?: Maybe<Session>
-	session_id: Scalars['Int']
+	session_id?: Maybe<Scalars['Int']>
 	source?: Maybe<Scalars['String']>
 	stack_trace: Scalars['String']
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
