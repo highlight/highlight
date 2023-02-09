@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import SvgCloseIcon from '@icons/CloseIcon'
 import { Modal as AntDesignModal, ModalProps } from 'antd'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './Modal.module.scss'

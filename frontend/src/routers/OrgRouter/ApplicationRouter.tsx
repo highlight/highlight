@@ -34,16 +34,16 @@ const ApplicationRouter = ({ integrated }: Props) => {
 		<>
 			<Routes>
 				{/* These two routes do not require login */}
-				<Route path="/sessions/:session_secure_id?">
-					<PlayerPage integrated={integrated} />
-				</Route>
-				<Route path="/errors/:error_secure_id?/:error_tab_key?/:error_object_id?">
-					<ErrorsV2 integrated={integrated} />
-				</Route>
+				<Route
+					path="/sessions/:session_secure_id?"
+					element={<PlayerPage integrated={integrated} />}
+				/>
+				<Route
+					path="/errors/:error_secure_id?/:error_tab_key?/:error_object_id?"
+					element={<ErrorsV2 integrated={integrated} />}
+				/>
 				{isHighlightAdmin && (
-					<Route path="/logs">
-						<LogsPage />
-					</Route>
+					<Route path="/logs" element={<LogsPage />} />
 				)}
 				{/* If not logged in and project id is numeric and nonzero, Navigate to login */}
 				{!isLoggedIn && (

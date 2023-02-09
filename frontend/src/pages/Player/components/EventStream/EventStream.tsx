@@ -14,6 +14,7 @@ import {
 } from '@pages/Player/ReplayerContext'
 import { StreamElement } from '@pages/Player/StreamElement/StreamElement'
 import { useParams } from '@util/react-router/useParams'
+import clsx from 'clsx'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import TextTransition from 'react-text-transition'
@@ -42,8 +43,9 @@ const EventStream = () => {
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const { data } = useGetWebVitalsQuery({
 		variables: {
-			session_secure_id,
+			session_secure_id: session_secure_id!,
 		},
+		skip: !session_secure_id,
 	})
 
 	useEffect(() => {

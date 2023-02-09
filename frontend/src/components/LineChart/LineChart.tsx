@@ -8,6 +8,7 @@ import {
 	getMetricValueScore,
 	MetricValueScore,
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric'
+import clsx from 'clsx'
 import moment from 'moment'
 import React, { useCallback, useEffect, useState } from 'react'
 import {

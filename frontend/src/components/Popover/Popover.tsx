@@ -2,6 +2,7 @@ import {
 	Popover as AntDesignPopover,
 	PopoverProps as AntDesignPopoverProps,
 } from 'antd'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './Popover.module.scss'

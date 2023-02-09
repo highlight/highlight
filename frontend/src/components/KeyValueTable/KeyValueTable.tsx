@@ -1,7 +1,8 @@
+import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
+import clsx from 'clsx'
 import React from 'react'
 
-import InfoTooltip from '../InfoTooltip/InfoTooltip'
 import styles from './KeyValueTable.module.scss'
 
 interface Props {

@@ -1,5 +1,6 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import { DashboardMetricConfig } from '@graph/schemas'
+import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import React from 'react'
 

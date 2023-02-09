@@ -6,7 +6,7 @@ import { auth } from '@util/auth'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { Helmet } from 'react-helmet'
-import { Route, Routes, useNavigate } from 'react-router-dom'
+import { Route, useNavigate } from 'react-router-dom'
 
 import commonStyles from '../../Common.module.scss'
 import projectSettingsStyles from '../ProjectSettings/ProjectSettings.module.scss'
@@ -63,22 +63,20 @@ const UserSettings: React.FC = () => {
 										projectSettingsStyles.tabsContainer
 									}
 								>
-									<Routes>
-										<Tabs
-											activeKeyOverride={
-												params.tab || 'recording'
-											}
-											onChange={(key) => {
-												navigate(
-													`${location.pathname}/${key}`,
-												)
-											}}
-											noHeaderPadding
-											noPadding
-											id="settingsTabs"
-											tabs={tabs}
-										/>
-									</Routes>
+									<Tabs
+										activeKeyOverride={
+											params.tab || 'recording'
+										}
+										onChange={(key) => {
+											navigate(
+												`${location.pathname}/${key}`,
+											)
+										}}
+										noHeaderPadding
+										noPadding
+										id="settingsTabs"
+										tabs={tabs}
+									/>
 								</div>
 							}
 						/>

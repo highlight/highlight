@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import analytics from '@util/analytics'
 import { Switch as AntDesignSwitch, SwitchProps } from 'antd'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './Switch.module.scss'

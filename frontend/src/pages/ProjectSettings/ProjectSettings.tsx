@@ -9,7 +9,7 @@ import SourcemapSettings from '@pages/WorkspaceSettings/SourcemapSettings/Source
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { Helmet } from 'react-helmet'
-import { Route, Routes, useNavigate } from 'react-router-dom'
+import { Route, useNavigate } from 'react-router-dom'
 
 import styles from './ProjectSettings.module.scss'
 
@@ -29,49 +29,45 @@ const ProjectSettings = () => {
 					path="/:tab?"
 					element={
 						<div className={styles.tabsContainer}>
-							<Routes>
-								<Tabs
-									activeKeyOverride={
-										params.tab || 'recording'
-									}
-									onChange={(key) => {
-										navigate(
-											`${params.project_id}/settings/${key}`,
-										)
-									}}
-									noHeaderPadding
-									noPadding
-									id="settingsTabs"
-									tabs={[
-										{
-											key: 'recording',
-											title: 'Recording',
-											panelContent: (
-												<>
-													<ExcludedUsersForm />
-													<RageClicksForm />
-													<NetworkRecordingForm />
-												</>
-											),
-										},
-										{
-											key: 'errors',
-											title: 'Errors',
-											panelContent: (
-												<>
-													<ErrorSettingsForm />
-													<SourcemapSettings />
-												</>
-											),
-										},
-										{
-											key: 'general',
-											title: 'General',
-											panelContent: <DangerForm />,
-										},
-									]}
-								/>
-							</Routes>
+							<Tabs
+								activeKeyOverride={params.tab || 'recording'}
+								onChange={(key) => {
+									navigate(
+										`${params.project_id}/settings/${key}`,
+									)
+								}}
+								noHeaderPadding
+								noPadding
+								id="settingsTabs"
+								tabs={[
+									{
+										key: 'recording',
+										title: 'Recording',
+										panelContent: (
+											<>
+												<ExcludedUsersForm />
+												<RageClicksForm />
+												<NetworkRecordingForm />
+											</>
+										),
+									},
+									{
+										key: 'errors',
+										title: 'Errors',
+										panelContent: (
+											<>
+												<ErrorSettingsForm />
+												<SourcemapSettings />
+											</>
+										),
+									},
+									{
+										key: 'general',
+										title: 'General',
+										panelContent: <DangerForm />,
+									},
+								]}
+							/>
 						</div>
 					}
 				/>

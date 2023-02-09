@@ -4,6 +4,7 @@ import {
 	Select as AntDesignSelect,
 	SelectProps as AntDesignSelectProps,
 } from 'antd'
+import clsx from 'clsx'
 import React from 'react'
 
 import SvgChevronDownIcon from '../../../static/ChevronDownIcon'

@@ -1,6 +1,7 @@
 import Tooltip from '@components/Tooltip/Tooltip'
 import SvgCopyIcon from '@icons/CopyIcon'
 import { message } from 'antd'
+import clsx from 'clsx'
 import React from 'react'
 
 import Button from '../Button/Button/Button'

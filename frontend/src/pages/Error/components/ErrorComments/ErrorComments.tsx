@@ -23,6 +23,7 @@ import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerInt
 import analytics from '@util/analytics'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { Menu } from 'antd'
+import clsx from 'clsx'
 import React, { useMemo, useState } from 'react'
 
 import CommentTextBody from '../../../Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'

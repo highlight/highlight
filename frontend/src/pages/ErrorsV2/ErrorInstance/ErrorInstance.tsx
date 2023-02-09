@@ -133,7 +133,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		errorInstanceId: Maybe<string> | undefined,
 		direction: 'next' | 'previous',
 	) => {
-		if (Number(errorInstanceId) === 0) {
+		if (!errorInstanceId || Number(errorInstanceId) === 0) {
 			return
 		}
 

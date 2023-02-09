@@ -7,11 +7,9 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetWorkspaceDropdownOptionsQuery } from '@graph/hooks'
-import LoginForm from '@pages/Login/Login'
 import UserSettings from '@pages/UserSettings/UserSettings'
 import { WorkspaceTabs } from '@pages/WorkspaceTabs/WorkspaceTabs'
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
-import { WorkspaceRedirectionRouter } from '@routers/OrgRouter/WorkspaceRedirectionRouter'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect } from 'react'
@@ -105,17 +103,7 @@ export const WorkspaceRouter = () => {
 					) : (
 						<Routes>
 							<Route
-								path="/w/:page_id"
-								element={
-									isLoggedIn ? (
-										<WorkspaceRedirectionRouter />
-									) : (
-										<LoginForm />
-									)
-								}
-							/>
-							<Route
-								path="/w/:workspace_id"
+								path="/w/:workspace_id/*"
 								element={<WorkspaceTabs />}
 							/>
 							{/*
@@ -125,16 +113,6 @@ export const WorkspaceRouter = () => {
 							<Route
 								path="/w/:workspace_id/account"
 								element={<UserSettings />}
-							/>
-							<Route
-								path="/w/:workspace_id"
-								element={
-									isLoggedIn ? (
-										<WorkspaceRedirectionRouter />
-									) : (
-										<LoginForm />
-									)
-								}
 							/>
 						</Routes>
 					)}

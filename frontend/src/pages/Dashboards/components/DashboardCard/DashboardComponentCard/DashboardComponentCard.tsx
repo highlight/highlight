@@ -13,6 +13,7 @@ import {
 	ErrorCountGraph,
 	SessionCountGraph,
 } from '@pages/Home/utils/HomeCharts'
+import clsx from 'clsx'
 import React, { FunctionComponent, useState } from 'react'
 
 import DashboardInnerCard from '../DashboardInnerCard/DashboardInnerCard'

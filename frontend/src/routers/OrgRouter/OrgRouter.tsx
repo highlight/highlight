@@ -199,6 +199,7 @@ export const ProjectRouter = () => {
 									element={<FrontPlugin />}
 								/>
 								<Route
+									path="/*"
 									element={
 										<>
 											<Header />

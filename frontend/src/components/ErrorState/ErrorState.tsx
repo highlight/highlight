@@ -99,13 +99,12 @@ export const ErrorState = ({
 									? {
 											to: {
 												pathname: '/?sign_up=1',
-												state: {
-													previousPathName:
-														window.location
-															.pathname,
-												},
 											},
 											href: undefined,
+											state: {
+												previousPathName:
+													window.location.pathname,
+											},
 									  }
 									: {
 											to: undefined,

@@ -1,4 +1,5 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
+import clsx from 'clsx'
 import ColorHash from 'color-hash'
 import React from 'react'
 

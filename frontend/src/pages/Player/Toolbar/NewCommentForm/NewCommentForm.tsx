@@ -40,6 +40,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
 import { Form, message } from 'antd'
+import clsx from 'clsx'
 import React, { useEffect, useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
 import { Link } from 'react-router-dom'
@@ -90,8 +91,9 @@ export const NewCommentForm = ({
 	const { admin, isLoggedIn } = useAuthContext()
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data: commentTagsData } = useGetCommentTagsForProjectQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
 		fetchPolicy: 'network-only',
+		skip: !project_id,
 	})
 	const [commentText, setCommentText] = useState('')
 	/**
@@ -127,11 +129,13 @@ export const NewCommentForm = ({
 		setSelectedTimelineAnnotationTypes,
 	} = usePlayerConfiguration()
 	const { data: adminsInWorkspace } = useGetWorkspaceAdminsByProjectIdQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
+		skip: !project_id,
 	})
 	const { data: mentionSuggestionsData } =
 		useGetCommentMentionSuggestionsQuery({
-			variables: { project_id },
+			variables: { project_id: project_id! },
+			skip: !project_id,
 		})
 	const [mentionedAdmins, setMentionedAdmins] = useState<
 		SanitizedAdminInput[]
@@ -168,7 +172,7 @@ export const NewCommentForm = ({
 		try {
 			await createErrorComment({
 				variables: {
-					project_id,
+					project_id: project_id!,
 					error_group_secure_id: error_secure_id || '',
 					text: commentText.trim(),
 					text_for_email: commentTextForEmail.trim(),
@@ -232,7 +236,7 @@ export const NewCommentForm = ({
 		try {
 			await createComment({
 				variables: {
-					project_id,
+					project_id: project_id!,
 					session_secure_id: session_secure_id || '',
 					session_timestamp: Math.floor(commentTime),
 					text: commentText.trim(),

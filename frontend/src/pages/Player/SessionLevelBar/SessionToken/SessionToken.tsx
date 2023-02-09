@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import React, { ReactElement } from 'react'
 
 import Tooltip from '../../../../components/Tooltip/Tooltip'

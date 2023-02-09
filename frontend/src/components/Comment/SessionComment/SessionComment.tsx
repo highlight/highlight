@@ -12,6 +12,7 @@ import SvgSpeechBubbleIcon from '@icons/SpeechBubbleIcon'
 import { ParsedSessionComment } from '@pages/Player/ReplayerContext'
 import { message } from 'antd'
 import Menu from 'antd/lib/menu'
+import clsx from 'clsx'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 

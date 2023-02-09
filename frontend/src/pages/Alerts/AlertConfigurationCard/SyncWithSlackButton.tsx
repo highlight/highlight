@@ -5,6 +5,7 @@ import { useSyncSlackIntegrationMutation } from '@graph/hooks'
 import Reload from '@icons/Reload'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './SyncWithSlackButton.module.scss'
@@ -26,7 +27,7 @@ const SyncWithSlackButton = ({
 	const [syncSlackIntegration, { loading }] = useSyncSlackIntegrationMutation(
 		{
 			variables: {
-				project_id,
+				project_id: project_id!,
 			},
 			refetchQueries,
 		},

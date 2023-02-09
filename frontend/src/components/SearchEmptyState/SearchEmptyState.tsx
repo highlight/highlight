@@ -1,4 +1,5 @@
 import { isOnPrem } from '@util/onPrem/onPremUtils'
+import clsx from 'clsx'
 import React, { ReactNode } from 'react'
 
 import { ReactComponent as EmptyState } from '../../static/empty-state.svg'

@@ -12,7 +12,7 @@ import ErrorMetrics from '@pages/ErrorsV2/ErrorMetrics/ErrorMetrics'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { Routes, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import styles from './ErrorTabContent.module.scss'
 
@@ -57,46 +57,44 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 	)
 
 	return (
-		<Routes>
-			<Tabs
-				animated={false}
-				id="errorTabs"
-				className={styles.tabs}
-				noHeaderPadding
-				noPadding
-				unsetOverflowY
-				activeKeyOverride={error_tab_key}
-				onChange={(activeKey) =>
-					navigate(
-						`/${project_id}/errors/${error_secure_id}/${activeKey}`,
-					)
-				}
-				tabs={[
-					{
-						key: 'instances',
-						title: (
-							<TabTitle
-								icon={<IconSolidTerminal size={14} />}
-								label="Instances"
-								shortcut="i"
-							/>
-						),
-						panelContent: <ErrorInstance errorGroup={errorGroup} />,
-					},
-					{
-						key: 'metrics',
-						title: (
-							<TabTitle
-								icon={<IconSolidTrendingUp />}
-								label="Metrics"
-								shortcut="m"
-							/>
-						),
-						panelContent: <ErrorMetrics errorGroup={errorGroup} />,
-					},
-				]}
-			/>
-		</Routes>
+		<Tabs
+			animated={false}
+			id="errorTabs"
+			className={styles.tabs}
+			noHeaderPadding
+			noPadding
+			unsetOverflowY
+			activeKeyOverride={error_tab_key}
+			onChange={(activeKey) =>
+				navigate(
+					`/${project_id}/errors/${error_secure_id}/${activeKey}`,
+				)
+			}
+			tabs={[
+				{
+					key: 'instances',
+					title: (
+						<TabTitle
+							icon={<IconSolidTerminal size={14} />}
+							label="Instances"
+							shortcut="i"
+						/>
+					),
+					panelContent: <ErrorInstance errorGroup={errorGroup} />,
+				},
+				{
+					key: 'metrics',
+					title: (
+						<TabTitle
+							icon={<IconSolidTrendingUp />}
+							label="Metrics"
+							shortcut="m"
+						/>
+					),
+					panelContent: <ErrorMetrics errorGroup={errorGroup} />,
+				},
+			]}
+		/>
 	)
 }
 

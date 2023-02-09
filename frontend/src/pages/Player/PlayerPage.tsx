@@ -81,9 +81,11 @@ const PlayerPage = ({ integrated }: Props) => {
 
 	const { data: isSessionPendingData, loading } = useIsSessionPendingQuery({
 		variables: {
-			session_secure_id,
+			session_secure_id: session_secure_id!,
 		},
-		skip: sessionViewability !== SessionViewability.ERROR,
+		skip:
+			!session_secure_id ||
+			sessionViewability !== SessionViewability.ERROR,
 	})
 
 	const resourcesContext = useResources(session)

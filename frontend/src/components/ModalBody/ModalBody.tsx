@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import React, { HTMLProps } from 'react'
 
 import styles from './ModalBody.module.scss'

@@ -1,6 +1,7 @@
 import Card from '@components/Card/Card'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import { formatNumber } from '@util/numbers'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import {
 	Bar,

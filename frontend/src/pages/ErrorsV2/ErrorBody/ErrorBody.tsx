@@ -42,10 +42,12 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				},
 			})
 			.then((response) => {
-				navigate({
-					pathname: `/${projectId}/errors/${errorGroup?.secure_id}/instances/${response.data.error_instance?.error_object.id}`,
-					search: window.location.search,
-				})
+				if (response.data.error_instance?.error_object.id) {
+					navigate({
+						pathname: `/${projectId}/errors/${errorGroup?.secure_id}/instances/${response.data.error_instance?.error_object.id}`,
+						search: window.location.search,
+					})
+				}
 
 				document
 					.querySelector('#error-instance-container')

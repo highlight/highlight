@@ -3,6 +3,7 @@ import SimpleMetric, {
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric'
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils'
 import analytics from '@util/analytics'
+import clsx from 'clsx'
 import React, { useEffect } from 'react'
 
 import styles from './WebVitalRender.module.scss'

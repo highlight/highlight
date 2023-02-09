@@ -7,7 +7,6 @@ import { useSubmitRegistrationFormMutation } from '@graph/hooks'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Navigate } from 'react-router-dom'
@@ -193,7 +192,7 @@ const RegistrationForm = () => {
 					<Button
 						trackingId="SubmitRegistrationForm"
 						type="primary"
-						className={clsx(styles.button)}
+						className={styles.button}
 						block
 						htmlType="submit"
 						disabled={!isValid}
