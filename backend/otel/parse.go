@@ -47,7 +47,7 @@ func structureStackTrace(stackTrace string) ([]*model3.ErrorTrace, error) {
 		jsAnonPattern := regexp.MustCompile(` {4}at (.+) \((.+)\)`)
 		pyPattern := regexp.MustCompile(` {2}File "(.+)", line (\d+), in (\w+)`)
 		goLinePattern := regexp.MustCompile(`\t(.+):(\d+)( 0x[0-f]+)?`)
-		goFuncPattern := regexp.MustCompile(`^(.+)\.(.+)\([^()]*\)$`)
+		goFuncPattern := regexp.MustCompile(`^(.+)\.(.+?)(\([^()]*\))?$`)
 		generalPattern := regexp.MustCompile(`^(.+)`)
 		if matches := jsPattern.FindSubmatch([]byte(line)); matches != nil {
 			language = "js"
