@@ -3216,6 +3216,11 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 			workspace.VercelTeamID, projectEnvId, vercel.ProjectIdEnvVar); err != nil {
 			return false, err
 		}
+
+		if err := vercel.CreateLogDrain(m.VercelProjectID, project.VerboseID(), "highlight-log-drain", *workspace.VercelAccessToken); err != nil {
+			return false, err
+		}
+
 		configs = append(configs, &model.VercelIntegrationConfig{
 			WorkspaceID:     workspaceId,
 			VercelProjectID: m.VercelProjectID,

@@ -215,3 +215,35 @@ func GetProjects(accessToken string, teamId *string) ([]*model.VercelProject, er
 
 	return projects, nil
 }
+
+func CreateLogDrain(vercelProjectID string, projectVerboseID string, name string, accessToken string) error {
+	client := &http.Client{}
+
+	headers := fmt.Sprintf(`{"x-highlight-project":"%s"}`, projectVerboseID)
+	projectIds := fmt.Sprintf(`["%s"]`, vercelProjectID)
+	body := fmt.Sprintf(`{"url":"https://pub.highlight.io/vercel/v1/logs","name":"%s","headers":%s,"projectIds":%s}`, name, headers, projectIds)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v2/integrations/log-drains", VercelApiBaseUrl),
+		strings.NewReader(body))
+	if err != nil {
+		return errors.Wrap(err, "error creating api request to Vercel")
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		return errors.Wrap(err, "error getting response from Vercel log-drain endpoint")
+	}
+
+	b, err := io.ReadAll(res.Body)
+
+	if res.StatusCode != 200 {
+		return errors.New("Vercel API responded with error; status_code=" + res.Status + "; body=" + string(b))
+	}
+
+	if err != nil {
+		return errors.Wrap(err, "error reading response body from Vercel log-drain endpoint")
+	}
+
+	return nil
+}
