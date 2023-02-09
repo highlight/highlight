@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { useAppLoadingContext } from '@context/AppLoadingContext'
 import {
 	Box,
 	ButtonIcon,
@@ -22,6 +23,7 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState('')
 	const [verificationId, setVerificationId] = useState<string>('')
+	const { setLoadingState } = useAppLoadingContext()
 	const history = useHistory()
 	const recaptchaVerifier = useRef<firebase.auth.ApplicationVerifier>()
 	const phoneAuthProvider = new firebase.auth.PhoneAuthProvider()
@@ -96,8 +98,10 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 		}
 	}, [handleSubmit, formState.values.code])
 
+	// After logging out we sometimes re-render this component even though the
+	// route doesn't match. This is a hack to get us back to the sign in page.
 	if (window.location.pathname.indexOf('multi_factor') === -1) {
-		window.location.reload()
+		history.push('/')
 	}
 
 	return (

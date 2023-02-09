@@ -4,6 +4,7 @@ import {
 	Form as AriaKitForm,
 	FormProps as AriaKitFormProps,
 	FormInput as AriaKitFormInput,
+	FormLabel as AriaKitFormLabel,
 	FormError as AriaKitFormError,
 	FormErrorProps as AriaKitFormErrorProps,
 	FormInputProps as AriaKitFormInputProps,
@@ -28,24 +29,41 @@ type FormComponent = React.FC<Props> & {
 	NamedSection: typeof NamedSection
 }
 
-export const Label = ({ label }: { label: string }) => {
+export const Label = ({
+	label,
+	name,
+}: {
+	label: string
+	name?: AriaKitFormInputProps['name']
+}) => {
 	return (
 		<Box display="flex" alignItems="center" style={{ height: 16 }}>
-			<Text userSelect="none" size="xSmall" weight="bold" color="weak">
-				{label}
-			</Text>
+			<AriaKitFormLabel name={name}>
+				<Text
+					userSelect="none"
+					size="xSmall"
+					weight="bold"
+					color="weak"
+				>
+					{label}
+				</Text>
+			</AriaKitFormLabel>
 		</Box>
 	)
 }
 
-type HasLabel = { label?: string }
+type HasLabel = {
+	label?: string
+	name?: AriaKitFormInputProps['name']
+}
 export const NamedSection = ({
 	children,
 	label,
+	name,
 }: React.PropsWithChildren<HasLabel>) => {
 	return (
 		<Box display="flex" flexDirection="column" width="full" gap="4">
-			{label && <Label label={label} />}
+			{label && <Label label={label} name={name} />}
 			{children}
 		</Box>
 	)
@@ -90,7 +108,7 @@ export const Input = ({
 		collapsed = false
 	}
 	return (
-		<NamedSection label={label}>
+		<NamedSection label={label} name={name}>
 			<AriaKitFormInput
 				ref={ref}
 				name={name}
@@ -127,7 +145,7 @@ export const Field = ({
 	...props
 }: FormFieldProps) => {
 	return (
-		<NamedSection label={label}>
+		<NamedSection label={label} name={props.name}>
 			<AriaKitFormField
 				className={clsx(
 					styles.inputVariants({

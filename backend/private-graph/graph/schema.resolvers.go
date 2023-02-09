@@ -341,6 +341,49 @@ func (r *metricMonitorResolver) Filters(ctx context.Context, obj *model.MetricMo
 	}), nil
 }
 
+// UpdateAdminAndCreateWorkspace is the resolver for the updateAdminAndCreateWorkspace field.
+func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, adminAndWorkspaceDetails modelInputs.AdminAndWorkspaceDetails) (*bool, error) {
+	// Update admin details
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		transactionR := *r
+		transactionR.DB = tx
+		if _, err := transactionR.UpdateAdminAboutYouDetails(ctx, modelInputs.AdminAboutYouDetails{
+			FirstName:          adminAndWorkspaceDetails.FirstName,
+			LastName:           adminAndWorkspaceDetails.LastName,
+			UserDefinedRole:    adminAndWorkspaceDetails.UserDefinedRole,
+			UserDefinedPersona: "",
+			Referral:           adminAndWorkspaceDetails.Referral,
+		}); err != nil {
+			return e.Wrap(err, "error updating admin details")
+		}
+
+		// Create workspace
+		workspace, err := transactionR.CreateWorkspace(ctx, adminAndWorkspaceDetails.WorkspaceName, adminAndWorkspaceDetails.PromoCode)
+		if err != nil {
+			return e.Wrap(err, "error creating workspace")
+		}
+
+		// Assign auto joinable domains for workspace
+		if *adminAndWorkspaceDetails.AllowedAutoJoinEmailOrigins != "" {
+			if _, err := transactionR.UpdateAllowedEmailOrigins(ctx, workspace.ID, *adminAndWorkspaceDetails.AllowedAutoJoinEmailOrigins); err != nil {
+				return e.Wrap(err, "error assigning auto joinable email origins")
+			}
+		}
+
+		// Create project
+		projectName := fmt.Sprintf("%s App", adminAndWorkspaceDetails.WorkspaceName)
+		if _, err := transactionR.CreateProject(ctx, projectName, workspace.ID); err != nil {
+			return e.Wrap(err, "error creating project")
+		}
+
+		return nil
+	}); err != nil {
+		return &model.F, e.Wrap(err, "error during transaction:")
+	}
+
+	return &model.T, nil
+}
+
 // UpdateAdminAboutYouDetails is the resolver for the updateAdminAboutYouDetails field.
 func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, adminDetails modelInputs.AdminAboutYouDetails) (bool, error) {
 	admin, err := r.getCurrentAdmin(ctx)

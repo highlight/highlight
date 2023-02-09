@@ -1,20 +1,20 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import {
-	useGetAdminAboutYouQuery,
-	useGetProjectsAndWorkspacesQuery,
-} from '@graph/hooks'
+import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
 import React, { useEffect } from 'react'
 import { Redirect, useHistory } from 'react-router-dom'
+import { StringParam, useQueryParam } from 'use-query-params'
 
 export const ProjectRedirectionRouter = () => {
 	const { loading, error, data } = useGetProjectsAndWorkspacesQuery()
-	const { loading: adminAboutYouLoading } = useGetAdminAboutYouQuery({
-		fetchPolicy: 'no-cache',
-	})
+	const { admin } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
+	const [nextParam] = useQueryParam('next', StringParam)
+	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
+	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
 	const history = useHistory()
 
 	useEffect(() => {
@@ -30,7 +30,7 @@ export const ProjectRedirectionRouter = () => {
 		return <p>{'App error: ' + JSON.stringify(error)}</p>
 	}
 
-	if (loading || adminAboutYouLoading) {
+	if (loading || !admin) {
 		return null
 	}
 
@@ -39,7 +39,12 @@ export const ProjectRedirectionRouter = () => {
 		redirectTo = `/${data!.projects[0]!.id}${history.location.pathname}`
 	} else if (data?.workspaces?.length) {
 		redirectTo = `/w/${data!.workspaces[0]!.id}/new`
+	} else if (admin.email_verified === false) {
+		redirectTo = '/verify_email'
+	} else if (!admin.about_you_details_filled && !isVercelIntegrationFlow) {
+		redirectTo = '/about_you'
 	} else {
+		// TODO: Figure out fallback
 		redirectTo = '/new'
 	}
 

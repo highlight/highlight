@@ -710,6 +710,14 @@ mutation DeleteMetricMonitor($metric_monitor_id: ID!, $project_id: ID!) {
 	}
 }
 
+mutation UpdateAdminAndCreateWorkspace(
+	$admin_and_workspace_details: AdminAndWorkspaceDetails!
+) {
+	updateAdminAndCreateWorkspace(
+		admin_and_workspace_details: $admin_and_workspace_details
+	)
+}
+
 mutation UpdateAdminAboutYouDetails($adminDetails: AdminAboutYouDetails!) {
 	updateAdminAboutYouDetails(adminDetails: $adminDetails)
 }

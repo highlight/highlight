@@ -4,7 +4,9 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { Box } from '@highlight-run/ui'
 import { AccountsPage } from '@pages/Accounts/Accounts'
+import { AdminForm } from '@pages/Auth/AdminForm'
 import { AuthRouter } from '@pages/Auth/AuthRouter'
+import { VerifyEmail } from '@pages/Auth/VerifyEmail'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import { Landing } from '@pages/Landing/Landing'
@@ -89,6 +91,14 @@ export const AppRouter = () => {
 					</Route>
 					<Route path="/w/:page_id(team|settings|current-plan|upgrade-plan)">
 						<DefaultWorkspaceRouter />
+					</Route>
+					<Route path="/verify_email">
+						{/* TODO: Move component */}
+						<VerifyEmail />
+					</Route>
+					<Route path="/about_you">
+						{/* TODO: Move component */}
+						<AdminForm />
 					</Route>
 					<Route path="/">
 						{isLoggedIn ? (

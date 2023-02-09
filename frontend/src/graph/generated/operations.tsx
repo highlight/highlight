@@ -831,6 +831,14 @@ export type DeleteMetricMonitorMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type UpdateAdminAndCreateWorkspaceMutationVariables = Types.Exact<{
+	admin_and_workspace_details: Types.AdminAndWorkspaceDetails
+}>
+
+export type UpdateAdminAndCreateWorkspaceMutation = {
+	__typename?: 'Mutation'
+} & Pick<Types.Mutation, 'updateAdminAndCreateWorkspace'>
+
 export type UpdateAdminAboutYouDetailsMutationVariables = Types.Exact<{
 	adminDetails: Types.AdminAboutYouDetails
 }>
@@ -4072,6 +4080,7 @@ export const namedOperations = {
 		CreateMetricMonitor: 'CreateMetricMonitor' as const,
 		UpdateMetricMonitor: 'UpdateMetricMonitor' as const,
 		DeleteMetricMonitor: 'DeleteMetricMonitor' as const,
+		UpdateAdminAndCreateWorkspace: 'UpdateAdminAndCreateWorkspace' as const,
 		UpdateAdminAboutYouDetails: 'UpdateAdminAboutYouDetails' as const,
 		UpdateErrorAlert: 'UpdateErrorAlert' as const,
 		DeleteErrorAlert: 'DeleteErrorAlert' as const,

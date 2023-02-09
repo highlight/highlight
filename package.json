@@ -41,6 +41,7 @@
 		"generate": "hygen",
 		"prepare": "husky install && patch-package",
 		"prepublish": "yarn workspace scripts prepublish:client",
+		"private-gen": "cd backend && make private-gen",
 		"publish:all": "run-p --print-label publish:client publish:turbo publish:render",
 		"publish:client": "yarn workspace scripts publish:client",
 		"publish:render": "yarn workspace render publish",

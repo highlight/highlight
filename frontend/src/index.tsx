@@ -32,6 +32,7 @@ import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import { AuthRouter } from '@pages/Auth/AuthRouter'
 import useLocalStorage from '@rehooks/local-storage'
+import { AppRouter } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
 import { setAttributionData } from '@util/attribution'
 import { auth } from '@util/auth'
@@ -374,16 +375,16 @@ const AuthenticationRoleRouter = () => {
 		true,
 	)
 
+	const loggedIn = isLoggedIn(authRole)
+
 	return (
 		<AuthContextProvider
 			value={{
 				role: authRole,
-				admin: isLoggedIn(authRole)
-					? adminData ?? undefined
-					: undefined,
+				admin: loggedIn ? adminData ?? undefined : undefined,
 				workspaceRole: adminRole || undefined,
 				isAuthLoading: isAuthLoading(authRole),
-				isLoggedIn: isLoggedIn(authRole),
+				isLoggedIn: loggedIn,
 				isHighlightAdmin: isHighlightAdmin(authRole) && enableStaffView,
 			}}
 		>
@@ -431,7 +432,7 @@ get in contact with us!
 						<AuthAdminRouter />
 					</Route>
 					<Route path="/">
-						<AuthRouter />
+						{loggedIn ? <AppRouter /> : <AuthRouter />}
 					</Route>
 				</Switch>
 			)}

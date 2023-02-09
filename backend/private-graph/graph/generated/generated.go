@@ -581,6 +581,7 @@ type ComplexityRoot struct {
 		SubmitRegistrationForm           func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
 		SyncSlackIntegration             func(childComplexity int, projectID int) int
 		UpdateAdminAboutYouDetails       func(childComplexity int, adminDetails model.AdminAboutYouDetails) int
+		UpdateAdminAndCreateWorkspace    func(childComplexity int, adminAndWorkspaceDetails model.AdminAndWorkspaceDetails) int
 		UpdateAllowMeterOverage          func(childComplexity int, workspaceID int, allowMeterOverage bool) int
 		UpdateAllowedEmailOrigins        func(childComplexity int, workspaceID int, allowedAutoJoinEmailOrigins string) int
 		UpdateBillingDetails             func(childComplexity int, workspaceID int) int
@@ -1112,6 +1113,7 @@ type MetricMonitorResolver interface {
 	Filters(ctx context.Context, obj *model1.MetricMonitor) ([]*model.MetricTagFilter, error)
 }
 type MutationResolver interface {
+	UpdateAdminAndCreateWorkspace(ctx context.Context, adminAndWorkspaceDetails model.AdminAndWorkspaceDetails) (*bool, error)
 	UpdateAdminAboutYouDetails(ctx context.Context, adminDetails model.AdminAboutYouDetails) (bool, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model1.Workspace, error)
@@ -4063,6 +4065,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateAdminAboutYouDetails(childComplexity, args["adminDetails"].(model.AdminAboutYouDetails)), true
+
+	case "Mutation.updateAdminAndCreateWorkspace":
+		if e.complexity.Mutation.UpdateAdminAndCreateWorkspace == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateAdminAndCreateWorkspace_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateAdminAndCreateWorkspace(childComplexity, args["admin_and_workspace_details"].(model.AdminAndWorkspaceDetails)), true
 
 	case "Mutation.updateAllowMeterOverage":
 		if e.complexity.Mutation.UpdateAllowMeterOverage == nil {
@@ -7277,6 +7291,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputAdminAboutYouDetails,
+		ec.unmarshalInputAdminAndWorkspaceDetails,
 		ec.unmarshalInputClickUpProjectMappingInput,
 		ec.unmarshalInputDashboardMetricConfigInput,
 		ec.unmarshalInputDashboardParamsInput,
@@ -8025,6 +8040,19 @@ input AdminAboutYouDetails {
 	phone: String
 }
 
+input AdminAndWorkspaceDetails {
+	# Admin
+	first_name: String!
+	last_name: String!
+	user_defined_role: String!
+	referral: String!
+
+	# Workspace
+	workspace_name: String!
+	allowed_auto_join_email_origins: String
+	promo_code: String
+}
+
 input ErrorSearchParamsInput {
 	date_range: DateRangeInput
 	os: String
@@ -8760,6 +8788,9 @@ type Query {
 }
 
 type Mutation {
+	updateAdminAndCreateWorkspace(
+		admin_and_workspace_details: AdminAndWorkspaceDetails!
+	): Boolean
 	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
 	createProject(name: String!, workspace_id: ID!): Project
 	createWorkspace(name: String!, promo_code: String): Workspace
@@ -11041,6 +11072,21 @@ func (ec *executionContext) field_Mutation_updateAdminAboutYouDetails_args(ctx c
 		}
 	}
 	args["adminDetails"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateAdminAndCreateWorkspace_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.AdminAndWorkspaceDetails
+	if tmp, ok := rawArgs["admin_and_workspace_details"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("admin_and_workspace_details"))
+		arg0, err = ec.unmarshalNAdminAndWorkspaceDetails2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAdminAndWorkspaceDetails(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["admin_and_workspace_details"] = arg0
 	return args, nil
 }
 
@@ -27414,6 +27460,57 @@ func (ec *executionContext) fieldContext_MetricTagFilter_value(ctx context.Conte
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateAdminAndCreateWorkspace(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateAdminAndCreateWorkspace(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateAdminAndCreateWorkspace(rctx, fc.Args["admin_and_workspace_details"].(model.AdminAndWorkspaceDetails))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateAdminAndCreateWorkspace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateAdminAndCreateWorkspace_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -52083,6 +52180,82 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.Context, obj interface{}) (model.AdminAndWorkspaceDetails, error) {
+	var it model.AdminAndWorkspaceDetails
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"first_name", "last_name", "user_defined_role", "referral", "workspace_name", "allowed_auto_join_email_origins", "promo_code"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "first_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first_name"))
+			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "last_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last_name"))
+			it.LastName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "user_defined_role":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_defined_role"))
+			it.UserDefinedRole, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "referral":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referral"))
+			it.Referral, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "workspace_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_name"))
+			it.WorkspaceName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "allowed_auto_join_email_origins":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allowed_auto_join_email_origins"))
+			it.AllowedAutoJoinEmailOrigins, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "promo_code":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("promo_code"))
+			it.PromoCode, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputClickUpProjectMappingInput(ctx context.Context, obj interface{}) (model.ClickUpProjectMappingInput, error) {
 	var it model.ClickUpProjectMappingInput
 	asMap := map[string]interface{}{}
@@ -56741,6 +56914,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "updateAdminAndCreateWorkspace":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateAdminAndCreateWorkspace(ctx, field)
+			})
+
 		case "updateAdminAboutYouDetails":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -62316,6 +62495,11 @@ func (ec *executionContext) marshalNAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhi
 
 func (ec *executionContext) unmarshalNAdminAboutYouDetails2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAdminAboutYouDetails(ctx context.Context, v interface{}) (model.AdminAboutYouDetails, error) {
 	res, err := ec.unmarshalInputAdminAboutYouDetails(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNAdminAndWorkspaceDetails2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAdminAndWorkspaceDetails(ctx context.Context, v interface{}) (model.AdminAndWorkspaceDetails, error) {
+	res, err := ec.unmarshalInputAdminAndWorkspaceDetails(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
