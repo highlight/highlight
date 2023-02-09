@@ -1,6 +1,7 @@
 import ConnectHighlightWithSlackButton from '@components/Header/components/ConnectHighlightWithSlackButton/ConnectHighlightWithSlackButton'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LoadingBox from '@components/LoadingBox'
+import clsx from 'clsx'
 import React, { useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 import { styledVerticalScrollbar } from 'style/common.css'

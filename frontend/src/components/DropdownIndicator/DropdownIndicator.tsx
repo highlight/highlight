@@ -2,6 +2,7 @@ import { LoadingOutlined } from '@ant-design/icons'
 import { IconSolidSearch } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
 import { Spin } from 'antd'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './DropdownIndicator.module.scss'

@@ -1,9 +1,9 @@
+import clsx from 'clsx'
 import React from 'react'
 
 import SvgShareIcon from '../../../static/ShareIcon'
 import Button, { GenericHighlightButtonProps } from '../Button/Button'
 import styles from './ShareButton.module.scss'
-
 type Props = {} & Pick<React.HTMLAttributes<HTMLButtonElement>, 'onClick'> &
 	GenericHighlightButtonProps
 

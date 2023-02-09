@@ -339,6 +339,7 @@ export default function LoginForm() {
 							}}
 							autoFocus
 							required
+							autoComplete="email"
 						/>
 						{formState !== LoginFormState.ResetPassword && (
 							<Input
@@ -350,6 +351,11 @@ export default function LoginForm() {
 									setPassword(e.target.value)
 								}}
 								required
+								autoComplete={
+									formState === LoginFormState.SignUp
+										? 'new-password'
+										: 'current-password'
+								}
 							/>
 						)}
 						{formState === LoginFormState.SignUp && (

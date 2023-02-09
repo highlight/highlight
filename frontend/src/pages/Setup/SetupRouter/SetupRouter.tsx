@@ -13,12 +13,14 @@ const SetupRouter = ({ integrated }: Props) => {
 	return (
 		<>
 			<Routes>
-				<Route path="*">
-					<SetupPage integrated={integrated} />
-				</Route>
-				<Route path="/:step">
-					<SetupPage integrated={integrated} />
-				</Route>
+				<Route
+					path="/*"
+					element={<SetupPage integrated={integrated} />}
+				/>
+				<Route
+					path="/:step"
+					element={<SetupPage integrated={integrated} />}
+				/>
 			</Routes>
 		</>
 	)

@@ -12,7 +12,6 @@ import {
 	isHighlightAdmin,
 	isLoggedIn,
 } from '@authentication/AuthContext'
-import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { LoadingPage } from '@components/Loading/Loading'
 import {
@@ -31,6 +30,7 @@ import {
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import { SignUp } from '@pages/Auth/SignUp'
+import LoginForm, { AuthAdminRouter } from '@pages/Login/Login'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { setAttributionData } from '@util/attribution'
@@ -47,8 +47,6 @@ import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
-
-import LoginForm, { AuthAdminRouter } from './pages/Login/Login'
 
 analytics.initialize()
 const dev = import.meta.env.DEV
@@ -411,26 +409,22 @@ get in contact with us!
 					/>
 					{/* Allow guests to access this route without being asked to log in */}
 					<Route
-						path="/:project_id(0)/*"
+						path="/:project_id/*"
 						element={<AuthAdminRouter />}
 					/>
 					{/* Allow guests to access this route without being asked to log in */}
 					<Route
-						path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
+						path="/:project_id/sessions/:session_secure_id"
 						element={<AuthAdminRouter />}
 					/>
 					{/* Allow guests to access this route without being asked to log in */}
 					<Route
-						path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
+						path="/:project_id/errors/:error_secure_id/:error_tab_key?/:error_object_id?"
 						element={<AuthAdminRouter />}
 					/>
-					{/* Allow guests to access this route without being asked to log in */}
-					<Route
-						path="/:project_id(\d+)/errors/:error_secure_id(\w+)/:error_tab_key(\w+)?/:error_object_id(\d+)?"
-						element={<AuthAdminRouter />}
-					/>
+
 					<Route path="/sign_up" element={<SignUp />} />
-					<Route path="/" element={<LoginForm />} />
+					<Route path="/*" element={<LoginForm />} />
 				</Routes>
 			)}
 		</AuthContextProvider>

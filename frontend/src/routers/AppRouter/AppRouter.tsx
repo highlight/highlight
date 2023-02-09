@@ -19,12 +19,7 @@ import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRoute
 import { ProjectRouter } from '@routers/OrgRouter/OrgRouter'
 import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter'
 import React from 'react'
-import {
-	BrowserRouter as Router,
-	Route,
-	Routes,
-	useMatch,
-} from 'react-router-dom'
+import { Route, Routes, useMatch } from 'react-router-dom'
 
 export const AppRouter = () => {
 	const { isLoggedIn } = useAuthContext()
@@ -35,106 +30,101 @@ export const AppRouter = () => {
 
 	return (
 		<Box height="screen" width="screen">
-			<Router>
-				<Routes>
-					<Route
-						path="/subscriptions"
-						element={<EmailOptOutPage />}
-					/>
-					<Route path="/accounts" element={<AccountsPage />} />
+			<Routes>
+				<Route path="/subscriptions" element={<EmailOptOutPage />} />
+				<Route path="/accounts" element={<AccountsPage />} />
 
-					<Route
-						path="/w/:workspace_id/invite/:invite_id"
-						element={
-							<Landing>
-								<NewMemberPage />
-							</Landing>
-						}
-					/>
+				<Route
+					path="/w/:workspace_id/invite/:invite_id"
+					element={
+						<Landing>
+							<NewMemberPage />
+						</Landing>
+					}
+				/>
 
-					<Route
-						path="/new"
-						element={
-							<Landing>
-								<NewProjectPage />
-							</Landing>
-						}
-					/>
+				<Route
+					path="/new"
+					element={
+						<Landing>
+							<NewProjectPage />
+						</Landing>
+					}
+				/>
 
-					<Route
-						path="/oauth/authorize"
-						element={
-							<Landing>
-								<OAuthApprovalPage />
-							</Landing>
-						}
-					/>
+				<Route
+					path="/oauth/authorize"
+					element={
+						<Landing>
+							<OAuthApprovalPage />
+						</Landing>
+					}
+				/>
 
-					<Route
-						path="/callback/:integrationName"
-						element={<IntegrationAuthCallbackPage />}
-					/>
+				<Route
+					path="/callback/:integrationName"
+					element={<IntegrationAuthCallbackPage />}
+				/>
 
-					<Route
-						path="/w/:workspace_id/new"
-						element={
-							<Landing>
-								<NewProjectPage />
-							</Landing>
-						}
-					/>
+				<Route
+					path="/w/:workspace_id/new"
+					element={
+						<Landing>
+							<NewProjectPage />
+						</Landing>
+					}
+				/>
 
-					<Route
-						path="/w/:workspace_id/switch"
-						element={
-							<Landing>
-								<SwitchProject />
-							</Landing>
-						}
-					/>
+				<Route
+					path="/w/:workspace_id/switch"
+					element={
+						<Landing>
+							<SwitchProject />
+						</Landing>
+					}
+				/>
 
-					<Route
-						path="/w/:workspace_id/about-you"
-						element={
-							<Landing>
-								<RegistrationForm />
-							</Landing>
-						}
-					/>
+				<Route
+					path="/w/:workspace_id/about-you"
+					element={
+						<Landing>
+							<RegistrationForm />
+						</Landing>
+					}
+				/>
 
-					<Route
-						path="/switch"
-						element={
-							<Landing>
-								<SwitchWorkspace />
-							</Landing>
-						}
-					/>
+				<Route
+					path="/switch"
+					element={
+						<Landing>
+							<SwitchWorkspace />
+						</Landing>
+					}
+				/>
 
-					<Route path="/_internal" element={<InternalRouter />} />
+				<Route path="/_internal" element={<InternalRouter />} />
 
-					<Route
-						path="/"
-						element={
-							isLoggedIn ? (
-								workspaceId ? (
-									Number.isInteger(workspaceId) ? (
-										<WorkspaceRouter />
-									) : (
-										<DefaultWorkspaceRouter />
-									)
-								) : projectId ? (
-									<ProjectRouter />
+				<Route
+					path="/*"
+					element={
+						isLoggedIn ? (
+							workspaceId ? (
+								Number.isInteger(workspaceId) ? (
+									<WorkspaceRouter />
 								) : (
-									<ProjectRedirectionRouter />
+									<DefaultWorkspaceRouter />
 								)
+							) : projectId ? (
+								<ProjectRouter />
 							) : (
-								<LoginForm />
+								<ProjectRedirectionRouter />
 							)
-						}
-					/>
-				</Routes>
-			</Router>
+						) : (
+							<LoginForm />
+						)
+					}
+				/>
+			</Routes>
 		</Box>
 	)
 }

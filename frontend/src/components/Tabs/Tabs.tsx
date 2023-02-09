@@ -3,8 +3,8 @@ import useLocalStorage from '@rehooks/local-storage'
 import { Tabs as AntDesignTabs, TabsProps } from 'antd'
 import React, { useEffect } from 'react'
 const { TabPane } = AntDesignTabs
-
 import { isRenderable } from '@util/react'
+import clsx from 'clsx'
 
 import styles from './Tabs.module.scss'
 

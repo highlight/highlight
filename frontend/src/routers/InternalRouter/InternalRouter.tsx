@@ -23,7 +23,7 @@ const InternalRouter = () => {
 	return (
 		<Routes>
 			<Route
-				path="/_internal/query-builder"
+				path="/query-builder"
 				element={
 					<Suspense fallback={null}>
 						<QueryBuilderPage />
@@ -31,7 +31,7 @@ const InternalRouter = () => {
 				}
 			/>
 			<Route
-				path="/_internal/opensearch-query-builder"
+				path="/opensearch-query-builder"
 				element={
 					<Suspense fallback={null}>
 						<OpenSearchQueryPage />
@@ -39,7 +39,7 @@ const InternalRouter = () => {
 				}
 			/>
 			<Route
-				path="/_internal"
+				path="/*"
 				element={
 					<Suspense fallback={null}>
 						<InternalPage />

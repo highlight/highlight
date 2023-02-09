@@ -20,8 +20,9 @@ import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import { formatTimeAsHMS, MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
+import clsx from 'clsx'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import style from './TimelinePopover.module.scss'
@@ -35,6 +36,8 @@ const POPOVER_CONTENT_ROW_HEIGHT = 28
 
 const TimelinePopover = ({ bucket }: Props) => {
 	const navigate = useNavigate()
+	const location = useLocation()
+
 	const { setActiveError, setRightPanelView } = usePlayerUIContext()
 	const { setCurrentEvent, pause, errors, isPlayerReady } =
 		useReplayerContext()
@@ -90,9 +93,9 @@ const TimelinePopover = ({ bucket }: Props) => {
 		if (type === 'Comments') {
 			const urlSearchParams = new URLSearchParams()
 			urlSearchParams.append(PlayerSearchParameters.commentId, identifier)
-			history.replace(
-				`${history.location.pathname}?${urlSearchParams.toString()}`,
-			)
+			navigate(`${location.pathname}?${urlSearchParams.toString()}`, {
+				replace: true,
+			})
 			setShowRightPanel(true)
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Comments)
 		} else if (type === 'Errors') {

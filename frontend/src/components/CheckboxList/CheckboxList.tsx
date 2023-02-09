@@ -1,4 +1,5 @@
 import Checkbox, { CheckboxChangeEvent } from 'antd/lib/checkbox'
+import clsx from 'clsx'
 import React, { useState } from 'react'
 
 import styles from './CheckboxList.module.scss'

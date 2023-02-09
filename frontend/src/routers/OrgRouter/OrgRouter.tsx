@@ -47,7 +47,7 @@ export const ProjectRouter = () => {
 	const { setLoadingState } = useAppLoadingContext()
 
 	const { data, loading, error } = useGetProjectDropdownOptionsQuery({
-		variables: { project_id: project_id ?? '' },
+		variables: { project_id: project_id! },
 		skip: !isLoggedIn || !project_id, // Higher level routers decide when guests are allowed to hit this router
 	})
 
@@ -62,6 +62,7 @@ export const ProjectRouter = () => {
 			import.meta.env.REACT_APP_PRIVATE_GRAPH_URI ??
 			window.location.origin + '/private'
 		let intervalId: NodeJS.Timeout
+
 		auth.currentUser?.getIdToken().then((t) => {
 			const fetchToken = () => {
 				fetch(`${uri}/project-token/${project_id}`, {
@@ -71,8 +72,10 @@ export const ProjectRouter = () => {
 					},
 				})
 			}
-			// Fetch a new token now and every 30 mins
-			fetchToken()
+			if (project_id) {
+				// Fetch a new token now and every 30 mins
+				fetchToken()
+			}
 			intervalId = setInterval(fetchToken, 30 * 60 * 1000)
 		})
 		return () => {
@@ -222,11 +225,11 @@ export const ProjectRouter = () => {
 												  (error || !data?.project) ? (
 													<ErrorState
 														title="Enter this Workspace?"
-														message={`
-                        Sadly, you don’t have access to the workspace 😢
-                        Request access and we'll shoot an email to your workspace admin.
-                        Alternatively, feel free to make an account!
-                        `}
+														message={
+															`Sadly, you don’t have access to the workspace 😢 ` +
+															`Request access and we'll shoot an email to your workspace admin. ` +
+															`Alternatively, feel free to make an account!`
+														}
 														shownWithHeader
 														showRequestAccess
 													/>

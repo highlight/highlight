@@ -12,8 +12,7 @@ import ErrorMetrics from '@pages/ErrorsV2/ErrorMetrics/ErrorMetrics'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { Switch } from 'react-router-dom'
-import { useNavigate } from 'react-router-dom'
+import { Routes, useNavigate } from 'react-router-dom'
 
 import styles from './ErrorTabContent.module.scss'
 
@@ -58,7 +57,7 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 	)
 
 	return (
-		<Switch>
+		<Routes>
 			<Tabs
 				animated={false}
 				id="errorTabs"
@@ -97,7 +96,7 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 					},
 				]}
 			/>
-		</Switch>
+		</Routes>
 	)
 }
 

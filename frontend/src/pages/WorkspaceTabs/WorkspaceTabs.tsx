@@ -6,7 +6,7 @@ import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { Suspense, useEffect } from 'react'
 import { Helmet } from 'react-helmet'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Routes, useLocation, useNavigate } from 'react-router-dom'
 
 import styles from './WorkspaceTabs.module.scss'
 
@@ -47,46 +47,48 @@ export const WorkspaceTabs = () => {
 				<div>
 					<h2 className={styles.header}>Workspace Settings</h2>
 				</div>
-				<Tabs
-					className={styles.workspaceTabs}
-					noPadding
-					noHeaderPadding
-					activeKeyOverride={page_id}
-					onChange={(activeKey) =>
-						navigate(`/w/${workspace_id}/${activeKey}`)
-					}
-					tabs={[
-						{
-							key: 'team',
-							title: getTitle('team'),
-							panelContent: <WorkspaceTeam />,
-						},
-						{
-							key: 'settings',
-							title: getTitle('settings'),
-							panelContent: <WorkspaceSettings />,
-						},
-						{
-							key: 'current-plan',
-							title: getTitle('current-plan'),
-							panelContent: (
-								<Suspense fallback={null}>
-									<BillingPage />
-								</Suspense>
-							),
-						},
-						{
-							key: 'upgrade-plan',
-							title: getTitle('upgrade-plan'),
-							panelContent: (
-								<Suspense fallback={null}>
-									<BillingPage />
-								</Suspense>
-							),
-						},
-					]}
-					id="WorkspaceSettings"
-				/>
+				<Routes>
+					<Tabs
+						className={styles.workspaceTabs}
+						noPadding
+						noHeaderPadding
+						activeKeyOverride={page_id}
+						onChange={(activeKey) =>
+							navigate(`/w/${workspace_id}/${activeKey}`)
+						}
+						tabs={[
+							{
+								key: 'team',
+								title: getTitle('team'),
+								panelContent: <WorkspaceTeam />,
+							},
+							{
+								key: 'settings',
+								title: getTitle('settings'),
+								panelContent: <WorkspaceSettings />,
+							},
+							{
+								key: 'current-plan',
+								title: getTitle('current-plan'),
+								panelContent: (
+									<Suspense fallback={null}>
+										<BillingPage />
+									</Suspense>
+								),
+							},
+							{
+								key: 'upgrade-plan',
+								title: getTitle('upgrade-plan'),
+								panelContent: (
+									<Suspense fallback={null}>
+										<BillingPage />
+									</Suspense>
+								),
+							},
+						]}
+						id="WorkspaceSettings"
+					/>
+				</Routes>
 			</LeadAlignLayout>
 		</>
 	)

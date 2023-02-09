@@ -2,12 +2,12 @@ import DemoWorkspaceButton, {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import FullBleedCard from '@components/FullBleedCard/FullBleedCard'
 import { useParams } from '@util/react-router/useParams'
 import Lottie from 'lottie-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-import FullBleedCard from '../../../components/FullBleedCard/FullBleedCard'
 import WaitingAnimation from '../../../lottie/waiting.json'
 import styles from './IntegrationCard.module.scss'
 

@@ -6,6 +6,7 @@ import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
 import commonStyles from '../../../Common.module.scss'
@@ -23,8 +24,9 @@ export const RageClicksForm = () => {
 	const [rageClickCount, setRageClickCount] = useState<number>(0)
 	const { data, loading } = useGetProjectQuery({
 		variables: {
-			id: project_id,
+			id: project_id!,
 		},
+		skip: !project_id,
 	})
 
 	const [editProject, { loading: editProjectLoading }] =
@@ -40,9 +42,12 @@ export const RageClicksForm = () => {
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
+		if (!project_id) {
+			return
+		}
 		editProject({
 			variables: {
-				id: project_id,
+				id: project_id!,
 				rage_click_window_seconds: rageClickWindowSeconds,
 				rage_click_radius_pixels: rageClickRadiusPixels,
 				rage_click_count: rageClickCount,

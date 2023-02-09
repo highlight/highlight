@@ -249,7 +249,8 @@ const BillingPage = () => {
 				: { error: 'Error: could not load stripe client.' }
 
 			if (result.error) {
-				// result.error is either a string message or a StripeError, which contains a message localized for the user.
+				// result.error is either a string message or a StripeError,
+				// which contains a message localized for the user.
 				setCheckoutRedirectFailedMessage(
 					typeof result.error === 'string'
 						? result.error
@@ -415,7 +416,11 @@ const BillingPage = () => {
 							trackingId="AdminNoAccessToBilling"
 							type="info"
 							message="You don't have access to billing."
-							description={`You don't have permission to access the billing details for "${currentWorkspace?.name}". Please contact a workspace admin to make changes.`}
+							description={
+								`You don't have permission to access ` +
+								`the billing details for "${currentWorkspace?.name}". ` +
+								`Please contact a workspace admin to make changes.`
+							}
 						/>
 					}
 				>

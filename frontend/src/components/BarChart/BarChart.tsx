@@ -1,4 +1,5 @@
 import Tooltip from '@components/Tooltip/Tooltip'
+import clsx from 'clsx'
 import React from 'react'
 
 import * as style from './BarChart.css'

@@ -3,16 +3,18 @@ import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import Tabs from '@components/Tabs/Tabs'
 import { EmailOptOutPanel } from '@pages/EmailOptOut/EmailOptOut'
 import { auth } from '@util/auth'
+import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { Helmet } from 'react-helmet'
-import { Route, Switch, useRouteMatch } from 'react-router-dom'
+import { Route, Routes, useNavigate } from 'react-router-dom'
 
 import commonStyles from '../../Common.module.scss'
 import projectSettingsStyles from '../ProjectSettings/ProjectSettings.module.scss'
 import Auth from './Auth/Auth'
 
 const UserSettings: React.FC = () => {
-	const match = useRouteMatch()
+	const navigate = useNavigate()
+	const params = useParams()
 
 	const tabs = [
 		...(auth.googleProvider
@@ -54,34 +56,31 @@ const UserSettings: React.FC = () => {
 							<h2>User Settings</h2>
 						</div>
 						<Route
-							path={`${match.path}/:tab?`}
-							render={({ history, match: tabsMatch }) => {
-								return (
-									<div
-										className={
-											projectSettingsStyles.tabsContainer
-										}
-									>
-										<Switch>
-											<Tabs
-												activeKeyOverride={
-													tabsMatch.params.tab ||
-													'recording'
-												}
-												onChange={(key) => {
-													navigate(
-														`${match.url}/${key}`,
-													)
-												}}
-												noHeaderPadding
-												noPadding
-												id="settingsTabs"
-												tabs={tabs}
-											/>
-										</Switch>
-									</div>
-								)
-							}}
+							path="/:tab?"
+							element={
+								<div
+									className={
+										projectSettingsStyles.tabsContainer
+									}
+								>
+									<Routes>
+										<Tabs
+											activeKeyOverride={
+												params.tab || 'recording'
+											}
+											onChange={(key) => {
+												navigate(
+													`${location.pathname}/${key}`,
+												)
+											}}
+											noHeaderPadding
+											noPadding
+											id="settingsTabs"
+											tabs={tabs}
+										/>
+									</Routes>
+								</div>
+							}
 						/>
 					</LeadAlignLayout>
 				</div>

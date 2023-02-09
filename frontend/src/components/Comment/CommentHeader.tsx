@@ -3,6 +3,7 @@ import CloseButton from '@components/CloseButton/CloseButton'
 import { Admin, SanitizedAdminInput, SessionCommentType } from '@graph/schemas'
 import SvgShare2Icon from '@icons/Share2Icon'
 import { CommentSuggestion } from '@util/comment/util'
+import clsx from 'clsx'
 import React, { PropsWithChildren } from 'react'
 import { SuggestionDataItem } from 'react-mentions'
 

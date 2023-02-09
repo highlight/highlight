@@ -103,42 +103,40 @@ export const WorkspaceRouter = () => {
 							shownWithHeader
 						/>
 					) : (
-						<>
-							<Routes>
-								<Route
-									path="/w/:page_id"
-									element={
-										isLoggedIn ? (
-											<WorkspaceRedirectionRouter />
-										) : (
-											<LoginForm />
-										)
-									}
-								/>
-								<Route
-									path="/w/:workspace_id"
-									element={<WorkspaceTabs />}
-								/>
-								{/*
+						<Routes>
+							<Route
+								path="/w/:page_id"
+								element={
+									isLoggedIn ? (
+										<WorkspaceRedirectionRouter />
+									) : (
+										<LoginForm />
+									)
+								}
+							/>
+							<Route
+								path="/w/:workspace_id"
+								element={<WorkspaceTabs />}
+							/>
+							{/*
 								Probably doesn't belong here, but we wanted to reuse the Header,
 								which requires context of a project or workspace.
 								*/}
-								<Route
-									path="/w/:workspace_id/account"
-									element={<UserSettings />}
-								/>
-								<Route
-									path="/w/:workspace_id"
-									element={
-										isLoggedIn ? (
-											<WorkspaceRedirectionRouter />
-										) : (
-											<LoginForm />
-										)
-									}
-								/>
-							</Routes>
-						</>
+							<Route
+								path="/w/:workspace_id/account"
+								element={<UserSettings />}
+							/>
+							<Route
+								path="/w/:workspace_id"
+								element={
+									isLoggedIn ? (
+										<WorkspaceRedirectionRouter />
+									) : (
+										<LoginForm />
+									)
+								}
+							/>
+						</Routes>
 					)}
 				</div>
 			</ApplicationContextProvider>

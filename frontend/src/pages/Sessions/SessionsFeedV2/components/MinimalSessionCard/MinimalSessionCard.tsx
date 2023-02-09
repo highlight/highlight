@@ -18,6 +18,7 @@ import { formatDatetime } from '@pages/Sessions/SessionsFeedV2/components/Sessio
 import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
 import { useParams } from '@util/react-router/useParams'
 import { MillisToMinutesAndSecondsVerbose } from '@util/time'
+import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import TextTransition from 'react-text-transition'

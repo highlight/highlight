@@ -16,12 +16,13 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import firebase from 'firebase/app'
 import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import * as styles from './SignUp.css'
 
 export const SignUp: React.FC = () => {
-	const navigate = useNavigate<{ previousPathName?: string }>()
+	const navigate = useNavigate()
+	const location = useLocation()
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
 	const formState = useFormState({
@@ -57,12 +58,12 @@ export const SignUp: React.FC = () => {
 							// workspace. We do this because this happens when a new user clicks on
 							// a Highlight link that was shared to them and they don't have an
 							// account yet.
-							if (history.location.state?.previousPathName) {
-								navigate(
-									history.location.state.previousPathName,
-								)
+							if (location.state?.previousPathName) {
+								navigate(location.state.previousPathName, {
+									replace: true,
+								})
 							} else {
-								navigate('/')
+								navigate('/', { replace: true })
 							}
 						})
 						.catch((error) => {
@@ -95,11 +96,13 @@ export const SignUp: React.FC = () => {
 							label="Email"
 							type="email"
 							autoFocus
+							autoComplete="email"
 						/>
 						<Form.Input
 							name={formState.names.password}
 							label="Password"
 							type="password"
+							autoComplete="new-password"
 						/>
 						{error && <Callout kind="error">{error}</Callout>}
 					</Stack>

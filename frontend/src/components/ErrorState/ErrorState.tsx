@@ -3,6 +3,7 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import JoinWorkspace from '@components/ErrorState/JoinWorkspace/JoinWorkspace'
 import Space from '@components/Space/Space'
 import { Maybe } from '@graph/schemas'
+import clsx from 'clsx'
 import React, { useState } from 'react'
 
 import Button from '../Button/Button/Button'

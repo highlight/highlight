@@ -4,6 +4,7 @@ import { PlanType, SubscriptionInterval } from '@graph/schemas'
 import MessageIcon from '@icons/MessageIcon'
 import { MEMBERS_PRICE } from '@pages/Billing/BillingStatusCard/BillingStatusCard'
 import { formatNumberWithDelimiters } from '@util/numbers'
+import clsx from 'clsx'
 import React from 'react'
 
 import commonStyles from '../../../Common.module.scss'

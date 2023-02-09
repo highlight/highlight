@@ -54,7 +54,6 @@ import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import { QueryBuilderStateParam } from '@util/url/params'
 import { Checkbox, message } from 'antd'
-import clsx from 'clsx'
 import clsx, { ClassValue } from 'clsx'
 import { isEqual } from 'lodash'
 import moment, { unitOfTime } from 'moment'
@@ -1343,7 +1342,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const { loading: segmentsLoading, data: segmentData } = useGetSegmentsQuery(
 		{
-			variables: { project_id: projectId },
+			variables: { project_id: projectId! },
+			skip: !projectId,
 		},
 	)
 
@@ -1618,7 +1618,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 		[parseRuleImpl],
 	)
 	const { data: appVersionData } = useGetAppVersionsQuery({
-		variables: { project_id: projectId },
+		variables: { project_id: projectId! },
+		skip: !projectId,
 	})
 
 	const [currentRule, setCurrentRule] = useState<RuleProps | undefined>()
@@ -2248,7 +2249,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		if (canUpdateSegment) {
 			editSegment({
 				variables: {
-					project_id: projectId,
+					project_id: projectId!,
 					id: selectedSegment.id,
 					params: searchParams,
 					name: selectedSegment.name,

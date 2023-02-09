@@ -25,6 +25,7 @@ import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuil
 import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import { Checkbox } from 'antd'
+import clsx from 'clsx'
 import _ from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -1456,7 +1457,8 @@ function QueryBuilder<T extends SearchContextTypes>(
 	}>()
 
 	const { data: appVersionData } = useGetAppVersionsQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
+		skip: !project_id,
 	})
 
 	const [currentRule, setCurrentRule] = useState<RuleProps | undefined>()

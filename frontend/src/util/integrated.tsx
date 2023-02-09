@@ -1,19 +1,18 @@
+import { useAuthContext } from '@authentication/AuthContext'
+import {
+	useIsBackendIntegratedLazyQuery,
+	useIsIntegratedLazyQuery,
+} from '@graph/hooks'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { useEffect, useState } from 'react'
 
-import { useAuthContext } from '../authentication/AuthContext'
-import {
-	useIsBackendIntegratedLazyQuery,
-	useIsIntegratedLazyQuery,
-} from '../graph/generated/hooks'
-
 export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
 	const { isLoggedIn, isAuthLoading } = useAuthContext()
 	const { project_id } = useParams<{ project_id: string }>()
 	const [query, { data, loading }] = useIsIntegratedLazyQuery({
-		variables: { project_id: project_id.toString() },
+		variables: { project_id: project_id?.toString() ?? '' },
 		fetchPolicy: 'cache-and-network',
 	})
 	const [localStorageIntegrated, setLocalStorageIntegrated] = useLocalStorage(
@@ -83,7 +82,7 @@ export const useBackendIntegrated = (): {
 	const { isLoggedIn, isAuthLoading } = useAuthContext()
 	const { project_id } = useParams<{ project_id: string }>()
 	const [query, { data, loading }] = useIsBackendIntegratedLazyQuery({
-		variables: { project_id: project_id.toString() },
+		variables: { project_id: project_id?.toString() ?? '' },
 		fetchPolicy: 'cache-and-network',
 	})
 	const [localStorageIntegrated, setLocalStorageIntegrated] = useLocalStorage(
