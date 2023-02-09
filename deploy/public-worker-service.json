@@ -193,7 +193,6 @@
 		}
 	],
 	"placementConstraints": [],
-	"memory": "8192",
 	"taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
 	"compatibilities": ["EC2", "FARGATE"],
 	"taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/public-worker-service:1",
@@ -287,7 +286,8 @@
 	"pidMode": null,
 	"requiresCompatibilities": ["FARGATE"],
 	"networkMode": "awsvpc",
-	"cpu": "1024",
+	"cpu": "2048",
+	"memory": "16384",
 	"revision": 40,
 	"status": "ACTIVE",
 	"inferenceAccelerators": null,
