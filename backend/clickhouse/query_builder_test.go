@@ -53,9 +53,13 @@ func TestBuildLogAttributes(t *testing.T) {
 		want  string
 	}{
 		{"", ""},
+		{"body", "Body ILIKE '%body%'"},
+		{"multi word", "Body ILIKE '%multi word%'"},
+		{"''; DROP TABLE users;''", "Body ILIKE '%''''; DROP TABLE users;''''%'"},
 		{"workspace_id:1", "LogAttributes['workspace_id'] = '1'"},
 		{"user_id:1", "LogAttributes['user_id'] = '1'"},
 		{"workspace_id:1 user_id:1", "LogAttributes['workspace_id'] = '1' AND LogAttributes['user_id'] = '1'"},
+		{"body workspace_id:1 user_id:1", "LogAttributes['workspace_id'] = '1' AND LogAttributes['user_id'] = '1' AND Body ILIKE '%body%'"},
 	}
 
 	for _, tt := range tests {

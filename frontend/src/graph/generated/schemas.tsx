@@ -461,7 +461,7 @@ export type ErrorObject = {
 	project_id: Scalars['Int']
 	request_id?: Maybe<Scalars['String']>
 	session?: Maybe<Session>
-	session_id: Scalars['Int']
+	session_id?: Maybe<Scalars['Int']>
 	source?: Maybe<Scalars['String']>
 	stack_trace: Scalars['String']
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
@@ -657,7 +657,7 @@ export type LogLine = {
 	__typename?: 'LogLine'
 	body: Scalars['String']
 	logAttributes: Scalars['Map']
-	severityText: Scalars['String']
+	severityText: SeverityText
 	timestamp: Scalars['Timestamp']
 }
 
@@ -2237,6 +2237,15 @@ export type SessionsHistogram = {
 	sessions_with_errors: Array<Scalars['Int64']>
 	sessions_without_errors: Array<Scalars['Int64']>
 	total_sessions: Array<Scalars['Int64']>
+}
+
+export enum SeverityText {
+	Debug = 'DEBUG',
+	Error = 'ERROR',
+	Fatal = 'FATAL',
+	Info = 'INFO',
+	Trace = 'TRACE',
+	Warn = 'WARN',
 }
 
 export type SlackSyncResponse = {

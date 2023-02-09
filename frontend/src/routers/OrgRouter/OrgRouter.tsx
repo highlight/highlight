@@ -22,6 +22,7 @@ import useLocalStorage from '@rehooks/local-storage'
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
 import WithErrorSearchContext from '@routers/OrgRouter/WithErrorSearchContext'
 import WithSessionSearchContext from '@routers/OrgRouter/WithSessionSearchContext'
+import { auth } from '@util/auth'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
@@ -34,7 +35,6 @@ import commonStyles from '../../Common.module.scss'
 import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble'
 import { ApplicationContextProvider } from './ApplicationContext'
 import ApplicationRouter from './ApplicationRouter'
-import { auth } from '@util/auth'
 
 export const ProjectRouter = () => {
 	const { isLoggedIn } = useAuthContext()
@@ -127,15 +127,6 @@ export const ProjectRouter = () => {
 		?.filter((w) => w?.projects.map((p) => p?.id).includes(project_id))
 		?.pop()
 
-	const [detailedPanel, setDetailedPanel] = useState<
-		| {
-				title: string | React.ReactNode
-				content: React.ReactNode
-				id: string
-		  }
-		| undefined
-	>(undefined)
-
 	const [rightPanelView, setRightPanelView] = useState<RightPanelView>(
 		RightPanelView.Session,
 	)
@@ -163,8 +154,6 @@ export const ProjectRouter = () => {
 		isPlayerFullscreen,
 		setIsPlayerFullscreen,
 		playerCenterPanelRef,
-		detailedPanel,
-		setDetailedPanel,
 		selectedRightPanelTab,
 		setSelectedRightPanelTab,
 		activeEvent,

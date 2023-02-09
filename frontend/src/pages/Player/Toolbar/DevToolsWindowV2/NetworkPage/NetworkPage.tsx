@@ -18,6 +18,7 @@ import {
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@util/analytics'
+import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
@@ -54,14 +55,21 @@ export const NetworkPage = ({
 		sessionMetadata,
 	} = useReplayerContext()
 	const startTime = sessionMetadata.startTime
-	const { setShowDevTools, setSelectedDevToolsTab, showPlayerAbsoluteTime } =
-		usePlayerConfiguration()
+	const {
+		setShowDevTools,
+		setSelectedDevToolsTab,
+		setShowRightPanel,
+		showPlayerAbsoluteTime,
+	} = usePlayerConfiguration()
 	const {
 		setActiveError,
 		setActiveNetworkResource,
 		rightPanelView,
 		setRightPanelView,
 	} = usePlayerUIContext()
+
+	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+
 	const [currentActiveIndex, setCurrentActiveIndex] = useState<number>()
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
@@ -77,7 +85,7 @@ export const NetworkPage = ({
 	useEffect(() => {
 		loadResources()
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	}, [session_secure_id])
 
 	const networkRange = useMemo(() => {
 		if (parsedResources.length > 0) {
@@ -248,7 +256,7 @@ export const NetworkPage = ({
 
 	return (
 		<Box className={styles.container}>
-			{loading || !session ? (
+			{!isPlayerReady || loading || !session ? (
 				<LoadingBox />
 			) : resourcesToRender.length > 0 ? (
 				<Box className={styles.container}>
@@ -297,6 +305,7 @@ export const NetworkPage = ({
 										onClickHandler={() => {
 											setCurrentActiveIndex(index)
 											setActiveNetworkResource(resource)
+											setShowRightPanel(true)
 											setRightPanelView(
 												RightPanelView.NetworkResource,
 											)
@@ -352,18 +361,20 @@ const ResourceRow = ({
 	hasError,
 	showPlayerAbsoluteTime,
 }: ResourceRowProps) => {
-	const { detailedPanel } = usePlayerUIContext()
 	const leftPaddingPercent = (resource.startTime / networkRange) * 100
 	const actualPercent = Math.max(
 		((resource.responseEnd - resource.startTime) / networkRange) * 100,
 		0.1,
 	)
 	const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent
+	const { activeNetworkResource } = usePlayerUIContext()
 
+	const showingDetails = activeNetworkResource?.id === resource.id
 	return (
 		<Box key={resource.id.toString()} onClick={onClickHandler}>
 			<Box
-				className={styles.networkRowVariants({
+				borderBottom="dividerWeak"
+				cssClass={styles.networkRowVariants({
 					current: isCurrentResource,
 					failedResource: !!(
 						hasError ||
@@ -373,11 +384,14 @@ const ResourceRow = ({
 								resource.requestResponsePairs.response.status >=
 									400))
 					),
-					showingDetails:
-						detailedPanel?.id === resource.id.toString(),
+					showingDetails,
 				})}
 			>
-				<Box>
+				<Text
+					size="small"
+					weight={showingDetails ? 'bold' : 'medium'}
+					lines="1"
+				>
 					{resource.initiatorType === 'xmlhttprequest' ||
 					resource.initiatorType === 'fetch'
 						? resource.requestResponsePairs?.response.status ?? (
@@ -388,10 +402,14 @@ const ResourceRow = ({
 								/>
 						  )
 						: '200'}
-				</Box>
-				<Box>
+				</Text>
+				<Text
+					size="small"
+					weight={showingDetails ? 'bold' : 'medium'}
+					lines="1"
+				>
 					{getNetworkResourcesDisplayName(resource.initiatorType)}
-				</Box>
+				</Text>
 				<Tooltip title={resource.displayName || resource.name}>
 					<TextHighlighter
 						className={styles.nameSection}
@@ -400,14 +418,18 @@ const ResourceRow = ({
 						textToHighlight={resource.displayName || resource.name}
 					/>
 				</Tooltip>
-				<Box>
+				<Text
+					size="small"
+					weight={showingDetails ? 'bold' : 'medium'}
+					lines="1"
+				>
 					{showPlayerAbsoluteTime
 						? playerTimeToSessionAbsoluteTime({
 								sessionStartTime: playerStartTime,
 								relativeTime: resource.startTime,
 						  })
 						: MillisToMinutesAndSeconds(resource.startTime)}
-				</Box>
+				</Text>
 				<Box className={styles.timingBarWrapper}>
 					<Box
 						style={{
@@ -419,7 +441,6 @@ const ResourceRow = ({
 						className={styles.timingBar}
 						style={{
 							width: `${actualPercent}%`,
-							zIndex: 100,
 						}}
 					/>
 					<Box

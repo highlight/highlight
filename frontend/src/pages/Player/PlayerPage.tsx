@@ -12,7 +12,6 @@ import { Replayer } from '@highlight-run/rrweb'
 import { Box } from '@highlight-run/ui'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { CompleteSetup } from '@pages/Player/components/CompleteSetup/CompleteSetup'
-import LoadingLiveSessionCard from '@pages/Player/components/LoadingLiveSessionCard/LoadingLiveSessionCard'
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard'
 import UnauthorizedViewingForm from '@pages/Player/components/UnauthorizedViewingForm/UnauthorizedViewingForm'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
@@ -34,7 +33,6 @@ import {
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
 import SessionLevelBarV2 from '@pages/Player/SessionLevelBar/SessionLevelBarV2'
 import { DevTools } from '@pages/Player/Toolbar/DevTools'
-import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel'
 import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
@@ -286,23 +284,13 @@ const PlayerPage = ({ integrated }: Props) => {
 										modalPosition={commentModalPosition}
 										setCommentPosition={setCommentPosition}
 									/>
-									{!isPlayerReady &&
-										(session?.processed === false ? (
-											<LoadingLiveSessionCard />
-										) : (
-											playerFiller
-										))}
+									{!isPlayerReady && playerFiller}
 								</div>
 								<Toolbar width={controllerWidth} />
 							</div>
 							<DevTools width={controllerWidth} />
 						</div>
-						{!isPlayerFullscreen && (
-							<>
-								<RightPlayerPanel />
-								<DetailPanel />
-							</>
-						)}
+						{!isPlayerFullscreen && <RightPlayerPanel />}
 					</Box>
 				</Box>
 			</div>

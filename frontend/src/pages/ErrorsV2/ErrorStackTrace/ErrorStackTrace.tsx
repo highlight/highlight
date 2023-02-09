@@ -345,7 +345,7 @@ const SourcemapError: React.FC<{
 	)
 }
 
-const truncateFileName = (fileName: string, numberOfLevelsToGoUp = 3) => {
+const truncateFileName = (fileName: string, numberOfLevelsToGoUp = 5) => {
 	const tokens = fileName.split('/')
 
 	return `${'../'.repeat(
