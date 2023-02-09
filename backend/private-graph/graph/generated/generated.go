@@ -7667,6 +7667,15 @@ enum SessionAlertType {
 	NEW_SESSION_ALERT
 }
 
+enum SeverityText {
+	TRACE
+	DEBUG
+	INFO
+	WARN
+	ERROR
+	FATAL
+}
+
 type Project {
 	id: ID!
 	verbose_id: String!
@@ -7865,7 +7874,7 @@ type S3File {
 
 type LogLine {
 	timestamp: Timestamp!
-	severityText: String!
+	severityText: SeverityText!
 	body: String!
 	logAttributes: Map!
 }
@@ -26374,9 +26383,9 @@ func (ec *executionContext) _LogLine_severityText(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(model.SeverityText)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNSeverityText2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSeverityText(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_LogLine_severityText(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -26386,7 +26395,7 @@ func (ec *executionContext) fieldContext_LogLine_severityText(ctx context.Contex
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type SeverityText does not have child fields")
 		},
 	}
 	return fc, nil
@@ -65408,6 +65417,16 @@ func (ec *executionContext) marshalNSessionsHistogram2ᚖgithubᚗcomᚋhighligh
 		return graphql.Null
 	}
 	return ec._SessionsHistogram(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNSeverityText2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSeverityText(ctx context.Context, v interface{}) (model.SeverityText, error) {
+	var res model.SeverityText
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSeverityText2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSeverityText(ctx context.Context, sel ast.SelectionSet, v model.SeverityText) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNSlackSyncResponse2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSlackSyncResponse(ctx context.Context, sel ast.SelectionSet, v model.SlackSyncResponse) graphql.Marshaler {
