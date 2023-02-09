@@ -380,7 +380,7 @@ export const Header = () => {
 													.secondary.content.text
 											}
 										/>
-										<Text lines="1">Github</Text>
+										<Text lines="1">GitHub</Text>
 									</Box>
 								</Button>
 								{inProjectOrWorkspace && <Notifications />}
