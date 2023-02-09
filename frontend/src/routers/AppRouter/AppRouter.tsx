@@ -102,7 +102,7 @@ export const AppRouter = () => {
 					}
 				/>
 
-				<Route path="/_internal" element={<InternalRouter />} />
+				<Route path="/_internal/*" element={<InternalRouter />} />
 
 				<Route
 					path="/*"

@@ -920,7 +920,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		autoPlaySessions,
-		history,
 		pause,
 		project_id,
 		resetPlayer,

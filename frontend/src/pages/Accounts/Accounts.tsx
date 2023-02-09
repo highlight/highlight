@@ -3,6 +3,10 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { USD } from '@dinero.js/currencies'
+import {
+	useGetAccountDetailsQuery,
+	useGetAccountsLazyQuery,
+} from '@graph/hooks'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import { Table } from 'antd'
@@ -22,11 +26,6 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts'
-
-import {
-	useGetAccountDetailsQuery,
-	useGetAccountsLazyQuery,
-} from '../../graph/generated/hooks'
 
 const COLUMNS = [
 	{

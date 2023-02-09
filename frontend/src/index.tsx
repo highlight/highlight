@@ -45,7 +45,7 @@ import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 
 analytics.initialize()
@@ -171,22 +171,9 @@ const App = () => {
 							}}
 						>
 							<LoadingPage />
-							<Router>
-								<Routes>
-									<Route
-										path="/w/:workspace_id/*"
-										element={<AuthenticationRoleRouter />}
-									/>
-									<Route
-										path="/:project_id/*"
-										element={<AuthenticationRoleRouter />}
-									/>
-									<Route
-										path="/*"
-										element={<AuthenticationRoleRouter />}
-									/>
-								</Routes>
-							</Router>
+							<BrowserRouter>
+								<AuthenticationRoleRouter />
+							</BrowserRouter>
 						</AppLoadingContext>
 					</SkeletonTheme>
 				</QueryParamProvider>
@@ -198,6 +185,7 @@ const App = () => {
 const AuthenticationRoleRouter = () => {
 	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
 	const projectId = /^\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
+
 	const [
 		getAdminWorkspaceRoleQuery,
 		{
@@ -207,6 +195,7 @@ const AuthenticationRoleRouter = () => {
 			refetch: wRefetch,
 		},
 	] = useGetAdminRoleLazyQuery()
+
 	const [
 		getAdminProjectRoleQuery,
 		{
@@ -216,6 +205,7 @@ const AuthenticationRoleRouter = () => {
 			refetch: pRefetch,
 		},
 	] = useGetAdminRoleByProjectLazyQuery()
+
 	const [
 		getAdminSimpleQuery,
 		{
@@ -225,6 +215,7 @@ const AuthenticationRoleRouter = () => {
 			refetch: sRefetch,
 		},
 	] = useGetAdminLazyQuery()
+
 	let getAdminQuery:
 			| ((
 					workspace_id:
@@ -393,36 +384,19 @@ const AuthenticationRoleRouter = () => {
 			</Helmet>
 			{adminError ? (
 				<ErrorState
-					message={`
-Seems like we had an issue with your login 😢.
-Feel free to log out and try again, or otherwise,
-get in contact with us!
-`}
+					message={
+						`Seems like we had an issue with your login 😢. ` +
+						`Feel free to log out and try again, or otherwise, ` +
+						`get in contact with us!`
+					}
 					errorString={JSON.stringify(adminError)}
 				/>
 			) : (
 				<Routes>
-					{/* This route uses a token for authentication */}
-					<Route
-						path="/subscriptions"
-						element={<AuthAdminRouter />}
-					/>
-					{/* Allow guests to access this route without being asked to log in */}
 					<Route
 						path="/:project_id/*"
 						element={<AuthAdminRouter />}
 					/>
-					{/* Allow guests to access this route without being asked to log in */}
-					<Route
-						path="/:project_id/sessions/:session_secure_id"
-						element={<AuthAdminRouter />}
-					/>
-					{/* Allow guests to access this route without being asked to log in */}
-					<Route
-						path="/:project_id/errors/:error_secure_id/:error_tab_key?/:error_object_id?"
-						element={<AuthAdminRouter />}
-					/>
-
 					<Route path="/sign_up" element={<SignUp />} />
 					<Route path="/*" element={<LoginForm />} />
 				</Routes>

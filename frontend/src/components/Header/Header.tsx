@@ -557,7 +557,7 @@ const BillingBanner = () => {
 	)
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
-		variables: { project_id: project_id ?? '' },
+		variables: { project_id: project_id! },
 		skip: !project_id,
 	})
 	const [hasReportedTrialExtension, setHasReportedTrialExtension] =

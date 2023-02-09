@@ -1,23 +1,20 @@
 import { ApolloError } from '@apollo/client'
 import Alert, { AlertProps } from '@components/Alert/Alert'
+import Button from '@components/Button/Button/Button'
+import { CircularSpinner } from '@components/Loading/Loading'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
+import { useAddAdminToWorkspaceMutation, useGetAdminQuery } from '@graph/hooks'
+import { auth } from '@util/auth'
+import { client } from '@util/graph'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 
 import commonStyles from '../../Common.module.scss'
-import Button from '../../components/Button/Button/Button'
-import { CircularSpinner } from '../../components/Loading/Loading'
-import {
-	useAddAdminToWorkspaceMutation,
-	useGetAdminQuery,
-} from '../../graph/generated/hooks'
-import { auth } from '../../util/auth'
-import { client } from '../../util/graph'
 import styles from './NewMemberPage.module.scss'
 
 const NewMemberPage = () => {
