@@ -1113,7 +1113,7 @@ type MetricMonitorResolver interface {
 	Filters(ctx context.Context, obj *model1.MetricMonitor) ([]*model.MetricTagFilter, error)
 }
 type MutationResolver interface {
-	UpdateAdminAndCreateWorkspace(ctx context.Context, adminAndWorkspaceDetails model.AdminAndWorkspaceDetails) (*bool, error)
+	UpdateAdminAndCreateWorkspace(ctx context.Context, adminAndWorkspaceDetails model.AdminAndWorkspaceDetails) (*model1.Project, error)
 	UpdateAdminAboutYouDetails(ctx context.Context, adminDetails model.AdminAboutYouDetails) (bool, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model1.Workspace, error)
@@ -8799,7 +8799,7 @@ type Query {
 type Mutation {
 	updateAdminAndCreateWorkspace(
 		admin_and_workspace_details: AdminAndWorkspaceDetails!
-	): Boolean
+	): Project
 	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
 	createProject(name: String!, workspace_id: ID!): Project
 	createWorkspace(name: String!, promo_code: String): Workspace
@@ -27492,9 +27492,9 @@ func (ec *executionContext) _Mutation_updateAdminAndCreateWorkspace(ctx context.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*bool)
+	res := resTmp.(*model1.Project)
 	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+	return ec.marshalOProject2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐProject(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateAdminAndCreateWorkspace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -27504,7 +27504,33 @@ func (ec *executionContext) fieldContext_Mutation_updateAdminAndCreateWorkspace(
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Project_id(ctx, field)
+			case "verbose_id":
+				return ec.fieldContext_Project_verbose_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Project_name(ctx, field)
+			case "billing_email":
+				return ec.fieldContext_Project_billing_email(ctx, field)
+			case "secret":
+				return ec.fieldContext_Project_secret(ctx, field)
+			case "workspace_id":
+				return ec.fieldContext_Project_workspace_id(ctx, field)
+			case "excluded_users":
+				return ec.fieldContext_Project_excluded_users(ctx, field)
+			case "error_json_paths":
+				return ec.fieldContext_Project_error_json_paths(ctx, field)
+			case "rage_click_window_seconds":
+				return ec.fieldContext_Project_rage_click_window_seconds(ctx, field)
+			case "rage_click_radius_pixels":
+				return ec.fieldContext_Project_rage_click_radius_pixels(ctx, field)
+			case "rage_click_count":
+				return ec.fieldContext_Project_rage_click_count(ctx, field)
+			case "backend_domains":
+				return ec.fieldContext_Project_backend_domains(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
 	}
 	defer func() {

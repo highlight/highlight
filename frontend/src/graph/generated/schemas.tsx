@@ -789,7 +789,7 @@ export type Mutation = {
 	submitRegistrationForm?: Maybe<Scalars['Boolean']>
 	syncSlackIntegration: SlackSyncResponse
 	updateAdminAboutYouDetails: Scalars['Boolean']
-	updateAdminAndCreateWorkspace?: Maybe<Scalars['Boolean']>
+	updateAdminAndCreateWorkspace?: Maybe<Project>
 	updateAllowMeterOverage?: Maybe<Workspace>
 	updateAllowedEmailOrigins?: Maybe<Scalars['ID']>
 	updateBillingDetails?: Maybe<Scalars['Boolean']>

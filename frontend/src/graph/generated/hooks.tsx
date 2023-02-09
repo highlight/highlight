@@ -2815,7 +2815,9 @@ export const UpdateAdminAndCreateWorkspaceDocument = gql`
 	) {
 		updateAdminAndCreateWorkspace(
 			admin_and_workspace_details: $admin_and_workspace_details
-		)
+		) {
+			id
+		}
 	}
 `
 export type UpdateAdminAndCreateWorkspaceMutationFn = Apollo.MutationFunction<

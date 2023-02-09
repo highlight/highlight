@@ -93,11 +93,9 @@ export const AppRouter = () => {
 						<DefaultWorkspaceRouter />
 					</Route>
 					<Route path="/verify_email">
-						{/* TODO: Move component */}
 						<VerifyEmail />
 					</Route>
 					<Route path="/about_you">
-						{/* TODO: Move component */}
 						<AdminForm />
 					</Route>
 					<Route path="/">

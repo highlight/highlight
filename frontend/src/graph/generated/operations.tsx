@@ -837,7 +837,11 @@ export type UpdateAdminAndCreateWorkspaceMutationVariables = Types.Exact<{
 
 export type UpdateAdminAndCreateWorkspaceMutation = {
 	__typename?: 'Mutation'
-} & Pick<Types.Mutation, 'updateAdminAndCreateWorkspace'>
+} & {
+	updateAdminAndCreateWorkspace?: Types.Maybe<
+		{ __typename?: 'Project' } & Pick<Types.Project, 'id'>
+	>
+}
 
 export type UpdateAdminAboutYouDetailsMutationVariables = Types.Exact<{
 	adminDetails: Types.AdminAboutYouDetails

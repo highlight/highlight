@@ -342,11 +342,9 @@ func (r *metricMonitorResolver) Filters(ctx context.Context, obj *model.MetricMo
 }
 
 // UpdateAdminAndCreateWorkspace is the resolver for the updateAdminAndCreateWorkspace field.
-func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, adminAndWorkspaceDetails modelInputs.AdminAndWorkspaceDetails) (*bool, error) {
-	// Update admin details
-	if err := r.DB.Transaction(func(tx *gorm.DB) error {
-		transactionR := *r
-		transactionR.DB = tx
+func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, adminAndWorkspaceDetails modelInputs.AdminAndWorkspaceDetails) (*model.Project, error) {
+	if err := r.Transaction(func(transactionR *mutationResolver) error {
+		// Update admin details
 		if _, err := transactionR.UpdateAdminAboutYouDetails(ctx, modelInputs.AdminAboutYouDetails{
 			FirstName:          adminAndWorkspaceDetails.FirstName,
 			LastName:           adminAndWorkspaceDetails.LastName,
@@ -378,10 +376,15 @@ func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, ad
 
 		return nil
 	}); err != nil {
-		return &model.F, e.Wrap(err, "error during transaction:")
+		return nil, e.Wrap(err, "error during transaction")
 	}
 
-	return &model.T, nil
+	projects, err := r.Query().Projects(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error fetching new project")
+	}
+
+	return projects[0], nil
 }
 
 // UpdateAdminAboutYouDetails is the resolver for the updateAdminAboutYouDetails field.

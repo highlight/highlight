@@ -26,7 +26,6 @@ import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
 
 export const AdminForm: React.FC = () => {
-	const [formError, setFormError] = useState('')
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
 	const { setLoadingState } = useAppLoadingContext()
 	const history = useHistory()
@@ -44,21 +43,21 @@ export const AdminForm: React.FC = () => {
 		},
 	})
 
-	console.log('::: formState', formState)
-
-	const handleSubmit = async () => {
+	formState.useSubmit(async () => {
 		if (!formState.valid) {
 			analytics.track('About you submission failed')
-			setFormError('Please fill out all form fields correctly.')
+			formState.setError(
+				'__error',
+				'Please fill out all form fields correctly.',
+			)
 			return
 		}
 
-		setFormError('')
 		analytics.track('About you submitted')
 
 		try {
 			const attributionData = getAttributionData()
-			await updateAdminAndCreateWorkspace({
+			const project = await updateAdminAndCreateWorkspace({
 				variables: {
 					admin_and_workspace_details: {
 						first_name: formState.values.firstName,
@@ -76,16 +75,27 @@ export const AdminForm: React.FC = () => {
 			message.success(
 				`Nice to meet you ${formState.values.firstName}, let's get started!`,
 			)
-			history.push('/setup')
-		} catch (e) {
+
+			history.push(
+				`/${project.data?.updateAdminAndCreateWorkspace?.id}/setup`,
+			)
+		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)
 			}
 
 			analytics.track('About you submission error')
-			message.error('Something went wrong. Please try again.')
+
+			let errorMessage
+			try {
+				errorMessage = e.message.split(':').at(-1).trim()
+			} catch {
+				errorMessage = 'Something went wrong. Please try again.'
+			}
+
+			formState.setError('__error', errorMessage)
 		}
-	}
+	})
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
@@ -96,7 +106,7 @@ export const AdminForm: React.FC = () => {
 			<Form
 				className={authRouterStyles.container}
 				state={formState}
-				onSubmit={handleSubmit}
+				resetOnSubmit={false}
 			>
 				<AuthHeader>
 					<Text color="weak">Tell us a bit more</Text>
@@ -138,9 +148,9 @@ export const AdminForm: React.FC = () => {
 								<option value="" disabled selected>
 									Select your role
 								</option>
-								<option value="product">Product</option>
-								<option value="engineer">Engineering</option>
-								<option value="founder">Founder</option>
+								<option value="Product">Product</option>
+								<option value="Engineer">Engineering</option>
+								<option value="Founder">Founder</option>
 							</select>
 						</Form.NamedSection>
 						<AutoJoinForm
@@ -167,15 +177,17 @@ export const AdminForm: React.FC = () => {
 								</ButtonLink>
 							</Box>
 						)}
-						{formError && (
-							<Callout kind="error">{formError}</Callout>
+						{(formState.errors as any).__error && (
+							<Callout kind="error">
+								{(formState.errors as any).__error}
+							</Callout>
 						)}
 					</Stack>
 				</AuthBody>
 				<AuthFooter>
 					<Button
 						trackingId="about-you-submit"
-						disabled={loading}
+						disabled={loading || formState.submitSucceed > 0}
 						type="submit"
 					>
 						Create Workspace

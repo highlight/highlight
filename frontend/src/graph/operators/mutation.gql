@@ -715,7 +715,9 @@ mutation UpdateAdminAndCreateWorkspace(
 ) {
 	updateAdminAndCreateWorkspace(
 		admin_and_workspace_details: $admin_and_workspace_details
-	)
+	) {
+		id
+	}
 }
 
 mutation UpdateAdminAboutYouDetails($adminDetails: AdminAboutYouDetails!) {

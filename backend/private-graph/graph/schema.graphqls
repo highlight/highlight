@@ -1404,7 +1404,7 @@ type Query {
 type Mutation {
 	updateAdminAndCreateWorkspace(
 		admin_and_workspace_details: AdminAndWorkspaceDetails!
-	): Boolean
+	): Project
 	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
 	createProject(name: String!, workspace_id: ID!): Project
 	createWorkspace(name: String!, promo_code: String): Workspace
