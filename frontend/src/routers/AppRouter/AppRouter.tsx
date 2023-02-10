@@ -1,6 +1,7 @@
 import '../../App.scss'
 
 import { useAuthContext } from '@authentication/AuthContext'
+import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { Box } from '@highlight-run/ui'
 import { AccountsPage } from '@pages/Accounts/Accounts'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
@@ -122,7 +123,10 @@ export const AppRouter = () => {
 				<Route
 					path="/*"
 					element={
-						projectId && Number.isInteger(Number(projectId)) ? (
+						projectId &&
+						(Number.isInteger(Number(projectId)) ||
+							projectId ===
+								DEMO_WORKSPACE_PROXY_APPLICATION_ID) ? (
 							<ProjectRouter />
 						) : isLoggedIn ? (
 							<ProjectRedirectionRouter />

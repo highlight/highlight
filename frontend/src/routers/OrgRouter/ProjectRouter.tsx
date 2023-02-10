@@ -48,7 +48,7 @@ export const ProjectRouter = () => {
 
 	const { data, loading, error } = useGetProjectDropdownOptionsQuery({
 		variables: { project_id: projectId! },
-		skip: !isLoggedIn || !Number.isInteger(Number(projectId)), // Higher level routers decide when guests are allowed to hit this router
+		skip: !isLoggedIn || !projectId, // Higher level routers decide when guests are allowed to hit this router
 	})
 
 	const { integrated, loading: integratedLoading } = useIntegrated()
