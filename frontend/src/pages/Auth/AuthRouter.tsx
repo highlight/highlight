@@ -9,21 +9,19 @@ import { ResetPassword } from '@pages/Auth/ResetPassword'
 import { SignIn } from '@pages/Auth/SignIn'
 import { SignUp } from '@pages/Auth/SignUp'
 import { Landing } from '@pages/Landing/Landing'
-import { AuthAdminRouter } from '@pages/Login/Login'
 import analytics from '@util/analytics'
 import { showIntercom } from '@util/window'
 import firebase from 'firebase/app'
 import { H } from 'highlight.run'
 import { omit } from 'lodash'
 import React, { useEffect, useState } from 'react'
-import { Redirect, Route, Switch, useHistory } from 'react-router-dom'
+import { Redirect, Route, Switch } from 'react-router-dom'
 
 import * as styles from './AuthRouter.css'
 
 export const AuthRouter: React.FC = () => {
-	const { isAuthLoading, isLoggedIn, admin } = useAuthContext()
+	const { isAuthLoading, admin } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
-	const history = useHistory()
 
 	const [resolver, setResolver] =
 		useState<firebase.auth.MultiFactorResolver>()
@@ -33,13 +31,13 @@ export const AuthRouter: React.FC = () => {
 			const { email, id, name } = admin
 			const identifyMetadata: {
 				id: string
-				avatar?: string
 				name: string
+				avatar?: string
 				email?: string
 			} = {
-				email,
 				id,
 				name,
+				email,
 			}
 
 			if (admin.photo_url) {
@@ -64,11 +62,6 @@ export const AuthRouter: React.FC = () => {
 
 	if (isAuthLoading) {
 		return null
-	}
-
-	// TODO: Confirm this isn't rendered when logged in anymore, then clean up.
-	if (isLoggedIn) {
-		return <AuthAdminRouter />
 	}
 
 	return (
