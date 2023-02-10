@@ -1,4 +1,4 @@
-import { Text } from '@highlight-run/ui'
+import { Box, Stack, Text } from '@highlight-run/ui'
 import { Day } from '@pages/LogsPage/SearchForm/DatePicker/Calendar/Day'
 import {
 	Calendar as CalendarType,
@@ -23,12 +23,17 @@ export const Calendar: FC<CalendarProps> = ({
 	const { days, month, year } = calendar
 
 	return (
-		<section className="w-56">
-			<div className="grid h-8 grid-cols-3 items-center gap-y-2">
+		<section className="w-56 bg-white">
+			<Stack direction="row" align="center">
 				{prevButton || <div />}
-				<Text>{month}</Text>
+
+				<Box flexGrow={1}>
+					<Text align="center">
+						{month} {year}
+					</Text>
+				</Box>
 				{nextButton || <div />}
-			</div>
+			</Stack>
 			<div className="grid h-8 grid-cols-7 items-center gap-y-2">
 				{weekDays.map((d) => (
 					<Text align="center" key={d}>

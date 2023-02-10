@@ -1,5 +1,6 @@
-import { Menu, Popover } from '@highlight-run/ui'
+import { Box, IconSolidCheck, Menu, Popover, Stack } from '@highlight-run/ui'
 import { DatePicker } from '@pages/LogsPage/SearchForm/DatePicker/DatePicker'
+import { Preset } from '@pages/LogsPage/SearchForm/DatePicker/RelativeTimePicker/presets'
 import { DatePickerStateProvider } from '@rehookify/datepicker'
 import moment from 'moment'
 import { useState } from 'react'
@@ -7,22 +8,31 @@ import { useState } from 'react'
 interface Props {
 	initialStartDate: Date
 	initialEndDate: Date
+	initialPreset: Preset
+	presets: Preset[]
 	onDatesSelected: (startDate: Date, endDate: Date) => void
 }
 
-const DATE_OPTIONS = [
-	{ label: 'Last 5 minutes' },
-	{ label: 'Last 15 minutes' },
-	{ label: 'Last 1 hours' },
-	{ label: 'Last 6 hours' },
-	{ label: 'Last 24 hours' },
-	{ label: 'Last 7 days' },
-	{ label: 'Last 30 days' },
-]
+const IsSelectedCheckbox = ({
+	selectedPreset,
+	preset,
+}: {
+	selectedPreset: Preset
+	preset: Preset
+}) => {
+	const isSelected = selectedPreset == preset
+	return (
+		<Box visibility={isSelected ? 'visible' : 'hidden'}>
+			<IconSolidCheck />
+		</Box>
+	)
+}
 
 const RelativeTimePicker = ({
 	initialStartDate,
 	initialEndDate,
+	initialPreset,
+	presets,
 	onDatesSelected,
 }: Props) => {
 	const [showCustom, setShowCustom] = useState(false)
@@ -30,6 +40,7 @@ const RelativeTimePicker = ({
 		initialStartDate,
 		initialEndDate,
 	])
+	const [selectedPreset, setSelectedPreset] = useState<Preset>(initialPreset)
 
 	const handleDatesChange = (newDates: Date[]) => {
 		setSelectedDates(newDates)
@@ -46,7 +57,7 @@ const RelativeTimePicker = ({
 		return (
 			<Popover open={true}>
 				<Popover.ButtonTrigger kind="secondary">
-					Last 30 days
+					{selectedPreset.label}
 				</Popover.ButtonTrigger>
 				<Popover.Content>
 					<DatePickerStateProvider
@@ -66,17 +77,36 @@ const RelativeTimePicker = ({
 		)
 	}
 
+	const handleSelectPreset = (preset: Preset) => {
+		setSelectedPreset(preset)
+		handleDatesChange([preset.startDate, preset.endDate])
+	}
+
 	return (
 		<Menu>
-			<Menu.Button kind="secondary">Last 30 days</Menu.Button>
+			<Menu.Button kind="secondary">{selectedPreset.label}</Menu.Button>
 			<Menu.List>
-				{DATE_OPTIONS.map((option) => {
+				{presets.map((preset) => {
 					return (
-						<Menu.Item key={option.label}>{option.label}</Menu.Item>
+						<Menu.Item
+							key={preset.label}
+							onClick={() => handleSelectPreset(preset)}
+						>
+							<Stack direction="row" align="center">
+								<IsSelectedCheckbox
+									selectedPreset={selectedPreset}
+									preset={preset}
+								/>
+								{preset.label}
+							</Stack>
+						</Menu.Item>
 					)
 				})}
 				<Menu.Item onClick={() => setShowCustom(true)}>
-					Custom
+					<Stack direction="row">
+						<IconSolidCheck />
+						Custom
+					</Stack>
 				</Menu.Item>
 			</Menu.List>
 		</Menu>

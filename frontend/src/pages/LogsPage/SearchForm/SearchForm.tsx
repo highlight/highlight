@@ -1,5 +1,6 @@
 import { Box, Form, Stack } from '@highlight-run/ui'
-import { RelativeTimePicker } from '@pages/LogsPage/SearchForm/DatePicker/RelativeTimePicker'
+import { PRESETS } from '@pages/LogsPage/SearchForm/DatePicker/RelativeTimePicker/presets'
+import { RelativeTimePicker } from '@pages/LogsPage/SearchForm/DatePicker/RelativeTimePicker/RelativeTimePicker'
 import React, { useState } from 'react'
 
 type Props = {
@@ -41,6 +42,15 @@ const SearchForm = ({
 				<RelativeTimePicker
 					initialEndDate={initialEndDate}
 					initialStartDate={initialStartDate}
+					initialPreset={PRESETS.last_15_minutes}
+					presets={[
+						PRESETS.last_15_minutes,
+						PRESETS.last_60_minutes,
+						PRESETS.last_4_hours,
+						PRESETS.last_24_hours,
+						PRESETS.last_7_days,
+						PRESETS.last_30_days,
+					]}
 					onDatesSelected={onDatesSelected}
 				/>
 			</Stack>
