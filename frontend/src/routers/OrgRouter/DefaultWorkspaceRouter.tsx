@@ -4,7 +4,6 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetWorkspacesQuery } from '@graph/hooks'
-import { AuthRouter } from '@pages/Auth/AuthRouter'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect } from 'react'
 import { Redirect } from 'react-router-dom'
@@ -39,5 +38,5 @@ export const DefaultWorkspaceRouter = () => {
 	if (firstWorkspace?.id.length) {
 		return <Redirect to={`/w/${firstWorkspace.id}/${page_id}`} />
 	}
-	return <AuthRouter />
+	return <Redirect to="/" />
 }
