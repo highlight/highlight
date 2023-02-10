@@ -1,11 +1,10 @@
 import { Button } from '@components/Button'
 import {
 	Box,
-	ButtonIcon,
 	Callout,
 	Form,
 	Heading,
-	IconSolidGoogle,
+	IconSolidSparkles,
 	Stack,
 	Text,
 	useFormState,
@@ -95,7 +94,7 @@ export const SignUp: React.FC = () => {
 				</Stack>
 			</AuthBody>
 			<AuthFooter>
-				<Stack gap="8">
+				<Stack gap="12">
 					<Button
 						onClick={() => null}
 						trackingId="sign-up-submit"
@@ -104,60 +103,44 @@ export const SignUp: React.FC = () => {
 					>
 						Sign up
 					</Button>
-					<Stack
-						direction="row"
-						align="center"
-						justify="space-between"
-					>
-						<Text color="weak">Or sign up with</Text>
-						<Stack direction="row" gap="6">
-							<ButtonIcon
-								kind="secondary"
-								type="button"
-								onClick={() => {
-									auth.signInWithPopup(
-										auth.googleProvider!,
-									).catch(
-										(
-											error: firebase.auth.MultiFactorError,
-										) => {
-											let errorMessage = error.message
-
-											if (
-												error.code ===
-												'auth/popup-closed-by-user'
-											) {
-												errorMessage =
-													'Pop-up closed without successfully authenticating. Please try again.'
-											}
-
-											setError(errorMessage)
-										},
-									)
-								}}
-								icon={<IconSolidGoogle />}
-							/>
-						</Stack>
+					<Stack direction="row" align="center">
+						<Box
+							borderTop="divider"
+							style={{ height: 0, flexGrow: 1 }}
+						/>
+						<Text color="weak" size="xSmall" align="center">
+							or
+						</Text>
+						<Box
+							borderTop="divider"
+							style={{ height: 0, flexGrow: 1 }}
+						/>
 					</Stack>
+					<Button
+						kind="secondary"
+						type="button"
+						trackingId="sign-up-with-google"
+						onClick={() => {
+							auth.signInWithPopup(auth.googleProvider!).catch(
+								(error: firebase.auth.MultiFactorError) => {
+									let errorMessage = error.message
+
+									if (
+										error.code ===
+										'auth/popup-closed-by-user'
+									) {
+										errorMessage =
+											'Pop-up closed without successfully authenticating. Please try again.'
+									}
+
+									setError(errorMessage)
+								},
+							)
+						}}
+					>
+						Sign up with Google <IconSolidSparkles />
+					</Button>
 				</Stack>
-				<Text align="center" color="weak" size="xSmall">
-					By creating an account you agree to our{' '}
-					<a
-						href="https://www.highlight.io/terms"
-						target="_blank"
-						rel="noreferrer"
-					>
-						Terms of Service
-					</a>{' '}
-					and{' '}
-					<a
-						href="https://www.highlight.io/privacy"
-						target="_blank"
-						rel="noreferrer"
-					>
-						Privacy Policy
-					</a>
-				</Text>
 			</AuthFooter>
 		</Form>
 	)

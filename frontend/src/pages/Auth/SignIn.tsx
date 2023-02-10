@@ -102,9 +102,19 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					>
 						Sign in
 					</Button>
-					<Text color="weak" size="xSmall" align="center">
-						or
-					</Text>
+					<Stack direction="row" align="center">
+						<Box
+							borderTop="divider"
+							style={{ height: 0, flexGrow: 1 }}
+						/>
+						<Text color="weak" size="xSmall" align="center">
+							or
+						</Text>
+						<Box
+							borderTop="divider"
+							style={{ height: 0, flexGrow: 1 }}
+						/>
+					</Stack>
 					<Button
 						kind="secondary"
 						type="button"
