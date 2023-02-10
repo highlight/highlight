@@ -21,15 +21,22 @@ import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 
-const DashboardsRouter = () => {
+interface Props {
+	integrated?: boolean
+}
+
+const DashboardsRouter = ({ integrated }: Props) => {
 	const { project_id } = useParams<{ project_id: string }>()
+
 	const { data: adminsData } = useGetWorkspaceAdminsByProjectIdQuery({
 		variables: { project_id: project_id! },
+		skip: !project_id,
 	})
 	const { data, loading, called } = useGetDashboardDefinitionsQuery({
 		variables: { project_id: project_id! },
+		skip: !project_id,
 	})
 	const [upsertDashboardMutation] = useUpsertDashboardMutation({
 		refetchQueries: [namedOperations.Query.GetDashboardDefinitions],
@@ -147,9 +154,19 @@ const DashboardsRouter = () => {
 				<title>Dashboards</title>
 			</Helmet>
 			<Routes>
-				<Route path="/:project_id/analytics" element={<HomePageV2 />} />
-				<Route path="*" element={<DashboardsHomePage />} />
-				<Route path="/:id" element={<DashboardPage />} />
+				<Route path="/analytics/*" element={<HomePageV2 />} />
+				<Route path="dashboards/:id" element={<DashboardPage />} />
+				<Route path="dashboards/*" element={<DashboardsHomePage />} />
+				<Route
+					path="*"
+					element={
+						integrated ? (
+							<Navigate to={`/${project_id}/sessions`} replace />
+						) : (
+							<Navigate to={`/${project_id}/setup`} replace />
+						)
+					}
+				/>
 			</Routes>
 		</DashboardsContextProvider>
 	)

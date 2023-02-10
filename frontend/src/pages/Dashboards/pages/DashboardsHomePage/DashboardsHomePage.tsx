@@ -58,20 +58,19 @@ const DashboardsHomePage = () => {
 								className={alertStyles.emptyContainer}
 								item="dashboards"
 								customTitle={`Your project doesn't have any dashboards yet 😔`}
-								customDescription={
-									<>
-										<CreateDashboardModal />
-									</>
-								}
+								customDescription={<CreateDashboardModal />}
 							/>
 						}
 						onRow={(record) => ({
 							onClick: () => {
-								navigate(`/dashboards/${record.id}`, {
-									state: {
-										dashboardName: record.name,
+								navigate(
+									`/${project_id}/dashboards/${record.id}`,
+									{
+										state: {
+											dashboardName: record.name,
+										},
 									},
-								})
+								)
 							},
 						})}
 					/>

@@ -122,10 +122,12 @@ export const AppRouter = () => {
 				<Route
 					path="/*"
 					element={
-						projectId ? (
+						projectId && Number.isInteger(Number(projectId)) ? (
 							<ProjectRouter />
-						) : (
+						) : isLoggedIn ? (
 							<ProjectRedirectionRouter />
+						) : (
+							<LoginForm />
 						)
 					}
 				/>

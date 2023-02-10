@@ -49,6 +49,7 @@ import Lottie from 'lottie-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import useResizeAware from 'react-resize-aware'
+import { useNavigate } from 'react-router-dom'
 
 import WaitingAnimation from '../../lottie/waiting.json'
 import * as style from './styles.css'
@@ -78,6 +79,13 @@ const PlayerPage = ({ integrated }: Props) => {
 		session,
 		currentUrl,
 	} = playerContext
+
+	const navigate = useNavigate()
+	useEffect(() => {
+		if (!isLoggedIn && !session?.is_public) {
+			navigate('/login', { replace: true })
+		}
+	}, [isLoggedIn, navigate, session?.is_public])
 
 	const { data: isSessionPendingData, loading } = useIsSessionPendingQuery({
 		variables: {
@@ -188,7 +196,8 @@ const PlayerPage = ({ integrated }: Props) => {
 
 	const showLeftPanel =
 		showLeftPanelPreference &&
-		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
+		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA &&
+		isLoggedIn
 
 	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
 	const controllerWidth = centerColumnSize.width

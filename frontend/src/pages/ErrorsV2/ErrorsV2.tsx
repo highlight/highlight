@@ -74,6 +74,12 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 	const navigate = useNavigate()
 	const location = useLocation()
 
+	useEffect(() => {
+		if (!isLoggedIn && !data?.error_group?.is_public) {
+			navigate('/login', { replace: true })
+		}
+	}, [data?.error_group?.is_public, isLoggedIn, navigate])
+
 	const goToErrorGroup = (secureId: string) => {
 		navigate(`/${project_id}/errors/${secureId}${location.search}`, {
 			replace: true,

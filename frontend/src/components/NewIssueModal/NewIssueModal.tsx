@@ -103,7 +103,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			if (commentType === 'SessionComment' && commentId) {
 				await createIssueForSessionComment({
 					variables: {
-						project_id: project_id,
+						project_id: project_id!,
 						session_url: currentUrl,
 						session_comment_id: commentId,
 						text_for_attachment: text,
@@ -119,7 +119,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 				if (commentId) {
 					await createIssueForErrorComment({
 						variables: {
-							project_id: project_id,
+							project_id: project_id!,
 							error_url: currentUrl,
 							error_comment_id: commentId,
 							text_for_attachment: text,
@@ -133,7 +133,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 				} else if (errorSecureId) {
 					await createErrorComment({
 						variables: {
-							project_id,
+							project_id: project_id!,
 							error_group_secure_id: errorSecureId,
 							text,
 							text_for_email: issueTitle,

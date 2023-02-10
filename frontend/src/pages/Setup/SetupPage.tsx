@@ -66,6 +66,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 		project_id: string
 		step: string
 	}>()
+
 	const [platform, setPlatform] = useLocalStorage(
 		`selectedSetupPlatform-${project_id}`,
 		PlatformType.React,

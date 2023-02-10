@@ -103,7 +103,7 @@ const ExternalSharingToggle = () => {
 					})
 					updateSessionIsPublic({
 						variables: {
-							session_secure_id: session_secure_id,
+							session_secure_id: session_secure_id!,
 							is_public: checked,
 						},
 					})
