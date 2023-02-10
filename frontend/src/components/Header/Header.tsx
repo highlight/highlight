@@ -53,7 +53,7 @@ import { showIntercom } from '@util/window'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
-import { FaDiscord } from 'react-icons/fa'
+import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
@@ -355,6 +355,34 @@ export const Header = () => {
 										<Text lines="1">Community</Text>
 									</Box>
 								</Button>
+								<Button
+									kind="secondary"
+									size="small"
+									emphasis="high"
+									onClick={() => {
+										window.open(
+											'https://github.com/highlight/highlight',
+											'_blank',
+										)
+									}}
+									trackingId="GithubButton"
+								>
+									<Box
+										display="flex"
+										alignItems="center"
+										as="span"
+										gap="4"
+									>
+										<FaGithub
+											style={{ height: 14, width: 14 }}
+											color={
+												vars.theme.interactive.fill
+													.secondary.content.text
+											}
+										/>
+										<Text lines="1">GitHub</Text>
+									</Box>
+								</Button>
 								{inProjectOrWorkspace && <Notifications />}
 								<Menu>
 									<Menu.Button
@@ -600,8 +628,8 @@ const BillingBanner = () => {
 	}
 
 	const isYoutubeLive = moment().isBetween(
-		'2023-02-03T00:00:00Z',
-		'2023-02-03T00:30:00Z',
+		'2023-02-09T22:45:00Z',
+		'2023-02-10T00:00:00Z',
 	)
 	if (isYoutubeLive) {
 		toggleShowBanner(true)

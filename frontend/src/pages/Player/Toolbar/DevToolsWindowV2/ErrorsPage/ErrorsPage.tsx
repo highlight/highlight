@@ -34,8 +34,8 @@ const ErrorsPage = ({
 }) => {
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const location = useLocation()
-
-	const { errors, state, session, sessionMetadata } = useReplayerContext()
+	const { errors, state, session, sessionMetadata, isPlayerReady } =
+		useReplayerContext()
 
 	const { setActiveError, setRightPanelView } = usePlayerUIContext()
 	const { setShowRightPanel } = usePlayerConfiguration()
@@ -86,7 +86,7 @@ const ErrorsPage = ({
 
 	return (
 		<Box className={styles.errorsContainer}>
-			{loading ? (
+			{loading || !isPlayerReady ? (
 				<LoadingBox />
 			) : !session || !errorsToRender.length ? (
 				<EmptyDevToolsCallout kind={Tab.Errors} filter={filter} />
@@ -169,7 +169,8 @@ const ErrorRow = React.memo(
 				<Box display="flex" align="center" justifyContent="flex-end">
 					<Text color="n11">
 						{error.structured_stack_trace[0] &&
-							`Line ${error.structured_stack_trace[0].lineNumber}:${error.structured_stack_trace[0].columnNumber}`}
+							`Line ${error.structured_stack_trace[0].lineNumber}:` +
+								`${error.structured_stack_trace[0].columnNumber}`}
 					</Text>
 				</Box>
 				<Box display="flex" align="center" justifyContent="flex-end">

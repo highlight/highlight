@@ -43,6 +43,7 @@ import analytics from '@util/analytics'
 import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
+import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
@@ -400,49 +401,57 @@ const Metadata: React.FC<{
 			</Box>
 
 			<Box>
-				{metadata.map((meta) => (
-					<Box display="flex" gap="6" key={meta.key}>
-						<Box
-							py="10"
-							cursor="pointer"
-							onClick={() => copyToClipboard(meta.key)}
-							style={{ width: '33%' }}
-						>
-							<Text
-								color="n11"
-								transform="capitalize"
-								align="left"
-								lines="1"
+				{metadata.map((meta) => {
+					const value =
+						meta.key === 'created_at'
+							? moment(meta.label as string).format(
+									'M/D/YY h:mm:s.SSS A',
+							  )
+							: meta.label
+					return (
+						<Box display="flex" gap="6" key={meta.key}>
+							<Box
+								py="10"
+								cursor="pointer"
+								onClick={() => copyToClipboard(meta.key)}
+								style={{ width: '33%' }}
 							>
-								{METADATA_LABELS[meta.key] ??
-									meta.key.replace('_', ' ')}
-							</Text>
-						</Box>
-						<Box
-							cursor="pointer"
-							py="10"
-							onClick={() => {
-								if (typeof meta.label === 'string') {
-									meta.label && copyToClipboard(meta.label)
-								}
-							}}
-							style={{ width: '67%' }}
-						>
-							<Text
-								align="left"
-								break="word"
-								lines={
-									typeof meta.label === 'string'
-										? '4'
-										: undefined
-								}
-								title={String(meta.label)}
+								<Text
+									color="n11"
+									transform="capitalize"
+									align="left"
+									lines="1"
+								>
+									{METADATA_LABELS[meta.key] ??
+										meta.key.replace('_', ' ')}
+								</Text>
+							</Box>
+							<Box
+								cursor="pointer"
+								py="10"
+								onClick={() => {
+									if (typeof value === 'string') {
+										value && copyToClipboard(value)
+									}
+								}}
+								style={{ width: '67%' }}
 							>
-								{meta.label}
-							</Text>
+								<Text
+									align="left"
+									break="word"
+									lines={
+										typeof value === 'string'
+											? '4'
+											: undefined
+									}
+									title={String(value)}
+								>
+									{value}
+								</Text>
+							</Box>
 						</Box>
-					</Box>
-				))}
+					)
+				})}
 			</Box>
 		</Box>
 	)

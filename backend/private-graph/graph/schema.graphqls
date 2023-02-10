@@ -287,6 +287,15 @@ enum SessionAlertType {
 	NEW_SESSION_ALERT
 }
 
+enum SeverityText {
+	TRACE
+	DEBUG
+	INFO
+	WARN
+	ERROR
+	FATAL
+}
+
 type Project {
 	id: ID!
 	verbose_id: String!
@@ -380,7 +389,7 @@ type ErrorObject {
 	id: ID!
 	created_at: Timestamp!
 	project_id: Int!
-	session_id: Int!
+	session_id: Int
 	error_group_id: Int!
 	error_group_secure_id: String!
 	event: [String]!
@@ -485,7 +494,7 @@ type S3File {
 
 type LogLine {
 	timestamp: Timestamp!
-	severityText: String!
+	severityText: SeverityText!
 	body: String!
 	logAttributes: Map!
 }

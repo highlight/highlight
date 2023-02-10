@@ -1,7 +1,12 @@
+import LoadingBox from '@components/LoadingBox'
+import { GetLogsQuery } from '@graph/operations'
 import { LogLine } from '@graph/schemas'
-import { Box, Stack, Text } from '@highlight-run/ui'
+import { Box, Stack } from '@highlight-run/ui'
 import SvgChevronDownIcon from '@icons/ChevronDownIcon'
 import SvgChevronRightIcon from '@icons/ChevronRightIcon'
+import { LogBody } from '@pages/LogsPage/LogsTable/LogBody'
+import { LogSeverityText } from '@pages/LogsPage/LogsTable/LogSeverityText'
+import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import {
 	ColumnDef,
 	ExpandedState,
@@ -13,21 +18,10 @@ import {
 } from '@tanstack/react-table'
 import React, { Fragment, useState } from 'react'
 
-function padTo2Digits(num: number) {
-	return num.toString().padStart(2, '0')
-}
-
-const toYearMonthDay = (timestamp: string) => {
-	const date = new Date(timestamp)
-	const year = date.getFullYear()
-	const month = padTo2Digits(date.getMonth() + 1)
-	const day = padTo2Digits(date.getDate())
-
-	return `${year}-${month}-${day}`
-}
-
 type Props = {
-	data: LogLine[]
+	loading: boolean
+	data: GetLogsQuery | undefined
+	query: string
 }
 
 const renderSubComponent = ({ row }: { row: Row<LogLine> }) => {
@@ -38,7 +32,7 @@ const renderSubComponent = ({ row }: { row: Row<LogLine> }) => {
 	)
 }
 
-const LogsTable = ({ data }: Props) => {
+const LogsTable = ({ data, loading, query }: Props) => {
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const columns = React.useMemo<ColumnDef<LogLine>[]>(
@@ -61,28 +55,34 @@ const LogsTable = ({ data }: Props) => {
 								)}
 							</div>
 						)}
-						<Text color="weak">
-							{toYearMonthDay(getValue() as string)}
-						</Text>
+						<LogTimestamp timestamp={getValue() as string} />
 					</>
 				),
 			},
 			{
 				accessorKey: 'severityText',
-				cell: ({ getValue }) => <Text>{getValue() as string}</Text>,
+				cell: ({ getValue }) => (
+					<LogSeverityText severityText={getValue() as string} />
+				),
 			},
 			{
 				accessorKey: 'body',
 				cell: ({ getValue }) => (
-					<Text lines="1">{getValue() as string}</Text>
+					<LogBody query={query} body={getValue() as string} />
 				),
 			},
 		],
-		[],
+		[query],
 	)
 
+	let logs: LogLine[] = []
+
+	if (data?.logs) {
+		logs = data.logs
+	}
+
 	const table = useReactTable({
-		data,
+		data: logs,
 		columns,
 		state: {
 			expanded,
@@ -93,6 +93,10 @@ const LogsTable = ({ data }: Props) => {
 		getExpandedRowModel: getExpandedRowModel(),
 		debugTable: true,
 	})
+
+	if (loading) {
+		return <LoadingBox />
+	}
 
 	return (
 		<>

@@ -34,7 +34,8 @@ export const ConsolePage = ({
 	time: number
 }) => {
 	const [currentMessage, setCurrentMessage] = useState(-1)
-	const { session, setTime, sessionMetadata } = useReplayerContext()
+	const { session, setTime, sessionMetadata, isPlayerReady } =
+		useReplayerContext()
 	const [parsedMessages, setParsedMessages] = useState<
 		undefined | Array<ParsedMessage>
 	>([])
@@ -191,7 +192,7 @@ export const ConsolePage = ({
 
 	return (
 		<Box className={styles.consoleBox}>
-			{loading ? (
+			{loading || !isPlayerReady ? (
 				<LoadingBox />
 			) : messagesToRender?.length ? (
 				<Virtuoso

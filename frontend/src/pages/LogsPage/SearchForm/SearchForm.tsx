@@ -1,29 +1,47 @@
-import { Form, useFormState } from '@highlight-run/ui'
-import React from 'react'
+import { Box, Form, Stack, Text } from '@highlight-run/ui'
+import React, { useState } from 'react'
 
 type Props = {
 	onFormSubmit: (query: string) => void
-	query: string
+	initialQuery: string
+	startDate: string
+	endDate: string
 }
 
-const SearchForm = ({ query, onFormSubmit }: Props) => {
-	const form = useFormState({
-		defaultValues: {
-			search: query,
-		},
-	})
+const SearchForm = ({
+	initialQuery,
+	startDate,
+	endDate,
+	onFormSubmit,
+}: Props) => {
+	const [query, setQuery] = useState(initialQuery)
+	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+		event.preventDefault()
+		onFormSubmit(query)
+	}
 
-	form.useSubmit(async () => {
-		onFormSubmit(form.values.search)
-	})
+	const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		setQuery(event.target.value)
+	}
 
 	return (
-		<Form state={form}>
-			<Form.Input
-				name={form.names.search}
-				placeholder="Search your logs..."
-			/>
-		</Form>
+		<form onSubmit={handleSubmit}>
+			<Stack direction="row">
+				<Box width="full">
+					<Form.Input
+						name="search"
+						value={query}
+						placeholder="Search your logs..."
+						onChange={handleSearchChange}
+					/>
+				</Box>
+				<Box flexGrow={1}>
+					<Text>
+						{startDate} to {endDate}
+					</Text>
+				</Box>
+			</Stack>
+		</form>
 	)
 }
 

@@ -2047,10 +2047,12 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name stri
 
 func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, metrics []*publicModel.MetricInput) error {
 	span, _ := tracer.StartSpanFromContext(ctx, "public-graph.PushMetricsImpl", tracer.ResourceName("go.push-metrics"))
+	span.SetTag("SessionSecureID", sessionSecureID)
+	span.SetTag("NumMetrics", len(metrics))
 	defer span.Finish()
 
 	if sessionSecureID == "" {
-		return e.New("PushMetricsImpl called without secureID")
+		return nil
 	}
 	session := &model.Session{}
 	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
