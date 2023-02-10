@@ -34,7 +34,7 @@ export const Label = ({
 	name,
 }: {
 	label: string
-	name?: AriaKitFormInputProps['name']
+	name: AriaKitFormInputProps['name']
 }) => {
 	return (
 		<Box display="flex" alignItems="center" style={{ height: 16 }}>
@@ -54,7 +54,7 @@ export const Label = ({
 
 type HasLabel = {
 	label?: string
-	name?: AriaKitFormInputProps['name']
+	name: AriaKitFormInputProps['name']
 }
 export const NamedSection = ({
 	children,
