@@ -141,8 +141,6 @@ export const AdminForm: React.FC = () => {
 							label="Company"
 							required
 						/>
-						{/* TODO: Refactor to send a single field for role/persona with a dropdown */}
-						{/* TODO: Create a Form.Select component */}
 						<Form.NamedSection
 							label="Role"
 							name={formState.names.role}
