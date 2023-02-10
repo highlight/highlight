@@ -1,3 +1,4 @@
+import { AutoJoinEmailsInput } from '@components/AutoJoinEmailsInput'
 import { Button } from '@components/Button'
 import {
 	AppLoadingState,
@@ -15,7 +16,6 @@ import {
 } from '@highlight-run/ui'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
-import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import analytics from '@util/analytics'
 import { getAttributionData } from '@util/attribution'
 import { message } from 'antd'
@@ -112,7 +112,7 @@ export const AdminForm: React.FC = () => {
 					<Text color="weak">Tell us a bit more</Text>
 				</AuthHeader>
 				<AuthBody>
-					<Stack gap="6">
+					<Stack gap="12">
 						<Form.Input
 							name={formState.names.firstName}
 							label="First Name"
@@ -153,23 +153,23 @@ export const AdminForm: React.FC = () => {
 								<option value="Founder">Founder</option>
 							</select>
 						</Form.NamedSection>
-						<AutoJoinForm
-							// TODO: Email won't work for @gmail addresses.
-							newWorkspace
-							updateOrigins={(domains) =>
-								formState.setValue(
-									formState.names.autoJoinDomains,
-									domains,
-								)
-							}
-						/>
+						<Box my="4">
+							<AutoJoinEmailsInput
+								onChange={(domains) =>
+									formState.setValue(
+										formState.names.autoJoinDomains,
+										domains.join(', '),
+									)
+								}
+							/>
+						</Box>
 						{showPromoCodeField ? (
 							<Form.Input
 								name={formState.names.promoCode}
 								label="Promo Code"
 							/>
 						) : (
-							<Box mt="6">
+							<Box mt="4">
 								<ButtonLink
 									onClick={() => setShowPromoCodeField(true)}
 								>
