@@ -6,8 +6,8 @@ import moment from 'moment'
 import { useState } from 'react'
 
 interface Props {
-	initialStartDate: Date
-	initialEndDate: Date
+	initialStartDate: Date | undefined
+	initialEndDate: Date | undefined
 	initialPreset: Preset
 	presets: Preset[]
 	onDatesSelected: (startDate: Date, endDate: Date) => void
@@ -16,16 +16,36 @@ interface Props {
 const IsSelectedCheckbox = ({
 	selectedPreset,
 	preset,
+	isCustom,
 }: {
-	selectedPreset: Preset
-	preset: Preset
+	selectedPreset: Preset | undefined
+	preset?: Preset
+	isCustom: boolean
 }) => {
-	const isSelected = selectedPreset == preset
+	let isSelected: boolean
+	if (isCustom && !selectedPreset) {
+		isSelected = true
+	} else {
+		isSelected = selectedPreset == preset
+	}
+
 	return (
 		<Box visibility={isSelected ? 'visible' : 'hidden'}>
 			<IconSolidCheck />
 		</Box>
 	)
+}
+
+const getLabel = ({
+	selectedPreset,
+	selectedDates,
+}: {
+	selectedPreset?: Preset
+	selectedDates: Date[]
+}) => {
+	return selectedPreset
+		? selectedPreset.label
+		: `${selectedDates[0].toDateString()} - ${selectedDates[1].toDateString()}`
 }
 
 const RelativeTimePicker = ({
@@ -37,14 +57,18 @@ const RelativeTimePicker = ({
 }: Props) => {
 	const [showCustom, setShowCustom] = useState(false)
 	const [selectedDates, setSelectedDates] = useState<Date[]>([
-		initialStartDate,
-		initialEndDate,
+		initialStartDate ?? initialPreset.startDate,
+		initialEndDate ?? initialPreset.endDate,
 	])
-	const [selectedPreset, setSelectedPreset] = useState<Preset>(initialPreset)
+	const [selectedPreset, setSelectedPreset] = useState<Preset | undefined>(
+		initialStartDate && initialEndDate ? undefined : initialPreset,
+	)
 
 	const handleDatesChange = (newDates: Date[]) => {
 		setSelectedDates(newDates)
 		if (newDates.length == 2) {
+			setSelectedPreset(undefined)
+
 			onDatesSelected(
 				newDates[0],
 				moment(newDates[1]).endOf('day').toDate(),
@@ -57,7 +81,7 @@ const RelativeTimePicker = ({
 		return (
 			<Popover open={true}>
 				<Popover.ButtonTrigger kind="secondary">
-					{selectedPreset.label}
+					{getLabel({ selectedPreset, selectedDates })}
 				</Popover.ButtonTrigger>
 				<Popover.Content>
 					<DatePickerStateProvider
@@ -84,7 +108,9 @@ const RelativeTimePicker = ({
 
 	return (
 		<Menu>
-			<Menu.Button kind="secondary">{selectedPreset.label}</Menu.Button>
+			<Menu.Button kind="secondary">
+				{getLabel({ selectedPreset, selectedDates })}
+			</Menu.Button>
 			<Menu.List>
 				{presets.map((preset) => {
 					return (
@@ -96,6 +122,7 @@ const RelativeTimePicker = ({
 								<IsSelectedCheckbox
 									selectedPreset={selectedPreset}
 									preset={preset}
+									isCustom={false}
 								/>
 								{preset.label}
 							</Stack>
@@ -104,7 +131,10 @@ const RelativeTimePicker = ({
 				})}
 				<Menu.Item onClick={() => setShowCustom(true)}>
 					<Stack direction="row">
-						<IconSolidCheck />
+						<IsSelectedCheckbox
+							selectedPreset={selectedPreset}
+							isCustom={true}
+						/>
 						Custom
 					</Stack>
 				</Menu.Item>

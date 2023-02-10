@@ -7,8 +7,8 @@ type Props = {
 	onFormSubmit: (query: string) => void
 	onDatesSelected: (startDate: Date, endDate: Date) => void
 	initialQuery: string
-	initialStartDate: Date
-	initialEndDate: Date
+	initialStartDate: Date | undefined
+	initialEndDate: Date | undefined
 }
 
 const SearchForm = ({

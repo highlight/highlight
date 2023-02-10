@@ -22,26 +22,48 @@ const LogsPage = () => {
 	}>()
 	const queryParams = useQuery()
 
-	return <LogsPageInner project_id={project_id} queryParams={queryParams} />
+	const innerLogsPageProps: Props = {
+		project_id,
+		initialQuery: '',
+		initialStartDate: undefined,
+		initialEndDate: undefined,
+	}
+
+	const query = queryParams.get('query')
+	const startDate = queryParams.get('start_date')
+	const endDate = queryParams.get('end_date')
+	if (query) {
+		innerLogsPageProps.initialQuery = query
+	}
+	if (startDate) {
+		innerLogsPageProps.initialStartDate = new Date(startDate)
+	}
+
+	if (endDate) {
+		innerLogsPageProps.initialEndDate = new Date(endDate)
+	}
+
+	return <LogsPageInner {...innerLogsPageProps} />
 }
 
 type Props = {
 	project_id: string
-	queryParams: URLSearchParams
+	initialQuery: string
+	initialStartDate: Date | undefined
+	initialEndDate: Date | undefined
 }
 
-const defaultEndDate = new Date()
-const dateOffset = 24 * 60 * 60 * 1000 * 30 // 30 days
-const defaultStartDate = new Date(defaultEndDate.getTime() - dateOffset)
-
-const LogsPageInner = ({ project_id, queryParams }: Props) => {
-	const [query, setQuery] = useState<string>(queryParams.get('query') ?? '')
-	const [startDate, setStartDate] = useState<Date>(
-		new Date(queryParams.get('start_date') ?? defaultStartDate),
+const LogsPageInner = ({
+	project_id,
+	initialQuery,
+	initialStartDate,
+	initialEndDate,
+}: Props) => {
+	const [query, setQuery] = useState<string>(initialQuery)
+	const [startDate, setStartDate] = useState<Date | undefined>(
+		initialStartDate,
 	)
-	const [endDate, setEndDate] = useState<Date>(
-		new Date(queryParams.get('end_date') ?? defaultEndDate),
-	)
+	const [endDate, setEndDate] = useState<Date | undefined>(initialEndDate)
 	const history = useHistory()
 
 	useEffect(() => {
