@@ -51,11 +51,6 @@ export const ProjectRouter = () => {
 		skip: !isLoggedIn || !projectId, // Higher level routers decide when guests are allowed to hit this router
 	})
 
-	useEffect(() => {
-		console.log('::: error', error)
-		console.log('::: data', data)
-	}, [data, error])
-
 	const { integrated, loading: integratedLoading } = useIntegrated()
 	const [hasFinishedOnboarding] = useLocalStorage(
 		`highlight-finished-onboarding-${projectId}`,

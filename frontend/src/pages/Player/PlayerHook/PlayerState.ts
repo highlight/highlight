@@ -19,7 +19,7 @@ import {
 	SessionInterval,
 	viewportResizeDimension,
 } from '@highlight-run/rrweb-types'
-import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
+import { usefulEvent } from '@pages/Player/components/EventStreamV2/utils'
 import {
 	HighlightEvent,
 	HighlightJankPayload,

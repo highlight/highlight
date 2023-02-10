@@ -16,7 +16,7 @@ export const useVercelIntegration = (projectId?: string) => {
 	}
 
 	const { data, loading } = useGetWorkspaceIsIntegratedWithVercelQuery({
-		variables: { project_id: project_id },
+		variables: { project_id: project_id! },
 		skip: !project_id || project_id === '0',
 	})
 
@@ -32,7 +32,7 @@ export const useVercelIntegration = (projectId?: string) => {
 				variables: {
 					integration_type: IntegrationType.Vercel,
 					code: code,
-					project_id: projectId || project_id,
+					project_id: projectId || project_id!,
 				},
 			}),
 		[project_id, addIntegrationToProject],
@@ -50,7 +50,7 @@ export const useVercelIntegration = (projectId?: string) => {
 			removeIntegrationFromProject({
 				variables: {
 					integration_type: IntegrationType.Vercel,
-					project_id: projectId || project_id,
+					project_id: projectId || project_id!,
 				},
 			}),
 		[project_id, removeIntegrationFromProject],

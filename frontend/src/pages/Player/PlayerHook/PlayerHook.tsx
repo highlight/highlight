@@ -16,7 +16,7 @@ import {
 	customEvent,
 	viewportResizeDimension,
 } from '@highlight-run/rrweb-types'
-import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
+import { usefulEvent } from '@pages/Player/components/EventStreamV2/utils'
 import {
 	CHUNKING_DISABLED_PROJECTS,
 	FRAME_MS,

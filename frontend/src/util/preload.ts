@@ -234,7 +234,7 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 			const promises: Promise<void>[] = []
 			for (const _eg of errors?.error_groups_opensearch.error_groups ||
 				[]) {
-				promises.push(loadErrorGroup(project_id, _eg.secure_id))
+				promises.push(loadErrorGroup(project_id!, _eg.secure_id))
 				if (promises.length === CONCURRENT_PRELOADS) {
 					await Promise.all(promises)
 					promises.length = 0

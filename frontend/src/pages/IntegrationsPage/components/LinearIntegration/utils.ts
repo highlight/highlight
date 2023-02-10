@@ -27,7 +27,7 @@ export const useLinearIntegration = () => {
 				variables: {
 					integration_type: IntegrationType.Linear,
 					code: code,
-					project_id: projectId || project_id,
+					project_id: projectId || project_id!,
 				},
 			}),
 		[project_id, addIntegrationToProject],
@@ -45,7 +45,7 @@ export const useLinearIntegration = () => {
 			removeIntegrationFromProject({
 				variables: {
 					integration_type: IntegrationType.Linear,
-					project_id: projectId || project_id,
+					project_id: projectId || project_id!,
 				},
 			}),
 		[project_id, removeIntegrationFromProject],
@@ -53,7 +53,7 @@ export const useLinearIntegration = () => {
 
 	const { data, loading, error } = useGetWorkspaceIsIntegratedWithLinearQuery(
 		{
-			variables: { project_id: project_id },
+			variables: { project_id: project_id! },
 			skip: !project_id,
 		},
 	)
@@ -79,11 +79,13 @@ export const getLinearOAuthUrl = (projectId: string) => {
 
 	const redirectUri = `${GetBaseURL()}/callback/linear`
 
-	const authUrl = `https://linear.app/oauth/authorize?client_id=${LINEAR_CLIENT_ID}&prompt=consent&response_type=code&scope=${encodeURIComponent(
-		LINEAR_SCOPES.join(','),
-	)}&state=${btoa(JSON.stringify(state))}&redirect_uri=${encodeURIComponent(
-		redirectUri,
-	)}`
+	const authUrl =
+		`https://linear.app/oauth/authorize` +
+		`?client_id=${LINEAR_CLIENT_ID}&prompt=consent&response_type=code&scope=${encodeURIComponent(
+			LINEAR_SCOPES.join(','),
+		)}&state=${btoa(
+			JSON.stringify(state),
+		)}&redirect_uri=${encodeURIComponent(redirectUri)}`
 
 	return authUrl
 }
