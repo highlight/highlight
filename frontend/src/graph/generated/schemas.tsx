@@ -88,6 +88,16 @@ export type AdminAboutYouDetails = {
 	user_defined_role: Scalars['String']
 }
 
+export type AdminAndWorkspaceDetails = {
+	allowed_auto_join_email_origins?: InputMaybe<Scalars['String']>
+	first_name: Scalars['String']
+	last_name: Scalars['String']
+	promo_code?: InputMaybe<Scalars['String']>
+	referral: Scalars['String']
+	user_defined_role: Scalars['String']
+	workspace_name: Scalars['String']
+}
+
 export enum AdminRole {
 	Admin = 'ADMIN',
 	Member = 'MEMBER',
@@ -779,6 +789,7 @@ export type Mutation = {
 	submitRegistrationForm?: Maybe<Scalars['Boolean']>
 	syncSlackIntegration: SlackSyncResponse
 	updateAdminAboutYouDetails: Scalars['Boolean']
+	updateAdminAndCreateWorkspace?: Maybe<Project>
 	updateAllowMeterOverage?: Maybe<Workspace>
 	updateAllowedEmailOrigins?: Maybe<Scalars['ID']>
 	updateBillingDetails?: Maybe<Scalars['Boolean']>
@@ -1132,6 +1143,10 @@ export type MutationSyncSlackIntegrationArgs = {
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
 	adminDetails: AdminAboutYouDetails
+}
+
+export type MutationUpdateAdminAndCreateWorkspaceArgs = {
+	admin_and_workspace_details: AdminAndWorkspaceDetails
 }
 
 export type MutationUpdateAllowMeterOverageArgs = {
