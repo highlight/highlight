@@ -8,8 +8,6 @@ import React, { useState } from 'react'
 
 import * as styles from './index.css'
 
-const COMMON_EMAIL_PROVIDERS = ['gmail', 'yahoo', 'hotmail']
-
 type Props = {
 	onChange: (domains: string[]) => void
 }
@@ -54,13 +52,6 @@ export const AutoJoinEmailsInput: React.FC<Props> = ({ onChange }) => {
 	const adminsEmailDomain = getEmailDomain(admin?.email)
 	const noEmailDomains = origins.emailOrigins.length === 0
 
-	// don't show if this is for workspace creation but admin is not a company email
-	if (
-		COMMON_EMAIL_PROVIDERS.some((p) => adminsEmailDomain.indexOf(p) !== -1)
-	) {
-		return null
-	}
-
 	return (
 		<Tooltip
 			trigger={
@@ -68,7 +59,8 @@ export const AutoJoinEmailsInput: React.FC<Props> = ({ onChange }) => {
 					<Switch
 						className={styles.toggle}
 						trackingId="WorkspaceAutoJoin"
-						label="Enable Auto Join"
+						label={<Text color="weak">Auto join</Text>}
+						labelFirst
 						checked={origins.emailOrigins.length > 0}
 						loading={loading}
 						onChange={(checked) => {
@@ -112,7 +104,7 @@ export const AutoJoinEmailsInput: React.FC<Props> = ({ onChange }) => {
 	)
 }
 
-const getEmailDomain = (email?: string) => {
+export const getEmailDomain = (email?: string) => {
 	if (!email) {
 		return ''
 	}

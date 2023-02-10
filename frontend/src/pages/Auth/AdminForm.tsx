@@ -1,4 +1,8 @@
-import { AutoJoinEmailsInput } from '@components/AutoJoinEmailsInput'
+import { useAuthContext } from '@authentication/AuthContext'
+import {
+	AutoJoinEmailsInput,
+	getEmailDomain,
+} from '@components/AutoJoinEmailsInput'
 import { Button } from '@components/Button'
 import {
 	AppLoadingState,
@@ -25,12 +29,20 @@ import { useHistory } from 'react-router-dom'
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
 
+const COMMON_EMAIL_PROVIDERS = ['gmail', 'yahoo', 'hotmail']
+
 export const AdminForm: React.FC = () => {
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
 	const { setLoadingState } = useAppLoadingContext()
+	const { admin } = useAuthContext()
 	const history = useHistory()
 	const [updateAdminAndCreateWorkspace, { loading }] =
 		useUpdateAdminAndCreateWorkspaceMutation()
+
+	const adminEmailDomain = getEmailDomain(admin?.email)
+	const isCommonEmailDomain = COMMON_EMAIL_PROVIDERS.some(
+		(p) => adminEmailDomain.indexOf(p) !== -1,
+	)
 
 	const formState = useFormState({
 		defaultValues: {
@@ -153,16 +165,18 @@ export const AdminForm: React.FC = () => {
 								<option value="Founder">Founder</option>
 							</select>
 						</Form.NamedSection>
-						<Box my="4">
-							<AutoJoinEmailsInput
-								onChange={(domains) =>
-									formState.setValue(
-										formState.names.autoJoinDomains,
-										domains.join(', '),
-									)
-								}
-							/>
-						</Box>
+						{!isCommonEmailDomain && (
+							<Box mt="4">
+								<AutoJoinEmailsInput
+									onChange={(domains) =>
+										formState.setValue(
+											formState.names.autoJoinDomains,
+											domains.join(', '),
+										)
+									}
+								/>
+							</Box>
+						)}
 						{showPromoCodeField ? (
 							<Form.Input
 								name={formState.names.promoCode}
