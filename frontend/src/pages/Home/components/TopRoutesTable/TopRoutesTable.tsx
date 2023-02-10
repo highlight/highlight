@@ -1,4 +1,3 @@
-import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { ProgressBarTableRowGroup } from '@components/ProgressBarTable/components/ProgressBarTableColumns'
 import { useGetNetworkHistogramQuery } from '@graph/hooks'
 import { NetworkRequestAttribute } from '@graph/schemas'
@@ -29,14 +28,12 @@ const TopRoutesTable = ({
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID ? '1' : project_id
 
 	const { timeRange } = useDataTimeRange()
 
 	const { loading, data } = useGetNetworkHistogramQuery({
 		variables: {
-			project_id: projectIdRemapped!,
+			project_id: project_id!,
 			params: {
 				lookback_days: moment
 					.duration(timeRange.lookback, 'minutes')
