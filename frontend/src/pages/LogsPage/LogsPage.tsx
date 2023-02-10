@@ -6,7 +6,7 @@ import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { useHistory, useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
 
@@ -29,7 +29,7 @@ const LogsPage = () => {
 
 	return (
 		<LogsPageInner
-			project_id={project_id}
+			project_id={project_id!}
 			queryParam={queryParams.get('query') ?? ''}
 			start_date={defaultStartDate}
 			end_date={defaultEndDate}
@@ -51,7 +51,7 @@ const LogsPageInner = ({
 	end_date,
 }: Props) => {
 	const [query, setQuery] = useState(queryParam)
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	useEffect(() => {
 		const params = new URLSearchParams()
@@ -60,8 +60,8 @@ const LogsPageInner = ({
 		} else {
 			params.delete('query')
 		}
-		history.push({ search: params.toString() })
-	}, [query, history])
+		navigate({ search: params.toString() }, { replace: true })
+	}, [query, navigate])
 
 	const { data, loading } = useGetLogsQuery({
 		variables: {
