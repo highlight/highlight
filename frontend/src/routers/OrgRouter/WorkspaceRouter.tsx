@@ -102,18 +102,8 @@ export const WorkspaceRouter = () => {
 						/>
 					) : (
 						<Routes>
-							<Route
-								path="/w/:workspace_id/*"
-								element={<WorkspaceTabs />}
-							/>
-							{/*
-								Probably doesn't belong here, but we wanted to reuse the Header,
-								which requires context of a project or workspace.
-								*/}
-							<Route
-								path="/w/:workspace_id/account"
-								element={<UserSettings />}
-							/>
+							<Route path="*" element={<WorkspaceTabs />} />
+							<Route path="account" element={<UserSettings />} />
 						</Routes>
 					)}
 				</div>

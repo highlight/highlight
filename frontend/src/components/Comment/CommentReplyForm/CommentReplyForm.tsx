@@ -66,11 +66,13 @@ function CommentReplyForm<T extends CommentReplyAction>({
 	const { admin } = useAuthContext()
 	const { data: mentionSuggestionsData } =
 		useGetCommentMentionSuggestionsQuery({
-			variables: { project_id },
+			variables: { project_id: project_id! },
+			skip: !project_id,
 		})
 	const { data: workspaceAdminsData } = useGetWorkspaceAdminsByProjectIdQuery(
 		{
-			variables: { project_id },
+			variables: { project_id: project_id! },
+			skip: !project_id,
 		},
 	)
 	const [mentionedAdmins, setMentionedAdmins] = useState<

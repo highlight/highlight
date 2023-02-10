@@ -207,8 +207,8 @@ export const AccountsPage = () => {
 
 	return (
 		<Routes>
-			<Route path="/accounts/:account_id" element={<Account />} />
-			<Route path="/accounts" element={<Accounts />} />
+			<Route path=":account_id" element={<Account />} />
+			<Route path="*" element={<Accounts />} />
 		</Routes>
 	)
 }

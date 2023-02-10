@@ -3,18 +3,21 @@ import Tabs from '@components/Tabs/Tabs'
 import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings'
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'
 import analytics from '@util/analytics'
-import { useParams } from '@util/react-router/useParams'
 import React, { Suspense, useEffect } from 'react'
 import { Helmet } from 'react-helmet'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useMatch, useNavigate } from 'react-router-dom'
 
 import styles from './WorkspaceTabs.module.scss'
 
 const BillingPage = React.lazy(() => import('../Billing/Billing'))
 
-type SettingsTab = 'team' | 'settings' | 'current-plan' | 'upgrade-plan'
+export type WorkspaceSettingsTab =
+	| 'team'
+	| 'settings'
+	| 'current-plan'
+	| 'upgrade-plan'
 
-const getTitle = (tab: SettingsTab): string => {
+const getTitle = (tab: WorkspaceSettingsTab): string => {
 	switch (tab) {
 		case 'team':
 			return 'Team'
@@ -31,17 +34,16 @@ export const WorkspaceTabs = () => {
 	const location = useLocation()
 	const navigate = useNavigate()
 
-	const { workspace_id, page_id } = useParams<{
-		workspace_id: string
-		page_id: SettingsTab
-	}>()
+	const workspaceMatch = useMatch('/w/:workspace_id/:page_id')
+	const workspaceId = workspaceMatch?.params.workspace_id
+	const pageId = workspaceMatch?.params.page_id as WorkspaceSettingsTab
 
 	useEffect(() => analytics.page(), [location.pathname])
 
 	return (
 		<>
-			<Helmet key={page_id}>
-				<title>Workspace {getTitle(page_id ?? 'team')}</title>
+			<Helmet key={pageId}>
+				<title>Workspace {getTitle(pageId ?? 'team')}</title>
 			</Helmet>
 			<LeadAlignLayout fullWidth>
 				<div>
@@ -51,9 +53,9 @@ export const WorkspaceTabs = () => {
 					className={styles.workspaceTabs}
 					noPadding
 					noHeaderPadding
-					activeKeyOverride={page_id}
+					activeKeyOverride={pageId}
 					onChange={(activeKey) =>
-						navigate(`/w/${workspace_id}/${activeKey}`)
+						navigate(`/w/${workspaceId}/${activeKey}`)
 					}
 					tabs={[
 						{

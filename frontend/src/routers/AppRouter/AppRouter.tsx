@@ -16,7 +16,7 @@ import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace'
 import InternalRouter from '@routers/InternalRouter/InternalRouter'
 import { DefaultWorkspaceRouter } from '@routers/OrgRouter/DefaultWorkspaceRouter'
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter'
-import { ProjectRouter } from '@routers/OrgRouter/OrgRouter'
+import { ProjectRouter } from '@routers/OrgRouter/ProjectRouter'
 import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter'
 import React from 'react'
 import { Route, Routes, useMatch } from 'react-router-dom'
@@ -31,27 +31,6 @@ export const AppRouter = () => {
 	return (
 		<Box height="screen" width="screen">
 			<Routes>
-				<Route path="/subscriptions" element={<EmailOptOutPage />} />
-				<Route path="/accounts" element={<AccountsPage />} />
-
-				<Route
-					path="/w/:workspace_id/invite/:invite_id"
-					element={
-						<Landing>
-							<NewMemberPage />
-						</Landing>
-					}
-				/>
-
-				<Route
-					path="/new"
-					element={
-						<Landing>
-							<NewProjectPage />
-						</Landing>
-					}
-				/>
-
 				<Route
 					path="/oauth/authorize"
 					element={
@@ -64,6 +43,38 @@ export const AppRouter = () => {
 				<Route
 					path="/callback/:integrationName"
 					element={<IntegrationAuthCallbackPage />}
+				/>
+
+				<Route path="/subscriptions" element={<EmailOptOutPage />} />
+				<Route path="/accounts/*" element={<AccountsPage />} />
+
+				<Route path="/_internal/*" element={<InternalRouter />} />
+
+				<Route
+					path="/new"
+					element={
+						<Landing>
+							<NewProjectPage />
+						</Landing>
+					}
+				/>
+
+				<Route
+					path="/switch"
+					element={
+						<Landing>
+							<SwitchWorkspace />
+						</Landing>
+					}
+				/>
+
+				<Route
+					path="/w/:workspace_id/invite/:invite_id"
+					element={
+						<Landing>
+							<NewMemberPage />
+						</Landing>
+					}
 				/>
 
 				<Route
@@ -92,35 +103,29 @@ export const AppRouter = () => {
 						</Landing>
 					}
 				/>
-
 				<Route
-					path="/switch"
+					path="/w/:workspace_id/*"
 					element={
-						<Landing>
-							<SwitchWorkspace />
-						</Landing>
+						isLoggedIn ? (
+							workspaceId &&
+							Number.isInteger(Number(workspaceId)) ? (
+								<WorkspaceRouter />
+							) : (
+								<DefaultWorkspaceRouter />
+							)
+						) : (
+							<LoginForm />
+						)
 					}
 				/>
-
-				<Route path="/_internal/*" element={<InternalRouter />} />
 
 				<Route
 					path="/*"
 					element={
-						isLoggedIn ? (
-							workspaceId ? (
-								Number.isInteger(workspaceId) ? (
-									<WorkspaceRouter />
-								) : (
-									<DefaultWorkspaceRouter />
-								)
-							) : projectId ? (
-								<ProjectRouter />
-							) : (
-								<ProjectRedirectionRouter />
-							)
+						projectId ? (
+							<ProjectRouter />
 						) : (
-							<LoginForm />
+							<ProjectRedirectionRouter />
 						)
 					}
 				/>

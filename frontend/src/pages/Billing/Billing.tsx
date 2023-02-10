@@ -21,6 +21,7 @@ import {
 import BellRingingIcon from '@icons/BellRingingIcon'
 import SvgLogInIcon from '@icons/LogInIcon'
 import { BillingStatusCard } from '@pages/Billing/BillingStatusCard/BillingStatusCard'
+import { WorkspaceSettingsTab } from '@pages/WorkspaceTabs/WorkspaceTabs'
 import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
 import { loadStripe } from '@stripe/stripe-js'
 import analytics from '@util/analytics'
@@ -29,14 +30,13 @@ import {
 	useAuthorization,
 } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
-import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { dinero, down, toUnit } from 'dinero.js'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
 import Skeleton from 'react-loading-skeleton'
-import { Route, Routes, useLocation } from 'react-router-dom'
+import { useLocation, useMatch } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
@@ -105,9 +105,10 @@ const getStripePromiseOrNull = () => {
 const stripePromiseOrNull = getStripePromiseOrNull()
 
 const BillingPage = () => {
-	const { workspace_id } = useParams<{
-		workspace_id: string
-	}>()
+	const workspaceMatch = useMatch('/w/:workspace_id/:page_id')
+	const workspaceId = workspaceMatch?.params.workspace_id
+	const pageId = workspaceMatch?.params.page_id as WorkspaceSettingsTab
+
 	const [{ tier }] = useQueryParams({
 		tier: StringParam,
 	})
@@ -131,8 +132,9 @@ const BillingPage = () => {
 		refetch,
 	} = useGetBillingDetailsQuery({
 		variables: {
-			workspace_id: workspace_id!,
+			workspace_id: workspaceId!,
 		},
+		skip: !workspaceId,
 		onCompleted: () => {
 			if (billingData?.billingDetails?.plan?.interval !== undefined) {
 				setSubscriptionInterval(
@@ -147,7 +149,7 @@ const BillingPage = () => {
 		issues: subscriptionIssues,
 		subscriptionData,
 		refetchSubscription,
-	} = useBillingHook({ workspace_id })
+	} = useBillingHook({ workspace_id: workspaceId })
 
 	const [createOrUpdateStripeSubscription, { data }] =
 		useCreateOrUpdateStripeSubscriptionMutation()
@@ -169,7 +171,7 @@ const BillingPage = () => {
 		const response = pathname.split('/')[4] ?? ''
 		if (response === 'success') {
 			updateBillingDetails({
-				variables: { workspace_id: workspace_id! },
+				variables: { workspace_id: workspaceId! },
 			}).then(() => {
 				message.success('Billing change applied!', 5)
 				refetch()
@@ -187,9 +189,9 @@ const BillingPage = () => {
 		checkoutRedirectFailedMessage,
 		billingError,
 		updateBillingDetails,
-		workspace_id,
 		refetch,
 		refetchSubscription,
+		workspaceId,
 	])
 
 	const createOnSelect = (newPlan: PlanType) => {
@@ -197,14 +199,14 @@ const BillingPage = () => {
 			setLoadingPlanType(newPlan)
 			createOrUpdateStripeSubscription({
 				variables: {
-					workspace_id: workspace_id!,
+					workspace_id: workspaceId!,
 					plan_type: newPlan,
 					interval: subscriptionInterval,
 				},
 			}).then((r) => {
 				if (!r.data?.createOrUpdateStripeSubscription) {
 					updateBillingDetails({
-						variables: { workspace_id: workspace_id! },
+						variables: { workspace_id: workspaceId! },
 					}).then(() => {
 						const previousPlan =
 							billingData!.billingDetails!.plan.type
@@ -289,7 +291,9 @@ const BillingPage = () => {
 							onClick={() => {
 								setIsCancel(false)
 								getCustomerPortalUrl({
-									variables: { workspace_id: workspace_id! },
+									variables: {
+										workspace_id: workspaceId!,
+									},
 								})
 							}}
 							loading={loadingCustomerPortal && !isCancel}
@@ -305,7 +309,9 @@ const BillingPage = () => {
 							onClick={() => {
 								setIsCancel(true)
 								getCustomerPortalUrl({
-									variables: { workspace_id: workspace_id! },
+									variables: {
+										workspace_id: workspaceId!,
+									},
 								})
 							}}
 							loading={loadingCustomerPortal && isCancel}
@@ -521,16 +527,11 @@ const BillingPage = () => {
 					</div>
 				</Card>
 			)}
-			<Routes>
-				<Route
-					path="/w/:workspace_id/:page_id"
-					element={<BillingDetails />}
-				/>
-				<Route
-					path="/w/:workspace_id/:page_id/:etc?"
-					element={<BillingUpgrade />}
-				/>
-			</Routes>
+			{pageId === 'current-plan' ? (
+				<BillingDetails />
+			) : pageId === 'upgrade-plan' ? (
+				<BillingUpgrade />
+			) : null}
 		</>
 	)
 }

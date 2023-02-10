@@ -25,10 +25,9 @@ import WithSessionSearchContext from '@routers/OrgRouter/WithSessionSearchContex
 import { auth } from '@util/auth'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useMatch } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import commonStyles from '../../Common.module.scss'
@@ -41,19 +40,20 @@ export const ProjectRouter = () => {
 	const [showKeyboardShortcutsGuide, toggleShowKeyboardShortcutsGuide] =
 		useToggle(false)
 	const [showBanner, toggleShowBanner] = useToggle(false)
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
+
+	const projectMatch = useMatch('/:project_id/*')
+	const projectId = projectMatch?.params.project_id
+
 	const { setLoadingState } = useAppLoadingContext()
 
 	const { data, loading, error } = useGetProjectDropdownOptionsQuery({
-		variables: { project_id: project_id! },
-		skip: !isLoggedIn || !project_id, // Higher level routers decide when guests are allowed to hit this router
+		variables: { project_id: projectId! },
+		skip: !isLoggedIn || !Number.isInteger(Number(projectId)), // Higher level routers decide when guests are allowed to hit this router
 	})
 
 	const { integrated, loading: integratedLoading } = useIntegrated()
 	const [hasFinishedOnboarding] = useLocalStorage(
-		`highlight-finished-onboarding-${project_id}`,
+		`highlight-finished-onboarding-${projectId}`,
 		false,
 	)
 
@@ -65,14 +65,14 @@ export const ProjectRouter = () => {
 
 		auth.currentUser?.getIdToken().then((t) => {
 			const fetchToken = () => {
-				fetch(`${uri}/project-token/${project_id}`, {
+				fetch(`${uri}/project-token/${projectId}`, {
 					credentials: 'include',
 					headers: {
 						token: t,
 					},
 				})
 			}
-			if (project_id) {
+			if (projectId) {
 				// Fetch a new token now and every 30 mins
 				fetchToken()
 			}
@@ -81,7 +81,7 @@ export const ProjectRouter = () => {
 		return () => {
 			clearInterval(intervalId)
 		}
-	}, [project_id])
+	}, [projectId])
 
 	useEffect(() => {
 		if (data?.workspace?.id) {
@@ -127,7 +127,7 @@ export const ProjectRouter = () => {
 
 	// if the user can join this workspace, give them that option via the ErrorState
 	const joinableWorkspace = data?.joinable_workspaces
-		?.filter((w) => w?.projects.map((p) => p?.id).includes(project_id))
+		?.filter((w) => w?.projects.map((p) => p?.id).includes(projectId))
 		?.pop()
 
 	const [rightPanelView, setRightPanelView] = useState<RightPanelView>(
@@ -199,7 +199,7 @@ export const ProjectRouter = () => {
 									element={<FrontPlugin />}
 								/>
 								<Route
-									path="*"
+									path=":project_id/*"
 									element={
 										<>
 											<Header />
@@ -240,6 +240,7 @@ export const ProjectRouter = () => {
 															!hasFinishedOnboarding && (
 																<OnboardingBubble />
 															)}
+
 														<ApplicationRouter
 															integrated={
 																integrated

@@ -30,7 +30,7 @@ import {
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import { SignUp } from '@pages/Auth/SignUp'
-import LoginForm, { AuthAdminRouter } from '@pages/Login/Login'
+import { AuthAdminRouter } from '@pages/Login/Login'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { setAttributionData } from '@util/attribution'
@@ -393,12 +393,8 @@ const AuthenticationRoleRouter = () => {
 				/>
 			) : (
 				<Routes>
-					<Route
-						path="/:project_id/*"
-						element={<AuthAdminRouter />}
-					/>
-					<Route path="/sign_up" element={<SignUp />} />
-					<Route path="*" element={<LoginForm />} />
+					<Route path="sign_up" element={<SignUp />} />
+					<Route path="/*" element={<AuthAdminRouter />} />
 				</Routes>
 			)}
 		</AuthContextProvider>
