@@ -7958,6 +7958,7 @@ __metadata:
     "@highlight-run/rrweb": "workspace:*"
     "@highlight-run/rrweb-types": "workspace:*"
     "@highlight-run/ui": "workspace:*"
+    "@rehookify/datepicker": ^4.1.1
     "@rehooks/local-storage": ^2.4.0
     "@stripe/stripe-js": ^1.32.0
     "@svgr/cli": ^5.5.0
@@ -10762,6 +10763,15 @@ __metadata:
   version: 1.1.0
   resolution: "@protobufjs/utf8@npm:1.1.0"
   checksum: f9bf3163d13aaa3b6f5e6fbf37a116e094ea021c0e1f2a7ccd0e12a29e2ce08dafba4e8b36e13f8ed7397e1591610ce880ed1289af4d66cf4ace8a36a9557278
+  languageName: node
+  linkType: hard
+
+"@rehookify/datepicker@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "@rehookify/datepicker@npm:4.1.1"
+  peerDependencies:
+    react: ^16.8.0 || ^17 || ^18
+  checksum: c41a8119fce966b7c55c7755d5b005f07260c28a79dab49423bc04fbb572a2e84d1d3f17b6bcf5c8660a1540eaec4e69bdc7c3deba28ed28b7b8b1ed467463b7
   languageName: node
   linkType: hard
 

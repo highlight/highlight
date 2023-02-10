@@ -16,41 +16,32 @@ function useQuery() {
 	return React.useMemo(() => new URLSearchParams(search), [search])
 }
 
-const defaultEndDate = moment().format(FORMAT)
-const defaultStartDate = moment(defaultEndDate)
-	.subtract('30', 'days')
-	.format(FORMAT)
-
 const LogsPage = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
 	const queryParams = useQuery()
 
-	return (
-		<LogsPageInner
-			project_id={project_id}
-			queryParam={queryParams.get('query') ?? ''}
-			start_date={defaultStartDate}
-			end_date={defaultEndDate}
-		/>
-	)
+	return <LogsPageInner project_id={project_id} queryParams={queryParams} />
 }
 
 type Props = {
 	project_id: string
-	queryParam: string
-	start_date: string
-	end_date: string
+	queryParams: URLSearchParams
 }
 
-const LogsPageInner = ({
-	project_id,
-	queryParam,
-	start_date,
-	end_date,
-}: Props) => {
-	const [query, setQuery] = useState(queryParam)
+const defaultEndDate = new Date()
+const dateOffset = 24 * 60 * 60 * 1000 * 30 // 30 days
+const defaultStartDate = new Date(defaultEndDate.getTime() - dateOffset)
+
+const LogsPageInner = ({ project_id, queryParams }: Props) => {
+	const [query, setQuery] = useState<string>(queryParams.get('query') ?? '')
+	const [startDate, setStartDate] = useState<Date>(
+		new Date(queryParams.get('start_date') ?? defaultStartDate),
+	)
+	const [endDate, setEndDate] = useState<Date>(
+		new Date(queryParams.get('end_date') ?? defaultEndDate),
+	)
 	const history = useHistory()
 
 	useEffect(() => {
@@ -60,8 +51,20 @@ const LogsPageInner = ({
 		} else {
 			params.delete('query')
 		}
+
+		if (startDate) {
+			params.append('start_date', moment(startDate).format(FORMAT))
+		} else {
+			params.delete('start_date')
+		}
+
+		if (endDate) {
+			params.append('end_date', moment(endDate).format(FORMAT))
+		} else {
+			params.delete('end_date')
+		}
 		history.push({ search: params.toString() })
-	}, [query, history])
+	}, [query, startDate, endDate, history])
 
 	const { data, loading } = useGetLogsQuery({
 		variables: {
@@ -69,8 +72,8 @@ const LogsPageInner = ({
 			params: {
 				query,
 				date_range: {
-					start_date,
-					end_date,
+					start_date: moment(startDate).format(FORMAT),
+					end_date: moment(endDate).format(FORMAT),
 				},
 			},
 		},
@@ -78,6 +81,11 @@ const LogsPageInner = ({
 
 	const handleFormSubmit = (value: string) => {
 		setQuery(value)
+	}
+
+	const handleDatesSelected = (startDate: Date, endDate: Date) => {
+		setStartDate(startDate)
+		setEndDate(endDate)
 	}
 
 	return (
@@ -89,9 +97,10 @@ const LogsPageInner = ({
 				<Box background="white" borderRadius="12">
 					<SearchForm
 						initialQuery={query}
+						initialStartDate={startDate}
+						initialEndDate={endDate}
 						onFormSubmit={handleFormSubmit}
-						startDate={start_date}
-						endDate={end_date}
+						onDatesSelected={handleDatesSelected}
 					/>
 					<LogsTable data={data} loading={loading} query={query} />
 				</Box>

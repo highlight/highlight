@@ -1,20 +1,24 @@
-import { Box, Form, Stack, Text } from '@highlight-run/ui'
+import { Box, Form, Stack } from '@highlight-run/ui'
+import { RelativeTimePicker } from '@pages/LogsPage/SearchForm/DatePicker/RelativeTimePicker'
 import React, { useState } from 'react'
 
 type Props = {
 	onFormSubmit: (query: string) => void
+	onDatesSelected: (startDate: Date, endDate: Date) => void
 	initialQuery: string
-	startDate: string
-	endDate: string
+	initialStartDate: Date
+	initialEndDate: Date
 }
 
 const SearchForm = ({
 	initialQuery,
-	startDate,
-	endDate,
+	initialStartDate,
+	initialEndDate,
+	onDatesSelected,
 	onFormSubmit,
 }: Props) => {
 	const [query, setQuery] = useState(initialQuery)
+
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
 		onFormSubmit(query)
@@ -23,11 +27,10 @@ const SearchForm = ({
 	const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setQuery(event.target.value)
 	}
-
 	return (
 		<form onSubmit={handleSubmit}>
-			<Stack direction="row">
-				<Box width="full">
+			<Stack direction="row" align="center">
+				<Box flexGrow={1}>
 					<Form.Input
 						name="search"
 						value={query}
@@ -35,11 +38,11 @@ const SearchForm = ({
 						onChange={handleSearchChange}
 					/>
 				</Box>
-				<Box flexGrow={1}>
-					<Text>
-						{startDate} to {endDate}
-					</Text>
-				</Box>
+				<RelativeTimePicker
+					initialEndDate={initialEndDate}
+					initialStartDate={initialStartDate}
+					onDatesSelected={onDatesSelected}
+				/>
 			</Stack>
 		</form>
 	)

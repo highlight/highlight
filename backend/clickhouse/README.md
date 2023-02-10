@@ -5,6 +5,7 @@
 ```sql
 INSERT INTO logs (Timestamp, ProjectId, Body, LogAttributes) VALUES (now(), 1, 'body', {'user_id':'3'});
 INSERT INTO logs (Timestamp, ProjectId, Body, LogAttributes) VALUES (now(), 2, 'body', {'user_id':'1'});
+INSERT INTO logs (Timestamp, ProjectId, Body, SeverityText, LogAttributes) VALUES (now(), 1, 'body', 'ERROR', {'user_id':'1'});
 
 
 INSERT INTO logs (Timestamp, ProjectId, Body, LogAttributes) VALUES (now(), 1, 'body', {'workspace_id':'3'});
