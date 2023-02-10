@@ -654,6 +654,19 @@ input AdminAboutYouDetails {
 	phone: String
 }
 
+input AdminAndWorkspaceDetails {
+	# Admin
+	first_name: String!
+	last_name: String!
+	user_defined_role: String!
+	referral: String!
+
+	# Workspace
+	workspace_name: String!
+	allowed_auto_join_email_origins: String
+	promo_code: String
+}
+
 input ErrorSearchParamsInput {
 	date_range: DateRangeInput
 	os: String
@@ -1389,6 +1402,9 @@ type Query {
 }
 
 type Mutation {
+	updateAdminAndCreateWorkspace(
+		admin_and_workspace_details: AdminAndWorkspaceDetails!
+	): Project
 	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
 	createProject(name: String!, workspace_id: ID!): Project
 	createWorkspace(name: String!, promo_code: String): Workspace

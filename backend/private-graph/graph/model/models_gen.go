@@ -54,6 +54,16 @@ type AdminAboutYouDetails struct {
 	Phone              *string `json:"phone"`
 }
 
+type AdminAndWorkspaceDetails struct {
+	FirstName                   string  `json:"first_name"`
+	LastName                    string  `json:"last_name"`
+	UserDefinedRole             string  `json:"user_defined_role"`
+	Referral                    string  `json:"referral"`
+	WorkspaceName               string  `json:"workspace_name"`
+	AllowedAutoJoinEmailOrigins *string `json:"allowed_auto_join_email_origins"`
+	PromoCode                   *string `json:"promo_code"`
+}
+
 type AverageSessionLength struct {
 	Length float64 `json:"length"`
 }

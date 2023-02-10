@@ -129,6 +129,17 @@ type Resolver struct {
 	ClickhouseClient       *clickhouse.Client
 }
 
+func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {
+	return r.DB.Transaction(func(tx *gorm.DB) error {
+		transactionR := *r
+		embedded := *transactionR.Resolver
+		transactionR.Resolver = &embedded
+		transactionR.Resolver.DB = tx
+
+		return body(&transactionR)
+	})
+}
+
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
 	return r.Query().Admin(ctx)
 }
