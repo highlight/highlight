@@ -57,8 +57,8 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 							error: error.code,
 						})
 						setError(error.message || error.toString())
+						setLoading(false)
 					})
-					.finally(() => setLoading(false))
 			}}
 		>
 			<AuthHeader>
@@ -95,7 +95,6 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			<AuthFooter>
 				<Stack gap="12">
 					<Button
-						onClick={() => null}
 						trackingId="sign-up-submit"
 						loading={loading}
 						type="submit"

@@ -42,28 +42,27 @@ export const SignUp: React.FC = () => {
 					.then(() => {
 						auth.currentUser?.sendEmailVerification()
 
+						// Redirect the user to their initial path instead to creating a new
+						// workspace. We do this because this happens when a new user clicks
+						// on a Highlight link that was shared to them and they don't have
+						// an account yet.
+						const redirect =
+							history.location.state?.previousPathName ||
+							'/verify_email'
+
 						if (auth.currentUser?.email) {
 							analytics.track('Sign up', {
 								email: auth.currentUser.email,
+								redirect,
 							})
 						}
 
-						// Redirect the user to their initial path instead to creating a new
-						// workspace. We do this because this happens when a new user clicks on
-						// a Highlight link that was shared to them and they don't have an
-						// account yet.
-						if (history.location.state?.previousPathName) {
-							history.push(
-								history.location.state.previousPathName,
-							)
-						} else {
-							history.push('/')
-						}
+						history.push(redirect)
 					})
 					.catch((error) => {
 						setError(error.message || error.toString())
+						setLoading(false)
 					})
-					.finally(() => setLoading(false))
 			}}
 		>
 			<AuthHeader>

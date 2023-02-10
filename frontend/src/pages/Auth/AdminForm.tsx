@@ -187,7 +187,7 @@ export const AdminForm: React.FC = () => {
 				<AuthFooter>
 					<Button
 						trackingId="about-you-submit"
-						disabled={loading || formState.submitSucceed > 0}
+						loading={loading || formState.submitSucceed > 0}
 						type="submit"
 					>
 						Create Workspace

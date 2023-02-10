@@ -10,6 +10,7 @@ import { Landing } from '@pages/Landing/Landing'
 import { auth } from '@util/auth'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
+import { useHistory } from 'react-router-dom'
 
 import * as styles from './AuthRouter.css'
 
@@ -19,13 +20,14 @@ export const VerifyEmail: React.FC = () => {
 		pollInterval: 500,
 	})
 	const [loading, setLoading] = useState(false)
+	const history = useHistory()
 
 	const isEmailVerified = data?.admin?.email_verified || false
 
 	useEffect(() => {
 		if (isEmailVerified) {
 			stopPolling()
-			window.location.reload()
+			history.push('/about_you')
 		} else {
 			// Show the Intercom message after 5 seconds in case the user needs help.
 			setTimeout(() => {
@@ -34,7 +36,7 @@ export const VerifyEmail: React.FC = () => {
 				})
 			}, 1000 * 5)
 		}
-	}, [isEmailVerified, stopPolling])
+	}, [history, isEmailVerified, stopPolling])
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)

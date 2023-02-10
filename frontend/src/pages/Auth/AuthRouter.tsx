@@ -62,6 +62,10 @@ export const AuthRouter: React.FC = () => {
 		}
 	}, [isAuthLoading, setLoadingState])
 
+	if (isAuthLoading) {
+		return null
+	}
+
 	// TODO: Confirm this isn't rendered when logged in anymore, then clean up.
 	if (isLoggedIn) {
 		return <AuthAdminRouter />
