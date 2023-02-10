@@ -11,11 +11,10 @@ const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import LogsPage from '@pages/LogsPage/LogsPage'
+import PlayerPage from '@pages/Player/PlayerPage'
+import ProjectSettings from '@pages/ProjectSettings/ProjectSettings'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { usePreloadErrors, usePreloadSessions } from '@util/preload'
-
-import PlayerPage from '../../pages/Player/PlayerPage'
-import ProjectSettings from '../../pages/ProjectSettings/ProjectSettings'
 
 interface Props {
 	integrated: boolean
