@@ -1,8 +1,8 @@
 import '../../App.scss'
 
 import { useAuthContext } from '@authentication/AuthContext'
-import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { Box } from '@highlight-run/ui'
+import { useNumericProjectId } from '@hooks/useProjectId'
 import { AccountsPage } from '@pages/Accounts/Accounts'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
@@ -24,10 +24,9 @@ import { Route, Routes, useMatch } from 'react-router-dom'
 
 export const AppRouter = () => {
 	const { isLoggedIn } = useAuthContext()
-	const projectMatch = useMatch('/:project_id/*')
-	const projectId = projectMatch?.params.project_id
 	const workspaceMatch = useMatch('/w/:workspace_id/*')
 	const workspaceId = workspaceMatch?.params.workspace_id
+	const { projectId } = useNumericProjectId()
 
 	return (
 		<Box height="screen" width="screen">
@@ -123,10 +122,7 @@ export const AppRouter = () => {
 				<Route
 					path="/*"
 					element={
-						projectId &&
-						(Number.isInteger(Number(projectId)) ||
-							projectId ===
-								DEMO_WORKSPACE_PROXY_APPLICATION_ID) ? (
+						projectId && Number.isInteger(Number(projectId)) ? (
 							<ProjectRouter />
 						) : isLoggedIn ? (
 							<ProjectRedirectionRouter />

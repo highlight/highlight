@@ -10,6 +10,7 @@ import {
 } from '@context/AppLoadingContext'
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
 import { ErrorObject } from '@graph/schemas'
+import { useNumericProjectId } from '@hooks/useProjectId'
 import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
 import {
 	PlayerUIContextProvider,
@@ -27,7 +28,7 @@ import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
-import { Route, Routes, useMatch } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import commonStyles from '../../Common.module.scss'
@@ -41,8 +42,7 @@ export const ProjectRouter = () => {
 		useToggle(false)
 	const [showBanner, toggleShowBanner] = useToggle(false)
 
-	const projectMatch = useMatch('/:project_id/*')
-	const projectId = projectMatch?.params.project_id
+	const { projectId } = useNumericProjectId()
 
 	const { setLoadingState } = useAppLoadingContext()
 
@@ -50,6 +50,11 @@ export const ProjectRouter = () => {
 		variables: { project_id: projectId! },
 		skip: !isLoggedIn || !projectId, // Higher level routers decide when guests are allowed to hit this router
 	})
+
+	useEffect(() => {
+		console.log('::: error', error)
+		console.log('::: data', data)
+	}, [data, error])
 
 	const { integrated, loading: integratedLoading } = useIntegrated()
 	const [hasFinishedOnboarding] = useLocalStorage(

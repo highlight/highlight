@@ -1,12 +1,10 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import Button from '@components/Button/Button/Button'
-import {
-	DEMO_WORKSPACE_APPLICATION_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import Group from '@components/Group/Group'
 import { MiniWorkspaceIcon } from '@components/Header/WorkspaceDropdown/WorkspaceDropdown'
 import PopoverMenu from '@components/PopoverMenu/PopoverMenu'
+import { useProjectId } from '@hooks/useProjectId'
 import SvgArrowRightIcon from '@icons/ArrowRightIcon'
 import SvgBriefcase2Icon from '@icons/Briefcase2Icon'
 import SvgSwitch2Icon from '@icons/Switch2Icon'
@@ -30,10 +28,7 @@ const ApplicationPicker = () => {
 		workspace_id: string
 		project_id: string
 	}>()
-	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
-			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-			: project_id
+	const { projectId: projectIdRemapped } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
 	const isWorkspaceLevel = workspace_id !== undefined
 	const navigate = useNavigate()

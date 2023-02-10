@@ -33,6 +33,7 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
+import { useProjectId } from '@hooks/useProjectId'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
 import { useBillingHook } from '@pages/Billing/Billing'
@@ -64,10 +65,7 @@ export const Header = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
-			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-			: project_id
+	const { projectId: projectIdRemapped } = useProjectId()
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
