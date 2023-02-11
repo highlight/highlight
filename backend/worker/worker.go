@@ -19,7 +19,6 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
-	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
@@ -1094,13 +1093,6 @@ func (w *Worker) Start() {
 			session := session
 			ctx := ctx
 			wp.SubmitRecover(func() {
-				cpuStats, _ := cpu.Percent(0, false)
-				workerMaxCpuStr := os.Getenv("WORKER_MAX_CPU_THRESHOLD")
-				workerMaxCpu := math.Inf(1)
-				if workerMaxCpuStr != "" {
-					workerMaxCpu, _ = strconv.ParseFloat(workerMaxCpuStr, 64)
-				}
-
 				vmStat, _ := mem.VirtualMemory()
 
 				// If WORKER_MAX_MEMORY_THRESHOLD is defined,
@@ -1110,12 +1102,10 @@ func (w *Worker) Start() {
 				if workerMaxMemStr != "" {
 					workerMaxMem, _ = strconv.ParseFloat(workerMaxMemStr, 64)
 				}
-
-				for vmStat.UsedPercent > workerMaxMem || cpuStats[0] > workerMaxCpu {
-					log.Infof("worker memory/cpu use over threshold, sleeping. mem: %f, cpu: %f", vmStat.UsedPercent, cpuStats[0])
+				for vmStat.UsedPercent > workerMaxMem {
+					log.Infof("worker memory use over threshold, sleeping. value: %f", vmStat.UsedPercent)
 					time.Sleep(5 * time.Second)
 					vmStat, _ = mem.VirtualMemory()
-					cpuStats, _ = cpu.Percent(0, false)
 				}
 
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
