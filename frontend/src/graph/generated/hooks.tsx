@@ -7275,9 +7275,11 @@ export const GetBillingDetailsDocument = gql`
 				quota
 				interval
 				membersLimit
+				errorsLimit
 			}
 			meter
 			membersMeter
+			errorsMeter
 		}
 		workspace(id: $workspace_id) {
 			id

@@ -324,6 +324,8 @@ const BillingPage = () => {
 				sessionLimit={billingData?.billingDetails.plan.quota ?? 0}
 				memberCount={billingData?.billingDetails.membersMeter ?? 0}
 				memberLimit={billingData?.billingDetails.plan.membersLimit ?? 0}
+				errorsCount={billingData?.billingDetails.errorsMeter ?? 0}
+				errorsLimit={billingData?.billingDetails.plan.errorsLimit ?? 0}
 				subscriptionInterval={
 					billingData?.billingDetails.plan.interval ??
 					SubscriptionInterval.Monthly

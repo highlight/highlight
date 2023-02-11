@@ -27,6 +27,7 @@ import React from 'react'
 import styles from './BillingStatusCard.module.scss'
 
 const SESSIONS_PRICE_PER_THOUSAND = 5
+const ERRORS_PRICE_PER_THOUSAND = 0.2
 export const MEMBERS_PRICE = 20
 
 export const BillingStatusCard = ({
@@ -35,6 +36,8 @@ export const BillingStatusCard = ({
 	sessionLimit,
 	memberCount,
 	memberLimit,
+	errorsCount,
+	errorsLimit,
 	subscriptionInterval,
 	allowOverage,
 	loading,
@@ -48,6 +51,8 @@ export const BillingStatusCard = ({
 	sessionLimit: number
 	memberCount: number
 	memberLimit: number
+	errorsCount: number
+	errorsLimit: number
 	subscriptionInterval: SubscriptionInterval
 	allowOverage: boolean
 	loading: boolean
@@ -83,6 +88,11 @@ export const BillingStatusCard = ({
 		membersOverage = 0
 	}
 
+	let errorsOverage = errorsCount - errorsLimit
+	if (!allowOverage || errorsOverage < 0) {
+		errorsOverage = 0
+	}
+
 	const matchedPlan = BILLING_PLANS.find((p) => p.name === planType)
 
 	const baseSubtotal =
@@ -101,8 +111,9 @@ export const BillingStatusCard = ({
 	const overageSubtotal = dinero({
 		amount:
 			Math.ceil(sessionsOverage / 1000) *
-			SESSIONS_PRICE_PER_THOUSAND *
-			100,
+				SESSIONS_PRICE_PER_THOUSAND *
+				100 +
+			Math.ceil(errorsOverage / 1000) * ERRORS_PRICE_PER_THOUSAND * 100,
 		currency: USD,
 	})
 
@@ -270,6 +281,23 @@ export const BillingStatusCard = ({
 							<span className={styles.subText}>
 								You're currently not paying session overage ($5
 								per 1000 sessions).
+							</span>
+						)}
+						<br />
+						{loading ? (
+							<Skeleton />
+						) : errorsOverage > 0 ? (
+							<span className={styles.subText}>
+								You have an errors overage of{' '}
+								<strong>
+									{formatNumberWithDelimiters(errorsOverage)}
+								</strong>{' '}
+								errors ($0.20 per 1000 errors).
+							</span>
+						) : (
+							<span className={styles.subText}>
+								You're currently not paying errors overage
+								($0.20 per 1000 errors).
 							</span>
 						)}
 					</div>

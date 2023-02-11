@@ -960,9 +960,11 @@ query GetBillingDetails($workspace_id: ID!) {
 			quota
 			interval
 			membersLimit
+			errorsLimit
 		}
 		meter
 		membersMeter
+		errorsMeter
 	}
 	workspace(id: $workspace_id) {
 		id

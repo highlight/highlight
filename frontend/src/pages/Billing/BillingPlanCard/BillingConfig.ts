@@ -32,6 +32,22 @@ const freePlan: BillingPlan = {
 	],
 }
 
+const litePlan: BillingPlan = {
+	name: 'Lite',
+	type: PlanType.Lite,
+	monthlyPrice: 50,
+	annualPrice: 40,
+	advertisedFeatures: [
+		{
+			text: '2,000 free sessions / mo',
+			tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
+		},
+		'Unlimited members included',
+		'Unlimited dev tools access',
+		'Unlimited retention',
+	],
+}
+
 const basicPlan: BillingPlan = {
 	name: 'Essentials',
 	type: PlanType.Basic,
@@ -86,6 +102,7 @@ const enterprisePlan: BillingPlan = {
 
 export const BILLING_PLANS = [
 	freePlan,
+	litePlan,
 	basicPlan,
 	startupPlan,
 	enterprisePlan,

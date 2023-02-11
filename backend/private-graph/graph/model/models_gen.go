@@ -63,6 +63,7 @@ type BillingDetails struct {
 	Meter              int64 `json:"meter"`
 	MembersMeter       int64 `json:"membersMeter"`
 	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
+	ErrorsMeter        int64 `json:"errorsMeter"`
 }
 
 type CategoryHistogramBucket struct {
@@ -389,6 +390,7 @@ type Plan struct {
 	Interval     SubscriptionInterval `json:"interval"`
 	Quota        int                  `json:"quota"`
 	MembersLimit *int                 `json:"membersLimit"`
+	ErrorsLimit  int                  `json:"errorsLimit"`
 }
 
 type RageClickEventForProject struct {
@@ -996,6 +998,7 @@ type PlanType string
 
 const (
 	PlanTypeFree       PlanType = "Free"
+	PlanTypeLite       PlanType = "Lite"
 	PlanTypeBasic      PlanType = "Basic"
 	PlanTypeStartup    PlanType = "Startup"
 	PlanTypeEnterprise PlanType = "Enterprise"
@@ -1003,6 +1006,7 @@ const (
 
 var AllPlanType = []PlanType{
 	PlanTypeFree,
+	PlanTypeLite,
 	PlanTypeBasic,
 	PlanTypeStartup,
 	PlanTypeEnterprise,
@@ -1010,7 +1014,7 @@ var AllPlanType = []PlanType{
 
 func (e PlanType) IsValid() bool {
 	switch e {
-	case PlanTypeFree, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise:
+	case PlanTypeFree, PlanTypeLite, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise:
 		return true
 	}
 	return false

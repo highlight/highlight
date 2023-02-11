@@ -2540,11 +2540,11 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 	billingDetails: { __typename?: 'BillingDetails' } & Pick<
 		Types.BillingDetails,
-		'meter' | 'membersMeter'
+		'meter' | 'membersMeter' | 'errorsMeter'
 	> & {
 			plan: { __typename?: 'Plan' } & Pick<
 				Types.Plan,
-				'type' | 'quota' | 'interval' | 'membersLimit'
+				'type' | 'quota' | 'interval' | 'membersLimit' | 'errorsLimit'
 			>
 		}
 	workspace?: Types.Maybe<

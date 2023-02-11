@@ -1843,10 +1843,10 @@ func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model
 	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
 		quota = *workspace.MonthlySessionLimit
 	} else {
-		quota = pricing.TypeToQuota(stripePlan)
+		quota = pricing.TypeToSessionsLimit(stripePlan)
 	}
 
-	monthToDateSessionCount, err := pricing.GetWorkspaceMeter(r.DB, workspace.ID)
+	monthToDateSessionCount, err := pricing.GetWorkspaceSessionsMeter(r.DB, workspace.ID)
 	if err != nil {
 		log.Warn(fmt.Sprintf("error getting sessions meter for workspace %d", workspace.ID))
 	}
