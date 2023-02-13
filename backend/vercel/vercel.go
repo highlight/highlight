@@ -60,7 +60,7 @@ func GetAccessToken(code string) (VercelAccessTokenResponse, error) {
 	b, err := io.ReadAll(res.Body)
 
 	if res.StatusCode != 200 {
-		return accessTokenResponse, errors.New("Vercel API responded with error; status_code=" + res.Status + "; body=" + string(b))
+		return accessTokenResponse, errors.New("Vercel Access Token API responded with error; status_code=" + res.Status + "; body=" + string(b))
 	}
 
 	if err != nil {
@@ -114,7 +114,7 @@ func SetEnvVariable(projectId string, apiKey string, accessToken string, teamId 
 	b, err := io.ReadAll(res.Body)
 
 	if res.StatusCode != 200 {
-		return errors.New("Vercel API responded with error; status_code=" + res.Status + "; body=" + string(b))
+		return errors.New("Vercel Project Env API responded with error; status_code=" + res.Status + "; body=" + string(b))
 	}
 
 	if err != nil {
@@ -147,7 +147,7 @@ func RemoveConfiguration(configId string, accessToken string, teamId *string) er
 	b, err := io.ReadAll(res.Body)
 
 	if res.StatusCode != 204 {
-		return errors.New("Vercel API responded with error; status_code=" + res.Status + "; body=" + string(b))
+		return errors.New("Vercel Integration Config API responded with error; status_code=" + res.Status + "; body=" + string(b))
 	}
 
 	if err != nil {
@@ -191,7 +191,7 @@ func GetProjects(accessToken string, teamId *string) ([]*model.VercelProject, er
 		b, err := io.ReadAll(res.Body)
 
 		if res.StatusCode != 200 {
-			return nil, errors.New("Vercel API responded with error; status_code=" + res.Status + "; body=" + string(b))
+			return nil, errors.New("Vercel Projects API responded with error; status_code=" + res.Status + "; body=" + string(b))
 		}
 
 		if err != nil {
@@ -227,7 +227,7 @@ func CreateLogDrain(vercelProjectID string, projectVerboseID string, name string
 	headers := fmt.Sprintf(`{"%s":"%s"}`, VercelLogDrainProjectHeader, projectVerboseID)
 	projectIds := fmt.Sprintf(`["%s"]`, vercelProjectID)
 	body := fmt.Sprintf(`{"url":"https://pub.highlight.io/vercel/v1/logs","name":"%s","headers":%s,"projectIds":%s,"deliveryFormat":"ndjson"}`, name, headers, projectIds)
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v2/integrations/log-drains", VercelApiBaseUrl),
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v2/integrations/log-drains?teamId=%s", VercelApiBaseUrl, vercelProjectID),
 		strings.NewReader(body))
 	if err != nil {
 		return errors.Wrap(err, "error creating api request to Vercel")
@@ -243,7 +243,7 @@ func CreateLogDrain(vercelProjectID string, projectVerboseID string, name string
 	b, err := io.ReadAll(res.Body)
 
 	if res.StatusCode != 200 {
-		return errors.New("Vercel API responded with error; status_code=" + res.Status + "; body=" + string(b))
+		return errors.New("Vercel Log Drain API responded with error; status_code=" + res.Status + "; body=" + string(b))
 	}
 
 	if err != nil {
