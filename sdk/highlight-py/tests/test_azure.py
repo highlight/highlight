@@ -1,7 +1,7 @@
 import azure.functions as func
 import pytest
 
-from examples.HighlightAzureExample.function_app import main
+from examples.azure.HttpTrigger import main
 from highlight_io import H
 
 
@@ -16,9 +16,7 @@ def test_azure(mocker):
         params={"value": "21"},
     )
 
-    # Call the function.
-    func_call = main.build().get_user_function()
     with pytest.raises(expected_exception=ValueError):
-        func_call(req)
+        main(req)
 
     mock_trace.assert_called_with("a1b2c3", "1234")
