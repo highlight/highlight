@@ -239,8 +239,8 @@ const TABLE_COLUMNS = [
 			<Link
 				to={
 					record.type === 'Metric Monitor'
-						? `alerts/monitor/${record.id}`
-						: `alerts/${record.id}`
+						? `monitor/${record.id}`
+						: `${record.id}`
 				}
 				className={styles.configureButton}
 				onClick={(e) => {
@@ -442,9 +442,13 @@ function AlertsPageLoaded({
 						onRow={(record) => ({
 							onClick: () => {
 								if (record.type === 'Metric Monitor') {
-									navigate(`alerts/monitor/${record.id}`)
+									navigate(
+										`/${project_id}/alerts/monitor/${record.id}`,
+									)
 								} else {
-									navigate(`alerts/${record.id}`)
+									navigate(
+										`/${project_id}/alerts/${record.id}`,
+									)
 								}
 							},
 						})}
