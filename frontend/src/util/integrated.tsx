@@ -3,6 +3,7 @@ import {
 	useIsBackendIntegratedLazyQuery,
 	useIsIntegratedLazyQuery,
 } from '@graph/hooks'
+import { useNumericProjectId } from '@hooks/useProjectId'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
@@ -10,13 +11,13 @@ import { useEffect, useState } from 'react'
 
 export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
 	const { isLoggedIn, isAuthLoading } = useAuthContext()
-	const { project_id } = useParams<{ project_id: string }>()
+	const { projectId } = useNumericProjectId()
 	const [query, { data, loading }] = useIsIntegratedLazyQuery({
-		variables: { project_id: project_id! },
+		variables: { project_id: projectId! },
 		fetchPolicy: 'cache-and-network',
 	})
 	const [localStorageIntegrated, setLocalStorageIntegrated] = useLocalStorage(
-		`highlight-${project_id}-integrated`,
+		`highlight-${projectId}-integrated`,
 		false,
 	)
 	const [integrated, setIntegrated] = useState<boolean | undefined>(undefined)
@@ -51,13 +52,13 @@ export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
 				localStorageIntegrated === false &&
 				integratedRaw?.valueOf() === true
 			) {
-				analytics.track('IntegratedProject', { id: project_id })
+				analytics.track('IntegratedProject', { id: projectId })
 			}
 		}
 	}, [
 		integratedRaw,
 		localStorageIntegrated,
-		project_id,
+		projectId,
 		setLocalStorageIntegrated,
 	])
 
