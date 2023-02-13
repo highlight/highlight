@@ -226,7 +226,7 @@ func CreateLogDrain(vercelProjectID string, projectVerboseID string, name string
 
 	headers := fmt.Sprintf(`{"%s":"%s"}`, VercelLogDrainProjectHeader, projectVerboseID)
 	projectIds := fmt.Sprintf(`["%s"]`, vercelProjectID)
-	body := fmt.Sprintf(`{"url":"https://pub.highlight.io/vercel/v1/logs","name":"%s","headers":%s,"projectIds":%s}`, name, headers, projectIds)
+	body := fmt.Sprintf(`{"url":"https://pub.highlight.io/vercel/v1/logs","name":"%s","headers":%s,"projectIds":%s,"deliveryFormat":"ndjson"}`, name, headers, projectIds)
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v2/integrations/log-drains", VercelApiBaseUrl),
 		strings.NewReader(body))
 	if err != nil {
@@ -260,11 +260,17 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	var logs []hlog.VercelLog
-	if err := json.Unmarshal(body, &logs); err != nil {
-		log.Error(err, "failed to unmarshal vercel logs")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	jsons := strings.Split(string(body), "\n")
+	for _, j := range jsons {
+		var l []hlog.VercelLog
+		if err := json.Unmarshal([]byte(j), &l); err != nil {
+			log.Error(err, "failed to unmarshal vercel logs")
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		logs = append(logs, l...)
 	}
 
 	projectVerboseID := r.Header.Get(VercelLogDrainProjectHeader)
