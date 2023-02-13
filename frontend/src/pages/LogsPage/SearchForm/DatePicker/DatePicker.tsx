@@ -12,18 +12,29 @@ const DatePicker = () => {
 	const { previousMonthButton, nextMonthButton } =
 		useContextMonthsPropGetters()
 
+	const previousMonthButtonProps = previousMonthButton()
+	const nextMonthButtonProps = nextMonthButton()
+
 	return (
 		<main>
 			<Calendar
 				prevButton={
-					<Box {...previousMonthButton()} cursor="pointer">
-						<ChevronLeftIcon />
-					</Box>
+					previousMonthButtonProps.disabled ? (
+						<div />
+					) : (
+						<Box {...previousMonthButtonProps} cursor="pointer">
+							<ChevronLeftIcon />
+						</Box>
+					)
 				}
 				nextButton={
-					<Box {...nextMonthButton()} cursor="pointer">
-						<SvgChevronRightIcon />
-					</Box>
+					nextMonthButtonProps.disabled ? (
+						<div />
+					) : (
+						<Box {...nextMonthButtonProps} cursor="pointer">
+							<SvgChevronRightIcon />
+						</Box>
+					)
 				}
 				calendar={calendars[0]}
 			/>

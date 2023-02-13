@@ -7,8 +7,8 @@ import {
 import { FC, ReactNode } from 'react'
 
 interface CalendarProps {
-	prevButton?: ReactNode
-	nextButton?: ReactNode
+	prevButton: ReactNode
+	nextButton: ReactNode
 	calendar: CalendarType
 }
 
@@ -23,14 +23,14 @@ export const Calendar: FC<CalendarProps> = ({
 	return (
 		<Box backgroundColor="white">
 			<Stack direction="row" align="center">
-				{prevButton || <div />}
+				{prevButton}
 
 				<Box flexGrow={1}>
 					<Text align="center">
 						{month} {year}
 					</Text>
 				</Box>
-				{nextButton || <div />}
+				{nextButton}
 			</Stack>
 
 			<div className="grid h-8 grid-cols-7 items-center gap-y-2">
