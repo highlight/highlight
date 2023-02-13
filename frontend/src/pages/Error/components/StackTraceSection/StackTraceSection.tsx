@@ -87,7 +87,7 @@ const StackTraceSection = ({
 								<ButtonLink
 									anchor
 									trackingId="stackFrameLearnMoreAboutPrivateSourcemaps"
-									href="https://docs.highlight.run/sourcemaps"
+									href="https://www.highlight.io/docs/general/product-features/error-monitoring/sourcemaps"
 								>
 									Learn More
 								</ButtonLink>
