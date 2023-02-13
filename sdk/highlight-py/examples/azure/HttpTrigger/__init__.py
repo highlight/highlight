@@ -1,19 +1,19 @@
 import logging
+import random
 
 import azure.functions as func
 
 import highlight_io
 from highlight_io.integrations.azure import observe_handler
 
-H = highlight_io.H("TODO-PROJECT-ID", record_logs=True)
+H = highlight_io.H("1", record_logs=True)
 
 
 @observe_handler
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Python HTTP trigger function processed a request.")
 
-    x = 2
-    if x + 2 == 4:
+    if random.random() < 0.2:
         raise ValueError("oh no!")
 
     name = req.params.get("name")

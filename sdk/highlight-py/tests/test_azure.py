@@ -6,6 +6,7 @@ from highlight_io import H
 
 
 def test_azure(mocker):
+    mocker.patch("random.random", return_value=0.1)
     mock_trace = mocker.patch("highlight_io.H.trace")
     # Construct a mock HTTP request.
     req = func.HttpRequest(
