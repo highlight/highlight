@@ -12,7 +12,7 @@ export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
 	const { isLoggedIn, isAuthLoading } = useAuthContext()
 	const { project_id } = useParams<{ project_id: string }>()
 	const [query, { data, loading }] = useIsIntegratedLazyQuery({
-		variables: { project_id: project_id?.toString() ?? '' },
+		variables: { project_id: project_id! },
 		fetchPolicy: 'cache-and-network',
 	})
 	const [localStorageIntegrated, setLocalStorageIntegrated] = useLocalStorage(
