@@ -57,7 +57,6 @@ const getPointer = (day: CalendarDay) => {
 }
 
 interface Props {
-	className?: string
 	children: ReactNode
 	day: CalendarDay
 }
