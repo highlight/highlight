@@ -1,23 +1,15 @@
-import DemoWorkspaceButton, {
-	DEMO_WORKSPACE_APPLICATION_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { useParams } from '@util/react-router/useParams'
+import DemoWorkspaceButton from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import FullBleedCard from '@components/FullBleedCard/FullBleedCard'
+import { useProjectId } from '@hooks/useProjectId'
 import Lottie from 'lottie-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-import FullBleedCard from '../../../components/FullBleedCard/FullBleedCard'
 import WaitingAnimation from '../../../lottie/waiting.json'
 import styles from './IntegrationCard.module.scss'
 
 export const IntegrationCard = () => {
-	const { project_id } = useParams<{ project_id: string }>()
-	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
-			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-			: project_id
-
+	const { projectId } = useProjectId()
 	return (
 		<FullBleedCard
 			title="Waiting for Installation..."
@@ -25,11 +17,9 @@ export const IntegrationCard = () => {
 		>
 			<p>
 				Please follow the{' '}
-				<Link to={`/${projectIdRemapped}/setup`}>
-					setup instructions
-				</Link>{' '}
-				to install Highlight. It should take less than a minute for us
-				to detect installation.
+				<Link to={`/${projectId}/setup`}>setup instructions</Link> to
+				install Highlight. It should take less than a minute for us to
+				detect installation.
 			</p>
 			<div className={styles.demoWorkspaceButton}>
 				<DemoWorkspaceButton integrated={false} />

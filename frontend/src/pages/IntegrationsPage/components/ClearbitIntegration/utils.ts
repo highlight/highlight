@@ -10,7 +10,8 @@ import { useParams } from '@util/react-router/useParams'
 export const useClearbitIntegration = () => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { loading: loadingProject, data: project } = useGetProjectQuery({
-		variables: { id: project_id },
+		variables: { id: project_id! },
+		skip: !project_id,
 	})
 	const workspaceID = project?.workspace?.id
 	const { loading: loadingWorkspace, data: workspace } = useGetWorkspaceQuery(

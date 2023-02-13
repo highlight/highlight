@@ -1338,7 +1338,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const { loading: segmentsLoading, data: segmentData } =
 		useGetErrorSegmentsQuery({
-			variables: { project_id: projectId },
+			variables: { project_id: projectId! },
+			skip: !projectId,
 		})
 
 	const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false)
@@ -1614,7 +1615,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 		[parseRuleImpl],
 	)
 	const { data: appVersionData } = useGetAppVersionsQuery({
-		variables: { project_id: projectId },
+		variables: { project_id: projectId! },
+		skip: !projectId,
 	})
 
 	const [currentRule, setCurrentRule] = useState<RuleProps | undefined>()
@@ -2218,7 +2220,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		if (canUpdateSegment) {
 			editErrorSegment({
 				variables: {
-					project_id: projectId,
+					project_id: projectId!,
 					id: selectedSegment.id,
 					params: searchParams,
 					name: selectedSegment.name,

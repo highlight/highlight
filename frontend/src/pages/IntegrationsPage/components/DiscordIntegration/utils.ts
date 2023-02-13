@@ -11,7 +11,7 @@ import { useCallback } from 'react'
 export const useDiscordIntegration = () => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data, loading } = useGetWorkspaceIsIntegratedWithDiscordQuery({
-		variables: { project_id: project_id },
+		variables: { project_id: project_id! },
 		skip: !project_id,
 	})
 
@@ -27,7 +27,7 @@ export const useDiscordIntegration = () => {
 				variables: {
 					integration_type: IntegrationType.Discord,
 					code: code,
-					project_id: projectId || project_id,
+					project_id: projectId || project_id!,
 				},
 			}),
 		[project_id, addIntegrationToProject],
@@ -45,7 +45,7 @@ export const useDiscordIntegration = () => {
 			removeIntegrationFromProject({
 				variables: {
 					integration_type: IntegrationType.Discord,
-					project_id: projectId || project_id,
+					project_id: projectId || project_id!,
 				},
 			}),
 		[project_id, removeIntegrationFromProject],

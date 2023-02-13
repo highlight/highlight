@@ -11,13 +11,13 @@ import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { Form } from 'antd'
 import React, { useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import styles from './CreateDashboardModal.module.scss'
 
 const CreateDashboardModal = () => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { updateDashboard } = useDashboardsContext()
 	const [showModal, setShowModal] = useState(false)
 	const [newDashboard, setNewDashboard] = useState<string>('')
@@ -30,7 +30,7 @@ const CreateDashboardModal = () => {
 			layout: JSON.stringify(DEFAULT_METRICS_LAYOUT),
 		}).then((r) => {
 			const newId = r.data?.upsertDashboard || ''
-			history.push(`/${project_id}/dashboards/${newId}`)
+			navigate(`/${project_id}/dashboards/${newId}`)
 		})
 	}
 

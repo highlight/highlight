@@ -47,7 +47,7 @@ export const AlertEnableSwitch: React.FC<
 					...requestBody,
 					variables: {
 						id: record.id,
-						project_id,
+						project_id: project_id!,
 						disabled: isDisabled,
 					},
 				})
@@ -57,7 +57,7 @@ export const AlertEnableSwitch: React.FC<
 					...requestBody,
 					variables: {
 						id: record.id,
-						project_id,
+						project_id: project_id!,
 						disabled: isDisabled,
 					},
 				})
@@ -67,7 +67,7 @@ export const AlertEnableSwitch: React.FC<
 					...requestBody,
 					variables: {
 						id: record.id,
-						project_id,
+						project_id: project_id!,
 						disabled: isDisabled,
 					},
 				})

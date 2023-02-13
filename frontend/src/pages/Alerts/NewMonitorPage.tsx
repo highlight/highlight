@@ -2,7 +2,6 @@ import Card from '@components/Card/Card'
 import { useCreateMetricMonitorMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
-	DashboardMetricConfig,
 	DiscordChannel,
 	MetricAggregator,
 	MetricTagFilter,
@@ -13,7 +12,7 @@ import { useParams } from '@util/react-router/useParams'
 import message from 'antd/lib/message'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { useHistory } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 
@@ -36,8 +35,9 @@ const NewMonitorPage = ({
 		project_id: string
 	}>()
 	const { slackUrl, loading } = useAlertsContext()
-	const history = useHistory<{ metricConfig?: DashboardMetricConfig }>()
-	const metricConfig = history.location.state.metricConfig
+	const navigate = useNavigate()
+	const location = useLocation()
+	const metricConfig = location.state.metricConfig
 	const [metricToMonitorName, setMetricToMonitorName] = useState<string>(
 		metricConfig?.name || 'LCP',
 	)
@@ -56,7 +56,7 @@ const NewMonitorPage = ({
 	const [units, setUnits] = useState<string>(metricConfig?.units || '')
 	const [createMonitor] = useCreateMetricMonitorMutation({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			aggregator,
 			periodMinutes: periodMinutes,
 			metric_to_monitor: metricToMonitorName || '',
@@ -84,13 +84,13 @@ const NewMonitorPage = ({
 		e.preventDefault()
 		createMonitor()
 		message.success(`Created ${monitorName} monitor!`)
-		history.push(`/${project_id}/alerts`)
+		navigate(`/${project_id}/alerts`)
 	}
 
 	useEffect(() => {
 		// Clear state potentially passed to initialize the metric config.
-		history.replace({ ...history.location, state: {} })
-	}, [history])
+		navigate(location.pathname, { state: {} })
+	}, [location.pathname, navigate])
 
 	return (
 		<div>
@@ -132,7 +132,7 @@ const NewMonitorPage = ({
 						isDiscordIntegrated={isDiscordIntegrated}
 						slackUrl={slackUrl}
 						onFormCancel={() => {
-							history.push(`/${project_id}/alerts/new`)
+							navigate(`/${project_id}/alerts/new`)
 						}}
 						formCancelButtonLabel="Cancel"
 						formSubmitButtonLabel="Create"

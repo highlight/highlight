@@ -15,7 +15,7 @@ import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { message } from 'antd'
-import classNames from 'classnames/bind'
+import clsx from 'clsx'
 import moment from 'moment'
 import React, { useState } from 'react'
 import { FaBug, FaRegStopCircle } from 'react-icons/fa'
@@ -77,7 +77,7 @@ export const StreamElement = ({
 
 	return (
 		<div
-			className={classNames(styles.cardContainer, {
+			className={clsx(styles.cardContainer, {
 				[styles.firstCard]: isFirstCard,
 			})}
 			onMouseEnter={() => {
@@ -89,7 +89,7 @@ export const StreamElement = ({
 		>
 			<RightPanelCard
 				key={e.identifier}
-				className={classNames({ [styles.card]: !showDetails })}
+				className={clsx({ [styles.card]: !showDetails })}
 				selected={isCurrent}
 				onClick={() => {
 					if (!showDetails) {
@@ -99,7 +99,7 @@ export const StreamElement = ({
 				primaryColor={getAnnotationColor(details.title as any)}
 			>
 				<div
-					className={classNames(styles.streamElement, {
+					className={clsx(styles.streamElement, {
 						[styles.noTimestamp]: !shouldShowTimestamp,
 					})}
 					key={e.identifier}
@@ -121,7 +121,7 @@ export const StreamElement = ({
 						}
 					>
 						<p
-							className={classNames(styles.eventText, {
+							className={clsx(styles.eventText, {
 								[styles.eventTextSelected]: showExpandedView,
 							})}
 						>
@@ -134,7 +134,7 @@ export const StreamElement = ({
 						</p>
 					</div>
 					{shouldShowTimestamp && (
-						<div className={classNames(styles.eventTime)}>
+						<div className={clsx(styles.eventTime)}>
 							{showPlayerAbsoluteTime
 								? playerTimeToSessionAbsoluteTime({
 										sessionStartTime: start,
@@ -321,37 +321,37 @@ export const getPlayerEventIcon = (
 	debug?: boolean,
 ) =>
 	title === 'Click' ? (
-		<SvgCursorClickIcon className={classNames(styles.tiltedIcon)} />
+		<SvgCursorClickIcon className={clsx(styles.tiltedIcon)} />
 	) : title?.includes('Segment') ? (
-		<SegmentIcon className={classNames(styles.defaultIcon)} />
+		<SegmentIcon className={clsx(styles.defaultIcon)} />
 	) : title === 'Navigate' ? (
-		<SvgLinkIcon className={classNames(styles.defaultIcon)} />
+		<SvgLinkIcon className={clsx(styles.defaultIcon)} />
 	) : title === 'Track' ? (
-		<SvgTargetIcon className={classNames(styles.defaultIcon)} />
+		<SvgTargetIcon className={clsx(styles.defaultIcon)} />
 	) : title === 'Identify' ? (
-		<SvgFaceIdIcon className={classNames(styles.defaultIcon)} />
+		<SvgFaceIdIcon className={clsx(styles.defaultIcon)} />
 	) : title === 'Reload' ? (
-		<ReloadIcon className={classNames(styles.defaultIcon)} />
+		<ReloadIcon className={clsx(styles.defaultIcon)} />
 	) : title === 'Referrer' ? (
-		<ReferrerIcon className={classNames(styles.defaultIcon)} />
+		<ReferrerIcon className={clsx(styles.defaultIcon)} />
 	) : title === 'Tab' ? (
-		<TabIcon className={classNames(styles.defaultIcon)} />
+		<TabIcon className={clsx(styles.defaultIcon)} />
 	) : title === 'Stop' ? (
-		<FaRegStopCircle className={classNames(styles.defaultIcon)} />
+		<FaRegStopCircle className={clsx(styles.defaultIcon)} />
 	) : title === 'Viewport' ? (
-		<SvgDimensionsIcon className={classNames(styles.defaultIcon)} />
+		<SvgDimensionsIcon className={clsx(styles.defaultIcon)} />
 	) : title === 'TabHidden' ? (
 		payload ? (
-			<SvgEyeOffIcon className={classNames(styles.defaultIcon)} />
+			<SvgEyeOffIcon className={clsx(styles.defaultIcon)} />
 		) : (
-			<SvgEyeIcon className={classNames(styles.defaultIcon)} />
+			<SvgEyeIcon className={clsx(styles.defaultIcon)} />
 		)
 	) : title === 'Focus' ? (
-		<SvgCursorIcon className={classNames(styles.defaultIcon)} />
+		<SvgCursorIcon className={clsx(styles.defaultIcon)} />
 	) : title === 'Web Vitals' ? (
-		<SvgActivityIcon className={classNames(styles.defaultIcon)} />
+		<SvgActivityIcon className={clsx(styles.defaultIcon)} />
 	) : debug ? (
-		<FaBug className={classNames(styles.defaultIcon)} />
+		<FaBug className={clsx(styles.defaultIcon)} />
 	) : (
-		<HoverIcon className={classNames(styles.tiltedIcon)} />
+		<HoverIcon className={clsx(styles.tiltedIcon)} />
 	)

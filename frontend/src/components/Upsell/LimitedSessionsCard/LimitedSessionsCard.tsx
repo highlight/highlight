@@ -12,7 +12,8 @@ const LimitedSessionCard = () => {
 		project_id: string
 	}>()
 	const { data } = useGetBillingDetailsForProjectQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
+		skip: !project_id,
 	})
 
 	/** Show upsell when the current usage is 80% of the project's plan. */

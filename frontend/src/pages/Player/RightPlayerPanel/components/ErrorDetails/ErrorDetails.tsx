@@ -38,7 +38,7 @@ import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import React, { useMemo } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 interface Props {
 	error: ErrorObject
@@ -127,7 +127,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 		[canMoveForward, next],
 	)
 
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 
 	if (errorQueryingErrorGroup) {
@@ -300,7 +300,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 					emphasis="high"
 					iconRight={<IconSolidExternalLink />}
 					onClick={() => {
-						history.push(
+						navigate(
 							`/${projectId}/errors/${error.error_group_secure_id}`,
 						)
 						setShowLeftPanel(false)

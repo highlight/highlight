@@ -18,10 +18,10 @@ import {
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
-import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
+import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
 import useMap from '@util/useMap'
 import { message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
 import styles from './VercelIntegrationConfig.module.scss'
@@ -409,7 +409,7 @@ export const VercelIntegrationSettings: React.FC<
 
 	return (
 		<div>
-			<p className={classNames(styles.modalSubTitle)}>
+			<p className={clsx(styles.modalSubTitle)}>
 				Select Vercel projects to link to your Highlight projects.
 			</p>
 			<div className="my-6">
@@ -425,10 +425,7 @@ export const VercelIntegrationSettings: React.FC<
 					<div className="border-0 border-t border-solid border-[#eaeaea]">
 						<Button
 							trackingId="IntegrationConfiguration-Vercel-NewHighlightProject"
-							className={classNames(
-								'ml-auto m-4',
-								styles.modalBtn,
-							)}
+							className={clsx('m-4 ml-auto', styles.modalBtn)}
 							onClick={() => {
 								const tId = 'new_' + tempId
 								setTempHighlightProjects((cur) =>

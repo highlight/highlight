@@ -44,10 +44,10 @@ export const ConsolePage = ({
 	const skipQuery = session === undefined || !!session?.messages_url
 	const { data, loading: queryLoading } = useGetMessagesQuery({
 		variables: {
-			session_secure_id,
+			session_secure_id: session_secure_id!,
 		},
 		fetchPolicy: 'no-cache',
-		skip: skipQuery, // Skip if there is a URL to fetch messages
+		skip: skipQuery || !session_secure_id, // Skip if there is a URL to fetch messages
 	})
 
 	useEffect(() => {

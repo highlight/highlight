@@ -16,7 +16,7 @@ const ErrorFeedHistogram = React.memo(() => {
 	const { loading, data } = useGetErrorsHistogramQuery({
 		variables: {
 			query: backendSearchQuery?.childSearchQuery as string,
-			project_id,
+			project_id: project_id!,
 			histogram_options: {
 				bucket_size:
 					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
@@ -32,7 +32,7 @@ const ErrorFeedHistogram = React.memo(() => {
 				},
 			},
 		},
-		skip: !backendSearchQuery?.childSearchQuery,
+		skip: !backendSearchQuery?.childSearchQuery || !project_id,
 		fetchPolicy: 'cache-first',
 	})
 

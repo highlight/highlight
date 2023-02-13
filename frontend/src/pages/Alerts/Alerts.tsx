@@ -23,7 +23,7 @@ import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils'
 import { useParams } from '@util/react-router/useParams'
 import { compact } from 'lodash'
 import React from 'react'
-import { Link, useHistory } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import styles from './Alerts.module.scss'
 
@@ -239,8 +239,8 @@ const TABLE_COLUMNS = [
 			<Link
 				to={
 					record.type === 'Metric Monitor'
-						? `alerts/monitor/${record.id}`
-						: `alerts/${record.id}`
+						? `monitor/${record.id}`
+						: `${record.id}`
 				}
 				className={styles.configureButton}
 				onClick={(e) => {
@@ -278,7 +278,7 @@ function AlertsPageLoaded({
 	alertsPayload: GetAlertsPagePayloadQuery | undefined
 }) {
 	const { project_id } = useParams<{ project_id: string }>()
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const maxNum = (() => {
 		const values = [
@@ -442,9 +442,13 @@ function AlertsPageLoaded({
 						onRow={(record) => ({
 							onClick: () => {
 								if (record.type === 'Metric Monitor') {
-									history.push(`alerts/monitor/${record.id}`)
+									navigate(
+										`/${project_id}/alerts/monitor/${record.id}`,
+									)
 								} else {
-									history.push(`alerts/${record.id}`)
+									navigate(
+										`/${project_id}/alerts/${record.id}`,
+									)
 								}
 							},
 						})}

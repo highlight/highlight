@@ -1,4 +1,4 @@
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './DashboardInnerCard.module.scss'
@@ -21,14 +21,14 @@ const DashboardInnerCard: React.FC<React.PropsWithChildren<Props>> = ({
 	return (
 		<article
 			{...props}
-			className={classNames(styles.card, props.className, {
+			className={clsx(styles.card, props.className, {
 				[styles.noPadding]: noPadding,
 				[styles.interactable]: interactable,
 			})}
 		>
 			{title && (
 				<div
-					className={classNames(styles.titleContainer, {
+					className={clsx(styles.titleContainer, {
 						[styles.noTitleBottomMargin]:
 							typeof title !== 'string' || noTitleBottomMargin,
 					})}
@@ -59,10 +59,7 @@ export const CardForm: React.FC<
 	React.PropsWithChildren<React.FormHTMLAttributes<HTMLFormElement>>
 > = ({ children, ...props }) => {
 	return (
-		<form
-			{...props}
-			className={classNames(props.className, styles.cardForm)}
-		>
+		<form {...props} className={clsx(props.className, styles.cardForm)}>
 			{children}
 		</form>
 	)

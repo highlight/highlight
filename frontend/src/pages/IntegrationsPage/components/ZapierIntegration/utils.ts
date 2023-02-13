@@ -11,12 +11,12 @@ import { useCallback } from 'react'
 export const useZapierIntegration = () => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data, loading } = useGetWorkspaceIsIntegratedWithZapierQuery({
-		variables: { project_id: project_id },
+		variables: { project_id: project_id! },
 	})
 
 	const { data: jwtToken, loading: loadingJwt } =
 		useGenerateNewZapierAccessTokenJwtQuery({
-			variables: { project_id: project_id },
+			variables: { project_id: project_id! },
 		})
 
 	const [removeIntegrationFromProject] =
@@ -31,7 +31,7 @@ export const useZapierIntegration = () => {
 			removeIntegrationFromProject({
 				variables: {
 					integration_type: IntegrationType.Zapier,
-					project_id: projectId || project_id,
+					project_id: projectId || project_id!,
 				},
 			}),
 		[project_id, removeIntegrationFromProject],

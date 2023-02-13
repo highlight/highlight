@@ -3,7 +3,7 @@ import SimpleMetric, {
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric'
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils'
 import analytics from '@util/analytics'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useEffect } from 'react'
 
 import styles from './WebVitalRender.module.scss'
@@ -32,7 +32,7 @@ const WebVitalSimpleRenderer = React.memo(
 
 		return (
 			<div
-				className={classNames({
+				className={clsx({
 					[styles.wrapper]: !showDetailedView,
 					[styles.detailedView]: showDetailedView,
 				})}

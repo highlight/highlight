@@ -33,13 +33,14 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
+import { useProjectId } from '@hooks/useProjectId'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
 import { useBillingHook } from '@pages/Billing/Billing'
 import { getTrialEndDateMessage } from '@pages/Billing/utils/utils'
 import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch'
 import useLocalStorage from '@rehooks/local-storage'
-import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
+import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
@@ -50,7 +51,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
 import { showIntercom } from '@util/window'
-import classNames from 'classnames/bind'
+import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
 import { FaDiscord, FaGithub } from 'react-icons/fa'
@@ -64,10 +65,7 @@ export const Header = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
-			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-			: project_id
+	const { projectId: projectIdRemapped } = useProjectId()
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
@@ -494,6 +492,8 @@ export const Header = () => {
 										<a
 											href="https://www.highlight.io/docs"
 											className={linkStyle}
+											target="_blank"
+											rel="noreferrer"
 										>
 											<Menu.Item>
 												<Box
@@ -585,7 +585,8 @@ const BillingBanner = () => {
 	)
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
+		skip: !project_id,
 	})
 	const [hasReportedTrialExtension, setHasReportedTrialExtension] =
 		useLocalStorage('highlightReportedTrialExtension', false)
@@ -712,11 +713,11 @@ const BillingBanner = () => {
 
 	return (
 		<div
-			className={classNames(styles.trialWrapper, {
+			className={clsx(styles.trialWrapper, {
 				[styles.error]: hasExceededSessionsForMonth,
 			})}
 		>
-			<div className={classNames(styles.trialTimeText)}>
+			<div className={clsx(styles.trialTimeText)}>
 				{bannerMessage}
 				{!canExtend && (
 					<>
@@ -758,7 +759,7 @@ const OnPremiseBanner = () => {
 				backgroundColor: 'var(--color-primary-inverted-background)',
 			}}
 		>
-			<div className={classNames(styles.trialTimeText)}>
+			<div className={clsx(styles.trialTimeText)}>
 				Running Highlight On-premise{' '}
 				{`v${import.meta.env.REACT_APP_COMMIT_SHA}`}
 			</div>
@@ -782,7 +783,7 @@ const DemoWorkspaceBanner = () => {
 				background: 'var(--color-green-600)',
 			}}
 		>
-			<div className={classNames(styles.trialTimeText)}>
+			<div className={clsx(styles.trialTimeText)}>
 				Viewing Demo Project.{' '}
 				<Link className={styles.demoLink} to={redirectLink}>
 					Go back to your project.
@@ -813,10 +814,8 @@ const ProductHuntBanner = () => {
 	)
 
 	return (
-		<div className={classNames(styles.trialWrapper, styles.productHunt)}>
-			<div className={classNames(styles.trialTimeText)}>
-				{bannerMessage}
-			</div>
+		<div className={clsx(styles.trialWrapper, styles.productHunt)}>
+			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
 		</div>
 	)
 }
@@ -842,10 +841,8 @@ const HighlightRoadshowBanner = () => {
 	)
 
 	return (
-		<div className={classNames(styles.trialWrapper, styles.youtube)}>
-			<div className={classNames(styles.trialTimeText)}>
-				{bannerMessage}
-			</div>
+		<div className={clsx(styles.trialWrapper, styles.youtube)}>
+			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
 		</div>
 	)
 }
@@ -871,10 +868,8 @@ const BillingIssuesBanner = () => {
 	)
 
 	return (
-		<div className={classNames(styles.trialWrapper, styles.error)}>
-			<div className={classNames(styles.trialTimeText)}>
-				{bannerMessage}
-			</div>
+		<div className={clsx(styles.trialWrapper, styles.error)}>
+			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
 		</div>
 	)
 }

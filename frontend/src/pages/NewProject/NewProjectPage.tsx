@@ -20,10 +20,10 @@ import analytics from '@util/analytics'
 import { client } from '@util/graph'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { Redirect, useLocation } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import Button from '../../components/Button/Button/Button'
@@ -35,7 +35,7 @@ const NewProjectPage = () => {
 	const [autoJoinDomains, setAutoJoinDomains] = useState<string[]>()
 
 	const { data: currentWorkspaceData } = useGetWorkspaceQuery({
-		variables: { id: workspace_id },
+		variables: { id: workspace_id! },
 	})
 	const [
 		createProject,
@@ -122,7 +122,8 @@ const NewProjectPage = () => {
 	// When a workspace is created, redirect to the 'create project' page
 	if (isWorkspace && workspaceData?.createWorkspace?.id) {
 		return (
-			<Redirect
+			<Navigate
+				replace
 				to={`/w/${workspaceData.createWorkspace.id}/new${search}`}
 			/>
 		)
@@ -131,9 +132,14 @@ const NewProjectPage = () => {
 	// When a project is created, redirect to the 'project setup' page
 	if (projectData?.createProject?.id) {
 		if (!!next) {
-			return <Redirect to={next} />
+			return <Navigate replace to={next} />
 		} else {
-			return <Redirect to={`/${projectData.createProject.id}/setup`} />
+			return (
+				<Navigate
+					replace
+					to={`/${projectData.createProject.id}/setup`}
+				/>
+			)
 		}
 	}
 
@@ -199,7 +205,7 @@ const NewProjectPage = () => {
 						<Button
 							trackingId={`Create${pageTypeCaps}`}
 							type="primary"
-							className={classNames(styles.button)}
+							className={clsx(styles.button)}
 							block
 							htmlType="submit"
 							disabled={name.length === 0}
@@ -218,7 +224,7 @@ const NewProjectPage = () => {
 						{isWorkspace && (
 							<ButtonLink
 								trackingId={`Enter${pageTypeCaps}`}
-								className={classNames(styles.button)}
+								className={clsx(styles.button)}
 								to={`/switch${search}`}
 								fullWidth
 								type="default"
@@ -239,7 +245,7 @@ const NewProjectPage = () => {
 								0 && (
 								<ButtonLink
 									trackingId={`Enter${pageTypeCaps}`}
-									className={classNames(styles.button)}
+									className={clsx(styles.button)}
 									to={`/w/${workspace_id}/switch${search}`}
 									fullWidth
 									type="default"

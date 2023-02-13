@@ -3,6 +3,10 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { USD } from '@dinero.js/currencies'
+import {
+	useGetAccountDetailsQuery,
+	useGetAccountsLazyQuery,
+} from '@graph/hooks'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import { Table } from 'antd'
@@ -11,7 +15,7 @@ import moment from 'moment'
 import React, { useEffect } from 'react'
 // @ts-expect-error
 import { specific } from 'react-files-hooks'
-import { Route, Switch, useHistory } from 'react-router-dom'
+import { Route, Routes, useNavigate } from 'react-router-dom'
 import {
 	Bar,
 	BarChart,
@@ -22,11 +26,6 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts'
-
-import {
-	useGetAccountDetailsQuery,
-	useGetAccountsLazyQuery,
-} from '../../graph/generated/hooks'
 
 const COLUMNS = [
 	{
@@ -207,21 +206,18 @@ export const AccountsPage = () => {
 	}, [setLoadingState])
 
 	return (
-		<Switch>
-			<Route path="/accounts/:account_id">
-				<Account />
-			</Route>
-			<Route path="/accounts">
-				<Accounts />
-			</Route>
-		</Switch>
+		<Routes>
+			<Route path=":account_id" element={<Account />} />
+			<Route path="*" element={<Accounts />} />
+		</Routes>
 	)
 }
 
 export const Account = () => {
 	const { account_id } = useParams<{ account_id: string }>()
 	const { data: accountData, loading } = useGetAccountDetailsQuery({
-		variables: { workspace_id: account_id },
+		variables: { workspace_id: account_id ?? '' },
+		skip: !account_id,
 	})
 	console.log(accountData)
 	return (
@@ -340,7 +336,7 @@ export const Account = () => {
 export const Accounts = () => {
 	const { download } = specific.useTextDownloader()
 
-	const history = useHistory()
+	const navigate = useNavigate()
 	const [accountDataLocal, setAccountDataLocal] = useLocalStorage<
 		{ [key: string]: any }[]
 	>('accountData', [])
@@ -407,7 +403,7 @@ export const Accounts = () => {
 					onRow={(record) => {
 						return {
 							onClick: () => {
-								history.push(`/accounts/${record.id}`)
+								navigate(`/accounts/${record.id}`)
 							},
 						}
 					}}

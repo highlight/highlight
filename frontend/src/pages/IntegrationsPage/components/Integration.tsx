@@ -5,7 +5,7 @@ import Modal from '@components/Modal/Modal'
 import Switch from '@components/Switch/Switch'
 import SettingsIcon from '@icons/SettingsIcon'
 import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
 import styles from './Integration.module.scss'
@@ -72,7 +72,7 @@ const Integration = ({
 					<img
 						src={icon}
 						alt=""
-						className={classNames(styles.logo, {
+						className={clsx(styles.logo, {
 							['rounded-none']: noRoundedIcon,
 						})}
 					/>

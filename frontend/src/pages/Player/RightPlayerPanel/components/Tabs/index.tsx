@@ -25,8 +25,9 @@ const RightPanelTabs = () => {
 	const { data: sessionCommentsData, loading: isLoadingComments } =
 		useGetSessionCommentsQuery({
 			variables: {
-				session_secure_id: session_secure_id,
+				session_secure_id: session_secure_id!,
 			},
+			skip: !session_secure_id,
 		})
 
 	return (

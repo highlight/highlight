@@ -11,16 +11,16 @@ import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/Dashbo
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect } from 'react'
-import { Link, useHistory } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import alertStyles from '../../../Alerts/Alerts.module.scss'
 
 const DashboardsHomePage = () => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { loading } = useGetWorkspaceAdminsByProjectIdQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
 	})
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { dashboards, allAdmins } = useDashboardsContext()
 
 	useEffect(() => analytics.page(), [])
@@ -58,21 +58,19 @@ const DashboardsHomePage = () => {
 								className={alertStyles.emptyContainer}
 								item="dashboards"
 								customTitle={`Your project doesn't have any dashboards yet 😔`}
-								customDescription={
-									<>
-										<CreateDashboardModal />
-									</>
-								}
+								customDescription={<CreateDashboardModal />}
 							/>
 						}
 						onRow={(record) => ({
 							onClick: () => {
-								history.push({
-									pathname: `dashboards/${record.id}`,
-									state: {
-										dashboardName: record.name,
+								navigate(
+									`/${project_id}/dashboards/${record.id}`,
+									{
+										state: {
+											dashboardName: record.name,
+										},
 									},
-								})
+								)
 							},
 						})}
 					/>
@@ -111,10 +109,8 @@ const TABLE_COLUMNS = [
 		key: 'view',
 		render: (_: any, record: any) => (
 			<Link
-				to={{
-					pathname: `dashboards/${record.id}`,
-					state: { dashboardName: record.name },
-				}}
+				to={`dashboards/${record.id}`}
+				state={{ dashboardName: record.name }}
 				className={alertStyles.configureButton}
 				onClick={(e) => {
 					e.stopPropagation()

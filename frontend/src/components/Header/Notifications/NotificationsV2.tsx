@@ -44,7 +44,7 @@ const Notifications = () => {
 		},
 		pollInterval: 1000 * 30,
 		variables: {
-			project_id,
+			project_id: project_id!,
 		},
 		skip: !project_id,
 	})

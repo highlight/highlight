@@ -74,7 +74,7 @@ const CreateErrorSegmentModal = ({
 		if (shouldUpdate) {
 			editErrorSegment({
 				variables: {
-					project_id,
+					project_id: project_id!,
 					id: currentSegment.id!,
 					name: newSegmentName,
 					params: searchParams,
@@ -100,7 +100,7 @@ const CreateErrorSegmentModal = ({
 		} else {
 			createErrorSegment({
 				variables: {
-					project_id,
+					project_id: project_id!,
 					name: newSegmentName,
 					params: searchParams,
 				},

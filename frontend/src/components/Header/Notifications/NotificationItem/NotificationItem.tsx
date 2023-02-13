@@ -1,10 +1,6 @@
 import { SessionCommentTextBody } from '@components/Comment/SessionComment/SessionComment'
-import {
-	DEMO_WORKSPACE_APPLICATION_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { useProjectId } from '@hooks/useProjectId'
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts'
-import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
@@ -28,16 +24,12 @@ const CommentNotification = ({
 	onViewHandler,
 	viewed,
 }: Props) => {
-	const { project_id } = useParams<{ project_id: string }>()
-	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
-			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-			: project_id
+	const { projectId } = useProjectId()
 
 	return (
 		<Link
 			className={notificationStyles.notification}
-			to={getLink(notification, projectIdRemapped)}
+			to={getLink(notification, projectId ?? '')}
 			onClick={onViewHandler}
 		>
 			<div className={notificationStyles.notificationStartColumn}>

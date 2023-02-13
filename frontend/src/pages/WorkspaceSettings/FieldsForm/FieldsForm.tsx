@@ -7,7 +7,7 @@ import {
 import { namedOperations } from '@graph/operations'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import classNames from 'classnames/bind'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
 import commonStyles from '../../../Common.module.scss'
@@ -28,10 +28,11 @@ export const FieldsForm = () => {
 	const [email, setEmail] = useState('')
 	const { data, loading } = useGetProjectOrWorkspaceQuery({
 		variables: {
-			project_id,
-			workspace_id,
+			project_id: project_id!,
+			workspace_id: workspace_id!,
 			is_workspace: isWorkspace,
 		},
+		skip: !project_id || !workspace_id,
 	})
 
 	const [editProject, { loading: editProjectLoading }] =
@@ -59,7 +60,7 @@ export const FieldsForm = () => {
 		} else {
 			editProject({
 				variables: {
-					id: project_id,
+					id: project_id!,
 					name,
 					billing_email: email,
 				},
@@ -119,7 +120,7 @@ export const FieldsForm = () => {
 					}Update`}
 					htmlType="submit"
 					type="primary"
-					className={classNames(
+					className={clsx(
 						commonStyles.submitButton,
 						styles.saveButton,
 					)}

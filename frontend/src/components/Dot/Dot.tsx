@@ -1,4 +1,4 @@
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './Dot.module.scss'
@@ -21,7 +21,7 @@ const Dot: React.FC<React.PropsWithChildren<Props>> = ({
 }) => {
 	return (
 		<div
-			className={classNames(styles.dot, className, {
+			className={clsx(styles.dot, className, {
 				[styles.pulse]: pulse,
 				[styles.dotRed]: color === CustomDotColor.RED,
 			})}

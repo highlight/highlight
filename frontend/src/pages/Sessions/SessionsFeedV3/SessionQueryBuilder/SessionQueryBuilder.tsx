@@ -264,7 +264,8 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 		project_id: string
 	}>()
 	const { data: fieldData } = useGetFieldTypesQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
+		skip: !project_id,
 	})
 	const searchContext = useSearchContext()
 
@@ -275,7 +276,7 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 		JsonParam,
 	)
 
-	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
+	const [, setPaginationToUrlParams] = useQueryParams({
 		page: NumberParam,
 	})
 

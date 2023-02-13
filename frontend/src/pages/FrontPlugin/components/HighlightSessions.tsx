@@ -27,7 +27,7 @@ function HighlightSessions() {
 	}>()
 	const { data, called } = useGetSessionsOpenSearchQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			count: 100,
 			page: 1,
 			query: getUnprocessedSessionsQuery(
@@ -35,7 +35,7 @@ function HighlightSessions() {
 			),
 			sort_desc: true,
 		},
-		skip: !backendSearchQuery,
+		skip: !backendSearchQuery || !project_id,
 		fetchPolicy: 'network-only',
 	})
 	const [dateRange, setDateRange] = useState<{
@@ -153,7 +153,7 @@ function HighlightSessions() {
 					}}
 					trackingId="ClickHighlightSessions"
 					trackProperties={{
-						projectId: project_id.toString(),
+						projectId: project_id?.toString() ?? '',
 						email,
 						url,
 					}}
