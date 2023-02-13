@@ -47,7 +47,8 @@ The fastest and most reliable way to get started with highlight.io is signing up
 Deploy a hobby instance in one line on Linux with Docker (recommended 16 CPU cores, 32GB RAM, 256GB disk):
 
 ```bash
-git clone https://github.com/highlight/highlight
+git clone --recurse-submodules https://github.com/highlight/highlight
+# or `git submodule update --init --recursive` on git < 2.13
 cd docker && docker compose up -d --build
 ```
 

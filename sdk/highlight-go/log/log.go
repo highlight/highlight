@@ -18,6 +18,41 @@ var (
 	LogMessageKey  = attribute.Key("log.message")
 )
 
+type VercelProxy struct {
+	Timestamp   string `json:"timestamp"`
+	Method      string `json:"method"`
+	Scheme      string `json:"scheme"`
+	Host        string `json:"host"`
+	Path        string `json:"path"`
+	UserAgent   string `json:"userAgent"`
+	Referer     string `json:"referer"`
+	StatusCode  int    `json:"statusCode"`
+	ClientIp    string `json:"clientIp"`
+	Region      string `json:"region"`
+	CacheId     string `json:"cacheId"`
+	VercelCache string `json:"vercelCache"`
+}
+
+type VercelLog struct {
+	Id           string `json:"id"`
+	Message      string `json:"message"`
+	Timestamp    string `json:"timestamp"`
+	Source       string `json:"source"`
+	ProjectId    string `json:"projectId"`
+	DeploymentId string `json:"deploymentId"`
+	BuildId      string `json:"buildId"`
+	Host         string `json:"host"`
+
+	Type       string `json:"type"`
+	Entrypoint string `json:"entrypoint"`
+
+	RequestId   string      `json:"requestId"`
+	StatusCode  int         `json:"statusCode"`
+	Destination string      `json:"destination"`
+	Path        string      `json:"path"`
+	Proxy       VercelProxy `json:"proxy"`
+}
+
 func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSecureID string, messages string) error {
 	logRows, err := ParseConsoleMessages(messages)
 	if err != nil {
@@ -61,4 +96,42 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 	}
 
 	return nil
+}
+
+func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
+	span, _ := highlight.StartTrace(
+		ctx, "highlight-ctx",
+		attribute.String("Source", "SubmitVercelLogs"),
+		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
+	)
+	defer highlight.EndTrace(span)
+
+	attrs := []attribute.KeyValue{
+		LogSeverityKey.String(log.Type),
+		LogMessageKey.String(log.Message),
+	}
+	attrs = append(
+		attrs,
+		semconv.CodeNamespaceKey.String(log.Source),
+		semconv.CodeFilepathKey.String(log.Path),
+		semconv.CodeFunctionKey.String(log.Entrypoint),
+		semconv.HostNameKey.String(log.Host),
+		semconv.HTTPMethodKey.Int(log.StatusCode),
+	)
+
+	t, _ := time.Parse("", log.Timestamp)
+	span.AddEvent(LogName, trace.WithAttributes(attrs...), trace.WithTimestamp(t))
+	if log.Type == "error" {
+		span.SetStatus(codes.Error, log.Message)
+	}
+}
+
+func SubmitVercelLogs(ctx context.Context, projectID int, logs []VercelLog) {
+	if len(logs) == 0 {
+		return
+	}
+
+	for _, log := range logs {
+		submitVercelLog(ctx, projectID, log)
+	}
 }

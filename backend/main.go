@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/vercel"
 	"html/template"
 	"io"
 	"net/http"
@@ -400,6 +401,7 @@ func main() {
 		})
 		otelHandler := otel.New(publicResolver)
 		otelHandler.Listen(r)
+		vercel.Listen(r)
 	}
 
 	if util.IsDevOrTestEnv() {

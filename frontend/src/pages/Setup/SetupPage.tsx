@@ -990,8 +990,7 @@ export default withHighlightConfig({
 				<p>
 					<CodeBlock
 						language="javascript"
-						text={`const highlightOptions = {};
-export const withHighlight = Highlight(highlightOptions);`}
+						text={`export const withHighlight = Highlight({projectID: 'YOUR_PROJECT_ID'});`}
 					/>
 				</p>
 				<p>
