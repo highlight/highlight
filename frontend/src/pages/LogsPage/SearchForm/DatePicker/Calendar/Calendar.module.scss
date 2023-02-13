@@ -1,0 +1,14 @@
+.weekDays {
+	align-items: center;
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	height: 2rem;
+	row-gap: 0.5rem;
+}
+
+.days {
+	align-items: center;
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	row-gap: 0.5rem;
+}
