@@ -105,9 +105,9 @@ const LogsPageInner = ({
 		setQuery(value)
 	}
 
-	const handleDatesSelected = (startDate: Date, endDate: Date) => {
-		setStartDate(startDate)
-		setEndDate(endDate)
+	const handleDatesSelected = (selectedDates: Date[]) => {
+		setStartDate(selectedDates[0])
+		setEndDate(selectedDates[1])
 	}
 
 	return (

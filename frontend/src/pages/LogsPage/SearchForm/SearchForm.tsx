@@ -5,7 +5,7 @@ import React, { useState } from 'react'
 
 type Props = {
 	onFormSubmit: (query: string) => void
-	onDatesSelected: (startDate: Date, endDate: Date) => void
+	onDatesSelected: (selectedDates: Date[]) => void
 	initialQuery: string
 	initialStartDate: Date | undefined
 	initialEndDate: Date | undefined
@@ -28,6 +28,11 @@ const SearchForm = ({
 	const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setQuery(event.target.value)
 	}
+
+	const selectedDates = [
+		initialStartDate ?? PRESETS.last_15_minutes.startDate,
+		initialEndDate ?? PRESETS.last_15_minutes.endDate,
+	]
 	return (
 		<form onSubmit={handleSubmit}>
 			<Stack direction="row" align="center">
@@ -40,9 +45,7 @@ const SearchForm = ({
 					/>
 				</Box>
 				<RelativeTimePicker
-					initialEndDate={initialEndDate}
-					initialStartDate={initialStartDate}
-					initialPreset={PRESETS.last_15_minutes}
+					selectedDates={selectedDates}
 					presets={[
 						PRESETS.last_15_minutes,
 						PRESETS.last_60_minutes,

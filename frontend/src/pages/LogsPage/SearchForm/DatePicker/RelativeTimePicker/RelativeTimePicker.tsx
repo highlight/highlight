@@ -2,16 +2,7 @@ import { Box, IconSolidCheck, Menu, Popover, Stack } from '@highlight-run/ui'
 import { DatePicker } from '@pages/LogsPage/SearchForm/DatePicker/DatePicker'
 import { Preset } from '@pages/LogsPage/SearchForm/DatePicker/RelativeTimePicker/presets'
 import { DatePickerStateProvider } from '@rehookify/datepicker'
-import moment from 'moment'
 import { useState } from 'react'
-
-interface Props {
-	initialStartDate: Date | undefined
-	initialEndDate: Date | undefined
-	initialPreset: Preset
-	presets: Preset[]
-	onDatesSelected: (startDate: Date, endDate: Date) => void
-}
 
 const IsSelectedCheckbox = ({
 	selectedPreset,
@@ -48,31 +39,48 @@ const getLabel = ({
 		: `${selectedDates[0].toDateString()} - ${selectedDates[1].toDateString()}`
 }
 
-const RelativeTimePicker = ({
-	initialStartDate,
-	initialEndDate,
-	initialPreset,
+const getPreset = ({
+	selectedDates,
 	presets,
+}: {
+	selectedDates: Date[]
+	presets: Preset[]
+}) => {
+	const startDate = selectedDates[0]
+	const endDate = selectedDates[1]
+
+	let foundPreset: Preset | undefined
+
+	for (const preset of presets) {
+		if (preset.startDate <= startDate && endDate <= preset.endDate) {
+			foundPreset = preset
+			break
+		}
+	}
+
+	return foundPreset
+}
+
+interface Props {
+	presets: Preset[]
+	selectedDates: Date[]
+	onDatesSelected: (selectedDates: Date[]) => void
+}
+
+const RelativeTimePicker = ({
+	presets,
+	selectedDates,
 	onDatesSelected,
 }: Props) => {
 	const [showCustom, setShowCustom] = useState(false)
-	const [selectedDates, setSelectedDates] = useState<Date[]>([
-		initialStartDate ?? initialPreset.startDate,
-		initialEndDate ?? initialPreset.endDate,
-	])
 	const [selectedPreset, setSelectedPreset] = useState<Preset | undefined>(
-		initialStartDate && initialEndDate ? undefined : initialPreset,
+		getPreset({ selectedDates, presets }),
 	)
 
 	const handleDatesChange = (newDates: Date[]) => {
-		setSelectedDates(newDates)
+		onDatesSelected(newDates)
 		if (newDates.length == 2) {
 			setSelectedPreset(undefined)
-
-			onDatesSelected(
-				newDates[0],
-				moment(newDates[1]).endOf('day').toDate(),
-			)
 			setShowCustom(false)
 		}
 	}
@@ -102,8 +110,7 @@ const RelativeTimePicker = ({
 	}
 
 	const handleSelectPreset = (preset: Preset) => {
-		setSelectedPreset(preset)
-		handleDatesChange([preset.startDate, preset.endDate])
+		onDatesSelected([preset.startDate, preset.endDate])
 	}
 
 	return (
