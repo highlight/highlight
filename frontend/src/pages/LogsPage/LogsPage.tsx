@@ -1,6 +1,7 @@
 import { useGetLogsQuery } from '@graph/hooks'
 import { Box } from '@highlight-run/ui'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
+import { PRESETS } from '@pages/LogsPage/SearchForm/DatePicker/RelativeTimePicker/presets'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
@@ -25,8 +26,8 @@ const LogsPage = () => {
 	const innerLogsPageProps: Props = {
 		project_id,
 		initialQuery: '',
-		initialStartDate: undefined,
-		initialEndDate: undefined,
+		initialStartDate: PRESETS.last_15_minutes.startDate,
+		initialEndDate: PRESETS.last_15_minutes.endDate,
 	}
 
 	const query = queryParams.get('query')
@@ -49,8 +50,8 @@ const LogsPage = () => {
 type Props = {
 	project_id: string
 	initialQuery: string
-	initialStartDate: Date | undefined
-	initialEndDate: Date | undefined
+	initialStartDate: Date
+	initialEndDate: Date
 }
 
 const LogsPageInner = ({
@@ -60,10 +61,10 @@ const LogsPageInner = ({
 	initialEndDate,
 }: Props) => {
 	const [query, setQuery] = useState<string>(initialQuery)
-	const [startDate, setStartDate] = useState<Date | undefined>(
+	const [selectedDates, onDatesSelected] = useState<Date[]>([
 		initialStartDate,
-	)
-	const [endDate, setEndDate] = useState<Date | undefined>(initialEndDate)
+		initialEndDate,
+	])
 	const history = useHistory()
 
 	useEffect(() => {
@@ -74,19 +75,19 @@ const LogsPageInner = ({
 			params.delete('query')
 		}
 
-		if (startDate) {
-			params.append('start_date', moment(startDate).format(FORMAT))
+		if (selectedDates[0]) {
+			params.append('start_date', moment(selectedDates[0]).format(FORMAT))
 		} else {
 			params.delete('start_date')
 		}
 
-		if (endDate) {
-			params.append('end_date', moment(endDate).format(FORMAT))
+		if (selectedDates[1]) {
+			params.append('end_date', moment(selectedDates[1]).format(FORMAT))
 		} else {
 			params.delete('end_date')
 		}
 		history.push({ search: params.toString() })
-	}, [query, startDate, endDate, history])
+	}, [query, selectedDates, history])
 
 	const { data, loading } = useGetLogsQuery({
 		variables: {
@@ -94,8 +95,8 @@ const LogsPageInner = ({
 			params: {
 				query,
 				date_range: {
-					start_date: moment(startDate).format(FORMAT),
-					end_date: moment(endDate).format(FORMAT),
+					start_date: moment(selectedDates[0]).format(FORMAT),
+					end_date: moment(selectedDates[1]).format(FORMAT),
 				},
 			},
 		},
@@ -103,11 +104,6 @@ const LogsPageInner = ({
 
 	const handleFormSubmit = (value: string) => {
 		setQuery(value)
-	}
-
-	const handleDatesSelected = (selectedDates: Date[]) => {
-		setStartDate(selectedDates[0])
-		setEndDate(selectedDates[1])
 	}
 
 	return (
@@ -119,10 +115,9 @@ const LogsPageInner = ({
 				<Box background="white" borderRadius="12">
 					<SearchForm
 						initialQuery={query}
-						initialStartDate={startDate}
-						initialEndDate={endDate}
 						onFormSubmit={handleFormSubmit}
-						onDatesSelected={handleDatesSelected}
+						selectedDates={selectedDates}
+						onDatesSelected={onDatesSelected}
 					/>
 					<LogsTable data={data} loading={loading} query={query} />
 				</Box>

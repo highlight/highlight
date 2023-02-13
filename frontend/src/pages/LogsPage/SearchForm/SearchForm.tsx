@@ -1,24 +1,28 @@
 import { Box, Form, Stack } from '@highlight-run/ui'
-import { PRESETS } from '@pages/LogsPage/SearchForm/DatePicker/RelativeTimePicker/presets'
+import {
+	Preset,
+	PRESETS,
+} from '@pages/LogsPage/SearchForm/DatePicker/RelativeTimePicker/presets'
 import { RelativeTimePicker } from '@pages/LogsPage/SearchForm/DatePicker/RelativeTimePicker/RelativeTimePicker'
 import React, { useState } from 'react'
 
 type Props = {
 	onFormSubmit: (query: string) => void
 	onDatesSelected: (selectedDates: Date[]) => void
+	selectedDates: Date[]
 	initialQuery: string
-	initialStartDate: Date | undefined
-	initialEndDate: Date | undefined
 }
 
 const SearchForm = ({
 	initialQuery,
-	initialStartDate,
-	initialEndDate,
+	selectedDates,
 	onDatesSelected,
 	onFormSubmit,
 }: Props) => {
 	const [query, setQuery] = useState(initialQuery)
+	const [selectedPreset, setSelectedPreset] = useState<Preset | undefined>(
+		PRESETS.last_4_hours,
+	)
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
@@ -29,10 +33,6 @@ const SearchForm = ({
 		setQuery(event.target.value)
 	}
 
-	const selectedDates = [
-		initialStartDate ?? PRESETS.last_15_minutes.startDate,
-		initialEndDate ?? PRESETS.last_15_minutes.endDate,
-	]
 	return (
 		<form onSubmit={handleSubmit}>
 			<Stack direction="row" align="center">
@@ -46,6 +46,8 @@ const SearchForm = ({
 				</Box>
 				<RelativeTimePicker
 					selectedDates={selectedDates}
+					selectedPreset={selectedPreset}
+					onPresetSelected={setSelectedPreset}
 					presets={[
 						PRESETS.last_15_minutes,
 						PRESETS.last_60_minutes,

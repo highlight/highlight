@@ -39,48 +39,27 @@ const getLabel = ({
 		: `${selectedDates[0].toDateString()} - ${selectedDates[1].toDateString()}`
 }
 
-const getPreset = ({
-	selectedDates,
-	presets,
-}: {
-	selectedDates: Date[]
-	presets: Preset[]
-}) => {
-	const startDate = selectedDates[0]
-	const endDate = selectedDates[1]
-
-	let foundPreset: Preset | undefined
-
-	for (const preset of presets) {
-		if (preset.startDate <= startDate && endDate <= preset.endDate) {
-			foundPreset = preset
-			break
-		}
-	}
-
-	return foundPreset
-}
-
 interface Props {
 	presets: Preset[]
+	selectedPreset: Preset | undefined
+	onPresetSelected: (preset: Preset | undefined) => void
 	selectedDates: Date[]
 	onDatesSelected: (selectedDates: Date[]) => void
 }
 
 const RelativeTimePicker = ({
 	presets,
+	selectedPreset,
+	onPresetSelected,
 	selectedDates,
 	onDatesSelected,
 }: Props) => {
 	const [showCustom, setShowCustom] = useState(false)
-	const [selectedPreset, setSelectedPreset] = useState<Preset | undefined>(
-		getPreset({ selectedDates, presets }),
-	)
 
 	const handleDatesChange = (newDates: Date[]) => {
 		onDatesSelected(newDates)
 		if (newDates.length == 2) {
-			setSelectedPreset(undefined)
+			onPresetSelected(undefined)
 			setShowCustom(false)
 		}
 	}
@@ -110,6 +89,7 @@ const RelativeTimePicker = ({
 	}
 
 	const handleSelectPreset = (preset: Preset) => {
+		onPresetSelected(preset)
 		onDatesSelected([preset.startDate, preset.endDate])
 	}
 
