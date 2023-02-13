@@ -34,9 +34,13 @@ const getLabel = ({
 	selectedPreset?: Preset
 	selectedDates: Date[]
 }) => {
-	return selectedPreset
-		? selectedPreset.label
-		: `${selectedDates[0].toDateString()} - ${selectedDates[1].toDateString()}`
+	if (selectedPreset) {
+		return selectedPreset.label
+	}
+
+	if (selectedDates.length == 2) {
+		return `${selectedDates[0].toDateString()} - ${selectedDates[1].toDateString()}`
+	}
 }
 
 interface Props {

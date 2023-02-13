@@ -6,8 +6,6 @@ import {
 } from '@rehookify/datepicker'
 import { FC, ReactNode } from 'react'
 
-import { getDayClassName } from '../utils'
-
 interface CalendarProps {
 	prevButton?: ReactNode
 	nextButton?: ReactNode
@@ -23,7 +21,7 @@ export const Calendar: FC<CalendarProps> = ({
 	const { days, month, year } = calendar
 
 	return (
-		<section className="w-56 bg-white">
+		<Box backgroundColor="white">
 			<Stack direction="row" align="center">
 				{prevButton || <div />}
 
@@ -34,6 +32,7 @@ export const Calendar: FC<CalendarProps> = ({
 				</Box>
 				{nextButton || <div />}
 			</Stack>
+
 			<div className="grid h-8 grid-cols-7 items-center gap-y-2">
 				{weekDays.map((d) => (
 					<Text align="center" key={d}>
@@ -43,15 +42,11 @@ export const Calendar: FC<CalendarProps> = ({
 			</div>
 			<main className="grid grid-cols-7 gap-y-2">
 				{days.map((d) => (
-					<Day
-						day={d}
-						key={d.$date.toString()}
-						className={getDayClassName('w-8 text-xs', d)}
-					>
+					<Day day={d} key={d.$date.toString()}>
 						<Text align="center">{d.day}</Text>
 					</Day>
 				))}
 			</main>
-		</section>
+		</Box>
 	)
 }
