@@ -103,7 +103,10 @@ export const WorkspaceRouter = () => {
 					) : (
 						<Routes>
 							<Route path="*" element={<WorkspaceTabs />} />
-							<Route path="account" element={<UserSettings />} />
+							<Route
+								path="account/:tab?"
+								element={<UserSettings />}
+							/>
 						</Routes>
 					)}
 				</div>

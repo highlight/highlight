@@ -5,6 +5,10 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
+import {
+	useGetEmailOptOutsQuery,
+	useUpdateEmailOptOutMutation,
+} from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
@@ -15,10 +19,6 @@ import { H } from 'highlight.run'
 import { useEffect } from 'react'
 import { StringParam, useQueryParams } from 'use-query-params'
 
-import {
-	useGetEmailOptOutsQuery,
-	useUpdateEmailOptOutMutation,
-} from '../../graph/generated/hooks'
 import styles from './EmailOptOut.module.scss'
 
 const OptInRow = (

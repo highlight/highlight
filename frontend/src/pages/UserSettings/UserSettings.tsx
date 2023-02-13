@@ -6,7 +6,7 @@ import { auth } from '@util/auth'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { Helmet } from 'react-helmet'
-import { Route, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import commonStyles from '../../Common.module.scss'
 import projectSettingsStyles from '../ProjectSettings/ProjectSettings.module.scss'
@@ -22,11 +22,7 @@ const UserSettings: React.FC = () => {
 					{
 						key: 'auth',
 						title: 'Authentication',
-						panelContent: (
-							<>
-								<Auth />
-							</>
-						),
+						panelContent: <Auth />,
 					},
 			  ]
 			: []),
@@ -43,6 +39,7 @@ const UserSettings: React.FC = () => {
 		],
 	]
 
+	const activeKey = params.tab ?? tabs[0].key
 	return (
 		<>
 			<Helmet>
@@ -55,31 +52,23 @@ const UserSettings: React.FC = () => {
 						<div>
 							<h2>User Settings</h2>
 						</div>
-						<Route
-							path="/:tab?"
-							element={
-								<div
-									className={
-										projectSettingsStyles.tabsContainer
-									}
-								>
-									<Tabs
-										activeKeyOverride={
-											params.tab || 'recording'
-										}
-										onChange={(key) => {
-											navigate(
-												`${location.pathname}/${key}`,
-											)
-										}}
-										noHeaderPadding
-										noPadding
-										id="settingsTabs"
-										tabs={tabs}
-									/>
-								</div>
-							}
-						/>
+						<div className={projectSettingsStyles.tabsContainer}>
+							<Tabs
+								activeKeyOverride={activeKey}
+								onChange={(key) => {
+									navigate(
+										`${location.pathname.replace(
+											'/' + activeKey,
+											'',
+										)}/${key}`,
+									)
+								}}
+								noHeaderPadding
+								noPadding
+								id="settingsTabs"
+								tabs={tabs}
+							/>
+						</div>
 					</LeadAlignLayout>
 				</div>
 			</div>

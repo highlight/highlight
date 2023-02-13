@@ -492,6 +492,8 @@ export const Header = () => {
 										<a
 											href="https://www.highlight.io/docs"
 											className={linkStyle}
+											target="_blank"
+											rel="noreferrer"
 										>
 											<Menu.Item>
 												<Box
