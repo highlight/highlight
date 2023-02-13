@@ -18,7 +18,7 @@ type Props = {
 	fullWidth?: boolean
 	disabled?: boolean
 	type?: ButtonType
-} & Partial<Pick<LinkProps, 'to' | 'onClick'>>
+} & Partial<Pick<LinkProps, 'to' | 'onClick' | 'state'>>
 
 const ButtonLink: React.FC<React.PropsWithChildren<Props>> = ({
 	to,
@@ -32,6 +32,7 @@ const ButtonLink: React.FC<React.PropsWithChildren<Props>> = ({
 	disabled,
 	type,
 	onClick,
+	state,
 }) => {
 	if (disabled) {
 		return (
@@ -91,6 +92,7 @@ const ButtonLink: React.FC<React.PropsWithChildren<Props>> = ({
 				analytics.track(`Link-${trackingId}`)
 				onClick && onClick(e)
 			}}
+			state={state}
 		>
 			{icon}
 			{children}
