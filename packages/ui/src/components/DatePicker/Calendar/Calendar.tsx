@@ -24,7 +24,7 @@ export const Calendar: FC<CalendarProps> = ({
 	const { days, month, year } = calendar
 
 	return (
-		<Box backgroundColor="white">
+		<Box backgroundColor="white" border={'primary'} padding={'10'}>
 			<Stack direction="row" align="center">
 				{prevButton}
 

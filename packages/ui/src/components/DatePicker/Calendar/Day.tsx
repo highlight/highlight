@@ -31,6 +31,40 @@ const getBackgroundColor = (day: CalendarDay) => {
 	return 'inherit'
 }
 
+const getBorderRight = (day: CalendarDay) => {
+	const { range } = day
+
+	if (range == 'will-be-range-end') {
+		return 'secondaryHover'
+	}
+
+	return 'none'
+}
+
+const getBorderLeft = (day: CalendarDay) => {
+	const { range } = day
+
+	if (range == 'will-be-range-start') {
+		return 'secondaryHover'
+	}
+
+	return 'none'
+}
+
+const getBorderTopBottom = (day: CalendarDay) => {
+	const { range } = day
+
+	if (
+		range == 'will-be-in-range' ||
+		range == 'will-be-range-start' ||
+		range == 'will-be-range-end'
+	) {
+		return 'secondaryHover'
+	}
+
+	return 'none'
+}
+
 const getBorderLeftRadius = (day: CalendarDay) => {
 	const { range } = day
 
@@ -72,6 +106,10 @@ const Day = ({ children, day }: Props) => {
 			color={getColor(day)}
 			padding="10"
 			backgroundColor={getBackgroundColor(day)}
+			borderTop={getBorderTopBottom(day)}
+			borderBottom={getBorderTopBottom(day)}
+			borderLeft={getBorderLeft(day)}
+			borderRight={getBorderRight(day)}
 			borderTopLeftRadius={getBorderLeftRadius(day)}
 			borderBottomLeftRadius={getBorderLeftRadius(day)}
 			borderTopRightRadius={getBorderRightRadius(day)}
