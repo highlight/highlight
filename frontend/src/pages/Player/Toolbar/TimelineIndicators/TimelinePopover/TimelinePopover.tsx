@@ -50,7 +50,6 @@ const TimelinePopover = ({ bucket }: Props) => {
 	} = useReplayerContext()
 	const {
 		setShowRightPanel,
-		setShowDevTools,
 		setSelectedDevToolsTab,
 		setSelectedRightPlayerPanelTab,
 	} = usePlayerConfiguration()
