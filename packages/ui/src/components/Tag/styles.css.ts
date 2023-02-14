@@ -45,7 +45,8 @@ export const variants = recipe({
 		{
 			lineHeight: '1em',
 			width: 'auto',
-			wordBreak: 'break-all',
+			wordBreak: 'break-word',
+			textAlign: 'left',
 		},
 		{
 			selectors: {
