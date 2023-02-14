@@ -4,6 +4,8 @@ import { Box, Text } from '@highlight-run/ui'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { useEffect, useRef, useState } from 'react'
 
+import * as style from './style.css'
+
 interface Props {
 	errorGroup?: Maybe<Omit<ErrorGroup, 'metadata_log'>>
 }
@@ -23,15 +25,23 @@ const ErrorBodyText = ({ errorGroup }: Props) => {
 	}, [body])
 
 	return (
-		<>
-			<Text
-				family="monospace"
-				lines={truncated ? '3' : undefined}
-				ref={bodyRef}
-				break="word"
+		<Box display="flex" flexDirection="column" gap="8">
+			<Box
+				py="8"
+				cssClass={[style.errorBodyContainer]}
+				overflowY="scroll"
+				overflowX="auto"
 			>
-				{body}
-			</Text>
+				<Text
+					family="monospace"
+					lines={truncated ? '3' : undefined}
+					ref={bodyRef}
+					size="xSmall"
+					color="moderate"
+				>
+					{body}
+				</Text>
+			</Box>
 
 			{truncateable && (
 				<Box display="flex">
@@ -46,7 +56,7 @@ const ErrorBodyText = ({ errorGroup }: Props) => {
 					</Button>
 				</Box>
 			)}
-		</>
+		</Box>
 	)
 }
 
