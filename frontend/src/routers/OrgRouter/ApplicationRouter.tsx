@@ -44,7 +44,10 @@ const ApplicationRouter = ({ integrated }: Props) => {
 					{isHighlightAdmin && (
 						<Route path="logs/*" element={<LogsPage />} />
 					)}
-					<Route path="settings/*" element={<ProjectSettings />} />
+					<Route
+						path="settings/:tab?"
+						element={<ProjectSettings />}
+					/>
 					<Route path="alerts/*" element={<AlertsRouter />} />
 
 					<Route
