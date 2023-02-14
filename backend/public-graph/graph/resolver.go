@@ -1124,6 +1124,29 @@ func (r *Resolver) getExistingSession(projectID int, secureID string) (*model.Se
 	return nil, nil
 }
 
+func (r *Resolver) IndexSessionOpensearch(ctx context.Context, session *model.Session) error {
+	osSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.OSIndex"))
+	defer osSpan.Finish()
+	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
+		return e.Wrap(err, "error indexing new session in opensearch")
+	}
+
+	sessionProperties := map[string]string{
+		"os_name":         session.OSName,
+		"os_version":      session.OSVersion,
+		"browser_name":    session.BrowserName,
+		"browser_version": session.BrowserVersion,
+		"environment":     session.Environment,
+		"device_id":       strconv.Itoa(session.Fingerprint),
+		"city":            session.City,
+		"country":         session.Country,
+	}
+	if err := r.AppendProperties(ctx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
+		log.Error(e.Wrap(err, "error adding set of properties to db"))
+	}
+	return nil
+}
+
 func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue.InitializeSessionArgs) (*model.Session, error) {
 	initSpan, initCtx := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl",
 		tracer.ResourceName("go.sessions.InitializeSessionImpl"),
@@ -1151,6 +1174,9 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		return nil, err
 	}
 	if existingSession != nil {
+		if err := r.IndexSessionOpensearch(initCtx, existingSession); err != nil {
+			return nil, err
+		}
 		return existingSession, nil
 	}
 	initSpan.SetTag("duplicate", false)
@@ -1286,25 +1312,9 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		log.Errorf("failed to count sessions metric for %s: %s", session.SecureID, err)
 	}
 
-	osSpan, _ := tracer.StartSpanFromContext(initCtx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.OSIndex"))
-	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
-		return nil, e.Wrap(err, "error indexing new session in opensearch")
+	if err := r.IndexSessionOpensearch(initCtx, existingSession); err != nil {
+		return nil, err
 	}
-
-	sessionProperties := map[string]string{
-		"os_name":         session.OSName,
-		"os_version":      session.OSVersion,
-		"browser_name":    session.BrowserName,
-		"browser_version": session.BrowserVersion,
-		"environment":     session.Environment,
-		"device_id":       strconv.Itoa(session.Fingerprint),
-		"city":            session.City,
-		"country":         session.Country,
-	}
-	if err := r.AppendProperties(initCtx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
-		log.Error(e.Wrap(err, "error adding set of properties to db"))
-	}
-	osSpan.Finish()
 
 	if len(input.NetworkRecordingDomains) > 0 {
 		project.BackendDomains = input.NetworkRecordingDomains
