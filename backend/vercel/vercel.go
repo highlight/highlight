@@ -221,13 +221,16 @@ func GetProjects(accessToken string, teamId *string) ([]*model.VercelProject, er
 	return projects, nil
 }
 
-func CreateLogDrain(vercelProjectID string, projectVerboseID string, name string, accessToken string) error {
+func CreateLogDrain(vercelTeamID *string, vercelProjectID string, projectVerboseID string, name string, accessToken string) error {
 	client := &http.Client{}
 
 	headers := fmt.Sprintf(`{"%s":"%s"}`, VercelLogDrainProjectHeader, projectVerboseID)
 	projectIds := fmt.Sprintf(`["%s"]`, vercelProjectID)
-	u := fmt.Sprintf("%s/v2/integrations/log-drains?teamId=%s", VercelApiBaseUrl, vercelProjectID)
 	body := fmt.Sprintf(`{"url":"https://pub.highlight.run/vercel/v1/logs","name":"%s","headers":%s,"projectIds":%s,"deliveryFormat":"ndjson"}`, name, headers, projectIds)
+	u := fmt.Sprintf("%s/v2/integrations/log-drains", VercelApiBaseUrl)
+	if vercelTeamID != nil {
+		u = fmt.Sprintf("%s?teamId=%s", u, *vercelTeamID)
+	}
 	req, err := http.NewRequest("POST", u, strings.NewReader(body))
 	if err != nil {
 		return errors.Wrap(err, "error creating api request to Vercel")
@@ -243,10 +246,8 @@ func CreateLogDrain(vercelProjectID string, projectVerboseID string, name string
 	b, err := io.ReadAll(res.Body)
 
 	if res.StatusCode != 200 {
-		log.WithField("Status", res.Status).
-			WithField("Body", string(b)).
+		log.WithField("Body", string(b)).
 			WithField("Url", u).
-			WithField("Token", accessToken).
 			Errorf("Vercel Log Drain API responded with error")
 		return errors.New("Vercel Log Drain API responded with error; status_code=" + res.Status + "; body=" + string(b))
 	}

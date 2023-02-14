@@ -3263,7 +3263,7 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 			return false, err
 		}
 
-		if err := vercel.CreateLogDrain(m.VercelProjectID, project.VerboseID(), "highlight-log-drain", *workspace.VercelAccessToken); err != nil {
+		if err := vercel.CreateLogDrain(workspace.VercelTeamID, m.VercelProjectID, project.VerboseID(), "highlight-log-drain", *workspace.VercelAccessToken); err != nil {
 			return false, err
 		}
 
