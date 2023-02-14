@@ -96,6 +96,22 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	return logLines, rows.Err()
 }
 
+func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
+	whereClause := buildWhereClause(projectID, params)
+
+	query := fmt.Sprintf(`SELECT COUNT(*) FROM %s %s`, LogsTable, whereClause)
+
+	log.Info(query)
+
+	var count uint64
+	err := client.conn.QueryRow(
+		ctx,
+		query,
+	).Scan(&count)
+
+	return count, err
+}
+
 func makeSeverityText(severityText string) modelInputs.SeverityText {
 	switch strings.ToLower(severityText) {
 	case "trace":

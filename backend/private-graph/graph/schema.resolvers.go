@@ -6849,6 +6849,18 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params)
 }
 
+// LogsTotalCount is the resolver for the logs_total_count field.
+func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (string, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return "0", e.Wrap(err, "error querying project")
+	}
+
+	count, err := r.ClickhouseClient.ReadLogsTotalCount(ctx, project.ID, params)
+
+	return fmt.Sprint(count), err
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
