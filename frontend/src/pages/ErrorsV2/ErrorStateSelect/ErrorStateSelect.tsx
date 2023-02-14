@@ -17,7 +17,7 @@ import { delayedRefetch } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
 import { DatePicker, message } from 'antd'
 import moment from 'moment'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useHistory } from 'react-router-dom'
 
@@ -52,7 +52,6 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
 	)
-	const [errorState, setErrorState] = useState<ErrorState>(initialErrorState)
 
 	const { error_secure_id } = useParams<{ error_secure_id: string }>()
 	const [updateErrorGroupState] = useUpdateErrorGroupStateMutation({
@@ -78,28 +77,30 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				return
 			}
 
-			const currentErrorState = errorState
 			showStateUpdateMessage(newState, newSnoozedUntil)
 			setMenuState(MenuState.Default)
-			setErrorState(newState)
 
-			const response = await updateErrorGroupState({
+			await updateErrorGroupState({
 				variables: {
 					secure_id: error_secure_id,
 					state: newState,
 					snoozed_until: newSnoozedUntil,
+				},
+				optimisticResponse: {
+					updateErrorGroupState: {
+						secure_id: error_secure_id,
+						state: newState,
+						snoozed_until: newSnoozedUntil,
+						__typename: 'ErrorGroup',
+					},
 				},
 				onError: async () => {
 					message.destroy(MESSAGE_KEY)
 					message.error(
 						'There was an issue updating the state of this error. Please try again.',
 					)
-					setMenuState(MenuState.Default)
-					setErrorState(currentErrorState)
 				},
 			})
-
-			console.log('::: response', response)
 		},
 		[error_secure_id, initialErrorState, snoozed, updateErrorGroupState],
 	)
@@ -181,7 +182,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				iconRight={<IconSolidCheveronDown />}
 			>
 				<Text case="capital">
-					{errorState.toLowerCase()}{' '}
+					{initialErrorState.toLowerCase()}{' '}
 					{snoozed && (
 						<span style={{ textTransform: 'none' }}>
 							(Snoozed until{' '}
