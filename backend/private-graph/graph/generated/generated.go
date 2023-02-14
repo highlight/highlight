@@ -1302,7 +1302,7 @@ type QueryResolver interface {
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
 	Logs(ctx context.Context, projectID int, params model.LogsParamsInput) ([]*model.LogLine, error)
-	LogsTotalCount(ctx context.Context, projectID int, params model.LogsParamsInput) (string, error)
+	LogsTotalCount(ctx context.Context, projectID int, params model.LogsParamsInput) (uint64, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -40830,9 +40830,9 @@ func (ec *executionContext) _Query_logs_total_count(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(uint64)
 	fc.Result = res
-	return ec.marshalNUInt642string(ctx, field.Selections, res)
+	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_logs_total_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -66115,13 +66115,13 @@ func (ec *executionContext) unmarshalNTrackPropertyInput2ᚖgithubᚗcomᚋhighl
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUInt642string(ctx context.Context, v interface{}) (string, error) {
-	res, err := graphql.UnmarshalString(v)
+func (ec *executionContext) unmarshalNUInt642uint64(ctx context.Context, v interface{}) (uint64, error) {
+	res, err := graphql.UnmarshalUint64(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNUInt642string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalString(v)
+func (ec *executionContext) marshalNUInt642uint64(ctx context.Context, sel ast.SelectionSet, v uint64) graphql.Marshaler {
+	res := graphql.MarshalUint64(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
