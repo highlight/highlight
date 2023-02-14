@@ -1,6 +1,6 @@
 import contextlib
+import functools
 import logging
-import time
 import typing
 
 from opentelemetry import trace, _logs

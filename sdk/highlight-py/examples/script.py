@@ -4,7 +4,7 @@ import time
 
 import highlight_io
 
-H = highlight_io.H("TODO-PROJECT-ID", record_logs=True)
+H = highlight_io.H("1", record_logs=True)
 
 
 def main():
