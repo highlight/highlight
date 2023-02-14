@@ -4,6 +4,8 @@ import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import {
 	useGetErrorGroupQuery,
+	useMarkErrorGroupAsViewedMutation,
+	useMarkSessionAsViewedMutation,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
 import {
@@ -47,6 +49,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 	const { isLoggedIn } = useAuthContext()
 	const { searchResultSecureIds } = useErrorSearchContext()
 	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
+	const [markErrorGroupAsViewed] = useMarkErrorGroupAsViewedMutation()
 
 	const currentSearchResultIndex = searchResultSecureIds.findIndex(
 		(secureId) => secureId === error_secure_id,
@@ -67,6 +70,14 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 		variables: { secure_id: error_secure_id! },
 		skip: !error_secure_id,
 		onCompleted: () => {
+			if (error_secure_id) {
+				markErrorGroupAsViewed({
+					variables: {
+						error_secure_id,
+						viewed: true,
+					},
+				}).catch(console.error)
+			}
 			analytics.track('Viewed error', { is_guest: !isLoggedIn })
 		},
 	})

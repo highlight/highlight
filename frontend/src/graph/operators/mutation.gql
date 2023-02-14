@@ -1,3 +1,10 @@
+mutation MarkErrorGroupAsViewed($error_secure_id: String!, $viewed: Boolean!) {
+	markErrorGroupAsViewed(error_secure_id: $error_secure_id, viewed: $viewed) {
+		secure_id
+		viewed
+	}
+}
+
 mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
 	markSessionAsViewed(secure_id: $secure_id, viewed: $viewed) {
 		secure_id
