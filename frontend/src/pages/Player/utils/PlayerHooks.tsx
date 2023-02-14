@@ -15,7 +15,7 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { ReplayerState, useReplayerContext } from '../ReplayerContext'
 
@@ -74,7 +74,7 @@ export const usePlayerKeyboardShortcuts = () => {
 		session_secure_id: string
 		project_id: string
 	}>()
-	const history = useHistory()
+	const navigate = useNavigate()
 	message.config({
 		maxCount: 1,
 		rtl: false,
@@ -193,7 +193,7 @@ export const usePlayerKeyboardShortcuts = () => {
 	useHotkeys(
 		'shift+n',
 		(e) => {
-			if (sessionResults.sessions.length > 0 && session_secure_id) {
+			if (sessionResults.sessions.length > 0 && !!session_secure_id) {
 				analytics.track('PlayerSkipToNextSessionKeyboardShortcut')
 				moveFocusToDocument(e)
 
@@ -202,8 +202,8 @@ export const usePlayerKeyboardShortcuts = () => {
 					session_secure_id,
 				)
 				changeSession(
-					project_id,
-					history,
+					project_id!,
+					navigate,
 					nextSession,
 					'Playing the next session.',
 				)
@@ -215,7 +215,7 @@ export const usePlayerKeyboardShortcuts = () => {
 	useHotkeys(
 		'shift+p',
 		(e) => {
-			if (sessionResults.sessions.length > 0 && session_secure_id) {
+			if (sessionResults.sessions.length > 0 && !!session_secure_id) {
 				analytics.track('PlayerSkipToPreviousSessionKeyboardShortcut')
 				moveFocusToDocument(e)
 
@@ -224,8 +224,8 @@ export const usePlayerKeyboardShortcuts = () => {
 					session_secure_id,
 				)
 				changeSession(
-					project_id,
-					history,
+					project_id!,
+					navigate,
 					nextSession,
 					'Playing the previous session.',
 				)

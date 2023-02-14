@@ -31,7 +31,7 @@ import { delayedRefetch } from '@util/gql'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { Menu, message } from 'antd'
 import React, { PropsWithChildren, useMemo, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 interface Props {
 	comment: ParsedSessionComment
@@ -60,7 +60,7 @@ const SessionCommentHeader = ({
 		],
 		onQueryUpdated: delayedRefetch,
 	})
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const { isLinearIntegratedWithProject, loading: isLoadingLinear } =
 		useLinearIntegration()
@@ -123,9 +123,9 @@ const SessionCommentHeader = ({
 		const urlSearchParams = new URLSearchParams()
 		urlSearchParams.append(PlayerSearchParameters.commentId, comment?.id)
 
-		history.replace(
-			`${history.location.pathname}?${urlSearchParams.toString()}`,
-		)
+		navigate(`${location.pathname}?${urlSearchParams.toString()}`, {
+			replace: true,
+		})
 
 		let commentTimestamp = comment.timestamp || 0
 

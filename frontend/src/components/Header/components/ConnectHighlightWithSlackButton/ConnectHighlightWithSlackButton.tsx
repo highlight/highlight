@@ -1,4 +1,4 @@
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import { useAuthContext } from '../../../../authentication/AuthContext'
@@ -19,10 +19,7 @@ const ConnectHighlightWithSlackButton = ({ className, style }: Props) => {
 
 	return (
 		<Button
-			className={classNames(
-				className,
-				styles.connectHighlightWithSlackButton,
-			)}
+			className={clsx(className, styles.connectHighlightWithSlackButton)}
 			type="primary"
 			trackingId="ConnectHighlightWithSlackButton"
 			href={slackBotUrl}

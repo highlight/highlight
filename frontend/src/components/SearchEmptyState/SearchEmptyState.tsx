@@ -1,5 +1,5 @@
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { ReactNode } from 'react'
 
 import { ReactComponent as EmptyState } from '../../static/empty-state.svg'
@@ -24,7 +24,7 @@ export const SearchEmptyState = ({
 	customTitle,
 	className,
 }: Props) => (
-	<div className={classNames(styles.newFeedStyles, className)}>
+	<div className={clsx(styles.newFeedStyles, className)}>
 		<div className={emptyStateWrapper}>
 			<div style={{ marginRight: 80 }} className={emptyStateSection}>
 				<EmptyState preserveAspectRatio="xMinYMin" />

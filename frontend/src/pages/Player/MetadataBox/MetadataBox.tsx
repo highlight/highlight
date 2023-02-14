@@ -48,7 +48,8 @@ export const MetadataBox = React.memo(() => {
 	const [enhancedAvatar, setEnhancedAvatar] = React.useState<string>()
 
 	const { data, loading } = useGetEnhancedUserDetailsQuery({
-		variables: { session_secure_id },
+		variables: { session_secure_id: session_secure_id! },
+		skip: !session_secure_id,
 		fetchPolicy: 'no-cache',
 		onError: () => {
 			setEnhancedAvatar(undefined)

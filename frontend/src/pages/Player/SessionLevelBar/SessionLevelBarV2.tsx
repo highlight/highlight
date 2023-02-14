@@ -31,7 +31,7 @@ import { message } from 'antd'
 import { delay } from 'lodash'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import SessionShareButtonV2 from '../SessionShareButton/SessionShareButtonV2'
 import * as styles from './SessionLevelBarV2.css'
@@ -43,7 +43,7 @@ export const SessionLevelBarV2: React.FC<
 > = (props) => {
 	const [copyShown, setCopyShown] = useState<boolean>(false)
 	const delayRef = useRef<number>()
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { projectId: project_id } = useProjectId()
 	const { session_secure_id } = useParams<{
 		session_secure_id: string
@@ -66,10 +66,11 @@ export const SessionLevelBarV2: React.FC<
 			query,
 			count: DEFAULT_PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
-			project_id,
+			project_id: project_id!,
 			sort_desc: true,
 		},
 		fetchPolicy: 'cache-first',
+		skip: !project_id,
 	})
 
 	const sessionIdx = sessionResults.sessions.findIndex(
@@ -96,17 +97,17 @@ export const SessionLevelBarV2: React.FC<
 		setSessionResults,
 	])
 
-	const canMoveForward = sessionResults.sessions[next]
-	const canMoveBackward = sessionResults.sessions[prev]
+	const canMoveForward = !!project_id && sessionResults.sessions[next]
+	const canMoveBackward = !!project_id && sessionResults.sessions[prev]
 
 	useHotkeys(
 		'j',
 		() => {
-			if (canMoveForward) {
+			if (canMoveForward && project_id) {
 				analytics.track('NextSessionKeyboardShortcut')
 				changeSession(
 					project_id,
-					history,
+					navigate,
 					sessionResults.sessions[next],
 				)
 			}
@@ -117,11 +118,11 @@ export const SessionLevelBarV2: React.FC<
 	useHotkeys(
 		'k',
 		() => {
-			if (canMoveBackward) {
+			if (canMoveBackward && project_id) {
 				analytics.track('PrevSessionKeyboardShortcut')
 				changeSession(
 					project_id,
-					history,
+					navigate,
 					sessionResults.sessions[prev],
 				)
 			}
@@ -161,19 +162,23 @@ export const SessionLevelBarV2: React.FC<
 					)}
 					<PreviousNextGroup
 						onPrev={() => {
-							changeSession(
-								project_id,
-								history,
-								sessionResults.sessions[prev],
-							)
+							if (project_id) {
+								changeSession(
+									project_id,
+									navigate,
+									sessionResults.sessions[prev],
+								)
+							}
 						}}
 						canMoveBackward={!!canMoveBackward}
 						onNext={() => {
-							changeSession(
-								project_id,
-								history,
-								sessionResults.sessions[next],
-							)
+							if (project_id) {
+								changeSession(
+									project_id,
+									navigate,
+									sessionResults.sessions[next],
+								)
+							}
 						}}
 						canMoveForward={!!canMoveForward}
 					/>

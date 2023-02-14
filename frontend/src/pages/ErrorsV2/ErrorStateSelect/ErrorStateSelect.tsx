@@ -19,7 +19,7 @@ import { DatePicker, message } from 'antd'
 import moment from 'moment'
 import React, { useCallback, useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useHistory } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import * as styles from './style.css'
 
@@ -72,7 +72,8 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 			if (
 				initialErrorState === newState &&
 				!snoozed &&
-				!newSnoozedUntil
+				!newSnoozedUntil &&
+				!error_secure_id
 			) {
 				return
 			}
@@ -82,7 +83,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 
 			await updateErrorGroupState({
 				variables: {
-					secure_id: error_secure_id,
+					secure_id: error_secure_id!,
 					state: newState,
 					snoozed_until: newSnoozedUntil,
 				},
@@ -105,7 +106,9 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 		[error_secure_id, initialErrorState, snoozed, updateErrorGroupState],
 	)
 
-	const history = useHistory()
+	const navigate = useNavigate()
+	const location = useLocation()
+
 	const snoozeMenuItems = () => [
 		{
 			title: '1 Hour',
@@ -143,10 +146,9 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 							location.search,
 						)
 						searchParams.delete('action')
-						history.replace(
-							`${
-								history.location.pathname
-							}?${searchParams.toString()}`,
+						navigate(
+							`${location.pathname}?${searchParams.toString()}`,
+							{ replace: true },
 						)
 					})
 				}

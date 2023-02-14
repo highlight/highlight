@@ -11,7 +11,7 @@ import { useCallback } from 'react'
 export const useFrontIntegration = () => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data, loading } = useGetWorkspaceIsIntegratedWithFrontQuery({
-		variables: { project_id: project_id },
+		variables: { project_id: project_id! },
 		skip: !project_id,
 	})
 
@@ -27,7 +27,7 @@ export const useFrontIntegration = () => {
 				variables: {
 					integration_type: IntegrationType.Front,
 					code: code,
-					project_id: projectId || project_id,
+					project_id: projectId || project_id!,
 				},
 			}),
 		[project_id, addIntegrationToProject],
@@ -45,7 +45,7 @@ export const useFrontIntegration = () => {
 			removeIntegrationFromProject({
 				variables: {
 					integration_type: IntegrationType.Front,
-					project_id: projectId || project_id,
+					project_id: projectId || project_id!,
 				},
 			}),
 		[project_id, removeIntegrationFromProject],

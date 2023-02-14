@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import CategoricalBarChart from '@components/CategoricalBarChart/CategoricalBarChar'
 import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
 import { useGetErrorGroupFrequenciesQuery } from '@graph/hooks'
@@ -36,7 +35,6 @@ const LINE_COLORS = {
 }
 
 const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
-	const { isHighlightAdmin } = useAuthContext()
 	const [errorFrequencyData, setErrorFrequencyData] = useState<
 		FrequencyDataPoint[]
 	>([])
@@ -157,7 +155,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 
 	useEffect(() => {
 		resetTimeRange()
-		return resetTimeRange
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	return (

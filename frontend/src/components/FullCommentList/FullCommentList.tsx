@@ -1,7 +1,7 @@
 import ConnectHighlightWithSlackButton from '@components/Header/components/ConnectHighlightWithSlackButton/ConnectHighlightWithSlackButton'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LoadingBox from '@components/LoadingBox'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 import { styledVerticalScrollbar } from 'style/common.css'
@@ -46,7 +46,7 @@ const FullCommentList = ({
 						itemContent={(index, comment: any) => (
 							<div
 								key={comment.id || index}
-								className={classNames(styles.comment, {
+								className={clsx(styles.comment, {
 									[styles.firstComment]: index === 0,
 								})}
 							>

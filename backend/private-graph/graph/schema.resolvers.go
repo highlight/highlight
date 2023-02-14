@@ -3262,6 +3262,11 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 			workspace.VercelTeamID, projectEnvId, vercel.ProjectIdEnvVar); err != nil {
 			return false, err
 		}
+
+		if err := vercel.CreateLogDrain(workspace.VercelTeamID, m.VercelProjectID, project.VerboseID(), "highlight-log-drain", *workspace.VercelAccessToken); err != nil {
+			return false, err
+		}
+
 		configs = append(configs, &model.VercelIntegrationConfig{
 			WorkspaceID:     workspaceId,
 			VercelProjectID: m.VercelProjectID,
@@ -6842,6 +6847,16 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 	}
 
 	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params)
+}
+
+// LogsTotalCount is the resolver for the logs_total_count field.
+func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return 0, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.ReadLogsTotalCount(ctx, project.ID, params)
 }
 
 // Params is the resolver for the params field.

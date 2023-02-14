@@ -1,5 +1,5 @@
 import { Button as AntDesignButton, ButtonProps } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './PillButton.module.scss'
@@ -11,7 +11,7 @@ const PillButton = ({
 	return (
 		<AntDesignButton
 			{...props}
-			className={classNames(props.className, styles.buttonBase)}
+			className={clsx(props.className, styles.buttonBase)}
 		>
 			{children}
 		</AntDesignButton>

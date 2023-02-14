@@ -8,7 +8,7 @@ import {
 	getMetricValueScore,
 	MetricValueScore,
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import moment from 'moment'
 import React, { useCallback, useEffect, useState } from 'react'
 import {
@@ -294,7 +294,7 @@ export const CustomTooltip = ({
 	return (
 		<>
 			<p
-				className={classNames(
+				className={clsx(
 					'mb-0 flex max-h-48 flex-col items-center gap-x-4 overflow-y-scroll whitespace-nowrap',
 					styles.text,
 				)}
@@ -387,7 +387,7 @@ export const CustomLegend = ({
 						className="flex items-center gap-x-1 overflow-hidden p-0 text-xs text-gray-500"
 					>
 						<div
-							className={classNames(styles.legendIcon, {
+							className={clsx(styles.legendIcon, {
 								[styles.notShowing]: !dataTypesToShow.includes(
 									entry.value,
 								),
@@ -397,7 +397,7 @@ export const CustomLegend = ({
 							}}
 						></div>
 						<span
-							className={classNames(styles.legendValue, {
+							className={clsx(styles.legendValue, {
 								[styles.notShowing]: !dataTypesToShow.includes(
 									entry.value,
 								),

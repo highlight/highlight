@@ -21,6 +21,7 @@ export type Scalars = {
 	Map: any
 	StringArray: string[]
 	Timestamp: string
+	UInt64: any
 	Upload: any
 }
 
@@ -1406,6 +1407,7 @@ export type Query = {
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	logs: Array<LogLine>
+	logs_total_count: Scalars['UInt64']
 	messages?: Maybe<Array<Maybe<Scalars['Any']>>>
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
@@ -1731,6 +1733,11 @@ export type QueryLiveUsersCountArgs = {
 }
 
 export type QueryLogsArgs = {
+	params: LogsParamsInput
+	project_id: Scalars['ID']
+}
+
+export type QueryLogs_Total_CountArgs = {
 	params: LogsParamsInput
 	project_id: Scalars['ID']
 }

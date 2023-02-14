@@ -46,7 +46,7 @@ const SearchPanel = () => {
 			query: backendSearchQuery?.searchQuery || '',
 			count: PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
-			project_id: projectId,
+			project_id: projectId!,
 		},
 		onError: () => {
 			setSearchResultsLoading(false)
@@ -61,7 +61,7 @@ const SearchPanel = () => {
 				results.error_groups.map((eg) => eg.secure_id),
 			)
 		},
-		skip: !backendSearchQuery,
+		skip: !backendSearchQuery || !projectId,
 		fetchPolicy: useCachedErrors ? 'cache-first' : 'no-cache',
 	})
 

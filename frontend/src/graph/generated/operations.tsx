@@ -3911,6 +3911,16 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetLogsTotalCountQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.LogsParamsInput
+}>
+
+export type GetLogsTotalCountQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'logs_total_count'
+>
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4025,6 +4035,7 @@ export const namedOperations = {
 		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
+		GetLogsTotalCount: 'GetLogsTotalCount' as const,
 	},
 	Mutation: {
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,

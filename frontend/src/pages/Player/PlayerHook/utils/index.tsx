@@ -4,9 +4,9 @@ import { playerMetaData, SessionInterval } from '@highlight-run/rrweb-types'
 import { clamp } from '@util/numbers'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
-import * as H from 'history'
 import { useCallback, useState } from 'react'
 import { useLocation } from 'react-router'
+import { NavigateFunction } from 'react-router-dom'
 
 import { HighlightEvent } from '../../HighlightEvent'
 import {
@@ -595,7 +595,7 @@ export const findPreviousSessionInList = (
 
 export const changeSession = (
 	projectId: string,
-	history: H.History,
+	navigate: NavigateFunction,
 	session: Session | null,
 	successMessageText?: string,
 ) => {
@@ -606,7 +606,7 @@ export const changeSession = (
 		return
 	}
 
-	history.push(`/${projectIdRemapped}/sessions/${session.secure_id}`)
+	navigate(`/${projectIdRemapped}/sessions/${session.secure_id}`)
 	if (successMessageText?.length) {
 		message.success(successMessageText)
 	}

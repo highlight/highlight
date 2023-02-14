@@ -23,22 +23,24 @@ const SourcemapSettings = () => {
 
 	const { data: projectData } = useGetProjectQuery({
 		variables: {
-			id: project_id,
+			id: project_id!,
 		},
+		skip: !project_id,
 	})
 
 	const [getSourcemapFilesQuery, { data, loading }] =
 		useGetSourcemapFilesLazyQuery({
 			variables: {
-				project_id,
+				project_id: project_id!,
 			},
 		})
 
 	const { data: versionsData, loading: versionsLoading } =
 		useGetSourcemapVersionsQuery({
 			variables: {
-				project_id,
+				project_id: project_id!,
 			},
+			skip: !project_id,
 			onCompleted: (data) => {
 				const trimmedVersions = data?.sourcemap_versions?.map((v) =>
 					v.replace(`${project_id}/`, '').replace('/', ''),
@@ -52,7 +54,7 @@ const SourcemapSettings = () => {
 		(versionsData?.sourcemap_versions.length || 0) > 1 && !selectedVersion
 
 	useEffect(() => {
-		if (versionsLoading || needToSelectVersion) {
+		if (versionsLoading || needToSelectVersion || !project_id) {
 			return
 		}
 

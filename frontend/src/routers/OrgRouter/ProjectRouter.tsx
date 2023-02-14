@@ -10,6 +10,7 @@ import {
 } from '@context/AppLoadingContext'
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
 import { ErrorObject } from '@graph/schemas'
+import { useNumericProjectId } from '@hooks/useProjectId'
 import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
 import {
 	PlayerUIContextProvider,
@@ -25,35 +26,34 @@ import WithSessionSearchContext from '@routers/OrgRouter/WithSessionSearchContex
 import { auth } from '@util/auth'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { useParams } from '@util/react-router/useParams'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
-import { Route, Switch } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import commonStyles from '../../Common.module.scss'
 import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble'
-import { ApplicationContextProvider } from './ApplicationContext'
 import ApplicationRouter from './ApplicationRouter'
+import { ApplicationContextProvider } from './context/ApplicationContext'
 
 export const ProjectRouter = () => {
 	const { isLoggedIn } = useAuthContext()
 	const [showKeyboardShortcutsGuide, toggleShowKeyboardShortcutsGuide] =
 		useToggle(false)
 	const [showBanner, toggleShowBanner] = useToggle(false)
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
+
+	const { projectId } = useNumericProjectId()
+
 	const { setLoadingState } = useAppLoadingContext()
 
 	const { data, loading, error } = useGetProjectDropdownOptionsQuery({
-		variables: { project_id },
-		skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
+		variables: { project_id: projectId! },
+		skip: !isLoggedIn || !projectId, // Higher level routers decide when guests are allowed to hit this router
 	})
 
 	const { integrated, loading: integratedLoading } = useIntegrated()
 	const [hasFinishedOnboarding] = useLocalStorage(
-		`highlight-finished-onboarding-${project_id}`,
+		`highlight-finished-onboarding-${projectId}`,
 		false,
 	)
 
@@ -62,23 +62,26 @@ export const ProjectRouter = () => {
 			import.meta.env.REACT_APP_PRIVATE_GRAPH_URI ??
 			window.location.origin + '/private'
 		let intervalId: NodeJS.Timeout
+
 		auth.currentUser?.getIdToken().then((t) => {
 			const fetchToken = () => {
-				fetch(`${uri}/project-token/${project_id}`, {
+				fetch(`${uri}/project-token/${projectId}`, {
 					credentials: 'include',
 					headers: {
 						token: t,
 					},
 				})
 			}
-			// Fetch a new token now and every 30 mins
-			fetchToken()
+			if (projectId) {
+				// Fetch a new token now and every 30 mins
+				fetchToken()
+			}
 			intervalId = setInterval(fetchToken, 30 * 60 * 1000)
 		})
 		return () => {
 			clearInterval(intervalId)
 		}
-	}, [project_id])
+	}, [projectId])
 
 	useEffect(() => {
 		if (data?.workspace?.id) {
@@ -124,7 +127,7 @@ export const ProjectRouter = () => {
 
 	// if the user can join this workspace, give them that option via the ErrorState
 	const joinableWorkspace = data?.joinable_workspaces
-		?.filter((w) => w?.projects.map((p) => p?.id).includes(project_id))
+		?.filter((w) => w?.projects.map((p) => p?.id).includes(projectId))
 		?.pop()
 
 	const [rightPanelView, setRightPanelView] = useState<RightPanelView>(
@@ -181,67 +184,75 @@ export const ProjectRouter = () => {
 		>
 			<ApplicationContextProvider
 				value={{
-					currentProject: data?.project || undefined,
-					allProjects: data?.workspace?.projects || [],
-					currentWorkspace: data?.workspace || undefined,
-					workspaces: data?.workspaces || [],
+					currentProject: data?.project ?? undefined,
+					allProjects: data?.workspace?.projects ?? [],
+					currentWorkspace: data?.workspace ?? undefined,
+					workspaces: data?.workspaces ?? [],
 				}}
 			>
 				<PlayerUIContextProvider value={playerUIContext}>
 					<WithSessionSearchContext>
 						<WithErrorSearchContext>
-							<Switch>
-								<Route path="/:project_id/front" exact>
-									<FrontPlugin />
-								</Route>
-								<Route>
-									<Header />
-									<KeyboardShortcutsEducation />
-									<div
-										className={classNames(
-											commonStyles.bodyWrapper,
-											{
-												[commonStyles.bannerShown]:
-													showBanner,
-											},
-										)}
-									>
-										{/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
-										{isLoggedIn && joinableWorkspace ? (
-											<ErrorState
-												shownWithHeader
-												joinableWorkspace={
-													joinableWorkspace
-												}
-											/>
-										) : isLoggedIn &&
-										  (error || !data?.project) ? (
-											<ErrorState
-												title="Enter this Workspace?"
-												message={`
-                        Sadly, you don’t have access to the workspace 😢
-                        Request access and we'll shoot an email to your workspace admin.
-                        Alternatively, feel free to make an account!
-                        `}
-												shownWithHeader
-												showRequestAccess
-											/>
-										) : (
-											<>
+							<Routes>
+								<Route
+									path="/front"
+									element={<FrontPlugin />}
+								/>
+								<Route
+									path=":project_id/*"
+									element={
+										<>
+											<Header />
+											<KeyboardShortcutsEducation />
+											<div
+												className={clsx(
+													commonStyles.bodyWrapper,
+													{
+														[commonStyles.bannerShown]:
+															showBanner,
+													},
+												)}
+											>
+												{/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
 												{isLoggedIn &&
-													!hasFinishedOnboarding && (
-														<>
-															<OnboardingBubble />
-														</>
-													)}
-												<ApplicationRouter
-													integrated={integrated}
-												/>
-											</>
-										)}
-									</div>
-								</Route>
-							</Switch>
+												joinableWorkspace ? (
+													<ErrorState
+														shownWithHeader
+														joinableWorkspace={
+															joinableWorkspace
+														}
+													/>
+												) : isLoggedIn &&
+												  (error || !data?.project) ? (
+													<ErrorState
+														title="Enter this Workspace?"
+														message={
+															`Sadly, you don’t have access to the workspace 😢 ` +
+															`Request access and we'll shoot an email to your workspace admin. ` +
+															`Alternatively, feel free to make an account!`
+														}
+														shownWithHeader
+														showRequestAccess
+													/>
+												) : (
+													<>
+														{isLoggedIn &&
+															!hasFinishedOnboarding && (
+																<OnboardingBubble />
+															)}
+
+														<ApplicationRouter
+															integrated={
+																integrated
+															}
+														/>
+													</>
+												)}
+											</div>
+										</>
+									}
+								/>
+							</Routes>
 						</WithErrorSearchContext>
 					</WithSessionSearchContext>
 				</PlayerUIContextProvider>

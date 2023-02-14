@@ -11,7 +11,7 @@ import {
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { useParams } from '@util/react-router/useParams'
 import { splitTaggedUsers } from '@util/string'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import Linkify from 'react-linkify'
 
@@ -43,7 +43,7 @@ const CommentTextBody = ({
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const slackUrl = getSlackUrl(project_id)
+	const slackUrl = getSlackUrl(project_id ?? '')
 	const [shouldAutoFocus, setShouldAutoFocus] = useState(!!onChangeHandler)
 
 	useEffect(() => {
@@ -207,9 +207,7 @@ const Suggestion = ({
 			<div className={styles.adminText}>
 				<span className={styles.longValue}>{suggestion.display}</span>
 				{suggestion.display !== suggestion.id && (
-					<span
-						className={classNames(styles.email, styles.longValue)}
-					>
+					<span className={clsx(styles.email, styles.longValue)}>
 						{suggestion.email}
 					</span>
 				)}

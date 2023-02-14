@@ -41,7 +41,11 @@ const CreateSegmentModal = ({
 		currentSegment?.name ?? '',
 	)
 
-	const shouldUpdate = !!currentSegment
+	const { project_id } = useParams<{
+		project_id: string
+		segment_id: string
+	}>()
+	const shouldUpdate = !!currentSegment && !!project_id
 	useEffect(() => {
 		if (shouldUpdate && currentSegment?.name) {
 			setNewSegmentName(currentSegment?.name)
@@ -49,11 +53,6 @@ const CreateSegmentModal = ({
 			setNewSegmentName('')
 		}
 	}, [currentSegment?.name, shouldUpdate])
-
-	const { project_id } = useParams<{
-		project_id: string
-		segment_id: string
-	}>()
 
 	const { searchParams, setExistingParams } = useSearchContext()
 
@@ -89,7 +88,7 @@ const CreateSegmentModal = ({
 					message.error(`Error updating segment: ${e.message}`, 5)
 				},
 			})
-		} else {
+		} else if (project_id) {
 			createSegment({
 				variables: {
 					project_id,

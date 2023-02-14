@@ -16,16 +16,12 @@ import {
 import { getErrorBody } from '@util/errors/errorUtils'
 import { parseOptionalJSON } from '@util/string'
 import React, { useLayoutEffect, useMemo, useRef } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 import { styledVerticalScrollbar } from 'style/common.css'
 
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
-
-interface ErrorsPageHistoryState {
-	errorCardIndex: number
-}
 
 const ErrorsPage = ({
 	autoScroll,
@@ -37,7 +33,7 @@ const ErrorsPage = ({
 	time: number
 }) => {
 	const virtuoso = useRef<VirtuosoHandle>(null)
-	const history = useHistory<ErrorsPageHistoryState>()
+	const location = useLocation()
 	const { errors, state, session, sessionMetadata, isPlayerReady } =
 		useReplayerContext()
 
@@ -62,19 +58,13 @@ const ErrorsPage = ({
 
 	useLayoutEffect(() => {
 		if (virtuoso.current && autoScroll) {
-			if (history.location.state?.errorCardIndex !== undefined) {
-				virtuoso.current.scrollToIndex(
-					history.location.state.errorCardIndex,
-				)
+			if (location.state?.errorCardIndex !== undefined) {
+				virtuoso.current.scrollToIndex(location.state.errorCardIndex)
 			} else {
 				virtuoso.current.scrollToIndex(lastActiveErrorIndex)
 			}
 		}
-	}, [
-		autoScroll,
-		history.location.state?.errorCardIndex,
-		lastActiveErrorIndex,
-	])
+	}, [autoScroll, location.state?.errorCardIndex, lastActiveErrorIndex])
 
 	const errorsToRender = useMemo(() => {
 		if (!filter.length) {
@@ -179,7 +169,8 @@ const ErrorRow = React.memo(
 				<Box display="flex" align="center" justifyContent="flex-end">
 					<Text color="n11">
 						{error.structured_stack_trace[0] &&
-							`Line ${error.structured_stack_trace[0].lineNumber}:${error.structured_stack_trace[0].columnNumber}`}
+							`Line ${error.structured_stack_trace[0].lineNumber}:` +
+								`${error.structured_stack_trace[0].columnNumber}`}
 					</Text>
 				</Box>
 				<Box display="flex" align="center" justifyContent="flex-end">

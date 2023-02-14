@@ -1,7 +1,7 @@
 import Card from '@components/Card/Card'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import { formatNumber } from '@util/numbers'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import {
 	Bar,
@@ -62,7 +62,7 @@ export const ErrorDistributionChart: React.FC<
 	}, [data])
 
 	return formattedData && formattedData.length > 0 ? (
-		<Card className={classNames(styles.distributionSection)} title={title}>
+		<Card className={clsx(styles.distributionSection)} title={title}>
 			<div className={styles.distributionChart}>
 				<ResponsiveContainer
 					width="100%"

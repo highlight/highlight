@@ -118,7 +118,7 @@ const SessionShareButtonV2 = () => {
 									updateSessionIsPublic({
 										variables: {
 											session_secure_id:
-												session_secure_id,
+												session_secure_id!,
 											is_public: checked,
 										},
 									})

@@ -1,20 +1,15 @@
-import { useGetLogsQuery } from '@graph/hooks'
-import { Box } from '@highlight-run/ui'
+import { useGetLogsQuery, useGetLogsTotalCountQuery } from '@graph/hooks'
+import { Box, Stack, Text } from '@highlight-run/ui'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
+import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Helmet } from 'react-helmet'
-import { useHistory, useLocation } from 'react-router-dom'
+import { StringParam, useQueryParam, withDefault } from 'use-query-params'
 
 const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
-
-function useQuery() {
-	const { search } = useLocation()
-
-	return React.useMemo(() => new URLSearchParams(search), [search])
-}
 
 const defaultEndDate = moment().format(FORMAT)
 const defaultStartDate = moment(defaultEndDate)
@@ -25,12 +20,10 @@ const LogsPage = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const queryParams = useQuery()
 
 	return (
 		<LogsPageInner
-			project_id={project_id}
-			queryParam={queryParams.get('query') ?? ''}
+			project_id={project_id!}
 			start_date={defaultStartDate}
 			end_date={defaultEndDate}
 		/>
@@ -39,31 +32,29 @@ const LogsPage = () => {
 
 type Props = {
 	project_id: string
-	queryParam: string
 	start_date: string
 	end_date: string
 }
 
-const LogsPageInner = ({
-	project_id,
-	queryParam,
-	start_date,
-	end_date,
-}: Props) => {
-	const [query, setQuery] = useState(queryParam)
-	const history = useHistory()
+const QueryParam = withDefault(StringParam, '')
 
-	useEffect(() => {
-		const params = new URLSearchParams()
-		if (query) {
-			params.append('query', query)
-		} else {
-			params.delete('query')
-		}
-		history.push({ search: params.toString() })
-	}, [query, history])
+const LogsPageInner = ({ project_id, start_date, end_date }: Props) => {
+	const [query, setQuery] = useQueryParam('query', QueryParam)
 
-	const { data, loading } = useGetLogsQuery({
+	const { data: logs, loading } = useGetLogsQuery({
+		variables: {
+			project_id,
+			params: {
+				query,
+				date_range: {
+					start_date,
+					end_date,
+				},
+			},
+		},
+	})
+
+	const { data: totalCount } = useGetLogsTotalCountQuery({
 		variables: {
 			project_id,
 			params: {
@@ -87,13 +78,27 @@ const LogsPageInner = ({
 			</Helmet>
 			<Box background="n2" padding="8" flex="stretch">
 				<Box background="white" borderRadius="12">
-					<SearchForm
-						initialQuery={query}
-						onFormSubmit={handleFormSubmit}
-						startDate={start_date}
-						endDate={end_date}
-					/>
-					<LogsTable data={data} loading={loading} query={query} />
+					<Stack gap="4">
+						<SearchForm
+							initialQuery={query}
+							onFormSubmit={handleFormSubmit}
+							startDate={start_date}
+							endDate={end_date}
+						/>
+						<Stack direction="row" gap="2">
+							{totalCount && (
+								<Text color="weak">
+									{formatNumber(totalCount.logs_total_count)}
+								</Text>
+							)}
+							<Text color="weak">logs</Text>
+						</Stack>
+						<LogsTable
+							data={logs}
+							loading={loading}
+							query={query}
+						/>
+					</Stack>
 				</Box>
 			</Box>
 		</>

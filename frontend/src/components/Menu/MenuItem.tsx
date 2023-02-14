@@ -1,5 +1,5 @@
 import { Menu as AntDesignMenu, MenuItemProps } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './MenuItem.module.scss'
@@ -13,7 +13,7 @@ const MenuItem = ({ children, className, ...props }: Props) => {
 	return (
 		<AntDesignMenu.Item
 			{...props}
-			className={classNames(styles.menuItem, className)}
+			className={clsx(styles.menuItem, className)}
 		>
 			{children}
 		</AntDesignMenu.Item>

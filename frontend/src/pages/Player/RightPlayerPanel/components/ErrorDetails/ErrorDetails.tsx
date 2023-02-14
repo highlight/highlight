@@ -36,9 +36,10 @@ import { getErrorBody } from '@util/errors/errorUtils'
 import { client } from '@util/graph'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
+import { message } from 'antd'
 import React, { useMemo } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 interface Props {
 	error: ErrorObject
@@ -127,7 +128,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 		[canMoveForward, next],
 	)
 
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 
 	if (errorQueryingErrorGroup) {
@@ -225,6 +226,11 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 						iconRight={<IconSolidArrowCircleRight />}
 						onClick={() => {
 							setTime(timestamp)
+							message.success(
+								`Changed player time to ${MillisToMinutesAndSeconds(
+									timestamp,
+								)}`,
+							)
 						}}
 						style={{
 							marginLeft: 'auto',
@@ -300,7 +306,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 					emphasis="high"
 					iconRight={<IconSolidExternalLink />}
 					onClick={() => {
-						history.push(
+						navigate(
 							`/${projectId}/errors/${error.error_group_secure_id}`,
 						)
 						setShowLeftPanel(false)

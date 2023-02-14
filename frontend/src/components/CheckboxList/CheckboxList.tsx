@@ -1,5 +1,5 @@
 import Checkbox, { CheckboxChangeEvent } from 'antd/lib/checkbox'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useState } from 'react'
 
 import styles from './CheckboxList.module.scss'
@@ -85,7 +85,7 @@ const CheckboxList = ({
 	}
 
 	return (
-		<div className={classNames(containerClassName)}>
+		<div className={clsx(containerClassName)}>
 			{checkboxOptions.map((option) => (
 				<div key={option.key} className={styles.checkboxOption}>
 					<div className={styles.checkboxContainer}>

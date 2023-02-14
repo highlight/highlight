@@ -241,7 +241,8 @@ const SessionsQueryBuilder = React.memo(
 		}>()
 
 		const { data: fieldData } = useGetFieldTypesQuery({
-			variables: { project_id },
+			variables: { project_id: project_id! },
+			skip: !project_id,
 		})
 
 		const searchContext = useSearchContext()

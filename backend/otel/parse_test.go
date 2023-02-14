@@ -9,7 +9,10 @@ import (
 
 func FuzzFormatStructureStackTrace(f *testing.F) {
 	f.Fuzz(func(t *testing.T, stackTrace string) {
-		formatStructureStackTrace(stackTrace)
+		output := formatStructureStackTrace(stackTrace)
+		if stackTrace != "" && output == "" {
+			t.Fatalf("expected to get an output")
+		}
 	})
 }
 

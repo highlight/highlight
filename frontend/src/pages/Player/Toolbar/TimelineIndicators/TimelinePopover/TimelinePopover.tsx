@@ -18,11 +18,12 @@ import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
+import { deserializeErrorIdentifier } from '@util/error'
 import { formatTimeAsHMS, MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import style from './TimelinePopover.module.scss'
@@ -35,10 +36,18 @@ const POPOVER_CONTENT_MAX_HEIGHT = 250
 const POPOVER_CONTENT_ROW_HEIGHT = 28
 
 const TimelinePopover = ({ bucket }: Props) => {
-	const history = useHistory()
-	const { setActiveError, setRightPanelView } = usePlayerUIContext()
-	const { setCurrentEvent, pause, errors, isPlayerReady } =
-		useReplayerContext()
+	const navigate = useNavigate()
+	const location = useLocation()
+
+	const { setActiveError, setActiveEvent, setRightPanelView } =
+		usePlayerUIContext()
+	const {
+		setCurrentEvent,
+		pause,
+		errors,
+		eventsForTimelineIndicator,
+		isPlayerReady,
+	} = useReplayerContext()
 	const {
 		setShowRightPanel,
 		setShowDevTools,
@@ -91,26 +100,31 @@ const TimelinePopover = ({ bucket }: Props) => {
 		if (type === 'Comments') {
 			const urlSearchParams = new URLSearchParams()
 			urlSearchParams.append(PlayerSearchParameters.commentId, identifier)
-			history.replace(
-				`${history.location.pathname}?${urlSearchParams.toString()}`,
-			)
+			navigate(`${location.pathname}?${urlSearchParams.toString()}`, {
+				replace: true,
+			})
 			setShowRightPanel(true)
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Comments)
+			setActiveError(undefined)
 		} else if (type === 'Errors') {
-			setShowDevTools(true)
 			setSelectedDevToolsTab(Tab.Errors)
-			const error = errors.find(
-				(error) => error.error_group_secure_id === identifier,
-			)
+			const { errorId } = deserializeErrorIdentifier(identifier)
+			const error = errors.find((error) => error.id === errorId)
 			if (error) {
 				setShowRightPanel(true)
 				setActiveError(error)
 				setRightPanelView(RightPanelView.Error)
 			}
 		} else {
+			const event = eventsForTimelineIndicator.find(
+				(event) => event.identifier === identifier,
+			)
 			setShowRightPanel(true)
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Events)
+			setActiveError(undefined)
 			setCurrentEvent(identifier)
+			setActiveEvent(event)
+			setRightPanelView(RightPanelView.Event)
 		}
 		message.success(
 			`Changed player time to show you ${type} at ${MillisToMinutesAndSeconds(
@@ -122,10 +136,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 	return (
 		<div className={style.timelinePopoverContent}>
 			<div
-				className={classNames(
-					style.timelinePopoverHeader,
-					style.infoPanel,
-				)}
+				className={clsx(style.timelinePopoverHeader, style.infoPanel)}
 				onClick={() => {
 					if (selectedType) {
 						setSelectedType(null)
@@ -141,7 +152,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 							{formatTimeAsHMS(bucket.startTime)}
 						</span>
 						<CircleRightArrow
-							className={classNames(
+							className={clsx(
 								style.transitionIcon,
 								style.rightActionIcon,
 							)}
@@ -150,7 +161,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 				) : (
 					<button className={style.actionButton}>
 						<ChevronLeftIcon
-							className={classNames(
+							className={clsx(
 								style.transitionIcon,
 								style.leftActionIcon,
 							)}
@@ -165,7 +176,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 						{selectedTypeName}
 					</Text>
 					<div
-						className={classNames(
+						className={clsx(
 							style.rightCounter,
 							style.infoPanelCounter,
 						)}
@@ -199,7 +210,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 										style={{ background: color }}
 									/>
 									<span
-										className={classNames(
+										className={clsx(
 											style.rightActionIcon,
 											style.eventIdentifier,
 										)}
@@ -209,7 +220,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 									<div className={style.rightCounter}>
 										<span>{count}</span>
 										<ChevronRightIcon
-											className={classNames(
+											className={clsx(
 												style.transitionIcon,
 												style.rightActionIcon,
 											)}
@@ -231,7 +242,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 							),
 						}}
 						data={bucket.identifier[selectedType]}
-						itemContent={(_, identifier: string) => {
+						itemContent={(idx, identifier) => {
 							const color = `var(${getAnnotationColor(
 								selectedType as EventsForTimelineKeys[number],
 							)})`
@@ -256,7 +267,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 											style={{ background: color }}
 										/>
 										<span
-											className={classNames(
+											className={clsx(
 												style.rightActionIcon,
 												style.eventIdentifier,
 											)}
@@ -268,7 +279,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 												{formatTimeAsHMS(timestamp)}
 											</span>
 											<CircleRightArrow
-												className={classNames(
+												className={clsx(
 													style.transitionIcon,
 													style.rightActionIcon,
 												)}
