@@ -107,7 +107,6 @@ const TimelinePopover = ({ bucket }: Props) => {
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Comments)
 			setActiveError(undefined)
 		} else if (type === 'Errors') {
-			setShowDevTools(true)
 			setSelectedDevToolsTab(Tab.Errors)
 			const { errorId } = deserializeErrorIdentifier(identifier)
 			const error = errors.find((error) => error.id === errorId)
