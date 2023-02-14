@@ -103,7 +103,6 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 								<Tooltip
 									trigger={
 										<Tag
-											className={style.snoozedTag}
 											shape="basic"
 											kind="secondary"
 											emphasis="high"
