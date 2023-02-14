@@ -34,9 +34,9 @@ func FindInBatches(db *gorm.DB, dest interface{}, batchSize int, fc func(tx *gor
 		batch++
 
 		if result.Error == nil && result.RowsAffected != 0 {
-			tx.AddError(fc(result, batch))
+			_ = tx.AddError(fc(result, batch))
 		} else if result.Error != nil {
-			tx.AddError(result.Error)
+			_ = tx.AddError(result.Error)
 		}
 
 		if tx.Error != nil || int(result.RowsAffected) < batchSize {
@@ -44,7 +44,7 @@ func FindInBatches(db *gorm.DB, dest interface{}, batchSize int, fc func(tx *gor
 		} else {
 			resultsValue := reflect.Indirect(reflect.ValueOf(dest))
 			if result.Statement.Schema.PrioritizedPrimaryField == nil {
-				tx.AddError(gorm.ErrPrimaryKeyRequired)
+				_ = tx.AddError(gorm.ErrPrimaryKeyRequired)
 				break
 			} else {
 				primaryValue, _ := result.Statement.Schema.PrioritizedPrimaryField.ValueOf(resultsValue.Index(resultsValue.Len() - 1))
