@@ -36,6 +36,7 @@ import { getErrorBody } from '@util/errors/errorUtils'
 import { client } from '@util/graph'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
+import { message } from 'antd'
 import React, { useMemo } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
@@ -225,6 +226,11 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 						iconRight={<IconSolidArrowCircleRight />}
 						onClick={() => {
 							setTime(timestamp)
+							message.success(
+								`Changed player time to ${MillisToMinutesAndSeconds(
+									timestamp,
+								)}`,
+							)
 						}}
 						style={{
 							marginLeft: 'auto',
