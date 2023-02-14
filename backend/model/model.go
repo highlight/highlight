@@ -618,7 +618,7 @@ type Session struct {
 	AvoidPostgresStorage bool
 }
 
-type SessionAdminsViews struct {
+type SessionAdminsView struct {
 	SessionID int       `gorm:"primaryKey"`
 	AdminID   int       `gorm:"primaryKey"`
 	ViewedAt  time.Time `gorm:"default:NOW()"`
