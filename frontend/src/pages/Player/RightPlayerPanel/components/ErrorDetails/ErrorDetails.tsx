@@ -185,7 +185,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 				</Box>
 			</Box>
 			<Box py="8" display="flex" flexDirection="column" gap="8">
-				<Text size="small" weight="medium" color="strong">
+				<Text size="small" weight="medium" color="strong" lines="4">
 					{headerText}
 				</Text>
 				<Box display="flex" alignItems="center" gap="4">
