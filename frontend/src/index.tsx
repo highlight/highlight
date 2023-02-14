@@ -41,12 +41,14 @@ import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { showIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
+import { parse, stringify } from 'query-string'
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
+import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
 analytics.initialize()
 const dev = import.meta.env.DEV
@@ -171,7 +173,13 @@ const App = () => {
 					>
 						<LoadingPage />
 						<BrowserRouter>
-							<QueryParamProvider>
+							<QueryParamProvider
+								adapter={ReactRouter6Adapter}
+								options={{
+									searchStringToObject: parse,
+									objectToSearchString: stringify,
+								}}
+							>
 								<AuthenticationRoleRouter />
 							</QueryParamProvider>
 						</BrowserRouter>
