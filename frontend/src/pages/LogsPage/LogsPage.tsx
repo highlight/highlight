@@ -2,6 +2,7 @@ import { useGetLogsQuery, useGetLogsTotalCountQuery } from '@graph/hooks'
 import { Box, Stack, Text } from '@highlight-run/ui'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
+import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import React from 'react'
@@ -87,7 +88,7 @@ const LogsPageInner = ({ project_id, start_date, end_date }: Props) => {
 						<Stack direction="row" gap="2">
 							{totalCount && (
 								<Text color="weak">
-									{totalCount.logs_total_count}
+									{formatNumber(totalCount.logs_total_count)}
 								</Text>
 							)}
 							<Text color="weak">logs</Text>
