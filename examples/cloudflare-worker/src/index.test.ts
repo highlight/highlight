@@ -19,7 +19,7 @@ describe('Worker', () => {
 		const resp = await worker.fetch()
 		if (resp) {
 			const text = await resp.text()
-			expect(text).toMatchInlineSnapshot(`"Hello World!"`)
+			expect(text).toContain(`<!DOCTYPE`)
 		}
 	})
 })

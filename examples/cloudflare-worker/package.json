@@ -11,7 +11,7 @@
 	"scripts": {
 		"start": "wrangler dev",
 		"deploy": "wrangler publish",
-		"test": "vitest"
+		"test": "vitest --run"
 	},
 	"dependencies": {
 		"@highlight-run/cloudflare": "workspace:*"
