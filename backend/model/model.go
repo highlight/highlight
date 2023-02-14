@@ -618,6 +618,12 @@ type Session struct {
 	AvoidPostgresStorage bool
 }
 
+type SessionAdminsViews struct {
+	SessionID int       `gorm:"primaryKey"`
+	AdminID   int       `gorm:"primaryKey"`
+	ViewedAt  time.Time `gorm:"default:NOW()"`
+}
+
 type EventChunk struct {
 	Model
 	SessionID  int `gorm:"index"`
@@ -942,6 +948,12 @@ type ErrorGroup struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
 	Viewed         *bool   `json:"viewed"`
+}
+
+type ErrorGroupAdminsView struct {
+	ErrorGroupID int       `gorm:"primaryKey"`
+	AdminID      int       `gorm:"primaryKey"`
+	ViewedAt     time.Time `gorm:"default:NOW()"`
 }
 
 type ErrorInstance struct {
