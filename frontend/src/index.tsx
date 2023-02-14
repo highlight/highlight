@@ -159,24 +159,24 @@ const App = () => {
 			}}
 		>
 			<ApolloProvider client={client}>
-				<QueryParamProvider>
-					<SkeletonTheme
-						baseColor="var(--color-gray-200)"
-						highlightColor="var(--color-primary-background)"
+				<SkeletonTheme
+					baseColor="var(--color-gray-200)"
+					highlightColor="var(--color-primary-background)"
+				>
+					<AppLoadingContext
+						value={{
+							loadingState,
+							setLoadingState,
+						}}
 					>
-						<AppLoadingContext
-							value={{
-								loadingState,
-								setLoadingState,
-							}}
-						>
-							<LoadingPage />
-							<BrowserRouter>
+						<LoadingPage />
+						<BrowserRouter>
+							<QueryParamProvider>
 								<AuthenticationRoleRouter />
-							</BrowserRouter>
-						</AppLoadingContext>
-					</SkeletonTheme>
-				</QueryParamProvider>
+							</QueryParamProvider>
+						</BrowserRouter>
+					</AppLoadingContext>
+				</SkeletonTheme>
 			</ApolloProvider>
 		</ErrorBoundary>
 	)
