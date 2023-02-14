@@ -8,6 +8,7 @@ import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIn
 import TimelinePopover from '@pages/Player/Toolbar/TimelineIndicators/TimelinePopover/TimelinePopover'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
+import { serializeErrorIdentifier } from '@util/error'
 import { clamp } from '@util/numbers'
 import { TooltipPlacement } from 'antd/lib/tooltip'
 import clsx from 'clsx'
@@ -62,10 +63,7 @@ const TimelineIndicatorsBar = ({
 		if (
 			activeError?.error_group_secure_id &&
 			bucket.identifier.Errors.includes(
-				activeError?.error_group_secure_id as string,
-			) &&
-			bucket.instance[activeError?.error_group_secure_id].includes(
-				activeError.id,
+				serializeErrorIdentifier(activeError) as string,
 			)
 		) {
 			setIsSelected(true)

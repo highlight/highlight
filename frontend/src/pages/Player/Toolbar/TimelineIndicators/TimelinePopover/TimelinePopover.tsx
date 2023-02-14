@@ -18,6 +18,7 @@ import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
+import { deserializeErrorIdentifier } from '@util/error'
 import { formatTimeAsHMS, MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import clsx from 'clsx'
@@ -38,9 +39,15 @@ const TimelinePopover = ({ bucket }: Props) => {
 	const navigate = useNavigate()
 	const location = useLocation()
 
-	const { setActiveError, setRightPanelView } = usePlayerUIContext()
-	const { setCurrentEvent, pause, errors, isPlayerReady } =
-		useReplayerContext()
+	const { setActiveError, setActiveEvent, setRightPanelView } =
+		usePlayerUIContext()
+	const {
+		setCurrentEvent,
+		pause,
+		errors,
+		eventsForTimelineIndicator,
+		isPlayerReady,
+	} = useReplayerContext()
 	const {
 		setShowRightPanel,
 		setShowDevTools,
@@ -98,21 +105,26 @@ const TimelinePopover = ({ bucket }: Props) => {
 			})
 			setShowRightPanel(true)
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Comments)
+			setActiveError(undefined)
 		} else if (type === 'Errors') {
-			setShowDevTools(true)
 			setSelectedDevToolsTab(Tab.Errors)
-			const error = errors.find(
-				(error) => error.error_group_secure_id === identifier,
-			)
+			const { errorId } = deserializeErrorIdentifier(identifier)
+			const error = errors.find((error) => error.id === errorId)
 			if (error) {
 				setShowRightPanel(true)
 				setActiveError(error)
 				setRightPanelView(RightPanelView.Error)
 			}
 		} else {
+			const event = eventsForTimelineIndicator.find(
+				(event) => event.identifier === identifier,
+			)
 			setShowRightPanel(true)
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Events)
+			setActiveError(undefined)
 			setCurrentEvent(identifier)
+			setActiveEvent(event)
+			setRightPanelView(RightPanelView.Event)
 		}
 		message.success(
 			`Changed player time to show you ${type} at ${MillisToMinutesAndSeconds(
@@ -230,7 +242,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 							),
 						}}
 						data={bucket.identifier[selectedType]}
-						itemContent={(_, identifier: string) => {
+						itemContent={(idx, identifier) => {
 							const color = `var(${getAnnotationColor(
 								selectedType as EventsForTimelineKeys[number],
 							)})`
