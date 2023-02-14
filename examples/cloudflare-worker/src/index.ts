@@ -1,5 +1,4 @@
 import { H } from '@highlight-run/cloudflare'
-import type { HighlightEnv } from '@highlight-run/cloudflare'
 
 async function doRequest() {
 	/**
@@ -43,11 +42,11 @@ async function doRequest() {
 }
 
 export default {
-	async fetch(request: Request, env: HighlightEnv, ctx: ExecutionContext) {
+	async fetch(request: Request, env: {}, ctx: ExecutionContext) {
 		try {
 			return await doRequest()
 		} catch (e: any) {
-			H.consumeError(request, env, ctx, e)
+			H.consumeError(request, { HIGHLIGHT_PROJECT_ID: '1' }, ctx, e)
 			throw e
 		}
 	},
