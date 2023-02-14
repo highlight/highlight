@@ -1,7 +1,8 @@
-import { useGetLogsQuery } from '@graph/hooks'
-import { Box } from '@highlight-run/ui'
+import { useGetLogsQuery, useGetLogsTotalCountQuery } from '@graph/hooks'
+import { Box, Stack, Text } from '@highlight-run/ui'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
+import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
@@ -63,7 +64,20 @@ const LogsPageInner = ({
 		navigate({ search: params.toString() }, { replace: true })
 	}, [query, navigate])
 
-	const { data, loading } = useGetLogsQuery({
+	const { data: logs, loading } = useGetLogsQuery({
+		variables: {
+			project_id,
+			params: {
+				query,
+				date_range: {
+					start_date,
+					end_date,
+				},
+			},
+		},
+	})
+
+	const { data: totalCount } = useGetLogsTotalCountQuery({
 		variables: {
 			project_id,
 			params: {
@@ -87,13 +101,27 @@ const LogsPageInner = ({
 			</Helmet>
 			<Box background="n2" padding="8" flex="stretch">
 				<Box background="white" borderRadius="12">
-					<SearchForm
-						initialQuery={query}
-						onFormSubmit={handleFormSubmit}
-						startDate={start_date}
-						endDate={end_date}
-					/>
-					<LogsTable data={data} loading={loading} query={query} />
+					<Stack gap="4">
+						<SearchForm
+							initialQuery={query}
+							onFormSubmit={handleFormSubmit}
+							startDate={start_date}
+							endDate={end_date}
+						/>
+						<Stack direction="row" gap="2">
+							{totalCount && (
+								<Text color="weak">
+									{formatNumber(totalCount.logs_total_count)}
+								</Text>
+							)}
+							<Text color="weak">logs</Text>
+						</Stack>
+						<LogsTable
+							data={logs}
+							loading={loading}
+							query={query}
+						/>
+					</Stack>
 				</Box>
 			</Box>
 		</>

@@ -3,6 +3,7 @@
 scalar Any
 scalar Timestamp
 scalar Int64
+scalar UInt64
 scalar StringArray
 scalar Map
 
@@ -1399,6 +1400,7 @@ type Query {
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 	logs(project_id: ID!, params: LogsParamsInput!): [LogLine!]!
+	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 }
 
 type Mutation {
