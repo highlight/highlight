@@ -41,12 +41,14 @@ import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { showIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
+import { parse, stringify } from 'query-string'
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
+import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
 analytics.initialize()
 const dev = import.meta.env.DEV
@@ -159,24 +161,30 @@ const App = () => {
 			}}
 		>
 			<ApolloProvider client={client}>
-				<QueryParamProvider>
-					<SkeletonTheme
-						baseColor="var(--color-gray-200)"
-						highlightColor="var(--color-primary-background)"
+				<SkeletonTheme
+					baseColor="var(--color-gray-200)"
+					highlightColor="var(--color-primary-background)"
+				>
+					<AppLoadingContext
+						value={{
+							loadingState,
+							setLoadingState,
+						}}
 					>
-						<AppLoadingContext
-							value={{
-								loadingState,
-								setLoadingState,
-							}}
-						>
-							<LoadingPage />
-							<BrowserRouter>
+						<LoadingPage />
+						<BrowserRouter>
+							<QueryParamProvider
+								adapter={ReactRouter6Adapter}
+								options={{
+									searchStringToObject: parse,
+									objectToSearchString: stringify,
+								}}
+							>
 								<AuthenticationRoleRouter />
-							</BrowserRouter>
-						</AppLoadingContext>
-					</SkeletonTheme>
-				</QueryParamProvider>
+							</QueryParamProvider>
+						</BrowserRouter>
+					</AppLoadingContext>
+				</SkeletonTheme>
 			</ApolloProvider>
 		</ErrorBoundary>
 	)

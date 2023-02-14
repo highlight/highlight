@@ -8073,7 +8073,7 @@ __metadata:
     typed-scss-modules: ^3.4.0
     typescript: ^4.8.2
     use-http: ^1.0.26
-    use-query-params: ^1.2.0
+    use-query-params: ^2.2.0
     validator: 13.7.0
     vite: ^4.0.4
     vite-plugin-imp: ^2.3.1
@@ -37955,12 +37955,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"serialize-query-params@npm:^1.3.1":
-  version: 1.3.1
-  resolution: "serialize-query-params@npm:1.3.1"
-  peerDependencies:
-    query-string: ^5.1.1 || ^6
-  checksum: efb1fbc00153cda1e9527b0f118310cc4f7f1080911f1850198ba206b91ad059ce1fd4f02fe1c13e45907a07347f46ebd5ad70649f160d4f3f39b2b073369d5d
+"serialize-query-params@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "serialize-query-params@npm:2.0.2"
+  checksum: 6dccdbd68cbec44c99599c4f77968e8685a74cc597f473ed93b15a8d03c3a67f50c958af9af3d186e64aabd7f98b59d674a05aa4e69d997ed86a5478cf133b27
   languageName: node
   linkType: hard
 
@@ -41682,15 +41680,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-query-params@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "use-query-params@npm:1.2.0"
+"use-query-params@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "use-query-params@npm:2.2.0"
   dependencies:
-    serialize-query-params: ^1.3.1
+    serialize-query-params: ^2.0.2
   peerDependencies:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 6bf94910be38f2ed484369ae3de4b2516ec44b5464f9b7ae569d376445603bc90459e2caba5c6ee69ef9b850e6d1f5b085f4e648f04e0dd0bf88f9539d6942e3
+  checksum: b0b6a6b0e72f95d03a0a7256713837cf2b4f39df5b98a880dcfddfe28677e774f3085e0f8e15b6cc9d0a67bfa4d90e39ae9fb6634c3ccab8a09df0284110eddd
   languageName: node
   linkType: hard
 
