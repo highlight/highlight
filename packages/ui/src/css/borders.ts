@@ -61,5 +61,5 @@ export const borderRadii = {
 	'16': '16px',
 	'23': '23px',
 	round: '999px',
-	'inherit': 'inherit',
+	inherit: 'inherit',
 } as const

@@ -1,4 +1,4 @@
-import { style } from '@vanilla-extract/css';
+import { style } from '@vanilla-extract/css'
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 
 export const weekDays = style({
@@ -16,7 +16,6 @@ export const days = style({
 	rowGap: '0.5rem',
 })
 
-export const variants = recipe({
-})
+export const variants = recipe({})
 
 export type Variants = RecipeVariants<typeof variants>
