@@ -89,7 +89,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				},
 				optimisticResponse: {
 					updateErrorGroupState: {
-						secure_id: error_secure_id,
+						secure_id: error_secure_id!,
 						state: newState,
 						snoozed_until: newSnoozedUntil,
 						__typename: 'ErrorGroup',
