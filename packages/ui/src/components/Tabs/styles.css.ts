@@ -13,7 +13,6 @@ export const pageWrapper = style({
 })
 
 export const controlBarButton = style({
-	backgroundColor: 'white',
 	boxShadow: 'none',
 })
 
