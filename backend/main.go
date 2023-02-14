@@ -1,15 +1,18 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/vercel"
+	model2 "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"gorm.io/gorm"
 	"html/template"
 	"io"
 	"net/http"
 	"os"
 	"path"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -31,16 +34,16 @@ import (
 
 	"github.com/sendgrid/sendgrid-go"
 
-	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
-
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/httplog"
 	"github.com/gorilla/websocket"
+	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/worker"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
@@ -100,25 +103,89 @@ func init() {
 	runtimeParsed = util.Runtime(*runtimeFlag)
 }
 
-func healthRouter(runtimeFlag util.Runtime) http.HandlerFunc {
+func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client) http.HandlerFunc {
 	// only checks kafka because kafka is the only critical infrastructure needed for public graph to be healthy.
-	topic := kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: false})
-	queue := kafka_queue.New(topic, kafka_queue.Producer)
-	batchedTopic := kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: true})
-	batchedQueue := kafka_queue.New(batchedTopic, kafka_queue.Producer)
+	topic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false})
+	queue := kafkaqueue.New(topic, kafkaqueue.Producer)
+	batchedTopic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true})
+	batchedQueue := kafkaqueue.New(batchedTopic, kafkaqueue.Producer)
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := queue.Submit(&kafka_queue.Message{Type: kafka_queue.HealthCheck}, "health"); err != nil {
+		if err := queue.Submit(&kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, "health"); err != nil {
 			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", topic), 500)
 			return
 		}
-		if err := batchedQueue.Submit(&kafka_queue.Message{Type: kafka_queue.HealthCheck}, "health"); err != nil {
+		if err := batchedQueue.Submit(&kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, "health"); err != nil {
 			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", batchedTopic), 500)
 			return
+		}
+		if runtimeFlag != util.PublicGraph {
+			if err := enhancedHealthCheck(context.Background(), db, tdb, rClient, osClient, ccClient); err != nil {
+				http.Error(w, fmt.Sprintf("failed enhanced health check %s", err), 500)
+				return
+			}
 		}
 		_, err := w.Write([]byte(fmt.Sprintf("%v is healthy", runtimeFlag)))
 		if err != nil {
 			log.Error(e.Wrap(err, "error writing health response"))
 		}
+	}
+}
+
+func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client) error {
+	const Timeout = 2 * time.Second
+
+	errors := make(chan error)
+	wg := sync.WaitGroup{}
+	wg.Add(5)
+	go func() {
+		defer wg.Done()
+		ctx, cancel := context.WithTimeout(ctx, Timeout)
+		defer cancel()
+		if err := db.WithContext(ctx).Model(&model.Workspace{}).Find(&model.Workspace{}).Error; err != nil {
+			errors <- e.New(fmt.Sprintf("failed to query database: %s", err))
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		ctx, cancel := context.WithTimeout(ctx, Timeout)
+		defer cancel()
+		if _, err := tdb.Query(ctx, ``); err != nil {
+			errors <- e.New(fmt.Sprintf("failed to query influx db: %s", err))
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		ctx, cancel := context.WithTimeout(ctx, Timeout)
+		defer cancel()
+		if err := rClient.SetIsPendingSession(ctx, "health-check-test-session", true); err != nil {
+			errors <- e.New(fmt.Sprintf("failed to set redis flag: %s", err))
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		ctx, cancel := context.WithTimeout(ctx, Timeout)
+		defer cancel()
+		if err := osClient.IndexSynchronous(ctx, opensearch.IndexSessions, 0, struct{}{}); err != nil {
+			errors <- e.New(fmt.Sprintf("failed to perform opensearch index: %s", err))
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		ctx, cancel := context.WithTimeout(ctx, Timeout)
+		defer cancel()
+		if _, err := ccClient.ReadLogsTotalCount(ctx, 1, model2.LogsParamsInput{
+			Query:     "",
+			DateRange: nil,
+		}); err != nil {
+			errors <- e.New(fmt.Sprintf("failed to perform clickhouse query: %s", err))
+		}
+	}()
+	wg.Wait()
+	select {
+	case e := <-errors:
+		return e
+	default:
+		return nil
 	}
 }
 
@@ -279,7 +346,7 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"*"},
 	}).Handler)
-	r.HandleFunc("/health", healthRouter(runtimeParsed))
+	r.HandleFunc("/health", healthRouter(runtimeParsed, db, tdb, redisClient, opensearchClient, clickhouseClient))
 
 	zapierStore := zapier.ZapierResthookStore{
 		DB: db,
@@ -370,8 +437,8 @@ func main() {
 		publicResolver := &public.Resolver{
 			DB:              db,
 			TDB:             tdb,
-			ProducerQueue:   kafka_queue.New(kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: false}), kafka_queue.Producer),
-			BatchedQueue:    kafka_queue.New(kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: true}), kafka_queue.Producer),
+			ProducerQueue:   kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Producer),
+			BatchedQueue:    kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
 			StorageClient:   storage,
 			AlertWorkerPool: alertWorkerpool,
@@ -477,8 +544,8 @@ func main() {
 		publicResolver := &public.Resolver{
 			DB:              db,
 			TDB:             tdb,
-			ProducerQueue:   kafka_queue.New(kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: false}), kafka_queue.Producer),
-			BatchedQueue:    kafka_queue.New(kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Batched: true}), kafka_queue.Producer),
+			ProducerQueue:   kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Producer),
+			BatchedQueue:    kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
 			StorageClient:   storage,
 			AlertWorkerPool: alertWorkerpool,
