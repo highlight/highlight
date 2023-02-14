@@ -62,8 +62,8 @@ func (k *KafkaWorker) ProcessMessages() {
 	}
 }
 
-const BatchFlushSize = 512
-const BatchedFlushTimeout = 5 * time.Second
+const BatchFlushSize = 128
+const BatchedFlushTimeout = 1 * time.Second
 
 type KafkaWorker struct {
 	KafkaQueue   *kafkaqueue.Queue
@@ -98,6 +98,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 		}
 	}()
 
+	s.SetTag("NumLogRows", len(logRows))
 	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctx, logRows)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to batch write to clickhouse")
