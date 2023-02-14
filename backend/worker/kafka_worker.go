@@ -2,14 +2,17 @@ package worker
 
 import (
 	"context"
+	"sync"
+	"time"
+
+	"encoding/binary"
+
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"sync"
-	"time"
 )
 
 func (k *KafkaWorker) processWorkerError(task *kafkaqueue.Message, err error) {
@@ -99,6 +102,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	}()
 
 	s.SetTag("NumLogRows", len(logRows))
+	s.SetTag("PayloadSizeBytes", binary.Size(logRows))
 	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctx, logRows)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to batch write to clickhouse")
