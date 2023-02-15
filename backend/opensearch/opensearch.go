@@ -451,7 +451,7 @@ func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fie
 
 }
 
-func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
+func (c *Client) IndexSynchronous(ctx context.Context, index Index, id int, obj interface{}) error {
 	if c == nil || !c.isInitialized {
 		return nil
 	}
@@ -472,7 +472,7 @@ func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
 		Body:       body,
 	}
 
-	response, err := req.Do(context.Background(), c.Client)
+	response, err := req.Do(ctx, c.Client)
 	if err != nil {
 		return e.Wrap(err, "OPENSEARCH_ERROR error indexing document")
 	}
