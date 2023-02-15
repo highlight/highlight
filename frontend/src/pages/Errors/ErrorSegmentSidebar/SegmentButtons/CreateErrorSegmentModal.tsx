@@ -143,6 +143,7 @@ const CreateErrorSegmentModal = ({
 						specific set of errors.
 					</p>
 					<div className={styles.queryBuilderContainer}>
+						{JSON.stringify(searchParams)}
 						<ErrorQueryBuilder readonly />
 					</div>
 					<Input

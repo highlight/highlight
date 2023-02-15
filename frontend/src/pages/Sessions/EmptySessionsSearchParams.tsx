@@ -1,4 +1,5 @@
 import { SearchParamsInput } from '@graph/schemas'
+import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { Complete } from '@util/types'
 
 export const EmptySessionsSearchParams: Complete<SearchParamsInput> = {
@@ -20,4 +21,16 @@ export const EmptySessionsSearchParams: Complete<SearchParamsInput> = {
 	app_versions: [],
 	show_live_sessions: false,
 	query: `{\"isAnd\":true,\"rules\":[[\"custom_processed\",\"is\",\"true\"]]}`,
+}
+
+export const errorsEmptyStateRules = () => {
+	const emptyStateQueryJson: QueryBuilderState = JSON.parse(
+		EmptySessionsSearchParams.query!,
+	)
+
+	return emptyStateQueryJson.rules
+}
+
+export const errorsEmptyStateRuleKeys = () => {
+	return errorsEmptyStateRules().map((rule) => rule[0])
 }

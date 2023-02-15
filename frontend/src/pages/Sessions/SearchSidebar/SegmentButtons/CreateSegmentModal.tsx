@@ -5,8 +5,15 @@ import ModalBody from '@components/ModalBody/ModalBody'
 import { useCreateSegmentMutation, useEditSegmentMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Maybe, Segment } from '@graph/schemas'
+import { Box, Tag, Text } from '@highlight-run/ui'
+import { errorsEmptyStateRuleKeys } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
+import {
+	deserializeRules,
+	getOperator,
+} from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
+import { TIME_RANGE_FIELD } from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
+import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
@@ -119,6 +126,22 @@ const CreateSegmentModal = ({
 
 	const loading = updatingSegment || creatingSegment
 
+	const nonCustomKeys = [
+		...errorsEmptyStateRuleKeys(),
+		TIME_RANGE_FIELD.value,
+	]
+	const queryAsJson: QueryBuilderState = JSON.parse(
+		searchParams.query || '{}',
+	)
+	const rules = deserializeRules(queryAsJson.rules)
+	console.log('::: rules', rules)
+	const timeRangeRule = rules.find(
+		(rule) => rule.field?.value === TIME_RANGE_FIELD.value,
+	)
+	const customRules = rules.filter(
+		(rule) => nonCustomKeys.indexOf(rule.field?.value || '') === -1,
+	)
+
 	return (
 		<Modal
 			title={shouldUpdate ? 'Update a Segment' : 'Create a Segment'}
@@ -134,9 +157,63 @@ const CreateSegmentModal = ({
 						Segments allow you to save search queries that target a
 						specific set of sessions.
 					</p>
-					<div className={styles.queryBuilderContainer}>
-						<SessionsQueryBuilder readonly />
-					</div>
+					<Box mb="24">
+						<Box border="secondary" p="12" btr="6">
+							<Tag kind="secondary" shape="basic">
+								<Text>
+									{timeRangeRule?.val?.options[0]?.label}
+								</Text>
+							</Tag>
+						</Box>
+						<Box
+							display="flex"
+							bbr="6"
+							p="12"
+							border="secondary"
+							borderTop="none"
+						>
+							{customRules.map((rule, index) => {
+								const op = getOperator(rule.op, rule.val) || {
+									label: rule.op,
+								}
+
+								return (
+									<>
+										<Box
+											key={index}
+											gap="2"
+											flexDirection="row"
+											display="inline-flex"
+										>
+											<Tag kind="secondary" shape="basic">
+												<Text transform="capitalize">
+													{rule.field?.label}
+												</Text>
+											</Tag>
+											<Tag kind="secondary" shape="basic">
+												<Text>
+													{op.label || rule.op}
+												</Text>
+											</Tag>
+											<Tag kind="secondary" shape="basic">
+												<Text>
+													{rule.val?.options
+														.map(
+															(option) =>
+																option.value,
+														)
+														.join(' or ')}
+												</Text>
+											</Tag>
+										</Box>
+										{index < customRules.length - 1 && (
+											<Box mx="10">and</Box>
+										)}
+									</>
+								)
+							})}
+						</Box>
+					</Box>
 					<Input
 						name="name"
 						value={newSegmentName}

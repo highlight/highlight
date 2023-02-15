@@ -1101,7 +1101,7 @@ export const deserializeGroup = (
 	}
 }
 
-const deserializeRules = (ruleGroups: any): RuleProps[] => {
+export const deserializeRules = (ruleGroups: any): RuleProps[] => {
 	return ruleGroups.map((group: any[]) => {
 		const [field, op, ...vals] = group
 		return deserializeGroup(field, op, vals)
