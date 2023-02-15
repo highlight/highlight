@@ -28,7 +28,3 @@ export const errorCardSelected = style({
 		},
 	},
 })
-
-export const snoozedTag = style({
-	display: 'block',
-})

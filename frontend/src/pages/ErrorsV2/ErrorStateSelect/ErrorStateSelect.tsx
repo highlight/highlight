@@ -17,7 +17,7 @@ import { delayedRefetch } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
 import { DatePicker, message } from 'antd'
 import moment from 'moment'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -29,6 +29,7 @@ enum MenuState {
 }
 
 const DATE_FORMAT = 'ddd, h:mm A'
+const MESSAGE_KEY = 'update-message'
 
 type Props = {
 	state: ErrorState
@@ -51,18 +52,16 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
 	)
-	const [errorState, setErrorState] = useState<ErrorState>(initialErrorState)
 
 	const { error_secure_id } = useParams<{ error_secure_id: string }>()
-	const [updateErrorGroupState, { loading }] =
-		useUpdateErrorGroupStateMutation({
-			refetchQueries: [
-				namedOperations.Query.GetErrorGroup,
-				namedOperations.Query.GetErrorGroupsOpenSearch,
-			],
-			onQueryUpdated: delayedRefetch,
-			awaitRefetchQueries: true,
-		})
+	const [updateErrorGroupState] = useUpdateErrorGroupStateMutation({
+		refetchQueries: [
+			namedOperations.Query.GetErrorGroup,
+			namedOperations.Query.GetErrorGroupsOpenSearch,
+		],
+		onQueryUpdated: delayedRefetch,
+		awaitRefetchQueries: true,
+	})
 
 	const { isLoggedIn } = useAuthContext()
 	const ErrorStatuses = Object.keys(ErrorState)
@@ -79,16 +78,28 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				return
 			}
 
+			showStateUpdateMessage(newState, newSnoozedUntil)
+			setMenuState(MenuState.Default)
+
 			await updateErrorGroupState({
 				variables: {
 					secure_id: error_secure_id!,
 					state: newState,
 					snoozed_until: newSnoozedUntil,
 				},
-				onCompleted: async () => {
-					showStateUpdateMessage(newState, newSnoozedUntil)
-					setMenuState(MenuState.Default)
-					setErrorState(newState)
+				optimisticResponse: {
+					updateErrorGroupState: {
+						secure_id: error_secure_id!,
+						state: newState,
+						snoozed_until: newSnoozedUntil,
+						__typename: 'ErrorGroup',
+					},
+				},
+				onError: async () => {
+					message.destroy(MESSAGE_KEY)
+					message.error(
+						'There was an issue updating the state of this error. Please try again.',
+					)
 				},
 			})
 		},
@@ -169,11 +180,11 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				size="small"
 				kind="secondary"
 				emphasis="medium"
-				disabled={loading || !isLoggedIn}
+				disabled={!isLoggedIn}
 				iconRight={<IconSolidCheveronDown />}
 			>
 				<Text case="capital">
-					{errorState.toLowerCase()}{' '}
+					{initialErrorState.toLowerCase()}{' '}
 					{snoozed && (
 						<span style={{ textTransform: 'none' }}>
 							(Snoozed until{' '}
@@ -338,5 +349,5 @@ const showStateUpdateMessage = (
 		}
 	}
 
-	message.success(displayMessage, 10)
+	message.success({ content: displayMessage, key: MESSAGE_KEY }, 10)
 }
