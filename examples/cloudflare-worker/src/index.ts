@@ -43,10 +43,13 @@ async function doRequest() {
 
 export default {
 	async fetch(request: Request, env: {}, ctx: ExecutionContext) {
+		const hEnv = { HIGHLIGHT_PROJECT_ID: '1' }
 		try {
-			return await doRequest()
+			const response = await doRequest()
+			H.sendResponse(request, hEnv, ctx, response)
+			return response
 		} catch (e: any) {
-			H.consumeError(request, { HIGHLIGHT_PROJECT_ID: '1' }, ctx, e)
+			H.consumeError(request, hEnv, ctx, e)
 			throw e
 		}
 	},
