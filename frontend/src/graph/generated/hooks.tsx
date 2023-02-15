@@ -91,6 +91,63 @@ export const SessionAlertFragmentFragmentDoc = gql`
 	}
 	${DiscordChannelFragmentFragmentDoc}
 `
+export const MarkErrorGroupAsViewedDocument = gql`
+	mutation MarkErrorGroupAsViewed(
+		$error_secure_id: String!
+		$viewed: Boolean!
+	) {
+		markErrorGroupAsViewed(
+			error_secure_id: $error_secure_id
+			viewed: $viewed
+		) {
+			secure_id
+			viewed
+		}
+	}
+`
+export type MarkErrorGroupAsViewedMutationFn = Apollo.MutationFunction<
+	Types.MarkErrorGroupAsViewedMutation,
+	Types.MarkErrorGroupAsViewedMutationVariables
+>
+
+/**
+ * __useMarkErrorGroupAsViewedMutation__
+ *
+ * To run a mutation, you first call `useMarkErrorGroupAsViewedMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkErrorGroupAsViewedMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markErrorGroupAsViewedMutation, { data, loading, error }] = useMarkErrorGroupAsViewedMutation({
+ *   variables: {
+ *      error_secure_id: // value for 'error_secure_id'
+ *      viewed: // value for 'viewed'
+ *   },
+ * });
+ */
+export function useMarkErrorGroupAsViewedMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.MarkErrorGroupAsViewedMutation,
+		Types.MarkErrorGroupAsViewedMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.MarkErrorGroupAsViewedMutation,
+		Types.MarkErrorGroupAsViewedMutationVariables
+	>(MarkErrorGroupAsViewedDocument, baseOptions)
+}
+export type MarkErrorGroupAsViewedMutationHookResult = ReturnType<
+	typeof useMarkErrorGroupAsViewedMutation
+>
+export type MarkErrorGroupAsViewedMutationResult =
+	Apollo.MutationResult<Types.MarkErrorGroupAsViewedMutation>
+export type MarkErrorGroupAsViewedMutationOptions = Apollo.BaseMutationOptions<
+	Types.MarkErrorGroupAsViewedMutation,
+	Types.MarkErrorGroupAsViewedMutationVariables
+>
 export const MarkSessionAsViewedDocument = gql`
 	mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
 		markSessionAsViewed(secure_id: $secure_id, viewed: $viewed) {

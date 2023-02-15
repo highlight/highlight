@@ -1,5 +1,19 @@
 import * as Types from './schemas'
 
+export type MarkErrorGroupAsViewedMutationVariables = Types.Exact<{
+	error_secure_id: Types.Scalars['String']
+	viewed: Types.Scalars['Boolean']
+}>
+
+export type MarkErrorGroupAsViewedMutation = { __typename?: 'Mutation' } & {
+	markErrorGroupAsViewed?: Types.Maybe<
+		{ __typename?: 'ErrorGroup' } & Pick<
+			Types.ErrorGroup,
+			'secure_id' | 'viewed'
+		>
+	>
+}
+
 export type MarkSessionAsViewedMutationVariables = Types.Exact<{
 	secure_id: Types.Scalars['String']
 	viewed: Types.Scalars['Boolean']
@@ -4038,6 +4052,7 @@ export const namedOperations = {
 		GetLogsTotalCount: 'GetLogsTotalCount' as const,
 	},
 	Mutation: {
+		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
 		MarkSessionAsStarred: 'MarkSessionAsStarred' as const,
 		MuteSessionCommentThread: 'MuteSessionCommentThread' as const,

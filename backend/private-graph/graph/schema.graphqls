@@ -443,6 +443,7 @@ type ErrorGroup {
 	is_public: Boolean!
 	first_occurrence: Timestamp
 	last_occurrence: Timestamp
+	viewed: Boolean
 }
 
 type ErrorMetadata {
@@ -1422,6 +1423,10 @@ type Mutation {
 		backend_domains: StringArray
 	): Project
 	editWorkspace(id: ID!, name: String): Workspace
+	markErrorGroupAsViewed(
+		error_secure_id: String!
+		viewed: Boolean
+	): ErrorGroup
 	markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
 	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
 	updateErrorGroupState(

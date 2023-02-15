@@ -402,6 +402,7 @@ export type ErrorGroup = {
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
 	type: Scalars['String']
 	updated_at: Scalars['Timestamp']
+	viewed?: Maybe<Scalars['Boolean']>
 }
 
 export type ErrorGroupFrequenciesParamsInput = {
@@ -774,6 +775,7 @@ export type Mutation = {
 	editWorkspace?: Maybe<Workspace>
 	emailSignup: Scalars['String']
 	joinWorkspace?: Maybe<Scalars['ID']>
+	markErrorGroupAsViewed?: Maybe<ErrorGroup>
 	markSessionAsStarred?: Maybe<Session>
 	markSessionAsViewed?: Maybe<Session>
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
@@ -1053,6 +1055,11 @@ export type MutationEmailSignupArgs = {
 
 export type MutationJoinWorkspaceArgs = {
 	workspace_id: Scalars['ID']
+}
+
+export type MutationMarkErrorGroupAsViewedArgs = {
+	error_secure_id: Scalars['String']
+	viewed?: InputMaybe<Scalars['Boolean']>
 }
 
 export type MutationMarkSessionAsStarredArgs = {
