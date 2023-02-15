@@ -313,6 +313,7 @@ type ComplexityRoot struct {
 		StructuredStackTrace func(childComplexity int) int
 		Type                 func(childComplexity int) int
 		UpdatedAt            func(childComplexity int) int
+		Viewed               func(childComplexity int) int
 	}
 
 	ErrorGroupTagAggregation struct {
@@ -565,6 +566,7 @@ type ComplexityRoot struct {
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EmailSignup                      func(childComplexity int, email string) int
 		JoinWorkspace                    func(childComplexity int, workspaceID int) int
+		MarkErrorGroupAsViewed           func(childComplexity int, errorSecureID string, viewed *bool) int
 		MarkSessionAsStarred             func(childComplexity int, secureID string, starred *bool) int
 		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
 		ModifyClearbitIntegration        func(childComplexity int, workspaceID int, enabled bool) int
@@ -702,6 +704,7 @@ type ComplexityRoot struct {
 		LinearTeams                  func(childComplexity int, projectID int) int
 		LiveUsersCount               func(childComplexity int, projectID int) int
 		Logs                         func(childComplexity int, projectID int, params model.LogsParamsInput) int
+		LogsTotalCount               func(childComplexity int, projectID int, params model.LogsParamsInput) int
 		Messages                     func(childComplexity int, sessionSecureID string) int
 		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
 		MetricTagValues              func(childComplexity int, projectID int, metricName string, tagName string) int
@@ -1119,6 +1122,7 @@ type MutationResolver interface {
 	CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model1.Workspace, error)
 	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray) (*model1.Project, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
+	MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model1.ErrorGroup, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
 	MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model1.Session, error)
 	UpdateErrorGroupState(ctx context.Context, secureID string, state string, snoozedUntil *time.Time) (*model1.ErrorGroup, error)
@@ -1301,6 +1305,7 @@ type QueryResolver interface {
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
 	Logs(ctx context.Context, projectID int, params model.LogsParamsInput) ([]*model.LogLine, error)
+	LogsTotalCount(ctx context.Context, projectID int, params model.LogsParamsInput) (uint64, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -2522,6 +2527,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorGroup.UpdatedAt(childComplexity), true
+
+	case "ErrorGroup.viewed":
+		if e.complexity.ErrorGroup.Viewed == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.Viewed(childComplexity), true
 
 	case "ErrorGroupTagAggregation.buckets":
 		if e.complexity.ErrorGroupTagAggregation.Buckets == nil {
@@ -3874,6 +3886,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.JoinWorkspace(childComplexity, args["workspace_id"].(int)), true
 
+	case "Mutation.markErrorGroupAsViewed":
+		if e.complexity.Mutation.MarkErrorGroupAsViewed == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_markErrorGroupAsViewed_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.MarkErrorGroupAsViewed(childComplexity, args["error_secure_id"].(string), args["viewed"].(*bool)), true
+
 	case "Mutation.markSessionAsStarred":
 		if e.complexity.Mutation.MarkSessionAsStarred == nil {
 			break
@@ -5171,6 +5195,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Logs(childComplexity, args["project_id"].(int), args["params"].(model.LogsParamsInput)), true
+
+	case "Query.logs_total_count":
+		if e.complexity.Query.LogsTotalCount == nil {
+			break
+		}
+
+		args, err := ec.field_Query_logs_total_count_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.LogsTotalCount(childComplexity, args["project_id"].(int), args["params"].(model.LogsParamsInput)), true
 
 	case "Query.messages":
 		if e.complexity.Query.Messages == nil {
@@ -7398,6 +7434,7 @@ var sources = []*ast.Source{
 scalar Any
 scalar Timestamp
 scalar Int64
+scalar UInt64
 scalar StringArray
 scalar Map
 
@@ -7837,6 +7874,7 @@ type ErrorGroup {
 	is_public: Boolean!
 	first_occurrence: Timestamp
 	last_occurrence: Timestamp
+	viewed: Boolean
 }
 
 type ErrorMetadata {
@@ -8794,6 +8832,7 @@ type Query {
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 	logs(project_id: ID!, params: LogsParamsInput!): [LogLine!]!
+	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 }
 
 type Mutation {
@@ -8815,6 +8854,10 @@ type Mutation {
 		backend_domains: StringArray
 	): Project
 	editWorkspace(id: ID!, name: String): Workspace
+	markErrorGroupAsViewed(
+		error_secure_id: String!
+		viewed: Boolean
+	): ErrorGroup
 	markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
 	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
 	updateErrorGroupState(
@@ -10598,6 +10641,30 @@ func (ec *executionContext) field_Mutation_joinWorkspace_args(ctx context.Contex
 		}
 	}
 	args["workspace_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_markErrorGroupAsViewed_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["error_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_secure_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_secure_id"] = arg0
+	var arg1 *bool
+	if tmp, ok := rawArgs["viewed"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("viewed"))
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["viewed"] = arg1
 	return args, nil
 }
 
@@ -12996,6 +13063,30 @@ func (ec *executionContext) field_Query_liveUsersCount_args(ctx context.Context,
 }
 
 func (ec *executionContext) field_Query_logs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 model.LogsParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg1, err = ec.unmarshalNLogsParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_logs_total_count_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -21482,6 +21573,47 @@ func (ec *executionContext) fieldContext_ErrorGroup_last_occurrence(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _ErrorGroup_viewed(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorGroup_viewed(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Viewed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorGroup_viewed(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ErrorGroupTagAggregation_key(ctx context.Context, field graphql.CollectedField, obj *model.ErrorGroupTagAggregation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ErrorGroupTagAggregation_key(ctx, field)
 	if err != nil {
@@ -23516,6 +23648,8 @@ func (ec *executionContext) fieldContext_ErrorResults_error_groups(ctx context.C
 				return ec.fieldContext_ErrorGroup_first_occurrence(ctx, field)
 			case "last_occurrence":
 				return ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
+			case "viewed":
+				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -27925,6 +28059,101 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspace(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_markErrorGroupAsViewed(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_markErrorGroupAsViewed(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().MarkErrorGroupAsViewed(rctx, fc.Args["error_secure_id"].(string), fc.Args["viewed"].(*bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.ErrorGroup)
+	fc.Result = res
+	return ec.marshalOErrorGroup2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_markErrorGroupAsViewed(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "created_at":
+				return ec.fieldContext_ErrorGroup_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_ErrorGroup_updated_at(ctx, field)
+			case "id":
+				return ec.fieldContext_ErrorGroup_id(ctx, field)
+			case "secure_id":
+				return ec.fieldContext_ErrorGroup_secure_id(ctx, field)
+			case "project_id":
+				return ec.fieldContext_ErrorGroup_project_id(ctx, field)
+			case "type":
+				return ec.fieldContext_ErrorGroup_type(ctx, field)
+			case "event":
+				return ec.fieldContext_ErrorGroup_event(ctx, field)
+			case "structured_stack_trace":
+				return ec.fieldContext_ErrorGroup_structured_stack_trace(ctx, field)
+			case "metadata_log":
+				return ec.fieldContext_ErrorGroup_metadata_log(ctx, field)
+			case "mapped_stack_trace":
+				return ec.fieldContext_ErrorGroup_mapped_stack_trace(ctx, field)
+			case "stack_trace":
+				return ec.fieldContext_ErrorGroup_stack_trace(ctx, field)
+			case "fields":
+				return ec.fieldContext_ErrorGroup_fields(ctx, field)
+			case "state":
+				return ec.fieldContext_ErrorGroup_state(ctx, field)
+			case "snoozed_until":
+				return ec.fieldContext_ErrorGroup_snoozed_until(ctx, field)
+			case "environments":
+				return ec.fieldContext_ErrorGroup_environments(ctx, field)
+			case "error_frequency":
+				return ec.fieldContext_ErrorGroup_error_frequency(ctx, field)
+			case "error_metrics":
+				return ec.fieldContext_ErrorGroup_error_metrics(ctx, field)
+			case "is_public":
+				return ec.fieldContext_ErrorGroup_is_public(ctx, field)
+			case "first_occurrence":
+				return ec.fieldContext_ErrorGroup_first_occurrence(ctx, field)
+			case "last_occurrence":
+				return ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
+			case "viewed":
+				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_markErrorGroupAsViewed_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_markSessionAsViewed(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_markSessionAsViewed(ctx, field)
 	if err != nil {
@@ -28298,6 +28527,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorGroupState(ctx cont
 				return ec.fieldContext_ErrorGroup_first_occurrence(ctx, field)
 			case "last_occurrence":
 				return ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
+			case "viewed":
+				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -31504,6 +31735,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorGroupIsPublic(ctx c
 				return ec.fieldContext_ErrorGroup_first_occurrence(ctx, field)
 			case "last_occurrence":
 				return ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
+			case "viewed":
+				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -33882,6 +34115,8 @@ func (ec *executionContext) fieldContext_Query_error_group(ctx context.Context, 
 				return ec.fieldContext_ErrorGroup_first_occurrence(ctx, field)
 			case "last_occurrence":
 				return ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
+			case "viewed":
+				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -40759,6 +40994,60 @@ func (ec *executionContext) fieldContext_Query_logs(ctx context.Context, field g
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_logs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_logs_total_count(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_logs_total_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().LogsTotalCount(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.LogsParamsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_logs_total_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UInt64 does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_logs_total_count_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -55455,6 +55744,10 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 
 			out.Values[i] = ec._ErrorGroup_last_occurrence(ctx, field, obj)
 
+		case "viewed":
+
+			out.Values[i] = ec._ErrorGroup_viewed(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -56977,6 +57270,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_editWorkspace(ctx, field)
+			})
+
+		case "markErrorGroupAsViewed":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_markErrorGroupAsViewed(ctx, field)
 			})
 
 		case "markSessionAsViewed":
@@ -59945,6 +60244,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_logs(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "logs_total_count":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_logs_total_count(ctx, field)
 				return res
 			}
 
@@ -65999,6 +66318,21 @@ func (ec *executionContext) unmarshalNTrackPropertyInput2ᚕᚖgithubᚗcomᚋhi
 func (ec *executionContext) unmarshalNTrackPropertyInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTrackPropertyInput(ctx context.Context, v interface{}) (*model.TrackPropertyInput, error) {
 	res, err := ec.unmarshalInputTrackPropertyInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUInt642uint64(ctx context.Context, v interface{}) (uint64, error) {
+	res, err := graphql.UnmarshalUint64(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUInt642uint64(ctx context.Context, sel ast.SelectionSet, v uint64) graphql.Marshaler {
+	res := graphql.MarshalUint64(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalNUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx context.Context, sel ast.SelectionSet, v []*model1.UserProperty) graphql.Marshaler {

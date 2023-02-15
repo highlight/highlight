@@ -2,7 +2,7 @@ import {
 	Popover as AntDesignPopover,
 	PopoverProps as AntDesignPopoverProps,
 } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './Popover.module.scss'
@@ -47,11 +47,11 @@ const Popover: React.FC<React.PropsWithChildren<PopoverProps>> = ({
 }) => {
 	return (
 		<AntDesignPopover
-			overlayClassName={classNames(styles.popover, popoverClassName)}
+			overlayClassName={clsx(styles.popover, popoverClassName)}
 			{...props}
 			content={
 				<div
-					className={classNames(
+					className={clsx(
 						{
 							[styles.contentContainer]: !isList,
 							[styles.large]: large,

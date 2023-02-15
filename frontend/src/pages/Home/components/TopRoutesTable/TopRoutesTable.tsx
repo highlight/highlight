@@ -1,7 +1,3 @@
-import {
-	DEMO_WORKSPACE_APPLICATION_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { ProgressBarTableRowGroup } from '@components/ProgressBarTable/components/ProgressBarTableColumns'
 import { useGetNetworkHistogramQuery } from '@graph/hooks'
 import { NetworkRequestAttribute } from '@graph/schemas'
@@ -9,7 +5,7 @@ import useDataTimeRange from '@hooks/useDataTimeRange'
 import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/DashboardInnerTable'
 import { useParams } from '@util/react-router/useParams'
 import { ColumnsType } from 'antd/lib/table'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -32,16 +28,12 @@ const TopRoutesTable = ({
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
-			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-			: project_id
 
 	const { timeRange } = useDataTimeRange()
 
 	const { loading, data } = useGetNetworkHistogramQuery({
 		variables: {
-			project_id: projectIdRemapped,
+			project_id: project_id!,
 			params: {
 				lookback_days: moment
 					.duration(timeRange.lookback, 'minutes')
@@ -49,6 +41,7 @@ const TopRoutesTable = ({
 				attribute: NetworkRequestAttribute.Url,
 			},
 		},
+		skip: !project_id,
 		onCompleted: (data) => {
 			const transformedData =
 				data?.network_histogram?.buckets
@@ -74,7 +67,7 @@ const TopRoutesTable = ({
 	}
 
 	return (
-		<div className={classNames({ [styles.loading]: loading })}>
+		<div className={clsx({ [styles.loading]: loading })}>
 			<DashboardInnerTable>
 				<ProgressBarTable
 					loading={false}

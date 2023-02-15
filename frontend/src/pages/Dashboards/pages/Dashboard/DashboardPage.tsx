@@ -32,19 +32,15 @@ import {
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { Dropdown, Menu, message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { Fragment, useEffect, useRef, useState } from 'react'
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout'
 import { VscEllipsis } from 'react-icons/vsc'
-import { useHistory, useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import styles from './DashboardPage.module.scss'
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
-
-type RouteState = Maybe<{
-	metricConfig?: DashboardMetricConfig
-}>
 
 const DashboardPage = ({
 	dashboardName,
@@ -55,8 +51,14 @@ const DashboardPage = ({
 	header?: React.ReactNode
 	containerStyles?: React.CSSProperties
 }) => {
-	const history = useHistory<RouteState>()
-	const { state: locationState } = useLocation<RouteState>()
+	const navigate = useNavigate()
+	const {
+		state: locationState,
+	}: {
+		state: Maybe<{
+			metricConfig?: DashboardMetricConfig
+		}>
+	} = useLocation()
 	const { id } = useParams<{ id: string }>()
 	const { timeRange } = useDataTimeRange()
 	const { dashboards, allAdmins, updateDashboard } = useDashboardsContext()
@@ -117,7 +119,7 @@ const DashboardPage = ({
 			])
 
 			// Reset state so we don't try to add again.
-			history.replace({ state: {} })
+			navigate('', { state: {} })
 		}
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -257,7 +259,7 @@ const DashboardPage = ({
 					<div className={styles.rightControllerText}>
 						Results are{' '}
 						<span
-							className={classNames({
+							className={clsx({
 								[styles.liveColored]: !timeRange.absolute,
 								[styles.absoluteColored]: timeRange.absolute,
 							})}
@@ -362,7 +364,7 @@ export const DashboardGrid = ({
 
 	return (
 		<div
-			className={classNames(styles.gridContainer, styles.isEditing)}
+			className={clsx(styles.gridContainer, styles.isEditing)}
 			style={containerStyles}
 		>
 			<ResponsiveGridLayout
@@ -454,12 +456,12 @@ function DeleteDashboardButton({
 		project_id: string
 	}
 }) {
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const [mutate] = useDeleteDashboardMutation({
 		variables: { id: dashboard.id },
 		onCompleted: () => {
-			history.push(`/${dashboard.project_id}/dashboards`)
+			navigate(`/${dashboard.project_id}/dashboards`)
 		},
 		refetchQueries: [GetDashboardDefinitionsDocument],
 	})

@@ -96,7 +96,7 @@ const useFeatureFlag = (feature: Feature, override?: boolean) => {
 		project_id: string
 	}>()
 	const { data: project } = useGetProjectQuery({
-		variables: { id: project_id },
+		variables: { id: project_id! },
 		skip: !project_id,
 	})
 

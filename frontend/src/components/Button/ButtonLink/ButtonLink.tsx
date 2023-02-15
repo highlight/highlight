@@ -1,7 +1,7 @@
 import Button from '@components/Button/Button/Button'
 import analytics from '@util/analytics'
 import { ButtonType } from 'antd/lib/button'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 import { Link, LinkProps } from 'react-router-dom'
 
@@ -18,7 +18,7 @@ type Props = {
 	fullWidth?: boolean
 	disabled?: boolean
 	type?: ButtonType
-} & Partial<Pick<LinkProps, 'to' | 'onClick'>>
+} & Partial<Pick<LinkProps, 'to' | 'onClick' | 'state'>>
 
 const ButtonLink: React.FC<React.PropsWithChildren<Props>> = ({
 	to,
@@ -32,6 +32,7 @@ const ButtonLink: React.FC<React.PropsWithChildren<Props>> = ({
 	disabled,
 	type,
 	onClick,
+	state,
 }) => {
 	if (disabled) {
 		return (
@@ -39,7 +40,7 @@ const ButtonLink: React.FC<React.PropsWithChildren<Props>> = ({
 				type={type}
 				disabled
 				trackingId={trackingId}
-				className={classNames(styles.link, className, {
+				className={clsx(styles.link, className, {
 					[styles.withIcon]: icon,
 					[styles.fullWidth]: fullWidth,
 				})}
@@ -57,7 +58,7 @@ const ButtonLink: React.FC<React.PropsWithChildren<Props>> = ({
 		return (
 			<a
 				href={href}
-				className={classNames(styles.link, className, {
+				className={clsx(styles.link, className, {
 					[styles.withIcon]: icon,
 					[styles.fullWidth]: fullWidth,
 					[styles.defaultButtonStyles]: type === 'default',
@@ -81,7 +82,7 @@ const ButtonLink: React.FC<React.PropsWithChildren<Props>> = ({
 	return (
 		<Link
 			to={to}
-			className={classNames(styles.link, className, {
+			className={clsx(styles.link, className, {
 				[styles.withIcon]: icon,
 				[styles.fullWidth]: fullWidth,
 				[styles.to]: type !== 'default',
@@ -91,6 +92,7 @@ const ButtonLink: React.FC<React.PropsWithChildren<Props>> = ({
 				analytics.track(`Link-${trackingId}`)
 				onClick && onClick(e)
 			}}
+			state={state}
 		>
 			{icon}
 			{children}

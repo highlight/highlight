@@ -6,7 +6,7 @@ import {
 import { useGetWorkspacesQuery } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect } from 'react'
-import { Redirect } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 export const DefaultWorkspaceRouter = () => {
 	const { isLoggedIn } = useAuthContext()
@@ -36,7 +36,7 @@ export const DefaultWorkspaceRouter = () => {
 
 	const firstWorkspace = data.workspaces[0]
 	if (firstWorkspace?.id.length) {
-		return <Redirect to={`/w/${firstWorkspace.id}/${page_id}`} />
+		return <Navigate to={`/w/${firstWorkspace.id}/${page_id}`} replace />
 	}
 	return <Redirect to="/" />
 }

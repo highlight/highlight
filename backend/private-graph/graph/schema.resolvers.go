@@ -578,6 +578,101 @@ func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *stri
 	return workspace, nil
 }
 
+// MarkErrorGroupAsViewed is the resolver for the markErrorGroupAsViewed field.
+func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model.ErrorGroup, error) {
+	eg, err := r.canAdminModifyErrorGroup(ctx, errorSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not error group owner")
+	}
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not logged in")
+	}
+
+	// Update the the number of error groups viewed for the current admin.
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		// Check if this admin has already viewed
+		if _, err := r.isAdminInProject(ctx, eg.ProjectID); err != nil {
+			log.Infof("not adding error groups count to admin in hubspot; this is probably a demo project, with id [%v]", eg.ProjectID)
+			return
+		}
+		var currentErrorGroupCount int64
+		if err := r.DB.Raw(`
+			select count(*)
+			from error_group_admins_views
+			where error_group_id = ? and admin_id = ?
+	`, eg.ID, admin.ID).Scan(&currentErrorGroupCount).Error; err != nil {
+			log.Error(e.Wrap(err, "error querying count of error group views from admin"))
+			return
+		} else if currentErrorGroupCount > 0 {
+			log.Info("not updating hubspot error group count; admin has already viewed this error group")
+			return
+		}
+
+		var totalErrorGroupCount int64
+		if err := r.DB.Raw(`
+			select count(*)
+			from error_group_admins_views
+			where admin_id = ?
+	`, admin.ID).Scan(&totalErrorGroupCount).Error; err != nil {
+			log.Error(e.Wrap(err, "error querying total count of error group views from admin"))
+			return
+		}
+		totalErrorGroupCountAsInt := int(totalErrorGroupCount) + 1
+
+		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfErrorGroupsViewed: &totalErrorGroupCountAsInt}).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating error group count for admin in postgres"))
+		}
+		if !util.IsDevEnv() {
+			if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
+				Name:     "number_of_highlight_error_groups_viewed",
+				Property: "number_of_highlight_error_groups_viewed",
+				Value:    totalErrorGroupCountAsInt,
+			}}); err != nil {
+				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+
+				zlog.Error().
+					Stack().
+					Err(err).
+					Int("admin_id", admin.ID).
+					Int("value", totalErrorGroupCountAsInt).
+					Msg("error updating error group count for admin in hubspot")
+			}
+			log.Infof("succesfully added to total error group count for admin [%v], who just viewed error group [%v]", admin.ID, eg.ID)
+		}
+	})
+
+	newErrorGroup := &model.ErrorGroup{}
+	updatedFields := &model.ErrorGroup{
+		Viewed: viewed,
+	}
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: eg.ID}}).First(&newErrorGroup).Updates(updatedFields).Error; err != nil {
+		return nil, e.Wrap(err, "error writing error as viewed")
+	}
+
+	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, eg.ID, map[string]interface{}{"viewed": viewed}); err != nil {
+		return nil, e.Wrap(err, "error updating error in opensearch")
+	}
+
+	newAdminView := struct {
+		ID int `json:"id"`
+	}{
+		ID: admin.ID,
+	}
+
+	if err := r.OpenSearch.AppendToField(opensearch.IndexErrorsCombined, newErrorGroup.ID, "viewed_by_admins", []interface{}{
+		newAdminView}); err != nil {
+		return nil, e.Wrap(err, "error updating error gorups's admin viewed by in opensearch")
+	}
+
+	if err := r.DB.Model(&eg).Association("ViewedByAdmins").Append(admin); err != nil {
+		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
+	}
+
+	return newErrorGroup, nil
+}
+
 // MarkSessionAsViewed is the resolver for the markSessionAsViewed field.
 func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model.Session, error) {
 	s, err := r.canAdminModifySession(ctx, secureID)
@@ -3262,6 +3357,11 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 			workspace.VercelTeamID, projectEnvId, vercel.ProjectIdEnvVar); err != nil {
 			return false, err
 		}
+
+		if err := vercel.CreateLogDrain(workspace.VercelTeamID, m.VercelProjectID, project.VerboseID(), "highlight-log-drain", *workspace.VercelAccessToken); err != nil {
+			return false, err
+		}
+
 		configs = append(configs, &model.VercelIntegrationConfig{
 			WorkspaceID:     workspaceId,
 			VercelProjectID: m.VercelProjectID,
@@ -6842,6 +6942,16 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 	}
 
 	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params)
+}
+
+// LogsTotalCount is the resolver for the logs_total_count field.
+func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return 0, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.ReadLogsTotalCount(ctx, project.ID, params)
 }
 
 // Params is the resolver for the params field.

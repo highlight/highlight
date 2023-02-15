@@ -1,7 +1,7 @@
 import Tooltip from '@components/Tooltip/Tooltip'
 import SvgCopyIcon from '@icons/CopyIcon'
 import { message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import Button from '../Button/Button/Button'
@@ -14,7 +14,7 @@ interface Props {
 
 const UserIdentifier = React.memo(({ displayValue, className }: Props) => {
 	return (
-		<div className={classNames(styles.identifierContainer, className)}>
+		<div className={clsx(styles.identifierContainer, className)}>
 			<span className={styles.identifier}>{displayValue}</span>
 			<Tooltip
 				title="Copy id to clipboard"

@@ -1,5 +1,19 @@
 import * as Types from './schemas'
 
+export type MarkErrorGroupAsViewedMutationVariables = Types.Exact<{
+	error_secure_id: Types.Scalars['String']
+	viewed: Types.Scalars['Boolean']
+}>
+
+export type MarkErrorGroupAsViewedMutation = { __typename?: 'Mutation' } & {
+	markErrorGroupAsViewed?: Types.Maybe<
+		{ __typename?: 'ErrorGroup' } & Pick<
+			Types.ErrorGroup,
+			'secure_id' | 'viewed'
+		>
+	>
+}
+
 export type MarkSessionAsViewedMutationVariables = Types.Exact<{
 	secure_id: Types.Scalars['String']
 	viewed: Types.Scalars['Boolean']
@@ -3923,6 +3937,16 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetLogsTotalCountQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.LogsParamsInput
+}>
+
+export type GetLogsTotalCountQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'logs_total_count'
+>
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4037,8 +4061,10 @@ export const namedOperations = {
 		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
+		GetLogsTotalCount: 'GetLogsTotalCount' as const,
 	},
 	Mutation: {
+		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
 		MarkSessionAsStarred: 'MarkSessionAsStarred' as const,
 		MuteSessionCommentThread: 'MuteSessionCommentThread' as const,

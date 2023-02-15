@@ -13,7 +13,7 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { showIntercom } from '@util/window'
 import { message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import firebase from 'firebase/app'
 import { H } from 'highlight.run'
 import { omit } from 'lodash'
@@ -25,7 +25,8 @@ import React, {
 	useRef,
 	useState,
 } from 'react'
-import { useHistory } from 'react-router'
+import { useNavigate } from 'react-router'
+import { useLocation } from 'react-router-dom'
 import { BooleanParam, StringParam, useQueryParam } from 'use-query-params'
 
 import commonStyles from '../../Common.module.scss'
@@ -130,7 +131,8 @@ export default function LoginForm() {
 	const [password, setPassword] = useState('')
 	const [passwordConfirmation, setPasswordConfirmation] = useState('')
 	const [error, setError] = useState<string | null>(null)
-	const history = useHistory<{ previousPathName?: string }>()
+	const navigate = useNavigate()
+	const location = useLocation()
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
@@ -192,10 +194,10 @@ export default function LoginForm() {
 
 			// Redirect the user to their initial path instead to creating a new workspace.
 			// We do this because this happens when a new user clicks on a Highlight link that was shared to them and they don't have an account yet.
-			if (history.location.state?.previousPathName) {
-				history.push(history.location.state.previousPathName)
+			if (location.state?.previousPathName) {
+				navigate(location.state.previousPathName)
 				analytics.track('Sign in with redirect', {
-					redirect: history.location.state.previousPathName,
+					redirect: location.state.previousPathName,
 				})
 			}
 		}
@@ -348,6 +350,7 @@ export default function LoginForm() {
 							}}
 							autoFocus
 							required
+							autoComplete="email"
 						/>
 						{formState !== LoginFormState.ResetPassword && (
 							<Input
@@ -359,6 +362,11 @@ export default function LoginForm() {
 									setPassword(e.target.value)
 								}}
 								required
+								autoComplete={
+									formState === LoginFormState.SignUp
+										? 'new-password'
+										: 'current-password'
+								}
 							/>
 						)}
 						{formState === LoginFormState.SignUp && (
@@ -384,7 +392,7 @@ export default function LoginForm() {
 							onClick={() => {
 								changeState(LoginFormState.ResetPassword)
 							}}
-							className={classNames(
+							className={clsx(
 								styles.loginStateSwitcher,
 								styles.resetPasswordText,
 							)}
@@ -419,7 +427,7 @@ export default function LoginForm() {
 							</p>
 							<Button
 								trackingId="LoginWithGoogle"
-								className={classNames(
+								className={clsx(
 									commonStyles.secondaryButton,
 									styles.googleButton,
 								)}
@@ -608,8 +616,8 @@ function AuthPageLayout({
 	children: ReactNode
 	description?: string
 }) {
-	const heroBugClass = classNames(
-		'pointer-events-none absolute h-56 w-56 object-contain hidden xl:block',
+	const heroBugClass = clsx(
+		'pointer-events-none absolute hidden h-56 w-56 object-contain xl:block',
 	)
 
 	return (
@@ -636,16 +644,13 @@ function AuthPageLayout({
 				<>
 					<img
 						src={heroBugLeft}
-						className={classNames(heroBugClass, '-left-56')}
+						className={clsx(heroBugClass, '-left-56')}
 						style={{ transform: 'rotate(-30deg)' }} // tailwind rotate class doesn't work for some reason
 					/>
 
 					<img
 						src={heroBugRight}
-						className={classNames(
-							heroBugClass,
-							'-right-56 -top-28',
-						)}
+						className={clsx(heroBugClass, '-right-56 -top-28')}
 					/>
 
 					<div className="hidden min-w-0 flex-1 xl:block">

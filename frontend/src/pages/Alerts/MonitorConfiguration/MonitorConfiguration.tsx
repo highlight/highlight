@@ -19,7 +19,7 @@ import {
 	MetricSelector,
 	TagFilters,
 } from '@pages/Dashboards/components/EditMetricModal/EditMetricModal'
-import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
+import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { Divider, Slider } from 'antd'
 import moment from 'moment'
@@ -115,7 +115,7 @@ const MonitorConfiguration = ({
 	const [endDate] = React.useState<moment.Moment>(moment(new Date()))
 	const { data, loading: metricPreviewLoading } = useGetMetricsTimelineQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			metric_name: metricToMonitorName,
 			params: {
 				aggregator,
@@ -133,6 +133,7 @@ const MonitorConfiguration = ({
 				units: units || undefined,
 			},
 		},
+		skip: !project_id,
 	})
 
 	const format = useMemo(() => {
@@ -204,10 +205,11 @@ const MonitorConfiguration = ({
 
 	const { data: tags, loading: tagsLoading } = useGetMetricTagsQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			metric_name: metricToMonitorName,
 		},
 		fetchPolicy: 'cache-first',
+		skip: !project_id,
 	})
 
 	return (

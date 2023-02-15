@@ -19,7 +19,7 @@ const LinearIntegrationConfig: React.FC<
 > = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action }) => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { removeLinearIntegrationFromProject } = useLinearIntegration()
-	const authUrl = useMemo(() => getLinearOAuthUrl(project_id), [project_id])
+	const authUrl = useMemo(() => getLinearOAuthUrl(project_id!), [project_id])
 	if (action === IntegrationAction.Disconnect) {
 		return (
 			<>

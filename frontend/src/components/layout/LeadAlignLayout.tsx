@@ -1,4 +1,4 @@
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './LeadAlignLayout.module.scss'
@@ -13,7 +13,7 @@ const LeadAlignLayout: React.FC<
 > = ({ fullWidth = false, maxWidth, children, className }) => {
 	return (
 		<main
-			className={classNames(className, styles.leadAlignLayout, {
+			className={clsx(className, styles.leadAlignLayout, {
 				[styles.fullWidth]: fullWidth,
 			})}
 			style={{ maxWidth: maxWidth }}

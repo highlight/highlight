@@ -1,5 +1,5 @@
-import { Maybe, Project, Workspace } from '../../graph/generated/schemas'
-import { createContext } from '../../util/context/context'
+import { Maybe, Project, Workspace } from '@graph/schemas'
+import { createContext } from '@util/context/context'
 
 /**
  * Provides data about the current application and all applications the admin has access to.

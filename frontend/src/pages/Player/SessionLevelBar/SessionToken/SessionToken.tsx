@@ -1,4 +1,4 @@
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { ReactElement } from 'react'
 
 import Tooltip from '../../../../components/Tooltip/Tooltip'
@@ -17,7 +17,7 @@ function SessionToken({
 	className,
 }: React.PropsWithChildren<Props>): ReactElement {
 	return (
-		<div className={classNames(styles.sessionToken, 'icon', className)}>
+		<div className={clsx(styles.sessionToken, 'icon', className)}>
 			<Tooltip
 				title={tooltipTitle}
 				arrowPointAtCenter

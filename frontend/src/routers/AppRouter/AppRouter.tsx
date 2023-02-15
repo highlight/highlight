@@ -1,12 +1,10 @@
 import '../../App.scss'
 
 import { useAuthContext } from '@authentication/AuthContext'
-import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { Box } from '@highlight-run/ui'
+import { useNumericProjectId } from '@hooks/useProjectId'
 import { AccountsPage } from '@pages/Accounts/Accounts'
-import { AdminForm } from '@pages/Auth/AdminForm'
 import { AuthRouter } from '@pages/Auth/AuthRouter'
-import { VerifyEmail } from '@pages/Auth/VerifyEmail'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import { Landing } from '@pages/Landing/Landing'
@@ -19,94 +17,121 @@ import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace'
 import InternalRouter from '@routers/InternalRouter/InternalRouter'
 import { DefaultWorkspaceRouter } from '@routers/OrgRouter/DefaultWorkspaceRouter'
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter'
-import { ProjectRouter } from '@routers/OrgRouter/OrgRouter'
+import { ProjectRouter } from '@routers/OrgRouter/ProjectRouter'
 import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter'
 import React from 'react'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import { Route, Routes, useMatch } from 'react-router-dom'
 
 export const AppRouter = () => {
 	const { isLoggedIn } = useAuthContext()
+	const workspaceMatch = useMatch('/w/:workspace_id/*')
+	const workspaceId = workspaceMatch?.params.workspace_id
+	const { projectId } = useNumericProjectId()
 
 	return (
 		<Box height="screen" width="screen">
-			<Router>
-				<Switch>
-					<Route path="/subscriptions">
-						<EmailOptOutPage />
-					</Route>
-					<Route path="/accounts">
-						<AccountsPage />
-					</Route>
-					<Route path="/w/:workspace_id(\d+)/invite/:invite_id">
-						<Landing>
-							<NewMemberPage />
-						</Landing>
-					</Route>
-					<Route path="/new">
-						<Landing>
-							<NewProjectPage />
-						</Landing>
-					</Route>
-					<Route path="/oauth/authorize">
+			<Routes>
+				<Route
+					path="/oauth/authorize"
+					element={
 						<Landing>
 							<OAuthApprovalPage />
 						</Landing>
-					</Route>
-					<Route path="/callback/:integrationName">
-						<IntegrationAuthCallbackPage />
-					</Route>
-					<Route path="/w/:workspace_id(\d+)/new">
+					}
+				/>
+
+				<Route
+					path="/callback/:integrationName"
+					element={<IntegrationAuthCallbackPage />}
+				/>
+
+				<Route path="/subscriptions" element={<EmailOptOutPage />} />
+				<Route path="/accounts/*" element={<AccountsPage />} />
+
+				<Route path="/_internal/*" element={<InternalRouter />} />
+
+				<Route
+					path="/new"
+					element={
 						<Landing>
 							<NewProjectPage />
 						</Landing>
-					</Route>
-					<Route path="/w/:workspace_id(\d+)/switch">
-						<Landing>
-							<SwitchProject />
-						</Landing>
-					</Route>
-					<Route path="/w/:workspace_id(\d+)/about-you">
-						<Landing>
-							<RegistrationForm />
-						</Landing>
-					</Route>
-					<Route path="/switch">
+					}
+				/>
+
+				<Route
+					path="/switch"
+					element={
 						<Landing>
 							<SwitchWorkspace />
 						</Landing>
-					</Route>
-					<Route path="/_internal">
-						<InternalRouter />
-					</Route>
-					<Route path="/:project_id(\d+)">
-						<ProjectRouter />
-					</Route>
-					<Route
-						path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})`}
-					>
-						<ProjectRouter />
-					</Route>
-					<Route path="/w/:workspace_id(\d+)">
-						<WorkspaceRouter />
-					</Route>
-					<Route path="/w/:page_id(team|settings|current-plan|upgrade-plan)">
-						<DefaultWorkspaceRouter />
-					</Route>
-					<Route path="/verify_email">
-						<VerifyEmail />
-					</Route>
-					<Route path="/about_you">
-						<AdminForm />
-					</Route>
-					<Route path="/">
-						{isLoggedIn ? (
+					}
+				/>
+
+				<Route
+					path="/w/:workspace_id/invite/:invite_id"
+					element={
+						<Landing>
+							<NewMemberPage />
+						</Landing>
+					}
+				/>
+
+				<Route
+					path="/w/:workspace_id/new"
+					element={
+						<Landing>
+							<NewProjectPage />
+						</Landing>
+					}
+				/>
+
+				<Route
+					path="/w/:workspace_id/switch"
+					element={
+						<Landing>
+							<SwitchProject />
+						</Landing>
+					}
+				/>
+
+				<Route
+					path="/w/:workspace_id/about-you"
+					element={
+						<Landing>
+							<RegistrationForm />
+						</Landing>
+					}
+				/>
+				<Route
+					path="/w/:workspace_id/*"
+					element={
+						isLoggedIn ? (
+							workspaceId &&
+							Number.isInteger(Number(workspaceId)) ? (
+								<WorkspaceRouter />
+							) : (
+								<DefaultWorkspaceRouter />
+							)
+						) : (
+							<AuthRouter />
+						)
+					}
+				/>
+
+				<Route
+					path="/*"
+					element={
+						projectId && Number.isInteger(Number(projectId)) ? (
+							<ProjectRouter />
+						) : isLoggedIn ? (
 							<ProjectRedirectionRouter />
 						) : (
 							<AuthRouter />
-						)}
-					</Route>
-				</Switch>
-			</Router>
+						)
+					}
+				/>
+			</Routes>
 		</Box>
 	)
 }

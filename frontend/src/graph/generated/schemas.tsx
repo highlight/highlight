@@ -21,6 +21,7 @@ export type Scalars = {
 	Map: any
 	StringArray: string[]
 	Timestamp: string
+	UInt64: any
 	Upload: any
 }
 
@@ -401,6 +402,7 @@ export type ErrorGroup = {
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
 	type: Scalars['String']
 	updated_at: Scalars['Timestamp']
+	viewed?: Maybe<Scalars['Boolean']>
 }
 
 export type ErrorGroupFrequenciesParamsInput = {
@@ -773,6 +775,7 @@ export type Mutation = {
 	editWorkspace?: Maybe<Workspace>
 	emailSignup: Scalars['String']
 	joinWorkspace?: Maybe<Scalars['ID']>
+	markErrorGroupAsViewed?: Maybe<ErrorGroup>
 	markSessionAsStarred?: Maybe<Session>
 	markSessionAsViewed?: Maybe<Session>
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
@@ -1052,6 +1055,11 @@ export type MutationEmailSignupArgs = {
 
 export type MutationJoinWorkspaceArgs = {
 	workspace_id: Scalars['ID']
+}
+
+export type MutationMarkErrorGroupAsViewedArgs = {
+	error_secure_id: Scalars['String']
+	viewed?: InputMaybe<Scalars['Boolean']>
 }
 
 export type MutationMarkSessionAsStarredArgs = {
@@ -1406,6 +1414,7 @@ export type Query = {
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	logs: Array<LogLine>
+	logs_total_count: Scalars['UInt64']
 	messages?: Maybe<Array<Maybe<Scalars['Any']>>>
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
@@ -1731,6 +1740,11 @@ export type QueryLiveUsersCountArgs = {
 }
 
 export type QueryLogsArgs = {
+	params: LogsParamsInput
+	project_id: Scalars['ID']
+}
+
+export type QueryLogs_Total_CountArgs = {
 	params: LogsParamsInput
 	project_id: Scalars['ID']
 }

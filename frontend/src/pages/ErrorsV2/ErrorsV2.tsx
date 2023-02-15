@@ -4,6 +4,8 @@ import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import {
 	useGetErrorGroupQuery,
+	useMarkErrorGroupAsViewedMutation,
+	useMarkSessionAsViewedMutation,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
 import {
@@ -32,7 +34,8 @@ import clsx from 'clsx'
 import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useHistory } from 'react-router'
+import { useNavigate } from 'react-router'
+import { useLocation } from 'react-router-dom'
 
 import * as styles from './styles.css'
 
@@ -46,6 +49,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 	const { isLoggedIn } = useAuthContext()
 	const { searchResultSecureIds } = useErrorSearchContext()
 	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
+	const [markErrorGroupAsViewed] = useMarkErrorGroupAsViewedMutation()
 
 	const currentSearchResultIndex = searchResultSecureIds.findIndex(
 		(secureId) => secureId === error_secure_id,
@@ -63,18 +67,34 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 		loading,
 		error: errorQueryingErrorGroup,
 	} = useGetErrorGroupQuery({
-		variables: { secure_id: error_secure_id },
+		variables: { secure_id: error_secure_id! },
 		skip: !error_secure_id,
 		onCompleted: () => {
+			if (error_secure_id) {
+				markErrorGroupAsViewed({
+					variables: {
+						error_secure_id,
+						viewed: true,
+					},
+				}).catch(console.error)
+			}
 			analytics.track('Viewed error', { is_guest: !isLoggedIn })
 		},
 	})
 
-	const history = useHistory()
+	const navigate = useNavigate()
+	const location = useLocation()
+
+	useEffect(() => {
+		if (!isLoggedIn && !data?.error_group?.is_public) {
+			navigate('/login', { replace: true })
+		}
+	}, [data?.error_group?.is_public, isLoggedIn, navigate])
+
 	const goToErrorGroup = (secureId: string) => {
-		history.push(
-			`/${project_id}/errors/${secureId}${history.location.search}`,
-		)
+		navigate(`/${project_id}/errors/${secureId}${location.search}`, {
+			replace: true,
+		})
 	}
 
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
@@ -92,9 +112,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 			}).then(() => {
 				const searchParams = new URLSearchParams(location.search)
 				searchParams.delete(PlayerSearchParameters.muted)
-				history.replace(
-					`${history.location.pathname}?${searchParams.toString()}`,
-				)
+				navigate(`${location.pathname}?${searchParams.toString()}`)
 
 				message.success('Muted notifications for this comment thread.')
 			})

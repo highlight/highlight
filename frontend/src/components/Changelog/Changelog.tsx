@@ -1,4 +1,4 @@
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { HTMLProps } from 'react'
 
 import SvgSparklesIcon from '../../static/SparklesIcon'
@@ -13,15 +13,9 @@ const Changelog = (props: HTMLProps<HTMLDivElement>) => {
 	})
 
 	return (
-		<div
-			{...props}
-			className={classNames(styles.container, props.className)}
-		>
-			<button
-				className={classNames(styles.indicator)}
-				data-canny-changelog
-			>
-				<SvgSparklesIcon className={classNames(styles.indicatorIcon)} />
+		<div {...props} className={clsx(styles.container, props.className)}>
+			<button className={clsx(styles.indicator)} data-canny-changelog>
+				<SvgSparklesIcon className={clsx(styles.indicatorIcon)} />
 			</button>
 		</div>
 	)

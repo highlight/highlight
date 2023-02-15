@@ -13,7 +13,8 @@ const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 }) => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data, loading } = useGetClickUpFoldersQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
+		skip: !project_id,
 	})
 
 	const clickUpListOptions = useMemo(() => {

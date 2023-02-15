@@ -69,7 +69,7 @@ export const SessionsHistogram: React.FC<SessionsHistogramProps> = React.memo(
 
 		const { loading, data } = useGetSessionsHistogramQuery({
 			variables: {
-				project_id,
+				project_id: project_id!,
 				query: backendSearchQuery?.searchQuery as string,
 				histogram_options: {
 					bucket_size:
@@ -87,7 +87,7 @@ export const SessionsHistogram: React.FC<SessionsHistogramProps> = React.memo(
 					},
 				},
 			},
-			skip: !backendSearchQuery,
+			skip: !backendSearchQuery || !project_id,
 			fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
 		})
 
@@ -175,7 +175,8 @@ export const SessionFeedV3 = React.memo(() => {
 	const showHistogram = searchResultsLoading || searchResultsCount > 0
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
+		skip: !project_id,
 	})
 
 	// Used to determine if we need to show the loading skeleton.
@@ -207,11 +208,11 @@ export const SessionFeedV3 = React.memo(() => {
 			query: backendSearchQuery?.searchQuery || '',
 			count: DEFAULT_PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
-			project_id,
+			project_id: project_id!,
 			sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
 		},
 		onCompleted: addSessions,
-		skip: !backendSearchQuery,
+		skip: !backendSearchQuery || !project_id,
 		fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
 	})
 

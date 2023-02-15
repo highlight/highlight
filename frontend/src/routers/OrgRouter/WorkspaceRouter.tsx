@@ -7,19 +7,17 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetWorkspaceDropdownOptionsQuery } from '@graph/hooks'
-import { AuthRouter } from '@pages/Auth/AuthRouter'
 import UserSettings from '@pages/UserSettings/UserSettings'
 import { WorkspaceTabs } from '@pages/WorkspaceTabs/WorkspaceTabs'
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
-import { WorkspaceRedirectionRouter } from '@routers/OrgRouter/WorkspaceRedirectionRouter'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect } from 'react'
-import { Route, Switch } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import commonStyles from '../../Common.module.scss'
-import { ApplicationContextProvider } from './ApplicationContext'
+import { ApplicationContextProvider } from './context/ApplicationContext'
 
 export const WorkspaceRouter = () => {
 	const { isLoggedIn } = useAuthContext()
@@ -33,8 +31,8 @@ export const WorkspaceRouter = () => {
 	const { setLoadingState } = useAppLoadingContext()
 
 	const { data, loading } = useGetWorkspaceDropdownOptionsQuery({
-		variables: { workspace_id },
-		skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
+		variables: { workspace_id: workspace_id ?? '' },
+		skip: !isLoggedIn || !workspace_id, // Higher level routers decide when guests are allowed to hit this router
 	})
 
 	useEffect(() => {
@@ -95,42 +93,21 @@ export const WorkspaceRouter = () => {
 					) : isLoggedIn && data?.workspace === null ? (
 						<ErrorState
 							title="Enter this Workspace?"
-							message={`
-                        Sadly, you don’t have access to the workspace 😢
-                        Request access and we'll shoot an email to your workspace admin.
-                        Alternatively, feel free to make an account!
-                        `}
+							message={
+								`Sadly, you don’t have access to the workspace 😢 ` +
+								`Request access and we'll shoot an email to your workspace admin. ` +
+								`Alternatively, feel free to make an account!`
+							}
 							shownWithHeader
 						/>
 					) : (
-						<>
-							<Switch>
-								<Route path="/w/:page_id(team|settings|current-plan|upgrade-plan)">
-									{isLoggedIn ? (
-										<WorkspaceRedirectionRouter />
-									) : (
-										<AuthRouter />
-									)}
-								</Route>
-								<Route path="/w/:workspace_id(\d+)/:page_id(team|settings|current-plan|upgrade-plan)">
-									<WorkspaceTabs />
-								</Route>
-								{/*
-								Probably doesn't belong here, but we wanted to reuse the Header,
-								which requires context of a project or workspace.
-								*/}
-								<Route path="/w/:workspace_id/account">
-									<UserSettings />
-								</Route>
-								<Route path="/w/:workspace_id(\d+)">
-									{isLoggedIn ? (
-										<WorkspaceRedirectionRouter />
-									) : (
-										<AuthRouter />
-									)}
-								</Route>
-							</Switch>
-						</>
+						<Routes>
+							<Route path="*" element={<WorkspaceTabs />} />
+							<Route
+								path="account/:tab?"
+								element={<UserSettings />}
+							/>
+						</Routes>
 					)}
 				</div>
 			</ApplicationContextProvider>

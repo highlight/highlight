@@ -1,11 +1,9 @@
-import DemoWorkspaceButton, {
-	DEMO_WORKSPACE_APPLICATION_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import DemoWorkspaceButton from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import LoadingBox from '@components/LoadingBox'
+import { useProjectId } from '@hooks/useProjectId'
 import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage'
 import analytics from '@util/analytics'
 import { useIntegrated } from '@util/integrated'
-import { useParams } from '@util/react-router/useParams'
 import Lottie from 'lottie-react'
 import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
@@ -18,15 +16,11 @@ import styles from './HomePage.module.scss'
 const HomePageV2 = () => {
 	useEffect(() => analytics.page(), [])
 
-	const { project_id } = useParams<{ project_id: string }>()
-	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
-			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-			: project_id
+	const { projectId } = useProjectId()
 	const { integrated, loading: integratedLoading } = useIntegrated()
 
 	if (integratedLoading) {
-		return null
+		return <LoadingBox />
 	}
 
 	return (
@@ -64,9 +58,7 @@ const HomePageV2 = () => {
 									) : (
 										<>
 											Please follow the{' '}
-											<Link
-												to={`/${projectIdRemapped}/setup`}
-											>
+											<Link to={`/${projectId}/setup`}>
 												setup instructions
 											</Link>{' '}
 											to install Highlight. It should take

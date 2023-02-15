@@ -13,7 +13,8 @@ const HeightListSelector: React.FC<ContainerSelectionProps> = ({
 }) => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data, loading } = useGetHeightListsQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
+		skip: !project_id,
 	})
 
 	const heightListOptions = useMemo(() => {

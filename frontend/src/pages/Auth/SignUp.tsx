@@ -15,10 +15,11 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import firebase from 'firebase/app'
 import React from 'react'
-import { Link, useHistory } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 export const SignUp: React.FC = () => {
-	const history = useHistory<{ previousPathName?: string }>()
+	const navigate = useNavigate()
+	const location = useLocation()
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
 	const formState = useFormState({
@@ -47,8 +48,7 @@ export const SignUp: React.FC = () => {
 						// on a Highlight link that was shared to them and they don't have
 						// an account yet.
 						const redirect =
-							history.location.state?.previousPathName ||
-							'/verify_email'
+							location.state?.previousPathName || '/verify_email'
 
 						if (auth.currentUser?.email) {
 							analytics.track('Sign up', {
@@ -57,7 +57,7 @@ export const SignUp: React.FC = () => {
 							})
 						}
 
-						history.push(redirect)
+						navigate(redirect)
 					})
 					.catch((error) => {
 						setError(error.message || error.toString())

@@ -1,15 +1,13 @@
 import { useGetProjectSuggestionLazyQuery } from '@graph/hooks'
-import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useState } from 'react'
 import CommandPalette, { Command } from 'react-command-palette'
-import { RouteComponentProps } from 'react-router'
-import { withRouter } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '../../../authentication/AuthContext'
 import styles from './CommandBar.module.scss'
 import {
 	CommandWithoutId,
-	getNavigationCommands,
+	useNavigationCommands,
 	usePlayerCommands,
 } from './CommandBarCommands'
 import CommandBarCommand from './components/CommandBarCommand'
@@ -33,9 +31,7 @@ const THEME = {
 	trigger: 'atom-trigger',
 }
 
-const CommandPaletteComponent: React.FC<
-	React.PropsWithChildren<RouteComponentProps>
-> = ({ history }) => {
+export const CommandBar: React.FC<React.PropsWithChildren> = () => {
 	const [normalizedWorkspaces, setNormalizedWorkspaces] = useState({})
 	const [getProjects, { data }] = useGetProjectSuggestionLazyQuery({
 		onCompleted: (data) => {
@@ -57,10 +53,8 @@ const CommandPaletteComponent: React.FC<
 		},
 	})
 	const { isHighlightAdmin } = useAuthContext()
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
 	const playerCommands = usePlayerCommands(isHighlightAdmin)
+	const navigate = useNavigate()
 
 	useEffect(() => {
 		if (isHighlightAdmin) {
@@ -82,15 +76,12 @@ const CommandPaletteComponent: React.FC<
 					]
 				}`,
 				command() {
-					history.push(`/${project?.id}/sessions`)
+					navigate(`/${project?.id}/sessions`)
 				},
 			}
 		}) ?? []
 
-	const navigationCommands: CommandWithoutId[] = getNavigationCommands(
-		project_id,
-		history,
-	)
+	const navigationCommands: CommandWithoutId[] = useNavigationCommands()
 
 	const commands: Command[] = [
 		...playerCommands,
@@ -114,5 +105,3 @@ const CommandPaletteComponent: React.FC<
 		/>
 	)
 }
-
-export const CommandBar = withRouter(CommandPaletteComponent)

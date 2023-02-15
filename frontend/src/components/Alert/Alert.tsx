@@ -4,7 +4,7 @@ import {
 	Alert as AntDesignAlert,
 	AlertProps as AntDesignAlertProps,
 } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 import { useSessionStorage } from 'react-use'
 
@@ -40,7 +40,7 @@ const Alert = ({
 		<AntDesignAlert
 			{...props}
 			type={type}
-			className={classNames(props.className, styles.alert)}
+			className={clsx(props.className, styles.alert)}
 			closable={closable != null ? closable : true}
 			showIcon
 			closeText={(closable != null ? closable : true) && <SvgXIcon />}

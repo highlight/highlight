@@ -24,6 +24,7 @@ import {
 	useToolbarItemsContext,
 	ZoomAreaPercent,
 } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
+import { serializeErrorIdentifier } from '@util/error'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { clamp } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
@@ -269,7 +270,7 @@ const TimelineIndicatorsBarGraph = ({
 				(error) =>
 					({
 						...error,
-						identifier: error.error_group_secure_id,
+						identifier: serializeErrorIdentifier(error),
 						timestamp: toTS(error.relativeIntervalPercentage),
 						eventType: 'Errors',
 					} as SessionEvent),
@@ -1284,10 +1285,7 @@ export interface EventBucket {
 	endPercent: number
 	startTime: number
 	identifier: {
-		[props: string]: string[]
-	}
-	instance: {
-		[identifier: string]: string[]
+		[types: string]: string[]
 	}
 	details: {
 		[identifier: string]: string
@@ -1350,14 +1348,6 @@ function buildViewportEventBuckets(
 			eventBuckets.length - 1,
 		)
 		eventBuckets[bucketId].identifier[eventType].push(identifier)
-		if (!eventBuckets[bucketId].instance[identifier]?.length) {
-			eventBuckets[bucketId].instance[identifier] = []
-		}
-		if (eventType === 'Errors') {
-			eventBuckets[bucketId].instance[identifier].push(
-				(event as ParsedErrorObject).id,
-			)
-		}
 		let details = JSON.stringify(
 			getEventRenderDetails(event as HighlightEvent).displayValue,
 		)?.replaceAll(/^"|"$/g, '')

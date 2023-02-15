@@ -1856,3 +1856,7 @@ query GetLogs($project_id: ID!, $params: LogsParamsInput!) {
 		logAttributes
 	}
 }
+
+query GetLogsTotalCount($project_id: ID!, $params: LogsParamsInput!) {
+	logs_total_count(project_id: $project_id, params: $params)
+}

@@ -15,10 +15,10 @@ import { useParams } from '@util/react-router/useParams'
 import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
 import { ColumnsType } from 'antd/lib/table'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
 import { DashboardInnerTable } from '../DashboardInnerTable/DashboardInnerTable'
@@ -39,12 +39,12 @@ const ReferrersTable = ({
 			: project_id
 
 	const { timeRange } = useDataTimeRange()
-	const history = useHistory()
-	const { setSearchParams, removeSelectedSegment } = useSearchContext()
+	const navigate = useNavigate()
+	const { removeSelectedSegment } = useSearchContext()
 
 	const { loading } = useGetReferrersCountQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			lookBackPeriod: moment
 				.duration(timeRange.lookback, 'minutes')
 				.as('days'),
@@ -74,14 +74,14 @@ const ReferrersTable = ({
 	}
 
 	return (
-		<div className={classNames({ [styles.loading]: loading })}>
+		<div className={clsx({ [styles.loading]: loading })}>
 			<DashboardInnerTable>
 				<ProgressBarTable
 					columns={Columns}
 					data={tableData}
 					loading={false}
 					onClickHandler={(record) => {
-						history.push(
+						navigate(
 							`/${projectIdRemapped}/sessions${buildQueryURLString(
 								{ session_referrer: record.host },
 							)}`,

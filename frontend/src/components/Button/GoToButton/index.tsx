@@ -1,4 +1,4 @@
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg'
@@ -16,14 +16,14 @@ const GoToButton = ({ label = 'Goto', small, ...props }: GoToButtonProps) => {
 	return (
 		<button
 			{...props}
-			className={classNames(styles.goToButton, {
+			className={clsx(styles.goToButton, {
 				[props.className!]: true,
 				[styles.smallIconContainer]: small,
 			})}
 		>
 			{!small && `${label} `}
 			<ReferrerIcon
-				className={classNames(styles.icon, {
+				className={clsx(styles.icon, {
 					[styles.small]: small,
 				})}
 			/>

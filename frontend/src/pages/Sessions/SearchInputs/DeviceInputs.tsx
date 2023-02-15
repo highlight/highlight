@@ -334,8 +334,9 @@ export const EnvironmentInput = () => {
 
 	const { data } = useGetEnvironmentsQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 		},
+		skip: !project_id,
 	})
 
 	const onChange = (current: string[]) => {
@@ -370,8 +371,9 @@ export const AppVersionInput = () => {
 
 	const { data } = useGetAppVersionsQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 		},
+		skip: !project_id,
 	})
 
 	const onChange = (current: string[]) => {

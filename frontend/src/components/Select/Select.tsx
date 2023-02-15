@@ -5,7 +5,7 @@ import {
 	Select as AntDesignSelect,
 	SelectProps as AntDesignSelectProps,
 } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './Select.module.scss'
@@ -63,10 +63,10 @@ const Select = ({
 			autoComplete="dontshow"
 			{...props}
 			disabled={props.loading || props.disabled}
-			className={classNames(styles.select, className)}
+			className={clsx(styles.select, className)}
 			menuItemSelectedIcon={null}
 			defaultActiveFirstOption={defaultActiveFirstOption}
-			dropdownClassName={classNames(dropdownClassName, styles.dropdown)}
+			dropdownClassName={clsx(dropdownClassName, styles.dropdown)}
 			suffixIcon={
 				props.loading ? undefined : (
 					<IconSolidCheveronDown color={colors.n9} />

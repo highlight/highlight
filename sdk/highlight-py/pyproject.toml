@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "highlight-io"
-version = "0.1.6"
+version = "0.1.7"
 description = "Session replay and error monitoring: stop guessing why bugs happen!"
 license = "Apache-2.0"
 authors = [
@@ -26,6 +26,7 @@ packages = [{ include = "highlight_io" }]
 
 [tool.poetry.dependencies]
 python = "^3.7"
+azure-functions = { version = "^1.13.2", optional = true }
 blinker = { version = "^1.5", optional = true }
 flask = { version = "^2.2.2", optional = true }
 opentelemetry-api = "^1.15.0"
@@ -45,6 +46,7 @@ pytest-mock = "^3.10.0"
 
 [tool.poetry.extras]
 Flask = ["blinker", "flask"]
+Azure = ["azure-functions"]
 
 [build-system]
 requires = ["poetry-core"]

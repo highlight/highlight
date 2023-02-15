@@ -5,17 +5,17 @@ import {
 } from '@context/AppLoadingContext'
 import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
 import React, { useEffect } from 'react'
-import { Redirect, useHistory } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 export const ProjectRedirectionRouter = () => {
 	const { loading, error, data } = useGetProjectsAndWorkspacesQuery()
 	const { admin } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
+	const location = useLocation()
 	const [nextParam] = useQueryParam('next', StringParam)
 	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
 	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
-	const history = useHistory()
 
 	useEffect(() => {
 		if (loading) {
@@ -36,7 +36,7 @@ export const ProjectRedirectionRouter = () => {
 
 	let redirectTo
 	if (data?.projects?.length) {
-		redirectTo = `/${data!.projects[0]!.id}${history.location.pathname}`
+		redirectTo = `/${data!.projects[0]!.id}${location.pathname}`
 	} else if (data?.workspaces?.length) {
 		redirectTo = `/w/${data!.workspaces[0]!.id}/new`
 	} else if (admin.email_verified === false) {
@@ -51,8 +51,9 @@ export const ProjectRedirectionRouter = () => {
 	// Redirects the user to their default project when the URL does not have an project ID.
 	// For example, this allows linking to https://app.highlight.run/sessions for https://app.highlight.run/1/sessions
 	return (
-		<Redirect
-			to={{ pathname: redirectTo, search: history.location.search }}
+		<Navigate
+			to={{ pathname: redirectTo, search: location.search }}
+			replace
 		/>
 	)
 }

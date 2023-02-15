@@ -5,7 +5,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Exact, IntegrationType } from '@graph/schemas'
-import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
+import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
 import { useCallback } from 'react'
 
 type SettingsLoadingState = {

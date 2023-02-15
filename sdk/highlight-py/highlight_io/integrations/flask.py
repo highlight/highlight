@@ -27,7 +27,6 @@ class FlaskIntegration(Integration):
         self._orig_flask = Flask.__call__
 
         def wrapped_call(app: Flask, environ: t.Dict, start_response: t.Callable):
-            print(environ)
             session_id, request_id = "", ""
             try:
                 session_id, request_id = str(

@@ -18,7 +18,7 @@ const RequestAccess = () => {
 			onClick={async () => {
 				try {
 					await requestAccess({
-						variables: { project_id: project_id },
+						variables: { project_id: project_id! },
 					})
 				} catch (_e) {
 				} finally {

@@ -47,7 +47,7 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
 
 	const { data } = useGetMetricsTimelineQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			metric_name: NetworkRequestAttribute.Latency,
 			params: {
 				aggregator: MetricAggregator.P50,
@@ -65,7 +65,8 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
 	})
 
 	const { data: dashboardsData } = useGetDashboardDefinitionsQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
+		skip: !project_id,
 	})
 
 	const duration = resource.responseEnd - resource.startTime
@@ -86,8 +87,8 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
 				<Link
 					to={{
 						pathname: `/${project_id}/dashboards/${dd?.id}`,
-						state: { metricConfig },
 					}}
+					state={{ metricConfig }}
 				>
 					{dd?.name}
 				</Link>
