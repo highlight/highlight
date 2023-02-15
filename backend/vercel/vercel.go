@@ -269,7 +269,7 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var logs []hlog.VercelLog
-	jsons := regexp.MustCompile(`\s+`).Split(string(body), -1)
+	jsons := regexp.MustCompile(`\n+`).Split(string(body), -1)
 	for _, j := range jsons {
 		if j == "" {
 			continue
