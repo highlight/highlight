@@ -9,7 +9,7 @@
 	},
 	"private": true,
 	"scripts": {
-		"start": "wrangler dev",
+		"start": "wrangler dev -l",
 		"deploy": "wrangler publish",
 		"test": "vitest --run"
 	},
