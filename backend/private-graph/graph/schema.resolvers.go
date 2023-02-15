@@ -3962,7 +3962,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		Order("id desc")
 
 	if errorObjectID == nil {
-		sessionIds := []int{}
+		var sessionIds []int
 		if err := r.DB.Model(&errorObject).
 			Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
 			Where("session_id is not null").
@@ -3971,10 +3971,10 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 			return nil, e.Wrap(err, "error reading session ids")
 		}
 
-		processedSessions := []int{}
+		var processedSessions []int
 		// find all processed sessions
 		if err := r.DB.Model(&model.Session{}).
-			Where("id IN (?) AND processed = ?", sessionIds, true).
+			Where("id IN (?) AND processed = ? AND excluded = ?", sessionIds, true, false).
 			Pluck("id", &processedSessions).
 			Error; err != nil {
 			return nil, e.Wrap(err, "error querying processed sessions")
@@ -4025,6 +4025,16 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		Limit(1).
 		Pluck("id", &previousID).Error; err != nil {
 		return nil, e.Wrap(err, "error reading previous error object in group")
+	}
+
+	if errorObject.SessionID != nil {
+		var session model.Session
+		if err := r.DB.Model(&session).Where("id = ?", *errorObject.SessionID).Find(&session).Error; err != nil {
+			return nil, e.Wrap(err, "error reading error group session")
+		}
+		if session.Excluded != nil && *session.Excluded {
+			errorObject.SessionID = nil
+		}
 	}
 
 	errorInstance := model.ErrorInstance{
