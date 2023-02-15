@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -268,8 +269,11 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var logs []hlog.VercelLog
-	jsons := strings.Split(string(body), "\n")
+	jsons := regexp.MustCompile(`\s+`).Split(string(body), -1)
 	for _, j := range jsons {
+		if j == "" {
+			continue
+		}
 		var l hlog.VercelLog
 		if err := json.Unmarshal([]byte(j), &l); err != nil {
 			log.Errorf("failed to unmarshal vercel logs %s: %s", err, j)
