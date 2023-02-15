@@ -800,6 +800,12 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 			return nil, e.New("Filtering out noisy Superpowered error")
 		}
 	}
+	if projectID == 1703 {
+		if errorObj.Event == `["\"Uncaught TypeError: Cannot read properties of null (reading 'play')\""]` ||
+			errorObj.Event == `Uncaught TypeError: Cannot read properties of null (reading 'play')` {
+			return nil, e.New("Filtering out noisy error")
+		}
+	}
 
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
 		errorObj.Event = strings.Repeat(errorObj.Event[:ERROR_EVENT_MAX_LENGTH], 1)
