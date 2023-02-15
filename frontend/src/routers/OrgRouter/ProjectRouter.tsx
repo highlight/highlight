@@ -195,7 +195,7 @@ export const ProjectRouter = () => {
 						<WithErrorSearchContext>
 							<Routes>
 								<Route
-									path="/front"
+									path=":project_id/front"
 									element={<FrontPlugin />}
 								/>
 								<Route
