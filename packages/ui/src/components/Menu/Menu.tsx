@@ -13,7 +13,7 @@ import {
 	MenuHeadingProps,
 } from 'ariakit'
 import clsx, { ClassValue } from 'clsx'
-import React from 'react'
+import React, { forwardRef } from 'react'
 import {
 	Button as OriginalButton,
 	ButtonProps as ButtonProps,
@@ -41,68 +41,85 @@ export const Menu: MenuComponent = ({ children, ...props }: Props) => {
 	return <MenuContext.Provider value={menu}>{children}</MenuContext.Provider>
 }
 
-const Button: React.FC<
-	React.PropsWithChildren<{ cssClass?: ClassValue | ClassValue[] }> &
-		Omit<MenuButtonProps, 'state'> &
-		Pick<ButtonProps, 'iconLeft' | 'iconRight'> & {
-			emphasis?: ButtonProps['emphasis']
-			icon?: ButtonIconProps['icon']
-			kind?: ButtonProps['kind']
-			size?: ButtonProps['size'] | ButtonIconProps['size']
-		}
-> = ({ children, ...props }) => {
-	const menu = useMenu()
-	const Component = props.icon && !children ? ButtonIcon : OriginalButton
+type UIButtonProps = React.PropsWithChildren<{
+	cssClass?: ClassValue | ClassValue[]
+}> &
+	Omit<MenuButtonProps, 'state'> &
+	Pick<ButtonProps, 'iconLeft' | 'iconRight'> & {
+		emphasis?: ButtonProps['emphasis']
+		icon?: ButtonIconProps['icon']
+		kind?: ButtonProps['kind']
+		size?: ButtonProps['size'] | ButtonIconProps['size']
+	}
 
-	return (
-		<MenuButton as={Component} state={menu} {...props}>
-			{children}
-		</MenuButton>
-	)
-}
+const Button = forwardRef<HTMLButtonElement, UIButtonProps>(
+	({ children, ...props }, ref) => {
+		const menu = useMenu()
+		const Component = props.icon && !children ? ButtonIcon : OriginalButton
 
-const List: React.FC<
-	React.PropsWithChildren<{ cssClass?: ClassValue | ClassValue[] }> &
-		Partial<MenuProps>
-> = ({ children, cssClass }) => {
-	const menu = useMenu()
-
-	return (
-		<AriakitMenu state={menu} className={clsx(styles.menuList, cssClass)}>
-			{children}
-		</AriakitMenu>
-	)
-}
-
-const Item: React.FC<MenuItemProps> = ({ children, ...props }) => (
-	<MenuItem
-		className={styles.menuItemVariants({ selected: false })}
-		{...props}
-	>
-		{children}
-	</MenuItem>
+		return (
+			<MenuButton as={Component} state={menu} ref={ref} {...props}>
+				{children}
+			</MenuButton>
+		)
+	},
 )
 
-const Divider: React.FC<MenuSeparatorProps> = ({ children, ...props }) => (
-	<MenuSeparator className={styles.menuDivider} {...props}>
-		{children}
-	</MenuSeparator>
+type ListProps = React.PropsWithChildren<{
+	cssClass?: ClassValue | ClassValue[]
+}> &
+	Partial<MenuProps>
+
+const List = forwardRef<HTMLDivElement, ListProps>(
+	({ children, cssClass, ...props }, ref) => {
+		const menu = useMenu()
+
+		return (
+			<AriakitMenu
+				state={menu}
+				className={clsx(styles.menuList, cssClass)}
+				ref={ref}
+				{...props}
+			>
+				{children}
+			</AriakitMenu>
+		)
+	},
 )
 
-const Heading: React.FC<MenuHeadingProps> = ({
-	children,
-	className,
-	...props
-}) => (
-	<>
-		<AriakitMenuHeading
-			className={clsx(styles.menuHeading, className)}
+const Item = forwardRef<HTMLDivElement, MenuItemProps>(
+	({ children, ...props }, ref) => (
+		<MenuItem
+			className={styles.menuItemVariants({ selected: false })}
+			ref={ref}
 			{...props}
 		>
 			{children}
-		</AriakitMenuHeading>
-		<Divider />
-	</>
+		</MenuItem>
+	),
+)
+
+const Divider = forwardRef<HTMLHRElement, MenuSeparatorProps>(
+	({ children, ...props }, ref) => (
+		<MenuSeparator className={styles.menuDivider} ref={ref} {...props}>
+			{children}
+		</MenuSeparator>
+	),
+)
+
+const Heading = forwardRef<HTMLHeadingElement, MenuHeadingProps>(
+	({ children, className, ...props }, ref) => (
+		<>
+			<AriakitMenuHeading
+				className={clsx(styles.menuHeading, className)}
+				ref={ref}
+				{...props}
+			>
+				{children}
+			</AriakitMenuHeading>
+			<Divider />
+		</>
+	),
 )
 
 Menu.Button = Button

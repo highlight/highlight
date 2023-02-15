@@ -1,7 +1,7 @@
 import { Button } from '@components/Button'
-import Select from '@components/Select/Select'
 import Switch from '@components/Switch/Switch'
 import { Box, IconSolidDotsHorizontal, Menu, Text } from '@highlight-run/ui'
+import { useWindowEvent } from '@hooks/useWindowEvent'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import DeleteSessionsModal from '@pages/Sessions/SessionsFeedV2/components/DeleteSessionsModal/DeleteSessionsModal'
 import {
@@ -17,7 +17,8 @@ import {
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
-import React, { useState } from 'react'
+import { isInsideElement } from '@util/dom'
+import React, { useRef, useState } from 'react'
 
 export const DropdownMenu = function ({
 	sessionCount,
@@ -40,8 +41,24 @@ export const DropdownMenu = function ({
 		setShowDetailedSessionView,
 	} = usePlayerConfiguration()
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
+	const [open, setOpen] = useState(false)
 
-	const [open, setOpen] = React.useState(false)
+	const menuRef = useRef<HTMLDivElement>(null)
+	const buttonRef = useRef<HTMLButtonElement>(null)
+
+	const [delayClose, setDelayClose] = useState(false)
+
+	useWindowEvent('click', (event) => {
+		if (
+			!(
+				isInsideElement(event, menuRef.current) ||
+				isInsideElement(event, buttonRef.current)
+			) &&
+			!delayClose
+		) {
+			setOpen(false)
+		}
+	})
 
 	return (
 		<Menu open={open}>
@@ -49,42 +66,59 @@ export const DropdownMenu = function ({
 				kind="secondary"
 				size="small"
 				emphasis="low"
-				iconRight={<IconSolidDotsHorizontal size={14} />}
-				onClick={() => {
-					setOpen(!open)
-				}}
-			></Menu.Button>
-			<Menu.List>
-				<Menu.Item key="autoplay">
+				iconRight={<IconSolidDotsHorizontal />}
+				onClick={() => setOpen(!open)}
+				ref={buttonRef}
+			/>
+			<Menu.List ref={menuRef} style={{ minWidth: 324 }}>
+				<Menu.Item
+					key="autoplay"
+					onClick={() => {
+						setAutoPlaySessions(!autoPlaySessions)
+						if (autoPlaySessions) setAutoPlayVideo(autoPlaySessions)
+					}}
+				>
 					<Box
 						display="flex"
 						alignItems="center"
 						justifyContent="space-between"
-						style={{ height: 40 }}
+						style={{ height: 28 }}
 					>
-						<Text>Autoplay Sessions</Text>
+						<Text
+							size="small"
+							weight="medium"
+							color="secondaryText"
+						>
+							Autoplay Sessions
+						</Text>
 						<Switch
 							trackingId="SessionFeedAutoplaySessionsToggle"
 							checked={autoPlaySessions}
-							onChange={(checked: boolean) => {
-								setAutoPlaySessions(checked)
-								if (checked) setAutoPlayVideo(checked)
-							}}
 						/>
 					</Box>
 				</Menu.Item>
-				<Menu.Item key="details">
+				<Menu.Item
+					key="details"
+					onClick={() =>
+						setShowDetailedSessionView(!showDetailedSessionView)
+					}
+				>
 					<Box
 						display="flex"
 						alignItems="center"
 						justifyContent="space-between"
-						style={{ height: 40 }}
+						style={{ height: 28 }}
 					>
-						<Text>Details</Text>
+						<Text
+							size="small"
+							weight="medium"
+							color="secondaryText"
+						>
+							Details
+						</Text>
 						<Switch
 							trackingId="SessionFeedShowDetailedSessionsToggle"
 							checked={showDetailedSessionView}
-							onChange={setShowDetailedSessionView}
 						/>
 					</Box>
 				</Menu.Item>
@@ -93,19 +127,42 @@ export const DropdownMenu = function ({
 						display="flex"
 						alignItems="center"
 						justifyContent="space-between"
+						gap="16"
 					>
-						Order
-						<Select
-							options={sortOrders.map((sortOrder) => ({
-								displayValue: `${getSortOrderDisplayName(
-									sortOrder,
-								)}`,
-								value: sortOrder,
-								id: sortOrder,
-							}))}
-							value={sessionFeedConfiguration.sortOrder}
-							onChange={sessionFeedConfiguration.setSortOrder}
-						/>
+						<Text
+							size="small"
+							weight="medium"
+							color="secondaryText"
+						>
+							Order
+						</Text>
+						<Menu gutter={8}>
+							<Menu.Button kind="secondary" emphasis="medium">
+								{getSortOrderDisplayName(
+									sessionFeedConfiguration.sortOrder,
+								)}
+							</Menu.Button>
+
+							<Menu.List>
+								{sortOrders.map((sortOrder) => (
+									<Menu.Item
+										key={sortOrder}
+										onClick={() => {
+											sessionFeedConfiguration.setSortOrder(
+												sortOrder,
+											)
+											setDelayClose(true)
+											setTimeout(
+												() => setDelayClose(false),
+												300,
+											)
+										}}
+									>
+										{getSortOrderDisplayName(sortOrder)}
+									</Menu.Item>
+								))}
+							</Menu.List>
+						</Menu>
 					</Box>
 				</Menu.Item>
 				<Menu.Item key="datetimeFormat">
@@ -113,22 +170,46 @@ export const DropdownMenu = function ({
 						display="flex"
 						alignItems="center"
 						justifyContent="space-between"
+						gap="16"
 					>
-						Datetime Format
-						<Select
-							options={dateTimeFormats.map((format) => ({
-								displayValue: `${formatDatetime(
+						<Text
+							size="small"
+							weight="medium"
+							color="secondaryText"
+						>
+							Datetime Format
+						</Text>
+						<Menu gutter={8}>
+							<Menu.Button kind="secondary" emphasis="medium">
+								{formatDatetime(
 									new Date().toISOString(),
-									format,
-								)}`,
-								value: format,
-								id: format,
-							}))}
-							value={sessionFeedConfiguration.datetimeFormat}
-							onChange={
-								sessionFeedConfiguration.setDatetimeFormat
-							}
-						/>
+									sessionFeedConfiguration.datetimeFormat,
+								)}
+							</Menu.Button>
+
+							<Menu.List>
+								{dateTimeFormats.map((dt) => (
+									<Menu.Item
+										key={dt}
+										onClick={() => {
+											sessionFeedConfiguration.setDatetimeFormat(
+												dt,
+											)
+											setDelayClose(true)
+											setTimeout(
+												() => setDelayClose(false),
+												300,
+											)
+										}}
+									>
+										{formatDatetime(
+											new Date().toISOString(),
+											dt,
+										)}
+									</Menu.Item>
+								))}
+							</Menu.List>
+						</Menu>
 					</Box>
 				</Menu.Item>
 				<Menu.Item key="countFormat">
@@ -136,45 +217,69 @@ export const DropdownMenu = function ({
 						display="flex"
 						alignItems="center"
 						justifyContent="space-between"
+						gap="16"
 					>
-						Count Format
-						<Select
-							options={countFormats.map((format) => ({
-								displayValue: `${formatCount(12321, format)}`,
-								value: format,
-								id: format,
-							}))}
-							value={sessionFeedConfiguration.countFormat}
-							onChange={sessionFeedConfiguration.setCountFormat}
-						/>
+						<Text
+							size="small"
+							weight="medium"
+							color="secondaryText"
+						>
+							Count Format
+						</Text>
+
+						<Menu gutter={8}>
+							<Menu.Button kind="secondary" emphasis="medium">
+								{formatCount(
+									12321,
+									sessionFeedConfiguration.countFormat,
+								)}
+							</Menu.Button>
+
+							<Menu.List>
+								{countFormats.map((format) => (
+									<Menu.Item
+										key={format}
+										onClick={() => {
+											sessionFeedConfiguration.setCountFormat(
+												format,
+											)
+											setDelayClose(true)
+											setTimeout(
+												() => setDelayClose(false),
+												300,
+											)
+										}}
+									>
+										{formatCount(12321, format)}
+									</Menu.Item>
+								))}
+							</Menu.List>
+						</Menu>
 					</Box>
 				</Menu.Item>
 				<Menu.Divider />
-				<Menu.Item key="deleteSessions">
-					<Box
-						display="flex"
-						alignItems="center"
-						justifyContent="flex-end"
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="flex-end"
+					px="8"
+				>
+					<Button
+						kind="danger"
+						disabled={!canDelete}
+						onClick={() => setShowModal(true)}
+						trackingId="sessionFeedDeleteSessions"
 					>
-						<Button
-							kind="danger"
-							disabled={!canDelete}
-							onClick={() => setShowModal(true)}
-							trackingId="sessionFeedDeleteSessions"
-						>
-							<span className="w-full">
-								Delete {sessionCount} Session
-								{sessionCount !== 1 ? 's' : ''}?
-							</span>
-						</Button>
-					</Box>
-					<DeleteSessionsModal
-						visible={showModal}
-						setVisible={setShowModal}
-						query={sessionQuery}
-						sessionCount={sessionCount}
-					/>
-				</Menu.Item>
+						Delete {sessionCount} Session
+						{sessionCount !== 1 ? 's' : ''}?
+					</Button>
+				</Box>
+				<DeleteSessionsModal
+					visible={showModal}
+					setVisible={setShowModal}
+					query={sessionQuery}
+					sessionCount={sessionCount}
+				/>
 			</Menu.List>
 		</Menu>
 	)
