@@ -28,7 +28,7 @@ func main() {
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating opensearch client: %v", err)
 	}
-	tdb := timeseries.New()
+	tdb := timeseries.New(ctx)
 	pri := private.Resolver{
 		DB:         db,
 		TDB:        tdb,
@@ -67,7 +67,7 @@ func main() {
 						points = append(points, point)
 					}
 					log.WithContext(ctx).Infof("writing %d points for project %d eg %d", len(points), projectID, errorGroup.ID)
-					tdb.Write(strconv.Itoa(projectID), timeseries.Error.AggName, points)
+					tdb.Write(ctx, strconv.Itoa(projectID), timeseries.Error.AggName, points)
 				}
 				return nil
 			}

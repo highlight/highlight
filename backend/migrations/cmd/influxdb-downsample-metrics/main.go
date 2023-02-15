@@ -8,8 +8,9 @@ import (
 )
 
 func main() {
+	ctx := context.TODO()
 	log.WithContext(ctx).Info("setting up db")
-	tdb := timeseries.New()
+	tdb := timeseries.New(ctx)
 	log.WithContext(ctx).Info("done setting up db")
 
 	for d := 0; d < 30; d++ {

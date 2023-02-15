@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"io"
 	"testing"
 	"time"
@@ -672,14 +673,14 @@ func TestGetActiveDuration(t *testing.T) {
 	}
 	for name, tt := range tables {
 		t.Run(name, func(t *testing.T) {
-			log.WithContext(ctx).SetOutput(io.Discard)
+			log.SetOutput(io.Discard)
 			a := MakeEventProcessingAccumulator("fakeSecureID", RageClickSettings{
 				Window: 5 * time.Second,
 				Radius: 8,
 				Count:  5,
 			})
 			for _, event := range tt.events {
-				a = processEventChunk(a, event)
+				a = processEventChunk(context.TODO(), a, event)
 				if a.Error != nil {
 					t.Logf("error: %v", a.Error)
 				}
@@ -797,14 +798,14 @@ func TestFullSnapshotValidation(t *testing.T) {
 	}
 	for name, tt := range tables {
 		t.Run(name, func(t *testing.T) {
-			log.WithContext(ctx).SetOutput(io.Discard)
+			log.SetOutput(io.Discard)
 			a := MakeEventProcessingAccumulator("fakeSecureID", RageClickSettings{
 				Window: 5 * time.Second,
 				Radius: 8,
 				Count:  5,
 			})
 			for _, event := range tt.events {
-				a = processEventChunk(a, event)
+				a = processEventChunk(context.TODO(), a, event)
 				if a.Error != nil {
 					break
 				}

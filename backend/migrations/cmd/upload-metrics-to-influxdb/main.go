@@ -64,7 +64,7 @@ func main() {
 			})
 		}
 		for projectID, points := range pointsByProject {
-			tdb.Write(strconv.Itoa(projectID), timeseries.Metrics, points)
+			tdb.Write(ctx, strconv.Itoa(projectID), timeseries.Metrics, points)
 		}
 		return nil
 	}
