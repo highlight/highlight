@@ -9,16 +9,16 @@ import (
 )
 
 func main() {
-	log.Info("setting up db")
+	log.WithContext(ctx).Info("setting up db")
 	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.Fatalf("error setting up db: %+v", err)
+		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}
 	sqlDB, err := db.DB()
 	if err != nil {
-		log.Fatalf("error getting raw db: %+v", err)
+		log.WithContext(ctx).Fatalf("error getting raw db: %+v", err)
 	}
 	if err := sqlDB.Ping(); err != nil {
-		log.Fatalf("error pinging db: %+v", err)
+		log.WithContext(ctx).Fatalf("error pinging db: %+v", err)
 	}
 }

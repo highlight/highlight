@@ -85,7 +85,7 @@ func (s *Server) getTokenFromCookie(ctx context.Context, cookie *http.Cookie) (o
 	return tokenInfo, nil
 }
 
-func CreateServer(db *gorm.DB) (*Server, error) {
+func CreateServer(ctx context.Context, db *gorm.DB) (*Server, error) {
 	manager := manage.NewDefaultManager()
 
 	// token redis store
@@ -99,7 +99,7 @@ func CreateServer(db *gorm.DB) (*Server, error) {
 	}
 	for _, client := range clients {
 		for _, uri := range client.Domains {
-			log.Infof("adding oauth client %s", client.ID)
+			log.WithContext(ctx).Infof("adding oauth client %s", client.ID)
 			err := clientStore.Set(client.ID, &models.Client{
 				ID:     client.ID,
 				Secret: client.Secret,
@@ -117,12 +117,12 @@ func CreateServer(db *gorm.DB) (*Server, error) {
 	srv.SetAllowGetAccessRequest(true)
 
 	srv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
-		log.Errorf("Internal Error: %s", err.Error())
+		log.WithContext(ctx).Errorf("Internal Error: %s", err.Error())
 		return
 	})
 
 	srv.SetResponseErrorHandler(func(re *errors.Response) {
-		log.Errorf("Response Error: %s", re.Error.Error())
+		log.WithContext(ctx).Errorf("Response Error: %s", re.Error.Error())
 	})
 
 	s := &Server{

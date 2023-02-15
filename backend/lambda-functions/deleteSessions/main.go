@@ -28,24 +28,24 @@ func main() {
 	ctx := context.TODO()
 	out, err := h.GetSessionIdsByQuery(ctx, input)
 	if err != nil {
-		log.Fatal(err)
+		log.WithContext(ctx).Fatal(err)
 	}
 
 	if len(out) == 0 {
-		log.Fatal("GetSessionIdsByQuery returned an empty list")
+		log.WithContext(ctx).Fatal("GetSessionIdsByQuery returned an empty list")
 	}
 
 	if _, err := h.DeleteSessionBatchFromPostgres(ctx, out[0]); err != nil {
-		log.Fatal(err)
+		log.WithContext(ctx).Fatal(err)
 	}
 	if _, err := h.DeleteSessionBatchFromS3(ctx, out[0]); err != nil {
-		log.Fatal(err)
+		log.WithContext(ctx).Fatal(err)
 	}
 	if _, err := h.DeleteSessionBatchFromOpenSearch(ctx, out[0]); err != nil {
-		log.Fatal(err)
+		log.WithContext(ctx).Fatal(err)
 	}
 
 	if err := h.SendEmail(ctx, input); err != nil {
-		log.Fatal(err)
+		log.WithContext(ctx).Fatal(err)
 	}
 }

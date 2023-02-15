@@ -57,7 +57,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 		LIMIT 100
 	`, LogsTable, whereClause)
 
-	log.Info(query)
+	log.WithContext(ctx).Info(query)
 
 	rows, err := client.conn.Query(
 		ctx,
@@ -101,7 +101,7 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 
 	query := fmt.Sprintf(`SELECT COUNT(*) FROM %s %s`, LogsTable, whereClause)
 
-	log.Info(query)
+	log.WithContext(ctx).Info(query)
 
 	var count uint64
 	err := client.conn.QueryRow(

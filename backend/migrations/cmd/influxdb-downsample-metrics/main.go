@@ -8,9 +8,9 @@ import (
 )
 
 func main() {
-	log.Info("setting up db")
+	log.WithContext(ctx).Info("setting up db")
 	tdb := timeseries.New()
-	log.Info("done setting up db")
+	log.WithContext(ctx).Info("done setting up db")
 
 	for d := 0; d < 30; d++ {
 		for h := 0; h < 24; h++ {
@@ -25,10 +25,10 @@ func main() {
 						|> set(key: "_measurement", value: "metrics-aggregate-minute")
 						|> to(bucket: "prod-%d/downsampled")
 				`, p, d, h, m+1, d, h, m, p)
-					log.Infof("query %s", query)
+					log.WithContext(ctx).Infof("query %s", query)
 					_, err := tdb.Query(context.Background(), query)
 					if err != nil {
-						log.Error(err)
+						log.WithContext(ctx).Error(err)
 					}
 				}
 			}

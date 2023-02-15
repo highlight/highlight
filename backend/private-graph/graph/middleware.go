@@ -56,7 +56,7 @@ func (c *FirebaseAuthClient) GetUser(ctx context.Context, uid string) (*auth.Use
 	return c.AuthClient.GetUser(ctx, uid)
 }
 
-func SetupAuthClient(authMode AuthMode, oauthServer *oauth.Server, wsTokenHandler APITokenHandler) {
+func SetupAuthClient(ctx context.Context, authMode AuthMode, oauthServer *oauth.Server, wsTokenHandler APITokenHandler) {
 	OAuthServer = oauthServer
 	workspaceTokenHandler = wsTokenHandler
 	if authMode == Firebase {
@@ -66,25 +66,25 @@ func SetupAuthClient(authMode AuthMode, oauthServer *oauth.Server, wsTokenHandle
 			"https://www.googleapis.com/auth/identitytoolkit",
 			"https://www.googleapis.com/auth/userinfo.email")
 		if err != nil {
-			log.Errorf("error converting credentials from json: %v", err)
+			log.WithContext(ctx).Errorf("error converting credentials from json: %v", err)
 			return
 		}
 		app, err := firebase.NewApp(context.Background(), nil, option.WithCredentials(creds))
 		if err != nil {
-			log.Errorf("error initializing firebase app: %v", err)
+			log.WithContext(ctx).Errorf("error initializing firebase app: %v", err)
 			return
 		}
 		// create a client to communicate with firebase project
 		var client *auth.Client
 		if client, err = app.Auth(context.Background()); err != nil {
-			log.Errorf("error creating firebase client: %v", err)
+			log.WithContext(ctx).Errorf("error creating firebase client: %v", err)
 			return
 		}
 		AuthClient = &FirebaseAuthClient{AuthClient: client}
 	} else if authMode == Simple {
 		AuthClient = &SimpleAuthClient{}
 	} else {
-		log.Fatalf("private graph auth client configured with unknown auth mode")
+		log.WithContext(ctx).Fatalf("private graph auth client configured with unknown auth mode")
 	}
 }
 
@@ -203,7 +203,7 @@ func WebsocketInitializationFunction() transport.WebsocketInitFunc {
 		}
 		ctx, err := AuthClient.updateContextWithAuthenticatedUser(socketContext, token)
 		if err != nil {
-			log.Errorf("Unable to authenticate/initialize websocket: %s", err.Error())
+			log.WithContext(ctx).Errorf("Unable to authenticate/initialize websocket: %s", err.Error())
 		}
 		return ctx, err
 	})

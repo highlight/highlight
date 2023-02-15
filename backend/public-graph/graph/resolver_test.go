@@ -25,7 +25,7 @@ var DB *gorm.DB
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
-	testLogger := log.WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
+	testLogger := log.WithContext(ctx).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
 	var err error
 	DB, err = util.CreateAndMigrateTestDB("highlight_testing_db")
 	if err != nil {

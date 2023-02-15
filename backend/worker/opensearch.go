@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"reflect"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -13,17 +14,17 @@ import (
 
 const BATCH_SIZE = 200
 
-func (w *Worker) indexItem(index opensearch.Index, item interface{}) {
+func (w *Worker) indexItem(ctx context.Context, index opensearch.Index, item interface{}) {
 	val := reflect.ValueOf(item).Elem()
 	id := val.FieldByName("ID").Int()
 
 	// Add an item to the indexer
 	if err := w.Resolver.OpenSearch.Index(index, id, nil, item); err != nil {
-		log.Error(e.Wrap(err, "OPENSEARCH_ERROR error adding field to the indexer"))
+		log.WithContext(ctx).Error(e.Wrap(err, "OPENSEARCH_ERROR error adding field to the indexer"))
 	}
 }
 
-func (w *Worker) IndexSessions(isUpdate bool) {
+func (w *Worker) IndexSessions(ctx context.Context, isUpdate bool) {
 	modelProto := &model.Session{}
 	results := &[]*model.Session{}
 
@@ -42,7 +43,7 @@ func (w *Worker) IndexSessions(isUpdate bool) {
 				Session: result,
 				Fields:  fields,
 			}
-			w.indexItem(opensearch.IndexSessions, &os)
+			w.indexItem(ctx, opensearch.IndexSessions, &os)
 		}
 		return nil
 	}
@@ -54,11 +55,11 @@ func (w *Worker) IndexSessions(isUpdate bool) {
 
 	if err := w.Resolver.DB.Preload("Fields").Where(whereClause).Model(modelProto).
 		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
-		log.Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
+		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
 	}
 }
 
-func (w *Worker) IndexErrorGroups(isUpdate bool) {
+func (w *Worker) IndexErrorGroups(ctx context.Context, isUpdate bool) {
 	whereClause := "True"
 	if isUpdate {
 		whereClause = "updated_at > NOW() - interval '30 minutes'"
@@ -68,13 +69,13 @@ func (w *Worker) IndexErrorGroups(isUpdate bool) {
 		Where(whereClause).
 		Order("created_at asc").Rows()
 	if err != nil {
-		log.Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
+		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
 	}
 
 	for rows.Next() {
 		eg := model.ErrorGroup{}
 		if err := w.Resolver.DB.ScanRows(rows, &eg); err != nil {
-			log.Fatalf("OPENSEARCH_ERROR error scanning rows: %+v", err)
+			log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error scanning rows: %+v", err)
 		}
 		var filename *string
 		if eg.MappedStackTrace != nil {
@@ -93,12 +94,12 @@ func (w *Worker) IndexErrorGroups(isUpdate bool) {
 			Filename:   filename,
 		}
 		if err := w.Resolver.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(eg.ID), pointy.Int(0), os); err != nil {
-			log.Error(e.Wrap(err, "OPENSEARCH_ERROR error adding error group to the indexer (combined)"))
+			log.WithContext(ctx).Error(e.Wrap(err, "OPENSEARCH_ERROR error adding error group to the indexer (combined)"))
 		}
 	}
 }
 
-func (w *Worker) IndexErrorObjects(isUpdate bool) {
+func (w *Worker) IndexErrorObjects(ctx context.Context, isUpdate bool) {
 	whereClause := "True"
 	if isUpdate {
 		whereClause = "updated_at > NOW() - interval '30 minutes'"
@@ -109,13 +110,13 @@ func (w *Worker) IndexErrorObjects(isUpdate bool) {
 		Order("created_at asc").Rows()
 
 	if err != nil {
-		log.Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
+		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
 	}
 
 	for rows.Next() {
 		eo := model.ErrorObject{}
 		if err := w.Resolver.DB.ScanRows(rows, &eo); err != nil {
-			log.Fatalf("OPENSEARCH_ERROR error scanning rows: %+v", err)
+			log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error scanning rows: %+v", err)
 		}
 
 		os := opensearch.OpenSearchErrorObject{
@@ -127,12 +128,12 @@ func (w *Worker) IndexErrorObjects(isUpdate bool) {
 		}
 
 		if err := w.Resolver.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(eo.ID), pointy.Int(eo.ErrorGroupID), os); err != nil {
-			log.Error(e.Wrap(err, "OPENSEARCH_ERROR error adding error object to the indexer (combined)"))
+			log.WithContext(ctx).Error(e.Wrap(err, "OPENSEARCH_ERROR error adding error object to the indexer (combined)"))
 		}
 	}
 }
 
-func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}, isUpdate bool) {
+func (w *Worker) IndexTable(ctx context.Context, index opensearch.Index, modelPrototype interface{}, isUpdate bool) {
 	modelProto := modelPrototype
 
 	whereClause := "True"
@@ -144,16 +145,16 @@ func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}, 
 		Where(whereClause).
 		Order("created_at asc").Rows()
 	if err != nil {
-		log.Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
+		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
 	}
 
 	for rows.Next() {
 		modelObj := modelPrototype
 		if err := w.Resolver.DB.ScanRows(rows, modelObj); err != nil {
-			log.Fatalf("OPENSEARCH_ERROR error scanning rows: %+v", err)
+			log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error scanning rows: %+v", err)
 		}
 
-		w.indexItem(index, modelObj)
+		w.indexItem(ctx, index, modelObj)
 	}
 }
 
@@ -222,20 +223,20 @@ const FIELD_APPEND_SCRIPT = `
 }
 `
 
-func (w *Worker) InitIndexMappings() {
-	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexSessions, NESTED_FIELD_MAPPINGS); err != nil {
-		log.Warnf("OPENSEARCH_ERROR error creating session mappings: %+v", err)
+func (w *Worker) InitIndexMappings(ctx context.Context) {
+	if err := w.Resolver.OpenSearch.PutMapping(ctx, opensearch.IndexSessions, NESTED_FIELD_MAPPINGS); err != nil {
+		log.WithContext(ctx).Warnf("OPENSEARCH_ERROR error creating session mappings: %+v", err)
 	}
-	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexFields, FIELD_MAPPINGS); err != nil {
-		log.Warnf("OPENSEARCH_ERROR error creating field mappings: %+v", err)
+	if err := w.Resolver.OpenSearch.PutMapping(ctx, opensearch.IndexFields, FIELD_MAPPINGS); err != nil {
+		log.WithContext(ctx).Warnf("OPENSEARCH_ERROR error creating field mappings: %+v", err)
 	}
-	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexErrorFields, FIELD_MAPPINGS); err != nil {
-		log.Warnf("OPENSEARCH_ERROR error creating error field mappings: %+v", err)
+	if err := w.Resolver.OpenSearch.PutMapping(ctx, opensearch.IndexErrorFields, FIELD_MAPPINGS); err != nil {
+		log.WithContext(ctx).Warnf("OPENSEARCH_ERROR error creating error field mappings: %+v", err)
 	}
-	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexErrorsCombined, JOIN_MAPPINGS); err != nil {
-		log.Warnf("OPENSEARCH_ERROR error creating errors combined mappings: %+v", err)
+	if err := w.Resolver.OpenSearch.PutMapping(ctx, opensearch.IndexErrorsCombined, JOIN_MAPPINGS); err != nil {
+		log.WithContext(ctx).Warnf("OPENSEARCH_ERROR error creating errors combined mappings: %+v", err)
 	}
-	if err := w.Resolver.OpenSearch.PutScript(opensearch.ScriptAppendFields, FIELD_APPEND_SCRIPT); err != nil {
-		log.Warnf("OPENSEARCH_ERROR error creating field append script: %+v", err)
+	if err := w.Resolver.OpenSearch.PutScript(ctx, opensearch.ScriptAppendFields, FIELD_APPEND_SCRIPT); err != nil {
+		log.WithContext(ctx).Warnf("OPENSEARCH_ERROR error creating field append script: %+v", err)
 	}
 }

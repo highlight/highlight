@@ -16,7 +16,7 @@ func setupClickhouseTestDB() (*Client, error) {
 		return nil, err
 	}
 
-	RunMigrations(TestDatabase)
+	RunMigrations(context.TODO(), TestDatabase)
 
 	return NewClient(TestDatabase)
 }

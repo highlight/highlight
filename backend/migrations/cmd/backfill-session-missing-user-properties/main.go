@@ -56,15 +56,16 @@ func FindInBatches(db *gorm.DB, dest interface{}, batchSize int, fc func(tx *gor
 }
 
 func main() {
-	log.Info("setting up db")
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	ctx := context.Background()
+	log.WithContext(ctx).Info("setting up db")
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.Fatalf("error setting up db: %+v", err)
+		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}
 
 	opensearchClient, err := opensearch.NewOpensearchClient()
 	if err != nil {
-		log.Fatalf("error creating opensearch client: %v", err)
+		log.WithContext(ctx).Fatalf("error creating opensearch client: %v", err)
 	}
 
 	r := public.Resolver{
@@ -72,7 +73,7 @@ func main() {
 		DB:              db,
 		OpenSearch:      opensearchClient,
 	}
-	log.Infof("starting query")
+	log.WithContext(ctx).Infof("starting query")
 
 	var sessions []model.Session
 
@@ -82,7 +83,7 @@ func main() {
 		go func() {
 			for _, session := range sessions {
 				if err := r.IndexSessionOpensearch(context.Background(), &session); err != nil {
-					log.Error(e.Wrap(err, "error indexing new session in opensearch"))
+					log.WithContext(ctx).Error(e.Wrap(err, "error indexing new session in opensearch"))
 					continue
 				}
 
@@ -102,10 +103,10 @@ func main() {
 				}
 
 				if err := r.AppendProperties(context.Background(), session.ID, userObj, public.PropertyType.USER); err != nil {
-					log.Error(e.Wrapf(err, "error backfilling: session: %d", session.ID))
+					log.WithContext(ctx).Error(e.Wrapf(err, "error backfilling: session: %d", session.ID))
 				}
 
-				log.Infof("updated %d", session.ID)
+				log.WithContext(ctx).Infof("updated %d", session.ID)
 			}
 			wg.Done()
 		}()
@@ -113,16 +114,16 @@ func main() {
 	}
 
 	//if err := db.Debug().Clauses().Model(&model.Session{}).Where("created_at > ?", "2023-02-09 14:00:00 PST").Where("created_at <= ?", "2023-02-10 09:13:00 PST").FindInBatches(&sessions, BatchSize, inner).Error; err != nil {
-	//	log.Fatalf("error getting sessions: %v", err)
+	//	log.WithContext(ctx).Fatalf("error getting sessions: %v", err)
 	//}
 
 	if err := FindInBatches(db.Debug().Clauses().Model(&model.Session{}).Where("created_at > ?", "2023-02-09 14:00:00 PST").Where("created_at <= ?", "2023-02-10 09:13:00 PST"), &sessions, BatchSize, inner).Error; err != nil {
-		log.Fatalf("error getting sessions: %v", err)
+		log.WithContext(ctx).Fatalf("error getting sessions: %v", err)
 	}
 
 	wg.Wait()
 
 	if err := r.OpenSearch.Close(); err != nil {
-		log.Fatalf("error closing OS: %v", err)
+		log.WithContext(ctx).Fatalf("error closing OS: %v", err)
 	}
 }

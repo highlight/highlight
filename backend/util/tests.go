@@ -1,6 +1,7 @@
 package util
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -49,12 +50,12 @@ func CreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "error creating db")
 	}
 	// Setup database
-	db, err = model.SetupDB(dbName)
+	db, err = model.SetupDB(context.TODO(), dbName)
 	if err != nil {
 		return nil, e.Wrap(err, "error setting up test db")
 	}
 	// Migrate database
-	_, err = model.MigrateDB(db)
+	_, err = model.MigrateDB(context.TODO(), db)
 	if err != nil {
 		return nil, e.Wrap(err, "error migrating test db")
 	}

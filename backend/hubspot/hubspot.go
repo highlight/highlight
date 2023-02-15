@@ -1,6 +1,7 @@
 package hubspot
 
 import (
+	"context"
 	"strings"
 
 	"github.com/aws/smithy-go/ptr"
@@ -36,7 +37,7 @@ type CustomContactsResponse struct {
 	ProfileURL   string `json:"profile-url"`
 }
 
-func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
+func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	var hubspotContactId int
 	if emailproviders.Exists(email) {
 		email = ""
@@ -91,7 +92,7 @@ func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefine
 	} else {
 		hubspotContactId = resp.Vid
 	}
-	log.Infof("succesfully created a hubspot contact with id: %v", hubspotContactId)
+	log.WithContext(ctx).Infof("succesfully created a hubspot contact with id: %v", hubspotContactId)
 	if err := h.db.Model(&model.Admin{Model: model.Model{ID: adminID}}).
 		Updates(&model.Admin{HubspotContactID: &hubspotContactId}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating workspace HubspotContactID")
@@ -99,7 +100,7 @@ func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefine
 	return &hubspotContactId, nil
 }
 
-func (h *HubspotApi) CreateContactCompanyAssociation(adminID int, workspaceID int) error {
+func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error {
 	admin := &model.Admin{}
 	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
 		return e.Wrap(err, "error retrieving admin details")
@@ -120,7 +121,7 @@ func (h *HubspotApi) CreateContactCompanyAssociation(adminID int, workspaceID in
 	}); err != nil {
 		return e.Wrap(err, "error creating company to contact association")
 	} else {
-		log.Info("success creating company to contact association")
+		log.WithContext(ctx).Info("success creating company to contact association")
 	}
 	if err := h.hubspotClient.CRMAssociations().Create(hubspot.CRMAssociationsRequest{
 		DefinitionID: hubspot.CRMAssociationContactToCompany,
@@ -129,12 +130,12 @@ func (h *HubspotApi) CreateContactCompanyAssociation(adminID int, workspaceID in
 	}); err != nil {
 		return e.Wrap(err, "error creating contact to copmany association")
 	} else {
-		log.Info("success creating contact to company association")
+		log.WithContext(ctx).Info("success creating contact to company association")
 	}
 	return nil
 }
 
-func (h *HubspotApi) CreateCompanyForWorkspace(workspaceID int, adminEmail string, name string) (companyID *int, err error) {
+func (h *HubspotApi) CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) (companyID *int, err error) {
 	// Don't create for Demo account
 	if workspaceID == 0 {
 		return
@@ -165,7 +166,7 @@ func (h *HubspotApi) CreateCompanyForWorkspace(workspaceID int, adminEmail strin
 	if err != nil {
 		return nil, e.Wrap(err, "error creating company in hubspot")
 	}
-	log.Infof("succesfully created a hubspot company with id: %v", resp.CompanyID)
+	log.WithContext(ctx).Infof("succesfully created a hubspot company with id: %v", resp.CompanyID)
 	if err := h.db.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).
 		Updates(&model.Workspace{HubspotCompanyID: &resp.CompanyID}).Error; err != nil {
 		return &resp.CompanyID, e.Wrap(err, "error updating workspace HubspotCompanyID")
@@ -173,7 +174,7 @@ func (h *HubspotApi) CreateCompanyForWorkspace(workspaceID int, adminEmail strin
 	return &resp.CompanyID, nil
 }
 
-func (h *HubspotApi) UpdateContactProperty(adminID int, properties []hubspot.Property) error {
+func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error {
 	admin := &model.Admin{}
 	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
 		return e.Wrap(err, "error retrieving admin details")
@@ -181,6 +182,7 @@ func (h *HubspotApi) UpdateContactProperty(adminID int, properties []hubspot.Pro
 	hubspotContactID := admin.HubspotContactID
 	if hubspotContactID == nil {
 		id, err := h.CreateContactForAdmin(
+			ctx,
 			adminID,
 			ptr.ToString(admin.Email),
 			ptr.ToString(admin.UserDefinedRole),
@@ -203,7 +205,7 @@ func (h *HubspotApi) UpdateContactProperty(adminID int, properties []hubspot.Pro
 	return nil
 }
 
-func (h *HubspotApi) UpdateCompanyProperty(workspaceID int, properties []hubspot.Property) error {
+func (h *HubspotApi) UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
 	workspace := &model.Workspace{}
 	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
 		return e.Wrap(err, "error retrieving workspace details")
@@ -211,6 +213,7 @@ func (h *HubspotApi) UpdateCompanyProperty(workspaceID int, properties []hubspot
 	hubspotWorkspaceID := workspace.HubspotCompanyID
 	if hubspotWorkspaceID == nil && workspace.ID != 0 {
 		id, err := h.CreateCompanyForWorkspace(
+			ctx,
 			workspaceID,
 			"", ptr.ToString(workspace.Name),
 		)

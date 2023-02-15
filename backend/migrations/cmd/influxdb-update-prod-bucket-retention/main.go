@@ -13,9 +13,9 @@ import (
 )
 
 func main() {
-	log.Info("setting up db")
+	log.WithContext(ctx).Info("setting up db")
 	tdb := timeseries.New()
-	log.Info("done setting up db")
+	log.WithContext(ctx).Info("done setting up db")
 
 	offset := 0
 	for {

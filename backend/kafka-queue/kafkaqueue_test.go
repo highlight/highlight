@@ -19,8 +19,8 @@ const (
 )
 
 func BenchmarkQueue_Submit(b *testing.B) {
-	log.SetLevel(log.DebugLevel)
-	log.Infof("Starting benchmark")
+	log.WithContext(ctx).SetLevel(log.WithContext(ctx).DebugLevel)
+	log.WithContext(ctx).Infof("Starting benchmark")
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -60,7 +60,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 					},
 				}, fmt.Sprintf("test-%d", w))
 				if err != nil {
-					log.Error(err)
+					log.WithContext(ctx).Error(err)
 				}
 			}
 			sendWg.Done()
@@ -82,15 +82,15 @@ func BenchmarkQueue_Submit(b *testing.B) {
 			recWg.Done()
 		}()
 	}
-	log.Infof("Waiting for senders to finish.")
+	log.WithContext(ctx).Infof("Waiting for senders to finish.")
 	sendWg.Wait()
-	log.Infof("Senders finished. Stopping writer.")
+	log.WithContext(ctx).Infof("Senders finished. Stopping writer.")
 	writer.Stop()
-	log.Infof("Stopping receiving.")
+	log.WithContext(ctx).Infof("Stopping receiving.")
 	receive = false
-	log.Infof("Waiting for receivers to finish.")
+	log.WithContext(ctx).Infof("Waiting for receivers to finish.")
 	recWg.Wait()
-	log.Infof("Receivers finished. Stopping reader.")
+	log.WithContext(ctx).Infof("Receivers finished. Stopping reader.")
 	reader.Stop()
 }
 

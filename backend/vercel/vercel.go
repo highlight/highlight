@@ -1,6 +1,7 @@
 package vercel
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi"
@@ -247,7 +248,7 @@ func CreateLogDrain(vercelTeamID *string, vercelProjectID string, projectVerbose
 	b, err := io.ReadAll(res.Body)
 
 	if res.StatusCode != 200 {
-		log.WithField("Body", string(b)).
+		log.WithContext(context.TODO()).WithField("Body", string(b)).
 			WithField("Url", u).
 			Errorf("Vercel Log Drain API responded with error")
 		return errors.New("Vercel Log Drain API responded with error; status_code=" + res.Status + "; body=" + string(b))
@@ -263,7 +264,7 @@ func CreateLogDrain(vercelTeamID *string, vercelProjectID string, projectVerbose
 func HandleLog(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Error(err, "invalid vercel logs body")
+		log.WithContext(context.TODO()).Error(err, "invalid vercel logs body")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -276,7 +277,7 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 		}
 		var l hlog.VercelLog
 		if err := json.Unmarshal([]byte(j), &l); err != nil {
-			log.Errorf("failed to unmarshal vercel logs %s: %s", err, j)
+			log.WithContext(context.TODO()).Errorf("failed to unmarshal vercel logs %s: %s", err, j)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -286,7 +287,7 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 	projectVerboseID := r.Header.Get(VercelLogDrainProjectHeader)
 	projectID, err := model2.FromVerboseID(projectVerboseID)
 	if err != nil {
-		log.Error(err, "failed to parse highlight project id from vercel request")
+		log.WithContext(context.TODO()).Error(err, "failed to parse highlight project id from vercel request")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
