@@ -20,7 +20,7 @@ export const AutoJoinEmailsInput: React.FC<Props> = ({ onChange }) => {
 	const { workspace_id } = useParams<{ workspace_id: string }>()
 	const { admin } = useAuthContext()
 	const { loading } = useGetWorkspaceAdminsQuery({
-		variables: { workspace_id },
+		variables: { workspace_id: workspace_id || '' },
 		onCompleted: (d) => {
 			let emailOrigins: string[] = []
 			if (d.workspace?.allowed_auto_join_email_origins) {
