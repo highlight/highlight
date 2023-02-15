@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -9,8 +10,9 @@ import (
 )
 
 func main() {
+	ctx := context.TODO()
 	log.WithContext(ctx).Info("setting up db")
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}

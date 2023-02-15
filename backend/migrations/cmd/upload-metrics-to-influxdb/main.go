@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"gorm.io/gorm"
 	"os"
@@ -15,9 +16,10 @@ import (
 const BatchSize = 10000
 
 func main() {
+	ctx := context.TODO()
 	log.WithContext(ctx).Info("setting up db")
-	tdb := timeseries.New()
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	tdb := timeseries.New(ctx)
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}

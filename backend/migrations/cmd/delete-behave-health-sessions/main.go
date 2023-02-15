@@ -14,8 +14,9 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
 	log.WithContext(ctx).Info("setting up db")
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}
@@ -38,7 +39,7 @@ func main() {
 		}
 	}
 
-	storageClient, err := storage.NewStorageClient()
+	storageClient, err := storage.NewStorageClient(ctx)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("failed to initialize s3 client: %v", err)
 	}

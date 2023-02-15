@@ -39,7 +39,8 @@ func InitHandlers(db *gorm.DB, sendgridClient *sendgrid.Client) *handlers {
 }
 
 func NewHandlers() *handlers {
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	ctx := context.TODO()
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error setting up DB"))
 	}

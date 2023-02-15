@@ -28,8 +28,9 @@ func createFile(name string) (*os.File, error) {
 }
 
 func main() {
+	ctx := context.Background()
 	log.WithContext(ctx).Info("ZANE_MIGRATION setting up db")
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
 		log.WithContext(ctx).Fatalf("ZANE_MIGRATION error setting up db: %+v", err)
 	}
@@ -41,7 +42,7 @@ func main() {
 		log.WithContext(ctx).Fatalf("ZANE_MIGRATION error pinging db: %+v", err)
 	}
 
-	storageClient, err := storage.NewStorageClient()
+	storageClient, err := storage.NewStorageClient(ctx)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("ZANE_MIGRATION error creating storage client: %v", err)
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
@@ -17,8 +18,9 @@ const LookbackDays = 30
 const BatchSize = 1000
 
 func main() {
+	ctx := context.TODO()
 	log.WithContext(ctx).Info("setting up infra")
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating db: %v", err)
 	}

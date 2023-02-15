@@ -111,6 +111,7 @@ func makeRandLogAttributes() map[string]string {
 // Run via
 // `doppler run -- go run backend/clickhouse/seeds/main.go“
 func main() {
+	ctx := context.Background()
 	client, err := clickhouse.NewClient(clickhouse.PrimaryDatabase)
 
 	if err != nil {
