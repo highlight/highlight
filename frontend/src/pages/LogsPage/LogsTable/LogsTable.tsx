@@ -7,6 +7,7 @@ import SvgChevronRightIcon from '@icons/ChevronRightIcon'
 import { LogBody } from '@pages/LogsPage/LogsTable/LogBody'
 import { LogSeverityText } from '@pages/LogsPage/LogsTable/LogSeverityText'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
+import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
 import {
 	ColumnDef,
 	ExpandedState,
@@ -95,7 +96,29 @@ const LogsTable = ({ data, loading, query }: Props) => {
 	})
 
 	if (loading) {
-		return <LoadingBox />
+		return (
+			<Box
+				display="flex"
+				flexGrow={1}
+				alignItems="center"
+				justifyContent="center"
+			>
+				<LoadingBox />
+			</Box>
+		)
+	}
+
+	if (logs.length === 0) {
+		return (
+			<Box
+				display="flex"
+				flexGrow={1}
+				alignItems="center"
+				justifyContent="center"
+			>
+				<NoLogsFound />
+			</Box>
+		)
 	}
 
 	return (

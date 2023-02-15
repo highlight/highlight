@@ -104,31 +104,32 @@ const LogsPage = () => {
 				<title>Logs</title>
 			</Helmet>
 			<Box background="n2" padding="8" flex="stretch">
-				<Box background="white" borderRadius="12">
-					<Stack gap="4">
-						<SearchForm
-							initialQuery={query}
-							onFormSubmit={handleFormSubmit}
-							startDate={startDate}
-							endDate={endDate}
-							onDatesChange={handleDatesChange}
-							presets={PRESETS}
-							minDate={thirtyDaysAgo}
-						/>
-						<Stack direction="row" gap="2">
-							{totalCount && (
-								<Text color="weak">
-									{formatNumber(totalCount.logs_total_count)}
-								</Text>
-							)}
-							<Text color="weak">logs</Text>
-						</Stack>
-						<LogsTable
-							data={logs}
-							loading={loading}
-							query={query}
-						/>
+				<Box
+					background="white"
+					borderRadius="12"
+					height="full"
+					gap="4"
+					flexDirection="column"
+					display="flex"
+				>
+					<SearchForm
+						initialQuery={query}
+						onFormSubmit={handleFormSubmit}
+						startDate={startDate}
+						endDate={endDate}
+						onDatesChange={handleDatesChange}
+						presets={PRESETS}
+						minDate={thirtyDaysAgo}
+					/>
+					<Stack direction="row" gap="2">
+						{totalCount && (
+							<Text color="weak">
+								{formatNumber(totalCount.logs_total_count)}
+							</Text>
+						)}
+						<Text color="weak">logs</Text>
 					</Stack>
+					<LogsTable data={logs} loading={loading} query={query} />
 				</Box>
 			</Box>
 		</>
