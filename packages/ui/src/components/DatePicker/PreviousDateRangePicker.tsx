@@ -3,7 +3,9 @@ import React from 'react'
 import { DatePicker } from './Calendar/DatePicker'
 import { DatePickerStateProvider } from '@rehookify/datepicker'
 import { Menu, useMenu } from '../Menu/Menu'
-import { IconSolidCheveronDown } from '../icons'
+import { Text } from '../Text/Text'
+import { IconSolidCheck, IconSolidCheveronDown } from '../icons'
+import { Stack } from '../Stack/Stack'
 
 export type Preset = {
 	label: string
@@ -15,6 +17,30 @@ enum MenuState {
 	Custom,
 }
 
+const isPresetSelected = ({
+	preset,
+	selectedDates,
+}: {
+	preset: Preset
+	selectedDates: Date[]
+}) => {
+	return preset.startDate.getTime() === selectedDates[0].getTime()
+}
+
+const isCustomSelected = ({
+	presets,
+	selectedDates,
+}: {
+	presets: Preset[]
+	selectedDates: Date[]
+}) => {
+	const foundPreset = presets.find((preset) => {
+		return isPresetSelected({ preset, selectedDates })
+	})
+
+	return !foundPreset
+}
+
 export const getLabel = ({
 	selectedDates,
 	presets,
@@ -23,7 +49,7 @@ export const getLabel = ({
 	presets: Preset[]
 }) => {
 	const foundPreset = presets.find((preset) => {
-		return preset.startDate.getTime() === selectedDates[0].getTime()
+		return isPresetSelected({ preset, selectedDates })
 	})
 
 	if (foundPreset) {
@@ -43,6 +69,7 @@ type Props = {
 	selectedDates: Date[]
 	onDatesChange: (selectedDates: Date[]) => void
 	presets: Preset[]
+	minDate: Date
 }
 
 export const PreviousDateRangePicker: React.FC<Props> = (props) => (
@@ -52,10 +79,19 @@ export const PreviousDateRangePicker: React.FC<Props> = (props) => (
 	</Menu>
 )
 
+const CheckboxIconIfSelected = ({ isSelected }: { isSelected: boolean }) => {
+	return (
+		<div style={{ height: 16, width: 16 }}>
+			{isSelected && <IconSolidCheck size={16} />}
+		</div>
+	)
+}
+
 const PreviousDateRangePickerImpl = ({
 	selectedDates,
 	onDatesChange,
 	presets,
+	minDate,
 }: Props) => {
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
@@ -81,7 +117,7 @@ const PreviousDateRangePickerImpl = ({
 			config={{
 				selectedDates,
 				onDatesChange: handleDatesChange,
-				dates: { mode: 'range', maxDate: new Date() },
+				dates: { mode: 'range', minDate, maxDate: new Date() },
 			}}
 		>
 			<Menu.Button kind="secondary" iconRight={<IconSolidCheveronDown />}>
@@ -101,7 +137,19 @@ const PreviousDateRangePickerImpl = ({
 										])
 									}
 								>
-									{preset.label}
+									<Stack
+										direction="row"
+										align="center"
+										gap={'4'}
+									>
+										<CheckboxIconIfSelected
+											isSelected={isPresetSelected({
+												preset,
+												selectedDates,
+											})}
+										/>
+										<Text>{preset.label}</Text>
+									</Stack>
 								</Menu.Item>
 							)
 						})}
@@ -111,7 +159,15 @@ const PreviousDateRangePickerImpl = ({
 								setMenuState(MenuState.Custom)
 							}}
 						>
-							Custom
+							<Stack direction="row" align="center" gap={'4'}>
+								<CheckboxIconIfSelected
+									isSelected={isCustomSelected({
+										presets,
+										selectedDates,
+									})}
+								/>
+								<Text>Custom</Text>
+							</Stack>
 						</Menu.Item>
 					</>
 				) : (

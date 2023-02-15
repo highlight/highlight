@@ -17,6 +17,7 @@ import {
 const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
 const now = moment()
 const fifteenMinutesAgo = now.clone().subtract(15, 'minutes').toDate()
+const thirtyDaysAgo = now.clone().subtract(30, 'days').toDate()
 const PRESETS: Preset[] = [
 	{
 		startDate: fifteenMinutesAgo,
@@ -39,7 +40,7 @@ const PRESETS: Preset[] = [
 		label: 'Last 7 days',
 	},
 	{
-		startDate: now.clone().subtract(30, 'days').toDate(),
+		startDate: thirtyDaysAgo,
 		label: 'Last 30 days',
 	},
 ]
@@ -112,6 +113,7 @@ const LogsPage = () => {
 							endDate={endDate}
 							onDatesChange={handleDatesChange}
 							presets={PRESETS}
+							minDate={thirtyDaysAgo}
 						/>
 						<Stack direction="row" gap="2">
 							{totalCount && (

@@ -60,6 +60,7 @@ export const Basic = () => {
 				selectedDates={selectedDates}
 				onDatesChange={onDatesChange}
 				presets={presets}
+				minDate={subtractDays(now, 90)}
 			/>
 		</div>
 	)
