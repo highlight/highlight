@@ -8,6 +8,7 @@ type Props = {
 	endDate: Date
 	onDatesChange: (startDate: Date, endDate: Date) => void
 	presets: Preset[]
+	minDate: Date
 }
 
 const SearchForm = ({
@@ -17,6 +18,7 @@ const SearchForm = ({
 	onDatesChange,
 	onFormSubmit,
 	presets,
+	minDate,
 }: Props) => {
 	const [query, setQuery] = useState(initialQuery)
 	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
@@ -53,6 +55,7 @@ const SearchForm = ({
 						selectedDates={selectedDates}
 						onDatesChange={handleDatesChange}
 						presets={presets}
+						minDate={minDate}
 					/>
 				</Box>
 			</Box>
