@@ -33,6 +33,8 @@ export const getLabel = ({
 	if (selectedDates.length == 2) {
 		return `${selectedDates[0].toDateString()} - ${selectedDates[1].toDateString()}`
 	}
+
+	return ''
 }
 
 const now = new Date()

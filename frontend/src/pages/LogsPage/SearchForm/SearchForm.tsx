@@ -1,20 +1,25 @@
-import { Box, Form, Stack, Text } from '@highlight-run/ui'
+import { Box, Form, Preset, PreviousDateRangePicker } from '@highlight-run/ui'
 import React, { useState } from 'react'
 
 type Props = {
 	onFormSubmit: (query: string) => void
 	initialQuery: string
-	startDate: string
-	endDate: string
+	startDate: Date
+	endDate: Date
+	onDatesChange: (startDate: Date, endDate: Date) => void
+	presets: Preset[]
 }
 
 const SearchForm = ({
 	initialQuery,
 	startDate,
 	endDate,
+	onDatesChange,
 	onFormSubmit,
+	presets,
 }: Props) => {
 	const [query, setQuery] = useState(initialQuery)
+	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
 		onFormSubmit(query)
@@ -24,10 +29,18 @@ const SearchForm = ({
 		setQuery(event.target.value)
 	}
 
+	const handleDatesChange = (dates: Date[]) => {
+		setSelectedDates(dates)
+
+		if (dates.length == 2) {
+			onDatesChange(dates[0], dates[1])
+		}
+	}
+
 	return (
 		<form onSubmit={handleSubmit}>
-			<Stack direction="row">
-				<Box width="full">
+			<Box display="flex" gap="8" width="full">
+				<Box display="flex" flexGrow={1}>
 					<Form.Input
 						name="search"
 						value={query}
@@ -35,12 +48,14 @@ const SearchForm = ({
 						onChange={handleSearchChange}
 					/>
 				</Box>
-				<Box flexGrow={1}>
-					<Text>
-						{startDate} to {endDate}
-					</Text>
+				<Box display="flex">
+					<PreviousDateRangePicker
+						selectedDates={selectedDates}
+						onDatesChange={handleDatesChange}
+						presets={presets}
+					/>
 				</Box>
-			</Stack>
+			</Box>
 		</form>
 	)
 }
