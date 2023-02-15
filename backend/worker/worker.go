@@ -1268,7 +1268,7 @@ func (w *Worker) RefreshMaterializedViews() {
 				Value:    c.SessionCount,
 			}, {
 				Name:     "highlight_error_count",
-				Property: "highlight_session_count",
+				Property: "highlight_error_count",
 				Value:    c.ErrorCount,
 			}}); err != nil {
 				log.WithFields(log.Fields{

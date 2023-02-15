@@ -1312,7 +1312,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		log.Errorf("failed to count sessions metric for %s: %s", session.SecureID, err)
 	}
 
-	if err := r.IndexSessionOpensearch(initCtx, existingSession); err != nil {
+	if err := r.IndexSessionOpensearch(initCtx, session); err != nil {
 		return nil, err
 	}
 
