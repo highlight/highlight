@@ -802,7 +802,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	}
 	if projectID == 1703 {
 		if errorObj.Event == `["\"Uncaught TypeError: Cannot read properties of null (reading 'play')\""]` ||
-			errorObj.Event == `Uncaught TypeError: Cannot read properties of null (reading 'play')` {
+			errorObj.Event == `"Uncaught TypeError: Cannot read properties of null (reading 'play')"` {
 			return nil, e.New("Filtering out noisy error")
 		}
 	}
