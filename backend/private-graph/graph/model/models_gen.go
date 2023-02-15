@@ -1041,6 +1041,51 @@ func (e PlanType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type RetentionPeriod string
+
+const (
+	RetentionPeriodThreeMonths  RetentionPeriod = "ThreeMonths"
+	RetentionPeriodSixMonths    RetentionPeriod = "SixMonths"
+	RetentionPeriodTwelveMonths RetentionPeriod = "TwelveMonths"
+	RetentionPeriodTwoYears     RetentionPeriod = "TwoYears"
+)
+
+var AllRetentionPeriod = []RetentionPeriod{
+	RetentionPeriodThreeMonths,
+	RetentionPeriodSixMonths,
+	RetentionPeriodTwelveMonths,
+	RetentionPeriodTwoYears,
+}
+
+func (e RetentionPeriod) IsValid() bool {
+	switch e {
+	case RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears:
+		return true
+	}
+	return false
+}
+
+func (e RetentionPeriod) String() string {
+	return string(e)
+}
+
+func (e *RetentionPeriod) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RetentionPeriod(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid RetentionPeriod", str)
+	}
+	return nil
+}
+
+func (e RetentionPeriod) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type SessionAlertType string
 
 const (

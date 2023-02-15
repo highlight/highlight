@@ -2,7 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext'
 import Alert from '@components/Alert/Alert'
 import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
-import Switch from '@components/Switch/Switch'
+import { RadioGroup } from '@components/RadioGroup/RadioGroup'
 import { USD } from '@dinero.js/currencies'
 import {
 	useCreateOrUpdateStripeSubscriptionMutation,
@@ -16,6 +16,7 @@ import {
 	AdminRole,
 	Maybe,
 	PlanType,
+	RetentionPeriod,
 	SubscriptionInterval,
 } from '@graph/schemas'
 import BellRingingIcon from '@icons/BellRingingIcon'
@@ -51,6 +52,27 @@ const tryCastDate = (date: Maybe<string> | undefined) => {
 	} else {
 		return undefined
 	}
+}
+
+enum RetentionPeriodLabel {
+	ThreeMonths = '3 months',
+	SixMonths = '6 months',
+	TwelveMonths = '12 months',
+	TwoYears = '2 years',
+}
+
+const RETENTION_PERIODS = {
+	'3 months': RetentionPeriod.ThreeMonths,
+	'6 months': RetentionPeriod.SixMonths,
+	'12 months': RetentionPeriod.TwelveMonths,
+	'2 years': RetentionPeriod.TwoYears,
+}
+
+const RETENTION_PERIOD_LABELS = {
+	[RetentionPeriod.ThreeMonths]: '3 months',
+	[RetentionPeriod.SixMonths]: '6 months',
+	[RetentionPeriod.TwelveMonths]: '12 months',
+	[RetentionPeriod.TwoYears]: '2 years',
 }
 
 export const useBillingHook = ({
@@ -122,6 +144,9 @@ const BillingPage = () => {
 	const [rainConfetti, setRainConfetti] = useState(false)
 	const [subscriptionInterval, setSubscriptionInterval] = useState(
 		SubscriptionInterval.Monthly,
+	)
+	const [retentionPeriod, setRetentionPeriod] = useState(
+		RetentionPeriod.ThreeMonths,
 	)
 
 	const {
@@ -380,33 +405,54 @@ const BillingPage = () => {
 				</Authorization>
 			) : null}
 			<Authorization allowedRoles={[AdminRole.Admin]}>
-				<div className={styles.annualToggleBox}>
-					<Switch
-						loading={billingLoading}
-						label={
+				<div className={styles.toggleControls}>
+					<div className={styles.annualToggleBox}>
+						<label>
 							<span className={styles.annualToggleText}>
-								Annual Plan{' '}
-								<span className={styles.annualToggleAltText}>
-									(20% off)
-								</span>
+								Billing Period
 							</span>
-						}
-						size="default"
-						labelFirst
-						justifySpaceBetween
-						noMarginAroundSwitch
-						checked={
-							subscriptionInterval === SubscriptionInterval.Annual
-						}
-						onChange={(isAnnual) => {
-							setSubscriptionInterval(
-								isAnnual
-									? SubscriptionInterval.Annual
-									: SubscriptionInterval.Monthly,
-							)
-						}}
-						trackingId="BillingInterval"
-					/>
+							<RadioGroup
+								style={{ marginTop: 20, marginBottom: 20 }}
+								selectedLabel={subscriptionInterval}
+								labels={[
+									SubscriptionInterval.Monthly,
+									SubscriptionInterval.Annual,
+								]}
+								onSelect={(p) => {
+									setSubscriptionInterval(p)
+								}}
+							/>
+						</label>
+					</div>
+					<div className={styles.retentionPeriodBox}>
+						<label>
+							<span className={styles.annualToggleText}>
+								Retention
+							</span>
+							<RadioGroup
+								style={{ marginTop: 20, marginBottom: 20 }}
+								selectedLabel={
+									RETENTION_PERIOD_LABELS[retentionPeriod]
+								}
+								labels={[
+									'3 months',
+									'6 months',
+									'12 months',
+									'2 years',
+								]}
+								onSelect={(p) => {
+									if (
+										p === '3 months' ||
+										p === '6 months' ||
+										p === '12 months' ||
+										p === '2 years'
+									) {
+										setRetentionPeriod(RETENTION_PERIODS[p])
+									}
+								}}
+							/>
+						</label>
+					</div>
 				</div>
 			</Authorization>
 			<div className={styles.billingPlanCardWrapper}>
@@ -446,12 +492,16 @@ const BillingPage = () => {
 										billingPlan.type &&
 									(billingPlan.type === PlanType.Free ||
 										billingData?.billingDetails.plan
-											.interval === subscriptionInterval)
+											.interval ===
+											subscriptionInterval) &&
+									retentionPeriod ===
+										RetentionPeriod.ThreeMonths
 								}
 								billingPlan={billingPlan}
 								onSelect={createOnSelect(billingPlan.type)}
 								loading={loadingPlanType === billingPlan.type}
 								subscriptionInterval={subscriptionInterval}
+								retentionPeriod={retentionPeriod}
 								memberCount={
 									billingData?.billingDetails.membersMeter ??
 									0

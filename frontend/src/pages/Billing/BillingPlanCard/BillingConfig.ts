@@ -15,10 +15,13 @@ export type BillingPlan = {
 }
 
 const SESSIONS_AFTER_LIMIT_TOOLTIP =
-	'After this monthly limit is reached, extra sessions will be charged $5 per 1000 sessions.'
+	'After this monthly limit is reached, extra sessions will be charged $5 per 1,000 sessions.'
+
+const ERRORS_AFTER_LIMIT_TOOLTIP =
+	'After this monthly limit is reached, extra errors will be charged $0.20 per 1,000 errors.'
 
 const freePlan: BillingPlan = {
-	name: 'Basic',
+	name: 'Free',
 	type: PlanType.Free,
 	monthlyPrice: 0,
 	annualPrice: 0,
@@ -28,12 +31,17 @@ const freePlan: BillingPlan = {
 			tooltip:
 				'After this monthly limit is reached, sessions will be recorded but will not be visible until your plan is upgraded.',
 		},
+		{
+			text: '1,000 errors / month',
+			tooltip:
+				'After this monthly limit is reached, errors will be recorded but will not be visible until your plan is upgraded.',
+		},
 		'Unlimited dev tools access',
 	],
 }
 
 const litePlan: BillingPlan = {
-	name: 'Lite',
+	name: 'Basic',
 	type: PlanType.Lite,
 	monthlyPrice: 50,
 	annualPrice: 40,
@@ -42,9 +50,12 @@ const litePlan: BillingPlan = {
 			text: '2,000 free sessions / mo',
 			tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
 		},
+		{
+			text: '4,000 free errors / mo',
+			tooltip: ERRORS_AFTER_LIMIT_TOOLTIP,
+		},
 		'Unlimited members included',
 		'Unlimited dev tools access',
-		'Unlimited retention',
 	],
 }
 
@@ -58,9 +69,11 @@ const basicPlan: BillingPlan = {
 			text: '10,000 free sessions / mo',
 			tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
 		},
-		'Unlimited members included',
-		'Unlimited dev tools access',
-		'Unlimited retention',
+		{
+			text: '20,000 free errors / mo',
+			tooltip: ERRORS_AFTER_LIMIT_TOOLTIP,
+		},
+		'Everything in Basic',
 	],
 }
 
@@ -74,29 +87,14 @@ const startupPlan: BillingPlan = {
 			text: '80,000 free sessions / mo',
 			tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
 		},
-		'Everything in Basic',
+		{
+			text: '160,000 free errors / mo',
+			tooltip: ERRORS_AFTER_LIMIT_TOOLTIP,
+		},
+		'Everything in Essentials',
 		'Enhanced user metadata',
 		'App performance metrics',
 		'Issue tracking integrations',
-	],
-}
-
-const enterprisePlan: BillingPlan = {
-	name: 'Enterprise',
-	type: PlanType.Enterprise,
-	monthlyPrice: 1500,
-	annualPrice: 1200,
-	// customPrice: <MessageIcon/>,
-	advertisedFeatures: [
-		{
-			text: '300,000 free sessions / mo',
-			tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
-		},
-		'Everything in Basic/Startup',
-		'Personalized support',
-		'User RBAC/Permissioning',
-		'On-premise deployments',
-		'SSO/SAML',
 	],
 }
 
@@ -105,5 +103,4 @@ export const BILLING_PLANS = [
 	litePlan,
 	basicPlan,
 	startupPlan,
-	enterprisePlan,
 ] as const

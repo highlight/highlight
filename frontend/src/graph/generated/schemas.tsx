@@ -1964,6 +1964,13 @@ export type ReferrerTablePayload = {
 	percent: Scalars['Float']
 }
 
+export enum RetentionPeriod {
+	SixMonths = 'SixMonths',
+	ThreeMonths = 'ThreeMonths',
+	TwelveMonths = 'TwelveMonths',
+	TwoYears = 'TwoYears',
+}
+
 export type S3File = {
 	__typename?: 'S3File'
 	key?: Maybe<Scalars['String']>

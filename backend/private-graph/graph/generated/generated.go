@@ -7532,6 +7532,13 @@ enum SubscriptionInterval {
 	Annual
 }
 
+enum RetentionPeriod {
+	ThreeMonths
+	SixMonths
+	TwelveMonths
+	TwoYears
+}
+
 enum OpenSearchCalendarInterval {
 	minute
 	hour
