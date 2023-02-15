@@ -4,7 +4,9 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { Box } from '@highlight-run/ui'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import { AccountsPage } from '@pages/Accounts/Accounts'
+import { AdminForm } from '@pages/Auth/AdminForm'
 import { AuthRouter } from '@pages/Auth/AuthRouter'
+import { VerifyEmail } from '@pages/Auth/VerifyEmail'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import { Landing } from '@pages/Landing/Landing'
@@ -118,6 +120,9 @@ export const AppRouter = () => {
 						)
 					}
 				/>
+
+				<Route path="/verify_email" element={<VerifyEmail />} />
+				<Route path="/about_you" element={<AdminForm />} />
 
 				<Route
 					path="/*"

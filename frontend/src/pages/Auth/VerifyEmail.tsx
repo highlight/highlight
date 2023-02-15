@@ -17,7 +17,7 @@ import * as styles from './AuthRouter.css'
 export const VerifyEmail: React.FC = () => {
 	const { setLoadingState } = useAppLoadingContext()
 	const { data, stopPolling } = useGetAdminQuery({
-		pollInterval: 500,
+		pollInterval: 1000,
 	})
 	const [loading, setLoading] = useState(false)
 	const navigate = useNavigate()
@@ -36,7 +36,7 @@ export const VerifyEmail: React.FC = () => {
 				})
 			}, 1000 * 5)
 		}
-	}, [navigate, isEmailVerified, stopPolling])
+	}, [isEmailVerified, navigate, stopPolling])
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)

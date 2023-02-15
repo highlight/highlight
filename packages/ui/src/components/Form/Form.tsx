@@ -20,6 +20,7 @@ import { Text } from '../Text/Text'
 import { Button, ButtonProps } from '../Button/Button'
 import clsx, { ClassValue } from 'clsx'
 import { Variants } from './styles.css'
+import { Badge } from '../Badge/Badge'
 
 type FormComponent = React.FC<Props> & {
 	Input: typeof Input
@@ -53,17 +54,24 @@ export const Label = ({
 }
 
 type HasLabel = {
-	label?: string
 	name: AriaKitFormInputProps['name']
+	label?: string
+	optional?: boolean
 }
 export const NamedSection = ({
 	children,
 	label,
 	name,
+	optional = false,
 }: React.PropsWithChildren<HasLabel>) => {
 	return (
 		<Box display="flex" flexDirection="column" width="full" gap="4">
-			{label && <Label label={label} name={name} />}
+			<Box display="flex" flexDirection="row" gap="6">
+				{label && <Label label={label} name={name} />}
+				{optional && (
+					<Badge shape="basic" size="small" label="Optional" />
+				)}
+			</Box>
 			{children}
 		</Box>
 	)

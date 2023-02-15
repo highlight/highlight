@@ -14,7 +14,7 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import firebase from 'firebase/app'
 import React from 'react'
-import { Link, useHistory } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 type Props = {
 	setResolver: React.Dispatch<
@@ -23,7 +23,7 @@ type Props = {
 }
 
 export const SignIn: React.FC<Props> = ({ setResolver }) => {
-	const history = useHistory<{ previousPathName?: string }>()
+	const navigate = useNavigate()
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
 	const formState = useFormState({
@@ -48,7 +48,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					.catch((error) => {
 						if (error.code == 'auth/multi-factor-auth-required') {
 							setResolver(error.resolver)
-							history.push('/multi_factor')
+							navigate('/multi_factor')
 						} else {
 							setError(error.toString())
 						}

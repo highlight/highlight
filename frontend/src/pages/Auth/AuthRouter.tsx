@@ -15,7 +15,7 @@ import firebase from 'firebase/app'
 import { H } from 'highlight.run'
 import { omit } from 'lodash'
 import React, { useEffect, useState } from 'react'
-import { Redirect, Route, Switch } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 
 import * as styles from './AuthRouter.css'
 
@@ -67,21 +67,22 @@ export const AuthRouter: React.FC = () => {
 	return (
 		<Landing>
 			<Box cssClass={styles.container}>
-				<Switch>
-					<Route path="/sign_in">
-						<SignIn setResolver={setResolver} />
-					</Route>
-					<Route path="/sign_up">
-						<SignUp />
-					</Route>
-					<Route path="/multi_factor">
-						<MultiFactor resolver={resolver} />
-					</Route>
-					<Route path="/reset_password">
-						<ResetPassword />
-					</Route>
-					<Redirect from="/" to="/sign_in" />
-				</Switch>
+				<Routes>
+					<Route
+						path="/sign_in"
+						element={<SignIn setResolver={setResolver} />}
+					/>
+					<Route path="/sign_up" element={<SignUp />} />
+					<Route
+						path="/multi_factor"
+						element={<MultiFactor resolver={resolver} />}
+					/>
+					<Route path="/reset_password" element={<ResetPassword />} />
+					<Route
+						path="/*"
+						element={<Navigate to="/sign_in" replace />}
+					/>
+				</Routes>
 			</Box>
 		</Landing>
 	)

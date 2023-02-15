@@ -144,6 +144,7 @@ export const AdminForm: React.FC = () => {
 						<Form.NamedSection
 							label="Role"
 							name={formState.names.role}
+							optional
 						>
 							<select
 								className={styles.select}

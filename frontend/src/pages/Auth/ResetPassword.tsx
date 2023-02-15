@@ -15,10 +15,10 @@ import { auth } from '@util/auth'
 import { validateEmail } from '@util/string'
 import { message } from 'antd'
 import React from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 export const ResetPassword: React.FC = () => {
-	const history = useHistory<{ previousPathName?: string }>()
+	const navigate = useNavigate()
 	const [loading, setLoading] = React.useState(false)
 	const formState = useFormState({
 		defaultValues: {
@@ -53,7 +53,7 @@ export const ResetPassword: React.FC = () => {
 						)
 
 						setTimeout(() => {
-							history.push('/sign_in')
+							navigate('/sign_in')
 						}, 1000)
 					})
 			}}
@@ -71,7 +71,7 @@ export const ResetPassword: React.FC = () => {
 								/>
 							}
 							onClick={() => {
-								history.push('/sign_in')
+								navigate('/sign_in')
 							}}
 						/>
 					</Box>

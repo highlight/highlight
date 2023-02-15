@@ -13,6 +13,7 @@ import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
+import { message } from 'antd'
 import firebase from 'firebase/app'
 import React from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -41,6 +42,7 @@ export const SignUp: React.FC = () => {
 					formState.values.password,
 				)
 					.then(() => {
+						message.success('Account created succesfully!')
 						auth.currentUser?.sendEmailVerification()
 
 						// Redirect the user to their initial path instead to creating a new
@@ -57,7 +59,9 @@ export const SignUp: React.FC = () => {
 							})
 						}
 
-						navigate(redirect)
+						setTimeout(() => {
+							navigate(redirect, { replace: true })
+						}, 500)
 					})
 					.catch((error) => {
 						setError(error.message || error.toString())
@@ -71,7 +75,7 @@ export const SignUp: React.FC = () => {
 						<SvgHighlightLogoOnLight height="48" width="48" />
 						<Heading level="h4">Welcome to Highlight.</Heading>
 						<Text>
-							Have an account? <Link to="/sing_in">Sign in</Link>.
+							Have an account? <Link to="/sign_in">Sign in</Link>.
 						</Text>
 					</Stack>
 				</Box>
