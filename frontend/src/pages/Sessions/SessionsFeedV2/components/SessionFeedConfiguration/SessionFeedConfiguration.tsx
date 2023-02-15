@@ -148,7 +148,7 @@ export const formatDatetime = (
 				return dt.format('M/D/YY')
 			} else if (moment().month() !== dt.month()) {
 				return dt.format('M/D HH:mm')
-			} else if (moment().day() !== dt.day()) {
+			} else if (moment().date() !== dt.date()) {
 				return dt.format('MMM D h:mm A')
 			} else {
 				return dt.format('h:mm A')
