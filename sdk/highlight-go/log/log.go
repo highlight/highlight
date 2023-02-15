@@ -116,11 +116,10 @@ func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
 		semconv.CodeFilepathKey.String(log.Path),
 		semconv.CodeFunctionKey.String(log.Entrypoint),
 		semconv.HostNameKey.String(log.Host),
-		semconv.HTTPMethodKey.Int(log.StatusCode),
+		semconv.HTTPMethodKey.Int64(log.StatusCode),
 	)
 
-	t, _ := time.Parse("", log.Timestamp)
-	span.AddEvent(LogName, trace.WithAttributes(attrs...), trace.WithTimestamp(t))
+	span.AddEvent(LogName, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))
 	if log.Type == "error" {
 		span.SetStatus(codes.Error, log.Message)
 	}
