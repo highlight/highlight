@@ -46,7 +46,7 @@ export const VerifyEmail: React.FC = () => {
 		<Landing>
 			<Box cssClass={styles.container}>
 				<AuthHeader>
-					<Text>Verify your email</Text>
+					<Text color="moderate">Verify your email</Text>
 				</AuthHeader>
 				<AuthBody>
 					<Text align="center" break="word">

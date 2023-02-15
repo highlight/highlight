@@ -75,7 +75,7 @@ export const ResetPassword: React.FC = () => {
 							}}
 						/>
 					</Box>
-					<Text color="weak">Reset your password</Text>
+					<Text color="moderate">Reset your password</Text>
 					<Box style={{ width: 30 }}></Box>
 				</Stack>
 			</AuthHeader>

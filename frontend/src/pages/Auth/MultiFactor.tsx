@@ -130,7 +130,7 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 							}}
 						/>
 					</Box>
-					<Text color="weak">Verify via SMS</Text>
+					<Text color="moderate">Verify via SMS</Text>
 					<Box style={{ width: 24 }}></Box>
 				</Stack>
 			</AuthHeader>

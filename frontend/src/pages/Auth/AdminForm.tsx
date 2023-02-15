@@ -121,7 +121,7 @@ export const AdminForm: React.FC = () => {
 				resetOnSubmit={false}
 			>
 				<AuthHeader>
-					<Text color="weak">Tell us a bit more</Text>
+					<Text color="moderate">Tell us a bit more</Text>
 				</AuthHeader>
 				<AuthBody>
 					<Stack gap="12">
