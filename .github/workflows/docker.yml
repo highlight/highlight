@@ -44,6 +44,8 @@ jobs:
                   export NODE_EXTRA_CA_CERTS="../backend/localhostssl/server.crt";
 
                   docker compose up -d --build --remove-orphans;
+                  echo 'Docker compose started; waiting for services to come online'
+
                   npx -y wait-on https://localhost:3000/index.html http://localhost:8080/dist/index.js https://localhost:8082/health;
                   docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql';
 

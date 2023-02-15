@@ -272,7 +272,7 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 	for _, j := range jsons {
 		var l []hlog.VercelLog
 		if err := json.Unmarshal([]byte(j), &l); err != nil {
-			log.Error(err, "failed to unmarshal vercel logs")
+			log.Errorf("failed to unmarshal vercel logs %s: %s", err, j)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
