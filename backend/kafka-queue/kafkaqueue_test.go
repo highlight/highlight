@@ -1,6 +1,7 @@
 package kafka_queue
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -19,13 +20,14 @@ const (
 )
 
 func BenchmarkQueue_Submit(b *testing.B) {
-	log.WithContext(ctx).SetLevel(log.WithContext(ctx).DebugLevel)
+	ctx := context.TODO()
+	log.SetLevel(log.DebugLevel)
 	log.WithContext(ctx).Infof("Starting benchmark")
 
 	rand.Seed(time.Now().UnixNano())
 
-	writer := New("dev", Producer)
-	reader := New("dev", Consumer)
+	writer := New(ctx, "dev", Producer)
+	reader := New(ctx, "dev", Consumer)
 
 	sendWg := sync.WaitGroup{}
 	sendWg.Add(workers)
@@ -39,7 +41,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 			dataBytes := make([]byte, msgSizeBytes)
 			for j := 0; j < submitsPerWorker; j++ {
 				rand.Read(dataBytes)
-				err := writer.Submit(&Message{
+				err := writer.Submit(ctx, &Message{
 					Type: PushPayload,
 					PushPayload: &PushPayloadArgs{
 						Events: model.ReplayEventsInput{
@@ -67,7 +69,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 		}(i)
 		go func() {
 			for receive {
-				msg := reader.Receive()
+				msg := reader.Receive(context.TODO())
 				if msg == nil {
 					if receive {
 						b.Errorf("expected to get a message")
@@ -85,13 +87,13 @@ func BenchmarkQueue_Submit(b *testing.B) {
 	log.WithContext(ctx).Infof("Waiting for senders to finish.")
 	sendWg.Wait()
 	log.WithContext(ctx).Infof("Senders finished. Stopping writer.")
-	writer.Stop()
+	writer.Stop(ctx)
 	log.WithContext(ctx).Infof("Stopping receiving.")
 	receive = false
 	log.WithContext(ctx).Infof("Waiting for receivers to finish.")
 	recWg.Wait()
 	log.WithContext(ctx).Infof("Receivers finished. Stopping reader.")
-	reader.Stop()
+	reader.Stop(ctx)
 }
 
 func TestPartitionKey(t *testing.T) {
