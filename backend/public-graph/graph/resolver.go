@@ -1127,7 +1127,7 @@ func (r *Resolver) getExistingSession(projectID int, secureID string) (*model.Se
 func (r *Resolver) IndexSessionOpensearch(ctx context.Context, session *model.Session) error {
 	osSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.OSIndex"))
 	defer osSpan.Finish()
-	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
+	if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexSessions, session.ID, session); err != nil {
 		return e.Wrap(err, "error indexing new session in opensearch")
 	}
 
