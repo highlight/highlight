@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import analytics from '@util/analytics'
 import { Switch as AntDesignSwitch, SwitchProps } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './Switch.module.scss'
@@ -35,7 +35,7 @@ const Switch = ({
 	const labelToRender = !!label ? <span>{label}</span> : null
 	return (
 		<label
-			className={classNames(styles.label, className, {
+			className={clsx(styles.label, className, {
 				[styles.checked]: props.checked,
 				[styles.spaceBetween]: justifySpaceBetween,
 				[styles.noMarginAroundSwitch]: noMarginAroundSwitch,
@@ -47,7 +47,7 @@ const Switch = ({
 			<AntDesignSwitch
 				{...props}
 				size={size}
-				className={classNames(styles.switchStyles, {
+				className={clsx(styles.switchStyles, {
 					[styles.red]: props.red,
 				})}
 				onChange={(checked, event) => {

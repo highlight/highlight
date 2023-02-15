@@ -37,11 +37,11 @@ import {
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils'
 import { useParams } from '@util/react-router/useParams'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import styles from './DashboardCard.module.scss'
 import DashboardInnerCard from './DashboardInnerCard/DashboardInnerCard'
@@ -90,12 +90,12 @@ const DashboardCard = ({
 	const { data: metricMonitors, loading: metricMonitorsLoading } =
 		useGetMetricMonitorsQuery({
 			variables: {
-				project_id,
+				project_id: project_id!,
 				metric_name: metricConfig.name,
 			},
 		})
 
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	return (
 		<>
@@ -191,14 +191,16 @@ const DashboardCard = ({
 												]}
 												onSelect={(mmId) => {
 													if (mmId === -1) {
-														history.push({
-															pathname: `/${project_id}/alerts/new/monitor`,
-															state: {
-																metricConfig,
+														navigate(
+															`/${project_id}/alerts/new/monitor`,
+															{
+																state: {
+																	metricConfig,
+																},
 															},
-														})
+														)
 													} else {
-														history.push(
+														navigate(
 															`/${project_id}/alerts/monitor/${mmId}`,
 														)
 													}
@@ -390,7 +392,7 @@ const ChartContainer = React.memo(
 			},
 		] = useGetMetricsTimelineLazyQuery({
 			variables: {
-				project_id,
+				project_id: project_id!,
 				metric_name: metricConfig.name,
 				params: {
 					aggregator: aggregator,
@@ -414,7 +416,7 @@ const ChartContainer = React.memo(
 			},
 		] = useGetMetricsHistogramLazyQuery({
 			variables: {
-				project_id,
+				project_id: project_id!,
 				metric_name: metricConfig.name,
 				params: {
 					date_range: _.pick(timeRange, 'start_date', 'end_date'),
@@ -605,7 +607,7 @@ const ChartContainer = React.memo(
 
 		return (
 			<div
-				className={classNames('w-full h-full pt-6 pb-20 pl-3 pr-5', {
+				className={clsx('h-full w-full pt-6 pb-20 pl-3 pr-5', {
 					[styles.blurChart]:
 						timelineLoading ||
 						histogramLoading ||

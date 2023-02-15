@@ -341,6 +341,52 @@ func (r *metricMonitorResolver) Filters(ctx context.Context, obj *model.MetricMo
 	}), nil
 }
 
+// UpdateAdminAndCreateWorkspace is the resolver for the updateAdminAndCreateWorkspace field.
+func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, adminAndWorkspaceDetails modelInputs.AdminAndWorkspaceDetails) (*model.Project, error) {
+	if err := r.Transaction(func(transactionR *mutationResolver) error {
+		// Update admin details
+		if _, err := transactionR.UpdateAdminAboutYouDetails(ctx, modelInputs.AdminAboutYouDetails{
+			FirstName:          adminAndWorkspaceDetails.FirstName,
+			LastName:           adminAndWorkspaceDetails.LastName,
+			UserDefinedRole:    adminAndWorkspaceDetails.UserDefinedRole,
+			UserDefinedPersona: "",
+			Referral:           adminAndWorkspaceDetails.Referral,
+		}); err != nil {
+			return e.Wrap(err, "error updating admin details")
+		}
+
+		// Create workspace
+		workspace, err := transactionR.CreateWorkspace(ctx, adminAndWorkspaceDetails.WorkspaceName, adminAndWorkspaceDetails.PromoCode)
+		if err != nil {
+			return e.Wrap(err, "error creating workspace")
+		}
+
+		// Assign auto joinable domains for workspace
+		if *adminAndWorkspaceDetails.AllowedAutoJoinEmailOrigins != "" {
+			if _, err := transactionR.UpdateAllowedEmailOrigins(ctx, workspace.ID, *adminAndWorkspaceDetails.AllowedAutoJoinEmailOrigins); err != nil {
+				return e.Wrap(err, "error assigning auto joinable email origins")
+			}
+		}
+
+		// Create project
+		projectName := fmt.Sprintf("%s App", adminAndWorkspaceDetails.WorkspaceName)
+		if _, err := transactionR.CreateProject(ctx, projectName, workspace.ID); err != nil {
+			return e.Wrap(err, "error creating project")
+		}
+
+		return nil
+	}); err != nil {
+		return nil, e.Wrap(err, "error during transaction")
+	}
+
+	projects, err := r.Query().Projects(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error fetching new project")
+	}
+
+	return projects[0], nil
+}
+
 // UpdateAdminAboutYouDetails is the resolver for the updateAdminAboutYouDetails field.
 func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, adminDetails modelInputs.AdminAboutYouDetails) (bool, error) {
 	admin, err := r.getCurrentAdmin(ctx)
@@ -530,6 +576,101 @@ func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *stri
 		return nil, e.Wrap(err, "error updating workspace fields")
 	}
 	return workspace, nil
+}
+
+// MarkErrorGroupAsViewed is the resolver for the markErrorGroupAsViewed field.
+func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model.ErrorGroup, error) {
+	eg, err := r.canAdminModifyErrorGroup(ctx, errorSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not error group owner")
+	}
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not logged in")
+	}
+
+	// Update the the number of error groups viewed for the current admin.
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		// Check if this admin has already viewed
+		if _, err := r.isAdminInProject(ctx, eg.ProjectID); err != nil {
+			log.Infof("not adding error groups count to admin in hubspot; this is probably a demo project, with id [%v]", eg.ProjectID)
+			return
+		}
+		var currentErrorGroupCount int64
+		if err := r.DB.Raw(`
+			select count(*)
+			from error_group_admins_views
+			where error_group_id = ? and admin_id = ?
+	`, eg.ID, admin.ID).Scan(&currentErrorGroupCount).Error; err != nil {
+			log.Error(e.Wrap(err, "error querying count of error group views from admin"))
+			return
+		} else if currentErrorGroupCount > 0 {
+			log.Info("not updating hubspot error group count; admin has already viewed this error group")
+			return
+		}
+
+		var totalErrorGroupCount int64
+		if err := r.DB.Raw(`
+			select count(*)
+			from error_group_admins_views
+			where admin_id = ?
+	`, admin.ID).Scan(&totalErrorGroupCount).Error; err != nil {
+			log.Error(e.Wrap(err, "error querying total count of error group views from admin"))
+			return
+		}
+		totalErrorGroupCountAsInt := int(totalErrorGroupCount) + 1
+
+		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfErrorGroupsViewed: &totalErrorGroupCountAsInt}).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating error group count for admin in postgres"))
+		}
+		if !util.IsDevEnv() {
+			if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
+				Name:     "number_of_highlight_error_groups_viewed",
+				Property: "number_of_highlight_error_groups_viewed",
+				Value:    totalErrorGroupCountAsInt,
+			}}); err != nil {
+				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+
+				zlog.Error().
+					Stack().
+					Err(err).
+					Int("admin_id", admin.ID).
+					Int("value", totalErrorGroupCountAsInt).
+					Msg("error updating error group count for admin in hubspot")
+			}
+			log.Infof("succesfully added to total error group count for admin [%v], who just viewed error group [%v]", admin.ID, eg.ID)
+		}
+	})
+
+	newErrorGroup := &model.ErrorGroup{}
+	updatedFields := &model.ErrorGroup{
+		Viewed: viewed,
+	}
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: eg.ID}}).First(&newErrorGroup).Updates(updatedFields).Error; err != nil {
+		return nil, e.Wrap(err, "error writing error as viewed")
+	}
+
+	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, eg.ID, map[string]interface{}{"viewed": viewed}); err != nil {
+		return nil, e.Wrap(err, "error updating error in opensearch")
+	}
+
+	newAdminView := struct {
+		ID int `json:"id"`
+	}{
+		ID: admin.ID,
+	}
+
+	if err := r.OpenSearch.AppendToField(opensearch.IndexErrorsCombined, newErrorGroup.ID, "viewed_by_admins", []interface{}{
+		newAdminView}); err != nil {
+		return nil, e.Wrap(err, "error updating error gorups's admin viewed by in opensearch")
+	}
+
+	if err := r.DB.Model(&eg).Association("ViewedByAdmins").Append(admin); err != nil {
+		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
+	}
+
+	return newErrorGroup, nil
 }
 
 // MarkSessionAsViewed is the resolver for the markSessionAsViewed field.
@@ -889,6 +1030,15 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, projectID int, nam
 	}
 	paramString := string(paramBytes)
 
+	// check if such a segment exists
+	var count int64
+	if err := r.DB.Model(&model.Segment{}).Where("project_id = ? AND name = ?", projectID, name).Count(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error checking if segment exists")
+	}
+	if count > 0 {
+		return nil, e.New("segment with this name already exists")
+	}
+
 	segment := &model.Segment{
 		Name:      &name,
 		Params:    &paramString,
@@ -929,7 +1079,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 }
 
 // EditSegment is the resolver for the editSegment field.
-func (r *mutationResolver) EditSegment(ctx context.Context, id int, projectID int, params modelInputs.SearchParamsInput) (*bool, error) {
+func (r *mutationResolver) EditSegment(ctx context.Context, id int, projectID int, params modelInputs.SearchParamsInput, name string) (*bool, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -940,11 +1090,23 @@ func (r *mutationResolver) EditSegment(ctx context.Context, id int, projectID in
 		return nil, e.Wrap(err, "error unmarshaling search params")
 	}
 	paramString := string(paramBytes)
+
+	// check if such a segment exists
+	var count int64
+	if err := r.DB.Model(&model.Segment{}).Where("project_id = ? AND name = ?", projectID, name).Count(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error checking if segment exists")
+	}
+	if count > 0 {
+		return nil, e.New("segment with this name already exists")
+	}
+
 	if err := r.DB.Model(&model.Segment{Model: model.Model{ID: id}}).Updates(&model.Segment{
 		Params: &paramString,
+		Name:   &name,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing new recording settings")
 	}
+
 	return &model.T, nil
 }
 
@@ -973,6 +1135,15 @@ func (r *mutationResolver) CreateErrorSegment(ctx context.Context, projectID int
 	}
 	paramString := string(paramBytes)
 
+	// check if such a segment exists
+	var count int64
+	if err := r.DB.Model(&model.ErrorSegment{}).Where("project_id = ? AND name = ?", projectID, name).Count(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error checking if segment exists")
+	}
+	if count > 0 {
+		return nil, e.New("segment with this name already exists")
+	}
+
 	segment := &model.ErrorSegment{
 		Name:      &name,
 		Params:    &paramString,
@@ -985,7 +1156,7 @@ func (r *mutationResolver) CreateErrorSegment(ctx context.Context, projectID int
 }
 
 // EditErrorSegment is the resolver for the editErrorSegment field.
-func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, projectID int, params modelInputs.ErrorSearchParamsInput) (*bool, error) {
+func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, projectID int, params modelInputs.ErrorSearchParamsInput, name string) (*bool, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -996,8 +1167,18 @@ func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, project
 		return nil, e.Wrap(err, "error unmarshaling search params")
 	}
 	paramString := string(paramBytes)
+
+	var count int64
+	if err := r.DB.Model(&model.ErrorSegment{}).Where("project_id = ? AND name = ?", projectID, name).Count(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error checking if segment exists")
+	}
+	if count > 0 {
+		return nil, e.New("segment with this name already exists")
+	}
+
 	if err := r.DB.Model(&model.ErrorSegment{Model: model.Model{ID: id}}).Updates(&model.ErrorSegment{
 		Params: &paramString,
+		Name:   &name,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing new recording settings")
 	}
@@ -3176,6 +3357,11 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 			workspace.VercelTeamID, projectEnvId, vercel.ProjectIdEnvVar); err != nil {
 			return false, err
 		}
+
+		if err := vercel.CreateLogDrain(workspace.VercelTeamID, m.VercelProjectID, project.VerboseID(), "highlight-log-drain", *workspace.VercelAccessToken); err != nil {
+			return false, err
+		}
+
 		configs = append(configs, &model.VercelIntegrationConfig{
 			WorkspaceID:     workspaceId,
 			VercelProjectID: m.VercelProjectID,
@@ -3770,7 +3956,10 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 	}
 
 	errorObject := model.ErrorObject{}
-	errorObjectQuery := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID})
+	errorObjectQuery := r.DB.
+		Model(&model.ErrorObject{}).
+		Where("error_group_id = ?", errorGroup.ID).
+		Order("id desc")
 
 	if errorObjectID == nil {
 		sessionIds := []int{}
@@ -3792,15 +3981,15 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		}
 
 		if len(processedSessions) == 0 {
-			if err := errorObjectQuery.Last(&errorObject).Error; err != nil {
+			if err := errorObjectQuery.Limit(1).Find(&errorObject).Error; err != nil {
 				return nil, e.Wrap(err, "error reading error object for instance")
 			}
 		} else {
 			// find the most recent object from the processed session
 			if err := errorObjectQuery.
 				Where("session_id IN ?", processedSessions).
-				Order("id desc").
-				First(&errorObject).
+				Limit(1).
+				Find(&errorObject).
 				Error; err != nil {
 				return nil, e.Wrap(err, "error reading error object for instance")
 			}
@@ -3808,38 +3997,40 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 	} else {
 		if err := errorObjectQuery.
 			Where(&model.ErrorObject{Model: model.Model{ID: *errorObjectID}}).
-			First(&errorObject).
+			Limit(1).
+			Find(&errorObject).
 			Error; err != nil {
 			return nil, e.Wrap(err, "error reading error object for instance")
 		}
 	}
-
-	nextErrorObject := model.ErrorObject{}
-	if err := r.DB.Model(&model.ErrorObject{}).
+	var nextID int
+	if err := r.DB.
+		Model(&model.ErrorObject{}).
 		Select("id").
-		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
+		Where("error_group_id = ?", errorGroup.ID).
 		Where("id > ?", errorObject.ID).
 		Order("id asc").
 		Limit(1).
-		Find(&nextErrorObject).Error; err != nil {
+		Pluck("id", &nextID).Error; err != nil {
 		return nil, e.Wrap(err, "error reading next error object in group")
 	}
 
-	previousErrorObject := model.ErrorObject{}
-	if err := r.DB.Model(&model.ErrorObject{}).
+	var previousID int
+	if err := r.DB.
+		Model(&model.ErrorObject{}).
 		Select("id").
-		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
+		Where("error_group_id = ?", errorGroup.ID).
 		Where("id < ?", errorObject.ID).
 		Order("id desc").
 		Limit(1).
-		Find(&previousErrorObject).Error; err != nil {
+		Pluck("id", &previousID).Error; err != nil {
 		return nil, e.Wrap(err, "error reading previous error object in group")
 	}
 
 	errorInstance := model.ErrorInstance{
 		ErrorObject: errorObject,
-		NextID:      &nextErrorObject.ID,
-		PreviousID:  &previousErrorObject.ID,
+		NextID:      &nextID,
+		PreviousID:  &previousID,
 	}
 
 	return &errorInstance, nil
@@ -6761,13 +6952,23 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 }
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(ctx context.Context, projectID int) ([]*modelInputs.LogLine, error) {
+func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogLine, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 
-	return r.ClickhouseClient.ReadLogs(ctx, project.ID)
+	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params)
+}
+
+// LogsTotalCount is the resolver for the logs_total_count field.
+func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return 0, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.ReadLogsTotalCount(ctx, project.ID, params)
 }
 
 // Params is the resolver for the params field.

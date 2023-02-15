@@ -2,7 +2,8 @@ import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import { PlanType, RetentionPeriod, SubscriptionInterval } from '@graph/schemas'
 import { MEMBERS_PRICE } from '@pages/Billing/BillingStatusCard/BillingStatusCard'
 import { formatNumberWithDelimiters } from '@util/numbers'
-import classNames from 'classnames/bind'
+import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import commonStyles from '../../../Common.module.scss'
@@ -54,13 +55,12 @@ export const BillingPlanCard = ({
 
 	return (
 		<div
-			className={classNames(styles.billingPlanCard, {
+			className={clsx(styles.billingPlanCard, {
 				[styles.currentPlan]: current,
 				[styles.glowingPlan]: glowing,
 			})}
 		>
 			<h3 className={styles.billingPlanTitle}>{billingPlan.name}</h3>
-
 			<div>
 				<span
 					className={classNames(

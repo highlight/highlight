@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type GraphqlTracer interface {
@@ -45,8 +46,8 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	start := graphql.Now()
 	res, err := next(ctx)
 	end := graphql.Now()
-	span.RecordError(err)
-	span.End()
+	RecordSpanError(span, err, attribute.String("Source", "InterceptField"))
+	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
 	return res, err
@@ -73,7 +74,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	start := graphql.Now()
 	resp := next(ctx)
 	end := graphql.Now()
-	span.End()
+	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
 	if resp.Errors != nil {

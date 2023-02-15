@@ -17,6 +17,7 @@ import {
 	useUpdateAdminAboutYouDetailsMutation,
 } from '@graph/hooks'
 import { Landing } from '@pages/Landing/Landing'
+import analytics from '@util/analytics'
 import { getAttributionData } from '@util/attribution'
 import { message } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -34,7 +35,6 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 	const { admin } = useAuthContext()
 	const [firstName, setFirstName] = useState('')
 	const [lastName, setLastName] = useState('')
-	const [phone, setPhone] = useState('')
 	const [isEngineeringRole, toggleIsEngineeringRole] = useToggle(false)
 	const [isProductRole, toggleIsProductRole] = useToggle(false)
 	const [role, setRole] = useState('')
@@ -56,11 +56,13 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 			const [adminFirstName, adminLastName] = admin.name.split(' ')
 			setFirstName(adminFirstName || '')
 			setLastName(adminLastName || '')
-			setPhone(admin.phone || '')
 		}
 	}, [admin])
 
+	useEffect(() => analytics.page('/about_you'), [])
+
 	const onFormSubmit = async (e: { preventDefault: () => void }) => {
+		analytics.track('About you submitted')
 		e.preventDefault()
 		const attributionData = getAttributionData()
 
@@ -80,7 +82,6 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 					adminDetails: {
 						first_name: firstName,
 						last_name: lastName,
-						phone: phone,
 						user_defined_role: role,
 						user_defined_persona: persona,
 						...attributionData,
@@ -97,6 +98,7 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 			getAdminQuery()
 			message.success(`Nice to meet you ${firstName}, let's get started!`)
 		} catch {
+			analytics.track('About you submission error')
 			message.error('Something went wrong, try again?')
 		}
 	}
@@ -135,19 +137,6 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 								}}
 							/>
 						</div>
-					</section>
-					<section className={styles.section}>
-						<h3>What's your phone number?</h3>
-						<Input
-							placeholder="Phone #"
-							name="Phone #"
-							type="tel"
-							value={phone}
-							onChange={(e) => {
-								setPhone(e.target.value)
-							}}
-							autoFocus
-						/>
 					</section>
 
 					<section className={styles.section}>
@@ -191,7 +180,6 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 								firstName.length === 0 ||
 								lastName.length === 0 ||
 								role.length === 0 ||
-								(phone.length > 0 && phone.length < 10) ||
 								(!isEngineeringRole && !isProductRole)
 							}
 						>

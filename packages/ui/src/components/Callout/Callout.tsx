@@ -14,7 +14,7 @@ import { vars } from '../../css/vars'
 
 export type Props = React.PropsWithChildren &
 	styles.Variants & {
-		title: string
+		title?: string
 		handleCloseClick?: () => void
 		icon?: false | (() => JSX.Element)
 	}
@@ -41,30 +41,32 @@ export const Callout: React.FC<Props> = ({
 			{icon !== false ? <Icon /> : null}
 
 			<Box gap="16" display="flex" flexDirection="column" width="full">
-				<Box
-					alignItems="flex-start"
-					display="flex"
-					justifyContent="space-between"
-				>
-					<Box mt="6">
-						<Text weight="bold" size="medium">
-							{title}
-						</Text>
-					</Box>
+				{title && (
+					<Box
+						alignItems="flex-start"
+						display="flex"
+						justifyContent="space-between"
+					>
+						<Box mt="6">
+							<Text weight="bold" size="medium">
+								{title}
+							</Text>
+						</Box>
 
-					<Box flexShrink={0}>
 						{handleCloseClick && (
-							<ButtonIcon
-								kind="secondary"
-								emphasis="low"
-								shape="square"
-								size="minimal"
-								icon={<IconSolidX size={16} />}
-								onClick={handleCloseClick}
-							/>
+							<Box flexShrink={0}>
+								<ButtonIcon
+									kind="secondary"
+									emphasis="low"
+									shape="square"
+									size="minimal"
+									icon={<IconSolidX size={16} />}
+									onClick={handleCloseClick}
+								/>
+							</Box>
 						)}
 					</Box>
-				</Box>
+				)}
 				{children}
 			</Box>
 		</Box>

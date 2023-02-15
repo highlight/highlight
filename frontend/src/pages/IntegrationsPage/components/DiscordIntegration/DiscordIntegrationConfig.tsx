@@ -21,7 +21,8 @@ const getDiscordOauthUrl = (project_id: string): string => {
 	const state = encodeURIComponent(JSON.stringify({ project_id: project_id }))
 	const scope = ['bot']
 
-	// If the bot needs more permissions, visit https://discord.com/developers/applications/1024079182013149185/oauth2/url-generator
+	// If the bot needs more permissions,
+	// visit https://discord.com/developers/applications/1024079182013149185/oauth2/url-generator
 	// and use the generator to get a new value
 	// Current bot permissions:
 	// * Read Messages/View Channels
@@ -118,7 +119,7 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 					className={styles.modalBtn}
 					type="primary"
 					target="_blank"
-					href={getDiscordOauthUrl(project_id)}
+					href={getDiscordOauthUrl(project_id!)}
 				>
 					<span className={styles.modalBtnText}>
 						<Sparkles2Icon className={styles.modalBtnIcon} />

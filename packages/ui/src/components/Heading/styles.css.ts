@@ -6,22 +6,22 @@ import { steradianFontMetrics, typographyStyles } from '../Text/styles.css'
 // Headings
 export const h4 = createStyleObject({
 	fontSize: 20,
-	lineGap: 8,
+	leading: 28,
 	fontMetrics: steradianFontMetrics,
 })
 export const h3 = createStyleObject({
 	fontSize: 24,
-	lineGap: 10,
+	leading: 34,
 	fontMetrics: steradianFontMetrics,
 })
 export const h2 = createStyleObject({
 	fontSize: 30,
-	lineGap: 12,
+	leading: 32,
 	fontMetrics: steradianFontMetrics,
 })
 export const h1 = createStyleObject({
 	fontSize: 36,
-	lineGap: 14,
+	leading: 50,
 	fontMetrics: steradianFontMetrics,
 })
 
@@ -29,6 +29,11 @@ export const variants = recipe({
 	base: [sprinkles({ margin: '0' })],
 
 	variants: {
+		align: {
+			center: {
+				textAlign: 'center',
+			},
+		},
 		level: {
 			h1: {
 				...h1,

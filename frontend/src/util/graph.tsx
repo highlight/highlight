@@ -12,9 +12,9 @@ import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
 import { getMainDefinition } from '@apollo/client/utilities'
 import { namedOperations } from '@graph/operations'
+import { auth } from '@util/auth'
 import { IndexedDBLink } from '@util/db'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { auth } from '@util/auth'
 
 const uri =
 	import.meta.env.REACT_APP_PRIVATE_GRAPH_URI ??

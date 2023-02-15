@@ -18,8 +18,10 @@ export type Scalars = {
 	Float: number
 	Any: any
 	Int64: number
+	Map: any
 	StringArray: string[]
 	Timestamp: string
+	UInt64: any
 	Upload: any
 }
 
@@ -85,6 +87,16 @@ export type AdminAboutYouDetails = {
 	referral: Scalars['String']
 	user_defined_persona: Scalars['String']
 	user_defined_role: Scalars['String']
+}
+
+export type AdminAndWorkspaceDetails = {
+	allowed_auto_join_email_origins?: InputMaybe<Scalars['String']>
+	first_name: Scalars['String']
+	last_name: Scalars['String']
+	promo_code?: InputMaybe<Scalars['String']>
+	referral: Scalars['String']
+	user_defined_role: Scalars['String']
+	workspace_name: Scalars['String']
 }
 
 export enum AdminRole {
@@ -391,6 +403,7 @@ export type ErrorGroup = {
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
 	type: Scalars['String']
 	updated_at: Scalars['Timestamp']
+	viewed?: Maybe<Scalars['Boolean']>
 }
 
 export type ErrorGroupFrequenciesParamsInput = {
@@ -451,7 +464,7 @@ export type ErrorObject = {
 	project_id: Scalars['Int']
 	request_id?: Maybe<Scalars['String']>
 	session?: Maybe<Session>
-	session_id: Scalars['Int']
+	session_id?: Maybe<Scalars['Int']>
 	source?: Maybe<Scalars['String']>
 	stack_trace: Scalars['String']
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
@@ -646,8 +659,14 @@ export type LinearTeam = {
 export type LogLine = {
 	__typename?: 'LogLine'
 	body: Scalars['String']
-	severityText: Scalars['String']
+	logAttributes: Scalars['Map']
+	severityText: SeverityText
 	timestamp: Scalars['Timestamp']
+}
+
+export type LogsParamsInput = {
+	date_range: DateRangeRequiredInput
+	query: Scalars['String']
 }
 
 export type Metric = {
@@ -757,6 +776,7 @@ export type Mutation = {
 	editWorkspace?: Maybe<Workspace>
 	emailSignup: Scalars['String']
 	joinWorkspace?: Maybe<Scalars['ID']>
+	markErrorGroupAsViewed?: Maybe<ErrorGroup>
 	markSessionAsStarred?: Maybe<Session>
 	markSessionAsViewed?: Maybe<Session>
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
@@ -773,6 +793,7 @@ export type Mutation = {
 	submitRegistrationForm?: Maybe<Scalars['Boolean']>
 	syncSlackIntegration: SlackSyncResponse
 	updateAdminAboutYouDetails: Scalars['Boolean']
+	updateAdminAndCreateWorkspace?: Maybe<Project>
 	updateAllowMeterOverage?: Maybe<Workspace>
 	updateAllowedEmailOrigins?: Maybe<Scalars['ID']>
 	updateBillingDetails?: Maybe<Scalars['Boolean']>
@@ -1000,6 +1021,7 @@ export type MutationDeleteSessionsArgs = {
 
 export type MutationEditErrorSegmentArgs = {
 	id: Scalars['ID']
+	name: Scalars['String']
 	params: ErrorSearchParamsInput
 	project_id: Scalars['ID']
 }
@@ -1018,6 +1040,7 @@ export type MutationEditProjectArgs = {
 
 export type MutationEditSegmentArgs = {
 	id: Scalars['ID']
+	name: Scalars['String']
 	params: SearchParamsInput
 	project_id: Scalars['ID']
 }
@@ -1033,6 +1056,11 @@ export type MutationEmailSignupArgs = {
 
 export type MutationJoinWorkspaceArgs = {
 	workspace_id: Scalars['ID']
+}
+
+export type MutationMarkErrorGroupAsViewedArgs = {
+	error_secure_id: Scalars['String']
+	viewed?: InputMaybe<Scalars['Boolean']>
 }
 
 export type MutationMarkSessionAsStarredArgs = {
@@ -1124,6 +1152,10 @@ export type MutationSyncSlackIntegrationArgs = {
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
 	adminDetails: AdminAboutYouDetails
+}
+
+export type MutationUpdateAdminAndCreateWorkspaceArgs = {
+	admin_and_workspace_details: AdminAndWorkspaceDetails
 }
 
 export type MutationUpdateAllowMeterOverageArgs = {
@@ -1385,6 +1417,7 @@ export type Query = {
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	logs: Array<LogLine>
+	logs_total_count: Scalars['UInt64']
 	messages?: Maybe<Array<Maybe<Scalars['Any']>>>
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
@@ -1710,6 +1743,12 @@ export type QueryLiveUsersCountArgs = {
 }
 
 export type QueryLogsArgs = {
+	params: LogsParamsInput
+	project_id: Scalars['ID']
+}
+
+export type QueryLogs_Total_CountArgs = {
+	params: LogsParamsInput
 	project_id: Scalars['ID']
 }
 
@@ -2222,6 +2261,15 @@ export type SessionsHistogram = {
 	sessions_with_errors: Array<Scalars['Int64']>
 	sessions_without_errors: Array<Scalars['Int64']>
 	total_sessions: Array<Scalars['Int64']>
+}
+
+export enum SeverityText {
+	Debug = 'DEBUG',
+	Error = 'ERROR',
+	Fatal = 'FATAL',
+	Info = 'INFO',
+	Trace = 'TRACE',
+	Warn = 'WARN',
 }
 
 export type SlackSyncResponse = {

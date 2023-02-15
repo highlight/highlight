@@ -1,8 +1,8 @@
 import Button from '@components/Button/Button/Button'
 import SvgLogInIcon from '@icons/LogInIcon'
-import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
+import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
 import React from 'react'
-import { useHistory, useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import styles from './DemoWorkspaceButton.module.scss'
 
@@ -20,7 +20,7 @@ export const DEMO_WORKSPACE_APPLICATION_ID = '0'
 export const DEMO_WORKSPACE_PROXY_APPLICATION_ID = 'demo'
 
 const DemoWorkspaceButton = ({ integrated }: Props) => {
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { pathname } = useLocation()
 	const { currentProject } = useApplicationContext()
 
@@ -36,7 +36,7 @@ const DemoWorkspaceButton = ({ integrated }: Props) => {
 			type="primary"
 			trackingId="DemoWorkspace"
 			onClick={() => {
-				history.push(`/${DEMO_WORKSPACE_PROXY_APPLICATION_ID}/${path}`)
+				navigate(`/${DEMO_WORKSPACE_PROXY_APPLICATION_ID}/${path}`)
 			}}
 		>
 			<SvgLogInIcon /> Visit Demo Workspace

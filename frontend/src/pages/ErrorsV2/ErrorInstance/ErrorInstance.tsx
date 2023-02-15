@@ -32,7 +32,6 @@ import {
 } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import {
 	getDisplayNameAndField,
@@ -43,9 +42,11 @@ import analytics from '@util/analytics'
 import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
+import { buildQueryURLString } from '@util/url/params'
+import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
@@ -64,7 +65,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		error_object_id: string
 	}>()
 	const { projectId } = useProjectId()
-	const history = useHistory()
+	const navigate = useNavigate()
 	const client = useApolloClient()
 	const { isLoggedIn } = useAuthContext()
 
@@ -133,11 +134,11 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		errorInstanceId: Maybe<string> | undefined,
 		direction: 'next' | 'previous',
 	) => {
-		if (Number(errorInstanceId) === 0) {
+		if (!errorInstanceId || Number(errorInstanceId) === 0) {
 			return
 		}
 
-		history.push({
+		navigate({
 			pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstanceId}`,
 			search: window.location.search,
 		})
@@ -299,7 +300,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									return
 								}
 
-								history.push(
+								navigate(
 									`/${projectId}/sessions/${errorObject.session?.secure_id}` +
 										`?tsAbs=${errorObject.timestamp}`,
 								)
@@ -400,49 +401,57 @@ const Metadata: React.FC<{
 			</Box>
 
 			<Box>
-				{metadata.map((meta) => (
-					<Box display="flex" gap="6" key={meta.key}>
-						<Box
-							py="10"
-							cursor="pointer"
-							onClick={() => copyToClipboard(meta.key)}
-							style={{ width: '33%' }}
-						>
-							<Text
-								color="n11"
-								transform="capitalize"
-								align="left"
-								lines="1"
+				{metadata.map((meta) => {
+					const value =
+						meta.key === 'created_at'
+							? moment(meta.label as string).format(
+									'M/D/YY h:mm:s.SSS A',
+							  )
+							: meta.label
+					return (
+						<Box display="flex" gap="6" key={meta.key}>
+							<Box
+								py="10"
+								cursor="pointer"
+								onClick={() => copyToClipboard(meta.key)}
+								style={{ width: '33%' }}
 							>
-								{METADATA_LABELS[meta.key] ??
-									meta.key.replace('_', ' ')}
-							</Text>
-						</Box>
-						<Box
-							cursor="pointer"
-							py="10"
-							onClick={() => {
-								if (typeof meta.label === 'string') {
-									meta.label && copyToClipboard(meta.label)
-								}
-							}}
-							style={{ width: '67%' }}
-						>
-							<Text
-								align="left"
-								break="word"
-								lines={
-									typeof meta.label === 'string'
-										? '4'
-										: undefined
-								}
-								title={String(meta.label)}
+								<Text
+									color="n11"
+									transform="capitalize"
+									align="left"
+									lines="1"
+								>
+									{METADATA_LABELS[meta.key] ??
+										meta.key.replace('_', ' ')}
+								</Text>
+							</Box>
+							<Box
+								cursor="pointer"
+								py="10"
+								onClick={() => {
+									if (typeof value === 'string') {
+										value && copyToClipboard(value)
+									}
+								}}
+								style={{ width: '67%' }}
 							>
-								{meta.label}
-							</Text>
+								<Text
+									align="left"
+									break="word"
+									lines={
+										typeof value === 'string'
+											? '4'
+											: undefined
+									}
+									title={String(value)}
+								>
+									{value}
+								</Text>
+							</Box>
 						</Box>
-					</Box>
-				))}
+					)
+				})}
 			</Box>
 		</Box>
 	)
@@ -451,7 +460,7 @@ const Metadata: React.FC<{
 const User: React.FC<{
 	errorObject?: GetErrorObjectQuery['error_object']
 }> = ({ errorObject }) => {
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
 	const { setSearchParams } = useSearchContext()
@@ -462,7 +471,7 @@ const User: React.FC<{
 	}
 
 	const { session } = errorObject
-	const userProperties = getUserProperties(session)
+	const userProperties = getUserProperties(session?.user_properties)
 	const [displayName, field] = getDisplayNameAndField(session)
 	const avatarImage = getIdentifiedUserProfileImage(session)
 	const userDisplayPropertyKeys = Object.keys(userProperties)
@@ -517,27 +526,19 @@ const User: React.FC<{
 									return
 								}
 
-								// Logic taken from Metadata box. There may be a cleaner way.
-								const searchParams = {
-									...EmptySessionsSearchParams,
-								}
-
+								const searchParams: any = {}
 								if (session.identifier && field !== null) {
-									searchParams.user_properties = [
-										{
-											id: '0',
-											name: field,
-											value: displayName,
-										},
-									]
+									searchParams[`user_${field}`] = displayName
 								} else if (session?.fingerprint) {
 									searchParams.device_id = String(
 										session.fingerprint,
 									)
 								}
 
-								history.push(`/${projectId}/sessions`)
-								setSearchParams(searchParams)
+								navigate({
+									pathname: `/${projectId}/sessions`,
+									search: buildQueryURLString(searchParams),
+								})
 							}}
 							trackingId="errorInstanceAllSessionsForuser"
 						>

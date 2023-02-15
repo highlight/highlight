@@ -12,7 +12,6 @@ import {
 	isHighlightAdmin,
 	isLoggedIn,
 } from '@authentication/AuthContext'
-import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { LoadingPage } from '@components/Loading/Loading'
 import {
@@ -30,6 +29,8 @@ import {
 } from '@graph/hooks'
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
+import { SignUp } from '@pages/Auth/SignUp'
+import { AuthAdminRouter } from '@pages/Login/Login'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { setAttributionData } from '@util/attribution'
@@ -40,14 +41,14 @@ import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { showIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
+import { parse, stringify } from 'query-string'
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
-
-import LoginForm, { AuthAdminRouter } from './pages/Login/Login'
+import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
 analytics.initialize()
 const dev = import.meta.env.DEV
@@ -86,6 +87,7 @@ const options: HighlightOptions = {
 	inlineStylesheet: true,
 	inlineImages: true,
 	sessionShortcut: 'alt+1,command+`,alt+esc',
+	version: import.meta.env.REACT_APP_COMMIT_SHA || undefined,
 }
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {
@@ -159,34 +161,30 @@ const App = () => {
 			}}
 		>
 			<ApolloProvider client={client}>
-				<QueryParamProvider>
-					<SkeletonTheme
-						baseColor="var(--color-gray-200)"
-						highlightColor="var(--color-primary-background)"
+				<SkeletonTheme
+					baseColor="var(--color-gray-200)"
+					highlightColor="var(--color-primary-background)"
+				>
+					<AppLoadingContext
+						value={{
+							loadingState,
+							setLoadingState,
+						}}
 					>
-						<AppLoadingContext
-							value={{
-								loadingState,
-								setLoadingState,
-							}}
-						>
-							<LoadingPage />
-							<Router>
-								<Switch>
-									<Route path="/w/:workspace_id(\d+)/*">
-										<AuthenticationRoleRouter />
-									</Route>
-									<Route path="/:project_id(\d+)/*">
-										<AuthenticationRoleRouter />
-									</Route>
-									<Route path="/">
-										<AuthenticationRoleRouter />
-									</Route>
-								</Switch>
-							</Router>
-						</AppLoadingContext>
-					</SkeletonTheme>
-				</QueryParamProvider>
+						<LoadingPage />
+						<BrowserRouter>
+							<QueryParamProvider
+								adapter={ReactRouter6Adapter}
+								options={{
+									searchStringToObject: parse,
+									objectToSearchString: stringify,
+								}}
+							>
+								<AuthenticationRoleRouter />
+							</QueryParamProvider>
+						</BrowserRouter>
+					</AppLoadingContext>
+				</SkeletonTheme>
 			</ApolloProvider>
 		</ErrorBoundary>
 	)
@@ -195,6 +193,7 @@ const App = () => {
 const AuthenticationRoleRouter = () => {
 	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
 	const projectId = /^\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
+
 	const [
 		getAdminWorkspaceRoleQuery,
 		{
@@ -204,6 +203,7 @@ const AuthenticationRoleRouter = () => {
 			refetch: wRefetch,
 		},
 	] = useGetAdminRoleLazyQuery()
+
 	const [
 		getAdminProjectRoleQuery,
 		{
@@ -213,6 +213,7 @@ const AuthenticationRoleRouter = () => {
 			refetch: pRefetch,
 		},
 	] = useGetAdminRoleByProjectLazyQuery()
+
 	const [
 		getAdminSimpleQuery,
 		{
@@ -222,6 +223,7 @@ const AuthenticationRoleRouter = () => {
 			refetch: sRefetch,
 		},
 	] = useGetAdminLazyQuery()
+
 	let getAdminQuery:
 			| ((
 					workspace_id:
@@ -386,52 +388,22 @@ const AuthenticationRoleRouter = () => {
 			}}
 		>
 			<Helmet>
-				<title>Highlight App</title>
+				<title>highlight.io</title>
 			</Helmet>
 			{adminError ? (
 				<ErrorState
-					message={`
-Seems like we had an issue with your login 😢.
-Feel free to log out and try again, or otherwise,
-get in contact with us!
-`}
+					message={
+						`Seems like we had an issue with your login 😢. ` +
+						`Feel free to log out and try again, or otherwise, ` +
+						`get in contact with us!`
+					}
 					errorString={JSON.stringify(adminError)}
 				/>
 			) : (
-				<Switch>
-					<Route path="/subscriptions">
-						{/* This route uses a token for authentication */}
-						<AuthAdminRouter />
-					</Route>
-					<Route path="/:project_id(0)/*" exact>
-						{/* Allow guests to access this route without being asked to log in */}
-						<AuthAdminRouter />
-					</Route>
-					<Route
-						path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
-						exact
-					>
-						{/* Allow guests to access this route without being asked to log in */}
-						<AuthAdminRouter />
-					</Route>
-					<Route
-						path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
-						exact
-					>
-						{/* Allow guests to access this route without being asked to log in */}
-						<AuthAdminRouter />
-					</Route>
-					<Route
-						path="/:project_id(\d+)/errors/:error_secure_id(\w+)/:error_tab_key(\w+)?/:error_object_id(\d+)?"
-						exact
-					>
-						{/* Allow guests to access this route without being asked to log in */}
-						<AuthAdminRouter />
-					</Route>
-					<Route path="/">
-						<LoginForm />
-					</Route>
-				</Switch>
+				<Routes>
+					<Route path="sign_up" element={<SignUp />} />
+					<Route path="/*" element={<AuthAdminRouter />} />
+				</Routes>
 			)}
 		</AuthContextProvider>
 	)

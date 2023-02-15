@@ -91,6 +91,7 @@ export const ToolbarControlBar = () => {
 		play,
 		pause,
 		canViewSession,
+		isPlayerReady,
 		isLiveMode,
 		setIsLiveMode,
 		session,
@@ -114,7 +115,8 @@ export const ToolbarControlBar = () => {
 	const sessionDuration = sessionMetadata.totalTime ?? 0
 	const isPlaybackComplete = time >= sessionDuration && !isLiveMode
 
-	const disableControls = state === ReplayerState.Loading || !canViewSession
+	const disableControls =
+		state === ReplayerState.Loading || !canViewSession || !isPlayerReady
 	const showLiveToggle = session?.processed === false && !disableControls
 
 	const [showSettings, setShowSettings] = useState(false)
@@ -236,13 +238,17 @@ export const ToolbarControlBar = () => {
 					onClick={() => {
 						setIsLiveMode((isLive) => !isLive)
 					}}
-					kind={isLiveMode ? 'primary' : 'secondary'}
+					shape="rounded"
+					kind="primary"
+					emphasis="high"
 					disabled={disableControls}
+					lines="1"
 				>
-					Live
+					{isLiveMode ? 'Hide' : 'Show'} live mode
 				</Tag>
 			)}
-			<Box display="flex" gap="4">
+
+			<Box display="flex" gap="4" ml="4">
 				{isLiveMode && lastActiveString && (
 					<SessionToken
 						className={style.liveUserStatus}
@@ -253,7 +259,7 @@ export const ToolbarControlBar = () => {
 					</SessionToken>
 				)}
 				{!isLiveMode && (
-					<Text color="n11" userSelect="none">
+					<Text color="n11" userSelect="none" lines="1">
 						{disableControls ? (
 							<Skeleton count={1} width="60.13px" />
 						) : showPlayerAbsoluteTime ? (
@@ -272,7 +278,7 @@ export const ToolbarControlBar = () => {
 							<>
 								{MillisToMinutesAndSeconds(
 									//     Sometimes the replayer will report a higher time when the player has ended.
-									clamp(time, 0, sessionDuration),
+									clamp(time ?? 0, 0, sessionDuration),
 								)}
 								<>
 									&nbsp;/&nbsp;
@@ -283,11 +289,14 @@ export const ToolbarControlBar = () => {
 					</Text>
 				)}
 			</Box>
-
-			{!isLiveMode && (
-				<>
+			<Box
+				display="flex"
+				alignItems="center"
+				cssClass={style.moveRight}
+				gap="4"
+			>
+				{!isLiveMode && (
 					<ExplanatoryPopover
-						className={style.moveRight}
 						content={
 							<>
 								<Text userSelect="none" color="n11">
@@ -323,11 +332,14 @@ export const ToolbarControlBar = () => {
 								setPlayerSpeedIdx(playerSpeedIdx + 1)
 							}}
 							disabled={disableControls}
+							lines="1"
 						>
 							{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
 						</Tag>
 					</ExplanatoryPopover>
+				)}
 
+				{!isLiveMode && (
 					<ExplanatoryPopover
 						content={
 							<>
@@ -349,66 +361,62 @@ export const ToolbarControlBar = () => {
 							iconLeft={<IconSolidChartBar size={14} />}
 						/>
 					</ExplanatoryPopover>
-					<ExplanatoryPopover
-						content={
-							<>
-								<Text userSelect="none" color="n11">
-									Dev tools
-								</Text>
-								<ShortcutTextGuide
-									shortcut={DevToolsShortcut}
-								/>
-							</>
-						}
-					>
-						<SwitchButton
-							onChange={() => {
-								setShowDevTools(!showDevTools)
-							}}
-							checked={showDevTools}
-							disabled={isPlayerFullscreen || disableControls}
-							iconLeft={<IconSolidTerminal size={14} />}
-						/>
-					</ExplanatoryPopover>
-					<Popover
-						getPopupContainer={
-							getFullScreenPopoverGetPopupContainer
-						}
-						content={
-							<ControlSettings
-								setShowSettingsPopover={setShowSettings}
-							/>
-						}
-						overlayClassName={style.settingsPopoverOverlay}
-						placement="topRight"
-						trigger="click"
-						showArrow={false}
-						align={{
-							overflow: {
-								adjustY: false,
-								adjustX: false,
-							},
-							offset: [0, 8],
-						}}
-						onVisibleChange={(visible) => {
-							setShowSettings(visible)
-						}}
-						visible={showSettings}
-						destroyTooltipOnHide
-					>
-						<ButtonIcon
-							icon={<IconSolidCog />}
-							disabled={disableControls}
-							size="xSmall"
-							shape="square"
-							emphasis="low"
-							kind="secondary"
-						/>
-					</Popover>
-				</>
-			)}
+				)}
 
-			<Box cssClass={{ [style.moveRight]: isLiveMode }}>
+				<ExplanatoryPopover
+					content={
+						<>
+							<Text userSelect="none" color="n11">
+								Dev tools
+							</Text>
+							<ShortcutTextGuide shortcut={DevToolsShortcut} />
+						</>
+					}
+				>
+					<SwitchButton
+						onChange={() => {
+							setShowDevTools(!showDevTools)
+						}}
+						checked={showDevTools}
+						disabled={isPlayerFullscreen || disableControls}
+						iconLeft={<IconSolidTerminal size={14} />}
+					/>
+				</ExplanatoryPopover>
+
+				<Popover
+					getPopupContainer={getFullScreenPopoverGetPopupContainer}
+					content={
+						<ControlSettings
+							setShowSettingsPopover={setShowSettings}
+						/>
+					}
+					overlayClassName={style.settingsPopoverOverlay}
+					placement="topRight"
+					trigger="click"
+					showArrow={false}
+					align={{
+						overflow: {
+							adjustY: false,
+							adjustX: false,
+						},
+						offset: [0, 8],
+					}}
+					onVisibleChange={(visible) => {
+						setShowSettings(visible)
+					}}
+					visible={showSettings}
+					destroyTooltipOnHide
+				>
+					<ButtonIcon
+						icon={<IconSolidCog />}
+						disabled={disableControls}
+						size="xSmall"
+						shape="square"
+						emphasis="low"
+						kind="secondary"
+					/>
+				</Popover>
+
 				<ButtonIcon
 					onClick={() => {
 						setIsPlayerFullscreen((prev) => !prev)
@@ -447,6 +455,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 		setSelectedTimelineAnnotationTypes,
 	} = usePlayerConfiguration()
 
+	const { isLiveMode } = useReplayerContext()
 	const options = (
 		<>
 			<button
@@ -461,10 +470,11 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				/>
 				<Switch
 					trackingId="HistogramMenuToggle"
-					checked={showHistogram}
+					checked={!isLiveMode && showHistogram}
 					onChange={(checked: boolean) => {
 						setShowHistogram(checked)
 					}}
+					disabled={isLiveMode}
 				/>
 			</button>
 
@@ -511,11 +521,12 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				<p>Skip inactive</p>
 				<Switch
 					trackingId="SkipInactiveMenuToggle"
-					checked={skipInactive}
+					checked={!isLiveMode && skipInactive}
 					onChange={(checked: boolean) => {
 						setSkipInactive(checked)
 					}}
 					className={style.moveRight}
+					disabled={isLiveMode}
 				/>
 			</button>
 

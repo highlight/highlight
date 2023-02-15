@@ -40,7 +40,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
 import { Form, message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useEffect, useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
 import { Link } from 'react-router-dom'
@@ -91,8 +91,9 @@ export const NewCommentForm = ({
 	const { admin, isLoggedIn } = useAuthContext()
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data: commentTagsData } = useGetCommentTagsForProjectQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
 		fetchPolicy: 'network-only',
+		skip: !project_id,
 	})
 	const [commentText, setCommentText] = useState('')
 	/**
@@ -128,11 +129,13 @@ export const NewCommentForm = ({
 		setSelectedTimelineAnnotationTypes,
 	} = usePlayerConfiguration()
 	const { data: adminsInWorkspace } = useGetWorkspaceAdminsByProjectIdQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
+		skip: !project_id,
 	})
 	const { data: mentionSuggestionsData } =
 		useGetCommentMentionSuggestionsQuery({
-			variables: { project_id },
+			variables: { project_id: project_id! },
+			skip: !project_id,
 		})
 	const [mentionedAdmins, setMentionedAdmins] = useState<
 		SanitizedAdminInput[]
@@ -169,7 +172,7 @@ export const NewCommentForm = ({
 		try {
 			await createErrorComment({
 				variables: {
-					project_id,
+					project_id: project_id!,
 					error_group_secure_id: error_secure_id || '',
 					text: commentText.trim(),
 					text_for_email: commentTextForEmail.trim(),
@@ -233,7 +236,7 @@ export const NewCommentForm = ({
 		try {
 			await createComment({
 				variables: {
-					project_id,
+					project_id: project_id!,
 					session_secure_id: session_secure_id || '',
 					session_timestamp: Math.floor(commentTime),
 					text: commentText.trim(),
@@ -478,21 +481,17 @@ export const NewCommentForm = ({
 			form={form}
 			layout="vertical"
 			onKeyDown={onFormChangeHandler}
-			className={classNames(styles.form, styles.formItemSpacer)}
+			className={clsx(styles.form, styles.formItemSpacer)}
 		>
 			<div className={styles.slidesContainer}>
 				<div
-					className={classNames(
-						styles.formItemSpacer,
-						styles.slides,
-						{
-							[styles.showSecondSlide]:
-								section === CommentFormSection.NewIssueForm,
-						},
-					)}
+					className={clsx(styles.formItemSpacer, styles.slides, {
+						[styles.showSecondSlide]:
+							section === CommentFormSection.NewIssueForm,
+					})}
 				>
 					<div
-						className={classNames(styles.formItemSpacer, {
+						className={clsx(styles.formItemSpacer, {
 							[styles.hide]:
 								section !== CommentFormSection.CommentForm,
 						})}
@@ -522,7 +521,9 @@ export const NewCommentForm = ({
 								value={selectedIssueService}
 								notFoundContent={
 									<p>
-										<Link to="../integrations">
+										<Link
+											to={`/${project_id}/integrations`}
+										>
 											Add issue tracker integrations
 										</Link>{' '}
 										and then they should show up here
@@ -537,14 +538,14 @@ export const NewCommentForm = ({
 						</div>
 					</div>
 					<div
-						className={classNames(styles.formItemSpacer, {
+						className={clsx(styles.formItemSpacer, {
 							[styles.hide]:
 								section !== CommentFormSection.NewIssueForm,
 						})}
 					>
 						<h3>
 							<img
-								className={classNames(
+								className={clsx(
 									styles.integrationIcon,
 									styles.largeSize,
 								)}
@@ -627,7 +628,7 @@ export const NewCommentForm = ({
 										? 'button'
 										: 'submit'
 								}
-								className={classNames(styles.submitButton, {
+								className={clsx(styles.submitButton, {
 									[styles.loading]: isCreatingComment,
 								})}
 								disabled={commentText.length === 0}

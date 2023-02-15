@@ -1,7 +1,7 @@
 import { Box, IconSolidInformationCircle, vars } from '@highlight-run/ui'
 import { Tooltip } from 'antd'
 import { TooltipPropsWithTitle } from 'antd/lib/tooltip'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './InfoTooltip.module.scss'
@@ -30,7 +30,7 @@ const InfoTooltip = ({
 	return (
 		<Tooltip
 			{...props}
-			overlayClassName={classNames(styles.tooltip, {
+			overlayClassName={clsx(styles.tooltip, {
 				[styles.hideArrow]: hideArrow,
 			})}
 			mouseEnterDelay={0}
@@ -42,7 +42,7 @@ const InfoTooltip = ({
 						color ??
 						vars.theme.interactive.fill.secondary.content.text
 					}
-					className={classNames(styles.icon, {
+					className={clsx(styles.icon, {
 						[styles.medium]: size === 'medium',
 						[styles.large]: size === 'large',
 					})}

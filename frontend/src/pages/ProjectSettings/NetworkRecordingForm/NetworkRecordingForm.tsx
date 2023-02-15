@@ -6,7 +6,7 @@ import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import classNames from 'classnames/bind'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
 import commonStyles from '../../../Common.module.scss'
@@ -18,8 +18,9 @@ export const NetworkRecordingForm = () => {
 	const [backendDomains, setBackendDomains] = useState<string[]>([])
 	const { data, loading } = useGetProjectQuery({
 		variables: {
-			id: project_id,
+			id: project_id!,
 		},
+		skip: !project_id,
 	})
 
 	const [editProject, { loading: editProjectLoading }] =
@@ -35,9 +36,12 @@ export const NetworkRecordingForm = () => {
 
 	const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
+		if (!project_id) {
+			return
+		}
 		editProject({
 			variables: {
-				id: project_id,
+				id: project_id!,
 				backend_domains: backendDomains,
 			},
 		}).catch(console.error)
@@ -87,7 +91,7 @@ export const NetworkRecordingForm = () => {
 							trackingId="NetworkRecordingSettingsUpdate"
 							htmlType="submit"
 							type="primary"
-							className={classNames(
+							className={clsx(
 								commonStyles.submitButton,
 								styles.saveButton,
 							)}

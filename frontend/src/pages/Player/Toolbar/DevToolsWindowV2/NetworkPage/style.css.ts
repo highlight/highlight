@@ -1,3 +1,4 @@
+import { vars } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
@@ -30,6 +31,7 @@ export const timingBarWrapper = style({
 	alignItems: 'center',
 	display: 'flex',
 	justifyContent: 'center',
+	height: '100%',
 })
 
 export const timingBarEmptySection = style({
@@ -55,18 +57,17 @@ export const networkHeader = style({
 
 export const networkRowVariants = recipe({
 	base: {
-		backgroundColor: colors.n1,
-		color: colors.n11,
 		display: 'grid',
 		gridTemplateColumns,
 		gridGap,
 		padding: 6,
+		color: vars.theme.interactive.fill.secondary.content.onEnabled,
 		width: '100%',
 		height: 36,
-		borderBottom: `1px solid ${colors.n6}`,
+		alignItems: 'center',
 		selectors: {
 			'&:hover': {
-				backgroundColor: colors.n4,
+				backgroundColor: vars.theme.interactive.overlay.secondary.hover,
 			},
 		},
 	},
@@ -76,11 +77,15 @@ export const networkRowVariants = recipe({
 			false: {},
 		},
 		failedResource: {
-			true: {},
+			true: {
+				color: vars.theme.interactive.fill.bad.content.text,
+			},
 			false: {},
 		},
 		showingDetails: {
-			true: {},
+			true: {
+				fontWeight: '500',
+			},
 			false: {},
 		},
 	},

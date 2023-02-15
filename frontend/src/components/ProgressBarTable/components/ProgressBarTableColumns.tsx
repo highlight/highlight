@@ -2,7 +2,7 @@ import { Avatar } from '@components/Avatar/Avatar'
 import { getPercentageDisplayValue } from '@components/ProgressBarTable/utils/utils'
 import { Session } from '@graph/schemas'
 import { getIdentifiedUserProfileImage } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './ProgressBarTableColumns.module.scss'
@@ -38,7 +38,7 @@ export const ProgressBarTableRowGroup: React.FC<
 > = ({ alignment = 'leading', children }) => {
 	return (
 		<div
-			className={classNames(styles.rowGroup, {
+			className={clsx(styles.rowGroup, {
 				[styles.endingAlignment]: alignment === 'ending',
 			})}
 		>

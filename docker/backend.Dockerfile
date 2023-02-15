@@ -23,6 +23,6 @@ COPY ../backend ./backend
 COPY ../sdk/highlight-go ./sdk/highlight-go
 
 WORKDIR /build/backend
-RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /bin/backend
+RUN GOOS=linux GOARCH=amd64 go build -o /bin/backend
 
 CMD ["/bin/backend"]

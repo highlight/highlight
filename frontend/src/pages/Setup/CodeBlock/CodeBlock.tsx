@@ -1,7 +1,7 @@
 import SvgCopyIcon from '@icons/CopyIcon'
 import useLocalStorage from '@rehooks/local-storage'
 import { message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useEffect } from 'react'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import {
@@ -77,7 +77,7 @@ export const CodeBlock = ({
 				</span>
 			)}
 			<span
-				className={classNames({
+				className={clsx({
 					[styles.codeBlockInner]: showLineNumbers,
 				})}
 			>
@@ -97,7 +97,7 @@ export const CodeBlock = ({
 								(i) => (
 									<div
 										key={i}
-										className={classNames(
+										className={clsx(
 											styles.lineNumberSticky,
 											{
 												[styles.highlightedLine]:

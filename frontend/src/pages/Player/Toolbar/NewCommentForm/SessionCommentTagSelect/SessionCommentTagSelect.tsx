@@ -5,7 +5,7 @@ import { useGetCommentTagsForProjectQuery } from '@graph/hooks'
 import SvgCloseIcon from '@icons/CloseIcon'
 import { useParams } from '@util/react-router/useParams'
 import { SelectProps } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './SessionCommentTagSelect.module.scss'
@@ -30,15 +30,16 @@ const SessionCommentTagSelect = ({
 	}>()
 	const { data: commentTagsData, loading } = useGetCommentTagsForProjectQuery(
 		{
-			variables: { project_id },
+			variables: { project_id: project_id! },
 			fetchPolicy: 'network-only',
+			skip: !project_id,
 		},
 	)
 
 	return (
 		<Select
 			loading={loading}
-			className={classNames(styles.tagSelect, className)}
+			className={clsx(styles.tagSelect, className)}
 			aria-label="Comment tags"
 			value={value}
 			allowClear={allowClear}

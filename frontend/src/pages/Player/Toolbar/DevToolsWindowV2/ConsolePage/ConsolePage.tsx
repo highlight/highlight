@@ -12,7 +12,7 @@ import { H } from 'highlight.run'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
-import { styledScrollbar } from 'style/common.css'
+import { styledVerticalScrollbar } from 'style/common.css'
 
 import { useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
@@ -34,7 +34,8 @@ export const ConsolePage = ({
 	time: number
 }) => {
 	const [currentMessage, setCurrentMessage] = useState(-1)
-	const { session, setTime, sessionMetadata } = useReplayerContext()
+	const { session, setTime, sessionMetadata, isPlayerReady } =
+		useReplayerContext()
 	const [parsedMessages, setParsedMessages] = useState<
 		undefined | Array<ParsedMessage>
 	>([])
@@ -43,10 +44,10 @@ export const ConsolePage = ({
 	const skipQuery = session === undefined || !!session?.messages_url
 	const { data, loading: queryLoading } = useGetMessagesQuery({
 		variables: {
-			session_secure_id,
+			session_secure_id: session_secure_id!,
 		},
 		fetchPolicy: 'no-cache',
-		skip: skipQuery, // Skip if there is a URL to fetch messages
+		skip: skipQuery || !session_secure_id, // Skip if there is a URL to fetch messages
 	})
 
 	useEffect(() => {
@@ -191,7 +192,7 @@ export const ConsolePage = ({
 
 	return (
 		<Box className={styles.consoleBox}>
-			{loading ? (
+			{loading || !isPlayerReady ? (
 				<LoadingBox />
 			) : messagesToRender?.length ? (
 				<Virtuoso
@@ -199,7 +200,7 @@ export const ConsolePage = ({
 					overscan={1024}
 					increaseViewportBy={1024}
 					data={messagesToRender}
-					className={styledScrollbar}
+					className={styledVerticalScrollbar}
 					itemContent={(_index, message: ParsedMessage) => (
 						<MessageRow
 							key={message.id.toString()}

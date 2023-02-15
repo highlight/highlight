@@ -457,11 +457,14 @@ func FromVerboseID(verboseId string) (int, error) {
 		return projectID, nil
 	}
 	// Otherwise, decode with HashID library
-	ints := HashID.Decode(verboseId)
-	if len(ints) != 1 {
-		return 1, e.Errorf("An unsupported verboseID was used: %s", verboseId)
+	if ints, err := HashID.DecodeWithError(verboseId); err == nil {
+		if len(ints) != 1 {
+			return 1, e.Errorf("An unsupported verboseID was used: %s", verboseId)
+		}
+		return ints[0], nil
 	}
-	return ints[0], nil
+
+	return 0, e.New(fmt.Sprintf("failed to decode %s", verboseId))
 }
 
 func (u *Project) BeforeCreate(tx *gorm.DB) (err error) {
@@ -478,23 +481,24 @@ func (u *Workspace) BeforeCreate(tx *gorm.DB) (err error) {
 
 type Admin struct {
 	Model
-	Name                   *string
-	FirstName              *string
-	LastName               *string
-	HubspotContactID       *int
-	Email                  *string
-	AboutYouDetailsFilled  *bool
-	Phone                  *string
-	NumberOfSessionsViewed *int
-	EmailVerified          *bool            `gorm:"default:false"`
-	PhotoURL               *string          `json:"photo_url"`
-	UID                    *string          `gorm:"uniqueIndex"`
-	Organizations          []Organization   `gorm:"many2many:organization_admins;"`
-	Projects               []Project        `gorm:"many2many:project_admins;"`
-	SessionComments        []SessionComment `gorm:"many2many:session_comment_admins;"`
-	ErrorComments          []ErrorComment   `gorm:"many2many:error_comment_admins;"`
-	Workspaces             []Workspace      `gorm:"many2many:workspace_admins;"`
-	SlackIMChannelID       *string
+	Name                      *string
+	FirstName                 *string
+	LastName                  *string
+	HubspotContactID          *int
+	Email                     *string
+	AboutYouDetailsFilled     *bool
+	Phone                     *string
+	NumberOfSessionsViewed    *int
+	NumberOfErrorGroupsViewed *int
+	EmailVerified             *bool            `gorm:"default:false"`
+	PhotoURL                  *string          `json:"photo_url"`
+	UID                       *string          `gorm:"uniqueIndex"`
+	Organizations             []Organization   `gorm:"many2many:organization_admins;"`
+	Projects                  []Project        `gorm:"many2many:project_admins;"`
+	SessionComments           []SessionComment `gorm:"many2many:session_comment_admins;"`
+	ErrorComments             []ErrorComment   `gorm:"many2many:error_comment_admins;"`
+	Workspaces                []Workspace      `gorm:"many2many:workspace_admins;"`
+	SlackIMChannelID          *string
 	// How/where this user was referred from to sign up to Highlight.
 	Referral *string `json:"referral"`
 	// This is the role the Admin has specified. This is their role in their organization, not within Highlight. This should not be used for authorization checks.
@@ -614,6 +618,12 @@ type Session struct {
 	Chunked              *bool
 	ProcessWithRedis     bool
 	AvoidPostgresStorage bool
+}
+
+type SessionAdminsView struct {
+	SessionID int       `gorm:"primaryKey"`
+	AdminID   int       `gorm:"primaryKey"`
+	ViewedAt  time.Time `gorm:"default:NOW()"`
 }
 
 type EventChunk struct {
@@ -936,6 +946,16 @@ type ErrorGroup struct {
 	} `gorm:"-"`
 	FirstOccurrence *time.Time `gorm:"-"`
 	LastOccurrence  *time.Time `gorm:"-"`
+
+	// Represents the admins that have viewed this session.
+	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
+	Viewed         *bool   `json:"viewed"`
+}
+
+type ErrorGroupAdminsView struct {
+	ErrorGroupID int       `gorm:"primaryKey"`
+	AdminID      int       `gorm:"primaryKey"`
+	ViewedAt     time.Time `gorm:"default:NOW()"`
 }
 
 type ErrorInstance struct {

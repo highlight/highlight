@@ -20,7 +20,7 @@ import { gqlSanitize } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
-import { styledScrollbar } from 'style/common.css'
+import { styledVerticalScrollbar } from 'style/common.css'
 
 import * as style from './SearchPanel.css'
 
@@ -46,7 +46,7 @@ const SearchPanel = () => {
 			query: backendSearchQuery?.searchQuery || '',
 			count: PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
-			project_id: projectId,
+			project_id: projectId!,
 		},
 		onError: () => {
 			setSearchResultsLoading(false)
@@ -61,7 +61,7 @@ const SearchPanel = () => {
 				results.error_groups.map((eg) => eg.secure_id),
 			)
 		},
-		skip: !backendSearchQuery,
+		skip: !backendSearchQuery || !projectId,
 		fetchPolicy: useCachedErrors ? 'cache-first' : 'no-cache',
 	})
 
@@ -110,7 +110,7 @@ const SearchPanel = () => {
 				padding="8"
 				overflowX="hidden"
 				overflowY="auto"
-				cssClass={[style.content, styledScrollbar]}
+				cssClass={[style.content, styledVerticalScrollbar]}
 			>
 				{loading ? (
 					<LoadingBox />

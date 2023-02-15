@@ -12,9 +12,9 @@ import { ALERT_CONFIGURATIONS, ALERT_NAMES } from '@pages/Alerts/Alerts'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils'
 import useLocalStorage from '@rehooks/local-storage'
-import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
+import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
 import { Divider } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
 import { useSessionStorage } from 'react-use'
@@ -196,7 +196,7 @@ const AlertSetupModal = () => {
 							) {
 								return null
 							}
-							const cx = classNames.bind(styles)
+							const cx = clsx.bind(styles)
 							const isSelected = selectedAlerts.includes(key)
 
 							return (
@@ -293,7 +293,7 @@ const AlertSetupModal = () => {
 						notFoundContent={
 							channels?.length === 0 ? (
 								<div
-									className={classNames(
+									className={clsx(
 										styles.selectMessage,
 										styles.notFoundMessage,
 									)}
@@ -307,7 +307,7 @@ const AlertSetupModal = () => {
 								</div>
 							) : (
 								<div
-									className={classNames(
+									className={clsx(
 										styles.selectMessage,
 										styles.notFoundMessage,
 										styles.withSlackButton,

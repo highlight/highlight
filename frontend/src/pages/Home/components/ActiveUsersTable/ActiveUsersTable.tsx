@@ -11,16 +11,17 @@ import {
 import { useGetTopUsersQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgClockIcon from '@icons/ClockIcon'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
+import { getUserDisplayName } from '@pages/Home/utils/HomePageUtils'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { validateEmail } from '@util/string'
+import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
 import { ColumnsType } from 'antd/lib/table'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
 import Tooltip from '../../../../components/Tooltip/Tooltip'
@@ -44,13 +45,13 @@ const ActiveUsersTable = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { setSearchParams, removeSelectedSegment } = useSearchContext()
+	const { removeSelectedSegment } = useSearchContext()
 	const { timeRange } = useDataTimeRange()
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const { loading } = useGetTopUsersQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			lookBackPeriod: moment
 				.duration(timeRange.lookback, 'minutes')
 				.as('days'),
@@ -93,30 +94,28 @@ const ActiveUsersTable = ({
 	}
 
 	return (
-		<div className={classNames({ [styles.loading]: loading })}>
+		<div className={clsx({ [styles.loading]: loading })}>
 			<DashboardInnerTable>
 				<ProgressBarTable
 					loading={false}
 					columns={Columns}
 					data={filteredTableData}
 					onClickHandler={(record) => {
-						history.push(`/${projectIdRemapped}/sessions`)
 						removeSelectedSegment()
-						setSearchParams({
-							...EmptySessionsSearchParams,
-							user_properties: [
-								{
-									id: record.id,
-									name: validateEmail(record.identifier)
-										? 'email'
-										: 'identifier',
-									value: record.identifier,
-								},
-							],
+
+						const displayName = getUserDisplayName(record)
+						const userParam = validateEmail(displayName)
+							? 'email'
+							: 'identifier'
+
+						navigate({
+							pathname: `/${projectIdRemapped}/sessions`,
+							search: buildQueryURLString({
+								[`user_${userParam}`]: displayName,
+							}),
 						})
-						message.success(
-							`Showing sessions for ${record.identifier}`,
-						)
+
+						message.success(`Showing sessions for ${displayName}`)
 					}}
 					noDataMessage={
 						filteredTableData.length === 0 &&
@@ -170,7 +169,7 @@ const Columns: ColumnsType<any> = [
 							identifier={user}
 							userProperties={record.userProperties}
 						/>
-						<span>{user}</span>
+						<span>{getUserDisplayName(record)}</span>
 					</ProgressBarTableRowGroup>
 				</div>
 			)

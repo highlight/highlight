@@ -2,11 +2,11 @@ import LoadingBox from '@components/LoadingBox'
 import { useGetWebVitalsQuery } from '@graph/hooks'
 import { Box, Form, IconSolidSearch, useFormState } from '@highlight-run/ui'
 import { useEventTypeFilters } from '@pages/Player/components/EventStream/hooks/useEventTypeFilters'
+import { StreamEventV2 } from '@pages/Player/components/EventStreamV2/StreamEventV2/StreamEventV2'
 import {
 	getFilteredEvents,
 	usefulEvent,
-} from '@pages/Player/components/EventStream/utils'
-import { StreamEventV2 } from '@pages/Player/components/EventStreamV2/StreamEventV2/StreamEventV2'
+} from '@pages/Player/components/EventStreamV2/utils'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -22,7 +22,7 @@ import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
-import { styledScrollbar } from 'style/common.css'
+import { styledVerticalScrollbar } from 'style/common.css'
 
 import * as style from './EventStreamV2.css'
 
@@ -50,8 +50,9 @@ const EventStreamV2 = function () {
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const { data } = useGetWebVitalsQuery({
 		variables: {
-			session_secure_id,
+			session_secure_id: session_secure_id!,
 		},
+		skip: !session_secure_id,
 	})
 
 	useEffect(() => {
@@ -155,7 +156,7 @@ const EventStreamV2 = function () {
 							ref={virtuoso}
 							data={filteredEvents}
 							totalCount={filteredEvents.length}
-							className={styledScrollbar}
+							className={styledVerticalScrollbar}
 							itemContent={(index, event) => (
 								<StreamEventV2
 									e={event}

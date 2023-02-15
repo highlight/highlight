@@ -3,7 +3,7 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import JoinWorkspace from '@components/ErrorState/JoinWorkspace/JoinWorkspace'
 import Space from '@components/Space/Space'
 import { Maybe } from '@graph/schemas'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { useState } from 'react'
 
 import Button from '../Button/Button/Button'
@@ -34,7 +34,7 @@ export const ErrorState = ({
 	}
 	return (
 		<div
-			className={classNames(styles.errorWrapper, {
+			className={clsx(styles.errorWrapper, {
 				[styles.shownWithHeader]: shownWithHeader,
 			})}
 		>
@@ -99,13 +99,12 @@ export const ErrorState = ({
 									? {
 											to: {
 												pathname: '/?sign_up=1',
-												state: {
-													previousPathName:
-														window.location
-															.pathname,
-												},
 											},
 											href: undefined,
+											state: {
+												previousPathName:
+													window.location.pathname,
+											},
 									  }
 									: {
 											to: undefined,

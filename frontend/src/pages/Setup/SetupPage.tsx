@@ -1,15 +1,12 @@
 import { LoadingOutlined } from '@ant-design/icons'
 import { useAuthContext } from '@authentication/AuthContext'
-import {
-	DEMO_WORKSPACE_APPLICATION_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import { IntercomInlineMessage } from '@components/IntercomMessage/IntercomMessage'
 import { RadioGroup } from '@components/RadioGroup/RadioGroup'
 import { useGetProjectQuery } from '@graph/hooks'
 import { GetProjectQuery } from '@graph/operations'
 import { Admin } from '@graph/schemas'
+import { useProjectId } from '@hooks/useProjectId'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { getInitSnippet } from '@pages/Setup/util'
 import useLocalStorage from '@rehooks/local-storage'
@@ -19,11 +16,11 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import { Spin } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React, { FunctionComponent, useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
-import { useHistory } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import ButtonLink from '../../components/Button/ButtonLink/ButtonLink'
 import Collapsible from '../../components/Collapsible/Collapsible'
@@ -63,12 +60,13 @@ enum BackendPlatformType {
 }
 
 const SetupPage = ({ integrated }: { integrated: boolean }) => {
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { admin } = useAuthContext()
 	const { project_id, step = 'client' } = useParams<{
 		project_id: string
 		step: string
 	}>()
+
 	const [platform, setPlatform] = useLocalStorage(
 		`selectedSetupPlatform-${project_id}`,
 		PlatformType.React,
@@ -77,13 +75,12 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 		`selectedSetupBackendPlatform-${project_id}`,
 		BackendPlatformType.Express,
 	)
-	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
-			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-			: project_id
 	const { data, loading } = useGetProjectQuery({
-		variables: { id: project_id },
+		variables: { id: project_id! },
+		skip: !project_id,
 	})
+
+	const { projectId } = useProjectId()
 	const [steps, setSteps] = useState<SetupStep[]>([])
 	const {
 		integrated: isBackendIntegrated,
@@ -100,7 +97,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 			displayName: 'Client SDK',
 			path: 'client',
 			action: () => {
-				history.push(`/${project_id}/setup/client`)
+				navigate(`/${project_id}/setup/client`)
 			},
 			loading: !integrated && integrated !== false,
 			completed: integrated,
@@ -109,7 +106,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 			displayName: 'Backend SDK (Beta)',
 			path: 'backend',
 			action: () => {
-				history.push(`/${project_id}/setup/backend`)
+				navigate(`/${project_id}/setup/backend`)
 			},
 			loading: isBackendIntegratedLoading,
 			completed: isBackendIntegrated,
@@ -118,7 +115,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 			displayName: 'Features/Integrations',
 			path: 'more',
 			action: () => {
-				history.push(`/${project_id}/setup/more`)
+				navigate(`/${project_id}/setup/more`)
 			},
 			loading: isSlackConnectedLoading || isLinearConnectedLoading,
 			completed:
@@ -126,7 +123,6 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 		})
 		setSteps(STEPS)
 	}, [
-		history,
 		integrated,
 		isBackendIntegrated,
 		isBackendIntegratedLoading,
@@ -134,6 +130,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 		isLinearIntegratedWithProject,
 		isSlackConnectedLoading,
 		isSlackConnectedToWorkspace,
+		navigate,
 		project_id,
 	])
 
@@ -151,17 +148,13 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 								{steps.map((s) => (
 									<li
 										key={s.displayName}
-										className={classNames(
-											styles.flexLayout,
-											{
-												[styles.selected]:
-													s.path === step,
-											},
-										)}
+										className={clsx(styles.flexLayout, {
+											[styles.selected]: s.path === step,
+										})}
 										onClick={s.action ? s.action : () => {}}
 									>
 										<div
-											className={classNames(
+											className={clsx(
 												styles.checkWrapper,
 												{
 													[styles.checkWrapperIncomplete]:
@@ -185,7 +178,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 												</div>
 											) : (
 												<CheckIcon
-													className={classNames(
+													className={clsx(
 														styles.checkIcon,
 													)}
 												/>
@@ -203,7 +196,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 								admin={admin}
 								platform={platform}
 								setPlatform={setPlatform}
-								project_id={projectIdRemapped}
+								project_id={projectId!}
 								projectData={data}
 								projectLoading={loading}
 								integrated={integrated}
@@ -221,7 +214,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 						)}
 						{step === 'more' && (
 							<MoreSetup
-								project_id={projectIdRemapped}
+								project_id={projectId!}
 								projectData={data}
 								projectLoading={loading}
 								integrated={integrated}
@@ -997,8 +990,7 @@ export default withHighlightConfig({
 				<p>
 					<CodeBlock
 						language="javascript"
-						text={`const highlightOptions = {};
-export const withHighlight = Highlight(highlightOptions);`}
+						text={`export const withHighlight = Highlight({projectID: 'YOUR_PROJECT_ID'});`}
 					/>
 				</p>
 				<p>

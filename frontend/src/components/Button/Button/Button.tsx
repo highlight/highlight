@@ -1,6 +1,6 @@
 import analytics from '@util/analytics'
 import { Button as AntDesignButton, ButtonProps } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './Button.module.scss'
@@ -34,7 +34,7 @@ const Button = ({
 				}
 				analytics.track(`Button-${trackingId}`, trackProperties)
 			}}
-			className={classNames(props.className, styles.buttonBase, {
+			className={clsx(props.className, styles.buttonBase, {
 				[styles.iconButton]: iconButton,
 				[styles.small]: small,
 				[styles.link]: props.type === 'link',

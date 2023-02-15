@@ -26,7 +26,7 @@ import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { useParams } from '@util/react-router/useParams'
 import { getDisplayNameFromEmail, titleCaseString } from '@util/string'
 import { message } from 'antd'
-import classNames from 'classnames/bind'
+import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { useToggle } from 'react-use'
@@ -42,7 +42,8 @@ const WorkspaceTeam = () => {
 	const { workspace_id } = useParams<{ workspace_id: string }>()
 	const emailRef = useRef<null | HTMLInputElement>(null)
 	const { data, error, loading } = useGetWorkspaceAdminsQuery({
-		variables: { workspace_id },
+		variables: { workspace_id: workspace_id! },
+		skip: !workspace_id,
 	})
 	const { checkPolicyAccess } = useAuthorization()
 	const [email, setEmail] = useState('')
@@ -89,9 +90,14 @@ const WorkspaceTeam = () => {
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
+
+		if (!workspace_id) {
+			return
+		}
+
 		sendInviteEmail({
 			variables: {
-				workspace_id,
+				workspace_id: workspace_id!,
 				email,
 				base_url: window.location.origin,
 				role: newAdminRole,
@@ -165,7 +171,7 @@ const WorkspaceTeam = () => {
 							<Button
 								trackingId="WorkspaceInviteMember"
 								type="primary"
-								className={classNames(
+								className={clsx(
 									commonStyles.submitButton,
 									styles.inviteButton,
 								)}
@@ -217,7 +223,7 @@ const WorkspaceTeam = () => {
 					<CopyText
 						text={getWorkspaceInvitationLink(
 							data?.workspace_invite_links.secret || '',
-							workspace_id,
+							workspace_id!,
 						)}
 						onCopyTooltipText="Copied invite link to clipboard!"
 					/>
@@ -238,12 +244,7 @@ const WorkspaceTeam = () => {
 					Invite Member
 				</Button>
 			</div>
-			<div
-				className={classNames(
-					styles.memberCardWrapper,
-					'highlight-mask',
-				)}
-			>
+			<div className={clsx(styles.memberCardWrapper, 'highlight-mask')}>
 				<Card noPadding>
 					<Table
 						columns={
@@ -261,18 +262,22 @@ const WorkspaceTeam = () => {
 							photoUrl: wa.admin?.photo_url,
 							id: wa.admin?.id,
 							isSameAdmin: wa.admin?.id === admin?.id,
-							onDeleteHandler: () =>
+							onDeleteHandler: () => {
+								if (!workspace_id) {
+									return
+								}
 								deleteAdminFromWorkspace({
 									variables: {
 										admin_id: wa.admin!.id,
-										workspace_id,
+										workspace_id: workspace_id!,
 									},
-								}),
+								})
+							},
 							onUpdateRoleHandler: (new_role: string) => {
 								changeAdminRole({
 									variables: {
 										admin_id: wa.admin!.id,
-										workspace_id,
+										workspace_id: workspace_id!,
 										new_role,
 									},
 								})

@@ -1,4 +1,4 @@
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import styles from './RightPanelCard.module.scss'
@@ -20,7 +20,7 @@ const RightPanelCard: React.FC<React.PropsWithChildren<Props>> = ({
 	return (
 		<article
 			{...props}
-			className={classNames(styles.card, props.className, {
+			className={clsx(styles.card, props.className, {
 				[styles.selected]: selected,
 			})}
 			style={

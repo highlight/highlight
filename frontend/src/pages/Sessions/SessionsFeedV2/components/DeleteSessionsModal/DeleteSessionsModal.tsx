@@ -35,7 +35,7 @@ const DeleteSessionsModal = ({
 		try {
 			await deleteSessions({
 				variables: {
-					project_id,
+					project_id: project_id!,
 					query,
 					sessionCount,
 				},

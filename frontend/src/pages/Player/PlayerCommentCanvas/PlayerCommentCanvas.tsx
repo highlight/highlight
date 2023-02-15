@@ -1,19 +1,19 @@
-import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
-import classNames from 'classnames'
-import React, { useEffect, useRef, useState } from 'react'
-import { useHistory } from 'react-router-dom'
-
 import {
 	useGetSessionCommentsQuery,
 	useMuteSessionCommentThreadMutation,
-} from '../../../graph/generated/hooks'
+} from '@graph/hooks'
+import PlayerSessionComment from '@pages/Player/PlayerCommentCanvas/PlayerSessionComment/PlayerSessionComment'
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import { useReplayerContext } from '@pages/Player/ReplayerContext'
+import { useParams } from '@util/react-router/useParams'
+import { message } from 'antd'
+import clsx from 'clsx'
+import React, { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+
 import CommentPinIcon from '../../../static/comment-pin.png'
-import { PlayerSearchParameters } from '../PlayerHook/utils'
-import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration'
 import styles from './PlayerCommentCanvas.module.scss'
-import PlayerSessionComment from './PlayerSessionComment/PlayerSessionComment'
 
 export interface Coordinates2D {
 	x: number
@@ -39,7 +39,7 @@ const PlayerCommentCanvas = ({
 	}>()
 	const { data: sessionCommentsData } = useGetSessionCommentsQuery({
 		variables: {
-			session_secure_id: session_secure_id,
+			session_secure_id: session_secure_id!,
 		},
 	})
 	const {
@@ -50,6 +50,9 @@ const PlayerCommentCanvas = ({
 
 	const { isPlayerReady, pause, isLoadingEvents, replayer } =
 		useReplayerContext()
+
+	const location = useLocation()
+	const navigate = useNavigate()
 
 	const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
 		new URLSearchParams(location.search).get(
@@ -62,7 +65,6 @@ const PlayerCommentCanvas = ({
 	>(undefined)
 
 	const [muteSessionCommentThread] = useMuteSessionCommentThreadMutation()
-	const history = useHistory()
 
 	useEffect(() => {
 		const searchParams = new URLSearchParams(location.search)
@@ -88,9 +90,9 @@ const PlayerCommentCanvas = ({
 				},
 			}).then(() => {
 				searchParams.delete(PlayerSearchParameters.muted)
-				history.replace(
-					`${history.location.pathname}?${searchParams.toString()}`,
-				)
+				navigate(`${location.pathname}?${searchParams.toString()}`, {
+					replace: true,
+				})
 
 				message.success('Muted notifications for the comment thread.')
 			})
@@ -129,7 +131,7 @@ const PlayerCommentCanvas = ({
 	}
 	return (
 		<button
-			className={classNames({
+			className={clsx({
 				[styles.commentButton]: isPlayerReady,
 				[styles.blurBackground]: isLoadingEvents,
 			})}

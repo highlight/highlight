@@ -46,6 +46,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 )
 
 // This file will not be regenerated automatically.
@@ -799,6 +800,12 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 			return nil, e.New("Filtering out noisy Superpowered error")
 		}
 	}
+	if projectID == 1703 {
+		if errorObj.Event == `["\"Uncaught TypeError: Cannot read properties of null (reading 'play')\""]` ||
+			errorObj.Event == `Uncaught TypeError: Cannot read properties of null (reading 'play')` {
+			return nil, e.New("Filtering out noisy error")
+		}
+	}
 
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
 		errorObj.Event = strings.Repeat(errorObj.Event[:ERROR_EVENT_MAX_LENGTH], 1)
@@ -1123,6 +1130,29 @@ func (r *Resolver) getExistingSession(projectID int, secureID string) (*model.Se
 	return nil, nil
 }
 
+func (r *Resolver) IndexSessionOpensearch(ctx context.Context, session *model.Session) error {
+	osSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.OSIndex"))
+	defer osSpan.Finish()
+	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
+		return e.Wrap(err, "error indexing new session in opensearch")
+	}
+
+	sessionProperties := map[string]string{
+		"os_name":         session.OSName,
+		"os_version":      session.OSVersion,
+		"browser_name":    session.BrowserName,
+		"browser_version": session.BrowserVersion,
+		"environment":     session.Environment,
+		"device_id":       strconv.Itoa(session.Fingerprint),
+		"city":            session.City,
+		"country":         session.Country,
+	}
+	if err := r.AppendProperties(ctx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
+		log.Error(e.Wrap(err, "error adding set of properties to db"))
+	}
+	return nil
+}
+
 func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue.InitializeSessionArgs) (*model.Session, error) {
 	initSpan, initCtx := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl",
 		tracer.ResourceName("go.sessions.InitializeSessionImpl"),
@@ -1150,6 +1180,9 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		return nil, err
 	}
 	if existingSession != nil {
+		if err := r.IndexSessionOpensearch(initCtx, existingSession); err != nil {
+			return nil, err
+		}
 		return existingSession, nil
 	}
 	initSpan.SetTag("duplicate", false)
@@ -1285,25 +1318,9 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		log.Errorf("failed to count sessions metric for %s: %s", session.SecureID, err)
 	}
 
-	osSpan, _ := tracer.StartSpanFromContext(initCtx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.OSIndex"))
-	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
-		return nil, e.Wrap(err, "error indexing new session in opensearch")
+	if err := r.IndexSessionOpensearch(initCtx, session); err != nil {
+		return nil, err
 	}
-
-	sessionProperties := map[string]string{
-		"os_name":         session.OSName,
-		"os_version":      session.OSVersion,
-		"browser_name":    session.BrowserName,
-		"browser_version": session.BrowserVersion,
-		"environment":     session.Environment,
-		"device_id":       strconv.Itoa(session.Fingerprint),
-		"city":            session.City,
-		"country":         session.Country,
-	}
-	if err := r.AppendProperties(initCtx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
-		log.Error(e.Wrap(err, "error adding set of properties to db"))
-	}
-	osSpan.Finish()
 
 	if len(input.NetworkRecordingDomains) > 0 {
 		project.BackendDomains = input.NetworkRecordingDomains
@@ -2046,10 +2063,12 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name stri
 
 func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, metrics []*publicModel.MetricInput) error {
 	span, _ := tracer.StartSpanFromContext(ctx, "public-graph.PushMetricsImpl", tracer.ResourceName("go.push-metrics"))
+	span.SetTag("SessionSecureID", sessionSecureID)
+	span.SetTag("NumMetrics", len(metrics))
 	defer span.Finish()
 
 	if sessionSecureID == "" {
-		return e.New("PushMetricsImpl called without secureID")
+		return nil
 	}
 	session := &model.Session{}
 	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
@@ -2702,20 +2721,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		defer unmarshalMessagesSpan.Finish()
 
-		if projectID == 1 {
-			logRows, err := clickhouse.ParseConsoleMessages(projectID, sessionSecureID, messages)
-			if err != nil {
-				log.WithError(err).Error("failed to parse console messages")
-			} else {
-				if err := r.BatchedQueue.Submit(&kafka_queue.Message{
-					Type: kafka_queue.PushLogs,
-					PushLogs: &kafka_queue.PushLogsArgs{
-						SessionSecureID: sessionSecureID,
-						LogRows:         logRows,
-					}}, sessionSecureID); err != nil {
-					log.WithError(err).Error("error writing console messages to clickhouse")
-				}
-			}
+		if err := hlog.SubmitFrontendConsoleMessages(ctx, projectID, sessionSecureID, messages); err != nil {
+			log.WithError(err).Error("failed to parse console messages")
 		}
 
 		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeMessages, []byte(messages)); err != nil {

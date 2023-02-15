@@ -2,7 +2,7 @@ import { collapsibleContent } from '@components/CollapsibleSection/style.css'
 import clsx from 'clsx'
 import { PropsWithChildren } from 'react'
 import ReactCollapsible from 'react-collapsible'
-import { styledScrollbar } from 'style/common.css'
+import { styledVerticalScrollbar } from 'style/common.css'
 
 const CollapsibleSection = function ({
 	children,
@@ -20,7 +20,10 @@ const CollapsibleSection = function ({
 			open={expanded}
 			handleTriggerClick={() => setExpanded(!expanded)}
 			transitionTime={150}
-			contentInnerClassName={clsx(collapsibleContent, styledScrollbar)}
+			contentInnerClassName={clsx(
+				collapsibleContent,
+				styledVerticalScrollbar,
+			)}
 		>
 			{children}
 		</ReactCollapsible>

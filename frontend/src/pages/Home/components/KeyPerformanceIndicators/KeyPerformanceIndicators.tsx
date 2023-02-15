@@ -4,11 +4,11 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useGetKeyPerformanceIndicatorsQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
+import { buildQueryURLString } from '@util/url/params'
 import { message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
 
@@ -26,14 +26,15 @@ const KeyPerformanceIndicators = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 	const { timeRange } = useDataTimeRange()
-	const { setSearchParams, removeSelectedSegment } = useSearchContext()
+	const { removeSelectedSegment } = useSearchContext()
 	const { loading, data } = useGetKeyPerformanceIndicatorsQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			lookBackPeriod: moment
 				.duration(timeRange.lookback, 'minutes')
 				.as('days'),
 		},
+		skip: !project_id,
 	})
 
 	useEffect(() => {
@@ -42,8 +43,8 @@ const KeyPerformanceIndicators = ({
 
 	return (
 		<div
-			className={classNames(
-				'flex flex-wrap justify-between gap-8 h-full mb-8 p-6 w-full',
+			className={clsx(
+				'mb-8 flex h-full w-full flex-wrap justify-between gap-8 p-6',
 				{
 					['blur-xs']: loading,
 				},
@@ -52,14 +53,12 @@ const KeyPerformanceIndicators = ({
 			<KeyPerformanceIndicator
 				value={formatLongNumber(data?.newUsersCount?.count || 0)}
 				title="New Users"
-				route={`/${projectIdRemapped}/sessions`}
+				route={`/${projectIdRemapped}/sessions${buildQueryURLString({
+					custom_first_time: true,
+				})}`}
 				onClick={() => {
 					message.success('Showing sessions for new users')
 					removeSelectedSegment()
-					setSearchParams({
-						...EmptySessionsSearchParams,
-						first_time: true,
-					})
 				}}
 				tooltipText={
 					<>

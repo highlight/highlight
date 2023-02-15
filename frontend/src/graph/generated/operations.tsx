@@ -1,5 +1,19 @@
 import * as Types from './schemas'
 
+export type MarkErrorGroupAsViewedMutationVariables = Types.Exact<{
+	error_secure_id: Types.Scalars['String']
+	viewed: Types.Scalars['Boolean']
+}>
+
+export type MarkErrorGroupAsViewedMutation = { __typename?: 'Mutation' } & {
+	markErrorGroupAsViewed?: Types.Maybe<
+		{ __typename?: 'ErrorGroup' } & Pick<
+			Types.ErrorGroup,
+			'secure_id' | 'viewed'
+		>
+	>
+}
+
 export type MarkSessionAsViewedMutationVariables = Types.Exact<{
 	secure_id: Types.Scalars['String']
 	viewed: Types.Scalars['Boolean']
@@ -271,6 +285,7 @@ export type EditSegmentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	id: Types.Scalars['ID']
 	params: Types.SearchParamsInput
+	name: Types.Scalars['String']
 }>
 
 export type EditSegmentMutation = { __typename?: 'Mutation' } & Pick<
@@ -613,6 +628,7 @@ export type EditErrorSegmentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	id: Types.Scalars['ID']
 	params: Types.ErrorSearchParamsInput
+	name: Types.Scalars['String']
 }>
 
 export type EditErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
@@ -3897,16 +3913,27 @@ export type GetEmailOptOutsQuery = { __typename?: 'Query' } & Pick<
 
 export type GetLogsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
+	params: Types.LogsParamsInput
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
 	logs: Array<
 		{ __typename?: 'LogLine' } & Pick<
 			Types.LogLine,
-			'timestamp' | 'severityText' | 'body'
+			'timestamp' | 'severityText' | 'body' | 'logAttributes'
 		>
 	>
 }
+
+export type GetLogsTotalCountQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.LogsParamsInput
+}>
+
+export type GetLogsTotalCountQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'logs_total_count'
+>
 
 export const namedOperations = {
 	Query: {
@@ -4022,8 +4049,10 @@ export const namedOperations = {
 		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
+		GetLogsTotalCount: 'GetLogsTotalCount' as const,
 	},
 	Mutation: {
+		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
 		MarkSessionAsStarred: 'MarkSessionAsStarred' as const,
 		MuteSessionCommentThread: 'MuteSessionCommentThread' as const,

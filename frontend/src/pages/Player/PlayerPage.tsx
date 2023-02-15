@@ -11,7 +11,7 @@ import { Session } from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
 import { Box } from '@highlight-run/ui'
 import { useWindowSize } from '@hooks/useWindowSize'
-import LoadingLiveSessionCard from '@pages/Player/components/LoadingLiveSessionCard/LoadingLiveSessionCard'
+import { CompleteSetup } from '@pages/Player/components/CompleteSetup/CompleteSetup'
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard'
 import UnauthorizedViewingForm from '@pages/Player/components/UnauthorizedViewingForm/UnauthorizedViewingForm'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
@@ -33,16 +33,14 @@ import {
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
 import SessionLevelBarV2 from '@pages/Player/SessionLevelBar/SessionLevelBarV2'
 import { DevTools } from '@pages/Player/Toolbar/DevTools'
-import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel'
 import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
-import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import { SESSION_FEED_LEFT_PANEL_WIDTH } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
 import { SessionFeedV3 } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
-import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
+import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
@@ -51,6 +49,7 @@ import Lottie from 'lottie-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import useResizeAware from 'react-resize-aware'
+import { useNavigate } from 'react-router-dom'
 
 import WaitingAnimation from '../../lottie/waiting.json'
 import * as style from './styles.css'
@@ -81,11 +80,20 @@ const PlayerPage = ({ integrated }: Props) => {
 		currentUrl,
 	} = playerContext
 
+	const navigate = useNavigate()
+	useEffect(() => {
+		if (!isLoggedIn && !session?.is_public) {
+			navigate('/login', { replace: true })
+		}
+	}, [isLoggedIn, navigate, session?.is_public])
+
 	const { data: isSessionPendingData, loading } = useIsSessionPendingQuery({
 		variables: {
-			session_secure_id,
+			session_secure_id: session_secure_id!,
 		},
-		skip: sessionViewability !== SessionViewability.ERROR,
+		skip:
+			!session_secure_id ||
+			sessionViewability !== SessionViewability.ERROR,
 	})
 
 	const resourcesContext = useResources(session)
@@ -188,7 +196,8 @@ const PlayerPage = ({ integrated }: Props) => {
 
 	const showLeftPanel =
 		showLeftPanelPreference &&
-		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
+		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA &&
+		isLoggedIn
 
 	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
 	const controllerWidth = centerColumnSize.width
@@ -286,23 +295,13 @@ const PlayerPage = ({ integrated }: Props) => {
 										modalPosition={commentModalPosition}
 										setCommentPosition={setCommentPosition}
 									/>
-									{!isPlayerReady &&
-										(session?.processed === false ? (
-											<LoadingLiveSessionCard />
-										) : (
-											playerFiller
-										))}
+									{!isPlayerReady && playerFiller}
 								</div>
 								<Toolbar width={controllerWidth} />
 							</div>
 							<DevTools width={controllerWidth} />
 						</div>
-						{!isPlayerFullscreen && (
-							<>
-								<RightPlayerPanel />
-								<DetailPanel />
-							</>
-						)}
+						{!isPlayerFullscreen && <RightPlayerPanel />}
 					</Box>
 				</Box>
 			</div>
@@ -407,7 +406,11 @@ const PlayerPage = ({ integrated }: Props) => {
 									justifyContent="center"
 									borderTop="secondary"
 								>
-									<NoActiveSessionCard />
+									{integrated ? (
+										<NoActiveSessionCard />
+									) : (
+										<CompleteSetup />
+									)}
 								</Box>
 							</Box>
 						</div>
@@ -421,6 +424,7 @@ const PlayerPage = ({ integrated }: Props) => {
 		playerFiller,
 		sessionViewability,
 		session_secure_id,
+		integrated,
 	])
 
 	return (
@@ -430,7 +434,6 @@ const PlayerPage = ({ integrated }: Props) => {
 					<Helmet>
 						<title>{getTabTitle(session)}</title>
 					</Helmet>
-					{!integrated && <IntegrationCard />}
 					{isPlayerReady && !isLoggedIn && <PlayerPageProductTour />}
 					<Box
 						cssClass={clsx(style.playerBody, {

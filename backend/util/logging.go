@@ -2,8 +2,8 @@ package util
 
 import (
 	"context"
-
 	"github.com/highlight/highlight/sdk/highlight-go"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/pkg/errors"
@@ -13,7 +13,7 @@ import (
 
 func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *gqlerror.Error {
 	return func(ctx context.Context, e error) *gqlerror.Error {
-		log.WithFields(log.Fields{
+		log.WithContext(ctx).WithFields(log.Fields{
 			"error": e,
 			"path":  graphql.GetPath(ctx),
 		}).Errorf("%s graphql request failed", service)
@@ -22,12 +22,10 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 		switch t := e.(type) {
 		case *gqlerror.Error:
 			gqlerr = t
-			e = gqlerr.Unwrap()
+			_ = gqlerr.Unwrap()
 		default:
 			gqlerr = gqlerror.Errorf(e.Error())
 		}
-
-		highlight.RecordError(ctx, e)
 
 		return gqlerr
 	}
@@ -35,6 +33,8 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 
 func GraphQLRecoverFunc() func(ctx context.Context, err interface{}) error {
 	return func(ctx context.Context, err interface{}) error {
-		return errors.Errorf("panic {error: %+v}", err)
+		err2 := errors.Errorf("panic {error: %+v}", err)
+		highlight.RecordError(ctx, err2, attribute.String("Source", "GraphQLRecoverFunc"))
+		return err2
 	}
 }

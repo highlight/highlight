@@ -1,4 +1,4 @@
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import { ReactComponent as EmptyState } from '../../../../static/empty-state.svg'
@@ -14,7 +14,7 @@ const EmptyCardPlaceholder = ({ message, title, compact }: Props) => {
 	return (
 		<div className={styles.emptyCardPlaceholder}>
 			<div
-				className={classNames(styles.graphicContainer, {
+				className={clsx(styles.graphicContainer, {
 					[styles.compact]: compact,
 				})}
 			>

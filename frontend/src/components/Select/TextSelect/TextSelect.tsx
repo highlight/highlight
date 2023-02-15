@@ -4,7 +4,7 @@ import {
 	Select as AntDesignSelect,
 	SelectProps as AntDesignSelectProps,
 } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import SvgChevronDownIcon from '../../../static/ChevronDownIcon'
@@ -63,13 +63,13 @@ const TextSelect = ({
 						props.onChange(applicationId, newOption)
 					}
 				}}
-				className={classNames(className, styles.select)}
+				className={clsx(className, styles.select)}
 				menuItemSelectedIcon={null}
 				defaultActiveFirstOption={false}
 				dropdownClassName={styles.dropdown}
 				suffixIcon={
 					<SvgChevronDownIcon
-						className={classNames({
+						className={clsx({
 							[styles.suffixIconActive]: !!props.value,
 						})}
 					/>

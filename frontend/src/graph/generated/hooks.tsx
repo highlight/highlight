@@ -91,6 +91,63 @@ export const SessionAlertFragmentFragmentDoc = gql`
 	}
 	${DiscordChannelFragmentFragmentDoc}
 `
+export const MarkErrorGroupAsViewedDocument = gql`
+	mutation MarkErrorGroupAsViewed(
+		$error_secure_id: String!
+		$viewed: Boolean!
+	) {
+		markErrorGroupAsViewed(
+			error_secure_id: $error_secure_id
+			viewed: $viewed
+		) {
+			secure_id
+			viewed
+		}
+	}
+`
+export type MarkErrorGroupAsViewedMutationFn = Apollo.MutationFunction<
+	Types.MarkErrorGroupAsViewedMutation,
+	Types.MarkErrorGroupAsViewedMutationVariables
+>
+
+/**
+ * __useMarkErrorGroupAsViewedMutation__
+ *
+ * To run a mutation, you first call `useMarkErrorGroupAsViewedMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkErrorGroupAsViewedMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markErrorGroupAsViewedMutation, { data, loading, error }] = useMarkErrorGroupAsViewedMutation({
+ *   variables: {
+ *      error_secure_id: // value for 'error_secure_id'
+ *      viewed: // value for 'viewed'
+ *   },
+ * });
+ */
+export function useMarkErrorGroupAsViewedMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.MarkErrorGroupAsViewedMutation,
+		Types.MarkErrorGroupAsViewedMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.MarkErrorGroupAsViewedMutation,
+		Types.MarkErrorGroupAsViewedMutationVariables
+	>(MarkErrorGroupAsViewedDocument, baseOptions)
+}
+export type MarkErrorGroupAsViewedMutationHookResult = ReturnType<
+	typeof useMarkErrorGroupAsViewedMutation
+>
+export type MarkErrorGroupAsViewedMutationResult =
+	Apollo.MutationResult<Types.MarkErrorGroupAsViewedMutation>
+export type MarkErrorGroupAsViewedMutationOptions = Apollo.BaseMutationOptions<
+	Types.MarkErrorGroupAsViewedMutation,
+	Types.MarkErrorGroupAsViewedMutationVariables
+>
 export const MarkSessionAsViewedDocument = gql`
 	mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
 		markSessionAsViewed(secure_id: $secure_id, viewed: $viewed) {
@@ -1391,8 +1448,14 @@ export const EditSegmentDocument = gql`
 		$project_id: ID!
 		$id: ID!
 		$params: SearchParamsInput!
+		$name: String!
 	) {
-		editSegment(project_id: $project_id, id: $id, params: $params)
+		editSegment(
+			project_id: $project_id
+			id: $id
+			params: $params
+			name: $name
+		)
 	}
 `
 export type EditSegmentMutationFn = Apollo.MutationFunction<
@@ -1416,6 +1479,7 @@ export type EditSegmentMutationFn = Apollo.MutationFunction<
  *      project_id: // value for 'project_id'
  *      id: // value for 'id'
  *      params: // value for 'params'
+ *      name: // value for 'name'
  *   },
  * });
  */
@@ -2322,8 +2386,14 @@ export const EditErrorSegmentDocument = gql`
 		$project_id: ID!
 		$id: ID!
 		$params: ErrorSearchParamsInput!
+		$name: String!
 	) {
-		editErrorSegment(project_id: $project_id, id: $id, params: $params)
+		editErrorSegment(
+			project_id: $project_id
+			id: $id
+			params: $params
+			name: $name
+		)
 	}
 `
 export type EditErrorSegmentMutationFn = Apollo.MutationFunction<
@@ -2347,6 +2417,7 @@ export type EditErrorSegmentMutationFn = Apollo.MutationFunction<
  *      project_id: // value for 'project_id'
  *      id: // value for 'id'
  *      params: // value for 'params'
+ *      name: // value for 'name'
  *   },
  * });
  */
@@ -11256,11 +11327,12 @@ export type GetEmailOptOutsQueryResult = Apollo.QueryResult<
 	Types.GetEmailOptOutsQueryVariables
 >
 export const GetLogsDocument = gql`
-	query GetLogs($project_id: ID!) {
-		logs(project_id: $project_id) {
+	query GetLogs($project_id: ID!, $params: LogsParamsInput!) {
+		logs(project_id: $project_id, params: $params) {
 			timestamp
 			severityText
 			body
+			logAttributes
 		}
 	}
 `
@@ -11278,6 +11350,7 @@ export const GetLogsDocument = gql`
  * const { data, loading, error } = useGetLogsQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
  *   },
  * });
  */
@@ -11308,4 +11381,59 @@ export type GetLogsLazyQueryHookResult = ReturnType<typeof useGetLogsLazyQuery>
 export type GetLogsQueryResult = Apollo.QueryResult<
 	Types.GetLogsQuery,
 	Types.GetLogsQueryVariables
+>
+export const GetLogsTotalCountDocument = gql`
+	query GetLogsTotalCount($project_id: ID!, $params: LogsParamsInput!) {
+		logs_total_count(project_id: $project_id, params: $params)
+	}
+`
+
+/**
+ * __useGetLogsTotalCountQuery__
+ *
+ * To run a query within a React component, call `useGetLogsTotalCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogsTotalCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogsTotalCountQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *   },
+ * });
+ */
+export function useGetLogsTotalCountQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLogsTotalCountQuery,
+		Types.GetLogsTotalCountQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetLogsTotalCountQuery,
+		Types.GetLogsTotalCountQueryVariables
+	>(GetLogsTotalCountDocument, baseOptions)
+}
+export function useGetLogsTotalCountLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLogsTotalCountQuery,
+		Types.GetLogsTotalCountQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetLogsTotalCountQuery,
+		Types.GetLogsTotalCountQueryVariables
+	>(GetLogsTotalCountDocument, baseOptions)
+}
+export type GetLogsTotalCountQueryHookResult = ReturnType<
+	typeof useGetLogsTotalCountQuery
+>
+export type GetLogsTotalCountLazyQueryHookResult = ReturnType<
+	typeof useGetLogsTotalCountLazyQuery
+>
+export type GetLogsTotalCountQueryResult = Apollo.QueryResult<
+	Types.GetLogsTotalCountQuery,
+	Types.GetLogsTotalCountQueryVariables
 >

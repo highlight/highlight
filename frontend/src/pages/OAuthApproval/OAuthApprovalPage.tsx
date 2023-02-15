@@ -4,10 +4,10 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetOAuthClientMetadataQuery } from '@graph/hooks'
+import { auth } from '@util/auth'
 import { GenerateSecureRandomString } from '@util/random'
 import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
-import { auth } from '@util/auth'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParams } from 'use-query-params'

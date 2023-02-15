@@ -25,7 +25,7 @@ export const useSlackBot = () => {
 		(code: string, projectId?: string) =>
 			addIntegrationToProject({
 				variables: {
-					project_id: projectId || project_id,
+					project_id: projectId || project_id!,
 					code,
 					integration_type: IntegrationType.Slack,
 				},
@@ -44,7 +44,7 @@ export const useSlackBot = () => {
 			removeIntegrationFromProject({
 				variables: {
 					integration_type: IntegrationType.Slack,
-					project_id: projectId || project_id,
+					project_id: projectId || project_id!,
 				},
 			}),
 		[project_id, removeIntegrationFromProject],
@@ -59,7 +59,7 @@ export const useSlackBot = () => {
 		loading: slackIntegLoading,
 		refetch,
 	} = useGetWorkspaceIsIntegratedWithSlackQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
 		skip: !project_id,
 	})
 
@@ -70,19 +70,18 @@ export const useSlackBot = () => {
 		)
 	}, [slackIntegResponse, setIsSlackConnectedToWorkspace])
 
-	const slackUrl = getSlackUrl(project_id)
+	const slackUrl = getSlackUrl(project_id!)
 
 	const addSlackToWorkspace = useCallback(
 		async (code: string, projectId?: string) => {
 			setLoading(true)
-			await addSlackBotIntegrationToProject(code, projectId || project_id)
+			await addSlackBotIntegrationToProject(code, projectId)
 			setIsSlackConnectedToWorkspace(true)
 			message.success('Highlight is now synced with Slack!', 5)
 			setLoading(false)
 		},
 		[
 			setLoading,
-			project_id,
 			addSlackBotIntegrationToProject,
 			setIsSlackConnectedToWorkspace,
 		],

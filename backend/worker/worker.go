@@ -420,7 +420,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 
 func (w *Worker) PublicWorker() {
 	const parallelWorkers = 64
-	const parallelBatchWorkers = 2
+	const parallelBatchWorkers = 8
 	// creates N parallel kafka message consumers that process messages.
 	// each consumer is considered part of the same consumer group and gets
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
@@ -448,12 +448,16 @@ func (w *Worker) PublicWorker() {
 	go func(_wg *sync.WaitGroup) {
 		wg := sync.WaitGroup{}
 		wg.Add(parallelBatchWorkers)
+		buffer := &KafkaBatchBuffer{
+			messageQueue: make(chan *kafkaqueue.Message, BatchFlushSize*(parallelBatchWorkers+1)),
+		}
 		for i := 0; i < parallelBatchWorkers; i++ {
 			go func(workerId int) {
 				k := KafkaBatchWorker{
 					KafkaQueue:   kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Consumer),
 					Worker:       w,
 					WorkerThread: workerId,
+					BatchBuffer:  buffer,
 				}
 				k.ProcessMessages()
 				wg.Done()
@@ -1235,16 +1239,17 @@ func (w *Worker) RefreshMaterializedViews() {
 	}
 
 	type AggregateSessionCount struct {
-		WorkspaceID int   `json:"workspace_id"`
-		Count       int64 `json:"count"`
+		WorkspaceID  int   `json:"workspace_id"`
+		SessionCount int64 `json:"session_count"`
+		ErrorCount   int64 `json:"error_count"`
 	}
-	counts := []AggregateSessionCount{}
+	var counts []AggregateSessionCount
 
 	if err := w.Resolver.DB.Raw(`
-		SELECT p.workspace_id, sum(d.count) as count
-		FROM daily_session_counts_view d
-		INNER JOIN projects p
-		ON d.project_id = p.id
+		SELECT p.workspace_id, sum(dsc.count) as session_count, sum(dec.count) as error_count
+		FROM projects p
+				 INNER JOIN daily_session_counts_view dsc on p.id = dsc.project_id
+				 INNER JOIN daily_error_counts dec on p.id = dec.project_id
 		GROUP BY p.workspace_id`).Scan(&counts).Error; err != nil {
 		log.Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
 	}
@@ -1260,11 +1265,16 @@ func (w *Worker) RefreshMaterializedViews() {
 			if err := w.Resolver.HubspotApi.UpdateCompanyProperty(c.WorkspaceID, []hubspot.Property{{
 				Name:     "highlight_session_count",
 				Property: "highlight_session_count",
-				Value:    c.Count,
+				Value:    c.SessionCount,
+			}, {
+				Name:     "highlight_error_count",
+				Property: "highlight_error_count",
+				Value:    c.ErrorCount,
 			}}); err != nil {
 				log.WithFields(log.Fields{
-					"workspace_id": c.WorkspaceID,
-					"value":        c.Count,
+					"workspace_id":  c.WorkspaceID,
+					"session_count": c.SessionCount,
+					"error_count":   c.ErrorCount,
 				}).Fatal(e.Wrap(err, "error updating highlight session count in hubspot"))
 			}
 			time.Sleep(150 * time.Millisecond)

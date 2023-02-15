@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/vercel"
 	"html/template"
 	"io"
 	"net/http"
@@ -44,6 +45,7 @@ import (
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
 	H "github.com/highlight/highlight/sdk/highlight-go"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
@@ -390,6 +392,7 @@ func main() {
 					Resolvers: publicResolver,
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
+			publicServer.Use(H.NewGraphqlTracer(string(util.PublicGraph)))
 			publicServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
 			publicServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/",
@@ -398,6 +401,7 @@ func main() {
 		})
 		otelHandler := otel.New(publicResolver)
 		otelHandler.Listen(r)
+		vercel.Listen(r)
 	}
 
 	if util.IsDevOrTestEnv() {
@@ -409,6 +413,14 @@ func main() {
 	H.Start()
 	defer H.Stop()
 	H.SetDebugMode(log.StandardLogger())
+	// setup highlight logrus hook
+	log.AddHook(hlog.NewHook(hlog.WithLevels(
+		log.PanicLevel,
+		log.FatalLevel,
+		log.ErrorLevel,
+		log.WarnLevel,
+		log.InfoLevel,
+	)))
 
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.

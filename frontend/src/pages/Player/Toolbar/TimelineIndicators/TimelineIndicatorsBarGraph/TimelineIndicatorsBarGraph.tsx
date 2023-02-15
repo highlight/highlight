@@ -11,6 +11,7 @@ import {
 } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
+	ParsedErrorObject,
 	ParsedEvent,
 	ReplayerState,
 	useReplayerContext,
@@ -23,6 +24,8 @@ import {
 	useToolbarItemsContext,
 	ZoomAreaPercent,
 } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
+import { serializeErrorIdentifier } from '@util/error'
+import { getErrorBody } from '@util/errors/errorUtils'
 import { clamp } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
@@ -264,11 +267,11 @@ const TimelineIndicatorsBarGraph = ({
 				timestamp: toTS(event.relativeIntervalPercentage),
 			})),
 			...errors.map(
-				(event) =>
+				(error) =>
 					({
-						...event,
-						identifier: event.error_group_secure_id,
-						timestamp: toTS(event.relativeIntervalPercentage),
+						...error,
+						identifier: serializeErrorIdentifier(error),
+						timestamp: toTS(error.relativeIntervalPercentage),
 						eventType: 'Errors',
 					} as SessionEvent),
 			),
@@ -1282,7 +1285,7 @@ export interface EventBucket {
 	endPercent: number
 	startTime: number
 	identifier: {
-		[props: string]: string[]
+		[types: string]: string[]
 	}
 	details: {
 		[identifier: string]: string
@@ -1325,6 +1328,7 @@ function buildViewportEventBuckets(
 						[] as string[],
 					]),
 				),
+				instance: {},
 				details: {},
 				timestamp: {},
 			}
@@ -1344,9 +1348,13 @@ function buildViewportEventBuckets(
 			eventBuckets.length - 1,
 		)
 		eventBuckets[bucketId].identifier[eventType].push(identifier)
-		const details = JSON.stringify(
+		let details = JSON.stringify(
 			getEventRenderDetails(event as HighlightEvent).displayValue,
 		)?.replaceAll(/^"|"$/g, '')
+
+		if (!!(event as ParsedErrorObject).error_group_secure_id) {
+			details = getErrorBody((event as ParsedErrorObject).event)
+		}
 		eventBuckets[bucketId].details[identifier] = !details
 			? identifier
 			: details

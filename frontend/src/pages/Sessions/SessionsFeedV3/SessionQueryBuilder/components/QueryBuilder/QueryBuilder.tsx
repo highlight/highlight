@@ -2,6 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Popover from '@components/Popover/Popover'
+import { START_PAGE } from '@components/SearchPagination/SearchPagination'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
@@ -53,7 +54,6 @@ import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import { QueryBuilderStateParam } from '@util/url/params'
 import { Checkbox, message } from 'antd'
-import classNames from 'classnames'
 import clsx, { ClassValue } from 'clsx'
 import { isEqual } from 'lodash'
 import moment, { unitOfTime } from 'moment'
@@ -64,7 +64,12 @@ import Creatable from 'react-select/creatable'
 import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
 import { useToggle } from 'react-use'
-import { JsonParam, useQueryParam, useQueryParams } from 'use-query-params'
+import {
+	JsonParam,
+	NumberParam,
+	useQueryParam,
+	useQueryParams,
+} from 'use-query-params'
 
 import { DropdownMenu } from '../SessionFeedConfigurationV2/SessionFeedConfigurationV2'
 import * as newStyle from './QueryBuilder.css'
@@ -783,7 +788,7 @@ const SelectPopout = ({
 						kind="secondary"
 						size="medium"
 						shape="basic"
-						className={classNames(cssClass, {
+						className={clsx(cssClass, {
 							[styles.invalid]: invalid && !visible,
 						})}
 						lines={limitWidth ? '1' : undefined}
@@ -1327,6 +1332,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 		selectedSegment,
 		setSelectedSegment,
 		removeSelectedSegment,
+		page,
+		setPage,
 	} = searchContext
 
 	const { project_id: projectId } = useParams<{
@@ -1335,7 +1342,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const { loading: segmentsLoading, data: segmentData } = useGetSegmentsQuery(
 		{
-			variables: { project_id: projectId },
+			variables: { project_id: projectId! },
+			skip: !projectId,
 		},
 	)
 
@@ -1393,9 +1401,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 				removeSelectedSegment()
 				setSearchParams(EmptySessionsSearchParams)
 				setExistingParams(EmptySessionsSearchParams)
-				setSearchParamsToUrlParams(
-					normalizeParams(EmptySessionsSearchParams),
-				)
 			}
 		},
 		[
@@ -1403,7 +1408,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 			segmentData?.segments,
 			setExistingParams,
 			setSearchParams,
-			setSearchParamsToUrlParams,
 			setSelectedSegment,
 		],
 	)
@@ -1614,7 +1618,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 		[parseRuleImpl],
 	)
 	const { data: appVersionData } = useGetAppVersionsQuery({
-		variables: { project_id: projectId },
+		variables: { project_id: projectId! },
+		skip: !projectId,
 	})
 
 	const [currentRule, setCurrentRule] = useState<RuleProps | undefined>()
@@ -1933,24 +1938,39 @@ function QueryBuilder(props: QueryBuilderProps) {
 		],
 	)
 
-	// Track the current state of the query builder to detect changes
-	const [qbState, setQbState] = useState<string | undefined>(undefined)
+	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
+		page: NumberParam,
+	})
+	useEffect(() => {
+		if (page !== undefined) {
+			setPaginationToUrlParams({ page }, 'replaceIn')
+		}
+	}, [setPaginationToUrlParams, page])
+
+	// Set initial state from URL params.
+	const [initialized, setInitialized] = useState(false)
+	useEffect(() => {
+		setPage(paginationToUrlParams.page || START_PAGE)
+
+		if (searchParamsToUrlParams.query !== undefined) {
+			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+		} else {
+			setSearchParams(EmptySessionsSearchParams)
+		}
+
+		setInitialized(true)
+		// Only want this to run on init.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	useEffect(() => {
 		if (!segmentsLoading) {
 			if (activeSegmentUrlParam) {
 				selectSegment(activeSegmentUrlParam)
-			}
-			if (searchParamsToUrlParams.query !== undefined) {
-				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
-			} else {
-				setSearchParams(EmptySessionsSearchParams)
+				return
 			}
 		}
-
-		// We only want to run this on mount (i.e. when the page first loads)
-		// after fetching segments.
-
+		// We only want to run this once after loading segments.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [segmentsLoading])
 
@@ -1966,8 +1986,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedSegment, setActiveSegmentUrlParam])
 
+	// Main useEffect that handles updates to URL on every filter change.
 	useEffect(() => {
-		if (!isEqual(searchParams, EmptySessionsSearchParams)) {
+		if (initialized && searchParams.query !== undefined) {
 			setSearchParamsToUrlParams(
 				normalizeParams(searchParams),
 				'replaceIn',
@@ -1978,6 +1999,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 		searchParams,
 		selectedSegment,
 		activeSegmentUrlParam,
+		searchParamsToUrlParams,
+		initialized,
 	])
 
 	useEffect(() => {
@@ -1993,14 +2016,22 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [searchResultsLoading])
 
-	// If the search query is updated externally, set the rules and `isAnd` toggle based on it
+	// Track the current state of the query builder to detect changes
+	const [qbState, setQbState] = useState<string | undefined>(undefined)
+
+	// If the search query is updated externally, set the rules and `isAnd` toggle
+	// based on it
 	useEffect(() => {
-		if (!!searchParams.query && searchParams.query !== qbState) {
+		if (
+			initialized &&
+			!!searchParams.query &&
+			searchParams.query !== qbState
+		) {
 			const newState = JSON.parse(searchParams.query)
 			toggleIsAnd(newState.isAnd)
 			setRules(deserializeRules(newState.rules))
 		}
-	}, [searchParams.query, toggleIsAnd, qbState])
+	}, [searchParams.query, toggleIsAnd, qbState, initialized])
 
 	const areRulesValid = rules.every(isComplete)
 	useEffect(() => {
@@ -2218,9 +2249,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 		if (canUpdateSegment) {
 			editSegment({
 				variables: {
-					project_id: projectId,
+					project_id: projectId!,
 					id: selectedSegment.id,
 					params: searchParams,
+					name: selectedSegment.name,
 				},
 			})
 				.then(() => {

@@ -4,6 +4,8 @@ import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import {
 	useGetErrorGroupQuery,
+	useMarkErrorGroupAsViewedMutation,
+	useMarkSessionAsViewedMutation,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
 import {
@@ -17,6 +19,7 @@ import {
 } from '@highlight-run/ui'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import { CompleteSetup } from '@pages/ErrorsV2/CompleteSetup/CompleteSetup'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
 import ErrorTabContent from '@pages/ErrorsV2/ErrorTabContent/ErrorTabContent'
 import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
@@ -24,28 +27,29 @@ import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCa
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
-import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 import analytics from '@util/analytics'
-import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useHistory } from 'react-router'
+import { useNavigate } from 'react-router'
+import { useLocation } from 'react-router-dom'
 
 import * as styles from './styles.css'
 
-const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
+const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
+	integrated,
+}) => {
 	const { project_id, error_secure_id } = useParams<{
 		project_id: string
 		error_secure_id: string
 	}>()
 	const { isLoggedIn } = useAuthContext()
-	const integrated = useIntegrated()
 	const { searchResultSecureIds } = useErrorSearchContext()
 	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
+	const [markErrorGroupAsViewed] = useMarkErrorGroupAsViewedMutation()
 
 	const currentSearchResultIndex = searchResultSecureIds.findIndex(
 		(secureId) => secureId === error_secure_id,
@@ -63,18 +67,34 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		loading,
 		error: errorQueryingErrorGroup,
 	} = useGetErrorGroupQuery({
-		variables: { secure_id: error_secure_id },
+		variables: { secure_id: error_secure_id! },
 		skip: !error_secure_id,
 		onCompleted: () => {
+			if (error_secure_id) {
+				markErrorGroupAsViewed({
+					variables: {
+						error_secure_id,
+						viewed: true,
+					},
+				}).catch(console.error)
+			}
 			analytics.track('Viewed error', { is_guest: !isLoggedIn })
 		},
 	})
 
-	const history = useHistory()
+	const navigate = useNavigate()
+	const location = useLocation()
+
+	useEffect(() => {
+		if (!isLoggedIn && !data?.error_group?.is_public) {
+			navigate('/login', { replace: true })
+		}
+	}, [data?.error_group?.is_public, isLoggedIn, navigate])
+
 	const goToErrorGroup = (secureId: string) => {
-		history.push(
-			`/${project_id}/errors/${secureId}${history.location.search}`,
-		)
+		navigate(`/${project_id}/errors/${secureId}${location.search}`, {
+			replace: true,
+		})
 	}
 
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
@@ -92,9 +112,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 			}).then(() => {
 				const searchParams = new URLSearchParams(location.search)
 				searchParams.delete(PlayerSearchParameters.muted)
-				history.replace(
-					`${history.location.pathname}?${searchParams.toString()}`,
-				)
+				navigate(`${location.pathname}?${searchParams.toString()}`)
 
 				message.success('Muted notifications for this comment thread.')
 			})
@@ -155,8 +173,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 						[styles.moveDetailsRight]: showLeftPanel,
 					})}
 				>
-					{!integrated && <IntegrationCard />}
-
 					<Box
 						background="white"
 						border="secondary"
@@ -264,8 +280,10 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 									</Box>
 								</Callout>
 							</Box>
-						) : (
+						) : integrated ? (
 							<NoActiveErrorCard />
+						) : (
+							<CompleteSetup />
 						)}
 					</Box>
 				</div>

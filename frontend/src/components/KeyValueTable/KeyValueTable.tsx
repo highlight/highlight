@@ -1,8 +1,8 @@
+import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
-import InfoTooltip from '../InfoTooltip/InfoTooltip'
 import styles from './KeyValueTable.module.scss'
 
 interface Props {
@@ -25,7 +25,7 @@ const KeyValueTable = ({
 	noDataMessage = <p>No data</p>,
 }: Props) => {
 	return (
-		<div className={classNames(styles.table, tableClassName)}>
+		<div className={clsx(styles.table, tableClassName)}>
 			{data.length === 0
 				? noDataMessage
 				: data.map(

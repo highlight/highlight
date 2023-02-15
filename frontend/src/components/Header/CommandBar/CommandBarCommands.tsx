@@ -1,10 +1,7 @@
-import {
-	DEMO_WORKSPACE_APPLICATION_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { useProjectId } from '@hooks/useProjectId'
 import { message } from 'antd'
-import { History } from 'history'
 import { Command } from 'react-command-palette'
+import { useNavigate } from 'react-router-dom'
 
 import usePlayerConfiguration from '../../../pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { onGetLinkWithTimestamp } from '../../../pages/Player/SessionShareButton/utils/utils'
@@ -20,19 +17,14 @@ const NAVIGATION_COMMANDS = [
 	{ route: 'home', name: 'Go to Project Dashboard' },
 ] as const
 
-export const getNavigationCommands = (
-	project_id: string,
-	history: History,
-): CommandWithoutId[] => {
-	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
-			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-			: project_id
+export const useNavigationCommands = (): CommandWithoutId[] => {
+	const { projectId } = useProjectId()
+	const navigate = useNavigate()
 
 	return NAVIGATION_COMMANDS.map(({ name, route }) => ({
 		category: 'Navigation',
 		command() {
-			history.push(`/${projectIdRemapped}/${route}`)
+			navigate(`/${projectId}/${route}`)
 		},
 		name,
 	}))

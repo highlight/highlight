@@ -107,10 +107,11 @@ export const EditMetricModal = ({
 
 	const { data: tags, loading: tagsLoading } = useGetMetricTagsQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			metric_name: metricName,
 		},
 		fetchPolicy: 'cache-first',
+		skip: !project_id,
 	})
 
 	useEffect(() => {
@@ -397,9 +398,10 @@ export const TagGroups = ({
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data } = useGetMetricTagsQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			metric_name: metricName,
 		},
+		skip: !project_id,
 	})
 	const currentGroup = currentGroups[0]
 	return (
@@ -509,14 +511,15 @@ export const TagFilterSelector = ({
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data } = useGetMetricTagsQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			metric_name: metricName,
 		},
 		fetchPolicy: 'cache-first',
+		skip: !project_id,
 	})
 	const [load, { data: values }] = useGetMetricTagValuesLazyQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			metric_name: metricName,
 			tag_name: currentTag?.tag || '',
 		},
@@ -598,9 +601,10 @@ export const MetricSelector = ({
 	const [options, setOptions] = useState<SearchOption[]>([])
 	const { data } = useGetSuggestedMetricsQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			prefix: '',
 		},
+		skip: !project_id,
 	})
 
 	const getValueOptions = (input: string) => {

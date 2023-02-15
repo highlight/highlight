@@ -1,5 +1,5 @@
 import { ButtonProps } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import React from 'react'
 
 import Button from '../../../../components/Button/Button/Button'
@@ -27,7 +27,7 @@ const PanelToggleButton: React.FC<React.PropsWithChildren<Props>> = ({
 			iconButton
 			trackingId="PanelToggleButton"
 			{...props}
-			className={classNames(
+			className={clsx(
 				{
 					[styles.leftClosed]: direction === 'left' && !isOpen,
 					[styles.rightClosed]: direction === 'right' && !isOpen,

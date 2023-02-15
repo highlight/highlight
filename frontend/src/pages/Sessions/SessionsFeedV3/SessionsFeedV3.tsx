@@ -14,9 +14,7 @@ import {
 	STARTING_PAGE,
 } from '@components/Pagination/Pagination'
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
-import SearchPagination, {
-	START_PAGE,
-} from '@components/SearchPagination/SearchPagination'
+import SearchPagination from '@components/SearchPagination/SearchPagination'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import LimitedSessionCard from '@components/Upsell/LimitedSessionsCard/LimitedSessionsCard'
 import {
@@ -47,7 +45,7 @@ import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import clsx from 'clsx'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
-import { styledScrollbar } from 'style/common.css'
+import { styledVerticalScrollbar } from 'style/common.css'
 
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '../../Player/ReplayerContext'
@@ -71,7 +69,7 @@ export const SessionsHistogram: React.FC<SessionsHistogramProps> = React.memo(
 
 		const { loading, data } = useGetSessionsHistogramQuery({
 			variables: {
-				project_id,
+				project_id: project_id!,
 				query: backendSearchQuery?.searchQuery as string,
 				histogram_options: {
 					bucket_size:
@@ -89,7 +87,7 @@ export const SessionsHistogram: React.FC<SessionsHistogramProps> = React.memo(
 					},
 				},
 			},
-			skip: !backendSearchQuery,
+			skip: !backendSearchQuery || !project_id,
 			fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
 		})
 
@@ -177,7 +175,8 @@ export const SessionFeedV3 = React.memo(() => {
 	const showHistogram = searchResultsLoading || searchResultsCount > 0
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
-		variables: { project_id },
+		variables: { project_id: project_id! },
+		skip: !project_id,
 	})
 
 	// Used to determine if we need to show the loading skeleton.
@@ -209,11 +208,11 @@ export const SessionFeedV3 = React.memo(() => {
 			query: backendSearchQuery?.searchQuery || '',
 			count: DEFAULT_PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
-			project_id,
+			project_id: project_id!,
 			sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
 		},
 		onCompleted: addSessions,
-		skip: !backendSearchQuery,
+		skip: !backendSearchQuery || !project_id,
 		fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
 	})
 
@@ -322,7 +321,7 @@ export const SessionFeedV3 = React.memo(() => {
 					overflowX="hidden"
 					overflowY="auto"
 					height="full"
-					cssClass={styledScrollbar}
+					cssClass={styledVerticalScrollbar}
 				>
 					{searchResultsLoading ? (
 						<LoadingBox />
@@ -354,9 +353,6 @@ export const SessionFeedV3 = React.memo(() => {
 												<SessionFeedCard
 													key={ind}
 													session={s}
-													urlParams={`?page=${
-														page || START_PAGE
-													}`}
 													selected={
 														session_secure_id ===
 														s?.secure_id

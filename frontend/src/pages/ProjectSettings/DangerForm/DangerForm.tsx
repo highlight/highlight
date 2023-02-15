@@ -5,9 +5,9 @@ import { useDeleteProjectMutation, useGetProjectQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { FieldsForm } from '@pages/WorkspaceSettings/FieldsForm/FieldsForm'
 import { useParams } from '@util/react-router/useParams'
-import classNames from 'classnames/bind'
+import clsx from 'clsx'
 import React, { useState } from 'react'
-import { Redirect } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 import commonStyles from '../../../Common.module.scss'
 import Button from '../../../components/Button/Button/Button'
@@ -16,7 +16,8 @@ import styles from './DangerForm.module.scss'
 export const DangerForm = () => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { loading, data } = useGetProjectQuery({
-		variables: { id: project_id },
+		variables: { id: project_id! },
+		skip: !project_id,
 	})
 	const [confirmationText, setConfirmationText] = useState('')
 
@@ -27,10 +28,10 @@ export const DangerForm = () => {
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
-		deleteProject({ variables: { id: project_id } })
+		deleteProject({ variables: { id: project_id! } })
 	}
 	if (deleteData?.deleteProject) {
-		return <Redirect to="/" />
+		return <Navigate replace to="/" />
 	}
 	return (
 		<>
@@ -64,7 +65,7 @@ export const DangerForm = () => {
 									trackingId="DeleteProject"
 									danger
 									type="primary"
-									className={classNames(
+									className={clsx(
 										commonStyles.submitButton,
 										styles.deleteButton,
 									)}

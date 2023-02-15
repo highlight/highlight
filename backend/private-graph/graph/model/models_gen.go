@@ -54,6 +54,16 @@ type AdminAboutYouDetails struct {
 	Phone              *string `json:"phone"`
 }
 
+type AdminAndWorkspaceDetails struct {
+	FirstName                   string  `json:"first_name"`
+	LastName                    string  `json:"last_name"`
+	UserDefinedRole             string  `json:"user_defined_role"`
+	Referral                    string  `json:"referral"`
+	WorkspaceName               string  `json:"workspace_name"`
+	AllowedAutoJoinEmailOrigins *string `json:"allowed_auto_join_email_origins"`
+	PromoCode                   *string `json:"promo_code"`
+}
+
 type AverageSessionLength struct {
 	Length float64 `json:"length"`
 }
@@ -343,9 +353,15 @@ type LinearTeam struct {
 }
 
 type LogLine struct {
-	Timestamp    time.Time `json:"timestamp"`
-	SeverityText string    `json:"severityText"`
-	Body         string    `json:"body"`
+	Timestamp     time.Time              `json:"timestamp"`
+	SeverityText  SeverityText           `json:"severityText"`
+	Body          string                 `json:"body"`
+	LogAttributes map[string]interface{} `json:"logAttributes"`
+}
+
+type LogsParamsInput struct {
+	Query     string                  `json:"query"`
+	DateRange *DateRangeRequiredInput `json:"date_range"`
 }
 
 type MetricPreview struct {
@@ -1218,6 +1234,55 @@ func (e *SessionLifecycle) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SessionLifecycle) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SeverityText string
+
+const (
+	SeverityTextTrace SeverityText = "TRACE"
+	SeverityTextDebug SeverityText = "DEBUG"
+	SeverityTextInfo  SeverityText = "INFO"
+	SeverityTextWarn  SeverityText = "WARN"
+	SeverityTextError SeverityText = "ERROR"
+	SeverityTextFatal SeverityText = "FATAL"
+)
+
+var AllSeverityText = []SeverityText{
+	SeverityTextTrace,
+	SeverityTextDebug,
+	SeverityTextInfo,
+	SeverityTextWarn,
+	SeverityTextError,
+	SeverityTextFatal,
+}
+
+func (e SeverityText) IsValid() bool {
+	switch e {
+	case SeverityTextTrace, SeverityTextDebug, SeverityTextInfo, SeverityTextWarn, SeverityTextError, SeverityTextFatal:
+		return true
+	}
+	return false
+}
+
+func (e SeverityText) String() string {
+	return string(e)
+}
+
+func (e *SeverityText) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SeverityText(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SeverityText", str)
+	}
+	return nil
+}
+
+func (e SeverityText) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

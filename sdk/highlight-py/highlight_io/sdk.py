@@ -1,4 +1,5 @@
 import contextlib
+import functools
 import logging
 import typing
 
@@ -9,7 +10,6 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LogRecord
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider, _Span
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
@@ -34,6 +34,7 @@ class H(object):
         project_id: str,
         integrations: typing.List[Integration] = None,
         record_logs: bool = False,
+        otlp_endpoint: str = "",
     ):
         """
         Setup Highlight backend instrumentation.
@@ -46,25 +47,27 @@ class H(object):
         :param project_id: a string that corresponds to the verbose id of your project from app.highlight.io/setup
         :param integrations: a list of Integrations that allow connecting with your framework, like Flask or Django.
         :param record_logs: set True if you would like python logging to be recorded as part of the session.
+        :param otlp_endpoint: set to a custom otlp destination
         :return: a configured H instance
         """
         H._instance = self
         self._project_id = project_id
         self._integrations = integrations or []
         self._record_logs = record_logs
+        self._otlp_endpoint = otlp_endpoint or H.OTLP_HTTP
         if self._record_logs:
             self._instrument_logs()
 
         self._trace_provider = TracerProvider()
         self._trace_provider.add_span_processor(
-            BatchSpanProcessor(OTLPSpanExporter(f"{H.OTLP_HTTP}/v1/traces"))
+            BatchSpanProcessor(OTLPSpanExporter(f"{self._otlp_endpoint}/v1/traces"))
         )
         trace.set_tracer_provider(self._trace_provider)
         self.tracer = trace.get_tracer(__name__)
 
         self._log_provider = LoggerProvider()
         self._log_provider.add_log_record_processor(
-            BatchLogRecordProcessor(OTLPLogExporter(f"{H.OTLP_HTTP}/v1/logs"))
+            BatchLogRecordProcessor(OTLPLogExporter(f"{self._otlp_endpoint}/v1/logs"))
         )
         _logs.set_logger_provider(self._log_provider)
         self.log = self._log_provider.get_logger(__name__)
@@ -136,15 +139,23 @@ class H(object):
     def _log_hook(self, span: _Span, record: logging.LogRecord):
         if span and span.is_recording():
             ctx = span.get_span_context()
+            # record.created is sec but timestamp should be ns
+            ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
+            attributes = span.attributes.copy()
+            attributes["code.function"] = record.funcName
+            attributes["code.namespace"] = record.module
+            attributes["code.filepath"] = record.pathname
+            attributes["code.lineno"] = record.lineno
             r = LogRecord(
-                timestamp=int(record.created),
+                timestamp=ts,
                 trace_id=ctx.trace_id,
                 span_id=ctx.span_id,
                 trace_flags=ctx.trace_flags,
                 severity_text=record.levelname,
                 severity_number=std_to_otel(record.levelno),
                 body=record.getMessage(),
-                resource=Resource({}),
+                resource=span.resource,
+                attributes=attributes,
             )
             self.log.emit(r)
 

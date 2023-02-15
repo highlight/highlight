@@ -10,7 +10,7 @@ import {
 import { namedOperations } from '@graph/operations'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import classNames from 'classnames/bind'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
 import commonStyles from '../../../Common.module.scss'
@@ -28,8 +28,9 @@ export const ExcludedUsersForm = () => {
 	)
 	const { data, loading } = useGetProjectQuery({
 		variables: {
-			id: project_id,
+			id: project_id!,
 		},
+		skip: !project_id,
 	})
 
 	const [editProject, { loading: editProjectLoading }] =
@@ -46,16 +47,20 @@ export const ExcludedUsersForm = () => {
 		data: identifierSuggestionsApiResponse,
 	} = useGetIdentifierSuggestionsQuery({
 		variables: {
-			project_id,
+			project_id: project_id!,
 			query: '',
 		},
+		skip: !project_id,
 	})
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
+		if (!project_id) {
+			return
+		}
 		editProject({
 			variables: {
-				id: project_id,
+				id: project_id!,
 				excluded_users: excludedUsers,
 			},
 		}).then(() => {
@@ -151,7 +156,7 @@ export const ExcludedUsersForm = () => {
 						trackingId="ExcludedUsersUpdate"
 						htmlType="submit"
 						type="primary"
-						className={classNames(
+						className={clsx(
 							commonStyles.submitButton,
 							styles.saveButton,
 						)}

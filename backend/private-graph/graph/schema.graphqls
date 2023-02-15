@@ -3,7 +3,9 @@
 scalar Any
 scalar Timestamp
 scalar Int64
+scalar UInt64
 scalar StringArray
+scalar Map
 
 type Field {
 	id: Int64!
@@ -296,6 +298,15 @@ enum SessionAlertType {
 	NEW_SESSION_ALERT
 }
 
+enum SeverityText {
+	TRACE
+	DEBUG
+	INFO
+	WARN
+	ERROR
+	FATAL
+}
+
 type Project {
 	id: ID!
 	verbose_id: String!
@@ -389,7 +400,7 @@ type ErrorObject {
 	id: ID!
 	created_at: Timestamp!
 	project_id: Int!
-	session_id: Int!
+	session_id: Int
 	error_group_id: Int!
 	error_group_secure_id: String!
 	event: [String]!
@@ -442,6 +453,7 @@ type ErrorGroup {
 	is_public: Boolean!
 	first_occurrence: Timestamp
 	last_occurrence: Timestamp
+	viewed: Boolean
 }
 
 type ErrorMetadata {
@@ -491,10 +503,12 @@ type SourceMappingError {
 type S3File {
 	key: String
 }
+
 type LogLine {
 	timestamp: Timestamp!
-	severityText: String!
+	severityText: SeverityText!
 	body: String!
+	logAttributes: Map!
 }
 
 type ReferrerTablePayload {
@@ -572,6 +586,11 @@ input ErrorGroupFrequenciesParamsInput {
 	resolution_minutes: Int!
 }
 
+input LogsParamsInput {
+	query: String!
+	date_range: DateRangeRequiredInput!
+}
+
 enum MetricTagFilterOp {
 	equals
 	contains
@@ -645,6 +664,19 @@ input AdminAboutYouDetails {
 	user_defined_persona: String!
 	referral: String!
 	phone: String
+}
+
+input AdminAndWorkspaceDetails {
+	# Admin
+	first_name: String!
+	last_name: String!
+	user_defined_role: String!
+	referral: String!
+
+	# Workspace
+	workspace_name: String!
+	allowed_auto_join_email_origins: String
+	promo_code: String
 }
 
 input ErrorSearchParamsInput {
@@ -1378,10 +1410,14 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
-	logs(project_id: ID!): [LogLine!]!
+	logs(project_id: ID!, params: LogsParamsInput!): [LogLine!]!
+	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 }
 
 type Mutation {
+	updateAdminAndCreateWorkspace(
+		admin_and_workspace_details: AdminAndWorkspaceDetails!
+	): Project
 	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
 	createProject(name: String!, workspace_id: ID!): Project
 	createWorkspace(name: String!, promo_code: String): Workspace
@@ -1397,6 +1433,10 @@ type Mutation {
 		backend_domains: StringArray
 	): Project
 	editWorkspace(id: ID!, name: String): Workspace
+	markErrorGroupAsViewed(
+		error_secure_id: String!
+		viewed: Boolean
+	): ErrorGroup
 	markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
 	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
 	updateErrorGroupState(
@@ -1435,7 +1475,12 @@ type Mutation {
 		params: SearchParamsInput!
 	): Segment
 	emailSignup(email: String!): String!
-	editSegment(id: ID!, project_id: ID!, params: SearchParamsInput!): Boolean
+	editSegment(
+		id: ID!
+		project_id: ID!
+		params: SearchParamsInput!
+		name: String!
+	): Boolean
 	deleteSegment(segment_id: ID!): Boolean
 	createErrorSegment(
 		project_id: ID!
@@ -1446,6 +1491,7 @@ type Mutation {
 		id: ID!
 		project_id: ID!
 		params: ErrorSearchParamsInput!
+		name: String!
 	): Boolean
 	deleteErrorSegment(segment_id: ID!): Boolean
 	# If this endpoint returns a checkout_id, we initiate a stripe checkout.

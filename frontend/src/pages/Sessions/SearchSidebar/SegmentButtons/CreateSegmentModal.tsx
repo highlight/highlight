@@ -1,6 +1,8 @@
+import { Button } from '@components/Button'
 import Input from '@components/Input/Input'
-import { CircularSpinner } from '@components/Loading/Loading'
-import { useCreateSegmentMutation } from '@graph/hooks'
+import Modal from '@components/Modal/Modal'
+import ModalBody from '@components/ModalBody/ModalBody'
+import { useCreateSegmentMutation, useEditSegmentMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Maybe, Segment } from '@graph/schemas'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
@@ -8,11 +10,7 @@ import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/Sess
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { useHistory } from 'react-router-dom'
 
-import Button from '../../../../components/Button/Button/Button'
-import Modal from '../../../../components/Modal/Modal'
-import ModalBody from '../../../../components/ModalBody/ModalBody'
 import styles from './SegmentButtons.module.scss'
 
 interface Props {
@@ -29,15 +27,25 @@ const CreateSegmentModal = ({
 	afterCreateHandler,
 	currentSegment,
 }: Props) => {
-	const [createSegment, { loading }] = useCreateSegmentMutation({
-		refetchQueries: [namedOperations.Query.GetSegments],
-	})
+	const [createSegment, { loading: creatingSegment }] =
+		useCreateSegmentMutation({
+			refetchQueries: [namedOperations.Query.GetSegments],
+		})
+
+	const [editErrorSegment, { loading: updatingSegment }] =
+		useEditSegmentMutation({
+			refetchQueries: [namedOperations.Query.GetSegments],
+		})
 
 	const [newSegmentName, setNewSegmentName] = useState(
 		currentSegment?.name ?? '',
 	)
 
-	const shouldUpdate = !!currentSegment
+	const { project_id } = useParams<{
+		project_id: string
+		segment_id: string
+	}>()
+	const shouldUpdate = !!currentSegment && !!project_id
 	useEffect(() => {
 		if (shouldUpdate && currentSegment?.name) {
 			setNewSegmentName(currentSegment?.name)
@@ -46,51 +54,70 @@ const CreateSegmentModal = ({
 		}
 	}, [currentSegment?.name, shouldUpdate])
 
-	const { project_id } = useParams<{
-		project_id: string
-		segment_id: string
-	}>()
-
 	const { searchParams, setExistingParams } = useSearchContext()
-	const history = useHistory()
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
 		if (!newSegmentName) {
 			return
 		}
-		createSegment({
-			variables: {
-				project_id,
-				name: newSegmentName,
-				params: searchParams,
-			},
-		}).then((r) => {
-			setExistingParams(searchParams)
-			if (afterCreateHandler) {
-				afterCreateHandler(
-					r.data?.createSegment?.id as string,
-					r.data?.createSegment?.name as string,
-				)
-			} else {
-				history.push(
-					`/${project_id}/sessions/segment/${r.data?.createSegment?.id}`,
-				)
-			}
-			onHideModal()
-			if (shouldUpdate) {
-				message.success(
-					`Changed '${currentSegment.name}' name to '${r.data?.createSegment?.name}'`,
-					5,
-				)
-			} else {
-				message.success(
-					`Created '${r.data?.createSegment?.name}' segment`,
-					5,
-				)
-			}
-		})
+
+		if (shouldUpdate) {
+			editErrorSegment({
+				variables: {
+					project_id,
+					id: currentSegment.id!,
+					name: newSegmentName,
+					params: searchParams,
+				},
+				onCompleted: () => {
+					message.success(
+						`Changed '${currentSegment.name}' name to '${newSegmentName}'`,
+						5,
+					)
+					if (afterCreateHandler) {
+						afterCreateHandler(
+							currentSegment.id! as string,
+							newSegmentName as string,
+						)
+					}
+					onHideModal()
+					setExistingParams(searchParams)
+				},
+				onError: (e) => {
+					message.error(`Error updating segment: ${e.message}`, 5)
+				},
+			})
+		} else if (project_id) {
+			createSegment({
+				variables: {
+					project_id,
+					name: newSegmentName,
+					params: searchParams,
+				},
+				refetchQueries: [namedOperations.Query.GetErrorSegments],
+				onCompleted: (r) => {
+					if (afterCreateHandler) {
+						afterCreateHandler(
+							r.createSegment?.id as string,
+							r.createSegment?.name as string,
+						)
+					}
+					setExistingParams(searchParams)
+					onHideModal()
+					message.success(
+						`Created '${r.createSegment?.name}' segment`,
+						5,
+					)
+				},
+				onError: (e) => {
+					message.error(`Error updating segment: ${e.message}`, 5)
+				},
+			})
+		}
 	}
+
+	const loading = updatingSegment || creatingSegment
 
 	return (
 		<Modal
@@ -128,22 +155,12 @@ const CreateSegmentModal = ({
 							marginTop: 24,
 							justifyContent: 'center',
 						}}
-						type="primary"
-						htmlType="submit"
+						kind="primary"
+						type="submit"
 						disabled={!newSegmentName}
+						loading={loading}
 					>
-						{loading ? (
-							<CircularSpinner
-								style={{
-									fontSize: 18,
-									color: 'var(--text-primary-inverted)',
-								}}
-							/>
-						) : shouldUpdate ? (
-							'Update Segment'
-						) : (
-							'Save As Segment'
-						)}
+						{shouldUpdate ? 'Update Segment' : 'Save As Segment'}
 					</Button>
 				</form>
 			</ModalBody>

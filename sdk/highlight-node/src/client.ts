@@ -7,7 +7,6 @@ import {
 } from './graph/generated/operations'
 import { GraphQLClient } from 'graphql-request'
 import { NodeOptions } from './types.js'
-import { ErrorContext } from './errorContext.js'
 import log from './log'
 
 import * as opentelemetry from '@opentelemetry/sdk-node'
@@ -31,7 +30,6 @@ export class Highlight {
 	_intervalFunction: ReturnType<typeof setInterval>
 	metrics: Array<InputMaybe<MetricInput>> = []
 	lastBackendSetupEvent: number = 0
-	_errorContext: ErrorContext | undefined
 	_projectID: string
 	_debug: boolean
 	private otel: opentelemetry.NodeSDK
@@ -65,11 +63,6 @@ export class Highlight {
 			() => this.flush(),
 			this.FLUSH_TIMEOUT * 1000,
 		)
-		if (!options.disableErrorSourceContext) {
-			this._errorContext = new ErrorContext({
-				sourceContextCacheSizeMB: options.errorSourceContextCacheSizeMB,
-			})
-		}
 
 		this._graphqlSdk
 			.MarkBackendSetup({
