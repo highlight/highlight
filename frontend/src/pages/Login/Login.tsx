@@ -41,7 +41,7 @@ import styles from './Login.module.scss'
 export const AuthAdminRouter = () => {
 	const { isAuthLoading, isLoggedIn, admin } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	useEffect(() => {
 		if (admin) {
@@ -80,12 +80,12 @@ export const AuthAdminRouter = () => {
 	useEffect(() => {
 		if (isLoggedIn && admin) {
 			if (admin.email_verified === false) {
-				history.push('/verify_email')
+				navigate('/verify_email')
 			} else if (!admin.about_you_details_filled) {
-				history.push('/about_you')
+				navigate('/about_you')
 			}
 		}
-	}, [admin, admin?.email_verified, history, isLoggedIn])
+	}, [admin, admin?.email_verified, navigate, isLoggedIn])
 
 	if (isAuthLoading) {
 		return null

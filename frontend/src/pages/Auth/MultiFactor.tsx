@@ -1,5 +1,8 @@
 import { Button } from '@components/Button'
-import { useAppLoadingContext } from '@context/AppLoadingContext'
+import {
+	AppLoadingState,
+	useAppLoadingContext,
+} from '@context/AppLoadingContext'
 import {
 	Box,
 	ButtonIcon,
@@ -13,7 +16,7 @@ import {
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import firebase from 'firebase/app'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 type Props = {
 	resolver?: firebase.auth.MultiFactorResolver
@@ -24,7 +27,7 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 	const [error, setError] = useState('')
 	const [verificationId, setVerificationId] = useState<string>('')
 	const { setLoadingState } = useAppLoadingContext()
-	const history = useHistory()
+	const navigate = useNavigate()
 	const recaptchaVerifier = useRef<firebase.auth.ApplicationVerifier>()
 	const phoneAuthProvider = new firebase.auth.PhoneAuthProvider()
 	const formState = useFormState({
@@ -98,10 +101,14 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 		}
 	}, [handleSubmit, formState.values.code])
 
+	useEffect(() => {
+		setLoadingState(AppLoadingState.LOADED)
+	}, [setLoadingState])
+
 	// After logging out we sometimes re-render this component even though the
 	// route doesn't match. This is a hack to get us back to the sign in page.
 	if (window.location.pathname.indexOf('multi_factor') === -1) {
-		history.push('/')
+		navigate('/')
 	}
 
 	return (
@@ -119,7 +126,7 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 								/>
 							}
 							onClick={() => {
-								history.push('/sign_in')
+								navigate('/sign_in')
 							}}
 						/>
 					</Box>

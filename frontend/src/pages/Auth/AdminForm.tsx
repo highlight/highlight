@@ -24,7 +24,7 @@ import analytics from '@util/analytics'
 import { getAttributionData } from '@util/attribution'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
@@ -35,7 +35,7 @@ export const AdminForm: React.FC = () => {
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
 	const { setLoadingState } = useAppLoadingContext()
 	const { admin } = useAuthContext()
-	const history = useHistory()
+	const navigate = useNavigate()
 	const [updateAdminAndCreateWorkspace, { loading }] =
 		useUpdateAdminAndCreateWorkspaceMutation()
 
@@ -88,7 +88,7 @@ export const AdminForm: React.FC = () => {
 				`Nice to meet you ${formState.values.firstName}, let's get started!`,
 			)
 
-			history.push(
+			navigate(
 				`/${project.data?.updateAdminAndCreateWorkspace?.id}/setup`,
 			)
 		} catch (e: any) {

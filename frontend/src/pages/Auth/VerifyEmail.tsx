@@ -10,7 +10,7 @@ import { Landing } from '@pages/Landing/Landing'
 import { auth } from '@util/auth'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import * as styles from './AuthRouter.css'
 
@@ -20,14 +20,14 @@ export const VerifyEmail: React.FC = () => {
 		pollInterval: 500,
 	})
 	const [loading, setLoading] = useState(false)
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const isEmailVerified = data?.admin?.email_verified || false
 
 	useEffect(() => {
 		if (isEmailVerified) {
 			stopPolling()
-			history.push('/about_you')
+			navigate('/about_you')
 		} else {
 			// Show the Intercom message after 5 seconds in case the user needs help.
 			setTimeout(() => {
@@ -36,7 +36,7 @@ export const VerifyEmail: React.FC = () => {
 				})
 			}, 1000 * 5)
 		}
-	}, [history, isEmailVerified, stopPolling])
+	}, [navigate, isEmailVerified, stopPolling])
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
@@ -50,8 +50,8 @@ export const VerifyEmail: React.FC = () => {
 				</AuthHeader>
 				<AuthBody>
 					<Text align="center" break="word">
-						A link was sent to <b>{data?.admin?.email}</b>. Visit
-						this link in order to continue.
+						A link was sent to {data?.admin?.email}. Visit this link
+						in order to continue.
 					</Text>
 				</AuthBody>
 				<AuthFooter>
