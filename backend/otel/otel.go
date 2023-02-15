@@ -172,8 +172,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							}
 							projectErrors[projectID] = append(projectErrors[projectID], err)
 						} else {
-							data, _ := req.MarshalJSON()
-							log.WithField("BackendErrorObjectInput", *err).WithField("RequestJSON", string(data)).Errorf("otel error got no session and no project")
+							log.WithField("BackendErrorObjectInput", *err).Errorf("otel error got no session and no project")
 							continue
 						}
 					} else if event.Name() == hlog.LogName {
@@ -361,8 +360,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					}
 					projectLogs[projectID] = append(projectLogs[projectID], logRow)
 				} else {
-					data, _ := req.MarshalJSON()
-					log.WithField("LogRecord", logRecords).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel log got no project")
+					log.WithField("LogRecord", logRecords).WithField("LogRow", *logRow).Errorf("otel log got no project")
 					continue
 				}
 			}

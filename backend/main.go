@@ -134,7 +134,7 @@ func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rCli
 func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client) error {
 	const Timeout = 2 * time.Second
 
-	errors := make(chan error)
+	errors := make(chan error, 5)
 	wg := sync.WaitGroup{}
 	wg.Add(5)
 	go func() {
@@ -149,7 +149,7 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
-		if _, err := tdb.Query(ctx, ``); err != nil {
+		if _, err := tdb.Query(ctx, `from(bucket: "dev-bucket") |> range(start: -1m)`); err != nil {
 			errors <- e.New(fmt.Sprintf("failed to query influx db: %s", err))
 		}
 	}()
@@ -174,8 +174,11 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
 		if _, err := ccClient.ReadLogsTotalCount(ctx, 1, model2.LogsParamsInput{
-			Query:     "",
-			DateRange: nil,
+			Query: "",
+			DateRange: &model2.DateRangeRequiredInput{
+				StartDate: time.Now().Add(-time.Second),
+				EndDate:   time.Now(),
+			},
 		}); err != nil {
 			errors <- e.New(fmt.Sprintf("failed to perform clickhouse query: %s", err))
 		}
