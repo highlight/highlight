@@ -8,7 +8,7 @@ import { OTLPProtoLogExporter } from 'opentelemetry-sdk-workers/exporters/OTLPPr
 
 const HIGHLIGHT_PROJECT_ENV = 'HIGHLIGHT_PROJECT_ID'
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
-const HIGHLIGHT_OTLP_BASE = 'http://localhost:4318'
+const HIGHLIGHT_OTLP_BASE = 'https://otel.highlight.io'
 
 export interface HighlightEnv {
 	[HIGHLIGHT_PROJECT_ENV]: string
