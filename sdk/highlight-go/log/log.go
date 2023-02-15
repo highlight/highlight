@@ -19,24 +19,24 @@ var (
 )
 
 type VercelProxy struct {
-	Timestamp   string `json:"timestamp"`
-	Method      string `json:"method"`
-	Scheme      string `json:"scheme"`
-	Host        string `json:"host"`
-	Path        string `json:"path"`
-	UserAgent   string `json:"userAgent"`
-	Referer     string `json:"referer"`
-	StatusCode  int    `json:"statusCode"`
-	ClientIp    string `json:"clientIp"`
-	Region      string `json:"region"`
-	CacheId     string `json:"cacheId"`
-	VercelCache string `json:"vercelCache"`
+	Timestamp   int64    `json:"timestamp"`
+	Method      string   `json:"method"`
+	Scheme      string   `json:"scheme"`
+	Host        string   `json:"host"`
+	Path        string   `json:"path"`
+	UserAgent   []string `json:"userAgent"`
+	Referer     string   `json:"referer"`
+	StatusCode  int64    `json:"statusCode"`
+	ClientIp    string   `json:"clientIp"`
+	Region      string   `json:"region"`
+	CacheId     string   `json:"cacheId"`
+	VercelCache string   `json:"vercelCache"`
 }
 
 type VercelLog struct {
 	Id           string `json:"id"`
 	Message      string `json:"message"`
-	Timestamp    string `json:"timestamp"`
+	Timestamp    int64  `json:"timestamp"`
 	Source       string `json:"source"`
 	ProjectId    string `json:"projectId"`
 	DeploymentId string `json:"deploymentId"`
@@ -47,7 +47,7 @@ type VercelLog struct {
 	Entrypoint string `json:"entrypoint"`
 
 	RequestId   string      `json:"requestId"`
-	StatusCode  int         `json:"statusCode"`
+	StatusCode  int64       `json:"statusCode"`
 	Destination string      `json:"destination"`
 	Path        string      `json:"path"`
 	Proxy       VercelProxy `json:"proxy"`

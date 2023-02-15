@@ -270,13 +270,13 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 	var logs []hlog.VercelLog
 	jsons := strings.Split(string(body), "\n")
 	for _, j := range jsons {
-		var l []hlog.VercelLog
+		var l hlog.VercelLog
 		if err := json.Unmarshal([]byte(j), &l); err != nil {
 			log.Errorf("failed to unmarshal vercel logs %s: %s", err, j)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		logs = append(logs, l...)
+		logs = append(logs, l)
 	}
 
 	projectVerboseID := r.Header.Get(VercelLogDrainProjectHeader)
