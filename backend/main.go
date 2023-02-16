@@ -103,13 +103,14 @@ func init() {
 	runtimeParsed = util.Runtime(*runtimeFlag)
 }
 
-func healthRouter(ctx context.Context, runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client) http.HandlerFunc {
+func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client) http.HandlerFunc {
 	// only checks kafka because kafka is the only critical infrastructure needed for public graph to be healthy.
 	topic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false})
-	queue := kafkaqueue.New(ctx, topic, kafkaqueue.Producer)
+	queue := kafkaqueue.New(context.Background(), topic, kafkaqueue.Producer)
 	batchedTopic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true})
-	batchedQueue := kafkaqueue.New(ctx, batchedTopic, kafkaqueue.Producer)
+	batchedQueue := kafkaqueue.New(context.Background(), batchedTopic, kafkaqueue.Producer)
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		if err := queue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, "health"); err != nil {
 			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", topic), 500)
 			return
@@ -119,7 +120,7 @@ func healthRouter(ctx context.Context, runtimeFlag util.Runtime, db *gorm.DB, td
 			return
 		}
 		if runtimeFlag != util.PublicGraph {
-			if err := enhancedHealthCheck(context.Background(), db, tdb, rClient, osClient, ccClient); err != nil {
+			if err := enhancedHealthCheck(ctx, db, tdb, rClient, osClient, ccClient); err != nil {
 				http.Error(w, fmt.Sprintf("failed enhanced health check %s", err), 500)
 				return
 			}
@@ -350,7 +351,7 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"*"},
 	}).Handler)
-	r.HandleFunc("/health", healthRouter(ctx, runtimeParsed, db, tdb, redisClient, opensearchClient, clickhouseClient))
+	r.HandleFunc("/health", healthRouter(runtimeParsed, db, tdb, redisClient, opensearchClient, clickhouseClient))
 
 	zapierStore := zapier.ZapierResthookStore{
 		DB: db,

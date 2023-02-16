@@ -1,7 +1,7 @@
 import azure.functions as func
 import pytest
 
-from examples.azure.HttpTrigger import main
+from examples.highlight_azure.HttpTrigger import main
 from highlight_io import H
 
 
