@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"strconv"
@@ -33,9 +34,10 @@ func GetPropertiesOld(obj *model.SessionAlert) ([]*UserPropertyOld, error) {
 }
 
 func main() {
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	ctx := context.TODO()
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.Fatalf("error setting up db: %+v", err)
+		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}
 	var sessionAlerts []model.SessionAlert
 	db.Model(model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.USER_PROPERTIES}}).Or(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.TRACK_PROPERTIES}}).Scan(&sessionAlerts)
@@ -43,7 +45,7 @@ func main() {
 		if alert.TrackProperties != nil {
 			trackProperties, err := GetPropertiesOld(&alert)
 			if err != nil {
-				log.Error("error getting track properties")
+				log.WithContext(ctx).Error("error getting track properties")
 				continue
 			}
 			var newProperties []model.TrackProperty
@@ -51,31 +53,31 @@ func main() {
 			for _, prop := range trackProperties {
 				properId, err := strconv.Atoi(prop.ID)
 				if err != nil {
-					log.Error("wut2")
+					log.WithContext(ctx).Error("wut2")
 					toBreak = true
 					break
 				}
 				newProperties = append(newProperties, model.TrackProperty{ID: properId, Name: prop.Name, Value: prop.Value})
 			}
 			if toBreak {
-				log.Error("wut22")
+				log.WithContext(ctx).Error("wut22")
 				continue
 			}
 			props, err := json.Marshal(newProperties)
 			if err != nil {
-				log.Error("ugh")
+				log.WithContext(ctx).Error("ugh")
 				continue
 			}
 			propsStr := string(props)
 			if err := db.Debug().Where(&model.SessionAlert{Model: model.Model{ID: alert.ID}}).Updates(&model.SessionAlert{TrackProperties: &propsStr}).Error; err != nil {
-				log.Error("ripparoni")
+				log.WithContext(ctx).Error("ripparoni")
 				continue
 			}
 		}
 		if alert.UserProperties != nil {
 			userProperties, err := GetPropertiesOld(&alert)
 			if err != nil {
-				log.Error("Fff")
+				log.WithContext(ctx).Error("Fff")
 				continue
 			}
 			var newProperties []model.UserProperty
@@ -83,25 +85,25 @@ func main() {
 			for _, prop := range userProperties {
 				properId, err := strconv.Atoi(prop.ID)
 				if err != nil {
-					log.Error("wut")
+					log.WithContext(ctx).Error("wut")
 					toBreak = true
 					break
 				}
 				newProperties = append(newProperties, model.UserProperty{ID: properId, Name: prop.Name, Value: prop.Value})
 			}
 			if toBreak {
-				log.Error("wut234")
+				log.WithContext(ctx).Error("wut234")
 				continue
 			}
 			props, err := json.Marshal(newProperties)
 			if err != nil {
-				log.Error("nooooo")
+				log.WithContext(ctx).Error("nooooo")
 				continue
 			}
 			propsStr := string(props)
-			log.Info(propsStr)
+			log.WithContext(ctx).Info(propsStr)
 			if err := db.Debug().Where(&model.SessionAlert{Model: model.Model{ID: alert.ID}}).Updates(&model.SessionAlert{UserProperties: &propsStr}).Error; err != nil {
-				log.Error("ripparoni")
+				log.WithContext(ctx).Error("ripparoni")
 				continue
 			}
 		}

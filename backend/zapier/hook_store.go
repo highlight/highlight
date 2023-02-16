@@ -1,6 +1,7 @@
 package zapier
 
 import (
+	"context"
 	"net/http"
 
 	resthooks "github.com/highlight-run/go-resthooks"
@@ -44,7 +45,7 @@ func (s *ZapierResthookStore) Save(sub *resthooks.Subscription, r *http.Request)
 		sub.Id = existingSub.Id
 	}
 
-	log.Infof("New Zapier subscription: %d; %s", sub.Id, sub.TargetUrl)
+	log.WithContext(context.TODO()).Infof("New Zapier subscription: %d; %s", sub.Id, sub.TargetUrl)
 	return nil
 }
 
@@ -104,6 +105,6 @@ func (s *ZapierResthookStore) DeleteById(id int, r *http.Request) error {
 		return e.Wrap(err, "error deleting resthook subscription by id")
 	}
 
-	log.Infof("Deleting Zapier subscription: %d", id)
+	log.WithContext(context.TODO()).Infof("Deleting Zapier subscription: %d", id)
 	return nil
 }

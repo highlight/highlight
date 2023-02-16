@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
@@ -30,7 +31,7 @@ const ERROR_STACK_MAX_FIELD_SIZE = 1000
 const SOURCE_MAP_MAX_FILE_SIZE = 128e6
 
 type fetcher interface {
-	fetchFile(string) ([]byte, error)
+	fetchFile(context.Context, string) ([]byte, error)
 }
 
 func init() {
@@ -50,7 +51,7 @@ var fetch fetcher
 
 type DiskFetcher struct{}
 
-func (n DiskFetcher) fetchFile(href string) ([]byte, error) {
+func (n DiskFetcher) fetchFile(_ context.Context, href string) ([]byte, error) {
 	inputBytes, err := os.ReadFile(href)
 	if err != nil {
 		return nil, e.Wrap(err, "error fetching file from disk")
@@ -62,7 +63,7 @@ type NetworkFetcher struct {
 	client *http.Client
 }
 
-func (n NetworkFetcher) fetchFile(href string) ([]byte, error) {
+func (n NetworkFetcher) fetchFile(ctx context.Context, href string) ([]byte, error) {
 	// check if source is a URL
 	_, err := url.ParseRequestURI(href)
 	if err != nil {
@@ -79,7 +80,7 @@ func (n NetworkFetcher) fetchFile(href string) ([]byte, error) {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			log.Errorf("failed to close network reader %+v", err)
+			log.WithContext(ctx).Errorf("failed to close network reader %+v", err)
 		}
 	}(res.Body)
 	if res.StatusCode != http.StatusOK {
@@ -113,7 +114,7 @@ func limitMaxSize(value *string) *string {
 * fetches the sourcemap from remote
 * maps the error info into slice
  */
-func EnhanceStackTrace(input []*publicModel.StackFrameInput, projectId int, version *string, storageClient *storage.StorageClient) ([]privateModel.ErrorTrace, error) {
+func EnhanceStackTrace(ctx context.Context, input []*publicModel.StackFrameInput, projectId int, version *string, storageClient *storage.StorageClient) ([]privateModel.ErrorTrace, error) {
 	if input == nil {
 		return nil, e.New("stack trace input cannot be nil")
 	}
@@ -126,10 +127,10 @@ func EnhanceStackTrace(input []*publicModel.StackFrameInput, projectId int, vers
 		if stackFrame == nil || (stackFrame.FileName == nil || len(*stackFrame.FileName) < 1 || stackFrame.LineNumber == nil || stackFrame.ColumnNumber == nil) {
 			continue
 		}
-		mappedStackFrame, err, errMetadata := processStackFrame(projectId, version, *stackFrame, storageClient)
+		mappedStackFrame, err, errMetadata := processStackFrame(ctx, projectId, version, *stackFrame, storageClient)
 		if err != nil {
 			if util.IsDevOrTestEnv() {
-				log.Error(err)
+				log.WithContext(ctx).Error(err)
 			}
 			mappedStackFrame = &privateModel.ErrorTrace{
 				FileName:                   limitMaxSize(stackFrame.FileName),
@@ -170,7 +171,7 @@ func getFileSourcemap(projectId int, version *string, stackTraceFileURL string, 
 	return
 }
 
-func getURLSourcemap(projectId int, version *string, stackTraceFileURL string, stackTraceFilePath string, stackFileNameIndex int, storageClient *storage.StorageClient, stackTraceError *privateModel.SourceMappingError) (string, []byte, error) {
+func getURLSourcemap(ctx context.Context, projectId int, version *string, stackTraceFileURL string, stackTraceFilePath string, stackFileNameIndex int, storageClient *storage.StorageClient, stackTraceError *privateModel.SourceMappingError) (string, []byte, error) {
 	// try to get file from s3
 	minifiedFileBytes, err := storageClient.ReadSourceMapFileFromS3(projectId, version, stackTraceFilePath)
 	minifiedFetchStrategy := "S3"
@@ -180,7 +181,7 @@ func getURLSourcemap(projectId int, version *string, stackTraceFileURL string, s
 
 	if err != nil {
 		// if not in s3, get from url and put in s3
-		minifiedFileBytes, err = fetch.fetchFile(stackTraceFileURL)
+		minifiedFileBytes, err = fetch.fetchFile(ctx, stackTraceFileURL)
 		minifiedFetchStrategy = "URL"
 		stackTraceError.MinifiedFetchStrategy = &minifiedFetchStrategy
 		if err != nil {
@@ -196,7 +197,7 @@ func getURLSourcemap(projectId int, version *string, stackTraceFileURL string, s
 		}
 		_, err = storageClient.PushSourceMapFileToS3(projectId, version, stackTraceFilePath, minifiedFileBytes)
 		if err != nil {
-			log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFilePath))
+			log.WithContext(ctx).Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFilePath))
 		}
 	}
 	minifiedFileSize := len(minifiedFileBytes)
@@ -262,7 +263,7 @@ func getURLSourcemap(projectId int, version *string, stackTraceFileURL string, s
 		stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
 		if err != nil {
 			// if not in s3, get from url and put in s3
-			sourceMapFileBytes, err = fetch.fetchFile(sourceMapURL)
+			sourceMapFileBytes, err = fetch.fetchFile(ctx, sourceMapURL)
 			sourcemapFetchStrategy = "URL"
 			stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
 			if err != nil {
@@ -288,14 +289,14 @@ func getURLSourcemap(projectId int, version *string, stackTraceFileURL string, s
 			}
 			_, err = storageClient.PushSourceMapFileToS3(projectId, version, sourceMapFilePath, sourceMapFileBytes)
 			if err != nil {
-				log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
+				log.WithContext(ctx).Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
 			}
 		}
 	}
 	return sourceMapURL, sourceMapFileBytes, nil
 }
 
-func processStackFrame(projectId int, version *string, stackTrace publicModel.StackFrameInput, storageClient *storage.StorageClient) (*privateModel.ErrorTrace, error, privateModel.SourceMappingError) {
+func processStackFrame(ctx context.Context, projectId int, version *string, stackTrace publicModel.StackFrameInput, storageClient *storage.StorageClient) (*privateModel.ErrorTrace, error, privateModel.SourceMappingError) {
 	stackTraceFileURL := *stackTrace.FileName
 	stackTraceLineNumber := *stackTrace.LineNumber
 	stackTraceColumnNumber := *stackTrace.ColumnNumber
@@ -344,7 +345,7 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 			return nil, err, stackTraceError
 		}
 	} else {
-		sourceMapURL, sourceMapFileBytes, err = getURLSourcemap(projectId, version, stackTraceFileURL, stackTraceFilePath, stackFileNameIndex, storageClient, &stackTraceError)
+		sourceMapURL, sourceMapFileBytes, err = getURLSourcemap(ctx, projectId, version, stackTraceFileURL, stackTraceFilePath, stackFileNameIndex, storageClient, &stackTraceError)
 		if err != nil {
 			return nil, err, stackTraceError
 		}

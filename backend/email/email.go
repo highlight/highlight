@@ -1,6 +1,7 @@
 package email
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"os"
@@ -38,7 +39,7 @@ const (
 	BillingSessionUsage100Percent EmailType = "BillingSessionUsage100Percent"
 )
 
-func SendAlertEmail(MailClient *sendgrid.Client, email string, message string, alertType string, alertName string) error {
+func SendAlertEmail(ctx context.Context, MailClient *sendgrid.Client, email string, message string, alertType string, alertName string) error {
 	to := &mail.Email{Address: email}
 
 	m := mail.NewV3Mail()
@@ -54,16 +55,16 @@ func SendAlertEmail(MailClient *sendgrid.Client, email string, message string, a
 	m.AddPersonalizations(p)
 
 	if resp, sendGridErr := MailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
-		log.Info("🔥", resp, sendGridErr)
+		log.WithContext(ctx).Info("🔥", resp, sendGridErr)
 		estr := "error sending sendgrid email for alert -> "
 		estr += fmt.Sprintf("resp-code: %v; ", resp)
 		if sendGridErr != nil {
 			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
 		}
-		log.Error("🔥", estr)
+		log.WithContext(ctx).Error("🔥", estr)
 		return e.New(estr)
 	}
-	log.Info("Sending email")
+	log.WithContext(ctx).Info("Sending email")
 	return nil
 }
 
@@ -126,7 +127,7 @@ func getBillingNotificationMessage(workspaceId int, emailType EmailType) string 
 	}
 }
 
-func SendBillingNotificationEmail(mailClient *sendgrid.Client, emailType EmailType, workspaceId int, workspaceName *string, toEmail string, adminId int) error {
+func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Client, emailType EmailType, workspaceId int, workspaceName *string, toEmail string, adminId int) error {
 	to := &mail.Email{Address: toEmail}
 
 	m := mail.NewV3Mail()
@@ -146,7 +147,7 @@ func SendBillingNotificationEmail(mailClient *sendgrid.Client, emailType EmailTy
 
 	m.AddPersonalizations(p)
 
-	log.WithFields(log.Fields{"workspace_id": workspaceId, "to_email": toEmail, "email_type": emailType}).
+	log.WithContext(ctx).WithFields(log.Fields{"workspace_id": workspaceId, "to_email": toEmail, "email_type": emailType}).
 		Info("BILLING_NOTIFICATION email dry run")
 
 	// if resp, sendGridErr := mailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {

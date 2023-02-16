@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -9,15 +10,16 @@ import (
 )
 
 func main() {
-	log.Info("setting up db")
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	ctx := context.TODO()
+	log.WithContext(ctx).Info("setting up db")
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.Fatalf("error setting up db: %+v", err)
+		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}
 
 	var projects []model.Project
 	if err := db.Model(&model.Project{}).Scan(&projects).Error; err != nil {
-		log.Fatalf("error getting projects: %v", err)
+		log.WithContext(ctx).Fatalf("error getting projects: %v", err)
 	}
 
 	thresholdWindow := 30
@@ -36,6 +38,6 @@ func main() {
 		})
 	}
 	if err := db.Create(&alerts).Error; err != nil {
-		log.Fatalf("error creating alerts: %v", err)
+		log.WithContext(ctx).Fatalf("error creating alerts: %v", err)
 	}
 }

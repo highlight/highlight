@@ -191,7 +191,7 @@ func init() {
 	hd.Alphabet = "abcdefghijklmnopqrstuvwxyz1234567890"
 	hid, err := hashids.NewWithData(hd)
 	if err != nil {
-		log.Fatalf("error creating hash id client: %v", err)
+		log.WithContext(context.Background()).Fatalf("error creating hash id client: %v", err)
 	}
 	HashID = hid
 
@@ -443,7 +443,7 @@ func (u *Workspace) IntegratedSlackChannels() ([]SlackChannel, error) {
 func (u *Project) VerboseID() string {
 	str, err := HashID.Encode([]int{u.ID})
 	if err != nil {
-		log.Errorf("error generating hash id: %v", err)
+		log.WithContext(context.TODO()).Errorf("error generating hash id: %v", err)
 		str = strconv.Itoa(u.ID)
 	}
 	return str
@@ -1187,7 +1187,7 @@ type BillingEmailHistory struct {
 	Type        Email.EmailType
 }
 
-func SetupDB(dbName string) (*gorm.DB, error) {
+func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {
 	var (
 		host     = os.Getenv("PSQL_HOST")
 		port     = os.Getenv("PSQL_PORT")
@@ -1200,7 +1200,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	if ok {
 		re, err := regexp.Compile(`(?m)^(?:postgres://)([^:]*)(?::)([^@]*)(?:@)([^:]*)(?::)([^/]*)(?:/)(.*)`)
 		if err != nil {
-			log.Error(e.Wrap(err, "failed to compile regex"))
+			log.WithContext(ctx).Error(e.Wrap(err, "failed to compile regex"))
 		} else {
 			matched := re.FindAllStringSubmatch(databaseURL, -1)
 			if len(matched) > 0 && len(matched[0]) > 5 {
@@ -1213,7 +1213,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			}
 		}
 	}
-	log.Printf("setting up db @ %s\n", host)
+	log.WithContext(ctx).Printf("setting up db @ %s\n", host)
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		host,
@@ -1247,12 +1247,12 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	}
 	sqlDB.SetMaxOpenConns(15)
 
-	log.Printf("Finished setting up DB. \n")
+	log.WithContext(ctx).Printf("Finished setting up DB. \n")
 	return DB, nil
 }
 
-func MigrateDB(DB *gorm.DB) (bool, error) {
-	log.Printf("Running DB migrations... \n")
+func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
+	log.WithContext(ctx).Printf("Running DB migrations... \n")
 	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
 		return false, e.Wrap(err, "Error installing pgcrypto")
 	}
@@ -1493,7 +1493,7 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 		}
 	}
 
-	log.Printf("Finished running DB migrations.\n")
+	log.WithContext(ctx).Printf("Finished running DB migrations.\n")
 
 	return true, nil
 }
@@ -1702,13 +1702,13 @@ type ErrorAlert struct {
 	AlertIntegrations
 }
 
-func (obj *ErrorAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
-	if err := obj.sendSlackAlert(db, obj.ID, input); err != nil {
-		log.Error(err)
+func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
+	if err := obj.sendSlackAlert(ctx, db, obj.ID, input); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 	emailsToNotify, err := GetEmailsToNotify(obj.EmailsToNotify)
 	if err != nil {
-		log.Error(err)
+		log.WithContext(ctx).Error(err)
 	}
 
 	frontendURL := os.Getenv("FRONTEND_URI")
@@ -1717,13 +1717,13 @@ func (obj *ErrorAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, inpu
 
 	for _, email := range emailsToNotify {
 		message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>  <a href=\"%s\">View Session</a>", *obj.Name, input.Group.Event, errorURL, sessionURL)
-		if err := Email.SendAlertEmail(mailClient, *email, message, "Errors", fmt.Sprintf("%s: %s", *obj.Name, input.Group.Event)); err != nil {
-			log.Error(err)
+		if err := Email.SendAlertEmail(ctx, mailClient, *email, message, "Errors", fmt.Sprintf("%s: %s", *obj.Name, input.Group.Event)); err != nil {
+			log.WithContext(ctx).Error(err)
 		}
 	}
 }
 
-func SendBillingNotifications(db *gorm.DB, mailClient *sendgrid.Client, emailType Email.EmailType, workspace *Workspace) error {
+func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, emailType Email.EmailType, workspace *Workspace) error {
 	// Skip sending email if sending was attempted within the cache TTL
 	cacheKey := fmt.Sprintf("%s;%d", emailType, workspace.ID)
 	_, exists := emailHistoryCache.Get(cacheKey)
@@ -1771,7 +1771,7 @@ func SendBillingNotifications(db *gorm.DB, mailClient *sendgrid.Client, emailTyp
 
 	errors := []string{}
 	for _, toAddr := range toAddrs {
-		err := Email.SendBillingNotificationEmail(mailClient, emailType, workspace.ID, workspace.Name, toAddr.Email, toAddr.AdminID)
+		err := Email.SendBillingNotificationEmail(ctx, mailClient, emailType, workspace.ID, workspace.Name, toAddr.Email, toAddr.AdminID)
 		if err != nil {
 			errors = append(errors, err.Error())
 		}
@@ -1806,14 +1806,14 @@ type SessionAlert struct {
 	AlertIntegrations
 }
 
-func (obj *SessionAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
-	if err := obj.sendSlackAlert(db, obj.ID, input); err != nil {
-		log.Error(err)
+func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
+	if err := obj.sendSlackAlert(ctx, db, obj.ID, input); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 
 	emailsToNotify, err := GetEmailsToNotify(obj.EmailsToNotify)
 	if err != nil {
-		log.Error(err)
+		log.WithContext(ctx).Error(err)
 	}
 
 	frontendURL := os.Getenv("FRONTEND_URI")
@@ -1869,8 +1869,8 @@ func (obj *SessionAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, in
 	}
 
 	for _, email := range emailsToNotify {
-		if err := Email.SendAlertEmail(mailClient, *email, message, alertType, subjectLine); err != nil {
-			log.Error(err)
+		if err := Email.SendAlertEmail(ctx, mailClient, *email, message, alertType, subjectLine); err != nil {
+			log.WithContext(ctx).Error(err)
 
 		}
 	}
@@ -2014,7 +2014,7 @@ type DeleteSessionsTask struct {
 	SessionID int
 }
 
-func (obj *Alert) SendWelcomeSlackMessage(input *SendWelcomeSlackMessageInput) error {
+func (obj *Alert) SendWelcomeSlackMessage(ctx context.Context, input *SendWelcomeSlackMessageInput) error {
 	if obj == nil {
 		return e.New("Alert needs to be defined.")
 	}
@@ -2082,7 +2082,7 @@ func (obj *Alert) SendWelcomeSlackMessage(input *SendWelcomeSlackMessageInput) e
 			}
 
 			if slackWebhookURL == "" && isWebhookChannel {
-				log.WithFields(log.Fields{"workspace_id": input.Workspace.ID}).
+				log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID}).
 					Error("requested channel has no matching slackWebhookURL when sending welcome message")
 				continue
 			}
@@ -2094,12 +2094,12 @@ func (obj *Alert) SendWelcomeSlackMessage(input *SendWelcomeSlackMessageInput) e
 			go func() {
 				// The Highlight Slack bot needs to join the channel before it can send a message.
 				// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
-				log.Printf("Sending Slack Bot Message for welcome message")
+				log.WithContext(ctx).Printf("Sending Slack Bot Message for welcome message")
 				if slackClient != nil {
 					if strings.Contains(slackChannelName, "#") {
 						_, _, _, err := slackClient.JoinConversation(slackChannelId)
 						if err != nil {
-							log.Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+							log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
 						}
 					}
 					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2107,12 +2107,12 @@ func (obj *Alert) SendWelcomeSlackMessage(input *SendWelcomeSlackMessageInput) e
 						slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
 					)
 					if err != nil {
-						log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
+						log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
 							Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
 					}
 
 				} else {
-					log.Printf("Slack Bot Client was not defined for sending welcome message")
+					log.WithContext(ctx).Printf("Slack Bot Client was not defined for sending welcome message")
 				}
 			}()
 		}
@@ -2131,7 +2131,7 @@ type SendWelcomeSlackMessageForMetricMonitorInput struct {
 	IncludeEditLink      bool
 }
 
-func (obj *MetricMonitor) SendWelcomeSlackMessage(input *SendWelcomeSlackMessageForMetricMonitorInput) error {
+func (obj *MetricMonitor) SendWelcomeSlackMessage(ctx context.Context, input *SendWelcomeSlackMessageForMetricMonitorInput) error {
 	if obj == nil {
 		return e.New("metric monitor needs to be defined.")
 	}
@@ -2199,7 +2199,7 @@ func (obj *MetricMonitor) SendWelcomeSlackMessage(input *SendWelcomeSlackMessage
 			}
 
 			if slackWebhookURL == "" && isWebhookChannel {
-				log.WithFields(log.Fields{"workspace_id": input.Workspace.ID}).
+				log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID}).
 					Error("requested channel has no matching slackWebhookURL when sending welcome message")
 				continue
 			}
@@ -2211,12 +2211,12 @@ func (obj *MetricMonitor) SendWelcomeSlackMessage(input *SendWelcomeSlackMessage
 			go func() {
 				// The Highlight Slack bot needs to join the channel before it can send a message.
 				// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
-				log.Printf("Sending Slack Bot Message for welcome message")
+				log.WithContext(ctx).Printf("Sending Slack Bot Message for welcome message")
 				if slackClient != nil {
 					if strings.Contains(slackChannelName, "#") {
 						_, _, _, err := slackClient.JoinConversation(slackChannelId)
 						if err != nil {
-							log.Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+							log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
 						}
 					}
 					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2224,12 +2224,12 @@ func (obj *MetricMonitor) SendWelcomeSlackMessage(input *SendWelcomeSlackMessage
 						slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
 					)
 					if err != nil {
-						log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
+						log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
 							Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
 					}
 
 				} else {
-					log.Printf("Slack Bot Client was not defined for sending welcome message")
+					log.WithContext(ctx).Printf("Slack Bot Client was not defined for sending welcome message")
 				}
 			}()
 		}
@@ -2243,7 +2243,7 @@ type SendSlackAlertForMetricMonitorInput struct {
 	Workspace *Workspace
 }
 
-func (obj *MetricMonitor) SendSlackAlert(input *SendSlackAlertForMetricMonitorInput) error {
+func (obj *MetricMonitor) SendSlackAlert(ctx context.Context, input *SendSlackAlertForMetricMonitorInput) error {
 	if obj == nil {
 		return e.New("metric monitor needs to be defined.")
 	}
@@ -2267,7 +2267,7 @@ func (obj *MetricMonitor) SendSlackAlert(input *SendSlackAlertForMetricMonitorIn
 	frontendURL := os.Getenv("FRONTEND_URI")
 	alertUrl := fmt.Sprintf("%s/%d/alerts/monitor/%d", frontendURL, obj.ProjectID, obj.ID)
 
-	log.Info("Sending Slack Alert for Metric Monitor")
+	log.WithContext(ctx).Info("Sending Slack Alert for Metric Monitor")
 
 	// send message
 	for _, channel := range channels {
@@ -2282,7 +2282,7 @@ func (obj *MetricMonitor) SendSlackAlert(input *SendSlackAlertForMetricMonitorIn
 				if strings.Contains(slackChannelName, "#") {
 					_, _, _, err := slackClient.JoinConversation(slackChannelId)
 					if err != nil {
-						log.Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+						log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
 					}
 				}
 				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2290,12 +2290,12 @@ func (obj *MetricMonitor) SendSlackAlert(input *SendSlackAlertForMetricMonitorIn
 					slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
 				)
 				if err != nil {
-					log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
+					log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
 						Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
 				}
 
 			} else {
-				log.Printf("Slack Bot Client was not defined for sending welcome message")
+				log.WithContext(ctx).Printf("Slack Bot Client was not defined for sending welcome message")
 			}
 		}
 	}
@@ -2371,7 +2371,7 @@ func getUserPropertiesBlock(identifier string, userProperties map[string]string)
 	return messageBlock, accessory
 }
 
-func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlertInput) error {
+func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, input *SendSlackAlertInput) error {
 	// TODO: combine `error_alerts` and `session_alerts` tables and create composite index on (project_id, type)
 	if obj == nil {
 		return e.New("alert is nil")
@@ -2581,7 +2581,7 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 	if input.Workspace.SlackAccessToken != nil {
 		slackClient = slack.New(*input.Workspace.SlackAccessToken)
 	}
-	log.Printf("Sending Slack Alert for project: %d session: %s", input.Workspace.ID, input.SessionSecureID)
+	log.WithContext(ctx).Printf("Sending Slack Alert for project: %d session: %s", input.Workspace.ID, input.SessionSecureID)
 
 	// send message
 	for _, channel := range channels {
@@ -2602,7 +2602,7 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 			}
 
 			if slackWebhookURL == "" && isWebhookChannel {
-				log.WithFields(log.Fields{"workspace_id": input.Workspace.ID}).
+				log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID}).
 					Error("requested channel has no matching slackWebhookURL")
 				continue
 			}
@@ -2616,26 +2616,26 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 					if rec := recover(); rec != nil {
 						buf := make([]byte, 64<<10)
 						buf = buf[:runtime.Stack(buf, false)]
-						log.Errorf("panic: %+v\n%s", rec, buf)
+						log.WithContext(ctx).Errorf("panic: %+v\n%s", rec, buf)
 					}
 				}()
 				if isWebhookChannel {
-					log.WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Webhook with preview_text: %s", msg.Text)
+					log.WithContext(ctx).WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Webhook with preview_text: %s", msg.Text)
 					err := slack.PostWebhook(
 						slackWebhookURL,
 						&msg,
 					)
 					if err != nil {
-						log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
+						log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
 							Error(e.Wrap(err, "error sending slack msg via webhook"))
 						return
 					}
 				} else if slackClient != nil {
-					log.WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Bot Message with preview_text: %s", msg.Text)
+					log.WithContext(ctx).WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Bot Message with preview_text: %s", msg.Text)
 					if strings.Contains(slackChannelName, "#") {
 						_, _, _, err := slackClient.JoinConversation(slackChannelId)
 						if err != nil {
-							log.Error(e.Wrap(err, "failed to join slack channel"))
+							log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel"))
 							return
 						}
 					}
@@ -2644,16 +2644,16 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 						slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
 					)
 					if err != nil {
-						log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", msg)}).
+						log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", msg)}).
 							Error(e.Wrap(err, "error sending slack msg via bot api"))
 						return
 					}
 				} else {
-					log.Error("couldn't send slack alert, slack client isn't setup AND not webhook channel")
+					log.WithContext(ctx).Error("couldn't send slack alert, slack client isn't setup AND not webhook channel")
 					return
 				}
 				if err := db.Create(alertEvent).Error; err != nil {
-					log.Error(e.Wrap(err, "error creating alert event"))
+					log.WithContext(ctx).Error(e.Wrap(err, "error creating alert event"))
 				}
 			}()
 		}

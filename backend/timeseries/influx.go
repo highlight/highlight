@@ -79,7 +79,7 @@ type Result struct {
 type DB interface {
 	GetBucket(bucket string, m Measurement) string
 	GetSampledMeasurement(defaultBucket string, defaultMeasurement Measurement, timeRange time.Duration) (bucket string, m Measurement)
-	Write(bucket string, m Measurement, points []Point)
+	Write(ctx context.Context, bucket string, m Measurement, points []Point)
 	Query(ctx context.Context, query string) (results []*Result, e error)
 }
 
@@ -94,7 +94,7 @@ type InfluxDB struct {
 	messagesSent int
 }
 
-func New() *InfluxDB {
+func New(ctx context.Context) *InfluxDB {
 	org := os.Getenv("INFLUXDB_ORG")
 	bucketPrefix := os.Getenv("INFLUXDB_BUCKET")
 	server := os.Getenv("INFLUXDB_SERVER")
@@ -104,7 +104,7 @@ func New() *InfluxDB {
 	var orgID string
 	orgs, err := client.OrganizationsAPI().GetOrganizations(context.Background())
 	if err != nil {
-		log.Errorf("failed to get influxdb organization")
+		log.WithContext(ctx).Errorf("failed to get influxdb organization")
 	} else {
 		orgID = *(*orgs)[0].Id
 	}
@@ -132,7 +132,7 @@ func (i *InfluxDB) GetBucket(projectID string, measurement Measurement) string {
 	return fmt.Sprintf("%s-%s-%s", i.BucketPrefix, projectID, measurement)
 }
 
-func (i *InfluxDB) createWriteAPI(bucket string, measurement Measurement) api.WriteAPI {
+func (i *InfluxDB) createWriteAPI(ctx context.Context, bucket string, measurement Measurement) api.WriteAPI {
 	config := Configs[measurement]
 	b := i.GetBucket(bucket, measurement)
 	// ignore bucket already exists error
@@ -162,7 +162,7 @@ func (i *InfluxDB) createWriteAPI(bucket string, measurement Measurement) api.Wr
 		taskFlux := getDownsampleTask(b, downsampleB, taskName, config)
 		_, err = i.Client.TasksAPI().CreateTaskByFlux(context.Background(), taskFlux, i.orgID)
 		if err != nil {
-			log.WithError(err).Error("failed to create influx task")
+			log.WithContext(ctx).WithError(err).Error("failed to create influx task")
 		}
 	}
 	// since the create operation is not idempotent, check if we created duplicate tasks and clean up
@@ -178,7 +178,7 @@ func (i *InfluxDB) createWriteAPI(bucket string, measurement Measurement) api.Wr
 			_ = i.Client.TasksAPI().DeleteTaskWithID(context.Background(), t.Id)
 		}
 	} else {
-		log.Errorf("influx.go expected a task to be created for %s:%s but none was found", downsampleB, taskName)
+		log.WithContext(ctx).Errorf("influx.go expected a task to be created for %s:%s but none was found", downsampleB, taskName)
 	}
 	for version := 1; version < config.Version; version++ {
 		taskName := fmt.Sprintf("task-%s", downsampleB)
@@ -201,25 +201,25 @@ func (i *InfluxDB) createWriteAPI(bucket string, measurement Measurement) api.Wr
 	// Create go proc for reading and logging errors
 	go func() {
 		for err := range errorsCh {
-			log.Errorf("influxdb write error on %s: %s\n", b, err.Error())
+			log.WithContext(ctx).Errorf("influxdb write error on %s: %s\n", b, err.Error())
 		}
 	}()
 	return writeAPI
 }
 
-func (i *InfluxDB) getWriteAPI(bucket string, measurement Measurement) api.WriteAPI {
+func (i *InfluxDB) getWriteAPI(ctx context.Context, bucket string, measurement Measurement) api.WriteAPI {
 	i.writeAPILock.Lock()
 	defer i.writeAPILock.Unlock()
 	b := i.GetBucket(bucket, measurement)
 	if _, ok := i.writeAPIs[b]; !ok {
-		i.writeAPIs[b] = i.createWriteAPI(bucket, measurement)
+		i.writeAPIs[b] = i.createWriteAPI(ctx, bucket, measurement)
 	}
 	return i.writeAPIs[b]
 }
 
-func (i *InfluxDB) Write(bucket string, measurement Measurement, points []Point) {
+func (i *InfluxDB) Write(ctx context.Context, bucket string, measurement Measurement, points []Point) {
 	start := time.Now()
-	writeAPI := i.getWriteAPI(bucket, measurement)
+	writeAPI := i.getWriteAPI(ctx, bucket, measurement)
 	for _, point := range points {
 		p := influxdb2.NewPointWithMeasurement(string(measurement))
 		for k, v := range point.Tags {

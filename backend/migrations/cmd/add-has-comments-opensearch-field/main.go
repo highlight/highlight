@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -12,32 +13,33 @@ import (
 )
 
 func main() {
-	log.Info("setting up db")
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	ctx := context.TODO()
+	log.WithContext(ctx).Info("setting up db")
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.Fatalf("error setting up db: %+v", err)
+		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}
 
 	sqlDB, err := db.DB()
 
 	if err != nil {
-		log.Fatalf("error getting raw db: %+v", err)
+		log.WithContext(ctx).Fatalf("error getting raw db: %+v", err)
 	}
 
 	if err := sqlDB.Ping(); err != nil {
-		log.Fatalf("error pinging db: %+v", err)
+		log.WithContext(ctx).Fatalf("error pinging db: %+v", err)
 	}
 
 	opensearchClient, err := opensearch.NewOpensearchClient()
 	if err != nil {
-		log.Fatalf("error creating opensearch client: %v", err)
+		log.WithContext(ctx).Fatalf("error creating opensearch client: %v", err)
 	}
 
 	r := public.Resolver{
 		DB:         db,
 		OpenSearch: opensearchClient,
 	}
-	log.Infof("starting query")
+	log.WithContext(ctx).Infof("starting query")
 
 	// find all distinct session ids from model.SessionComment
 	var sessionIDs []int
@@ -46,12 +48,12 @@ func main() {
 		Distinct("session_id").
 		Pluck("session_id", &sessionIDs).
 		Error; err != nil {
-		log.Fatalf("error getting distinct session ids: %+v", err)
+		log.WithContext(ctx).Fatalf("error getting distinct session ids: %+v", err)
 	}
 
 	count := len(sessionIDs)
-	log.Infof("found %d distinct session ids, updating", count)
-	log.Infof("starting an opensearch update")
+	log.WithContext(ctx).Infof("found %d distinct session ids, updating", count)
+	log.WithContext(ctx).Infof("starting an opensearch update")
 
 	bar := pb.StartNew(count)
 
@@ -61,7 +63,7 @@ func main() {
 			sessionID,
 			map[string]interface{}{"has_comments": true},
 		); err != nil {
-			log.Fatalf("error updating session %d: %+v", sessionID, err)
+			log.WithContext(ctx).Fatalf("error updating session %d: %+v", sessionID, err)
 		}
 		bar.Increment()
 	}

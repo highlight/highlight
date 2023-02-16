@@ -216,7 +216,7 @@ func NewOpensearchClient() (*Client, error) {
 		FlushBytes:    5e+6,             // The flush threshold in bytes. Defaults to 5MB.
 		FlushInterval: 10 * time.Second, // The flush threshold as duration. Defaults to 30sec.
 		OnError: func(ctx context.Context, err error) {
-			log.Error(e.Wrap(err, "OPENSEARCH_ERROR bulk indexer error"))
+			log.WithContext(ctx).Error(e.Wrap(err, "OPENSEARCH_ERROR bulk indexer error"))
 		},
 	})
 	if err != nil {
@@ -253,13 +253,13 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 		Body:            body,
 		RetryOnConflict: pointy.Int(3),
 		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
-			// log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
+			// log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
 		},
 		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
 			if err != nil {
-				log.Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
+				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
 			} else {
-				log.Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
+				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
 			}
 		},
 	}
@@ -311,7 +311,7 @@ func (c *Client) UpdateSynchronous(index Index, id int, obj map[string]interface
 		)
 	}
 
-	// log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
+	// log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
 
 	return nil
 }
@@ -332,9 +332,9 @@ func (c *Client) Delete(index Index, id int) error {
 		RetryOnConflict: pointy.Int(3),
 		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
 			if err != nil {
-				log.Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
+				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
 			} else {
-				log.Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
+				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
 			}
 		},
 	}
@@ -387,13 +387,13 @@ func (c *Client) Index(index Index, id int64, parentId *int, obj interface{}) er
 		Body:       body,
 		Routing:    routing,
 		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
-			// log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
+			// log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
 		},
 		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
 			if err != nil {
-				log.Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
+				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
 			} else {
-				log.Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
+				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
 			}
 		},
 	}
@@ -432,13 +432,13 @@ func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fie
 		Body:            body,
 		RetryOnConflict: pointy.Int(3),
 		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
-			// log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
+			// log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
 		},
 		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
 			if err != nil {
-				log.Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
+				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
 			} else {
-				log.Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
+				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
 			}
 		},
 	}
@@ -481,7 +481,7 @@ func (c *Client) IndexSynchronous(ctx context.Context, index Index, id int, obj 
 		return e.New("OPENSEARCH_ERROR error indexing document: " + response.String())
 	}
 
-	// log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
+	// log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
 
 	return nil
 }
@@ -686,7 +686,7 @@ func (c *Client) RawSearch(index Index, query string) ([]byte, error) {
 	return res, nil
 }
 
-func (c *Client) PutMapping(index Index, bodyStr string) error {
+func (c *Client) PutMapping(ctx context.Context, index Index, bodyStr string) error {
 	body := strings.NewReader(bodyStr)
 
 	indexStr := GetIndex(index)
@@ -700,7 +700,7 @@ func (c *Client) PutMapping(index Index, bodyStr string) error {
 		return e.Wrap(err, "OPENSEARCH_ERROR error creating index")
 	}
 
-	log.Infof("OPENSEARCH_SUCCESS (%s) [%d] index created", indexStr, createResponse.StatusCode)
+	log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s) [%d] index created", indexStr, createResponse.StatusCode)
 
 	mappingRequest := opensearchapi.IndicesPutMappingRequest{
 		Index: []string{indexStr},
@@ -712,12 +712,12 @@ func (c *Client) PutMapping(index Index, bodyStr string) error {
 		return e.Wrap(err, "OPENSEARCH_ERROR error creating mapping")
 	}
 
-	log.Infof("OPENSEARCH_SUCCESS (%s) [%d] mapping created", indexStr, mappingResponse.StatusCode)
+	log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s) [%d] mapping created", indexStr, mappingResponse.StatusCode)
 
 	return nil
 }
 
-func (c *Client) PutScript(script Script, bodyStr string) error {
+func (c *Client) PutScript(ctx context.Context, script Script, bodyStr string) error {
 	body := strings.NewReader(bodyStr)
 
 	putRequest := opensearchapi.PutScriptRequest{
@@ -730,7 +730,7 @@ func (c *Client) PutScript(script Script, bodyStr string) error {
 		return e.Wrap(err, "OPENSEARCH_ERROR error upserting script")
 	}
 
-	log.Infof("OPENSEARCH_SUCCESS (%s) [%d] script created", script, createResponse.StatusCode)
+	log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s) [%d] script created", script, createResponse.StatusCode)
 
 	return nil
 }

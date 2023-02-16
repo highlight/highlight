@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"io"
 	"testing"
 	"time"
@@ -679,7 +680,7 @@ func TestGetActiveDuration(t *testing.T) {
 				Count:  5,
 			})
 			for _, event := range tt.events {
-				a = processEventChunk(a, event)
+				a = processEventChunk(context.TODO(), a, event)
 				if a.Error != nil {
 					t.Logf("error: %v", a.Error)
 				}
@@ -804,7 +805,7 @@ func TestFullSnapshotValidation(t *testing.T) {
 				Count:  5,
 			})
 			for _, event := range tt.events {
-				a = processEventChunk(a, event)
+				a = processEventChunk(context.TODO(), a, event)
 				if a.Error != nil {
 					break
 				}
