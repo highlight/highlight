@@ -28,30 +28,30 @@ const (
 	sigFigs = 4
 )
 
-func WatchMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook) {
-	log.Info("Starting to watch Metric Monitors")
+func WatchMetricMonitors(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook) {
+	log.WithContext(ctx).Info("Starting to watch Metric Monitors")
 
 	for range time.Tick(time.Minute * 1) {
 		go func() {
-			metricMonitors := getMetricMonitors(DB)
-			processMetricMonitors(DB, TDB, MailClient, metricMonitors, rh)
+			metricMonitors := getMetricMonitors(ctx, DB)
+			processMetricMonitors(ctx, DB, TDB, MailClient, metricMonitors, rh)
 		}()
 	}
 }
 
-func getMetricMonitors(DB *gorm.DB) []*model.MetricMonitor {
+func getMetricMonitors(ctx context.Context, DB *gorm.DB) []*model.MetricMonitor {
 	var metricMonitors []*model.MetricMonitor
 	if err := DB.Preload("Filters").Model(&model.MetricMonitor{}).Where("disabled = ?", false).Find(&metricMonitors).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Error("Error querying for metric monitors")
+			log.WithContext(ctx).Error("Error querying for metric monitors")
 		}
 	}
 
 	return metricMonitors
 }
 
-func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, metricMonitors []*model.MetricMonitor, rh *resthooks.Resthook) {
-	log.Info("Number of Metric Monitors to Process: ", len(metricMonitors))
+func processMetricMonitors(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, metricMonitors []*model.MetricMonitor, rh *resthooks.Resthook) {
+	log.WithContext(ctx).Info("Number of Metric Monitors to Process: ", len(metricMonitors))
 	for _, metricMonitor := range metricMonitors {
 		var value float64
 		end := time.Now()
@@ -79,27 +79,27 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 			Filters:           filters,
 		})
 		if err != nil {
-			log.Error(err)
+			log.WithContext(ctx).Error(err)
 			continue
 		}
 		if len(payload) < 1 {
-			log.Errorf("invalid metrics payload %+v", payload)
+			log.WithContext(ctx).Errorf("invalid metrics payload %+v", payload)
 			continue
 		}
 		value = payload[len(payload)-1].Value
 
-		log.Infof("Processing %s for Project %d. ID: %d", metricMonitor.Name, metricMonitor.ProjectID, metricMonitor.ID)
-		log.Infof("Current value: %f, Threshold: %f", value, metricMonitor.Threshold)
+		log.WithContext(ctx).Infof("Processing %s for Project %d. ID: %d", metricMonitor.Name, metricMonitor.ProjectID, metricMonitor.ID)
+		log.WithContext(ctx).Infof("Current value: %f, Threshold: %f", value, metricMonitor.Threshold)
 
 		if value >= metricMonitor.Threshold {
 			var project model.Project
 			if err := DB.Model(&model.Project{}).Where("id = ?", metricMonitor.ProjectID).First(&project).Error; err != nil {
-				log.Error("error querying project for processMetricMonitor", err)
+				log.WithContext(ctx).Error("error querying project for processMetricMonitor", err)
 				return
 			}
 			var workspace model.Workspace
 			if err := DB.Where(&model.Workspace{Model: model.Model{ID: project.WorkspaceID}}).First(&workspace).Error; err != nil {
-				log.Error("error querying workspace for processMetricMonitor", err)
+				log.WithContext(ctx).Error("error querying workspace for processMetricMonitor", err)
 				return
 			}
 
@@ -116,7 +116,7 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 				MetricThreshold: &metricMonitor.Threshold,
 			}
 			if err := rh.Notify(project.ID, fmt.Sprintf("MetricMonitor_%d", metricMonitor.ID), hookPayload); err != nil {
-				log.Error("error notifying zapier", err)
+				log.WithContext(ctx).Error("error notifying zapier", err)
 			}
 
 			message := fmt.Sprintf(
@@ -134,8 +134,8 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 
 			fmt.Println(message)
 
-			if err := metricMonitor.SendSlackAlert(&model.SendSlackAlertForMetricMonitorInput{Message: message, Workspace: &workspace}); err != nil {
-				log.Error("error sending slack alert for metric monitor", err)
+			if err := metricMonitor.SendSlackAlert(ctx, &model.SendSlackAlertForMetricMonitorInput{Message: message, Workspace: &workspace}); err != nil {
+				log.WithContext(ctx).Error("error sending slack alert for metric monitor", err)
 			}
 
 			if err = alerts.SendMetricMonitorAlert(alerts.MetricMonitorAlertEvent{
@@ -146,12 +146,12 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 				Value:         valueRepr,
 				Threshold:     thresholdRepr,
 			}); err != nil {
-				log.Error(err)
+				log.WithContext(ctx).Error(err)
 			}
 
 			emailsToNotify, err := model.GetEmailsToNotify(metricMonitor.EmailsToNotify)
 			if err != nil {
-				log.Error(err)
+				log.WithContext(ctx).Error(err)
 			}
 
 			frontendURL := os.Getenv("FRONTEND_URI")
@@ -172,8 +172,8 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 					unitsStr,
 					monitorURL,
 				)
-				if err := Email.SendAlertEmail(MailClient, *email, message, metricMonitor.MetricToMonitor, metricMonitor.Name); err != nil {
-					log.Error(err)
+				if err := Email.SendAlertEmail(ctx, MailClient, *email, message, metricMonitor.MetricToMonitor, metricMonitor.Name); err != nil {
+					log.WithContext(ctx).Error(err)
 
 				}
 			}

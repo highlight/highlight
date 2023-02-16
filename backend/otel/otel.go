@@ -40,18 +40,18 @@ func castString(v interface{}, fallback string) string {
 
 func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID *string) {
 	if p, ok := attrs[highlight.ProjectIDAttribute]; ok {
-		if p.(string) != "" {
-			*projectID = p.(string)
+		if v, _ := p.(string); v != "" {
+			*projectID = v
 		}
 	}
 	if s, ok := attrs[highlight.SessionIDAttribute]; ok {
-		if s.(string) != "" {
-			*sessionID = s.(string)
+		if v, _ := s.(string); v != "" {
+			*sessionID = v
 		}
 	}
 	if r, ok := attrs[highlight.RequestIDAttribute]; ok {
-		if r.(string) != "" {
-			*requestID = r.(string)
+		if v, _ := r.(string); v != "" {
+			*requestID = v
 		}
 	}
 }
@@ -69,23 +69,24 @@ func projectToInt(projectID string) (int, error) {
 }
 
 func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Error(err, "invalid trace body")
+		log.WithContext(ctx).Error(err, "invalid trace body")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	gz, err := gzip.NewReader(bytes.NewReader(body))
 	if err != nil {
-		log.Error(err, "invalid gzip format for trace")
+		log.WithContext(ctx).Error(err, "invalid gzip format for trace")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	output, err := io.ReadAll(gz)
 	if err != nil {
-		log.Error(err, "invalid gzip stream for trace")
+		log.WithContext(ctx).Error(err, "invalid gzip stream for trace")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -93,7 +94,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	req := ptraceotlp.NewExportRequest()
 	err = req.UnmarshalProto(output)
 	if err != nil {
-		log.Error(err, "invalid trace protobuf")
+		log.WithContext(ctx).Error(err, "invalid trace protobuf")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -120,7 +121,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				spanAttributes := span.Attributes().AsRaw()
 				tagsBytes, err := json.Marshal(spanAttributes)
 				if err != nil {
-					log.Errorf("failed to format error attributes %s", tagsBytes)
+					log.WithContext(ctx).Errorf("failed to format error attributes %s", tagsBytes)
 					continue
 				}
 				setHighlightAttributes(spanAttributes, &projectID, &sessionID, &requestID)
@@ -135,13 +136,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						stackTrace := castString(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
 						errorUrl := castString(eventAttributes[highlight.ErrorURLKey], "")
 						if stackTrace == "" {
-							log.WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received exception with no stacktrace")
+							log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received exception with no stacktrace")
 							continue
 						} else if excType == "" && excMessage == "" {
-							log.WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received exception with no type and no message")
+							log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received exception with no type and no message")
 							continue
 						}
-						stackTrace = formatStructureStackTrace(stackTrace)
+						stackTrace = formatStructureStackTrace(ctx, stackTrace)
 						err := &model.BackendErrorObjectInput{
 							SessionSecureID: &sessionID,
 							RequestID:       &requestID,
@@ -172,20 +173,19 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							}
 							projectErrors[projectID] = append(projectErrors[projectID], err)
 						} else {
-							data, _ := req.MarshalJSON()
-							log.WithField("BackendErrorObjectInput", *err).WithField("RequestJSON", string(data)).Errorf("otel error got no session and no project")
+							log.WithContext(ctx).WithField("BackendErrorObjectInput", *err).Errorf("otel error got no session and no project")
 							continue
 						}
 					} else if event.Name() == hlog.LogName {
 						logSev := castString(eventAttributes[string(hlog.LogSeverityKey)], "unknown")
 						logMessage := castString(eventAttributes[string(hlog.LogMessageKey)], "")
 						if logMessage == "" {
-							log.WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received log with no message")
+							log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received log with no message")
 							continue
 						}
 						projectIDInt, err := projectToInt(projectID)
 						if err != nil {
-							log.WithField("ProjectVerboseID", projectID).WithField("LogMessage", logMessage).Errorf("otel span log got invalid project id")
+							log.WithContext(ctx).WithField("ProjectVerboseID", projectID).WithField("LogMessage", logMessage).Errorf("otel span log got invalid project id")
 							continue
 						}
 						resourceAttributesMap := make(map[string]string)
@@ -224,7 +224,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							projectLogs[projectID] = append(projectLogs[projectID], logRow)
 						} else {
 							data, _ := req.MarshalJSON()
-							log.WithField("LogEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span log got no project")
+							log.WithContext(ctx).WithField("LogEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span log got no project")
 							continue
 						}
 					}
@@ -234,41 +234,41 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for sessionID, errors := range traceErrors {
-		err = o.resolver.ProducerQueue.Submit(&kafkaqueue.Message{
+		err = o.resolver.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 				SessionSecureID: &sessionID,
 				Errors:          errors,
 			}}, sessionID)
 		if err != nil {
-			log.Error(err, "failed to submit otel session errors to public worker queue")
+			log.WithContext(ctx).Error(err, "failed to submit otel session errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
 	}
 
 	for projectID, errors := range projectErrors {
-		err = o.resolver.ProducerQueue.Submit(&kafkaqueue.Message{
+		err = o.resolver.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 				ProjectVerboseID: &projectID,
 				Errors:           errors,
 			}}, projectID)
 		if err != nil {
-			log.Error(err, "failed to submit otel project errors to public worker queue")
+			log.WithContext(ctx).Error(err, "failed to submit otel project errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
 	}
 
 	for projectID, logRows := range projectLogs {
-		err = o.resolver.BatchedQueue.Submit(&kafkaqueue.Message{
+		err = o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushLogs,
 			PushLogs: &kafkaqueue.PushLogsArgs{
 				LogRows: logRows,
 			}}, projectID)
 		if err != nil {
-			log.Error(err, "failed to submit otel project errors to public worker queue")
+			log.WithContext(ctx).Error(err, "failed to submit otel project errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
@@ -278,23 +278,24 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Error(err, "invalid log body")
+		log.WithContext(ctx).Error(err, "invalid log body")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	gz, err := gzip.NewReader(bytes.NewReader(body))
 	if err != nil {
-		log.Error(err, "invalid gzip format for log")
+		log.WithContext(ctx).Error(err, "invalid gzip format for log")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	output, err := io.ReadAll(gz)
 	if err != nil {
-		log.Error(err, "invalid gzip stream for log")
+		log.WithContext(ctx).Error(err, "invalid gzip stream for log")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -302,7 +303,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 	req := plogotlp.NewExportRequest()
 	err = req.UnmarshalProto(output)
 	if err != nil {
-		log.Error(err, "invalid log protobuf")
+		log.WithContext(ctx).Error(err, "invalid log protobuf")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -325,7 +326,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				setHighlightAttributes(logAttributes, &projectID, &sessionID, &requestID)
 				projectIDInt, err := projectToInt(projectID)
 				if err != nil {
-					log.WithField("ProjectID", projectID).WithField("LogMessage", logRecord.Body().AsRaw()).Errorf("otel log got invalid project id")
+					log.WithContext(ctx).WithField("ProjectID", projectID).WithField("LogMessage", logRecord.Body().AsRaw()).Errorf("otel log got invalid project id")
 					continue
 				}
 				resourceAttributesMap := make(map[string]string)
@@ -361,8 +362,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					}
 					projectLogs[projectID] = append(projectLogs[projectID], logRow)
 				} else {
-					data, _ := req.MarshalJSON()
-					log.WithField("LogRecord", logRecords).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel log got no project")
+					log.WithContext(ctx).WithField("LogRecord", logRecords).WithField("LogRow", *logRow).Errorf("otel log got no project")
 					continue
 				}
 			}
@@ -370,13 +370,13 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for projectID, logRows := range projectLogs {
-		err = o.resolver.BatchedQueue.Submit(&kafkaqueue.Message{
+		err = o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushLogs,
 			PushLogs: &kafkaqueue.PushLogsArgs{
 				LogRows: logRows,
 			}}, projectID)
 		if err != nil {
-			log.Error(err, "failed to submit otel project errors to public worker queue")
+			log.WithContext(ctx).Error(err, "failed to submit otel project errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}

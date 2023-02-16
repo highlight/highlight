@@ -1,6 +1,7 @@
 package otel
 
 import (
+	"context"
 	"encoding/json"
 	model3 "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/openlyinc/pointy"
@@ -93,15 +94,15 @@ func structureStackTrace(stackTrace string) ([]*model3.ErrorTrace, error) {
 	return frames, nil
 }
 
-func formatStructureStackTrace(stackTrace string) string {
+func formatStructureStackTrace(ctx context.Context, stackTrace string) string {
 	frames, err := structureStackTrace(stackTrace)
 	if err != nil {
-		log.WithField("StackTrace", stackTrace).WithError(err).Warnf("otel failed to structure stacktrace")
+		log.WithContext(ctx).WithField("StackTrace", stackTrace).WithError(err).Warnf("otel failed to structure stacktrace")
 		return stackTrace
 	}
 	output, err := json.Marshal(frames)
 	if err != nil {
-		log.WithField("Frames", frames).WithField("StackTrace", stackTrace).WithError(err).Warnf("otel failed to json stringify frames")
+		log.WithContext(ctx).WithField("Frames", frames).WithField("StackTrace", stackTrace).WithError(err).Warnf("otel failed to json stringify frames")
 		return stackTrace
 	}
 	return string(output)

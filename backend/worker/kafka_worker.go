@@ -15,17 +15,17 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-func (k *KafkaWorker) processWorkerError(task *kafkaqueue.Message, err error) {
-	log.Errorf("task %+v failed: %s", *task, err)
+func (k *KafkaWorker) processWorkerError(ctx context.Context, task *kafkaqueue.Message, err error) {
+	log.WithContext(ctx).Errorf("task %+v failed: %s", *task, err)
 	if task.Failures >= task.MaxRetries {
-		log.Errorf("task %+v failed after %d retries", *task, task.Failures)
+		log.WithContext(ctx).Errorf("task %+v failed after %d retries", *task, task.Failures)
 	} else {
 		hlog.Histogram("worker.kafka.processed.taskFailures", float64(task.Failures), nil, 1)
 	}
 	task.Failures += 1
 }
 
-func (k *KafkaWorker) ProcessMessages() {
+func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 	for {
 		func() {
 			defer util.Recover()
@@ -34,7 +34,7 @@ func (k *KafkaWorker) ProcessMessages() {
 			defer s.Finish()
 
 			s1 := tracer.StartSpan("worker.kafka.receiveMessage", tracer.ChildOf(s.Context()))
-			task := k.KafkaQueue.Receive()
+			task := k.KafkaQueue.Receive(ctx)
 			s1.Finish()
 
 			if task == nil {
@@ -47,8 +47,8 @@ func (k *KafkaWorker) ProcessMessages() {
 			var err error
 			s2 := tracer.StartSpan("worker.kafka.processMessage", tracer.ChildOf(s.Context()))
 			for i := 0; i <= task.MaxRetries; i++ {
-				if err = k.Worker.processPublicWorkerMessage(tracer.ContextWithSpan(context.Background(), s), task); err != nil {
-					k.processWorkerError(task, err)
+				if err = k.Worker.processPublicWorkerMessage(tracer.ContextWithSpan(ctx, s), task); err != nil {
+					k.processWorkerError(ctx, task, err)
 					s.SetTag("taskFailures", task.Failures)
 				} else {
 					break
@@ -57,7 +57,7 @@ func (k *KafkaWorker) ProcessMessages() {
 			s2.Finish(tracer.WithError(err))
 
 			s3 := tracer.StartSpan("worker.kafka.commitMessage", tracer.ChildOf(s.Context()))
-			k.KafkaQueue.Commit(task.KafkaMessage)
+			k.KafkaQueue.Commit(ctx, task.KafkaMessage)
 			s3.Finish()
 
 			hlog.Incr("worker.kafka.processed.total", nil, 1)
@@ -108,15 +108,15 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 		log.WithContext(ctx).WithError(err).Error("failed to batch write to clickhouse")
 	}
 
-	k.KafkaQueue.Commit(lastMsg.KafkaMessage)
+	k.KafkaQueue.Commit(ctx, lastMsg.KafkaMessage)
 	k.BatchBuffer.lastMessage = nil
 }
 
-func (k *KafkaBatchWorker) ProcessMessages() {
+func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 	for {
 		func() {
 			defer util.Recover()
-			s, ctx := tracer.StartSpanFromContext(context.Background(), "kafkaWorker", tracer.ResourceName("worker.kafka.batched.process"))
+			s, ctx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.process"))
 			s.SetTag("worker.goroutine", k.WorkerThread)
 			s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
 			defer s.Finish()
@@ -129,7 +129,7 @@ func (k *KafkaBatchWorker) ProcessMessages() {
 			k.BatchBuffer.flushLock.Unlock()
 
 			s1, _ := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.receive"))
-			task := k.KafkaQueue.Receive()
+			task := k.KafkaQueue.Receive(ctx)
 			s1.Finish()
 			if task == nil {
 				return

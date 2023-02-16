@@ -145,7 +145,7 @@ func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.Payload
 					return errors.Wrap(err, "error pushing event chunk file to s3")
 				}
 			}
-			if err := manager.NewChunkedFile(sessionIdString); err != nil {
+			if err := manager.NewChunkedFile(ctx, sessionIdString); err != nil {
 				return errors.Wrap(err, "error creating new chunked events file")
 			}
 			eventChunk := &model.EventChunk{
@@ -199,7 +199,7 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 
 	for _, dataObject := range dataObjects {
 		if payloadType == model.PayloadTypeEvents {
-			*accumulator = processEventChunk(*accumulator, model.EventsObject{
+			*accumulator = processEventChunk(ctx, *accumulator, model.EventsObject{
 				Events: dataObject.Contents(),
 			})
 			if accumulator.Error != nil {
@@ -333,7 +333,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
 			task.PushPayload.HighlightLogs,
 			task.PushPayload.PayloadID); err != nil {
-			log.Error(errors.Wrap(err, "failed to process ProcessPayload task"))
+			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process ProcessPayload task"))
 			return err
 		}
 	case kafkaqueue.InitializeSession:
@@ -347,7 +347,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		}
 		hlog.Incr("worker.initializeSession.count", tags, 1)
 		if err != nil {
-			log.Error(errors.Wrap(err, "failed to process InitializeSession task"))
+			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process InitializeSession task"))
 			return err
 		}
 	case kafkaqueue.IdentifySession:
@@ -355,7 +355,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionSecureID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false); err != nil {
-			log.Error(errors.Wrap(err, "failed to process IdentifySession task"))
+			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process IdentifySession task"))
 			return err
 		}
 	case kafkaqueue.AddTrackProperties:
@@ -367,7 +367,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			return err
 		}
 		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, sessionID, task.AddTrackProperties.PropertiesObject); err != nil {
-			log.Error(errors.Wrap(err, "failed to process AddTrackProperties task"))
+			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process AddTrackProperties task"))
 			return err
 		}
 	case kafkaqueue.AddSessionProperties:
@@ -379,7 +379,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			return err
 		}
 		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, sessionID, task.AddSessionProperties.PropertiesObject); err != nil {
-			log.Error(errors.Wrap(err, "failed to process AddSessionProperties task"))
+			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process AddSessionProperties task"))
 			return err
 		}
 	case kafkaqueue.PushBackendPayload:
@@ -392,15 +392,15 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionSecureID, task.PushMetrics.Metrics); err != nil {
-			log.Error(errors.Wrap(err, "failed to process PushMetricsImpl task"))
+			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process PushMetricsImpl task"))
 			return err
 		}
 	case kafkaqueue.MarkBackendSetup:
 		if task.MarkBackendSetup == nil {
 			break
 		}
-		if err := w.PublicResolver.MarkBackendSetupImpl(task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SessionSecureID, task.MarkBackendSetup.ProjectID); err != nil {
-			log.Error(errors.Wrap(err, "failed to process MarkBackendSetup task"))
+		if err := w.PublicResolver.MarkBackendSetupImpl(ctx, task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SessionSecureID, task.MarkBackendSetup.ProjectID); err != nil {
+			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process MarkBackendSetup task"))
 			return err
 		}
 	case kafkaqueue.AddSessionFeedback:
@@ -408,17 +408,17 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.AddSessionFeedbackImpl(ctx, task.AddSessionFeedback); err != nil {
-			log.Error(errors.Wrap(err, "failed to process AddSessionFeedback task"))
+			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process AddSessionFeedback task"))
 			return err
 		}
 	case kafkaqueue.HealthCheck:
 	default:
-		log.Errorf("Unknown task type %+v", task.Type)
+		log.WithContext(ctx).Errorf("Unknown task type %+v", task.Type)
 	}
 	return nil
 }
 
-func (w *Worker) PublicWorker() {
+func (w *Worker) PublicWorker(ctx context.Context) {
 	const parallelWorkers = 64
 	const parallelBatchWorkers = 8
 	// creates N parallel kafka message consumers that process messages.
@@ -434,11 +434,11 @@ func (w *Worker) PublicWorker() {
 		for i := 0; i < parallelWorkers; i++ {
 			go func(workerId int) {
 				k := KafkaWorker{
-					KafkaQueue:   kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Consumer),
+					KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Consumer),
 					Worker:       w,
 					WorkerThread: workerId,
 				}
-				k.ProcessMessages()
+				k.ProcessMessages(ctx)
 				wg.Done()
 			}(i)
 		}
@@ -454,12 +454,12 @@ func (w *Worker) PublicWorker() {
 		for i := 0; i < parallelBatchWorkers; i++ {
 			go func(workerId int) {
 				k := KafkaBatchWorker{
-					KafkaQueue:   kafkaqueue.New(kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Consumer),
+					KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Consumer),
 					Worker:       w,
 					WorkerThread: workerId,
 					BatchBuffer:  buffer,
 				}
-				k.ProcessMessages()
+				k.ProcessMessages(ctx)
 				wg.Done()
 			}(i)
 		}
@@ -471,7 +471,7 @@ func (w *Worker) PublicWorker() {
 
 // Delete data for any sessions created > 4 hours ago
 // if all session data has been written to s3
-func (w *Worker) DeleteCompletedSessions() {
+func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 	lookbackPeriod := 4*60 + 10 // 4h10m
 
 	baseQuery := `
@@ -485,20 +485,20 @@ func (w *Worker) DeleteCompletedSessions() {
 				AND s.created_at > NOW() - INTERVAL '1 WEEK'`
 
 	for _, table := range []string{"resources_objects", "messages_objects"} {
-		deleteSpan, _ := tracer.StartSpanFromContext(context.Background(), "worker.deleteObjects",
+		deleteSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.deleteObjects",
 			tracer.ResourceName("worker.deleteObjects"), tracer.Tag("table", table))
 		if err := w.Resolver.DB.Exec(fmt.Sprintf(baseQuery, table), lookbackPeriod).Error; err != nil {
-			log.Error(e.Wrapf(err, "error deleting expired objects from %s", table))
+			log.WithContext(ctx).Error(e.Wrapf(err, "error deleting expired objects from %s", table))
 		}
 		deleteSpan.Finish()
 	}
 }
 
-func (w *Worker) excludeSession(_ context.Context, s *model.Session) error {
+func (w *Worker) excludeSession(ctx context.Context, s *model.Session) error {
 	s.Excluded = &model.T
 	s.Processed = &model.T
 	if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
-		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
+		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("error excluding session (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 	}
 
@@ -512,10 +512,10 @@ func (w *Worker) excludeSession(_ context.Context, s *model.Session) error {
 	return nil
 }
 
-func (w *Worker) isSessionUserExcluded(_ context.Context, s *model.Session) bool {
+func (w *Worker) isSessionUserExcluded(ctx context.Context, s *model.Session) bool {
 	var project model.Project
 	if err := w.Resolver.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
-		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
+		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
 		return false
 	}
 	if project.ExcludedUsers == nil {
@@ -527,7 +527,7 @@ func (w *Worker) isSessionUserExcluded(_ context.Context, s *model.Session) bool
 		decodedProperties := map[string]string{}
 		err := json.Unmarshal(encodedProperties, &decodedProperties)
 		if err != nil {
-			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s, error: %v", s.UserProperties, err)
+			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s, error: %v", s.UserProperties, err)
 			return false
 		}
 		email = decodedProperties["email"]
@@ -539,7 +539,7 @@ func (w *Worker) isSessionUserExcluded(_ context.Context, s *model.Session) bool
 		for _, excludedExpr := range project.ExcludedUsers {
 			matched, err := regexp.MatchString(excludedExpr, value)
 			if err != nil {
-				log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s, error: %v", excludedExpr, value, err.Error())
+				log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s, error: %v", excludedExpr, value, err.Error())
 				return false
 			} else if matched {
 				return true
@@ -565,7 +565,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
 
-	payloadManager, err := payload.NewPayloadManager(sessionIdString)
+	payloadManager, err := payload.NewPayloadManager(ctx, sessionIdString)
 	if err != nil {
 		return errors.Wrap(err, "error creating payload manager")
 	}
@@ -575,7 +575,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		// Delete any timeline indicator events which were previously written for this session
 		if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).
 			Delete(&model.TimelineIndicatorEvent{}).Error; err != nil {
-			log.Error(e.Wrap(err, "error deleting outdated timeline indicator events"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error deleting outdated timeline indicator events"))
 		}
 	}
 
@@ -588,13 +588,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Delete any rage click events which were previously written for this session
 	if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).
 		Delete(&model.RageClickEvent{}).Error; err != nil {
-		log.Error(e.Wrap(err, "error deleting outdated rage click events"))
+		log.WithContext(ctx).Error(e.Wrap(err, "error deleting outdated rage click events"))
 	}
 
 	// Delete any session intervals which were previously written for this session
 	if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).
 		Delete(&model.SessionInterval{}).Error; err != nil {
-		log.Error(e.Wrap(err, "error deleting outdated session intervals"))
+		log.WithContext(ctx).Error(e.Wrap(err, "error deleting outdated session intervals"))
 	}
 
 	if err := w.scanSessionPayload(ctx, payloadManager, s, &accumulator); err != nil {
@@ -608,12 +608,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Exclude the session if there's no events.
 	if len(accumulator.EventsForTimelineIndicator) == 0 && s.Length <= 0 {
-		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
+		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
 		s.Excluded = &model.T
 		s.Processed = &model.T
 		if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
-			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
+			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 				"session_obj": s}).Warnf("error excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 		}
 
@@ -627,7 +627,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return nil
 	}
 
-	payloadManager.SeekStart()
+	payloadManager.SeekStart(ctx)
 
 	if len(accumulator.EventsForTimelineIndicator) > 0 {
 		var eventsForTimelineIndicator []*model.TimelineIndicatorEvent
@@ -648,17 +648,17 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if s.AvoidPostgresStorage {
 			eventBytes, err := json.Marshal(eventsForTimelineIndicator)
 			if err != nil {
-				log.Error(e.Wrap(err, "error marshalling eventsForTimelineIndicator"))
+				log.WithContext(ctx).Error(e.Wrap(err, "error marshalling eventsForTimelineIndicator"))
 			}
 			if err := payloadManager.TimelineIndicatorEvents.WriteString(string(eventBytes)); err != nil {
-				log.Error(e.Wrap(err, "error writing to TimelineIndicatorEvents"))
+				log.WithContext(ctx).Error(e.Wrap(err, "error writing to TimelineIndicatorEvents"))
 			}
 			if err := payloadManager.TimelineIndicatorEvents.Close(); err != nil {
-				log.Error(e.Wrap(err, "error closing TimelineIndicatorEvents writer"))
+				log.WithContext(ctx).Error(e.Wrap(err, "error closing TimelineIndicatorEvents writer"))
 			}
 		} else {
 			if err := w.Resolver.DB.Create(eventsForTimelineIndicator).Error; err != nil {
-				log.Error(e.Wrap(err, "error creating events for timeline indicator"))
+				log.WithContext(ctx).Error(e.Wrap(err, "error creating events for timeline indicator"))
 			}
 		}
 	}
@@ -671,13 +671,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	hasRageClicks := len(accumulator.RageClickSets) > 0
 	if hasRageClicks {
 		if err := w.Resolver.DB.Create(&accumulator.RageClickSets).Error; err != nil {
-			log.Error(e.Wrap(err, "error creating rage click sets"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error creating rage click sets"))
 		}
 	}
 
 	userInteractionEvents := accumulator.UserInteractionEvents
 	if len(userInteractionEvents) == 0 {
-		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Infof("excluding session due to no user interaction events")
+		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Infof("excluding session due to no user interaction events")
 		return w.excludeSession(ctx, s)
 	}
 
@@ -774,7 +774,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	if err := w.Resolver.DB.Create(finalIntervals).Error; err != nil {
-		log.Error(e.Wrap(err, "error creating session activity intervals"))
+		log.WithContext(ctx).Error(e.Wrap(err, "error creating session activity intervals"))
 	}
 
 	var eventCountsLen int64 = 100
@@ -803,13 +803,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
 	if accumulator.ActiveDuration == 0 {
-		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
+		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("excluding session with 0ms length active duration (session_id=%d, identifier=%s)", s.ID, s.Identifier)
 		return w.excludeSession(ctx, s)
 	}
 
 	if w.isSessionUserExcluded(ctx, s) {
-		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Infof("excluding session due to excluded identifier")
+		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Infof("excluding session due to excluded identifier")
 		return w.excludeSession(ctx, s)
 	}
 
@@ -853,7 +853,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			"exit_page":    visitFields[len(visitFields)-1].Value,
 		}
 		if err := w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
-			log.Error(e.Wrapf(err, "[processSession] error appending properties for session %d", s.ID))
+			log.WithContext(ctx).Error(e.Wrapf(err, "[processSession] error appending properties for session %d", s.ID))
 		}
 	}
 
@@ -881,7 +881,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			},
 		},
 	}); err != nil {
-		log.Errorf("failed to submit session processing metric for %s: %s", s.SecureID, err)
+		log.WithContext(ctx).Errorf("failed to submit session processing metric for %s: %s", s.SecureID, err)
 	}
 
 	// Update session count on dailydb
@@ -968,9 +968,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			if err := w.Resolver.RH.Notify(s.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
-				log.Error(e.Wrapf(err, "couldn't notify zapier on session alert (id: %d)", sessionAlert.ID))
+				log.WithContext(ctx).Error(e.Wrapf(err, "couldn't notify zapier on session alert (id: %d)", sessionAlert.ID))
 			}
-			sessionAlert.SendAlerts(w.Resolver.DB, w.Resolver.MailClient, &slackAlertPayload)
+			sessionAlert.SendAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, &slackAlertPayload)
 
 			if err = alerts.SendRageClicksAlert(alerts.RageClicksAlertEvent{
 				Session:         s,
@@ -978,7 +978,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				Workspace:       workspace,
 				RageClicksCount: count64,
 			}); err != nil {
-				log.Error(err)
+				log.WithContext(ctx).Error(err)
 			}
 		}
 		return nil
@@ -986,14 +986,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Waits for all goroutines to finish, then returns the first non-nil error (if any).
 	if err := g.Wait(); err != nil {
-		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error sending slack alert"))
+		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error sending slack alert"))
 	}
 
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		state := "normal"
 		if err := w.pushToObjectStorage(ctx, s, &state, payloadManager); err != nil {
-			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error pushing to object and wiping from db"))
+			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error pushing to object and wiping from db"))
 		}
 	}
 
@@ -1001,8 +1001,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 }
 
 // Start begins the worker's tasks.
-func (w *Worker) Start() {
-	ctx := context.Background()
+func (w *Worker) Start(ctx context.Context) {
 	payloadLookbackPeriod := 60 // a session must be stale for at least this long to be processed
 	lockPeriod := 30            // time in minutes
 
@@ -1011,7 +1010,7 @@ func (w *Worker) Start() {
 		lockPeriod = 1
 	}
 
-	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
+	go reportProcessSessionCount(ctx, w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
 	maxWorkerCount := 10
 	processSessionLimit := 200
 	wp := workerpool.New(maxWorkerCount)
@@ -1070,7 +1069,7 @@ func (w *Worker) Start() {
 			}
 			return nil
 		}); err != nil {
-			log.Errorf("error querying unparsed, outdated sessions, took [%v]: %v", time.Since(txStart), err)
+			log.WithContext(ctx).Errorf("error querying unparsed, outdated sessions, took [%v]: %v", time.Since(txStart), err)
 			sessionsSpan.Finish()
 			continue
 		}
@@ -1090,7 +1089,7 @@ func (w *Worker) Start() {
 			sessionIds = append(sessionIds, SessionLog{SessionID: session.ID, ProjectID: session.ProjectID})
 		}
 		if len(sessionIds) > 0 {
-			log.Infof("sessions that will be processed: %v", sessionIds)
+			log.WithContext(ctx).Infof("sessions that will be processed: %v", sessionIds)
 		}
 
 		for _, session := range sessions {
@@ -1107,7 +1106,7 @@ func (w *Worker) Start() {
 					workerMaxMem, _ = strconv.ParseFloat(workerMaxMemStr, 64)
 				}
 				for vmStat.UsedPercent > workerMaxMem {
-					log.Infof("worker memory use over threshold, sleeping. value: %f", vmStat.UsedPercent)
+					log.WithContext(ctx).Infof("worker memory use over threshold, sleeping. value: %f", vmStat.UsedPercent)
 					time.Sleep(5 * time.Second)
 					vmStat, _ = mem.VirtualMemory()
 				}
@@ -1123,17 +1122,17 @@ func (w *Worker) Start() {
 					if err := w.Resolver.DB.Model(&model.Session{}).
 						Where(&model.Session{Model: model.Model{ID: session.ID}}).
 						Updates(&model.Session{RetryCount: nextCount, Excluded: excluded}).Error; err != nil {
-						log.WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error incrementing retry count"))
+						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error incrementing retry count"))
 					}
 
 					if excluded != nil && *excluded {
-						log.WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "session has reached the max retry count and will be excluded"))
+						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "session has reached the max retry count and will be excluded"))
 						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
-							log.WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
+							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
 					}
 
-					log.WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error processing main session"))
+					log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error processing main session"))
 					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
 				}
@@ -1149,77 +1148,76 @@ func (w *Worker) Start() {
 	}
 }
 
-func (w *Worker) ReportStripeUsage() {
-	pricing.ReportAllUsage(w.Resolver.DB, w.Resolver.StripeClient, w.Resolver.MailClient)
+func (w *Worker) ReportStripeUsage(ctx context.Context) {
+	pricing.ReportAllUsage(ctx, w.Resolver.DB, w.Resolver.StripeClient, w.Resolver.MailClient)
 }
 
-func (w *Worker) UpdateOpenSearchIndex() {
-	w.IndexTable(opensearch.IndexFields, &model.Field{}, true)
-	w.IndexTable(opensearch.IndexErrorFields, &model.ErrorField{}, true)
-	w.IndexErrorGroups(true)
-	w.IndexErrorObjects(true)
-	w.IndexSessions(true)
+func (w *Worker) UpdateOpenSearchIndex(ctx context.Context) {
+	w.IndexTable(ctx, opensearch.IndexFields, &model.Field{}, true)
+	w.IndexTable(ctx, opensearch.IndexErrorFields, &model.ErrorField{}, true)
+	w.IndexErrorGroups(ctx, true)
+	w.IndexErrorObjects(ctx, true)
+	w.IndexSessions(ctx, true)
 
 	// Close the indexer channel and flush remaining items
 	if err := w.Resolver.OpenSearch.Close(); err != nil {
-		log.Fatalf("OPENSEARCH_ERROR unexpected error while closing OpenSearch client: %+v", err)
+		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR unexpected error while closing OpenSearch client: %+v", err)
 	}
 
 	// Report the indexer statistics
 	stats := w.Resolver.OpenSearch.BulkIndexer.Stats()
 	if stats.NumFailed > 0 {
-		log.Errorf("Indexed [%d] documents with [%d] errors", stats.NumFlushed, stats.NumFailed)
+		log.WithContext(ctx).Errorf("Indexed [%d] documents with [%d] errors", stats.NumFlushed, stats.NumFailed)
 	} else {
-		log.Infof("Successfully indexed [%d] documents", stats.NumFlushed)
+		log.WithContext(ctx).Infof("Successfully indexed [%d] documents", stats.NumFlushed)
 	}
 }
 
-func (w *Worker) InitializeOpenSearchSessions() {
-	w.InitIndexMappings()
-	w.IndexSessions(false)
+func (w *Worker) InitializeOpenSearchSessions(ctx context.Context) {
+	w.InitIndexMappings(ctx)
+	w.IndexSessions(ctx, false)
 
 	// Close the indexer channel and flush remaining items
 	if err := w.Resolver.OpenSearch.Close(); err != nil {
-		log.Fatalf("OPENSEARCH_ERROR unexpected error while closing OpenSearch client: %+v", err)
+		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR unexpected error while closing OpenSearch client: %+v", err)
 	}
 
 	// Report the indexer statistics
 	stats := w.Resolver.OpenSearch.BulkIndexer.Stats()
 	if stats.NumFailed > 0 {
-		log.Errorf("Indexed [%d] documents with [%d] errors", stats.NumFlushed, stats.NumFailed)
+		log.WithContext(ctx).Errorf("Indexed [%d] documents with [%d] errors", stats.NumFlushed, stats.NumFailed)
 	} else {
-		log.Infof("Successfully indexed [%d] documents", stats.NumFlushed)
+		log.WithContext(ctx).Infof("Successfully indexed [%d] documents", stats.NumFlushed)
 	}
 }
 
-func (w *Worker) InitializeOpenSearchIndex() {
-	w.InitIndexMappings()
-	w.IndexTable(opensearch.IndexFields, &model.Field{}, false)
-	w.IndexTable(opensearch.IndexErrorFields, &model.ErrorField{}, false)
-	w.IndexErrorGroups(false)
-	w.IndexErrorObjects(false)
-	w.IndexSessions(false)
+func (w *Worker) InitializeOpenSearchIndex(ctx context.Context) {
+	w.InitIndexMappings(ctx)
+	w.IndexTable(ctx, opensearch.IndexFields, &model.Field{}, false)
+	w.IndexTable(ctx, opensearch.IndexErrorFields, &model.ErrorField{}, false)
+	w.IndexErrorGroups(ctx, false)
+	w.IndexErrorObjects(ctx, false)
+	w.IndexSessions(ctx, false)
 
 	// Close the indexer channel and flush remaining items
 	if err := w.Resolver.OpenSearch.Close(); err != nil {
-		log.Fatalf("OPENSEARCH_ERROR unexpected error while closing OpenSearch client: %+v", err)
+		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR unexpected error while closing OpenSearch client: %+v", err)
 	}
 
 	// Report the indexer statistics
 	stats := w.Resolver.OpenSearch.BulkIndexer.Stats()
 	if stats.NumFailed > 0 {
-		log.Errorf("Indexed [%d] documents with [%d] errors", stats.NumFlushed, stats.NumFailed)
+		log.WithContext(ctx).Errorf("Indexed [%d] documents with [%d] errors", stats.NumFlushed, stats.NumFailed)
 	} else {
-		log.Infof("Successfully indexed [%d] documents", stats.NumFlushed)
+		log.WithContext(ctx).Infof("Successfully indexed [%d] documents", stats.NumFlushed)
 	}
 }
 
-func (w *Worker) StartMetricMonitorWatcher() {
-	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH)
+func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
+	metric_monitor.WatchMetricMonitors(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH)
 }
 
-func (w *Worker) RefreshMaterializedViews() {
-	ctx := context.Background()
+func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	span, _ := tracer.StartSpanFromContext(ctx, "worker.refreshMaterializedViews",
 		tracer.ResourceName("worker.refreshMaterializedViews"))
 	defer span.Finish()
@@ -1235,7 +1233,7 @@ func (w *Worker) RefreshMaterializedViews() {
 		`).Error
 
 	}); err != nil {
-		log.Fatal(e.Wrap(err, "Error refreshing daily_session_counts_view"))
+		log.WithContext(ctx).Fatal(e.Wrap(err, "Error refreshing daily_session_counts_view"))
 	}
 
 	type AggregateSessionCount struct {
@@ -1251,7 +1249,7 @@ func (w *Worker) RefreshMaterializedViews() {
 				 INNER JOIN daily_session_counts_view dsc on p.id = dsc.project_id
 				 INNER JOIN daily_error_counts dec on p.id = dec.project_id
 		GROUP BY p.workspace_id`).Scan(&counts).Error; err != nil {
-		log.Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
+		log.WithContext(ctx).Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
 	}
 
 	if !util.IsDevOrTestEnv() {
@@ -1262,7 +1260,7 @@ func (w *Worker) RefreshMaterializedViews() {
 				continue
 			}
 
-			if err := w.Resolver.HubspotApi.UpdateCompanyProperty(c.WorkspaceID, []hubspot.Property{{
+			if err := w.Resolver.HubspotApi.UpdateCompanyProperty(ctx, c.WorkspaceID, []hubspot.Property{{
 				Name:     "highlight_session_count",
 				Property: "highlight_session_count",
 				Value:    c.SessionCount,
@@ -1271,7 +1269,7 @@ func (w *Worker) RefreshMaterializedViews() {
 				Property: "highlight_error_count",
 				Value:    c.ErrorCount,
 			}}); err != nil {
-				log.WithFields(log.Fields{
+				log.WithContext(ctx).WithFields(log.Fields{
 					"workspace_id":  c.WorkspaceID,
 					"session_count": c.SessionCount,
 					"error_count":   c.ErrorCount,
@@ -1282,7 +1280,7 @@ func (w *Worker) RefreshMaterializedViews() {
 	}
 }
 
-func (w *Worker) BackfillStackFrames() {
+func (w *Worker) BackfillStackFrames(ctx context.Context) {
 	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
 		Where(`
 			type <> 'Backend'
@@ -1294,7 +1292,7 @@ func (w *Worker) BackfillStackFrames() {
 				and mapped_stack_trace ilike '%\"error\":null%')`).
 		Order("id desc").Rows()
 	if err != nil {
-		log.Fatalf("error retrieving objects: %+v", err)
+		log.WithContext(ctx).Fatalf("error retrieving objects: %+v", err)
 	}
 
 	backfiller := workerpool.New(200)
@@ -1304,25 +1302,25 @@ func (w *Worker) BackfillStackFrames() {
 		backfiller.SubmitRecover(func() {
 			modelObj := &model.ErrorObject{}
 			if err := w.Resolver.DB.ScanRows(rows, modelObj); err != nil {
-				log.Fatalf("error scanning rows: %+v", err)
+				log.WithContext(ctx).Fatalf("error scanning rows: %+v", err)
 			}
 
 			var inputs []*publicModel.StackFrameInput
 			if err := json.Unmarshal([]byte(*modelObj.StackTrace), &inputs); err != nil {
-				log.Errorf("error unmarshalling stack trace from error object: %+v", err)
+				log.WithContext(ctx).Errorf("error unmarshalling stack trace from error object: %+v", err)
 				return
 			}
 
 			version := w.PublicResolver.GetErrorAppVersion(modelObj)
-			mappedStackTrace, err := highlightErrors.EnhanceStackTrace(inputs, modelObj.ProjectID, version, w.Resolver.StorageClient)
+			mappedStackTrace, err := highlightErrors.EnhanceStackTrace(ctx, inputs, modelObj.ProjectID, version, w.Resolver.StorageClient)
 			if err != nil {
-				log.Errorf("error getting stack trace string: %+v", err)
+				log.WithContext(ctx).Errorf("error getting stack trace string: %+v", err)
 				return
 			}
 
 			mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
 			if err != nil {
-				log.Errorf("error marshalling mapped stack trace %+v", err)
+				log.WithContext(ctx).Errorf("error marshalling mapped stack trace %+v", err)
 				return
 			}
 
@@ -1331,14 +1329,14 @@ func (w *Worker) BackfillStackFrames() {
 			if err := w.Resolver.DB.Model(&model.ErrorObject{}).
 				Where("id = ?", modelObj.ID).
 				Updates(&model.ErrorObject{MappedStackTrace: &mappedStackTraceString}).Error; err != nil {
-				log.Errorf("error updating stack trace string: %+v", err)
+				log.WithContext(ctx).Errorf("error updating stack trace string: %+v", err)
 				return
 			}
 		})
 	}
 }
 
-func (w *Worker) GetHandler(handlerFlag string) func() {
+func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx context.Context) {
 	switch handlerFlag {
 	case "report-stripe-usage":
 		return w.ReportStripeUsage
@@ -1359,7 +1357,7 @@ func (w *Worker) GetHandler(handlerFlag string) func() {
 	case "public-worker":
 		return w.PublicWorker
 	default:
-		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
+		log.WithContext(ctx).Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil
 	}
 }
@@ -1433,7 +1431,7 @@ func MakeEventProcessingAccumulator(sessionSecureID string, rageClickSettings Ra
 	}
 }
 
-func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObject) EventProcessingAccumulator {
+func processEventChunk(ctx context.Context, a EventProcessingAccumulator, eventsChunk model.EventsObject) EventProcessingAccumulator {
 	if a.ClickEventQueue == nil {
 		a.Error = errors.New("ClickEventQueue cannot be nil")
 		return a
@@ -1452,10 +1450,10 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 		if !a.AreEventsOutOfOrder {
 			eventTime := event.Timestamp.Unix()
 			if sequentialID <= 0 {
-				log.WithField("session_secure_id", a.SessionSecureID).Warn(fmt.Sprintf("The payload has an event after SID %d with an invalid SID at time %d", a.LatestSID, eventTime))
+				log.WithContext(ctx).WithField("session_secure_id", a.SessionSecureID).Warn(fmt.Sprintf("The payload has an event after SID %d with an invalid SID at time %d", a.LatestSID, eventTime))
 				a.AreEventsOutOfOrder = true
 			} else if sequentialID != a.LatestSID+1 && sequentialID != 1 { // The ID can reset to 1 if a navigation or refresh happens
-				log.WithField("session_secure_id", a.SessionSecureID).Warn(fmt.Sprintf("The payload has two SID's out-of-order: %d and %d at time %d", a.LatestSID, sequentialID, eventTime))
+				log.WithContext(ctx).WithField("session_secure_id", a.SessionSecureID).Warn(fmt.Sprintf("The payload has two SID's out-of-order: %d and %d at time %d", a.LatestSID, sequentialID, eventTime))
 				a.AreEventsOutOfOrder = true
 			}
 		}
@@ -1582,7 +1580,7 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 	return a
 }
 
-func reportProcessSessionCount(db *gorm.DB, lookbackPeriod, lockPeriod int) {
+func reportProcessSessionCount(ctx context.Context, db *gorm.DB, lookbackPeriod, lockPeriod int) {
 	defer util.Recover()
 	for {
 		time.Sleep(1*time.Minute + time.Duration(59*float64(time.Minute.Nanoseconds())*rand.Float64()))
@@ -1596,7 +1594,7 @@ func reportProcessSessionCount(db *gorm.DB, lookbackPeriod, lockPeriod int) {
 				AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))
 				AND (retry_count < ?)
 			`, lookbackPeriod, lockPeriod, MAX_RETRIES).Scan(&count).Error; err != nil {
-			log.Error(e.Wrap(err, "error getting count of sessions to process"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error getting count of sessions to process"))
 			continue
 		}
 		hlog.Histogram("processSessionsCount", float64(count), nil, 1)

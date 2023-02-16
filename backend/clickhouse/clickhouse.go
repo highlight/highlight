@@ -1,6 +1,7 @@
 package clickhouse
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"os"
@@ -37,17 +38,17 @@ func NewClient(dbName string) (*Client, error) {
 	}, err
 }
 
-func RunMigrations(dbName string) {
+func RunMigrations(ctx context.Context, dbName string) {
 	options := getClickhouseOptions(dbName)
 	db := clickhouse.OpenDB(options)
 	driver, err := clickhouseMigrate.WithInstance(db, &clickhouseMigrate.Config{
 		MigrationsTableEngine: "MergeTree",
 	})
 
-	log.Printf("Starting clickhouse migrations for db: %s", dbName)
+	log.WithContext(ctx).Printf("Starting clickhouse migrations for db: %s", dbName)
 
 	if err != nil {
-		log.Fatalf("Error creating clickhouse db instance for migrations: %v", err)
+		log.WithContext(ctx).Fatalf("Error creating clickhouse db instance for migrations: %v", err)
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
@@ -57,13 +58,13 @@ func RunMigrations(dbName string) {
 	)
 
 	if err != nil {
-		log.Fatalf("Error creating clickhouse db instance for migrations: %v", err)
+		log.WithContext(ctx).Fatalf("Error creating clickhouse db instance for migrations: %v", err)
 	}
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatalf("Error running clickhouse migrations: %v", err)
+		log.WithContext(ctx).Fatalf("Error running clickhouse migrations: %v", err)
 	} else {
-		log.Printf("Finished clickhouse migrations for db: %s", dbName)
+		log.WithContext(ctx).Printf("Finished clickhouse migrations for db: %s", dbName)
 	}
 }
 

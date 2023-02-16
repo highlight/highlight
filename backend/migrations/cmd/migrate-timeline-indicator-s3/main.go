@@ -28,22 +28,23 @@ func createFile(name string) (*os.File, error) {
 }
 
 func main() {
-	log.Info("ZANE_MIGRATION setting up db")
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	ctx := context.Background()
+	log.WithContext(ctx).Info("ZANE_MIGRATION setting up db")
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.Fatalf("ZANE_MIGRATION error setting up db: %+v", err)
+		log.WithContext(ctx).Fatalf("ZANE_MIGRATION error setting up db: %+v", err)
 	}
 	sqlDB, err := db.DB()
 	if err != nil {
-		log.Fatalf("ZANE_MIGRATION error getting raw db: %+v", err)
+		log.WithContext(ctx).Fatalf("ZANE_MIGRATION error getting raw db: %+v", err)
 	}
 	if err := sqlDB.Ping(); err != nil {
-		log.Fatalf("ZANE_MIGRATION error pinging db: %+v", err)
+		log.WithContext(ctx).Fatalf("ZANE_MIGRATION error pinging db: %+v", err)
 	}
 
-	storageClient, err := storage.NewStorageClient()
+	storageClient, err := storage.NewStorageClient(ctx)
 	if err != nil {
-		log.Fatalf("ZANE_MIGRATION error creating storage client: %v", err)
+		log.WithContext(ctx).Fatalf("ZANE_MIGRATION error creating storage client: %v", err)
 	}
 
 	max := 46656
@@ -67,11 +68,11 @@ func main() {
 				returning start
 			) select * from t
 		`).Scan(&start).Error; err != nil {
-			log.Fatal(errors.Wrap(err, "ZANE_MIGRATION error querying next start"))
+			log.WithContext(ctx).Fatal(errors.Wrap(err, "ZANE_MIGRATION error querying next start"))
 		}
 
 		if start > max {
-			log.Info("ZANE_MIGRATION done all")
+			log.WithContext(ctx).Info("ZANE_MIGRATION done all")
 			break
 		}
 
@@ -101,7 +102,7 @@ func main() {
 					limit ?
 				)
 				order by timestamp asc`, startAscii, endAscii, BatchSize).Scan(&nextEvents).Error; err != nil {
-				log.Fatalf("ZANE_MIGRATION error querying next sessions %v", err)
+				log.WithContext(ctx).Fatalf("ZANE_MIGRATION error querying next sessions %v", err)
 			}
 
 			if len(nextEvents) == 0 {
@@ -110,9 +111,9 @@ func main() {
 					set done = true
 					where start = ?
 				`, start).Error; err != nil {
-					log.Fatal(errors.Wrap(err, "ZANE_MIGRATION error updating work block"))
+					log.WithContext(ctx).Fatal(errors.Wrap(err, "ZANE_MIGRATION error updating work block"))
 				}
-				log.Infof("ZANE_MIGRATION done block %d", start)
+				log.WithContext(ctx).Infof("ZANE_MIGRATION done block %d", start)
 				break
 			}
 
@@ -126,7 +127,7 @@ func main() {
 				if !ok {
 					file, err := createFile(fmt.Sprintf("%d.json.br", ne.SessionID))
 					if err != nil {
-						log.Fatalf("error creating file")
+						log.WithContext(ctx).Fatalf("error creating file")
 					}
 					fileMap[ne.SessionID] = file
 					eventsMap[ne.SessionID] = []model.TimelineIndicatorEvent{}
@@ -136,7 +137,7 @@ func main() {
 			}
 			secureIds := lo.Keys(secureIdMap)
 
-			log.Infof("ZANE_MIGRATION secure ids: %v", secureIds)
+			log.WithContext(ctx).Infof("ZANE_MIGRATION secure ids: %v", secureIds)
 
 			var g errgroup.Group
 			for sId, fi := range fileMap {
@@ -153,23 +154,23 @@ func main() {
 						return errors.Wrap(err, "error writing to TimelineIndicatorEvents")
 					}
 					if err := writer.Close(); err != nil {
-						log.Error(errors.Wrap(err, "ZANE_MIGRATION error closing TimelineIndicatorEvents writer"))
+						log.WithContext(ctx).Error(errors.Wrap(err, "ZANE_MIGRATION error closing TimelineIndicatorEvents writer"))
 					}
 					if _, err := storageClient.PushCompressedFileToS3(context.Background(), sessionId, projectId, f, storage.TimelineIndicatorEvents); err != nil {
 						return errors.Wrap(err, "error pushing to s3")
 					}
 					if err := f.Close(); err != nil {
-						log.Error(errors.Wrap(err, "ZANE_MIGRATION failed to close file"))
+						log.WithContext(ctx).Error(errors.Wrap(err, "ZANE_MIGRATION failed to close file"))
 					}
 					if err := os.Remove(f.Name()); err != nil {
-						log.Error(errors.Wrap(err, "ZANE_MIGRATION failed to remove file"))
+						log.WithContext(ctx).Error(errors.Wrap(err, "ZANE_MIGRATION failed to remove file"))
 					}
 					return nil
 				})
 			}
 
 			if err := g.Wait(); err != nil {
-				log.Fatal(errors.Wrap(err, "ZANE_MIGRATION error writing to s3"))
+				log.WithContext(ctx).Fatal(errors.Wrap(err, "ZANE_MIGRATION error writing to s3"))
 			}
 
 			if err := db.Exec(`
@@ -177,7 +178,7 @@ func main() {
 				set avoid_postgres_storage = true
 				where secure_id in ?
 				`, secureIds).Error; err != nil {
-				log.Fatal(errors.Wrap(err, "ZANE_MIGRATION error updating sessions avoid_postgres_storage"))
+				log.WithContext(ctx).Fatal(errors.Wrap(err, "ZANE_MIGRATION error updating sessions avoid_postgres_storage"))
 			}
 
 			if err := db.Exec(`
@@ -185,7 +186,7 @@ func main() {
 				set deleted_at = now()
 				where session_secure_id in ?
 				`, secureIds).Error; err != nil {
-				log.Fatal(errors.Wrap(err, "ZANE_MIGRATION error updating timeline_indicator_events deleted_at"))
+				log.WithContext(ctx).Fatal(errors.Wrap(err, "ZANE_MIGRATION error updating timeline_indicator_events deleted_at"))
 			}
 		}
 	}

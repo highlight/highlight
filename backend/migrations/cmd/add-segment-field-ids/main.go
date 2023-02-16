@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 
@@ -10,13 +11,14 @@ import (
 )
 
 func main() {
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	ctx := context.TODO()
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.Fatalf("error setting up db: %+v", err)
+		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}
 	var segments []model.Segment
 	if err := db.Debug().Where(&model.Segment{}).Scan(&segments).Error; err != nil {
-		log.Error("sad")
+		log.WithContext(ctx).Error("sad")
 		panic("panicking")
 	}
 	for _, segment := range segments {
@@ -30,7 +32,7 @@ func main() {
 			paramsBytes := []byte(*segment.Params)
 			err := json.Unmarshal(paramsBytes, &params)
 			if err != nil {
-				log.Error("wow")
+				log.WithContext(ctx).Error("wow")
 				continue
 			}
 
@@ -40,12 +42,12 @@ func main() {
 				var id int
 				if prop.Name == "contains" {
 					if err := db.Debug().Model(&model.Field{}).Where("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user").Pluck("id", &id).Error; err != nil {
-						log.Error("user contains: ", err)
+						log.WithContext(ctx).Error("user contains: ", err)
 						panic("panicking")
 					}
 				} else {
 					if err := db.Debug().Model(&model.Field{}).Where("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user").Pluck("id", &id).Error; err != nil {
-						log.Error("user: ", err)
+						log.WithContext(ctx).Error("user: ", err)
 						panic("panicking")
 					}
 				}
@@ -57,12 +59,12 @@ func main() {
 				var id int
 				if prop.Name == "contains" {
 					if err := db.Debug().Model(&model.Field{}).Where("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track").Pluck("id", &id).Error; err != nil {
-						log.Error("track contains: ", err)
+						log.WithContext(ctx).Error("track contains: ", err)
 						panic("panicking")
 					}
 				} else {
 					if err := db.Debug().Model(&model.Field{}).Where("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track").Pluck("id", &id).Error; err != nil {
-						log.Error("track: ", err)
+						log.WithContext(ctx).Error("track: ", err)
 						panic("panicking")
 					}
 
@@ -75,12 +77,12 @@ func main() {
 				var id int
 				if prop.Name == "contains" {
 					if err := db.Debug().Model(&model.Field{}).Where(db.Where(&model.Field{Type: "track"}).Or(&model.Field{Type: "user"})).Where("value ILIKE ?", "%"+prop.Value+"%").Pluck("id", &id).Error; err != nil {
-						log.Error("excluded contains: ", err)
+						log.WithContext(ctx).Error("excluded contains: ", err)
 						panic("panicking")
 					}
 				} else {
 					if err := db.Debug().Model(&model.Field{}).Where(db.Where(&model.Field{Type: "track"}).Or(&model.Field{Type: "user"})).Where(&model.Field{Name: prop.Name, Value: prop.Value}).Pluck("id", &id).Error; err != nil {
-						log.Error("excluded: ", err)
+						log.WithContext(ctx).Error("excluded: ", err)
 						panic("panicking")
 					}
 				}
@@ -90,12 +92,12 @@ func main() {
 
 			paramsBytes, err = json.Marshal(params)
 			if err != nil {
-				log.Error("nooo: ", err)
+				log.WithContext(ctx).Error("nooo: ", err)
 				continue
 			}
 			paramsString := string(paramsBytes)
 			if err := db.Debug().Model(&model.Segment{}).Where(&model.Segment{Model: model.Model{ID: segment.ID}}).Updates(&model.Segment{Params: &paramsString}).Error; err != nil {
-				log.Error("ugh: ", err)
+				log.WithContext(ctx).Error("ugh: ", err)
 			}
 		}
 	}

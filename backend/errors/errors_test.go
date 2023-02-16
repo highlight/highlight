@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"context"
 	"testing"
 
 	"github.com/go-test/deep"
@@ -13,6 +14,7 @@ import (
 )
 
 func TestEnhanceStackTrace(t *testing.T) {
+	ctx := context.TODO()
 	stackTraceErrorCode := modelInput.SourceMappingErrorCodeMinifiedFileMissingInS3AndURL
 
 	// construct table of sub-tests to run
@@ -208,7 +210,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 		},
 	}
 
-	storageClient, err := storage.NewStorageClient()
+	storageClient, err := storage.NewStorageClient(ctx)
 	if err != nil {
 		t.Fatalf("error creating storage client: %v", err)
 	}
@@ -217,7 +219,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			fetch = tc.fetcher
-			mappedStackTrace, err := EnhanceStackTrace(tc.stackFrameInput, 1, nil, storageClient)
+			mappedStackTrace, err := EnhanceStackTrace(ctx, tc.stackFrameInput, 1, nil, storageClient)
 			if err != nil {
 				if err.Error() == tc.err.Error() {
 					return

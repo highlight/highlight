@@ -27,16 +27,16 @@ func main() {
 
 	out, err := h.GetProjectIds(ctx, input)
 	if err != nil {
-		log.Fatal(err)
+		log.WithContext(ctx).Fatal(err)
 	}
 
 	data, err := h.GetDigestData(ctx, out[0])
 	if err != nil {
-		log.Fatal(err)
+		log.WithContext(ctx).Fatal(err)
 	}
 
 	err = h.SendDigestEmails(ctx, *data)
 	if err != nil {
-		log.Fatal(err)
+		log.WithContext(ctx).Fatal(err)
 	}
 }

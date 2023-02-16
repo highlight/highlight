@@ -40,14 +40,14 @@ func SetupZapierAuthContextMiddleware(db *gorm.DB) func(http.Handler) http.Handl
 			parsedToken, err := ParseZapierAccessToken(authToken)
 
 			if err != nil {
-				log.Error("Error parsing authorization jwt: ", err)
+				log.WithContext(context.TODO()).Error("Error parsing authorization jwt: ", err)
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
 
 			project, err := getProjectForToken(parsedToken, db)
 			if err != nil {
-				log.Error("Error getting project from authorization: ", err)
+				log.WithContext(context.TODO()).Error("Error getting project from authorization: ", err)
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
@@ -97,7 +97,7 @@ func RequireValidZapierAuth(next http.Handler) http.Handler {
 		project := r.Context().Value(model.ContextKeys.ZapierProject).(*model.Project)
 
 		if *project.ZapierAccessToken != parsedToken.Magic {
-			log.Error("Access token magic does not match")
+			log.WithContext(context.TODO()).Error("Access token magic does not match")
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -113,7 +113,7 @@ func CreateZapierRoutes(r chi.Router, db *gorm.DB, store *ZapierResthookStore, r
 		project := r.Context().Value(model.ContextKeys.ZapierProject).(*model.Project)
 
 		if project.ZapierAccessToken != nil && *project.ZapierAccessToken != "" && *project.ZapierAccessToken != parsedToken.Magic {
-			log.Error("Access token magic does not match (and is not empty): ")
+			log.WithContext(context.TODO()).Error("Access token magic does not match (and is not empty): ")
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -121,7 +121,7 @@ func CreateZapierRoutes(r chi.Router, db *gorm.DB, store *ZapierResthookStore, r
 		if project.ZapierAccessToken == nil || *project.ZapierAccessToken == "" {
 			project.ZapierAccessToken = &parsedToken.Magic
 			if err := db.Save(project).Error; err != nil {
-				log.Error("Error saving project with new access token: ", err)
+				log.WithContext(context.TODO()).Error("Error saving project with new access token: ", err)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}
@@ -141,7 +141,7 @@ func CreateZapierRoutes(r chi.Router, db *gorm.DB, store *ZapierResthookStore, r
 		w.Header().Add("Content-Type", "application/json")
 
 		if err := json.NewEncoder(w).Encode(res); err != nil {
-			log.Error("Error sending json response: ", err)
+			log.WithContext(context.TODO()).Error("Error sending json response: ", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
@@ -166,7 +166,7 @@ func CreateZapierRoutes(r chi.Router, db *gorm.DB, store *ZapierResthookStore, r
 				UNION ALL SELECT 'ErrorAlert' AS alert_type, id, name, project_id FROM error_alerts WHERE project_id = ?
 				UNION ALL select 'MetricMonitor' AS alert_type, id, name, project_id FROM metric_monitors WHERE project_id = ?;
 			`, project.ID, project.ID, project.ID).Scan(&alertEntries).Error; err != nil {
-				log.Error("Error querying alerts: ", err)
+				log.WithContext(context.TODO()).Error("Error querying alerts: ", err)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}
@@ -175,7 +175,7 @@ func CreateZapierRoutes(r chi.Router, db *gorm.DB, store *ZapierResthookStore, r
 			w.Header().Add("Content-Type", "application/json")
 
 			if err := json.NewEncoder(w).Encode(alertEntries); err != nil {
-				log.Error("Error sending json response: ", err)
+				log.WithContext(context.TODO()).Error("Error sending json response: ", err)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}

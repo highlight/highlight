@@ -1,6 +1,7 @@
 package height
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -125,7 +126,7 @@ func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {
 	}, options, nil
 }
 
-func GetRefreshToken(oldToken *oauth2.Token) (*oauth2.Token, error) {
+func GetRefreshToken(ctx context.Context, oldToken *oauth2.Token) (*oauth2.Token, error) {
 	conf, _, err := GetOAuthConfig()
 	if err != nil {
 		return nil, err
@@ -155,7 +156,7 @@ func GetRefreshToken(oldToken *oauth2.Token) (*oauth2.Token, error) {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			log.Errorf("failed to close height response body: %s", err)
+			log.WithContext(ctx).Errorf("failed to close height response body: %s", err)
 		}
 	}(resp.Body)
 

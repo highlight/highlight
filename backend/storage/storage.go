@@ -78,7 +78,7 @@ type StorageClient struct {
 	URLSigner       *sign.URLSigner
 }
 
-func NewStorageClient() (*StorageClient, error) {
+func NewStorageClient(ctx context.Context) (*StorageClient, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
 	if err != nil {
 		return nil, errors.Wrap(err, "error loading default from config")
@@ -103,20 +103,20 @@ func NewStorageClient() (*StorageClient, error) {
 		S3Client:        client,
 		S3ClientEast2:   clientEast2,
 		S3PresignClient: s3.NewPresignClient(clientEast2),
-		URLSigner:       getURLSigner(),
+		URLSigner:       getURLSigner(ctx),
 	}, nil
 }
 
-func getURLSigner() *sign.URLSigner {
+func getURLSigner(ctx context.Context) *sign.URLSigner {
 	if CloudfrontDomain == "" || CloudfrontPrivateKey == "" || CloudfrontPublicKeyID == "" {
-		log.Warn("Missing one or more Cloudfront configs, disabling direct download.")
+		log.WithContext(ctx).Warn("Missing one or more Cloudfront configs, disabling direct download.")
 		return nil
 	}
 
 	block, _ := pem.Decode([]byte(CloudfrontPrivateKey))
 	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
-		log.Warn("Error parsing private key, disabling direct download.")
+		log.WithContext(ctx).Warn("Error parsing private key, disabling direct download.")
 		return nil
 	}
 

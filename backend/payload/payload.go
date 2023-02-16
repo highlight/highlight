@@ -1,6 +1,7 @@
 package payload
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -151,7 +152,7 @@ type FileInfo struct {
 	ddTag  string
 }
 
-func createFile(name string) (func(), *os.File, error) {
+func createFile(ctx context.Context, name string) (func(), *os.File, error) {
 	file, err := os.Create(name)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "error creating file")
@@ -159,18 +160,18 @@ func createFile(name string) (func(), *os.File, error) {
 	return func() {
 		err := file.Close()
 		if err != nil {
-			log.Error(errors.Wrap(err, "failed to close file"))
+			log.WithContext(ctx).Error(errors.Wrap(err, "failed to close file"))
 			return
 		}
 		err = os.Remove(file.Name())
 		if err != nil {
-			log.Error(errors.Wrap(err, "failed to remove file"))
+			log.WithContext(ctx).Error(errors.Wrap(err, "failed to remove file"))
 			return
 		}
 	}, file, nil
 }
 
-func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
+func NewPayloadManager(ctx context.Context, filenamePrefix string) (*PayloadManager, error) {
 	files := map[FileType]*FileInfo{
 		EventsCompressed: {
 			suffix: ".events.json.br",
@@ -195,7 +196,7 @@ func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 	}
 
 	for fileType, fileInfo := range files {
-		close, file, err := createFile(filenamePrefix + fileInfo.suffix)
+		close, file, err := createFile(ctx, filenamePrefix+fileInfo.suffix)
 		if err != nil {
 			manager.Close()
 			return nil, errors.Wrapf(err, "error creating %s file", string(fileType))
@@ -224,14 +225,14 @@ func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 	return manager, nil
 }
 
-func (pm *PayloadManager) NewChunkedFile(filenamePrefix string) error {
+func (pm *PayloadManager) NewChunkedFile(ctx context.Context, filenamePrefix string) error {
 	fileInfo := pm.files[EventsChunked]
 	fileInfo.close()
 
 	pm.ChunkIndex += 1
 	suffix := fmt.Sprintf(".eventschunked%04d.json.br", pm.ChunkIndex)
 	fileInfo.suffix = suffix
-	close, file, err := createFile(filenamePrefix + suffix)
+	close, file, err := createFile(ctx, filenamePrefix+suffix)
 
 	if err != nil {
 		return errors.Wrapf(err, "error creating new EventsChunked file")
@@ -270,14 +271,14 @@ func (pm *PayloadManager) GetFile(fileType FileType) *os.File {
 }
 
 // Reset file pointers to beginning of file for reading
-func (pm *PayloadManager) SeekStart() {
+func (pm *PayloadManager) SeekStart(ctx context.Context) {
 	for _, fileInfo := range pm.files {
 		file := fileInfo.file
 		if file == nil {
 			continue
 		}
 		if _, err := file.Seek(0, io.SeekStart); err != nil {
-			log.WithField("file_name", file.Name()).Errorf("error seeking to beginning of file: %v", err)
+			log.WithContext(ctx).WithField("file_name", file.Name()).Errorf("error seeking to beginning of file: %v", err)
 		}
 	}
 }
