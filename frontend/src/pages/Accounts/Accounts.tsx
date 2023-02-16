@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -200,10 +201,15 @@ const COLUMNS = [
 
 export const AccountsPage = () => {
 	const { setLoadingState } = useAppLoadingContext()
+	const { isHighlightAdmin } = useAuthContext()
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
 	}, [setLoadingState])
+
+	if (!isHighlightAdmin) {
+		return null
+	}
 
 	return (
 		<Routes>
