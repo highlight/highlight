@@ -116,3 +116,36 @@ func (suite *ReadLogsTestSuite) TestLogsKeys(t *testing.T) {
 	}
 	assert.Equal(t, expected, keys)
 }
+
+func (suite *ReadLogsTestSuite) TestLogKeys(t *testing.T) {
+	rows := []*LogRow{
+		{
+			Timestamp:     time.Now(),
+			ProjectId:     1,
+			LogAttributes: map[string]string{"workspace_id": "2"},
+		},
+		{
+			Timestamp:     time.Now(),
+			ProjectId:     1,
+			LogAttributes: map[string]string{"workspace_id": "3"},
+		},
+		{
+			Timestamp:     time.Now(),
+			ProjectId:     1,
+			LogAttributes: map[string]string{"workspace_id": "3"},
+		},
+		{
+			Timestamp:     time.Now(),
+			ProjectId:     1,
+			LogAttributes: map[string]string{"workspace_id": "4"},
+		},
+	}
+
+	assert.NoError(t, suite.client.BatchWriteLogRows(suite.ctx, rows))
+
+	values, err := suite.client.LogsKeyValues(suite.ctx, 1, "workspace_id")
+	assert.NoError(t, err)
+
+	expected := []string{"3", "2", "4"}
+	assert.Equal(t, expected, values)
+}

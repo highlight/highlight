@@ -6965,6 +6965,16 @@ func (r *queryResolver) LogsKeys(ctx context.Context, projectID int) ([]*modelIn
 	return r.ClickhouseClient.LogsKeys(ctx, project.ID)
 }
 
+// LogsKeyValues is the resolver for the logs_key_values field.
+func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName)
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}

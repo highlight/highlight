@@ -117,7 +117,7 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 		`
 		SELECT arrayJoin(LogAttributes.keys) as key, count() as cnt
 		FROM logs
-		WHERE ProjectId = ? AND Timestamp < now() AND Timestamp >= (now() - toIntervalDay(30))
+		WHERE ProjectId = ?
 		GROUP BY key
 		ORDER BY cnt DESC;`,
 		projectID,
@@ -146,6 +146,39 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 	rows.Close()
 	return keys, rows.Err()
 
+}
+
+func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error) {
+	rows, err := client.conn.Query(ctx,
+		`
+		SELECT LogAttributes[?] as value, count() as cnt FROM logs
+		WHERE ProjectId = ?
+		GROUP BY value
+		ORDER BY cnt DESC;`,
+		keyName,
+		projectID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	values := []string{}
+	for rows.Next() {
+		var (
+			Value string
+			Count uint64
+		)
+		if err := rows.Scan(&Value, &Count); err != nil {
+			return nil, err
+		}
+
+		values = append(values, Value)
+	}
+
+	rows.Close()
+
+	return values, rows.Err()
 }
 
 func makeSeverityText(severityText string) modelInputs.SeverityText {
