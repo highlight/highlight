@@ -39,9 +39,8 @@ import { Landing } from '../Landing/Landing'
 import styles from './Login.module.scss'
 
 export const AuthAdminRouter = () => {
-	const { isAuthLoading, isLoggedIn, admin } = useAuthContext()
+	const { isAuthLoading, admin } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
-	const navigate = useNavigate()
 
 	useEffect(() => {
 		if (admin) {
@@ -76,16 +75,6 @@ export const AuthAdminRouter = () => {
 			setLoadingState(AppLoadingState.LOADING)
 		}
 	}, [isAuthLoading, setLoadingState])
-
-	useEffect(() => {
-		if (isLoggedIn && admin) {
-			if (admin.email_verified === false) {
-				navigate('/verify_email')
-			} else if (!admin.about_you_details_filled) {
-				navigate('/about_you')
-			}
-		}
-	}, [admin, admin?.email_verified, navigate, isLoggedIn])
 
 	if (isAuthLoading) {
 		return null
