@@ -43,7 +43,7 @@ export const WorkspaceTabs = () => {
 	useEffect(() => {
 		analytics.page()
 		if (!pageId) {
-			navigate(`/w/${workspaceId}/team`)
+			navigate(`/w/${workspaceId}/team`, { replace: true })
 		}
 	}, [location.pathname, navigate, pageId, workspaceId])
 
