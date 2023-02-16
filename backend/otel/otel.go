@@ -3,6 +3,7 @@ package otel
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi"
@@ -234,6 +235,18 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for sessionID, errors := range traceErrors {
+		err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
+			Type: kafkaqueue.MarkBackendSetup,
+			MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
+				SessionSecureID: pointy.String(sessionID),
+			},
+		}, sessionID)
+		if err != nil {
+			log.Error(err, "failed to submit otel mark backend setup")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+
 		err = o.resolver.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
@@ -248,6 +261,20 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for projectID, errors := range projectErrors {
+		if projectIDInt, err := projectToInt(projectID); err == nil {
+			err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
+				Type: kafkaqueue.MarkBackendSetup,
+				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
+					ProjectID: projectIDInt,
+				},
+			}, projectID)
+			if err != nil {
+				log.Error(err, "failed to submit otel mark backend setup")
+				w.WriteHeader(http.StatusServiceUnavailable)
+				return
+			}
+		}
+
 		err = o.resolver.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
@@ -261,17 +288,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	for projectID, logRows := range projectLogs {
-		err = o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
-			Type: kafkaqueue.PushLogs,
-			PushLogs: &kafkaqueue.PushLogsArgs{
-				LogRows: logRows,
-			}}, projectID)
-		if err != nil {
-			log.WithContext(ctx).Error(err, "failed to submit otel project errors to public worker queue")
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
-		}
+	if err := o.submitProjectLogs(ctx, projectLogs); err != nil {
+		log.WithContext(ctx).Error(err, "failed to submit otel project logs")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -369,20 +389,39 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if err := o.submitProjectLogs(ctx, projectLogs); err != nil {
+		log.Error(err, "failed to submit otel project logs")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow) error {
 	for projectID, logRows := range projectLogs {
-		err = o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
+		if projectIDInt, err := projectToInt(projectID); err == nil {
+			err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
+				Type: kafkaqueue.MarkBackendSetup,
+				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
+					ProjectID: projectIDInt,
+				},
+			}, projectID)
+			if err != nil {
+				return e.Wrap(err, "failed to submit otel mark backend setup")
+			}
+		}
+
+		err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushLogs,
 			PushLogs: &kafkaqueue.PushLogsArgs{
 				LogRows: logRows,
 			}}, projectID)
 		if err != nil {
-			log.WithContext(ctx).Error(err, "failed to submit otel project errors to public worker queue")
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
+			return e.Wrap(err, "failed to submit otel project logs to public worker queue")
 		}
 	}
-
-	w.WriteHeader(http.StatusOK)
+	return nil
 }
 
 func (o *Handler) Listen(r *chi.Mux) {
