@@ -20,10 +20,10 @@ import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRoute
 import { ProjectRouter } from '@routers/OrgRouter/ProjectRouter'
 import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter'
 import React from 'react'
-import { Route, Routes, useMatch } from 'react-router-dom'
+import { Navigate, Route, Routes, useMatch } from 'react-router-dom'
 
 export const AppRouter = () => {
-	const { isLoggedIn } = useAuthContext()
+	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const workspaceMatch = useMatch('/w/:workspace_id/*')
 	const workspaceId = workspaceMatch?.params.workspace_id
 	const { projectId } = useNumericProjectId()
@@ -46,61 +46,82 @@ export const AppRouter = () => {
 				/>
 
 				<Route path="/subscriptions" element={<EmailOptOutPage />} />
-				<Route path="/accounts/*" element={<AccountsPage />} />
-
-				<Route path="/_internal/*" element={<InternalRouter />} />
 
 				<Route
 					path="/new"
 					element={
-						<Landing>
-							<NewProjectPage />
-						</Landing>
+						isLoggedIn ? (
+							<Landing>
+								<NewProjectPage />
+							</Landing>
+						) : (
+							<Navigate to="/login" />
+						)
 					}
 				/>
 
 				<Route
 					path="/switch"
 					element={
-						<Landing>
-							<SwitchWorkspace />
-						</Landing>
+						isLoggedIn ? (
+							<Landing>
+								<SwitchWorkspace />
+							</Landing>
+						) : (
+							<Navigate to="/login" />
+						)
 					}
 				/>
 
 				<Route
 					path="/w/:workspace_id/invite/:invite_id"
 					element={
-						<Landing>
-							<NewMemberPage />
-						</Landing>
+						isLoggedIn ? (
+							<Landing>
+								<NewMemberPage />
+							</Landing>
+						) : (
+							<Navigate to="/login" />
+						)
 					}
 				/>
 
 				<Route
 					path="/w/:workspace_id/new"
 					element={
-						<Landing>
-							<NewProjectPage />
-						</Landing>
+						isLoggedIn ? (
+							<Landing>
+								<NewProjectPage />
+							</Landing>
+						) : (
+							<Navigate to="/login" />
+						)
 					}
 				/>
 
 				<Route
 					path="/w/:workspace_id/switch"
 					element={
-						<Landing>
-							<SwitchProject />
-						</Landing>
+						isLoggedIn ? (
+							<Landing>
+								<SwitchProject />
+							</Landing>
+						) : (
+							<Navigate to="/login" />
+						)
 					}
 				/>
 
 				<Route
 					path="/w/:workspace_id/about-you"
 					element={
-						<Landing>
-							<RegistrationForm />
-						</Landing>
+						isLoggedIn ? (
+							<Landing>
+								<RegistrationForm />
+							</Landing>
+						) : (
+							<Navigate to="/login" />
+						)
 					}
 				/>
 				<Route
@@ -114,10 +135,12 @@ export const AppRouter = () => {
 								<DefaultWorkspaceRouter />
 							)
 						) : (
-							<LoginForm />
+							<Navigate to="/login" />
 						)
 					}
 				/>
+
+				<Route path="/login" element={<LoginForm />} />
 
 				<Route
 					path="/*"
@@ -127,10 +150,20 @@ export const AppRouter = () => {
 						) : isLoggedIn ? (
 							<ProjectRedirectionRouter />
 						) : (
-							<LoginForm />
+							<Navigate to="/login" />
 						)
 					}
 				/>
+
+				{isHighlightAdmin && (
+					<>
+						<Route path="/accounts/*" element={<AccountsPage />} />
+						<Route
+							path="/_internal/*"
+							element={<InternalRouter />}
+						/>
+					</>
+				)}
 			</Routes>
 		</Box>
 	)

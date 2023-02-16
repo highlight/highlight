@@ -3,13 +3,12 @@ import 'rc-slider/assets/index.css'
 import { useAuthContext } from '@authentication/AuthContext'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard'
-import { ErrorState } from '@components/ErrorState/ErrorState'
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard'
 import LoadingBox from '@components/LoadingBox'
 import { useIsSessionPendingQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
-import { Box } from '@highlight-run/ui'
+import { Box, Callout, Text } from '@highlight-run/ui'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { CompleteSetup } from '@pages/Player/components/CompleteSetup/CompleteSetup'
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard'
@@ -81,11 +80,23 @@ const PlayerPage = ({ integrated }: Props) => {
 	} = playerContext
 
 	const navigate = useNavigate()
+
 	useEffect(() => {
-		if (!isLoggedIn && !session?.is_public) {
-			navigate('/login', { replace: true })
+		if (
+			!isLoggedIn &&
+			sessionViewability === SessionViewability.VIEWABLE &&
+			((session && !session?.is_public) || !session_secure_id)
+		) {
+			navigate('/')
 		}
-	}, [isLoggedIn, navigate, session?.is_public])
+	}, [
+		isLoggedIn,
+		navigate,
+		session,
+		session?.is_public,
+		sessionViewability,
+		session_secure_id,
+	])
 
 	const { data: isSessionPendingData, loading } = useIsSessionPendingQuery({
 		variables: {
@@ -215,10 +226,12 @@ const PlayerPage = ({ integrated }: Props) => {
 
 	const showSession =
 		(sessionViewability === SessionViewability.VIEWABLE && !!session) ||
-		replayerState !== ReplayerState.Empty ||
+		(replayerState !== ReplayerState.Empty &&
+			sessionViewability !== SessionViewability.ERROR) ||
 		(replayerState === ReplayerState.Empty && !!session_secure_id)
 
 	const { isPlayerFullscreen, playerCenterPanelRef } = usePlayerUIContext()
+
 	const sessionView = showSession ? (
 		<Box
 			background="raised"
@@ -336,21 +349,36 @@ const PlayerPage = ({ integrated }: Props) => {
 				)
 			case SessionViewability.ERROR:
 				if (loading) {
-					return playerFiller
+					return <LoadingBox />
 				} else if (isSessionPendingData?.isSessionPending) {
 					return (
-						<ErrorState
-							shownWithHeader
-							title="This session is on the way!"
-							message="We are processing the data and will show the recording here soon. Please come back in a minute."
-						/>
+						<Box m="auto" style={{ maxWidth: 300 }}>
+							<Callout
+								kind="info"
+								title="This session is on the way!"
+							>
+								<Box pb="6">
+									<Text>
+										We are processing the data and will show
+										the recording here soon. Please come
+										back in a minute.
+									</Text>
+								</Box>
+							</Callout>
+						</Box>
 					)
 				} else {
 					return (
-						<ErrorState
-							shownWithHeader
-							message="This session does not exist or has not been made public."
-						/>
+						<Box m="auto" style={{ maxWidth: 300 }}>
+							<Callout kind="info" title="Can't load session">
+								<Box pb="6">
+									<Text>
+										This session does not exist or has not
+										been made public.
+									</Text>
+								</Box>
+							</Callout>
+						</Box>
 					)
 				}
 			case SessionViewability.EMPTY_SESSION:
