@@ -1,5 +1,9 @@
 import { CircularSpinner } from '@components/Loading/Loading'
-import { useGetLogsQuery, useGetLogsTotalCountQuery } from '@graph/hooks'
+import {
+	useGetLogsKeysQuery,
+	useGetLogsQuery,
+	useGetLogsTotalCountQuery,
+} from '@graph/hooks'
 import { Box, Preset, Stack, Text } from '@highlight-run/ui'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
@@ -90,6 +94,17 @@ const LogsPage = () => {
 			},
 			skip: !project_id,
 		})
+
+	const { data: keys } = useGetLogsKeysQuery({
+		variables: {
+			project_id: project_id!,
+		},
+		skip: !project_id,
+	})
+
+	if (keys) {
+		console.log(keys)
+	}
 
 	const handleFormSubmit = (value: string) => {
 		setQuery(value)

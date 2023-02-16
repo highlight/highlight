@@ -112,6 +112,42 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 	return count, err
 }
 
+func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
+	rows, err := client.conn.Query(ctx,
+		`
+		SELECT arrayJoin(LogAttributes.keys) as key, count() as cnt
+		FROM logs
+		WHERE ProjectId = ? AND Timestamp < now() AND Timestamp >= (now() - toIntervalDay(30))
+		GROUP BY key
+		ORDER BY cnt DESC;`,
+		projectID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	keys := []*modelInputs.LogKey{}
+	for rows.Next() {
+		var (
+			Key   string
+			Count uint64
+		)
+		if err := rows.Scan(&Key, &Count); err != nil {
+			return nil, err
+		}
+
+		keys = append(keys, &modelInputs.LogKey{
+			Name: Key,
+			Type: modelInputs.LogKeyTypeString, // For now, assume everything is a string
+		})
+	}
+
+	rows.Close()
+	return keys, rows.Err()
+
+}
+
 func makeSeverityText(severityText string) modelInputs.SeverityText {
 	switch strings.ToLower(severityText) {
 	case "trace":

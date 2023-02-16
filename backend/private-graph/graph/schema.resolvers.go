@@ -6955,6 +6955,16 @@ func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, param
 	return r.ClickhouseClient.ReadLogsTotalCount(ctx, project.ID, params)
 }
 
+// LogsKeys is the resolver for the logs_keys field.
+func (r *queryResolver) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.LogsKeys(ctx, project.ID)
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
