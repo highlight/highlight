@@ -385,6 +385,7 @@ const AuthenticationRoleRouter = () => {
 				isAuthLoading: isAuthLoading(authRole),
 				isLoggedIn: loggedIn,
 				isHighlightAdmin: isHighlightAdmin(authRole) && enableStaffView,
+				refetchAdmin: refetch,
 			}}
 		>
 			<Helmet>

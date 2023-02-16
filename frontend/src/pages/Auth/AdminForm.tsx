@@ -34,10 +34,14 @@ const COMMON_EMAIL_PROVIDERS = ['gmail', 'yahoo', 'hotmail']
 export const AdminForm: React.FC = () => {
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
 	const { setLoadingState } = useAppLoadingContext()
-	const { admin } = useAuthContext()
+	const { admin, refetchAdmin } = useAuthContext()
 	const navigate = useNavigate()
 	const [updateAdminAndCreateWorkspace, { loading }] =
 		useUpdateAdminAndCreateWorkspaceMutation()
+
+	if (admin?.about_you_details_filled) {
+		navigate('/setup')
+	}
 
 	const adminEmailDomain = getEmailDomain(admin?.email)
 	const isCommonEmailDomain = COMMON_EMAIL_PROVIDERS.some(
@@ -69,7 +73,7 @@ export const AdminForm: React.FC = () => {
 
 		try {
 			const attributionData = getAttributionData()
-			const project = await updateAdminAndCreateWorkspace({
+			const response = await updateAdminAndCreateWorkspace({
 				variables: {
 					admin_and_workspace_details: {
 						first_name: formState.values.firstName,
@@ -88,9 +92,7 @@ export const AdminForm: React.FC = () => {
 				`Nice to meet you ${formState.values.firstName}, let's get started!`,
 			)
 
-			navigate(
-				`/${project.data?.updateAdminAndCreateWorkspace?.id}/setup`,
-			)
+			refetchAdmin()
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)

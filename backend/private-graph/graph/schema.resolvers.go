@@ -6224,15 +6224,12 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			Phone:                 &firebaseUser.PhoneNumber,
 			AboutYouDetailsFilled: &model.F,
 		}
-		if err := r.DB.Create(newAdmin).Error; err != nil {
-		if err := r.DB.FirstOrCreate(newAdmin).Error; err != nil {
+		if err := r.DB.Where(newAdmin).FirstOrCreate(&admin).Error; err != nil {
 			spanError := e.Wrap(err, "error creating new admin")
 			adminSpan.Finish(tracer.WithError(spanError))
 			return nil, spanError
 		}
 		firebaseSpan.Finish()
-
-		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
 		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),

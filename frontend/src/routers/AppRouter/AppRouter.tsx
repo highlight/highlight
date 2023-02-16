@@ -21,18 +21,42 @@ import { DefaultWorkspaceRouter } from '@routers/OrgRouter/DefaultWorkspaceRoute
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter'
 import { ProjectRouter } from '@routers/OrgRouter/ProjectRouter'
 import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter'
-import React from 'react'
-import { Route, Routes, useMatch } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { Route, Routes, useMatch, useNavigate } from 'react-router-dom'
+import { StringParam, useQueryParam } from 'use-query-params'
 
 export const AppRouter = () => {
-	const { isLoggedIn } = useAuthContext()
+	const { admin, isLoggedIn } = useAuthContext()
 	const workspaceMatch = useMatch('/w/:workspace_id/*')
 	const workspaceId = workspaceMatch?.params.workspace_id
 	const { projectId } = useNumericProjectId()
+	const [nextParam] = useQueryParam('next', StringParam)
+	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
+	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
+	const navigate = useNavigate()
+
+	useEffect(() => {
+		if (admin && admin.email_verified === false) {
+			navigate('/verify_email')
+			return
+		}
+
+		if (
+			admin &&
+			!admin.about_you_details_filled &&
+			!isVercelIntegrationFlow
+		) {
+			navigate('/about_you')
+			return
+		}
+	}, [admin, isVercelIntegrationFlow, navigate])
 
 	return (
 		<Box height="screen" width="screen">
 			<Routes>
+				<Route path="/verify_email" element={<VerifyEmail />} />
+				<Route path="/about_you" element={<AdminForm />} />
+
 				<Route
 					path="/oauth/authorize"
 					element={
@@ -120,9 +144,6 @@ export const AppRouter = () => {
 						)
 					}
 				/>
-
-				<Route path="/verify_email" element={<VerifyEmail />} />
-				<Route path="/about_you" element={<AdminForm />} />
 
 				<Route
 					path="/*"
