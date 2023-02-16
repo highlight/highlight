@@ -655,6 +655,16 @@ export type LinearTeam = {
 	team_id: Scalars['String']
 }
 
+export type LogKey = {
+	__typename?: 'LogKey'
+	name: Scalars['String']
+	type: LogKeyType
+}
+
+export enum LogKeyType {
+	String = 'String',
+}
+
 export type LogLine = {
 	__typename?: 'LogLine'
 	body: Scalars['String']
@@ -1414,6 +1424,7 @@ export type Query = {
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	logs: Array<LogLine>
+	logs_keys: Array<LogKey>
 	logs_total_count: Scalars['UInt64']
 	messages?: Maybe<Array<Maybe<Scalars['Any']>>>
 	metric_monitors: Array<Maybe<MetricMonitor>>
@@ -1741,6 +1752,10 @@ export type QueryLiveUsersCountArgs = {
 
 export type QueryLogsArgs = {
 	params: LogsParamsInput
+	project_id: Scalars['ID']
+}
+
+export type QueryLogs_KeysArgs = {
 	project_id: Scalars['ID']
 }
 

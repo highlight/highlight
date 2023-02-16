@@ -501,6 +501,15 @@ type LogLine {
 	logAttributes: Map!
 }
 
+enum LogKeyType {
+	String
+}
+
+type LogKey {
+	name: String!
+	type: LogKeyType!
+}
+
 type ReferrerTablePayload {
 	host: String!
 	count: Int!
@@ -1402,6 +1411,7 @@ type Query {
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 	logs(project_id: ID!, params: LogsParamsInput!): [LogLine!]!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
+	logs_keys(project_id: ID!): [LogKey!]!
 }
 
 type Mutation {
