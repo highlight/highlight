@@ -1,6 +1,7 @@
 package discord
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -11,6 +12,8 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
 	"github.com/stretchr/testify/suite"
 )
+
+var ctx = context.TODO()
 
 type DiscordChannelsTestSuite struct {
 	suite.Suite
