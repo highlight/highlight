@@ -1,10 +1,8 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import Switch from '@components/Switch/Switch'
-import { useGetWorkspaceAdminsQuery } from '@graph/hooks'
 import { Box, Text, Tooltip } from '@highlight-run/ui'
-import { useParams } from '@util/react-router/useParams'
 import { Select } from 'antd'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import * as styles from './index.css'
 
@@ -17,29 +15,14 @@ export const AutoJoinEmailsInput: React.FC<Props> = ({ onChange }) => {
 		emailOrigins: string[]
 		allowedEmailOrigins: string[]
 	}>({ emailOrigins: [], allowedEmailOrigins: [] })
-	const { workspace_id } = useParams<{ workspace_id: string }>()
 	const { admin } = useAuthContext()
-	const { loading } = useGetWorkspaceAdminsQuery({
-		variables: { workspace_id: workspace_id || '' },
-		onCompleted: (d) => {
-			let emailOrigins: string[] = []
-			if (d.workspace?.allowed_auto_join_email_origins) {
-				emailOrigins = JSON.parse(
-					d.workspace.allowed_auto_join_email_origins,
-				)
-			}
-			const allowedDomains: string[] = []
-			d.admins.forEach((wa) => {
-				const adminDomain = getEmailDomain(wa.admin?.email)
-				if (
-					adminDomain.length > 0 &&
-					!allowedDomains.includes(adminDomain)
-				)
-					allowedDomains.push(adminDomain)
-			})
-			setOrigins({ emailOrigins, allowedEmailOrigins: allowedDomains })
-		},
-	})
+
+	useEffect(() => {
+		setOrigins({
+			emailOrigins: [],
+			allowedEmailOrigins: [getEmailDomain(admin?.email)],
+		})
+	}, [admin])
 
 	const handleChange = (domains: string[]) => {
 		setOrigins((p) => ({
@@ -62,7 +45,6 @@ export const AutoJoinEmailsInput: React.FC<Props> = ({ onChange }) => {
 						label={<Text color="weak">Auto join</Text>}
 						labelFirst
 						checked={origins.emailOrigins.length > 0}
-						loading={loading}
 						onChange={(checked) => {
 							if (checked) {
 								handleChange([adminsEmailDomain])
@@ -74,7 +56,6 @@ export const AutoJoinEmailsInput: React.FC<Props> = ({ onChange }) => {
 					<Select
 						className={styles.select}
 						placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
-						loading={loading}
 						value={
 							noEmailDomains
 								? [adminsEmailDomain]

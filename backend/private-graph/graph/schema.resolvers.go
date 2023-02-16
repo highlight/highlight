@@ -6224,6 +6224,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			AboutYouDetailsFilled: &model.F,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
+		if err := r.DB.FirstOrCreate(newAdmin).Error; err != nil {
 			spanError := e.Wrap(err, "error creating new admin")
 			adminSpan.Finish(tracer.WithError(spanError))
 			return nil, spanError
