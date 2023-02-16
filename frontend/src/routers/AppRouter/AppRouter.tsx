@@ -140,16 +140,7 @@ export const AppRouter = () => {
 					}
 				/>
 
-				<Route
-					path="/login"
-					element={
-						isLoggedIn ? (
-							<ProjectRedirectionRouter />
-						) : (
-							<LoginForm />
-						)
-					}
-				/>
+				<Route path="/login" element={<LoginForm />} />
 
 				<Route
 					path="/*"
