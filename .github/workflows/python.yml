@@ -28,7 +28,12 @@ jobs:
             - name: Lint
               run: poetry run black --check .
             - name: Test
-              run: poetry run pytest
+              run: poetry run pytest --cov=highlight_io --cov-branch --cov-report xml
+            - name: Get Cover
+              uses: orgoro/coverage@v3
+              with:
+                  coverageFile: coverage.xml
+                  token: ${{ secrets.GITHUB_TOKEN }}
             - name: Build
               run: poetry build
             - name: Publish

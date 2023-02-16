@@ -44,6 +44,7 @@ black = "^22.10.0"
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"
 pytest-mock = "^3.10.0"
+pytest-cov = "^4.0.0"
 
 [tool.poetry.extras]
 Django = ["django"]
