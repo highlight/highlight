@@ -41,9 +41,9 @@ export const SignUp: React.FC = () => {
 					formState.values.email,
 					formState.values.password,
 				)
-					.then(() => {
+					.then(async () => {
 						message.success('Account created succesfully!')
-						auth.currentUser?.sendEmailVerification()
+						await auth.currentUser?.sendEmailVerification()
 
 						// Redirect the user to their initial path instead to creating a new
 						// workspace. We do this because this happens when a new user clicks
