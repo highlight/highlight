@@ -142,16 +142,24 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
-		if err := db.WithContext(ctx).Model(&model.Workspace{}).Find(&model.Workspace{}).Error; err != nil {
-			errors <- e.New(fmt.Sprintf("failed to query database: %s", err))
+		if err := db.WithContext(ctx).Model(&model.Project{}).Find(&model.Project{}).Error; err != nil {
+			msg := fmt.Sprintf("failed to query database: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	go func() {
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
-		if _, err := tdb.Query(ctx, `from(bucket: "dev-bucket") |> range(start: -1m)`); err != nil {
-			errors <- e.New(fmt.Sprintf("failed to query influx db: %s", err))
+		bucket := "dev-1"
+		if util.IsDevOrTestEnv() {
+			bucket = "dev-bucket"
+		}
+		if _, err := tdb.Query(ctx, fmt.Sprintf(`from(bucket: "%s") |> range(start: -1m)`, bucket)); err != nil {
+			msg := fmt.Sprintf("failed to query influx db: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	go func() {
@@ -159,7 +167,9 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
 		if err := rClient.SetIsPendingSession(ctx, "health-check-test-session", true); err != nil {
-			errors <- e.New(fmt.Sprintf("failed to set redis flag: %s", err))
+			msg := fmt.Sprintf("failed to set redis flag: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	go func() {
@@ -167,7 +177,9 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
 		if err := osClient.IndexSynchronous(ctx, opensearch.IndexSessions, 0, struct{}{}); err != nil {
-			errors <- e.New(fmt.Sprintf("failed to perform opensearch index: %s", err))
+			msg := fmt.Sprintf("failed to perform opensearch index: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	go func() {
@@ -181,7 +193,9 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 				EndDate:   time.Now(),
 			},
 		}); err != nil {
-			errors <- e.New(fmt.Sprintf("failed to perform clickhouse query: %s", err))
+			msg := fmt.Sprintf("failed to perform clickhouse query: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	wg.Wait()
