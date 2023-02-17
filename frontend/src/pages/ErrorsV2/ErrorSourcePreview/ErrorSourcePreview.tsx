@@ -83,7 +83,6 @@ const ErrorSourcePreview: React.FC<
 			style="light"
 			showLineNumbers={showLineNumbers}
 			wrapLines
-			wrapLongLines
 			startingLineNumber={(lineNumber ?? 1) - before.length}
 			customStyle={{
 				backgroundColor: 'transparent',
