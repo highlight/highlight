@@ -301,14 +301,14 @@ const AuthenticationRoleRouter = () => {
 				setUser(user)
 
 				if (user) {
-					if (!called) {
-						try {
-							await createAdminMutation()
-						} finally {
+					try {
+						await createAdminMutation()
+					} finally {
+						if (!called) {
 							getAdminQuery({ variables })
+						} else {
+							refetch!()
 						}
-					} else {
-						refetch!()
 					}
 				} else {
 					setAuthRole(AuthRole.UNAUTHENTICATED)
@@ -376,6 +376,7 @@ const AuthenticationRoleRouter = () => {
 				isAuthLoading: isAuthLoading(authRole),
 				isLoggedIn: loggedIn,
 				isHighlightAdmin: isHighlightAdmin(authRole) && enableStaffView,
+				refetchAdmin: refetch,
 			}}
 		>
 			<Helmet>

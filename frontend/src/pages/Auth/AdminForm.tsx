@@ -73,7 +73,7 @@ export const AdminForm: React.FC = () => {
 
 		try {
 			const attributionData = getAttributionData()
-			const response = await updateAdminAndCreateWorkspace({
+			await updateAdminAndCreateWorkspace({
 				variables: {
 					admin_and_workspace_details: {
 						first_name: formState.values.firstName,
@@ -92,7 +92,7 @@ export const AdminForm: React.FC = () => {
 				`Nice to meet you ${formState.values.firstName}, let's get started!`,
 			)
 
-			refetchAdmin()
+			refetchAdmin() // updates admin in auth context
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)
