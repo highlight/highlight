@@ -119,7 +119,8 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 		FROM logs
 		WHERE ProjectId = ?
 		GROUP BY key
-		ORDER BY cnt DESC;`,
+		ORDER BY cnt DESC
+		LIMIT 50;`,
 		projectID,
 	)
 
@@ -154,7 +155,8 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 		SELECT LogAttributes[?] as value, count() as cnt FROM logs
 		WHERE ProjectId = ?
 		GROUP BY value
-		ORDER BY cnt DESC;`,
+		ORDER BY cnt DESC
+		LIMIT 50;`,
 		keyName,
 		projectID,
 	)
