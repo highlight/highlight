@@ -6246,17 +6246,13 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	admin := &model.Admin{UID: &uid}
 	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.admin"),
 		tracer.Tag("admin_uid", uid))
-	firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
-		tracer.Tag("admin_uid", uid))
 
 	if err := r.DB.Where(&model.Admin{UID: &uid}).First(&admin).Error; err != nil {
 		spanError := e.Wrap(err, "error retrieving user from postgres")
 		adminSpan.Finish(tracer.WithError(spanError))
-		firebaseSpan.Finish(tracer.WithError(spanError))
 		return nil, spanError
 	}
 
-	// TODO: See if this is still needed.
 	if admin.PhotoURL == nil || admin.Name == nil {
 		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
 			tracer.Tag("admin_uid", uid))

@@ -95,11 +95,13 @@ export const SignUp: React.FC = () => {
 						label="Email"
 						type="email"
 						autoFocus
+						autoComplete="email"
 					/>
 					<Form.Input
 						name={formState.names.password}
 						label="Password"
 						type="password"
+						autoComplete="new-password"
 					/>
 					{error && <Callout kind="error">{error}</Callout>}
 				</Stack>

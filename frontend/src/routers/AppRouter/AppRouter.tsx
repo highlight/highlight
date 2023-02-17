@@ -80,7 +80,6 @@ export const AppRouter = () => {
 				identifyMetadata.avatar = admin.photo_url
 			}
 
-			// TODO: Move this to another router
 			H.identify(email, identifyMetadata)
 
 			// `id` is a reserved keyword in rudderstack and it's recommended to use a

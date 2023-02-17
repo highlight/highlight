@@ -91,6 +91,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						name={formState.names.password}
 						label="Password"
 						type="password"
+						autoComplete="current-password"
 					/>
 					<Link to="/reset_password">
 						<Text size="xSmall">Forgot your password?</Text>

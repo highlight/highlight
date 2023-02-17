@@ -44,7 +44,6 @@ export const ProjectRedirectionRouter = () => {
 	} else if (!admin.about_you_details_filled && !isVercelIntegrationFlow) {
 		redirectTo = '/about_you'
 	} else {
-		// TODO: Figure out fallback
 		redirectTo = '/new'
 	}
 

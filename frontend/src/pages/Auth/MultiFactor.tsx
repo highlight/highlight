@@ -141,7 +141,7 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 						name={formState.names.code}
 						label="SMS Verification Code"
 						autoFocus
-						autoComplete="off"
+						autoComplete="one-time-code"
 					/>
 					{error && <AuthError>{error}</AuthError>}
 				</Stack>
