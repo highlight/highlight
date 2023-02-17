@@ -1,0 +1,14 @@
+{
+	"name": "@highlight-run/component-preview",
+	"packageManager": "yarn@3.2.3",
+	"scripts": {
+		"dev": "ladle serve"
+	},
+	"dependencies": {
+		"@highlight-run/react": "workspace:*",
+		"@ladle/react": "^2.8.0"
+	},
+	"devDependencies": {
+		"typescript": "^4.9.5"
+	}
+}

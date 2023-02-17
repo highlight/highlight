@@ -32,6 +32,7 @@
 		"cy:run:chrome": "cypress run --headed --browser chrome",
 		"dev": "run-p --print-label --race 'dev:*'",
 		"dev:backend": "cd backend && make start",
+		"dev:components": "yarn turbo run dev --filter @highlight-run/component-preview...",
 		"dev:frontend": "doppler run -- yarn turbo run dev --filter frontend...",
 		"dev:ui": "yarn turbo run dev --filter @highlight-run/ui...",
 		"dev:redis": "redis-server",

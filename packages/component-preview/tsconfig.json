@@ -4,11 +4,7 @@
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
 		"strict": true,
-		"rootDir": "src",
-		"outDir": "dist",
-		"types": ["vitest/globals"],
-		"paths": {
-			"@components": ["./src/components/"]
-		}
+		"incremental": true,
+		"jsx": "react"
 	}
 }
