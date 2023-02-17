@@ -56,6 +56,9 @@ func StartOTLP() (*OTLP, error) {
 	}
 	resources, err := resource.New(context.Background(),
 		resource.WithFromEnv(),
+		resource.WithHost(),
+		resource.WithContainer(),
+		resource.WithOS(),
 		resource.WithProcess(),
 	)
 	if err != nil {
