@@ -43,7 +43,9 @@ const RightPlayerPanel = () => {
 	}, [setSelectedRightPanelTab, setShowRightPanel])
 
 	const content = useMemo(() => {
-		if (!session) return <LoadingBox />
+		if (!session) {
+			return <LoadingBox />
+		}
 
 		switch (rightPanelView) {
 			case RightPanelView.Session:

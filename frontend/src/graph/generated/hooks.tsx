@@ -11541,3 +11541,58 @@ export type GetLogsTotalCountQueryResult = Apollo.QueryResult<
 	Types.GetLogsTotalCountQuery,
 	Types.GetLogsTotalCountQueryVariables
 >
+export const GetLogsKeysDocument = gql`
+	query GetLogsKeys($project_id: ID!) {
+		logs_keys(project_id: $project_id) {
+			name
+			type
+		}
+	}
+`
+
+/**
+ * __useGetLogsKeysQuery__
+ *
+ * To run a query within a React component, call `useGetLogsKeysQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogsKeysQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogsKeysQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetLogsKeysQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLogsKeysQuery,
+		Types.GetLogsKeysQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetLogsKeysQuery,
+		Types.GetLogsKeysQueryVariables
+	>(GetLogsKeysDocument, baseOptions)
+}
+export function useGetLogsKeysLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLogsKeysQuery,
+		Types.GetLogsKeysQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetLogsKeysQuery,
+		Types.GetLogsKeysQueryVariables
+	>(GetLogsKeysDocument, baseOptions)
+}
+export type GetLogsKeysQueryHookResult = ReturnType<typeof useGetLogsKeysQuery>
+export type GetLogsKeysLazyQueryHookResult = ReturnType<
+	typeof useGetLogsKeysLazyQuery
+>
+export type GetLogsKeysQueryResult = Apollo.QueryResult<
+	Types.GetLogsKeysQuery,
+	Types.GetLogsKeysQueryVariables
+>

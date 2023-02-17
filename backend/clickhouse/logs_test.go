@@ -84,3 +84,35 @@ func (suite *ReadLogsTestSuite) TestReadLogsWithTimeQuery(t *testing.T) {
 
 	assert.Len(t, logLines, 1)
 }
+
+func (suite *ReadLogsTestSuite) TestLogsKeys(t *testing.T) {
+	rows := []*LogRow{
+		{
+			Timestamp:     time.Now(),
+			ProjectId:     1,
+			LogAttributes: map[string]string{"user_id": "1", "workspace_id": "2"},
+		},
+		{
+			Timestamp:     time.Now(),
+			ProjectId:     1,
+			LogAttributes: map[string]string{"workspace_id": "3"},
+		},
+	}
+
+	assert.NoError(t, suite.client.BatchWriteLogRows(suite.ctx, rows))
+
+	keys, err := suite.client.LogsKeys(suite.ctx, 1)
+	assert.NoError(t, err)
+
+	expected := []*modelInputs.LogKey{
+		{
+			Name: "workspace_id", // workspace_id has more hits so it should be ranked higher
+			Type: modelInputs.LogKeyTypeString,
+		},
+		{
+			Name: "user_id",
+			Type: modelInputs.LogKeyTypeString,
+		},
+	}
+	assert.Equal(t, expected, keys)
+}

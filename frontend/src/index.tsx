@@ -30,7 +30,6 @@ import {
 } from '@graph/hooks'
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
-import { AuthRouter } from '@pages/Auth/AuthRouter'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
@@ -398,10 +397,7 @@ const AuthenticationRoleRouter = () => {
 				/>
 			) : (
 				<Routes>
-					<Route
-						path="/*"
-						element={loggedIn ? <AppRouter /> : <AuthRouter />}
-					/>
+					<Route path="/*" element={<AppRouter />} />
 				</Routes>
 			)}
 		</AuthContextProvider>

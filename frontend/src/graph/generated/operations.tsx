@@ -3956,6 +3956,16 @@ export type GetLogsTotalCountQuery = { __typename?: 'Query' } & Pick<
 	'logs_total_count'
 >
 
+export type GetLogsKeysQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetLogsKeysQuery = { __typename?: 'Query' } & {
+	logs_keys: Array<
+		{ __typename?: 'LogKey' } & Pick<Types.LogKey, 'name' | 'type'>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4071,6 +4081,7 @@ export const namedOperations = {
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
 		GetLogsTotalCount: 'GetLogsTotalCount' as const,
+		GetLogsKeys: 'GetLogsKeys' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
