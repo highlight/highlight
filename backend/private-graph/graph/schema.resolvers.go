@@ -6249,7 +6249,6 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
 		tracer.Tag("admin_uid", uid))
 
-	fmt.Printf("::: uid: %+v", uid)
 	if err := r.DB.Where(&model.Admin{UID: &uid}).First(&admin).Error; err != nil {
 		spanError := e.Wrap(err, "error retrieving user from postgres")
 		adminSpan.Finish(tracer.WithError(spanError))
