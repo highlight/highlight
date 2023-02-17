@@ -302,7 +302,12 @@ const AuthenticationRoleRouter = () => {
 
 				if (user) {
 					try {
-						await createAdminMutation()
+						// Try to create an admin if it's a new account. This can't be
+						// handled on the sign up form because this callback is triggered
+						// before the admin is created.
+						if (!user.emailVerified) {
+							await createAdminMutation()
+						}
 					} finally {
 						if (!called) {
 							getAdminQuery({ variables })
