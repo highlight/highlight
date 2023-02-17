@@ -10,7 +10,7 @@ export const SampleBuggyButton = ({
 	return (
 		<button
 			type="button"
-			className={'.buggyButton'}
+			className={'buggyButton'}
 			onClick={() => setError(true)}
 		>
 			{children ?? 'Throw an Error'}

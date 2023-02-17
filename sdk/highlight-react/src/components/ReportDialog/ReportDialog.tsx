@@ -74,34 +74,34 @@ const ReportDialog = ({
 	}
 
 	return (
-		<main className={`.container`}>
-			<div className={`.card`}>
+		<main className={`container`}>
+			<div className={`card`}>
 				<div
-					className={`.cardContents ${
-						sentReport && '.cardContentsVisible'
+					className={`cardContents ${
+						sentReport && 'cardContentsVisible'
 					}`}
 				>
-					<h1 className={`.title`}>{successMessage}</h1>
-					<h4 className={`.subtitle`}>{successSubtitle}</h4>
+					<h1 className={`title`}>{successMessage}</h1>
+					<h4 className={`subtitle`}>{successSubtitle}</h4>
 					<button
-						className={`.button .confirmationButton`}
+						className={`button confirmationButton`}
 						onClick={onCloseHandler}
 					>
 						Close
 					</button>
 				</div>
 				<div
-					className={`.cardContents ${
-						!sentReport && '.cardContentsVisible'
+					className={`cardContents ${
+						!sentReport && 'cardContentsVisible'
 					}`}
 				>
 					<div>
-						<h1 className={`.title`}>{title}</h1>
-						<h2 className={`.subtitle`}>
+						<h1 className={`title`}>{title}</h1>
+						<h2 className={`subtitle`}>
 							{subtitle} {subtitle2}
 						</h2>
 					</div>
-					<form className={`.form`} onSubmit={handleSubmit}>
+					<form className={`form`} onSubmit={handleSubmit}>
 						<label>
 							{labelName}
 							<input
@@ -140,20 +140,20 @@ const ReportDialog = ({
 							></textarea>
 						</label>
 
-						<div className={`.formFooter`}>
-							<div className={`.formActionsContainer`}>
+						<div className={`formFooter`}>
+							<div className={`formActionsContainer`}>
 								<button
 									type="submit"
 									className={
 										sendingReport
-											? `.button .loadingButton`
-											: '.button'
+											? `button loadingButton`
+											: 'button'
 									}
 								>
 									{labelSubmit}
 								</button>
 								<button
-									className={`.button .closeButton`}
+									className={`button closeButton`}
 									onClick={onCloseHandler}
 									type="button"
 								>
@@ -161,8 +161,8 @@ const ReportDialog = ({
 								</button>
 							</div>
 							{!hideHighlightBranding && (
-								<div className={`.ad`}>
-									<p className={`.logoContainer`}>
+								<div className={`ad`}>
+									<p className={`logoContainer`}>
 										Crash reports powered by:
 										{/*  eslint-disable-next-line react/jsx-no-target-blank */}
 										<a
@@ -173,7 +173,7 @@ const ReportDialog = ({
 												src="https://app.highlight.run/logo-24x130.png"
 												alt="Highlight"
 												height="25"
-												className={`.logo`}
+												className={`logo`}
 											/>
 										</a>
 									</p>
