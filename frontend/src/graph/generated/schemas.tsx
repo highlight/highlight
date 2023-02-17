@@ -754,6 +754,7 @@ export type Mutation = {
 	addIntegrationToProject: Scalars['Boolean']
 	addIntegrationToWorkspace: Scalars['Boolean']
 	changeAdminRole: Scalars['Boolean']
+	createAdmin: Admin
 	createDefaultAlerts?: Maybe<Scalars['Boolean']>
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
