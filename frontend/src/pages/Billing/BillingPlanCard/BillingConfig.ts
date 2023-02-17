@@ -15,7 +15,7 @@ export type BillingPlan = {
 }
 
 const SESSIONS_AFTER_LIMIT_TOOLTIP =
-	'After this monthly limit is reached, extra sessions will be charged $5 per 1,000 sessions.'
+	'After this monthly limit is reached, extra sessions will be charged $5.00 per 1,000 sessions.'
 
 const ERRORS_AFTER_LIMIT_TOOLTIP =
 	'After this monthly limit is reached, extra errors will be charged $0.20 per 1,000 errors.'
@@ -36,6 +36,7 @@ const freePlan: BillingPlan = {
 			tooltip:
 				'After this monthly limit is reached, errors will be recorded but will not be visible until your plan is upgraded.',
 		},
+		'3 month retention',
 		'Unlimited dev tools access',
 	],
 }

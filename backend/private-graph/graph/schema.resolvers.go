@@ -1244,8 +1244,9 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		pricingInterval = pricing.SubscriptionIntervalAnnual
 	}
 
+	retentionPeriod := modelInputs.RetentionPeriodThreeMonths
 	// default to unlimited members pricing
-	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricingInterval, true)
+	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricingInterval, true, retentionPeriod)
 	if err != nil {
 		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
@@ -4920,9 +4921,13 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 
 // SessionsOpensearch is the resolver for the sessions_opensearch field.
 func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int) (*model.SessionResults, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	results := []model.Session{}
@@ -4943,7 +4948,8 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		// page param is 1 indexed
 		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
-	q := FormatSessionsQuery(query)
+
+	q := FormatSessionsQuery(query, GetRetentionDate(*workspace.RetentionPeriod))
 	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
@@ -4957,9 +4963,13 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 
 // SessionsHistogram is the resolver for the sessions_histogram field.
 func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	results := []model.Session{}
@@ -4974,7 +4984,7 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, qu
 				Missing: ptr.String("false"),
 			}),
 	}
-	q := FormatSessionsQuery(query)
+	q := FormatSessionsQuery(query, GetRetentionDate(*workspace.RetentionPeriod))
 	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err

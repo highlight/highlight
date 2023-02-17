@@ -3117,11 +3117,32 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 	return
 }
 
-func FormatSessionsQuery(query string) string {
+func GetRetentionDate(retentionPeriod modelInputs.RetentionPeriod) time.Time {
+	switch retentionPeriod {
+	case modelInputs.RetentionPeriodThreeMonths:
+		return time.Now().AddDate(0, -3, 0)
+	case modelInputs.RetentionPeriodSixMonths:
+		return time.Now().AddDate(0, -6, 0)
+	case modelInputs.RetentionPeriodTwelveMonths:
+		return time.Now().AddDate(-1, 0, 0)
+	case modelInputs.RetentionPeriodTwoYears:
+		return time.Now().AddDate(-2, 0, 0)
+	}
+	return time.Now()
+}
+
+func FormatSessionsQuery(query string, retentionDate time.Time) string {
 	return fmt.Sprintf(`
 	{
 		"bool": {
 		   "must": [
+			  {
+				"range": {
+					"created_date": {
+					   "gt": %s
+					}
+				 }
+			  },
 			  {
 				 "bool": {
 					"must_not": [
@@ -3172,7 +3193,7 @@ func FormatSessionsQuery(query string) string {
 			  %s
 		   ]
 		}
-	 }`, query)
+	 }`, retentionDate.Format(time.RFC3339), query)
 }
 
 func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptions, field string, subAggregation *opensearch.TermsAggregation) *opensearch.DateHistogramAggregation {

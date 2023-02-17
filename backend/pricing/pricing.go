@@ -172,12 +172,23 @@ func MustUpgradeForClearbit(tier string) bool {
 }
 
 // Returns a Stripe lookup key which maps to a single Stripe Price
-func GetLookupKey(productType ProductType, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool) (result string) {
+func GetLookupKey(productType ProductType, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (result string) {
 	result = fmt.Sprintf("%s|%s|%s", string(productType), string(productTier), string(interval))
 	if unlimitedMembers {
 		result += "|UNLIMITED_MEMBERS"
 	}
+	if retentionPeriod != backend.RetentionPeriodThreeMonths {
+		result += "|" + string(retentionPeriod)
+	}
 	return
+}
+
+func GetOverageKey(productType ProductType, retentionPeriod backend.RetentionPeriod) string {
+	if retentionPeriod == backend.RetentionPeriodThreeMonths {
+		return string(productType)
+	} else {
+		return string(productType) + "|" + string(retentionPeriod)
+	}
 }
 
 // Returns the Highlight ProductType, Tier, and Interval for the Stripe Price
@@ -249,12 +260,12 @@ func FillProducts(stripeClient *client.API, subscriptions []*stripe.Subscription
 }
 
 // Returns the Stripe Prices for the associated tier and interval
-func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool) (map[ProductType]*stripe.Price, error) {
-	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval, unlimitedMembers)
+func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (map[ProductType]*stripe.Price, error) {
+	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval, unlimitedMembers, retentionPeriod)
 
-	sessionsLookupKey := string(ProductTypeSessions)
+	sessionsLookupKey := GetOverageKey(ProductTypeSessions, retentionPeriod)
 	membersLookupKey := string(ProductTypeMembers)
-	errorsLookupKey := string(ProductTypeErrors)
+	errorsLookupKey := GetOverageKey(ProductTypeErrors, retentionPeriod)
 
 	priceListParams := stripe.PriceListParams{}
 	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey}
@@ -396,7 +407,8 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Cli
 		}
 	}
 
-	prices, err := GetStripePrices(stripeClient, *productTier, interval, workspace.UnlimitedMembers)
+	// ZANETODO: check null!
+	prices, err := GetStripePrices(stripeClient, *productTier, interval, workspace.UnlimitedMembers, *workspace.RetentionPeriod)
 	if err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to get Stripe prices")
 	}

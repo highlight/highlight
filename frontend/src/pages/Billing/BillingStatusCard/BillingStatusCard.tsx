@@ -182,15 +182,6 @@ export const BillingStatusCard = ({
 				) : (
 					<>
 						<span className={styles.subText}>
-							You have used{' '}
-							<strong>
-								{formatNumberWithDelimiters(sessionCount)}
-							</strong>{' '}
-							of your{' '}
-							<strong>
-								{formatNumberWithDelimiters(sessionLimit)}
-							</strong>{' '}
-							sessions on the{' '}
 							<span className={styles.planText}>
 								{planType} Plan
 							</span>{' '}
@@ -199,12 +190,41 @@ export const BillingStatusCard = ({
 							SubscriptionInterval.Annual
 								? 'annually'
 								: 'monthly'}
-							).
+							)
+							<br />
+							You have used{' '}
+							<strong>
+								{formatNumberWithDelimiters(sessionCount)}
+							</strong>{' '}
+							of your{' '}
+							<strong>
+								{formatNumberWithDelimiters(sessionLimit)}
+							</strong>{' '}
+							sessions
+							<br />
 						</span>
 						<div className={styles.progressContainer}>
 							<Progress
 								numerator={sessionCount}
 								denominator={sessionLimit || 1}
+								showInfo={false}
+							/>
+						</div>
+						<span className={styles.subText}>
+							You have used{' '}
+							<strong>
+								{formatNumberWithDelimiters(errorsCount)}
+							</strong>{' '}
+							of your{' '}
+							<strong>
+								{formatNumberWithDelimiters(errorsLimit)}
+							</strong>{' '}
+							errors
+						</span>
+						<div className={styles.progressContainer}>
+							<Progress
+								numerator={errorsCount}
+								denominator={errorsLimit || 1}
 								showInfo={false}
 							/>
 						</div>

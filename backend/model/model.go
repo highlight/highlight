@@ -235,31 +235,31 @@ type Organization struct {
 
 type Workspace struct {
 	Model
-	Name                  *string
-	Secret                *string // Needed for workspace-level team
-	Admins                []Admin `gorm:"many2many:workspace_admins;"`
-	SlackAccessToken      *string
-	SlackWebhookURL       *string
-	SlackWebhookChannel   *string
-	SlackWebhookChannelID *string
-	SlackChannels         *string
-	LinearAccessToken     *string
-	VercelAccessToken     *string
-	VercelTeamID          *string
-	Projects              []Project
-	MigratedFromProjectID *int // Column can be removed after migration is done
-	HubspotCompanyID      *int
-	StripeCustomerID      *string
-	StripePriceID         *string
-	PlanTier              string `gorm:"default:Free"`
-	UnlimitedMembers      bool   `gorm:"default:false"`
-	BillingPeriodStart    *time.Time
-	BillingPeriodEnd      *time.Time
-	NextInvoiceDate       *time.Time
-	MonthlySessionLimit   *int
-	MonthlyMembersLimit   *int
-	MonthlyErrorsLimit    *int
-	// RetentionPeriod          *int
+	Name                        *string
+	Secret                      *string // Needed for workspace-level team
+	Admins                      []Admin `gorm:"many2many:workspace_admins;"`
+	SlackAccessToken            *string
+	SlackWebhookURL             *string
+	SlackWebhookChannel         *string
+	SlackWebhookChannelID       *string
+	SlackChannels               *string
+	LinearAccessToken           *string
+	VercelAccessToken           *string
+	VercelTeamID                *string
+	Projects                    []Project
+	MigratedFromProjectID       *int // Column can be removed after migration is done
+	HubspotCompanyID            *int
+	StripeCustomerID            *string
+	StripePriceID               *string
+	PlanTier                    string `gorm:"default:Free"`
+	UnlimitedMembers            bool   `gorm:"default:false"`
+	BillingPeriodStart          *time.Time
+	BillingPeriodEnd            *time.Time
+	NextInvoiceDate             *time.Time
+	MonthlySessionLimit         *int
+	MonthlyMembersLimit         *int
+	MonthlyErrorsLimit          *int
+	RetentionPeriod             *modelInputs.RetentionPeriod
 	TrialEndDate                *time.Time `json:"trial_end_date"`
 	AllowMeterOverage           bool       `gorm:"default:true"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`

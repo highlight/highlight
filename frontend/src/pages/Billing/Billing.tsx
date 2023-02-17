@@ -416,8 +416,9 @@ const BillingPage = () => {
 					<div className={styles.annualToggleBox}>
 						<label>
 							<span className={styles.annualToggleText}>
-								Billing Period
+								Billing Interval
 							</span>
+							<div>Annual plans have a 20% discount.</div>
 							<RadioGroup
 								style={{ marginTop: 20, marginBottom: 20 }}
 								selectedLabel={subscriptionInterval}
@@ -436,6 +437,9 @@ const BillingPage = () => {
 							<span className={styles.annualToggleText}>
 								Retention
 							</span>
+							<div>
+								Choose your retention for sessions and errors.
+							</div>
 							<RadioGroup
 								style={{ marginTop: 20, marginBottom: 20 }}
 								selectedLabel={
