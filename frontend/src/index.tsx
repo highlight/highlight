@@ -367,10 +367,6 @@ const AuthenticationRoleRouter = () => {
 
 	const loggedIn = isLoggedIn(authRole)
 
-	const newAccount = ['/verify_email', '/sign_up'].includes(
-		window.location.pathname,
-	)
-
 	return (
 		<AuthContextProvider
 			value={{
@@ -386,7 +382,7 @@ const AuthenticationRoleRouter = () => {
 			<Helmet>
 				<title>highlight.io</title>
 			</Helmet>
-			{adminError && !newAccount ? (
+			{adminError ? (
 				<ErrorState
 					message={
 						`Seems like we had an issue with your login 😢. ` +
