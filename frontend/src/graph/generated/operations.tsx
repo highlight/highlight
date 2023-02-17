@@ -212,6 +212,15 @@ export type SubmitRegistrationFormMutation = { __typename?: 'Mutation' } & Pick<
 	'submitRegistrationForm'
 >
 
+export type CreateAdminMutationVariables = Types.Exact<{ [key: string]: never }>
+
+export type CreateAdminMutation = { __typename?: 'Mutation' } & {
+	createAdmin: { __typename?: 'Admin' } & Pick<
+		Types.Admin,
+		'id' | 'name' | 'email' | 'email_verified' | 'about_you_details_filled'
+	>
+}
+
 export type CreateWorkspaceMutationVariables = Types.Exact<{
 	name: Types.Scalars['String']
 	promo_code?: Types.Maybe<Types.Scalars['String']>
@@ -4086,6 +4095,7 @@ export const namedOperations = {
 		UpdateAllowedEmailOrigins: 'UpdateAllowedEmailOrigins' as const,
 		CreateProject: 'CreateProject' as const,
 		SubmitRegistrationForm: 'SubmitRegistrationForm' as const,
+		CreateAdmin: 'CreateAdmin' as const,
 		CreateWorkspace: 'CreateWorkspace' as const,
 		EditProject: 'EditProject' as const,
 		DeleteProject: 'DeleteProject' as const,

@@ -4,7 +4,7 @@ import '@fontsource/poppins'
 import './index.scss'
 import './style/tailwind.css'
 
-import { ApolloError, ApolloProvider, QueryLazyOptions } from '@apollo/client'
+import { ApolloError, ApolloProvider } from '@apollo/client'
 import {
 	AuthContextProvider,
 	AuthRole,
@@ -22,6 +22,7 @@ import {
 import { datadogLogs } from '@datadog/browser-logs'
 import { datadogRum } from '@datadog/browser-rum'
 import {
+	useCreateAdminMutation,
 	useGetAdminLazyQuery,
 	useGetAdminRoleByProjectLazyQuery,
 	useGetAdminRoleLazyQuery,
@@ -225,27 +226,9 @@ const AuthenticationRoleRouter = () => {
 	] = useGetAdminLazyQuery()
 
 	let getAdminQuery:
-			| ((
-					workspace_id:
-						| QueryLazyOptions<
-								Partial<{
-									workspace_id: string
-									project_id: string
-								}>
-						  >
-						| undefined,
-			  ) => void)
-			| ((
-					project_id:
-						| QueryLazyOptions<
-								Partial<{
-									workspace_id: string
-									project_id: string
-								}>
-						  >
-						| undefined,
-			  ) => void)
-			| (() => void),
+			| typeof getAdminWorkspaceRoleQuery
+			| typeof getAdminProjectRoleQuery
+			| typeof getAdminSimpleQuery,
 		adminError: ApolloError | undefined,
 		adminData: Admin | undefined | null,
 		adminRole: string | undefined,
@@ -303,23 +286,27 @@ const AuthenticationRoleRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [adminData, authRole, projectId])
 
+	const [createAdminMutation] = useCreateAdminMutation()
+
 	useEffect(() => {
-		const variables: Partial<{ workspace_id: string; project_id: string }> =
-			{}
+		const variables: any = {}
 		if (workspaceId) {
 			variables.workspace_id = workspaceId
 		} else if (projectId) {
 			variables.project_id = projectId
 		}
+
 		const unsubscribeFirebase = auth.onAuthStateChanged(
-			(user) => {
+			async (user) => {
 				setUser(user)
 
 				if (user) {
 					if (!called) {
-						getAdminQuery({
-							variables,
-						})
+						try {
+							await createAdminMutation()
+						} finally {
+							getAdminQuery({ variables })
+						}
 					} else {
 						refetch!()
 					}
@@ -376,6 +363,10 @@ const AuthenticationRoleRouter = () => {
 
 	const loggedIn = isLoggedIn(authRole)
 
+	const newAccount = ['/verify_email', '/sign_up'].includes(
+		window.location.pathname,
+	)
+
 	return (
 		<AuthContextProvider
 			value={{
@@ -385,13 +376,12 @@ const AuthenticationRoleRouter = () => {
 				isAuthLoading: isAuthLoading(authRole),
 				isLoggedIn: loggedIn,
 				isHighlightAdmin: isHighlightAdmin(authRole) && enableStaffView,
-				refetchAdmin: refetch,
 			}}
 		>
 			<Helmet>
 				<title>highlight.io</title>
 			</Helmet>
-			{adminError ? (
+			{adminError && !newAccount ? (
 				<ErrorState
 					message={
 						`Seems like we had an issue with your login 😢. ` +

@@ -21,7 +21,6 @@ export const VerifyEmail: React.FC = () => {
 	})
 	const [loading, setLoading] = useState(false)
 	const navigate = useNavigate()
-
 	const isEmailVerified = data?.admin?.email_verified || false
 
 	useEffect(() => {
@@ -50,8 +49,8 @@ export const VerifyEmail: React.FC = () => {
 				</AuthHeader>
 				<AuthBody>
 					<Text align="center" break="word">
-						A link was sent to {data?.admin?.email}. Visit this link
-						in order to continue.
+						A link was sent to {auth.currentUser?.email}. Visit this
+						link in order to continue.
 					</Text>
 				</AuthBody>
 				<AuthFooter>
@@ -65,7 +64,7 @@ export const VerifyEmail: React.FC = () => {
 									?.sendEmailVerification()
 									.then(() => {
 										message.success(
-											`Sent another email to ${data?.admin?.email}!`,
+											`Sent another email to ${auth.currentUser?.email}!`,
 										)
 									})
 									.catch((e) => {

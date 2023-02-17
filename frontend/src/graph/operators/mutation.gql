@@ -166,6 +166,16 @@ mutation SubmitRegistrationForm(
 	)
 }
 
+mutation CreateAdmin {
+	createAdmin {
+		id
+		name
+		email
+		email_verified
+		about_you_details_filled
+	}
+}
+
 mutation CreateWorkspace($name: String!, $promo_code: String) {
 	createWorkspace(name: $name, promo_code: $promo_code) {
 		id

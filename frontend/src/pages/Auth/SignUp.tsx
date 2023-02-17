@@ -43,7 +43,7 @@ export const SignUp: React.FC = () => {
 				)
 					.then(async () => {
 						message.success('Account created succesfully!')
-						await auth.currentUser?.sendEmailVerification()
+						auth.currentUser?.sendEmailVerification()
 
 						// Redirect the user to their initial path instead to creating a new
 						// workspace. We do this because this happens when a new user clicks
@@ -59,9 +59,9 @@ export const SignUp: React.FC = () => {
 							})
 						}
 
-						setTimeout(() => {
+						if (redirect) {
 							navigate(redirect, { replace: true })
-						}, 500)
+						}
 					})
 					.catch((error) => {
 						setError(error.message || error.toString())
@@ -124,21 +124,23 @@ export const SignUp: React.FC = () => {
 						type="button"
 						trackingId="sign-up-with-google"
 						onClick={() => {
-							auth.signInWithPopup(auth.googleProvider!).catch(
-								(error: firebase.auth.MultiFactorError) => {
-									let errorMessage = error.message
+							auth.signInWithPopup(googleProvider!)
+								.then(() => {})
+								.catch(
+									(error: firebase.auth.MultiFactorError) => {
+										let errorMessage = error.message
 
-									if (
-										error.code ===
-										'auth/popup-closed-by-user'
-									) {
-										errorMessage =
-											'Pop-up closed without successfully authenticating. Please try again.'
-									}
+										if (
+											error.code ===
+											'auth/popup-closed-by-user'
+										) {
+											errorMessage =
+												'Pop-up closed without successfully authenticating. Please try again.'
+										}
 
-									setError(errorMessage)
-								},
-							)
+										setError(errorMessage)
+									},
+								)
 						}}
 					>
 						Sign up with Google <IconSolidSparkles />

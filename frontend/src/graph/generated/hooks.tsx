@@ -1162,6 +1162,58 @@ export type SubmitRegistrationFormMutationOptions = Apollo.BaseMutationOptions<
 	Types.SubmitRegistrationFormMutation,
 	Types.SubmitRegistrationFormMutationVariables
 >
+export const CreateAdminDocument = gql`
+	mutation CreateAdmin {
+		createAdmin {
+			id
+			name
+			email
+			email_verified
+			about_you_details_filled
+		}
+	}
+`
+export type CreateAdminMutationFn = Apollo.MutationFunction<
+	Types.CreateAdminMutation,
+	Types.CreateAdminMutationVariables
+>
+
+/**
+ * __useCreateAdminMutation__
+ *
+ * To run a mutation, you first call `useCreateAdminMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateAdminMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createAdminMutation, { data, loading, error }] = useCreateAdminMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useCreateAdminMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.CreateAdminMutation,
+		Types.CreateAdminMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.CreateAdminMutation,
+		Types.CreateAdminMutationVariables
+	>(CreateAdminDocument, baseOptions)
+}
+export type CreateAdminMutationHookResult = ReturnType<
+	typeof useCreateAdminMutation
+>
+export type CreateAdminMutationResult =
+	Apollo.MutationResult<Types.CreateAdminMutation>
+export type CreateAdminMutationOptions = Apollo.BaseMutationOptions<
+	Types.CreateAdminMutation,
+	Types.CreateAdminMutationVariables
+>
 export const CreateWorkspaceDocument = gql`
 	mutation CreateWorkspace($name: String!, $promo_code: String) {
 		createWorkspace(name: $name, promo_code: $promo_code) {

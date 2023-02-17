@@ -430,6 +430,37 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	return true, nil
 }
 
+// CreateAdmin is the resolver for the createAdmin field.
+func (r *mutationResolver) CreateAdmin(ctx context.Context) (*model.Admin, error) {
+	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
+
+	firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
+		tracer.Tag("admin_uid", uid))
+	firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
+
+	if err != nil {
+		spanError := e.Wrap(err, "error retrieving user from firebase api")
+		firebaseSpan.Finish(tracer.WithError(spanError))
+		return nil, spanError
+	}
+
+	admin := &model.Admin{
+		UID:                   &uid,
+		Name:                  &firebaseUser.DisplayName,
+		Email:                 &firebaseUser.Email,
+		PhotoURL:              &firebaseUser.PhotoURL,
+		EmailVerified:         &firebaseUser.EmailVerified,
+		Phone:                 &firebaseUser.PhoneNumber,
+		AboutYouDetailsFilled: &model.F,
+	}
+	if err := r.DB.Create(admin).Error; err != nil {
+		return nil, e.Wrap(err, "error creating new admin")
+	}
+
+	firebaseSpan.Finish()
+	return admin, nil
+}
+
 // CreateProject is the resolver for the createProject field.
 func (r *mutationResolver) CreateProject(ctx context.Context, name string, workspaceID int) (*model.Project, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
@@ -6202,35 +6233,21 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 // Admin is the resolver for the admin field.
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
+	admin := &model.Admin{UID: &uid}
 	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.admin"),
 		tracer.Tag("admin_uid", uid))
-	admin := &model.Admin{UID: &uid}
+	firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
+		tracer.Tag("admin_uid", uid))
+
+	fmt.Printf("::: uid: %+v", uid)
 	if err := r.DB.Where(&model.Admin{UID: &uid}).First(&admin).Error; err != nil {
-		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
-			tracer.Tag("admin_uid", uid))
-		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
-		if err != nil {
-			spanError := e.Wrap(err, "error retrieving user from firebase api")
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			adminSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		newAdmin := &model.Admin{
-			UID:                   &uid,
-			Name:                  &firebaseUser.DisplayName,
-			Email:                 &firebaseUser.Email,
-			PhotoURL:              &firebaseUser.PhotoURL,
-			EmailVerified:         &firebaseUser.EmailVerified,
-			Phone:                 &firebaseUser.PhoneNumber,
-			AboutYouDetailsFilled: &model.F,
-		}
-		if err := r.DB.Where(newAdmin).FirstOrCreate(&admin).Error; err != nil {
-			spanError := e.Wrap(err, "error creating new admin")
-			adminSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		firebaseSpan.Finish()
+		spanError := e.Wrap(err, "error retrieving user from postgres")
+		adminSpan.Finish(tracer.WithError(spanError))
+		firebaseSpan.Finish(tracer.WithError(spanError))
+		return nil, spanError
 	}
+
+	// TODO: See if this is still needed.
 	if admin.PhotoURL == nil || admin.Name == nil {
 		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
 			tracer.Tag("admin_uid", uid))
@@ -6278,8 +6295,8 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		}
 		admin.EmailVerified = &firebaseUser.EmailVerified
 		firebaseSpan.Finish()
-
 	}
+
 	adminSpan.Finish()
 	return admin, nil
 }
