@@ -124,6 +124,14 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 									let errorMessage = error.message
 
 									if (
+										error.code ==
+										'auth/multi-factor-auth-required'
+									) {
+										setResolver(error.resolver)
+										navigate('/multi_factor')
+									}
+
+									if (
 										error.code ===
 										'auth/popup-closed-by-user'
 									) {
