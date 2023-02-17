@@ -30,6 +30,7 @@ jobs:
             - name: Test
               run: poetry run pytest --cov=highlight_io --cov-branch --cov-report xml
             - name: Get Cover
+              if: github.event_name == 'pull_request'
               uses: orgoro/coverage@v3
               with:
                   coverageFile: ./sdk/highlight-py/coverage.xml
