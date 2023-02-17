@@ -10,10 +10,9 @@ import {
 } from '@highlight-run/ui'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
-import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import firebase from 'firebase/app'
-import React from 'react'
+import React, { useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 type Props = {
@@ -33,6 +32,26 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		},
 	})
 
+	const handleAuthError = useCallback(
+		(error: firebase.auth.MultiFactorError) => {
+			let errorMessage = error.message
+
+			if (error.code == 'auth/multi-factor-auth-required') {
+				setResolver(error.resolver)
+				navigate('/multi_factor')
+				return
+			}
+
+			if (error.code === 'auth/popup-closed-by-user') {
+				errorMessage =
+					'Pop-up closed without successfully authenticating. Please try again.'
+			}
+
+			setError(errorMessage)
+		},
+		[navigate, setResolver],
+	)
+
 	return (
 		<Form
 			state={formState}
@@ -45,20 +64,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					formState.values.password,
 				)
 					.then(() => {})
-					.catch((error) => {
-						if (error.code == 'auth/multi-factor-auth-required') {
-							setResolver(error.resolver)
-							navigate('/multi_factor')
-						} else {
-							setError(error.toString())
-						}
-
-						analytics.track('Authentication error', {
-							error: error.code,
-						})
-						setError(error.message || error.toString())
-						setLoading(false)
-					})
+					.catch(handleAuthError)
 			}}
 		>
 			<AuthHeader>
@@ -120,27 +126,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						trackingId="sign-in-with-google"
 						onClick={() => {
 							auth.signInWithPopup(auth.googleProvider!).catch(
-								(error: firebase.auth.MultiFactorError) => {
-									let errorMessage = error.message
-
-									if (
-										error.code ==
-										'auth/multi-factor-auth-required'
-									) {
-										setResolver(error.resolver)
-										navigate('/multi_factor')
-									}
-
-									if (
-										error.code ===
-										'auth/popup-closed-by-user'
-									) {
-										errorMessage =
-											'Pop-up closed without successfully authenticating. Please try again.'
-									}
-
-									setError(errorMessage)
-								},
+								handleAuthError,
 							)
 						}}
 					>
