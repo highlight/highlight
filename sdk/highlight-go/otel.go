@@ -18,6 +18,8 @@ import (
 )
 
 const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
+const SourceAttribute = "Source"
+const SourceAttributeFrontend = "SubmitFrontendConsoleMessages"
 const ProjectIDAttribute = "highlight_project_id"
 const SessionIDAttribute = "highlight_session_id"
 const RequestIDAttribute = "highlight_trace_id"

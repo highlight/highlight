@@ -39,7 +39,7 @@ func castString(v interface{}, fallback string) string {
 	return s
 }
 
-func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID *string) {
+func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID, source *string) {
 	if p, ok := attrs[highlight.ProjectIDAttribute]; ok {
 		if v, _ := p.(string); v != "" {
 			*projectID = v
@@ -53,6 +53,11 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 	if r, ok := attrs[highlight.RequestIDAttribute]; ok {
 		if v, _ := r.(string); v != "" {
 			*requestID = v
+		}
+	}
+	if src, ok := attrs[highlight.SourceAttribute]; ok {
+		if v, _ := src.(string); v != "" {
+			*source = v
 		}
 	}
 }
@@ -107,12 +112,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 	spans := req.Traces().ResourceSpans()
 	for i := 0; i < spans.Len(); i++ {
-		var projectID, sessionID, requestID string
+		var projectID, sessionID, requestID, source string
 		resource := spans.At(i).Resource()
 		resourceAttributes := resource.Attributes().AsRaw()
 		sdkLanguage := castString(resource.Attributes().AsRaw()[string(semconv.TelemetrySDKLanguageKey)], "")
 		serviceName := castString(resource.Attributes().AsRaw()[string(semconv.ServiceNameKey)], "")
-		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID)
+		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source)
 		scopeScans := spans.At(i).ScopeSpans()
 		for j := 0; j < scopeScans.Len(); j++ {
 			scope := scopeScans.At(j).Scope()
@@ -125,14 +130,14 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					log.WithContext(ctx).Errorf("failed to format error attributes %s", tagsBytes)
 					continue
 				}
-				setHighlightAttributes(spanAttributes, &projectID, &sessionID, &requestID)
+				setHighlightAttributes(spanAttributes, &projectID, &sessionID, &requestID, &source)
 				events := span.Events()
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
 					eventAttributes := event.Attributes().AsRaw()
-					setHighlightAttributes(eventAttributes, &projectID, &sessionID, &requestID)
+					setHighlightAttributes(eventAttributes, &projectID, &sessionID, &requestID, &source)
 					if event.Name() == semconv.ExceptionEventName {
-						excType := castString(eventAttributes[string(semconv.ExceptionTypeKey)], "")
+						excType := castString(eventAttributes[string(semconv.ExceptionTypeKey)], source)
 						excMessage := castString(eventAttributes[string(semconv.ExceptionMessageKey)], "")
 						stackTrace := castString(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
 						errorUrl := castString(eventAttributes[highlight.ErrorURLKey], "")
@@ -149,8 +154,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							RequestID:       &requestID,
 							TraceID:         pointy.String(span.TraceID().String()),
 							SpanID:          pointy.String(span.SpanID().String()),
-							Event:           castString(excMessage, ""),
-							Type:            castString(excType, "BACKEND"),
+							Event:           excMessage,
+							Type:            excType,
 							Source: strings.Join(lo.Filter([]string{
 								sdkLanguage,
 								serviceName,
@@ -235,16 +240,24 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for sessionID, errors := range traceErrors {
-		err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
-			Type: kafkaqueue.MarkBackendSetup,
-			MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
-				SessionSecureID: pointy.String(sessionID),
-			},
-		}, sessionID)
-		if err != nil {
-			log.Error(err, "failed to submit otel mark backend setup")
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
+		var backendError = false
+		for _, err := range errors {
+			if err.Type != highlight.SourceAttributeFrontend {
+				backendError = true
+			}
+		}
+		if backendError {
+			err = o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
+				Type: kafkaqueue.MarkBackendSetup,
+				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
+					SessionSecureID: pointy.String(sessionID),
+				},
+			}, sessionID)
+			if err != nil {
+				log.Error(err, "failed to submit otel mark backend setup")
+				w.WriteHeader(http.StatusServiceUnavailable)
+				return
+			}
 		}
 
 		err = o.resolver.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
@@ -261,17 +274,25 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for projectID, errors := range projectErrors {
-		if projectIDInt, err := projectToInt(projectID); err == nil {
-			err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
-				Type: kafkaqueue.MarkBackendSetup,
-				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
-					ProjectID: projectIDInt,
-				},
-			}, projectID)
-			if err != nil {
-				log.Error(err, "failed to submit otel mark backend setup")
-				w.WriteHeader(http.StatusServiceUnavailable)
-				return
+		var backendError = false
+		for _, err := range errors {
+			if err.Type != highlight.SourceAttributeFrontend {
+				backendError = true
+			}
+		}
+		if backendError {
+			if projectIDInt, err := projectToInt(projectID); err == nil {
+				err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
+					Type: kafkaqueue.MarkBackendSetup,
+					MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
+						ProjectID: projectIDInt,
+					},
+				}, projectID)
+				if err != nil {
+					log.Error(err, "failed to submit otel mark backend setup")
+					w.WriteHeader(http.StatusServiceUnavailable)
+					return
+				}
 			}
 		}
 
@@ -332,18 +353,18 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 	resourceLogs := req.Logs().ResourceLogs()
 	for i := 0; i < resourceLogs.Len(); i++ {
-		var projectID, sessionID, requestID string
+		var projectID, sessionID, requestID, source string
 		resource := resourceLogs.At(i).Resource()
 		resourceAttributes := resource.Attributes().AsRaw()
 		serviceName := castString(resource.Attributes().AsRaw()[string(semconv.ServiceNameKey)], "")
-		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID)
+		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source)
 		scopeLogs := resourceLogs.At(i).ScopeLogs()
 		for j := 0; j < scopeLogs.Len(); j++ {
 			logRecords := scopeLogs.At(j).LogRecords()
 			for k := 0; k < logRecords.Len(); k++ {
 				logRecord := logRecords.At(k)
 				logAttributes := logRecord.Attributes().AsRaw()
-				setHighlightAttributes(logAttributes, &projectID, &sessionID, &requestID)
+				setHighlightAttributes(logAttributes, &projectID, &sessionID, &requestID, &source)
 				projectIDInt, err := projectToInt(projectID)
 				if err != nil {
 					log.WithContext(ctx).WithField("ProjectID", projectID).WithField("LogMessage", logRecord.Body().AsRaw()).Errorf("otel log got invalid project id")
@@ -401,6 +422,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow) error {
 	for projectID, logRows := range projectLogs {
 		if projectIDInt, err := projectToInt(projectID); err == nil {
+			// otel logs only come from python sdk
 			err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
 				Type: kafkaqueue.MarkBackendSetup,
 				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
