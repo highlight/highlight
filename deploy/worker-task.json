@@ -67,25 +67,6 @@
 		{
 			"dnsSearchDomains": null,
 			"environmentFiles": null,
-			"logConfiguration": {
-				"logDriver": "awsfirelens",
-				"secretOptions": [
-					{
-						"valueFrom": "DD_API_KEY",
-						"name": "apiKey"
-					}
-				],
-				"options": {
-					"dd_message_key": "log",
-					"provider": "ecs",
-					"dd_service": "worker-service",
-					"Host": "http-intake.logs.datadoghq.com",
-					"TLS": "on",
-					"dd_source": "worker",
-					"dd_tags": "project:fluentbit",
-					"Name": "datadog"
-				}
-			},
 			"entryPoint": null,
 			"portMappings": [
 				{
