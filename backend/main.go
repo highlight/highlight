@@ -186,14 +186,14 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 	}()
 	wg.Wait()
 	select {
-	case e := <-errors:
-		return e
+	case err := <-errors:
+		return err
 	default:
 		return nil
 	}
 }
 
-func validateOrigin(request *http.Request, origin string) bool {
+func validateOrigin(_ *http.Request, origin string) bool {
 	if runtimeParsed == util.PrivateGraph {
 		// From the highlight frontend, only the url is whitelisted.
 		isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
