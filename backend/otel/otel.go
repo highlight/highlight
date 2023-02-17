@@ -254,7 +254,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				},
 			}, sessionID)
 			if err != nil {
-				log.Error(err, "failed to submit otel mark backend setup")
+				log.WithContext(ctx).Error(err, "failed to submit otel mark backend setup")
 				w.WriteHeader(http.StatusServiceUnavailable)
 				return
 			}
@@ -289,7 +289,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					},
 				}, projectID)
 				if err != nil {
-					log.Error(err, "failed to submit otel mark backend setup")
+					log.WithContext(ctx).Error(err, "failed to submit otel mark backend setup")
 					w.WriteHeader(http.StatusServiceUnavailable)
 					return
 				}
@@ -411,7 +411,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := o.submitProjectLogs(ctx, projectLogs); err != nil {
-		log.Error(err, "failed to submit otel project logs")
+		log.WithContext(ctx).Error(err, "failed to submit otel project logs")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
 	}
