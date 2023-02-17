@@ -143,14 +143,14 @@ if (!isOnPrem) {
 			defaultPrivacyLevel: 'allow',
 		})
 		datadogRum.startSessionReplayRecording()
+
+		Sentry.init({
+			dsn: 'https://e8052ada7c10490b823e0f939c519903@o4504696930631680.ingest.sentry.io/4504697059934208',
+			integrations: [new BrowserTracing()],
+			tracesSampleRate: 1.0,
+		})
 	}
 }
-
-Sentry.init({
-	dsn: 'https://e8052ada7c10490b823e0f939c519903@o4504696930631680.ingest.sentry.io/4504697059934208',
-	integrations: [new BrowserTracing()],
-	tracesSampleRate: 1.0,
-})
 
 showHiringMessage()
 setAttributionData()
