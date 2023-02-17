@@ -120,16 +120,16 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 			log.WithContext(ctx).WithError(err).Error("failed to batch write to clickhouse")
 		}
 	}
-	for projectID, _ := range setupProjectIDs {
+	for projectID := range setupProjectIDs {
 		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctx, nil, nil, projectID)
 		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to batch mark backend setup for project %d", projectID)
+			log.WithContext(ctx).WithError(err).Errorf("failed to batch mark backend setup for project %d", projectID)
 		}
 	}
-	for sessionID, _ := range setupSessionIDs {
+	for sessionID := range setupSessionIDs {
 		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctx, nil, pointy.String(sessionID), 0)
 		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to batch mark backend setup for session %s", sessionID)
+			log.WithContext(ctx).WithError(err).Errorf("failed to batch mark backend setup for session %s", sessionID)
 		}
 	}
 
