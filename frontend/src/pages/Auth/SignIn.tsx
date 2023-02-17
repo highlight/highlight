@@ -86,6 +86,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						label="Email"
 						type="email"
 						autoFocus
+						autoComplete="email"
 					/>
 					<Form.Input
 						name={formState.names.password}
