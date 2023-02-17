@@ -1,5 +1,16 @@
-import { Box, Form, Preset, PreviousDateRangePicker } from '@highlight-run/ui'
-import React, { useState } from 'react'
+import { useGetLogsKeysQuery } from '@graph/hooks'
+import { GetLogsKeysQuery } from '@graph/operations'
+import {
+	Box,
+	Combobox,
+	Preset,
+	PreviousDateRangePicker,
+	useComboboxState,
+} from '@highlight-run/ui'
+import { useParams } from '@util/react-router/useParams'
+import React, { useEffect, useRef, useState } from 'react'
+
+import * as styles from './SearchForm.css'
 
 type Props = {
 	onFormSubmit: (query: string) => void
@@ -11,8 +22,10 @@ type Props = {
 	minDate: Date
 }
 
+const MAX_ITEMS = 10
+
 const SearchForm = ({
-	initialQuery,
+	initialQuery = '',
 	startDate,
 	endDate,
 	onDatesChange,
@@ -22,13 +35,21 @@ const SearchForm = ({
 }: Props) => {
 	const [query, setQuery] = useState(initialQuery)
 	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
+	const { project_id } = useParams()
+
+	const { data: keysData } = useGetLogsKeysQuery({
+		variables: {
+			project_id: project_id!,
+		},
+	})
+
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
 		onFormSubmit(query)
 	}
 
-	const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setQuery(event.target.value)
+	const handleSearchChange = (key: GetLogsKeysQuery['logs_keys'][0]) => {
+		setQuery(key.name)
 	}
 
 	const handleDatesChange = (dates: Date[]) => {
@@ -40,16 +61,13 @@ const SearchForm = ({
 	}
 
 	return (
-		<form onSubmit={handleSubmit}>
+		<form onSubmit={handleSubmit} style={{ position: 'relative' }}>
 			<Box display="flex" gap="8" width="full">
-				<Box display="flex" flexGrow={1}>
-					<Form.Input
-						name="search"
-						value={query}
-						placeholder="Search your logs..."
-						onChange={handleSearchChange}
-					/>
-				</Box>
+				<Search
+					keys={keysData?.logs_keys}
+					query={query}
+					handleSearchChange={handleSearchChange}
+				/>
 				<Box display="flex">
 					<PreviousDateRangePicker
 						selectedDates={selectedDates}
@@ -64,3 +82,67 @@ const SearchForm = ({
 }
 
 export { SearchForm }
+
+const Search: React.FC<{
+	keys?: GetLogsKeysQuery['logs_keys']
+	query: string
+	handleSearchChange: any
+}> = ({ keys, handleSearchChange, query }) => {
+	const [queryText, setQueryText] = useState('')
+	const containerRef = useRef<HTMLDivElement | null>(null)
+	const state = useComboboxState({ gutter: 4, sameWidth: true })
+
+	const activeQuery = queryText.split(' ').at(-1) || ''
+	const visibleItems =
+		keys?.filter(
+			(key) => !activeQuery.length || key.name.indexOf(activeQuery) > -1,
+		) || []
+	visibleItems.length = MAX_ITEMS
+
+	// TODO: Handle visible items being values instead of keys
+
+	useEffect(() => {
+		setQueryText(query)
+	}, [query])
+
+	return (
+		<Box
+			display="flex"
+			flexGrow={1}
+			ref={containerRef}
+			cssClass={styles.container}
+		>
+			<Combobox
+				state={state}
+				name="search"
+				placeholder="Search your logs..."
+				value={queryText}
+				onChange={(e) => setQueryText(e.target.value)}
+				className={styles.combobox}
+				setValueOnChange={false}
+			/>
+			{keys?.length && (
+				<Combobox.Popover
+					className={styles.comboboxPopover}
+					state={state}
+					style={{ right: 0 }}
+				>
+					{visibleItems.map((key, index) => (
+						<Combobox.Item
+							className={styles.comboboxItem}
+							key={index}
+							onClick={() => {
+								handleSearchChange(key)
+
+								// TODO: Don't close if selecting key for query.
+								state.setOpen(false)
+							}}
+						>
+							{key.name} ({key.type})
+						</Combobox.Item>
+					))}
+				</Combobox.Popover>
+			)}
+		</Box>
+	)
+}
