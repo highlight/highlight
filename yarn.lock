@@ -5598,53 +5598,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@datadog/browser-core@npm:4.15.0":
-  version: 4.15.0
-  resolution: "@datadog/browser-core@npm:4.15.0"
-  checksum: b635d74eb484e399f50d4668af370231bb7e1b56e1957f62c7923052ba4222b63c40ce7e2f3f1d842e9bbc948563acd6c26360145b71ef1a389ebca51b6aa595
-  languageName: node
-  linkType: hard
-
-"@datadog/browser-core@npm:4.21.0":
-  version: 4.21.0
-  resolution: "@datadog/browser-core@npm:4.21.0"
-  checksum: 91c9f5ba6ea9d7a14b20102afe0214d6cc7121c6c2a94c971f7d5ca84708ef8199620a1aea10a97c2c73d071aced61b7bccdeb18603100ba9f7c3baf7ac1f03f
-  languageName: node
-  linkType: hard
-
-"@datadog/browser-logs@npm:^4.13.0":
-  version: 4.15.0
-  resolution: "@datadog/browser-logs@npm:4.15.0"
-  dependencies:
-    "@datadog/browser-core": 4.15.0
-  checksum: 231b4974108ddfe9b2bbcd3754cac280ed01f4981a71a182c856ce20632b5a4e7e143cee25f052b9a814de6ea2fbe2840c10473804e95fea602b683c35a395a5
-  languageName: node
-  linkType: hard
-
-"@datadog/browser-rum-core@npm:4.21.0":
-  version: 4.21.0
-  resolution: "@datadog/browser-rum-core@npm:4.21.0"
-  dependencies:
-    "@datadog/browser-core": 4.21.0
-  checksum: f465ab760439f0b8fd0e9f738ae0f9273e4634114f19f43958b8215f11d55ff0e9eaafcdea52c2f0d9199a1119e1fd92c4a481fb7f871d00d970e544cb132572
-  languageName: node
-  linkType: hard
-
-"@datadog/browser-rum@npm:^4.21.0":
-  version: 4.21.0
-  resolution: "@datadog/browser-rum@npm:4.21.0"
-  dependencies:
-    "@datadog/browser-core": 4.21.0
-    "@datadog/browser-rum-core": 4.21.0
-  peerDependencies:
-    "@datadog/browser-logs": 4.21.0
-  peerDependenciesMeta:
-    "@datadog/browser-logs":
-      optional: true
-  checksum: 3a0c9b8cc72b28fc5e864e388f6d2c11ca2f8b4bd694785ab8f4e88363c054dee80911035a2e88806786c30fcf3e8ae442bf270627958032d6354e01225d1d8a
-  languageName: node
-  linkType: hard
-
 "@date-io/core@npm:^1.3.13":
   version: 1.3.13
   resolution: "@date-io/core@npm:1.3.13"
@@ -8297,8 +8250,6 @@ __metadata:
     "@apollo/client": ^3.7.0
     "@babel/core": ^7.19.0
     "@ctrl/tinycolor": ^3.4.1
-    "@datadog/browser-logs": ^4.13.0
-    "@datadog/browser-rum": ^4.21.0
     "@fontsource/poppins": ^4.5.9
     "@frontapp/plugin-sdk": ^1.1.2
     "@graphql-codegen/cli": ^2.13.7

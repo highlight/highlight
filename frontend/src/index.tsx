@@ -19,8 +19,6 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { datadogLogs } from '@datadog/browser-logs'
-import { datadogRum } from '@datadog/browser-rum'
 import {
 	useGetAdminLazyQuery,
 	useGetAdminRoleByProjectLazyQuery,
@@ -116,32 +114,7 @@ if (dev) {
 H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 if (!isOnPrem) {
 	H.start()
-
 	showIntercom({ hideMessage: true })
-	if (!dev) {
-		datadogLogs.init({
-			clientToken: import.meta.env.DD_CLIENT_TOKEN,
-			site: 'datadoghq.com',
-			forwardErrorsToLogs: true,
-			sampleRate: 100,
-			service: 'frontend',
-		})
-		datadogRum.init({
-			applicationId: import.meta.env.DD_RUM_APPLICATION_ID,
-			clientToken: import.meta.env.DD_CLIENT_TOKEN,
-			site: 'datadoghq.com',
-			service: 'frontend',
-			env: options.environment,
-			version: options.version,
-			sampleRate: 100,
-			sessionReplaySampleRate: 1,
-			trackResources: true,
-			trackLongTasks: true,
-			trackInteractions: true,
-			defaultPrivacyLevel: 'allow',
-		})
-		datadogRum.startSessionReplayRecording()
-	}
 }
 
 showHiringMessage()
