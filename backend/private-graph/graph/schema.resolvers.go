@@ -4858,10 +4858,12 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 		GROUP BY identifier
 		LIMIT 50
 	) as topUsers
-	INNER JOIN sessions s on topUsers.identifier = s.identifier
+	INNER JOIN sessions s 
+	ON topUsers.identifier = s.identifier
+	AND s.project_id = ?
     ) as q2
 	ORDER BY total_active_time DESC`,
-		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
+		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod, projectID).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
