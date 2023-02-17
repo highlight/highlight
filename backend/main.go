@@ -212,9 +212,28 @@ func validateOrigin(_ *http.Request, origin string) bool {
 var defaultPort = "8082"
 
 func main() {
-	ctx := context.Background()
+	ctx := context.TODO()
+
 	// initialize logger
 	log.SetReportCaller(true)
+	// setup highlight
+	H.SetProjectID("1jdkoe52")
+	if util.IsDevOrTestEnv() {
+		log.WithContext(ctx).Info("overwriting highlight-go graphql client address...")
+		H.SetGraphqlClientAddress("https://localhost:8082/public")
+		H.SetOTLPEndpoint("http://collector:4318")
+	}
+	H.Start()
+	defer H.Stop()
+	H.SetDebugMode(log.StandardLogger())
+	// setup highlight logrus hook
+	log.AddHook(hlog.NewHook(hlog.WithLevels(
+		log.PanicLevel,
+		log.FatalLevel,
+		log.ErrorLevel,
+		log.WarnLevel,
+		log.InfoLevel,
+	)))
 
 	switch os.Getenv("DEPLOYMENT_KEY") {
 	case "HIGHLIGHT_ONPREM_BETA":
@@ -475,24 +494,6 @@ func main() {
 		otelHandler.Listen(r)
 		vercel.Listen(r)
 	}
-
-	if util.IsDevOrTestEnv() {
-		log.WithContext(ctx).Info("overwriting highlight-go graphql client address...")
-		H.SetGraphqlClientAddress("https://localhost:8082/public")
-		H.SetOTLPEndpoint("http://collector:4318")
-	}
-	H.SetProjectID("1jdkoe52")
-	H.Start()
-	defer H.Stop()
-	H.SetDebugMode(log.StandardLogger())
-	// setup highlight logrus hook
-	log.AddHook(hlog.NewHook(hlog.WithLevels(
-		log.PanicLevel,
-		log.FatalLevel,
-		log.ErrorLevel,
-		log.WarnLevel,
-		log.InfoLevel,
-	)))
 
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
