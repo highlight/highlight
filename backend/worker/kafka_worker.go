@@ -121,13 +121,13 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 		}
 	}
 	for projectID, _ := range setupProjectIDs {
-		err := k.Worker.PublicResolver.MarkBackendSetupImpl(nil, nil, projectID)
+		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctx, nil, nil, projectID)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to batch mark backend setup for project %d", projectID)
 		}
 	}
 	for sessionID, _ := range setupSessionIDs {
-		err := k.Worker.PublicResolver.MarkBackendSetupImpl(nil, pointy.String(sessionID), 0)
+		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctx, nil, pointy.String(sessionID), 0)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to batch mark backend setup for session %s", sessionID)
 		}
