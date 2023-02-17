@@ -29,7 +29,7 @@ import { useNavigate } from 'react-router-dom'
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
 
-const COMMON_EMAIL_PROVIDERS = ['gmail', 'yahoo', 'hotmail', 'fastmail', 'protonmail', 'hey.com']
+const COMMON_EMAIL_PROVIDERS = ['gmail', 'yahoo', 'hotmail', 'fastmail', 'protonmail', 'hey.com'] as const
 
 export const AdminForm: React.FC = () => {
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
