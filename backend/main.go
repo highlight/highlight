@@ -133,7 +133,7 @@ func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rCli
 }
 
 func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client) error {
-	const Timeout = 2 * time.Second
+	const Timeout = 25 * time.Second
 
 	errors := make(chan error, 5)
 	wg := sync.WaitGroup{}
