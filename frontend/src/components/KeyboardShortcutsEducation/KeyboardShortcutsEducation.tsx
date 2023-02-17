@@ -2,12 +2,14 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard'
 import Input from '@components/Input/Input'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
+import { Badge, Box } from '@highlight-run/ui'
 import SvgSearchIcon from '@icons/SearchIcon'
 import { PLAYER_SKIP_DURATION } from '@pages/Player/utils/PlayerHooks'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import analytics from '@util/analytics'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
+import React from 'react'
 import { useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation } from 'react-router'
@@ -313,6 +315,11 @@ export const TimelineShortcut: ShortcutItem = {
 	shortcut: [cmdKey, 'E'],
 }
 
+export const OpenInNewTabShortcut: ShortcutItem = {
+	description: `Toggle the timeline`,
+	shortcut: [cmdKey, 'Enter'],
+}
+
 export const PlayerKeyboardShortcuts: ShortcutItem[] = [
 	{
 		description: 'Play or pause the video',
@@ -404,3 +411,20 @@ export const ErrorsKeyboardShortcuts: ShortcutItem[] = [
 		shortcut: ['m'],
 	},
 ]
+
+type ShortcutGuideProps = {
+	shortcut: ShortcutItem
+	className?: string
+}
+
+export const ShortcutTextGuide: React.FC<ShortcutGuideProps> = React.memo(
+	({ shortcut, className }) => {
+		return (
+			<Box display="flex" gap="2" cssClass={className}>
+				{shortcut.shortcut.map((char, idx) => (
+					<Badge key={idx} variant="gray" size="small" label={char} />
+				))}
+			</Box>
+		)
+	},
+)

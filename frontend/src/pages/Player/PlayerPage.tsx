@@ -449,7 +449,6 @@ const PlayerPage = ({ integrated }: Props) => {
 		currentWorkspace?.id,
 		isSessionPendingData?.isSessionPending,
 		loading,
-		playerFiller,
 		sessionViewability,
 		session_secure_id,
 		integrated,

@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
+import CommandBar from '@components/CommandBar/CommandBar'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -58,7 +59,7 @@ import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
-import { CommandBar } from './CommandBar/CommandBar'
+import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.scss'
 
 export const Header = () => {
@@ -104,6 +105,7 @@ export const Header = () => {
 	return (
 		<>
 			<CommandBar />
+			<CommandBarV1 />
 			<Box background="n2" borderBottom="secondary">
 				{!!project_id && getBanner(project_id)}
 				<Box
