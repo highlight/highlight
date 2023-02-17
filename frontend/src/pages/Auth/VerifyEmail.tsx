@@ -21,7 +21,7 @@ export const VerifyEmail: React.FC = () => {
 	})
 	const [loading, setLoading] = useState(false)
 	const navigate = useNavigate()
-	const isEmailVerified = data?.admin?.email_verified || false
+	const isEmailVerified = !!data?.admin?.email_verified
 
 	useEffect(() => {
 		if (isEmailVerified) {
