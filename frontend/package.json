@@ -17,6 +17,8 @@
 		"@highlight-run/rrweb": "workspace:*",
 		"@highlight-run/ui": "workspace:*",
 		"@rehooks/local-storage": "^2.4.0",
+		"@sentry/react": "^7.38.0",
+		"@sentry/tracing": "^7.38.0",
 		"@stripe/stripe-js": "^1.32.0",
 		"@tanstack/react-table": "^8.7.9",
 		"@types/js-cookie": "^3.0.2",

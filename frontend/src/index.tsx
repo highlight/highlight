@@ -32,6 +32,8 @@ import { ErrorBoundary } from '@highlight-run/react'
 import { SignUp } from '@pages/Auth/SignUp'
 import { AuthAdminRouter } from '@pages/Login/Login'
 import useLocalStorage from '@rehooks/local-storage'
+import * as Sentry from '@sentry/react'
+import { BrowserTracing } from '@sentry/tracing'
 import analytics from '@util/analytics'
 import { setAttributionData } from '@util/attribution'
 import { auth } from '@util/auth'
@@ -143,6 +145,12 @@ if (!isOnPrem) {
 		datadogRum.startSessionReplayRecording()
 	}
 }
+
+Sentry.init({
+	dsn: 'https://e8052ada7c10490b823e0f939c519903@o4504696930631680.ingest.sentry.io/4504697059934208',
+	integrations: [new BrowserTracing()],
+	tracesSampleRate: 1.0,
+})
 
 showHiringMessage()
 setAttributionData()
