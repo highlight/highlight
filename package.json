@@ -17,6 +17,7 @@
 		"sdk/highlight-cloudflare",
 		"sdk/highlight-next",
 		"sdk/highlight-node",
+		"sdk/highlight-react",
 		"render",
 		"rrweb/packages/*",
 		"scripts",

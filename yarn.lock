@@ -8308,7 +8308,7 @@ __metadata:
     "@graphql-codegen/typescript-operations": ^1.17.14
     "@graphql-codegen/typescript-react-apollo": ^2.2.1
     "@highlight-run/client": "workspace:*"
-    "@highlight-run/react": ^1.2.1
+    "@highlight-run/react": "workspace:*"
     "@highlight-run/react-mentions": 4.4.1
     "@highlight-run/react-select": ^5.2.2
     "@highlight-run/rrweb": "workspace:*"
@@ -8526,15 +8526,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@highlight-run/react@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "@highlight-run/react@npm:1.2.1"
+"@highlight-run/react@workspace:*, @highlight-run/react@workspace:sdk/highlight-react":
+  version: 0.0.0-use.local
+  resolution: "@highlight-run/react@workspace:sdk/highlight-react"
+  dependencies:
+    "@types/node": ^18.7.16
+    "@types/react": ^18.0.28
+    "@types/react-dom": ^18.0.11
+    tsup: ^6.6.3
+    typescript: ^4.9.5
   peerDependencies:
     react: ">=16"
     react-dom: ">=16"
-  checksum: 3c99d108601161af31db395ac3833052fb95344fbf35965baa4c62d0e373f11f634168656e5c57100fd7db635b5bcd55b184067f2b165d5d1d32ce6fa4afa4eb
-  languageName: node
-  linkType: hard
+  languageName: unknown
+  linkType: soft
 
 "@highlight-run/rrdom-nodejs@workspace:rrweb/packages/rrdom-nodejs":
   version: 0.0.0-use.local
@@ -14608,6 +14613,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^18.7.16":
+  version: 18.13.0
+  resolution: "@types/node@npm:18.13.0"
+  checksum: 4ea10f8802848b01672bce938f678b6774ca2cee0c9774f12275ab064ae07818419c3e2e41d6257ce7ba846d1ea26c63214aa1dfa4166fa3746291752b8c6416
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:^8.0.0":
   version: 8.10.66
   resolution: "@types/node@npm:8.10.66"
@@ -14815,6 +14827,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/react-dom@npm:^18.0.11":
+  version: 18.0.11
+  resolution: "@types/react-dom@npm:18.0.11"
+  dependencies:
+    "@types/react": "*"
+  checksum: 579691e4d5ec09688087568037c35edf8cfb1ab3e07f6c60029280733ee7b5c06d66df6fcc90786702c93ac8cb13bc7ff16c79ddfc75d082938fbaa36e1cdbf4
+  languageName: node
+  linkType: hard
+
 "@types/react-grid-layout@npm:^1.3.0":
   version: 1.3.0
   resolution: "@types/react-grid-layout@npm:1.3.0"
@@ -14958,6 +14979,17 @@ __metadata:
     "@types/scheduler": "*"
     csstype: ^3.0.2
   checksum: 231d658c45abdef044a716b4502774f1585d8336d73b2f5bd68f181acbfc874b7a457686ecd29b415b43ed0922c309bab7e2cf96832d188a3f4f1b02f2af760a
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:^18.0.28":
+  version: 18.0.28
+  resolution: "@types/react@npm:18.0.28"
+  dependencies:
+    "@types/prop-types": "*"
+    "@types/scheduler": "*"
+    csstype: ^3.0.2
+  checksum: e752df961105e5127652460504785897ca6e77259e0da8f233f694f9e8f451cde7fa0709d4456ade0ff600c8ce909cfe29f9b08b9c247fa9b734e126ec53edd7
   languageName: node
   linkType: hard
 
@@ -41972,7 +42004,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsup@npm:^6.6.2":
+"tsup@npm:^6.6.2, tsup@npm:^6.6.3":
   version: 6.6.3
   resolution: "tsup@npm:6.6.3"
   dependencies:
