@@ -33,6 +33,7 @@
 		"dev": "run-p --print-label --race 'dev:*'",
 		"dev:backend": "cd backend && make start",
 		"dev:frontend": "doppler run -- yarn turbo run dev --filter frontend...",
+		"dev:ui": "yarn turbo run dev --filter @highlight-run/ui...",
 		"dev:redis": "redis-server",
 		"docker:frontend": "yarn turbo run dev --filter frontend...",
 		"enforce-size": "yarn turbo run enforce-size --filter frontend...",

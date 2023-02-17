@@ -8738,6 +8738,7 @@ __metadata:
     "@babel/core": ^7.19.3
     "@capsizecss/core": ^3.0.0
     "@capsizecss/metrics": ^0.3.0
+    "@highlight-run/react": "workspace:*"
     "@mdx-js/react": ^1.6.22
     "@rehookify/datepicker": ^4.1.5
     "@storybook/addon-actions": ^6.5.15
