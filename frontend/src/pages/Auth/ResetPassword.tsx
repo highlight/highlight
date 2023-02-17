@@ -9,6 +9,7 @@ import {
 	useFormState,
 	vars,
 } from '@highlight-run/ui'
+import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
@@ -53,7 +54,7 @@ export const ResetPassword: React.FC = () => {
 						)
 
 						setTimeout(() => {
-							navigate('/sign_in')
+							navigate(SIGN_IN_ROUTE)
 						}, 1000)
 					})
 			}}
@@ -71,7 +72,7 @@ export const ResetPassword: React.FC = () => {
 								/>
 							}
 							onClick={() => {
-								navigate('/sign_in')
+								navigate(SIGN_IN_ROUTE)
 							}}
 						/>
 					</Box>

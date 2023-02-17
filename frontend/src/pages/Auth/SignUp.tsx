@@ -10,12 +10,13 @@ import {
 	useFormState,
 } from '@highlight-run/ui'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
+import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { message } from 'antd'
 import firebase from 'firebase/app'
-import React from 'react'
+import React, { useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 export const SignUp: React.FC = () => {
@@ -30,6 +31,30 @@ export const SignUp: React.FC = () => {
 		},
 	})
 
+	const handleSubmit = useCallback(
+		(credential: firebase.auth.UserCredential) => {
+			message.success('Account created succesfully!')
+
+			// Redirect the user to their initial path instead to creating a new
+			// workspace. We do this because this happens when a new user clicks
+			// on a Highlight link that was shared to them and they don't have
+			// an account yet.
+			const redirect = location.state?.previousPathName
+
+			if (credential.user?.email) {
+				analytics.track('Sign up', {
+					email: credential.user.email,
+					redirect,
+				})
+			}
+
+			if (redirect) {
+				navigate(redirect, { replace: true })
+			}
+		},
+		[location.state?.previousPathName, navigate],
+	)
+
 	return (
 		<Form
 			state={formState}
@@ -41,27 +66,9 @@ export const SignUp: React.FC = () => {
 					formState.values.email,
 					formState.values.password,
 				)
-					.then(async () => {
-						message.success('Account created succesfully!')
+					.then(async (credential) => {
 						auth.currentUser?.sendEmailVerification()
-
-						// Redirect the user to their initial path instead to creating a new
-						// workspace. We do this because this happens when a new user clicks
-						// on a Highlight link that was shared to them and they don't have
-						// an account yet.
-						const redirect =
-							location.state?.previousPathName || '/verify_email'
-
-						if (auth.currentUser?.email) {
-							analytics.track('Sign up', {
-								email: auth.currentUser.email,
-								redirect,
-							})
-						}
-
-						if (redirect) {
-							navigate(redirect, { replace: true })
-						}
+						handleSubmit(credential)
 					})
 					.catch((error) => {
 						setError(error.message || error.toString())
@@ -75,7 +82,8 @@ export const SignUp: React.FC = () => {
 						<SvgHighlightLogoOnLight height="48" width="48" />
 						<Heading level="h4">Welcome to Highlight.</Heading>
 						<Text>
-							Have an account? <Link to="/sign_in">Sign in</Link>.
+							Have an account?{' '}
+							<Link to={SIGN_IN_ROUTE}>Sign in</Link>.
 						</Text>
 					</Stack>
 				</Box>
@@ -124,8 +132,8 @@ export const SignUp: React.FC = () => {
 						type="button"
 						trackingId="sign-up-with-google"
 						onClick={() => {
-							auth.signInWithPopup(googleProvider!)
-								.then(() => {})
+							auth.signInWithPopup(auth.googleProvider!)
+								.then(handleSubmit)
 								.catch(
 									(error: firebase.auth.MultiFactorError) => {
 										let errorMessage = error.message

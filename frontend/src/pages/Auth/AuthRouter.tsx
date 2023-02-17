@@ -9,50 +9,20 @@ import { ResetPassword } from '@pages/Auth/ResetPassword'
 import { SignIn } from '@pages/Auth/SignIn'
 import { SignUp } from '@pages/Auth/SignUp'
 import { Landing } from '@pages/Landing/Landing'
-import analytics from '@util/analytics'
-import { showIntercom } from '@util/window'
 import firebase from 'firebase/app'
-import { H } from 'highlight.run'
-import { omit } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import * as styles from './AuthRouter.css'
 
+export const SIGN_IN_ROUTE = '/sign_in'
+
 export const AuthRouter: React.FC = () => {
-	const { isAuthLoading, admin } = useAuthContext()
+	const { isAuthLoading } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
 
 	const [resolver, setResolver] =
 		useState<firebase.auth.MultiFactorResolver>()
-
-	useEffect(() => {
-		if (admin) {
-			const { email, id, name } = admin
-			const identifyMetadata: {
-				id: string
-				name: string
-				avatar?: string
-				email?: string
-			} = {
-				id,
-				name,
-				email,
-			}
-
-			if (admin.photo_url) {
-				identifyMetadata.avatar = admin.photo_url
-			}
-
-			H.identify(email, identifyMetadata)
-
-			// `id` is a reserved keyword in rudderstack and it's recommended to use a
-			// static property for the user ID rather than something that could change
-			// over time, like an email address.
-			analytics.identify(admin.id, omit(identifyMetadata, ['id']))
-			showIntercom({ admin, hideMessage: true })
-		}
-	}, [admin])
 
 	useEffect(() => {
 		if (isAuthLoading) {
@@ -69,7 +39,7 @@ export const AuthRouter: React.FC = () => {
 			<Box cssClass={styles.container}>
 				<Routes>
 					<Route
-						path="/sign_in"
+						path={SIGN_IN_ROUTE}
 						element={<SignIn setResolver={setResolver} />}
 					/>
 					<Route path="/sign_up" element={<SignUp />} />
@@ -80,7 +50,7 @@ export const AuthRouter: React.FC = () => {
 					<Route path="/reset_password" element={<ResetPassword />} />
 					<Route
 						path="/*"
-						element={<Navigate to="/sign_in" replace />}
+						element={<Navigate to={SIGN_IN_ROUTE} replace />}
 					/>
 				</Routes>
 			</Box>

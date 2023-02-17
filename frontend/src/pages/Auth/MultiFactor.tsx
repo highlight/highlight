@@ -13,6 +13,7 @@ import {
 	useFormState,
 	vars,
 } from '@highlight-run/ui'
+import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import firebase from 'firebase/app'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -126,7 +127,7 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 								/>
 							}
 							onClick={() => {
-								navigate('/sign_in')
+								navigate(SIGN_IN_ROUTE)
 							}}
 						/>
 					</Box>

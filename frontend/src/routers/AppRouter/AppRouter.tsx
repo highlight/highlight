@@ -5,7 +5,7 @@ import { Box } from '@highlight-run/ui'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import { AccountsPage } from '@pages/Accounts/Accounts'
 import { AdminForm } from '@pages/Auth/AdminForm'
-import { AuthRouter } from '@pages/Auth/AuthRouter'
+import { AuthRouter, SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
 import { VerifyEmail } from '@pages/Auth/VerifyEmail'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
@@ -21,6 +21,11 @@ import { DefaultWorkspaceRouter } from '@routers/OrgRouter/DefaultWorkspaceRoute
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter'
 import { ProjectRouter } from '@routers/OrgRouter/ProjectRouter'
 import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter'
+import analytics from '@util/analytics'
+import { auth } from '@util/auth'
+import { showIntercom } from '@util/window'
+import { H } from 'highlight.run'
+import { omit } from 'lodash'
 import React, { useEffect } from 'react'
 import {
 	Navigate,
@@ -57,11 +62,50 @@ export const AppRouter = () => {
 		}
 	}, [admin, isVercelIntegrationFlow, navigate])
 
+	useEffect(() => {
+		if (admin) {
+			const { email, id, name } = admin
+			const identifyMetadata: {
+				id: string
+				name: string
+				avatar?: string
+				email?: string
+			} = {
+				id,
+				name,
+				email,
+			}
+
+			if (admin.photo_url) {
+				identifyMetadata.avatar = admin.photo_url
+			}
+
+			// TODO: Move this to another router
+			H.identify(email, identifyMetadata)
+
+			// `id` is a reserved keyword in rudderstack and it's recommended to use a
+			// static property for the user ID rather than something that could change
+			// over time, like an email address.
+			analytics.identify(admin.id, omit(identifyMetadata, ['id']))
+			showIntercom({ admin, hideMessage: true })
+		}
+	}, [admin])
+
 	return (
 		<Box height="screen" width="screen">
 			<Routes>
-				<Route path="/verify_email" element={<VerifyEmail />} />
-				<Route path="/about_you" element={<AdminForm />} />
+				{isLoggedIn && !admin?.about_you_details_filled && (
+					<Route path="/about_you" element={<AdminForm />} />
+				)}
+
+				{/*
+				Not using isLoggedIn because this is shown immediately after sign up and
+				there can be a state briefly where the user authenticated in Firebase
+				but their admin account isn't created yet.
+				*/}
+				{auth.currentUser && !admin?.email_verified && (
+					<Route path="/verify_email" element={<VerifyEmail />} />
+				)}
 
 				<Route
 					path="/oauth/authorize"
@@ -87,7 +131,7 @@ export const AppRouter = () => {
 								<NewProjectPage />
 							</Landing>
 						) : (
-							<Navigate to="/login" />
+							<Navigate to={SIGN_IN_ROUTE} />
 						)
 					}
 				/>
@@ -100,7 +144,7 @@ export const AppRouter = () => {
 								<SwitchWorkspace />
 							</Landing>
 						) : (
-							<Navigate to="/login" />
+							<Navigate to={SIGN_IN_ROUTE} />
 						)
 					}
 				/>
@@ -113,7 +157,7 @@ export const AppRouter = () => {
 								<NewMemberPage />
 							</Landing>
 						) : (
-							<Navigate to="/login" />
+							<Navigate to={SIGN_IN_ROUTE} />
 						)
 					}
 				/>
@@ -126,7 +170,7 @@ export const AppRouter = () => {
 								<NewProjectPage />
 							</Landing>
 						) : (
-							<Navigate to="/login" />
+							<Navigate to={SIGN_IN_ROUTE} />
 						)
 					}
 				/>
@@ -139,7 +183,7 @@ export const AppRouter = () => {
 								<SwitchProject />
 							</Landing>
 						) : (
-							<Navigate to="/login" />
+							<Navigate to={SIGN_IN_ROUTE} />
 						)
 					}
 				/>
@@ -152,7 +196,7 @@ export const AppRouter = () => {
 								<RegistrationForm />
 							</Landing>
 						) : (
-							<Navigate to="/login" />
+							<Navigate to={SIGN_IN_ROUTE} />
 						)
 					}
 				/>
@@ -167,12 +211,10 @@ export const AppRouter = () => {
 								<DefaultWorkspaceRouter />
 							)
 						) : (
-							<Navigate to="/login" />
+							<Navigate to={SIGN_IN_ROUTE} />
 						)
 					}
 				/>
-
-				<Route path="/login" element={<AuthRouter />} />
 
 				<Route
 					path="/*"
@@ -182,7 +224,7 @@ export const AppRouter = () => {
 						) : isLoggedIn ? (
 							<ProjectRedirectionRouter />
 						) : (
-							<Navigate to="/login" />
+							<AuthRouter />
 						)
 					}
 				/>
