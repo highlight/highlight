@@ -229,8 +229,6 @@ export class Highlight {
 			// Firstload versions before 3.0.1 did not have this property
 			options.sessionSecureID = GenerateSecureID()
 		}
-		// default to inlining stylesheets to help with recording accuracy
-		options.inlineStylesheet = options.inlineStylesheet ?? true
 		this.options = options
 		if (typeof this.options?.debug === 'boolean') {
 			this.debugOptions = this.options.debug
@@ -340,20 +338,21 @@ export class Highlight {
 		this.state = 'NotRecording'
 		this.manualStopped = false
 		this.enableSegmentIntegration = !!options.enableSegmentIntegration
-		this.enableStrictPrivacy = options.enableStrictPrivacy || false
-		this.enableCanvasRecording = options.enableCanvasRecording || false
+		this.enableStrictPrivacy = options.enableStrictPrivacy ?? false
+		this.enableCanvasRecording = options.enableCanvasRecording ?? false
 		this.enablePerformanceRecording =
 			options.enablePerformanceRecording ?? true
-		this.inlineImages = options.inlineImages || false
-		this.inlineStylesheet = options.inlineStylesheet || false
+		this.inlineImages = options.inlineImages ?? false
+		// default to inlining stylesheets to help with recording accuracy
+		this.inlineStylesheet = options.inlineStylesheet ?? true
 		this.samplingStrategy = {
 			canvas: 5,
 			canvasQuality: 'low',
 			canvasFactor: 0.5,
 			canvasMaxSnapshotDimension: 360,
-			...(options.samplingStrategy || {}),
+			...(options.samplingStrategy ?? {}),
 		}
-		this._backendUrl = options?.backendUrl || 'https://pub.highlight.run'
+		this._backendUrl = options?.backendUrl ?? 'https://pub.highlight.run'
 
 		// If _backendUrl is a relative URL, convert it to an absolute URL
 		// so that it's usable from a web worker.
@@ -371,7 +370,7 @@ export class Highlight {
 					this.options?.sessionSecureID,
 			),
 		)
-		this.environment = options.environment || 'production'
+		this.environment = options.environment ?? 'production'
 		this.appVersion = options.appVersion
 
 		if (typeof options.organizationID === 'string') {
