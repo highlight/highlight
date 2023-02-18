@@ -11,7 +11,7 @@
 		"@fontsource/poppins": "^4.5.9",
 		"@frontapp/plugin-sdk": "^1.1.2",
 		"@highlight-run/client": "workspace:*",
-		"@highlight-run/react": "^1.2.1",
+		"@highlight-run/react": "workspace:*",
 		"@highlight-run/react-mentions": "4.4.1",
 		"@highlight-run/react-select": "^5.2.2",
 		"@highlight-run/rrweb": "workspace:*",
