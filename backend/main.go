@@ -175,7 +175,7 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
 		if _, err := ccClient.ReadLogsTotalCount(ctx, 1, model2.LogsParamsInput{
-			Query: "",
+			Query: "clickhouse",
 			DateRange: &model2.DateRangeRequiredInput{
 				StartDate: time.Now().Add(-time.Second),
 				EndDate:   time.Now(),
