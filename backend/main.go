@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"gorm.io/gorm"
 	"html/template"
 	"io"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/otel"
@@ -41,7 +42,6 @@ import (
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
-	model2 "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/worker"
@@ -121,7 +121,8 @@ func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rCli
 		}
 		if runtimeFlag != util.PublicGraph {
 			if err := enhancedHealthCheck(ctx, db, tdb, rClient, osClient, ccClient); err != nil {
-				http.Error(w, fmt.Sprintf("failed enhanced health check %s", err), 500)
+				log.WithContext(ctx).Error(fmt.Sprintf("failed enhanced health check: %s", err))
+				http.Error(w, fmt.Sprintf("failed enhanced health check: %s", err), 500)
 				return
 			}
 		}
@@ -186,13 +187,7 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
-		if _, err := ccClient.ReadLogsTotalCount(ctx, 1, model2.LogsParamsInput{
-			Query: "clickhouse",
-			DateRange: &model2.DateRangeRequiredInput{
-				StartDate: time.Now().Add(-time.Second),
-				EndDate:   time.Now(),
-			},
-		}); err != nil {
+		if err := ccClient.HealthCheck(ctx); err != nil {
 			msg := fmt.Sprintf("failed to perform clickhouse query: %s", err)
 			log.WithContext(ctx).Error(msg)
 			errors <- e.New(msg)
