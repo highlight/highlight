@@ -112,6 +112,20 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 	return count, err
 }
 
+func (client *Client) HealthCheck(ctx context.Context) error {
+	var v uint64
+	err := client.conn.QueryRow(
+		ctx,
+		`SELECT 1`,
+	).Scan(&v)
+	if err != nil {
+		return err
+	} else if v != 1 {
+		return e.New("invalid value returned from clickhouse")
+	}
+	return nil
+}
+
 func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
 	rows, err := client.conn.Query(ctx,
 		`
