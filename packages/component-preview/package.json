@@ -1,5 +1,6 @@
 {
 	"name": "@highlight-run/component-preview",
+	"private": true,
 	"packageManager": "yarn@3.2.3",
 	"scripts": {
 		"dev": "ladle serve"
