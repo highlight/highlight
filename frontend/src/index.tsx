@@ -47,6 +47,7 @@ import { SkeletonTheme } from 'react-loading-skeleton'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
+import { createRoot } from 'react-dom/client'
 
 analytics.initialize()
 const dev = import.meta.env.DEV
@@ -382,9 +383,10 @@ const AuthenticationRoleRouter = () => {
 	)
 }
 
-ReactDOM.render(
+const container = document.getElementById('root')!
+const root = createRoot(container)
+root.render(
 	<React.StrictMode>
 		<App />
 	</React.StrictMode>,
-	document.getElementById('root'),
 )
