@@ -1483,7 +1483,7 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 				if err := r.HubspotApi.UpdateCompanyProperty(ctx, project.WorkspaceID, []hubspot.Property{{
 					Name:     "backend_setup",
 					Property: "backend_setup",
-					Value:    1,
+					Value:    true,
 				}}); err != nil {
 					log.WithContext(ctx).Errorf("failed to update hubspot")
 				}
