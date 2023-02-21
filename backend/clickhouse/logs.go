@@ -115,7 +115,8 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 		Where(sq.Lt{"Timestamp": now.Unix()}).
 		Where(sq.GtOrEq{"Timestamp": now.AddDate(0, 0, -30).Unix()}).
 		GroupBy("key").
-		OrderBy("cnt DESC")
+		OrderBy("cnt DESC").
+		Limit(50)
 
 	sql, args, err := query.ToSql()
 
