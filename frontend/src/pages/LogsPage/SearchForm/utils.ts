@@ -10,7 +10,7 @@ const NAME_TEXT = 'text'
 const PARSE_REGEX =
 	/(\S+:'(?:[^'\\]|\\.)*')|(\S+:"(?:[^"\\]|\\.)*")|(-?"(?:[^"\\]|\\.)*")|(-?'(?:[^'\\]|\\.)*')|\S+|\S+:\S+/g
 
-export const queryStringToSearchParams = (query: string) => {
+export const parseLogsQuery = (query: string) => {
 	if (query.indexOf(SEPARATOR) === -1) {
 		return [{ key: NAME_TEXT, operator: DEFAULT_OPERATOR, value: query }]
 	}
@@ -45,7 +45,7 @@ export const queryStringToSearchParams = (query: string) => {
 	return terms
 }
 
-export const searchParamsToQueryString = (params: SearchParam[]) => {
+export const stringifyLogsQuery = (params: SearchParam[]) => {
 	const querySegments: string[] = []
 
 	params.forEach((param) => {

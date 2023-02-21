@@ -1,4 +1,4 @@
-import { queryStringToSearchParams, searchParamsToQueryString } from './utils'
+import { parseLogsQuery, stringifyLogsQuery } from './utils'
 
 const complexQueryString = `name:"Eric Thomas" workspace:'Chilly McWilly' project_id:9 freetext query`
 const complexQueryParams = [
@@ -24,11 +24,11 @@ const complexQueryParams = [
 	},
 ]
 
-describe('queryStringToSearchParams', () => {
+describe('parseLogsQuery', () => {
 	it('does not transform a query with no operators', () => {
 		const query = 'a test query'
 
-		expect(queryStringToSearchParams(query)).toEqual([
+		expect(parseLogsQuery(query)).toEqual([
 			{
 				key: 'text',
 				operator: '=',
@@ -38,16 +38,14 @@ describe('queryStringToSearchParams', () => {
 	})
 
 	it('splits apart strings with operators', () => {
-		expect(queryStringToSearchParams(complexQueryString)).toEqual(
-			complexQueryParams,
-		)
+		expect(parseLogsQuery(complexQueryString)).toEqual(complexQueryParams)
 	})
 })
 
-describe('searchParamsToQueryString', () => {
+describe('stringifyLogsQuery', () => {
 	it('parses basic params to a query string', () => {
 		expect(
-			searchParamsToQueryString([
+			stringifyLogsQuery([
 				{
 					key: 'text',
 					operator: '=',
@@ -58,7 +56,7 @@ describe('searchParamsToQueryString', () => {
 	})
 
 	it('parses complex params to a query string', () => {
-		expect(searchParamsToQueryString(complexQueryParams)).toEqual(
+		expect(stringifyLogsQuery(complexQueryParams)).toEqual(
 			complexQueryString.replaceAll(`'`, `"`),
 		)
 	})

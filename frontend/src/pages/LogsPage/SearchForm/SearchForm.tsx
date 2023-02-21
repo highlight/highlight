@@ -1,4 +1,4 @@
-import { useGetLogsKeysQuery } from '@graph/hooks'
+import { useGetLogsKeysQuery, useGetLogsKeyValuesLazyQuery } from '@graph/hooks'
 import { GetLogsKeysQuery } from '@graph/operations'
 import {
 	Box,
@@ -7,7 +7,10 @@ import {
 	PreviousDateRangePicker,
 	useComboboxState,
 } from '@highlight-run/ui'
-import { queryStringToSearchParams } from '@pages/LogsPage/SearchForm/utils'
+import {
+	parseLogsQuery,
+	stringifyLogsQuery,
+} from '@pages/LogsPage/SearchForm/utils'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -49,8 +52,8 @@ const SearchForm = ({
 		onFormSubmit(query)
 	}
 
-	const handleSearchChange = (key: GetLogsKeysQuery['logs_keys'][0]) => {
-		setQuery(key.name)
+	const handleSearchChange = (search: string) => {
+		setQuery(search)
 	}
 
 	const handleDatesChange = (dates: Date[]) => {
@@ -67,7 +70,7 @@ const SearchForm = ({
 				<Search
 					keys={keysData?.logs_keys}
 					query={query}
-					handleSearchChange={handleSearchChange}
+					onSearchChange={handleSearchChange}
 				/>
 				<Box display="flex">
 					<PreviousDateRangePicker
@@ -87,30 +90,93 @@ export { SearchForm }
 const Search: React.FC<{
 	keys?: GetLogsKeysQuery['logs_keys']
 	query: string
-	handleSearchChange: any
-}> = ({ keys, handleSearchChange, query }) => {
+	onSearchChange: any
+}> = ({ keys, onSearchChange, query }) => {
+	const { project_id } = useParams()
 	const [queryText, setQueryText] = useState('')
-	const [activeQuery, setActiveQuery] = useState('')
-	const [searchType, setSearchType] = useState<'keys' | 'values'>('keys')
 	const containerRef = useRef<HTMLDivElement | null>(null)
+	const inputRef = useRef<HTMLInputElement | null>(null)
 	const state = useComboboxState({ gutter: 4, sameWidth: true })
-	// TODO: Handle active term not being at the end.
-	const activeTerm = queryStringToSearchParams(queryText)[0]
-	console.log('::: activeTerm', activeTerm)
+	const [getLogsKeyValues, { data }] = useGetLogsKeyValuesLazyQuery()
 
-	const visibleItems =
+	console.log('::: inputRef', inputRef)
+	if (inputRef.current) {
+		debugger
+	}
+
+	// TODO: Handle active term not being at the end.
+	const queryTerms = parseLogsQuery(queryText)
+	const activeTerm = queryTerms.at(-1)!
+	const startingNewTerm = queryText.endsWith(' ')
+	const activeTermKeys = queryTerms.map((term) => term.key)
+
+	const visibleKeys =
 		keys?.filter(
-			(key) => !activeQuery.length || key.name.indexOf(activeQuery) > -1,
+			(key) =>
+				(activeTermKeys.indexOf(key.name) === -1 && startingNewTerm) ||
+				(activeTerm.key === 'text' &&
+					(!activeTerm.value.length ||
+						startingNewTerm ||
+						(activeTermKeys.indexOf(key.name) === -1 &&
+							key.name.indexOf(activeTerm.value) > -1))),
 		) || []
+
+	const visibleValues =
+		data?.logs_key_values.filter(
+			(v) => !activeTerm.value.length || v.indexOf(activeTerm.value) > -1,
+		) || []
+
+	const showValues =
+		!startingNewTerm && !!keys?.find((k) => k.name === activeTerm.key)
+	const visibleItems = showValues ? visibleValues : visibleKeys
+	console.log('::: items', showValues, visibleItems)
+
+	// Limit number of items shown
 	visibleItems.length = MAX_ITEMS
 
-	// TODO: Handle visible items being values instead of keys
-
-	useEffect(() => {}, [queryText])
-
 	useEffect(() => {
-		setQueryText(query)
+		if (!showValues) {
+			return
+		}
+
+		getLogsKeyValues({
+			variables: {
+				project_id: project_id!,
+				key_name: activeTerm.key,
+			},
+		})
+	}, [
+		activeTerm.key,
+		activeTerm.value,
+		getLogsKeyValues,
+		project_id,
+		queryText,
+		showValues,
+	])
+
+	// TODO: Probably not needed. Consider refactoring to store query text in form
+	// state.
+	useEffect(() => {
+		if (query && query !== queryText) {
+			setQueryText(query)
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [query])
+
+	const handleKeyChange = (key: GetLogsKeysQuery['logs_keys'][0]) => {
+		queryTerms.at(-1)!.key = key.name
+		queryTerms.at(-1)!.value = ''
+		const query = stringifyLogsQuery(queryTerms)
+		onSearchChange(query)
+		setQueryText(query)
+	}
+
+	const handleValueChange = (value: string) => {
+		queryTerms.at(-1)!.value = value
+		const query = `${stringifyLogsQuery(queryTerms)} `
+		onSearchChange(query)
+		setQueryText(query)
+	}
 
 	return (
 		<Box
@@ -120,6 +186,7 @@ const Search: React.FC<{
 			cssClass={styles.container}
 		>
 			<Combobox
+				ref={inputRef}
 				state={state}
 				name="search"
 				placeholder="Search your logs..."
@@ -128,6 +195,7 @@ const Search: React.FC<{
 				className={styles.combobox}
 				setValueOnChange={false}
 			/>
+
 			{keys?.length && (
 				<Combobox.Popover
 					className={styles.comboboxPopover}
@@ -139,13 +207,16 @@ const Search: React.FC<{
 							className={styles.comboboxItem}
 							key={index}
 							onClick={() => {
-								handleSearchChange(key)
-
-								// TODO: Don't close if selecting key for query.
-								state.setOpen(false)
+								if (typeof key === 'string') {
+									handleValueChange(key)
+								} else {
+									handleKeyChange(key)
+								}
 							}}
 						>
-							{key.name} ({key.type})
+							{typeof key === 'string'
+								? key
+								: `${key.name} (${key.type})`}
 						</Combobox.Item>
 					))}
 				</Combobox.Popover>
