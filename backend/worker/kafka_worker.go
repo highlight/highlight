@@ -2,9 +2,10 @@ package worker
 
 import (
 	"context"
-	"github.com/openlyinc/pointy"
 	"sync"
 	"time"
+
+	"github.com/openlyinc/pointy"
 
 	"encoding/binary"
 
@@ -76,7 +77,7 @@ type KafkaWorker struct {
 }
 
 func (k *KafkaBatchWorker) flush(ctx context.Context) {
-	s, _ := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.flush"))
+	s, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.flush"))
 	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
 	defer s.Finish()
 
@@ -112,26 +113,29 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 		}
 	}()
 
-	s.SetTag("NumLogRows", len(logRows))
-	s.SetTag("PayloadSizeBytes", binary.Size(logRows))
+	writeSpan, writeCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.process"))
+	writeSpan.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
+	writeSpan.SetTag("NumLogRows", len(logRows))
+	writeSpan.SetTag("PayloadSizeBytes", binary.Size(logRows))
 	if len(logRows) > 0 {
-		err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctx, logRows)
+		err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(writeCtx, logRows)
 		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to batch write to clickhouse")
+			log.WithContext(writeCtx).WithError(err).Error("failed to batch write to clickhouse")
 		}
 	}
 	for projectID := range setupProjectIDs {
-		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctx, nil, nil, projectID)
+		err := k.Worker.PublicResolver.MarkBackendSetupImpl(writeCtx, nil, nil, projectID)
 		if err != nil {
-			log.WithContext(ctx).WithError(err).Errorf("failed to batch mark backend setup for project %d", projectID)
+			log.WithContext(writeCtx).WithError(err).Errorf("failed to batch mark backend setup for project %d", projectID)
 		}
 	}
 	for sessionID := range setupSessionIDs {
-		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctx, nil, pointy.String(sessionID), 0)
+		err := k.Worker.PublicResolver.MarkBackendSetupImpl(writeCtx, nil, pointy.String(sessionID), 0)
 		if err != nil {
-			log.WithContext(ctx).WithError(err).Errorf("failed to batch mark backend setup for session %s", sessionID)
+			log.WithContext(writeCtx).WithError(err).Errorf("failed to batch mark backend setup for session %s", sessionID)
 		}
 	}
+	writeSpan.Finish()
 
 	k.KafkaQueue.Commit(ctx, lastMsg.KafkaMessage)
 	k.BatchBuffer.lastMessage = nil

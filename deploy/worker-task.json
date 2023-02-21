@@ -67,26 +67,16 @@
 		{
 			"dnsSearchDomains": null,
 			"environmentFiles": null,
+			"entryPoint": null,
 			"logConfiguration": {
-				"logDriver": "awsfirelens",
-				"secretOptions": [
-					{
-						"valueFrom": "DD_API_KEY",
-						"name": "apiKey"
-					}
-				],
+				"logDriver": "awslogs",
+				"secretOptions": null,
 				"options": {
-					"dd_message_key": "log",
-					"provider": "ecs",
-					"dd_service": "worker-service",
-					"Host": "http-intake.logs.datadoghq.com",
-					"TLS": "on",
-					"dd_source": "worker",
-					"dd_tags": "project:fluentbit",
-					"Name": "datadog"
+					"awslogs-group": "/ecs/worker-task",
+					"awslogs-region": "us-east-2",
+					"awslogs-stream-prefix": "ecs"
 				}
 			},
-			"entryPoint": null,
 			"portMappings": [
 				{
 					"hostPort": 8082,

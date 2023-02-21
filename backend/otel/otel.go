@@ -212,7 +212,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						lvl, _ := log.ParseLevel(logSev)
 						logRow := &clickhouse.LogRow{
 							Timestamp:          event.Timestamp().AsTime(),
-							TraceId:            span.TraceID().String(),
+							TraceId:            castString(requestID, span.TraceID().String()),
 							SpanId:             span.SpanID().String(),
 							SeverityText:       logSev,
 							SeverityNumber:     int32(lvl),
