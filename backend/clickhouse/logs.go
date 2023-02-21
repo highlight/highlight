@@ -152,16 +152,23 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 }
 
 func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error) {
-	rows, err := client.conn.Query(ctx,
-		`
-		SELECT LogAttributes[?] as value, count() as cnt FROM logs
-		WHERE ProjectId = ?
-		GROUP BY value
-		ORDER BY cnt DESC
-		LIMIT 50;`,
-		keyName,
-		projectID,
-	)
+	query := sq.Select("LogAttributes[?] as value, count() as cnt").
+		From("logs").
+		Where(sq.Eq{"ProjectId": projectID}).
+		GroupBy("value").
+		OrderBy("cnt DESC").
+		Limit(50)
+
+	sql, args, err := query.ToSql()
+
+	// Injects `keyName` into LogAttributes[?]
+	argsWithKeyName := append([]interface{}{keyName}, args...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := client.conn.Query(ctx, sql, argsWithKeyName...)
 
 	if err != nil {
 		return nil, err
