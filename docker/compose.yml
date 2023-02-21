@@ -26,7 +26,7 @@ x-backend-env: &backend-env
         - DEMO_SESSION
         - DEPLOYMENT_KEY
         - DOPPLER_CONFIG
-        - ENABLE_OBJECT_STORAGE
+        - ENABLE_OBJECT_STORAGE=true
         - ENVIRONMENT
         - FIREBASE_SECRET
         - FRONTEND_URI

@@ -63,7 +63,7 @@ type Resolver struct {
 	ProducerQueue   *kafka_queue.Queue
 	BatchedQueue    *kafka_queue.Queue
 	MailClient      *sendgrid.Client
-	StorageClient   *storage.StorageClient
+	StorageClient   storage.Client
 	OpenSearch      *opensearch.Client
 	HubspotApi      *highlightHubspot.HubspotApi
 	Redis           *redis.Client
@@ -2561,7 +2561,7 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 		if len(zRange) != 0 {
 			pushToS3Span, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.SaveSessionData",
 				tracer.ResourceName("go.parseEvents.processWithRedis.pushToS3"), tracer.Tag("project_id", projectId))
-			if err := r.StorageClient.PushRawEventsToS3(ctx, sessionId, projectId, payloadType, zRange); err != nil {
+			if err := r.StorageClient.PushRawEvents(ctx, sessionId, projectId, payloadType, zRange); err != nil {
 				return e.Wrap(err, "error pushing events to S3")
 			}
 			pushToS3Span.Finish()

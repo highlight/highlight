@@ -39,7 +39,7 @@ func main() {
 		}
 	}
 
-	storageClient, err := storage.NewStorageClient(ctx)
+	storageClient, err := storage.NewS3Client(ctx)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("failed to initialize s3 client: %v", err)
 	}

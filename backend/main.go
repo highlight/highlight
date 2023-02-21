@@ -302,9 +302,15 @@ func main() {
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
 
-	storage, err := storage.NewStorageClient(ctx)
-	if err != nil {
-		log.WithContext(ctx).Fatalf("error creating storage client: %v", err)
+	var storageClient storage.Client
+	if util.IsInDocker() {
+		if storageClient, err = storage.NewFSClient(ctx, "/tmp", localhostCertPath, localhostKeyPath, "8085"); err != nil {
+			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
+		}
+	} else {
+		if storageClient, err = storage.NewS3Client(ctx); err != nil {
+			log.WithContext(ctx).Fatalf("error creating s3 storage client: %v", err)
+		}
 	}
 
 	opensearchClient, err := opensearch.NewOpensearchClient()
@@ -344,7 +350,7 @@ func main() {
 		TDB:                    tdb,
 		MailClient:             sendgrid.NewSendClient(sendgridKey),
 		StripeClient:           stripeClient,
-		StorageClient:          storage,
+		StorageClient:          storageClient,
 		LambdaClient:           lambda,
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
@@ -473,7 +479,7 @@ func main() {
 			ProducerQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Producer),
 			BatchedQueue:    kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
-			StorageClient:   storage,
+			StorageClient:   storageClient,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
 			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
@@ -563,14 +569,14 @@ func main() {
 			ProducerQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Producer),
 			BatchedQueue:    kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
-			StorageClient:   storage,
+			StorageClient:   storageClient,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
 			Redis:           redisClient,
 			Clickhouse:      clickhouseClient,
 			RH:              &rh,
 		}
-		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
+		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
 			if !util.IsDevOrTestEnv() {
 				serviceName := "worker-service"

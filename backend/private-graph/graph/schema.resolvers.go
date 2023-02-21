@@ -3777,7 +3777,7 @@ func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecu
 
 	var timelineIndicatorEvents []*model.TimelineIndicatorEvent
 	if session.AvoidPostgresStorage {
-		timelineIndicatorEvents, err = r.StorageClient.ReadTimelineIndicatorEventsFromS3(session.ID, session.ProjectID)
+		timelineIndicatorEvents, err = r.StorageClient.ReadTimelineIndicatorEvents(ctx, session.ID, session.ProjectID)
 		if err != nil {
 			return nil, e.Wrap(err, "failed to get timeline indicator events from S3")
 		}
@@ -4054,7 +4054,7 @@ func (r *queryResolver) Messages(ctx context.Context, sessionSecureID string) ([
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
 		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadMessagesFromS3(s.ID, s.ProjectID)
+		ret, err := r.StorageClient.ReadMessages(ctx, s.ID, s.ProjectID)
 		if err != nil {
 			return nil, e.Wrap(err, "error pulling messages from s3")
 		}
@@ -4226,7 +4226,7 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
 		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadResourcesFromS3(s.ID, s.ProjectID)
+		ret, err := r.StorageClient.ReadResources(ctx, s.ID, s.ProjectID)
 		if err != nil {
 			return nil, e.Wrap(err, "error pulling resources from s3")
 		}
@@ -6399,7 +6399,7 @@ func (r *queryResolver) GetSourceMapUploadUrls(ctx context.Context, apiKey strin
 		if !strings.HasPrefix(path, pathPrefix) {
 			return nil, e.New("invalid path - does not start with project prefix")
 		}
-		url, err := r.StorageClient.GetSourceMapUploadUrl(path)
+		url, err := r.StorageClient.GetSourceMapUploadUrl(ctx, path)
 		if err != nil {
 			return nil, err
 		}
@@ -6840,7 +6840,7 @@ func (r *queryResolver) EventChunkURL(ctx context.Context, secureID string, inde
 		return "", nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(session.ProjectID, session.ID, storage.SessionContentsCompressed, pointy.Int(index))
+	str, err := r.StorageClient.GetDirectDownloadURL(ctx, session.ProjectID, session.ID, storage.SessionContentsCompressed, pointy.Int(index))
 	if err != nil {
 		return "", e.Wrap(err, "error getting direct download URL")
 	}
@@ -6870,7 +6870,7 @@ func (r *queryResolver) EventChunks(ctx context.Context, secureID string) ([]*mo
 
 // SourcemapFiles is the resolver for the sourcemap_files field.
 func (r *queryResolver) SourcemapFiles(ctx context.Context, projectID int, version *string) ([]*modelInputs.S3File, error) {
-	res, err := r.StorageClient.GetSourcemapFilesFromS3(projectID, version)
+	res, err := r.StorageClient.GetSourcemapFiles(ctx, projectID, version)
 	var s3Files []*modelInputs.S3File
 
 	if err != nil {
@@ -6887,7 +6887,7 @@ func (r *queryResolver) SourcemapFiles(ctx context.Context, projectID int, versi
 
 // SourcemapVersions is the resolver for the sourcemap_versions field.
 func (r *queryResolver) SourcemapVersions(ctx context.Context, projectID int) ([]string, error) {
-	res, err := r.StorageClient.GetSourcemapVersionsFromS3(projectID)
+	res, err := r.StorageClient.GetSourcemapVersions(ctx, projectID)
 	var appVersions []string
 
 	if err != nil {
@@ -7008,7 +7008,7 @@ func (r *sessionResolver) DirectDownloadURL(ctx context.Context, obj *model.Sess
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.SessionContentsCompressed, nil)
+	str, err := r.StorageClient.GetDirectDownloadURL(ctx, obj.ProjectID, obj.ID, storage.SessionContentsCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting direct download URL")
 	}
@@ -7023,7 +7023,7 @@ func (r *sessionResolver) ResourcesURL(ctx context.Context, obj *model.Session) 
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.NetworkResourcesCompressed, nil)
+	str, err := r.StorageClient.GetDirectDownloadURL(ctx, obj.ProjectID, obj.ID, storage.NetworkResourcesCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting resources URL")
 	}
@@ -7038,7 +7038,7 @@ func (r *sessionResolver) MessagesURL(ctx context.Context, obj *model.Session) (
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed, nil)
+	str, err := r.StorageClient.GetDirectDownloadURL(ctx, obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting messages URL")
 	}
