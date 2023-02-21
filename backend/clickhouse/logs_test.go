@@ -183,7 +183,7 @@ func TestLogsKeys(t *testing.T) {
 	assert.Equal(t, expected, keys)
 }
 
-func TestLogKeys(t *testing.T) {
+func TestLogKeyValues(t *testing.T) {
 	ctx := context.Background()
 	client := setup(t)
 	defer teardown(client)
@@ -216,6 +216,6 @@ func TestLogKeys(t *testing.T) {
 	values, err := client.LogsKeyValues(ctx, 1, "workspace_id")
 	assert.NoError(t, err)
 
-	expected := []string{"3", "2", "4"}
+	expected := []string{"3", "4", "2"}
 	assert.Equal(t, expected, values)
 }
