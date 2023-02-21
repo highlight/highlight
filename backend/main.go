@@ -253,10 +253,6 @@ func main() {
 		log.WithContext(ctx).Fatal("please specify a deploy key in order to run Highlight")
 	}
 
-	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && (os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_S3_BUCKET_NAME") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "") {
-		log.WithContext(ctx).Fatalf("please specify object storage env variables in order to proceed")
-	}
-
 	if sendgridKey == "" {
 		if SENDGRID_API_KEY == "" {
 			log.WithContext(ctx).Warn("sendgrid api key is missing")
@@ -308,6 +304,9 @@ func main() {
 			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
 		}
 	} else {
+		if os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_S3_BUCKET_NAME") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
+			log.WithContext(ctx).Fatalf("please specify object storage env variables in order to proceed")
+		}
 		if storageClient, err = storage.NewS3Client(ctx); err != nil {
 			log.WithContext(ctx).Fatalf("error creating s3 storage client: %v", err)
 		}

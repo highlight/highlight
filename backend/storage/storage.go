@@ -182,7 +182,12 @@ func (f *FilesystemClient) PushCompressedFile(ctx context.Context, sessionId, pr
 func (f *FilesystemClient) PushFiles(ctx context.Context, sessionId, projectId int, payloadManager *payload.PayloadManager) (int64, error) {
 	var totalSize int64
 	for fileType, payloadType := range StoredPayloadTypes {
-		size, err := f.PushCompressedFile(ctx, sessionId, projectId, payloadManager.GetFile(fileType), payloadType)
+		file := payloadManager.GetFile(fileType)
+		_, err := file.Seek(0, io.SeekStart)
+		if err != nil {
+			return 0, errors.Wrap(err, "error seeking to beginning of file")
+		}
+		size, err := f.PushCompressedFile(ctx, sessionId, projectId, file, payloadType)
 
 		if err != nil {
 			return 0, errors.Wrapf(err, "error pushing %s payload to s3", string(payloadType))
@@ -222,16 +227,16 @@ func (f *FilesystemClient) PushSourceMapFile(ctx context.Context, projectId int,
 }
 
 func (f *FilesystemClient) ReadMessages(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	messages, err := f.readCompressedFromS3(ctx, sessionId, projectId, ConsoleMessagesCompressed)
+	messages, err := f.readCompressed(ctx, sessionId, projectId, ConsoleMessagesCompressed)
 	if err != nil {
 		// compressed file doesn't exist, fall back to reading uncompressed
-		return f.readUncompressedFromS3(ctx, sessionId, projectId, ConsoleMessages)
+		return f.readUncompressed(ctx, sessionId, projectId, ConsoleMessages)
 	}
 	return messages, nil
 }
 
 func (f *FilesystemClient) ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error) {
-	events, err := f.readCompressedFromS3(ctx, sessionId, projectId, TimelineIndicatorEvents)
+	events, err := f.readCompressed(ctx, sessionId, projectId, TimelineIndicatorEvents)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +249,7 @@ func (f *FilesystemClient) ReadResources(ctx context.Context, sessionId int, pro
 	buf, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, sessionId, projectId, NetworkResourcesCompressed))
 	if err != nil {
 		// compressed file doesn't exist, fall back to reading uncompressed
-		return f.readUncompressedFromS3(ctx, sessionId, projectId, NetworkResources)
+		return f.readUncompressed(ctx, sessionId, projectId, NetworkResources)
 	}
 	buf, err = decompress(buf)
 	if err != nil {
@@ -258,11 +263,11 @@ func (f *FilesystemClient) ReadResources(ctx context.Context, sessionId int, pro
 	return resources, nil
 }
 
-func (f *FilesystemClient) readCompressedFromS3(ctx context.Context, sessionId int, projectId int, t PayloadType) ([]interface{}, error) {
+func (f *FilesystemClient) readCompressed(ctx context.Context, sessionId int, projectId int, t PayloadType) ([]interface{}, error) {
 	buf, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, sessionId, projectId, t))
 	if err != nil {
 		// compressed file doesn't exist, fall back to reading uncompressed
-		return f.readUncompressedFromS3(ctx, sessionId, projectId, t)
+		return f.readUncompressed(ctx, sessionId, projectId, t)
 	}
 	buf, err = decompress(buf)
 	if err != nil {
@@ -277,7 +282,7 @@ func (f *FilesystemClient) readCompressedFromS3(ctx context.Context, sessionId i
 }
 
 // readUncompressedResourcesFromS3 is deprecated. Serves legacy uncompressed network data from S3.
-func (f *FilesystemClient) readUncompressedFromS3(ctx context.Context, sessionId int, projectId int, t PayloadType) ([]interface{}, error) {
+func (f *FilesystemClient) readUncompressed(ctx context.Context, sessionId int, projectId int, t PayloadType) ([]interface{}, error) {
 	buf, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, sessionId, projectId, t))
 	if err != nil {
 		return nil, err
@@ -351,6 +356,10 @@ func (f *FilesystemClient) writeFSBytes(ctx context.Context, fp string, data io.
 	}()
 
 	n, err := io.Copy(fo, data)
+	if err != nil {
+		return 0, err
+	}
+	err = fo.Sync()
 	return n, err
 }
 
