@@ -121,12 +121,12 @@ func (f *FilesystemClient) GetRawData(ctx context.Context, sessionId, projectId 
 	results := make([][]redis.Z, len(objects))
 	var errs = make(chan error, len(objects))
 	var wg sync.WaitGroup
-	for idx, object := range objects {
+	for i, o := range objects {
 		wg.Add(1)
-		go func(o string) {
+		go func(idx int, object string) {
 			defer wg.Done()
 			var result []redis.Z
-			buf, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%s", prefix, o))
+			buf, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%s", prefix, object))
 			if err != nil {
 				errs <- errors.Wrap(err, "error retrieving object from fs")
 				return
@@ -139,7 +139,7 @@ func (f *FilesystemClient) GetRawData(ctx context.Context, sessionId, projectId 
 			}
 
 			results[idx] = result
-		}(object)
+		}(i, o)
 	}
 
 	wg.Wait()
