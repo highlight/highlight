@@ -93,6 +93,7 @@ type Client interface {
 }
 
 type FilesystemClient struct {
+	origin string
 	fsRoot string
 }
 
@@ -165,19 +166,39 @@ func (f *FilesystemClient) GetRawData(ctx context.Context, sessionId, projectId 
 	return eventRows, nil
 }
 
-func (f *FilesystemClient) GetSourceMapUploadUrl(ctx context.Context, key string) (string, error) {
-	//TODO implement me
-	panic("implement me")
+func (f *FilesystemClient) GetSourceMapUploadUrl(_ context.Context, key string) (string, error) {
+	return fmt.Sprintf("%s/sourcemap-upload/%s", f.origin, key), nil
 }
 
 func (f *FilesystemClient) GetSourcemapFiles(ctx context.Context, projectId int, version *string) ([]s3Types.Object, error) {
-	//TODO implement me
-	panic("implement me")
+	if version == nil || len(*version) == 0 {
+		// If no version is specified we put files in an "unversioned" directory.
+		version = pointy.String("unversioned")
+	}
+
+	dir, err := os.ReadDir(fmt.Sprintf("%s/sourcemaps/%d/%s", f.fsRoot, projectId, *version))
+	if err != nil {
+		log.WithContext(ctx).Warnf("error listing objects in fs: %s", err)
+		return nil, nil
+	}
+	return lo.Map(dir, func(t os.DirEntry, i int) s3Types.Object {
+		return s3Types.Object{
+			Key: pointy.String(t.Name()),
+		}
+	}), nil
 }
 
 func (f *FilesystemClient) GetSourcemapVersions(ctx context.Context, projectId int) ([]s3Types.CommonPrefix, error) {
-	//TODO implement me
-	panic("implement me")
+	dir, err := os.ReadDir(fmt.Sprintf("%s/sourcemaps/%d", f.fsRoot, projectId))
+	if err != nil {
+		log.WithContext(ctx).Warnf("error listing objects in fs: %s", err)
+		return nil, nil
+	}
+	return lo.Map(dir, func(t os.DirEntry, i int) s3Types.CommonPrefix {
+		return s3Types.CommonPrefix{
+			Prefix: pointy.String(t.Name()),
+		}
+	}), nil
 }
 
 func (f *FilesystemClient) PushCompressedFile(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType) (*int64, error) {
@@ -260,6 +281,27 @@ func (f *FilesystemClient) ReadResources(ctx context.Context, sessionId int, pro
 	return resources, nil
 }
 
+func (f *FilesystemClient) ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
+	if version == nil {
+		unversioned := "unversioned"
+		version = &unversioned
+	}
+	if b, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%d/%s/%s", f.fsRoot, projectId, *version, fileName)); err == nil {
+		return b.Bytes(), nil
+	} else {
+		return nil, err
+	}
+}
+
+func (f *FilesystemClient) GetAssetURL(_ context.Context, projectId string, hashVal string) (string, error) {
+	return fmt.Sprintf("%s/assets/%s/%s", f.origin, projectId, hashVal), nil
+}
+
+func (f *FilesystemClient) UploadAsset(ctx context.Context, uuid, _ string, reader io.Reader) error {
+	_, err := f.writeFSBytes(ctx, fmt.Sprintf("%s/assets/%s", f.fsRoot, uuid), reader)
+	return err
+}
+
 func (f *FilesystemClient) readCompressed(ctx context.Context, sessionId int, projectId int, t PayloadType, results interface{}) error {
 	key := fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, sessionId, projectId, t)
 	if _, err := os.Stat(key); err != nil {
@@ -282,20 +324,12 @@ func (f *FilesystemClient) readCompressed(ctx context.Context, sessionId int, pr
 	return nil
 }
 
-func (f *FilesystemClient) ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
-	if b, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%d/%s/%s", f.fsRoot, projectId, *version, fileName)); err == nil {
-		return b.Bytes(), nil
-	} else {
-		return nil, err
-	}
-}
-
-func (f *FilesystemClient) GetAssetURL(_ context.Context, projectId string, hashVal string) (string, error) {
-	return fmt.Sprintf("/assets/%s/%s", projectId, hashVal), nil
-}
-
-func (f *FilesystemClient) UploadAsset(ctx context.Context, uuid, _ string, reader io.Reader) error {
-	_, err := f.writeFSBytes(ctx, fmt.Sprintf("%s/assets/%s", f.fsRoot, uuid), reader)
+func (f *FilesystemClient) handleUploadSourcemap(ctx context.Context, key string, body io.Reader) error {
+	parts := strings.Split(key, "/")
+	projectID := parts[0]
+	version := parts[1]
+	file := parts[2]
+	_, err := f.writeFSBytes(ctx, fmt.Sprintf("%s/sourcemaps/%s/%s/%s", f.fsRoot, projectID, version, file), body)
 	return err
 }
 
@@ -344,6 +378,10 @@ func (f *FilesystemClient) writeFSBytes(ctx context.Context, fp string, data io.
 }
 
 func NewFSClient(ctx context.Context, fsRoot, certPath, keyPath, port string) (*FilesystemClient, error) {
+	f := FilesystemClient{
+		origin: fmt.Sprintf("https://localhost:%s", port),
+		fsRoot: fsRoot,
+	}
 	go func() {
 		r := chi.NewMux()
 		r.Route("/", func(r chi.Router) {
@@ -360,15 +398,28 @@ func NewFSClient(ctx context.Context, fsRoot, certPath, keyPath, port string) (*
 				fp := fmt.Sprintf("%s/direct/%s/%s/%v", fsRoot, sessionId, projectId, payloadType)
 				http.ServeFile(w, r, fp)
 			})
+			r.Get("/direct/{session-id}/{project-id}/{payload-type}", func(w http.ResponseWriter, r *http.Request) {
+				sessionId := chi.URLParam(r, "session-id")
+				projectId := chi.URLParam(r, "project-id")
+				payloadType := chi.URLParam(r, "payload-type")
+				fp := fmt.Sprintf("%s/direct/%s/%s/%v", fsRoot, sessionId, projectId, payloadType)
+				http.ServeFile(w, r, fp)
+			})
+			r.Put("/sourcemap-upload/{key}", func(w http.ResponseWriter, r *http.Request) {
+				key := chi.URLParam(r, "key")
+				if err := f.handleUploadSourcemap(r.Context(), key, r.Body); err != nil {
+					http.Error(w, fmt.Sprintf("failed to upload sourcemap: %s", err), http.StatusBadRequest)
+				} else {
+					w.WriteHeader(http.StatusOK)
+				}
+			})
 		})
 		err := http.ListenAndServeTLS(":"+port, certPath, keyPath, r)
 		if err != nil {
 			log.WithContext(ctx).Error(err)
 		}
 	}()
-	return &FilesystemClient{
-		fsRoot: fsRoot,
-	}, nil
+	return &f, nil
 }
 
 type S3Client struct {
