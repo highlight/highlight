@@ -168,10 +168,7 @@
 			"stopTimeout": null,
 			"image": "906394416424.dkr.ecr.us-east-2.amazonaws.com/aws-for-fluent-bit:stable",
 			"startTimeout": null,
-			"firelensConfiguration": {
-				"type": "fluentbit",
-				"options": null
-			},
+			"firelensConfiguration": null,
 			"dependsOn": null,
 			"disableNetworking": null,
 			"interactive": null,
