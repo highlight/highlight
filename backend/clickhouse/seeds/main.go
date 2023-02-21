@@ -120,8 +120,8 @@ func main() {
 
 	logRows := []*clickhouse.LogRow{}
 
-	for i := 1; i < 10000; i++ {
-		for j := 1; j < 10000; j++ {
+	for i := 1; i < 100; i++ {
+		for j := 1; j < 100; j++ {
 			logRows = append(logRows, &clickhouse.LogRow{
 				Timestamp:     makeRandTime(),
 				ProjectId:     makeRandProjectId(),
