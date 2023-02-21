@@ -44,6 +44,8 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 
 func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogLine, error) {
 	query := makeSelectQuery("Timestamp, SeverityText, Body, LogAttributes", projectID, params)
+	query = query.Limit(100)
+
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, err
