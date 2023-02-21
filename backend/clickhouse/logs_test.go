@@ -89,14 +89,21 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 
 	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "body",
+		Query:     "body", // direct match
 	})
 	assert.NoError(t, err)
 	assert.Len(t, logs, 1)
 
 	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "od",
+		Query:     "od", // wildcard match
+	})
+	assert.NoError(t, err)
+	assert.Len(t, logs, 1)
+
+	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "BODY", // case insensitive match
 	})
 	assert.NoError(t, err)
 	assert.Len(t, logs, 1)
