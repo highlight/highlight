@@ -244,8 +244,10 @@ func (f *FilesystemClient) ReadMessages(ctx context.Context, sessionId int, proj
 func (f *FilesystemClient) ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error) {
 	var events []*model.TimelineIndicatorEvent
 	err := f.readCompressed(ctx, sessionId, projectId, TimelineIndicatorEvents, &events)
+	// if timeline indicators file does not exist, session is probably still live.
+	// do not prevent frontend from rendering session
 	if err != nil {
-		return nil, err
+		log.WithContext(ctx).Warnf("failed to read timeline indicators: %s", err)
 	}
 	return events, nil
 }
