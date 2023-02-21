@@ -1,0 +1,10 @@
+{
+	"extends": "../../tsconfig",
+	"include": ["src"],
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"strict": true,
+		"incremental": true,
+		"jsx": "react"
+	}
+}

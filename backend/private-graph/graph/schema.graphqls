@@ -1412,6 +1412,7 @@ type Query {
 	logs(project_id: ID!, params: LogsParamsInput!): [LogLine!]!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_keys(project_id: ID!): [LogKey!]!
+	logs_key_values(project_id: ID!, key_name: String!): [String!]!
 }
 
 type Mutation {

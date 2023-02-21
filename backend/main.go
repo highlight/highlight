@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"gorm.io/gorm"
 	"html/template"
 	"io"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/otel"
@@ -41,7 +42,6 @@ import (
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
-	model2 "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/worker"
@@ -121,7 +121,8 @@ func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rCli
 		}
 		if runtimeFlag != util.PublicGraph {
 			if err := enhancedHealthCheck(ctx, db, tdb, rClient, osClient, ccClient); err != nil {
-				http.Error(w, fmt.Sprintf("failed enhanced health check %s", err), 500)
+				log.WithContext(ctx).Error(fmt.Sprintf("failed enhanced health check: %s", err))
+				http.Error(w, fmt.Sprintf("failed enhanced health check: %s", err), 500)
 				return
 			}
 		}
@@ -133,7 +134,7 @@ func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rCli
 }
 
 func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client) error {
-	const Timeout = 25 * time.Second
+	const Timeout = 5 * time.Second
 
 	errors := make(chan error, 5)
 	wg := sync.WaitGroup{}
@@ -142,16 +143,24 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
-		if err := db.WithContext(ctx).Model(&model.Workspace{}).Find(&model.Workspace{}).Error; err != nil {
-			errors <- e.New(fmt.Sprintf("failed to query database: %s", err))
+		if err := db.WithContext(ctx).Model(&model.Project{}).Find(&model.Project{}).Error; err != nil {
+			msg := fmt.Sprintf("failed to query database: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	go func() {
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
-		if _, err := tdb.Query(ctx, `from(bucket: "dev-bucket") |> range(start: -1m)`); err != nil {
-			errors <- e.New(fmt.Sprintf("failed to query influx db: %s", err))
+		bucket := "dev-1"
+		if util.IsDevOrTestEnv() {
+			bucket = "dev-bucket"
+		}
+		if _, err := tdb.Query(ctx, fmt.Sprintf(`from(bucket: "%s") |> range(start: -1m)`, bucket)); err != nil {
+			msg := fmt.Sprintf("failed to query influx db: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	go func() {
@@ -159,7 +168,9 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
 		if err := rClient.SetIsPendingSession(ctx, "health-check-test-session", true); err != nil {
-			errors <- e.New(fmt.Sprintf("failed to set redis flag: %s", err))
+			msg := fmt.Sprintf("failed to set redis flag: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	go func() {
@@ -167,33 +178,31 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
 		if err := osClient.IndexSynchronous(ctx, opensearch.IndexSessions, 0, struct{}{}); err != nil {
-			errors <- e.New(fmt.Sprintf("failed to perform opensearch index: %s", err))
+			msg := fmt.Sprintf("failed to perform opensearch index: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	go func() {
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
-		if _, err := ccClient.ReadLogsTotalCount(ctx, 1, model2.LogsParamsInput{
-			Query: "",
-			DateRange: &model2.DateRangeRequiredInput{
-				StartDate: time.Now().Add(-time.Second),
-				EndDate:   time.Now(),
-			},
-		}); err != nil {
-			errors <- e.New(fmt.Sprintf("failed to perform clickhouse query: %s", err))
+		if err := ccClient.HealthCheck(ctx); err != nil {
+			msg := fmt.Sprintf("failed to perform clickhouse query: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	wg.Wait()
 	select {
-	case e := <-errors:
-		return e
+	case err := <-errors:
+		return err
 	default:
 		return nil
 	}
 }
 
-func validateOrigin(request *http.Request, origin string) bool {
+func validateOrigin(_ *http.Request, origin string) bool {
 	if runtimeParsed == util.PrivateGraph {
 		// From the highlight frontend, only the url is whitelisted.
 		isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
@@ -212,9 +221,28 @@ func validateOrigin(request *http.Request, origin string) bool {
 var defaultPort = "8082"
 
 func main() {
-	ctx := context.Background()
+	ctx := context.TODO()
+
 	// initialize logger
 	log.SetReportCaller(true)
+	// setup highlight
+	H.SetProjectID("1jdkoe52")
+	if util.IsDevOrTestEnv() {
+		log.WithContext(ctx).Info("overwriting highlight-go graphql client address...")
+		H.SetGraphqlClientAddress("https://localhost:8082/public")
+		H.SetOTLPEndpoint("http://collector:4318")
+	}
+	H.Start()
+	defer H.Stop()
+	H.SetDebugMode(log.StandardLogger())
+	// setup highlight logrus hook
+	log.AddHook(hlog.NewHook(hlog.WithLevels(
+		log.PanicLevel,
+		log.FatalLevel,
+		log.ErrorLevel,
+		log.WarnLevel,
+		log.InfoLevel,
+	)))
 
 	switch os.Getenv("DEPLOYMENT_KEY") {
 	case "HIGHLIGHT_ONPREM_BETA":
@@ -475,24 +503,6 @@ func main() {
 		otelHandler.Listen(r)
 		vercel.Listen(r)
 	}
-
-	if util.IsDevOrTestEnv() {
-		log.WithContext(ctx).Info("overwriting highlight-go graphql client address...")
-		H.SetGraphqlClientAddress("https://localhost:8082/public")
-		H.SetOTLPEndpoint("http://collector:4318")
-	}
-	H.SetProjectID("1jdkoe52")
-	H.Start()
-	defer H.Stop()
-	H.SetDebugMode(log.StandardLogger())
-	// setup highlight logrus hook
-	log.AddHook(hlog.NewHook(hlog.WithLevels(
-		log.PanicLevel,
-		log.FatalLevel,
-		log.ErrorLevel,
-		log.WarnLevel,
-		log.InfoLevel,
-	)))
 
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.

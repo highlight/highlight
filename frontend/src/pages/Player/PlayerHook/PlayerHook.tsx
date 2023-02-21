@@ -1,5 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { datadogLogs } from '@datadog/browser-logs'
 import {
 	OnSessionPayloadAppendedDocument,
 	useGetEventChunksQuery,
@@ -515,10 +514,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 							duration: timelineChangeTime,
 							secure_id: state.session_secure_id,
 						})
-						datadogLogs.logger.info('Timeline Play Time', {
-							duration: timelineChangeTime,
-							sessionId: state.session_secure_id,
-						})
 						r()
 					}),
 				),
@@ -546,10 +541,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 								time,
 								duration: timelineChangeTime,
 								secure_id: state.session_secure_id,
-							})
-							datadogLogs.logger.info('Timeline Pause Time', {
-								duration: timelineChangeTime,
-								sessionId: state.session_secure_id,
 							})
 							r()
 						}),
@@ -595,10 +586,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 							time,
 							duration: timelineChangeTime,
 							secure_id: state.session_secure_id,
-						})
-						datadogLogs.logger.info('Timeline Seek Time', {
-							duration: timelineChangeTime,
-							sessionId: state.session_secure_id,
 						})
 						r()
 					}),

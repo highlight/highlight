@@ -4858,10 +4858,12 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 		GROUP BY identifier
 		LIMIT 50
 	) as topUsers
-	INNER JOIN sessions s on topUsers.identifier = s.identifier
+	INNER JOIN sessions s 
+	ON topUsers.identifier = s.identifier
+	AND s.project_id = ?
     ) as q2
 	ORDER BY total_active_time DESC`,
-		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
+		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod, projectID).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
@@ -6973,6 +6975,16 @@ func (r *queryResolver) LogsKeys(ctx context.Context, projectID int) ([]*modelIn
 	}
 
 	return r.ClickhouseClient.LogsKeys(ctx, project.ID)
+}
+
+// LogsKeyValues is the resolver for the logs_key_values field.
+func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName)
 }
 
 // Params is the resolver for the params field.

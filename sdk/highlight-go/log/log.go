@@ -65,7 +65,7 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 
 	span, _ := highlight.StartTrace(
 		ctx, "highlight-ctx",
-		attribute.String("Source", "SubmitFrontendConsoleMessages"),
+		attribute.String(highlight.SourceAttribute, highlight.SourceAttributeFrontend),
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 		attribute.String(highlight.SessionIDAttribute, sessionSecureID),
 	)
