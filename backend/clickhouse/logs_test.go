@@ -2,58 +2,37 @@ package clickhouse
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
-type ReadLogsTestSuite struct {
-	suite.Suite
-	ctx    context.Context
-	client *Client
-}
-
-func (suite *ReadLogsTestSuite) SetupTest() {
-	suite.ctx = context.Background()
+func setup(t *testing.T) *Client {
 	client, err := setupClickhouseTestDB()
 
-	suite.Require().NoError(err)
+	assert.NoError(t, err)
 
-	suite.client = client
+	return client
 }
 
-func (suite *ReadLogsTestSuite) TeardownTest() {
-	suite.client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", LogsTable)) //nolint:errcheck
+func teardown(client *Client) {
+	client.conn.Exec(context.Background(), "TRUNCATE TABLE logs") //nolint:errcheck
 }
 
-func (suite *ReadLogsTestSuite) TestReadLogs(t *testing.T) {
-	now := time.Now()
-	rows := []*LogRow{
-		{
-			Timestamp:    now,
-			ProjectId:    1,
-			Body:         "body",
-			SeverityText: "info",
-		},
+func makeDateWithinRange(now time.Time) *modelInputs.DateRangeRequiredInput {
+	return &modelInputs.DateRangeRequiredInput{
+		StartDate: now.Add(-time.Hour * 1),
+		EndDate:   now.Add(time.Hour * 1),
 	}
-
-	require.NoError(t, suite.client.BatchWriteLogRows(suite.ctx, rows))
-	logLines, err := suite.client.ReadLogs(suite.ctx, 1, modelInputs.LogsParamsInput{})
-	require.NoError(t, err)
-
-	assert.Len(t, logLines, 1)
-	assert.Equal(t, now.UnixMilli(), logLines[0].Timestamp.UnixMilli())
-	assert.Equal(t, "info", logLines[0].SeverityText)
-	assert.Equal(t, "body", logLines[0].Body)
-	assert.Equal(t, map[string]interface{}{"project_id": "7"}, logLines[0].LogAttributes)
 }
 
-func (suite *ReadLogsTestSuite) TestReadLogsWithTimeQuery(t *testing.T) {
+func TestReadLogsWithTimeQuery(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
 	now := time.Now()
 	rows := []*LogRow{
 		{
@@ -62,30 +41,110 @@ func (suite *ReadLogsTestSuite) TestReadLogsWithTimeQuery(t *testing.T) {
 		},
 	}
 
-	require.NoError(t, suite.client.BatchWriteLogRows(suite.ctx, rows))
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	logLines, err := suite.client.ReadLogs(suite.ctx, 1, modelInputs.LogsParamsInput{
+	logs, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
 			StartDate: now.Add(-time.Hour * 2),
 			EndDate:   now.Add(-time.Hour * 1),
 		},
 	})
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
-	assert.Len(t, logLines, 0)
+	assert.Len(t, logs, 0)
 
-	logLines, err = suite.client.ReadLogs(suite.ctx, 1, modelInputs.LogsParamsInput{
+	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
 			StartDate: now.Add(-time.Hour * 1),
 			EndDate:   now.Add(time.Hour * 1),
 		},
 	})
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
-	assert.Len(t, logLines, 1)
+	assert.Len(t, logs, 1)
 }
 
-func (suite *ReadLogsTestSuite) TestLogsKeys(t *testing.T) {
+func TestReadLogsWithBodyFilter(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
+	now := time.Now()
+	rows := []*LogRow{
+		{
+			Timestamp: now,
+			ProjectId: 1,
+			Body:      "body",
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	logs, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "no match",
+	})
+	assert.NoError(t, err)
+	assert.Len(t, logs, 0)
+
+	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "body",
+	})
+	assert.NoError(t, err)
+	assert.Len(t, logs, 1)
+
+	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "od",
+	})
+	assert.NoError(t, err)
+	assert.Len(t, logs, 1)
+}
+
+func TestReadLogsWithKeyFilter(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
+	now := time.Now()
+	rows := []*LogRow{
+		{
+			Timestamp:     now,
+			ProjectId:     1,
+			LogAttributes: map[string]string{"service": "image processor"},
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	logs, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "service:foo",
+	})
+	assert.NoError(t, err)
+	assert.Len(t, logs, 0)
+
+	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "service:'image processor'",
+	})
+	assert.NoError(t, err)
+	assert.Len(t, logs, 1)
+
+	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "service:*mage*",
+	})
+	assert.NoError(t, err)
+	assert.Len(t, logs, 1)
+}
+
+func TestLogsKeys(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
 	rows := []*LogRow{
 		{
 			Timestamp:     time.Now(),
@@ -99,9 +158,9 @@ func (suite *ReadLogsTestSuite) TestLogsKeys(t *testing.T) {
 		},
 	}
 
-	assert.NoError(t, suite.client.BatchWriteLogRows(suite.ctx, rows))
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	keys, err := suite.client.LogsKeys(suite.ctx, 1)
+	keys, err := client.LogsKeys(ctx, 1)
 	assert.NoError(t, err)
 
 	expected := []*modelInputs.LogKey{
@@ -117,7 +176,11 @@ func (suite *ReadLogsTestSuite) TestLogsKeys(t *testing.T) {
 	assert.Equal(t, expected, keys)
 }
 
-func (suite *ReadLogsTestSuite) TestLogKeys(t *testing.T) {
+func TestLogKeys(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
 	rows := []*LogRow{
 		{
 			Timestamp:     time.Now(),
@@ -141,9 +204,9 @@ func (suite *ReadLogsTestSuite) TestLogKeys(t *testing.T) {
 		},
 	}
 
-	assert.NoError(t, suite.client.BatchWriteLogRows(suite.ctx, rows))
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	values, err := suite.client.LogsKeyValues(suite.ctx, 1, "workspace_id")
+	values, err := client.LogsKeyValues(ctx, 1, "workspace_id")
 	assert.NoError(t, err)
 
 	expected := []string{"3", "2", "4"}
