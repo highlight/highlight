@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"io"
 	"strconv"
 	"time"
@@ -19,7 +20,7 @@ func MarshalTimestamp(t time.Time) graphql.Marshaler {
 	return graphql.WriterFunc(func(w io.Writer) {
 		_, err := io.WriteString(w, strconv.Quote(t.Format(time.RFC3339Nano)))
 		if err != nil {
-			log.Error(e.Wrap(err, "error marshaling timestamp"))
+			log.WithContext(context.Background()).Error(e.Wrap(err, "error marshaling timestamp"))
 		}
 	})
 }

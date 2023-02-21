@@ -1,6 +1,7 @@
 package discord
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -11,6 +12,8 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
 	"github.com/stretchr/testify/suite"
 )
+
+var ctx = context.TODO()
 
 type DiscordChannelsTestSuite struct {
 	suite.Suite
@@ -34,7 +37,7 @@ func (suite *DiscordChannelsTestSuite) SetupTest() {
 
 	bot, err := NewDiscordBot(guildID)
 	if err != nil {
-		log.Error("Failed to initialize Bot")
+		log.WithContext(ctx).Error("Failed to initialize Bot")
 		return
 	}
 
@@ -56,8 +59,8 @@ func (suite *DiscordChannelsTestSuite) TestSendErrorAlert() {
 	})
 
 	if err != nil {
-		log.Error("Failed to send error alert")
-		log.Error(err)
+		log.WithContext(ctx).Error("Failed to send error alert")
+		log.WithContext(ctx).Error(err)
 	}
 
 	suite.True(true)
@@ -76,7 +79,7 @@ func (suite *DiscordChannelsTestSuite) TestSendNewUserAlert() {
 
 	if err != nil {
 		fmt.Printf("Failed to send new user alert")
-		log.Error(err)
+		log.WithContext(ctx).Error(err)
 	}
 
 	suite.True(true)
@@ -95,8 +98,8 @@ func (suite *DiscordChannelsTestSuite) TestSendNewSessionAlert() {
 	})
 
 	if err != nil {
-		log.Error("Failed to send new session alert")
-		log.Error(err)
+		log.WithContext(ctx).Error("Failed to send new session alert")
+		log.WithContext(ctx).Error(err)
 	}
 
 	suite.True(true)
@@ -120,8 +123,8 @@ func (suite *DiscordChannelsTestSuite) TestSendTrackPropertiesAlert() {
 	})
 
 	if err != nil {
-		log.Error("Failed to send new track properties alert")
-		log.Error(err)
+		log.WithContext(ctx).Error("Failed to send new track properties alert")
+		log.WithContext(ctx).Error(err)
 	}
 
 	suite.True(true)
@@ -140,8 +143,8 @@ func (suite *DiscordChannelsTestSuite) TestSendUserPropertiesAlert() {
 	})
 
 	if err != nil {
-		log.Error("Failed to send new user properties alert")
-		log.Error(err)
+		log.WithContext(ctx).Error("Failed to send new user properties alert")
+		log.WithContext(ctx).Error(err)
 	}
 
 	suite.True(true)
@@ -156,7 +159,7 @@ func (suite *DiscordChannelsTestSuite) TestSessionFeedbackAlert() {
 
 	if err != nil {
 		fmt.Printf("Failed to send new session feedback alert")
-		log.Error(err)
+		log.WithContext(ctx).Error(err)
 	}
 
 	suite.True(true)
@@ -170,8 +173,8 @@ func (suite *DiscordChannelsTestSuite) TestRageClicksAlert() {
 	})
 
 	if err != nil {
-		log.Error("Failed to send new session feedback alert")
-		log.Error(err)
+		log.WithContext(ctx).Error("Failed to send new session feedback alert")
+		log.WithContext(ctx).Error(err)
 	}
 
 	suite.True(true)
@@ -188,8 +191,8 @@ func (suite *DiscordChannelsTestSuite) TestMetricMonitorAlert() {
 	})
 
 	if err != nil {
-		log.Error("Failed to send metric monitor alert")
-		log.Error(err)
+		log.WithContext(ctx).Error("Failed to send metric monitor alert")
+		log.WithContext(ctx).Error(err)
 	}
 
 	suite.True(true)

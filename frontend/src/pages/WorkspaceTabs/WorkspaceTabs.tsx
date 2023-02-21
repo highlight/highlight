@@ -27,6 +27,8 @@ const getTitle = (tab: WorkspaceSettingsTab): string => {
 			return 'Current Plan'
 		case 'upgrade-plan':
 			return 'Upgrade Plan'
+		default:
+			return ''
 	}
 }
 
@@ -38,12 +40,17 @@ export const WorkspaceTabs = () => {
 	const workspaceId = workspaceMatch?.params.workspace_id
 	const pageId = workspaceMatch?.params.page_id as WorkspaceSettingsTab
 
-	useEffect(() => analytics.page(), [location.pathname])
+	useEffect(() => {
+		analytics.page()
+		if (!pageId) {
+			navigate(`/w/${workspaceId}/team`, { replace: true })
+		}
+	}, [location.pathname, navigate, pageId, workspaceId])
 
 	return (
 		<>
 			<Helmet key={pageId}>
-				<title>Workspace {getTitle(pageId ?? 'team')}</title>
+				<title>Workspace {getTitle(pageId)}</title>
 			</Helmet>
 			<LeadAlignLayout fullWidth>
 				<div>

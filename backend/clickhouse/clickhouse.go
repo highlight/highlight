@@ -1,20 +1,21 @@
 package clickhouse
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/projectpath"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/golang-migrate/migrate/v4"
 	clickhouseMigrate "github.com/golang-migrate/migrate/v4/database/clickhouse"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/highlight-run/highlight/backend/projectpath"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 type Client struct {
@@ -37,17 +38,17 @@ func NewClient(dbName string) (*Client, error) {
 	}, err
 }
 
-func RunMigrations(dbName string) {
+func RunMigrations(ctx context.Context, dbName string) {
 	options := getClickhouseOptions(dbName)
 	db := clickhouse.OpenDB(options)
 	driver, err := clickhouseMigrate.WithInstance(db, &clickhouseMigrate.Config{
 		MigrationsTableEngine: "MergeTree",
 	})
 
-	log.Printf("Starting clickhouse migrations for db: %s", dbName)
+	log.WithContext(ctx).Printf("Starting clickhouse migrations for db: %s", dbName)
 
 	if err != nil {
-		log.Fatalf("Error creating clickhouse db instance for migrations: %v", err)
+		log.WithContext(ctx).Fatalf("Error creating clickhouse db instance for migrations: %v", err)
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
@@ -57,14 +58,28 @@ func RunMigrations(dbName string) {
 	)
 
 	if err != nil {
-		log.Fatalf("Error creating clickhouse db instance for migrations: %v", err)
+		log.WithContext(ctx).Fatalf("Error creating clickhouse db instance for migrations: %v", err)
 	}
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatalf("Error running clickhouse migrations: %v", err)
+		log.WithContext(ctx).Fatalf("Error running clickhouse migrations: %v", err)
 	} else {
-		log.Printf("Finished clickhouse migrations for db: %s", dbName)
+		log.WithContext(ctx).Printf("Finished clickhouse migrations for db: %s", dbName)
 	}
+}
+
+func (client *Client) HealthCheck(ctx context.Context) error {
+	var v uint8
+	err := client.conn.QueryRow(
+		ctx,
+		`SELECT 1`,
+	).Scan(&v)
+	if err != nil {
+		return err
+	} else if v != 1 {
+		return e.New("invalid value returned from clickhouse")
+	}
+	return nil
 }
 
 func useTLS() bool {
@@ -79,7 +94,7 @@ func getClickhouseOptions(dbName string) *clickhouse.Options {
 			Username: Username,
 			Password: Password,
 		},
-		DialTimeout: time.Duration(10) * time.Second,
+		DialTimeout: time.Duration(25) * time.Second,
 	}
 
 	if useTLS() {

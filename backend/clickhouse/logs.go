@@ -57,7 +57,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 		LIMIT 100
 	`, LogsTable, whereClause)
 
-	log.Info(query)
+	log.WithContext(ctx).Info(query)
 
 	rows, err := client.conn.Query(
 		ctx,
@@ -101,7 +101,7 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 
 	query := fmt.Sprintf(`SELECT COUNT(*) FROM %s %s`, LogsTable, whereClause)
 
-	log.Info(query)
+	log.WithContext(ctx).Info(query)
 
 	var count uint64
 	err := client.conn.QueryRow(
@@ -110,6 +110,77 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 	).Scan(&count)
 
 	return count, err
+}
+
+func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
+	rows, err := client.conn.Query(ctx,
+		`
+		SELECT arrayJoin(LogAttributes.keys) as key, count() as cnt
+		FROM logs
+		WHERE ProjectId = ?
+		GROUP BY key
+		ORDER BY cnt DESC
+		LIMIT 50;`,
+		projectID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	keys := []*modelInputs.LogKey{}
+	for rows.Next() {
+		var (
+			Key   string
+			Count uint64
+		)
+		if err := rows.Scan(&Key, &Count); err != nil {
+			return nil, err
+		}
+
+		keys = append(keys, &modelInputs.LogKey{
+			Name: Key,
+			Type: modelInputs.LogKeyTypeString, // For now, assume everything is a string
+		})
+	}
+
+	rows.Close()
+	return keys, rows.Err()
+
+}
+
+func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error) {
+	rows, err := client.conn.Query(ctx,
+		`
+		SELECT LogAttributes[?] as value, count() as cnt FROM logs
+		WHERE ProjectId = ?
+		GROUP BY value
+		ORDER BY cnt DESC
+		LIMIT 50;`,
+		keyName,
+		projectID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	values := []string{}
+	for rows.Next() {
+		var (
+			Value string
+			Count uint64
+		)
+		if err := rows.Scan(&Value, &Count); err != nil {
+			return nil, err
+		}
+
+		values = append(values, Value)
+	}
+
+	rows.Close()
+
+	return values, rows.Err()
 }
 
 func makeSeverityText(severityText string) modelInputs.SeverityText {

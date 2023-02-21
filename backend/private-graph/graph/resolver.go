@@ -159,11 +159,11 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 }
 
 type HubspotApiInterface interface {
-	CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (*int, error)
-	CreateCompanyForWorkspace(workspaceID int, adminEmail string, name string) (*int, error)
-	CreateContactCompanyAssociation(adminID int, workspaceID int) error
-	UpdateContactProperty(adminID int, properties []hubspot.Property) error
-	UpdateCompanyProperty(workspaceID int, properties []hubspot.Property) error
+	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (*int, error)
+	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) (*int, error)
+	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error
+	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error
+	UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -296,13 +296,13 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) GetAdminRole(adminID int, workspaceID int) (string, error) {
+func (r *Resolver) GetAdminRole(ctx context.Context, adminID int, workspaceID int) (string, error) {
 	var workspaceAdmin model.WorkspaceAdmin
 	if err := r.DB.Where(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).First(&workspaceAdmin).Error; err != nil {
 		return "", e.Wrap(err, "error querying workspace_admin")
 	}
 	if workspaceAdmin.Role == nil || *workspaceAdmin.Role == "" {
-		log.Errorf("workspace_admin admin_id:%d,workspace_id:%d has invalid role", adminID, workspaceID)
+		log.WithContext(ctx).Errorf("workspace_admin admin_id:%d,workspace_id:%d has invalid role", adminID, workspaceID)
 		return "", e.New("workspace_admin has invalid role")
 
 	}
@@ -479,7 +479,7 @@ func (r *Resolver) GetErrorGroupFrequenciesUnsampled(ctx context.Context, projec
 	span.SetTag("errorGroupID", errorGroupID)
 	results, err := r.TDB.Query(ctx, query)
 	if err != nil {
-		log.Error(err, "failed to perform tdb query for error group frequencies")
+		log.WithContext(ctx).Error(err, "failed to perform tdb query for error group frequencies")
 	}
 	var response []*modelInputs.ErrorDistributionItem
 	for _, r := range results {
@@ -524,7 +524,7 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 	span.SetTag("errorGroupIDs", errorGroupIDs)
 	results, err := r.TDB.Query(ctx, query)
 	if err != nil {
-		log.Error(err, "failed to perform tdb query for error group frequencies")
+		log.WithContext(ctx).Error(err, "failed to perform tdb query for error group frequencies")
 	}
 	var response []*modelInputs.ErrorDistributionItem
 	for _, r := range results {
@@ -971,7 +971,7 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 	return
 }
 
-func (r *Resolver) SendSlackThreadReply(workspace *model.Workspace, admin *model.Admin, viewLink, commentText, action string, subjectScope string, threadIDs []int) error {
+func (r *Resolver) SendSlackThreadReply(ctx context.Context, workspace *model.Workspace, admin *model.Admin, viewLink, commentText, action string, subjectScope string, threadIDs []int) error {
 	if workspace.SlackAccessToken == nil {
 		return nil
 	}
@@ -990,13 +990,13 @@ func (r *Resolver) SendSlackThreadReply(workspace *model.Workspace, admin *model
 		}
 		_, _, err := slackClient.PostMessage(thread.SlackChannelID, opts...)
 		if err != nil {
-			log.Error(err)
+			log.WithContext(ctx).Error(err)
 		}
 	}
 	return nil
 }
 
-func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, action string, subjectScope string, base64Image *string, sessionCommentID *int, errorCommentID *int, additionalContext *string) error {
+func (r *Resolver) SendSlackAlertToUser(ctx context.Context, workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, action string, subjectScope string, base64Image *string, sessionCommentID *int, errorCommentID *int, additionalContext *string) error {
 	// this is needed for posting DMs
 	// if nil, user simply hasn't signed up for notifications, so return nil
 	if workspace.SlackAccessToken == nil {
@@ -1022,18 +1022,18 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 		// The reason for this is each task has disk space of 20GB, each image is around 200 KB. Ideally we do everything in memory without relying on disk.
 		dec, err := base64.StdEncoding.DecodeString(*base64Image)
 		if err != nil {
-			log.Error(e.Wrap(err, "Failed to decode base64 image"))
+			log.WithContext(ctx).Error(e.Wrap(err, "Failed to decode base64 image"))
 		}
 		f, err := os.Create(uploadedFileKey)
 		if err != nil {
-			log.Error(e.Wrap(err, "Failed to create file on disk"))
+			log.WithContext(ctx).Error(e.Wrap(err, "Failed to create file on disk"))
 		}
 		defer f.Close()
 		if _, err := f.Write(dec); err != nil {
-			log.Error(e.Wrap(err, "Failed to write file on disk"))
+			log.WithContext(ctx).Error(e.Wrap(err, "Failed to write file on disk"))
 		}
 		if err := f.Sync(); err != nil {
-			log.Error("Failed to sync file on disk")
+			log.WithContext(ctx).Error("Failed to sync file on disk")
 		}
 	}
 
@@ -1041,7 +1041,7 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 		if slackUser.WebhookChannelID != nil {
 			_, _, _, err := slackClient.JoinConversation(*slackUser.WebhookChannelID)
 			if err != nil {
-				log.Warn(e.Wrap(err, "failed to join slack channel"))
+				log.WithContext(ctx).Warn(e.Wrap(err, "failed to join slack channel"))
 			}
 			opts := []slack.MsgOption{
 				slack.MsgOptionBlocks(blocks.BlockSet...),
@@ -1051,7 +1051,7 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 			_, respTs, err := slackClient.PostMessage(*slackUser.WebhookChannelID, opts...)
 
 			if err != nil {
-				log.Error(e.Wrap(err, "error posting slack message via slack bot"))
+				log.WithContext(ctx).Error(e.Wrap(err, "error posting slack message via slack bot"))
 			} else {
 				thread := &model.CommentSlackThread{
 					SlackChannelID: *slackUser.WebhookChannelID,
@@ -1080,14 +1080,14 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 				_, err = slackClient.UploadFile(fileUploadParams)
 
 				if err != nil {
-					log.Error(e.Wrap(err, "failed to upload file to Slack"))
+					log.WithContext(ctx).Error(e.Wrap(err, "failed to upload file to Slack"))
 				}
 			}
 		}
 	}
 	if uploadedFileKey != "" {
 		if err := os.Remove(uploadedFileKey); err != nil {
-			log.Error(e.Wrap(err, "Failed to remove temporary session screenshot"))
+			log.WithContext(ctx).Error(e.Wrap(err, "Failed to remove temporary session screenshot"))
 		}
 	}
 
@@ -1095,12 +1095,12 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 }
 
 // GetSessionChunk Given a session and session-relative timestamp, finds the chunk and chunk-relative timestamp.
-func (r *Resolver) GetSessionChunk(sessionID int, ts int) (chunkIdx int, chunkTs int) {
+func (r *Resolver) GetSessionChunk(ctx context.Context, sessionID int, ts int) (chunkIdx int, chunkTs int) {
 	chunkTs = ts
 	var chunks []*model.EventChunk
 	if err := r.DB.Order("chunk_index ASC").Model(&model.EventChunk{}).Where(&model.EventChunk{SessionID: sessionID}).
 		Scan(&chunks).Error; err != nil {
-		log.Error(e.Wrap(err, "error retrieving event chunks from DB"))
+		log.WithContext(ctx).Error(e.Wrap(err, "error retrieving event chunks from DB"))
 		return
 	}
 	if len(chunks) > 1 {
@@ -1268,7 +1268,7 @@ func (r *Resolver) validateAdminRole(ctx context.Context, workspaceID int) error
 		return e.Wrap(err, "error retrieving admin")
 	}
 
-	role, err := r.GetAdminRole(admin.ID, workspaceID)
+	role, err := r.GetAdminRole(ctx, admin.ID, workspaceID)
 	if err != nil || role != model.AdminRole.ADMIN {
 		return e.New("admin does not have role=ADMIN")
 	}
@@ -1319,7 +1319,7 @@ func (r *Resolver) GenerateRandomStringURLSafe(n int) (string, error) {
 	return base64.URLEncoding.EncodeToString(b), err
 }
 
-func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
+func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID string) error {
 	customerParams := &stripe.CustomerParams{}
 	customerParams.AddExpand("subscriptions")
 	c, err := r.StripeClient.Customers.Get(stripeCustomerID, customerParams)
@@ -1380,7 +1380,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.ReportUsageForWorkspace(r.DB, r.StripeClient, r.MailClient, workspace.ID); err != nil {
+	if err := pricing.ReportUsageForWorkspace(ctx, r.DB, r.StripeClient, r.MailClient, workspace.ID); err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
 	}
 
@@ -1423,11 +1423,11 @@ func getIdForPageFromUrl(parsedUrl *url.URL, page string) (string, error) {
 	return pathParts[3], nil
 }
 
-func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.ResponseWriter, req *http.Request) {
+func (r *Resolver) SlackEventsWebhook(ctx context.Context, signingSecret string) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
-			log.Error(e.Wrap(err, "couldn't read request body"))
+			log.WithContext(ctx).Error(e.Wrap(err, "couldn't read request body"))
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -1435,17 +1435,17 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 		// verify request is from slack
 		sv, err := slack.NewSecretsVerifier(req.Header, signingSecret)
 		if err != nil {
-			log.Error(e.Wrap(err, "error verifying request headers"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error verifying request headers"))
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		if _, err := sv.Write(body); err != nil {
-			log.Error(e.Wrap(err, "error when verifying request"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error when verifying request"))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		if err := sv.Ensure(); err != nil {
-			log.Error(e.Wrap(err, "couldn't verify that request is from slack with the signing secret"))
+			log.WithContext(ctx).Error(e.Wrap(err, "couldn't verify that request is from slack with the signing secret"))
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -1453,7 +1453,7 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 		// parse events payload
 		eventsAPIEvent, err := slackevents.ParseEvent(json.RawMessage(body), slackevents.OptionNoVerifyToken())
 		if err != nil {
-			log.Error(e.Wrap(err, "error parsing body as a slack event"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error parsing body as a slack event"))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -1462,18 +1462,18 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 			var r *slackevents.ChallengeResponse
 			err := json.Unmarshal([]byte(body), &r)
 			if err != nil {
-				log.Error(e.Wrap(err, "error parsing body as a slack challenge body"))
+				log.WithContext(ctx).Error(e.Wrap(err, "error parsing body as a slack challenge body"))
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 			w.Header().Set("Content-Type", "text")
 			if _, err := w.Write([]byte(r.Challenge)); err != nil {
-				log.Error(e.Wrap(err, "couldn't respond to slack challenge request"))
+				log.WithContext(ctx).Error(e.Wrap(err, "couldn't respond to slack challenge request"))
 				return
 			}
 		}
 
-		log.Infof("Slack event received with event type: %s", eventsAPIEvent.InnerEvent.Type)
+		log.WithContext(ctx).Infof("Slack event received with event type: %s", eventsAPIEvent.InnerEvent.Type)
 
 		if eventsAPIEvent.InnerEvent.Type == slackevents.LinkShared {
 			go (func() {
@@ -1488,20 +1488,20 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 				for _, link := range ev.Links {
 					u, err := url.Parse(link.URL)
 					if err != nil {
-						log.Error(e.Wrap(err, "couldn't parse url to unfurl"))
+						log.WithContext(ctx).Error(e.Wrap(err, "couldn't parse url to unfurl"))
 						continue
 					}
 
 					workspaceId, err := getWorkspaceIdFromUrl(u)
 					if err != nil {
-						log.Error(err)
+						log.WithContext(ctx).Error(err)
 						continue
 					}
 
 					if workspaceIdToWorkspaceMap[workspaceId] == nil {
 						ws, err := r.GetWorkspace(workspaceId)
 						if err != nil {
-							log.Error(e.Wrapf(err, "couldn't get workspace with workspace ID: %d (unfurl url: %s)", workspaceId, link))
+							log.WithContext(ctx).Error(e.Wrapf(err, "couldn't get workspace with workspace ID: %d (unfurl url: %s)", workspaceId, link))
 							continue
 						}
 						workspaceIdToWorkspaceMap[workspaceId] = ws
@@ -1512,7 +1512,7 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 					slackAccessToken := workspace.SlackAccessToken
 
 					if slackAccessToken == nil || len(*slackAccessToken) <= 0 {
-						log.Error(fmt.Errorf("workspace doesn't have a slack access token (unfurl url: %s)", link))
+						log.WithContext(ctx).Error(fmt.Errorf("workspace doesn't have a slack access token (unfurl url: %s)", link))
 						continue
 					}
 
@@ -1521,7 +1521,7 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 					if workspaceIdToSlackTeamMap[workspaceId] == nil {
 						teamInfo, err := slackClient.GetTeamInfo()
 						if err != nil {
-							log.Error(e.Wrapf(err, "couldn't get slack team information (unfurl url: %s)", link))
+							log.WithContext(ctx).Error(e.Wrapf(err, "couldn't get slack team information (unfurl url: %s)", link))
 							continue
 						}
 
@@ -1529,7 +1529,7 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 					}
 
 					if workspaceIdToSlackTeamMap[workspaceId].ID != eventsAPIEvent.TeamID {
-						log.Error(fmt.Errorf(
+						log.WithContext(ctx).Error(fmt.Errorf(
 							"slack workspace is not authorized to view this highlight workspace (\"%s\" != \"%s\", unfurl url: %s)",
 							workspaceIdToSlackTeamMap[workspaceId].ID, eventsAPIEvent.TeamID, link,
 						))
@@ -1541,28 +1541,28 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 					if sessionId, err := getIdForPageFromUrl(u, "sessions"); err == nil {
 						session := model.Session{SecureID: sessionId}
 						if err := r.DB.Where(&session).First(&session).Error; err != nil {
-							log.Error(e.Wrapf(err, "couldn't get session (unfurl url: %s)", link))
+							log.WithContext(ctx).Error(e.Wrapf(err, "couldn't get session (unfurl url: %s)", link))
 							continue
 						}
 
 						attachment := slack.Attachment{}
 						err = session.GetSlackAttachment(&attachment)
 						if err != nil {
-							log.Error(e.Wrapf(err, "couldn't get session slack attachment (unfurl url: %s)", link))
+							log.WithContext(ctx).Error(e.Wrapf(err, "couldn't get session slack attachment (unfurl url: %s)", link))
 							continue
 						}
 						urlToSlackAttachment[link.URL] = attachment
 					} else if errorId, err := getIdForPageFromUrl(u, "errors"); err == nil {
 						errorGroup := model.ErrorGroup{SecureID: errorId}
 						if err := r.DB.Where(&errorGroup).First(&errorGroup).Error; err != nil {
-							log.Error(e.Wrapf(err, "couldn't get ErrorGroup (unfurl url: %s)", link))
+							log.WithContext(ctx).Error(e.Wrapf(err, "couldn't get ErrorGroup (unfurl url: %s)", link))
 							continue
 						}
 
 						attachment := slack.Attachment{}
 						err = errorGroup.GetSlackAttachment(&attachment)
 						if err != nil {
-							log.Error(e.Wrapf(err, "couldn't get ErrorGroup slack attachment (unfurl url: %s)", link))
+							log.WithContext(ctx).Error(e.Wrapf(err, "couldn't get ErrorGroup slack attachment (unfurl url: %s)", link))
 							continue
 						}
 						urlToSlackAttachment[link.URL] = attachment
@@ -1576,7 +1576,7 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 
 				_, _, _, err := senderSlackClient.UnfurlMessage(ev.Channel, string(ev.MessageTimeStamp), urlToSlackAttachment)
 				if err != nil {
-					log.Error(e.Wrapf(err, "failed to send slack unfurl request"))
+					log.WithContext(ctx).Error(e.Wrapf(err, "failed to send slack unfurl request"))
 					return
 				}
 			})()
@@ -1626,16 +1626,17 @@ func getProjectIdFromToken(tokenString string) (int, error) {
 func (r *Resolver) ProjectJWTHandler(w http.ResponseWriter, req *http.Request) {
 	projectIdStr := chi.URLParam(req, projectIdUrlParam)
 	projectId, err := strconv.Atoi(projectIdStr)
+
+	ctx := req.Context()
 	if err != nil {
-		log.Error(err)
+		log.WithContext(ctx).Error(err)
 		http.Error(w, "invalid project_id", http.StatusBadRequest)
 		return
 	}
 
-	ctx := req.Context()
 	_, err = r.isAdminInProjectOrDemoProject(ctx, projectId)
 	if err != nil {
-		log.Error(err)
+		log.WithContext(ctx).Error(err)
 		http.Error(w, "", http.StatusForbidden)
 		return
 	}
@@ -1646,7 +1647,7 @@ func (r *Resolver) ProjectJWTHandler(w http.ResponseWriter, req *http.Request) {
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 	token, err := at.SignedString([]byte(JwtAccessSecret))
 	if err != nil {
-		log.Error(err)
+		log.WithContext(ctx).Error(err)
 		http.Error(w, "", http.StatusInternalServerError)
 	}
 
@@ -1663,39 +1664,40 @@ func (r *Resolver) ProjectJWTHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func (r *Resolver) AssetHandler(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
 	projectIdParam := chi.URLParam(req, projectIdUrlParam)
 	hashValParam := chi.URLParam(req, hashValUrlParam)
 
 	projectId, err := strconv.Atoi(projectIdParam)
 	if err != nil {
-		log.Error(e.Wrap(err, "error converting project_id param to string"))
+		log.WithContext(ctx).Error(e.Wrap(err, "error converting project_id param to string"))
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
 
 	projectCookie, err := req.Cookie(getProjectCookieName(projectId))
 	if err != nil {
-		log.Error(e.Wrap(err, "error accessing projectToken cookie"))
+		log.WithContext(ctx).Error(e.Wrap(err, "error accessing projectToken cookie"))
 		http.Error(w, "", http.StatusForbidden)
 		return
 	}
 
 	projectIdFromToken, err := getProjectIdFromToken(projectCookie.Value)
 	if err != nil {
-		log.Error(e.Wrap(err, "error getting project id from token claims"))
+		log.WithContext(ctx).Error(e.Wrap(err, "error getting project id from token claims"))
 		http.Error(w, "", http.StatusForbidden)
 		return
 	}
 
 	if projectIdFromToken != projectId {
-		log.Error(e.Wrap(err, "project id mismatch"))
+		log.WithContext(ctx).Error(e.Wrap(err, "project id mismatch"))
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
 	url, err := r.StorageClient.GetAssetURL(projectIdParam, hashValParam)
 	if err != nil {
-		log.Error(e.Wrap(err, "failed to generate asset url"))
+		log.WithContext(ctx).Error(e.Wrap(err, "failed to generate asset url"))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -1705,13 +1707,13 @@ func (r *Resolver) AssetHandler(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, url, http.StatusFound)
 }
 
-func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter, *http.Request) {
+func (r *Resolver) StripeWebhook(ctx context.Context, endpointSecret string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		const MaxBodyBytes = int64(65536)
 		req.Body = http.MaxBytesReader(w, req.Body, MaxBodyBytes)
 		payload, err := io.ReadAll(req.Body)
 		if err != nil {
-			log.Error(e.Wrap(err, "error reading request body"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error reading request body"))
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
@@ -1719,31 +1721,31 @@ func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter
 		event, err := webhook.ConstructEvent(payload, req.Header.Get("Stripe-Signature"),
 			endpointSecret)
 		if err != nil {
-			log.Error(e.Wrap(err, "error verifying webhook signature"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error verifying webhook signature"))
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
 		if err := json.Unmarshal(payload, &event); err != nil {
-			log.Error(e.Wrap(err, "failed to parse webhook body json"))
+			log.WithContext(ctx).Error(e.Wrap(err, "failed to parse webhook body json"))
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		log.Infof("Stripe webhook received event type: %s", event.Type)
+		log.WithContext(ctx).Infof("Stripe webhook received event type: %s", event.Type)
 
 		switch event.Type {
 		case "customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted":
 			var subscription stripe.Subscription
 			err := json.Unmarshal(event.Data.Raw, &subscription)
 			if err != nil {
-				log.Error(e.Wrap(err, "failed to parse webhook body json as Subscription"))
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to parse webhook body json as Subscription"))
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
 
-			if err := r.updateBillingDetails(subscription.Customer.ID); err != nil {
-				log.Error(e.Wrap(err, "failed to update billing details"))
+			if err := r.updateBillingDetails(ctx, subscription.Customer.ID); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to update billing details"))
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -1775,8 +1777,8 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string,
 	return newInviteLink
 }
 
-func (r *Resolver) AddFrontToProject(project *model.Project, code string) error {
-	oauth, err := front.OAuth(code, nil)
+func (r *Resolver) AddFrontToProject(ctx context.Context, project *model.Project, code string) error {
+	oauth, err := front.OAuth(ctx, code, nil)
 	if err != nil {
 		return e.Wrapf(err, "failed to add front to project id %d", project.ID)
 	}
@@ -1844,7 +1846,7 @@ func (r *Resolver) saveFrontOAuth(project *model.Project, oauth *front.OAuthToke
 	return nil
 }
 
-func (r *Resolver) AddSlackToWorkspace(workspace *model.Workspace, code string) error {
+func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	var (
 		SLACK_CLIENT_ID     string
 		SLACK_CLIENT_SECRET string
@@ -1876,7 +1878,7 @@ func (r *Resolver) AddSlackToWorkspace(workspace *model.Workspace, code string) 
 		return e.Wrap(err, "error updating slack access token in workspace")
 	}
 
-	existingChannels, _, _ := r.GetSlackChannelsFromSlack(workspace.ID)
+	existingChannels, _, _ := r.GetSlackChannelsFromSlack(ctx, workspace.ID)
 	channelBytes, err := json.Marshal(existingChannels)
 	if err != nil {
 		return e.Wrap(err, "error marshaling existing channels")
@@ -2549,7 +2551,7 @@ func (r *Resolver) sendFollowedCommentNotification(
 		if f.AdminId > 0 {
 			a := &model.Admin{}
 			if err := r.DB.Where(&model.Admin{Model: model.Model{ID: f.AdminId}}).First(&a).Error; err != nil {
-				log.Error(err, "Error finding follower admin object")
+				log.WithContext(ctx).Error(err, "Error finding follower admin object")
 				continue
 			}
 			if a.Email != nil {
@@ -2569,9 +2571,9 @@ func (r *Resolver) sendFollowedCommentNotification(
 				tracer.ResourceName("slackBot.sendCommentFollowerUpdate"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("subjectScope", subjectScope))
 			defer commentMentionSlackSpan.Finish()
 
-			err := r.SendSlackThreadReply(workspace, admin, viewLink, textForEmail, action, subjectScope, threadIDs)
+			err := r.SendSlackThreadReply(ctx, workspace, admin, viewLink, textForEmail, action, subjectScope, threadIDs)
 			if err != nil {
-				log.Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
+				log.WithContext(ctx).Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
 			}
 		})
 	}
@@ -2595,7 +2597,7 @@ func (r *Resolver) sendFollowedCommentNotification(
 				asmGroupId,
 			)
 			if err != nil {
-				log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
+				log.WithContext(ctx).Error(e.Wrap(err, "error notifying tagged admins in comment"))
 			}
 		})
 	}
@@ -2607,9 +2609,9 @@ func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *mo
 			tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
 
-		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage, sessionCommentID, errorCommentID, additionalContext)
+		err := r.SendSlackAlertToUser(ctx, workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage, sessionCommentID, errorCommentID, additionalContext)
 		if err != nil {
-			log.Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
 		}
 	})
 }
@@ -2680,7 +2682,7 @@ func (r *Resolver) sendCommentPrimaryNotification(
 			asmGroupId,
 		)
 		if err != nil {
-			log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error notifying tagged admins in comment"))
 		}
 	})
 
@@ -2691,7 +2693,7 @@ func (r *Resolver) sendCommentPrimaryNotification(
 
 		var admins []*model.Admin
 		if err := r.DB.Find(&admins, adminIds).Where("slack_im_channel_id IS NOT NULL").Error; err != nil {
-			log.Error(e.Wrap(err, "error fetching admins"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error fetching admins"))
 		}
 		// return early if no admins w/ slack_im_channel_id
 		if len(admins) < 1 {
@@ -2706,14 +2708,14 @@ func (r *Resolver) sendCommentPrimaryNotification(
 
 			// See HIG-3438
 			// We need additional debugging information to see if we can remove this code path.
-			log.WithFields(log.Fields{
+			log.WithContext(ctx).WithFields(log.Fields{
 				"admin_id": a.ID,
 			}).Info("Sending slack notification for a Highlight user using a legacy slack configuration")
 		}
 
-		err := r.SendSlackAlertToUser(workspace, admin, taggedAdminSlacks, viewLink, textForEmail, action, subjectScope, nil, sessionCommentID, errorCommentID, additionalContext)
+		err := r.SendSlackAlertToUser(ctx, workspace, admin, taggedAdminSlacks, viewLink, textForEmail, action, subjectScope, nil, sessionCommentID, errorCommentID, additionalContext)
 		if err != nil {
-			log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error notifying tagged admins in comment"))
 		}
 	})
 
@@ -2748,7 +2750,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model
 	return r.Redis.GetEvents(ctx, s, cursor, s3Events)
 }
 
-func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackChannel, int, error) {
+func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId int) (*[]model.SlackChannel, int, error) {
 	workspace, _ := r.GetWorkspace(workspaceId)
 
 	slackClient := slack.New(*workspace.SlackAccessToken)
@@ -2782,7 +2784,7 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 	// The conversations endpoint only returns the user's ID, we'll use the response from `GetUsers` to get the name.
 	users, err := slackClient.GetUsers()
 	if err != nil {
-		log.Error(e.Wrap(err, "failed to get users"))
+		log.WithContext(ctx).Error(e.Wrap(err, "failed to get users"))
 	}
 
 	newChannelsCount := 0
@@ -2934,7 +2936,7 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 	return nil
 }
 
-func GetAggregateFluxStatement(aggregator modelInputs.MetricAggregator, resMins int) string {
+func GetAggregateFluxStatement(ctx context.Context, aggregator modelInputs.MetricAggregator, resMins int) string {
 	fn := "mean"
 	quantile := 0.
 	// explicitly validate the aggregate func to ensure no query injection possible
@@ -2957,7 +2959,7 @@ func GetAggregateFluxStatement(aggregator modelInputs.MetricAggregator, resMins 
 		fn = "sum"
 	case modelInputs.MetricAggregatorAvg:
 	default:
-		log.Errorf("Received an unsupported aggregateFunctionName: %+v", aggregator)
+		log.WithContext(ctx).Errorf("Received an unsupported aggregateFunctionName: %+v", aggregator)
 	}
 	aggregateStatement := fmt.Sprintf(`
       query()
@@ -3015,7 +3017,7 @@ func MetricOriginalUnits(metricName string) (originalUnits *string) {
 }
 
 // GetTagFilters returns the influxdb filter for a particular set of tag filters
-func GetTagFilters(filters []*modelInputs.MetricTagFilterInput) (result string) {
+func GetTagFilters(ctx context.Context, filters []*modelInputs.MetricTagFilterInput) (result string) {
 	for _, f := range filters {
 		if f != nil {
 			var op, val string
@@ -3028,7 +3030,7 @@ func GetTagFilters(filters []*modelInputs.MetricTagFilterInput) (result string) 
 					op = "=~"
 					val = fmt.Sprintf("/.*%s.*/", f.Value)
 				default:
-					log.Errorf("received an unsupported tag operator: %+v", f.Op)
+					log.WithContext(ctx).Errorf("received an unsupported tag operator: %+v", f.Op)
 				}
 			}
 			result += fmt.Sprintf(`|> filter(fn: (r) => r["%s"] %s %s)`, f.Tag, op, val) + "\n"
@@ -3049,7 +3051,7 @@ func GetTagGroups(groups []string) (result string) {
 
 func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
 	div := CalculateMetricUnitConversion(MetricOriginalUnits(metricName), params.Units)
-	tagFilters := GetTagFilters(params.Filters)
+	tagFilters := GetTagFilters(ctx, params.Filters)
 	tagGroups := GetTagGroups(params.Groups)
 	resMins := 60
 	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
@@ -3075,7 +3077,7 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 	if params.Aggregator != nil {
 		agg = *params.Aggregator
 	}
-	query += GetAggregateFluxStatement(agg, resMins)
+	query += GetAggregateFluxStatement(ctx, agg, resMins)
 	timelineQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
 	timelineQuerySpan.SetTag("projectID", projectID)
 	timelineQuerySpan.SetTag("metricName", metricName)
@@ -3271,12 +3273,12 @@ func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptio
 	return &aggregation
 }
 
-func GetBucketTimesAndTotalCounts(aggs []opensearch.AggregationResult, histogramOptions modelInputs.DateHistogramOptions) ([]time.Time, []int64) {
+func GetBucketTimesAndTotalCounts(ctx context.Context, aggs []opensearch.AggregationResult, histogramOptions modelInputs.DateHistogramOptions) ([]time.Time, []int64) {
 	bucketTimes, totalCounts := []time.Time{}, []int64{}
 	for _, date_bucket := range aggs {
 		unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
 		if err != nil {
-			log.Errorf("Error parsing date bucket key for histogram: %s", err.Error())
+			log.WithContext(ctx).Errorf("Error parsing date bucket key for histogram: %s", err.Error())
 			break
 		}
 		bucketTimes = append(bucketTimes, time.UnixMilli(unixMillis))

@@ -111,10 +111,11 @@ func makeRandLogAttributes() map[string]string {
 // Run via
 // `doppler run -- go run backend/clickhouse/seeds/main.go“
 func main() {
+	ctx := context.Background()
 	client, err := clickhouse.NewClient(clickhouse.PrimaryDatabase)
 
 	if err != nil {
-		log.Fatal("could not connect to clickhouse db")
+		log.WithContext(ctx).Fatal("could not connect to clickhouse db")
 	}
 
 	logRows := []*clickhouse.LogRow{}
@@ -132,7 +133,7 @@ func main() {
 		err = client.BatchWriteLogRows(context.Background(), logRows)
 
 		if err != nil {
-			log.Fatalf("failed to write log row data: %v", err)
+			log.WithContext(ctx).Fatalf("failed to write log row data: %v", err)
 		}
 	}
 }

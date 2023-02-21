@@ -2,6 +2,7 @@ package parse
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
@@ -369,7 +370,7 @@ func getUrlsInSrcset(projectId int, srcsetText string, replacements map[string]s
 	return
 }
 
-func getUrlsInStyle(projectId int, styleText string, replacements map[string]string) (newText string, urls []string) {
+func getUrlsInStyle(ctx context.Context, projectId int, styleText string, replacements map[string]string) (newText string, urls []string) {
 	styleReplacements := map[string]string{}
 	reader := bytes.NewReader([]byte(styleText))
 	lexer := css.NewLexer(reader)
@@ -380,7 +381,7 @@ lexerLoop:
 		switch tt {
 		case css.ErrorToken:
 			if !errors.Is(lexer.Err(), io.EOF) {
-				log.Warnf("error parsing stylesheet data: %s", lexer.Err().Error())
+				log.WithContext(ctx).Warnf("error parsing stylesheet data: %s", lexer.Err().Error())
 			}
 
 			// Once an error or EOF is reached, exit the loop
@@ -396,7 +397,7 @@ lexerLoop:
 			quoted := `"` + noQuote + `"`
 			url, err := strconv.Unquote(quoted)
 			if err != nil {
-				log.Warnf("could not unquote url: %s", quoted)
+				log.WithContext(ctx).Warnf("could not unquote url: %s", quoted)
 			} else {
 				if strings.HasPrefix(url, "#") {
 					// SVG path id, skipping
@@ -427,18 +428,18 @@ lexerLoop:
 	return
 }
 
-func ReplaceAssets(projectId int, root map[string]interface{}, s *storage.StorageClient, db *gorm.DB) error {
-	urls := getAssetUrlsFromTree(projectId, root, map[string]string{})
+func ReplaceAssets(ctx context.Context, projectId int, root map[string]interface{}, s *storage.StorageClient, db *gorm.DB) error {
+	urls := getAssetUrlsFromTree(ctx, projectId, root, map[string]string{})
 	replacements, err := getOrCreateUrls(projectId, urls, s, db)
 	if err != nil {
 		return errors.Wrap(err, "error creating replacement urls")
 	}
-	getAssetUrlsFromTree(projectId, root, replacements)
+	getAssetUrlsFromTree(ctx, projectId, root, replacements)
 	return nil
 }
 
-func getAssetUrlsFromTree(projectId int, root map[string]interface{}, replacements map[string]string) (urls []string) {
-	urls = append(urls, tryGetAssetUrls(projectId, root, replacements)...)
+func getAssetUrlsFromTree(ctx context.Context, projectId int, root map[string]interface{}, replacements map[string]string) (urls []string) {
+	urls = append(urls, tryGetAssetUrls(ctx, projectId, root, replacements)...)
 
 	for _, v := range root {
 		switch typedVal := v.(type) {
@@ -446,25 +447,25 @@ func getAssetUrlsFromTree(projectId int, root map[string]interface{}, replacemen
 			for _, item := range typedVal {
 				switch typedItem := item.(type) {
 				case map[string]interface{}:
-					urls = append(urls, getAssetUrlsFromTree(projectId, typedItem, replacements)...)
+					urls = append(urls, getAssetUrlsFromTree(ctx, projectId, typedItem, replacements)...)
 				}
 			}
 		case map[string]interface{}:
-			urls = append(urls, getAssetUrlsFromTree(projectId, typedVal, replacements)...)
+			urls = append(urls, getAssetUrlsFromTree(ctx, projectId, typedVal, replacements)...)
 		}
 	}
 
 	return
 }
 
-func tryGetAssetUrls(projectId int, node map[string]interface{}, replacements map[string]string) (urls []string) {
+func tryGetAssetUrls(ctx context.Context, projectId int, node map[string]interface{}, replacements map[string]string) (urls []string) {
 	// If this is a style node with textContent
 	if node["isStyle"] == true {
 		textContent, textContentOk := node["textContent"].(string)
 		if !textContentOk {
 			return
 		}
-		newText, newUrls := getUrlsInStyle(projectId, textContent, replacements)
+		newText, newUrls := getUrlsInStyle(ctx, projectId, textContent, replacements)
 		node["textContent"] = newText
 		urls = append(urls, newUrls...)
 	}
@@ -472,7 +473,7 @@ func tryGetAssetUrls(projectId int, node map[string]interface{}, replacements ma
 	// If this node has a _cssText attribute
 	cssText, cssTextOk := node["_cssText"].(string)
 	if cssTextOk {
-		newText, newUrls := getUrlsInStyle(projectId, cssText, replacements)
+		newText, newUrls := getUrlsInStyle(ctx, projectId, cssText, replacements)
 		node["_cssText"] = newText
 		urls = append(urls, newUrls...)
 	}
@@ -487,7 +488,7 @@ func tryGetAssetUrls(projectId int, node map[string]interface{}, replacements ma
 	// If this node has a style attribute
 	style, styleOk := attributes["style"].(string)
 	if styleOk {
-		newText, newUrls := getUrlsInStyle(projectId, style, replacements)
+		newText, newUrls := getUrlsInStyle(ctx, projectId, style, replacements)
 		attributes["style"] = newText
 		urls = append(urls, newUrls...)
 	}

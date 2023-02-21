@@ -24,6 +24,7 @@ import {
 	useToolbarItemsContext,
 	ZoomAreaPercent,
 } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
+import { isInsideElement } from '@util/dom'
 import { serializeErrorIdentifier } from '@util/error'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { clamp } from '@util/numbers'
@@ -533,13 +534,7 @@ const TimelineIndicatorsBarGraph = ({
 			if (!viewportBbox) {
 				return
 			}
-			const { clientX, clientY } = event
-
-			const isInsideViewport =
-				viewportBbox.left <= clientX &&
-				clientX <= viewportBbox.right &&
-				viewportBbox.bottom >= clientY &&
-				clientY >= viewportBbox.top
+			const isInsideViewport = isInsideElement(event, viewportRef.current)
 
 			const indicatorBbox =
 				timeIndicatorRef.current?.getBoundingClientRect()
@@ -554,11 +549,7 @@ const TimelineIndicatorsBarGraph = ({
 			}
 
 			setShowIndicatorText(
-				isDragging ||
-					(indicatorBbox.left <= clientX &&
-						clientX <= indicatorBbox.right &&
-						indicatorBbox.bottom >= clientY &&
-						clientY >= indicatorBbox.top),
+				isDragging || isInsideElement(event, timeIndicatorRef.current),
 			)
 		},
 		[isDragging, moveTime],

@@ -171,7 +171,10 @@ const PreviousDateRangePickerImpl = ({
 						</Menu.Item>
 					</>
 				) : (
-					<Menu.Item onClick={(e) => e.preventDefault()}>
+					<Menu.Item
+						style={{ padding: 0 }}
+						onClick={(e) => e.preventDefault()}
+					>
 						<DatePicker />
 					</Menu.Item>
 				)}

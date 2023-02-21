@@ -5,7 +5,6 @@ import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGro
 import {
 	useGetErrorGroupQuery,
 	useMarkErrorGroupAsViewedMutation,
-	useMarkSessionAsViewedMutation,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
 import {
@@ -86,10 +85,10 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 	const location = useLocation()
 
 	useEffect(() => {
-		if (!isLoggedIn && !data?.error_group?.is_public) {
+		if (!isLoggedIn && !data?.error_group?.is_public && !loading) {
 			navigate('/login', { replace: true })
 		}
-	}, [data?.error_group?.is_public, isLoggedIn, navigate])
+	}, [data?.error_group?.is_public, isLoggedIn, loading, navigate])
 
 	const goToErrorGroup = (secureId: string) => {
 		navigate(`/${project_id}/errors/${secureId}${location.search}`, {

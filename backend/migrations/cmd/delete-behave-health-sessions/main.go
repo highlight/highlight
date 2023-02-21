@@ -14,10 +14,11 @@ import (
 )
 
 func main() {
-	log.Info("setting up db")
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	ctx := context.Background()
+	log.WithContext(ctx).Info("setting up db")
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.Fatalf("error setting up db: %+v", err)
+		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}
 
 	var ids []int64
@@ -27,7 +28,7 @@ func main() {
 		WHERE project_id=?
 		AND identifier ILIKE '%?%'
 	`, 1, "behavehealth.com").Scan(&ids).Error; err != nil {
-		log.Fatalf("epic fail lol gotem: %v", err)
+		log.WithContext(ctx).Fatalf("epic fail lol gotem: %v", err)
 	}
 
 	var s3Keys []types.ObjectIdentifier
@@ -38,13 +39,13 @@ func main() {
 		}
 	}
 
-	storageClient, err := storage.NewStorageClient()
+	storageClient, err := storage.NewStorageClient(ctx)
 	if err != nil {
-		log.Fatalf("failed to initialize s3 client: %v", err)
+		log.WithContext(ctx).Fatalf("failed to initialize s3 client: %v", err)
 	}
 	_, err = storageClient.S3Client.DeleteObjects(context.Background(), &s3.DeleteObjectsInput{Bucket: &storage.S3SessionsPayloadBucketName, Delete: &types.Delete{Objects: s3Keys}})
 	if err != nil {
-		log.Fatalf("failed to delete s3 objects: %v", err)
+		log.WithContext(ctx).Fatalf("failed to delete s3 objects: %v", err)
 	}
 
 	if err := db.Debug().Raw(`
@@ -52,6 +53,6 @@ func main() {
 		WHERE project_id=?
 		AND identifier ILIKE '%?%'
 	`, 1, "behavehealth.com").Error; err != nil {
-		log.Fatalf("failed to delete behave health sessions: %v", err)
+		log.WithContext(ctx).Fatalf("failed to delete behave health sessions: %v", err)
 	}
 }

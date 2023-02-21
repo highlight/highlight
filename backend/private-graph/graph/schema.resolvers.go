@@ -408,6 +408,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	if !util.IsDevEnv() {
 		r.PrivateWorkerPool.SubmitRecover(func() {
 			if _, err := r.HubspotApi.CreateContactForAdmin(
+				ctx,
 				admin.ID,
 				*admin.Email,
 				*admin.UserDefinedRole,
@@ -417,7 +418,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 				*admin.Phone,
 				*admin.Referral,
 			); err != nil {
-				log.Error(err, "error creating hubspot contact")
+				log.WithContext(ctx).Error(err, "error creating hubspot contact")
 			}
 		})
 	}
@@ -490,10 +491,10 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 	if !util.IsDevEnv() {
 		r.PrivateWorkerPool.SubmitRecover(func() {
 			// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
-			if _, err := r.HubspotApi.CreateCompanyForWorkspace(workspace.ID, *admin.Email, name); err != nil {
-				log.Error(err, "error creating hubspot company")
-			} else if err := r.HubspotApi.CreateContactCompanyAssociation(admin.ID, workspace.ID); err != nil {
-				log.Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
+			if _, err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name); err != nil {
+				log.WithContext(ctx).Error(err, "error creating hubspot company")
+			} else if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID); err != nil {
+				log.WithContext(ctx).Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
 			}
 		})
 	}
@@ -507,7 +508,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 		params.AddMetadata("Workspace ID", strconv.Itoa(workspace.ID))
 		c, err = r.StripeClient.Customers.New(params)
 		if err != nil {
-			log.Error(err, "error creating stripe customer")
+			log.WithContext(ctx).Error(err, "error creating stripe customer")
 		}
 	}
 
@@ -593,7 +594,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		// Check if this admin has already viewed
 		if _, err := r.isAdminInProject(ctx, eg.ProjectID); err != nil {
-			log.Infof("not adding error groups count to admin in hubspot; this is probably a demo project, with id [%v]", eg.ProjectID)
+			log.WithContext(ctx).Infof("not adding error groups count to admin in hubspot; this is probably a demo project, with id [%v]", eg.ProjectID)
 			return
 		}
 		var currentErrorGroupCount int64
@@ -602,10 +603,10 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 			from error_group_admins_views
 			where error_group_id = ? and admin_id = ?
 	`, eg.ID, admin.ID).Scan(&currentErrorGroupCount).Error; err != nil {
-			log.Error(e.Wrap(err, "error querying count of error group views from admin"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error querying count of error group views from admin"))
 			return
 		} else if currentErrorGroupCount > 0 {
-			log.Info("not updating hubspot error group count; admin has already viewed this error group")
+			log.WithContext(ctx).Info("not updating hubspot error group count; admin has already viewed this error group")
 			return
 		}
 
@@ -615,16 +616,16 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 			from error_group_admins_views
 			where admin_id = ?
 	`, admin.ID).Scan(&totalErrorGroupCount).Error; err != nil {
-			log.Error(e.Wrap(err, "error querying total count of error group views from admin"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error querying total count of error group views from admin"))
 			return
 		}
 		totalErrorGroupCountAsInt := int(totalErrorGroupCount) + 1
 
 		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfErrorGroupsViewed: &totalErrorGroupCountAsInt}).Error; err != nil {
-			log.Error(e.Wrap(err, "error updating error group count for admin in postgres"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error updating error group count for admin in postgres"))
 		}
 		if !util.IsDevEnv() {
-			if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
+			if err := r.HubspotApi.UpdateContactProperty(ctx, admin.ID, []hubspot.Property{{
 				Name:     "number_of_highlight_error_groups_viewed",
 				Property: "number_of_highlight_error_groups_viewed",
 				Value:    totalErrorGroupCountAsInt,
@@ -639,7 +640,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 					Int("value", totalErrorGroupCountAsInt).
 					Msg("error updating error group count for admin in hubspot")
 			}
-			log.Infof("succesfully added to total error group count for admin [%v], who just viewed error group [%v]", admin.ID, eg.ID)
+			log.WithContext(ctx).Infof("succesfully added to total error group count for admin [%v], who just viewed error group [%v]", admin.ID, eg.ID)
 		}
 	})
 
@@ -688,7 +689,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		// Check if this admin has already viewed
 		if _, err := r.isAdminInProject(ctx, s.ProjectID); err != nil {
-			log.Infof("not adding session count to admin in hubspot; this is probably a demo project, with id [%v]", s.ProjectID)
+			log.WithContext(ctx).Infof("not adding session count to admin in hubspot; this is probably a demo project, with id [%v]", s.ProjectID)
 			return
 		}
 		var currentSessionCount int64
@@ -697,10 +698,10 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 			from session_admins_views
 			where session_id = ? and admin_id = ?
 	`, s.ID, admin.ID).Scan(&currentSessionCount).Error; err != nil {
-			log.Error(e.Wrap(err, "error querying count of session views from admin"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error querying count of session views from admin"))
 			return
 		} else if currentSessionCount > 0 {
-			log.Info("not updating hubspot session count; admin has already viewed this session")
+			log.WithContext(ctx).Info("not updating hubspot session count; admin has already viewed this session")
 			return
 		}
 
@@ -710,16 +711,16 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 			from session_admins_views
 			where admin_id = ?
 	`, admin.ID).Scan(&totalSessionCount).Error; err != nil {
-			log.Error(e.Wrap(err, "error querying total count of session views from admin"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error querying total count of session views from admin"))
 			return
 		}
 		totalSessionCountAsInt := int(totalSessionCount) + 1
 
 		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: &totalSessionCountAsInt}).Error; err != nil {
-			log.Error(e.Wrap(err, "error updating session count for admin in postgres"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error updating session count for admin in postgres"))
 		}
 		if !util.IsDevEnv() {
-			if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
+			if err := r.HubspotApi.UpdateContactProperty(ctx, admin.ID, []hubspot.Property{{
 				Name:     "number_of_highlight_sessions_viewed",
 				Property: "number_of_highlight_sessions_viewed",
 				Value:    totalSessionCountAsInt,
@@ -734,7 +735,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 					Int("value", totalSessionCountAsInt).
 					Msg("error updating session count for admin in hubspot")
 			}
-			log.Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
+			log.WithContext(ctx).Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
 		}
 	})
 
@@ -904,12 +905,12 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error) {
 	adminID, err := r.addAdminMembership(ctx, workspaceID, inviteID)
 	if err != nil {
-		log.Error(e.Wrap(err, "failed to add admin to workspace"))
+		log.WithContext(ctx).Error(e.Wrap(err, "failed to add admin to workspace"))
 		return adminID, err
 	}
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		if err := r.HubspotApi.CreateContactCompanyAssociation(*adminID, workspaceID); err != nil {
-			log.Error(e.Wrapf(
+		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, *adminID, workspaceID); err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(
 				err,
 				"error creating association between hubspot records with admin ID [%v] and workspace ID [%v]",
 				*adminID,
@@ -1054,7 +1055,7 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, projectID int, nam
 func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (string, error) {
 	short, long, err := apolloio.Enrich(email)
 	if err != nil {
-		log.Errorf("error enriching email: %v", err)
+		log.WithContext(ctx).Errorf("error enriching email: %v", err)
 		return email, nil
 	}
 
@@ -1066,11 +1067,11 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		if contact, err := apolloio.CreateContact(email); err != nil {
-			log.Errorf("error creating apollo contact: %v", err)
+			log.WithContext(ctx).Errorf("error creating apollo contact: %v", err)
 		} else {
 			sequenceID := "60fb134ce97fa1014c1cc141" // represents the "Landing Page Signups" sequence.
 			if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
-				log.Errorf("error adding to apollo sequence: %v", err)
+				log.WithContext(ctx).Errorf("error adding to apollo sequence: %v", err)
 			}
 		}
 	})
@@ -1213,7 +1214,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		params := &stripe.CustomerParams{}
 		c, err := r.StripeClient.Customers.New(params)
 		if err != nil {
-			log.Error(err, "error creating stripe customer")
+			log.WithContext(ctx).Error(err, "error creating stripe customer")
 		}
 		if err := r.DB.Model(&workspace).Updates(&model.Workspace{
 			StripeCustomerID: &c.ID,
@@ -1323,7 +1324,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 		return nil, e.Wrap(err, "must have ADMIN role to update billing details")
 	}
 
-	if err := r.updateBillingDetails(*workspace.StripeCustomerID); err != nil {
+	if err := r.updateBillingDetails(ctx, *workspace.StripeCustomerID); err != nil {
 		return nil, e.Wrap(err, "error updating billing details")
 	}
 
@@ -1358,7 +1359,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	}
 
 	if sessionTimestamp >= math.MaxInt32 {
-		log.Warnf("attempted to create session with invalid timestamp %d", sessionTimestamp)
+		log.WithContext(ctx).Warnf("attempted to create session with invalid timestamp %d", sessionTimestamp)
 		sessionTimestamp = 0
 	}
 	sessionComment := &model.SessionComment{
@@ -1414,13 +1415,13 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 		if len(newTags) > 0 {
 			if err := r.DB.Create(&newTags).Error; err != nil {
-				log.Error("Failed to create new session tags", err)
+				log.WithContext(ctx).Error("Failed to create new session tags", err)
 			}
 		}
 
 		if len(existingTags) > 0 {
 			if err := r.DB.Save(&existingTags).Error; err != nil {
-				log.Error("Failed to update existing session tags", err)
+				log.WithContext(ctx).Error("Failed to update existing session tags", err)
 			}
 		}
 	}
@@ -1430,11 +1431,11 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		c := context.Background()
-		chunkIdx, chunkTs := r.GetSessionChunk(session.ID, sessionTimestamp)
-		log.Infof("got chunk %d ts %d for session %d ts %d", chunkIdx, chunkTs, session.ID, sessionTimestamp)
+		chunkIdx, chunkTs := r.GetSessionChunk(ctx, session.ID, sessionTimestamp)
+		log.WithContext(ctx).Infof("got chunk %d ts %d for session %d ts %d", chunkIdx, chunkTs, session.ID, sessionTimestamp)
 		imageBytes, err := r.getSessionScreenshot(c, projectID, session.ID, chunkTs, chunkIdx)
 		if err != nil {
-			log.Errorf("failed to render screenshot for %d %d %d %s", projectID, session.ID, sessionTimestamp, err)
+			log.WithContext(ctx).Errorf("failed to render screenshot for %d %d %d %s", projectID, session.ID, sessionTimestamp, err)
 		} else {
 			sessionImageStr = base64.StdEncoding.EncodeToString(imageBytes)
 			sessionImage = &sessionImageStr
@@ -1445,7 +1446,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 					SessionImage: sessionImageStr,
 				},
 			).Error; err != nil {
-				log.Error(e.Wrap(err, fmt.Sprintf("failed to update image for comment %d", sessionComment.ID)))
+				log.WithContext(ctx).Error(e.Wrap(err, fmt.Sprintf("failed to update image for comment %d", sessionComment.ID)))
 			}
 		}
 		if len(taggedAdmins) > 0 && !isGuest {
@@ -1554,7 +1555,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	}
 	if len(newFollowers) > 0 {
 		if err := r.DB.Create(&newFollowers).Error; err != nil {
-			log.Error("Failed to create new session comment followers", err)
+			log.WithContext(ctx).Error("Failed to create new session comment followers", err)
 		}
 	}
 
@@ -1791,7 +1792,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 
 	if len(newFollowers) > 0 {
 		if err := r.DB.Create(&newFollowers).Error; err != nil {
-			log.Error("Failed to create new session reply followers", err)
+			log.WithContext(ctx).Error("Failed to create new session reply followers", err)
 		}
 	}
 
@@ -1942,7 +1943,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	}
 	if len(newFollowers) > 0 {
 		if err := r.DB.Create(&newFollowers).Error; err != nil {
-			log.Error("Failed to create new session comment followers", err)
+			log.WithContext(ctx).Error("Failed to create new session comment followers", err)
 		}
 	}
 
@@ -2217,7 +2218,7 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 
 	if len(newFollowers) > 0 {
 		if err := r.DB.Create(&newFollowers).Error; err != nil {
-			log.Error("Failed to create new error reply followers", err)
+			log.WithContext(ctx).Error("Failed to create new error reply followers", err)
 		}
 	}
 
@@ -2241,11 +2242,11 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
-		if err := r.AddSlackToWorkspace(workspace, code); err != nil {
+		if err := r.AddSlackToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeFront {
-		if err := r.AddFrontToProject(project, code); err != nil {
+		if err := r.AddFrontToProject(ctx, project, code); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeVercel {
@@ -2370,7 +2371,7 @@ func (r *mutationResolver) SyncSlackIntegration(ctx context.Context, projectID i
 	if err != nil {
 		return &response, err
 	}
-	slackChannels, newChannelsCount, err := r.GetSlackChannelsFromSlack(workspace.ID)
+	slackChannels, newChannelsCount, err := r.GetSlackChannelsFromSlack(ctx, workspace.ID)
 
 	if err != nil {
 		return &response, err
@@ -2431,7 +2432,7 @@ func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID in
 			if err := r.DB.Create(errorAlert).Error; err != nil {
 				return nil, e.Wrap(err, "error creating a new error alert")
 			}
-			if err := errorAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+			if err := errorAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
 				graphql.AddError(ctx, e.Wrap(err, "error sending slack welcome message for default error alert"))
 			}
 		} else {
@@ -2443,7 +2444,7 @@ func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID in
 		return nil, e.Wrap(err, "error creating new session alerts")
 	}
 	for _, projectAlert := range sessionAlerts {
-		if err := projectAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &projectAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		if err := projectAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &projectAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
 			graphql.AddError(ctx, e.Wrap(err, "error sending slack welcome message for default session alert"))
 		}
 	}
@@ -2499,8 +2500,8 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new error alert")
 	}
-	if err := newMetricMonitor.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &newMetricMonitor.ID, Project: project, OperationName: "created", OperationDescription: "Monitor alerts will be sent here", IncludeEditLink: true}); err != nil {
-		log.Error(err)
+	if err := newMetricMonitor.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &newMetricMonitor.ID, Project: project, OperationName: "created", OperationDescription: "Monitor alerts will be sent here", IncludeEditLink: true}); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 
 	return newMetricMonitor, nil
@@ -2586,8 +2587,8 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 		return nil, e.Wrap(err, "error updating metric monitor")
 	}
 
-	if err := metricMonitor.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &metricMonitorID, Project: project, OperationName: "updated", OperationDescription: "Monitor alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-		log.Error(err)
+	if err := metricMonitor.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &metricMonitorID, Project: project, OperationName: "updated", OperationDescription: "Monitor alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 	return metricMonitor, nil
 }
@@ -2645,8 +2646,8 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	if err := r.DB.Create(newAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new error alert")
 	}
-	if err := newAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &newAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-		log.Error(err)
+	if err := newAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &newAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 
 	return newAlert, nil
@@ -2731,8 +2732,8 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 		return nil, e.Wrap(err, "error updating org fields")
 	}
 
-	if err := projectAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlertID, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-		log.Error(err)
+	if err := projectAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlertID, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 	return projectAlert, nil
 }
@@ -2755,8 +2756,8 @@ func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, 
 		return nil, e.Wrap(err, "error trying to delete error alert")
 	}
 
-	if err := projectAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlertID, Project: project, OperationName: "deleted", OperationDescription: "Alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
-		log.Error(err)
+	if err := projectAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlertID, Project: project, OperationName: "deleted", OperationDescription: "Alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 
 	return projectAlert, nil
@@ -2780,8 +2781,8 @@ func (r *mutationResolver) DeleteMetricMonitor(ctx context.Context, projectID in
 		return nil, e.Wrap(err, "error trying to delete metric monitor")
 	}
 
-	if err := metricMonitor.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &metricMonitorID, Project: project, OperationName: "deleted", OperationDescription: "Monitor alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
-		log.Error(err)
+	if err := metricMonitor.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &metricMonitorID, Project: project, OperationName: "deleted", OperationDescription: "Monitor alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 
 	return metricMonitor, nil
@@ -2880,8 +2881,8 @@ func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, id int, input
 		return nil, e.Wrap(err, "error updating session alert")
 	}
 
-	if err := sessionAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &id, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-		log.Error(err)
+	if err := sessionAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &id, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 	return sessionAlert, nil
 }
@@ -2904,8 +2905,8 @@ func (r *mutationResolver) CreateSessionAlert(ctx context.Context, input modelIn
 	if err := r.DB.Create(sessionAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new session feedback alert")
 	}
-	if err := sessionAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-		log.Error(err)
+	if err := sessionAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 
 	return sessionAlert, nil
@@ -2929,8 +2930,8 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 		return nil, e.Wrap(err, "error trying to delete session alert")
 	}
 
-	if err := projectAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlertID, Project: project, OperationName: "deleted", OperationDescription: "Alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
-		log.Error(err)
+	if err := projectAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlertID, Project: project, OperationName: "deleted", OperationDescription: "Alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 
 	return projectAlert, nil
@@ -3041,18 +3042,18 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 	// or they have access to send an access request).
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		log.Error(e.Wrap(err, "user is not logged in"))
+		log.WithContext(ctx).Error(e.Wrap(err, "user is not logged in"))
 		return &model.T, nil
 	}
 
 	var project model.Project
 	if err := r.DB.Select("workspace_id").Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
-		log.Error(e.Wrap(err, "error querying project"))
+		log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
 		return &model.T, nil
 	}
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
-		log.Error(e.Wrap(err, "error querying workspace"))
+		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 		return &model.T, nil
 	}
 
@@ -3077,7 +3078,7 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 		},
 	}).Create(&request)
 	if err := query.Error; err != nil {
-		log.Error(e.Wrap(err, "error upserting access requests"))
+		log.WithContext(ctx).Error(e.Wrap(err, "error upserting access requests"))
 		return &model.T, nil
 	}
 
@@ -3088,7 +3089,7 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 
 	var workspaceAdmins []*model.Admin
 	if err := r.DB.Order("created_at ASC").Model(workspace).Limit(2).Association("Admins").Find(&workspaceAdmins, "role=?", model.AdminRole.ADMIN); err != nil {
-		log.Error(e.Wrap(err, "error getting admins for the workspace"))
+		log.WithContext(ctx).Error(e.Wrap(err, "error getting admins for the workspace"))
 		return &model.T, nil
 	}
 
@@ -3100,7 +3101,7 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 			inviteLink := fmt.Sprintf("%s/w/%d/team?%s", os.Getenv("FRONTEND_URI"), workspace.ID, queryParams.Encode())
 			if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
 				*a.Name, *a.Email, inviteLink); err != nil {
-				log.Error(e.Wrap(err, "failed to send request access email"))
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send request access email"))
 				return &model.T, nil
 			}
 		}
@@ -3188,7 +3189,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 			return -1, e.Wrap(err, "error updating fields")
 		}
 		if err := r.AutoCreateMetricMonitor(ctx, &dashboardMetric); err != nil {
-			log.Errorf("failed to auto create metric monitor: %s", err)
+			log.WithContext(ctx).Errorf("failed to auto create metric monitor: %s", err)
 		}
 	}
 
@@ -3256,7 +3257,7 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, qu
 		firstName = *admin.FirstName
 	}
 
-	role, err := r.GetAdminRole(admin.ID, project.WorkspaceID)
+	role, err := r.GetAdminRole(ctx, admin.ID, project.WorkspaceID)
 	if err != nil {
 		return false, err
 	}
@@ -3942,7 +3943,7 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 		return nil, err
 	}
 
-	bucketTimes, totalCounts := GetBucketTimesAndTotalCounts(aggs, histogramOptions)
+	bucketTimes, totalCounts := GetBucketTimesAndTotalCounts(ctx, aggs, histogramOptions)
 	return &model.ErrorsHistogram{
 		BucketTimes:  MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
 		ErrorObjects: MergeHistogramBucketCounts(totalCounts, histogramOptions.BucketSize.Multiple),
@@ -3994,7 +3995,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		Order("id desc")
 
 	if errorObjectID == nil {
-		sessionIds := []int{}
+		var sessionIds []int
 		if err := r.DB.Model(&errorObject).
 			Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
 			Where("session_id is not null").
@@ -4004,10 +4005,10 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 			return nil, e.Wrap(err, "error reading session ids")
 		}
 
-		processedSessions := []int{}
+		var processedSessions []int
 		// find all processed sessions
 		if err := r.DB.Model(&model.Session{}).
-			Where("id IN (?) AND processed = ?", sessionIds, true).
+			Where("id IN (?) AND processed = ? AND excluded = ?", sessionIds, true, false).
 			Where("created_at > ?", retentionDate).
 			Pluck("id", &processedSessions).
 			Error; err != nil {
@@ -4062,6 +4063,16 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		Limit(1).
 		Pluck("id", &previousID).Error; err != nil {
 		return nil, e.Wrap(err, "error reading previous error object in group")
+	}
+
+	if errorObject.SessionID != nil {
+		var session model.Session
+		if err := r.DB.Model(&session).Where("id = ?", *errorObject.SessionID).Find(&session).Error; err != nil {
+			return nil, e.Wrap(err, "error reading error group session")
+		}
+		if session.Excluded != nil && *session.Excluded {
+			errorObject.SessionID = nil
+		}
 	}
 
 	errorInstance := model.ErrorInstance{
@@ -4149,48 +4160,48 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			if !w.ClearbitEnabled {
 				return nil, nil
 			}
-			log.Infof("retrieving api response for clearbit lookup")
+			log.WithContext(ctx).Infof("retrieving api response for clearbit lookup")
 			hlog.Incr("private-graph.enhancedDetails.miss", nil, 1)
-			clearbitApiRequestSpan := tracer.StartSpan("private-graph.EnhancedUserDetails",
+			clearbitApiRequestSpan, ctx := tracer.StartSpanFromContext(ctx, "private-graph.EnhancedUserDetails",
 				tracer.ResourceName("clearbit.api.request"),
 				tracer.Tag("session_id", s.ID), tracer.Tag("workspace_id", w.ID), tracer.Tag("project_id", p.ID), tracer.Tag("plan_tier", w.PlanTier))
 			pc, _, err := r.ClearbitClient.Person.FindCombined(clearbit.PersonFindParams{Email: email})
 			clearbitApiRequestSpan.Finish()
 			p, co = pc.Person, pc.Company
 			if err != nil {
-				log.Errorf("error w/ clearbit request: %v", err)
+				log.WithContext(ctx).Errorf("error w/ clearbit request: %v", err)
 			} else if len(p.ID) > 0 {
 				// Store the data for this email in the DB.
 				r.PrivateWorkerPool.SubmitRecover(func() {
-					log.Infof("caching response data in the db")
+					log.WithContext(ctx).Infof("caching response data in the db")
 					modelToSave := &model.EnhancedUserDetails{}
 					modelToSave.Email = &email
 					if personBytes, err := json.Marshal(p); err == nil {
 						sPersonBytes := string(personBytes)
 						modelToSave.PersonJSON = &sPersonBytes
 					} else {
-						log.Errorf("error marshaling clearbit person: %v", err)
+						log.WithContext(ctx).Errorf("error marshaling clearbit person: %v", err)
 					}
 					if companyBytes, err := json.Marshal(co); err == nil {
 						sCompanyBytes := string(companyBytes)
 						modelToSave.CompanyJSON = &sCompanyBytes
 					} else {
-						log.Errorf("error marshaling clearbit company: %v", err)
+						log.WithContext(ctx).Errorf("error marshaling clearbit company: %v", err)
 					}
 					if err := r.DB.Create(modelToSave).Error; err != nil {
-						log.Errorf("error creating clearbit details model")
+						log.WithContext(ctx).Errorf("error creating clearbit details model")
 					}
 				})
 			}
 		} else {
-			log.Infof("retrieving cache db entry of clearbit lookup")
+			log.WithContext(ctx).Infof("retrieving cache db entry of clearbit lookup")
 			hlog.Incr("private-graph.enhancedDetails.hit", nil, 1)
 			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
 				if err := json.Unmarshal([]byte(*userDetailsModel.PersonJSON), &p); err != nil {
-					log.Errorf("error unmarshaling person: %v", err)
+					log.WithContext(ctx).Errorf("error unmarshaling person: %v", err)
 				}
 				if err := json.Unmarshal([]byte(*userDetailsModel.CompanyJSON), &co); err != nil {
-					log.Errorf("error unmarshaling company: %v", err)
+					log.WithContext(ctx).Errorf("error unmarshaling company: %v", err)
 				}
 			}
 		}
@@ -4298,7 +4309,7 @@ func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) (
 	  FROM metrics
 	  WHERE metrics.name in ?
 	  AND metric_group_id in (SELECT * FROM filtered_group_ids)`, s.ID, webVitalNames).Find(&webVitals).Error; err != nil {
-		log.Error(err)
+		log.WithContext(ctx).Error(err)
 		return webVitals, nil
 	}
 
@@ -4472,7 +4483,7 @@ func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([
 
 	var roles []*model.WorkspaceAdminRole
 	for _, admin := range admins {
-		role, err := r.GetAdminRole(admin.ID, workspace.ID)
+		role, err := r.GetAdminRole(ctx, admin.ID, workspace.ID)
 		if err != nil {
 			return nil, e.Wrap(err, "failed to retrieve admin role")
 		}
@@ -4884,10 +4895,12 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 		GROUP BY identifier
 		LIMIT 50
 	) as topUsers
-	INNER JOIN sessions s on topUsers.identifier = s.identifier
+	INNER JOIN sessions s 
+	ON topUsers.identifier = s.identifier
+	AND s.project_id = ?
     ) as q2
 	ORDER BY total_active_time DESC`,
-		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
+		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod, projectID).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
@@ -5026,7 +5039,7 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, qu
 		return nil, err
 	}
 
-	bucketTimes, totalCounts := GetBucketTimesAndTotalCounts(aggs, histogramOptions)
+	bucketTimes, totalCounts := GetBucketTimesAndTotalCounts(ctx, aggs, histogramOptions)
 	noErrorsCounts, withErrorsCounts := []int64{}, []int64{}
 	for _, dateBucket := range aggs {
 		noErrors, withErrors := int64(0), int64(0)
@@ -5385,7 +5398,7 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, projectID int, name
 		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
-		log.Error(err)
+		log.WithContext(ctx).Error(err)
 		return fields, nil
 	}
 	return fields, nil
@@ -5482,7 +5495,7 @@ func (r *queryResolver) WorkspacesCount(ctx context.Context) (int64, error) {
 
 	domain, err := r.getCustomVerifiedAdminEmailDomain(admin)
 	if err != nil {
-		log.Error(err)
+		log.WithContext(ctx).Error(err)
 		return workspacesCount, nil
 	}
 	var joinableWorkspacesCount int64
@@ -5817,7 +5830,7 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		if project.FrontAccessToken == nil || project.FrontRefreshToken == nil || project.FrontTokenExpiresAt == nil {
 			return false, nil
 		}
-		oauth, err := front.RefreshOAuth(&front.OAuthToken{
+		oauth, err := front.RefreshOAuth(ctx, &front.OAuthToken{
 			AccessToken:  *project.FrontAccessToken,
 			RefreshToken: *project.FrontRefreshToken,
 			ExpiresAt:    project.FrontTokenExpiresAt.Unix(),
@@ -6264,11 +6277,11 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 // Admin is the resolver for the admin field.
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
-	adminSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.admin"),
+	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.admin"),
 		tracer.Tag("admin_uid", uid))
 	admin := &model.Admin{UID: &uid}
 	if err := r.DB.Where(&model.Admin{UID: &uid}).First(&admin).Error; err != nil {
-		firebaseSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
+		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
 			tracer.Tag("admin_uid", uid))
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
@@ -6296,7 +6309,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
-		firebaseSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
+		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
 			tracer.Tag("admin_uid", uid))
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
@@ -6323,7 +6336,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 
 	// Check email verification status
 	if admin.EmailVerified != nil && !*admin.EmailVerified {
-		firebaseSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebaseForEmailVerification"),
+		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebaseForEmailVerification"),
 			tracer.Tag("admin_uid", uid))
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
@@ -6363,7 +6376,7 @@ func (r *queryResolver) AdminRole(ctx context.Context, workspaceID int) (*model.
 	}
 
 	// ok to have empty string role, treated as unauthenticated user
-	role, _ := r.GetAdminRole(admin.ID, workspaceID)
+	role, _ := r.GetAdminRole(ctx, admin.ID, workspaceID)
 	return &model.WorkspaceAdminRole{
 		Admin: admin,
 		Role:  role,
@@ -6389,7 +6402,7 @@ func (r *queryResolver) AdminRoleByProject(ctx context.Context, projectID int) (
 	if err == nil {
 		if workspace, err := r.GetWorkspace(project.WorkspaceID); err == nil {
 			// ok to have empty string role, treated as unauthenticated user
-			role, _ = r.GetAdminRole(admin.ID, workspace.ID)
+			role, _ = r.GetAdminRole(ctx, admin.ID, workspace.ID)
 		}
 	}
 
@@ -6407,7 +6420,7 @@ func (r *queryResolver) Segments(ctx context.Context, projectID int) ([]*model.S
 	// list of maps, where each map represents a field query.
 	segments := []*model.Segment{}
 	if err := r.DB.Model(model.Segment{}).Where("project_id = ?", projectID).Find(&segments).Error; err != nil {
-		log.Errorf("error querying segments from project: %v", err)
+		log.WithContext(ctx).Errorf("error querying segments from project: %v", err)
 	}
 	return segments, nil
 }
@@ -6420,7 +6433,7 @@ func (r *queryResolver) ErrorSegments(ctx context.Context, projectID int) ([]*mo
 	// list of maps, where each map represents a field query.
 	segments := []*model.ErrorSegment{}
 	if err := r.DB.Model(model.ErrorSegment{}).Where("project_id = ?", projectID).Find(&segments).Error; err != nil {
-		log.Errorf("error querying segments from project: %v", err)
+		log.WithContext(ctx).Errorf("error querying segments from project: %v", err)
 	}
 	return segments, nil
 }
@@ -6707,7 +6720,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 
 	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
 	div := CalculateMetricUnitConversion(MetricOriginalUnits(metricName), params.Units)
-	tagFilters := GetTagFilters(params.Filters)
+	tagFilters := GetTagFilters(ctx, params.Filters)
 	if params.MinValue == nil || params.MaxValue == nil {
 		minPercentile := 0.01
 		if params.MinPercentile != nil {
@@ -7017,6 +7030,26 @@ func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, param
 	return r.ClickhouseClient.ReadLogsTotalCount(ctx, project.ID, params)
 }
 
+// LogsKeys is the resolver for the logs_keys field.
+func (r *queryResolver) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.LogsKeys(ctx, project.ID)
+}
+
+// LogsKeyValues is the resolver for the logs_key_values field.
+func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName)
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
@@ -7096,7 +7129,7 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 	  WHERE metrics.name = ?
 	  AND metric_group_id in (SELECT * FROM filtered_group_ids)`, obj.ID, "DeviceMemory").First(&metric).Error; err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
-			log.Error(err)
+			log.WithContext(ctx).Error(err)
 		}
 	}
 
@@ -7243,7 +7276,7 @@ WHERE
     st.session_comment_id = ?
 GROUP BY
     st.session_comment_id`, obj.ID).Scan(&tags).Error; err != nil {
-		log.Error(err, "Failed to query for session comment tags")
+		log.WithContext(ctx).Error(err, "Failed to query for session comment tags")
 	}
 
 	for i := range tags {
@@ -7266,7 +7299,7 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 	ch := make(chan *model.SessionPayload)
 	r.SubscriptionWorkerPool.SubmitRecover(func() {
 		defer close(ch)
-		log.Infof("Polling for events on %s starting from index %d, number of waiting tasks %d",
+		log.WithContext(ctx).Infof("Polling for events on %s starting from index %d, number of waiting tasks %d",
 			sessionSecureID,
 			initialEventsCount,
 			r.SubscriptionWorkerPool.WaitingQueueSize())
@@ -7281,12 +7314,12 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 
 			session, err := r.canAdminViewSession(ctx, sessionSecureID)
 			if err != nil {
-				log.Error(e.Wrap(err, "error fetching session for subscription"))
+				log.WithContext(ctx).Error(e.Wrap(err, "error fetching session for subscription"))
 				return
 			}
 			events, err, nextCursor := r.getEvents(ctx, session, cursor)
 			if err != nil {
-				log.Error(e.Wrap(err, "error fetching events incrementally"))
+				log.WithContext(ctx).Error(e.Wrap(err, "error fetching events incrementally"))
 				return
 			}
 			if len(events) != 0 {

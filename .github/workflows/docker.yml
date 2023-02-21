@@ -3,18 +3,6 @@ name: Docker
 on:
     push:
         branches: ['main']
-    pull_request:
-        types: ['opened', 'synchronize']
-        paths:
-            - '.github/workflows/docker.yml'
-            - '.gitmodules'
-            - 'yarn.lock'
-            - 'cypress.config.js'
-            - 'backend/**'
-            - 'cypress/**'
-            - 'frontend/**'
-            - 'rrweb/**'
-            - 'sdk/**'
 
 jobs:
     build:
@@ -46,10 +34,14 @@ jobs:
                   docker compose up -d --build --remove-orphans;
                   echo 'Docker compose started; waiting for services to come online'
 
-                  npx -y wait-on https://localhost:3000/index.html http://localhost:8080/dist/index.js https://localhost:8082/health;
+                  npx -y wait-on -l -s 3 https://localhost:3000/index.html http://localhost:8080/dist/index.js https://localhost:8082/health;
                   docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql';
 
                   yarn cy:run;
+
+            - name: Dump docker logs on failure
+              if: failure()
+              run: docker compose logs
 
             - name: Save videos
               uses: actions/upload-artifact@v2

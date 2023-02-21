@@ -952,6 +952,7 @@ export const TimeRangeFilter = ({
 						weight="medium"
 						color="n9"
 						userSelect="none"
+						lines="1"
 					>
 						{value &&
 							value.options.length === 1 &&

@@ -1,6 +1,7 @@
 package kafka_queue
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -19,13 +20,14 @@ const (
 )
 
 func BenchmarkQueue_Submit(b *testing.B) {
+	ctx := context.TODO()
 	log.SetLevel(log.DebugLevel)
-	log.Infof("Starting benchmark")
+	log.WithContext(ctx).Infof("Starting benchmark")
 
 	rand.Seed(time.Now().UnixNano())
 
-	writer := New("dev", Producer)
-	reader := New("dev", Consumer)
+	writer := New(ctx, "dev", Producer)
+	reader := New(ctx, "dev", Consumer)
 
 	sendWg := sync.WaitGroup{}
 	sendWg.Add(workers)
@@ -39,7 +41,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 			dataBytes := make([]byte, msgSizeBytes)
 			for j := 0; j < submitsPerWorker; j++ {
 				rand.Read(dataBytes)
-				err := writer.Submit(&Message{
+				err := writer.Submit(ctx, &Message{
 					Type: PushPayload,
 					PushPayload: &PushPayloadArgs{
 						Events: model.ReplayEventsInput{
@@ -60,14 +62,14 @@ func BenchmarkQueue_Submit(b *testing.B) {
 					},
 				}, fmt.Sprintf("test-%d", w))
 				if err != nil {
-					log.Error(err)
+					log.WithContext(ctx).Error(err)
 				}
 			}
 			sendWg.Done()
 		}(i)
 		go func() {
 			for receive {
-				msg := reader.Receive()
+				msg := reader.Receive(context.TODO())
 				if msg == nil {
 					if receive {
 						b.Errorf("expected to get a message")
@@ -82,16 +84,16 @@ func BenchmarkQueue_Submit(b *testing.B) {
 			recWg.Done()
 		}()
 	}
-	log.Infof("Waiting for senders to finish.")
+	log.WithContext(ctx).Infof("Waiting for senders to finish.")
 	sendWg.Wait()
-	log.Infof("Senders finished. Stopping writer.")
-	writer.Stop()
-	log.Infof("Stopping receiving.")
+	log.WithContext(ctx).Infof("Senders finished. Stopping writer.")
+	writer.Stop(ctx)
+	log.WithContext(ctx).Infof("Stopping receiving.")
 	receive = false
-	log.Infof("Waiting for receivers to finish.")
+	log.WithContext(ctx).Infof("Waiting for receivers to finish.")
 	recWg.Wait()
-	log.Infof("Receivers finished. Stopping reader.")
-	reader.Stop()
+	log.WithContext(ctx).Infof("Receivers finished. Stopping reader.")
+	reader.Stop(ctx)
 }
 
 func TestPartitionKey(t *testing.T) {

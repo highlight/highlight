@@ -51,19 +51,20 @@ func InitHandlers(db *gorm.DB, opensearchClient *opensearch.Client, s3Client *s3
 }
 
 func NewHandlers() *handlers {
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	ctx := context.TODO()
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "error setting up DB"))
+		log.WithContext(ctx).Fatal(errors.Wrap(err, "error setting up DB"))
 	}
 
 	opensearchClient, err := opensearch.NewOpensearchClient()
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "error creating opensearch client"))
+		log.WithContext(ctx).Fatal(errors.Wrap(err, "error creating opensearch client"))
 	}
 
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "error loading default from config"))
+		log.WithContext(ctx).Fatal(errors.Wrap(err, "error loading default from config"))
 	}
 	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
 		o.UsePathStyle = true
@@ -71,7 +72,7 @@ func NewHandlers() *handlers {
 
 	cfgEast2, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-2"))
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "error loading default from config"))
+		log.WithContext(ctx).Fatal(errors.Wrap(err, "error loading default from config"))
 	}
 	s3ClientEast2 := s3.NewFromConfig(cfgEast2, func(o *s3.Options) {
 		o.UsePathStyle = true

@@ -303,11 +303,11 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 	return priceMap, nil
 }
 
-func ReportUsageForWorkspace(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Client, workspaceID int) error {
-	return reportUsage(DB, stripeClient, mailClient, workspaceID)
+func ReportUsageForWorkspace(ctx context.Context, DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Client, workspaceID int) error {
+	return reportUsage(ctx, DB, stripeClient, mailClient, workspaceID, nil)
 }
 
-func reportUsage(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Client, workspaceID int) error {
+func reportUsage(ctx context.Context, DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Client, workspaceID int, productType *ProductType) error {
 	var workspace model.Workspace
 	if err := DB.Model(&workspace).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
 		return e.Wrap(err, "error querying workspace")
@@ -318,13 +318,13 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Cli
 	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(time.Now().AddDate(0, 0, -7)) {
 		if workspace.TrialEndDate.Before(time.Now()) {
 			// If the trial has ended, send an email
-			if err := model.SendBillingNotifications(DB, mailClient, email.BillingHighlightTrialEnded, &workspace); err != nil {
-				log.Error(e.Wrap(err, "failed to send billing notifications"))
+			if err := model.SendBillingNotifications(ctx, DB, mailClient, email.BillingHighlightTrialEnded, &workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		} else if workspace.TrialEndDate.Before(time.Now().AddDate(0, 0, 7)) {
 			// If the trial is ending within 7 days, send an email
-			if err := model.SendBillingNotifications(DB, mailClient, email.BillingHighlightTrial7Days, &workspace); err != nil {
-				log.Error(e.Wrap(err, "failed to send billing notifications"))
+			if err := model.SendBillingNotifications(ctx, DB, mailClient, email.BillingHighlightTrial7Days, &workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		}
 	}
@@ -379,13 +379,13 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Cli
 		subscriptionEnd := time.Unix(subscription.Discount.End, 0)
 		if subscriptionEnd.Before(time.Now().AddDate(0, 0, 3)) {
 			// If the Stripe trial is ending within 3 days, send an email
-			if err := model.SendBillingNotifications(DB, mailClient, email.BillingStripeTrial3Days, &workspace); err != nil {
-				log.Error(e.Wrap(err, "failed to send billing notifications"))
+			if err := model.SendBillingNotifications(ctx, DB, mailClient, email.BillingStripeTrial3Days, &workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		} else if subscriptionEnd.Before(time.Now().AddDate(0, 0, 7)) {
 			// If the Stripe trial is ending within 7 days, send an email
-			if err := model.SendBillingNotifications(DB, mailClient, email.BillingStripeTrial7Days, &workspace); err != nil {
-				log.Error(e.Wrap(err, "failed to send billing notifications"))
+			if err := model.SendBillingNotifications(ctx, DB, mailClient, email.BillingStripeTrial7Days, &workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		}
 	}
@@ -435,7 +435,7 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Cli
 		if err.Error() == string(stripe.ErrorCodeInvoiceUpcomingNone) {
 			return nil
 		} else {
-			log.Error(err)
+			log.WithContext(ctx).Error(err)
 			return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to retrieve upcoming invoice for customer "+c.ID)
 		}
 	}
@@ -519,7 +519,7 @@ func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace
 	return nil
 }
 
-func ReportAllUsage(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Client) {
+func ReportAllUsage(ctx context.Context, DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Client) {
 	// Get all workspace IDs
 	var workspaceIDs []int
 	if err := DB.Raw(`
@@ -528,13 +528,13 @@ func ReportAllUsage(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.
 		WHERE billing_period_start is not null
 		AND billing_period_end is not null
 	`).Scan(&workspaceIDs).Error; err != nil {
-		log.Error("failed to query workspaces")
+		log.WithContext(ctx).Error("failed to query workspaces")
 		return
 	}
 
 	for _, workspaceID := range workspaceIDs {
-		if err := reportUsage(DB, stripeClient, mailClient, workspaceID); err != nil {
-			log.Error(e.Wrapf(err, "error reporting usage for workspace %d", workspaceID))
+		if err := reportUsage(ctx, DB, stripeClient, mailClient, workspaceID, nil); err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "error reporting usage for workspace %d", workspaceID))
 		}
 	}
 }

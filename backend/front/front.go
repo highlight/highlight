@@ -1,6 +1,7 @@
 package front
 
 import (
+	"context"
 	"encoding/json"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -19,16 +20,16 @@ type OAuthToken struct {
 }
 
 // RefreshOAuth will refresh the OAuthToken if it has expired..
-func RefreshOAuth(currentOAuth *OAuthToken) (*OAuthToken, error) {
+func RefreshOAuth(ctx context.Context, currentOAuth *OAuthToken) (*OAuthToken, error) {
 	exp := time.Unix(currentOAuth.ExpiresAt, 0)
 	if time.Now().After(exp) {
-		return OAuth("", currentOAuth)
+		return OAuth(ctx, "", currentOAuth)
 	}
 	return currentOAuth, nil
 }
 
 // OAuth will return the oauth tokens based on either the code or refresh token provided.
-func OAuth(code string, currentOAuth *OAuthToken) (*OAuthToken, error) {
+func OAuth(ctx context.Context, code string, currentOAuth *OAuthToken) (*OAuthToken, error) {
 	var (
 		ok                bool
 		FrontClientID     string
@@ -68,7 +69,7 @@ func OAuth(code string, currentOAuth *OAuthToken) (*OAuthToken, error) {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			log.Errorf("failed to close front response body: %s", err)
+			log.WithContext(ctx).Errorf("failed to close front response body: %s", err)
 		}
 	}(resp.Body)
 

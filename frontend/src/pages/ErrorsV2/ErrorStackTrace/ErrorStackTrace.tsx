@@ -22,6 +22,7 @@ import React from 'react'
 import ReactCollapsible from 'react-collapsible'
 
 import * as styles from './ErrorStackTrace.css'
+import clsx from 'clsx'
 
 interface Props {
 	errorObject?: ErrorInstance['error_object']
@@ -246,16 +247,22 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 			justifyContent="space-between"
 			alignItems="center"
 		>
-			<Box display="flex" gap="4">
-				<Text>{truncateFileName(fileName || '')}</Text>
-				<Text color="n11" as="span">
+			<Box display="flex" gap="4" alignItems="center">
+				<Text cssClass={clsx(styles.name, styles.file)} as="span">
+					{truncateFileName(fileName || '')}
+				</Text>
+				<Text cssClass={styles.name} color="n11" as="span">
 					{functionName ? ' in ' : ''}
 				</Text>
-				<Text>{functionName}</Text>
-				<Text color="n11" as="span">
+				<Text cssClass={styles.name} as="span">
+					{functionName}
+				</Text>
+				<Text cssClass={styles.name} color="n11" as="span">
 					{lineNumber ? ' at line ' : ''}
 				</Text>
-				<Text>{lineNumber}</Text>
+				<Text cssClass={styles.name} as="span">
+					{lineNumber}
+				</Text>
 			</Box>
 
 			<Box display="flex" gap="4" alignItems="center">

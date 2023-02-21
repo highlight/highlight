@@ -1,4 +1,9 @@
-import { useGetLogsQuery, useGetLogsTotalCountQuery } from '@graph/hooks'
+import { CircularSpinner } from '@components/Loading/Loading'
+import {
+	useGetLogsKeysQuery,
+	useGetLogsQuery,
+	useGetLogsTotalCountQuery,
+} from '@graph/hooks'
 import { Box, Preset, Stack, Text } from '@highlight-run/ui'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
@@ -75,19 +80,31 @@ const LogsPage = () => {
 		skip: !project_id,
 	})
 
-	const { data: totalCount } = useGetLogsTotalCountQuery({
-		variables: {
-			project_id: project_id!,
-			params: {
-				query,
-				date_range: {
-					start_date: moment(startDate).format(FORMAT),
-					end_date: moment(endDate).format(FORMAT),
+	const { data: totalCount, loading: logCountLoading } =
+		useGetLogsTotalCountQuery({
+			variables: {
+				project_id: project_id!,
+				params: {
+					query,
+					date_range: {
+						start_date: moment(startDate).format(FORMAT),
+						end_date: moment(endDate).format(FORMAT),
+					},
 				},
 			},
+			skip: !project_id,
+		})
+
+	const { data: keys } = useGetLogsKeysQuery({
+		variables: {
+			project_id: project_id!,
 		},
 		skip: !project_id,
 	})
+
+	if (keys) {
+		console.log(keys)
+	}
 
 	const handleFormSubmit = (value: string) => {
 		setQuery(value)
@@ -104,31 +121,40 @@ const LogsPage = () => {
 				<title>Logs</title>
 			</Helmet>
 			<Box background="n2" padding="8" flex="stretch">
-				<Box background="white" borderRadius="12">
-					<Stack gap="4">
-						<SearchForm
-							initialQuery={query}
-							onFormSubmit={handleFormSubmit}
-							startDate={startDate}
-							endDate={endDate}
-							onDatesChange={handleDatesChange}
-							presets={PRESETS}
-							minDate={thirtyDaysAgo}
-						/>
-						<Stack direction="row" gap="2">
-							{totalCount && (
-								<Text color="weak">
-									{formatNumber(totalCount.logs_total_count)}
-								</Text>
-							)}
-							<Text color="weak">logs</Text>
-						</Stack>
-						<LogsTable
-							data={logs}
-							loading={loading}
-							query={query}
-						/>
+				<Box
+					background="white"
+					borderRadius="12"
+					height="full"
+					gap="4"
+					flexDirection="column"
+					display="flex"
+				>
+					<SearchForm
+						initialQuery={query}
+						onFormSubmit={handleFormSubmit}
+						startDate={startDate}
+						endDate={endDate}
+						onDatesChange={handleDatesChange}
+						presets={PRESETS}
+						minDate={thirtyDaysAgo}
+					/>
+					<Stack direction="row" gap="2">
+						{logCountLoading ? (
+							<CircularSpinner />
+						) : (
+							totalCount && (
+								<>
+									<Text color="weak">
+										{formatNumber(
+											totalCount.logs_total_count,
+										)}
+									</Text>
+									<Text color="weak">logs</Text>
+								</>
+							)
+						)}
 					</Stack>
+					<LogsTable data={logs} loading={loading} query={query} />
 				</Box>
 			</Box>
 		</>

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 
@@ -12,14 +13,15 @@ import (
 )
 
 func main() {
-	log.Info("setting up db")
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	ctx := context.TODO()
+	log.WithContext(ctx).Info("setting up db")
+	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.Fatalf("error setting up db: %+v", err)
+		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
 	}
 	var errorGroups []model.ErrorGroup
 	if err := db.Debug().Model(&model.ErrorGroup{}).Where("mapped_stack_trace IS NOT NULL").Scan(&errorGroups).Error; err != nil {
-		log.Error(e.Wrap(err, "error fetching error groups"))
+		log.WithContext(ctx).Error(e.Wrap(err, "error fetching error groups"))
 		return
 	}
 	for i := range errorGroups {
@@ -33,7 +35,7 @@ func main() {
 			ColumnNumber *int    `json:"column_number"`
 		}
 		if err := json.Unmarshal([]byte(*errorGroups[i].MappedStackTrace), &oldStackTrace); err != nil {
-			log.WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "project_id": errorGroups[i].ProjectID}).Error(e.Wrapf(err, "error unmarshalling MappedStackTrace"))
+			log.WithContext(ctx).WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "project_id": errorGroups[i].ProjectID}).Error(e.Wrapf(err, "error unmarshalling MappedStackTrace"))
 			continue
 		}
 		var newStackTrace []*modelInputs.ErrorTrace
@@ -48,12 +50,12 @@ func main() {
 		}
 		newStackTraceBytes, err := json.Marshal(&newStackTrace)
 		if err != nil {
-			log.WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "project_id": errorGroups[i].ProjectID}).Error(e.Wrapf(err, "error marshalling MappedStackTrace"))
+			log.WithContext(ctx).WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "project_id": errorGroups[i].ProjectID}).Error(e.Wrapf(err, "error marshalling MappedStackTrace"))
 			continue
 		}
 		newStackTraceString := string(newStackTraceBytes)
 		if err := db.Debug().Where(&model.ErrorGroup{Model: model.Model{ID: errorGroups[i].ID}}).Updates(&model.ErrorGroup{MappedStackTrace: &newStackTraceString}).Error; err != nil {
-			log.WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "project_id": errorGroups[i].ProjectID}).Error(e.Wrapf(err, "error saving MappedStackTrace"))
+			log.WithContext(ctx).WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "project_id": errorGroups[i].ProjectID}).Error(e.Wrapf(err, "error saving MappedStackTrace"))
 			continue
 		}
 	}

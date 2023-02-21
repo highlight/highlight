@@ -1,4 +1,3 @@
-import { datadogRum } from '@datadog/browser-rum'
 import log from '@util/log'
 
 export const timedCall = (
@@ -19,7 +18,6 @@ export const timedCall = (
 				tags: tags || [],
 			},
 		])
-		datadogRum.addTiming(ddSanitize(name), dur)
 		log('instrument.ts', 'timedCall', name, 'took', dur, tags)
 	}
 }
@@ -45,7 +43,6 @@ export const timedCallback = <T extends Function>(
 					tags: tags || [],
 				},
 			])
-			datadogRum.addTiming(ddSanitize(name), dur)
 			log('instrument.ts', 'timedCallback', name, 'took', dur, tags)
 		}
 	}

@@ -9,7 +9,7 @@
 		"concurrently": "^6.5.1"
 	},
 	"workspaces": [
-		"examples/*",
+		"e2e/*",
 		"packages/*",
 		"frontend",
 		"sdk/client",
@@ -17,6 +17,7 @@
 		"sdk/highlight-cloudflare",
 		"sdk/highlight-next",
 		"sdk/highlight-node",
+		"sdk/highlight-react",
 		"render",
 		"rrweb/packages/*",
 		"scripts",
@@ -26,12 +27,14 @@
 		"build:all": "yarn turbo run prepublish build",
 		"build:backend": "cd backend && go build",
 		"build:frontend": "yarn turbo run build --filter frontend...",
-		"build:sdk": "yarn turbo run build --filter @highlight-run/cloudflare --filter @highlight-run/next...",
+		"build:sdk": "yarn turbo run build --filter @highlight-run/cloudflare --filter @highlight-run/react --filter @highlight-run/next...",
 		"cy:run": "cypress run",
 		"cy:run:chrome": "cypress run --headed --browser chrome",
 		"dev": "run-p --print-label --race 'dev:*'",
 		"dev:backend": "cd backend && make start",
+		"dev:components": "yarn turbo run dev --filter @highlight-run/component-preview...",
 		"dev:frontend": "doppler run -- yarn turbo run dev --filter frontend...",
+		"dev:ui": "yarn turbo run dev --filter @highlight-run/ui...",
 		"dev:redis": "redis-server",
 		"docker:frontend": "yarn turbo run dev --filter frontend...",
 		"enforce-size": "yarn turbo run enforce-size --filter frontend...",
@@ -60,7 +63,7 @@
 		"pretty-quick": "^3.1.3",
 		"turbo": "^1.7.2"
 	},
-	"packageManager": "yarn@3.2.3",
+	"packageManager": "yarn@3.4.1",
 	"resolutions": {
 		"@types/dom-webcodecs": "0.1.4",
 		"ansi-regex": "3.0.1",

@@ -36,9 +36,9 @@ func getOAuthConfig(integrationType modelInputs.IntegrationType) (*oauth2.Config
 	return nil, nil, fmt.Errorf("invalid integrationType: %s", integrationType)
 }
 
-func getRefreshOAuthToken(oldToken *oauth2.Token, integrationType modelInputs.IntegrationType) (*oauth2.Token, error) {
+func getRefreshOAuthToken(ctx context.Context, oldToken *oauth2.Token, integrationType modelInputs.IntegrationType) (*oauth2.Token, error) {
 	if integrationType == modelInputs.IntegrationTypeHeight {
-		return height.GetRefreshToken(oldToken)
+		return height.GetRefreshToken(ctx, oldToken)
 	}
 
 	return nil, fmt.Errorf("invalid integrationType: %s", integrationType)
@@ -97,9 +97,9 @@ func (c *Client) GetWorkspaceAccessToken(ctx context.Context, workspace *model.W
 	oldToken.Expiry = workspaceMapping.Expiry
 
 	if !oldToken.Valid() {
-		log.Infof("Refreshing access token for %s integration", integrationType)
+		log.WithContext(ctx).Infof("Refreshing access token for %s integration", integrationType)
 
-		newToken, err := getRefreshOAuthToken(oldToken, integrationType)
+		newToken, err := getRefreshOAuthToken(ctx, oldToken, integrationType)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get oauth refresh token: %w", err)
 		}
