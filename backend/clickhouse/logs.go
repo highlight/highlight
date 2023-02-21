@@ -112,8 +112,8 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 	query := sq.Select("arrayJoin(LogAttributes.keys) as key, count() as cnt").
 		From("logs").
 		Where(sq.Eq{"ProjectId": projectID}).
-		Where(sq.LtOrEq{"Timestamp": now}).
-		Where(sq.GtOrEq{"Timestamp": now.AddDate(0, 0, -30)}).
+		Where(sq.Lt{"Timestamp": now.Unix()}).
+		Where(sq.GtOrEq{"Timestamp": now.AddDate(0, 0, -30).Unix()}).
 		GroupBy("key").
 		OrderBy("cnt DESC")
 
