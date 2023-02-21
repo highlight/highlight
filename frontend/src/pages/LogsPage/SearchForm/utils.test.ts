@@ -1,4 +1,4 @@
-import { parseLogsQuery, stringifyLogsQuery } from './utils'
+import { parseLogsQuery, stringifyLogsQuery, validateLogsQuery } from './utils'
 
 const complexQueryString = `name:"Eric Thomas" workspace:'Chilly McWilly' project_id:9 freetext query`
 const complexQueryParams = [
@@ -6,26 +6,30 @@ const complexQueryParams = [
 		key: 'name',
 		operator: '=',
 		value: 'Eric Thomas',
+		offsetStart: 0,
 	},
 	{
 		key: 'workspace',
 		operator: '=',
 		value: 'Chilly McWilly',
+		offsetStart: 19,
 	},
 	{
 		key: 'project_id',
 		operator: '=',
 		value: '9',
+		offsetStart: 46,
 	},
 	{
 		key: 'text',
 		operator: '=',
 		value: 'freetext query',
+		offsetStart: 59,
 	},
 ]
 
 describe('parseLogsQuery', () => {
-	it('does not transform a query with no operators', () => {
+	it('parses a simple query correctly', () => {
 		const query = 'a test query'
 
 		expect(parseLogsQuery(query)).toEqual([
@@ -33,23 +37,25 @@ describe('parseLogsQuery', () => {
 				key: 'text',
 				operator: '=',
 				value: query,
+				offsetStart: 0,
 			},
 		])
 	})
 
-	it('splits apart strings with operators', () => {
+	it('parses a complex query correctly', () => {
 		expect(parseLogsQuery(complexQueryString)).toEqual(complexQueryParams)
 	})
 })
 
 describe('stringifyLogsQuery', () => {
-	it('parses basic params to a query string', () => {
+	it('parses simple params to a query string', () => {
 		expect(
 			stringifyLogsQuery([
 				{
 					key: 'text',
 					operator: '=',
 					value: 'a test query',
+					offsetStart: 0,
 				},
 			]),
 		).toEqual('a test query')
@@ -57,7 +63,19 @@ describe('stringifyLogsQuery', () => {
 
 	it('parses complex params to a query string', () => {
 		expect(stringifyLogsQuery(complexQueryParams)).toEqual(
-			complexQueryString.replaceAll(`'`, `"`),
+			`${complexQueryString}`.replaceAll(`'`, `"`),
 		)
+	})
+})
+
+describe('validateLogsQuery', () => {
+	it('returns true for an invalid query', () => {
+		expect(validateLogsQuery(complexQueryParams)).toBeTruthy()
+	})
+
+	it('returns false for an invalid query', () => {
+		const params = [...complexQueryParams]
+		params[0].value = ''
+		expect(validateLogsQuery(params)).toBeFalsy()
 	})
 })

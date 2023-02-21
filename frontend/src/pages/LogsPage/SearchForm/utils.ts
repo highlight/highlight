@@ -1,7 +1,8 @@
-type SearchParam = {
+export type LogsSearchParam = {
 	key: string
 	operator: string
 	value: string
+	offsetStart: number
 }
 
 const SEPARATOR = ':'
@@ -10,9 +11,16 @@ const NAME_TEXT = 'text'
 const PARSE_REGEX =
 	/(\S+:'(?:[^'\\]|\\.)*')|(\S+:"(?:[^"\\]|\\.)*")|(-?"(?:[^"\\]|\\.)*")|(-?'(?:[^'\\]|\\.)*')|\S+|\S+:\S+/g
 
-export const parseLogsQuery = (query: string) => {
+export const parseLogsQuery = (query: string): LogsSearchParam[] => {
 	if (query.indexOf(SEPARATOR) === -1) {
-		return [{ key: NAME_TEXT, operator: DEFAULT_OPERATOR, value: query }]
+		return [
+			{
+				key: NAME_TEXT,
+				operator: DEFAULT_OPERATOR,
+				value: query,
+				offsetStart: 0,
+			},
+		]
 	}
 
 	const terms = []
@@ -28,6 +36,7 @@ export const parseLogsQuery = (query: string) => {
 				key,
 				operator: DEFAULT_OPERATOR,
 				value: value?.replace(/^\"|\"$|^\'|\'$/g, ''), // strip quotes
+				offsetStart: query.indexOf(key),
 			})
 		} else {
 			freetextQueryWords.push(term)
@@ -35,17 +44,20 @@ export const parseLogsQuery = (query: string) => {
 	}
 
 	if (freetextQueryWords.length > 0) {
+		const freetextQuery = freetextQueryWords.join(' ')
+
 		terms.push({
 			key: 'text',
 			operator: DEFAULT_OPERATOR,
-			value: freetextQueryWords.join(' '),
+			value: freetextQuery,
+			offsetStart: query.indexOf(freetextQuery),
 		})
 	}
 
 	return terms
 }
 
-export const stringifyLogsQuery = (params: SearchParam[]) => {
+export const stringifyLogsQuery = (params: LogsSearchParam[]) => {
 	const querySegments: string[] = []
 
 	params.forEach((param) => {
@@ -59,4 +71,8 @@ export const stringifyLogsQuery = (params: SearchParam[]) => {
 	})
 
 	return querySegments.join(' ')
+}
+
+export const validateLogsQuery = (params: LogsSearchParam[]): boolean => {
+	return !params.some((param) => !param.value)
 }

@@ -13,14 +13,21 @@ export const useComboboxState = ariakitUseComboboxState
 
 type Props = React.PropsWithChildren & AriakitComboboxProps
 
-type ComboboxComponent = React.FC<Props> & {
+type ComboboxComponent = React.ForwardRefExoticComponent<Props> & {
 	Popover: typeof Popover
 	Item: typeof Item
 }
 
-export const Combobox: ComboboxComponent = ({ children, ...props }: Props) => {
-	return <AriakitCombobox {...props}>{children}</AriakitCombobox>
-}
+export const Combobox = React.forwardRef<
+	HTMLInputElement | null,
+	React.PropsWithoutRef<Props>
+>(({ children, ...props }, ref) => {
+	return (
+		<AriakitCombobox ref={ref} {...props}>
+			{children}
+		</AriakitCombobox>
+	)
+}) as ComboboxComponent
 
 export const Popover: React.FC<
 	React.PropsWithChildren & AriakitComboboxPopoverProps
