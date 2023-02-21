@@ -197,6 +197,16 @@ func TestLogKeyValues(t *testing.T) {
 		{
 			Timestamp:     time.Now(),
 			ProjectId:     1,
+			LogAttributes: map[string]string{"workspace_id": "2"},
+		},
+		{
+			Timestamp:     time.Now(),
+			ProjectId:     1,
+			LogAttributes: map[string]string{"workspace_id": "3"},
+		},
+		{
+			Timestamp:     time.Now(),
+			ProjectId:     1,
 			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 		{
@@ -216,6 +226,6 @@ func TestLogKeyValues(t *testing.T) {
 	values, err := client.LogsKeyValues(ctx, 1, "workspace_id")
 	assert.NoError(t, err)
 
-	expected := []string{"3", "4", "2"}
+	expected := []string{"3", "2", "4"}
 	assert.Equal(t, expected, values)
 }
