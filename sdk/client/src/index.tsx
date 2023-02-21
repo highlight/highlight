@@ -342,9 +342,11 @@ export class Highlight {
 		this.enableCanvasRecording = options.enableCanvasRecording ?? false
 		this.enablePerformanceRecording =
 			options.enablePerformanceRecording ?? true
-		this.inlineImages = options.inlineImages ?? false
-		// default to inlining stylesheets to help with recording accuracy
-		this.inlineStylesheet = options.inlineStylesheet ?? true
+		// default to inlining stylesheets/images locally to help with recording accuracy
+		this.inlineImages =
+			options.inlineImages ?? window.location.hostname === 'localhost'
+		this.inlineStylesheet =
+			options.inlineStylesheet ?? window.location.hostname === 'localhost'
 		this.samplingStrategy = {
 			canvas: 5,
 			canvasQuality: 'low',
