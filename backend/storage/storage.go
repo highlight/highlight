@@ -53,7 +53,6 @@ const (
 type PayloadType string
 
 const (
-	SessionContents            PayloadType = "session-contents"
 	NetworkResources           PayloadType = "network-resources"
 	ConsoleMessages            PayloadType = "console-messages"
 	SessionContentsCompressed  PayloadType = "session-contents-compressed"
@@ -227,83 +226,46 @@ func (f *FilesystemClient) PushSourceMapFile(ctx context.Context, projectId int,
 }
 
 func (f *FilesystemClient) ReadMessages(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	messages, err := f.readCompressed(ctx, sessionId, projectId, ConsoleMessagesCompressed)
+	var messages []interface{}
+	err := f.readCompressed(ctx, sessionId, projectId, ConsoleMessagesCompressed, &messages)
 	if err != nil {
-		// compressed file doesn't exist, fall back to reading uncompressed
-		return f.readUncompressed(ctx, sessionId, projectId, ConsoleMessages)
+		return nil, err
 	}
 	return messages, nil
 }
 
 func (f *FilesystemClient) ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error) {
-	events, err := f.readCompressed(ctx, sessionId, projectId, TimelineIndicatorEvents)
+	var events []*model.TimelineIndicatorEvent
+	err := f.readCompressed(ctx, sessionId, projectId, TimelineIndicatorEvents, &events)
 	if err != nil {
 		return nil, err
 	}
-	return lo.Map(events, func(t interface{}, i int) *model.TimelineIndicatorEvent {
-		return t.(*model.TimelineIndicatorEvent)
-	}), nil
+	return events, nil
 }
 
 func (f *FilesystemClient) ReadResources(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	buf, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, sessionId, projectId, NetworkResourcesCompressed))
-	if err != nil {
-		// compressed file doesn't exist, fall back to reading uncompressed
-		return f.readUncompressed(ctx, sessionId, projectId, NetworkResources)
-	}
-	buf, err = decompress(buf)
-	if err != nil {
-		return nil, errors.Wrap(err, "error decompressing compressed buffer from fs")
-	}
-
 	var resources []interface{}
-	if err := json.Unmarshal(buf.Bytes(), &resources); err != nil {
-		return nil, errors.Wrap(err, "error decoding resource data")
-	}
-	return resources, nil
-}
-
-func (f *FilesystemClient) readCompressed(ctx context.Context, sessionId int, projectId int, t PayloadType) ([]interface{}, error) {
-	buf, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, sessionId, projectId, t))
-	if err != nil {
-		// compressed file doesn't exist, fall back to reading uncompressed
-		return f.readUncompressed(ctx, sessionId, projectId, t)
-	}
-	buf, err = decompress(buf)
-	if err != nil {
-		return nil, errors.Wrap(err, "error decompressing compressed buffer from fs")
-	}
-
-	var resources []interface{}
-	if err := json.Unmarshal(buf.Bytes(), &resources); err != nil {
-		return nil, errors.Wrap(err, "error decoding data")
-	}
-	return resources, nil
-}
-
-// readUncompressedResourcesFromS3 is deprecated. Serves legacy uncompressed network data from S3.
-func (f *FilesystemClient) readUncompressed(ctx context.Context, sessionId int, projectId int, t PayloadType) ([]interface{}, error) {
-	buf, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, sessionId, projectId, t))
+	err := f.readCompressed(ctx, sessionId, projectId, NetworkResourcesCompressed, &resources)
 	if err != nil {
 		return nil, err
 	}
+	return resources, nil
+}
 
-	type resources struct {
-		Resources []interface{}
+func (f *FilesystemClient) readCompressed(ctx context.Context, sessionId int, projectId int, t PayloadType, results interface{}) error {
+	buf, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, sessionId, projectId, t))
+	if err != nil {
+		return err
 	}
-	resourcesSlice := strings.Split(buf.String(), "\n\n\n")
-	var retResources []interface{}
-	for _, e := range resourcesSlice {
-		if e == "" {
-			continue
-		}
-		var tempResources resources
-		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
-			return nil, errors.Wrap(err, "error decoding data")
-		}
-		retResources = append(retResources, tempResources.Resources...)
+	buf, err = decompress(buf)
+	if err != nil {
+		return errors.Wrap(err, "error decompressing compressed buffer from fs")
 	}
-	return retResources, nil
+
+	if err := json.Unmarshal(buf.Bytes(), results); err != nil {
+		return errors.Wrap(err, "error decoding data")
+	}
+	return nil
 }
 
 func (f *FilesystemClient) ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
@@ -611,68 +573,6 @@ func decompress(data *bytes.Buffer) (*bytes.Buffer, error) {
 		return nil, err
 	}
 	return out, nil
-}
-
-func (s *S3Client) ReadSessionsFromS3(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	client, bucket := s.getSessionClientAndBucket(sessionId)
-
-	output, err := client.GetObject(ctx, &s3.GetObjectInput{
-		Bucket:                  bucket,
-		Key:                     bucketKey(sessionId, projectId, SessionContentsCompressed),
-		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
-		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
-	})
-	if err != nil {
-		// compressed file doesn't exist, fall back to reading uncompressed
-		return s.ReadUncompressedSessionsFromS3(ctx, sessionId, projectId)
-	}
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(output.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
-	}
-
-	buf, err = decompress(buf)
-	if err != nil {
-		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
-	}
-
-	var events []interface{}
-	if err := json.Unmarshal(buf.Bytes(), &events); err != nil {
-		return nil, errors.Wrap(err, "error decoding event data")
-	}
-	return events, nil
-}
-
-// ReadUncompressedSessionsFromS3 is deprecated. Serves legacy uncompressed session data from S3.
-func (s *S3Client) ReadUncompressedSessionsFromS3(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	client, bucket := s.getSessionClientAndBucket(sessionId)
-	output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: bucket,
-		Key: bucketKey(sessionId, projectId, SessionContents)})
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting object from s3")
-	}
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(output.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
-	}
-	type events struct {
-		Events []interface{}
-	}
-	eventsSlice := strings.Split(buf.String(), "\n\n\n")
-	var retEvents []interface{}
-	for _, e := range eventsSlice {
-		if e == "" {
-			continue
-		}
-		var tempEvents events
-		if err := json.Unmarshal([]byte(e), &tempEvents); err != nil {
-			return nil, errors.Wrap(err, "error decoding event data")
-		}
-		retEvents = append(retEvents, tempEvents.Events...)
-	}
-	return retEvents, nil
 }
 
 func (s *S3Client) ReadResources(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
