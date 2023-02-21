@@ -7,6 +7,7 @@ import {
 	PreviousDateRangePicker,
 	useComboboxState,
 } from '@highlight-run/ui'
+import { queryStringToSearchParams } from '@pages/LogsPage/SearchForm/utils'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -89,10 +90,14 @@ const Search: React.FC<{
 	handleSearchChange: any
 }> = ({ keys, handleSearchChange, query }) => {
 	const [queryText, setQueryText] = useState('')
+	const [activeQuery, setActiveQuery] = useState('')
+	const [searchType, setSearchType] = useState<'keys' | 'values'>('keys')
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const state = useComboboxState({ gutter: 4, sameWidth: true })
+	// TODO: Handle active term not being at the end.
+	const activeTerm = queryStringToSearchParams(queryText)[0]
+	console.log('::: activeTerm', activeTerm)
 
-	const activeQuery = queryText.split(' ').at(-1) || ''
 	const visibleItems =
 		keys?.filter(
 			(key) => !activeQuery.length || key.name.indexOf(activeQuery) > -1,
@@ -100,6 +105,8 @@ const Search: React.FC<{
 	visibleItems.length = MAX_ITEMS
 
 	// TODO: Handle visible items being values instead of keys
+
+	useEffect(() => {}, [queryText])
 
 	useEffect(() => {
 		setQueryText(query)
