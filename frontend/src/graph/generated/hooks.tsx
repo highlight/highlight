@@ -304,11 +304,13 @@ export const CreateOrUpdateStripeSubscriptionDocument = gql`
 		$workspace_id: ID!
 		$plan_type: PlanType!
 		$interval: SubscriptionInterval!
+		$retention_period: RetentionPeriod!
 	) {
 		createOrUpdateStripeSubscription(
 			workspace_id: $workspace_id
 			plan_type: $plan_type
 			interval: $interval
+			retention_period: $retention_period
 		)
 	}
 `
@@ -334,6 +336,7 @@ export type CreateOrUpdateStripeSubscriptionMutationFn =
  *      workspace_id: // value for 'workspace_id'
  *      plan_type: // value for 'plan_type'
  *      interval: // value for 'interval'
+ *      retention_period: // value for 'retention_period'
  *   },
  * });
  */
@@ -7359,6 +7362,7 @@ export const GetBillingDetailsDocument = gql`
 			next_invoice_date
 			allow_meter_overage
 			eligible_for_trial_extension
+			retention_period
 		}
 	}
 `

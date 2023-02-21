@@ -23,6 +23,7 @@ const (
 	highlightProductType             string = "highlightProductType"
 	highlightProductTier             string = "highlightProductTier"
 	highlightProductUnlimitedMembers string = "highlightProductUnlimitedMembers"
+	highlightRetentionPeriod         string = "highlightRetentionPeriod"
 )
 
 type ProductType string
@@ -192,7 +193,7 @@ func GetOverageKey(productType ProductType, retentionPeriod backend.RetentionPer
 }
 
 // Returns the Highlight ProductType, Tier, and Interval for the Stripe Price
-func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType, bool, SubscriptionInterval) {
+func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType, bool, SubscriptionInterval, backend.RetentionPeriod) {
 	interval := SubscriptionIntervalMonthly
 	if price.Recurring != nil && price.Recurring.Interval == stripe.PriceRecurringIntervalYear {
 		interval = SubscriptionIntervalAnnual
@@ -203,11 +204,12 @@ func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType, b
 	oldTier := FromPriceID(price.ID)
 	if oldTier != backend.PlanTypeFree {
 		base := ProductTypeBase
-		return &base, &oldTier, false, interval
+		return &base, &oldTier, false, interval, ""
 	}
 
 	var productTypePtr *ProductType
 	var tierPtr *backend.PlanType
+	retentionPeriod := backend.RetentionPeriodSixMonths
 
 	if typeStr, ok := price.Product.Metadata[highlightProductType]; ok {
 		productType := ProductType(typeStr)
@@ -226,7 +228,11 @@ func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType, b
 		}
 	}
 
-	return productTypePtr, tierPtr, unlimitedMembers, interval
+	if retentionStr, ok := price.Metadata[highlightRetentionPeriod]; ok {
+		retentionPeriod = backend.RetentionPeriod(retentionStr)
+	}
+
+	return productTypePtr, tierPtr, unlimitedMembers, interval, retentionPeriod
 }
 
 // Products are too nested in the Subscription model to be added through the API
@@ -360,7 +366,7 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Cli
 		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - subscription has multiple products")
 	}
 	subscriptionItem := subscription.Items.Data[0]
-	_, productTier, _, interval := GetProductMetadata(subscriptionItem.Price)
+	_, productTier, _, interval, _ := GetProductMetadata(subscriptionItem.Price)
 	if productTier == nil {
 		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - product has no tier")
 	}
@@ -407,8 +413,11 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Cli
 		}
 	}
 
-	// ZANETODO: check null!
-	prices, err := GetStripePrices(stripeClient, *productTier, interval, workspace.UnlimitedMembers, *workspace.RetentionPeriod)
+	retentionPeriod := backend.RetentionPeriodSixMonths
+	if workspace.RetentionPeriod != nil {
+		retentionPeriod = *workspace.RetentionPeriod
+	}
+	prices, err := GetStripePrices(stripeClient, *productTier, interval, workspace.UnlimitedMembers, retentionPeriod)
 	if err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to get Stripe prices")
 	}
@@ -433,7 +442,7 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Cli
 
 	invoiceLines := map[ProductType]*stripe.InvoiceLine{}
 	for _, line := range invoice.Lines.Data {
-		productType, _, _, _ := GetProductMetadata(line.Price)
+		productType, _, _, _, _ := GetProductMetadata(line.Price)
 		if productType != nil {
 			invoiceLines[*productType] = line
 		}

@@ -54,13 +54,6 @@ const tryCastDate = (date: Maybe<string> | undefined) => {
 	}
 }
 
-enum RetentionPeriodLabel {
-	ThreeMonths = '3 months',
-	SixMonths = '6 months',
-	TwelveMonths = '12 months',
-	TwoYears = '2 years',
-}
-
 const RETENTION_PERIODS = {
 	'3 months': RetentionPeriod.ThreeMonths,
 	'6 months': RetentionPeriod.SixMonths,
@@ -166,6 +159,9 @@ const BillingPage = () => {
 					billingData.billingDetails.plan.interval,
 				)
 			}
+			if (billingData?.workspace?.retention_period) {
+				setRetentionPeriod(billingData?.workspace?.retention_period)
+			}
 		},
 	})
 
@@ -227,6 +223,7 @@ const BillingPage = () => {
 					workspace_id: workspaceId!,
 					plan_type: newPlan,
 					interval: subscriptionInterval,
+					retention_period: retentionPeriod,
 				},
 			}).then((r) => {
 				if (!r.data?.createOrUpdateStripeSubscription) {
@@ -510,7 +507,7 @@ const BillingPage = () => {
 											.interval ===
 											subscriptionInterval) &&
 									retentionPeriod ===
-										RetentionPeriod.ThreeMonths
+										billingData?.workspace?.retention_period
 								}
 								billingPlan={billingPlan}
 								onSelect={createOnSelect(billingPlan.type)}

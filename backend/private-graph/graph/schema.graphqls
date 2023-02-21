@@ -380,6 +380,7 @@ type Workspace {
 	eligible_for_trial_extension: Boolean!
 	trial_extension_enabled: Boolean!
 	clearbit_enabled: Boolean!
+	retention_period: RetentionPeriod
 }
 
 type Segment {
@@ -1500,6 +1501,7 @@ type Mutation {
 		workspace_id: ID!
 		plan_type: PlanType!
 		interval: SubscriptionInterval!
+		retention_period: RetentionPeriod!
 	): String
 	updateBillingDetails(workspace_id: ID!): Boolean
 	createSessionComment(

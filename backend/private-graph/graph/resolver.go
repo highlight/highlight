@@ -1332,6 +1332,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 
 	// Default to free tier
 	tier := modelInputs.PlanTypeFree
+	retentionPeriod := modelInputs.RetentionPeriodSixMonths
 	unlimitedMembers := false
 	var billingPeriodStart *time.Time
 	var billingPeriodEnd *time.Time
@@ -1341,9 +1342,10 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	// and set the workspace's tier if the Stripe product has one
 	for _, subscription := range subscriptions {
 		for _, subscriptionItem := range subscription.Items.Data {
-			if _, productTier, productUnlimitedMembers, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
+			if _, productTier, productUnlimitedMembers, _, priceRetentionPeriod := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
 				tier = *productTier
 				unlimitedMembers = productUnlimitedMembers
+				retentionPeriod = priceRetentionPeriod
 				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
 				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
 				nextInvoiceTimestamp := time.Unix(subscription.NextPendingInvoiceItemInvoice, 0)
@@ -1372,6 +1374,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 			"BillingPeriodStart": billingPeriodStart,
 			"BillingPeriodEnd":   billingPeriodEnd,
 			"NextInvoiceDate":    nextInvoiceDate,
+			"RetentionPeriod":    retentionPeriod,
 		}).Error; err != nil {
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
 	}
@@ -3117,7 +3120,23 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 	return
 }
 
-func GetRetentionDate(retentionPeriod modelInputs.RetentionPeriod) time.Time {
+func (r *Resolver) GetProjectRetentionDate(ctx context.Context, projectId int) (time.Time, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectId)
+	if err != nil {
+		return time.Time{}, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return GetRetentionDate(workspace.RetentionPeriod), nil
+}
+
+func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time {
+	retentionPeriod := modelInputs.RetentionPeriodSixMonths
+	if retentionPeriodPtr != nil {
+		retentionPeriod = *retentionPeriodPtr
+	}
 	switch retentionPeriod {
 	case modelInputs.RetentionPeriodThreeMonths:
 		return time.Now().AddDate(0, -3, 0)
@@ -3131,15 +3150,51 @@ func GetRetentionDate(retentionPeriod modelInputs.RetentionPeriod) time.Time {
 	return time.Now()
 }
 
-func FormatSessionsQuery(query string, retentionDate time.Time) string {
+func FormatErrorInstancesQuery(query string, retentionDate time.Time) string {
 	return fmt.Sprintf(`
 	{
 		"bool": {
 		   "must": [
 			  {
 				"range": {
-					"created_date": {
-					   "gt": %s
+					"timestamp": {
+					   "gt": "%s"
+					}
+				 }
+			  },
+			  %s
+		   ]
+		}
+	 }`, retentionDate.Format(time.RFC3339), query)
+}
+
+func FormatErrorGroupsQuery(query string, retentionDate time.Time) string {
+	return fmt.Sprintf(`
+	{
+		"bool": {
+		   "must": [
+			  {
+				"range": {
+					"updated_at": {
+					   "gt": "%s"
+					}
+				 }
+			  },
+			  %s
+		   ]
+		}
+	 }`, retentionDate.Format(time.RFC3339), query)
+}
+
+func FormatSessionsQuery(query string, retentionDate time.Time) string {
+	q := fmt.Sprintf(`
+	{
+		"bool": {
+		   "must": [
+			  {
+				"range": {
+					"created_at": {
+					   "gt": "%s"
 					}
 				 }
 			  },
@@ -3194,6 +3249,8 @@ func FormatSessionsQuery(query string, retentionDate time.Time) string {
 		   ]
 		}
 	 }`, retentionDate.Format(time.RFC3339), query)
+	log.Info(q)
+	return q
 }
 
 func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptions, field string, subAggregation *opensearch.TermsAggregation) *opensearch.DateHistogramAggregation {

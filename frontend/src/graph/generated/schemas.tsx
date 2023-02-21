@@ -919,6 +919,7 @@ export type MutationCreateMetricMonitorArgs = {
 export type MutationCreateOrUpdateStripeSubscriptionArgs = {
 	interval: SubscriptionInterval
 	plan_type: PlanType
+	retention_period: RetentionPeriod
 	workspace_id: Scalars['ID']
 }
 
@@ -2437,6 +2438,7 @@ export type Workspace = {
 	next_invoice_date?: Maybe<Scalars['Timestamp']>
 	plan_tier: Scalars['String']
 	projects: Array<Maybe<Project>>
+	retention_period?: Maybe<RetentionPeriod>
 	secret?: Maybe<Scalars['String']>
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>

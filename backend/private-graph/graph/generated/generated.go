@@ -543,7 +543,7 @@ type ComplexityRoot struct {
 		CreateIssueForErrorComment       func(childComplexity int, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
 		CreateIssueForSessionComment     func(childComplexity int, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
 		CreateMetricMonitor              func(childComplexity int, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, emails []*string, filters []*model.MetricTagFilterInput) int
-		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) int
+		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval, retentionPeriod model.RetentionPeriod) int
 		CreateProject                    func(childComplexity int, name string, workspaceID int) int
 		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
 		CreateSessionAlert               func(childComplexity int, input model.SessionAlertInput) int
@@ -1052,6 +1052,7 @@ type ComplexityRoot struct {
 		NextInvoiceDate             func(childComplexity int) int
 		PlanTier                    func(childComplexity int) int
 		Projects                    func(childComplexity int) int
+		RetentionPeriod             func(childComplexity int) int
 		Secret                      func(childComplexity int) int
 		SlackChannels               func(childComplexity int) int
 		SlackWebhookChannel         func(childComplexity int) int
@@ -1144,7 +1145,7 @@ type MutationResolver interface {
 	CreateErrorSegment(ctx context.Context, projectID int, name string, params model.ErrorSearchParamsInput) (*model1.ErrorSegment, error)
 	EditErrorSegment(ctx context.Context, id int, projectID int, params model.ErrorSearchParamsInput, name string) (*bool, error)
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
-	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) (*string, error)
+	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval, retentionPeriod model.RetentionPeriod) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
 	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) (*model1.SessionComment, error)
 	CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.SessionComment, error)
@@ -3617,7 +3618,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateOrUpdateStripeSubscription(childComplexity, args["workspace_id"].(int), args["plan_type"].(model.PlanType), args["interval"].(model.SubscriptionInterval)), true
+		return e.complexity.Mutation.CreateOrUpdateStripeSubscription(childComplexity, args["workspace_id"].(int), args["plan_type"].(model.PlanType), args["interval"].(model.SubscriptionInterval), args["retention_period"].(model.RetentionPeriod)), true
 
 	case "Mutation.createProject":
 		if e.complexity.Mutation.CreateProject == nil {
@@ -7243,6 +7244,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.Projects(childComplexity), true
 
+	case "Workspace.retention_period":
+		if e.complexity.Workspace.RetentionPeriod == nil {
+			break
+		}
+
+		return e.complexity.Workspace.RetentionPeriod(childComplexity), true
+
 	case "Workspace.secret":
 		if e.complexity.Workspace.Secret == nil {
 			break
@@ -7827,6 +7835,7 @@ type Workspace {
 	eligible_for_trial_extension: Boolean!
 	trial_extension_enabled: Boolean!
 	clearbit_enabled: Boolean!
+	retention_period: RetentionPeriod
 }
 
 type Segment {
@@ -8947,6 +8956,7 @@ type Mutation {
 		workspace_id: ID!
 		plan_type: PlanType!
 		interval: SubscriptionInterval!
+		retention_period: RetentionPeriod!
 	): String
 	updateBillingDetails(workspace_id: ID!): Boolean
 	createSessionComment(
@@ -9926,6 +9936,15 @@ func (ec *executionContext) field_Mutation_createOrUpdateStripeSubscription_args
 		}
 	}
 	args["interval"] = arg2
+	var arg3 model.RetentionPeriod
+	if tmp, ok := rawArgs["retention_period"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("retention_period"))
+		arg3, err = ec.unmarshalNRetentionPeriod2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["retention_period"] = arg3
 	return args, nil
 }
 
@@ -27951,6 +27970,8 @@ func (ec *executionContext) fieldContext_Mutation_createWorkspace(ctx context.Co
 				return ec.fieldContext_Workspace_trial_extension_enabled(ctx, field)
 			case "clearbit_enabled":
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
+			case "retention_period":
+				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -28113,6 +28134,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspace(ctx context.Cont
 				return ec.fieldContext_Workspace_trial_extension_enabled(ctx, field)
 			case "clearbit_enabled":
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
+			case "retention_period":
+				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -29475,7 +29498,7 @@ func (ec *executionContext) _Mutation_createOrUpdateStripeSubscription(ctx conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateOrUpdateStripeSubscription(rctx, fc.Args["workspace_id"].(int), fc.Args["plan_type"].(model.PlanType), fc.Args["interval"].(model.SubscriptionInterval))
+		return ec.resolvers.Mutation().CreateOrUpdateStripeSubscription(rctx, fc.Args["workspace_id"].(int), fc.Args["plan_type"].(model.PlanType), fc.Args["interval"].(model.SubscriptionInterval), fc.Args["retention_period"].(model.RetentionPeriod))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -31894,6 +31917,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAllowMeterOverage(ctx co
 				return ec.fieldContext_Workspace_trial_extension_enabled(ctx, field)
 			case "clearbit_enabled":
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
+			case "retention_period":
+				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -37362,6 +37387,8 @@ func (ec *executionContext) fieldContext_Query_workspaces(ctx context.Context, f
 				return ec.fieldContext_Workspace_trial_extension_enabled(ctx, field)
 			case "clearbit_enabled":
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
+			case "retention_period":
+				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -37479,6 +37506,8 @@ func (ec *executionContext) fieldContext_Query_joinable_workspaces(ctx context.C
 				return ec.fieldContext_Workspace_trial_extension_enabled(ctx, field)
 			case "clearbit_enabled":
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
+			case "retention_period":
+				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -38247,6 +38276,8 @@ func (ec *executionContext) fieldContext_Query_workspaceSuggestion(ctx context.C
 				return ec.fieldContext_Workspace_trial_extension_enabled(ctx, field)
 			case "clearbit_enabled":
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
+			case "retention_period":
+				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -39525,6 +39556,8 @@ func (ec *executionContext) fieldContext_Query_workspace(ctx context.Context, fi
 				return ec.fieldContext_Workspace_trial_extension_enabled(ctx, field)
 			case "clearbit_enabled":
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
+			case "retention_period":
+				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -39676,6 +39709,8 @@ func (ec *executionContext) fieldContext_Query_workspace_for_project(ctx context
 				return ec.fieldContext_Workspace_trial_extension_enabled(ctx, field)
 			case "clearbit_enabled":
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
+			case "retention_period":
+				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -50444,6 +50479,47 @@ func (ec *executionContext) fieldContext_Workspace_clearbit_enabled(ctx context.
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Workspace_retention_period(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Workspace_retention_period(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RetentionPeriod, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.RetentionPeriod)
+	fc.Result = res
+	return ec.marshalORetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Workspace_retention_period(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RetentionPeriod does not have child fields")
 		},
 	}
 	return fc, nil
@@ -62480,6 +62556,10 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "retention_period":
+
+			out.Values[i] = ec._Workspace_retention_period(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -65507,6 +65587,16 @@ func (ec *executionContext) marshalNReferrerTablePayload2ᚕᚖgithubᚗcomᚋhi
 	return ret
 }
 
+func (ec *executionContext) unmarshalNRetentionPeriod2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx context.Context, v interface{}) (model.RetentionPeriod, error) {
+	var res model.RetentionPeriod
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRetentionPeriod2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx context.Context, sel ast.SelectionSet, v model.RetentionPeriod) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNS3File2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐS3Fileᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.S3File) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -68000,6 +68090,22 @@ func (ec *executionContext) marshalOReferrerTablePayload2ᚖgithubᚗcomᚋhighl
 		return graphql.Null
 	}
 	return ec._ReferrerTablePayload(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalORetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx context.Context, v interface{}) (*model.RetentionPeriod, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.RetentionPeriod)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalORetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx context.Context, sel ast.SelectionSet, v *model.RetentionPeriod) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOSanitizedAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx context.Context, sel ast.SelectionSet, v *model.SanitizedAdmin) graphql.Marshaler {
