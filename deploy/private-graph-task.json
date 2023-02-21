@@ -68,6 +68,14 @@
 			"dnsSearchDomains": null,
 			"environmentFiles": null,
 			"entryPoint": null,
+			"logConfiguration": {
+				"logDriver": "awslogs",
+				"options": {
+					"awslogs-group": "/ecs/private-graph-task",
+					"awslogs-region": "us-east-2",
+					"awslogs-stream-prefix": "ecs"
+				}
+			},
 			"portMappings": [
 				{
 					"hostPort": 8082,

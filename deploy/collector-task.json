@@ -35,7 +35,7 @@
 			"logConfiguration": {
 				"logDriver": "awslogs",
 				"options": {
-					"awslogs-group": "/ecs/metric-monitor-task",
+					"awslogs-group": "/ecs/opentelemetry-collector-task",
 					"awslogs-region": "us-east-2",
 					"awslogs-stream-prefix": "ecs"
 				}

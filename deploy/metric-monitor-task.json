@@ -68,6 +68,14 @@
 			"dnsSearchDomains": null,
 			"environmentFiles": null,
 			"entryPoint": null,
+			"logConfiguration": {
+				"logDriver": "awslogs",
+				"options": {
+					"awslogs-group": "/ecs/metric-monitor-task",
+					"awslogs-region": "us-east-2",
+					"awslogs-stream-prefix": "ecs"
+				}
+			},
 			"portMappings": [
 				{
 					"hostPort": 8082,
@@ -128,7 +136,7 @@
 				"logDriver": "awslogs",
 				"secretOptions": null,
 				"options": {
-					"awslogs-group": "/ecs/worker-task",
+					"awslogs-group": "/ecs/metric-monitor-task",
 					"awslogs-region": "us-east-2",
 					"awslogs-stream-prefix": "ecs"
 				}
