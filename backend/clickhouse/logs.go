@@ -257,10 +257,10 @@ func makeFilters(query string) filters {
 		attributes: make(map[string]string),
 	}
 
-	queries := split(query)
+	queries := splitQuery(query)
 
-	for _, query := range queries {
-		parts := strings.Split(query, ":")
+	for _, q := range queries {
+		parts := strings.Split(q, ":")
 
 		if len(parts) == 1 && len(parts[0]) > 0 {
 			body := parts[0]
@@ -281,19 +281,22 @@ func makeFilters(query string) filters {
 	return filters
 }
 
-func split(s string) []string {
+// Splits the query by spaces _unless_ it is quoted
+// "some thing" => ["some", "thing"]
+// "some thing 'spaced string' else" => ["some", "thing", "spaced string", "else"]
+func splitQuery(query string) []string {
 	var result []string
 	inquote := false
 	i := 0
-	for j, c := range s {
+	for j, c := range query {
 		if c == '\'' {
 			inquote = !inquote
 		} else if c == ' ' && !inquote {
-			result = append(result, unquoteAndTrim(s[i:j]))
+			result = append(result, unquoteAndTrim(query[i:j]))
 			i = j + i
 		}
 	}
-	return append(result, unquoteAndTrim(s[i:]))
+	return append(result, unquoteAndTrim(query[i:]))
 }
 
 func unquoteAndTrim(s string) string {
