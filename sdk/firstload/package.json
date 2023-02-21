@@ -5,7 +5,7 @@
 		"build": "yarn typegen && rollup -c",
 		"dev": "rollup -c -w",
 		"enforce-size": "size-limit",
-		"test": "vitest",
+		"test": "vitest --run",
 		"typegen": "tsc"
 	},
 	"main": "dist/index.js",
