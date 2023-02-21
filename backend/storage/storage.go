@@ -109,7 +109,8 @@ func (f *FilesystemClient) GetRawData(ctx context.Context, sessionId, projectId 
 	prefix := fmt.Sprintf("%s/raw-events/%d/%d", f.fsRoot, sessionId, projectId)
 	dir, err := os.ReadDir(prefix)
 	if err != nil {
-		return nil, errors.Wrap(err, "error listing objects in fs")
+		log.WithContext(ctx).Warnf("error listing objects in fs: %s", err)
+		return make(map[int]string), nil
 	}
 	objects := lo.Filter(lo.Map(dir, func(t os.DirEntry, i int) string {
 		return t.Name()
@@ -244,10 +245,8 @@ func (f *FilesystemClient) ReadMessages(ctx context.Context, sessionId int, proj
 func (f *FilesystemClient) ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error) {
 	var events []*model.TimelineIndicatorEvent
 	err := f.readCompressed(ctx, sessionId, projectId, TimelineIndicatorEvents, &events)
-	// if timeline indicators file does not exist, session is probably still live.
-	// do not prevent frontend from rendering session
 	if err != nil {
-		log.WithContext(ctx).Warnf("failed to read timeline indicators: %s", err)
+		return nil, err
 	}
 	return events, nil
 }
@@ -262,7 +261,13 @@ func (f *FilesystemClient) ReadResources(ctx context.Context, sessionId int, pro
 }
 
 func (f *FilesystemClient) readCompressed(ctx context.Context, sessionId int, projectId int, t PayloadType, results interface{}) error {
-	buf, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, sessionId, projectId, t))
+	key := fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, sessionId, projectId, t)
+	if _, err := os.Stat(key); err != nil {
+		log.WithContext(ctx).Warnf("file %s does not exist", key)
+		return nil
+	}
+
+	buf, err := f.readFSBytes(ctx, key)
 	if err != nil {
 		return err
 	}
