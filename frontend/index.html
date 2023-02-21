@@ -120,6 +120,20 @@
 		<script>
 			window._highlightFirebaseConfigString = `{{.FirebaseConfigString}}`
 		</script>
+		<script
+			async
+			src="https://www.googletagmanager.com/gtag/js?id=G-P2T64QS94S"
+			onload="
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('set', 'linker', {
+				'domains': ['highlight.io']
+			});
+			gtag('js', new Date());
+			gtag('config', 'G-P2T64QS94S');
+			gtag('config', 'AW-10833687189');
+			window.gtag = gtag"
+		></script>
 
 		<script type="module" src="./src/index.tsx"></script>
 	</head>
