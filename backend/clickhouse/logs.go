@@ -108,12 +108,9 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 }
 
 func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
-	now := time.Now()
 	query := sq.Select("arrayJoin(LogAttributes.keys) as key, count() as cnt").
 		From("logs").
 		Where(sq.Eq{"ProjectId": projectID}).
-		Where(sq.Lt{"Timestamp": now.Unix()}).
-		Where(sq.GtOrEq{"Timestamp": now.AddDate(0, 0, -30).Unix()}).
 		GroupBy("key").
 		OrderBy("cnt DESC").
 		Limit(50)
