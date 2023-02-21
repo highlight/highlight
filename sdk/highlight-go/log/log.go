@@ -84,8 +84,8 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 				semconv.CodeFunctionKey.String(traceEnd.FunctionName),
 				semconv.CodeNamespaceKey.String(traceEnd.Source),
 				semconv.CodeFilepathKey.String(traceEnd.FileName),
-				semconv.CodeLineNumberKey.Int(traceEnd.LineNumber),
-				semconv.CodeColumnKey.Int(traceEnd.ColumnNumber),
+				semconv.CodeLineNumberKey.String(traceEnd.LineNumber),
+				semconv.CodeColumnKey.String(traceEnd.ColumnNumber),
 			)
 		}
 

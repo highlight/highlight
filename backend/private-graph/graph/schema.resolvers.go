@@ -982,6 +982,7 @@ func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int,
 		return false, e.New("A admin tried changing their own role.")
 	}
 
+	// TODO(vkorolik) workspace admins table
 	if err := r.DB.Model(&model.Admin{Model: model.Model{ID: adminID}}).Update("Role", newRole).Error; err != nil {
 		return false, e.Wrap(err, "error updating admin role")
 	}
@@ -3963,6 +3964,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		Order("id desc")
 
 	if errorObjectID == nil {
+		// TODO(vkorolik) needs limit on elements here
 		var sessionIds []int
 		if err := r.DB.Model(&errorObject).
 			Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
