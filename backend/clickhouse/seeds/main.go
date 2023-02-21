@@ -90,7 +90,7 @@ func makeRandLogAttributes() map[string]string {
 		"frontend",
 		"middleware",
 		"logger",
-		"imageparser",
+		"image parser",
 		"flounder",
 	}
 
