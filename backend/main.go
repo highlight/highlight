@@ -300,7 +300,11 @@ func main() {
 
 	var storageClient storage.Client
 	if util.IsInDocker() {
-		if storageClient, err = storage.NewFSClient(ctx, "/tmp", localhostCertPath, localhostKeyPath, "8085"); err != nil {
+		fsRoot := "/tmp"
+		if os.Getenv("OBJECT_STORAGE_FS") != "" {
+			fsRoot = os.Getenv("OBJECT_STORAGE_FS")
+		}
+		if storageClient, err = storage.NewFSClient(ctx, fsRoot, localhostCertPath, localhostKeyPath, "8085"); err != nil {
 			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
 		}
 	} else {

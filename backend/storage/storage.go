@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -116,29 +117,35 @@ func (f *FilesystemClient) GetRawData(ctx context.Context, sessionId, projectId 
 		return strings.HasPrefix(s, string(payloadType))
 	})
 
-	var g errgroup.Group
 	results := make([][]redis.Z, len(objects))
+	var errs = make(chan error, len(objects))
+	var wg sync.WaitGroup
 	for idx, object := range objects {
-		idx := idx
-		g.Go(func() error {
+		wg.Add(1)
+		go func(o string) {
+			defer wg.Done()
 			var result []redis.Z
-			buf, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%s", prefix, object))
+			buf, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%s", prefix, o))
 			if err != nil {
-				return errors.Wrap(err, "error retrieving object from fs")
+				errs <- errors.Wrap(err, "error retrieving object from fs")
+				return
 			}
 
 			decoder := gob.NewDecoder(buf)
 			if err := decoder.Decode(&result); err != nil {
-				return errors.Wrap(err, "error decoding gob")
+				errs <- errors.Wrap(err, "error decoding gob")
+				return
 			}
 
 			results[idx] = result
-			return nil
-		})
+		}(object)
 	}
 
-	if err := g.Wait(); err != nil {
-		return nil, errors.Wrap(err, "error in task retrieving object from S3")
+	wg.Wait()
+	select {
+	case err := <-errs:
+		return nil, errors.Wrap(err, "error in task retrieving object from fs")
+	default:
 	}
 
 	eventRows := map[int]string{}
@@ -287,6 +294,10 @@ func (f *FilesystemClient) UploadAsset(ctx context.Context, uuid, _ string, read
 
 func (f *FilesystemClient) readFSBytes(ctx context.Context, key string) (*bytes.Buffer, error) {
 	file, err := os.Open(key)
+	if err != nil {
+		return nil, errors.Wrap(err, "error opening fs file")
+	}
+
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
