@@ -3189,7 +3189,7 @@ func FormatErrorGroupsQuery(query string, retentionDate time.Time) string {
 }
 
 func FormatSessionsQuery(query string, retentionDate time.Time) string {
-	q := fmt.Sprintf(`
+	return fmt.Sprintf(`
 	{
 		"bool": {
 		   "must": [
@@ -3251,8 +3251,6 @@ func FormatSessionsQuery(query string, retentionDate time.Time) string {
 		   ]
 		}
 	 }`, retentionDate.Format(time.RFC3339), query)
-	log.Info(q)
-	return q
 }
 
 func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptions, field string, subAggregation *opensearch.TermsAggregation) *opensearch.DateHistogramAggregation {
