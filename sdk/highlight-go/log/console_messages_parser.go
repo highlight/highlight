@@ -7,8 +7,8 @@ import (
 )
 
 type Trace struct {
-	ColumnNumber int    `json:"columnNumber"`
-	LineNumber   int    `json:"lineNumber"`
+	ColumnNumber string `json:"columnNumber"`
+	LineNumber   string `json:"lineNumber"`
 	FileName     string `json:"fileName"`
 	FunctionName string `json:"functionName,omitempty"`
 	Source       string `json:"source"`
