@@ -30,6 +30,8 @@ services:
         image: public.ecr.aws/k9o6n7l8/highlight-frontend
         volumes:
             - ../packages/ui/src:/build/packages/ui/src
+            - ../packages/component-preview/src:/build/packages/component-preview/src
+            - ../rrweb:/build/rrweb
             - ../sdk/client/src:/build/sdk/client/src
             - ../sdk/firstload/src:/build/sdk/firstload/src
             - ../sdk/highlight-node/src:/build/sdk/highlight-node/src

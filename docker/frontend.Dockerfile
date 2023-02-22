@@ -15,8 +15,10 @@ COPY ../rrweb/packages/rrdom-nodejs/package.json ./rrweb/packages/rrdom-nodejs/p
 COPY ../rrweb/packages/rrweb/package.json ./rrweb/packages/rrweb/package.json
 COPY ../rrweb/packages/rrweb-player/package.json ./rrweb/packages/rrweb-player/package.json
 COPY ../rrweb/packages/rrweb-snapshot/package.json ./rrweb/packages/rrweb-snapshot/package.json
+COPY ../rrweb/packages/web-extension/package.json ./rrweb/packages/web-extension/package.json
 COPY ../rrweb/packages/types/package.json ./rrweb/packages/types/package.json
 COPY ../packages/ui/package.json ./packages/ui/package.json
+COPY ../packages/component-preview/package.json ./packages/component-preview/package.json
 COPY ../render/package.json ./render/package.json
 COPY ../sourcemap-uploader/package.json ./sourcemap-uploader/package.json
 COPY ../sdk/client/package.json ./sdk/client/package.json
