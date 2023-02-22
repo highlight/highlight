@@ -482,7 +482,7 @@ const User: React.FC<{
 							aren't mapping errors to sessions.
 						</Text>
 					</Box>
-					<div style={{ height: 'fit-content' }}>
+					<Box display="flex">
 						<LinkButton
 							kind="secondary"
 							to="/setup/backend"
@@ -500,7 +500,7 @@ const User: React.FC<{
 						>
 							Learn more
 						</LinkButton>
-					</div>
+					</Box>
 				</Callout>
 			</Box>
 		)
