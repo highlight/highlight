@@ -1,21 +1,36 @@
 import { vars } from '@highlight-run/ui'
-import { style } from '@vanilla-extract/css'
+import { globalStyle, style } from '@vanilla-extract/css'
 
-export const container = style({})
+export const searchIcon = style({
+	position: 'absolute',
+	top: 14,
+	left: 14,
+})
 
 export const combobox = style({
-	borderRadius: vars.borderRadius[6],
-	border: vars.border.secondary,
+	background: 'transparent',
+	border: 0,
 	color: vars.theme.static.content.default,
+	display: 'flex',
 	fontSize: 13,
-	padding: '4px 6px',
+	padding: '6px 0 6px 40px',
 	width: '100%',
+	selectors: {
+		'&:focus': {
+			outline: 0,
+		},
+	},
+})
+
+export const comboboxInput = globalStyle(`${combobox} input`, {
+	color: vars.theme.interactive.fill.secondary.content.text,
 })
 
 export const comboboxPopover = style({
 	background: vars.theme.static.surface.default,
 	border: vars.border.dividerWeak,
 	borderRadius: vars.borderRadius[8],
+	boxShadow: vars.shadows.small,
 	display: 'flex',
 	flexDirection: 'column',
 	flexGrow: 1,

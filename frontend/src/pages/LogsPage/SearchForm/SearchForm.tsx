@@ -5,6 +5,7 @@ import {
 	Box,
 	Combobox,
 	IconSolidArrowsExpand,
+	IconSolidSearch,
 	Preset,
 	PreviousDateRangePicker,
 	Stack,
@@ -71,13 +72,19 @@ const SearchForm = ({
 
 	return (
 		<form onSubmit={handleSubmit} style={{ position: 'relative' }}>
-			<Box display="flex" gap="8" width="full">
+			<Box
+				alignItems="stretch"
+				display="flex"
+				gap="8"
+				width="full"
+				borderBottom="dividerWeak"
+			>
 				<Search
 					keys={keysData?.logs_keys}
 					query={query}
 					onSearchChange={handleSearchChange}
 				/>
-				<Box display="flex">
+				<Box display="flex" pr="8" py="6">
 					<PreviousDateRangePicker
 						selectedDates={selectedDates}
 						onDatesChange={handleDatesChange}
@@ -124,7 +131,7 @@ const Search: React.FC<{
 	console.log('::: items', showValues, visibleItems)
 
 	// Limit number of items shown
-	visibleItems.length = MAX_ITEMS
+	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
 
 	useEffect(() => {
 		if (!showValues) {
@@ -152,40 +159,50 @@ const Search: React.FC<{
 		if (query && query !== queryText) {
 			setQueryText(query)
 		}
-
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [query])
 
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
 	) => {
-		let query
+		let newQueryText
 
 		// If string, it's a value not a key
 		if (typeof key === 'string') {
 			queryTerms[activeTermIndex].value = key
-			// add trailing space to start new query
-			query = `${stringifyLogsQuery(queryTerms)} `
+			// Add trailing space to start new query
+			newQueryText = `${stringifyLogsQuery(queryTerms)} `
 		} else {
 			queryTerms[activeTermIndex].key = key.name
 			queryTerms[activeTermIndex].value = ''
-			query = stringifyLogsQuery(queryTerms)
+			newQueryText = stringifyLogsQuery(queryTerms)
 		}
 
-		onSearchChange(query)
-		setQueryText(query)
+		setQueryText(newQueryText)
+		// state.setActiveId(null)
+	}
 
-		state.setActiveId(null)
+	const handleSearch = () => {
+		if (query === queryText) {
+			return
+		}
+
+		onSearchChange(queryText)
+		state.setOpen(false)
 	}
 
 	return (
 		<Box
+			alignItems="stretch"
 			display="flex"
 			flexGrow={1}
 			ref={containerRef}
-			cssClass={styles.container}
+			position="relative"
 		>
+			<IconSolidSearch className={styles.searchIcon} />
+
 			<Combobox
+				autoSelect
 				ref={inputRef}
 				state={state}
 				name="search"
@@ -193,14 +210,20 @@ const Search: React.FC<{
 				value={queryText}
 				onChange={(e) => {
 					setQueryText(e.target.value)
-					console.log('::: state', state)
+					state.setOpen(true)
 					state.setActiveId(state.items[0].id)
 				}}
 				className={styles.combobox}
 				setValueOnChange={false}
+				onKeyDown={(e) => {
+					if (e.key === 'Enter' && state.activeId === null) {
+						handleSearch()
+					}
+				}}
+				onBlur={handleSearch}
 			/>
 
-			{keys?.length && (
+			{visibleItems.length > 0 && (
 				<Combobox.Popover
 					className={styles.comboboxPopover}
 					state={state}
@@ -221,7 +244,7 @@ const Search: React.FC<{
 								<Combobox.Item
 									className={styles.comboboxItem}
 									key={index}
-									onClick={handleItemSelect.bind(this, key)}
+									onClick={() => handleItemSelect(key)}
 									state={state}
 								>
 									{typeof key === 'string' ? (

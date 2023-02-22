@@ -120,14 +120,21 @@ const LogsPage = () => {
 			<Helmet>
 				<title>Logs</title>
 			</Helmet>
-			<Box background="n2" padding="8" flex="stretch">
+			<Box
+				background="n2"
+				padding="8"
+				flex="stretch"
+				justifyContent="stretch"
+				display="flex"
+			>
 				<Box
 					background="white"
-					borderRadius="12"
-					height="full"
+					borderRadius="6"
 					gap="4"
 					flexDirection="column"
 					display="flex"
+					flexGrow={1}
+					border="dividerWeak"
 				>
 					<SearchForm
 						initialQuery={query}
