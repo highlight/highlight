@@ -540,6 +540,7 @@ type ComplexityRoot struct {
 		AddIntegrationToProject          func(childComplexity int, integrationType *model.IntegrationType, projectID int, code string) int
 		AddIntegrationToWorkspace        func(childComplexity int, integrationType *model.IntegrationType, workspaceID int, code string) int
 		ChangeAdminRole                  func(childComplexity int, workspaceID int, adminID int, newRole string) int
+		CreateAdmin                      func(childComplexity int) int
 		CreateDefaultAlerts              func(childComplexity int, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) int
 		CreateErrorAlert                 func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int) int
 		CreateErrorComment               func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
@@ -709,6 +710,7 @@ type ComplexityRoot struct {
 		LinearTeams                  func(childComplexity int, projectID int) int
 		LiveUsersCount               func(childComplexity int, projectID int) int
 		Logs                         func(childComplexity int, projectID int, params model.LogsParamsInput) int
+		LogsKeyValues                func(childComplexity int, projectID int, keyName string) int
 		LogsKeys                     func(childComplexity int, projectID int) int
 		LogsTotalCount               func(childComplexity int, projectID int, params model.LogsParamsInput) int
 		Messages                     func(childComplexity int, sessionSecureID string) int
@@ -1124,6 +1126,7 @@ type MetricMonitorResolver interface {
 type MutationResolver interface {
 	UpdateAdminAndCreateWorkspace(ctx context.Context, adminAndWorkspaceDetails model.AdminAndWorkspaceDetails) (*model1.Project, error)
 	UpdateAdminAboutYouDetails(ctx context.Context, adminDetails model.AdminAboutYouDetails) (bool, error)
+	CreateAdmin(ctx context.Context) (*model1.Admin, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model1.Workspace, error)
 	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray) (*model1.Project, error)
@@ -1313,6 +1316,7 @@ type QueryResolver interface {
 	Logs(ctx context.Context, projectID int, params model.LogsParamsInput) ([]*model.LogLine, error)
 	LogsTotalCount(ctx context.Context, projectID int, params model.LogsParamsInput) (uint64, error)
 	LogsKeys(ctx context.Context, projectID int) ([]*model.LogKey, error)
+	LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -3535,6 +3539,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ChangeAdminRole(childComplexity, args["workspace_id"].(int), args["admin_id"].(int), args["new_role"].(string)), true
 
+	case "Mutation.createAdmin":
+		if e.complexity.Mutation.CreateAdmin == nil {
+			break
+		}
+
+		return e.complexity.Mutation.CreateAdmin(childComplexity), true
+
 	case "Mutation.createDefaultAlerts":
 		if e.complexity.Mutation.CreateDefaultAlerts == nil {
 			break
@@ -5216,6 +5227,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Logs(childComplexity, args["project_id"].(int), args["params"].(model.LogsParamsInput)), true
+
+	case "Query.logs_key_values":
+		if e.complexity.Query.LogsKeyValues == nil {
+			break
+		}
+
+		args, err := ec.field_Query_logs_key_values_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.LogsKeyValues(childComplexity, args["project_id"].(int), args["key_name"].(string)), true
 
 	case "Query.logs_keys":
 		if e.complexity.Query.LogsKeys == nil {
@@ -8876,6 +8899,7 @@ type Query {
 	logs(project_id: ID!, params: LogsParamsInput!): [LogLine!]!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_keys(project_id: ID!): [LogKey!]!
+	logs_key_values(project_id: ID!, key_name: String!): [String!]!
 }
 
 type Mutation {
@@ -8883,6 +8907,7 @@ type Mutation {
 		admin_and_workspace_details: AdminAndWorkspaceDetails!
 	): Project
 	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
+	createAdmin: Admin!
 	createProject(name: String!, workspace_id: ID!): Project
 	createWorkspace(name: String!, promo_code: String): Workspace
 	editProject(
@@ -13126,6 +13151,30 @@ func (ec *executionContext) field_Query_logs_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["params"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_logs_key_values_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["key_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key_name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["key_name"] = arg1
 	return args, nil
 }
 
@@ -27881,6 +27930,75 @@ func (ec *executionContext) fieldContext_Mutation_updateAdminAboutYouDetails(ctx
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createAdmin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createAdmin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateAdmin(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.Admin)
+	fc.Result = res
+	return ec.marshalNAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createAdmin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Admin_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Admin_name(ctx, field)
+			case "uid":
+				return ec.fieldContext_Admin_uid(ctx, field)
+			case "email":
+				return ec.fieldContext_Admin_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_Admin_phone(ctx, field)
+			case "photo_url":
+				return ec.fieldContext_Admin_photo_url(ctx, field)
+			case "slack_im_channel_id":
+				return ec.fieldContext_Admin_slack_im_channel_id(ctx, field)
+			case "email_verified":
+				return ec.fieldContext_Admin_email_verified(ctx, field)
+			case "referral":
+				return ec.fieldContext_Admin_referral(ctx, field)
+			case "user_defined_role":
+				return ec.fieldContext_Admin_user_defined_role(ctx, field)
+			case "about_you_details_filled":
+				return ec.fieldContext_Admin_about_you_details_filled(ctx, field)
+			case "user_defined_persona":
+				return ec.fieldContext_Admin_user_defined_persona(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Admin", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createProject(ctx, field)
 	if err != nil {
@@ -41254,6 +41372,60 @@ func (ec *executionContext) fieldContext_Query_logs_keys(ctx context.Context, fi
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_logs_keys_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_logs_key_values(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_logs_key_values(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().LogsKeyValues(rctx, fc.Args["project_id"].(int), fc.Args["key_name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_logs_key_values(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_logs_key_values_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -57489,6 +57661,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_updateAdminAboutYouDetails(ctx, field)
 			})
 
+		case "createAdmin":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createAdmin(ctx, field)
+			})
+
 		case "createProject":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -60535,6 +60713,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "logs_key_values":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_logs_key_values(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -63090,6 +63288,10 @@ func (ec *executionContext) marshalNAccountDetailsMember2ᚖgithubᚗcomᚋhighl
 		return graphql.Null
 	}
 	return ec._AccountDetailsMember(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAdmin2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx context.Context, sel ast.SelectionSet, v model1.Admin) graphql.Marshaler {
+	return ec._Admin(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx context.Context, sel ast.SelectionSet, v *model1.Admin) graphql.Marshaler {

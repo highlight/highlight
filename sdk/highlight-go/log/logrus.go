@@ -54,13 +54,13 @@ func NewHook(opts ...Option) *Hook {
 
 // Fire is a logrus hook that is fired on a new log entry.
 func (hook *Hook) Fire(entry *logrus.Entry) error {
-	var span trace.Span
-	if entry.Context == nil {
-		span, _ = highlight.StartTrace(context.TODO(), "highlight-ctx")
-		defer highlight.EndTrace(span)
-	} else {
-		span = trace.SpanFromContext(entry.Context)
+	ctx := entry.Context
+	if ctx == nil {
+		ctx = context.TODO()
 	}
+
+	span, _ := highlight.StartTrace(ctx, "highlight-go/logrus")
+	defer highlight.EndTrace(span)
 
 	attrs := []attribute.KeyValue{
 		LogSeverityKey.String(levelString(entry.Level)),

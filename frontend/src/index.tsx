@@ -4,7 +4,7 @@ import '@fontsource/poppins'
 import './index.scss'
 import './style/tailwind.css'
 
-import { ApolloError, ApolloProvider, QueryLazyOptions } from '@apollo/client'
+import { ApolloError, ApolloProvider } from '@apollo/client'
 import {
 	AuthContextProvider,
 	AuthRole,
@@ -19,9 +19,8 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { datadogLogs } from '@datadog/browser-logs'
-import { datadogRum } from '@datadog/browser-rum'
 import {
+	useCreateAdminMutation,
 	useGetAdminLazyQuery,
 	useGetAdminRoleByProjectLazyQuery,
 	useGetAdminRoleLazyQuery,
@@ -29,9 +28,8 @@ import {
 } from '@graph/hooks'
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
-import { SignUp } from '@pages/Auth/SignUp'
-import { AuthAdminRouter } from '@pages/Login/Login'
 import useLocalStorage from '@rehooks/local-storage'
+import { AppRouter } from '@routers/AppRouter/AppRouter'
 import * as Sentry from '@sentry/react'
 import { BrowserTracing } from '@sentry/tracing'
 import analytics from '@util/analytics'
@@ -46,6 +44,7 @@ import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
@@ -118,32 +117,9 @@ if (dev) {
 H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 if (!isOnPrem) {
 	H.start()
-
 	showIntercom({ hideMessage: true })
-	if (!dev) {
-		datadogLogs.init({
-			clientToken: import.meta.env.DD_CLIENT_TOKEN,
-			site: 'datadoghq.com',
-			forwardErrorsToLogs: true,
-			sampleRate: 100,
-			service: 'frontend',
-		})
-		datadogRum.init({
-			applicationId: import.meta.env.DD_RUM_APPLICATION_ID,
-			clientToken: import.meta.env.DD_CLIENT_TOKEN,
-			site: 'datadoghq.com',
-			service: 'frontend',
-			env: options.environment,
-			version: options.version,
-			sampleRate: 100,
-			sessionReplaySampleRate: 1,
-			trackResources: true,
-			trackLongTasks: true,
-			trackInteractions: true,
-			defaultPrivacyLevel: 'allow',
-		})
-		datadogRum.startSessionReplayRecording()
 
+	if (!dev) {
 		Sentry.init({
 			dsn: 'https://e8052ada7c10490b823e0f939c519903@o4504696930631680.ingest.sentry.io/4504697059934208',
 			integrations: [new BrowserTracing()],
@@ -233,27 +209,9 @@ const AuthenticationRoleRouter = () => {
 	] = useGetAdminLazyQuery()
 
 	let getAdminQuery:
-			| ((
-					workspace_id:
-						| QueryLazyOptions<
-								Partial<{
-									workspace_id: string
-									project_id: string
-								}>
-						  >
-						| undefined,
-			  ) => void)
-			| ((
-					project_id:
-						| QueryLazyOptions<
-								Partial<{
-									workspace_id: string
-									project_id: string
-								}>
-						  >
-						| undefined,
-			  ) => void)
-			| (() => void),
+			| typeof getAdminWorkspaceRoleQuery
+			| typeof getAdminProjectRoleQuery
+			| typeof getAdminSimpleQuery,
 		adminError: ApolloError | undefined,
 		adminData: Admin | undefined | null,
 		adminRole: string | undefined,
@@ -311,25 +269,34 @@ const AuthenticationRoleRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [adminData, authRole, projectId])
 
+	const [createAdminMutation] = useCreateAdminMutation()
+
 	useEffect(() => {
-		const variables: Partial<{ workspace_id: string; project_id: string }> =
-			{}
+		const variables: any = {}
 		if (workspaceId) {
 			variables.workspace_id = workspaceId
 		} else if (projectId) {
 			variables.project_id = projectId
 		}
+
 		const unsubscribeFirebase = auth.onAuthStateChanged(
-			(user) => {
+			async (user) => {
 				setUser(user)
 
 				if (user) {
-					if (!called) {
-						getAdminQuery({
-							variables,
-						})
-					} else {
-						refetch!()
+					try {
+						// Try to create an admin if it's a new account. This can't be
+						// handled on the sign up form because this callback is triggered
+						// before the admin is created.
+						if (!user.emailVerified) {
+							await createAdminMutation()
+						}
+					} finally {
+						if (!called) {
+							getAdminQuery({ variables })
+						} else {
+							refetch!()
+						}
 					}
 				} else {
 					setAuthRole(AuthRole.UNAUTHENTICATED)
@@ -382,17 +349,18 @@ const AuthenticationRoleRouter = () => {
 		true,
 	)
 
+	const loggedIn = isLoggedIn(authRole)
+
 	return (
 		<AuthContextProvider
 			value={{
 				role: authRole,
-				admin: isLoggedIn(authRole)
-					? adminData ?? undefined
-					: undefined,
+				admin: loggedIn ? adminData ?? undefined : undefined,
 				workspaceRole: adminRole || undefined,
 				isAuthLoading: isAuthLoading(authRole),
-				isLoggedIn: isLoggedIn(authRole),
+				isLoggedIn: loggedIn,
 				isHighlightAdmin: isHighlightAdmin(authRole) && enableStaffView,
+				refetchAdmin: refetch,
 			}}
 		>
 			<Helmet>
@@ -409,17 +377,17 @@ const AuthenticationRoleRouter = () => {
 				/>
 			) : (
 				<Routes>
-					<Route path="sign_up" element={<SignUp />} />
-					<Route path="/*" element={<AuthAdminRouter />} />
+					<Route path="/*" element={<AppRouter />} />
 				</Routes>
 			)}
 		</AuthContextProvider>
 	)
 }
 
-ReactDOM.render(
+const container = document.getElementById('root')!
+const root = createRoot(container)
+root.render(
 	<React.StrictMode>
 		<App />
 	</React.StrictMode>,
-	document.getElementById('root'),
 )

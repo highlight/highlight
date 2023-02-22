@@ -65,7 +65,7 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 
 	span, _ := highlight.StartTrace(
 		ctx, "highlight-ctx",
-		attribute.String("Source", "SubmitFrontendConsoleMessages"),
+		attribute.String(highlight.SourceAttribute, highlight.SourceAttributeFrontend),
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 		attribute.String(highlight.SessionIDAttribute, sessionSecureID),
 	)
@@ -84,8 +84,8 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 				semconv.CodeFunctionKey.String(traceEnd.FunctionName),
 				semconv.CodeNamespaceKey.String(traceEnd.Source),
 				semconv.CodeFilepathKey.String(traceEnd.FileName),
-				semconv.CodeLineNumberKey.Int(traceEnd.LineNumber),
-				semconv.CodeColumnKey.Int(traceEnd.ColumnNumber),
+				semconv.CodeLineNumberKey.String(traceEnd.LineNumber),
+				semconv.CodeColumnKey.String(traceEnd.ColumnNumber),
 			)
 		}
 

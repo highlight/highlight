@@ -1,0 +1,79 @@
+@font-face {
+	font-display: swap;
+	font-family: 'Steradian';
+	font-style: normal;
+	font-weight: 200;
+	src: local('Steradian UltraLight'), local('SteradianUltraLight'),
+		url('https://app.highlight.run/font/SteradianUltraLight.woff2')
+			format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'Steradian';
+	font-style: normal;
+	font-weight: normal;
+	src: local('Steradian Regular'), local('SteradianRegular'),
+		url('https://app.highlight.run/font/SteradianRegular.woff2')
+			format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'Steradian';
+	font-style: normal;
+	font-weight: 100;
+	src: local('Steradian Thin'), local('SteradianThin'),
+		url('https://app.highlight.run/font/SteradianThin.woff2')
+			format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'Steradian';
+	font-style: normal;
+	font-weight: 800;
+	src: local('Steradian Black'), local('SteradianBlack'),
+		url('https://app.highlight.run/font/SteradianBlack.woff2')
+			format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'Steradian';
+	font-style: normal;
+	font-weight: bold;
+	src: local('Steradian Bold'), local('SteradianBold'),
+		url('https://app.highlight.run/font/SteradianBold.woff2')
+			format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'Steradian';
+	font-style: normal;
+	font-weight: 500;
+	src: local('Steradian Medium'), local('SteradianMedium'),
+		url('https://app.highlight.run/font/SteradianMedium.woff2')
+			format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'Steradian';
+	font-style: normal;
+	font-weight: 200;
+	src: local('Steradian ExtraLight'), local('SteradianExtraLight'),
+		url('https://app.highlight.run/font/SteradianExtraLight.woff2')
+			format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'Steradian';
+	font-style: normal;
+	font-weight: 300;
+	src: local('Steradian Light'), local('SteradianLight'),
+		url('https://app.highlight.run/font/SteradianLight.woff2')
+			format('woff2');
+}
