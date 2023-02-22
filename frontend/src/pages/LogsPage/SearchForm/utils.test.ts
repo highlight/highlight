@@ -45,6 +45,49 @@ describe('parseLogsQuery', () => {
 	it('parses a complex query correctly', () => {
 		expect(parseLogsQuery(complexQueryString)).toEqual(complexQueryParams)
 	})
+
+	it('calculates offsets correctly when text query when not at end of query', () => {
+		const query = 'project_id:18 search query name:"Eric Thomas"'
+
+		expect(parseLogsQuery(query)).toEqual([
+			{
+				key: 'project_id',
+				operator: '=',
+				value: '18',
+				offsetStart: 0,
+			},
+			{
+				key: 'text',
+				operator: '=',
+				value: 'search query',
+				offsetStart: 14,
+			},
+			{
+				key: 'name',
+				operator: '=',
+				value: 'Eric Thomas',
+				offsetStart: 27,
+			},
+		])
+	})
+
+	it('adds a text query when there is a trailing space', () => {
+		const query = 'name:"Eric Thomas" '
+		expect(parseLogsQuery(query)).toEqual([
+			{
+				key: 'name',
+				operator: '=',
+				value: 'Eric Thomas',
+				offsetStart: 0,
+			},
+			{
+				key: 'text',
+				operator: '=',
+				value: '',
+				offsetStart: 19,
+			},
+		])
+	})
 })
 
 describe('stringifyLogsQuery', () => {

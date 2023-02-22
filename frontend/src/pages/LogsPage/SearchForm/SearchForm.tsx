@@ -1,10 +1,14 @@
 import { useGetLogsKeysQuery, useGetLogsKeyValuesLazyQuery } from '@graph/hooks'
 import { GetLogsKeysQuery } from '@graph/operations'
 import {
+	Badge,
 	Box,
 	Combobox,
+	IconSolidArrowsExpand,
 	Preset,
 	PreviousDateRangePicker,
+	Stack,
+	Text,
 	useComboboxState,
 } from '@highlight-run/ui'
 import {
@@ -72,7 +76,6 @@ const SearchForm = ({
 					keys={keysData?.logs_keys}
 					query={query}
 					onSearchChange={handleSearchChange}
-					onSubmit={handleSubmit}
 				/>
 				<Box display="flex">
 					<PreviousDateRangePicker
@@ -93,27 +96,24 @@ const Search: React.FC<{
 	keys?: GetLogsKeysQuery['logs_keys']
 	query: string
 	onSearchChange: any
-	onSubmit: any
-}> = ({ keys, onSearchChange, onSubmit, query }) => {
+}> = ({ keys, onSearchChange, query }) => {
 	const { project_id } = useParams()
 	const [queryText, setQueryText] = useState('')
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const inputRef = useRef<HTMLInputElement | null>(null)
-	const state = useComboboxState({ gutter: 4, sameWidth: true })
+	const state = useComboboxState({ gutter: 6, sameWidth: true })
 	const [getLogsKeyValues, { data }] = useGetLogsKeyValuesLazyQuery()
 
-	// TODO: Handle active term not being at the end.
 	const queryTerms = parseLogsQuery(queryText)
 	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
 	const startingNewTerm = queryText.endsWith(' ')
-	console.log('::: activeTerm', activeTerm, startingNewTerm)
+	console.log('::: activeTerm', activeTerm, queryTerms, startingNewTerm)
 
 	const showValues =
-		activeTerm.key === 'text' ||
+		activeTerm.key !== 'text' ||
 		!!keys?.find((k) => k.name === activeTerm.key)
-	debugger
 
 	const activeTermKeys = queryTerms.map((term) => term.key)
 	keys = keys?.filter((key) => activeTermKeys.indexOf(key.name) === -1)
@@ -153,22 +153,29 @@ const Search: React.FC<{
 			setQueryText(query)
 		}
 
-		if (visibleItems.length === 0) {
-			debugger
-			state.setOpen(false)
-		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [query])
 
-	const handleKeyChange = (
-		key: GetLogsKeysQuery['logs_keys'][0],
-		termIndex: number,
+	const handleItemSelect = (
+		key: GetLogsKeysQuery['logs_keys'][0] | string,
 	) => {
-		queryTerms[termIndex].key = key.name
-		queryTerms[termIndex].value = ''
-		const query = stringifyLogsQuery(queryTerms)
+		let query
+
+		// If string, it's a value not a key
+		if (typeof key === 'string') {
+			queryTerms[activeTermIndex].value = key
+			// add trailing space to start new query
+			query = `${stringifyLogsQuery(queryTerms)} `
+		} else {
+			queryTerms[activeTermIndex].key = key.name
+			queryTerms[activeTermIndex].value = ''
+			query = stringifyLogsQuery(queryTerms)
+		}
+
 		onSearchChange(query)
 		setQueryText(query)
+
+		state.setActiveId(null)
 	}
 
 	return (
@@ -184,7 +191,11 @@ const Search: React.FC<{
 				name="search"
 				placeholder="Search your logs..."
 				value={queryText}
-				onChange={(e) => setQueryText(e.target.value)}
+				onChange={(e) => {
+					setQueryText(e.target.value)
+					console.log('::: state', state)
+					state.setActiveId(state.items[0].id)
+				}}
 				className={styles.combobox}
 				setValueOnChange={false}
 			/>
@@ -193,40 +204,88 @@ const Search: React.FC<{
 				<Combobox.Popover
 					className={styles.comboboxPopover}
 					state={state}
-					style={{ right: 0 }}
 				>
-					{queryText.length > 0 && (
-						<Combobox.Item
-							className={styles.comboboxItem}
-							onClick={() => onSubmit()}
+					<Box py="4">
+						<Combobox.Group
+							className={styles.comboboxGroup}
+							state={state}
 						>
-							Run Query
-						</Combobox.Item>
-					)}
-					{visibleItems.map((key, index) => (
-						<Combobox.Item
-							className={styles.comboboxItem}
-							key={index}
-							onClick={() => {
-								if (typeof key === 'string') {
-									// value replacement
-									queryTerms[activeTermIndex].value = key
-								} else {
-									// key replacement
-									queryTerms[activeTermIndex].key = key.name
-									queryTerms[activeTermIndex].value = ''
-								}
-
-								const query = stringifyLogsQuery(queryTerms)
-								onSearchChange(query)
-								setQueryText(query)
-							}}
+							<Combobox.GroupLabel state={state}>
+								<Box px="10" py="6">
+									<Text size="xSmall" color="weak">
+										Filters
+									</Text>
+								</Box>
+							</Combobox.GroupLabel>
+							{visibleItems.map((key, index) => (
+								<Combobox.Item
+									className={styles.comboboxItem}
+									key={index}
+									onClick={handleItemSelect.bind(this, key)}
+									state={state}
+								>
+									{typeof key === 'string' ? (
+										<Text>{key}</Text>
+									) : (
+										<Stack direction="row" gap="8">
+											<Text>{key.name}:</Text>{' '}
+											<Text color="weak">
+												{key.type.toLowerCase()}
+											</Text>
+										</Stack>
+									)}
+								</Combobox.Item>
+							))}
+						</Combobox.Group>
+					</Box>
+					<Box
+						bbr="8"
+						py="4"
+						px="6"
+						backgroundColor="raised"
+						borderTop="dividerWeak"
+						display="flex"
+						flexDirection="row"
+						gap="20"
+					>
+						<Box
+							display="inline-flex"
+							flexDirection="row"
+							alignItems="center"
+							gap="6"
 						>
-							{typeof key === 'string'
-								? key
-								: `${key.name} (${key.type})`}
-						</Combobox.Item>
-					))}
+							<Badge
+								variant="gray"
+								size="small"
+								iconStart={<IconSolidArrowsExpand />}
+							/>{' '}
+							<Text color="weak" size="xSmall">
+								Select
+							</Text>
+						</Box>
+						<Box
+							display="inline-flex"
+							flexDirection="row"
+							alignItems="center"
+							gap="6"
+						>
+							<Badge variant="gray" size="small" label="Enter" />
+							<Text color="weak" size="xSmall">
+								Open
+							</Text>
+						</Box>
+						<Box
+							display="inline-flex"
+							flexDirection="row"
+							alignItems="center"
+							gap="6"
+						>
+							<Badge variant="gray" size="small" label="Enter" />
+							<Text color="weak" size="xSmall">
+								Open
+							</Text>
+						</Box>
+					</Box>
 				</Combobox.Popover>
 			)}
 		</Box>

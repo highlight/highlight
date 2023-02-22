@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, BoxProps } from '../Box/Box'
+import { Box, BoxProps, PaddingProps } from '../Box/Box'
 
 type Props = React.PropsWithChildren & {
 	as?: BoxProps['as']
@@ -9,7 +9,7 @@ type Props = React.PropsWithChildren & {
 	gap?: BoxProps['gap']
 	justify?: BoxProps['justifyContent']
 	wrap?: boolean | BoxProps['flexWrap']
-}
+} & PaddingProps
 
 export const Stack: React.FC<Props> = ({
 	as,
@@ -20,6 +20,7 @@ export const Stack: React.FC<Props> = ({
 	gap,
 	justify,
 	wrap,
+	...props
 }) => {
 	if (typeof wrap === 'boolean') {
 		wrap = wrap ? 'wrap' : undefined
@@ -35,6 +36,7 @@ export const Stack: React.FC<Props> = ({
 			justifyContent={justify}
 			gap={gap}
 			flexWrap={wrap}
+			{...props}
 		>
 			{children}
 		</Box>

@@ -138,18 +138,20 @@ const LogsPage = () => {
 						presets={PRESETS}
 						minDate={thirtyDaysAgo}
 					/>
-					<Stack direction="row" gap="2">
+					<Stack direction="row" gap="2" px="12" py="8">
 						{logCountLoading ? (
 							<CircularSpinner />
 						) : (
 							totalCount && (
 								<>
-									<Text color="weak">
+									<Text size="xSmall" color="weak">
 										{formatNumber(
 											totalCount.logs_total_count,
 										)}
 									</Text>
-									<Text color="weak">logs</Text>
+									<Text size="xSmall" color="weak">
+										logs
+									</Text>
 								</>
 							)
 						)}

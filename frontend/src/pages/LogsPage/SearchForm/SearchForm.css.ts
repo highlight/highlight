@@ -14,25 +14,32 @@ export const combobox = style({
 
 export const comboboxPopover = style({
 	background: vars.theme.static.surface.default,
-	border: vars.border.secondary,
+	border: vars.border.dividerWeak,
 	borderRadius: vars.borderRadius[8],
 	display: 'flex',
 	flexDirection: 'column',
 	flexGrow: 1,
-	padding: '4px 0',
-	left: 0,
+	left: 6,
 	right: 0,
+	maxWidth: 600,
 })
 
 export const comboboxItem = style({
-	fontSize: 13,
-	padding: '3px 12px',
+	padding: '12px 10px',
 	selectors: {
 		'&:hover': {
 			backgroundColor: vars.theme.interactive.fill.secondary.hover,
 		},
 		'&[data-active-item]': {
 			backgroundColor: vars.theme.interactive.fill.secondary.pressed,
+		},
+	},
+})
+
+export const comboboxGroup = style({
+	selectors: {
+		'& + &': {
+			borderTop: vars.border.secondary,
 		},
 	},
 })

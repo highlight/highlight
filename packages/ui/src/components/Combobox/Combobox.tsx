@@ -5,6 +5,10 @@ import {
 	ComboboxProps as AriakitComboboxProps,
 	ComboboxItem as AriakitComboboxItem,
 	ComboboxItemProps as AriakitComboboxItemProps,
+	ComboboxGroup as AriakitComboboxGroup,
+	ComboboxGroupProps as AriakitComboboxGroupProps,
+	ComboboxGroupLabel as AriakitComboboxGroupLabel,
+	ComboboxGroupLabelProps as AriakitComboboxGroupLabelProps,
 	ComboboxPopover as AriakitComboboxPopover,
 	ComboboxPopoverProps as AriakitComboboxPopoverProps,
 } from 'ariakit/combobox'
@@ -16,6 +20,8 @@ type Props = React.PropsWithChildren & AriakitComboboxProps
 type ComboboxComponent = React.ForwardRefExoticComponent<Props> & {
 	Popover: typeof Popover
 	Item: typeof Item
+	Group: typeof Group
+	GroupLabel: typeof GroupLabel
 }
 
 export const Combobox = React.forwardRef<
@@ -43,5 +49,23 @@ export const Item: React.FC<
 	return <AriakitComboboxItem {...props}>{children}</AriakitComboboxItem>
 }
 
+export const Group: React.FC<
+	React.PropsWithChildren & AriakitComboboxGroupProps
+> = ({ children, ...props }) => {
+	return <AriakitComboboxGroup {...props}>{children}</AriakitComboboxGroup>
+}
+
+export const GroupLabel: React.FC<
+	React.PropsWithChildren & AriakitComboboxGroupLabelProps
+> = ({ children, ...props }) => {
+	return (
+		<AriakitComboboxGroupLabel {...props}>
+			{children}
+		</AriakitComboboxGroupLabel>
+	)
+}
+
 Combobox.Popover = Popover
 Combobox.Item = Item
+Combobox.Group = Group
+Combobox.GroupLabel = GroupLabel

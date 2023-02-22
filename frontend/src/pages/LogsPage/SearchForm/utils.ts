@@ -9,7 +9,7 @@ const SEPARATOR = ':'
 const DEFAULT_OPERATOR = '='
 const NAME_TEXT = 'text'
 const PARSE_REGEX =
-	/(\S+:'(?:[^'\\]|\\.)*')|(\S+:"(?:[^"\\]|\\.)*")|(-?"(?:[^"\\]|\\.)*")|(-?'(?:[^'\\]|\\.)*')|\S+|\S+:\S+/g
+	/(\S+:'(?:[^'\\]|\\.)*')|(\S+:"(?:[^"\\]|\\.)*")|(-?"(?:[^"\\]|\\.)*")|(-?'(?:[^'\\]|\\.)*')|\S+|\S+:\S+|\s$/g
 
 export const parseLogsQuery = (query: string): LogsSearchParam[] => {
 	if (query.indexOf(SEPARATOR) === -1) {
@@ -24,11 +24,11 @@ export const parseLogsQuery = (query: string): LogsSearchParam[] => {
 	}
 
 	const terms = []
-	const freetextQueryWords = []
 	let match
 
 	while ((match = PARSE_REGEX.exec(query)) !== null) {
 		const term = match[0]
+
 		if (term.indexOf(SEPARATOR) > -1) {
 			const [key, value] = term.split(SEPARATOR)
 
@@ -36,22 +36,25 @@ export const parseLogsQuery = (query: string): LogsSearchParam[] => {
 				key,
 				operator: DEFAULT_OPERATOR,
 				value: value?.replace(/^\"|\"$|^\'|\'$/g, ''), // strip quotes
-				offsetStart: query.indexOf(key),
+				offsetStart: match.index,
 			})
 		} else {
-			freetextQueryWords.push(term)
+			const textTermIndex = terms.findIndex((term) => term.key === 'text')
+
+			if (textTermIndex !== -1) {
+				terms[textTermIndex].value +=
+					terms[textTermIndex].value.length > 0 ? ` ${term}` : term
+			} else {
+				const isEmptyString = term === ' '
+
+				terms.push({
+					key: 'text',
+					operator: DEFAULT_OPERATOR,
+					value: isEmptyString ? '' : term,
+					offsetStart: isEmptyString ? match.index + 1 : match.index,
+				})
+			}
 		}
-	}
-
-	if (freetextQueryWords.length > 0) {
-		const freetextQuery = freetextQueryWords.join(' ')
-
-		terms.push({
-			key: 'text',
-			operator: DEFAULT_OPERATOR,
-			value: freetextQuery,
-			offsetStart: query.indexOf(freetextQuery),
-		})
 	}
 
 	return terms
