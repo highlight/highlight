@@ -84,9 +84,31 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 				semconv.CodeFunctionKey.String(traceEnd.FunctionName),
 				semconv.CodeNamespaceKey.String(traceEnd.Source),
 				semconv.CodeFilepathKey.String(traceEnd.FileName),
-				semconv.CodeLineNumberKey.String(traceEnd.LineNumber),
-				semconv.CodeColumnKey.String(traceEnd.ColumnNumber),
 			)
+
+			var ln int
+			if x, ok := traceEnd.LineNumber.(int); ok {
+				ln = x
+			} else if x, ok := traceEnd.LineNumber.(string); ok {
+				if i, err := strconv.ParseInt(x, 10, 32); err == nil {
+					ln = int(i)
+				}
+			}
+			if ln != 0 {
+				attrs = append(attrs, semconv.CodeLineNumberKey.Int(ln))
+			}
+
+			var cn int
+			if x, ok := traceEnd.ColumnNumber.(int); ok {
+				cn = x
+			} else if x, ok := traceEnd.ColumnNumber.(string); ok {
+				if i, err := strconv.ParseInt(x, 10, 32); err == nil {
+					cn = int(i)
+				}
+			}
+			if cn != 0 {
+				attrs = append(attrs, semconv.CodeColumnKey.Int(cn))
+			}
 		}
 
 		span.AddEvent(LogName, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(row.Time)))
