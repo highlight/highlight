@@ -104,14 +104,14 @@ const Search: React.FC<{
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const inputRef = useRef<HTMLInputElement | null>(null)
 	const state = useComboboxState({ gutter: 6, sameWidth: true })
-	const [getLogsKeyValues, { data }] = useGetLogsKeyValuesLazyQuery()
+	const [getLogsKeyValues, { data, loading: valuesLoading }] =
+		useGetLogsKeyValuesLazyQuery()
+	const loading = keys?.length === 0 || valuesLoading
 
 	const queryTerms = parseLogsQuery(query)
 	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
-	const startingNewTerm = query.endsWith(' ')
-	console.log('::: activeTerm', activeTerm, queryTerms, startingNewTerm)
 
 	const showValues =
 		activeTerm.key !== 'text' ||
@@ -123,7 +123,6 @@ const Search: React.FC<{
 	const visibleItems = showValues
 		? getVisibleValues(activeTerm, data?.logs_key_values)
 		: getVisibleKeys(query, activeTerm, keys)
-	console.log('::: items', showValues, visibleItems)
 
 	// Limit number of items shown
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
@@ -195,7 +194,7 @@ const Search: React.FC<{
 				onBlur={formState.submit}
 			/>
 
-			{visibleItems.length > 0 && (
+			{(loading || visibleItems.length > 0) && (
 				<Combobox.Popover
 					className={styles.comboboxPopover}
 					state={state}
@@ -212,6 +211,14 @@ const Search: React.FC<{
 									</Text>
 								</Box>
 							</Combobox.GroupLabel>
+							{loading && (
+								<Combobox.Item
+									className={styles.comboboxItem}
+									disabled
+								>
+									<Text>Loading...</Text>
+								</Combobox.Item>
+							)}
 							{visibleItems.map((key, index) => (
 								<Combobox.Item
 									className={styles.comboboxItem}
