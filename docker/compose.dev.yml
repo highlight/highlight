@@ -31,7 +31,6 @@ services:
         volumes:
             - ../packages/ui/src:/build/packages/ui/src
             - ../packages/component-preview/src:/build/packages/component-preview/src
-            - ../rrweb:/build/rrweb
             - ../sdk/client/src:/build/sdk/client/src
             - ../sdk/firstload/src:/build/sdk/firstload/src
             - ../sdk/highlight-node/src:/build/sdk/highlight-node/src
@@ -40,6 +39,12 @@ services:
             - ../frontend/src:/build/frontend/src
             - ../backend/public-graph:/build/backend/public-graph
             - ../backend/private-graph:/build/backend/private-graph
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'https://localhost:3000/index.html']
+            start_period: 120s
+            interval: 5s
+            timeout: 5s
+            retries: 5
         ports:
             - 3000:3000
             - 8080:8080
