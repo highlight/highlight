@@ -4,6 +4,7 @@ import {
 	Badge,
 	Box,
 	Combobox,
+	Form,
 	IconSolidArrowsExpand,
 	IconSolidSearch,
 	Preset,
@@ -11,6 +12,8 @@ import {
 	Stack,
 	Text,
 	useComboboxState,
+	useForm,
+	useFormState,
 } from '@highlight-run/ui'
 import {
 	LogsSearchParam,
@@ -43,9 +46,9 @@ const SearchForm = ({
 	presets,
 	minDate,
 }: Props) => {
-	const [query, setQuery] = useState(initialQuery)
 	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
 	const { project_id } = useParams()
+	const formState = useFormState({ defaultValues: { query: initialQuery } })
 
 	const { data: keysData } = useGetLogsKeysQuery({
 		variables: {
@@ -55,11 +58,7 @@ const SearchForm = ({
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
-		onFormSubmit(query)
-	}
-
-	const handleSearchChange = (search: string) => {
-		setQuery(search)
+		onFormSubmit(formState.values.query)
 	}
 
 	const handleDatesChange = (dates: Date[]) => {
@@ -71,7 +70,12 @@ const SearchForm = ({
 	}
 
 	return (
-		<form onSubmit={handleSubmit} style={{ position: 'relative' }}>
+		<Form
+			onSubmit={handleSubmit}
+			resetOnSubmit={false}
+			style={{ position: 'relative' }}
+			state={formState}
+		>
 			<Box
 				alignItems="stretch"
 				display="flex"
@@ -79,11 +83,7 @@ const SearchForm = ({
 				width="full"
 				borderBottom="dividerWeak"
 			>
-				<Search
-					keys={keysData?.logs_keys}
-					query={query}
-					onSearchChange={handleSearchChange}
-				/>
+				<Search keys={keysData?.logs_keys} />
 				<Box display="flex" pr="8" py="6">
 					<PreviousDateRangePicker
 						selectedDates={selectedDates}
@@ -93,7 +93,7 @@ const SearchForm = ({
 					/>
 				</Box>
 			</Box>
-		</form>
+		</Form>
 	)
 }
 
@@ -101,21 +101,20 @@ export { SearchForm }
 
 const Search: React.FC<{
 	keys?: GetLogsKeysQuery['logs_keys']
-	query: string
-	onSearchChange: any
-}> = ({ keys, onSearchChange, query }) => {
+}> = ({ keys }) => {
+	const formState = useForm()
+	const { query } = formState.values
 	const { project_id } = useParams()
-	const [queryText, setQueryText] = useState('')
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const inputRef = useRef<HTMLInputElement | null>(null)
 	const state = useComboboxState({ gutter: 6, sameWidth: true })
 	const [getLogsKeyValues, { data }] = useGetLogsKeyValuesLazyQuery()
 
-	const queryTerms = parseLogsQuery(queryText)
+	const queryTerms = parseLogsQuery(query)
 	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
-	const startingNewTerm = queryText.endsWith(' ')
+	const startingNewTerm = query.endsWith(' ')
 	console.log('::: activeTerm', activeTerm, queryTerms, startingNewTerm)
 
 	const showValues =
@@ -127,7 +126,7 @@ const Search: React.FC<{
 
 	const visibleItems = showValues
 		? getVisibleValues(activeTerm, data?.logs_key_values)
-		: getVisibleKeys(queryText, activeTerm, keys)
+		: getVisibleKeys(query, activeTerm, keys)
 	console.log('::: items', showValues, visibleItems)
 
 	// Limit number of items shown
@@ -149,18 +148,9 @@ const Search: React.FC<{
 		activeTerm.value,
 		getLogsKeyValues,
 		project_id,
-		queryText,
+		query,
 		showValues,
 	])
-
-	// TODO: Probably not needed. Consider refactoring to store query text in form
-	// state.
-	useEffect(() => {
-		if (query && query !== queryText) {
-			setQueryText(query)
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [query])
 
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
@@ -178,17 +168,9 @@ const Search: React.FC<{
 			newQueryText = stringifyLogsQuery(queryTerms)
 		}
 
-		setQueryText(newQueryText)
+		debugger
+		formState.setValue('query', newQueryText)
 		// state.setActiveId(null)
-	}
-
-	const handleSearch = () => {
-		if (query === queryText) {
-			return
-		}
-
-		onSearchChange(queryText)
-		state.setOpen(false)
 	}
 
 	return (
@@ -207,20 +189,24 @@ const Search: React.FC<{
 				state={state}
 				name="search"
 				placeholder="Search your logs..."
-				value={queryText}
+				value={query}
 				onChange={(e) => {
-					setQueryText(e.target.value)
+					formState.setValue('query', e.target.value)
 					state.setOpen(true)
 					state.setActiveId(state.items[0].id)
 				}}
 				className={styles.combobox}
 				setValueOnChange={false}
 				onKeyDown={(e) => {
-					if (e.key === 'Enter' && state.activeId === null) {
-						handleSearch()
+					if (e.key === 'Enter') {
+						formState.submit()
+
+						if (state.activeId === null) {
+							state.setOpen(false)
+						}
 					}
 				}}
-				onBlur={handleSearch}
+				onBlur={formState.submit}
 			/>
 
 			{visibleItems.length > 0 && (

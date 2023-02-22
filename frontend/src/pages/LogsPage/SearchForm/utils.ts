@@ -11,7 +11,7 @@ const NAME_TEXT = 'text'
 const PARSE_REGEX =
 	/(\S+:'(?:[^'\\]|\\.)*')|(\S+:"(?:[^"\\]|\\.)*")|(-?"(?:[^"\\]|\\.)*")|(-?'(?:[^'\\]|\\.)*')|\S+|\S+:\S+|\s$/g
 
-export const parseLogsQuery = (query: string): LogsSearchParam[] => {
+export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 	if (query.indexOf(SEPARATOR) === -1) {
 		return [
 			{

@@ -10,6 +10,8 @@ import {
 	FormField as AriaKitFormField,
 	FormFieldProps as AriaKitFormFieldProps,
 	useFormState as useAriaKitFormState,
+	FormState as AriakitFormState,
+	FormStateProps as AriakitFormStateProps,
 } from 'ariakit/form'
 
 import * as styles from './styles.css'
@@ -50,9 +52,18 @@ export const NamedSection = ({
 	)
 }
 
+const FormContext = React.createContext<AriakitFormState>(
+	{} as AriakitFormState,
+)
+export const useForm = () => React.useContext(FormContext)
+
 type Props = AriaKitFormProps
 export const Form: FormComponent = ({ children, ...props }: Props) => {
-	return <AriaKitForm {...props}>{children}</AriaKitForm>
+	return (
+		<FormContext.Provider value={props.state}>
+			<AriaKitForm {...props}>{children}</AriaKitForm>
+		</FormContext.Provider>
+	)
 }
 
 export const Error = ({ ...props }: AriaKitFormErrorProps) => {
