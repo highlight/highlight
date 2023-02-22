@@ -8,15 +8,17 @@ RUN apt update && apt install -y \
 WORKDIR /build
 COPY ../.yarn/plugins ./.yarn/plugins
 COPY ../.yarn/releases ./.yarn/releases
-COPY .npmignore .prettierrc .prettierignore .yarnrc.yml graphql.config.js tsconfig.json turbo.json package.json yarn.lock ./
+COPY .yarnrc.yml package.json yarn.lock ./
 COPY ../scripts/package.json ./scripts/package.json
 COPY ../rrweb/packages/rrdom/package.json ./rrweb/packages/rrdom/package.json
 COPY ../rrweb/packages/rrdom-nodejs/package.json ./rrweb/packages/rrdom-nodejs/package.json
 COPY ../rrweb/packages/rrweb/package.json ./rrweb/packages/rrweb/package.json
 COPY ../rrweb/packages/rrweb-player/package.json ./rrweb/packages/rrweb-player/package.json
 COPY ../rrweb/packages/rrweb-snapshot/package.json ./rrweb/packages/rrweb-snapshot/package.json
+COPY ../rrweb/packages/web-extension/package.json ./rrweb/packages/web-extension/package.json
 COPY ../rrweb/packages/types/package.json ./rrweb/packages/types/package.json
 COPY ../packages/ui/package.json ./packages/ui/package.json
+COPY ../packages/component-preview/package.json ./packages/component-preview/package.json
 COPY ../render/package.json ./render/package.json
 COPY ../sourcemap-uploader/package.json ./sourcemap-uploader/package.json
 COPY ../sdk/client/package.json ./sdk/client/package.json
@@ -28,6 +30,7 @@ COPY ../sdk/highlight-react/package.json ./sdk/highlight-react/package.json
 COPY ../frontend/package.json ./frontend/package.json
 RUN yarn
 
+COPY .npmignore .prettierrc .prettierignore graphql.config.js tsconfig.json turbo.json ./
 COPY ../backend/localhostssl/server.pem /etc/ssl/certs/ssl-cert.pem
 COPY ../backend/localhostssl/server.key /etc/ssl/private/ssl-cert.key
 COPY ../backend/localhostssl/server.crt ./backend/localhostssl/server.crt
@@ -43,6 +46,7 @@ COPY ../backend/public-graph ./backend/public-graph
 COPY ../backend/private-graph ./backend/private-graph
 
 FROM frontend-base as frontend-dev
+ENV NODE_OPTIONS=--openssl-legacy-provider
 CMD ["yarn", "docker:frontend"]
 
 FROM frontend-base as frontend
