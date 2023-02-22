@@ -74,6 +74,25 @@ func projectToInt(projectID string) (int, error) {
 	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
 }
 
+func getAttributesMaps(resourceAttributes, eventAttributes map[string]any) (map[string]string, map[string]string) {
+	resourceAttributesMap := make(map[string]string)
+	for k, v := range resourceAttributes {
+		vStr := castString(v, "")
+		if vStr != "" {
+			resourceAttributesMap[k] = castString(v, "")
+		}
+	}
+	logAttributesMap := make(map[string]string)
+	for k, v := range eventAttributes {
+		vStr := castString(v, "")
+		if vStr == "" || k == string(hlog.LogMessageKey) || k == string(hlog.LogSeverityKey) {
+			continue
+		}
+		logAttributesMap[k] = castString(v, "")
+	}
+	return resourceAttributesMap, logAttributesMap
+}
+
 func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
@@ -137,51 +156,88 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					eventAttributes := event.Attributes().AsRaw()
 					setHighlightAttributes(eventAttributes, &projectID, &sessionID, &requestID, &source)
 					if event.Name() == semconv.ExceptionEventName {
-						excType := castString(eventAttributes[string(semconv.ExceptionTypeKey)], source)
+						ts := event.Timestamp().AsTime()
+						traceID := castString(requestID, span.TraceID().String())
+						spanID := span.SpanID().String()
 						excMessage := castString(eventAttributes[string(semconv.ExceptionMessageKey)], "")
-						stackTrace := castString(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
-						errorUrl := castString(eventAttributes[highlight.ErrorURLKey], "")
-						if excType == "" && excMessage == "" {
-							log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Error("otel received exception with no type and no message")
-							continue
-						} else if stackTrace == "" || stackTrace == "null" {
-							log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received exception with no stacktrace")
-							stackTrace = ""
-						}
-						stackTrace = formatStructureStackTrace(ctx, stackTrace)
-						err := &model.BackendErrorObjectInput{
-							SessionSecureID: &sessionID,
-							RequestID:       &requestID,
-							TraceID:         pointy.String(span.TraceID().String()),
-							SpanID:          pointy.String(span.SpanID().String()),
-							Event:           excMessage,
-							Type:            excType,
-							Source: strings.Join(lo.Filter([]string{
-								sdkLanguage,
-								serviceName,
-								scope.Name(),
-							}, func(s string, i int) bool {
-								return s != ""
-							}), "-"),
-							StackTrace: stackTrace,
-							Timestamp:  event.Timestamp().AsTime(),
-							Payload:    pointy.String(string(tagsBytes)),
-							URL:        errorUrl,
-						}
-						if sessionID != "" {
-							if _, ok := traceErrors[sessionID]; !ok {
-								traceErrors[sessionID] = []*model.BackendErrorObjectInput{}
+
+						func() {
+							projectIDInt, err := projectToInt(projectID)
+							if err != nil {
+								log.WithContext(ctx).WithField("ProjectVerboseID", projectID).WithField("ExcMessage", excMessage).Errorf("otel span error got invalid project id")
+								return
 							}
-							traceErrors[sessionID] = append(traceErrors[sessionID], err)
-						} else if projectID != "" {
-							if _, ok := projectErrors[projectID]; !ok {
-								projectErrors[projectID] = []*model.BackendErrorObjectInput{}
+							resourceAttributesMap, logAttributesMap := getAttributesMaps(resourceAttributes, eventAttributes)
+							logRow := &clickhouse.LogRow{
+								Timestamp:          ts,
+								TraceId:            traceID,
+								SpanId:             spanID,
+								SeverityText:       "ERROR",
+								SeverityNumber:     int32(log.ErrorLevel),
+								ServiceName:        serviceName,
+								Body:               excMessage,
+								ResourceAttributes: resourceAttributesMap,
+								LogAttributes:      logAttributesMap,
+								ProjectId:          uint32(projectIDInt),
+								SecureSessionId:    sessionID,
 							}
-							projectErrors[projectID] = append(projectErrors[projectID], err)
-						} else {
-							log.WithContext(ctx).WithField("BackendErrorObjectInput", *err).Errorf("otel error got no session and no project")
-							continue
-						}
+							if projectID != "" {
+								if _, ok := projectLogs[projectID]; !ok {
+									projectLogs[projectID] = []*clickhouse.LogRow{}
+								}
+								projectLogs[projectID] = append(projectLogs[projectID], logRow)
+							} else {
+								data, _ := req.MarshalJSON()
+								log.WithContext(ctx).WithField("LogEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span log got no project")
+							}
+						}()
+
+						func() {
+							excType := castString(eventAttributes[string(semconv.ExceptionTypeKey)], source)
+							errorUrl := castString(eventAttributes[highlight.ErrorURLKey], "")
+							stackTrace := castString(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
+							if excType == "" && excMessage == "" {
+								log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Error("otel received exception with no type and no message")
+								return
+							} else if stackTrace == "" || stackTrace == "null" {
+								log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received exception with no stacktrace")
+								stackTrace = ""
+							}
+							stackTrace = formatStructureStackTrace(ctx, stackTrace)
+							err := &model.BackendErrorObjectInput{
+								SessionSecureID: &sessionID,
+								RequestID:       &requestID,
+								TraceID:         pointy.String(traceID),
+								SpanID:          pointy.String(spanID),
+								Event:           excMessage,
+								Type:            excType,
+								Source: strings.Join(lo.Filter([]string{
+									sdkLanguage,
+									serviceName,
+									scope.Name(),
+								}, func(s string, i int) bool {
+									return s != ""
+								}), "-"),
+								StackTrace: stackTrace,
+								Timestamp:  ts,
+								Payload:    pointy.String(string(tagsBytes)),
+								URL:        errorUrl,
+							}
+							if sessionID != "" {
+								if _, ok := traceErrors[sessionID]; !ok {
+									traceErrors[sessionID] = []*model.BackendErrorObjectInput{}
+								}
+								traceErrors[sessionID] = append(traceErrors[sessionID], err)
+							} else if projectID != "" {
+								if _, ok := projectErrors[projectID]; !ok {
+									projectErrors[projectID] = []*model.BackendErrorObjectInput{}
+								}
+								projectErrors[projectID] = append(projectErrors[projectID], err)
+							} else {
+								log.WithContext(ctx).WithField("BackendErrorObjectInput", *err).Errorf("otel error got no session and no project")
+								return
+							}
+						}()
 					} else if event.Name() == hlog.LogName {
 						logSev := castString(eventAttributes[string(hlog.LogSeverityKey)], "unknown")
 						logMessage := castString(eventAttributes[string(hlog.LogMessageKey)], "")
@@ -194,21 +250,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							log.WithContext(ctx).WithField("ProjectVerboseID", projectID).WithField("LogMessage", logMessage).Errorf("otel span log got invalid project id")
 							continue
 						}
-						resourceAttributesMap := make(map[string]string)
-						for k, v := range resourceAttributes {
-							vStr := castString(v, "")
-							if vStr != "" {
-								resourceAttributesMap[k] = castString(v, "")
-							}
-						}
-						logAttributesMap := make(map[string]string)
-						for k, v := range eventAttributes {
-							vStr := castString(v, "")
-							if vStr == "" || k == string(hlog.LogMessageKey) || k == string(hlog.LogSeverityKey) {
-								continue
-							}
-							logAttributesMap[k] = castString(v, "")
-						}
+						resourceAttributesMap, logAttributesMap := getAttributesMaps(resourceAttributes, eventAttributes)
 						lvl, _ := log.ParseLevel(logSev)
 						logRow := &clickhouse.LogRow{
 							Timestamp:          event.Timestamp().AsTime(),
@@ -370,20 +412,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					log.WithContext(ctx).WithField("ProjectID", projectID).WithField("LogMessage", logRecord.Body().AsRaw()).Errorf("otel log got invalid project id")
 					continue
 				}
-				resourceAttributesMap := make(map[string]string)
-				for k, v := range resourceAttributes {
-					vStr := castString(v, "")
-					if vStr != "" {
-						resourceAttributesMap[k] = castString(v, "")
-					}
-				}
-				logAttributesMap := make(map[string]string)
-				for k, v := range logAttributes {
-					vStr := castString(v, "")
-					if vStr != "" {
-						logAttributesMap[k] = castString(v, "")
-					}
-				}
+				resourceAttributesMap, logAttributesMap := getAttributesMaps(resourceAttributes, logAttributes)
 				logRow := &clickhouse.LogRow{
 					Timestamp:          logRecord.Timestamp().AsTime(),
 					TraceId:            logRecord.TraceID().String(),
