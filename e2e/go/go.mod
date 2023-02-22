@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/gofiber/fiber/v2 v2.42.0
-	github.com/highlight/highlight/sdk/highlight-go v0.9.0
+	github.com/highlight/highlight/sdk/highlight-go v0.9.1
 )
 
 require (
