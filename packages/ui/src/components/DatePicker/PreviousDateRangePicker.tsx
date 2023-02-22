@@ -1,11 +1,12 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
 import { DatePicker } from './Calendar/DatePicker'
 import { DatePickerStateProvider } from '@rehookify/datepicker'
-import { Menu, useMenu } from '../Menu/Menu'
+import { Menu, MenuButtonProps, useMenu } from '../Menu/Menu'
 import { Text } from '../Text/Text'
 import { IconSolidCheck, IconSolidCheveronDown } from '../icons'
 import { Stack } from '../Stack/Stack'
+import { Box } from '../Box/Box'
 
 export type Preset = {
 	label: string
@@ -70,7 +71,7 @@ type Props = {
 	onDatesChange: (selectedDates: Date[]) => void
 	presets: Preset[]
 	minDate: Date
-}
+} & Omit<MenuButtonProps, 'ref'>
 
 export const PreviousDateRangePicker: React.FC<Props> = (props) => (
 	<Menu placement="bottom-end">
@@ -79,11 +80,17 @@ export const PreviousDateRangePicker: React.FC<Props> = (props) => (
 	</Menu>
 )
 
-const CheckboxIconIfSelected = ({ isSelected }: { isSelected: boolean }) => {
+const CheckboxIconIfSelected = ({
+	isSelected,
+	size = 16,
+}: {
+	isSelected: boolean
+	size?: number
+}) => {
 	return (
-		<div style={{ height: 16, width: 16 }}>
-			{isSelected && <IconSolidCheck size={16} />}
-		</div>
+		<Box style={{ height: size, width: size }} color="primaryEnabled">
+			{isSelected && <IconSolidCheck size={size} />}
+		</Box>
 	)
 }
 
@@ -92,22 +99,22 @@ const PreviousDateRangePickerImpl = ({
 	onDatesChange,
 	presets,
 	minDate,
+	...props
 }: Props) => {
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
 	)
 	const menu = useMenu()
 
-	const [buttonLabel, setButtonLabel] = React.useState<string>(
-		getLabel({ selectedDates, presets }),
-	)
+	const buttonLabel = useMemo(() => {
+		return getLabel({ selectedDates, presets })
+	}, [selectedDates[0]?.getTime()])
 
 	const handleDatesChange = (dates: Date[]) => {
 		onDatesChange(dates)
 
 		if (dates.length == 2) {
 			menu.setOpen(false)
-			setButtonLabel(getLabel({ selectedDates: dates, presets }))
 			setMenuState(MenuState.Default)
 		}
 	}
@@ -120,7 +127,11 @@ const PreviousDateRangePickerImpl = ({
 				dates: { mode: 'range', minDate, maxDate: new Date() },
 			}}
 		>
-			<Menu.Button kind="secondary" iconRight={<IconSolidCheveronDown />}>
+			<Menu.Button
+				kind="secondary"
+				iconRight={<IconSolidCheveronDown />}
+				{...(props as Omit<MenuButtonProps, 'ref'>)}
+			>
 				{buttonLabel}
 			</Menu.Button>
 			<Menu.List>
@@ -130,17 +141,19 @@ const PreviousDateRangePickerImpl = ({
 							return (
 								<Menu.Item
 									key={preset.label}
-									onClick={() =>
+									onClick={(e) => {
+										e.preventDefault()
+										e.stopPropagation()
 										handleDatesChange([
 											preset.startDate,
 											now,
 										])
-									}
+									}}
 								>
 									<Stack
 										direction="row"
 										align="center"
-										gap={'4'}
+										gap="4"
 									>
 										<CheckboxIconIfSelected
 											isSelected={isPresetSelected({
@@ -148,7 +161,9 @@ const PreviousDateRangePickerImpl = ({
 												selectedDates,
 											})}
 										/>
-										<Text>{preset.label}</Text>
+										<Text userSelect="none">
+											{preset.label}
+										</Text>
 									</Stack>
 								</Menu.Item>
 							)
@@ -156,24 +171,28 @@ const PreviousDateRangePickerImpl = ({
 						<Menu.Item
 							onClick={(e) => {
 								e.preventDefault()
+								e.stopPropagation()
 								setMenuState(MenuState.Custom)
 							}}
 						>
-							<Stack direction="row" align="center" gap={'4'}>
+							<Stack direction="row" align="center" gap="4">
 								<CheckboxIconIfSelected
 									isSelected={isCustomSelected({
 										presets,
 										selectedDates,
 									})}
 								/>
-								<Text>Custom</Text>
+								<Text userSelect="none">Custom</Text>
 							</Stack>
 						</Menu.Item>
 					</>
 				) : (
 					<Menu.Item
 						style={{ padding: 0 }}
-						onClick={(e) => e.preventDefault()}
+						onClick={(e) => {
+							e.preventDefault()
+							e.stopPropagation()
+						}}
 					>
 						<DatePicker />
 					</Menu.Item>

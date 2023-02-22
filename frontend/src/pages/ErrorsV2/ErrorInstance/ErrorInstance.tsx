@@ -32,7 +32,6 @@ import {
 } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import {
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
@@ -463,7 +462,6 @@ const User: React.FC<{
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
-	const { setSearchParams } = useSearchContext()
 	const [truncated, setTruncated] = useState(true)
 
 	if (!errorObject?.session) {

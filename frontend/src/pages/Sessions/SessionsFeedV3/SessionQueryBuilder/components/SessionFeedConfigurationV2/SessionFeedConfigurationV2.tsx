@@ -87,7 +87,7 @@ export const DropdownMenu = function ({
 						<Text
 							size="small"
 							weight="medium"
-							color="secondaryText"
+							color="secondaryContentText"
 						>
 							Autoplay Sessions
 						</Text>
@@ -112,7 +112,7 @@ export const DropdownMenu = function ({
 						<Text
 							size="small"
 							weight="medium"
-							color="secondaryText"
+							color="secondaryContentText"
 						>
 							Details
 						</Text>
@@ -132,7 +132,7 @@ export const DropdownMenu = function ({
 						<Text
 							size="small"
 							weight="medium"
-							color="secondaryText"
+							color="secondaryContentText"
 						>
 							Order
 						</Text>
@@ -175,7 +175,7 @@ export const DropdownMenu = function ({
 						<Text
 							size="small"
 							weight="medium"
-							color="secondaryText"
+							color="secondaryContentText"
 						>
 							Datetime Format
 						</Text>
@@ -222,7 +222,7 @@ export const DropdownMenu = function ({
 						<Text
 							size="small"
 							weight="medium"
-							color="secondaryText"
+							color="secondaryContentText"
 						>
 							Count Format
 						</Text>

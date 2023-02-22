@@ -846,7 +846,7 @@ const QueryRule = ({
 				loadOptions={getKeyOptions}
 				type="select"
 				disabled={readonly}
-				cssClass={[newStyle.flatRight]}
+				cssClass={[newStyle.flatRight, newStyle.tagKey]}
 			/>
 			<SelectPopout
 				value={getOperator(rule.op, rule.val)}
@@ -855,6 +855,7 @@ const QueryRule = ({
 				type="select"
 				disabled={readonly}
 				cssClass={[
+					newStyle.tagKey,
 					newStyle.flatLeft,
 					{
 						[newStyle.flatRight]:
@@ -871,6 +872,7 @@ const QueryRule = ({
 					disabled={readonly}
 					limitWidth
 					cssClass={[
+						newStyle.tagValue,
 						newStyle.flatLeft,
 						{ [newStyle.flatRight]: !readonly },
 					]}

@@ -844,7 +844,7 @@ const QueryRule = ({
 				loadOptions={getKeyOptions}
 				type="select"
 				disabled={readonly}
-				cssClass={[newStyle.flatRight]}
+				cssClass={[newStyle.flatRight, newStyle.tagKey]}
 			/>
 			<SelectPopout
 				value={getOperator(rule.op, rule.val)}
@@ -854,6 +854,7 @@ const QueryRule = ({
 				disabled={readonly}
 				cssClass={[
 					newStyle.flatLeft,
+					newStyle.tagKey,
 					{
 						[newStyle.flatRight]:
 							(!!rule.op && hasArguments(rule.op)) || !readonly,
@@ -870,6 +871,7 @@ const QueryRule = ({
 					limitWidth
 					cssClass={[
 						newStyle.flatLeft,
+						newStyle.tagValue,
 						{ [newStyle.flatRight]: !readonly },
 					]}
 				/>
@@ -943,6 +945,7 @@ export const TimeRangeFilter = ({
 				shape="basic"
 				iconRight={!!onReset ? <IconSolidX size={12} /> : undefined}
 				onIconRightClick={!!onReset ? onReset : undefined}
+				lines="1"
 			>
 				<Box onClick={() => setVisible((visible) => !visible)}>
 					<Text
@@ -2505,6 +2508,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 											onClick={toggleIsAnd}
 											key={`separator-${index}`}
 											disabled={readonly}
+											lines="1"
+											className={newStyle.tagKey}
 										>
 											{isAnd ? 'and' : 'or'}
 										</Tag>,
