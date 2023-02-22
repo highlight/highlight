@@ -163,7 +163,13 @@ const LogsPage = () => {
 							)
 						)}
 					</Stack>
-					<LogsTable data={logs} loading={loading} query={query} />
+					<Box px="12">
+						<LogsTable
+							data={logs}
+							loading={loading}
+							query={query}
+						/>
+					</Box>
 				</Box>
 			</Box>
 		</>

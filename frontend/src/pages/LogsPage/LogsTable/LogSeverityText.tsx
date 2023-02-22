@@ -6,7 +6,11 @@ type Props = {
 }
 
 const LogSeverityText = ({ severityText }: Props) => {
-	return <Text color="caution">{severityText}</Text>
+	return (
+		<Text color="caution" weight="bold" family="monospace">
+			{severityText}
+		</Text>
+	)
 }
 
 export { LogSeverityText }
