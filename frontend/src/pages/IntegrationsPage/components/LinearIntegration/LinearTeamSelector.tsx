@@ -48,7 +48,7 @@ const LinearTeamSelector: React.FC<ContainerSelectionProps> = ({
 	])
 
 	return (
-		<Form.NamedSection label="Linear Team" name="linearTeam">
+		<Form.NamedSection label="Linear Team">
 			<Select
 				aria-label="Linear Team"
 				placeholder="Choose a team to create the issue in"
