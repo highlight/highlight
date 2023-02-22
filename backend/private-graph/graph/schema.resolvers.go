@@ -985,6 +985,10 @@ func (r *mutationResolver) UpdateAllowedEmailOrigins(ctx context.Context, worksp
 		return nil, e.Wrap(err, "error retrieving admin user")
 	}
 
+	if !json.Valid([]byte(allowedAutoJoinEmailOrigins)) {
+		return nil, e.Wrap(err, "allowedAutoJoinEmailOrigins is not valid JSON")
+	}
+
 	if err := r.DB.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Updates(&model.Workspace{
 		AllowedAutoJoinEmailOrigins: &allowedAutoJoinEmailOrigins}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating workspace")
