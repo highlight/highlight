@@ -51,6 +51,7 @@ const renderSubComponent = ({ row }: { row: Row<LogLine> }) => {
 						flexDirection="row"
 						gap="10"
 						py="8"
+						flexShrink={0}
 					>
 						<Text family="monospace" weight="bold">
 							"{key}":
@@ -74,7 +75,7 @@ const LogsTable = ({ data, loading, query }: Props) => {
 			{
 				accessorKey: 'timestamp',
 				cell: ({ row, getValue }) => (
-					<>
+					<Box flexShrink={0}>
 						{row.getCanExpand() && (
 							<Box display="flex" alignItems="center">
 								{row.getIsExpanded() ? (
@@ -85,7 +86,7 @@ const LogsTable = ({ data, loading, query }: Props) => {
 							</Box>
 						)}
 						<LogTimestamp timestamp={getValue() as string} />
-					</>
+					</Box>
 				),
 			},
 			{

@@ -1,6 +1,6 @@
 import { SeverityText } from '@graph/schemas'
 import { Text } from '@highlight-run/ui'
-import { BoxProps } from '@highlight-run/ui/src/components/Box/Box'
+import { Box, BoxProps } from '@highlight-run/ui'
 import React from 'react'
 
 type Props = {
@@ -20,9 +20,11 @@ const LogSeverityText = ({ severityText }: Props) => {
 	const color: BoxProps['color'] = COLOR_MAPPING[severityText] ?? 'default'
 
 	return (
-		<Text color={color} weight="bold" family="monospace">
-			{severityText}
-		</Text>
+		<Box flexShrink={0}>
+			<Text color={color} weight="bold" family="monospace">
+				{severityText}
+			</Text>
+		</Box>
 	)
 }
 
