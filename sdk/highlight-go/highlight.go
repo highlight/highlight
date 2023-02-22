@@ -186,7 +186,7 @@ func StartWithContext(ctx context.Context) {
 	if err != nil {
 		logger.Errorf("failed to start opentelemetry exporter: %s", err)
 	}
-	var httpClient *http.Client = nil
+	var httpClient = &http.Client{}
 	if graphqlClientAddress == "https://localhost:8082/public" {
 		httpClient = &http.Client{
 			Transport: &http.Transport{
