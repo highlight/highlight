@@ -4,7 +4,7 @@ import '@fontsource/poppins'
 import './index.scss'
 import './style/tailwind.css'
 
-import { ApolloError, ApolloProvider, QueryLazyOptions } from '@apollo/client'
+import { ApolloError, ApolloProvider } from '@apollo/client'
 import {
 	AuthContextProvider,
 	AuthRole,
@@ -20,6 +20,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import {
+	useCreateAdminMutation,
 	useGetAdminLazyQuery,
 	useGetAdminRoleByProjectLazyQuery,
 	useGetAdminRoleLazyQuery,
@@ -27,9 +28,8 @@ import {
 } from '@graph/hooks'
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
-import { SignUp } from '@pages/Auth/SignUp'
-import { AuthAdminRouter } from '@pages/Login/Login'
 import useLocalStorage from '@rehooks/local-storage'
+import { AppRouter } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
 import { setAttributionData } from '@util/attribution'
 import { auth } from '@util/auth'
@@ -199,27 +199,9 @@ const AuthenticationRoleRouter = () => {
 	] = useGetAdminLazyQuery()
 
 	let getAdminQuery:
-			| ((
-					workspace_id:
-						| QueryLazyOptions<
-								Partial<{
-									workspace_id: string
-									project_id: string
-								}>
-						  >
-						| undefined,
-			  ) => void)
-			| ((
-					project_id:
-						| QueryLazyOptions<
-								Partial<{
-									workspace_id: string
-									project_id: string
-								}>
-						  >
-						| undefined,
-			  ) => void)
-			| (() => void),
+			| typeof getAdminWorkspaceRoleQuery
+			| typeof getAdminProjectRoleQuery
+			| typeof getAdminSimpleQuery,
 		adminError: ApolloError | undefined,
 		adminData: Admin | undefined | null,
 		adminRole: string | undefined,
@@ -277,25 +259,34 @@ const AuthenticationRoleRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [adminData, authRole, projectId])
 
+	const [createAdminMutation] = useCreateAdminMutation()
+
 	useEffect(() => {
-		const variables: Partial<{ workspace_id: string; project_id: string }> =
-			{}
+		const variables: any = {}
 		if (workspaceId) {
 			variables.workspace_id = workspaceId
 		} else if (projectId) {
 			variables.project_id = projectId
 		}
+
 		const unsubscribeFirebase = auth.onAuthStateChanged(
-			(user) => {
+			async (user) => {
 				setUser(user)
 
 				if (user) {
-					if (!called) {
-						getAdminQuery({
-							variables,
-						})
-					} else {
-						refetch!()
+					try {
+						// Try to create an admin if it's a new account. This can't be
+						// handled on the sign up form because this callback is triggered
+						// before the admin is created.
+						if (!user.emailVerified) {
+							await createAdminMutation()
+						}
+					} finally {
+						if (!called) {
+							getAdminQuery({ variables })
+						} else {
+							refetch!()
+						}
 					}
 				} else {
 					setAuthRole(AuthRole.UNAUTHENTICATED)
@@ -348,17 +339,18 @@ const AuthenticationRoleRouter = () => {
 		true,
 	)
 
+	const loggedIn = isLoggedIn(authRole)
+
 	return (
 		<AuthContextProvider
 			value={{
 				role: authRole,
-				admin: isLoggedIn(authRole)
-					? adminData ?? undefined
-					: undefined,
+				admin: loggedIn ? adminData ?? undefined : undefined,
 				workspaceRole: adminRole || undefined,
 				isAuthLoading: isAuthLoading(authRole),
-				isLoggedIn: isLoggedIn(authRole),
+				isLoggedIn: loggedIn,
 				isHighlightAdmin: isHighlightAdmin(authRole) && enableStaffView,
+				refetchAdmin: refetch,
 			}}
 		>
 			<Helmet>
@@ -375,8 +367,7 @@ const AuthenticationRoleRouter = () => {
 				/>
 			) : (
 				<Routes>
-					<Route path="sign_up" element={<SignUp />} />
-					<Route path="/*" element={<AuthAdminRouter />} />
+					<Route path="/*" element={<AppRouter />} />
 				</Routes>
 			)}
 		</AuthContextProvider>

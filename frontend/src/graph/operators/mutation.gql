@@ -166,6 +166,16 @@ mutation SubmitRegistrationForm(
 	)
 }
 
+mutation CreateAdmin {
+	createAdmin {
+		id
+		name
+		email
+		email_verified
+		about_you_details_filled
+	}
+}
+
 mutation CreateWorkspace($name: String!, $promo_code: String) {
 	createWorkspace(name: $name, promo_code: $promo_code) {
 		id
@@ -714,6 +724,16 @@ mutation DeleteMetricMonitor($metric_monitor_id: ID!, $project_id: ID!) {
 		metric_to_monitor
 		last_admin_to_edit_id
 		threshold
+	}
+}
+
+mutation UpdateAdminAndCreateWorkspace(
+	$admin_and_workspace_details: AdminAndWorkspaceDetails!
+) {
+	updateAdminAndCreateWorkspace(
+		admin_and_workspace_details: $admin_and_workspace_details
+	) {
+		id
 	}
 }
 

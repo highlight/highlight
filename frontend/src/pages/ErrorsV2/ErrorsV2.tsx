@@ -16,6 +16,7 @@ import {
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
+import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { CompleteSetup } from '@pages/ErrorsV2/CompleteSetup/CompleteSetup'
@@ -86,7 +87,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 
 	useEffect(() => {
 		if (!isLoggedIn && !data?.error_group?.is_public && !loading) {
-			navigate('/login', { replace: true })
+			navigate(SIGN_IN_ROUTE, { replace: true })
 		}
 	}, [data?.error_group?.is_public, isLoggedIn, loading, navigate])
 
