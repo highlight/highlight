@@ -294,16 +294,16 @@ func splitQuery(query string) []string {
 	inquote := false
 	i := 0
 	for j, c := range query {
-		if c == '\'' {
+		if c == '"' {
 			inquote = !inquote
 		} else if c == ' ' && !inquote {
 			result = append(result, unquoteAndTrim(query[i:j]))
-			i = j + i
+			i = j + 1
 		}
 	}
 	return append(result, unquoteAndTrim(query[i:]))
 }
 
 func unquoteAndTrim(s string) string {
-	return strings.ReplaceAll(strings.Trim(s, " "), "'", "")
+	return strings.ReplaceAll(strings.Trim(s, " "), `"`, "")
 }
