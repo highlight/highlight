@@ -300,6 +300,7 @@ func main() {
 
 	var storageClient storage.Client
 	if util.IsInDocker() {
+		log.WithContext(ctx).Info("in docker: using filesystem for object storage")
 		fsRoot := "/tmp"
 		if os.Getenv("OBJECT_STORAGE_FS") != "" {
 			fsRoot = os.Getenv("OBJECT_STORAGE_FS")
@@ -308,6 +309,7 @@ func main() {
 			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
 		}
 	} else {
+		log.WithContext(ctx).Info("using S3 for object storage")
 		if os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_S3_BUCKET_NAME") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
 			log.WithContext(ctx).Fatalf("please specify object storage env variables in order to proceed")
 		}
