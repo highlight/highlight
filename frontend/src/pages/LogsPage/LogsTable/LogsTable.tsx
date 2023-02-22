@@ -175,9 +175,7 @@ const LogsTable = ({ data, loading, query }: Props) => {
 						</Stack>
 
 						{row.getIsExpanded() && (
-							<Stack>
-								<Box>{renderSubComponent({ row })}</Box>
-							</Stack>
+							<Box>{renderSubComponent({ row })}</Box>
 						)}
 					</Box>
 				)

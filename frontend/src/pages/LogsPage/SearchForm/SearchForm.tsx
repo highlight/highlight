@@ -56,10 +56,7 @@ const SearchForm = ({
 		},
 	})
 
-	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-		event.preventDefault()
-		onFormSubmit(formState.values.query)
-	}
+	formState.useSubmit(() => onFormSubmit(formState.values.query))
 
 	const handleDatesChange = (dates: Date[]) => {
 		setSelectedDates(dates)
@@ -71,7 +68,6 @@ const SearchForm = ({
 
 	return (
 		<Form
-			onSubmit={handleSubmit}
 			resetOnSubmit={false}
 			style={{ position: 'relative' }}
 			state={formState}
@@ -143,34 +139,30 @@ const Search: React.FC<{
 				key_name: activeTerm.key,
 			},
 		})
-	}, [
-		activeTerm.key,
-		activeTerm.value,
-		getLogsKeyValues,
-		project_id,
-		query,
-		showValues,
-	])
+	}, [activeTerm.key, getLogsKeyValues, project_id, showValues])
 
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
 	) => {
-		let newQueryText
+		const isValueSelect = typeof key === 'string'
 
 		// If string, it's a value not a key
-		if (typeof key === 'string') {
+		if (isValueSelect) {
 			queryTerms[activeTermIndex].value = key
-			// Add trailing space to start new query
-			newQueryText = `${stringifyLogsQuery(queryTerms)} `
 		} else {
 			queryTerms[activeTermIndex].key = key.name
 			queryTerms[activeTermIndex].value = ''
-			newQueryText = stringifyLogsQuery(queryTerms)
 		}
 
-		debugger
-		formState.setValue('query', newQueryText)
-		// state.setActiveId(null)
+		formState.setValue('query', stringifyLogsQuery(queryTerms))
+
+		if (isValueSelect) {
+			state.setOpen(false)
+			formState.submit()
+		}
+
+		state.setActiveId(null)
+		state.setMoves(0)
 	}
 
 	return (
@@ -193,19 +185,13 @@ const Search: React.FC<{
 				onChange={(e) => {
 					formState.setValue('query', e.target.value)
 					state.setOpen(true)
-					state.setActiveId(state.items[0].id)
+
+					if (state.items.length) {
+						state.setActiveId(state.items[0].id)
+					}
 				}}
 				className={styles.combobox}
 				setValueOnChange={false}
-				onKeyDown={(e) => {
-					if (e.key === 'Enter') {
-						formState.submit()
-
-						if (state.activeId === null) {
-							state.setOpen(false)
-						}
-					}
-				}}
 				onBlur={formState.submit}
 			/>
 
@@ -339,9 +325,14 @@ const getVisibleKeys = (
 }
 
 const getVisibleValues = (activeTerm: LogsSearchParam, values?: string[]) => {
-	return (
+	const filteredValues =
 		values?.filter(
 			(v) => !activeTerm.value.length || v.indexOf(activeTerm.value) > -1,
 		) || []
-	)
+
+	if (values?.indexOf(activeTerm.value) === -1) {
+		filteredValues.unshift(activeTerm.value)
+	}
+
+	return filteredValues
 }
