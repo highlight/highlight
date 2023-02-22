@@ -577,6 +577,7 @@ func main() {
 			StorageClient:   storageClient,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
+			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
 			Redis:           redisClient,
 			Clickhouse:      clickhouseClient,
 			RH:              &rh,

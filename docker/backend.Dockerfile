@@ -13,6 +13,9 @@ COPY ../sdk/highlight-go/go.sum ./sdk/highlight-go/go.sum
 COPY ../e2e/go/go.mod ./e2e/go/go.mod
 COPY ../e2e/go/go.sum ./e2e/go/go.sum
 RUN go work sync
+RUN cd /build/backend && go mod download
+RUN cd /build/e2e/go && go mod download
+RUN cd /build/sdk/highlight-go && go mod download
 
 FROM backend-base as backend-dev
 WORKDIR /build/backend
