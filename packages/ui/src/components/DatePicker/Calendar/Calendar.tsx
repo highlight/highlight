@@ -38,7 +38,7 @@ export const Calendar: FC<CalendarProps> = ({
 
 			<div className={styles.weekDays}>
 				{weekDays.map((d) => (
-					<Text align="center" key={d}>
+					<Text align="center" key={d} userSelect="none">
 						{d}
 					</Text>
 				))}

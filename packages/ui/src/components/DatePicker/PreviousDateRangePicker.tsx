@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { DatePicker } from './Calendar/DatePicker'
 import { DatePickerStateProvider } from '@rehookify/datepicker'
@@ -106,9 +106,9 @@ const PreviousDateRangePickerImpl = ({
 	)
 	const menu = useMenu()
 
-	const buttonLabel = useMemo(() => {
-		return getLabel({ selectedDates, presets })
-	}, [selectedDates[0]?.getTime()])
+	const [buttonLabel, setButtonLabel] = useState<string>(
+		getLabel({ selectedDates, presets }),
+	)
 
 	const handleDatesChange = (dates: Date[]) => {
 		onDatesChange(dates)
@@ -118,6 +118,12 @@ const PreviousDateRangePickerImpl = ({
 			setMenuState(MenuState.Default)
 		}
 	}
+
+	useEffect(() => {
+		if (selectedDates.length == 2) {
+			setButtonLabel(getLabel({ selectedDates, presets }))
+		}
+	}, [selectedDates[0]?.getTime(), selectedDates[1]?.getTime()])
 
 	return (
 		<DatePickerStateProvider

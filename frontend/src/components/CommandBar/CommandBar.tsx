@@ -18,13 +18,21 @@ import {
 	useFormState,
 } from '@highlight-run/ui'
 import { PreviousDateRangePicker } from '@highlight-run/ui/src/components/DatePicker/PreviousDateRangePicker'
+import { useProjectId } from '@hooks/useProjectId'
+import {
+	ERROR_FIELD_TYPE,
+	ERROR_TYPE,
+} from '@pages/ErrorsV2/ErrorQueryBuilder/components/QueryBuilder/QueryBuilder'
+import { SESSION_TYPE } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { createContext } from '@util/context/context'
 import { isInsideElement } from '@util/dom'
-import { Dialog, useDialogState } from 'ariakit/dialog'
+import { buildQueryURLString } from '@util/url/params'
+import { Dialog, DialogState, useDialogState } from 'ariakit/dialog'
 import { FormState } from 'ariakit/form'
 import moment from 'moment'
 import React, { useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { useNavigate } from 'react-router-dom'
 
 import * as styles from './style.css'
 
@@ -33,25 +41,53 @@ interface CommandBarSearch {
 	selectedDates: Date[]
 }
 
-enum SessionAttribute {
-	identifier = 'Identifier',
-	visited_url = 'Visited URL',
-	os_name = 'Operating System',
-	browser_name = 'Browser',
-}
-
-enum ErrorAttribute {
-	visited_url = 'Visited URL',
-	os_name = 'Operating System',
-	browser_name = 'Browser',
-	event = 'Error Text',
-}
-
-type Attribute = SessionAttribute | ErrorAttribute
+const ATTRIBUTE = [
+	{
+		type: 'user',
+		name: 'identifier',
+		displayName: 'Identifier',
+	},
+	{
+		type: SESSION_TYPE,
+		name: 'visited_url',
+		displayName: 'Visited URL',
+	},
+	{
+		type: SESSION_TYPE,
+		name: 'os_name',
+		displayName: 'Operating System',
+	},
+	{
+		type: SESSION_TYPE,
+		name: 'browser',
+		displayName: 'Browser',
+	},
+	{
+		type: ERROR_FIELD_TYPE,
+		name: 'browser',
+		displayName: 'Browser',
+	},
+	{
+		type: ERROR_FIELD_TYPE,
+		name: 'os_name',
+		displayName: 'Operating System',
+	},
+	{
+		type: ERROR_FIELD_TYPE,
+		name: 'visited_url',
+		displayName: 'Visited URL',
+	},
+	{
+		type: ERROR_TYPE,
+		name: 'Event',
+		displayName: 'Error Text',
+	},
+] as const
 
 interface CommandBarContext {
 	currentRow: string | undefined
 	setCurrentRow: (row: string | undefined) => void
+	dialog: DialogState
 }
 export const [useCommandBarContext, CommandBarContextProvider] =
 	createContext<CommandBarContext>('CommandBar')
@@ -102,7 +138,9 @@ const CommandBar = () => {
 	)
 	const setCurrentRow = (row: string | undefined) => setCurrentRowImpl(row)
 	return (
-		<CommandBarContextProvider value={{ currentRow, setCurrentRow }}>
+		<CommandBarContextProvider
+			value={{ currentRow, setCurrentRow, dialog }}
+		>
 			<Dialog
 				state={dialog}
 				className={styles.dialog}
@@ -219,15 +257,15 @@ const SectionRow = ({
 	icon,
 	attribute,
 	query,
-	type,
 }: {
 	icon?: React.ReactElement<IconProps>
-	attribute: Attribute
+	attribute: typeof ATTRIBUTE[number]
 	query: string
-	type: string
 }) => {
-	const { currentRow, setCurrentRow } = useCommandBarContext()
-	const selected = currentRow === `${type}-${attribute}`
+	const { currentRow, setCurrentRow, dialog } = useCommandBarContext()
+	const selected = currentRow === `${attribute.type}-${attribute.name}`
+	const navigate = useNavigate()
+	const { projectId } = useProjectId()
 
 	return (
 		<Box
@@ -244,7 +282,18 @@ const SectionRow = ({
 				},
 			]}
 			onMouseMove={() => {
-				setCurrentRow(`${type}-${attribute}`)
+				setCurrentRow(`${attribute.type}-${attribute.name}`)
+			}}
+			onClick={() => {
+				navigate({
+					pathname: `/${projectId}/${
+						isErrorAttribute(attribute) ? 'errors' : 'sessions'
+					}`,
+					search: buildQueryURLString({
+						[`${attribute.type}_${attribute.name}`]: `contains:${query}`,
+					}),
+				})
+				dialog.hide()
 			}}
 		>
 			<Box flexShrink={0} display="inline-flex" alignItems="center">
@@ -257,7 +306,7 @@ const SectionRow = ({
 					shape="basic"
 					className={styles.flatRight}
 				>
-					{attribute}
+					{attribute.displayName}
 				</Tag>
 				<Tag
 					size="medium"
@@ -281,6 +330,9 @@ const SectionRow = ({
 	)
 }
 
+const isSessionAttribute = (attribute: typeof ATTRIBUTE[number]) => {
+	return ['user', SESSION_TYPE].includes(attribute.type)
+}
 const SessionOptions = ({ query }: { query: string }) => {
 	return (
 		<Box
@@ -291,12 +343,11 @@ const SessionOptions = ({ query }: { query: string }) => {
 			bt="dividerWeak"
 		>
 			<SectionHeader header="Sessions" />
-			{Object.values(SessionAttribute).map((attribute, idx) => {
+			{ATTRIBUTE.filter(isSessionAttribute).map((attribute, idx) => {
 				return (
 					<SectionRow
 						key={`sessions-${idx}`}
 						attribute={attribute}
-						type="session"
 						query={query}
 						icon={<IconSolidPlayCircle size={16} />}
 					/>
@@ -306,15 +357,18 @@ const SessionOptions = ({ query }: { query: string }) => {
 	)
 }
 
+const isErrorAttribute = (attribute: typeof ATTRIBUTE[number]) => {
+	return [ERROR_TYPE, ERROR_FIELD_TYPE].includes(attribute.type)
+}
+
 const ErrorOptions = ({ query }: { query: string }) => {
 	return (
 		<Box display="flex" flexDirection="column" py="4" width="full">
 			<SectionHeader header="Errors" />
-			{Object.values(ErrorAttribute).map((attribute, idx) => (
+			{ATTRIBUTE.filter(isErrorAttribute).map((attribute, idx) => (
 				<SectionRow
 					key={`errors-${idx}`}
 					attribute={attribute}
-					type="error-field"
 					query={query}
 					icon={<IconSolidLightningBolt size={16} />}
 				/>
