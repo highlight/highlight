@@ -1,5 +1,5 @@
 export { Badge } from './Badge/Badge'
-export { Box, BoxProps } from './Box/Box'
+export { Box } from './Box/Box'
 export * from './Button/Button'
 export * as buttonStyles from './Button/styles.css'
 export { ButtonIcon } from './ButtonIcon/ButtonIcon'
