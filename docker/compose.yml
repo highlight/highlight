@@ -26,7 +26,7 @@ x-backend-env: &backend-env
         - DEMO_SESSION
         - DEPLOYMENT_KEY
         - DOPPLER_CONFIG
-        - ENABLE_OBJECT_STORAGE
+        - ENABLE_OBJECT_STORAGE=true
         - ENVIRONMENT
         - FIREBASE_SECRET
         - FRONTEND_URI
@@ -37,6 +37,7 @@ x-backend-env: &backend-env
         - INFLUXDB_TOKEN
         - KAFKA_SERVERS
         - KAFKA_TOPIC
+        - OBJECT_STORAGE_FS=/highlight-data
         - OPENSEARCH_DOMAIN
         - OPENSEARCH_DOMAIN_READ
         - OPENSEARCH_PASSWORD
@@ -161,6 +162,8 @@ services:
             - -worker-handler=init-opensearch
         depends_on:
             - backend
+        volumes:
+            - highlight-data:/highlight-data
         <<: *backend-env
 
     backend:
@@ -172,6 +175,8 @@ services:
             context: ..
             dockerfile: docker/backend.Dockerfile
             target: backend
+        volumes:
+            - highlight-data:/highlight-data
         <<: *depends-infra
         <<: *backend-env
 
@@ -197,6 +202,7 @@ services:
                 - REACT_APP_PUBLIC_GRAPH_URI
 
 volumes:
+    highlight-data:
     postgres-data:
     clickhouse-data:
     clickhouse-logs:

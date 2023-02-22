@@ -114,7 +114,7 @@ func limitMaxSize(value *string) *string {
 * fetches the sourcemap from remote
 * maps the error info into slice
  */
-func EnhanceStackTrace(ctx context.Context, input []*publicModel.StackFrameInput, projectId int, version *string, storageClient *storage.StorageClient) ([]privateModel.ErrorTrace, error) {
+func EnhanceStackTrace(ctx context.Context, input []*publicModel.StackFrameInput, projectId int, version *string, storageClient storage.Client) ([]privateModel.ErrorTrace, error) {
 	if input == nil {
 		return nil, e.New("stack trace input cannot be nil")
 	}
@@ -148,12 +148,12 @@ func EnhanceStackTrace(ctx context.Context, input []*publicModel.StackFrameInput
 	return mappedStackTrace, nil
 }
 
-func getFileSourcemap(projectId int, version *string, stackTraceFileURL string, storageClient *storage.StorageClient, stackTraceError *privateModel.SourceMappingError) (sourceMapURL string, sourceMapFileBytes []byte, err error) {
+func getFileSourcemap(ctx context.Context, projectId int, version *string, stackTraceFileURL string, storageClient storage.Client, stackTraceError *privateModel.SourceMappingError) (sourceMapURL string, sourceMapFileBytes []byte, err error) {
 	pathSubpath := fmt.Sprintf("%s.map", stackTraceFileURL)
 	sourcemapFetchStrategy := "S3"
 	stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
 	for sourceMapFileBytes == nil {
-		sourceMapFileBytes, err = storageClient.ReadSourceMapFileFromS3(projectId, version, pathSubpath)
+		sourceMapFileBytes, err = storageClient.ReadSourceMapFile(ctx, projectId, version, pathSubpath)
 		if err != nil {
 			if pathSubpath == "" {
 				// SOURCEMAP_ERROR: could not find source map file in s3
@@ -171,9 +171,9 @@ func getFileSourcemap(projectId int, version *string, stackTraceFileURL string, 
 	return
 }
 
-func getURLSourcemap(ctx context.Context, projectId int, version *string, stackTraceFileURL string, stackTraceFilePath string, stackFileNameIndex int, storageClient *storage.StorageClient, stackTraceError *privateModel.SourceMappingError) (string, []byte, error) {
+func getURLSourcemap(ctx context.Context, projectId int, version *string, stackTraceFileURL string, stackTraceFilePath string, stackFileNameIndex int, storageClient storage.Client, stackTraceError *privateModel.SourceMappingError) (string, []byte, error) {
 	// try to get file from s3
-	minifiedFileBytes, err := storageClient.ReadSourceMapFileFromS3(projectId, version, stackTraceFilePath)
+	minifiedFileBytes, err := storageClient.ReadSourceMapFile(ctx, projectId, version, stackTraceFilePath)
 	minifiedFetchStrategy := "S3"
 	var stackTraceErrorCode privateModel.SourceMappingErrorCode
 	stackTraceError.MinifiedFetchStrategy = &minifiedFetchStrategy
@@ -195,7 +195,7 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 			err := e.Wrapf(err, "error fetching file: %v", stackTraceFileURL)
 			return "", nil, err
 		}
-		_, err = storageClient.PushSourceMapFileToS3(projectId, version, stackTraceFilePath, minifiedFileBytes)
+		_, err = storageClient.PushSourceMapFile(ctx, projectId, version, stackTraceFilePath, minifiedFileBytes)
 		if err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFilePath))
 		}
@@ -258,7 +258,7 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 
 		// fetch source map file
 		// try to get file from s3
-		sourceMapFileBytes, err = storageClient.ReadSourceMapFileFromS3(projectId, version, sourceMapFilePath)
+		sourceMapFileBytes, err = storageClient.ReadSourceMapFile(ctx, projectId, version, sourceMapFilePath)
 		sourcemapFetchStrategy := "S3"
 		stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
 		if err != nil {
@@ -287,7 +287,7 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 				err := e.Wrapf(err, "error parsing fetched source map: %v - %v, %v", sourceMapURL, smap, err)
 				return "", nil, err
 			}
-			_, err = storageClient.PushSourceMapFileToS3(projectId, version, sourceMapFilePath, sourceMapFileBytes)
+			_, err = storageClient.PushSourceMapFile(ctx, projectId, version, sourceMapFilePath, sourceMapFileBytes)
 			if err != nil {
 				log.WithContext(ctx).Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
 			}
@@ -296,7 +296,7 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 	return sourceMapURL, sourceMapFileBytes, nil
 }
 
-func processStackFrame(ctx context.Context, projectId int, version *string, stackTrace publicModel.StackFrameInput, storageClient *storage.StorageClient) (*privateModel.ErrorTrace, error, privateModel.SourceMappingError) {
+func processStackFrame(ctx context.Context, projectId int, version *string, stackTrace publicModel.StackFrameInput, storageClient storage.Client) (*privateModel.ErrorTrace, error, privateModel.SourceMappingError) {
 	stackTraceFileURL := *stackTrace.FileName
 	stackTraceLineNumber := *stackTrace.LineNumber
 	stackTraceColumnNumber := *stackTrace.ColumnNumber
@@ -340,7 +340,7 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 	var sourceMapFileBytes []byte
 	if u.Scheme == "file" {
 		// if this is an electron file reference, treat it as a path so we can match a subdirectory
-		sourceMapURL, sourceMapFileBytes, err = getFileSourcemap(projectId, version, u.Path, storageClient, &stackTraceError)
+		sourceMapURL, sourceMapFileBytes, err = getFileSourcemap(ctx, projectId, version, u.Path, storageClient, &stackTraceError)
 		if err != nil {
 			return nil, err, stackTraceError
 		}

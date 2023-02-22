@@ -42,7 +42,7 @@ func main() {
 		log.WithContext(ctx).Fatalf("ZANE_MIGRATION error pinging db: %+v", err)
 	}
 
-	storageClient, err := storage.NewStorageClient(ctx)
+	storageClient, err := storage.NewS3Client(ctx)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("ZANE_MIGRATION error creating storage client: %v", err)
 	}
@@ -156,7 +156,7 @@ func main() {
 					if err := writer.Close(); err != nil {
 						log.WithContext(ctx).Error(errors.Wrap(err, "ZANE_MIGRATION error closing TimelineIndicatorEvents writer"))
 					}
-					if _, err := storageClient.PushCompressedFileToS3(context.Background(), sessionId, projectId, f, storage.TimelineIndicatorEvents); err != nil {
+					if _, err := storageClient.PushCompressedFile(context.Background(), sessionId, projectId, f, storage.TimelineIndicatorEvents); err != nil {
 						return errors.Wrap(err, "error pushing to s3")
 					}
 					if err := f.Close(); err != nil {
