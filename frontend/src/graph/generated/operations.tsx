@@ -212,15 +212,6 @@ export type SubmitRegistrationFormMutation = { __typename?: 'Mutation' } & Pick<
 	'submitRegistrationForm'
 >
 
-export type CreateAdminMutationVariables = Types.Exact<{ [key: string]: never }>
-
-export type CreateAdminMutation = { __typename?: 'Mutation' } & {
-	createAdmin: { __typename?: 'Admin' } & Pick<
-		Types.Admin,
-		'id' | 'name' | 'email' | 'email_verified' | 'about_you_details_filled'
-	>
-}
-
 export type CreateWorkspaceMutationVariables = Types.Exact<{
 	name: Types.Scalars['String']
 	promo_code?: Types.Maybe<Types.Scalars['String']>
@@ -851,18 +842,6 @@ export type DeleteMetricMonitorMutation = { __typename?: 'Mutation' } & {
 					>
 				>
 			}
-	>
-}
-
-export type UpdateAdminAndCreateWorkspaceMutationVariables = Types.Exact<{
-	admin_and_workspace_details: Types.AdminAndWorkspaceDetails
-}>
-
-export type UpdateAdminAndCreateWorkspaceMutation = {
-	__typename?: 'Mutation'
-} & {
-	updateAdminAndCreateWorkspace?: Types.Maybe<
-		{ __typename?: 'Project' } & Pick<Types.Project, 'id'>
 	>
 }
 
@@ -4106,7 +4085,6 @@ export const namedOperations = {
 		UpdateAllowedEmailOrigins: 'UpdateAllowedEmailOrigins' as const,
 		CreateProject: 'CreateProject' as const,
 		SubmitRegistrationForm: 'SubmitRegistrationForm' as const,
-		CreateAdmin: 'CreateAdmin' as const,
 		CreateWorkspace: 'CreateWorkspace' as const,
 		EditProject: 'EditProject' as const,
 		DeleteProject: 'DeleteProject' as const,
@@ -4131,7 +4109,6 @@ export const namedOperations = {
 		CreateMetricMonitor: 'CreateMetricMonitor' as const,
 		UpdateMetricMonitor: 'UpdateMetricMonitor' as const,
 		DeleteMetricMonitor: 'DeleteMetricMonitor' as const,
-		UpdateAdminAndCreateWorkspace: 'UpdateAdminAndCreateWorkspace' as const,
 		UpdateAdminAboutYouDetails: 'UpdateAdminAboutYouDetails' as const,
 		UpdateErrorAlert: 'UpdateErrorAlert' as const,
 		DeleteErrorAlert: 'DeleteErrorAlert' as const,

@@ -4,13 +4,11 @@ import {
 	Form as AriaKitForm,
 	FormProps as AriaKitFormProps,
 	FormInput as AriaKitFormInput,
-	FormLabel as AriaKitFormLabel,
 	FormError as AriaKitFormError,
 	FormErrorProps as AriaKitFormErrorProps,
 	FormInputProps as AriaKitFormInputProps,
 	FormField as AriaKitFormField,
 	FormFieldProps as AriaKitFormFieldProps,
-	FormState as AriaKitFormState,
 	useFormState as useAriaKitFormState,
 } from 'ariakit/form'
 
@@ -20,7 +18,6 @@ import { Text } from '../Text/Text'
 import { Button, ButtonProps } from '../Button/Button'
 import clsx, { ClassValue } from 'clsx'
 import { Variants } from './styles.css'
-import { Badge } from '../Badge/Badge'
 
 type FormComponent = React.FC<Props> & {
 	Input: typeof Input
@@ -30,48 +27,24 @@ type FormComponent = React.FC<Props> & {
 	NamedSection: typeof NamedSection
 }
 
-export const Label = ({
-	label,
-	name,
-}: {
-	label: string
-	name: AriaKitFormInputProps['name']
-}) => {
+export const Label = ({ label }: { label: string }) => {
 	return (
 		<Box display="flex" alignItems="center" style={{ height: 16 }}>
-			<AriaKitFormLabel name={name}>
-				<Text
-					userSelect="none"
-					size="xSmall"
-					weight="bold"
-					color="weak"
-				>
-					{label}
-				</Text>
-			</AriaKitFormLabel>
+			<Text userSelect="none" size="xSmall" weight="bold" color="weak">
+				{label}
+			</Text>
 		</Box>
 	)
 }
 
-type HasLabel = {
-	name: AriaKitFormInputProps['name']
-	label?: string
-	optional?: boolean
-}
+type HasLabel = { label?: string }
 export const NamedSection = ({
 	children,
 	label,
-	name,
-	optional = false,
 }: React.PropsWithChildren<HasLabel>) => {
 	return (
 		<Box display="flex" flexDirection="column" width="full" gap="4">
-			<Box display="flex" flexDirection="row" gap="6">
-				{label && <Label label={label} name={name} />}
-				{optional && (
-					<Badge shape="basic" size="small" label="Optional" />
-				)}
-			</Box>
+			{label && <Label label={label} />}
 			{children}
 		</Box>
 	)
@@ -116,7 +89,7 @@ export const Input = ({
 		collapsed = false
 	}
 	return (
-		<NamedSection label={label} name={name}>
+		<NamedSection label={label}>
 			<AriaKitFormInput
 				ref={ref}
 				name={name}
@@ -153,7 +126,7 @@ export const Field = ({
 	...props
 }: FormFieldProps) => {
 	return (
-		<NamedSection label={label} name={props.name}>
+		<NamedSection label={label}>
 			<AriaKitFormField
 				className={clsx(
 					styles.inputVariants({
@@ -178,5 +151,4 @@ Form.Submit = Submit
 Form.Field = Field
 Form.NamedSection = NamedSection
 
-export type FormState = AriaKitFormState<any>
 export const useFormState = useAriaKitFormState
