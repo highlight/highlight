@@ -54,6 +54,7 @@ FROM frontend-base as frontend
 # These three 'args' need to be here because they're injected at build time
 # all other env variables are provided in environment.yml.
 ARG NODE_OPTIONS="--max-old-space-size=16384"
+ARG REACT_APP_AUTH_MODE
 ARG REACT_APP_COMMIT_SHA
 ARG REACT_APP_DEMO_SESSION
 ARG REACT_APP_ENVIRONMENT
