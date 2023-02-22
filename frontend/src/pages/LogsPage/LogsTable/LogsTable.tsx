@@ -1,6 +1,6 @@
 import LoadingBox from '@components/LoadingBox'
 import { GetLogsQuery } from '@graph/operations'
-import { LogLine } from '@graph/schemas'
+import { LogLine, SeverityText } from '@graph/schemas'
 import {
 	Box,
 	IconSolidCheveronDown,
@@ -91,7 +91,9 @@ const LogsTable = ({ data, loading, query }: Props) => {
 			{
 				accessorKey: 'severityText',
 				cell: ({ getValue }) => (
-					<LogSeverityText severityText={getValue() as string} />
+					<LogSeverityText
+						severityText={getValue() as SeverityText}
+					/>
 				),
 			},
 			{
