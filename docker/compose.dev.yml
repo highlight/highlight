@@ -47,7 +47,6 @@ services:
             - RENDER_PREVIEW
             - REACT_APP_AUTH_MODE=simple
             - REACT_APP_DEMO_SESSION
-            - REACT_APP_ENVIRONMENT
             - REACT_APP_FIREBASE_CONFIG_OBJECT
             - REACT_APP_FRONTEND_ORG
             - REACT_APP_FRONTEND_URI
