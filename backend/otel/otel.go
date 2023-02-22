@@ -141,12 +141,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						excMessage := castString(eventAttributes[string(semconv.ExceptionMessageKey)], "")
 						stackTrace := castString(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
 						errorUrl := castString(eventAttributes[highlight.ErrorURLKey], "")
-						if stackTrace == "" {
+						if excType == "" && excMessage == "" {
+							log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Error("otel received exception with no type and no message")
+							continue
+						} else if stackTrace == "" || stackTrace == "null" {
 							log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received exception with no stacktrace")
-							continue
-						} else if excType == "" && excMessage == "" {
-							log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received exception with no type and no message")
-							continue
+							stackTrace = ""
 						}
 						stackTrace = formatStructureStackTrace(ctx, stackTrace)
 						err := &model.BackendErrorObjectInput{
