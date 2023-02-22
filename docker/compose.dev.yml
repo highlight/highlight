@@ -11,6 +11,7 @@ services:
             - start-no-doppler
         volumes:
             - ../backend:/build/backend
+            - ../e2e/go:/build/e2e/go
             - ../sdk/highlight-go:/build/sdk/highlight-go
         ports:
             - 2345:2345
