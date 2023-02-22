@@ -21,7 +21,8 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts src/lib.ts --format cjs,esm --dts --clean"
+    "typegen": "tsup src/index.ts src/lib.ts --dts-only",
+    "build": "tsup src/index.ts src/lib.ts --format cjs,esm --dts"
   },
   "devDependencies": {
     "@types/commander": "^2.12.2",
