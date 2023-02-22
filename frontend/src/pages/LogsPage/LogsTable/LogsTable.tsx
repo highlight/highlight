@@ -152,7 +152,7 @@ const LogsTable = ({ data, loading, query }: Props) => {
 	}
 
 	return (
-		<>
+		<Box px="12" overflowY="scroll">
 			{table.getRowModel().rows.map((row) => {
 				return (
 					<Box
@@ -182,7 +182,7 @@ const LogsTable = ({ data, loading, query }: Props) => {
 					</Box>
 				)
 			})}
-		</>
+		</Box>
 	)
 }
 

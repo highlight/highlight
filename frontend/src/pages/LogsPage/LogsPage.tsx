@@ -149,13 +149,8 @@ const LogsPage = () => {
 							)
 						)}
 					</Stack>
-					<Box px="12" overflowY="scroll">
-						<LogsTable
-							data={logs}
-							loading={loading}
-							query={query}
-						/>
-					</Box>
+
+					<LogsTable data={logs} loading={loading} query={query} />
 				</Box>
 			</Box>
 		</>

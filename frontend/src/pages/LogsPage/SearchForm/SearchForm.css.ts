@@ -3,7 +3,7 @@ import { globalStyle, style } from '@vanilla-extract/css'
 
 export const searchIcon = style({
 	position: 'absolute',
-	top: 14,
+	top: 13,
 	left: 14,
 })
 
@@ -22,8 +22,8 @@ export const combobox = style({
 	},
 })
 
-export const comboboxInput = globalStyle(`${combobox} input`, {
-	color: vars.theme.interactive.fill.secondary.content.text,
+export const comboboxInput = globalStyle(`${combobox}::placeholder`, {
+	color: vars.theme.interactive.fill.secondary.content.onDisabled,
 })
 
 export const comboboxPopover = style({

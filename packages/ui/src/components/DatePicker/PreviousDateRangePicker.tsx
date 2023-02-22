@@ -138,6 +138,7 @@ const PreviousDateRangePickerImpl = ({
 									}
 								>
 									<Stack
+										py="2"
 										direction="row"
 										align="center"
 										gap={'4'}
@@ -148,7 +149,7 @@ const PreviousDateRangePickerImpl = ({
 												selectedDates,
 											})}
 										/>
-										<Text>{preset.label}</Text>
+										{preset.label}
 									</Stack>
 								</Menu.Item>
 							)
@@ -166,7 +167,7 @@ const PreviousDateRangePickerImpl = ({
 										selectedDates,
 									})}
 								/>
-								<Text>Custom</Text>
+								Custom
 							</Stack>
 						</Menu.Item>
 					</>
