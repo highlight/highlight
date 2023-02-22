@@ -165,7 +165,19 @@ services:
         volumes:
             - ./otel-collector.yaml:/etc/otel-collector-config.yaml
 
-    backend-setup-elasticserch:
+    backend-setup-db:
+        image: public.ecr.aws/k9o6n7l8/highlight
+        build:
+            context: ..
+            dockerfile: docker/backend.Dockerfile
+        command:
+            - go
+            - run
+            - ./migrations/main.go
+        <<: *depends-infra
+        <<: *backend-env
+
+    backend-setup-elasticsearch:
         image: public.ecr.aws/k9o6n7l8/highlight
         build:
             context: ..
@@ -196,7 +208,9 @@ services:
             target: backend
         volumes:
             - highlight-data:/highlight-data
-        <<: *depends-infra
+        depends_on:
+            - backend-setup-db
+            - backend-setup-elasticsearch
         <<: *backend-env
 
     frontend:
