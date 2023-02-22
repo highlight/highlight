@@ -165,7 +165,19 @@ services:
         volumes:
             - ./otel-collector.yaml:/etc/otel-collector-config.yaml
 
-    backend-setup-elasticserch:
+    backend-setup-db:
+        image: public.ecr.aws/k9o6n7l8/highlight
+        build:
+            context: ..
+            dockerfile: docker/backend.Dockerfile
+        command:
+            - go
+            - run
+            - ./migrations/main.go
+        <<: *depends-infra
+        <<: *backend-env
+
+    backend-setup-elasticsearch:
         image: public.ecr.aws/k9o6n7l8/highlight
         build:
             context: ..
@@ -196,7 +208,11 @@ services:
             target: backend
         volumes:
             - highlight-data:/highlight-data
-        <<: *depends-infra
+        depends_on:
+            backend-setup-db:
+                condition: service_completed_successfully
+            backend-setup-elasticsearch:
+                condition: service_completed_successfully
         <<: *backend-env
 
     frontend:
@@ -218,7 +234,6 @@ services:
             args:
                 - REACT_APP_AUTH_MODE=simple
                 - REACT_APP_DEMO_SESSION
-                - REACT_APP_ENVIRONMENT
                 - REACT_APP_FIREBASE_CONFIG_OBJECT
                 - REACT_APP_FRONTEND_ORG
                 - REACT_APP_FRONTEND_URI
