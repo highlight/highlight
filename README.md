@@ -50,8 +50,9 @@ Deploy a hobby instance in one line on Linux with Docker (recommended 16 CPU cor
 git clone --recurse-submodules https://github.com/highlight/highlight
 # or `git submodule update --init --recursive` on git < 2.13
 
-# if you want to run the backend in debug mode (attach GDB), run the following
+# if you want to run the backend in debug mode (attach GDB), run the following:
 # export COMPOSE_FILE=compose.yml:compose.dev.yml:compose.debug.yml
+# see the `docker/.env` file for other compose configurations.
 cd docker && docker compose up -d --build
 ```
 
