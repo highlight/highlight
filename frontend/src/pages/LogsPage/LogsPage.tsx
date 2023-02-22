@@ -1,4 +1,3 @@
-import { CircularSpinner } from '@components/Loading/Loading'
 import { useGetLogsQuery, useGetLogsTotalCountQuery } from '@graph/hooks'
 import { Box, Preset, Stack, Text } from '@highlight-run/ui'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
@@ -133,16 +132,16 @@ const LogsPage = () => {
 					/>
 					<Stack direction="row" gap="2" px="12" py="8">
 						{logCountLoading ? (
-							<CircularSpinner />
+							<Text size="xSmall" color="weak">
+								Loading...
+							</Text>
 						) : (
 							totalCount && (
 								<>
 									<Text size="xSmall" color="weak">
 										{formatNumber(
 											totalCount.logs_total_count,
-										)}
-									</Text>
-									<Text size="xSmall" color="weak">
+										)}{' '}
 										logs
 									</Text>
 								</>
