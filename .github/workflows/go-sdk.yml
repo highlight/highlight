@@ -2,11 +2,13 @@ name: 'Golang SDK code checks'
 
 on:
     push:
-        branches:
-            - '**'
+        branches: ['main']
+    pull_request:
+        types: [opened, synchronize]
         paths:
             - 'sdk/highlight-go/**'
             - '.github/workflows/go-sdk.yml'
+    merge_group:
 
 jobs:
     format:

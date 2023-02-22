@@ -4,7 +4,6 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetWorkspacesQuery } from '@graph/hooks'
-import LoginForm from '@pages/Login/Login'
 import React, { useEffect } from 'react'
 import { Navigate, useMatch } from 'react-router-dom'
 
@@ -37,6 +36,5 @@ export const DefaultWorkspaceRouter = () => {
 	if (firstWorkspace?.id.length) {
 		return <Navigate to={`/w/${firstWorkspace.id}/${pageId}`} replace />
 	}
-
-	return <LoginForm />
+	return <Navigate to="/" />
 }

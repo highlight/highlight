@@ -1,24 +1,23 @@
 import { Button } from '@components/Button'
 import {
 	Box,
-	ButtonIcon,
 	Callout,
 	Form,
 	Heading,
-	IconSolidGoogle,
+	IconSolidSparkles,
 	Stack,
 	Text,
 	useFormState,
 } from '@highlight-run/ui'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
-import { Landing } from '@pages/Landing/Landing'
+import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
+import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
+import { message } from 'antd'
 import firebase from 'firebase/app'
-import React from 'react'
+import React, { useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-
-import * as styles from './SignUp.css'
 
 export const SignUp: React.FC = () => {
 	const navigate = useNavigate()
@@ -32,156 +31,132 @@ export const SignUp: React.FC = () => {
 		},
 	})
 
+	const handleSubmit = useCallback(
+		(credential: firebase.auth.UserCredential) => {
+			message.success('Account created succesfully!')
+
+			// Redirect the user to their initial path instead to creating a new
+			// workspace. We do this because this happens when a new user clicks
+			// on a Highlight link that was shared to them and they don't have
+			// an account yet.
+			const redirect = location.state?.previousPathName
+
+			if (credential.user?.email) {
+				analytics.track('Sign up', {
+					email: credential.user.email,
+					redirect,
+				})
+			}
+
+			if (redirect) {
+				navigate(redirect, { replace: true })
+			}
+		},
+		[location.state?.previousPathName, navigate],
+	)
+
 	return (
-		<Landing>
-			<Form
-				className={styles.container}
-				state={formState}
-				resetOnSubmit={false}
-				onSubmit={() => {
-					setLoading(true)
+		<Form
+			state={formState}
+			resetOnSubmit={false}
+			onSubmit={() => {
+				setLoading(true)
 
-					auth.createUserWithEmailAndPassword(
-						formState.values.email,
-						formState.values.password,
-					)
-						.then(() => {
-							auth.currentUser?.sendEmailVerification()
-
-							if (auth.currentUser?.email) {
-								analytics.track('Sign up', {
-									email: auth.currentUser.email,
-								})
-							}
-
-							// Redirect the user to their initial path instead to creating a new
-							// workspace. We do this because this happens when a new user clicks on
-							// a Highlight link that was shared to them and they don't have an
-							// account yet.
-							if (location.state?.previousPathName) {
-								navigate(location.state.previousPathName, {
-									replace: true,
-								})
-							} else {
-								navigate('/', { replace: true })
-							}
-						})
-						.catch((error) => {
-							setError(error.message || error.toString())
-						})
-						.finally(() => setLoading(false))
-				}}
-			>
-				<Box
-					backgroundColor="n2"
-					borderBottom="dividerWeak"
-					btr="8"
-					p="12"
-					pb="16"
-					px="20"
-					textAlign="center"
-				>
+				auth.createUserWithEmailAndPassword(
+					formState.values.email,
+					formState.values.password,
+				)
+					.then(async (credential) => {
+						auth.currentUser?.sendEmailVerification()
+						handleSubmit(credential)
+					})
+					.catch((error) => {
+						setError(error.message || error.toString())
+						setLoading(false)
+					})
+			}}
+		>
+			<AuthHeader>
+				<Box mb="4">
 					<Stack direction="column" gap="16" align="center">
 						<SvgHighlightLogoOnLight height="48" width="48" />
-						<Heading level="h4">Welcome to Highlight</Heading>
+						<Heading level="h4">Welcome to Highlight.</Heading>
 						<Text>
-							Have an account? <Link to="/">Sign in</Link>.
+							Have an account?{' '}
+							<Link to={SIGN_IN_ROUTE}>Sign in</Link>.
 						</Text>
 					</Stack>
 				</Box>
-				<Box backgroundColor="default" py="16" px="20">
-					<Stack gap="12">
-						<Form.Input
-							name={formState.names.email}
-							label="Email"
-							type="email"
-							autoFocus
-							autoComplete="email"
+			</AuthHeader>
+			<AuthBody>
+				<Stack gap="12">
+					<Form.Input
+						name={formState.names.email}
+						label="Email"
+						type="email"
+						autoFocus
+						autoComplete="email"
+					/>
+					<Form.Input
+						name={formState.names.password}
+						label="Password"
+						type="password"
+						autoComplete="new-password"
+					/>
+					{error && <Callout kind="error">{error}</Callout>}
+				</Stack>
+			</AuthBody>
+			<AuthFooter>
+				<Stack gap="12">
+					<Button
+						onClick={() => null}
+						trackingId="sign-up-submit"
+						loading={loading}
+						type="submit"
+					>
+						Sign up
+					</Button>
+					<Stack direction="row" align="center">
+						<Box
+							borderTop="divider"
+							style={{ height: 0, flexGrow: 1 }}
 						/>
-						<Form.Input
-							name={formState.names.password}
-							label="Password"
-							type="password"
-							autoComplete="new-password"
+						<Text color="weak" size="xSmall" align="center">
+							or
+						</Text>
+						<Box
+							borderTop="divider"
+							style={{ height: 0, flexGrow: 1 }}
 						/>
-						{error && <Callout kind="error">{error}</Callout>}
 					</Stack>
-				</Box>
-				<Box
-					backgroundColor="n2"
-					borderTop="dividerWeak"
-					bbr="8"
-					py="12"
-					px="20"
-					display="flex"
-					flexDirection="column"
-					gap="16"
-				>
-					<Stack gap="8">
-						<Button
-							onClick={() => null}
-							trackingId="sign-up-submit"
-							loading={loading}
-							type="submit"
-						>
-							Sign up
-						</Button>
-						<Stack
-							direction="row"
-							align="center"
-							justify="space-between"
-						>
-							<Text color="weak">Or sign up with</Text>
-							<Stack direction="row" gap="6">
-								<ButtonIcon
-									kind="secondary"
-									type="button"
-									onClick={() => {
-										auth.signInWithPopup(
-											auth.googleProvider!,
-										).catch(
-											(
-												error: firebase.auth.MultiFactorError,
-											) => {
-												let errorMessage = error.message
+					<Button
+						kind="secondary"
+						type="button"
+						trackingId="sign-up-with-google"
+						onClick={() => {
+							auth.signInWithPopup(auth.googleProvider!)
+								.then(handleSubmit)
+								.catch(
+									(error: firebase.auth.MultiFactorError) => {
+										let errorMessage = error.message
 
-												if (
-													error.code ===
-													'auth/popup-closed-by-user'
-												) {
-													errorMessage =
-														'Pop-up closed without successfully authenticating. Please try again.'
-												}
+										if (
+											error.code ===
+											'auth/popup-closed-by-user'
+										) {
+											errorMessage =
+												'Pop-up closed without successfully authenticating. Please try again.'
+										}
 
-												setError(errorMessage)
-											},
-										)
-									}}
-									icon={<IconSolidGoogle />}
-								/>
-							</Stack>
-						</Stack>
-					</Stack>
-					<Text align="center" color="weak" size="xSmall">
-						By creating an account you agree to our{' '}
-						<a
-							href="https://www.highlight.io/terms"
-							target="_blank"
-							rel="noreferrer"
-						>
-							Terms of Service
-						</a>{' '}
-						and{' '}
-						<a
-							href="https://www.highlight.io/privacy"
-							target="_blank"
-							rel="noreferrer"
-						>
-							Privacy Policy
-						</a>
-					</Text>
-				</Box>
-			</Form>
-		</Landing>
+										setError(errorMessage)
+									},
+								)
+						}}
+					>
+						Sign up with Google <IconSolidSparkles />
+					</Button>
+				</Stack>
+			</AuthFooter>
+		</Form>
 	)
 }

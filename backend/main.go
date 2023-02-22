@@ -227,7 +227,7 @@ func main() {
 	log.SetReportCaller(true)
 	// setup highlight
 	H.SetProjectID("1jdkoe52")
-	if util.IsDevOrTestEnv() {
+	if util.IsDevOrTestEnv() && !util.IsInDocker() {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql client address...")
 		H.SetGraphqlClientAddress("https://localhost:8082/public")
 		H.SetOTLPEndpoint("http://collector:4318")
@@ -251,10 +251,6 @@ func main() {
 		go expireHighlightAfterDate(time.Date(2021, 10, 1, 0, 0, 0, 0, time.UTC))
 	default:
 		log.WithContext(ctx).Fatal("please specify a deploy key in order to run Highlight")
-	}
-
-	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && (os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_S3_BUCKET_NAME") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "") {
-		log.WithContext(ctx).Fatalf("please specify object storage env variables in order to proceed")
 	}
 
 	if sendgridKey == "" {
@@ -302,9 +298,24 @@ func main() {
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
 
-	storage, err := storage.NewStorageClient(ctx)
-	if err != nil {
-		log.WithContext(ctx).Fatalf("error creating storage client: %v", err)
+	var storageClient storage.Client
+	if util.IsInDocker() {
+		log.WithContext(ctx).Info("in docker: using filesystem for object storage")
+		fsRoot := "/tmp"
+		if os.Getenv("OBJECT_STORAGE_FS") != "" {
+			fsRoot = os.Getenv("OBJECT_STORAGE_FS")
+		}
+		if storageClient, err = storage.NewFSClient(ctx, fsRoot, localhostCertPath, localhostKeyPath, "8085"); err != nil {
+			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
+		}
+	} else {
+		log.WithContext(ctx).Info("using S3 for object storage")
+		if os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_S3_BUCKET_NAME") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
+			log.WithContext(ctx).Fatalf("please specify object storage env variables in order to proceed")
+		}
+		if storageClient, err = storage.NewS3Client(ctx); err != nil {
+			log.WithContext(ctx).Fatalf("error creating s3 storage client: %v", err)
+		}
 	}
 
 	opensearchClient, err := opensearch.NewOpensearchClient()
@@ -344,7 +355,7 @@ func main() {
 		TDB:                    tdb,
 		MailClient:             sendgrid.NewSendClient(sendgridKey),
 		StripeClient:           stripeClient,
-		StorageClient:          storage,
+		StorageClient:          storageClient,
 		LambdaClient:           lambda,
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
@@ -473,9 +484,10 @@ func main() {
 			ProducerQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Producer),
 			BatchedQueue:    kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
-			StorageClient:   storage,
+			StorageClient:   storageClient,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
+			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
 			Redis:           redisClient,
 			RH:              &rh,
 		}
@@ -562,14 +574,15 @@ func main() {
 			ProducerQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Producer),
 			BatchedQueue:    kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
-			StorageClient:   storage,
+			StorageClient:   storageClient,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
+			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
 			Redis:           redisClient,
 			Clickhouse:      clickhouseClient,
 			RH:              &rh,
 		}
-		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
+		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
 			if !util.IsDevOrTestEnv() {
 				serviceName := "worker-service"

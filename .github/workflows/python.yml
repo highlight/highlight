@@ -8,6 +8,7 @@ on:
         paths:
             - 'sdk/highlight-py/**'
             - '.github/workflows/python.yml'
+    merge_group:
 
 jobs:
     build:

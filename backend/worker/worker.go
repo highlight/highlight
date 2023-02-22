@@ -62,7 +62,7 @@ const REFRESH_MATERIALIZED_VIEW_TIMEOUT = 15 * 60 * 1000
 type Worker struct {
 	Resolver       *mgraph.Resolver
 	PublicResolver *pubgraph.Resolver
-	S3Client       *storage.StorageClient
+	StorageClient  storage.Client
 }
 
 func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migrationState *string, payloadManager *payload.PayloadManager) error {
@@ -78,7 +78,7 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	totalPayloadSize, err := w.S3Client.PushFilesToS3(ctx, s.ID, s.ProjectID, payloadManager)
+	totalPayloadSize, err := w.StorageClient.PushFiles(ctx, s.ID, s.ProjectID, payloadManager)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
 		return errors.Wrap(err, "error pushing files to s3")
@@ -140,7 +140,7 @@ func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.Payload
 			curChunkedFile := manager.GetFile(payload.EventsChunked)
 			if curChunkedFile != nil {
 				curOffset := manager.ChunkIndex
-				_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, curChunkedFile, storage.GetChunkedPayloadType(curOffset))
+				_, err = w.StorageClient.PushCompressedFile(ctx, s.ID, s.ProjectID, curChunkedFile, storage.GetChunkedPayloadType(curOffset))
 				if err != nil {
 					return errors.Wrap(err, "error pushing event chunk file to s3")
 				}
@@ -187,7 +187,7 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && payloadType == model.PayloadTypeEvents
 
-	s3Events, err := w.Resolver.StorageClient.GetRawDataFromS3(ctx, s.ID, s.ProjectID, payloadType)
+	s3Events, err := w.Resolver.StorageClient.GetRawData(ctx, s.ID, s.ProjectID, payloadType)
 	if err != nil {
 		return errors.Wrap(err, "error retrieving objects from S3")
 	}
@@ -227,7 +227,7 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 			return errors.Wrap(err, "error closing compressed events chunk writer")
 		}
 		curOffset := manager.ChunkIndex
-		_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, manager.GetFile(payload.EventsChunked), storage.GetChunkedPayloadType(curOffset))
+		_, err = w.StorageClient.PushCompressedFile(ctx, s.ID, s.ProjectID, manager.GetFile(payload.EventsChunked), storage.GetChunkedPayloadType(curOffset))
 		if err != nil {
 			return errors.Wrap(err, "error pushing event chunk file to s3")
 		}

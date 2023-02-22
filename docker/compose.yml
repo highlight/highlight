@@ -9,9 +9,9 @@ x-depends-infra: &depends-infra
         clickhouse:
             condition: service_started
         elasticsearch:
-            condition: service_started
+            condition: service_healthy
         influxdb:
-            condition: service_started
+            condition: service_healthy
         setup-influxdb:
             condition: service_started
         collector:
@@ -26,7 +26,7 @@ x-backend-env: &backend-env
         - DEMO_SESSION
         - DEPLOYMENT_KEY
         - DOPPLER_CONFIG
-        - ENABLE_OBJECT_STORAGE
+        - ENABLE_OBJECT_STORAGE=true
         - ENVIRONMENT
         - FIREBASE_SECRET
         - FRONTEND_URI
@@ -37,6 +37,7 @@ x-backend-env: &backend-env
         - INFLUXDB_TOKEN
         - KAFKA_SERVERS
         - KAFKA_TOPIC
+        - OBJECT_STORAGE_FS=/highlight-data
         - OPENSEARCH_DOMAIN
         - OPENSEARCH_DOMAIN_READ
         - OPENSEARCH_PASSWORD
@@ -121,14 +122,27 @@ services:
         environment:
             discovery.type: single-node
             xpack.security.enabled: false
+            ES_JAVA_OPTS: '-Xms1024m -Xmx1024m'
         volumes:
             - elasticsearch-data:/usr/share/elasticsearch/data
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:9200']
+            start_period: 180s
+            interval: 5s
+            timeout: 5s
+            retries: 5
 
     influxdb:
         container_name: influxdb
         image: influxdb:latest
         volumes:
             - influxdb-data:/var/lib/influxdb
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:8086/ping']
+            start_period: 180s
+            interval: 5s
+            timeout: 5s
+            retries: 5
 
     setup-influxdb:
         image: influxdb:latest
@@ -137,7 +151,8 @@ services:
             - -c
             - 'influx setup --host http://influxdb:8086 --skip-verify --bucket dev-bucket --org dev-org --username dev --password devdevdevdev --retention 0 --token not-a-secure-token --force'
         depends_on:
-            - influxdb
+            influxdb:
+                condition: service_healthy
 
     collector:
         container_name: collector
@@ -150,7 +165,19 @@ services:
         volumes:
             - ./otel-collector.yaml:/etc/otel-collector-config.yaml
 
-    backend-setup-elasticserch:
+    backend-setup-db:
+        image: public.ecr.aws/k9o6n7l8/highlight
+        build:
+            context: ..
+            dockerfile: docker/backend.Dockerfile
+        command:
+            - go
+            - run
+            - ./migrations/main.go
+        <<: *depends-infra
+        <<: *backend-env
+
+    backend-setup-elasticsearch:
         image: public.ecr.aws/k9o6n7l8/highlight
         build:
             context: ..
@@ -159,25 +186,44 @@ services:
             - /bin/backend
             - -runtime=worker
             - -worker-handler=init-opensearch
-        depends_on:
-            - backend
+        volumes:
+            - highlight-data:/highlight-data
+        <<: *depends-infra
         <<: *backend-env
 
     backend:
         container_name: backend
         image: public.ecr.aws/k9o6n7l8/highlight
+        healthcheck:
+            test: ['CMD', 'curl', '-f', '-k', 'https://localhost:8082/health']
+            start_period: 180s
+            interval: 5s
+            timeout: 5s
+            retries: 5
         ports:
             - 8082:8082
         build:
             context: ..
             dockerfile: docker/backend.Dockerfile
             target: backend
-        <<: *depends-infra
+        volumes:
+            - highlight-data:/highlight-data
+        depends_on:
+            backend-setup-db:
+                condition: service_completed_successfully
+            backend-setup-elasticsearch:
+                condition: service_completed_successfully
         <<: *backend-env
 
     frontend:
         container_name: frontend
         image: public.ecr.aws/k9o6n7l8/highlight-frontend
+        healthcheck:
+            test: ['CMD', 'curl', '-f', '-k', 'https://localhost:3000/']
+            start_period: 180s
+            interval: 5s
+            timeout: 5s
+            retries: 5
         ports:
             - 3000:3000
             - 8080:8080
@@ -188,7 +234,6 @@ services:
             args:
                 - REACT_APP_AUTH_MODE=simple
                 - REACT_APP_DEMO_SESSION
-                - REACT_APP_ENVIRONMENT
                 - REACT_APP_FIREBASE_CONFIG_OBJECT
                 - REACT_APP_FRONTEND_ORG
                 - REACT_APP_FRONTEND_URI
@@ -197,6 +242,7 @@ services:
                 - REACT_APP_PUBLIC_GRAPH_URI
 
 volumes:
+    highlight-data:
     postgres-data:
     clickhouse-data:
     clickhouse-logs:

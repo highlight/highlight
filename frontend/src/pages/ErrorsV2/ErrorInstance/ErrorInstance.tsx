@@ -232,7 +232,8 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		)
 	}
 
-	const errorObject = errorInstance?.error_object
+	const errorObject =
+		errorInstance.error_object as ErrorInstanceType['error_object']
 
 	return (
 		<Box id="error-instance-container">
@@ -350,16 +351,22 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 					</>
 				)}
 
-			<Text size="large" weight="bold">
-				Stack trace
-			</Text>
-			<Box bt="secondary" mt="12" pt="16">
-				<ErrorStackTrace
-					errorObject={
-						errorObject as ErrorInstanceType['error_object']
-					}
-				/>
-			</Box>
+			{(errorObject.stack_trace !== '' &&
+				errorObject.stack_trace !== 'null') ||
+			errorObject.structured_stack_trace?.length ? (
+				<>
+					<Text size="large" weight="bold">
+						Stack trace
+					</Text>
+					<Box bt="secondary" mt="12" pt="16">
+						<ErrorStackTrace
+							errorObject={
+								errorObject as ErrorInstanceType['error_object']
+							}
+						/>
+					</Box>
+				</>
+			) : null}
 		</Box>
 	)
 }
