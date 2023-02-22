@@ -209,8 +209,10 @@ services:
         volumes:
             - highlight-data:/highlight-data
         depends_on:
-            - backend-setup-db
-            - backend-setup-elasticsearch
+            backend-setup-db:
+                condition: service_completed_successfully
+            backend-setup-elasticsearch:
+                condition: service_completed_successfully
         <<: *backend-env
 
     frontend:
