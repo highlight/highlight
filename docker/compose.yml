@@ -9,9 +9,9 @@ x-depends-infra: &depends-infra
         clickhouse:
             condition: service_started
         elasticsearch:
-            condition: service_started
+            condition: service_healthy
         influxdb:
-            condition: service_started
+            condition: service_healthy
         setup-influxdb:
             condition: service_started
         collector:
@@ -124,12 +124,24 @@ services:
             xpack.security.enabled: false
         volumes:
             - elasticsearch-data:/usr/share/elasticsearch/data
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:9200']
+            start_period: 180s
+            interval: 5s
+            timeout: 5s
+            retries: 5
 
     influxdb:
         container_name: influxdb
         image: influxdb:latest
         volumes:
             - influxdb-data:/var/lib/influxdb
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:8086/ping']
+            start_period: 180s
+            interval: 5s
+            timeout: 5s
+            retries: 5
 
     setup-influxdb:
         image: influxdb:latest
@@ -138,7 +150,8 @@ services:
             - -c
             - 'influx setup --host http://influxdb:8086 --skip-verify --bucket dev-bucket --org dev-org --username dev --password devdevdevdev --retention 0 --token not-a-secure-token --force'
         depends_on:
-            - influxdb
+            influxdb:
+                condition: service_healthy
 
     collector:
         container_name: collector
@@ -160,10 +173,9 @@ services:
             - /bin/backend
             - -runtime=worker
             - -worker-handler=init-opensearch
-        depends_on:
-            - backend
         volumes:
             - highlight-data:/highlight-data
+        <<: *depends-infra
         <<: *backend-env
 
     backend:
