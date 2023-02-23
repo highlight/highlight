@@ -106,7 +106,6 @@ const Search: React.FC<{
 	const state = useComboboxState({ gutter: 6, sameWidth: true })
 	const [getLogsKeyValues, { data, loading: valuesLoading }] =
 		useGetLogsKeyValuesLazyQuery()
-	const loading = keys?.length === 0 || valuesLoading
 
 	const queryTerms = parseLogsQuery(query)
 	const cursorIndex = inputRef.current?.selectionStart || 0
@@ -116,6 +115,7 @@ const Search: React.FC<{
 	const showValues =
 		activeTerm.key !== 'text' ||
 		!!keys?.find((k) => k.name === activeTerm.key)
+	const loading = keys?.length === 0 || (showValues && valuesLoading)
 
 	const activeTermKeys = queryTerms.map((term) => term.key)
 	keys = keys?.filter((key) => activeTermKeys.indexOf(key.name) === -1)
@@ -246,24 +246,41 @@ const Search: React.FC<{
 						px="6"
 						backgroundColor="raised"
 						borderTop="dividerWeak"
+						justifyContent="space-between"
 						display="flex"
 						flexDirection="row"
-						gap="20"
 					>
-						<Box
-							display="inline-flex"
-							flexDirection="row"
-							alignItems="center"
-							gap="6"
-						>
-							<Badge
-								variant="gray"
-								size="small"
-								iconStart={<IconSolidArrowsExpand />}
-							/>{' '}
-							<Text color="weak" size="xSmall">
-								Select
-							</Text>
+						<Box display="flex" flexDirection="row" gap="20">
+							<Box
+								display="inline-flex"
+								flexDirection="row"
+								alignItems="center"
+								gap="6"
+							>
+								<Badge
+									variant="gray"
+									size="small"
+									iconStart={<IconSolidArrowsExpand />}
+								/>{' '}
+								<Text color="weak" size="xSmall">
+									Select
+								</Text>
+							</Box>
+							<Box
+								display="inline-flex"
+								flexDirection="row"
+								alignItems="center"
+								gap="6"
+							>
+								<Badge
+									variant="gray"
+									size="small"
+									label="Enter"
+								/>
+								<Text color="weak" size="xSmall">
+									Open
+								</Text>
+							</Box>
 						</Box>
 						<Box
 							display="inline-flex"
@@ -271,20 +288,9 @@ const Search: React.FC<{
 							alignItems="center"
 							gap="6"
 						>
-							<Badge variant="gray" size="small" label="Enter" />
+							<Badge variant="gray" size="small" label="*" />
 							<Text color="weak" size="xSmall">
-								Open
-							</Text>
-						</Box>
-						<Box
-							display="inline-flex"
-							flexDirection="row"
-							alignItems="center"
-							gap="6"
-						>
-							<Badge variant="gray" size="small" label="Enter" />
-							<Text color="weak" size="xSmall">
-								Open
+								Wildcard
 							</Text>
 						</Box>
 					</Box>
