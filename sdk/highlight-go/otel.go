@@ -32,6 +32,10 @@ const SessionIDAttribute = "highlight.session_id"
 const RequestIDAttribute = "highlight.trace_id"
 const SourceAttribute = "highlight.source"
 
+const LogEvent = "log"
+const LogSeverityAttribute = "log.severity"
+const LogMessageAttribute = "log.message"
+
 var InternalAttributes = []string{
 	DeprecatedProjectIDAttribute,
 	DeprecatedSessionIDAttribute,

@@ -13,9 +13,8 @@ import (
 )
 
 var (
-	LogName        = "log"
-	LogSeverityKey = attribute.Key("log.severity")
-	LogMessageKey  = attribute.Key("log.message")
+	LogSeverityKey = attribute.Key(highlight.LogSeverityAttribute)
+	LogMessageKey  = attribute.Key(highlight.LogMessageAttribute)
 )
 
 type VercelProxy struct {
@@ -111,7 +110,7 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 			}
 		}
 
-		span.AddEvent(LogName, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(row.Time)))
+		span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(row.Time)))
 		if row.Type == "error" {
 			span.SetStatus(codes.Error, message)
 		}
@@ -141,7 +140,7 @@ func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
 		semconv.HTTPMethodKey.Int64(log.StatusCode),
 	)
 
-	span.AddEvent(LogName, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))
+	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))
 	if log.Type == "error" {
 		span.SetStatus(codes.Error, log.Message)
 	}
