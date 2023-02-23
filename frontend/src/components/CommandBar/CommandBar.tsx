@@ -122,6 +122,26 @@ const PRESETS = [
 	last90Days,
 ]
 
+function nextAttribute(
+	currentAttribute: Attribute | undefined,
+	direction: 'next' | 'prev' = 'next',
+) {
+	const index = currentAttribute ? ATTRIBUTE.indexOf(currentAttribute) : -1
+	if (index === -1) {
+		if (direction === 'next') {
+			return ATTRIBUTE[0]
+		} else {
+			return ATTRIBUTE[ATTRIBUTE.length - 1]
+		}
+	}
+
+	if (direction === 'next') {
+		return ATTRIBUTE[index + 1] ?? ATTRIBUTE[ATTRIBUTE.length - 1]
+	} else {
+		return ATTRIBUTE[index - 1] ?? ATTRIBUTE[0]
+	}
+}
+
 const CommandBar = () => {
 	const { commandBarDialog } = useGlobalContext()
 	const form = useFormState<CommandBarSearch>({
@@ -140,7 +160,13 @@ const CommandBar = () => {
 	const setCurrentAttribute = (row: Attribute | undefined) =>
 		setCurrentAttributeImpl(row)
 
-	const searchAttribute = useAttributeSearch(currentAttribute, query)
+	const searchAttribute = useAttributeSearch(query)
+
+	form.useSubmit(() => {
+		if (query) {
+			searchAttribute(currentAttribute ?? ATTRIBUTE[0])
+		}
+	})
 
 	useHotkeys(
 		'cmd+k, ctrl+k, /',
@@ -155,10 +181,7 @@ const CommandBar = () => {
 	useHotkeys(
 		'up',
 		() => {
-			if (currentAttribute) {
-				const index = ATTRIBUTE.indexOf(currentAttribute)
-				setCurrentAttribute(ATTRIBUTE[index - 1] ?? ATTRIBUTE[0])
-			}
+			setCurrentAttribute(nextAttribute(currentAttribute, 'prev'))
 		},
 		[currentAttribute],
 	)
@@ -166,32 +189,9 @@ const CommandBar = () => {
 	useHotkeys(
 		'down',
 		() => {
-			if (currentAttribute) {
-				const index = ATTRIBUTE.indexOf(currentAttribute)
-				setCurrentAttribute(
-					ATTRIBUTE[index + 1] ?? ATTRIBUTE[ATTRIBUTE.length - 1],
-				)
-			}
+			setCurrentAttribute(nextAttribute(currentAttribute, 'next'))
 		},
 		[currentAttribute],
-	)
-
-	useHotkeys(
-		'enter',
-		() => {
-			searchAttribute()
-			commandBarDialog.hide()
-		},
-		[currentAttribute, query],
-	)
-
-	useHotkeys(
-		'cmd+enter, ctrl+enter',
-		() => {
-			searchAttribute({ newTab: true })
-			commandBarDialog.hide()
-		},
-		[currentAttribute, query],
 	)
 
 	return (
@@ -242,13 +242,14 @@ const CommandBar = () => {
 
 const SearchBar = ({ form }: { form: FormState<CommandBarSearch> }) => {
 	const query = form.getValue<string>(form.names.search)
+	const selectedDates = form.getValue<Date[]>(form.names.selectedDates)
+
 	const inputRef = useRef<HTMLInputElement>(null)
 	const isDirty =
-		!!query ||
-		form.getValue(form.names.selectedDates)[0].getTime() !==
-			last90Days.startDate.getTime()
+		!!query || selectedDates[0].getTime() !== last90Days.startDate.getTime()
 
-	const { setCurrentAttribute } = useCommandBarContext()
+	const { currentAttribute, setCurrentAttribute } = useCommandBarContext()
+	const searchAttribute = useAttributeSearch(query)
 
 	return (
 		<Box p="8" display="flex" alignItems="center" width="full">
@@ -278,14 +279,28 @@ const SearchBar = ({ form }: { form: FormState<CommandBarSearch> }) => {
 									e.code === 'ArrowDown' ||
 									e.code === 'ArrowUp'
 								) {
-									inputRef.current?.blur()
-								}
-								if (e.code === 'ArrowDown') {
-									setCurrentAttribute(ATTRIBUTE[0])
-								} else if (e.code === 'ArrowUp') {
+									e.preventDefault()
 									setCurrentAttribute(
-										ATTRIBUTE[ATTRIBUTE.length - 1],
+										nextAttribute(
+											currentAttribute,
+											e.code === 'ArrowUp'
+												? 'prev'
+												: 'next',
+										),
 									)
+								}
+								if (e.code === 'Enter') {
+									e.preventDefault()
+									if (e.metaKey || e.ctrlKey) {
+										searchAttribute(
+											currentAttribute ?? ATTRIBUTE[0],
+											{
+												newTab: true,
+											},
+										)
+									} else {
+										form.submit()
+									}
 								}
 							}}
 						/>
@@ -332,14 +347,12 @@ const SectionHeader = ({ header }: { header: string }) => {
 	)
 }
 
-const useAttributeSearch = (
-	attribute: Attribute | undefined,
-	query: string,
-) => {
+const useAttributeSearch = (query: string) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
+	const { commandBarDialog } = useGlobalContext()
 	const callback = useCallback(
-		(params?: { newTab?: boolean }) => {
+		(attribute: Attribute | undefined, params?: { newTab?: boolean }) => {
 			if (!attribute) return
 
 			const basePath = `/${projectId}/${
@@ -362,8 +375,9 @@ const useAttributeSearch = (
 					'_blank',
 				)
 			}
+			commandBarDialog.hide()
 		},
-		[attribute, navigate, projectId, query],
+		[commandBarDialog, navigate, projectId, query],
 	)
 	return callback
 }
@@ -376,10 +390,9 @@ const SectionRow = ({
 	attribute: Attribute
 	query: string
 }) => {
-	const { commandBarDialog } = useGlobalContext()
 	const { currentAttribute, setCurrentAttribute } = useCommandBarContext()
 	const selected = isEqual(currentAttribute, attribute)
-	const searchAttribute = useAttributeSearch(attribute, query)
+	const searchAttribute = useAttributeSearch(query)
 
 	return (
 		<Box
@@ -399,8 +412,7 @@ const SectionRow = ({
 				setCurrentAttribute(attribute)
 			}}
 			onClick={() => {
-				searchAttribute()
-				commandBarDialog.hide()
+				searchAttribute(attribute)
 			}}
 		>
 			<Box flexShrink={0} display="inline-flex" alignItems="center">
