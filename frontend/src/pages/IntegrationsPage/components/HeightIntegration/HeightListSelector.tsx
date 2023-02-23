@@ -45,7 +45,7 @@ const HeightListSelector: React.FC<ContainerSelectionProps> = ({
 	}, [selectedHeightListId, heightListOptions, setHeightListId])
 
 	return (
-		<Form.NamedSection label="Height List">
+		<Form.NamedSection label="Height List" name="heightList">
 			<Select
 				aria-label="Height List"
 				placeholder="Choose a list to create the task in"

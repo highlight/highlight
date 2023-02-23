@@ -1420,6 +1420,7 @@ type Mutation {
 		admin_and_workspace_details: AdminAndWorkspaceDetails!
 	): Project
 	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
+	createAdmin: Admin!
 	createProject(name: String!, workspace_id: ID!): Project
 	createWorkspace(name: String!, promo_code: String): Workspace
 	editProject(
