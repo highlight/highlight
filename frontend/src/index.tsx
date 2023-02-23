@@ -50,7 +50,9 @@ import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 import { createRoot } from 'react-dom/client'
 
 analytics.initialize()
-const dev = import.meta.env.DEV
+const dev =
+	import.meta.env.DEV ||
+	import.meta.env.REACT_APP_FRONTEND_URI.indexOf('localhost') !== -1
 const options: HighlightOptions = {
 	debug: { clientInteractions: true, domRecording: true },
 	manualStart: true,
@@ -91,7 +93,7 @@ const options: HighlightOptions = {
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {
 	options.scriptUrl = 'http://localhost:8080/dist/index.js'
-	options.backendUrl = 'https://localhost:8082/public'
+	options.backendUrl = import.meta.env.REACT_APP_PUBLIC_GRAPH_URI
 
 	options.integrations = undefined
 
