@@ -8,7 +8,10 @@ import {
 	ERROR_FIELD_TYPE,
 	ERROR_TYPE,
 } from '@pages/ErrorsV2/ErrorQueryBuilder/components/QueryBuilder/QueryBuilder'
-import { CUSTOM_TYPE } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
+import {
+	CUSTOM_TYPE,
+	SESSION_TYPE,
+} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import { BuilderParams, buildQueryURLString } from '@util/url/params'
 import { FormState } from 'ariakit/form'
@@ -17,6 +20,10 @@ import { useNavigate } from 'react-router-dom'
 
 export const isErrorAttribute = (attribute: typeof ATTRIBUTES[number]) => {
 	return [ERROR_TYPE, ERROR_FIELD_TYPE].includes(attribute.type)
+}
+
+export const isSessionAttribute = (attribute: typeof ATTRIBUTES[number]) => {
+	return ['user', SESSION_TYPE].includes(attribute.type)
 }
 
 export const buildQueryBuilderParams = ({
@@ -89,15 +96,17 @@ export const useAttributeSearch = (form: FormState<CommandBarSearch>) => {
 			endDate: params?.withDate ? dates[1] : undefined,
 		})
 
+		const searchQuery = buildQueryURLString(qbParams, {
+			reload: true,
+		})
+
 		if (!params?.newTab) {
 			navigate({
 				pathname: basePath,
-				search: buildQueryURLString(qbParams, {
-					reload: true,
-				}),
+				search: searchQuery,
 			})
 		} else {
-			window.open(`${basePath}${buildQueryURLString(qbParams)}`, '_blank')
+			window.open(`${basePath}${searchQuery}`, '_blank')
 		}
 		commandBarDialog.hide()
 	}

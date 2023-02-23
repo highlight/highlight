@@ -1979,7 +1979,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		if (!segmentsLoading) {
 			if (activeSegmentUrlParam) {
 				selectSegment(activeSegmentUrlParam)
-				return
 			}
 		}
 		// We only want to run this once after loading segments.

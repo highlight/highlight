@@ -7,6 +7,7 @@ import {
 } from '@components/CommandBar/context'
 import {
 	isErrorAttribute,
+	isSessionAttribute,
 	nextAttribute,
 	useAttributeSearch,
 } from '@components/CommandBar/utils'
@@ -30,7 +31,6 @@ import {
 	useFormState,
 } from '@highlight-run/ui'
 import { PreviousDateRangePicker } from '@highlight-run/ui/src/components/DatePicker/PreviousDateRangePicker'
-import { SESSION_TYPE } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import { isInsideElement } from '@util/dom'
 import { Dialog } from 'ariakit/dialog'
@@ -251,10 +251,6 @@ const SearchBar = ({ form }: { form: FormState<CommandBarSearch> }) => {
 									e.preventDefault()
 									e.stopPropagation()
 									form.reset()
-									form.setValue(form.names.selectedDates, [
-										last30Days.startDate,
-										moment().toDate(),
-									])
 									inputRef.current?.focus()
 								}}
 							/>
@@ -358,9 +354,6 @@ const SectionRow = ({
 	)
 }
 
-const isSessionAttribute = (attribute: typeof ATTRIBUTES[number]) => {
-	return ['user', SESSION_TYPE].includes(attribute.type)
-}
 const SessionOptions = () => {
 	return (
 		<Box
