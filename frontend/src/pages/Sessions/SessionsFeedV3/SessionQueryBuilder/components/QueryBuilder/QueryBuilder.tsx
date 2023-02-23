@@ -1980,6 +1980,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 			if (activeSegmentUrlParam) {
 				selectSegment(activeSegmentUrlParam)
 			}
+			if (searchParamsToUrlParams.query !== undefined) {
+				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+			}
 		}
 		// We only want to run this once after loading segments.
 		// eslint-disable-next-line react-hooks/exhaustive-deps

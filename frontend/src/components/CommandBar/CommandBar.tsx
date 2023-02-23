@@ -312,11 +312,12 @@ const SectionRow = ({
 			onMouseMove={() => {
 				setCurrentAttribute(attribute)
 			}}
-			onClick={() => {
+			onClick={(e) => {
 				searchAttribute(attribute, {
 					withDate:
 						form.getValue(form.names.selectedDates)[0].getTime() !==
 						last30Days.startDate.getTime(),
+					newTab: e.metaKey || e.ctrlKey,
 				})
 			}}
 		>
