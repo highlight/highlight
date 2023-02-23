@@ -8,10 +8,12 @@ import {
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
 import Notifications from '@components/Header/Notifications/NotificationsV2'
 import { linkStyle } from '@components/Header/styles.css'
+import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
 import { Maybe, PlanType, Project } from '@graph/schemas'
 import {
+	Badge,
 	Box,
 	IconSolidArrowSmLeft,
 	IconSolidAtSymbol,
@@ -25,6 +27,7 @@ import {
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidQuestionMarkCircle,
+	IconSolidSearch,
 	IconSolidSpeakerphone,
 	IconSolidSwitchHorizontal,
 	IconSolidUserCircle,
@@ -39,7 +42,6 @@ import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
 import { useBillingHook } from '@pages/Billing/Billing'
 import { getTrialEndDateMessage } from '@pages/Billing/utils/utils'
-import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch'
 import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
@@ -75,7 +77,8 @@ export const Header = () => {
 	const parts = pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
 
-	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
+	const { toggleShowKeyboardShortcutsGuide, commandBarDialog } =
+		useGlobalContext()
 	const { admin } = useAuthContext()
 
 	const pages = [
@@ -322,9 +325,23 @@ export const Header = () => {
 							width="full"
 						>
 							{!!project_id && (
-								<Box className={styles.quicksearchWrapper}>
-									<QuickSearch />
-								</Box>
+								<Button
+									trackingId="quickSearchClicked"
+									kind="secondary"
+									size="small"
+									emphasis="high"
+									iconLeft={<IconSolidSearch />}
+									onClick={commandBarDialog.toggle}
+								>
+									<Badge
+										variant="outlineGray"
+										shape="basic"
+										size="small"
+										label={OpenCommandBarShortcut.shortcut.join(
+											'+',
+										)}
+									/>
+								</Button>
 							)}
 							<Box display="flex" alignItems="center" gap="4">
 								<Button

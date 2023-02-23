@@ -24,10 +24,11 @@ import {
 	ERROR_TYPE,
 } from '@pages/ErrorsV2/ErrorQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { SESSION_TYPE } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
+import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import { createContext } from '@util/context/context'
 import { isInsideElement } from '@util/dom'
 import { buildQueryURLString } from '@util/url/params'
-import { Dialog, DialogState, useDialogState } from 'ariakit/dialog'
+import { Dialog } from 'ariakit/dialog'
 import { FormState } from 'ariakit/form'
 import isEqual from 'lodash/isEqual'
 import moment from 'moment'
@@ -90,7 +91,6 @@ type Attribute = typeof ATTRIBUTE[number]
 interface CommandBarContext {
 	currentAttribute: Attribute | undefined
 	setCurrentAttribute: (row: Attribute | undefined) => void
-	dialog: DialogState
 }
 export const [useCommandBarContext, CommandBarContextProvider] =
 	createContext<CommandBarContext>('CommandBar')
@@ -123,7 +123,7 @@ const PRESETS = [
 ]
 
 const CommandBar = () => {
-	const dialog = useDialogState({})
+	const { commandBarDialog } = useGlobalContext()
 	const form = useFormState<CommandBarSearch>({
 		defaultValues: {
 			search: '',
@@ -146,11 +146,11 @@ const CommandBar = () => {
 		'cmd+k, ctrl+k, /',
 		() => {
 			setCurrentAttribute(undefined)
-			dialog.toggle()
+			commandBarDialog.toggle()
 		},
 		[],
 	)
-	useHotkeys('esc', dialog.hide, [])
+	useHotkeys('esc', commandBarDialog.hide, [])
 
 	useHotkeys(
 		'up',
@@ -180,7 +180,7 @@ const CommandBar = () => {
 		'enter',
 		() => {
 			searchAttribute()
-			dialog.hide()
+			commandBarDialog.hide()
 		},
 		[currentAttribute, query],
 	)
@@ -189,7 +189,7 @@ const CommandBar = () => {
 		'cmd+enter, ctrl+enter',
 		() => {
 			searchAttribute({ newTab: true })
-			dialog.hide()
+			commandBarDialog.hide()
 		},
 		[currentAttribute, query],
 	)
@@ -199,15 +199,14 @@ const CommandBar = () => {
 			value={{
 				currentAttribute,
 				setCurrentAttribute,
-				dialog,
 			}}
 		>
 			<Dialog
-				state={dialog}
+				state={commandBarDialog}
 				className={styles.dialog}
 				onClick={(e) => {
 					if (!isInsideElement(e.nativeEvent, containerRef.current)) {
-						dialog.hide()
+						commandBarDialog.hide()
 					}
 				}}
 				onMouseMove={(e) => {
@@ -377,8 +376,8 @@ const SectionRow = ({
 	attribute: Attribute
 	query: string
 }) => {
-	const { currentAttribute, setCurrentAttribute, dialog } =
-		useCommandBarContext()
+	const { commandBarDialog } = useGlobalContext()
+	const { currentAttribute, setCurrentAttribute } = useCommandBarContext()
 	const selected = isEqual(currentAttribute, attribute)
 	const searchAttribute = useAttributeSearch(attribute, query)
 
@@ -401,7 +400,7 @@ const SectionRow = ({
 			}}
 			onClick={() => {
 				searchAttribute()
-				dialog.hide()
+				commandBarDialog.hide()
 			}}
 		>
 			<Box flexShrink={0} display="inline-flex" alignItems="center">
