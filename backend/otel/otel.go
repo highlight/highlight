@@ -40,7 +40,7 @@ func castString(v interface{}, fallback string) string {
 }
 
 func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID, source *string) {
-	for k, ptr := range map[string]*string{
+	ptrs := map[string]*string{
 		highlight.DeprecatedProjectIDAttribute: projectID,
 		highlight.DeprecatedSessionIDAttribute: sessionID,
 		highlight.DeprecatedRequestIDAttribute: requestID,
@@ -49,10 +49,20 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 		highlight.SessionIDAttribute:           sessionID,
 		highlight.RequestIDAttribute:           requestID,
 		highlight.SourceAttribute:              source,
+	}
+	for _, k := range []string{
+		highlight.DeprecatedProjectIDAttribute,
+		highlight.DeprecatedSessionIDAttribute,
+		highlight.DeprecatedRequestIDAttribute,
+		highlight.DeprecatedSourceAttribute,
+		highlight.ProjectIDAttribute,
+		highlight.SessionIDAttribute,
+		highlight.RequestIDAttribute,
+		highlight.SourceAttribute,
 	} {
 		if p, ok := attrs[k]; ok {
 			if v, _ := p.(string); v != "" {
-				*ptr = v
+				*ptrs[k] = v
 			}
 		}
 	}
