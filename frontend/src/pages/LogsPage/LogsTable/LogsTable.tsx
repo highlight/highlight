@@ -75,7 +75,13 @@ const LogsTable = ({ data, loading, query }: Props) => {
 			{
 				accessorKey: 'timestamp',
 				cell: ({ row, getValue }) => (
-					<Box flexShrink={0}>
+					<Box
+						flexShrink={0}
+						flexDirection="row"
+						display="flex"
+						alignItems="center"
+						gap="6"
+					>
 						{row.getCanExpand() && (
 							<Box display="flex" alignItems="center">
 								{row.getIsExpanded() ? (
@@ -99,8 +105,12 @@ const LogsTable = ({ data, loading, query }: Props) => {
 			},
 			{
 				accessorKey: 'body',
-				cell: ({ getValue }) => (
-					<LogBody query={query} body={getValue() as string} />
+				cell: ({ row, getValue }) => (
+					<LogBody
+						expanded={row.getIsExpanded()}
+						query={query}
+						body={getValue() as string}
+					/>
 				),
 			},
 		],

@@ -20,7 +20,7 @@ const LogSeverityText = ({ severityText }: Props) => {
 	const color: BoxProps['color'] = COLOR_MAPPING[severityText] ?? 'default'
 
 	return (
-		<Box flexShrink={0}>
+		<Box flexShrink={0} style={{ width: 46 }}>
 			<Text color={color} weight="bold" family="monospace">
 				{severityText}
 			</Text>
