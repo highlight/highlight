@@ -64,7 +64,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					formState.values.password,
 				)
 					.then(() => {})
-					.catch(handleAuthError)
+					.catch((e) => {
+						handleAuthError(e)
+						setLoading(false)
+					})
 			}}
 		>
 			<AuthHeader>
