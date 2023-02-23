@@ -3,7 +3,6 @@ package highlight
 import (
 	"context"
 	"fmt"
-	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -45,8 +44,8 @@ var InternalAttributes = []string{
 	SessionIDAttribute,
 	RequestIDAttribute,
 	SourceAttribute,
-	string(hlog.LogMessageKey),
-	string(hlog.LogSeverityKey),
+	LogMessageAttribute,
+	LogSeverityAttribute,
 }
 
 type OTLP struct {
