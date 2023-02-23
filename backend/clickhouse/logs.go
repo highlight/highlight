@@ -8,6 +8,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	flat "github.com/nqd/flat"
 	e "github.com/pkg/errors"
 )
 
@@ -74,16 +75,11 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 			return nil, err
 		}
 
-		gqlLogAttributes := make(map[string]interface{}, len(LogAttributes))
-		for i, v := range LogAttributes {
-			gqlLogAttributes[i] = v
-		}
-
 		logLines = append(logLines, &modelInputs.LogLine{
 			Timestamp:     Timestamp,
 			SeverityText:  makeSeverityText(SeverityText),
 			Body:          Body,
-			LogAttributes: gqlLogAttributes,
+			LogAttributes: expandJSON(LogAttributes),
 		})
 	}
 	rows.Close()
@@ -306,4 +302,18 @@ func splitQuery(query string) []string {
 
 func unquoteAndTrim(s string) string {
 	return strings.ReplaceAll(strings.Trim(s, " "), `"`, "")
+}
+
+func expandJSON(logAttributes map[string]string) map[string]interface{} {
+	gqlLogAttributes := make(map[string]interface{}, len(logAttributes))
+	for i, v := range logAttributes {
+		gqlLogAttributes[i] = v
+	}
+
+	out, err := flat.Unflatten(gqlLogAttributes, nil)
+	if err != nil {
+		return gqlLogAttributes
+	}
+
+	return out
 }

@@ -124,6 +124,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hasura/go-graphql-client v0.9.0 // indirect
+	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -216,6 +217,7 @@ require (
 	github.com/jinzhu/now v1.1.3 // indirect
 	github.com/klauspost/compress v1.15.15 // indirect
 	github.com/leonelquinteros/hubspot v0.1.0
+	github.com/nqd/flat v0.2.0
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
