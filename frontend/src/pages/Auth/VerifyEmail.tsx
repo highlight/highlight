@@ -36,7 +36,16 @@ export const VerifyEmail: React.FC = () => {
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
-	}, [setLoadingState])
+
+		// Show the Intercom message after 5 seconds in case the user needs help.
+		setTimeout(() => {
+			window.Intercom('update', {
+				hide_default_launcher: false,
+			})
+		}, 5000)
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	return (
 		<Landing>
