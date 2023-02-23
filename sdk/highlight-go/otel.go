@@ -3,6 +3,7 @@ package highlight
 import (
 	"context"
 	"fmt"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -18,12 +19,31 @@ import (
 )
 
 const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
-const SourceAttribute = "Source"
+
+const ErrorURLAttribute = "URL"
 const SourceAttributeFrontend = "SubmitFrontendConsoleMessages"
-const ProjectIDAttribute = "highlight_project_id"
-const SessionIDAttribute = "highlight_session_id"
-const RequestIDAttribute = "highlight_trace_id"
-const ErrorURLKey = "URL"
+
+const DeprecatedProjectIDAttribute = "highlight_project_id"
+const DeprecatedSessionIDAttribute = "highlight_session_id"
+const DeprecatedRequestIDAttribute = "highlight_trace_id"
+const DeprecatedSourceAttribute = "Source"
+const ProjectIDAttribute = "highlight.project_id"
+const SessionIDAttribute = "highlight.session_id"
+const RequestIDAttribute = "highlight.trace_id"
+const SourceAttribute = "highlight.source"
+
+var InternalAttributes = []string{
+	DeprecatedProjectIDAttribute,
+	DeprecatedSessionIDAttribute,
+	DeprecatedRequestIDAttribute,
+	DeprecatedSourceAttribute,
+	ProjectIDAttribute,
+	SessionIDAttribute,
+	RequestIDAttribute,
+	SourceAttribute,
+	string(hlog.LogMessageKey),
+	string(hlog.LogSeverityKey),
+}
 
 type OTLP struct {
 	tracerProvider *sdktrace.TracerProvider
@@ -104,7 +124,7 @@ func EndTrace(span trace.Span) {
 func RecordSpanError(span trace.Span, err error, tags ...attribute.KeyValue) {
 	if urlErr, ok := err.(*url.Error); ok {
 		span.SetAttributes(attribute.String("Op", urlErr.Op))
-		span.SetAttributes(attribute.String(ErrorURLKey, urlErr.URL))
+		span.SetAttributes(attribute.String(ErrorURLAttribute, urlErr.URL))
 	}
 	span.SetAttributes(tags...)
 	// if this is an error with true stacktrace, then create the event directly since otel doesn't support saving a custom stacktrace

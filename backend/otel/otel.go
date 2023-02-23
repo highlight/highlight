@@ -40,24 +40,20 @@ func castString(v interface{}, fallback string) string {
 }
 
 func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID, source *string) {
-	if p, ok := attrs[highlight.ProjectIDAttribute]; ok {
-		if v, _ := p.(string); v != "" {
-			*projectID = v
-		}
-	}
-	if s, ok := attrs[highlight.SessionIDAttribute]; ok {
-		if v, _ := s.(string); v != "" {
-			*sessionID = v
-		}
-	}
-	if r, ok := attrs[highlight.RequestIDAttribute]; ok {
-		if v, _ := r.(string); v != "" {
-			*requestID = v
-		}
-	}
-	if src, ok := attrs[highlight.SourceAttribute]; ok {
-		if v, _ := src.(string); v != "" {
-			*source = v
+	for k, ptr := range map[string]*string{
+		highlight.DeprecatedProjectIDAttribute: projectID,
+		highlight.DeprecatedSessionIDAttribute: sessionID,
+		highlight.DeprecatedRequestIDAttribute: requestID,
+		highlight.DeprecatedSourceAttribute:    source,
+		highlight.ProjectIDAttribute:           projectID,
+		highlight.SessionIDAttribute:           sessionID,
+		highlight.RequestIDAttribute:           requestID,
+		highlight.SourceAttribute:              source,
+	} {
+		if p, ok := attrs[k]; ok {
+			if v, _ := p.(string); v != "" {
+				*ptr = v
+			}
 		}
 	}
 }
@@ -77,6 +73,11 @@ func projectToInt(projectID string) (int, error) {
 func getAttributesMaps(resourceAttributes, eventAttributes map[string]any) (map[string]string, map[string]string) {
 	resourceAttributesMap := make(map[string]string)
 	for k, v := range resourceAttributes {
+		for _, attr := range highlight.InternalAttributes {
+			if k == attr {
+				continue
+			}
+		}
 		vStr := castString(v, "")
 		if vStr != "" {
 			resourceAttributesMap[k] = castString(v, "")
@@ -84,11 +85,15 @@ func getAttributesMaps(resourceAttributes, eventAttributes map[string]any) (map[
 	}
 	logAttributesMap := make(map[string]string)
 	for k, v := range eventAttributes {
-		vStr := castString(v, "")
-		if vStr == "" || k == string(hlog.LogMessageKey) || k == string(hlog.LogSeverityKey) {
-			continue
+		for _, attr := range highlight.InternalAttributes {
+			if k == attr {
+				continue
+			}
 		}
-		logAttributesMap[k] = castString(v, "")
+		vStr := castString(v, "")
+		if vStr != "" {
+			logAttributesMap[k] = castString(v, "")
+		}
 	}
 	return resourceAttributesMap, logAttributesMap
 }
@@ -194,7 +199,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 						func() {
 							excType := castString(eventAttributes[string(semconv.ExceptionTypeKey)], source)
-							errorUrl := castString(eventAttributes[highlight.ErrorURLKey], "")
+							errorUrl := castString(eventAttributes[highlight.ErrorURLAttribute], "")
 							stackTrace := castString(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
 							if excType == "" && excMessage == "" {
 								log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Error("otel received exception with no type and no message")
