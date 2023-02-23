@@ -210,26 +210,33 @@ func TestEnhanceStackTrace(t *testing.T) {
 		},
 	}
 
-	storageClient, err := storage.NewStorageClient(ctx)
+	s3Client, err := storage.NewS3Client(ctx)
+	if err != nil {
+		t.Fatalf("error creating storage client: %v", err)
+	}
+
+	fsClient, err := storage.NewFSClient(ctx, "/tmp", "", "", "8083")
 	if err != nil {
 		t.Fatalf("error creating storage client: %v", err)
 	}
 
 	// run tests
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			fetch = tc.fetcher
-			mappedStackTrace, err := EnhanceStackTrace(ctx, tc.stackFrameInput, 1, nil, storageClient)
-			if err != nil {
-				if err.Error() == tc.err.Error() {
-					return
+	for _, client := range []storage.Client{s3Client, fsClient} {
+		for name, tc := range tests {
+			t.Run(name, func(t *testing.T) {
+				fetch = tc.fetcher
+				mappedStackTrace, err := EnhanceStackTrace(ctx, tc.stackFrameInput, 1, nil, client)
+				if err != nil {
+					if err.Error() == tc.err.Error() {
+						return
+					}
+					t.Error(e.Wrap(err, "error setting source map elements"))
 				}
-				t.Error(e.Wrap(err, "error setting source map elements"))
-			}
-			diff := deep.Equal(&mappedStackTrace, &tc.expectedStackTrace)
-			if len(diff) > 0 {
-				t.Error(e.Errorf("publicModelInput. not equal: %+v", diff))
-			}
-		})
+				diff := deep.Equal(&mappedStackTrace, &tc.expectedStackTrace)
+				if len(diff) > 0 {
+					t.Error(e.Errorf("publicModelInput. not equal: %+v", diff))
+				}
+			})
+		}
 	}
 }

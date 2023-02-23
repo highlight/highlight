@@ -40,3 +40,15 @@ export const iconCaret = recipe({
 		},
 	},
 })
+
+export const name = style({
+	overflow: 'hidden',
+	textOverflow: 'ellipsis',
+	whiteSpace: 'nowrap',
+	paddingTop: 2,
+	height: 16,
+	maxWidth: 120,
+})
+export const file = style({
+	maxWidth: 560,
+})

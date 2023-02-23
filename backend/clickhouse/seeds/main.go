@@ -39,7 +39,7 @@ func makeRandomBody() string {
 }
 
 func makeRandLogAttributes() map[string]string {
-	randomKeys := [20]string{
+	randomKeys := [21]string{
 		"key1",
 		"key2",
 		"key3",
@@ -60,6 +60,7 @@ func makeRandLogAttributes() map[string]string {
 		"key18",
 		"key19",
 		"key20",
+		"nested.log",
 	}
 
 	randomVals := [20]string{
@@ -90,7 +91,7 @@ func makeRandLogAttributes() map[string]string {
 		"frontend",
 		"middleware",
 		"logger",
-		"imageparser",
+		"image parser",
 		"flounder",
 	}
 
@@ -120,8 +121,8 @@ func main() {
 
 	logRows := []*clickhouse.LogRow{}
 
-	for i := 1; i < 10000; i++ {
-		for j := 1; j < 10000; j++ {
+	for i := 1; i < 100; i++ {
+		for j := 1; j < 100; j++ {
 			logRows = append(logRows, &clickhouse.LogRow{
 				Timestamp:     makeRandTime(),
 				ProjectId:     makeRandProjectId(),

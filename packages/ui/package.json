@@ -7,12 +7,12 @@
 	"types": "./src/index.ts",
 	"scripts": {
 		"build": "vite build",
-		"docs:dev": "start-storybook -p 6006 --no-manager-cache",
-		"docs:build": "build-storybook",
+		"build:docs": "build-storybook",
+		"dev": "start-storybook -p 6006 --no-manager-cache",
 		"icons:generate": "npx ts-node-esm ./scripts/generate-icons.ts",
 		"g": "hygen",
 		"lint": "eslint ./src",
-		"test": "vitest",
+		"test": "vitest --run",
 		"tokens:generate": "npx ts-node-esm ./scripts/generate-tokens.ts"
 	},
 	"dependencies": {

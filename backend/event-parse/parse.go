@@ -265,7 +265,7 @@ var srcTagNames map[string]bool = map[string]bool{
 
 // If a url was already created for this resource in the past day, return that
 // Else, fetch the resource, generate a new url for it, and save to S3
-func getOrCreateUrls(projectId int, originalUrls []string, s *storage.StorageClient, db *gorm.DB) (replacements map[string]string, err error) {
+func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB) (replacements map[string]string, err error) {
 	deduped := lo.Uniq(originalUrls)
 
 	dateTrunc := time.Now().UTC().Format("2006-01-02")
@@ -320,7 +320,7 @@ func getOrCreateUrls(projectId int, originalUrls []string, s *storage.StorageCli
 				hashVal = strings.ReplaceAll(hashVal, "+", "_")
 				hashVal = strings.ReplaceAll(hashVal, "=", "~")
 				contentType := response.Header.Get("Content-Type")
-				err = s.UploadAsset(strconv.Itoa(projectId)+"/"+hashVal, contentType, r)
+				err = s.UploadAsset(ctx, strconv.Itoa(projectId)+"/"+hashVal, contentType, r)
 				if err != nil {
 					return nil, errors.Wrap(err, "error uploading asset")
 				}
@@ -428,9 +428,9 @@ lexerLoop:
 	return
 }
 
-func ReplaceAssets(ctx context.Context, projectId int, root map[string]interface{}, s *storage.StorageClient, db *gorm.DB) error {
+func ReplaceAssets(ctx context.Context, projectId int, root map[string]interface{}, s storage.Client, db *gorm.DB) error {
 	urls := getAssetUrlsFromTree(ctx, projectId, root, map[string]string{})
-	replacements, err := getOrCreateUrls(projectId, urls, s, db)
+	replacements, err := getOrCreateUrls(ctx, projectId, urls, s, db)
 	if err != nil {
 		return errors.Wrap(err, "error creating replacement urls")
 	}

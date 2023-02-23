@@ -114,7 +114,7 @@ type Resolver struct {
 	TDB                    timeseries.DB
 	MailClient             *sendgrid.Client
 	StripeClient           *client.API
-	StorageClient          *storage.StorageClient
+	StorageClient          storage.Client
 	LambdaClient           *lambda.Client
 	ClearbitClient         *clearbit.Client
 	PrivateWorkerPool      *workerpool.WorkerPool
@@ -1692,7 +1692,7 @@ func (r *Resolver) AssetHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	url, err := r.StorageClient.GetAssetURL(projectIdParam, hashValParam)
+	url, err := r.StorageClient.GetAssetURL(ctx, projectIdParam, hashValParam)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "failed to generate asset url"))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -2739,7 +2739,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model
 	s3Events := map[int]string{}
 	if !isLive {
 		var err error
-		s3Events, err = r.StorageClient.GetRawDataFromS3(ctx, s.ID, s.ProjectID, model.PayloadTypeEvents)
+		s3Events, err = r.StorageClient.GetRawData(ctx, s.ID, s.ProjectID, model.PayloadTypeEvents)
 		if err != nil {
 			return nil, errors.Wrap(err, "error retrieving events objects from S3"), nil
 		}

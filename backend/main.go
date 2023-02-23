@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"gorm.io/gorm"
 	"html/template"
 	"io"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/otel"
@@ -41,7 +42,6 @@ import (
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
-	model2 "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/worker"
@@ -103,13 +103,14 @@ func init() {
 	runtimeParsed = util.Runtime(*runtimeFlag)
 }
 
-func healthRouter(ctx context.Context, runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client) http.HandlerFunc {
+func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client) http.HandlerFunc {
 	// only checks kafka because kafka is the only critical infrastructure needed for public graph to be healthy.
 	topic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false})
-	queue := kafkaqueue.New(ctx, topic, kafkaqueue.Producer)
+	queue := kafkaqueue.New(context.Background(), topic, kafkaqueue.Producer)
 	batchedTopic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true})
-	batchedQueue := kafkaqueue.New(ctx, batchedTopic, kafkaqueue.Producer)
+	batchedQueue := kafkaqueue.New(context.Background(), batchedTopic, kafkaqueue.Producer)
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		if err := queue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, "health"); err != nil {
 			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", topic), 500)
 			return
@@ -119,8 +120,9 @@ func healthRouter(ctx context.Context, runtimeFlag util.Runtime, db *gorm.DB, td
 			return
 		}
 		if runtimeFlag != util.PublicGraph {
-			if err := enhancedHealthCheck(context.Background(), db, tdb, rClient, osClient, ccClient); err != nil {
-				http.Error(w, fmt.Sprintf("failed enhanced health check %s", err), 500)
+			if err := enhancedHealthCheck(ctx, db, tdb, rClient, osClient, ccClient); err != nil {
+				log.WithContext(ctx).Error(fmt.Sprintf("failed enhanced health check: %s", err))
+				http.Error(w, fmt.Sprintf("failed enhanced health check: %s", err), 500)
 				return
 			}
 		}
@@ -132,7 +134,7 @@ func healthRouter(ctx context.Context, runtimeFlag util.Runtime, db *gorm.DB, td
 }
 
 func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client) error {
-	const Timeout = 2 * time.Second
+	const Timeout = 5 * time.Second
 
 	errors := make(chan error, 5)
 	wg := sync.WaitGroup{}
@@ -141,16 +143,24 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
-		if err := db.WithContext(ctx).Model(&model.Workspace{}).Find(&model.Workspace{}).Error; err != nil {
-			errors <- e.New(fmt.Sprintf("failed to query database: %s", err))
+		if err := db.WithContext(ctx).Model(&model.Project{}).Find(&model.Project{}).Error; err != nil {
+			msg := fmt.Sprintf("failed to query database: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	go func() {
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
-		if _, err := tdb.Query(ctx, `from(bucket: "dev-bucket") |> range(start: -1m)`); err != nil {
-			errors <- e.New(fmt.Sprintf("failed to query influx db: %s", err))
+		bucket := "dev-1"
+		if util.IsDevOrTestEnv() {
+			bucket = "dev-bucket"
+		}
+		if _, err := tdb.Query(ctx, fmt.Sprintf(`from(bucket: "%s") |> range(start: -1m)`, bucket)); err != nil {
+			msg := fmt.Sprintf("failed to query influx db: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	go func() {
@@ -158,7 +168,9 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
 		if err := rClient.SetIsPendingSession(ctx, "health-check-test-session", true); err != nil {
-			errors <- e.New(fmt.Sprintf("failed to set redis flag: %s", err))
+			msg := fmt.Sprintf("failed to set redis flag: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	go func() {
@@ -166,33 +178,31 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
 		if err := osClient.IndexSynchronous(ctx, opensearch.IndexSessions, 0, struct{}{}); err != nil {
-			errors <- e.New(fmt.Sprintf("failed to perform opensearch index: %s", err))
+			msg := fmt.Sprintf("failed to perform opensearch index: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	go func() {
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
-		if _, err := ccClient.ReadLogsTotalCount(ctx, 1, model2.LogsParamsInput{
-			Query: "",
-			DateRange: &model2.DateRangeRequiredInput{
-				StartDate: time.Now().Add(-time.Second),
-				EndDate:   time.Now(),
-			},
-		}); err != nil {
-			errors <- e.New(fmt.Sprintf("failed to perform clickhouse query: %s", err))
+		if err := ccClient.HealthCheck(ctx); err != nil {
+			msg := fmt.Sprintf("failed to perform clickhouse query: %s", err)
+			log.WithContext(ctx).Error(msg)
+			errors <- e.New(msg)
 		}
 	}()
 	wg.Wait()
 	select {
-	case e := <-errors:
-		return e
+	case err := <-errors:
+		return err
 	default:
 		return nil
 	}
 }
 
-func validateOrigin(request *http.Request, origin string) bool {
+func validateOrigin(_ *http.Request, origin string) bool {
 	if runtimeParsed == util.PrivateGraph {
 		// From the highlight frontend, only the url is whitelisted.
 		isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
@@ -211,9 +221,28 @@ func validateOrigin(request *http.Request, origin string) bool {
 var defaultPort = "8082"
 
 func main() {
-	ctx := context.Background()
+	ctx := context.TODO()
+
 	// initialize logger
 	log.SetReportCaller(true)
+	// setup highlight
+	H.SetProjectID("1jdkoe52")
+	if util.IsDevOrTestEnv() && !util.IsInDocker() {
+		log.WithContext(ctx).Info("overwriting highlight-go graphql client address...")
+		H.SetGraphqlClientAddress("https://localhost:8082/public")
+		H.SetOTLPEndpoint("http://collector:4318")
+	}
+	H.Start()
+	defer H.Stop()
+	H.SetDebugMode(log.StandardLogger())
+	// setup highlight logrus hook
+	log.AddHook(hlog.NewHook(hlog.WithLevels(
+		log.PanicLevel,
+		log.FatalLevel,
+		log.ErrorLevel,
+		log.WarnLevel,
+		log.InfoLevel,
+	)))
 
 	switch os.Getenv("DEPLOYMENT_KEY") {
 	case "HIGHLIGHT_ONPREM_BETA":
@@ -222,10 +251,6 @@ func main() {
 		go expireHighlightAfterDate(time.Date(2021, 10, 1, 0, 0, 0, 0, time.UTC))
 	default:
 		log.WithContext(ctx).Fatal("please specify a deploy key in order to run Highlight")
-	}
-
-	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && (os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_S3_BUCKET_NAME") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "") {
-		log.WithContext(ctx).Fatalf("please specify object storage env variables in order to proceed")
 	}
 
 	if sendgridKey == "" {
@@ -273,9 +298,24 @@ func main() {
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
 
-	storage, err := storage.NewStorageClient(ctx)
-	if err != nil {
-		log.WithContext(ctx).Fatalf("error creating storage client: %v", err)
+	var storageClient storage.Client
+	if util.IsInDocker() {
+		log.WithContext(ctx).Info("in docker: using filesystem for object storage")
+		fsRoot := "/tmp"
+		if os.Getenv("OBJECT_STORAGE_FS") != "" {
+			fsRoot = os.Getenv("OBJECT_STORAGE_FS")
+		}
+		if storageClient, err = storage.NewFSClient(ctx, fsRoot, localhostCertPath, localhostKeyPath, "8085"); err != nil {
+			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
+		}
+	} else {
+		log.WithContext(ctx).Info("using S3 for object storage")
+		if os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_S3_BUCKET_NAME") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
+			log.WithContext(ctx).Fatalf("please specify object storage env variables in order to proceed")
+		}
+		if storageClient, err = storage.NewS3Client(ctx); err != nil {
+			log.WithContext(ctx).Fatalf("error creating s3 storage client: %v", err)
+		}
 	}
 
 	opensearchClient, err := opensearch.NewOpensearchClient()
@@ -315,7 +355,7 @@ func main() {
 		TDB:                    tdb,
 		MailClient:             sendgrid.NewSendClient(sendgridKey),
 		StripeClient:           stripeClient,
-		StorageClient:          storage,
+		StorageClient:          storageClient,
 		LambdaClient:           lambda,
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
@@ -350,7 +390,7 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"*"},
 	}).Handler)
-	r.HandleFunc("/health", healthRouter(ctx, runtimeParsed, db, tdb, redisClient, opensearchClient, clickhouseClient))
+	r.HandleFunc("/health", healthRouter(runtimeParsed, db, tdb, redisClient, opensearchClient, clickhouseClient))
 
 	zapierStore := zapier.ZapierResthookStore{
 		DB: db,
@@ -444,9 +484,10 @@ func main() {
 			ProducerQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Producer),
 			BatchedQueue:    kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
-			StorageClient:   storage,
+			StorageClient:   storageClient,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
+			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
 			Redis:           redisClient,
 			RH:              &rh,
 		}
@@ -474,24 +515,6 @@ func main() {
 		otelHandler.Listen(r)
 		vercel.Listen(r)
 	}
-
-	if util.IsDevOrTestEnv() {
-		log.WithContext(ctx).Info("overwriting highlight-go graphql client address...")
-		H.SetGraphqlClientAddress("https://localhost:8082/public")
-		H.SetOTLPEndpoint("http://collector:4318")
-	}
-	H.SetProjectID("1jdkoe52")
-	H.Start()
-	defer H.Stop()
-	H.SetDebugMode(log.StandardLogger())
-	// setup highlight logrus hook
-	log.AddHook(hlog.NewHook(hlog.WithLevels(
-		log.PanicLevel,
-		log.FatalLevel,
-		log.ErrorLevel,
-		log.WarnLevel,
-		log.InfoLevel,
-	)))
 
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
@@ -551,14 +574,15 @@ func main() {
 			ProducerQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Producer),
 			BatchedQueue:    kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
-			StorageClient:   storage,
+			StorageClient:   storageClient,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
+			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
 			Redis:           redisClient,
 			Clickhouse:      clickhouseClient,
 			RH:              &rh,
 		}
-		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
+		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
 			if !util.IsDevOrTestEnv() {
 				serviceName := "worker-service"

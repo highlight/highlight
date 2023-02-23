@@ -12,7 +12,7 @@
 		"dev": "rollup -c -w",
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",
 		"enforce-size": "size-limit",
-		"test": "vitest",
+		"test": "vitest --run",
 		"typegen": "tsc",
 		"types:check": "tsc"
 	},

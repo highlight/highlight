@@ -4,13 +4,12 @@ services:
             file: compose.yml
             service: backend
 
-        container_name: backend
-        image: public.ecr.aws/k9o6n7l8/highlight
         command:
             - make
             - start-no-doppler
         volumes:
             - ../backend:/build/backend
+            - ../e2e/go:/build/e2e/go
             - ../sdk/highlight-go:/build/sdk/highlight-go
         ports:
             - 2345:2345
@@ -25,10 +24,9 @@ services:
             file: compose.yml
             service: frontend
 
-        container_name: frontend
-        image: public.ecr.aws/k9o6n7l8/highlight-frontend
         volumes:
             - ../packages/ui/src:/build/packages/ui/src
+            - ../packages/component-preview/src:/build/packages/component-preview/src
             - ../sdk/client/src:/build/sdk/client/src
             - ../sdk/firstload/src:/build/sdk/firstload/src
             - ../sdk/highlight-node/src:/build/sdk/highlight-node/src
@@ -37,9 +35,6 @@ services:
             - ../frontend/src:/build/frontend/src
             - ../backend/public-graph:/build/backend/public-graph
             - ../backend/private-graph:/build/backend/private-graph
-        ports:
-            - 3000:3000
-            - 8080:8080
         build:
             context: ..
             dockerfile: docker/frontend.Dockerfile
@@ -52,7 +47,6 @@ services:
             - RENDER_PREVIEW
             - REACT_APP_AUTH_MODE=simple
             - REACT_APP_DEMO_SESSION
-            - REACT_APP_ENVIRONMENT
             - REACT_APP_FIREBASE_CONFIG_OBJECT
             - REACT_APP_FRONTEND_ORG
             - REACT_APP_FRONTEND_URI

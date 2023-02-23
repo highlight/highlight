@@ -954,6 +954,10 @@ func (r *mutationResolver) UpdateAllowedEmailOrigins(ctx context.Context, worksp
 		return nil, e.Wrap(err, "error retrieving admin user")
 	}
 
+	if !json.Valid([]byte(allowedAutoJoinEmailOrigins)) {
+		return nil, e.Wrap(err, "allowedAutoJoinEmailOrigins is not valid JSON")
+	}
+
 	if err := r.DB.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Updates(&model.Workspace{
 		AllowedAutoJoinEmailOrigins: &allowedAutoJoinEmailOrigins}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating workspace")
@@ -980,10 +984,6 @@ func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int,
 
 	if admin.ID == adminID {
 		return false, e.New("A admin tried changing their own role.")
-	}
-
-	if err := r.DB.Model(&model.Admin{Model: model.Model{ID: adminID}}).Update("Role", newRole).Error; err != nil {
-		return false, e.Wrap(err, "error updating admin role")
 	}
 
 	if err := r.DB.Model(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).Update("Role", newRole).Error; err != nil {
@@ -3781,7 +3781,7 @@ func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecu
 
 	var timelineIndicatorEvents []*model.TimelineIndicatorEvent
 	if session.AvoidPostgresStorage {
-		timelineIndicatorEvents, err = r.StorageClient.ReadTimelineIndicatorEventsFromS3(session.ID, session.ProjectID)
+		timelineIndicatorEvents, err = r.StorageClient.ReadTimelineIndicatorEvents(ctx, session.ID, session.ProjectID)
 		if err != nil {
 			return nil, e.Wrap(err, "failed to get timeline indicator events from S3")
 		}
@@ -3963,19 +3963,20 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		Order("id desc")
 
 	if errorObjectID == nil {
-		sessionIds := []int{}
+		var sessionIds []int
 		if err := r.DB.Model(&errorObject).
 			Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
 			Where("session_id is not null").
+			Limit(100).
 			Pluck("session_id", &sessionIds).
 			Error; err != nil {
 			return nil, e.Wrap(err, "error reading session ids")
 		}
 
-		processedSessions := []int{}
+		var processedSessions []int
 		// find all processed sessions
 		if err := r.DB.Model(&model.Session{}).
-			Where("id IN (?) AND processed = ?", sessionIds, true).
+			Where("id IN (?) AND processed = ? AND excluded = ?", sessionIds, true, false).
 			Pluck("id", &processedSessions).
 			Error; err != nil {
 			return nil, e.Wrap(err, "error querying processed sessions")
@@ -4028,6 +4029,16 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		return nil, e.Wrap(err, "error reading previous error object in group")
 	}
 
+	if errorObject.SessionID != nil {
+		var session model.Session
+		if err := r.DB.Model(&session).Where("id = ?", *errorObject.SessionID).Find(&session).Error; err != nil {
+			return nil, e.Wrap(err, "error reading error group session")
+		}
+		if session.Excluded != nil && *session.Excluded {
+			errorObject.SessionID = nil
+		}
+	}
+
 	errorInstance := model.ErrorInstance{
 		ErrorObject: errorObject,
 		NextID:      &nextID,
@@ -4047,7 +4058,7 @@ func (r *queryResolver) Messages(ctx context.Context, sessionSecureID string) ([
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
 		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadMessagesFromS3(s.ID, s.ProjectID)
+		ret, err := r.StorageClient.ReadMessages(ctx, s.ID, s.ProjectID)
 		if err != nil {
 			return nil, e.Wrap(err, "error pulling messages from s3")
 		}
@@ -4219,7 +4230,7 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
 		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadResourcesFromS3(s.ID, s.ProjectID)
+		ret, err := r.StorageClient.ReadResources(ctx, s.ID, s.ProjectID)
 		if err != nil {
 			return nil, e.Wrap(err, "error pulling resources from s3")
 		}
@@ -4848,10 +4859,12 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 		GROUP BY identifier
 		LIMIT 50
 	) as topUsers
-	INNER JOIN sessions s on topUsers.identifier = s.identifier
+	INNER JOIN sessions s 
+	ON topUsers.identifier = s.identifier
+	AND s.project_id = ?
     ) as q2
 	ORDER BY total_active_time DESC`,
-		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
+		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod, projectID).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
@@ -6390,7 +6403,7 @@ func (r *queryResolver) GetSourceMapUploadUrls(ctx context.Context, apiKey strin
 		if !strings.HasPrefix(path, pathPrefix) {
 			return nil, e.New("invalid path - does not start with project prefix")
 		}
-		url, err := r.StorageClient.GetSourceMapUploadUrl(path)
+		url, err := r.StorageClient.GetSourceMapUploadUrl(ctx, path)
 		if err != nil {
 			return nil, err
 		}
@@ -6831,7 +6844,7 @@ func (r *queryResolver) EventChunkURL(ctx context.Context, secureID string, inde
 		return "", nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(session.ProjectID, session.ID, storage.SessionContentsCompressed, pointy.Int(index))
+	str, err := r.StorageClient.GetDirectDownloadURL(ctx, session.ProjectID, session.ID, storage.SessionContentsCompressed, pointy.Int(index))
 	if err != nil {
 		return "", e.Wrap(err, "error getting direct download URL")
 	}
@@ -6861,7 +6874,7 @@ func (r *queryResolver) EventChunks(ctx context.Context, secureID string) ([]*mo
 
 // SourcemapFiles is the resolver for the sourcemap_files field.
 func (r *queryResolver) SourcemapFiles(ctx context.Context, projectID int, version *string) ([]*modelInputs.S3File, error) {
-	res, err := r.StorageClient.GetSourcemapFilesFromS3(projectID, version)
+	res, err := r.StorageClient.GetSourcemapFiles(ctx, projectID, version)
 	var s3Files []*modelInputs.S3File
 
 	if err != nil {
@@ -6878,7 +6891,7 @@ func (r *queryResolver) SourcemapFiles(ctx context.Context, projectID int, versi
 
 // SourcemapVersions is the resolver for the sourcemap_versions field.
 func (r *queryResolver) SourcemapVersions(ctx context.Context, projectID int) ([]string, error) {
-	res, err := r.StorageClient.GetSourcemapVersionsFromS3(projectID)
+	res, err := r.StorageClient.GetSourcemapVersions(ctx, projectID)
 	var appVersions []string
 
 	if err != nil {
@@ -6955,6 +6968,26 @@ func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, param
 	return r.ClickhouseClient.ReadLogsTotalCount(ctx, project.ID, params)
 }
 
+// LogsKeys is the resolver for the logs_keys field.
+func (r *queryResolver) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.LogsKeys(ctx, project.ID)
+}
+
+// LogsKeyValues is the resolver for the logs_key_values field.
+func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName)
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
@@ -6979,7 +7012,7 @@ func (r *sessionResolver) DirectDownloadURL(ctx context.Context, obj *model.Sess
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.SessionContentsCompressed, nil)
+	str, err := r.StorageClient.GetDirectDownloadURL(ctx, obj.ProjectID, obj.ID, storage.SessionContentsCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting direct download URL")
 	}
@@ -6994,7 +7027,7 @@ func (r *sessionResolver) ResourcesURL(ctx context.Context, obj *model.Session) 
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.NetworkResourcesCompressed, nil)
+	str, err := r.StorageClient.GetDirectDownloadURL(ctx, obj.ProjectID, obj.ID, storage.NetworkResourcesCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting resources URL")
 	}
@@ -7009,7 +7042,7 @@ func (r *sessionResolver) MessagesURL(ctx context.Context, obj *model.Session) (
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed, nil)
+	str, err := r.StorageClient.GetDirectDownloadURL(ctx, obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting messages URL")
 	}

@@ -6,7 +6,8 @@
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
 	"scripts": {
-		"build": "tsup src/index.ts --format cjs,esm --dts --clean"
+		"typegen": "tsup src/index.ts --dts-only",
+		"build": "tsup src/index.ts --format cjs,esm --dts"
 	},
 	"publishConfig": {
 		"access": "public"
