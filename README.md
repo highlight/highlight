@@ -40,7 +40,7 @@ Read more about our [features](#features), [values](#our-values) and [mission](#
 
 ### Hosted highlight.io (free to get started!)
 
-The fastest and most reliable way to get started with highlight.io is signing up for free at [app.highlight.io](https://app.highlight.io). After making an account, getting started is as easy as installing the [client SDK snippet](https://www.highlight.io/docs/getting-started/client-sdk/overview).
+The fastest and most reliable way to get started with highlight.io is signing up for free at [app.highlight.io](https://app.highlight.io). After making an account, getting started is as easy as installing the [client SDK snippet](https://www.highlight.io/docs/getting-started/overview#For-your-frontend).
 
 ### Hobby self-hosted
 
@@ -58,21 +58,21 @@ cd docker && docker compose up -d --build
 
 After a brief frontend load time, the app should be accessible at https://localhost:3000
 
-Good for <10k sessions and <50k errors ingested monthly. See our [docs for more info and limitations](https://highlight.io/docs/company/open-source/self-host-hobby).
+Good for <10k sessions and <50k errors ingested monthly. See our  [docs for more info and limitations](https://www.highlight.io/docs/general/company/open-source/self-host-hobby).
 
 ### Enterprise self-hosted
 
-See our [enterprise self-hosted docs](https://highlight.io/docs/company/open-source/self-host-enterprise) to deploy a scalable, production-ready instance with support from our team.
+See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/company/open-source/self-host-enterprise) to deploy a scalable, production-ready instance with support from our team.
 
 ## Features
 
 ### Session Replay: Understand WHY bugs happen.
 
 -   **Dom-based High-fidelity Replay**: Replay every interaction and dom change that happened in a given browser session (powered by https://github.com/rrweb-io/rrweb)
--   **Outgoing Network Requests**: See all the network requests (and their contents) in a given session to reproduce the data that was sent/received by your frontend -> [docs](https://www.highlight.io/docs/session-replay/recording-network-requests-and-responses)
--   **Console logs**: Analyze the logs printed (`console.error`, `console.log`, etc..) to the console from your frontend -> [docs](https://www.highlight.io/docs/session-replay/console-messages)
+-   **Outgoing Network Requests**: See all the network requests (and their contents) in a given session to reproduce the data that was sent/received by your frontend -> [docs](https://www.highlight.io/docs/general/product-features/session-replay/dev-tools)
+-   **Console logs**: Analyze the logs printed (`console.error`, `console.log`, etc..) to the console from your frontend -> [docs](https://www.highlight.io/docs/general/product-features/session-replay/dev-tools)
 -   **Embedded Error Monitoring**: See the errors associated with a given session to understand what the user was doing leading up to them.
--   **Session Comments**: Comment on errors to communicate with your team on user frustration, bugs, and more! -> [docs](https://www.highlight.io/docs/product-features/comments)
+-   **Session Comments**: Comment on errors to communicate with your team on user frustration, bugs, and more! -> [docs](https://www.highlight.io/docs/general/product-features/general-features/comments)
 -   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/integrations)
 
 <p align="center">
