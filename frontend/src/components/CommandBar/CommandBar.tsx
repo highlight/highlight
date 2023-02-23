@@ -146,7 +146,6 @@ const CommandBar = () => {
 		'cmd+k, ctrl+k, /',
 		() => {
 			setCurrentAttribute(undefined)
-			form.reset()
 			dialog.toggle()
 		},
 		[],
