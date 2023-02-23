@@ -950,21 +950,10 @@ export const TimeRangeFilter = ({
 				shape="basic"
 				iconRight={!!onReset ? <IconSolidX size={12} /> : undefined}
 				onIconRightClick={!!onReset ? onReset : undefined}
+				onClick={() => setVisible((visible) => !visible)}
 				lines="1"
 			>
-				<Box onClick={() => setVisible((visible) => !visible)}>
-					<Text
-						size="xSmall"
-						weight="medium"
-						color="n9"
-						userSelect="none"
-						lines="1"
-					>
-						{value &&
-							value.options.length === 1 &&
-							value.options[0].label}
-					</Text>
-				</Box>
+				{value && value.options.length === 1 && value.options[0].label}
 			</Tag>
 		</Box>
 	)
