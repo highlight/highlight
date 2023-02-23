@@ -71,7 +71,12 @@ import Creatable from 'react-select/creatable'
 import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
 import { useToggle } from 'react-use'
-import { JsonParam, useQueryParam, useQueryParams } from 'use-query-params'
+import {
+	BooleanParam,
+	JsonParam,
+	useQueryParam,
+	useQueryParams,
+} from 'use-query-params'
 
 import * as newStyle from './QueryBuilder.css'
 import styles from './QueryBuilder.module.scss'
@@ -1102,7 +1107,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	identifier: 'Identifier',
 	reload: 'Reloaded',
 	state: 'State',
-	event: 'Event',
+	event: 'Error Body',
 	timestamp: 'Date',
 	has_rage_clicks: 'Has Rage Clicks',
 	has_errors: 'Has Errors',
@@ -1957,6 +1962,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [segmentsLoading])
+
+	const [forceReload, setForceReload] = useQueryParam('reload', BooleanParam)
+	useEffect(() => {
+		if (forceReload && searchParamsToUrlParams.query !== undefined) {
+			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+			setForceReload(false)
+		}
+	}, [forceReload, searchParamsToUrlParams, setForceReload, setSearchParams])
 
 	// Errors Segment Deep Linking
 	useEffect(() => {

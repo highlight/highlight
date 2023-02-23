@@ -29,8 +29,9 @@ import { isInsideElement } from '@util/dom'
 import { buildQueryURLString } from '@util/url/params'
 import { Dialog, DialogState, useDialogState } from 'ariakit/dialog'
 import { FormState } from 'ariakit/form'
+import isEqual from 'lodash/isEqual'
 import moment from 'moment'
-import React, { useRef, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
@@ -79,14 +80,16 @@ const ATTRIBUTE = [
 	},
 	{
 		type: ERROR_TYPE,
-		name: 'Event',
-		displayName: 'Error Text',
+		name: 'event',
+		displayName: 'Error Body',
 	},
 ] as const
 
+type Attribute = typeof ATTRIBUTE[number]
+
 interface CommandBarContext {
-	currentRow: string | undefined
-	setCurrentRow: (row: string | undefined) => void
+	currentAttribute: Attribute | undefined
+	setCurrentAttribute: (row: Attribute | undefined) => void
 	dialog: DialogState
 }
 export const [useCommandBarContext, CommandBarContextProvider] =
@@ -128,18 +131,77 @@ const CommandBar = () => {
 		},
 	})
 
-	useHotkeys('cmd+k, /', dialog.toggle, [])
-	useHotkeys('esc', dialog.hide, [])
-
 	const containerRef = useRef<HTMLDivElement>(null)
 	const query = form.getValue<string>(form.names.search)
-	const [currentRow, setCurrentRowImpl] = useState<string | undefined>(
-		undefined,
+	const [currentAttribute, setCurrentAttributeImpl] = useState<
+		Attribute | undefined
+	>(undefined)
+
+	const setCurrentAttribute = (row: Attribute | undefined) =>
+		setCurrentAttributeImpl(row)
+
+	const searchAttribute = useAttributeSearch(currentAttribute, query)
+
+	useHotkeys(
+		'cmd+k, ctrl+k, /',
+		() => {
+			setCurrentAttribute(undefined)
+			form.reset()
+			dialog.toggle()
+		},
+		[],
 	)
-	const setCurrentRow = (row: string | undefined) => setCurrentRowImpl(row)
+	useHotkeys('esc', dialog.hide, [])
+
+	useHotkeys(
+		'up',
+		() => {
+			if (currentAttribute) {
+				const index = ATTRIBUTE.indexOf(currentAttribute)
+				setCurrentAttribute(ATTRIBUTE[index - 1] ?? ATTRIBUTE[0])
+			}
+		},
+		[currentAttribute],
+	)
+
+	useHotkeys(
+		'down',
+		() => {
+			if (currentAttribute) {
+				const index = ATTRIBUTE.indexOf(currentAttribute)
+				setCurrentAttribute(
+					ATTRIBUTE[index + 1] ?? ATTRIBUTE[ATTRIBUTE.length - 1],
+				)
+			}
+		},
+		[currentAttribute],
+	)
+
+	useHotkeys(
+		'enter',
+		() => {
+			searchAttribute()
+			dialog.hide()
+		},
+		[currentAttribute, query],
+	)
+
+	useHotkeys(
+		'cmd+enter, ctrl+enter',
+		() => {
+			searchAttribute({ newTab: true })
+			dialog.hide()
+		},
+		[currentAttribute, query],
+	)
+
 	return (
 		<CommandBarContextProvider
-			value={{ currentRow, setCurrentRow, dialog }}
+			value={{
+				currentAttribute,
+				setCurrentAttribute,
+				dialog,
+			}}
 		>
 			<Dialog
 				state={dialog}
@@ -151,7 +213,7 @@ const CommandBar = () => {
 				}}
 				onMouseMove={(e) => {
 					if (!isInsideElement(e.nativeEvent, containerRef.current)) {
-						setCurrentRow(undefined)
+						setCurrentAttribute(undefined)
 					}
 				}}
 			>
@@ -187,6 +249,9 @@ const SearchBar = ({ form }: { form: FormState<CommandBarSearch> }) => {
 		!!query ||
 		form.getValue(form.names.selectedDates)[0].getTime() !==
 			last90Days.startDate.getTime()
+
+	const { setCurrentAttribute } = useCommandBarContext()
+
 	return (
 		<Box p="8" display="flex" alignItems="center" width="full">
 			<Form state={form} className={styles.form}>
@@ -209,6 +274,22 @@ const SearchBar = ({ form }: { form: FormState<CommandBarSearch> }) => {
 							width="full"
 							ref={inputRef}
 							autoComplete="off"
+							onKeyDown={(e) => {
+								if (!query) return
+								if (
+									e.code === 'ArrowDown' ||
+									e.code === 'ArrowUp'
+								) {
+									inputRef.current?.blur()
+								}
+								if (e.code === 'ArrowDown') {
+									setCurrentAttribute(ATTRIBUTE[0])
+								} else if (e.code === 'ArrowUp') {
+									setCurrentAttribute(
+										ATTRIBUTE[ATTRIBUTE.length - 1],
+									)
+								}
+							}}
 						/>
 						{isDirty ? (
 							<IconSolidXCircle
@@ -253,19 +334,54 @@ const SectionHeader = ({ header }: { header: string }) => {
 	)
 }
 
+const useAttributeSearch = (
+	attribute: Attribute | undefined,
+	query: string,
+) => {
+	const navigate = useNavigate()
+	const { projectId } = useProjectId()
+	const callback = useCallback(
+		(params?: { newTab?: boolean }) => {
+			if (!attribute) return
+
+			const basePath = `/${projectId}/${
+				isErrorAttribute(attribute) ? 'errors' : 'sessions'
+			}`
+			const param = {
+				[`${attribute.type}_${attribute.name}`]: `contains:${query}`,
+			}
+
+			if (!params?.newTab) {
+				navigate({
+					pathname: basePath,
+					search: buildQueryURLString(param, {
+						reload: true,
+					}),
+				})
+			} else {
+				window.open(
+					`${basePath}${buildQueryURLString(param)}`,
+					'_blank',
+				)
+			}
+		},
+		[attribute, navigate, projectId, query],
+	)
+	return callback
+}
 const SectionRow = ({
 	icon,
 	attribute,
 	query,
 }: {
 	icon?: React.ReactElement<IconProps>
-	attribute: typeof ATTRIBUTE[number]
+	attribute: Attribute
 	query: string
 }) => {
-	const { currentRow, setCurrentRow, dialog } = useCommandBarContext()
-	const selected = currentRow === `${attribute.type}-${attribute.name}`
-	const navigate = useNavigate()
-	const { projectId } = useProjectId()
+	const { currentAttribute, setCurrentAttribute, dialog } =
+		useCommandBarContext()
+	const selected = isEqual(currentAttribute, attribute)
+	const searchAttribute = useAttributeSearch(attribute, query)
 
 	return (
 		<Box
@@ -282,17 +398,10 @@ const SectionRow = ({
 				},
 			]}
 			onMouseMove={() => {
-				setCurrentRow(`${attribute.type}-${attribute.name}`)
+				setCurrentAttribute(attribute)
 			}}
 			onClick={() => {
-				navigate({
-					pathname: `/${projectId}/${
-						isErrorAttribute(attribute) ? 'errors' : 'sessions'
-					}`,
-					search: buildQueryURLString({
-						[`${attribute.type}_${attribute.name}`]: `contains:${query}`,
-					}),
-				})
+				searchAttribute()
 				dialog.hide()
 			}}
 		>

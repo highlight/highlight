@@ -65,6 +65,7 @@ import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
 import { useToggle } from 'react-use'
 import {
+	BooleanParam,
 	JsonParam,
 	NumberParam,
 	useQueryParam,
@@ -1966,6 +1967,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
+	const [forceReload, setForceReload] = useQueryParam('reload', BooleanParam)
+	useEffect(() => {
+		if (forceReload && searchParamsToUrlParams.query !== undefined) {
+			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+			setForceReload(false)
+		}
+	}, [forceReload, searchParamsToUrlParams, setForceReload, setSearchParams])
+
 	useEffect(() => {
 		if (!segmentsLoading) {
 			if (activeSegmentUrlParam) {
@@ -2002,7 +2011,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		searchParams,
 		selectedSegment,
 		activeSegmentUrlParam,
-		searchParamsToUrlParams,
 		initialized,
 	])
 
