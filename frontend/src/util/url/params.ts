@@ -111,7 +111,7 @@ export const QueryBuilderStateParam = {
 	},
 }
 
-type BuilderParams = {
+export type BuilderParams = {
 	query?: boolean | string | null
 	[key: string]: string | boolean | null | undefined
 }
@@ -178,8 +178,10 @@ export const buildQueryParams = (
 		let value = String(params[key])
 		let op = 'is'
 
-		if (value.indexOf(':') > -1) {
-			;[op, value] = value.split(':')
+		const index = value.indexOf(':')
+		if (index > -1) {
+			op = value.slice(0, index)
+			value = value.slice(index + 1)
 		}
 
 		builderParams.rules.push([key, op, value])

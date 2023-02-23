@@ -295,7 +295,7 @@ export interface ShortcutItem {
 	shortcut: string[]
 }
 
-const isOnMac = window.navigator.platform.includes('Mac')
+const isOnMac = window.navigator.userAgent.includes('Mac')
 export const cmdKey = isOnMac ? '⌘' : 'Ctrl'
 
 export const OpenCommandBarShortcut: ShortcutItem = {

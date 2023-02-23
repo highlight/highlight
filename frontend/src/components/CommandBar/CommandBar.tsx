@@ -1,4 +1,16 @@
 import {
+	Attribute,
+	ATTRIBUTES,
+	CommandBarContextProvider,
+	CommandBarSearch,
+	useCommandBarContext,
+} from '@components/CommandBar/context'
+import {
+	isErrorAttribute,
+	nextAttribute,
+	useAttributeSearch,
+} from '@components/CommandBar/utils'
+import {
 	OpenInNewTabShortcut,
 	ShortcutTextGuide,
 } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
@@ -18,88 +30,23 @@ import {
 	useFormState,
 } from '@highlight-run/ui'
 import { PreviousDateRangePicker } from '@highlight-run/ui/src/components/DatePicker/PreviousDateRangePicker'
-import { useProjectId } from '@hooks/useProjectId'
-import {
-	ERROR_FIELD_TYPE,
-	ERROR_TYPE,
-} from '@pages/ErrorsV2/ErrorQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { SESSION_TYPE } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
-import { createContext } from '@util/context/context'
 import { isInsideElement } from '@util/dom'
-import { buildQueryURLString } from '@util/url/params'
 import { Dialog } from 'ariakit/dialog'
 import { FormState } from 'ariakit/form'
 import isEqual from 'lodash/isEqual'
 import moment from 'moment'
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useNavigate } from 'react-router-dom'
 
 import * as styles from './style.css'
 
-interface CommandBarSearch {
-	search: string
-	selectedDates: Date[]
-}
+const now = moment().startOf('day')
 
-const ATTRIBUTE = [
-	{
-		type: 'user',
-		name: 'identifier',
-		displayName: 'Identifier',
-	},
-	{
-		type: SESSION_TYPE,
-		name: 'visited_url',
-		displayName: 'Visited URL',
-	},
-	{
-		type: SESSION_TYPE,
-		name: 'os_name',
-		displayName: 'Operating System',
-	},
-	{
-		type: SESSION_TYPE,
-		name: 'browser',
-		displayName: 'Browser',
-	},
-	{
-		type: ERROR_FIELD_TYPE,
-		name: 'browser',
-		displayName: 'Browser',
-	},
-	{
-		type: ERROR_FIELD_TYPE,
-		name: 'os_name',
-		displayName: 'Operating System',
-	},
-	{
-		type: ERROR_FIELD_TYPE,
-		name: 'visited_url',
-		displayName: 'Visited URL',
-	},
-	{
-		type: ERROR_TYPE,
-		name: 'event',
-		displayName: 'Error Body',
-	},
-] as const
-
-type Attribute = typeof ATTRIBUTE[number]
-
-interface CommandBarContext {
-	currentAttribute: Attribute | undefined
-	setCurrentAttribute: (row: Attribute | undefined) => void
-}
-export const [useCommandBarContext, CommandBarContextProvider] =
-	createContext<CommandBarContext>('CommandBar')
-
-const now = moment()
-
-const last90Days = {
-	startDate: now.clone().subtract(90, 'days').toDate(),
-	label: 'Last 90 days',
+const last30Days = {
+	startDate: now.clone().subtract(30, 'days').toDate(),
+	label: 'Last 30 days',
 }
 
 const PRESETS = [
@@ -115,44 +62,29 @@ const PRESETS = [
 		startDate: now.clone().subtract(7, 'days').toDate(),
 		label: 'Last 7 days',
 	},
+	last30Days,
 	{
-		startDate: now.clone().subtract(30, 'days').toDate(),
-		label: 'Last 30 days',
+		startDate: now.clone().subtract(90, 'days').toDate(),
+		label: 'Last 90 days',
 	},
-	last90Days,
+	{
+		startDate: now.clone().subtract(1, 'y').toDate(),
+		label: 'Last year',
+	},
 ]
-
-function nextAttribute(
-	currentAttribute: Attribute | undefined,
-	direction: 'next' | 'prev' = 'next',
-) {
-	const index = currentAttribute ? ATTRIBUTE.indexOf(currentAttribute) : -1
-	if (index === -1) {
-		if (direction === 'next') {
-			return ATTRIBUTE[0]
-		} else {
-			return ATTRIBUTE[ATTRIBUTE.length - 1]
-		}
-	}
-
-	if (direction === 'next') {
-		return ATTRIBUTE[index + 1] ?? ATTRIBUTE[ATTRIBUTE.length - 1]
-	} else {
-		return ATTRIBUTE[index - 1] ?? ATTRIBUTE[0]
-	}
-}
 
 const CommandBar = () => {
 	const { commandBarDialog } = useGlobalContext()
 	const form = useFormState<CommandBarSearch>({
 		defaultValues: {
 			search: '',
-			selectedDates: [last90Days.startDate, now.toDate()],
+			selectedDates: [last30Days.startDate, moment().toDate()],
 		},
 	})
 
 	const containerRef = useRef<HTMLDivElement>(null)
 	const query = form.getValue<string>(form.names.search)
+	const selectedDates = form.getValue<[Date, Date]>(form.names.selectedDates)
 	const [currentAttribute, setCurrentAttributeImpl] = useState<
 		Attribute | undefined
 	>(undefined)
@@ -160,11 +92,15 @@ const CommandBar = () => {
 	const setCurrentAttribute = (row: Attribute | undefined) =>
 		setCurrentAttributeImpl(row)
 
-	const searchAttribute = useAttributeSearch(query)
+	const searchAttribute = useAttributeSearch(form)
 
 	form.useSubmit(() => {
 		if (query) {
-			searchAttribute(currentAttribute ?? ATTRIBUTE[0])
+			searchAttribute(currentAttribute ?? ATTRIBUTES[0], {
+				withDate:
+					selectedDates[0].getTime() !==
+					last30Days.startDate.getTime(),
+			})
 		}
 	})
 
@@ -199,6 +135,7 @@ const CommandBar = () => {
 			value={{
 				currentAttribute,
 				setCurrentAttribute,
+				form,
 			}}
 		>
 			<Dialog
@@ -229,8 +166,8 @@ const CommandBar = () => {
 
 					{!!query ? (
 						<>
-							<SessionOptions query={query} />
-							<ErrorOptions query={query} />
+							<SessionOptions />
+							<ErrorOptions />
 							<CommandBarHelp />
 						</>
 					) : null}
@@ -246,10 +183,10 @@ const SearchBar = ({ form }: { form: FormState<CommandBarSearch> }) => {
 
 	const inputRef = useRef<HTMLInputElement>(null)
 	const isDirty =
-		!!query || selectedDates[0].getTime() !== last90Days.startDate.getTime()
+		!!query || selectedDates[0].getTime() !== last30Days.startDate.getTime()
 
 	const { currentAttribute, setCurrentAttribute } = useCommandBarContext()
-	const searchAttribute = useAttributeSearch(query)
+	const searchAttribute = useAttributeSearch(form)
 
 	return (
 		<Box p="8" display="flex" alignItems="center" width="full">
@@ -293,9 +230,12 @@ const SearchBar = ({ form }: { form: FormState<CommandBarSearch> }) => {
 									e.preventDefault()
 									if (e.metaKey || e.ctrlKey) {
 										searchAttribute(
-											currentAttribute ?? ATTRIBUTE[0],
+											currentAttribute ?? ATTRIBUTES[0],
 											{
 												newTab: true,
+												withDate:
+													selectedDates[0].getTime() !==
+													last30Days.startDate.getTime(),
 											},
 										)
 									} else {
@@ -312,8 +252,8 @@ const SearchBar = ({ form }: { form: FormState<CommandBarSearch> }) => {
 									e.stopPropagation()
 									form.reset()
 									form.setValue(form.names.selectedDates, [
-										last90Days.startDate,
-										now.toDate(),
+										last30Days.startDate,
+										moment().toDate(),
 									])
 									inputRef.current?.focus()
 								}}
@@ -326,7 +266,7 @@ const SearchBar = ({ form }: { form: FormState<CommandBarSearch> }) => {
 							form.setValue(form.names.selectedDates, dates)
 						}}
 						presets={PRESETS}
-						minDate={now.subtract(2, 'years').toDate()}
+						minDate={now.clone().subtract(2, 'years').toDate()}
 						emphasis="medium"
 						cssClass={styles.datePicker}
 						iconLeft={<IconSolidCalendar />}
@@ -347,52 +287,17 @@ const SectionHeader = ({ header }: { header: string }) => {
 	)
 }
 
-const useAttributeSearch = (query: string) => {
-	const navigate = useNavigate()
-	const { projectId } = useProjectId()
-	const { commandBarDialog } = useGlobalContext()
-	const callback = useCallback(
-		(attribute: Attribute | undefined, params?: { newTab?: boolean }) => {
-			if (!attribute) return
-
-			const basePath = `/${projectId}/${
-				isErrorAttribute(attribute) ? 'errors' : 'sessions'
-			}`
-			const param = {
-				[`${attribute.type}_${attribute.name}`]: `contains:${query}`,
-			}
-
-			if (!params?.newTab) {
-				navigate({
-					pathname: basePath,
-					search: buildQueryURLString(param, {
-						reload: true,
-					}),
-				})
-			} else {
-				window.open(
-					`${basePath}${buildQueryURLString(param)}`,
-					'_blank',
-				)
-			}
-			commandBarDialog.hide()
-		},
-		[commandBarDialog, navigate, projectId, query],
-	)
-	return callback
-}
 const SectionRow = ({
 	icon,
 	attribute,
-	query,
 }: {
 	icon?: React.ReactElement<IconProps>
 	attribute: Attribute
-	query: string
 }) => {
-	const { currentAttribute, setCurrentAttribute } = useCommandBarContext()
+	const { currentAttribute, setCurrentAttribute, form } =
+		useCommandBarContext()
 	const selected = isEqual(currentAttribute, attribute)
-	const searchAttribute = useAttributeSearch(query)
+	const searchAttribute = useAttributeSearch(form)
 
 	return (
 		<Box
@@ -412,7 +317,11 @@ const SectionRow = ({
 				setCurrentAttribute(attribute)
 			}}
 			onClick={() => {
-				searchAttribute(attribute)
+				searchAttribute(attribute, {
+					withDate:
+						form.getValue(form.names.selectedDates)[0].getTime() !==
+						last30Days.startDate.getTime(),
+				})
 			}}
 		>
 			<Box flexShrink={0} display="inline-flex" alignItems="center">
@@ -443,16 +352,16 @@ const SectionRow = ({
 				lines="1"
 				cssClass={styles.query}
 			>
-				{query}
+				{form.getValue(form.names.search)}
 			</Text>
 		</Box>
 	)
 }
 
-const isSessionAttribute = (attribute: typeof ATTRIBUTE[number]) => {
+const isSessionAttribute = (attribute: typeof ATTRIBUTES[number]) => {
 	return ['user', SESSION_TYPE].includes(attribute.type)
 }
-const SessionOptions = ({ query }: { query: string }) => {
+const SessionOptions = () => {
 	return (
 		<Box
 			display="flex"
@@ -462,12 +371,11 @@ const SessionOptions = ({ query }: { query: string }) => {
 			bt="dividerWeak"
 		>
 			<SectionHeader header="Sessions" />
-			{ATTRIBUTE.filter(isSessionAttribute).map((attribute, idx) => {
+			{ATTRIBUTES.filter(isSessionAttribute).map((attribute, idx) => {
 				return (
 					<SectionRow
 						key={`sessions-${idx}`}
 						attribute={attribute}
-						query={query}
 						icon={<IconSolidPlayCircle size={16} />}
 					/>
 				)
@@ -476,19 +384,14 @@ const SessionOptions = ({ query }: { query: string }) => {
 	)
 }
 
-const isErrorAttribute = (attribute: typeof ATTRIBUTE[number]) => {
-	return [ERROR_TYPE, ERROR_FIELD_TYPE].includes(attribute.type)
-}
-
-const ErrorOptions = ({ query }: { query: string }) => {
+const ErrorOptions = () => {
 	return (
 		<Box display="flex" flexDirection="column" py="4" width="full">
 			<SectionHeader header="Errors" />
-			{ATTRIBUTE.filter(isErrorAttribute).map((attribute, idx) => (
+			{ATTRIBUTES.filter(isErrorAttribute).map((attribute, idx) => (
 				<SectionRow
 					key={`errors-${idx}`}
 					attribute={attribute}
-					query={query}
 					icon={<IconSolidLightningBolt size={16} />}
 				/>
 			))}
