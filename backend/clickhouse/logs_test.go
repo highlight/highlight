@@ -232,6 +232,11 @@ func TestLogKeyValues(t *testing.T) {
 			ProjectId:     1,
 			LogAttributes: map[string]string{"workspace_id": "4"},
 		},
+		{
+			Timestamp:     time.Now(),
+			ProjectId:     1,
+			LogAttributes: map[string]string{"unrelated_key": "value"},
+		},
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))

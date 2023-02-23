@@ -148,6 +148,7 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 	query := sq.Select("LogAttributes[?] as value, count() as cnt").
 		From("logs").
 		Where(sq.Eq{"ProjectId": projectID}).
+		Where("mapContains(LogAttributes, ?)", keyName).
 		GroupBy("value").
 		OrderBy("cnt DESC").
 		Limit(50)
