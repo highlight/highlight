@@ -3,6 +3,7 @@ name: Docker
 on:
     push:
         branches: ['main']
+    workflow_dispatch:
     merge_group:
 
 jobs:
