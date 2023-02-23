@@ -106,7 +106,8 @@ const CommandBar = () => {
 
 	useHotkeys(
 		'cmd+k, ctrl+k, /',
-		() => {
+		(e) => {
+			e.preventDefault()
 			setCurrentAttribute(undefined)
 			commandBarDialog.toggle()
 		},
