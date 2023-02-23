@@ -7,10 +7,14 @@ import highlight_io
 class FastAPIMiddleware(BaseHTTPMiddleware):
     HIGHLIGHT_HEADER = "X-Highlight-Request"
 
-    async def dispatch(            self, request: Request, call_next: RequestResponseEndpoint    ) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
         session_id, request_id = "", ""
         try:
-            session_id, request_id = request.headers.get(FastAPIMiddleware.HIGHLIGHT_HEADER).split("/")
+            session_id, request_id = request.headers.get(
+                FastAPIMiddleware.HIGHLIGHT_HEADER
+            ).split("/")
         except (AttributeError, KeyError, ValueError):
             pass
 
