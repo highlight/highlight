@@ -81,11 +81,11 @@ See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/comp
 
 ### Error Monitoring: Understand WHAT bugs are happening.
 
--   **Customizable Error Grouping**: Customize rules for grouping repeated errors -> [docs](https://www.highlight.io/docs/error-monitoring/grouping-errors)
--   **Customizable Alerting Rules**: Customize how often, and where alerts are sent -> [docs](https://www.highlight.io/docs/product-features/alerts)
+-   **Customizable Error Grouping**: Customize rules for grouping repeated errors -> [docs](https://www.highlight.io/docs/general/product-features/error-monitoring/grouping-errors)
+-   **Customizable Alerting Rules**: Customize how often, and where alerts are sent -> [docs](https://www.highlight.io/docs/general/product-features/general-features/alerts)
 -   **Embedded Session Replay**: See all of the sessions associated with any given error.
 -   **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
--   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/integrations)
+-   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations)
 
 <p align="center">
 <img width="600" alt="error-monitoring" src="https://user-images.githubusercontent.com/20292680/214500108-c8e0e289-276a-4863-816a-7c854c97df4e.png">
