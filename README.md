@@ -73,7 +73,7 @@ See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/comp
 -   **Console logs**: Analyze the logs printed (`console.error`, `console.log`, etc..) to the console from your frontend -> [docs](https://www.highlight.io/docs/general/product-features/session-replay/dev-tools)
 -   **Embedded Error Monitoring**: See the errors associated with a given session to understand what the user was doing leading up to them.
 -   **Session Comments**: Comment on errors to communicate with your team on user frustration, bugs, and more! -> [docs](https://www.highlight.io/docs/general/product-features/general-features/comments)
--   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations)
+-   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
 
 <p align="center">
 <img width="600" alt="Frame 43972" src="https://user-images.githubusercontent.com/20292680/214499701-86b7deb3-ec8f-4cb2-8661-ff4f9d7ade2d.png">
@@ -85,7 +85,7 @@ See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/comp
 -   **Customizable Alerting Rules**: Customize how often, and where alerts are sent -> [docs](https://www.highlight.io/docs/general/product-features/general-features/alerts)
 -   **Embedded Session Replay**: See all of the sessions associated with any given error.
 -   **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
--   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations)
+-   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
 
 <p align="center">
 <img width="600" alt="error-monitoring" src="https://user-images.githubusercontent.com/20292680/214500108-c8e0e289-276a-4863-816a-7c854c97df4e.png">
