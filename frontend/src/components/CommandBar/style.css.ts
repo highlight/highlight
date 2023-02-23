@@ -25,8 +25,6 @@ export const datePicker = style({
 
 export const searchIcon = style({ flexShrink: 0 })
 
-export const content = style({})
-
 export const flatRight = style({
 	borderTopRightRadius: 0,
 	borderBottomRightRadius: 0,
