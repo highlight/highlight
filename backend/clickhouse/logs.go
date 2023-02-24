@@ -38,7 +38,9 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 	}
 
 	for _, logRow := range logRows {
-		logRow.UUID = uuid.New().String()
+		if len(logRow.UUID) == 0 {
+			logRow.UUID = uuid.New().String()
+		}
 		err = batch.AppendStruct(logRow)
 		if err != nil {
 			return err
@@ -51,7 +53,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	var limit uint64 = 100
 
 	query := makeSelectQuery("Timestamp, UUID, SeverityText, Body, LogAttributes", projectID, params, after)
-	query = query.OrderBy("Timestamp DESC").Limit(limit + 1)
+	query = query.OrderBy("Timestamp DESC, UUID DESC").Limit(limit + 1)
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -241,13 +243,15 @@ func makeSelectQuery(selectStr string, projectID int, params modelInputs.LogsPar
 		From("logs").
 		Where(sq.Eq{"ProjectId": projectID})
 
-	if after != nil {
+	if after != nil && len(*after) > 1 {
 		timestamp, uuid, err := decodeCursor(*after)
 		if err != nil {
 			fmt.Print("error decoding cursor")
 		}
 
-		query = query.Where("(toUInt64(toDateTime(Timestamp)), UUID) < (?, ?)", uint64(timestamp.Unix()), uuid)
+		// See https://dba.stackexchange.com/a/206811
+		query = query.Where("toUInt64(toDateTime(Timestamp)) <= ?", uint64(timestamp.Unix())).
+			Where("(toUInt64(toDateTime(Timestamp)) < ? OR UUID < ?)", uint64(timestamp.Unix()), uuid)
 
 	} else {
 		query = query.Where(sq.LtOrEq{"toUInt64(toDateTime(Timestamp))": uint64(params.DateRange.EndDate.Unix())}).

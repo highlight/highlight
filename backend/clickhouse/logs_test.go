@@ -110,18 +110,24 @@ func TestReadLogsAfterCursor(t *testing.T) {
 	ctx := context.Background()
 	client := setup(t)
 	now := time.Now()
+	oneSecondAgo := now.Add(-time.Second * 1)
 	defer teardown(client)
 
 	rows := []*LogRow{
 		{
 			Timestamp: now,
-			Body:      "Body 1",
 			ProjectId: 1,
+			UUID:      "c051edc8-3749-4e44-8f48-0ea90f3fc3d9",
 		},
 		{
-			Timestamp: now.Add(time.Second * 1),
-			Body:      "Body 2",
+			Timestamp: oneSecondAgo,
 			ProjectId: 1,
+			UUID:      "a0d9abd6-7cbf-47de-b211-d16bb0935e04",
+		},
+		{
+			Timestamp: oneSecondAgo,
+			ProjectId: 1,
+			UUID:      "b6e255ee-049e-4563-bbfe-c33503cde94c",
 		},
 	}
 
@@ -131,13 +137,23 @@ func TestReadLogsAfterCursor(t *testing.T) {
 		DateRange: makeDateWithinRange(now),
 	}, nil)
 	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 2)
+	assert.Len(t, payload.Edges, 3)
+
+	firstCursor := encodeCursor(now, "c051edc8-3749-4e44-8f48-0ea90f3fc3d9")
+	secondCursor := encodeCursor(oneSecondAgo, "b6e255ee-049e-4563-bbfe-c33503cde94c")
+	thirdCursor := encodeCursor(oneSecondAgo, "a0d9abd6-7cbf-47de-b211-d16bb0935e04")
+
+	assert.Equal(t, payload.Edges[0].Cursor, firstCursor)
+	assert.Equal(t, payload.Edges[1].Cursor, secondCursor)
+	assert.Equal(t, payload.Edges[2].Cursor, thirdCursor)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-	}, &payload.PageInfo.EndCursor)
+	}, &secondCursor)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
+
+	assert.Equal(t, payload.Edges[0].Cursor, thirdCursor)
 }
 
 func TestReadLogsWithBodyFilter(t *testing.T) {
