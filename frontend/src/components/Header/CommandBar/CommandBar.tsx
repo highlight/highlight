@@ -92,7 +92,7 @@ export const CommandBar: React.FC<React.PropsWithChildren> = () => {
 	return (
 		<CommandPalette
 			trigger={<></>}
-			hotKeys={['command+k', 'ctrl+k']}
+			hotKeys={['command+shift+k', 'ctrl+shift+k']}
 			highlightFirstSuggestion={false}
 			closeOnSelect
 			commands={commands}

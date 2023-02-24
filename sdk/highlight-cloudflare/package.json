@@ -1,12 +1,13 @@
 {
 	"name": "@highlight-run/cloudflare",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"packageManager": "yarn@3.2.3",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
 	"scripts": {
-		"build": "tsup src/index.ts --format cjs,esm --dts --clean"
+		"typegen": "tsup src/index.ts --dts-only",
+		"build": "tsup src/index.ts --format cjs,esm --dts"
 	},
 	"publishConfig": {
 		"access": "public"

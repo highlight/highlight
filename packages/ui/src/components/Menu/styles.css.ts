@@ -3,6 +3,7 @@ import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
 import { vars } from '../../css/vars'
 import * as buttonStyles from '../Button/styles.css'
 import { typographyStyles } from '../Text/styles.css'
+import { sprinkles } from '../../css/sprinkles.css'
 
 export const menuList = style({
 	backgroundColor: 'white',
@@ -18,21 +19,30 @@ export const menuList = style({
 })
 
 export const menuItemVariants = recipe({
-	base: {
-		color: vars.theme.interactive.fill.secondary.content.text,
-		cursor: 'pointer',
-		padding: vars.space[8],
-		...typographyStyles.size.small,
-		selectors: {
-			'&[aria-disabled]': {
-				cursor: 'default',
-				opacity: '0.5',
-			},
-			'&[data-active-item], &:hover': {
-				backgroundColor: vars.theme.interactive.overlay.secondary.hover,
+	base: [
+		sprinkles({
+			px: '8',
+			py: '4',
+			display: 'flex',
+			alignItems: 'center',
+		}),
+		{
+			minHeight: 20,
+			color: vars.theme.interactive.fill.secondary.content.text,
+			cursor: 'pointer',
+			...typographyStyles.size.small,
+			selectors: {
+				'&[aria-disabled]': {
+					cursor: 'default',
+					opacity: '0.5',
+				},
+				'&[data-active-item], &:hover': {
+					backgroundColor:
+						vars.theme.interactive.overlay.secondary.hover,
+				},
 			},
 		},
-	},
+	],
 	variants: {
 		selected: {
 			true: {

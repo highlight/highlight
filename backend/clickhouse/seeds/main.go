@@ -39,7 +39,7 @@ func makeRandomBody() string {
 }
 
 func makeRandLogAttributes() map[string]string {
-	randomKeys := [20]string{
+	randomKeys := [21]string{
 		"key1",
 		"key2",
 		"key3",
@@ -60,6 +60,7 @@ func makeRandLogAttributes() map[string]string {
 		"key18",
 		"key19",
 		"key20",
+		"nested.log",
 	}
 
 	randomVals := [20]string{

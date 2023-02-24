@@ -2,6 +2,8 @@ package clickhouse
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 	"testing"
 	"time"
 
@@ -117,9 +119,13 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
-			Timestamp:     now,
-			ProjectId:     1,
-			LogAttributes: map[string]string{"service": "image processor"},
+			Timestamp: now,
+			ProjectId: 1,
+			LogAttributes: map[string]string{
+				"service":      "image processor",
+				"workspace_id": "1",
+				"user_id":      "1",
+			},
 		},
 	}
 
@@ -134,7 +140,7 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 
 	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "service:'image processor'",
+		Query:     `service:"image processor"`,
 	})
 	assert.NoError(t, err)
 	assert.Len(t, logs, 1)
@@ -142,6 +148,13 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "service:*mage*",
+	})
+	assert.NoError(t, err)
+	assert.Len(t, logs, 1)
+
+	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "service:image* workspace_id:1 user_id:1",
 	})
 	assert.NoError(t, err)
 	assert.Len(t, logs, 1)
@@ -219,6 +232,11 @@ func TestLogKeyValues(t *testing.T) {
 			ProjectId:     1,
 			LogAttributes: map[string]string{"workspace_id": "4"},
 		},
+		{
+			Timestamp:     time.Now(),
+			ProjectId:     1,
+			LogAttributes: map[string]string{"unrelated_key": "value"},
+		},
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -228,4 +246,37 @@ func TestLogKeyValues(t *testing.T) {
 
 	expected := []string{"3", "2", "4"}
 	assert.Equal(t, expected, values)
+}
+
+func TestExpandJSON(t *testing.T) {
+	var tests = []struct {
+		logAttributes map[string]string
+		want          map[string]interface{}
+	}{
+		{map[string]string{"workspace_id": "2"}, map[string]interface{}{"workspace_id": "2"}},
+		{map[string]string{"nested.json": "value"}, map[string]interface{}{
+			"nested": map[string]interface{}{
+				"json": "value",
+			},
+		}},
+		{map[string]string{"nested.foo": "value", "nested.level.bar": "value", "toplevel": "value"}, map[string]interface{}{
+			"nested": map[string]interface{}{
+				"foo": "value",
+				"level": map[string]interface{}{
+					"bar": "value",
+				},
+			},
+			"toplevel": "value",
+		}},
+	}
+
+	for _, tt := range tests {
+		testname := fmt.Sprintf("logAttributes: %s", tt.logAttributes)
+		t.Run(testname, func(t *testing.T) {
+			got := expandJSON(tt.logAttributes)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("got %s, want %s", got, tt.want)
+			}
+		})
+	}
 }

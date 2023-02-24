@@ -1,16 +1,14 @@
-import React from 'react'
+import React, { forwardRef, useRef } from 'react'
 
 import {
 	Form as AriaKitForm,
 	FormProps as AriaKitFormProps,
 	FormInput as AriaKitFormInput,
-	FormLabel as AriaKitFormLabel,
 	FormError as AriaKitFormError,
 	FormErrorProps as AriaKitFormErrorProps,
 	FormInputProps as AriaKitFormInputProps,
 	FormField as AriaKitFormField,
 	FormFieldProps as AriaKitFormFieldProps,
-	FormState as AriaKitFormState,
 	useFormState as useAriaKitFormState,
 	FormState as AriakitFormState,
 	FormStateProps as AriakitFormStateProps,
@@ -22,7 +20,6 @@ import { Text } from '../Text/Text'
 import { Button, ButtonProps } from '../Button/Button'
 import clsx, { ClassValue } from 'clsx'
 import { Variants } from './styles.css'
-import { Badge } from '../Badge/Badge'
 
 type FormComponent = React.FC<Props> & {
 	Input: typeof Input
@@ -32,48 +29,24 @@ type FormComponent = React.FC<Props> & {
 	NamedSection: typeof NamedSection
 }
 
-export const Label = ({
-	label,
-	name,
-}: {
-	label: string
-	name: AriaKitFormInputProps['name']
-}) => {
+export const Label = ({ label }: { label: string }) => {
 	return (
 		<Box display="flex" alignItems="center" style={{ height: 16 }}>
-			<AriaKitFormLabel name={name}>
-				<Text
-					userSelect="none"
-					size="xSmall"
-					weight="bold"
-					color="weak"
-				>
-					{label}
-				</Text>
-			</AriaKitFormLabel>
+			<Text userSelect="none" size="xSmall" weight="bold" color="weak">
+				{label}
+			</Text>
 		</Box>
 	)
 }
 
-type HasLabel = {
-	name: AriaKitFormInputProps['name']
-	label?: string
-	optional?: boolean
-}
+type HasLabel = { label?: string }
 export const NamedSection = ({
 	children,
 	label,
-	name,
-	optional = false,
 }: React.PropsWithChildren<HasLabel>) => {
 	return (
 		<Box display="flex" flexDirection="column" width="full" gap="4">
-			<Box display="flex" flexDirection="row" gap="6">
-				{label && <Label label={label} name={name} />}
-				{optional && (
-					<Badge shape="basic" size="small" label="Optional" />
-				)}
-			</Box>
+			{label && <Label label={label} />}
 			{children}
 		</Box>
 	)
@@ -107,44 +80,42 @@ type InputProps = Omit<AriaKitFormInputProps, 'size'> &
 		cssClass?: ClassValue | ClassValue[]
 	}
 
-export const Input = ({
-	label,
-	cssClass,
-	size,
-	collapsed,
-	truncate,
-	outline,
-	name,
-	...props
-}: InputProps) => {
-	const ref = React.useRef<HTMLInputElement>(null)
-	React.useEffect(() => {
-		if (collapsed && ref.current) {
-			ref.current.blur()
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+	(
+		{ label, cssClass, size, collapsed, truncate, outline, name, ...props },
+		ref,
+	) => {
+		const _ref = useRef<HTMLInputElement>(null)
+		const inputRef = (ref ??
+			_ref) as React.MutableRefObject<HTMLInputElement>
+		React.useEffect(() => {
+			if (collapsed && inputRef.current) {
+				inputRef.current.blur()
+			}
+		}, [collapsed])
+		if (inputRef.current && inputRef.current.value) {
+			collapsed = false
 		}
-	}, [collapsed])
-	if (ref.current && ref.current.value) {
-		collapsed = false
-	}
-	return (
-		<NamedSection label={label} name={name}>
-			<AriaKitFormInput
-				ref={ref}
-				name={name}
-				className={clsx(
-					styles.inputVariants({
-						size,
-						collapsed,
-						outline,
-						truncate,
-					}),
-					cssClass,
-				)}
-				{...props}
-			/>
-		</NamedSection>
-	)
-}
+		return (
+			<NamedSection label={label}>
+				<AriaKitFormInput
+					ref={ref}
+					name={name}
+					className={clsx(
+						styles.inputVariants({
+							size,
+							collapsed,
+							outline,
+							truncate,
+						}),
+						cssClass,
+					)}
+					{...props}
+				/>
+			</NamedSection>
+		)
+	},
+)
 
 type FormFieldProps = AriaKitFormFieldProps &
 	React.PropsWithChildren &
@@ -164,7 +135,7 @@ export const Field = ({
 	...props
 }: FormFieldProps) => {
 	return (
-		<NamedSection label={label} name={props.name}>
+		<NamedSection label={label}>
 			<AriaKitFormField
 				className={clsx(
 					styles.inputVariants({
@@ -189,5 +160,4 @@ Form.Submit = Submit
 Form.Field = Field
 Form.NamedSection = NamedSection
 
-export type FormState = AriaKitFormState<any>
 export const useFormState = useAriaKitFormState
