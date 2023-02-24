@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
@@ -9,34 +10,6 @@ import (
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	log "github.com/sirupsen/logrus"
 )
-
-func makeRandTime() time.Time {
-	now := time.Now()
-
-	randomTimes := [3]time.Time{
-		now.Add(-time.Hour * 72),
-		now.Add(-time.Hour * 144),
-		now,
-	}
-
-	return randomTimes[rand.Intn(len(randomTimes))]
-}
-
-func makeRandProjectId() uint32 {
-	projectIDs := make([]uint32, 0)
-	projectIDs = append(projectIDs, 1, 2, 3, 4, 5)
-	return projectIDs[rand.Intn(len(projectIDs))]
-}
-
-var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-func makeRandomBody() string {
-	b := make([]rune, 30)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-	return string(b)
-}
 
 func makeRandLogAttributes() map[string]string {
 	randomKeys := [21]string{
@@ -132,17 +105,18 @@ func main() {
 		log.WithContext(ctx).Fatal("could not connect to clickhouse db")
 	}
 
-	for i := 1; i < 100; i++ {
+	now := time.Now()
+
+	for i := 1; i < 10000; i++ {
 		logRows := []*clickhouse.LogRow{}
-		for j := 1; j < 100; j++ {
-			logRows = append(logRows, &clickhouse.LogRow{
-				Timestamp:     makeRandTime(),
-				ProjectId:     makeRandProjectId(),
-				Body:          makeRandomBody(),
-				LogAttributes: makeRandLogAttributes(),
-				SeverityText:  makeRandomSeverityText(),
-			})
-		}
+
+		logRows = append(logRows, &clickhouse.LogRow{
+			Timestamp:     now.Add(-time.Duration(i) * time.Second),
+			ProjectId:     1,
+			Body:          fmt.Sprintf("Body %d", i),
+			LogAttributes: makeRandLogAttributes(),
+			SeverityText:  makeRandomSeverityText(),
+		})
 		err = client.BatchWriteLogRows(context.Background(), logRows)
 
 		if err != nil {
