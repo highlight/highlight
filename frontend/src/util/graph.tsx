@@ -10,9 +10,11 @@ import {
 } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
-import { getMainDefinition } from '@apollo/client/utilities'
+import {
+	getMainDefinition,
+	relayStylePagination,
+} from '@apollo/client/utilities'
 import { namedOperations } from '@graph/operations'
-import { relayStylePagination } from '@pages/LogsPage/LogsTable/utils'
 import { auth } from '@util/auth'
 import { IndexedDBLink } from '@util/db'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
