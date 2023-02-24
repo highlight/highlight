@@ -1,9 +1,9 @@
 import { vars } from '@highlight-run/ui'
+import { borders } from '@highlight-run/ui/src/css/borders'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
 import { RIGHT_PANEL_WIDTH } from '@pages/Player/RightPlayerPanel/style.css'
 import { SESSION_FEED_LEFT_PANEL_WIDTH } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
-import { style } from '@vanilla-extract/css'
+import { globalStyle, style } from '@vanilla-extract/css'
 
 export const PLAYER_PADDING = 8
 export const MIN_CENTER_COLUMN_WIDTH = 428
@@ -54,12 +54,12 @@ export const rrwebPlayerWrapper = style({
 	width: '100%',
 })
 
-export const rrwebInnerWrapper = style([
-	sprinkles({
-		border: 'dividerWeak',
-		boxShadow: 'medium',
-	}),
-])
+export const rrwebInnerWrapper = style({})
+globalStyle(`${rrwebInnerWrapper} iframe`, {
+	borderRadius: 4,
+	border: borders.dividerWeak,
+	boxShadow: vars.shadows.medium,
+})
 
 export const playerCenterColumn = style({
 	alignItems: 'center',
