@@ -7,7 +7,7 @@ export type LogsSearchParam = {
 
 const SEPARATOR = ':'
 const DEFAULT_OPERATOR = '='
-const BODY_KEY = 'body'
+export const BODY_KEY = 'body'
 
 // Inspired by search-query-parser:
 // https://github.com/nepsilon/search-query-parser/blob/8158d09c70b66168440e93ffabd720f4c8314c9b/lib/search-query-parser.js#L40
@@ -42,7 +42,9 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 				offsetStart: match.index,
 			})
 		} else {
-			const textTermIndex = terms.findIndex((term) => term.key === 'text')
+			const textTermIndex = terms.findIndex(
+				(term) => term.key === BODY_KEY,
+			)
 
 			if (textTermIndex !== -1) {
 				terms[textTermIndex].value +=
@@ -51,7 +53,7 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 				const isEmptyString = term === ' '
 
 				terms.push({
-					key: 'text',
+					key: BODY_KEY,
 					operator: DEFAULT_OPERATOR,
 					value: isEmptyString ? '' : term,
 					offsetStart: isEmptyString ? match.index + 1 : match.index,
@@ -67,7 +69,7 @@ export const stringifyLogsQuery = (params: LogsSearchParam[]) => {
 	const querySegments: string[] = []
 
 	params.forEach((param) => {
-		if (param.key === 'text') {
+		if (param.key === BODY_KEY) {
 			querySegments.push(param.value)
 		} else {
 			const value =

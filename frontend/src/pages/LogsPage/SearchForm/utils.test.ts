@@ -1,4 +1,9 @@
-import { parseLogsQuery, stringifyLogsQuery, validateLogsQuery } from './utils'
+import {
+	BODY_KEY,
+	parseLogsQuery,
+	stringifyLogsQuery,
+	validateLogsQuery,
+} from './utils'
 
 const complexQueryString = `name:"Eric Thomas" workspace:'Chilly McWilly' project_id:9 freetext query`
 const complexQueryParams = [
@@ -21,7 +26,7 @@ const complexQueryParams = [
 		offsetStart: 46,
 	},
 	{
-		key: 'text',
+		key: BODY_KEY,
 		operator: '=',
 		value: 'freetext query',
 		offsetStart: 59,
@@ -34,7 +39,7 @@ describe('parseLogsQuery', () => {
 
 		expect(parseLogsQuery(query)).toEqual([
 			{
-				key: 'text',
+				key: BODY_KEY,
 				operator: '=',
 				value: query,
 				offsetStart: 0,
@@ -57,7 +62,7 @@ describe('parseLogsQuery', () => {
 				offsetStart: 0,
 			},
 			{
-				key: 'text',
+				key: BODY_KEY,
 				operator: '=',
 				value: 'search query',
 				offsetStart: 14,
@@ -81,7 +86,7 @@ describe('parseLogsQuery', () => {
 				offsetStart: 0,
 			},
 			{
-				key: 'text',
+				key: BODY_KEY,
 				operator: '=',
 				value: '',
 				offsetStart: 19,
@@ -95,7 +100,7 @@ describe('stringifyLogsQuery', () => {
 		expect(
 			stringifyLogsQuery([
 				{
-					key: 'text',
+					key: BODY_KEY,
 					operator: '=',
 					value: 'a test query',
 					offsetStart: 0,
