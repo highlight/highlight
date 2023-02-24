@@ -22,7 +22,11 @@ type Props = {
 
 export const LogDetails = ({ row }: Props) => {
 	const [allExpanded, setAllExpanded] = useState(false)
+	const { logAttributes } = row.original
 	const expanded = row.getIsExpanded()
+	const expandable = Object.values(logAttributes).some(
+		(v) => typeof v === 'object',
+	)
 
 	if (!expanded) {
 		return null
@@ -30,11 +34,8 @@ export const LogDetails = ({ row }: Props) => {
 
 	return (
 		<Stack p="6" paddingBottom="0" gap="1" paddingLeft="16">
-			{Object.keys(row.original.logAttributes).map((key, index) => {
-				const value =
-					row.original.logAttributes[
-						key as keyof typeof row.original.logAttributes
-					]
+			{Object.keys(logAttributes).map((key, index) => {
+				const value = logAttributes[key as keyof typeof logAttributes]
 				const isObject = typeof value === 'object'
 
 				return (
@@ -59,31 +60,33 @@ export const LogDetails = ({ row }: Props) => {
 				gap="16"
 				my="10"
 			>
-				<ButtonLink
-					kind="secondary"
-					onClick={(e) => {
-						e.stopPropagation()
-						setAllExpanded(!allExpanded)
-					}}
-				>
-					<Box
-						alignItems="center"
-						display="flex"
-						flexDirection="row"
-						gap="4"
+				{expandable && (
+					<ButtonLink
+						kind="secondary"
+						onClick={(e) => {
+							e.stopPropagation()
+							setAllExpanded(!allExpanded)
+						}}
 					>
-						{allExpanded ? (
-							<>
-								<IconSolidChevronDoubleUp /> Collapse all
-							</>
-						) : (
-							<>
-								<IconSolidChevronDoubleDown />
-								Expand all
-							</>
-						)}
-					</Box>
-				</ButtonLink>
+						<Box
+							alignItems="center"
+							display="flex"
+							flexDirection="row"
+							gap="4"
+						>
+							{allExpanded ? (
+								<>
+									<IconSolidChevronDoubleUp /> Collapse all
+								</>
+							) : (
+								<>
+									<IconSolidChevronDoubleDown />
+									Expand all
+								</>
+							)}
+						</Box>
+					</ButtonLink>
+				)}
 
 				<ButtonLink
 					kind="secondary"
