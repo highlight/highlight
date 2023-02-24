@@ -292,7 +292,7 @@ const MetadataPanel = () => {
 							alignItems="center"
 						>
 							<Text
-								color="secondaryOnEnabled"
+								color="secondaryContentOnEnabled"
 								as="span"
 								size="small"
 								weight="medium"

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { forwardRef, useRef } from 'react'
 
 import {
 	Form as AriaKitForm,
@@ -69,44 +69,42 @@ type InputProps = Omit<AriaKitFormInputProps, 'size'> &
 		cssClass?: ClassValue | ClassValue[]
 	}
 
-export const Input = ({
-	label,
-	cssClass,
-	size,
-	collapsed,
-	truncate,
-	outline,
-	name,
-	...props
-}: InputProps) => {
-	const ref = React.useRef<HTMLInputElement>(null)
-	React.useEffect(() => {
-		if (collapsed && ref.current) {
-			ref.current.blur()
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+	(
+		{ label, cssClass, size, collapsed, truncate, outline, name, ...props },
+		ref,
+	) => {
+		const _ref = useRef<HTMLInputElement>(null)
+		const inputRef = (ref ??
+			_ref) as React.MutableRefObject<HTMLInputElement>
+		React.useEffect(() => {
+			if (collapsed && inputRef.current) {
+				inputRef.current.blur()
+			}
+		}, [collapsed])
+		if (inputRef.current && inputRef.current.value) {
+			collapsed = false
 		}
-	}, [collapsed])
-	if (ref.current && ref.current.value) {
-		collapsed = false
-	}
-	return (
-		<NamedSection label={label}>
-			<AriaKitFormInput
-				ref={ref}
-				name={name}
-				className={clsx(
-					styles.inputVariants({
-						size,
-						collapsed,
-						outline,
-						truncate,
-					}),
-					cssClass,
-				)}
-				{...props}
-			/>
-		</NamedSection>
-	)
-}
+		return (
+			<NamedSection label={label}>
+				<AriaKitFormInput
+					ref={ref}
+					name={name}
+					className={clsx(
+						styles.inputVariants({
+							size,
+							collapsed,
+							outline,
+							truncate,
+						}),
+						cssClass,
+					)}
+					{...props}
+				/>
+			</NamedSection>
+		)
+	},
+)
 
 type FormFieldProps = AriaKitFormFieldProps &
 	React.PropsWithChildren &
