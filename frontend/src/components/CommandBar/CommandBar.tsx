@@ -162,6 +162,7 @@ const CommandBar = () => {
 					borderRadius="8"
 					flexDirection="column"
 					cssClass={styles.container}
+					position="absolute"
 				>
 					<SearchBar form={form} />
 

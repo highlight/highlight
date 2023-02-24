@@ -7,12 +7,12 @@ export const dialog = style({
 	height: '100vh',
 	width: '100vw',
 	display: 'flex',
-	alignItems: 'center',
 	justifyContent: 'center',
 })
 
 export const container = style({
 	width: 580,
+	top: '25vh',
 })
 
 export const form = style({
