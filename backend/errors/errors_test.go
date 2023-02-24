@@ -5,21 +5,19 @@ import (
 	"testing"
 
 	"github.com/go-test/deep"
-	"github.com/highlight-run/highlight/backend/model"
 	modelInput "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModelInput "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	storage "github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 )
 
 type Testcase struct {
-	stackFrameInput     []*publicModelInput.StackFrameInput
-	expectedErrorObject model.ErrorObject
-	expectedStackTrace  []modelInput.ErrorTrace
-	fetcher             fetcher
-	version             string
-	err                 error
+	stackFrameInput    []*publicModelInput.StackFrameInput
+	expectedStackTrace []modelInput.ErrorTrace
+	fetcher            fetcher
+	version            string
+	err                error
 }
 
 var proper = Testcase{
