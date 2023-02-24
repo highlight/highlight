@@ -80,7 +80,6 @@
 		"source-map-explorer": "^2.5.2",
 		"stacktrace-js": "^2.0.2",
 		"subscriptions-transport-ws": "^0.11.0",
-		"tslib": "^2.5.0",
 		"use-http": "^1.0.26",
 		"use-query-params": "^2.2.0",
 		"validator": "13.7.0",
