@@ -2,6 +2,7 @@ import '../../App.scss'
 
 import { useAuthContext } from '@authentication/AuthContext'
 import { Box } from '@highlight-run/ui'
+import { useInviteCode } from '@hooks/useInviteCode'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import { AccountsPage } from '@pages/Accounts/Accounts'
 import { AdminForm } from '@pages/Auth/AdminForm'
@@ -39,12 +40,21 @@ import { StringParam, useQueryParam } from 'use-query-params'
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const workspaceMatch = useMatch('/w/:workspace_id/*')
+	const workspaceInviteMatch = useMatch('/w/:workspace_id/invite/:invite')
 	const workspaceId = workspaceMatch?.params.workspace_id
 	const { projectId } = useNumericProjectId()
 	const [nextParam] = useQueryParam('next', StringParam)
 	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
 	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
 	const navigate = useNavigate()
+	const { setInviteCode } = useInviteCode()
+
+	useEffect(() => {
+		if (workspaceInviteMatch?.params.invite) {
+			setInviteCode(workspaceInviteMatch.params.invite)
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	useEffect(() => {
 		if (admin && admin.email_verified === false) {
@@ -152,11 +162,15 @@ export const AppRouter = () => {
 					path="/w/:workspace_id/invite/:invite_id"
 					element={
 						isLoggedIn ? (
+							// TODO 1: Julianify this page.
+							// TODO 2: Pop this up after sign up/in when a user is invited to
+							// a workspace. Store the invite secret locally so we can check if
+							// someone should be redirected here.
 							<Landing>
 								<NewMemberPage />
 							</Landing>
 						) : (
-							<Navigate to={SIGN_IN_ROUTE} />
+							<Navigate to="/sign_up" />
 						)
 					}
 				/>
