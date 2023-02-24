@@ -221,33 +221,33 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	logs, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "service:foo",
 	}, nil)
 	assert.NoError(t, err)
-	assert.Len(t, logs, 0)
+	assert.Len(t, payload.Edges, 0)
 
-	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     `service:"image processor"`,
 	}, nil)
 	assert.NoError(t, err)
-	assert.Len(t, logs, 1)
+	assert.Len(t, payload.Edges, 1)
 
-	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "service:*mage*",
 	}, nil)
 	assert.NoError(t, err)
-	assert.Len(t, logs, 1)
+	assert.Len(t, payload.Edges, 1)
 
-	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "service:image* workspace_id:1 user_id:1",
 	}, nil)
 	assert.NoError(t, err)
-	assert.Len(t, logs, 1)
+	assert.Len(t, payload.Edges, 1)
 }
 
 func TestLogsKeys(t *testing.T) {
