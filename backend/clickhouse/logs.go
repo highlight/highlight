@@ -11,7 +11,6 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	flat "github.com/nqd/flat"
 	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 type LogRow struct {
@@ -59,9 +58,6 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	if err != nil {
 		return nil, err
 	}
-	log.WithContext(ctx).WithFields(log.Fields{
-		"query": sq.DebugSqlizer(query),
-	}).Info("Fetching logs")
 
 	rows, err := client.conn.Query(
 		ctx,
