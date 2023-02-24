@@ -57,8 +57,8 @@ export const ATTRIBUTES = [
 export type Attribute = typeof ATTRIBUTES[number]
 
 interface CommandBarContext {
-	currentAttribute: Attribute | undefined
-	setCurrentAttribute: (row: Attribute | undefined) => void
+	currentAttribute: Attribute
+	setCurrentAttribute: (row: Attribute) => void
 	form: FormState<CommandBarSearch>
 }
 

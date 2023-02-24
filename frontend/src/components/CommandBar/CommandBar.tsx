@@ -85,18 +85,17 @@ const CommandBar = () => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const query = form.getValue<string>(form.names.search)
 	const selectedDates = form.getValue<[Date, Date]>(form.names.selectedDates)
-	const [currentAttribute, setCurrentAttributeImpl] = useState<
-		Attribute | undefined
-	>(undefined)
+	const [currentAttribute, setCurrentAttributeImpl] = useState<Attribute>(
+		ATTRIBUTES[0],
+	)
 
-	const setCurrentAttribute = (row: Attribute | undefined) =>
-		setCurrentAttributeImpl(row)
+	const setCurrentAttribute = (row: Attribute) => setCurrentAttributeImpl(row)
 
 	const searchAttribute = useAttributeSearch(form)
 
 	form.useSubmit(() => {
 		if (query) {
-			searchAttribute(currentAttribute ?? ATTRIBUTES[0], {
+			searchAttribute(currentAttribute, {
 				withDate:
 					selectedDates[0].getTime() !==
 					last30Days.startDate.getTime(),
@@ -108,7 +107,8 @@ const CommandBar = () => {
 		'cmd+k, ctrl+k, /',
 		(e) => {
 			e.preventDefault()
-			setCurrentAttribute(undefined)
+			form.reset()
+			setCurrentAttribute(ATTRIBUTES[0])
 			commandBarDialog.toggle()
 		},
 		[],
@@ -145,11 +145,6 @@ const CommandBar = () => {
 				onClick={(e) => {
 					if (!isInsideElement(e.nativeEvent, containerRef.current)) {
 						commandBarDialog.hide()
-					}
-				}}
-				onMouseMove={(e) => {
-					if (!isInsideElement(e.nativeEvent, containerRef.current)) {
-						setCurrentAttribute(undefined)
 					}
 				}}
 			>
@@ -231,15 +226,12 @@ const SearchBar = ({ form }: { form: FormState<CommandBarSearch> }) => {
 								if (e.code === 'Enter') {
 									e.preventDefault()
 									if (e.metaKey || e.ctrlKey) {
-										searchAttribute(
-											currentAttribute ?? ATTRIBUTES[0],
-											{
-												newTab: true,
-												withDate:
-													selectedDates[0].getTime() !==
-													last30Days.startDate.getTime(),
-											},
-										)
+										searchAttribute(currentAttribute, {
+											newTab: true,
+											withDate:
+												selectedDates[0].getTime() !==
+												last30Days.startDate.getTime(),
+										})
 									} else {
 										form.submit()
 									}
@@ -353,6 +345,15 @@ const SectionRow = ({
 			>
 				{form.getValue(form.names.search)}
 			</Text>
+			{selected ? (
+				<Badge
+					shape="basic"
+					size="small"
+					variant="outlineGray"
+					label="Enter"
+					ml="auto"
+				/>
+			) : null}
 		</Box>
 	)
 }
