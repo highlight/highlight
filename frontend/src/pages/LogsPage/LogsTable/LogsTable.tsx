@@ -21,7 +21,7 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import clsx from 'clsx'
-import React, { Fragment, useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 
 import * as styles from './LogsTable.css'
 
@@ -103,6 +103,11 @@ const LogsTable = ({ data, loading, query }: Props) => {
 		getExpandedRowModel: getExpandedRowModel(),
 		debugTable: true,
 	})
+
+	useEffect(() => {
+		// Collapse all rows when search changes
+		table.toggleAllRowsExpanded(false)
+	}, [logs])
 
 	if (loading) {
 		return (
