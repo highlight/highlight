@@ -9,6 +9,7 @@ H = highlight_io.H("1", record_logs=True)
 
 def main():
     with H.trace():
+        logging.info("hello handler", {"customer": "unknown"})
         for idx in range(1000):
             logging.info(f"hello {idx}")
             time.sleep(0.001)
