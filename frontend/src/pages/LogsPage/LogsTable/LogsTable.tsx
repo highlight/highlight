@@ -31,7 +31,7 @@ type Props = {
 	query: string
 }
 
-const LogsTable = ({ data, loading, query }: Props) => {
+export const LogsTable = ({ data, loading, query }: Props) => {
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const columns = React.useMemo<ColumnDef<LogLine>[]>(
@@ -43,19 +43,19 @@ const LogsTable = ({ data, loading, query }: Props) => {
 						flexShrink={0}
 						flexDirection="row"
 						display="flex"
-						alignItems="center"
+						alignItems="flex-start"
 						gap="6"
 					>
 						{row.getCanExpand() && (
 							<Box
 								display="flex"
-								alignItems="center"
+								alignItems="flex-start"
 								cssClass={styles.expandIcon}
 							>
 								{row.getIsExpanded() ? (
-									<IconSolidCheveronDown />
+									<IconExpanded />
 								) : (
-									<IconSolidCheveronRight />
+									<IconCollapsed />
 								)}
 							</Box>
 						)}
@@ -169,4 +169,10 @@ const LogsTable = ({ data, loading, query }: Props) => {
 	)
 }
 
-export { LogsTable }
+export const IconExpanded: React.FC = () => (
+	<IconSolidCheveronDown color="#6F6E77" size="16" />
+)
+
+export const IconCollapsed: React.FC = () => (
+	<IconSolidCheveronRight color="#6F6E77" size="16" />
+)

@@ -2,14 +2,16 @@ import { LogLine } from '@graph/schemas'
 import {
 	Box,
 	ButtonLink,
-	IconSolidCheveronDown,
-	IconSolidCheveronRight,
 	IconSolidChevronDoubleDown,
 	IconSolidChevronDoubleUp,
 	IconSolidClipboard,
 	Stack,
 	Text,
 } from '@highlight-run/ui'
+import {
+	IconCollapsed,
+	IconExpanded,
+} from '@pages/LogsPage/LogsTable/LogsTable'
 import { Row } from '@tanstack/react-table'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
@@ -37,7 +39,7 @@ export const LogDetails = ({ row }: Props) => {
 	}
 
 	return (
-		<Stack p="6" paddingBottom="0" gap="1" paddingLeft="16">
+		<Stack py="6" paddingBottom="0" gap="1">
 			{Object.keys(logAttributes).map((key, index) => {
 				const value = logAttributes[key as keyof typeof logAttributes]
 				const isObject = typeof value === 'object'
@@ -147,7 +149,7 @@ const LogDetailsObject: React.FC<{
 			}}
 		>
 			<LogAttributeLine>
-				{open ? <IconSolidCheveronDown /> : <IconSolidCheveronRight />}
+				{open ? <IconExpanded /> : <IconCollapsed />}
 				<Box>
 					<Text color="weak" family="monospace" weight="bold">
 						{label}
@@ -195,7 +197,7 @@ const LogAttributeLine: React.FC<React.PropsWithChildren> = ({ children }) => {
 			alignItems="center"
 			flexDirection="row"
 			gap="10"
-			py="8"
+			py="6"
 			flexShrink={0}
 		>
 			{children}
