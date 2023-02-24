@@ -24,11 +24,11 @@ import {
 } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import { formatDatetime } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration'
 import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
+import ActivityGraph from '@pages/Sessions/SessionsFeedV3/ActivityGraph/ActivityGraph'
 import moment from 'moment/moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import ActivityGraph from '../ActivityGraph/ActivityGraph'
 import * as style from './SessionFeedCard.css'
 interface Props {
 	session: Session
@@ -92,7 +92,7 @@ export const SessionFeedCard = React.memo(
 			<Box ref={ref}>
 				<Link
 					to={`/${projectId}/sessions/${session.secure_id}${
-						urlParams || ''
+						urlParams ?? ''
 					}`}
 					onClick={() => {
 						setRightPanelView(RightPanelView.Session)
