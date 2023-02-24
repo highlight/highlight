@@ -74,7 +74,7 @@ func TestReadLogsHasNextPage(t *testing.T) {
 	now := time.Now()
 	var rows []*LogRow
 
-	for i := 1; i <= 100; i++ { // 100 is a hardcoded limit
+	for i := uint64(1); i <= Limit; i++ { // 100 is a hardcoded limit
 		rows = append(rows, &LogRow{
 			Timestamp: now,
 			ProjectId: 1,

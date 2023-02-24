@@ -48,11 +48,11 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 	return batch.Send()
 }
 
-func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string) (*modelInputs.LogsPayload, error) {
-	var limit uint64 = 100
+const Limit uint64 = 100
 
+func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string) (*modelInputs.LogsPayload, error) {
 	query := makeSelectQuery("Timestamp, UUID, SeverityText, Body, LogAttributes", projectID, params, after)
-	query = query.OrderBy("Timestamp DESC, UUID DESC").Limit(limit + 1)
+	query = query.OrderBy("Timestamp DESC, UUID DESC").Limit(Limit + 1)
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -95,7 +95,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	}
 	rows.Close()
 
-	return getLogsPayload(logs, limit), rows.Err()
+	return getLogsPayload(logs, Limit), rows.Err()
 }
 
 func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
