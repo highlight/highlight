@@ -47,7 +47,11 @@ const LogsTable = ({ data, loading, query }: Props) => {
 						gap="6"
 					>
 						{row.getCanExpand() && (
-							<Box display="flex" alignItems="center">
+							<Box
+								display="flex"
+								alignItems="center"
+								cssClass={styles.expandIcon}
+							>
 								{row.getIsExpanded() ? (
 									<IconSolidCheveronDown />
 								) : (

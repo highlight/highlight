@@ -17,3 +17,15 @@ export const row = style({
 export const rowExpanded = style({
 	background: vars.theme.interactive.overlay.secondary.pressed,
 })
+
+export const expandIcon = style({
+	opacity: 0,
+	selectors: {
+		[`${row}:hover &`]: {
+			opacity: 1,
+		},
+		[`${rowExpanded} &`]: {
+			opacity: 1,
+		},
+	},
+})
