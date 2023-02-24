@@ -3,13 +3,11 @@ import React from 'react'
 
 const toYearMonthDay = (timestamp: string) => {
 	const date = new Date(timestamp)
-	const dateString = date
-		.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: '2-digit',
-			day: '2-digit',
-		})
-		.replaceAll('/', '-')
+	const dateString = date.toLocaleDateString('en-US', {
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+	})
 	const timeString = date.toLocaleTimeString('en-US', {
 		hour12: false,
 	})

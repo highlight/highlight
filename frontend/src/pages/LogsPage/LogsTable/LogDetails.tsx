@@ -74,13 +74,12 @@ export const LogDetails = ({ row }: Props) => {
 					>
 						{allExpanded ? (
 							<>
-								<IconSolidChevronDoubleUp />{' '}
-								<Text color="weak">Collapse all</Text>
+								<IconSolidChevronDoubleUp /> Collapse all
 							</>
 						) : (
 							<>
 								<IconSolidChevronDoubleDown />
-								<Text color="weak">Expand all</Text>
+								Expand all
 							</>
 						)}
 					</Box>

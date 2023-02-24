@@ -25,13 +25,15 @@ export const variants = recipe({
 			},
 
 			secondary: {
-				color: vars.theme.interactive.fill.secondary.enabled,
+				color: vars.theme.interactive.fill.secondary.content.text,
 				selectors: {
 					'&:hover': {
-						color: vars.theme.interactive.fill.secondary.hover,
+						color: vars.theme.interactive.fill.secondary.content
+							.onEnabled,
 					},
 					'&:active': {
-						color: vars.theme.interactive.fill.secondary.pressed,
+						color: vars.theme.interactive.fill.secondary.content
+							.onEnabled,
 					},
 				},
 			},
