@@ -5,8 +5,8 @@ import {
 	Box,
 	Combobox,
 	Form,
-	IconSolidArrowsExpand,
 	IconSolidSearch,
+	IconSolidSwitchVertical,
 	Preset,
 	PreviousDateRangePicker,
 	Stack,
@@ -101,6 +101,7 @@ const Search: React.FC<{
 	keys?: GetLogsKeysQuery['logs_keys']
 }> = ({ keys }) => {
 	const formState = useForm()
+	const [autoSelect, setAutoSelect] = useState(true)
 	const { query } = formState.values
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
@@ -176,23 +177,32 @@ const Search: React.FC<{
 			<IconSolidSearch className={styles.searchIcon} />
 
 			<Combobox
-				autoSelect
+				autoSelect={autoSelect}
 				ref={inputRef}
 				state={state}
 				name="search"
 				placeholder="Search your logs..."
 				value={query}
 				onChange={(e) => {
-					formState.setValue('query', e.target.value)
-					state.setOpen(true)
+					const value = e.target.value
+					formState.setValue('query', value)
 
-					if (state.items.length) {
-						state.setActiveId(state.items[0].id)
+					if (!state.open) {
+						state.setOpen(true)
+					}
+
+					if (value === '' && autoSelect) {
+						setAutoSelect(false)
+					} else if (value !== '' && !autoSelect) {
+						setAutoSelect(true)
 					}
 				}}
 				className={styles.combobox}
 				setValueOnChange={false}
-				onBlur={formState.submit}
+				onBlur={() => {
+					formState.submit()
+					setAutoSelect(true)
+				}}
 			/>
 
 			{showResults && (
@@ -277,7 +287,7 @@ const Search: React.FC<{
 								<Badge
 									variant="gray"
 									size="small"
-									iconStart={<IconSolidArrowsExpand />}
+									iconStart={<IconSolidSwitchVertical />}
 								/>{' '}
 								<Text color="weak" size="xSmall">
 									Select
@@ -295,7 +305,7 @@ const Search: React.FC<{
 									label="Enter"
 								/>
 								<Text color="weak" size="xSmall">
-									Open
+									Select
 								</Text>
 							</Box>
 						</Box>
