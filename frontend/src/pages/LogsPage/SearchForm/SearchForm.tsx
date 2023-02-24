@@ -117,7 +117,7 @@ const Search: React.FC<{
 		activeTerm.key !== BODY_KEY ||
 		!!keys?.find((k) => k.name === activeTerm.key)
 	const loading = keys?.length === 0 || (showValues && valuesLoading)
-	const showTermSelect = showValues && activeTerm.value.length
+	const showTermSelect = activeTerm.value.length
 
 	const visibleItems = showValues
 		? getVisibleValues(activeTerm, data?.logs_key_values)
@@ -206,7 +206,7 @@ const Search: React.FC<{
 							state={state}
 						>
 							<Combobox.GroupLabel state={state}>
-								{showValues && activeTerm.value && (
+								{activeTerm.value && (
 									<Combobox.Item
 										className={styles.comboboxItem}
 										onClick={() =>
@@ -214,7 +214,12 @@ const Search: React.FC<{
 										}
 										state={state}
 									>
-										<Text>{activeTerm.value}</Text>
+										<Stack direction="row" gap="8">
+											<Text>{activeTerm.value}:</Text>{' '}
+											<Text color="weak">
+												{activeTerm.key ?? 'Body'}
+											</Text>
+										</Stack>
 									</Combobox.Item>
 								)}
 								<Box px="10" py="6">
