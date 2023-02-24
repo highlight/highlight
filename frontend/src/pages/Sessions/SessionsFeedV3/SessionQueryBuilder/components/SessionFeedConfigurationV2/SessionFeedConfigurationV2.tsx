@@ -83,6 +83,7 @@ export const DropdownMenu = function ({
 						alignItems="center"
 						justifyContent="space-between"
 						style={{ height: 28 }}
+						width="full"
 					>
 						<Text
 							size="small"
@@ -108,6 +109,7 @@ export const DropdownMenu = function ({
 						alignItems="center"
 						justifyContent="space-between"
 						style={{ height: 28 }}
+						width="full"
 					>
 						<Text
 							size="small"
@@ -128,6 +130,7 @@ export const DropdownMenu = function ({
 						alignItems="center"
 						justifyContent="space-between"
 						gap="16"
+						width="full"
 					>
 						<Text
 							size="small"
@@ -171,6 +174,7 @@ export const DropdownMenu = function ({
 						alignItems="center"
 						justifyContent="space-between"
 						gap="16"
+						width="full"
 					>
 						<Text
 							size="small"
@@ -218,6 +222,7 @@ export const DropdownMenu = function ({
 						alignItems="center"
 						justifyContent="space-between"
 						gap="16"
+						width="full"
 					>
 						<Text
 							size="small"
@@ -263,6 +268,7 @@ export const DropdownMenu = function ({
 					alignItems="center"
 					justifyContent="flex-end"
 					px="8"
+					width="full"
 				>
 					<Button
 						kind="danger"
