@@ -6,9 +6,9 @@ import {
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	Stack,
-	Text,
 } from '@highlight-run/ui'
 import { LogBody } from '@pages/LogsPage/LogsTable/LogBody'
+import { LogDetails } from '@pages/LogsPage/LogsTable/LogDetails'
 import { LogSeverityText } from '@pages/LogsPage/LogsTable/LogSeverityText'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
@@ -18,7 +18,6 @@ import {
 	flexRender,
 	getCoreRowModel,
 	getExpandedRowModel,
-	Row,
 	useReactTable,
 } from '@tanstack/react-table'
 import clsx from 'clsx'
@@ -30,41 +29,6 @@ type Props = {
 	loading: boolean
 	data: GetLogsQuery | undefined
 	query: string
-}
-
-const renderSubComponent = ({ row }: { row: Row<LogLine> }) => {
-	return (
-		<Stack p="6" paddingBottom="0" gap="1">
-			{Object.keys(row.original.logAttributes).map((key, index) => {
-				const value =
-					row.original.logAttributes[
-						key as keyof typeof row.original.logAttributes
-					]
-				const isString = typeof value === 'string'
-				const color = isString ? 'caution' : 'informative'
-
-				return (
-					<Box
-						key={index}
-						display="flex"
-						alignItems="center"
-						flexDirection="row"
-						gap="10"
-						py="8"
-						flexShrink={0}
-					>
-						<Text family="monospace" weight="bold">
-							"{key}":
-						</Text>
-
-						<Text family="monospace" weight="bold" color={color}>
-							{JSON.stringify(value)}
-						</Text>
-					</Box>
-				)
-			})}
-		</Stack>
-	)
 }
 
 const LogsTable = ({ data, loading, query }: Props) => {
@@ -187,9 +151,7 @@ const LogsTable = ({ data, loading, query }: Props) => {
 							})}
 						</Stack>
 
-						{row.getIsExpanded() && (
-							<Box>{renderSubComponent({ row })}</Box>
-						)}
+						<LogDetails row={row} />
 					</Box>
 				)
 			})}

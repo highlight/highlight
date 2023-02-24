@@ -60,7 +60,7 @@ func makeRandLogAttributes() map[string]string {
 		"key18",
 		"key19",
 		"key20",
-		"nested.log",
+		"deeply.nested.log.value",
 	}
 
 	randomVals := [20]string{
