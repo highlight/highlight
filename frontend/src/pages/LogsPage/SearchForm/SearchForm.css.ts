@@ -40,6 +40,7 @@ export const comboboxPopover = style({
 })
 
 export const comboboxItem = style({
+	cursor: 'pointer',
 	padding: '12px 10px',
 	selectors: {
 		'&:hover': {

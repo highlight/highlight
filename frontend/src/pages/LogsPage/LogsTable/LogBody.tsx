@@ -16,6 +16,7 @@ const LogBody = ({ body, expanded, query }: Props) => {
 			weight="bold"
 			family="monospace"
 			lines={expanded ? undefined : '1'}
+			break="word"
 		>
 			<TextHighlighter searchWords={searchWords} textToHighlight={body} />
 		</Text>

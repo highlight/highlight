@@ -146,8 +146,9 @@ const LogsTable = ({ data, loading, query }: Props) => {
 						key={row.id}
 						cursor="pointer"
 						onClick={row.getToggleExpandedHandler()}
+						mb="1"
 					>
-						<Stack direction="row" align="center">
+						<Stack direction="row" align="flex-start">
 							{row.getVisibleCells().map((cell) => {
 								return (
 									<Fragment key={cell.id}>

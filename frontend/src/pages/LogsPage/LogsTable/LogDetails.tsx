@@ -135,11 +135,7 @@ const LogDetailsObject: React.FC<{
 	const isObject = typeof attribute === 'object' || stringIsJson
 
 	useEffect(() => {
-		if (open && !allExpanded) {
-			setOpen(false)
-		}
-		// Only want to fire when allExpanded changes
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		setOpen(allExpanded)
 	}, [allExpanded])
 
 	return isObject ? (
@@ -159,7 +155,7 @@ const LogDetailsObject: React.FC<{
 				</Box>
 			</LogAttributeLine>
 
-			{(open || allExpanded) &&
+			{open &&
 				Object.keys(attribute).map((key, index) => (
 					<LogDetailsObject
 						key={index}
@@ -181,10 +177,12 @@ const LogValue: React.FC<{ label: string; value: string }> = ({
 	value,
 }) => (
 	<LogAttributeLine>
-		<Text family="monospace" weight="bold">
-			"{label}":
-		</Text>
-		<Text family="monospace" weight="bold" color="caution">
+		<Box flexShrink={0}>
+			<Text family="monospace" weight="bold">
+				"{label}":
+			</Text>
+		</Box>
+		<Text family="monospace" weight="bold" color="caution" break="word">
 			{value}
 		</Text>
 	</LogAttributeLine>
@@ -194,7 +192,7 @@ const LogAttributeLine: React.FC<React.PropsWithChildren> = ({ children }) => {
 	return (
 		<Box
 			display="flex"
-			alignItems="center"
+			alignItems="flex-start"
 			flexDirection="row"
 			gap="10"
 			py="8"
