@@ -520,6 +520,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 	}
 
 	if !util.IsDevEnv() {
+		// TODO: Flex this logic locally.
 		r.PrivateWorkerPool.SubmitRecover(func() {
 			// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
 			if _, err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name); err != nil {
@@ -4890,7 +4891,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 		GROUP BY identifier
 		LIMIT 50
 	) as topUsers
-	INNER JOIN sessions s 
+	INNER JOIN sessions s
 	ON topUsers.identifier = s.identifier
 	AND s.project_id = ?
     ) as q2
@@ -6172,6 +6173,45 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 
 	workspace.Projects = projects
 	return workspace, nil
+}
+
+// WorkspaceForInviteLink is the resolver for the workspace_for_invite_link field.
+func (r *queryResolver) WorkspaceForInviteLink(ctx context.Context, secret string) (*modelInputs.WorkspaceForInviteLink, error) {
+	var workspaceInviteLink model.WorkspaceInviteLink
+	if err := r.DB.Where(&model.WorkspaceInviteLink{Secret: &secret}).First(&workspaceInviteLink).Error; err != nil {
+		return nil, e.Wrap(err, "error querying workspace invite link")
+	}
+
+	var workspace model.Workspace
+	if err := r.DB.Model(&model.Workspace{Model: model.Model{ID: *workspaceInviteLink.WorkspaceID}}).First(&workspace).Error; err != nil {
+		return nil, e.Wrap(err, "error querying workspace for invite link")
+	}
+
+	var admin *model.Admin
+	if workspaceInviteLink.InviteeEmail != nil {
+		if err := r.DB.Model(&model.Admin{Email: workspaceInviteLink.InviteeEmail}).First(&admin).Error; err != nil {
+			return nil, e.Wrap(err, "error querying admin for invitee_email")
+		}
+	}
+
+	fmt.Printf("::: workspace: %+v\n", workspace)
+	fmt.Printf("::: workspaceInviteLink: %+v\n", workspaceInviteLink)
+	fmt.Printf("::: ExpirationDate: %+v\n", workspaceInviteLink.ExpirationDate)
+	fmt.Printf("::: InviteeEmail: %+v\n", workspaceInviteLink.InviteeEmail)
+	fmt.Printf("::: Secret: %+v\n", *workspaceInviteLink.Secret)
+	fmt.Printf("::: WorkspaceID: %+v\n", workspace.ID)
+	fmt.Printf("::: WorkspaceName: %+v\n", *workspace.Name)
+	fmt.Printf("::: ExistingAccount: %+v\n", admin != nil)
+	workspaceForInvite := &modelInputs.WorkspaceForInviteLink{
+		ExpirationDate:  workspaceInviteLink.ExpirationDate,
+		InviteeEmail:    workspaceInviteLink.InviteeEmail,
+		Secret:          *workspaceInviteLink.Secret,
+		WorkspaceID:     workspace.ID,
+		WorkspaceName:   *workspace.Name,
+		ExistingAccount: admin != nil,
+	}
+
+	return workspaceForInvite, nil
 }
 
 // WorkspaceInviteLinks is the resolver for the workspace_invite_links field.

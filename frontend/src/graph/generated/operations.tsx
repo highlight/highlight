@@ -2232,6 +2232,22 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetWorkspaceForInviteLinkQueryVariables = Types.Exact<{
+	secret: Types.Scalars['String']
+}>
+
+export type GetWorkspaceForInviteLinkQuery = { __typename?: 'Query' } & {
+	workspace_for_invite_link: { __typename?: 'WorkspaceForInviteLink' } & Pick<
+		Types.WorkspaceForInviteLink,
+		| 'expiration_date'
+		| 'existing_account'
+		| 'invitee_email'
+		| 'secret'
+		| 'workspace_id'
+		| 'workspace_name'
+	>
+}
+
 export type GetWorkspacesQueryVariables = Types.Exact<{ [key: string]: never }>
 
 export type GetWorkspacesQuery = { __typename?: 'Query' } & {
@@ -4000,6 +4016,7 @@ export const namedOperations = {
 		GetErrorsHistogram: 'GetErrorsHistogram' as const,
 		GetProjects: 'GetProjects' as const,
 		GetWorkspace: 'GetWorkspace' as const,
+		GetWorkspaceForInviteLink: 'GetWorkspaceForInviteLink' as const,
 		GetWorkspaces: 'GetWorkspaces' as const,
 		GetWorkspacesCount: 'GetWorkspacesCount' as const,
 		GetProjectsAndWorkspaces: 'GetProjectsAndWorkspaces' as const,

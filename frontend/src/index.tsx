@@ -41,13 +41,12 @@ import { showIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
 import React, { useEffect, useState } from 'react'
-import ReactDOM from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
-import { createRoot } from 'react-dom/client'
 
 analytics.initialize()
 const dev = import.meta.env.DEV
@@ -259,7 +258,8 @@ const AuthenticationRoleRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [adminData, authRole, projectId])
 
-	const [createAdminMutation] = useCreateAdminMutation()
+	const [createAdminMutation, { loading: creatingAdmin }] =
+		useCreateAdminMutation()
 
 	useEffect(() => {
 		const variables: any = {}
@@ -278,7 +278,8 @@ const AuthenticationRoleRouter = () => {
 						// Try to create an admin if it's a new account. This can't be
 						// handled on the sign up form because this callback is triggered
 						// before the admin is created.
-						if (!user.emailVerified) {
+						debugger
+						if (!user.emailVerified && !creatingAdmin) {
 							await createAdminMutation()
 						}
 					} finally {

@@ -6651,6 +6651,67 @@ export type GetWorkspaceQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceQuery,
 	Types.GetWorkspaceQueryVariables
 >
+export const GetWorkspaceForInviteLinkDocument = gql`
+	query GetWorkspaceForInviteLink($secret: String!) {
+		workspace_for_invite_link(secret: $secret) {
+			expiration_date
+			existing_account
+			invitee_email
+			secret
+			workspace_id
+			workspace_name
+		}
+	}
+`
+
+/**
+ * __useGetWorkspaceForInviteLinkQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceForInviteLinkQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceForInviteLinkQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceForInviteLinkQuery({
+ *   variables: {
+ *      secret: // value for 'secret'
+ *   },
+ * });
+ */
+export function useGetWorkspaceForInviteLinkQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceForInviteLinkQuery,
+		Types.GetWorkspaceForInviteLinkQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceForInviteLinkQuery,
+		Types.GetWorkspaceForInviteLinkQueryVariables
+	>(GetWorkspaceForInviteLinkDocument, baseOptions)
+}
+export function useGetWorkspaceForInviteLinkLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceForInviteLinkQuery,
+		Types.GetWorkspaceForInviteLinkQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceForInviteLinkQuery,
+		Types.GetWorkspaceForInviteLinkQueryVariables
+	>(GetWorkspaceForInviteLinkDocument, baseOptions)
+}
+export type GetWorkspaceForInviteLinkQueryHookResult = ReturnType<
+	typeof useGetWorkspaceForInviteLinkQuery
+>
+export type GetWorkspaceForInviteLinkLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceForInviteLinkLazyQuery
+>
+export type GetWorkspaceForInviteLinkQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceForInviteLinkQuery,
+	Types.GetWorkspaceForInviteLinkQueryVariables
+>
 export const GetWorkspacesDocument = gql`
 	query GetWorkspaces {
 		workspaces {

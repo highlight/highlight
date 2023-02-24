@@ -578,6 +578,15 @@ type VercelProjectMappingInput struct {
 	ProjectID       *int    `json:"project_id"`
 }
 
+type WorkspaceForInviteLink struct {
+	ExpirationDate  *time.Time `json:"expiration_date"`
+	InviteeEmail    *string    `json:"invitee_email"`
+	Secret          string     `json:"secret"`
+	WorkspaceID     int        `json:"workspace_id"`
+	WorkspaceName   string     `json:"workspace_name"`
+	ExistingAccount bool       `json:"existing_account"`
+}
+
 type DashboardChartType string
 
 const (
