@@ -2,7 +2,7 @@ import logging
 import random
 import time
 
-from flask import Flask
+from flask import Flask, request
 
 import highlight_io
 from highlight_io.integrations.flask import FlaskIntegration
@@ -18,6 +18,9 @@ H = highlight_io.H(
 
 @app.route("/")
 def hello():
+    logging.info(
+        "hello handler", {"customer": request.headers.get("customer") or "unknown"}
+    )
     for idx in range(1000):
         logging.info(f"hello {idx}")
         time.sleep(0.001)

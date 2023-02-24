@@ -146,6 +146,7 @@ class H(object):
             attributes["code.namespace"] = record.module
             attributes["code.filepath"] = record.pathname
             attributes["code.lineno"] = record.lineno
+            attributes.update(record.args or {})
             r = LogRecord(
                 timestamp=ts,
                 trace_id=ctx.trace_id,

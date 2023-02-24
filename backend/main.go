@@ -153,9 +153,10 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
-		bucket := "dev-1"
+		// in prod, the bucket contains the project id
+		// bucket := "dev-1"
 		if util.IsDevOrTestEnv() {
-			bucket = "dev-bucket"
+			bucket := "dev-bucket"
 			if _, err := tdb.Query(ctx, fmt.Sprintf(`from(bucket: "%s") |> range(start: -1m)`, bucket)); err != nil {
 				msg := fmt.Sprintf("failed to query influx db: %s", err)
 				log.WithContext(ctx).Error(msg)

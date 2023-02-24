@@ -1,8 +1,7 @@
 import logging
 import random
-import time
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 
 import highlight_io
 from highlight_io.integrations.fastapi import FastAPIMiddleware
@@ -18,7 +17,10 @@ app.add_middleware(FastAPIMiddleware)
 
 
 @app.get("/")
-async def root():
+async def root(request: Request):
+    logging.info(
+        "hello, world", {"customer": request.headers.get("customer") or "unknown"}
+    )
     for idx in range(100):
         logging.info(f"hello {idx}")
         if random.randint(0, 100) == 1:
