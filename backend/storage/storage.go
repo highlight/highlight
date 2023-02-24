@@ -80,7 +80,7 @@ type Client interface {
 	GetRawData(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType) (map[int]string, error)
 	GetSourceMapUploadUrl(ctx context.Context, key string) (string, error)
 	GetSourcemapFiles(ctx context.Context, projectId int, version *string) ([]s3Types.Object, error)
-	GetSourcemapVersions(ctx context.Context, projectId int) ([]s3Types.CommonPrefix, error)
+	GetSourcemapVersions(ctx context.Context, projectId int) ([]string, error)
 	PushCompressedFile(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType) (*int64, error)
 	PushFiles(ctx context.Context, sessionId, projectId int, payloadManager *payload.PayloadManager) (int64, error)
 	PushRawEvents(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType, events []redis.Z) error
@@ -188,16 +188,14 @@ func (f *FilesystemClient) GetSourcemapFiles(ctx context.Context, projectId int,
 	}), nil
 }
 
-func (f *FilesystemClient) GetSourcemapVersions(ctx context.Context, projectId int) ([]s3Types.CommonPrefix, error) {
+func (f *FilesystemClient) GetSourcemapVersions(ctx context.Context, projectId int) ([]string, error) {
 	dir, err := os.ReadDir(fmt.Sprintf("%s/sourcemaps/%d", f.fsRoot, projectId))
 	if err != nil {
 		log.WithContext(ctx).Warnf("error listing objects in fs: %s", err)
 		return nil, nil
 	}
-	return lo.Map(dir, func(t os.DirEntry, i int) s3Types.CommonPrefix {
-		return s3Types.CommonPrefix{
-			Prefix: pointy.String(t.Name()),
-		}
+	return lo.Map(dir, func(t os.DirEntry, i int) string {
+		return t.Name()
 	}), nil
 }
 
@@ -943,7 +941,7 @@ func (s *S3Client) GetSourcemapFiles(ctx context.Context, projectId int, version
 	return output.Contents, nil
 }
 
-func (s *S3Client) GetSourcemapVersions(ctx context.Context, projectId int) ([]s3Types.CommonPrefix, error) {
+func (s *S3Client) GetSourcemapVersions(ctx context.Context, projectId int) ([]string, error) {
 	output, err := s.S3ClientEast2.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
 		Bucket:    pointy.String(S3SourceMapBucketNameNew),
 		Prefix:    pointy.String(fmt.Sprintf("%d/", projectId)),
@@ -954,5 +952,7 @@ func (s *S3Client) GetSourcemapVersions(ctx context.Context, projectId int) ([]s
 		return nil, errors.Wrap(err, "error getting sourcemap app versions from s3")
 	}
 
-	return output.CommonPrefixes, nil
+	return lo.Map(output.CommonPrefixes, func(t s3Types.CommonPrefix, i int) string {
+		return *t.Prefix
+	}), nil
 }

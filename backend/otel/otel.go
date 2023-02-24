@@ -366,7 +366,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := o.submitProjectLogs(ctx, projectLogs); err != nil {
+	if err := o.submitProjectLogs(ctx, projectLogs, false); err != nil {
 		log.WithContext(ctx).Error(err, "failed to submit otel project logs")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
@@ -454,7 +454,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := o.submitProjectLogs(ctx, projectLogs); err != nil {
+	if err := o.submitProjectLogs(ctx, projectLogs, true); err != nil {
 		log.WithContext(ctx).Error(err, "failed to submit otel project logs")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
@@ -463,9 +463,9 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow) error {
+func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow, backend bool) error {
 	for projectID, logRows := range projectLogs {
-		if projectIDInt, err := projectToInt(projectID); err == nil {
+		if projectIDInt, err := projectToInt(projectID); backend && err == nil {
 			// otel logs only come from python sdk
 			err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
 				Type: kafkaqueue.MarkBackendSetup,
