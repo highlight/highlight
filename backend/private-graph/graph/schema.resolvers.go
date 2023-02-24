@@ -6892,19 +6892,12 @@ func (r *queryResolver) SourcemapFiles(ctx context.Context, projectID int, versi
 // SourcemapVersions is the resolver for the sourcemap_versions field.
 func (r *queryResolver) SourcemapVersions(ctx context.Context, projectID int) ([]string, error) {
 	res, err := r.StorageClient.GetSourcemapVersions(ctx, projectID)
-	var appVersions []string
 
 	if err != nil {
 		return nil, e.Wrap(err, "error getting sourcemaps from s3")
 	}
 
-	for _, v := range res {
-		if v.Prefix != nil {
-			appVersions = append(appVersions, *v.Prefix)
-		}
-	}
-
-	return appVersions, nil
+	return res, nil
 }
 
 // OauthClientMetadata is the resolver for the oauth_client_metadata field.
