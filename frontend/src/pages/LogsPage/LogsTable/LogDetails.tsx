@@ -29,6 +29,10 @@ export const LogDetails = ({ row }: Props) => {
 	)
 
 	if (!expanded) {
+		if (allExpanded) {
+			setAllExpanded(false)
+		}
+
 		return null
 	}
 
