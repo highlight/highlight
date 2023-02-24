@@ -157,6 +157,7 @@ const PreviousDateRangePickerImpl = ({
 									}}
 								>
 									<Stack
+										py="2"
 										direction="row"
 										align="center"
 										gap="4"

@@ -1,9 +1,4 @@
-import { CircularSpinner } from '@components/Loading/Loading'
-import {
-	useGetLogsKeysQuery,
-	useGetLogsQuery,
-	useGetLogsTotalCountQuery,
-} from '@graph/hooks'
+import { useGetLogsQuery, useGetLogsTotalCountQuery } from '@graph/hooks'
 import { Box, Preset, Stack, Text } from '@highlight-run/ui'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
@@ -95,17 +90,6 @@ const LogsPage = () => {
 			skip: !project_id,
 		})
 
-	const { data: keys } = useGetLogsKeysQuery({
-		variables: {
-			project_id: project_id!,
-		},
-		skip: !project_id,
-	})
-
-	if (keys) {
-		console.log(keys)
-	}
-
 	const handleFormSubmit = (value: string) => {
 		setQuery(value)
 	}
@@ -120,14 +104,22 @@ const LogsPage = () => {
 			<Helmet>
 				<title>Logs</title>
 			</Helmet>
-			<Box background="n2" padding="8" flex="stretch">
+			<Box
+				background="n2"
+				padding="8"
+				flex="stretch"
+				justifyContent="stretch"
+				display="flex"
+			>
 				<Box
 					background="white"
-					borderRadius="12"
-					height="full"
+					borderRadius="6"
 					gap="4"
 					flexDirection="column"
 					display="flex"
+					flexGrow={1}
+					border="dividerWeak"
+					shadow="small"
 				>
 					<SearchForm
 						initialQuery={query}
@@ -138,22 +130,25 @@ const LogsPage = () => {
 						presets={PRESETS}
 						minDate={thirtyDaysAgo}
 					/>
-					<Stack direction="row" gap="2">
+					<Stack direction="row" gap="2" px="12" py="8">
 						{logCountLoading ? (
-							<CircularSpinner />
+							<Text size="xSmall" color="weak">
+								Loading...
+							</Text>
 						) : (
 							totalCount && (
 								<>
-									<Text color="weak">
+									<Text size="xSmall" color="weak">
 										{formatNumber(
 											totalCount.logs_total_count,
-										)}
+										)}{' '}
+										logs
 									</Text>
-									<Text color="weak">logs</Text>
 								</>
 							)
 						)}
 					</Stack>
+
 					<LogsTable data={logs} loading={loading} query={query} />
 				</Box>
 			</Box>

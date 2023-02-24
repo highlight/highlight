@@ -1,9 +1,13 @@
 import LoadingBox from '@components/LoadingBox'
 import { GetLogsQuery } from '@graph/operations'
-import { LogLine } from '@graph/schemas'
-import { Box, Stack } from '@highlight-run/ui'
-import SvgChevronDownIcon from '@icons/ChevronDownIcon'
-import SvgChevronRightIcon from '@icons/ChevronRightIcon'
+import { LogLine, SeverityText } from '@graph/schemas'
+import {
+	Box,
+	IconSolidCheveronDown,
+	IconSolidCheveronRight,
+	Stack,
+	Text,
+} from '@highlight-run/ui'
 import { LogBody } from '@pages/LogsPage/LogsTable/LogBody'
 import { LogSeverityText } from '@pages/LogsPage/LogsTable/LogSeverityText'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
@@ -17,7 +21,10 @@ import {
 	Row,
 	useReactTable,
 } from '@tanstack/react-table'
+import clsx from 'clsx'
 import React, { Fragment, useState } from 'react'
+
+import * as styles from './LogsTable.css'
 
 type Props = {
 	loading: boolean
@@ -27,9 +34,36 @@ type Props = {
 
 const renderSubComponent = ({ row }: { row: Row<LogLine> }) => {
 	return (
-		<pre style={{ fontSize: '10px' }}>
-			<code>{JSON.stringify(row.original, null, 2)}</code>
-		</pre>
+		<Stack p="6" paddingBottom="0" gap="1">
+			{Object.keys(row.original.logAttributes).map((key, index) => {
+				const value =
+					row.original.logAttributes[
+						key as keyof typeof row.original.logAttributes
+					]
+				const isString = typeof value === 'string'
+				const color = isString ? 'caution' : 'informative'
+
+				return (
+					<Box
+						key={index}
+						display="flex"
+						alignItems="center"
+						flexDirection="row"
+						gap="10"
+						py="8"
+						flexShrink={0}
+					>
+						<Text family="monospace" weight="bold">
+							"{key}":
+						</Text>
+
+						<Text family="monospace" weight="bold" color={color}>
+							{JSON.stringify(value)}
+						</Text>
+					</Box>
+				)
+			})}
+		</Stack>
 	)
 }
 
@@ -41,35 +75,42 @@ const LogsTable = ({ data, loading, query }: Props) => {
 			{
 				accessorKey: 'timestamp',
 				cell: ({ row, getValue }) => (
-					<>
+					<Box
+						flexShrink={0}
+						flexDirection="row"
+						display="flex"
+						alignItems="center"
+						gap="6"
+					>
 						{row.getCanExpand() && (
-							<div
-								{...{
-									onClick: row.getToggleExpandedHandler(),
-									style: { cursor: 'pointer' },
-								}}
-							>
+							<Box display="flex" alignItems="center">
 								{row.getIsExpanded() ? (
-									<SvgChevronDownIcon />
+									<IconSolidCheveronDown />
 								) : (
-									<SvgChevronRightIcon />
+									<IconSolidCheveronRight />
 								)}
-							</div>
+							</Box>
 						)}
 						<LogTimestamp timestamp={getValue() as string} />
-					</>
+					</Box>
 				),
 			},
 			{
 				accessorKey: 'severityText',
 				cell: ({ getValue }) => (
-					<LogSeverityText severityText={getValue() as string} />
+					<LogSeverityText
+						severityText={getValue() as SeverityText}
+					/>
 				),
 			},
 			{
 				accessorKey: 'body',
-				cell: ({ getValue }) => (
-					<LogBody query={query} body={getValue() as string} />
+				cell: ({ row, getValue }) => (
+					<LogBody
+						expanded={row.getIsExpanded()}
+						query={query}
+						body={getValue() as string}
+					/>
 				),
 			},
 		],
@@ -122,10 +163,17 @@ const LogsTable = ({ data, loading, query }: Props) => {
 	}
 
 	return (
-		<>
+		<Box px="12" overflowY="scroll">
 			{table.getRowModel().rows.map((row) => {
 				return (
-					<Fragment key={row.id}>
+					<Box
+						cssClass={clsx(styles.row, {
+							[styles.rowExpanded]: row.getIsExpanded(),
+						})}
+						key={row.id}
+						cursor="pointer"
+						onClick={row.getToggleExpandedHandler()}
+					>
 						<Stack direction="row" align="center">
 							{row.getVisibleCells().map((cell) => {
 								return (
@@ -140,14 +188,12 @@ const LogsTable = ({ data, loading, query }: Props) => {
 						</Stack>
 
 						{row.getIsExpanded() && (
-							<Stack>
-								<Box>{renderSubComponent({ row })}</Box>
-							</Stack>
+							<Box>{renderSubComponent({ row })}</Box>
 						)}
-					</Fragment>
+					</Box>
 				)
 			})}
-		</>
+		</Box>
 	)
 }
 

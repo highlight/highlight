@@ -109,6 +109,19 @@ func makeRandLogAttributes() map[string]string {
 	return logAttributes
 }
 
+func makeRandomSeverityText() string {
+	severities := [6]string{
+		"trace",
+		"debug",
+		"info",
+		"warn",
+		"error",
+		"fatal",
+	}
+
+	return severities[rand.Intn(len(severities))]
+}
+
 // Run via
 // `doppler run -- go run backend/clickhouse/seeds/main.go“
 func main() {
@@ -128,6 +141,7 @@ func main() {
 				ProjectId:     makeRandProjectId(),
 				Body:          makeRandomBody(),
 				LogAttributes: makeRandLogAttributes(),
+				SeverityText:  makeRandomSeverityText(),
 			})
 		}
 
