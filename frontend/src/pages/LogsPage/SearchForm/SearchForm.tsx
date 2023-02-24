@@ -15,6 +15,7 @@ import {
 	useForm,
 	useFormState,
 } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 import {
 	LogsSearchParam,
 	parseLogsQuery,
@@ -47,12 +48,12 @@ const SearchForm = ({
 	minDate,
 }: Props) => {
 	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
-	const { project_id } = useParams()
+	const { projectId } = useProjectId()
 	const formState = useFormState({ defaultValues: { query: initialQuery } })
 
 	const { data: keysData } = useGetLogsKeysQuery({
 		variables: {
-			project_id: project_id!,
+			project_id: projectId,
 		},
 	})
 
