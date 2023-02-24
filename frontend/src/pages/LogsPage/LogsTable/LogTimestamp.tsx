@@ -1,17 +1,20 @@
 import { Text } from '@highlight-run/ui'
 import React from 'react'
 
-const padTo2Digits = (num: number) => {
-	return num.toString().padStart(2, '0')
-}
-
 const toYearMonthDay = (timestamp: string) => {
 	const date = new Date(timestamp)
-	const year = date.getFullYear()
-	const month = padTo2Digits(date.getMonth() + 1)
-	const day = padTo2Digits(date.getDate())
+	const dateString = date
+		.toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+		})
+		.replaceAll('/', '-')
+	const timeString = date.toLocaleTimeString('en-US', {
+		hour12: false,
+	})
 
-	return `${year}-${month}-${day}`
+	return `${dateString} ${timeString}`
 }
 
 type Props = {

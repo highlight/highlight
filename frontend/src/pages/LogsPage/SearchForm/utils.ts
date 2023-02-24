@@ -7,7 +7,10 @@ export type LogsSearchParam = {
 
 const SEPARATOR = ':'
 const DEFAULT_OPERATOR = '='
-const NAME_TEXT = 'text'
+const BODY_KEY = 'body'
+
+// Inspired by search-query-parser:
+// https://github.com/nepsilon/search-query-parser/blob/8158d09c70b66168440e93ffabd720f4c8314c9b/lib/search-query-parser.js#L40
 const PARSE_REGEX =
 	/(\S+:'(?:[^'\\]|\\.)*')|(\S+:"(?:[^"\\]|\\.)*")|(-?"(?:[^"\\]|\\.)*")|(-?'(?:[^'\\]|\\.)*')|\S+|\S+:\S+|\s$/g
 
@@ -15,7 +18,7 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 	if (query.indexOf(SEPARATOR) === -1) {
 		return [
 			{
-				key: NAME_TEXT,
+				key: BODY_KEY,
 				operator: DEFAULT_OPERATOR,
 				value: query,
 				offsetStart: 0,

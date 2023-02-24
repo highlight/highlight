@@ -11,7 +11,6 @@ import {
 	FormFieldProps as AriaKitFormFieldProps,
 	useFormState as useAriaKitFormState,
 	FormState as AriakitFormState,
-	FormStateProps as AriakitFormStateProps,
 } from 'ariakit/form'
 
 import * as styles from './styles.css'

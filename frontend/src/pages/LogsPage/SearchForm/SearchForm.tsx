@@ -38,7 +38,7 @@ type Props = {
 const MAX_ITEMS = 10
 
 const SearchForm = ({
-	initialQuery = '',
+	initialQuery,
 	startDate,
 	endDate,
 	onDatesChange,
