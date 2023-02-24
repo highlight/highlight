@@ -192,7 +192,7 @@ const LogAttributeLine: React.FC<React.PropsWithChildren> = ({ children }) => {
 	return (
 		<Box
 			display="flex"
-			alignItems="flex-start"
+			alignItems="center"
 			flexDirection="row"
 			gap="10"
 			py="8"
