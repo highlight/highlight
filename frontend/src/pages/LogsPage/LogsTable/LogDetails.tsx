@@ -129,8 +129,8 @@ const LogDetailsObject: React.FC<{
 	let stringIsJson = false
 	if (typeof attribute === 'string') {
 		try {
-			JSON.parse(attribute)
-			stringIsJson = true
+			const parsedJson = JSON.parse(attribute)
+			stringIsJson = typeof parsedJson === 'object'
 		} catch {}
 	}
 
