@@ -38,7 +38,7 @@ import {
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
 	getUserProperties,
-} from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
+} from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import analytics from '@util/analytics'
 import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'

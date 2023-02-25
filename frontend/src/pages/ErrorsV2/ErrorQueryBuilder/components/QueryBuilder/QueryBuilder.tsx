@@ -48,13 +48,19 @@ import {
 	Tooltip,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import CreateErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
 import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
+import {
+	CUSTOM_TYPE,
+	ERROR_FIELD_TYPE,
+	ERROR_TYPE,
+	SESSION_TYPE,
+} from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
+import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
-import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput'
-import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput'
+import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
+import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
 import { gqlSanitize } from '@util/gql'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
@@ -80,6 +86,7 @@ import {
 
 import * as newStyle from './QueryBuilder.css'
 import styles from './QueryBuilder.module.scss'
+
 export interface RuleProps {
 	field: SelectOption | undefined
 	op: Operator | undefined
@@ -91,6 +98,7 @@ export interface SelectOption {
 	label: string
 	value: string
 }
+
 interface MultiselectOption {
 	kind: 'multi'
 	options: readonly {
@@ -125,6 +133,7 @@ type PopoutType =
 	| 'date_range'
 	| 'time_range'
 	| 'range'
+
 interface PopoutContentProps {
 	type: PopoutType
 	value: OnChangeInput
@@ -1124,11 +1133,6 @@ const getOperator = (
 const isSingle = (val: OnChangeInput) =>
 	!(val?.kind === 'multi' && val.options.length > 1)
 
-export const CUSTOM_TYPE = 'custom'
-export const SESSION_TYPE = 'session'
-export const ERROR_TYPE = 'error'
-export const ERROR_FIELD_TYPE = 'error-field'
-
 interface FieldOptions {
 	operators?: Operator[]
 	type?: string
@@ -1137,6 +1141,7 @@ interface FieldOptions {
 interface HasOptions {
 	options?: FieldOptions
 }
+
 export type CustomField = HasOptions & Pick<Field, 'type' | 'name'>
 
 export type QueryBuilderRule = string[]
@@ -2052,6 +2057,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 
 		if (serializedQuery.current) {
+			console.log('vadim', 'setting error query', {
+				current: serializedQuery.current,
+			})
 			setPage(1)
 			setBackendSearchQuery(serializedQuery.current)
 		}
@@ -2333,6 +2341,15 @@ function QueryBuilder(props: QueryBuilderProps) {
 								icon={<IconSolidRefresh size={14} />}
 								disabled={syncButtonDisabled}
 								onClick={() => {
+									console.log(
+										'vadim',
+										'setting error query refresh',
+										{
+											current: serializedQuery.current,
+											isAnd,
+											rules,
+										},
+									)
 									// Re-generate the absolute times used in the serialized query
 									updateSerializedQuery(isAnd, rules)
 									setBackendSearchQuery(

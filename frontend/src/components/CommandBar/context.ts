@@ -1,8 +1,8 @@
 import {
 	ERROR_FIELD_TYPE,
 	ERROR_TYPE,
-} from '@pages/ErrorsV2/ErrorQueryBuilder/components/QueryBuilder/QueryBuilder'
-import { SESSION_TYPE } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
+} from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
+import { SESSION_TYPE } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { createContext } from '@util/context/context'
 import { FormState } from 'ariakit/form'
 

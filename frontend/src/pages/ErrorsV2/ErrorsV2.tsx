@@ -16,7 +16,6 @@ import {
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
-import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { CompleteSetup } from '@pages/ErrorsV2/CompleteSetup/CompleteSetup'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
@@ -37,6 +36,7 @@ import { useNavigate } from 'react-router'
 import { useLocation } from 'react-router-dom'
 
 import * as styles from './styles.css'
+import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
 
 const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 	integrated,

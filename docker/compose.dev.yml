@@ -53,3 +53,4 @@ services:
             - REACT_APP_ONPREM
             - REACT_APP_PRIVATE_GRAPH_URI
             - REACT_APP_PUBLIC_GRAPH_URI
+            - TZ

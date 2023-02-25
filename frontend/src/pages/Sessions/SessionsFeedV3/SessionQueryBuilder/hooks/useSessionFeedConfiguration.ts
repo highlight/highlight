@@ -2,7 +2,7 @@ import {
 	SESSION_FEED_COUNT_FORMAT,
 	SESSION_FEED_DATETIME_FORMAT,
 	SESSION_FEED_SORT_ORDER,
-} from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
+} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/context/SessionFeedConfigurationContext'
 import useLocalStorage from '@rehooks/local-storage'
 
 const LOCAL_STORAGE_KEY_PREFIX = 'highlightSessionFeedConfiguration'

@@ -46,8 +46,14 @@ import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchPa
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
 import CreateSegmentModal from '@pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
 import DeleteSessionSegmentModal from '@pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
-import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput'
-import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput'
+import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
+import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
+import {
+	CUSTOM_TYPE,
+	ERROR_FIELD_TYPE,
+	ERROR_TYPE,
+	SESSION_TYPE,
+} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { gqlSanitize } from '@util/gql'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
@@ -192,6 +198,44 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
 		fontSize: '12px',
 	}),
 }
+
+export const defaultSessionsQuery = {
+	bool: {
+		must: [
+			{
+				bool: {
+					should: [
+						{
+							range: {
+								created_at: {
+									gte: moment().subtract(30, 'days').format(),
+									lte: moment().format(),
+								},
+							},
+						},
+					],
+				},
+			},
+			{
+				bool: {
+					must: [
+						{
+							bool: {
+								should: [
+									{
+										term: {
+											processed: 'true',
+										},
+									},
+								],
+							},
+						},
+					],
+				},
+			},
+		],
+	},
+} as const
 
 function useScroll<T extends HTMLElement>(): [() => void, React.RefObject<T>] {
 	const ref = useRef<T>(null)
@@ -1120,11 +1164,6 @@ const getOperator = (
 
 const isSingle = (val: OnChangeInput) =>
 	!(val?.kind === 'multi' && val.options.length > 1)
-
-export const CUSTOM_TYPE = 'custom'
-export const SESSION_TYPE = 'session'
-export const ERROR_TYPE = 'error'
-export const ERROR_FIELD_TYPE = 'error-field'
 
 interface FieldOptions {
 	operators?: Operator[]
@@ -2080,6 +2119,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 
 		if (serializedQuery.current) {
+			console.log('vadim', 'setting session query', {
+				current: serializedQuery.current,
+			})
 			setBackendSearchQuery(serializedQuery.current)
 		}
 	}, [
@@ -2366,6 +2408,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 								onClick={() => {
 									// Re-generate the absolute times used in the serialized query
 									updateSerializedQuery(isAnd, rules)
+									console.log('vadim', 'setting query', {
+										current: serializedQuery.current,
+										isAnd,
+										rules,
+									})
 									setBackendSearchQuery(
 										serializedQuery.current,
 									)

@@ -6,7 +6,6 @@ import { SearchParamsInput } from '@graph/schemas'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import {
 	BOOLEAN_OPERATORS,
-	CUSTOM_TYPE,
 	propertiesToRules,
 	RANGE_OPERATORS,
 	TIME_OPERATORS,
@@ -52,6 +51,10 @@ export const InitialSearchParamsForUrl = {
 	app_versions: undefined,
 } as const
 
+export const CUSTOM_TYPE = 'custom'
+export const SESSION_TYPE = 'session'
+export const ERROR_TYPE = 'error'
+export const ERROR_FIELD_TYPE = 'error-field'
 export const TIME_RANGE_FIELD: SelectOption = {
 	kind: 'single',
 	label: 'created_at',

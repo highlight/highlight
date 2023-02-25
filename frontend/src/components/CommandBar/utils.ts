@@ -7,11 +7,11 @@ import { useProjectId } from '@hooks/useProjectId'
 import {
 	ERROR_FIELD_TYPE,
 	ERROR_TYPE,
-} from '@pages/ErrorsV2/ErrorQueryBuilder/components/QueryBuilder/QueryBuilder'
+} from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import {
 	CUSTOM_TYPE,
 	SESSION_TYPE,
-} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
+} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import { BuilderParams, buildQueryURLString } from '@util/url/params'
 import { FormState } from 'ariakit/form'

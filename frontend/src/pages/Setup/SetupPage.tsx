@@ -103,7 +103,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 			completed: integrated,
 		})
 		STEPS.push({
-			displayName: 'Backend SDK (Beta)',
+			displayName: 'Backend SDK',
 			path: 'backend',
 			action: () => {
 				navigate(`/${project_id}/setup/backend`)

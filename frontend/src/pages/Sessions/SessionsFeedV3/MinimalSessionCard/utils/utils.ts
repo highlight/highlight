@@ -1,7 +1,6 @@
+import { Maybe, Session } from '@graph/schemas'
 import { H } from 'highlight.run'
 import validator from 'validator'
-
-import { Maybe, Session } from '../../../../../../graph/generated/schemas'
 
 export const getIdentifiedUserProfileImage = (
 	session: Maybe<Partial<Session>>,
