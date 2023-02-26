@@ -6,9 +6,9 @@ import {
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	Stack,
-	Text,
 } from '@highlight-run/ui'
 import { LogBody } from '@pages/LogsPage/LogsTable/LogBody'
+import { LogDetails } from '@pages/LogsPage/LogsTable/LogDetails'
 import { LogSeverityText } from '@pages/LogsPage/LogsTable/LogSeverityText'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
@@ -18,11 +18,10 @@ import {
 	flexRender,
 	getCoreRowModel,
 	getExpandedRowModel,
-	Row,
 	useReactTable,
 } from '@tanstack/react-table'
 import clsx from 'clsx'
-import React, { Fragment, useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 
 import * as styles from './LogsTable.css'
 
@@ -32,42 +31,7 @@ type Props = {
 	query: string
 }
 
-const renderSubComponent = ({ row }: { row: Row<LogLine> }) => {
-	return (
-		<Stack p="6" paddingBottom="0" gap="1">
-			{Object.keys(row.original.logAttributes).map((key, index) => {
-				const value =
-					row.original.logAttributes[
-						key as keyof typeof row.original.logAttributes
-					]
-				const isString = typeof value === 'string'
-				const color = isString ? 'caution' : 'informative'
-
-				return (
-					<Box
-						key={index}
-						display="flex"
-						alignItems="center"
-						flexDirection="row"
-						gap="10"
-						py="8"
-						flexShrink={0}
-					>
-						<Text family="monospace" weight="bold">
-							"{key}":
-						</Text>
-
-						<Text family="monospace" weight="bold" color={color}>
-							{JSON.stringify(value)}
-						</Text>
-					</Box>
-				)
-			})}
-		</Stack>
-	)
-}
-
-const LogsTable = ({ data, loading, query }: Props) => {
+export const LogsTable = ({ data, loading, query }: Props) => {
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const columns = React.useMemo<ColumnDef<LogLine>[]>(
@@ -79,15 +43,19 @@ const LogsTable = ({ data, loading, query }: Props) => {
 						flexShrink={0}
 						flexDirection="row"
 						display="flex"
-						alignItems="center"
+						alignItems="flex-start"
 						gap="6"
 					>
 						{row.getCanExpand() && (
-							<Box display="flex" alignItems="center">
+							<Box
+								display="flex"
+								alignItems="flex-start"
+								cssClass={styles.expandIcon}
+							>
 								{row.getIsExpanded() ? (
-									<IconSolidCheveronDown />
+									<IconExpanded />
 								) : (
-									<IconSolidCheveronRight />
+									<IconCollapsed />
 								)}
 							</Box>
 						)}
@@ -136,6 +104,11 @@ const LogsTable = ({ data, loading, query }: Props) => {
 		debugTable: true,
 	})
 
+	useEffect(() => {
+		// Collapse all rows when search changes
+		table.toggleAllRowsExpanded(false)
+	}, [logs])
+
 	if (loading) {
 		return (
 			<Box
@@ -173,8 +146,9 @@ const LogsTable = ({ data, loading, query }: Props) => {
 						key={row.id}
 						cursor="pointer"
 						onClick={row.getToggleExpandedHandler()}
+						mb="1"
 					>
-						<Stack direction="row" align="center">
+						<Stack direction="row" align="flex-start">
 							{row.getVisibleCells().map((cell) => {
 								return (
 									<Fragment key={cell.id}>
@@ -187,9 +161,7 @@ const LogsTable = ({ data, loading, query }: Props) => {
 							})}
 						</Stack>
 
-						{row.getIsExpanded() && (
-							<Box>{renderSubComponent({ row })}</Box>
-						)}
+						<LogDetails row={row} />
 					</Box>
 				)
 			})}
@@ -197,4 +169,10 @@ const LogsTable = ({ data, loading, query }: Props) => {
 	)
 }
 
-export { LogsTable }
+export const IconExpanded: React.FC = () => (
+	<IconSolidCheveronDown color="#6F6E77" size="16" />
+)
+
+export const IconCollapsed: React.FC = () => (
+	<IconSolidCheveronRight color="#6F6E77" size="16" />
+)

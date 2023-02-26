@@ -5,8 +5,8 @@ import {
 	Box,
 	Combobox,
 	Form,
-	IconSolidArrowsExpand,
 	IconSolidSearch,
+	IconSolidSwitchVertical,
 	Preset,
 	PreviousDateRangePicker,
 	Stack,
@@ -17,6 +17,7 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import {
+	BODY_KEY,
 	LogsSearchParam,
 	parseLogsQuery,
 	stringifyLogsQuery,
@@ -100,6 +101,7 @@ const Search: React.FC<{
 	keys?: GetLogsKeysQuery['logs_keys']
 }> = ({ keys }) => {
 	const formState = useForm()
+	const [autoSelect, setAutoSelect] = useState(true)
 	const { query } = formState.values
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
@@ -112,21 +114,20 @@ const Search: React.FC<{
 	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
-
 	const showValues =
-		activeTerm.key !== 'text' ||
+		activeTerm.key !== BODY_KEY ||
 		!!keys?.find((k) => k.name === activeTerm.key)
 	const loading = keys?.length === 0 || (showValues && valuesLoading)
-
-	const activeTermKeys = queryTerms.map((term) => term.key)
-	keys = keys?.filter((key) => activeTermKeys.indexOf(key.name) === -1)
+	const showTermSelect = activeTerm.value.length
 
 	const visibleItems = showValues
 		? getVisibleValues(activeTerm, data?.logs_key_values)
-		: getVisibleKeys(query, activeTerm, keys)
+		: getVisibleKeys(query, queryTerms, activeTerm, keys)
 
 	// Limit number of items shown
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
+
+	const showResults = loading || visibleItems.length > 0 || showTermSelect
 
 	useEffect(() => {
 		if (!showValues) {
@@ -176,26 +177,35 @@ const Search: React.FC<{
 			<IconSolidSearch className={styles.searchIcon} />
 
 			<Combobox
-				autoSelect
+				autoSelect={autoSelect}
 				ref={inputRef}
 				state={state}
 				name="search"
 				placeholder="Search your logs..."
 				value={query}
 				onChange={(e) => {
-					formState.setValue('query', e.target.value)
-					state.setOpen(true)
+					const value = e.target.value
+					formState.setValue('query', value)
 
-					if (state.items.length) {
-						state.setActiveId(state.items[0].id)
+					if (!state.open) {
+						state.setOpen(true)
+					}
+
+					if (value === '' && autoSelect) {
+						setAutoSelect(false)
+					} else if (value !== '' && !autoSelect) {
+						setAutoSelect(true)
 					}
 				}}
 				className={styles.combobox}
 				setValueOnChange={false}
-				onBlur={formState.submit}
+				onBlur={() => {
+					formState.submit()
+					setAutoSelect(true)
+				}}
 			/>
 
-			{(loading || visibleItems.length > 0) && (
+			{showResults && (
 				<Combobox.Popover
 					className={styles.comboboxPopover}
 					state={state}
@@ -206,6 +216,22 @@ const Search: React.FC<{
 							state={state}
 						>
 							<Combobox.GroupLabel state={state}>
+								{activeTerm.value && (
+									<Combobox.Item
+										className={styles.comboboxItem}
+										onClick={() =>
+											handleItemSelect(activeTerm.value)
+										}
+										state={state}
+									>
+										<Stack direction="row" gap="8">
+											<Text>{activeTerm.value}:</Text>{' '}
+											<Text color="weak">
+												{activeTerm.key ?? 'Body'}
+											</Text>
+										</Stack>
+									</Combobox.Item>
+								)}
 								<Box px="10" py="6">
 									<Text size="xSmall" color="weak">
 										Filters
@@ -261,7 +287,7 @@ const Search: React.FC<{
 								<Badge
 									variant="gray"
 									size="small"
-									iconStart={<IconSolidArrowsExpand />}
+									iconStart={<IconSolidSwitchVertical />}
 								/>{' '}
 								<Text color="weak" size="xSmall">
 									Select
@@ -279,7 +305,7 @@ const Search: React.FC<{
 									label="Enter"
 								/>
 								<Text color="weak" size="xSmall">
-									Open
+									Select
 								</Text>
 							</Box>
 						</Box>
@@ -321,32 +347,45 @@ const getActiveTermIndex = (
 
 const getVisibleKeys = (
 	queryText: string,
-	activeTerm: LogsSearchParam,
+	queryTerms: LogsSearchParam[],
+	activeQueryTerm: LogsSearchParam,
 	keys?: GetLogsKeysQuery['logs_keys'],
 ) => {
 	const startingNewTerm = queryText.endsWith(' ')
+	const activeTermKeys = queryTerms.map((term) => term.key)
+	keys = keys?.filter((key) => activeTermKeys.indexOf(key.name) === -1)
 
 	return (
 		keys?.filter(
 			(key) =>
+				// If it's a new term, don't filter results.
 				startingNewTerm ||
-				(activeTerm.key === 'text' &&
-					(!activeTerm.value.length ||
+				// Only filter for body queries
+				(activeQueryTerm.key === BODY_KEY &&
+					// Don't filter if no query term
+					(!activeQueryTerm.value.length ||
 						startingNewTerm ||
-						key.name.indexOf(activeTerm.value) > -1)),
+						// Filter empty results
+						(key.name.length > 0 &&
+							// Only show results that contain the term
+							key.name.indexOf(activeQueryTerm.value) > -1))),
 		) || []
 	)
 }
 
-const getVisibleValues = (activeTerm: LogsSearchParam, values?: string[]) => {
-	const filteredValues =
+const getVisibleValues = (
+	activeQueryTerm: LogsSearchParam,
+	values?: string[],
+) => {
+	return (
 		values?.filter(
-			(v) => !activeTerm.value.length || v.indexOf(activeTerm.value) > -1,
+			(v) =>
+				// Don't filter if no value has been typed
+				!activeQueryTerm.value.length ||
+				// Exclude the current term since that is given special treatment
+				(v !== activeQueryTerm.value &&
+					// Return values that match the query term
+					v.indexOf(activeQueryTerm.value) > -1),
 		) || []
-
-	if (values?.indexOf(activeTerm.value) === -1) {
-		filteredValues.unshift(activeTerm.value)
-	}
-
-	return filteredValues
+	)
 }
