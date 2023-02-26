@@ -16,7 +16,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     start = datetime.now()
     logging.info("Python HTTP trigger function processed a request.")
     logging.info(
-        "Python Azure hello handler", {"customer": req.headers.get("customer") or "unknown"}
+        "Python Azure hello handler",
+        {"customer": req.headers.get("customer") or "unknown"},
     )
 
     if random.random() < 0.2:
@@ -32,11 +33,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             name = req_body.get("name")
 
     logging.info(
-        "Python Azure got name", {
-            "customer": req.headers.get("customer") or "unknown", "name": name,
+        "Python Azure got name",
+        {
+            "customer": req.headers.get("customer") or "unknown",
+            "name": name,
             "float": 1.2345,
-            "duration": datetime.now() - start
-        }
+            "duration": datetime.now() - start,
+        },
     )
 
     if name:
