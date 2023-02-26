@@ -336,9 +336,11 @@ export const getAbsoluteStartTime = (value?: string): string | null => {
 		// value is a relative duration such as '7 days', subtract it from current time
 		const amount = parseInt(value.split(' ')[0])
 		const unit = value.split(' ')[1].toLowerCase()
-		return moment()
-			.subtract(amount, unit as unitOfTime.DurationConstructor)
-			.toISOString()
+		return roundDateToMinute(
+			moment()
+				.subtract(amount, unit as unitOfTime.DurationConstructor)
+				.toISOString(),
+		).toISOString()
 	}
 	return value!.split('_')[0]
 }
@@ -346,7 +348,7 @@ export const getAbsoluteEndTime = (value?: string): string | null => {
 	if (!value) return null
 	if (!isAbsoluteTimeRange(value)) {
 		// value is a relative duration such as '7 days', use current time as end of range
-		return moment().toISOString()
+		return roundDateToMinute(moment().toISOString()).toISOString()
 	}
 	return value!.split('_')[1]
 }
