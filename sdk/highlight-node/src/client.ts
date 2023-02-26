@@ -114,9 +114,9 @@ export class Highlight {
 		}
 		span.recordException(error)
 		span.setAttributes({
-			highlight_project_id: this._projectID,
-			highlight_session_id: secureSessionId,
-			highlight_trace_id: requestId,
+			['highlight.project_id']: this._projectID,
+			['highlight.session_id']: secureSessionId,
+			['highlight.trace_id']: requestId,
 		})
 		if (spanCreated) {
 			span.end()

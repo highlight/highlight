@@ -51,7 +51,7 @@ const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 	}, [selectedClickUpListId, clickUpListOptions, setClickUpListId])
 
 	return (
-		<Form.NamedSection label="ClickUp List" name="clickupList">
+		<Form.NamedSection label="ClickUp List">
 			<Select
 				aria-label="ClickUp List"
 				placeholder="Choose a list to create the task in"

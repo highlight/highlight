@@ -65,6 +65,7 @@ import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
 import { useToggle } from 'react-use'
 import {
+	BooleanParam,
 	JsonParam,
 	NumberParam,
 	useQueryParam,
@@ -846,7 +847,7 @@ const QueryRule = ({
 				loadOptions={getKeyOptions}
 				type="select"
 				disabled={readonly}
-				cssClass={[newStyle.flatRight]}
+				cssClass={[newStyle.flatRight, newStyle.tagKey]}
 			/>
 			<SelectPopout
 				value={getOperator(rule.op, rule.val)}
@@ -855,6 +856,7 @@ const QueryRule = ({
 				type="select"
 				disabled={readonly}
 				cssClass={[
+					newStyle.tagKey,
 					newStyle.flatLeft,
 					{
 						[newStyle.flatRight]:
@@ -871,6 +873,7 @@ const QueryRule = ({
 					disabled={readonly}
 					limitWidth
 					cssClass={[
+						newStyle.tagValue,
 						newStyle.flatLeft,
 						{ [newStyle.flatRight]: !readonly },
 					]}
@@ -945,20 +948,10 @@ export const TimeRangeFilter = ({
 				shape="basic"
 				iconRight={!!onReset ? <IconSolidX size={12} /> : undefined}
 				onIconRightClick={!!onReset ? onReset : undefined}
+				onClick={() => setVisible((visible) => !visible)}
+				lines="1"
 			>
-				<Box onClick={() => setVisible((visible) => !visible)}>
-					<Text
-						size="xSmall"
-						weight="medium"
-						color="n9"
-						userSelect="none"
-						lines="1"
-					>
-						{value &&
-							value.options.length === 1 &&
-							value.options[0].label}
-					</Text>
-				</Box>
+				{value && value.options.length === 1 && value.options[0].label}
 			</Tag>
 		</Box>
 	)
@@ -1964,11 +1957,21 @@ function QueryBuilder(props: QueryBuilderProps) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
+	const [forceReload, setForceReload] = useQueryParam('reload', BooleanParam)
+	useEffect(() => {
+		if (forceReload && searchParamsToUrlParams.query !== undefined) {
+			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+			setForceReload(false)
+		}
+	}, [forceReload, searchParamsToUrlParams, setForceReload, setSearchParams])
+
 	useEffect(() => {
 		if (!segmentsLoading) {
 			if (activeSegmentUrlParam) {
 				selectSegment(activeSegmentUrlParam)
-				return
+			}
+			if (searchParamsToUrlParams.query !== undefined) {
+				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
 			}
 		}
 		// We only want to run this once after loading segments.
@@ -2000,7 +2003,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		searchParams,
 		selectedSegment,
 		activeSegmentUrlParam,
-		searchParamsToUrlParams,
 		initialized,
 	])
 

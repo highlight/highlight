@@ -6,7 +6,6 @@ export const inputVariants = recipe({
 	base: {
 		borderRadius: 6,
 		border: 'none',
-		padding: '4px 6px',
 		fontSize: 13,
 		color: vars.theme.static.content.default,
 		caretColor: vars.theme.interactive.fill.primary.enabled,
@@ -51,6 +50,7 @@ export const inputVariants = recipe({
 		},
 		outline: {
 			true: {
+				padding: '4px 6px',
 				border: vars.border.secondary,
 				selectors: {
 					'&:focus, &:active': {
@@ -64,6 +64,7 @@ export const inputVariants = recipe({
 				},
 			},
 			false: {
+				padding: 0,
 				border: 'none',
 			},
 		},

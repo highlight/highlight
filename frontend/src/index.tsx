@@ -4,7 +4,7 @@ import '@fontsource/poppins'
 import './index.scss'
 import './style/tailwind.css'
 
-import { ApolloError, ApolloProvider } from '@apollo/client'
+import { ApolloError, ApolloProvider, QueryLazyOptions } from '@apollo/client'
 import {
 	AuthContextProvider,
 	AuthRole,
@@ -20,7 +20,6 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import {
-	useCreateAdminMutation,
 	useGetAdminLazyQuery,
 	useGetAdminRoleByProjectLazyQuery,
 	useGetAdminRoleLazyQuery,
@@ -28,6 +27,8 @@ import {
 } from '@graph/hooks'
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
+import { SignUp } from '@pages/Auth/SignUp'
+import { AuthAdminRouter } from '@pages/Login/Login'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
 import * as Sentry from '@sentry/react'
@@ -52,7 +53,9 @@ import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
 analytics.initialize()
-const dev = import.meta.env.DEV
+const dev =
+	import.meta.env.DEV ||
+	import.meta.env.REACT_APP_FRONTEND_URI?.indexOf('localhost') !== -1
 const options: HighlightOptions = {
 	debug: { clientInteractions: true, domRecording: true },
 	manualStart: true,
@@ -93,7 +96,7 @@ const options: HighlightOptions = {
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {
 	options.scriptUrl = 'http://localhost:8080/dist/index.js'
-	options.backendUrl = 'https://localhost:8082/public'
+	options.backendUrl = import.meta.env.REACT_APP_PUBLIC_GRAPH_URI
 
 	options.integrations = undefined
 
@@ -209,9 +212,27 @@ const AuthenticationRoleRouter = () => {
 	] = useGetAdminLazyQuery()
 
 	let getAdminQuery:
-			| typeof getAdminWorkspaceRoleQuery
-			| typeof getAdminProjectRoleQuery
-			| typeof getAdminSimpleQuery,
+			| ((
+					workspace_id:
+						| QueryLazyOptions<
+								Partial<{
+									workspace_id: string
+									project_id: string
+								}>
+						  >
+						| undefined,
+			  ) => void)
+			| ((
+					project_id:
+						| QueryLazyOptions<
+								Partial<{
+									workspace_id: string
+									project_id: string
+								}>
+						  >
+						| undefined,
+			  ) => void)
+			| (() => void),
 		adminError: ApolloError | undefined,
 		adminData: Admin | undefined | null,
 		adminRole: string | undefined,
@@ -269,34 +290,25 @@ const AuthenticationRoleRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [adminData, authRole, projectId])
 
-	const [createAdminMutation] = useCreateAdminMutation()
-
 	useEffect(() => {
-		const variables: any = {}
+		const variables: Partial<{ workspace_id: string; project_id: string }> =
+			{}
 		if (workspaceId) {
 			variables.workspace_id = workspaceId
 		} else if (projectId) {
 			variables.project_id = projectId
 		}
-
 		const unsubscribeFirebase = auth.onAuthStateChanged(
-			async (user) => {
+			(user) => {
 				setUser(user)
 
 				if (user) {
-					try {
-						// Try to create an admin if it's a new account. This can't be
-						// handled on the sign up form because this callback is triggered
-						// before the admin is created.
-						if (!user.emailVerified) {
-							await createAdminMutation()
-						}
-					} finally {
-						if (!called) {
-							getAdminQuery({ variables })
-						} else {
-							refetch!()
-						}
+					if (!called) {
+						getAdminQuery({
+							variables,
+						})
+					} else {
+						refetch!()
 					}
 				} else {
 					setAuthRole(AuthRole.UNAUTHENTICATED)
@@ -349,18 +361,17 @@ const AuthenticationRoleRouter = () => {
 		true,
 	)
 
-	const loggedIn = isLoggedIn(authRole)
-
 	return (
 		<AuthContextProvider
 			value={{
 				role: authRole,
-				admin: loggedIn ? adminData ?? undefined : undefined,
+				admin: isLoggedIn(authRole)
+					? adminData ?? undefined
+					: undefined,
 				workspaceRole: adminRole || undefined,
 				isAuthLoading: isAuthLoading(authRole),
-				isLoggedIn: loggedIn,
+				isLoggedIn: isLoggedIn(authRole),
 				isHighlightAdmin: isHighlightAdmin(authRole) && enableStaffView,
-				refetchAdmin: refetch,
 			}}
 		>
 			<Helmet>
@@ -377,7 +388,8 @@ const AuthenticationRoleRouter = () => {
 				/>
 			) : (
 				<Routes>
-					<Route path="/*" element={<AppRouter />} />
+					<Route path="sign_up" element={<SignUp />} />
+					<Route path="/*" element={<AuthAdminRouter />} />
 				</Routes>
 			)}
 		</AuthContextProvider>

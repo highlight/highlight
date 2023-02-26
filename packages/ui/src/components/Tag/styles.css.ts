@@ -18,6 +18,7 @@ export const iconVariants = recipe({
 		border: 'none',
 		display: 'inline-flex',
 		justifyContent: 'center',
+		flexShrink: 0,
 	},
 
 	variants: {
@@ -41,6 +42,7 @@ export const variants = recipe({
 			display: 'inline-flex',
 			px: '4',
 			py: '2',
+			flexShrink: 0,
 		}),
 		{
 			lineHeight: '1em',

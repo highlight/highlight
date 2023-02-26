@@ -1867,3 +1867,7 @@ query GetLogsKeys($project_id: ID!) {
 		type
 	}
 }
+
+query GetLogsKeyValues($project_id: ID!, $key_name: String!) {
+	logs_key_values(project_id: $project_id, key_name: $key_name)
+}

@@ -11,6 +11,17 @@ export type BoxProps = Sprinkles &
 		cssClass?: ClassValue | ClassValue[]
 	}
 
+export type PaddingProps = {
+	padding?: BoxProps['p']
+	paddingTop?: BoxProps['p']
+	paddingRight?: BoxProps['p']
+	paddingBottom?: BoxProps['p']
+	paddingLeft?: BoxProps['p']
+	p?: BoxProps['p']
+	px?: BoxProps['px']
+	py?: BoxProps['py']
+}
+
 export const Box = React.forwardRef<unknown, BoxProps>(
 	({ as = 'div', cssClass, ...props }, ref) => {
 		const sprinklesProps: Record<string, unknown> = {}

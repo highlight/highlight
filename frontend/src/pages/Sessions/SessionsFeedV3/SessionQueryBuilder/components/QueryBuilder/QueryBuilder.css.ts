@@ -19,3 +19,13 @@ export const addButton = style({
 	height: 20,
 	width: 20,
 })
+
+export const tagKey = style({
+	flex: 1,
+	wordBreak: 'normal',
+	whiteSpace: 'nowrap',
+})
+
+export const tagValue = style({
+	flex: 1,
+})

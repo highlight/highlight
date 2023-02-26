@@ -14,7 +14,7 @@ export function useProjectId() {
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	return { projectId: projectIdRemapped }
+	return { projectId: projectIdRemapped! }
 }
 
 export function useNumericProjectId() {

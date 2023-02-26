@@ -12,6 +12,9 @@ H = highlight_io.H("1", record_logs=True)
 @observe_handler
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Python HTTP trigger function processed a request.")
+    logging.info(
+        "hello handler", {"customer": req.headers.get("customer") or "unknown"}
+    )
 
     if random.random() < 0.2:
         raise ValueError("oh no!")

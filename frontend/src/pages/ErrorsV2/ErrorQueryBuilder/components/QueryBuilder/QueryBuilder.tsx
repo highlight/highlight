@@ -71,7 +71,12 @@ import Creatable from 'react-select/creatable'
 import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
 import { useToggle } from 'react-use'
-import { JsonParam, useQueryParam, useQueryParams } from 'use-query-params'
+import {
+	BooleanParam,
+	JsonParam,
+	useQueryParam,
+	useQueryParams,
+} from 'use-query-params'
 
 import * as newStyle from './QueryBuilder.css'
 import styles from './QueryBuilder.module.scss'
@@ -844,7 +849,7 @@ const QueryRule = ({
 				loadOptions={getKeyOptions}
 				type="select"
 				disabled={readonly}
-				cssClass={[newStyle.flatRight]}
+				cssClass={[newStyle.flatRight, newStyle.tagKey]}
 			/>
 			<SelectPopout
 				value={getOperator(rule.op, rule.val)}
@@ -854,6 +859,7 @@ const QueryRule = ({
 				disabled={readonly}
 				cssClass={[
 					newStyle.flatLeft,
+					newStyle.tagKey,
 					{
 						[newStyle.flatRight]:
 							(!!rule.op && hasArguments(rule.op)) || !readonly,
@@ -870,6 +876,7 @@ const QueryRule = ({
 					limitWidth
 					cssClass={[
 						newStyle.flatLeft,
+						newStyle.tagValue,
 						{ [newStyle.flatRight]: !readonly },
 					]}
 				/>
@@ -943,20 +950,10 @@ export const TimeRangeFilter = ({
 				shape="basic"
 				iconRight={!!onReset ? <IconSolidX size={12} /> : undefined}
 				onIconRightClick={!!onReset ? onReset : undefined}
+				onClick={() => setVisible((visible) => !visible)}
+				lines="1"
 			>
-				<Box onClick={() => setVisible((visible) => !visible)}>
-					<Text
-						size="xSmall"
-						weight="medium"
-						color="n9"
-						userSelect="none"
-						lines="1"
-					>
-						{value &&
-							value.options.length === 1 &&
-							value.options[0].label}
-					</Text>
-				</Box>
+				{value && value.options.length === 1 && value.options[0].label}
 			</Tag>
 		</Box>
 	)
@@ -1099,7 +1096,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	identifier: 'Identifier',
 	reload: 'Reloaded',
 	state: 'State',
-	event: 'Event',
+	event: 'Error Body',
 	timestamp: 'Date',
 	has_rage_clicks: 'Has Rage Clicks',
 	has_errors: 'Has Errors',
@@ -1955,6 +1952,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [segmentsLoading])
 
+	const [forceReload, setForceReload] = useQueryParam('reload', BooleanParam)
+	useEffect(() => {
+		if (forceReload && searchParamsToUrlParams.query !== undefined) {
+			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+			setForceReload(false)
+		}
+	}, [forceReload, searchParamsToUrlParams, setForceReload, setSearchParams])
+
 	// Errors Segment Deep Linking
 	useEffect(() => {
 		if (selectedSegment && selectedSegment.id && selectedSegment.name) {
@@ -2505,6 +2510,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 											onClick={toggleIsAnd}
 											key={`separator-${index}`}
 											disabled={readonly}
+											lines="1"
+											className={newStyle.tagKey}
 										>
 											{isAnd ? 'and' : 'or'}
 										</Tag>,
