@@ -88,7 +88,6 @@ func getAttributesMaps(resourceAttributes, eventAttributes map[string]any) (map[
 				continue
 			}
 		}
-		// TODO(vkorolik) support non-string types for log attributes?
 		vStr := castString(v, "")
 		if vStr != "" {
 			resourceAttributesMap[k] = castString(v, "")
@@ -177,7 +176,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						spanID := span.SpanID().String()
 						excMessage := castString(eventAttributes[string(semconv.ExceptionMessageKey)], "")
 
-						// TODO(vkorolik) error should get log uuid?
 						func() {
 							projectIDInt, err := projectToInt(projectID)
 							if err != nil {

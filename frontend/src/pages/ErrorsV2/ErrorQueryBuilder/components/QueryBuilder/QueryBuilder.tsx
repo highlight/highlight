@@ -2059,9 +2059,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 
 		if (serializedQuery.current) {
-			console.log('vadim', 'setting error query', {
-				current: serializedQuery.current,
-			})
 			setPage(1)
 			setBackendSearchQuery(serializedQuery.current)
 		}
@@ -2343,15 +2340,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 								icon={<IconSolidRefresh size={14} />}
 								disabled={syncButtonDisabled}
 								onClick={() => {
-									console.log(
-										'vadim',
-										'setting error query refresh',
-										{
-											current: serializedQuery.current,
-											isAnd,
-											rules,
-										},
-									)
 									// Re-generate the absolute times used in the serialized query
 									updateSerializedQuery(isAnd, rules)
 									setBackendSearchQuery(
