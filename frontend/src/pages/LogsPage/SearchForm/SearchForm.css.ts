@@ -37,6 +37,7 @@ export const comboboxPopover = style({
 	left: 6,
 	right: 0,
 	maxWidth: 600,
+	zIndex: 1,
 })
 
 export const comboboxItem = style({
