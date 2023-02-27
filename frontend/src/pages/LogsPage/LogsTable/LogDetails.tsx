@@ -1,4 +1,4 @@
-import { LogLine } from '@graph/schemas'
+import { LogEdge } from '@graph/schemas'
 import {
 	Box,
 	ButtonLink,
@@ -19,12 +19,12 @@ import React, { useEffect, useState } from 'react'
 import * as styles from './LogDetails.css'
 
 type Props = {
-	row: Row<LogLine>
+	row: Row<LogEdge>
 }
 
 export const LogDetails = ({ row }: Props) => {
 	const [allExpanded, setAllExpanded] = useState(false)
-	const { logAttributes } = row.original
+	const { logAttributes } = row.original.node
 	const expanded = row.getIsExpanded()
 	const expandable = Object.values(logAttributes).some(
 		(v) => typeof v === 'object',

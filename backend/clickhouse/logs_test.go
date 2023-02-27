@@ -45,25 +45,115 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	logs, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
 			StartDate: now.Add(-time.Hour * 2),
 			EndDate:   now.Add(-time.Hour * 1),
 		},
-	})
+	}, nil)
 	assert.NoError(t, err)
 
-	assert.Len(t, logs, 0)
+	assert.Len(t, payload.Edges, 0)
 
-	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
 			StartDate: now.Add(-time.Hour * 1),
 			EndDate:   now.Add(time.Hour * 1),
 		},
-	})
+	}, nil)
 	assert.NoError(t, err)
 
-	assert.Len(t, logs, 1)
+	assert.Len(t, payload.Edges, 1)
+}
+
+func TestReadLogsHasNextPage(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
+	now := time.Now()
+	var rows []*LogRow
+
+	for i := uint64(1); i <= Limit; i++ { // 100 is a hardcoded limit
+		rows = append(rows, &LogRow{
+			Timestamp: now,
+			ProjectId: 1,
+		})
+	}
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+	}, nil)
+	assert.NoError(t, err)
+
+	assert.Len(t, payload.Edges, 100)
+	assert.False(t, payload.PageInfo.HasNextPage)
+
+	// Add more more row to have 101 rows
+	assert.NoError(t, client.BatchWriteLogRows(ctx, []*LogRow{
+		{
+			Timestamp: now,
+			ProjectId: 1,
+		},
+	}))
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+	}, nil)
+	assert.NoError(t, err)
+
+	assert.True(t, payload.PageInfo.HasNextPage)
+}
+
+func TestReadLogsAfterCursor(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	now := time.Now()
+	oneSecondAgo := now.Add(-time.Second * 1)
+	defer teardown(client)
+
+	rows := []*LogRow{
+		{
+			Timestamp: now,
+			ProjectId: 1,
+			UUID:      "c051edc8-3749-4e44-8f48-0ea90f3fc3d9",
+		},
+		{
+			Timestamp: oneSecondAgo,
+			ProjectId: 1,
+			UUID:      "a0d9abd6-7cbf-47de-b211-d16bb0935e04",
+		},
+		{
+			Timestamp: oneSecondAgo,
+			ProjectId: 1,
+			UUID:      "b6e255ee-049e-4563-bbfe-c33503cde94c",
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 3)
+
+	firstCursor := encodeCursor(now, "c051edc8-3749-4e44-8f48-0ea90f3fc3d9")
+	secondCursor := encodeCursor(oneSecondAgo, "b6e255ee-049e-4563-bbfe-c33503cde94c")
+	thirdCursor := encodeCursor(oneSecondAgo, "a0d9abd6-7cbf-47de-b211-d16bb0935e04")
+
+	assert.Equal(t, payload.Edges[0].Cursor, firstCursor)
+	assert.Equal(t, payload.Edges[1].Cursor, secondCursor)
+	assert.Equal(t, payload.Edges[2].Cursor, thirdCursor)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+	}, &secondCursor)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+
+	assert.Equal(t, payload.Edges[0].Cursor, thirdCursor)
 }
 
 func TestReadLogsWithBodyFilter(t *testing.T) {
@@ -82,33 +172,33 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	logs, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "no match",
-	})
+	}, nil)
 	assert.NoError(t, err)
-	assert.Len(t, logs, 0)
+	assert.Len(t, payload.Edges, 0)
 
-	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "body", // direct match
-	})
+	}, nil)
 	assert.NoError(t, err)
-	assert.Len(t, logs, 1)
+	assert.Len(t, payload.Edges, 1)
 
-	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "od", // wildcard match
-	})
+	}, nil)
 	assert.NoError(t, err)
-	assert.Len(t, logs, 1)
+	assert.Len(t, payload.Edges, 1)
 
-	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "BODY", // case insensitive match
-	})
+	}, nil)
 	assert.NoError(t, err)
-	assert.Len(t, logs, 1)
+	assert.Len(t, payload.Edges, 1)
 }
 
 func TestReadLogsWithKeyFilter(t *testing.T) {
@@ -131,33 +221,33 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	logs, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "service:foo",
-	})
+	}, nil)
 	assert.NoError(t, err)
-	assert.Len(t, logs, 0)
+	assert.Len(t, payload.Edges, 0)
 
-	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     `service:"image processor"`,
-	})
+	}, nil)
 	assert.NoError(t, err)
-	assert.Len(t, logs, 1)
+	assert.Len(t, payload.Edges, 1)
 
-	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "service:*mage*",
-	})
+	}, nil)
 	assert.NoError(t, err)
-	assert.Len(t, logs, 1)
+	assert.Len(t, payload.Edges, 1)
 
-	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "service:image* workspace_id:1 user_id:1",
-	})
+	}, nil)
 	assert.NoError(t, err)
-	assert.Len(t, logs, 1)
+	assert.Len(t, payload.Edges, 1)
 }
 
 func TestLogsKeys(t *testing.T) {
