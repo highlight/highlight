@@ -32,10 +32,9 @@ const CreateSegmentModal = ({
 			refetchQueries: [namedOperations.Query.GetSegments],
 		})
 
-	const [editErrorSegment, { loading: updatingSegment }] =
-		useEditSegmentMutation({
-			refetchQueries: [namedOperations.Query.GetSegments],
-		})
+	const [editSegment, { loading: updatingSegment }] = useEditSegmentMutation({
+		refetchQueries: [namedOperations.Query.GetSegments],
+	})
 
 	const [newSegmentName, setNewSegmentName] = useState(
 		currentSegment?.name ?? '',
@@ -63,7 +62,7 @@ const CreateSegmentModal = ({
 		}
 
 		if (shouldUpdate) {
-			editErrorSegment({
+			editSegment({
 				variables: {
 					project_id,
 					id: currentSegment.id!,
@@ -95,7 +94,7 @@ const CreateSegmentModal = ({
 					name: newSegmentName,
 					params: searchParams,
 				},
-				refetchQueries: [namedOperations.Query.GetErrorSegments],
+				refetchQueries: [namedOperations.Query.GetSegments],
 				onCompleted: (r) => {
 					if (afterCreateHandler) {
 						afterCreateHandler(
