@@ -1,3 +1,4 @@
+const nextBuildId = require('next-build-id')
 const { withHighlightConfig } = require('@highlight-run/next')
 
 /** @type {import('next').NextConfig} */
@@ -8,4 +9,4 @@ const nextConfig = {
 	},
 }
 
-module.exports = withHighlightConfig(nextConfig)
+module.exports = withHighlightConfig(nextConfig, { uploadSourceMaps: true })
