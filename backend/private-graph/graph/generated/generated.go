@@ -540,7 +540,7 @@ type ComplexityRoot struct {
 		AddIntegrationToProject          func(childComplexity int, integrationType *model.IntegrationType, projectID int, code string) int
 		AddIntegrationToWorkspace        func(childComplexity int, integrationType *model.IntegrationType, workspaceID int, code string) int
 		ChangeAdminRole                  func(childComplexity int, workspaceID int, adminID int, newRole string) int
-		CreateAdmin                      func(childComplexity int, inviteLinkSecret *string) int
+		CreateAdmin                      func(childComplexity int) int
 		CreateDefaultAlerts              func(childComplexity int, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) int
 		CreateErrorAlert                 func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int) int
 		CreateErrorComment               func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
@@ -1136,7 +1136,7 @@ type MetricMonitorResolver interface {
 type MutationResolver interface {
 	UpdateAdminAndCreateWorkspace(ctx context.Context, adminAndWorkspaceDetails model.AdminAndWorkspaceDetails) (*model1.Project, error)
 	UpdateAdminAboutYouDetails(ctx context.Context, adminDetails model.AdminAboutYouDetails) (bool, error)
-	CreateAdmin(ctx context.Context, inviteLinkSecret *string) (*model1.Admin, error)
+	CreateAdmin(ctx context.Context) (*model1.Admin, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model1.Workspace, error)
 	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray) (*model1.Project, error)
@@ -3555,12 +3555,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_createAdmin_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateAdmin(childComplexity, args["invite_link_secret"].(*string)), true
+		return e.complexity.Mutation.CreateAdmin(childComplexity), true
 
 	case "Mutation.createDefaultAlerts":
 		if e.complexity.Mutation.CreateDefaultAlerts == nil {
@@ -8987,7 +8982,7 @@ type Mutation {
 		admin_and_workspace_details: AdminAndWorkspaceDetails!
 	): Project
 	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
-	createAdmin(invite_link_secret: String): Admin!
+	createAdmin: Admin!
 	createProject(name: String!, workspace_id: ID!): Project
 	createWorkspace(name: String!, promo_code: String): Workspace
 	editProject(
@@ -9442,21 +9437,6 @@ func (ec *executionContext) field_Mutation_changeAdminRole_args(ctx context.Cont
 		}
 	}
 	args["new_role"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_createAdmin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["invite_link_secret"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("invite_link_secret"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["invite_link_secret"] = arg0
 	return args, nil
 }
 
@@ -28054,7 +28034,7 @@ func (ec *executionContext) _Mutation_createAdmin(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateAdmin(rctx, fc.Args["invite_link_secret"].(*string))
+		return ec.resolvers.Mutation().CreateAdmin(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28105,17 +28085,6 @@ func (ec *executionContext) fieldContext_Mutation_createAdmin(ctx context.Contex
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Admin", field.Name)
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createAdmin_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }

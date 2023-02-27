@@ -74,6 +74,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 				<Box mb="4">
 					<Stack direction="column" gap="16" align="center">
 						<SvgHighlightLogoOnLight height="48" width="48" />
+						{/*
+						TODO: Render info for workspace they were invited to by fetching it
+						from WorkspaceForInviteLink, similar to what we do on SignUp.
+						*/}
 						<Heading level="h4">Welcome back.</Heading>
 						<Text>
 							New here?{' '}

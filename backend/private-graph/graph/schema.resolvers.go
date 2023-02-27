@@ -6196,11 +6196,6 @@ func (r *queryResolver) WorkspaceForInviteLink(ctx context.Context, secret strin
 
 	fmt.Printf("::: workspace: %+v\n", workspace)
 	fmt.Printf("::: workspaceInviteLink: %+v\n", workspaceInviteLink)
-	fmt.Printf("::: ExpirationDate: %+v\n", workspaceInviteLink.ExpirationDate)
-	fmt.Printf("::: InviteeEmail: %+v\n", workspaceInviteLink.InviteeEmail)
-	fmt.Printf("::: Secret: %+v\n", *workspaceInviteLink.Secret)
-	fmt.Printf("::: WorkspaceID: %+v\n", workspace.ID)
-	fmt.Printf("::: WorkspaceName: %+v\n", *workspace.Name)
 	fmt.Printf("::: ExistingAccount: %+v\n", admin != nil)
 	workspaceForInvite := &modelInputs.WorkspaceForInviteLink{
 		ExpirationDate:  workspaceInviteLink.ExpirationDate,

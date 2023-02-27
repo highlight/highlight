@@ -39,10 +39,6 @@ export const ProjectRedirectionRouter = () => {
 		redirectTo = `/${data!.projects[0]!.id}${location.pathname}`
 	} else if (data?.workspaces?.length) {
 		redirectTo = `/w/${data!.workspaces[0]!.id}/new`
-	} else if (admin.email_verified === false) {
-		redirectTo = '/verify_email'
-	} else if (!admin.about_you_details_filled && !isVercelIntegrationFlow) {
-		redirectTo = '/about_you'
 	} else {
 		redirectTo = '/new'
 	}

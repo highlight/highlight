@@ -2,7 +2,6 @@ import '../../App.scss'
 
 import { useAuthContext } from '@authentication/AuthContext'
 import { Box } from '@highlight-run/ui'
-import { useInviteCode } from '@hooks/useInviteCode'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import { AccountsPage } from '@pages/Accounts/Accounts'
 import { AdminForm } from '@pages/Auth/AdminForm'
@@ -17,6 +16,7 @@ import OAuthApprovalPage from '@pages/OAuthApproval/OAuthApprovalPage'
 import RegistrationForm from '@pages/RegistrationForm/RegistrationForm'
 import SwitchProject from '@pages/SwitchProject/SwitchProject'
 import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace'
+import useLocalStorage from '@rehooks/local-storage'
 import InternalRouter from '@routers/InternalRouter/InternalRouter'
 import { DefaultWorkspaceRouter } from '@routers/OrgRouter/DefaultWorkspaceRouter'
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter'
@@ -46,8 +46,8 @@ export const AppRouter = () => {
 	const [nextParam] = useQueryParam('next', StringParam)
 	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
 	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
+	const [_, setInviteCode] = useLocalStorage('highlightInviteCode', '')
 	const navigate = useNavigate()
-	const { setInviteCode } = useInviteCode()
 
 	useEffect(() => {
 		if (workspaceInviteMatch?.params.invite) {
@@ -57,6 +57,10 @@ export const AppRouter = () => {
 	}, [])
 
 	useEffect(() => {
+		// TODO: Handle redirection if a user is coming from an invite and hasn't
+		// accepted the invitation yet. Need to Julianify <JoinWorkspace /> and
+		// render if coming from an invite link. We store whether the user is coming
+
 		if (admin && admin.email_verified === false) {
 			navigate('/verify_email')
 			return

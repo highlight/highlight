@@ -10,10 +10,10 @@ import {
 	Text,
 	useFormState,
 } from '@highlight-run/ui'
-import { useInviteCode } from '@hooks/useInviteCode'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
+import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { message } from 'antd'
@@ -24,7 +24,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 export const SignUp: React.FC = () => {
 	const navigate = useNavigate()
 	const location = useLocation()
-	const { inviteCode } = useInviteCode()
+	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
 	const formState = useFormState({
