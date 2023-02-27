@@ -2,16 +2,6 @@ import Button from '@components/Button/Button/Button'
 import Popover from '@components/Popover/Popover'
 import Select from '@components/Select/Select'
 import SvgSettingsIcon from '@icons/SettingsIcon'
-import DeleteSessionsModal from '@pages/Sessions/SessionsFeedV2/components/DeleteSessionsModal/DeleteSessionsModal'
-import {
-	countFormats,
-	dateTimeFormats,
-	SESSION_FEED_COUNT_FORMAT,
-	SESSION_FEED_DATETIME_FORMAT,
-	SESSION_FEED_SORT_ORDER,
-	SessionFeedConfigurationContext,
-	sortOrders,
-} from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { formatNumber } from '@util/numbers'
@@ -20,6 +10,16 @@ import { H } from 'highlight.run'
 import moment from 'moment'
 import React, { useState } from 'react'
 
+import {
+	countFormats,
+	dateTimeFormats,
+	SESSION_FEED_COUNT_FORMAT,
+	SESSION_FEED_DATETIME_FORMAT,
+	SESSION_FEED_SORT_ORDER,
+	SessionFeedConfigurationContext,
+	sortOrders,
+} from '../../context/SessionFeedConfigurationContext'
+import DeleteSessionsModal from '../DeleteSessionsModal/DeleteSessionsModal'
 import styles from './SessionFeedConfiguration.module.scss'
 
 interface Props {

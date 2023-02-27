@@ -10,9 +10,8 @@ import { useFrontContext } from '@pages/FrontPlugin/Front/FrontContext'
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import MinimalSessionCard from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/MinimalSessionCard'
-import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils'
-import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
+import MinimalSessionCard from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/MinimalSessionCard'
+import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import moment from 'moment/moment'
@@ -30,9 +29,7 @@ function HighlightSessions() {
 			project_id: project_id!,
 			count: 100,
 			page: 1,
-			query: getUnprocessedSessionsQuery(
-				backendSearchQuery?.searchQuery || '',
-			),
+			query: backendSearchQuery?.searchQuery || '',
 			sort_desc: true,
 		},
 		skip: !backendSearchQuery || !project_id,
@@ -115,7 +112,7 @@ function HighlightSessions() {
 	return (
 		<div className="flex w-full flex-row justify-center p-2">
 			<div className="flex w-full flex-col gap-2">
-				<SessionsQueryBuilder />
+				<SessionQueryBuilder />
 				<div className="flex w-full flex-col">
 					{data?.sessions_opensearch.sessions.map((s) => (
 						<MinimalSessionCard

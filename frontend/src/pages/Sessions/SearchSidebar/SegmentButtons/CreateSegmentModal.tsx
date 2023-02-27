@@ -6,7 +6,7 @@ import { useCreateSegmentMutation, useEditSegmentMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Maybe, Segment } from '@graph/schemas'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
+import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
@@ -135,7 +135,7 @@ const CreateSegmentModal = ({
 						specific set of sessions.
 					</p>
 					<div className={styles.queryBuilderContainer}>
-						<SessionsQueryBuilder readonly />
+						<SessionQueryBuilder readonly />
 					</div>
 					<Input
 						name="name"

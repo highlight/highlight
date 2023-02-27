@@ -10,7 +10,7 @@ import SearchPagination, {
 import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
-import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
+import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import ErrorFeedHistogram from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'

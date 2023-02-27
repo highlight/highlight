@@ -51,6 +51,7 @@ x-backend-env: &backend-env
         - REDIS_ADDRESS
         - REDIS_EVENTS_STAGING_ENDPOINT
         - SESSION_FILE_PATH_PREFIX
+        - TZ
 
 services:
     zookeeper:

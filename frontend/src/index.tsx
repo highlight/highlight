@@ -31,7 +31,7 @@ import { SignUp } from '@pages/Auth/SignUp'
 import { AuthAdminRouter } from '@pages/Login/Login'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
-import { setAttributionData } from '@util/attribution'
+import { getAttributionData, setAttributionData } from '@util/attribution'
 import { auth } from '@util/auth'
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils'
 import { showHiringMessage } from '@util/console/hiringMessage'
@@ -114,6 +114,7 @@ if (dev) {
 	options.environment = 'Pull Request Preview'
 }
 H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
+H.track('attribution', getAttributionData())
 if (!isOnPrem) {
 	H.start()
 	showIntercom({ hideMessage: true })

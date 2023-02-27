@@ -7,6 +7,7 @@ import {
 } from '@apollo/client'
 import Dexie, { Table } from 'dexie'
 import moment from 'moment'
+import log from './log'
 
 const CLEANUP_CHECK_MS = 1000
 const CLEANUP_DELAY_MS = 10000
@@ -157,15 +158,21 @@ export class IndexedDBLink extends ApolloLink {
 		}
 
 		return new Observable((observer) => {
+			const req = this.httpLink.request(operation, forward)!
 			indexeddbCache
 				.getItem({
 					operation: operation.operationName,
 					variables: operation.variables,
 				})
 				.then((result) => {
-					const req = this.httpLink.request(operation, forward)!
 					if (result?.data) {
+						log('db.ts', 'IndexedDBLink cache hit', {
+							operation,
+							data: result?.data,
+						})
 						observer.next(result)
+					} else {
+						log('db.ts', 'IndexedDBLink cache miss', { operation })
 					}
 					// noinspection TypeScriptValidateJSTypes
 					req.subscribe((result) => {
@@ -199,7 +206,10 @@ export const indexedDBString = async function* ({
 	}
 	const cached = await db.map.where('key').equals(key).first()
 	if (cached) {
+		log('db.ts', 'indexedDBWrap string cache hit', { key, cached })
 		yield cached.value
+	} else {
+		log('db.ts', 'indexedDBWrap cache miss', { key })
 	}
 	const response = await fn()
 	await db.map.put({
@@ -224,10 +234,13 @@ export const indexedDBWrap = async function* ({
 	}
 	const cached = await db.fetch.where('key').equals(key).first()
 	if (cached) {
+		log('db.ts', 'indexedDBWrap cache hit', { key, cached })
 		yield new Response(cached.blob, {
 			...cached.options,
 			status: cached.options.status || 200,
 		})
+	} else {
+		log('db.ts', 'indexedDBWrap cache miss', { key })
 	}
 	const response = await fn()
 	const ret = response.clone()

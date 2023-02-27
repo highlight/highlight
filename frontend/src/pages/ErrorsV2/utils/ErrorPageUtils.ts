@@ -1,5 +1,5 @@
-import { GetErrorGroupQuery } from '../../../graph/generated/operations'
-import { ErrorField } from '../../../graph/generated/schemas'
+import { GetErrorGroupQuery } from '@graph/operations'
+import { ErrorField } from '@graph/schemas'
 
 type ErrorFieldMetadata = Pick<ErrorField, 'name' | 'value'>[]
 

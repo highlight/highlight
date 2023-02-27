@@ -3,22 +3,23 @@ import Switch from '@components/Switch/Switch'
 import { Box, IconSolidDotsHorizontal, Menu, Text } from '@highlight-run/ui'
 import { useWindowEvent } from '@hooks/useWindowEvent'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import DeleteSessionsModal from '@pages/Sessions/SessionsFeedV2/components/DeleteSessionsModal/DeleteSessionsModal'
 import {
 	formatCount,
 	formatDatetime,
 	getSortOrderDisplayName,
-} from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration'
+} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfiguration/SessionFeedConfiguration'
 import {
 	countFormats,
 	dateTimeFormats,
 	sortOrders,
-} from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
-import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration'
+} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/context/SessionFeedConfigurationContext'
+import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/hooks/useSessionFeedConfiguration'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { isInsideElement } from '@util/dom'
 import React, { useRef, useState } from 'react'
+
+import DeleteSessionsModal from '../DeleteSessionsModal/DeleteSessionsModal'
 
 export const DropdownMenu = function ({
 	sessionCount,
