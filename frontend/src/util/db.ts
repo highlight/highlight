@@ -78,6 +78,7 @@ export const db = new DB()
 
 export class IndexedDBCache {
 	static expiryMS: { [op: string]: number } = {
+		FetchEventChunkURL: moment.duration(15, 'minutes').asMilliseconds(),
 		GetEventChunkURL: moment.duration(15, 'minutes').asMilliseconds(),
 		GetSession: moment.duration(15, 'minutes').asMilliseconds(),
 	}
@@ -195,9 +196,11 @@ export class IndexedDBLink extends ApolloLink {
 
 export const indexedDBString = async function* ({
 	key,
+	operation,
 	fn,
 }: {
 	key: string
+	operation: string
 	fn: () => Promise<string>
 }) {
 	if (!indexeddbEnabled) {
@@ -206,10 +209,19 @@ export const indexedDBString = async function* ({
 	}
 	const cached = await db.map.where('key').equals(key).first()
 	if (cached) {
-		log('db.ts', 'indexedDBWrap string cache hit', { key, cached })
-		yield cached.value
+		if (
+			IndexedDBCache.expiryMS[operation] &&
+			moment().diff(moment(cached.created)) >=
+				IndexedDBCache.expiryMS[operation]
+		) {
+			log('db.ts', 'indexedDBString cache expired', { key, cached })
+			db.apollo.delete(cached.key)
+		} else {
+			log('db.ts', 'indexedDBString cache hit', { key, cached })
+			yield cached.value
+		}
 	} else {
-		log('db.ts', 'indexedDBWrap cache miss', { key })
+		log('db.ts', 'indexedDBString cache miss', { key })
 	}
 	const response = await fn()
 	await db.map.put({
@@ -223,9 +235,11 @@ export const indexedDBString = async function* ({
 
 export const indexedDBWrap = async function* ({
 	key,
+	operation,
 	fn,
 }: {
 	key: string
+	operation: string
 	fn: () => Promise<Response>
 }) {
 	if (!indexeddbEnabled) {
@@ -234,11 +248,20 @@ export const indexedDBWrap = async function* ({
 	}
 	const cached = await db.fetch.where('key').equals(key).first()
 	if (cached) {
-		log('db.ts', 'indexedDBWrap cache hit', { key, cached })
-		yield new Response(cached.blob, {
-			...cached.options,
-			status: cached.options.status || 200,
-		})
+		if (
+			IndexedDBCache.expiryMS[operation] &&
+			moment().diff(moment(cached.created)) >=
+				IndexedDBCache.expiryMS[operation]
+		) {
+			log('db.ts', 'indexedDBWrap cache expired', { key, cached })
+			db.apollo.delete(cached.key)
+		} else {
+			log('db.ts', 'indexedDBWrap cache hit', { key, cached })
+			yield new Response(cached.blob, {
+				...cached.options,
+				status: cached.options.status || 200,
+			})
+		}
 	} else {
 		log('db.ts', 'indexedDBWrap cache miss', { key })
 	}
@@ -268,6 +291,7 @@ export const indexedDBFetch = async function* (
 ) {
 	yield* indexedDBWrap({
 		key: JSON.stringify({ input, init }),
+		operation: 'fetch',
 		fn: async () => await fetch(input, init),
 	})
 }
