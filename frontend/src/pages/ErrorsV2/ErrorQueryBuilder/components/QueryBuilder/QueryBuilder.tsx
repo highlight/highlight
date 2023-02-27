@@ -2393,7 +2393,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						userSelect="none"
 					>
 						<IconSolidCloudUpload size={16} color={colors.n9} />
-						Push segment changes
+						Update segment
 					</Box>
 				</Menu.Item>
 				<Menu.Item
