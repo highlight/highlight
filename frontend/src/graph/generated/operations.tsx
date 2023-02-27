@@ -3914,15 +3914,24 @@ export type GetEmailOptOutsQuery = { __typename?: 'Query' } & Pick<
 export type GetLogsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.LogsParamsInput
+	after?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
-	logs: Array<
-		{ __typename?: 'LogLine' } & Pick<
-			Types.LogLine,
-			'timestamp' | 'severityText' | 'body' | 'logAttributes'
+	logs: { __typename?: 'LogsPayload' } & {
+		edges: Array<
+			{ __typename?: 'LogEdge' } & Pick<Types.LogEdge, 'cursor'> & {
+					node: { __typename?: 'Log' } & Pick<
+						Types.Log,
+						'timestamp' | 'severityText' | 'body' | 'logAttributes'
+					>
+				}
 		>
-	>
+		pageInfo: { __typename?: 'PageInfo' } & Pick<
+			Types.PageInfo,
+			'hasNextPage' | 'endCursor'
+		>
+	}
 }
 
 export type GetLogsTotalCountQueryVariables = Types.Exact<{

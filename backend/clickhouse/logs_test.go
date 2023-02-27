@@ -45,7 +45,7 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	logs, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
 			StartDate: now.Add(-time.Hour * 2),
 			EndDate:   now.Add(-time.Hour * 1),
@@ -53,9 +53,9 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	assert.Len(t, logs, 0)
+	assert.Len(t, payload.Edges, 0)
 
-	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
 			StartDate: now.Add(-time.Hour * 1),
 			EndDate:   now.Add(time.Hour * 1),
@@ -63,7 +63,82 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	assert.Len(t, logs, 1)
+	assert.Len(t, payload.Edges, 1)
+}
+
+func TestReadLogsHasNextPage(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
+	now := time.Now()
+	var rows []*LogRow
+
+	for i := 1; i <= 100; i++ { // 100 is a hardcoded limit
+		rows = append(rows, &LogRow{
+			Timestamp: now,
+			ProjectId: 1,
+		})
+	}
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+	})
+	assert.NoError(t, err)
+
+	assert.Len(t, payload.Edges, 100)
+	assert.False(t, payload.PageInfo.HasNextPage)
+
+	// Add more more row to have 101 rows
+	assert.NoError(t, client.BatchWriteLogRows(ctx, []*LogRow{
+		{
+			Timestamp: now,
+			ProjectId: 1,
+		},
+	}))
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+	})
+	assert.NoError(t, err)
+
+	assert.True(t, payload.PageInfo.HasNextPage)
+}
+
+func TestReadLogsAfterCursor(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	now := time.Now()
+	defer teardown(client)
+
+	rows := []*LogRow{
+		{
+			Timestamp: now,
+			Body:      "Body 1",
+			ProjectId: 1,
+		},
+		{
+			Timestamp: now.Add(time.Second * 1),
+			Body:      "Body 2",
+			ProjectId: 1,
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+	})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 2)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		After:     &payload.Edges[0].Cursor,
+	})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
 }
 
 func TestReadLogsWithBodyFilter(t *testing.T) {
@@ -82,33 +157,33 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	logs, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "no match",
 	})
 	assert.NoError(t, err)
-	assert.Len(t, logs, 0)
+	assert.Len(t, payload.Edges, 0)
 
-	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "body", // direct match
 	})
 	assert.NoError(t, err)
-	assert.Len(t, logs, 1)
+	assert.Len(t, payload.Edges, 1)
 
-	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "od", // wildcard match
 	})
 	assert.NoError(t, err)
-	assert.Len(t, logs, 1)
+	assert.Len(t, payload.Edges, 1)
 
-	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "BODY", // case insensitive match
 	})
 	assert.NoError(t, err)
-	assert.Len(t, logs, 1)
+	assert.Len(t, payload.Edges, 1)
 }
 
 func TestReadLogsWithKeyFilter(t *testing.T) {

@@ -11325,12 +11325,21 @@ export type GetEmailOptOutsQueryResult = Apollo.QueryResult<
 	Types.GetEmailOptOutsQueryVariables
 >
 export const GetLogsDocument = gql`
-	query GetLogs($project_id: ID!, $params: LogsParamsInput!) {
-		logs(project_id: $project_id, params: $params) {
-			timestamp
-			severityText
-			body
-			logAttributes
+	query GetLogs($project_id: ID!, $params: LogsParamsInput!, $after: String) {
+		logs(project_id: $project_id, params: $params, after: $after) {
+			edges {
+				cursor
+				node {
+					timestamp
+					severityText
+					body
+					logAttributes
+				}
+			}
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
 		}
 	}
 `
@@ -11349,6 +11358,7 @@ export const GetLogsDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      params: // value for 'params'
+ *      after: // value for 'after'
  *   },
  * });
  */

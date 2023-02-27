@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
@@ -132,8 +133,9 @@ func main() {
 		log.WithContext(ctx).Fatal("could not connect to clickhouse db")
 	}
 
-	logRows := []*clickhouse.LogRow{}
+	now := time.Now()
 
+<<<<<<< Updated upstream
 	for i := 1; i < 100; i++ {
 		for j := 1; j < 100; j++ {
 			logRows = append(logRows, &clickhouse.LogRow{
@@ -144,6 +146,15 @@ func main() {
 				SeverityText:  makeRandomSeverityText(),
 			})
 		}
+=======
+	for i := 1; i < 20000; i++ {
+		logRows := []*clickhouse.LogRow{}
+		logRows = append(logRows, &clickhouse.LogRow{
+			Timestamp: now.Add(-time.Duration(i) * time.Minute),
+			ProjectId: 1,
+			Body:      fmt.Sprintf("Body %d", i),
+		})
+>>>>>>> Stashed changes
 
 		err = client.BatchWriteLogRows(context.Background(), logRows)
 

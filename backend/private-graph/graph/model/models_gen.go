@@ -351,21 +351,31 @@ type LinearTeam struct {
 	Key    string `json:"key"`
 }
 
-type LogKey struct {
-	Name string     `json:"name"`
-	Type LogKeyType `json:"type"`
-}
-
-type LogLine struct {
+type Log struct {
 	Timestamp     time.Time              `json:"timestamp"`
 	SeverityText  SeverityText           `json:"severityText"`
 	Body          string                 `json:"body"`
 	LogAttributes map[string]interface{} `json:"logAttributes"`
 }
 
+type LogEdge struct {
+	Cursor string `json:"cursor"`
+	Node   *Log   `json:"node"`
+}
+
+type LogKey struct {
+	Name string     `json:"name"`
+	Type LogKeyType `json:"type"`
+}
+
 type LogsParamsInput struct {
 	Query     string                  `json:"query"`
 	DateRange *DateRangeRequiredInput `json:"date_range"`
+}
+
+type LogsPayload struct {
+	Edges    []*LogEdge `json:"edges"`
+	PageInfo *PageInfo  `json:"pageInfo"`
 }
 
 type MetricPreview struct {
@@ -403,6 +413,11 @@ type OAuthClient struct {
 	ID        string    `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	AppName   string    `json:"app_name"`
+}
+
+type PageInfo struct {
+	HasNextPage bool   `json:"hasNextPage"`
+	EndCursor   string `json:"endCursor"`
 }
 
 type Plan struct {

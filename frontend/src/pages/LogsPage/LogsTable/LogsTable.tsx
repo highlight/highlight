@@ -1,12 +1,14 @@
 import LoadingBox from '@components/LoadingBox'
 import { GetLogsQuery } from '@graph/operations'
-import { LogLine, SeverityText } from '@graph/schemas'
+import { SeverityText } from '@graph/schemas'
+import { LogEdge } from '@graph/schemas'
 import {
 	Box,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	Stack,
 } from '@highlight-run/ui'
+import { Box, Stack } from '@highlight-run/ui'
 import { LogBody } from '@pages/LogsPage/LogsTable/LogBody'
 import { LogDetails } from '@pages/LogsPage/LogsTable/LogDetails'
 import { LogSeverityText } from '@pages/LogsPage/LogsTable/LogSeverityText'
@@ -34,10 +36,10 @@ type Props = {
 export const LogsTable = ({ data, loading, query }: Props) => {
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
-	const columns = React.useMemo<ColumnDef<LogLine>[]>(
+	const columns = React.useMemo<ColumnDef<LogEdge>[]>(
 		() => [
 			{
-				accessorKey: 'timestamp',
+				accessorKey: 'node.timestamp',
 				cell: ({ row, getValue }) => (
 					<Box
 						flexShrink={0}
@@ -64,7 +66,7 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 				),
 			},
 			{
-				accessorKey: 'severityText',
+				accessorKey: 'node.severityText',
 				cell: ({ getValue }) => (
 					<LogSeverityText
 						severityText={getValue() as SeverityText}
@@ -72,8 +74,8 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 				),
 			},
 			{
-				accessorKey: 'body',
-				cell: ({ row, getValue }) => (
+				accessorKey: 'node.body',
+				cell: ({ getValue, row }) => (
 					<LogBody
 						expanded={row.getIsExpanded()}
 						query={query}
@@ -85,20 +87,20 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 		[query],
 	)
 
-	let logs: LogLine[] = []
+	let logEdges: LogEdge[] = []
 
-	if (data?.logs) {
-		logs = data.logs
+	if (data?.logs?.edges) {
+		logEdges = data.logs.edges
 	}
 
 	const table = useReactTable({
-		data: logs,
+		data: logEdges,
 		columns,
 		state: {
 			expanded,
 		},
 		onExpandedChange: setExpanded,
-		getRowCanExpand: (row) => row.original.logAttributes,
+		getRowCanExpand: (row) => row.original.node.logAttributes,
 		getCoreRowModel: getCoreRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
 		debugTable: true,
@@ -122,7 +124,7 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 		)
 	}
 
-	if (logs.length === 0) {
+	if (logEdges.length === 0) {
 		return (
 			<Box
 				display="flex"

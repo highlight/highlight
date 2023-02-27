@@ -7,13 +7,16 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	flat "github.com/nqd/flat"
 	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 type LogRow struct {
 	Timestamp          time.Time
+	UUID               string
 	TraceId            string
 	SpanId             string
 	TraceFlags         uint32
@@ -35,6 +38,7 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 	}
 
 	for _, logRow := range logRows {
+		logRow.UUID = uuid.New().String()
 		err = batch.AppendStruct(logRow)
 		if err != nil {
 			return err
@@ -43,14 +47,19 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 	return batch.Send()
 }
 
-func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogLine, error) {
-	query := makeSelectQuery("Timestamp, SeverityText, Body, LogAttributes", projectID, params)
-	query = query.Limit(100)
+func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string) (*modelInputs.LogsPayload, error) {
+	var limit uint64 = 100
+
+	query := makeSelectQuery("Timestamp, UUID, SeverityText, Body, LogAttributes", projectID, params, after)
+	query = query.OrderBy("Timestamp DESC").Limit(limit + 1)
 
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, err
 	}
+	log.WithContext(ctx).WithFields(log.Fields{
+		"query": sq.DebugSqlizer(query),
+	}).Info("Fetching logs")
 
 	rows, err := client.conn.Query(
 		ctx,
@@ -62,32 +71,37 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 		return nil, err
 	}
 
-	logLines := []*modelInputs.LogLine{}
+	logs := []*modelInputs.LogEdge{}
 
 	for rows.Next() {
 		var (
 			Timestamp     time.Time
+			UUID          string
 			SeverityText  string
 			Body          string
 			LogAttributes map[string]string
 		)
-		if err := rows.Scan(&Timestamp, &SeverityText, &Body, &LogAttributes); err != nil {
+		if err := rows.Scan(&Timestamp, &UUID, &SeverityText, &Body, &LogAttributes); err != nil {
 			return nil, err
 		}
 
-		logLines = append(logLines, &modelInputs.LogLine{
-			Timestamp:     Timestamp,
-			SeverityText:  makeSeverityText(SeverityText),
-			Body:          Body,
-			LogAttributes: expandJSON(LogAttributes),
+		logs = append(logs, &modelInputs.LogEdge{
+			Cursor: encodeCursor(Timestamp, UUID),
+			Node: &modelInputs.Log{
+				Timestamp:     Timestamp,
+				SeverityText:  makeSeverityText(SeverityText),
+				Body:          Body,
+				LogAttributes: expandJSON(LogAttributes),
+			},
 		})
 	}
 	rows.Close()
-	return logLines, rows.Err()
+
+	return getLogsPayload(logs, limit), rows.Err()
 }
 
 func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
-	query := makeSelectQuery("COUNT(*)", projectID, params)
+	query := makeSelectQuery("COUNT(*)", projectID, params, nil)
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return 0, err
@@ -222,12 +236,23 @@ func makeSeverityText(severityText string) modelInputs.SeverityText {
 	}
 }
 
-func makeSelectQuery(selectStr string, projectID int, params modelInputs.LogsParamsInput) sq.SelectBuilder {
+func makeSelectQuery(selectStr string, projectID int, params modelInputs.LogsParamsInput, after *string) sq.SelectBuilder {
 	query := sq.Select(selectStr).
 		From("logs").
-		Where(sq.Eq{"ProjectId": projectID}).
-		Where(sq.LtOrEq{"toUInt64(toDateTime(Timestamp))": uint64(params.DateRange.EndDate.Unix())}).
-		Where(sq.GtOrEq{"toUInt64(toDateTime(Timestamp))": uint64(params.DateRange.StartDate.Unix())})
+		Where(sq.Eq{"ProjectId": projectID})
+
+	if after != nil {
+		timestamp, uuid, err := decodeCursor(*after)
+		if err != nil {
+			fmt.Print("error decoding cursor")
+		}
+
+		query = query.Where("(toUInt64(toDateTime(Timestamp)), UUID) < (?, ?)", uint64(timestamp.Unix()), uuid)
+
+	} else {
+		query = query.Where(sq.LtOrEq{"toUInt64(toDateTime(Timestamp))": uint64(params.DateRange.EndDate.Unix())}).
+			Where(sq.GtOrEq{"toUInt64(toDateTime(Timestamp))": uint64(params.DateRange.StartDate.Unix())})
+	}
 
 	filters := makeFilters(params.Query)
 
