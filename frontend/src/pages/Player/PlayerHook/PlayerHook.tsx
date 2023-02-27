@@ -394,7 +394,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 									)
 								}
 							} catch (e: any) {
-								H.consumeError(
+								log(
 									e,
 									'Error direct downloading session payload',
 									{ chunk: `${_i}` },
