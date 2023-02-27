@@ -28,7 +28,7 @@ import { H } from 'highlight.run'
 import moment from 'moment'
 import { useEffect, useRef } from 'react'
 
-const CONCURRENT_PRELOADS = 2
+const CONCURRENT_PRELOADS = 1
 const PREVIOUS_ERROR_OBJECTS_TO_FETCH = 2
 
 export const usePreloadSessions = function ({

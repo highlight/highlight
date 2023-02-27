@@ -28,13 +28,12 @@ import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { delay } from 'lodash'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
 import SessionShareButtonV2 from '../SessionShareButton/SessionShareButtonV2'
 import * as styles from './SessionLevelBarV2.css'
-import { defaultSessionsQuery } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 
 export const SessionLevelBarV2: React.FC<
 	React.PropsWithChildren & {
@@ -50,7 +49,7 @@ export const SessionLevelBarV2: React.FC<
 	}>()
 	const { viewport, currentUrl, sessionResults, setSessionResults, session } =
 		useReplayerContext()
-	const { page } = useSearchContext()
+	const { page, backendSearchQuery } = useSearchContext()
 	const { isLoggedIn } = useAuthContext()
 	const {
 		showLeftPanel,
@@ -60,17 +59,16 @@ export const SessionLevelBarV2: React.FC<
 	} = usePlayerConfiguration()
 	const { selectedRightPanelTab, setSelectedRightPanelTab } =
 		usePlayerUIContext()
-	const query = useMemo(() => JSON.stringify(defaultSessionsQuery), [])
 	const { data } = useGetSessionsOpenSearchQuery({
 		variables: {
-			query,
+			query: backendSearchQuery?.searchQuery || '',
 			count: DEFAULT_PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: project_id!,
 			sort_desc: true,
 		},
 		fetchPolicy: 'cache-first',
-		skip: !project_id,
+		skip: !project_id || !backendSearchQuery?.searchQuery,
 	})
 
 	const sessionIdx = sessionResults.sessions.findIndex(

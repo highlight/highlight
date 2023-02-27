@@ -86,15 +86,13 @@ export const usePlayer = (): ReplayerContextInterface => {
 				secure_id,
 				index,
 			}
-			let result = ''
-			for await (const url of indexedDBString({
+			return await indexedDBString({
 				key: JSON.stringify(args),
 				fn: async () =>
-					(await rawFetchEventChunkURL(args)).data.event_chunk_url,
-			})) {
-				result = url
-			}
-			return result
+					(
+						await rawFetchEventChunkURL(args)
+					).data.event_chunk_url,
+			}).next()
 		},
 		[rawFetchEventChunkURL],
 	)
