@@ -8,30 +8,30 @@ on:
             - 'deploy/**'
             - '.github/workflows/deploy.yml'
 jobs:
-    migrate-database:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v3
-            - name: Setup Go
-              uses: actions/setup-go@v3
-              with:
-                  go-version-file: 'backend/go.mod'
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v1
-            - name: Migrate database
-              run: |
-                  cd backend/
-                  make migrate
-              env:
-                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+    # migrate-database:
+    #     runs-on: ubuntu-latest
+    #     steps:
+    #         - name: Checkout
+    #           uses: actions/checkout@v3
+    #         - name: Setup Go
+    #           uses: actions/setup-go@v3
+    #           with:
+    #               go-version-file: 'backend/go.mod'
+    #         - name: Install Doppler CLI
+    #           uses: dopplerhq/cli-action@v1
+    #         - name: Migrate database
+    #           run: |
+    #               cd backend/
+    #               make migrate
+    #           env:
+    #               DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
-            - name: Run Stoat Action
-              uses: stoat-dev/stoat-action@v0
-              if: always()
+    #         - name: Run Stoat Action
+    #           uses: stoat-dev/stoat-action@v0
+    #           if: always()
 
     deploy-session-delete-lambdas:
-        needs: migrate-database
+        # needs: migrate-database
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
@@ -121,7 +121,7 @@ jobs:
               if: always()
 
     deploy-digest-lambdas:
-        needs: migrate-database
+        # needs: migrate-database
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
@@ -187,7 +187,7 @@ jobs:
               if: always()
 
     deploy_backend:
-        needs: migrate-database
+        # needs: migrate-database
         runs-on: buildjet-2vcpu-ubuntu-2204-arm
         steps:
             - name: Check out the repo
