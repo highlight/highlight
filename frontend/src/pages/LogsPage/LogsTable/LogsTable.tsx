@@ -8,7 +8,6 @@ import {
 	IconSolidCheveronRight,
 	Stack,
 } from '@highlight-run/ui'
-import { Box, Stack } from '@highlight-run/ui'
 import { LogBody } from '@pages/LogsPage/LogsTable/LogBody'
 import { LogDetails } from '@pages/LogsPage/LogsTable/LogDetails'
 import { LogSeverityText } from '@pages/LogsPage/LogsTable/LogSeverityText'
@@ -75,11 +74,11 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 			},
 			{
 				accessorKey: 'node.body',
-				cell: ({ getValue, row }) => (
+				cell: ({ row, getValue }) => (
 					<LogBody
-						expanded={row.getIsExpanded()}
 						query={query}
 						body={getValue() as string}
+						expanded={row.getIsExpanded()}
 					/>
 				),
 			},
@@ -109,7 +108,7 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 	useEffect(() => {
 		// Collapse all rows when search changes
 		table.toggleAllRowsExpanded(false)
-	}, [logs])
+	}, [logEdges])
 
 	if (loading) {
 		return (

@@ -184,9 +184,6 @@ const LogsPage = () => {
 						)}
 					</Stack>
 
-<<<<<<< Updated upstream
-					<LogsTable data={logs} loading={loading} query={query} />
-=======
 					<div
 						style={{
 							height: '100vh',
@@ -203,7 +200,6 @@ const LogsPage = () => {
 							query={query}
 						/>
 					</div>
->>>>>>> Stashed changes
 				</Box>
 			</Box>
 		</>

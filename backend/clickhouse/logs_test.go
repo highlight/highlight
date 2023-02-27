@@ -50,7 +50,7 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 			StartDate: now.Add(-time.Hour * 2),
 			EndDate:   now.Add(-time.Hour * 1),
 		},
-	})
+	}, nil)
 	assert.NoError(t, err)
 
 	assert.Len(t, payload.Edges, 0)
@@ -60,7 +60,7 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 			StartDate: now.Add(-time.Hour * 1),
 			EndDate:   now.Add(time.Hour * 1),
 		},
-	})
+	}, nil)
 	assert.NoError(t, err)
 
 	assert.Len(t, payload.Edges, 1)
@@ -84,7 +84,7 @@ func TestReadLogsHasNextPage(t *testing.T) {
 
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-	})
+	}, nil)
 	assert.NoError(t, err)
 
 	assert.Len(t, payload.Edges, 100)
@@ -100,7 +100,7 @@ func TestReadLogsHasNextPage(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-	})
+	}, nil)
 	assert.NoError(t, err)
 
 	assert.True(t, payload.PageInfo.HasNextPage)
@@ -129,14 +129,13 @@ func TestReadLogsAfterCursor(t *testing.T) {
 
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-	})
+	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-		After:     &payload.Edges[0].Cursor,
-	})
+	}, &payload.PageInfo.EndCursor)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 }
@@ -160,28 +159,28 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "no match",
-	})
+	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 0)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "body", // direct match
-	})
+	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "od", // wildcard match
-	})
+	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "BODY", // case insensitive match
-	})
+	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 }
@@ -209,28 +208,28 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	logs, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "service:foo",
-	})
+	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, logs, 0)
 
 	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     `service:"image processor"`,
-	})
+	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, logs, 1)
 
 	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "service:*mage*",
-	})
+	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, logs, 1)
 
 	logs, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "service:image* workspace_id:1 user_id:1",
-	})
+	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, logs, 1)
 }
