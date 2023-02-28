@@ -8,7 +8,6 @@ import {
 import { GraphQLClient } from 'graphql-request'
 import { NodeOptions } from './types.js'
 import log from './log'
-
 import * as opentelemetry from '@opentelemetry/sdk-node'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
@@ -19,6 +18,7 @@ import {
 	trace,
 	Tracer,
 } from '@opentelemetry/api'
+import { hookConsole } from './hooks'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -39,6 +39,11 @@ export class Highlight {
 		this._debug = !!options.debug
 		this._projectID = options.projectID
 		this._backendUrl = options.backendUrl || 'https://pub.highlight.run'
+		if (!options.disableConsoleRecording) {
+			hookConsole((c) => {
+				this.log(JSON.stringify(c.message), c.level)
+			})
+		}
 		const client = new GraphQLClient(this._backendUrl, {
 			headers: {},
 		})
@@ -99,6 +104,33 @@ export class Highlight {
 			timestamp: new Date().toISOString(),
 			tags: tags,
 		})
+	}
+
+	log(
+		msg: string,
+		level: string,
+		secureSessionId?: string,
+		requestId?: string,
+	) {
+		if (!this.tracer) return
+		const span = this.tracer.startSpan('highlight-ctx')
+		// log specific events from https://github.com/highlight/highlight/blob/19ea44c616c432ef977c73c888c6dfa7d6bc82f3/sdk/highlight-go/otel.go#L34-L36
+		span.addEvent('log', {
+			['highlight.project_id']: this._projectID,
+			['log.severity']: level,
+			['log.message']: msg,
+			...(secureSessionId
+				? {
+						['highlight.session_id']: secureSessionId,
+				  }
+				: {}),
+			...(requestId
+				? {
+						['highlight.trace_id']: requestId,
+				  }
+				: {}),
+		})
+		span.end()
 	}
 
 	consumeCustomError(
