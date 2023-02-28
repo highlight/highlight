@@ -35,7 +35,7 @@ export class Highlight {
 		this._backendUrl = options.backendUrl || 'https://pub.highlight.run'
 		if (!options.disableConsoleRecording) {
 			hookConsole(options.consoleMethodsToRecord, (c) => {
-				this.log(c.date, JSON.stringify(c.message), c.level, c.stack)
+				this.log(c.date, c.message, c.level, c.stack)
 			})
 		}
 		const client = new GraphQLClient(this._backendUrl, {

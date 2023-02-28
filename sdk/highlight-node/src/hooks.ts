@@ -65,7 +65,7 @@ export function hookConsole(
 				cb({
 					date,
 					level: highlightLevel,
-					message: data.join('\n'),
+					message: data.join(' '),
 					stack: o.stack,
 				})
 			}
