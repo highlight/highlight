@@ -29,3 +29,11 @@ export const tagKey = style({
 export const tagValue = style({
 	flex: 1,
 })
+
+export const noShrink = style({
+	flexShrink: 0,
+})
+
+export const maxHalfWidth = style({
+	maxWidth: '50%',
+})

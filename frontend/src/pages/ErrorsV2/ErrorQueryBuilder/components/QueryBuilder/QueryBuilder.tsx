@@ -2284,9 +2284,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 						emphasis="medium"
 						iconLeft={<IconSolidSegment size={12} />}
 						iconRight={<IconSolidCheveronDown size={12} />}
-						onClick={() => {}}
 					>
-						{selectedSegment?.name}
+						<Text lines="1">{selectedSegment?.name}</Text>
 					</Menu.Button>
 				)
 			case QueryBuilderMode.SEGMENT_UPDATE:
@@ -2298,7 +2297,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						iconLeft={<IconSolidSegment size={12} />}
 						iconRight={<IconSolidCheveronDown size={12} />}
 					>
-						{selectedSegment?.name}
+						<Text lines="1">{selectedSegment?.name}</Text>
 					</Menu.Button>
 				)
 		}
@@ -2576,11 +2575,18 @@ function QueryBuilder(props: QueryBuilderProps) {
 							weight="medium"
 							color="n9"
 							userSelect="none"
+							lines="1"
 						>
 							{formatNumber(searchResultsCount)} results
 						</Text>
 					)}
-					<Box display="flex" gap="4" alignItems="center">
+					<Box
+						display="flex"
+						gap="4"
+						alignItems="center"
+						justifyContent="flex-end"
+						cssClass={newStyle.maxHalfWidth}
+					>
 						<Menu placement="bottom-end">
 							{actionButton}
 							<Menu.List cssClass={styles.menuList}>
@@ -2679,6 +2685,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 								emphasis="high"
 								icon={<IconSolidSegment size={12} />}
 								size="xSmall"
+								cssClass={newStyle.noShrink}
 							/>
 							<Menu.List cssClass={styles.menuList}>
 								<Box
@@ -2753,7 +2760,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 											selectSegment(segment)
 										}}
 									>
-										{segment.name}
+										<Text lines="1">{segment.name}</Text>
 									</Menu.Item>
 								))}
 								{segmentOptions.length > 0 && <Menu.Divider />}
