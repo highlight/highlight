@@ -1,6 +1,6 @@
 import { Box, Callout, Text } from '@highlight-run/ui'
-import React, { useEffect } from 'react'
 import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
+import React, { useEffect } from 'react'
 
 const NoActiveSessionCard = () => {
 	const { setShowLeftPanel } = useErrorPageConfiguration()
