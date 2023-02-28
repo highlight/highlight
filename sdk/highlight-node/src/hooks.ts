@@ -16,7 +16,7 @@ export function hookOutput(
 	}
 }
 
-function getConsoleSymbol(name: string) {
+function getConsoleSymbol(name: string): keyof Console {
 	/*
 	 * The symbols of functions in the console module are somehow not in the
 	 * global registry.  So we need to use this hack to get the real symbols
@@ -25,7 +25,7 @@ function getConsoleSymbol(name: string) {
 	const symString = Symbol.for(name).toString()
 	return Object.getOwnPropertySymbols(console).filter(
 		(x) => x.toString() === symString,
-	)[0]
+	)[0] as unknown as keyof Console
 }
 
 interface ConsolePayload {
@@ -41,7 +41,10 @@ export function hookConsole(cb: (cb: ConsolePayload) => void) {
 	 * devtools logging with correct file:lineno references, and allows
 	 * us to support file logging and logging windows.
 	 */
-	process.env.TERM = 'dumb' // Prevent color tty commands
+	const highlightSymbol = getConsoleSymbol('highlightWriteToConsole')
+	if (console[highlightSymbol]) {
+		return
+	}
 	let curLogLevel: any
 	const descriptors = Object.getOwnPropertyDescriptors(console)
 	const levels = {
@@ -61,13 +64,12 @@ export function hookConsole(cb: (cb: ConsolePayload) => void) {
 			get: () => ((curLogLevel = level), descriptors[fn].value),
 		})
 	}
-	const kWriteToConsoleSymbol = getConsoleSymbol('kWriteToConsole')
+	const origWrite = console[highlightSymbol]
 	// @ts-ignore
-	const kWriteToConsoleFunction = console[kWriteToConsoleSymbol]
-	// @ts-ignore
-	console[kWriteToConsoleSymbol] = function (useStdErr, message) {
+	console[highlightSymbol] = function (useStdErr, message) {
 		try {
-			return kWriteToConsoleFunction.call(this, useStdErr, message)
+			// @ts-ignore
+			return origWrite.call(this, useStdErr, message)
 		} finally {
 			const o: any = {}
 			const saveTraceLimit = Error.stackTraceLimit
