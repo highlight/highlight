@@ -75,7 +75,7 @@ const LogsPage = () => {
 			},
 		},
 		skip: !project_id,
-		nextFetchPolicy: 'cache-first', // See: https://stackoverflow.com/a/66489126
+		fetchPolicy: 'cache-and-network',
 	})
 
 	const { data: totalCount, loading: logCountLoading } =

@@ -22,7 +22,7 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import clsx from 'clsx'
-import React, { Fragment, useEffect, useState } from 'react'
+import React, { Fragment, useEffect, useMemo, useState } from 'react'
 
 import * as styles from './LogsTable.css'
 
@@ -86,7 +86,7 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 		[query],
 	)
 
-	let logEdges: LogEdge[] = []
+	let logEdges: LogEdge[] = useMemo(() => [], [])
 
 	if (data?.logs?.edges) {
 		logEdges = data.logs.edges
@@ -108,7 +108,7 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 	useEffect(() => {
 		// Collapse all rows when search changes
 		table.toggleAllRowsExpanded(false)
-	}, [logEdges])
+	}, [logEdges, table])
 
 	if (loading) {
 		return (
