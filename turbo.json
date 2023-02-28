@@ -61,7 +61,7 @@
 		},
 		"lint": {},
 		"test": {
-			"dependsOn": ["prepublish", "enforce-size"],
+			"dependsOn": ["prepublish", "enforce-size", "lint"],
 			"outputs": [],
 			"inputs": [
 				"src/**/*.tsx",
