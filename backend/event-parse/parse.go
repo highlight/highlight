@@ -91,6 +91,10 @@ func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
 		return nil, errors.Wrap(err, "error fetching styles")
 	}
 
+	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
+		return nil, errors.Wrapf(err, "error fetching styles, %s responded %d", href, resp.StatusCode)
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading styles")
