@@ -43,6 +43,7 @@
 		"frontend:start": "yarn dev:frontend",
 		"g": "yarn generate",
 		"generate": "hygen",
+		"lint": "yarn turbo run lint --filter frontend...",
 		"prepare": "husky install && patch-package",
 		"prepublish": "yarn workspace scripts prepublish:client",
 		"publish:all": "run-p --print-label publish:client publish:turbo publish:render",

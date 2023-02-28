@@ -47,6 +47,9 @@ jobs:
             - name: Check formatting
               run: yarn format-check
 
+            - name: Lint
+              run: yarn lint
+
             - name: Build & test
               run: yarn test:all
               env:
