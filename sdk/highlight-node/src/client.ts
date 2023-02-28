@@ -34,7 +34,7 @@ export class Highlight {
 		this._projectID = options.projectID
 		this._backendUrl = options.backendUrl || 'https://pub.highlight.run'
 		if (!options.disableConsoleRecording) {
-			hookConsole((c) => {
+			hookConsole(options.consoleMethodsToRecord, (c) => {
 				this.log(c.date, JSON.stringify(c.message), c.level, c.stack)
 			})
 		}

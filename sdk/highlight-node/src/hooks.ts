@@ -1,3 +1,4 @@
+import { NodeOptions } from './types.js'
 // inspired by https://github.com/getsentry/sentry-javascript/issues/5639
 
 export function hookOutput(
@@ -27,23 +28,31 @@ type ConsoleFn = (...data: any) => void
 
 let consoleHooked = false
 
-export function hookConsole(cb: (cb: ConsolePayload) => void) {
+export function hookConsole(
+	methodsToRecord: string[] | undefined,
+	cb: (cb: ConsolePayload) => void,
+) {
 	if (consoleHooked) return
 	consoleHooked = true
-	const levels = [
-		'debug',
-		'info',
-		'log',
-		'count',
-		'dir',
-		'warn',
-		'assert',
-		'error',
-		'trace',
-	] as (keyof Console)[]
-	for (const level of levels) {
-		const origWrite = console[level] as ConsoleFn
-		;(console[level] as ConsoleFn) = function (...data: any[]) {
+	const levels = {
+		debug: 'debug',
+		info: 'info',
+		log: 'info',
+		count: 'info',
+		dir: 'info',
+		warn: 'warn',
+		assert: 'warn',
+		error: 'panic',
+		trace: 'trace',
+	} as { [k in keyof Console]: string }
+	for (const [level, highlightLevel] of Object.entries(levels)) {
+		if (methodsToRecord?.length && methodsToRecord.indexOf(level) === -1) {
+			continue
+		}
+		const origWrite = console[level as keyof Console] as ConsoleFn
+		;(console[level as keyof Console] as ConsoleFn) = function (
+			...data: any[]
+		) {
 			const date = new Date()
 			try {
 				return origWrite(...data)
