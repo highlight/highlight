@@ -42,7 +42,7 @@ export function hookConsole(
 		dir: 'info',
 		warn: 'warn',
 		assert: 'warn',
-		error: 'panic',
+		error: 'error',
 		trace: 'trace',
 	} as { [k in keyof Console]: string }
 	for (const [level, highlightLevel] of Object.entries(levels)) {
@@ -64,7 +64,7 @@ export function hookConsole(
 				Error.stackTraceLimit = saveTraceLimit
 				cb({
 					date,
-					level,
+					level: highlightLevel,
 					message: data.join('\n'),
 					stack: o.stack,
 				})
