@@ -39,6 +39,7 @@ input BackendErrorObjectInput {
 	request_id: String
 	trace_id: String
 	span_id: String
+	log_uuid: String
 	event: String!
 	type: String!
 	url: String!

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi"
+	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	model2 "github.com/highlight-run/highlight/backend/model"
@@ -31,12 +32,12 @@ type Handler struct {
 	resolver *graph.Resolver
 }
 
-func castString(v interface{}, fallback string) string {
-	s, _ := v.(string)
-	if s == "" {
+func cast[T string | int64 | float64](v interface{}, fallback T) T {
+	c, ok := v.(T)
+	if !ok {
 		return fallback
 	}
-	return s
+	return c
 }
 
 func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID, source *string) {
@@ -80,29 +81,37 @@ func projectToInt(projectID string) (int, error) {
 	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
 }
 
-func getAttributesMaps(resourceAttributes, eventAttributes map[string]any) (map[string]string, map[string]string) {
-	resourceAttributesMap := make(map[string]string)
+func getAttributesMaps(resourceAttributes, eventAttributes map[string]any) (map[string]any, map[string]any) {
+	resourceAttributesMap := make(map[string]any)
 	for k, v := range resourceAttributes {
 		for _, attr := range highlight.InternalAttributes {
 			if k == attr {
 				continue
 			}
 		}
-		vStr := castString(v, "")
+		vStr := cast(v, "")
 		if vStr != "" {
-			resourceAttributesMap[k] = castString(v, "")
+			resourceAttributesMap[k] = vStr
+		}
+		vInt := cast(v, "")
+		if vStr != "" {
+			resourceAttributesMap[k] = vInt
+		}
+		vFlt := cast(v, "")
+		if vStr != "" {
+			resourceAttributesMap[k] = vFlt
 		}
 	}
-	logAttributesMap := make(map[string]string)
+	logAttributesMap := make(map[string]any)
 	for k, v := range eventAttributes {
 		for _, attr := range highlight.InternalAttributes {
 			if k == attr {
 				continue
 			}
 		}
-		vStr := castString(v, "")
+		vStr := cast(v, "")
 		if vStr != "" {
-			logAttributesMap[k] = castString(v, "")
+			logAttributesMap[k] = cast(v, "")
 		}
 	}
 	return resourceAttributesMap, logAttributesMap
@@ -149,8 +158,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		var projectID, sessionID, requestID, source string
 		resource := spans.At(i).Resource()
 		resourceAttributes := resource.Attributes().AsRaw()
-		sdkLanguage := castString(resource.Attributes().AsRaw()[string(semconv.TelemetrySDKLanguageKey)], "")
-		serviceName := castString(resource.Attributes().AsRaw()[string(semconv.ServiceNameKey)], "")
+		sdkLanguage := cast(resource.Attributes().AsRaw()[string(semconv.TelemetrySDKLanguageKey)], "")
+		serviceName := cast(resource.Attributes().AsRaw()[string(semconv.ServiceNameKey)], "")
 		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source)
 		scopeScans := spans.At(i).ScopeSpans()
 		for j := 0; j < scopeScans.Len(); j++ {
@@ -172,10 +181,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					setHighlightAttributes(eventAttributes, &projectID, &sessionID, &requestID, &source)
 					if event.Name() == semconv.ExceptionEventName {
 						ts := event.Timestamp().AsTime()
-						traceID := castString(requestID, span.TraceID().String())
+						traceID := cast(requestID, span.TraceID().String())
 						spanID := span.SpanID().String()
-						excMessage := castString(eventAttributes[string(semconv.ExceptionMessageKey)], "")
+						excMessage := cast(eventAttributes[string(semconv.ExceptionMessageKey)], "")
 
+						uuid := uuid.New().String()
 						func() {
 							projectIDInt, err := projectToInt(projectID)
 							if err != nil {
@@ -184,6 +194,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							}
 							resourceAttributesMap, logAttributesMap := getAttributesMaps(resourceAttributes, eventAttributes)
 							logRow := &clickhouse.LogRow{
+								UUID:               uuid,
 								Timestamp:          ts,
 								TraceId:            traceID,
 								SpanId:             spanID,
@@ -208,9 +219,9 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						}()
 
 						func() {
-							excType := castString(eventAttributes[string(semconv.ExceptionTypeKey)], source)
-							errorUrl := castString(eventAttributes[highlight.ErrorURLAttribute], "")
-							stackTrace := castString(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
+							excType := cast(eventAttributes[string(semconv.ExceptionTypeKey)], source)
+							errorUrl := cast(eventAttributes[highlight.ErrorURLAttribute], "")
+							stackTrace := cast(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
 							if excType == "" && excMessage == "" {
 								log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Error("otel received exception with no type and no message")
 								return
@@ -224,6 +235,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 								RequestID:       &requestID,
 								TraceID:         pointy.String(traceID),
 								SpanID:          pointy.String(spanID),
+								LogUUID:         pointy.String(uuid),
 								Event:           excMessage,
 								Type:            excType,
 								Source: strings.Join(lo.Filter([]string{
@@ -254,8 +266,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							}
 						}()
 					} else if event.Name() == highlight.LogEvent {
-						logSev := castString(eventAttributes[string(hlog.LogSeverityKey)], "unknown")
-						logMessage := castString(eventAttributes[string(hlog.LogMessageKey)], "")
+						logSev := cast(eventAttributes[string(hlog.LogSeverityKey)], "unknown")
+						logMessage := cast(eventAttributes[string(hlog.LogMessageKey)], "")
 						if logMessage == "" {
 							log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received log with no message")
 							continue
@@ -269,7 +281,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						lvl, _ := log.ParseLevel(logSev)
 						logRow := &clickhouse.LogRow{
 							Timestamp:          event.Timestamp().AsTime(),
-							TraceId:            castString(requestID, span.TraceID().String()),
+							TraceId:            cast(requestID, span.TraceID().String()),
 							SpanId:             span.SpanID().String(),
 							SeverityText:       logSev,
 							SeverityNumber:     int32(lvl),
@@ -413,7 +425,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		var projectID, sessionID, requestID, source string
 		resource := resourceLogs.At(i).Resource()
 		resourceAttributes := resource.Attributes().AsRaw()
-		serviceName := castString(resource.Attributes().AsRaw()[string(semconv.ServiceNameKey)], "")
+		serviceName := cast(resource.Attributes().AsRaw()[string(semconv.ServiceNameKey)], "")
 		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source)
 		scopeLogs := resourceLogs.At(i).ScopeLogs()
 		for j := 0; j < scopeLogs.Len(); j++ {

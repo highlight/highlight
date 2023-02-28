@@ -23,8 +23,8 @@ type LogRow struct {
 	SeverityNumber     int32
 	ServiceName        string
 	Body               string
-	ResourceAttributes map[string]string
-	LogAttributes      map[string]string
+	ResourceAttributes map[string]any
+	LogAttributes      map[string]any
 	ProjectId          uint32
 	SecureSessionId    string
 }
