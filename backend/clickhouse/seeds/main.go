@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func makeRandLogAttributes() map[string]string {
+func makeRandLogAttributes() map[string]any {
 	randomKeys := [21]string{
 		"key1",
 		"key2",
@@ -68,7 +68,7 @@ func makeRandLogAttributes() map[string]string {
 		"flounder",
 	}
 
-	logAttributes := map[string]string{}
+	logAttributes := map[string]any{}
 
 	randomKey := randomKeys[rand.Intn(len(randomKeys))]
 	randomVal := randomVals[rand.Intn(len(randomVals))]
