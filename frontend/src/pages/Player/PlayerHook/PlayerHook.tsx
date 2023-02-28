@@ -28,7 +28,6 @@ import {
 	PlayerReducer,
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
-import analytics from '@util/analytics'
 import { indexedDBFetch, indexedDBString } from '@util/db'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
@@ -49,6 +48,7 @@ import {
 	useSetPlayerTimestampFromSearchParam,
 } from './utils'
 import usePlayerConfiguration from './utils/usePlayerConfiguration'
+import analytics from '@util/analytics'
 
 export const usePlayer = (): ReplayerContextInterface => {
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
@@ -159,6 +159,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const currentChunkIdx = useRef<number>(0)
 	// the timestamp we are moving to next.
 	const targetTime = useRef<number>()
+	// the timestamp we are moving to next.
+	const targetState = useRef<ReplayerState>()
 	// the current inactivity period we are jumping past
 	const inactivityEndTime = useRef<number>()
 	// chunk indexes that are currently being loaded (fetched over the network)
@@ -311,7 +313,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			endTime?: number,
 			action?: ReplayerState,
 			forceLoadNext?: boolean,
-			background?: boolean,
 		) => {
 			if (
 				!project_id ||
@@ -464,7 +465,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 							},
 						)
 					}
-				} else if (background) {
+				} else if (!action) {
 					log(
 						'PlayerHook.tsx:ensureChunksLoaded',
 						'ignoring background load action',
@@ -625,35 +626,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 				}
 			}
 			log('PlayerHook.tsx', 'seeking to', time)
+			targetState.current = state.replayerState
 			dispatch({ type: PlayerActionType.setTime, time })
-			return new Promise<void>((r) =>
-				requestAnimationFrame(() =>
-					ensureChunksLoaded(
-						time,
-						undefined,
-						state.replayerState,
-					).then(() => {
-						// Log how long it took to move to the new time.
-						const timelineChangeTime =
-							timerEnd('timelineChangeTime')
-						analytics.track('Session seek', {
-							time,
-							duration: timelineChangeTime,
-							secure_id: state.session_secure_id,
-						})
-						r()
-					}),
-				),
-			)
+			return Promise.resolve()
 		},
-		[
-			ensureChunksLoaded,
-			getInactivityEnd,
-			skipInactive,
-			state.isLiveMode,
-			state.replayerState,
-			state.session_secure_id,
-		],
+		[getInactivityEnd, skipInactive, state.isLiveMode, state.replayerState],
 	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1020,10 +997,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 		ensureChunksLoaded(
 			state.time,
 			state.time + LOOKAHEAD_MS,
-			undefined,
+			targetState.current,
 			lastLoadedEventTimestamp - state.time < LOOKAHEAD_MS,
-			true,
 		).then()
+		targetState.current = undefined
 	}, [
 		state.time,
 		ensureChunksLoaded,
