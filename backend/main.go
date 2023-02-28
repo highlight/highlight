@@ -306,7 +306,7 @@ func main() {
 		if os.Getenv("OBJECT_STORAGE_FS") != "" {
 			fsRoot = os.Getenv("OBJECT_STORAGE_FS")
 		}
-		if storageClient, err = storage.NewFSClient(ctx, fsRoot, localhostCertPath, localhostKeyPath, "8085"); err != nil {
+		if storageClient, err = storage.NewFSClient(ctx, os.Getenv("PRIVATE_GRAPH_URI"), fsRoot); err != nil {
 			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
 		}
 	} else {
@@ -428,6 +428,9 @@ func main() {
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
 			r.Use(highlightChi.Middleware)
+			if fsClient, ok := storageClient.(*storage.FilesystemClient); ok {
+				fsClient.SetupHTTPSListener(r)
+			}
 			r.Get("/assets/{project_id}/{hash_val}", privateResolver.AssetHandler)
 			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
 

@@ -16,17 +16,15 @@ RUN go work sync
 RUN cd /build/backend && go mod download
 RUN cd /build/e2e/go && go mod download
 RUN cd /build/sdk/highlight-go && go mod download
+COPY ../backend ./backend
+COPY ../sdk/highlight-go ./sdk/highlight-go
+COPY ../e2e/go ./e2e/go
 
 FROM backend-base as backend-dev
 WORKDIR /build/backend
 CMD ["make", "start-no-doppler"]
 
 FROM backend-base as backend
-COPY ../backend ./backend
-COPY ../sdk/highlight-go ./sdk/highlight-go
-COPY ../e2e/go ./e2e/go
-
 WORKDIR /build/backend
 RUN GOOS=linux GOARCH=amd64 go build -o /bin/backend
-
 CMD ["/bin/backend"]

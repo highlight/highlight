@@ -28,6 +28,7 @@ import {
 	PlayerReducer,
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
+import analytics from '@util/analytics'
 import { indexedDBFetch, indexedDBString } from '@util/db'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
@@ -48,7 +49,6 @@ import {
 	useSetPlayerTimestampFromSearchParam,
 } from './utils'
 import usePlayerConfiguration from './utils/usePlayerConfiguration'
-import analytics from '@util/analytics'
 
 export const usePlayer = (): ReplayerContextInterface => {
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
@@ -325,13 +325,21 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 			if (action) replayerStateBeforeLoad.current = action
 
-			const startIdx = getChunkIdx(
-				state.sessionMetadata.startTime + startTime,
+			const startIdx = Math.max(
+				0,
+				getChunkIdx(state.sessionMetadata.startTime + startTime),
 			)
 			let endIdx = endTime
 				? getChunkIdx(state.sessionMetadata.startTime + endTime)
 				: startIdx
 			if (forceLoadNext) endIdx += 1
+
+			const lastChunkIdx =
+				eventChunksData?.event_chunks[
+					eventChunksData?.event_chunks.length - 1
+				].chunk_index
+			if (lastChunkIdx !== undefined)
+				endIdx = Math.min(lastChunkIdx, endIdx)
 
 			const promises = []
 			log(
