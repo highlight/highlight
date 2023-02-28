@@ -380,32 +380,30 @@ export const usePlayer = (): ReplayerContextInterface => {
 								log('PlayerHook.tsx', 'loading chunk', {
 									url,
 								})
-								for await (const chunkResponse of indexedDBFetch(
-									url,
-								)) {
-									log('PlayerHook.tsx', 'chunk data', {
-										chunkResponse,
-									})
-									chunkEventsSet(
-										_i,
-										toHighlightEvents(
-											await chunkResponse.json(),
-										),
-									)
-									loadingChunks.current.delete(_i)
-									log(
-										'PlayerHook.tsx:ensureChunksLoaded',
-										'set data for chunk',
-										_i,
-									)
-								}
+								const iter = indexedDBFetch(url)
+								const chunkResponse = (await iter.next()).value!
+								log('PlayerHook.tsx', 'chunk data', {
+									chunkResponse,
+								})
+								chunkEventsSet(
+									_i,
+									toHighlightEvents(
+										await chunkResponse.json(),
+									),
+								)
+								log(
+									'PlayerHook.tsx:ensureChunksLoaded',
+									'set data for chunk',
+									_i,
+								)
+								return _i
 							} catch (e: any) {
 								log(
 									e,
 									'Error direct downloading session payload',
 									{ chunk: `${_i}` },
 								)
-								return [_i, []]
+								return -1
 							} finally {
 								loadingChunks.current.delete(_i)
 							}
@@ -428,23 +426,44 @@ export const usePlayer = (): ReplayerContextInterface => {
 				toRemove.forEach((idx) => chunkEventsRemove(idx))
 				// while we wait for the promises to resolve, set the targetTime as a lock for other ensureChunksLoaded
 				targetTime.current = startTime
-				await Promise.all(promises)
+				const loadedChunks = new Set<number>(
+					await Promise.all(promises),
+				)
 				// check that the target chunk has not moved since we started the loading.
 				// eg. if we start loading, then someone clicks to a new spot, we should cancel first action.
 				if (inactivityEndTime.current) {
-					log(
-						'PlayerHook.tsx:ensureChunksLoaded',
-						'calling dispatchAction due to inactive skip',
-						{
-							startTime,
-							inactivityEndTime: inactivityEndTime.current,
-							promises,
-							chunks: chunkEventsRef.current,
-							prevState: replayerStateBeforeLoad.current,
-						},
+					const inactivityEndChunkIdx = getChunkIdx(
+						state.sessionMetadata.startTime +
+							inactivityEndTime.current,
 					)
-					dispatchAction(inactivityEndTime.current)
-					inactivityEndTime.current = undefined
+					if (loadedChunks.has(inactivityEndChunkIdx)) {
+						log(
+							'PlayerHook.tsx:ensureChunksLoaded',
+							'calling dispatchAction due to inactive skip',
+							{
+								inactivityEndTime: inactivityEndTime.current,
+								loadedChunks,
+								inactivityEndChunkIdx,
+								chunks: chunkEventsRef.current,
+								prevState: replayerStateBeforeLoad.current,
+							},
+						)
+						dispatchAction(inactivityEndTime.current)
+						inactivityEndTime.current = undefined
+					} else {
+						log(
+							'PlayerHook.tsx:ensureChunksLoaded',
+							'cancelling dispatchAction due to inactive skip',
+							'chunk not loaded',
+							{
+								inactivityEndTime: inactivityEndTime.current,
+								loadedChunks,
+								inactivityEndChunkIdx,
+								chunks: chunkEventsRef.current,
+								prevState: replayerStateBeforeLoad.current,
+							},
+						)
+					}
 				} else if (background) {
 					log(
 						'PlayerHook.tsx:ensureChunksLoaded',
@@ -463,7 +482,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 						{
 							startTime,
 							lastTime: lastTimeRef.current,
-							promises,
 							chunks: chunkEventsRef.current,
 							prevState: replayerStateBeforeLoad.current,
 						},
