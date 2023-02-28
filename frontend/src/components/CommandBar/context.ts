@@ -19,7 +19,7 @@ export const ATTRIBUTES = [
 	},
 	{
 		type: SESSION_TYPE,
-		name: 'visited_url',
+		name: 'visited-url',
 		displayName: 'Visited URL',
 	},
 	{
@@ -29,7 +29,7 @@ export const ATTRIBUTES = [
 	},
 	{
 		type: SESSION_TYPE,
-		name: 'browser',
+		name: 'browser_name',
 		displayName: 'Browser',
 	},
 	{
@@ -49,7 +49,7 @@ export const ATTRIBUTES = [
 	},
 	{
 		type: ERROR_TYPE,
-		name: 'event',
+		name: 'Event',
 		displayName: 'Error Body',
 	},
 ] as const

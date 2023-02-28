@@ -1108,6 +1108,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	reload: 'Reloaded',
 	state: 'State',
 	event: 'Error Body',
+	Event: 'Error Body',
 	timestamp: 'Date',
 	has_rage_clicks: 'Has Rage Clicks',
 	has_errors: 'Has Errors',
