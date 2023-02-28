@@ -59,6 +59,7 @@
 		"enforce-size": {
 			"dependsOn": ["build"]
 		},
+		"lint": {},
 		"test": {
 			"dependsOn": ["prepublish", "enforce-size"],
 			"outputs": [],
