@@ -159,6 +159,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const currentChunkIdx = useRef<number>(0)
 	// the timestamp we are moving to next.
 	const targetTime = useRef<number>()
+	// the current inactivity period we are jumping past
+	const inactivityEndTime = useRef<number>()
 	// chunk indexes that are currently being loaded (fetched over the network)
 	const loadingChunks = useRef<Set<number>>(new Set<number>())
 	// used to track latest time atomically where the state may be out of date
@@ -429,7 +431,21 @@ export const usePlayer = (): ReplayerContextInterface => {
 				await Promise.all(promises)
 				// check that the target chunk has not moved since we started the loading.
 				// eg. if we start loading, then someone clicks to a new spot, we should cancel first action.
-				if (background) {
+				if (inactivityEndTime.current) {
+					log(
+						'PlayerHook.tsx:ensureChunksLoaded',
+						'calling dispatchAction due to inactive skip',
+						{
+							startTime,
+							inactivityEndTime: inactivityEndTime.current,
+							promises,
+							chunks: chunkEventsRef.current,
+							prevState: replayerStateBeforeLoad.current,
+						},
+					)
+					dispatchAction(inactivityEndTime.current)
+					inactivityEndTime.current = undefined
+				} else if (background) {
 					log(
 						'PlayerHook.tsx:ensureChunksLoaded',
 						'ignoring background load action',
@@ -955,7 +971,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.replayerState === ReplayerState.Playing
 		) {
 			inactivityEnd = getInactivityEnd(state.time)
-			if (inactivityEnd !== undefined) {
+			if (
+				inactivityEnd !== undefined &&
+				inactivityEnd !== inactivityEndTime.current
+			) {
 				log(
 					'PlayerHook.tsx',
 					'seeking to',
@@ -963,6 +982,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					'due to inactivity at',
 					state.time,
 				)
+				inactivityEndTime.current = inactivityEnd
 				play(inactivityEnd).then()
 				return
 			}
