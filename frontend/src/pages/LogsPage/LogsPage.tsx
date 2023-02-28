@@ -63,7 +63,7 @@ const LogsPage = () => {
 
 	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
 
-	const { data, loading, fetchMore, refetch } = useGetLogsQuery({
+	const { data, loading, fetchMore } = useGetLogsQuery({
 		variables: {
 			project_id: project_id!,
 			params: {
@@ -75,7 +75,7 @@ const LogsPage = () => {
 			},
 		},
 		skip: !project_id,
-		nextFetchPolicy: 'cache-first', // See: https://stackoverflow.com/a/66489126
+		fetchPolicy: 'cache-and-network',
 	})
 
 	const { data: totalCount, loading: logCountLoading } =
@@ -95,29 +95,11 @@ const LogsPage = () => {
 
 	const handleFormSubmit = (value: string) => {
 		setQuery(value)
-		refetch({
-			params: {
-				query,
-				date_range: {
-					start_date: moment(startDate).format(FORMAT),
-					end_date: moment(endDate).format(FORMAT),
-				},
-			},
-		})
 	}
 
 	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
 		setStartDate(newStartDate)
 		setEndDate(newEndDate)
-		refetch({
-			params: {
-				query,
-				date_range: {
-					start_date: moment(newStartDate).format(FORMAT),
-					end_date: moment(newEndDate).format(FORMAT),
-				},
-			},
-		})
 	}
 
 	const fetchMoreOnBottomReached = React.useCallback(
