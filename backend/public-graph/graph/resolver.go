@@ -16,6 +16,8 @@ import (
 	"time"
 
 	"github.com/PaesslerAG/jsonpath"
+	"github.com/highlight-run/go-resthooks"
+	"github.com/leonelquinteros/hubspot"
 	"github.com/mssola/user_agent"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -27,12 +29,12 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
+	highlightHubspot "github.com/highlight-run/highlight/backend/hubspot"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -61,8 +63,9 @@ type Resolver struct {
 	ProducerQueue   *kafka_queue.Queue
 	BatchedQueue    *kafka_queue.Queue
 	MailClient      *sendgrid.Client
-	StorageClient   *storage.StorageClient
+	StorageClient   storage.Client
 	OpenSearch      *opensearch.Client
+	HubspotApi      *highlightHubspot.HubspotApi
 	Redis           *redis.Client
 	Clickhouse      *clickhouse.Client
 	RH              *resthooks.Resthook
@@ -1472,6 +1475,20 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 		return e.Wrap(err, "error querying backend_setup flag")
 	}
 	if backendSetupCount < 1 {
+		if !util.IsDevEnv() {
+			project, err := r.getProject(projectID)
+			if err != nil {
+				log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
+			} else {
+				if err := r.HubspotApi.UpdateCompanyProperty(ctx, project.WorkspaceID, []hubspot.Property{{
+					Name:     "backend_setup",
+					Property: "backend_setup",
+					Value:    true,
+				}}); err != nil {
+					log.WithContext(ctx).Errorf("failed to update hubspot")
+				}
+			}
+		}
 		if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
 			return e.Wrap(err, "error updating backend_setup flag")
 		}
@@ -1845,6 +1862,14 @@ func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
 		return nil, e.Wrap(err, "error querying workspace")
 	}
 	return &workspace, nil
+}
+
+func (r *Resolver) getProject(projectID int) (*model.Project, error) {
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+	return &project, nil
 }
 
 func (r *Resolver) isWithinBillingQuota(ctx context.Context, project *model.Project, workspace *model.Workspace, now time.Time) (bool, float64) {
@@ -2536,7 +2561,7 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 		if len(zRange) != 0 {
 			pushToS3Span, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.SaveSessionData",
 				tracer.ResourceName("go.parseEvents.processWithRedis.pushToS3"), tracer.Tag("project_id", projectId))
-			if err := r.StorageClient.PushRawEventsToS3(ctx, sessionId, projectId, payloadType, zRange); err != nil {
+			if err := r.StorageClient.PushRawEvents(ctx, sessionId, projectId, payloadType, zRange); err != nil {
 				return e.Wrap(err, "error pushing events to S3")
 			}
 			pushToS3Span.Finish()

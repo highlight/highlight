@@ -15459,9 +15459,9 @@ __metadata:
   linkType: hard
 
 "@types/prettier@npm:^2.3.2":
-  version: 2.7.1
-  resolution: "@types/prettier@npm:2.7.1"
-  checksum: 5e3f58e229d6c73b5f5cae2e8f96c1c4a5b5805f83459e17a045ba8e96152b1d38e86b63e3172fb159dac923388699660862b75b2d37e54220805f0e691e26f1
+  version: 2.7.2
+  resolution: "@types/prettier@npm:2.7.2"
+  checksum: b47d76a5252265f8d25dd2fe2a5a61dc43ba0e6a96ffdd00c594cb4fd74c1982c2e346497e3472805d97915407a09423804cc2110a0b8e1b22cffcab246479b7
   languageName: node
   linkType: hard
 
@@ -35171,6 +35171,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"next-build-id@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "next-build-id@npm:3.0.0"
+  checksum: e36e15979420c343e32a5e7a55efc1300a4b12aea1637df8300f0085ca862bf78e4fd3ac969ce7c7757cfad40c3c77e02ae4859be77692c9bdcb4243cbabb810
+  languageName: node
+  linkType: hard
+
 "next@npm:13.1.6, next@npm:^13.1.6":
   version: 13.1.6
   resolution: "next@npm:13.1.6"
@@ -35252,6 +35259,7 @@ __metadata:
     eslint-config-next: 13.1.6
     highlight.run: "workspace:*"
     next: 13.1.6
+    next-build-id: ^3.0.0
     react: 18.2.0
     react-dom: 18.2.0
     typescript: 4.9.5

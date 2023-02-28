@@ -24,12 +24,11 @@ import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConf
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import { defaultSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { delay } from 'lodash'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
@@ -50,7 +49,7 @@ export const SessionLevelBarV2: React.FC<
 	}>()
 	const { viewport, currentUrl, sessionResults, setSessionResults, session } =
 		useReplayerContext()
-	const { page } = useSearchContext()
+	const { page, backendSearchQuery } = useSearchContext()
 	const { isLoggedIn } = useAuthContext()
 	const {
 		showLeftPanel,
@@ -60,17 +59,16 @@ export const SessionLevelBarV2: React.FC<
 	} = usePlayerConfiguration()
 	const { selectedRightPanelTab, setSelectedRightPanelTab } =
 		usePlayerUIContext()
-	const query = useMemo(() => JSON.stringify(defaultSessionsQuery), [])
 	const { data } = useGetSessionsOpenSearchQuery({
 		variables: {
-			query,
+			query: backendSearchQuery?.searchQuery || '',
 			count: DEFAULT_PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: project_id!,
 			sort_desc: true,
 		},
 		fetchPolicy: 'cache-first',
-		skip: !project_id,
+		skip: !project_id || !backendSearchQuery?.searchQuery,
 	})
 
 	const sessionIdx = sessionResults.sessions.findIndex(

@@ -153,14 +153,12 @@ const BillingPage = () => {
 			workspace_id: workspaceId!,
 		},
 		skip: !workspaceId,
-		onCompleted: () => {
-			if (billingData?.billingDetails?.plan?.interval !== undefined) {
-				setSubscriptionInterval(
-					billingData.billingDetails.plan.interval,
-				)
+		onCompleted: (data) => {
+			if (data?.billingDetails?.plan?.interval !== undefined) {
+				setSubscriptionInterval(data.billingDetails.plan.interval)
 			}
-			if (billingData?.workspace?.retention_period) {
-				setRetentionPeriod(billingData?.workspace?.retention_period)
+			if (data?.workspace?.retention_period) {
+				setRetentionPeriod(data?.workspace?.retention_period)
 			}
 		},
 	})
@@ -358,6 +356,10 @@ const BillingPage = () => {
 				subscriptionInterval={
 					billingData?.billingDetails.plan.interval ??
 					SubscriptionInterval.Monthly
+				}
+				retentionPeriod={
+					billingData?.workspace?.retention_period ??
+					RetentionPeriod.SixMonths
 				}
 				billingPeriodEnd={tryCastDate(
 					billingData?.workspace?.billing_period_end,

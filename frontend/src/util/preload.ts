@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
+import { BackendSearchQuery } from '@context/BaseSearchContext'
 import {
 	GetEnhancedUserDetailsDocument,
 	GetErrorDistributionDocument,
@@ -27,61 +28,40 @@ import { H } from 'highlight.run'
 import moment from 'moment'
 import { useEffect, useRef } from 'react'
 
-const CONCURRENT_PRELOADS = 2
+const CONCURRENT_PRELOADS = 1
 const PREVIOUS_ERROR_OBJECTS_TO_FETCH = 2
 
-export const usePreloadSessions = function ({ page }: { page: number }) {
+export const usePreloadSessions = function ({
+	backendSearchQuery,
+}: {
+	page: number
+	backendSearchQuery: BackendSearchQuery
+}) {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
 	const endDate = useRef<moment.Moment>(roundDateToMinute(null))
 	const preloadedPages = useRef<Set<number>>(new Set<number>())
 
-	const pageToLoad = page ?? 1
-	const query = JSON.stringify({
-		bool: {
-			must: [
-				{
-					bool: {
-						should: [
-							{
-								term: {
-									processed: 'true',
-								},
-							},
-						],
-					},
-				},
-				{
-					bool: {
-						should: [
-							{
-								range: {
-									created_at: {
-										gte: endDate.current
-											.clone()
-											.subtract(30, 'days')
-											.format(),
-										lte: endDate.current.format(),
-									},
-								},
-							},
-						],
-					},
-				},
-			],
-		},
-	})
+	// only load the first page
+	// const pageToLoad = page ?? 1
+	const pageToLoad = 1
 
 	useEffect(() => {
 		;(async () => {
 			if (!indexeddbEnabled || preloadedPages.current.has(pageToLoad)) {
 				return false
 			}
+			if (!backendSearchQuery?.searchQuery) {
+				return false
+			}
+			log('preload.ts', 'sessions query', {
+				searchQuery: backendSearchQuery?.searchQuery,
+			})
 			client.query({
 				query: GetSessionsHistogramDocument,
 				variables: {
-					query,
+					query: backendSearchQuery?.searchQuery,
 					project_id,
 					histogram_options: {
 						bounds: {
@@ -104,7 +84,7 @@ export const usePreloadSessions = function ({ page }: { page: number }) {
 			const { data: sessions } = await client.query({
 				query: GetSessionsOpenSearchDocument,
 				variables: {
-					query,
+					query: backendSearchQuery?.searchQuery,
 					count: DEFAULT_PAGE_SIZE,
 					page: pageToLoad,
 					project_id,
@@ -124,80 +104,37 @@ export const usePreloadSessions = function ({ page }: { page: number }) {
 			}
 			await Promise.all(promises)
 		})()
-	}, [pageToLoad, project_id, query])
+	}, [pageToLoad, project_id, backendSearchQuery?.searchQuery])
 }
 
-export const usePreloadErrors = function ({ page }: { page: number }) {
+export const usePreloadErrors = function ({
+	backendSearchQuery,
+}: {
+	page: number
+	backendSearchQuery: BackendSearchQuery
+}) {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
 	const endDate = useRef<moment.Moment>(roundDateToMinute(null))
 	const preloadedPages = useRef<Set<number>>(new Set<number>())
 
-	const pageToLoad = page ?? 1
-	const query = JSON.stringify({
-		bool: {
-			must: [
-				{
-					bool: {
-						must: [
-							{
-								bool: {
-									should: [
-										{
-											term: {
-												'state.keyword': 'OPEN',
-											},
-										},
-									],
-								},
-							},
-						],
-					},
-				},
-				{
-					has_child: {
-						type: 'child',
-						query: {
-							bool: {
-								must: [
-									{
-										bool: {
-											should: [
-												{
-													range: {
-														timestamp: {
-															gte: endDate.current
-																.clone()
-																.subtract(
-																	30,
-																	'days',
-																)
-																.format(),
-															lte: endDate.current.format(),
-														},
-													},
-												},
-											],
-										},
-									},
-								],
-							},
-						},
-					},
-				},
-			],
-		},
-	})
+	// only load the first page
+	// const pageToLoad = page ?? 1
+	const pageToLoad = 1
 
 	useEffect(() => {
 		;(async () => {
-			if (!indexeddbEnabled || preloadedPages.current.has(pageToLoad))
+			if (!indexeddbEnabled || preloadedPages.current.has(pageToLoad)) {
 				return false
+			}
+			if (!backendSearchQuery?.searchQuery) {
+				return false
+			}
 			const { data: errors } = await client.query({
 				query: GetErrorGroupsOpenSearchDocument,
 				variables: {
-					query,
+					query: backendSearchQuery.searchQuery,
 					count: DEFAULT_PAGE_SIZE,
 					page: pageToLoad,
 					project_id,
@@ -208,10 +145,13 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 				return false
 			preloadedPages.current.add(pageToLoad)
 
+			log('preload.ts', 'errors query', {
+				searchQuery: backendSearchQuery?.searchQuery,
+			})
 			client.query({
 				query: GetErrorsHistogramDocument,
 				variables: {
-					query,
+					query: backendSearchQuery.searchQuery,
 					project_id,
 					histogram_options: {
 						bounds: {
@@ -242,7 +182,7 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 			}
 			await Promise.all(promises)
 		})()
-	}, [project_id, pageToLoad, query])
+	}, [project_id, pageToLoad, backendSearchQuery?.searchQuery])
 }
 
 export const loadSession = async function (secureID: string) {

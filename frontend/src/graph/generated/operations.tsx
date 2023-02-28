@@ -3916,15 +3916,24 @@ export type GetEmailOptOutsQuery = { __typename?: 'Query' } & Pick<
 export type GetLogsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.LogsParamsInput
+	after?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
-	logs: Array<
-		{ __typename?: 'LogLine' } & Pick<
-			Types.LogLine,
-			'timestamp' | 'severityText' | 'body' | 'logAttributes'
+	logs: { __typename?: 'LogsPayload' } & {
+		edges: Array<
+			{ __typename?: 'LogEdge' } & Pick<Types.LogEdge, 'cursor'> & {
+					node: { __typename?: 'Log' } & Pick<
+						Types.Log,
+						'timestamp' | 'severityText' | 'body' | 'logAttributes'
+					>
+				}
 		>
-	>
+		pageInfo: { __typename?: 'PageInfo' } & Pick<
+			Types.PageInfo,
+			'hasNextPage' | 'endCursor'
+		>
+	}
 }
 
 export type GetLogsTotalCountQueryVariables = Types.Exact<{
@@ -3946,6 +3955,16 @@ export type GetLogsKeysQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'LogKey' } & Pick<Types.LogKey, 'name' | 'type'>
 	>
 }
+
+export type GetLogsKeyValuesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	key_name: Types.Scalars['String']
+}>
+
+export type GetLogsKeyValuesQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'logs_key_values'
+>
 
 export const namedOperations = {
 	Query: {
@@ -4063,6 +4082,7 @@ export const namedOperations = {
 		GetLogs: 'GetLogs' as const,
 		GetLogsTotalCount: 'GetLogsTotalCount' as const,
 		GetLogsKeys: 'GetLogsKeys' as const,
+		GetLogsKeyValues: 'GetLogsKeyValues' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,

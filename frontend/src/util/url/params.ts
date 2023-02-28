@@ -1,5 +1,5 @@
 import { UserPropertyInput } from '@graph/schemas'
-import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
+import { QueryBuilderState } from '@pages/ErrorsV2/ErrorQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { decodeDelimitedArray, encodeDelimitedArray } from 'use-query-params'
 
 /**
@@ -111,7 +111,7 @@ export const QueryBuilderStateParam = {
 	},
 }
 
-type BuilderParams = {
+export type BuilderParams = {
 	query?: boolean | string | null
 	[key: string]: string | boolean | null | undefined
 }
@@ -121,17 +121,26 @@ type IsAnd = boolean
 // Output: '?query=and%7C%7Cuser_email%2Cis%2Cchris@highlight.io`
 export const buildQueryURLString = (
 	params: BuilderParams,
-	isAnd: IsAnd = true,
+	options: { isAnd?: IsAnd; reload?: boolean } = {
+		isAnd: true,
+		reload: false,
+	},
 ) => {
-	const builderParams = buildQueryParams(params, isAnd)
+	const builderParams = buildQueryParams(params, !!options.isAnd)
 
 	const encodedParams: any = QueryBuilderStateParam.encode(
 		JSON.stringify(builderParams),
 	)
+	let url =
+		params.query !== false
+			? `?query=${encodeURIComponent(encodedParams)}`
+			: encodeURIComponent(encodedParams.replace('and||', ''))
 
-	return params.query !== false
-		? `?query=${encodeURIComponent(encodedParams)}`
-		: encodeURIComponent(encodedParams.replace('and||', ''))
+	if (options.reload) {
+		url = `${url}&reload=1`
+	}
+
+	return url
 }
 
 // Input: { user_email: 'chris@highlight.io' }
@@ -169,8 +178,10 @@ export const buildQueryParams = (
 		let value = String(params[key])
 		let op = 'is'
 
-		if (value.indexOf(':') > -1) {
-			;[op, value] = value.split(':')
+		const index = value.indexOf(':')
+		if (index > -1) {
+			op = value.slice(0, index)
+			value = value.slice(index + 1)
 		}
 
 		builderParams.rules.push([key, op, value])

@@ -4,6 +4,7 @@ import { Skeleton } from '@components/Skeleton/Skeleton'
 import { USD } from '@dinero.js/currencies'
 import {
 	PlanType,
+	RetentionPeriod,
 	SubscriptionDetails,
 	SubscriptionInterval,
 } from '@graph/schemas'
@@ -39,6 +40,7 @@ export const BillingStatusCard = ({
 	errorsCount,
 	errorsLimit,
 	subscriptionInterval,
+	retentionPeriod,
 	allowOverage,
 	loading,
 	billingPeriodEnd,
@@ -54,6 +56,7 @@ export const BillingStatusCard = ({
 	errorsCount: number
 	errorsLimit: number
 	subscriptionInterval: SubscriptionInterval
+	retentionPeriod: RetentionPeriod
 	allowOverage: boolean
 	loading: boolean
 	billingPeriodEnd?: Date
@@ -149,6 +152,41 @@ export const BillingStatusCard = ({
 		nextBillingDate = billingPeriodEnd
 	}
 
+	let retentionStr: string
+	switch (retentionPeriod) {
+		case RetentionPeriod.ThreeMonths:
+			retentionStr = '3 months'
+			break
+		case RetentionPeriod.SixMonths:
+			retentionStr = '6 months'
+			break
+		case RetentionPeriod.TwelveMonths:
+			retentionStr = '12 months'
+			break
+		case RetentionPeriod.TwoYears:
+			retentionStr = '2 years'
+			break
+	}
+
+	let planTypeStr: string
+	switch (planType) {
+		case PlanType.Free:
+			planTypeStr = 'Free'
+			break
+		case PlanType.Lite:
+			planTypeStr = 'Basic'
+			break
+		case PlanType.Basic:
+			planTypeStr = 'Essentials'
+			break
+		case PlanType.Startup:
+			planTypeStr = 'Startup'
+			break
+		case PlanType.Enterprise:
+			planTypeStr = 'Enterprise'
+			break
+	}
+
 	return (
 		<div className={styles.fieldsBox}>
 			<h3 className={styles.cardTitle}>
@@ -183,7 +221,7 @@ export const BillingStatusCard = ({
 					<>
 						<span className={styles.subText}>
 							<span className={styles.planText}>
-								{planType} Plan
+								{planTypeStr} Plan
 							</span>{' '}
 							(billed{' '}
 							{subscriptionInterval ===
@@ -318,6 +356,20 @@ export const BillingStatusCard = ({
 							<span className={styles.subText}>
 								You're currently not paying errors overage
 								($0.20 per 1000 errors).
+							</span>
+						)}
+					</div>
+					<Divider />
+					<div className={styles.cardSubtitleContainer}>
+						<span>Retention</span>
+					</div>
+					<div className={styles.sectionContents}>
+						{loading ? (
+							<Skeleton />
+						) : (
+							<span className={styles.subText}>
+								Sessions and errors will be retained for{' '}
+								<strong>{retentionStr}</strong>.
 							</span>
 						)}
 					</div>

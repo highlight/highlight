@@ -19,8 +19,9 @@ describe('withHighlightConfig', () => {
 
 	it('creates new rewrites if none exist', async () => {
 		expect(
-			await withHighlightConfig({}, { uploadSourceMaps: true })
-				.rewrites!(),
+			await (
+				await withHighlightConfig({}, { uploadSourceMaps: true })
+			).rewrites!(),
 		).toMatchObject(defaultRewrite)
 	})
 
@@ -35,7 +36,9 @@ describe('withHighlightConfig', () => {
 		const expected = { ...defaultRewrite }
 		expected.afterFiles = [testEntry, ...expected.afterFiles]
 		expect(
-			await withHighlightConfig({ rewrites }).rewrites!(),
+			await (
+				await withHighlightConfig({ rewrites })
+			).rewrites!(),
 		).toMatchObject(expected)
 	})
 
@@ -59,7 +62,9 @@ describe('withHighlightConfig', () => {
 		expected.beforeFiles = [testEntry]
 		expected.fallback = [testEntry]
 		expect(
-			await withHighlightConfig({ rewrites }).rewrites!(),
+			await (
+				await withHighlightConfig({ rewrites })
+			).rewrites!(),
 		).toMatchObject(expected)
 	})
 
@@ -81,7 +86,9 @@ describe('withHighlightConfig', () => {
 		expected.beforeFiles = undefined
 		expected.fallback = [testEntry]
 		expect(
-			await withHighlightConfig({ rewrites }).rewrites!(),
+			await (
+				await withHighlightConfig({ rewrites })
+			).rewrites!(),
 		).toMatchObject(expected)
 	})
 
@@ -99,7 +106,9 @@ describe('withHighlightConfig', () => {
 			() => Promise.resolve(undefined)
 
 		expect(
-			await withHighlightConfig({ rewrites }).rewrites!(),
+			await (
+				await withHighlightConfig({ rewrites })
+			).rewrites!(),
 		).toMatchObject(defaultRewrite)
 	})
 })

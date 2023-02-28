@@ -11,7 +11,8 @@
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
 	"scripts": {
-		"build": "tsup src/index.tsx --format cjs,esm --dts --clean",
+		"typegen": "tsup src/index.tsx --dts-only",
+		"build": "tsup src/index.tsx --format cjs,esm --dts",
 		"dev": "yarn build --watch"
 	},
 	"devDependencies": {

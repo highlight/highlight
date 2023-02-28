@@ -86,15 +86,17 @@ export const usePlayer = (): ReplayerContextInterface => {
 				secure_id,
 				index,
 			}
-			let result = ''
-			for await (const url of indexedDBString({
-				key: JSON.stringify(args),
-				fn: async () =>
-					(await rawFetchEventChunkURL(args)).data.event_chunk_url,
-			})) {
-				result = url
-			}
-			return result
+			return (
+				(
+					await indexedDBString({
+						key: JSON.stringify(args),
+						fn: async () =>
+							(
+								await rawFetchEventChunkURL(args)
+							).data.event_chunk_url,
+					}).next()
+				).value || ''
+			)
 		},
 		[rawFetchEventChunkURL],
 	)
@@ -392,7 +394,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 									)
 								}
 							} catch (e: any) {
-								H.consumeError(
+								log(
 									e,
 									'Error direct downloading session payload',
 									{ chunk: `${_i}` },

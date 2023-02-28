@@ -34,8 +34,8 @@ func TestParseConsoleMessages(t *testing.T) {
 
 	tr := rows[0].Trace[0]
 	trace := Trace{
-		ColumnNumber: 23,
-		LineNumber:   18070,
+		ColumnNumber: "23",
+		LineNumber:   "18070",
 		FileName:     "http://localhost:8080/dist/index.js",
 		FunctionName: "Logger.log",
 		Source:       "    at Logger.log (http://localhost:8080/dist/index.js:18070:23)",

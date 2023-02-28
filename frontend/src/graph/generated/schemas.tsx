@@ -656,6 +656,20 @@ export type LinearTeam = {
 	team_id: Scalars['String']
 }
 
+export type Log = {
+	__typename?: 'Log'
+	body: Scalars['String']
+	logAttributes: Scalars['Map']
+	severityText: SeverityText
+	timestamp: Scalars['Timestamp']
+}
+
+export type LogEdge = {
+	__typename?: 'LogEdge'
+	cursor: Scalars['String']
+	node: Log
+}
+
 export type LogKey = {
 	__typename?: 'LogKey'
 	name: Scalars['String']
@@ -666,17 +680,15 @@ export enum LogKeyType {
 	String = 'String',
 }
 
-export type LogLine = {
-	__typename?: 'LogLine'
-	body: Scalars['String']
-	logAttributes: Scalars['Map']
-	severityText: SeverityText
-	timestamp: Scalars['Timestamp']
-}
-
 export type LogsParamsInput = {
 	date_range: DateRangeRequiredInput
 	query: Scalars['String']
+}
+
+export type LogsPayload = {
+	__typename?: 'LogsPayload'
+	edges: Array<LogEdge>
+	pageInfo: PageInfo
 }
 
 export type Metric = {
@@ -1330,6 +1342,12 @@ export enum OpenSearchCalendarInterval {
 	Year = 'year',
 }
 
+export type PageInfo = {
+	__typename?: 'PageInfo'
+	endCursor: Scalars['String']
+	hasNextPage: Scalars['Boolean']
+}
+
 export type Plan = {
 	__typename?: 'Plan'
 	errorsLimit: Scalars['Int']
@@ -1427,7 +1445,7 @@ export type Query = {
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
-	logs: Array<LogLine>
+	logs: LogsPayload
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<LogKey>
 	logs_total_count: Scalars['UInt64']
@@ -1756,6 +1774,7 @@ export type QueryLiveUsersCountArgs = {
 }
 
 export type QueryLogsArgs = {
+	after?: InputMaybe<Scalars['String']>
 	params: LogsParamsInput
 	project_id: Scalars['ID']
 }

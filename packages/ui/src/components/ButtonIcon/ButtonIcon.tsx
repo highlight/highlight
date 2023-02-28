@@ -1,5 +1,5 @@
 import clsx, { ClassValue } from 'clsx'
-import React from 'react'
+import React, { forwardRef } from 'react'
 import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
 
@@ -11,32 +11,38 @@ export type Props = React.ButtonHTMLAttributes<HTMLButtonElement> &
 		cssClass?: ClassValue | ClassValue[]
 	}
 
-export const ButtonIcon: React.FC<Props> = ({
-	icon,
-	kind,
-	shape,
-	emphasis,
-	size,
-	onClick,
-	disabled,
-	cssClass,
-	className,
-	type = 'button',
-}) => {
-	return (
-		<Box
-			as="button"
-			display="inline-flex"
-			cssClass={clsx(
-				styles.variants({ kind, shape, emphasis, size }),
-				className,
-				cssClass,
-			)}
-			onClick={onClick}
-			disabled={disabled}
-			type={type}
-		>
-			{icon}
-		</Box>
-	)
-}
+export const ButtonIcon = forwardRef<HTMLButtonElement, Props>(
+	(
+		{
+			icon,
+			kind,
+			shape,
+			emphasis,
+			size,
+			onClick,
+			disabled,
+			cssClass,
+			className,
+			type = 'button',
+		},
+		ref,
+	) => {
+		return (
+			<Box
+				as="button"
+				display="inline-flex"
+				cssClass={clsx(
+					styles.variants({ kind, shape, emphasis, size }),
+					className,
+					cssClass,
+				)}
+				onClick={onClick}
+				disabled={disabled}
+				type={type}
+				ref={ref}
+			>
+				{icon}
+			</Box>
+		)
+	},
+)

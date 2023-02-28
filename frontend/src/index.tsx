@@ -31,7 +31,7 @@ import { SignUp } from '@pages/Auth/SignUp'
 import { AuthAdminRouter } from '@pages/Login/Login'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
-import { setAttributionData } from '@util/attribution'
+import { getAttributionData, setAttributionData } from '@util/attribution'
 import { auth } from '@util/auth'
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils'
 import { showHiringMessage } from '@util/console/hiringMessage'
@@ -41,7 +41,7 @@ import { showIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
 import React, { useEffect, useState } from 'react'
-import ReactDOM from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
@@ -49,7 +49,9 @@ import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
 analytics.initialize()
-const dev = import.meta.env.DEV
+const dev =
+	import.meta.env.DEV ||
+	import.meta.env.REACT_APP_FRONTEND_URI?.indexOf('localhost') !== -1
 const options: HighlightOptions = {
 	debug: { clientInteractions: true, domRecording: true },
 	manualStart: true,
@@ -90,7 +92,7 @@ const options: HighlightOptions = {
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {
 	options.scriptUrl = 'http://localhost:8080/dist/index.js'
-	options.backendUrl = 'https://localhost:8082/public'
+	options.backendUrl = import.meta.env.REACT_APP_PUBLIC_GRAPH_URI
 
 	options.integrations = undefined
 
@@ -112,6 +114,7 @@ if (dev) {
 	options.environment = 'Pull Request Preview'
 }
 H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
+H.track('attribution', getAttributionData())
 if (!isOnPrem) {
 	H.start()
 	showIntercom({ hideMessage: true })
@@ -382,9 +385,10 @@ const AuthenticationRoleRouter = () => {
 	)
 }
 
-ReactDOM.render(
+const container = document.getElementById('root')!
+const root = createRoot(container)
+root.render(
 	<React.StrictMode>
 		<App />
 	</React.StrictMode>,
-	document.getElementById('root'),
 )

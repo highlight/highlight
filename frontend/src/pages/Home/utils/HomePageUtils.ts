@@ -5,7 +5,7 @@ import {
 	MetricViewComponentType,
 	Session,
 } from '@graph/schemas'
-import { getUserProperties } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
+import { getUserProperties } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 
 export const HOME_DASHBOARD_CONFIGURATION: {
 	[key in string]: DashboardMetricConfig
