@@ -16,77 +16,50 @@ export function hookOutput(
 	}
 }
 
-function getConsoleSymbol(name: string): keyof Console {
-	/*
-	 * The symbols of functions in the console module are somehow not in the
-	 * global registry.  So we need to use this hack to get the real symbols
-	 * for monkey patching.
-	 */
-	const symString = Symbol.for(name).toString()
-	return Object.getOwnPropertySymbols(console).filter(
-		(x) => x.toString() === symString,
-	)[0] as unknown as keyof Console
-}
-
 interface ConsolePayload {
 	date: Date
 	level: string
 	message: string
-	file: string | null
+	stack: object
 }
 
+type ConsoleFn = (...data: any) => void
+
+let consoleHooked = false
+
 export function hookConsole(cb: (cb: ConsolePayload) => void) {
-	/*
-	 * This is highly Node specific but it maintains console logging,
-	 * devtools logging with correct file:lineno references, and allows
-	 * us to support file logging and logging windows.
-	 */
-	const highlightSymbol = getConsoleSymbol('highlightWriteToConsole')
-	if (console[highlightSymbol]) {
-		return
-	}
-	let curLogLevel: any
-	const descriptors = Object.getOwnPropertyDescriptors(console)
-	const levels = {
-		debug: 'debug',
-		info: 'info',
-		log: 'info',
-		count: 'info',
-		dir: 'info',
-		warn: 'warn',
-		assert: 'warn',
-		error: 'error',
-		trace: 'error',
-	}
-	for (const [fn, level] of Object.entries(levels)) {
-		Object.defineProperty(console, fn, {
-			enumerable: descriptors[fn].enumerable,
-			get: () => ((curLogLevel = level), descriptors[fn].value),
-		})
-	}
-	const origWrite = console[highlightSymbol]
-	// @ts-ignore
-	console[highlightSymbol] = function (useStdErr, message) {
-		try {
-			// @ts-ignore
-			return origWrite.call(this, useStdErr, message)
-		} finally {
-			const o: any = {}
-			const saveTraceLimit = Error.stackTraceLimit
-			Error.stackTraceLimit = 3
-			Error.captureStackTrace(o)
-			Error.stackTraceLimit = saveTraceLimit
-			const stack = o.stack
-			const fileMatch = stack.match(/([^/\\: (]+:[0-9]+):[0-9]+\)?$/)
-			if (!fileMatch) {
-				debugger
+	if (consoleHooked) return
+	consoleHooked = true
+	const levels = [
+		'debug',
+		'info',
+		'log',
+		'count',
+		'dir',
+		'warn',
+		'assert',
+		'error',
+		'trace',
+	] as (keyof Console)[]
+	for (const level of levels) {
+		const origWrite = console[level] as ConsoleFn
+		;(console[level] as ConsoleFn) = function (...data: any[]) {
+			const date = new Date()
+			try {
+				return origWrite(...data)
+			} finally {
+				const o: { stack: any } = { stack: {} }
+				const saveTraceLimit = Error.stackTraceLimit
+				Error.stackTraceLimit = 3
+				Error.captureStackTrace(o)
+				Error.stackTraceLimit = saveTraceLimit
+				cb({
+					date,
+					level,
+					message: data.join('\n'),
+					stack: o.stack,
+				})
 			}
-			cb({
-				date: new Date(),
-				level: curLogLevel,
-				message,
-				file: fileMatch ? fileMatch[1] : null,
-			})
 		}
 	}
 }
