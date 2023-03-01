@@ -14,11 +14,17 @@ import (
 	e "github.com/pkg/errors"
 )
 
+type LogRowPrimaryAttrs struct {
+	Timestamp       time.Time
+	ProjectId       uint32
+	TraceId         string
+	SpanId          string
+	SecureSessionId string
+}
+
 type LogRow struct {
-	Timestamp          time.Time
+	LogRowPrimaryAttrs
 	UUID               string
-	TraceId            string
-	SpanId             string
 	TraceFlags         uint32
 	SeverityText       string
 	SeverityNumber     int32
@@ -26,26 +32,25 @@ type LogRow struct {
 	Body               string
 	ResourceAttributes map[string]string
 	LogAttributes      map[string]string
-	ProjectId          uint32
-	SecureSessionId    string
 }
 
-func NewLogRow(ts time.Time, projectID int, sessionID, traceID, spanID string) *LogRow {
-	uuid := uuid.New().String()
+func NewLogRow(attrs LogRowPrimaryAttrs) *LogRow {
 	return &LogRow{
-		UUID:            uuid,
-		Timestamp:       ts,
-		TraceId:         traceID,
-		SpanId:          spanID,
-		SeverityText:    "INFO",
-		SeverityNumber:  int32(log.InfoLevel),
-		ProjectId:       uint32(projectID),
-		SecureSessionId: sessionID,
+		LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+			Timestamp:       attrs.Timestamp,
+			TraceId:         attrs.TraceId,
+			SpanId:          attrs.SpanId,
+			ProjectId:       attrs.ProjectId,
+			SecureSessionId: attrs.SecureSessionId,
+		},
+		UUID:           uuid.New().String(),
+		SeverityText:   "INFO",
+		SeverityNumber: int32(log.InfoLevel),
 	}
 }
 
 func (l *LogRow) Cursor() string {
-	return EncodeCursor(l.Timestamp, l.UUID)
+	return encodeCursor(l.Timestamp, l.UUID)
 }
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
@@ -103,7 +108,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 		}
 
 		logs = append(logs, &modelInputs.LogEdge{
-			Cursor: EncodeCursor(Timestamp, UUID),
+			Cursor: encodeCursor(Timestamp, UUID),
 			Node: &modelInputs.Log{
 				Timestamp:     Timestamp,
 				SeverityText:  makeSeverityText(SeverityText),

@@ -191,7 +191,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 								return nil
 							}
 							resourceAttributesMap, logAttributesMap := getAttributesMaps(resourceAttributes, eventAttributes)
-							logRow := clickhouse.NewLogRow(ts, projectIDInt, sessionID, traceID, spanID)
+							logRow := clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
+								Timestamp:       ts,
+								ProjectId:       uint32(projectIDInt),
+								TraceId:         traceID,
+								SpanId:          spanID,
+								SecureSessionId: sessionID,
+							})
 							logRow.SeverityText = "ERROR"
 							logRow.SeverityNumber = int32(log.ErrorLevel)
 							logRow.ServiceName = serviceName
@@ -271,19 +277,19 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						}
 						resourceAttributesMap, logAttributesMap := getAttributesMaps(resourceAttributes, eventAttributes)
 						lvl, _ := log.ParseLevel(logSev)
-						logRow := &clickhouse.LogRow{
-							Timestamp:          event.Timestamp().AsTime(),
-							TraceId:            cast(requestID, span.TraceID().String()),
-							SpanId:             span.SpanID().String(),
-							SeverityText:       logSev,
-							SeverityNumber:     int32(lvl),
-							ServiceName:        serviceName,
-							Body:               logMessage,
-							ResourceAttributes: resourceAttributesMap,
-							LogAttributes:      logAttributesMap,
-							ProjectId:          uint32(projectIDInt),
-							SecureSessionId:    sessionID,
-						}
+						logRow := clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
+							Timestamp:       event.Timestamp().AsTime(),
+							TraceId:         cast(requestID, span.TraceID().String()),
+							SpanId:          span.SpanID().String(),
+							ProjectId:       uint32(projectIDInt),
+							SecureSessionId: sessionID,
+						})
+						logRow.SeverityText = logSev
+						logRow.SeverityNumber = int32(lvl)
+						logRow.ServiceName = serviceName
+						logRow.Body = logMessage
+						logRow.ResourceAttributes = resourceAttributesMap
+						logRow.LogAttributes = logAttributesMap
 						if projectID != "" {
 							if _, ok := projectLogs[projectID]; !ok {
 								projectLogs[projectID] = []*clickhouse.LogRow{}
@@ -432,19 +438,19 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					continue
 				}
 				resourceAttributesMap, logAttributesMap := getAttributesMaps(resourceAttributes, logAttributes)
-				logRow := &clickhouse.LogRow{
-					Timestamp:          logRecord.Timestamp().AsTime(),
-					TraceId:            logRecord.TraceID().String(),
-					SpanId:             logRecord.SpanID().String(),
-					SeverityText:       logRecord.SeverityText(),
-					SeverityNumber:     int32(logRecord.SeverityNumber()),
-					ServiceName:        serviceName,
-					Body:               logRecord.Body().Str(),
-					ResourceAttributes: resourceAttributesMap,
-					LogAttributes:      logAttributesMap,
-					ProjectId:          uint32(projectIDInt),
-					SecureSessionId:    sessionID,
-				}
+				logRow := clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
+					Timestamp:       logRecord.Timestamp().AsTime(),
+					TraceId:         logRecord.TraceID().String(),
+					SpanId:          logRecord.SpanID().String(),
+					ProjectId:       uint32(projectIDInt),
+					SecureSessionId: sessionID,
+				})
+				logRow.SeverityText = logRecord.SeverityText()
+				logRow.SeverityNumber = int32(logRecord.SeverityNumber())
+				logRow.ServiceName = serviceName
+				logRow.Body = logRecord.Body().Str()
+				logRow.ResourceAttributes = resourceAttributesMap
+				logRow.LogAttributes = logAttributesMap
 				if projectID != "" {
 					if _, ok := projectLogs[projectID]; !ok {
 						projectLogs[projectID] = []*clickhouse.LogRow{}

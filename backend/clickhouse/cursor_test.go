@@ -11,7 +11,7 @@ import (
 
 func TestEncodeDecode(t *testing.T) {
 	now := time.Now()
-	cursor := EncodeCursor(now, "uuid")
+	cursor := encodeCursor(now, "uuid")
 
 	timestamp, uuid, err := decodeCursor(cursor)
 	assert.NoError(t, err)

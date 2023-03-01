@@ -139,9 +139,9 @@ func TestReadLogsAfterCursor(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 3)
 
-	firstCursor := EncodeCursor(now, "c051edc8-3749-4e44-8f48-0ea90f3fc3d9")
-	secondCursor := EncodeCursor(oneSecondAgo, "b6e255ee-049e-4563-bbfe-c33503cde94c")
-	thirdCursor := EncodeCursor(oneSecondAgo, "a0d9abd6-7cbf-47de-b211-d16bb0935e04")
+	firstCursor := encodeCursor(now, "c051edc8-3749-4e44-8f48-0ea90f3fc3d9")
+	secondCursor := encodeCursor(oneSecondAgo, "b6e255ee-049e-4563-bbfe-c33503cde94c")
+	thirdCursor := encodeCursor(oneSecondAgo, "a0d9abd6-7cbf-47de-b211-d16bb0935e04")
 
 	assert.Equal(t, payload.Edges[0].Cursor, firstCursor)
 	assert.Equal(t, payload.Edges[1].Cursor, secondCursor)
