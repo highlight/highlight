@@ -199,17 +199,18 @@ func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType, b
 		interval = SubscriptionIntervalAnnual
 	}
 
+	retentionPeriod := backend.RetentionPeriodSixMonths
+
 	// If the price id corresponds to a tier using the old conversion,
 	// return it for backward compatibility
 	oldTier := FromPriceID(price.ID)
 	if oldTier != backend.PlanTypeFree {
 		base := ProductTypeBase
-		return &base, &oldTier, false, interval, ""
+		return &base, &oldTier, false, interval, retentionPeriod
 	}
 
 	var productTypePtr *ProductType
 	var tierPtr *backend.PlanType
-	retentionPeriod := backend.RetentionPeriodSixMonths
 
 	if typeStr, ok := price.Product.Metadata[highlightProductType]; ok {
 		productType := ProductType(typeStr)
