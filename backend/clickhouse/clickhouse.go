@@ -43,6 +43,7 @@ func RunMigrations(ctx context.Context, dbName string) {
 	db := clickhouse.OpenDB(options)
 	driver, err := clickhouseMigrate.WithInstance(db, &clickhouseMigrate.Config{
 		MigrationsTableEngine: "MergeTree",
+		MultiStatementEnabled: true,
 	})
 
 	log.WithContext(ctx).Printf("Starting clickhouse migrations for db: %s", dbName)
