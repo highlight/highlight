@@ -25,6 +25,7 @@ import { Helmet } from 'react-helmet'
 import { useToggle } from 'react-use'
 
 import styles from './AboutYouCard.module.scss'
+import { namedOperations } from '@graph/operations'
 
 interface Props {
 	onSubmitHandler: () => void
@@ -87,6 +88,10 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 						referral: attributionData.referral,
 					},
 				},
+				refetchQueries: [
+					namedOperations.Query.GetAdmin,
+					namedOperations.Query.GetAdminAboutYou,
+				],
 			})
 
 			if (window.Intercom) {
@@ -95,7 +100,7 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 					isEngineeringPersona: isEngineeringRole,
 				})
 			}
-			getAdminQuery()
+			await getAdminQuery()
 			message.success(`Nice to meet you ${firstName}, let's get started!`)
 		} catch {
 			analytics.track('About you submission error')

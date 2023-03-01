@@ -6281,7 +6281,17 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.admin"),
 		tracer.Tag("admin_uid", uid))
 	admin := &model.Admin{UID: &uid}
-	if err := r.DB.Where(&model.Admin{UID: &uid}).First(&admin).Error; err != nil {
+	tx := r.DB.Where(admin).
+		Clauses(clause.Returning{Columns: []clause.Column{{Name: "uid"}}}, clause.OnConflict{
+			Columns:   []clause.Column{{Name: "uid"}},
+			DoNothing: true,
+		}).Create(&admin)
+	if tx.Error != nil {
+		spanError := e.Wrap(tx.Error, "error retrieving user from db")
+		adminSpan.Finish(tracer.WithError(spanError))
+		return nil, spanError
+	}
+	if tx.RowsAffected != 0 {
 		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
 			tracer.Tag("admin_uid", uid))
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
@@ -6300,7 +6310,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			Phone:                 &firebaseUser.PhoneNumber,
 			AboutYouDetailsFilled: &model.F,
 		}
-		if err := r.DB.Create(newAdmin).Error; err != nil {
+		if err := r.DB.Where(&model.Admin{UID: &uid}).Updates(newAdmin).Error; err != nil {
 			spanError := e.Wrap(err, "error creating new admin")
 			adminSpan.Finish(tracer.WithError(spanError))
 			return nil, spanError
@@ -6319,7 +6329,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			firebaseSpan.Finish(tracer.WithError(spanError))
 			return nil, spanError
 		}
-		if err := r.DB.Model(admin).Updates(&model.Admin{
+		if err := r.DB.Where(&model.Admin{UID: &uid}).Updates(&model.Admin{
 			PhotoURL: &firebaseUser.PhotoURL,
 			Name:     &firebaseUser.DisplayName,
 			Phone:    &firebaseUser.PhoneNumber,
@@ -6346,7 +6356,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			firebaseSpan.Finish(tracer.WithError(spanError))
 			return nil, spanError
 		}
-		if err := r.DB.Model(admin).Updates(&model.Admin{
+		if err := r.DB.Where(&model.Admin{UID: &uid}).Updates(&model.Admin{
 			EmailVerified: &firebaseUser.EmailVerified,
 		}).Error; err != nil {
 			spanError := e.Wrap(err, "error updating admin fields")
