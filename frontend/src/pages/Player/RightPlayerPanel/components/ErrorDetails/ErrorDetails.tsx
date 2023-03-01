@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
+import JsonViewer from '@components/JsonViewer/JsonViewer'
 import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import { GetErrorGroupDocument, useGetErrorGroupQuery } from '@graph/hooks'
@@ -35,6 +36,7 @@ import analytics from '@util/analytics'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { client } from '@util/graph'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
+import { parseOptionalJSON } from '@util/string'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import React, { useMemo } from 'react'
@@ -130,6 +132,11 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
+
+	const context = useMemo(() => {
+		const data = parseOptionalJSON(error.payload || '')
+		return data === 'null' ? '' : data
+	}, [error.payload])
 
 	if (errorQueryingErrorGroup) {
 		return (
@@ -250,6 +257,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 								<Text color="moderate">Affected users</Text>
 							</>
 						}
+						height={24}
 					>
 						<AffectedUserCount errorGroup={errorGroup} />
 					</Stat>
@@ -261,6 +269,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 								<Text color="moderate">Instances</Text>
 							</>
 						}
+						height={24}
 					>
 						<ErrorObjectCount errorGroup={errorGroup} />
 					</Stat>
@@ -269,33 +278,42 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 						title={
 							<Text color="moderate">Last/first occurrence</Text>
 						}
+						height={24}
 					>
 						<ErrorOccurenceDate errorGroup={errorGroup} />
 					</Stat>
 
-					<Stat title={<Text color="moderate">Last 30 days</Text>}>
+					<Stat
+						title={<Text color="moderate">Last 30 days</Text>}
+						height={24}
+					>
 						<ErrorFrequencyChart errorGroup={errorGroup} />
 					</Stat>
 
-					<Box
-						display="flex"
-						flexDirection="column"
-						gap="8"
-						py="8"
-						pl="12"
-						pr="8"
+					<Stat
+						title={
+							<>
+								<IconSolidCode />
+								<Text color="moderate">Error Body</Text>
+							</>
+						}
 					>
-						<Box
-							color="weak"
-							display="flex"
-							alignItems="center"
-							gap="4"
-						>
-							<IconSolidCode />
-							<Text color="moderate">Error Body</Text>
-						</Box>
 						<ErrorBodyText errorGroup={errorGroup} />
-					</Box>
+					</Stat>
+					{context ? (
+						<Stat
+							title={<Text color="moderate">Error Context</Text>}
+						>
+							<JsonViewer
+								src={context}
+								collapsed
+								style={{
+									maxHeight: 224,
+									fontSize: 11,
+								}}
+							/>
+						</Stat>
+					) : null}
 				</Box>
 			</Box>
 			<Box mt="auto" py="8" display="flex" flexDirection="column">
@@ -320,8 +338,12 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 })
 
 const Stat: React.FC<
-	React.PropsWithChildren<{ title: React.ReactElement; noBorder?: boolean }>
-> = ({ title, children }) => (
+	React.PropsWithChildren<{
+		title: React.ReactElement
+		noBorder?: boolean
+		height?: number
+	}>
+> = ({ title, children, noBorder, height }) => (
 	<Box
 		display="flex"
 		flexDirection="column"
@@ -329,12 +351,12 @@ const Stat: React.FC<
 		py="8"
 		pl="12"
 		pr="8"
-		bb="dividerWeak"
+		bb={noBorder ? undefined : 'dividerWeak'}
 	>
 		<Box color="weak" display="flex" alignItems="center" gap="4">
 			{title}
 		</Box>
-		<Box display="flex" alignItems="center" style={{ height: 24 }}>
+		<Box display="flex" alignItems="center" style={{ height }}>
 			{children}
 		</Box>
 	</Box>

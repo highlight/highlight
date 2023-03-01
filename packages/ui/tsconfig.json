@@ -7,8 +7,11 @@
 		"rootDir": "src",
 		"outDir": "dist",
 		"types": ["vitest/globals"],
+		"baseUrl": "src",
 		"paths": {
-			"@components": ["./src/components/"]
+			"@components/*": ["./components/*"],
+			"@utils/*": ["./utils/*"],
+			"@css/*": ["./css/*"]
 		}
 	}
 }
