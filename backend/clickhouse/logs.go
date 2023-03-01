@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/huandu/go-sqlbuilder"
@@ -72,22 +71,22 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 	return batch.Send()
 }
 
-const Limit uint64 = 100
+const Limit int = 100
 
 func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string) (*modelInputs.LogsPayload, error) {
-	query := makeSelectQuery("Timestamp, UUID, SeverityText, Body, LogAttributes", projectID, params, after)
-	query = query.OrderBy("Timestamp DESC, UUID DESC").Limit(Limit + 1)
-
-	sql, args, err := query.ToSql()
+	sb, err := makeSelectBuilder("Timestamp, UUID, SeverityText, Body, LogAttributes", projectID, params, after)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := client.conn.Query(
-		ctx,
-		sql,
-		args...,
-	)
+	sb.OrderBy("Timestamp DESC, UUID DESC").Limit(Limit + 1)
+
+	sql, args := sb.Build()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := client.conn.Query(ctx, sql, args...)
 
 	if err != nil {
 		return nil, err
@@ -119,15 +118,16 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	}
 	rows.Close()
 
-	return getLogsPayload(logs, Limit), rows.Err()
+	return getLogsPayload(logs), rows.Err()
 }
 
 func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
-	query := makeSelectQuery("COUNT(*)", projectID, params, nil)
-	sql, args, err := query.ToSql()
+	sb, err := makeSelectBuilder("COUNT(*)", projectID, params, nil)
 	if err != nil {
 		return 0, err
 	}
+
+	sql, args := sb.Build()
 
 	var count uint64
 	err = client.conn.QueryRow(
@@ -140,18 +140,15 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 }
 
 func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
-	query := sq.Select("arrayJoin(LogAttributes.keys) as key, count() as cnt").
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select("arrayJoin(LogAttributes.keys) as key, count() as cnt").
 		From("logs").
-		Where(sq.Eq{"ProjectId": projectID}).
+		Where(sb.Equal("ProjectId", projectID)).
 		GroupBy("key").
 		OrderBy("cnt DESC").
 		Limit(50)
 
-	sql, args, err := query.ToSql()
-
-	if err != nil {
-		return nil, err
-	}
+	sql, args := sb.Build()
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
@@ -269,52 +266,56 @@ func makeSeverityText(severityText string) modelInputs.SeverityText {
 	}
 }
 
-func makeSelectQuery(selectStr string, projectID int, params modelInputs.LogsParamsInput, after *string) sq.SelectBuilder {
-	query := sq.Select(selectStr).
+func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsParamsInput, after *string) (*sqlbuilder.SelectBuilder, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select(selectStr).
 		From("logs").
-		Where(sq.Eq{"ProjectId": projectID})
+		Where(sb.Equal("ProjectId", projectID))
 
 	if after != nil && len(*after) > 1 {
 		timestamp, uuid, err := decodeCursor(*after)
 		if err != nil {
-			fmt.Print("error decoding cursor")
+			return nil, err
 		}
 
 		// See https://dba.stackexchange.com/a/206811
-		query = query.Where("toUInt64(toDateTime(Timestamp)) <= ?", uint64(timestamp.Unix())).
-			Where("(toUInt64(toDateTime(Timestamp)) < ? OR UUID < ?)", uint64(timestamp.Unix()), uuid)
+		sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
+			Where(
+				sb.Or(
+					sb.LessThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix())),
+					sb.LessThan("UUID", uuid),
+				),
+			)
 
 	} else {
-		query = query.Where(sq.LtOrEq{"toUInt64(toDateTime(Timestamp))": uint64(params.DateRange.EndDate.Unix())}).
-			Where(sq.GtOrEq{"toUInt64(toDateTime(Timestamp))": uint64(params.DateRange.StartDate.Unix())})
+		sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.EndDate.Unix()))).
+			Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.StartDate.Unix())))
 	}
 
 	filters := makeFilters(params.Query)
 
 	if len(filters.body) > 0 {
-		query = query.Where(sq.ILike{"Body": filters.body})
+		sb.Where("Body ILIKE" + sb.Var(filters.body))
 	}
 
 	if len(filters.level) > 0 {
 		if strings.Contains(filters.level, "%") {
-			query = query.Where(sq.Like{"SeverityText": filters.level})
-
+			sb.Where(sb.Like("SeverityText", filters.level))
 		} else {
-			query = query.Where(sq.Eq{"SeverityText": filters.level})
+			sb.Where(sb.Equal("SeverityText", filters.level))
 		}
 	}
 
 	for key, value := range filters.attributes {
 		column := fmt.Sprintf("LogAttributes['%s']", key)
 		if strings.Contains(value, "%") {
-			query = query.Where(sq.Like{column: value})
-
+			sb.Where(sb.Like(column, value))
 		} else {
-			query = query.Where(sq.Eq{column: value})
+			sb.Where(sb.Equal(column, value))
 		}
 	}
 
-	return query
+	return sb, nil
 }
 
 type filters struct {
