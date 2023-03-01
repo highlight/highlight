@@ -10,6 +10,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/huandu/go-sqlbuilder"
 	flat "github.com/nqd/flat"
 	e "github.com/pkg/errors"
 )
@@ -170,9 +171,12 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 
 		keys = append(keys, &modelInputs.LogKey{
 			Name: Key,
-			Type: modelInputs.LogKeyTypeString, // For now, assume everything is a string
 		})
 	}
+
+	keys = append(keys, &modelInputs.LogKey{
+		Name: "level",
+	})
 
 	rows.Close()
 	return keys, rows.Err()
@@ -180,24 +184,29 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 }
 
 func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error) {
-	query := sq.Select("LogAttributes[?] as value, count() as cnt").
-		From("logs").
-		Where(sq.Eq{"ProjectId": projectID}).
-		Where("mapContains(LogAttributes, ?)", keyName).
-		GroupBy("value").
-		OrderBy("cnt DESC").
-		Limit(50)
+	sb := sqlbuilder.NewSelectBuilder()
 
-	sql, args, err := query.ToSql()
-
-	// Injects `keyName` into LogAttributes[?]
-	argsWithKeyName := append([]interface{}{keyName}, args...)
-
-	if err != nil {
-		return nil, err
+	if keyName == "level" {
+		sb.Select("SeverityText level, count() as cnt").
+			From("logs").
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.NotEqual("level", "")).
+			GroupBy("level").
+			OrderBy("cnt DESC").
+			Limit(50)
+	} else {
+		sb.Select("LogAttributes [" + sb.Var(keyName) + "] as value, count() as cnt").
+			From("logs").
+			Where(sb.Equal("ProjectId", projectID)).
+			Where("mapContains(LogAttributes, " + sb.Var(keyName) + ")").
+			GroupBy("value").
+			OrderBy("cnt DESC").
+			Limit(50)
 	}
 
-	rows, err := client.conn.Query(ctx, sql, argsWithKeyName...)
+	sql, args := sb.Build()
+
+	rows, err := client.conn.Query(ctx, sql, args...)
 
 	if err != nil {
 		return nil, err
@@ -283,6 +292,15 @@ func makeSelectQuery(selectStr string, projectID int, params modelInputs.LogsPar
 		query = query.Where(sq.ILike{"Body": filters.body})
 	}
 
+	if len(filters.level) > 0 {
+		if strings.Contains(filters.level, "%") {
+			query = query.Where(sq.Eq{"SeverityText": filters.level})
+
+		} else {
+			query = query.Where(sq.Eq{"SeverityText": filters.level})
+		}
+	}
+
 	for key, value := range filters.attributes {
 		column := fmt.Sprintf("LogAttributes['%s']", key)
 		if strings.Contains(value, "%") {
@@ -298,6 +316,7 @@ func makeSelectQuery(selectStr string, projectID int, params modelInputs.LogsPar
 
 type filters struct {
 	body       string
+	level      string
 	attributes map[string]string
 }
 
@@ -319,8 +338,15 @@ func makeFilters(query string) filters {
 			}
 			filters.body = filters.body + body
 		} else if len(parts) == 2 {
-			wildcardValue := strings.ReplaceAll(parts[1], "*", "%")
-			filters.attributes[parts[0]] = wildcardValue
+			key, value := parts[0], parts[1]
+
+			wildcardValue := strings.ReplaceAll(value, "*", "%")
+
+			if key == "level" {
+				filters.level = value
+			} else {
+				filters.attributes[key] = wildcardValue
+			}
 		}
 	}
 

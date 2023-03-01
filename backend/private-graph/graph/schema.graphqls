@@ -527,13 +527,8 @@ type LogsPayload {
 	pageInfo: PageInfo!
 }
 
-enum LogKeyType {
-	String
-}
-
 type LogKey {
 	name: String!
-	type: LogKeyType!
 }
 
 type ReferrerTablePayload {

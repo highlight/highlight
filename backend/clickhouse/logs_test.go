@@ -266,6 +266,45 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	assert.Len(t, payload.Edges, 1)
 }
 
+func TestReadLogsWithLevelFilter(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
+	now := time.Now()
+	rows := []*LogRow{
+		{
+			Timestamp:    now,
+			ProjectId:    1,
+			SeverityText: "INFO",
+		},
+		{
+			Timestamp: now,
+			ProjectId: 1,
+			LogAttributes: map[string]string{
+				"level": "WARN",
+			},
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "level:INFO",
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, modelInputs.SeverityText("INFO"), payload.Edges[0].Node.SeverityText)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "level:WARN",
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 0)
+}
+
 func TestLogsKeys(t *testing.T) {
 	ctx := context.Background()
 	client := setup(t)
@@ -296,11 +335,14 @@ func TestLogsKeys(t *testing.T) {
 	expected := []*modelInputs.LogKey{
 		{
 			Name: "workspace_id", // workspace_id has more hits so it should be ranked higher
-			Type: modelInputs.LogKeyTypeString,
 		},
 		{
 			Name: "user_id",
-			Type: modelInputs.LogKeyTypeString,
+		},
+
+		// Non-custom keys ranked lower
+		{
+			Name: "level",
 		},
 	}
 	assert.Equal(t, expected, keys)
@@ -369,6 +411,43 @@ func TestLogKeyValues(t *testing.T) {
 	assert.NoError(t, err)
 
 	expected := []string{"3", "2", "4"}
+	assert.Equal(t, expected, values)
+}
+
+func TestLogKeyValuesLevel(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
+	rows := []*LogRow{
+		{
+			Timestamp:    time.Now(),
+			ProjectId:    1,
+			SeverityText: "INFO",
+		},
+		{
+			Timestamp:    time.Now(),
+			ProjectId:    1,
+			SeverityText: "WARN",
+		},
+		{
+			Timestamp:    time.Now(),
+			ProjectId:    1,
+			SeverityText: "INFO",
+		},
+		{
+			Timestamp:     time.Now(),
+			ProjectId:     1,
+			LogAttributes: map[string]string{"level": "FATAL"}, // should be skipped in the output
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	values, err := client.LogsKeyValues(ctx, 1, "level")
+	assert.NoError(t, err)
+
+	expected := []string{"INFO", "WARN"}
 	assert.Equal(t, expected, values)
 }
 
