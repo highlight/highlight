@@ -45,7 +45,6 @@ require (
 	github.com/clearbit/clearbit-go v1.0.1
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
 	github.com/go-chi/chi v4.1.2+incompatible
-	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-oauth2/oauth2/v4 v4.5.1
 	github.com/go-oauth2/redis/v4 v4.1.1
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
@@ -112,6 +111,7 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fatih/color v1.10.0 // indirect
+	github.com/go-chi/chi/v5 v5.0.7 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.6.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
