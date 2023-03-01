@@ -111,6 +111,7 @@ export type AverageSessionLength = {
 
 export type BillingDetails = {
 	__typename?: 'BillingDetails'
+	errorsMeter: Scalars['Int64']
 	membersMeter: Scalars['Int64']
 	meter: Scalars['Int64']
 	plan: Plan
@@ -940,6 +941,7 @@ export type MutationCreateMetricMonitorArgs = {
 export type MutationCreateOrUpdateStripeSubscriptionArgs = {
 	interval: SubscriptionInterval
 	plan_type: PlanType
+	retention_period: RetentionPeriod
 	workspace_id: Scalars['ID']
 }
 
@@ -1348,6 +1350,7 @@ export type PageInfo = {
 
 export type Plan = {
 	__typename?: 'Plan'
+	errorsLimit: Scalars['Int']
 	interval: SubscriptionInterval
 	membersLimit?: Maybe<Scalars['Int']>
 	quota: Scalars['Int']
@@ -1358,6 +1361,7 @@ export enum PlanType {
 	Basic = 'Basic',
 	Enterprise = 'Enterprise',
 	Free = 'Free',
+	Lite = 'Lite',
 	Startup = 'Startup',
 }
 
@@ -2040,6 +2044,13 @@ export type ReferrerTablePayload = {
 	percent: Scalars['Float']
 }
 
+export enum RetentionPeriod {
+	SixMonths = 'SixMonths',
+	ThreeMonths = 'ThreeMonths',
+	TwelveMonths = 'TwelveMonths',
+	TwoYears = 'TwoYears',
+}
+
 export type S3File = {
 	__typename?: 'S3File'
 	key?: Maybe<Scalars['String']>
@@ -2467,6 +2478,7 @@ export type Workspace = {
 	next_invoice_date?: Maybe<Scalars['Timestamp']>
 	plan_tier: Scalars['String']
 	projects: Array<Maybe<Project>>
+	retention_period?: Maybe<RetentionPeriod>
 	secret?: Maybe<Scalars['String']>
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>

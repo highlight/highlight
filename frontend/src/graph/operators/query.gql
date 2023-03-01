@@ -960,9 +960,11 @@ query GetBillingDetails($workspace_id: ID!) {
 			quota
 			interval
 			membersLimit
+			errorsLimit
 		}
 		meter
 		membersMeter
+		errorsMeter
 	}
 	workspace(id: $workspace_id) {
 		id
@@ -971,6 +973,7 @@ query GetBillingDetails($workspace_id: ID!) {
 		next_invoice_date
 		allow_meter_overage
 		eligible_for_trial_extension
+		retention_period
 	}
 }
 

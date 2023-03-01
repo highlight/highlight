@@ -52,6 +52,7 @@ export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	plan_type: Types.PlanType
 	interval: Types.SubscriptionInterval
+	retention_period: Types.RetentionPeriod
 }>
 
 export type CreateOrUpdateStripeSubscriptionMutation = {
@@ -2556,11 +2557,11 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 	billingDetails: { __typename?: 'BillingDetails' } & Pick<
 		Types.BillingDetails,
-		'meter' | 'membersMeter'
+		'meter' | 'membersMeter' | 'errorsMeter'
 	> & {
 			plan: { __typename?: 'Plan' } & Pick<
 				Types.Plan,
-				'type' | 'quota' | 'interval' | 'membersLimit'
+				'type' | 'quota' | 'interval' | 'membersLimit' | 'errorsLimit'
 			>
 		}
 	workspace?: Types.Maybe<
@@ -2572,6 +2573,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 			| 'next_invoice_date'
 			| 'allow_meter_overage'
 			| 'eligible_for_trial_extension'
+			| 'retention_period'
 		>
 	>
 }

@@ -4,6 +4,7 @@ import { Skeleton } from '@components/Skeleton/Skeleton'
 import { USD } from '@dinero.js/currencies'
 import {
 	PlanType,
+	RetentionPeriod,
 	SubscriptionDetails,
 	SubscriptionInterval,
 } from '@graph/schemas'
@@ -27,6 +28,7 @@ import React from 'react'
 import styles from './BillingStatusCard.module.scss'
 
 const SESSIONS_PRICE_PER_THOUSAND = 5
+const ERRORS_PRICE_PER_THOUSAND = 0.2
 export const MEMBERS_PRICE = 20
 
 export const BillingStatusCard = ({
@@ -35,7 +37,10 @@ export const BillingStatusCard = ({
 	sessionLimit,
 	memberCount,
 	memberLimit,
+	errorsCount,
+	errorsLimit,
 	subscriptionInterval,
+	retentionPeriod,
 	allowOverage,
 	loading,
 	billingPeriodEnd,
@@ -48,7 +53,10 @@ export const BillingStatusCard = ({
 	sessionLimit: number
 	memberCount: number
 	memberLimit: number
+	errorsCount: number
+	errorsLimit: number
 	subscriptionInterval: SubscriptionInterval
+	retentionPeriod: RetentionPeriod
 	allowOverage: boolean
 	loading: boolean
 	billingPeriodEnd?: Date
@@ -83,6 +91,11 @@ export const BillingStatusCard = ({
 		membersOverage = 0
 	}
 
+	let errorsOverage = errorsCount - errorsLimit
+	if (!allowOverage || errorsOverage < 0) {
+		errorsOverage = 0
+	}
+
 	const matchedPlan = BILLING_PLANS.find((p) => p.name === planType)
 
 	const baseSubtotal =
@@ -101,8 +114,9 @@ export const BillingStatusCard = ({
 	const overageSubtotal = dinero({
 		amount:
 			Math.ceil(sessionsOverage / 1000) *
-			SESSIONS_PRICE_PER_THOUSAND *
-			100,
+				SESSIONS_PRICE_PER_THOUSAND *
+				100 +
+			Math.ceil(errorsOverage / 1000) * ERRORS_PRICE_PER_THOUSAND * 100,
 		currency: USD,
 	})
 
@@ -138,6 +152,41 @@ export const BillingStatusCard = ({
 		nextBillingDate = billingPeriodEnd
 	}
 
+	let retentionStr: string
+	switch (retentionPeriod) {
+		case RetentionPeriod.ThreeMonths:
+			retentionStr = '3 months'
+			break
+		case RetentionPeriod.SixMonths:
+			retentionStr = '6 months'
+			break
+		case RetentionPeriod.TwelveMonths:
+			retentionStr = '12 months'
+			break
+		case RetentionPeriod.TwoYears:
+			retentionStr = '2 years'
+			break
+	}
+
+	let planTypeStr: string
+	switch (planType) {
+		case PlanType.Free:
+			planTypeStr = 'Free'
+			break
+		case PlanType.Lite:
+			planTypeStr = 'Basic'
+			break
+		case PlanType.Basic:
+			planTypeStr = 'Essentials'
+			break
+		case PlanType.Startup:
+			planTypeStr = 'Startup'
+			break
+		case PlanType.Enterprise:
+			planTypeStr = 'Enterprise'
+			break
+	}
+
 	return (
 		<div className={styles.fieldsBox}>
 			<h3 className={styles.cardTitle}>
@@ -171,6 +220,16 @@ export const BillingStatusCard = ({
 				) : (
 					<>
 						<span className={styles.subText}>
+							<span className={styles.planText}>
+								{planTypeStr} Plan
+							</span>{' '}
+							(billed{' '}
+							{subscriptionInterval ===
+							SubscriptionInterval.Annual
+								? 'annually'
+								: 'monthly'}
+							)
+							<br />
 							You have used{' '}
 							<strong>
 								{formatNumberWithDelimiters(sessionCount)}
@@ -179,21 +238,31 @@ export const BillingStatusCard = ({
 							<strong>
 								{formatNumberWithDelimiters(sessionLimit)}
 							</strong>{' '}
-							sessions on the{' '}
-							<span className={styles.planText}>
-								{planType} Plan
-							</span>{' '}
-							(billed{' '}
-							{subscriptionInterval ===
-							SubscriptionInterval.Annual
-								? 'annually'
-								: 'monthly'}
-							).
+							sessions
+							<br />
 						</span>
 						<div className={styles.progressContainer}>
 							<Progress
 								numerator={sessionCount}
 								denominator={sessionLimit || 1}
+								showInfo={false}
+							/>
+						</div>
+						<span className={styles.subText}>
+							You have used{' '}
+							<strong>
+								{formatNumberWithDelimiters(errorsCount)}
+							</strong>{' '}
+							of your{' '}
+							<strong>
+								{formatNumberWithDelimiters(errorsLimit)}
+							</strong>{' '}
+							errors
+						</span>
+						<div className={styles.progressContainer}>
+							<Progress
+								numerator={errorsCount}
+								denominator={errorsLimit || 1}
 								showInfo={false}
 							/>
 						</div>
@@ -270,6 +339,37 @@ export const BillingStatusCard = ({
 							<span className={styles.subText}>
 								You're currently not paying session overage ($5
 								per 1000 sessions).
+							</span>
+						)}
+						<br />
+						{loading ? (
+							<Skeleton />
+						) : errorsOverage > 0 ? (
+							<span className={styles.subText}>
+								You have an errors overage of{' '}
+								<strong>
+									{formatNumberWithDelimiters(errorsOverage)}
+								</strong>{' '}
+								errors ($0.20 per 1000 errors).
+							</span>
+						) : (
+							<span className={styles.subText}>
+								You're currently not paying errors overage
+								($0.20 per 1000 errors).
+							</span>
+						)}
+					</div>
+					<Divider />
+					<div className={styles.cardSubtitleContainer}>
+						<span>Retention</span>
+					</div>
+					<div className={styles.sectionContents}>
+						{loading ? (
+							<Skeleton />
+						) : (
+							<span className={styles.subText}>
+								Sessions and errors will be retained for{' '}
+								<strong>{retentionStr}</strong>.
 							</span>
 						)}
 					</div>

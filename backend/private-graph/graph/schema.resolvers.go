@@ -1199,7 +1199,7 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 }
 
 // CreateOrUpdateStripeSubscription is the resolver for the createOrUpdateStripeSubscription field.
-func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType modelInputs.PlanType, interval modelInputs.SubscriptionInterval) (*string, error) {
+func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType modelInputs.PlanType, interval modelInputs.SubscriptionInterval, retentionPeriod modelInputs.RetentionPeriod) (*string, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
@@ -1246,7 +1246,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	}
 
 	// default to unlimited members pricing
-	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricingInterval, true)
+	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricingInterval, true, retentionPeriod)
 	if err != nil {
 		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
@@ -1261,7 +1261,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		}
 
 		subscriptionItem := subscription.Items.Data[0]
-		productType, _, _, _ := pricing.GetProductMetadata(subscriptionItem.Price)
+		productType, _, _, _, _ := pricing.GetProductMetadata(subscriptionItem.Price)
 		if productType == nil {
 			return nil, e.New(fmt.Sprintf("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - nil product from sub %s price %s", subscription.ID, subscriptionItem.Price.ID))
 		}
@@ -3627,7 +3627,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 
 		planTier := modelInputs.PlanType(account.PlanTier)
 		if account.SessionLimit == 0 {
-			account.SessionLimit = pricing.TypeToQuota(planTier)
+			account.SessionLimit = pricing.TypeToSessionsLimit(planTier)
 		}
 
 		if account.MemberLimit != nil && *account.MemberLimit == 0 {
@@ -3724,8 +3724,15 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 	if s == nil || err != nil {
 		return nil, nil
 	}
+
+	retentionDate, err := r.GetProjectRetentionDate(ctx, s.ProjectID)
+	if err != nil {
+		return nil, err
+	}
 	sessionObj := &model.Session{}
-	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj).Error; err != nil {
+	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).
+		Where("created_at > ?", retentionDate).
+		First(&sessionObj).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from session")
 	}
 	return sessionObj, nil
@@ -3854,9 +3861,14 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 
 // ErrorGroupsOpensearch is the resolver for the error_groups_opensearch field.
 func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model.ErrorResults, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	results := []opensearch.OpenSearchError{}
@@ -3873,7 +3885,8 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 	}
 	errorGroupsOpensearchSearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("resolver.errorGroupsOpensearchSearchQuery"), tracer.Tag("project_id", projectID))
-	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
+	q := FormatErrorGroupsQuery(query, GetRetentionDate(workspace.RetentionPeriod))
+	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, q, options, &results)
 	errorGroupsOpensearchSearchSpan.Finish()
 
 	if err != nil {
@@ -3903,9 +3916,14 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 
 // ErrorsHistogram is the resolver for the errors_histogram field.
 func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	results := []opensearch.OpenSearchError{}
@@ -3919,7 +3937,8 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 		Aggregation:       GetDateHistogramAggregation(histogramOptions, "timestamp", nil),
 	}
 
-	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
+	q := FormatErrorInstancesQuery(query, GetRetentionDate(workspace.RetentionPeriod))
+	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3936,6 +3955,13 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model
 	eg, err := r.canAdminViewErrorGroup(ctx, secureID, true)
 	if err != nil {
 		return nil, err
+	}
+	retentionDate, err := r.GetProjectRetentionDate(ctx, eg.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+	if eg.UpdatedAt.Before(retentionDate) {
+		return nil, e.New("no new error instances after the workspace's retention date")
 	}
 	return eg, err
 }
@@ -3956,10 +3982,16 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		return nil, e.Wrap(err, "not authorized to view error group")
 	}
 
+	retentionDate, err := r.GetProjectRetentionDate(ctx, errorGroup.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
 	errorObject := model.ErrorObject{}
 	errorObjectQuery := r.DB.
 		Model(&model.ErrorObject{}).
 		Where("error_group_id = ?", errorGroup.ID).
+		Where("created_at > ?", retentionDate).
 		Order("id desc")
 
 	if errorObjectID == nil {
@@ -3967,6 +3999,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		if err := r.DB.Model(&errorObject).
 			Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
 			Where("session_id is not null").
+			Where("created_at > ?", retentionDate).
 			Limit(100).
 			Pluck("session_id", &sessionIds).
 			Error; err != nil {
@@ -3977,6 +4010,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		// find all processed sessions
 		if err := r.DB.Model(&model.Session{}).
 			Where("id IN (?) AND processed = ? AND excluded = ?", sessionIds, true, false).
+			Where("created_at > ?", retentionDate).
 			Pluck("id", &processedSessions).
 			Error; err != nil {
 			return nil, e.Wrap(err, "error querying processed sessions")
@@ -3999,6 +4033,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 	} else {
 		if err := errorObjectQuery.
 			Where(&model.ErrorObject{Model: model.Model{ID: *errorObjectID}}).
+			Where("created_at > ?", retentionDate).
 			Limit(1).
 			Find(&errorObject).
 			Error; err != nil {
@@ -4010,6 +4045,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		Model(&model.ErrorObject{}).
 		Select("id").
 		Where("error_group_id = ?", errorGroup.ID).
+		Where("created_at > ?", retentionDate).
 		Where("id > ?", errorObject.ID).
 		Order("id asc").
 		Limit(1).
@@ -4023,6 +4059,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		Select("id").
 		Where("error_group_id = ?", errorGroup.ID).
 		Where("id < ?", errorObject.ID).
+		Where("created_at > ?", retentionDate).
 		Order("id desc").
 		Limit(1).
 		Pluck("id", &previousID).Error; err != nil {
@@ -4934,9 +4971,13 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 
 // SessionsOpensearch is the resolver for the sessions_opensearch field.
 func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int) (*model.SessionResults, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	results := []model.Session{}
@@ -4957,7 +4998,8 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		// page param is 1 indexed
 		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
-	q := FormatSessionsQuery(query)
+
+	q := FormatSessionsQuery(query, GetRetentionDate(workspace.RetentionPeriod))
 	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
@@ -4971,9 +5013,13 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 
 // SessionsHistogram is the resolver for the sessions_histogram field.
 func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	results := []model.Session{}
@@ -4988,7 +5034,7 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, qu
 				Missing: ptr.String("false"),
 			}),
 	}
-	q := FormatSessionsQuery(query)
+	q := FormatSessionsQuery(query, GetRetentionDate(workspace.RetentionPeriod))
 	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
@@ -5276,9 +5322,10 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	var g errgroup.Group
 	var meter int64
 	var membersMeter int64
+	var errorsMeter int64
 
 	g.Go(func() error {
-		meter, err = pricing.GetWorkspaceMeter(r.DB, workspaceID)
+		meter, err = pricing.GetWorkspaceSessionsMeter(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}
@@ -5286,19 +5333,27 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	})
 
 	g.Go(func() error {
-		membersMeter = pricing.GetMembersMeter(r.DB, workspaceID)
+		membersMeter = pricing.GetWorkspaceMembersMeter(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error querying members meter")
 		}
 		return nil
 	})
 
-	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
+	g.Go(func() error {
+		errorsMeter, err = pricing.GetWorkspaceErrorsMeter(r.DB, workspaceID)
+		if err != nil {
+			return e.Wrap(err, "error querying errors meter")
+		}
+		return nil
+	})
+
+	// Waits for all goroutines to finish, then returns the first non-nil error (if any).
 	if err := g.Wait(); err != nil {
 		return nil, e.Wrap(err, "error querying session data for billing details")
 	}
 
-	sessionLimit := pricing.TypeToQuota(planType)
+	sessionLimit := pricing.TypeToSessionsLimit(planType)
 	// use monthly session limit if it exists
 	if workspace.MonthlySessionLimit != nil {
 		sessionLimit = *workspace.MonthlySessionLimit
@@ -5309,15 +5364,23 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		membersLimit = workspace.MonthlyMembersLimit
 	}
 
+	errorsLimit := pricing.TypeToErrorsLimit(planType)
+	// use monthly session limit if it exists
+	if workspace.MonthlyErrorsLimit != nil {
+		errorsLimit = *workspace.MonthlyErrorsLimit
+	}
+
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:         modelInputs.PlanType(planType.String()),
 			Quota:        sessionLimit,
 			Interval:     interval,
 			MembersLimit: membersLimit,
+			ErrorsLimit:  errorsLimit,
 		},
 		Meter:        meter,
 		MembersMeter: membersMeter,
+		ErrorsMeter:  errorsMeter,
 	}
 
 	return details, nil

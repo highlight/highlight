@@ -23,6 +23,7 @@ const (
 	highlightProductType             string = "highlightProductType"
 	highlightProductTier             string = "highlightProductTier"
 	highlightProductUnlimitedMembers string = "highlightProductUnlimitedMembers"
+	highlightRetentionPeriod         string = "highlightRetentionPeriod"
 )
 
 type ProductType string
@@ -31,6 +32,7 @@ const (
 	ProductTypeBase     ProductType = "BASE"
 	ProductTypeMembers  ProductType = "MEMBERS"
 	ProductTypeSessions ProductType = "SESSIONS"
+	ProductTypeErrors   ProductType = "ERRORS"
 )
 
 type SubscriptionInterval string
@@ -40,15 +42,35 @@ const (
 	SubscriptionIntervalAnnual  SubscriptionInterval = "ANNUAL"
 )
 
-func GetMembersMeter(DB *gorm.DB, workspaceID int) int64 {
+func GetWorkspaceMembersMeter(DB *gorm.DB, workspaceID int) int64 {
 	return DB.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Association("Admins").Count()
 }
 
-func GetWorkspaceMeter(DB *gorm.DB, workspaceID int) (int64, error) {
+func GetWorkspaceSessionsMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 	var meter int64
 	if err := DB.Raw(`
 			SELECT COALESCE(SUM(count), 0) as currentPeriodSessionCount
 			FROM daily_session_counts_view
+			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=? AND free_tier = false)
+			AND date >= (
+				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
+				FROM workspaces
+				WHERE id=?)
+			AND date < (
+				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+				FROM workspaces
+				WHERE id=?)`, workspaceID, workspaceID, workspaceID).
+		Scan(&meter).Error; err != nil {
+		return 0, e.Wrap(err, "error querying for session meter")
+	}
+	return meter, nil
+}
+
+func GetWorkspaceErrorsMeter(DB *gorm.DB, workspaceID int) (int64, error) {
+	var meter int64
+	if err := DB.Raw(`
+			SELECT COALESCE(SUM(count), 0) as currentPeriodErrorsCount
+			FROM daily_error_counts
 			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=? AND free_tier = false)
 			AND date >= (
 				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
@@ -96,10 +118,12 @@ func TypeToMemberLimit(planType backend.PlanType, unlimitedMembers bool) *int {
 	}
 }
 
-func TypeToQuota(planType backend.PlanType) int {
+func TypeToSessionsLimit(planType backend.PlanType) int {
 	switch planType {
 	case backend.PlanTypeFree:
 		return 500
+	case backend.PlanTypeLite:
+		return 2000
 	case backend.PlanTypeBasic:
 		return 10000
 	case backend.PlanTypeStartup:
@@ -108,6 +132,23 @@ func TypeToQuota(planType backend.PlanType) int {
 		return 300000
 	default:
 		return 500
+	}
+}
+
+func TypeToErrorsLimit(planType backend.PlanType) int {
+	switch planType {
+	case backend.PlanTypeFree:
+		return 1000
+	case backend.PlanTypeLite:
+		return 4000
+	case backend.PlanTypeBasic:
+		return 20000
+	case backend.PlanTypeStartup:
+		return 160000
+	case backend.PlanTypeEnterprise:
+		return 600000
+	default:
+		return 1000
 	}
 }
 
@@ -132,27 +173,40 @@ func MustUpgradeForClearbit(tier string) bool {
 }
 
 // Returns a Stripe lookup key which maps to a single Stripe Price
-func GetLookupKey(productType ProductType, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool) (result string) {
+func GetLookupKey(productType ProductType, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (result string) {
 	result = fmt.Sprintf("%s|%s|%s", string(productType), string(productTier), string(interval))
 	if unlimitedMembers {
 		result += "|UNLIMITED_MEMBERS"
 	}
+	if retentionPeriod != backend.RetentionPeriodThreeMonths {
+		result += "|" + string(retentionPeriod)
+	}
 	return
 }
 
+func GetOverageKey(productType ProductType, retentionPeriod backend.RetentionPeriod) string {
+	if retentionPeriod == backend.RetentionPeriodThreeMonths {
+		return string(productType)
+	} else {
+		return string(productType) + "|" + string(retentionPeriod)
+	}
+}
+
 // Returns the Highlight ProductType, Tier, and Interval for the Stripe Price
-func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType, bool, SubscriptionInterval) {
+func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType, bool, SubscriptionInterval, backend.RetentionPeriod) {
 	interval := SubscriptionIntervalMonthly
 	if price.Recurring != nil && price.Recurring.Interval == stripe.PriceRecurringIntervalYear {
 		interval = SubscriptionIntervalAnnual
 	}
+
+	retentionPeriod := backend.RetentionPeriodSixMonths
 
 	// If the price id corresponds to a tier using the old conversion,
 	// return it for backward compatibility
 	oldTier := FromPriceID(price.ID)
 	if oldTier != backend.PlanTypeFree {
 		base := ProductTypeBase
-		return &base, &oldTier, false, interval
+		return &base, &oldTier, false, interval, retentionPeriod
 	}
 
 	var productTypePtr *ProductType
@@ -175,7 +229,11 @@ func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType, b
 		}
 	}
 
-	return productTypePtr, tierPtr, unlimitedMembers, interval
+	if retentionStr, ok := price.Metadata[highlightRetentionPeriod]; ok {
+		retentionPeriod = backend.RetentionPeriod(retentionStr)
+	}
+
+	return productTypePtr, tierPtr, unlimitedMembers, interval, retentionPeriod
 }
 
 // Products are too nested in the Subscription model to be added through the API
@@ -209,19 +267,20 @@ func FillProducts(stripeClient *client.API, subscriptions []*stripe.Subscription
 }
 
 // Returns the Stripe Prices for the associated tier and interval
-func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool) (map[ProductType]*stripe.Price, error) {
-	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval, unlimitedMembers)
+func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (map[ProductType]*stripe.Price, error) {
+	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval, unlimitedMembers, retentionPeriod)
 
-	sessionsLookupKey := string(ProductTypeSessions)
+	sessionsLookupKey := GetOverageKey(ProductTypeSessions, retentionPeriod)
 	membersLookupKey := string(ProductTypeMembers)
+	errorsLookupKey := GetOverageKey(ProductTypeErrors, retentionPeriod)
 
 	priceListParams := stripe.PriceListParams{}
-	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey}
+	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey}
 	prices := stripeClient.Prices.List(&priceListParams).PriceList().Data
 
 	// Validate that we received exactly 1 response for each lookup key
-	if len(prices) != 3 {
-		return nil, e.Errorf("expected 3 prices, received %d", len(prices))
+	if len(prices) != 4 {
+		return nil, e.Errorf("expected 4 prices, received %d", len(prices))
 	}
 
 	priceMap := map[ProductType]*stripe.Price{}
@@ -233,10 +292,12 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 			priceMap[ProductTypeSessions] = price
 		case membersLookupKey:
 			priceMap[ProductTypeMembers] = price
+		case errorsLookupKey:
+			priceMap[ProductTypeErrors] = price
 		}
 	}
 
-	if len(priceMap) != 3 {
+	if len(priceMap) != 4 {
 		return nil, e.New("one or more prices was not found")
 	}
 
@@ -306,7 +367,7 @@ func reportUsage(ctx context.Context, DB *gorm.DB, stripeClient *client.API, mai
 		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - subscription has multiple products")
 	}
 	subscriptionItem := subscription.Items.Data[0]
-	_, productTier, _, interval := GetProductMetadata(subscriptionItem.Price)
+	_, productTier, _, interval, _ := GetProductMetadata(subscriptionItem.Price)
 	if productTier == nil {
 		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - product has no tier")
 	}
@@ -353,7 +414,11 @@ func reportUsage(ctx context.Context, DB *gorm.DB, stripeClient *client.API, mai
 		}
 	}
 
-	prices, err := GetStripePrices(stripeClient, *productTier, interval, workspace.UnlimitedMembers)
+	retentionPeriod := backend.RetentionPeriodSixMonths
+	if workspace.RetentionPeriod != nil {
+		retentionPeriod = *workspace.RetentionPeriod
+	}
+	prices, err := GetStripePrices(stripeClient, *productTier, interval, workspace.UnlimitedMembers, retentionPeriod)
 	if err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to get Stripe prices")
 	}
@@ -378,86 +443,77 @@ func reportUsage(ctx context.Context, DB *gorm.DB, stripeClient *client.API, mai
 
 	invoiceLines := map[ProductType]*stripe.InvoiceLine{}
 	for _, line := range invoice.Lines.Data {
-		productType, _, _, _ := GetProductMetadata(line.Price)
+		productType, _, _, _, _ := GetProductMetadata(line.Price)
 		if productType != nil {
 			invoiceLines[*productType] = line
 		}
 	}
 
-	if productType == nil || *productType == ProductTypeMembers {
-		newPrice := prices[ProductTypeMembers]
-		meter := GetMembersMeter(DB, workspaceID)
-
-		limit := TypeToMemberLimit(backend.PlanType(workspace.PlanTier), workspace.UnlimitedMembers)
-		if limit != nil && workspace.MonthlyMembersLimit != nil {
-			limit = workspace.MonthlyMembersLimit
-		}
-
-		overage := int64(0)
-		if limit != nil && meter > int64(*limit) {
-			overage = meter - int64(*limit)
-		}
-
-		log.WithContext(ctx).Infof("reporting members usage for workspace %d. %d members, %d overage", workspaceID, meter, overage)
-		if membersLine, ok := invoiceLines[ProductTypeMembers]; ok {
-			if _, err := stripeClient.InvoiceItems.Update(membersLine.InvoiceItem, &stripe.InvoiceItemParams{
-				Price:    &newPrice.ID,
-				Quantity: stripe.Int64(overage),
-			}); err != nil {
-				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update members invoice item")
-			}
-		} else {
-			params := &stripe.InvoiceItemParams{
-				Customer:     &c.ID,
-				Subscription: &subscription.ID,
-				Price:        &newPrice.ID,
-				Quantity:     stripe.Int64(overage),
-			}
-			params.SetIdempotencyKey(c.ID + ":" + subscription.ID + ":" + newPrice.ID)
-			if _, err := stripeClient.InvoiceItems.New(params); err != nil {
-				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add members invoice item")
-			}
-		}
+	// Update members overage
+	membersMeter := GetWorkspaceMembersMeter(DB, workspaceID)
+	membersLimit := TypeToMemberLimit(backend.PlanType(workspace.PlanTier), workspace.UnlimitedMembers)
+	if membersLimit != nil && workspace.MonthlyMembersLimit != nil {
+		membersLimit = workspace.MonthlyMembersLimit
+	}
+	if err := AddOrUpdateOverageItem(stripeClient, &workspace, prices[ProductTypeMembers], invoiceLines[ProductTypeMembers], c, subscription, membersLimit, membersMeter); err != nil {
+		return e.Wrap(err, "error updating overage item")
 	}
 
-	if productType == nil || *productType == ProductTypeSessions {
-		newPrice := prices[ProductTypeSessions]
-		meter, err := GetWorkspaceMeter(DB, workspaceID)
-		if err != nil {
-			return e.Wrap(err, "error getting sessions meter")
-		}
+	// Update sessions overage
+	sessionsMeter, err := GetWorkspaceSessionsMeter(DB, workspace.ID)
+	if err != nil {
+		return e.Wrap(err, "error getting sessions meter")
+	}
+	sessionsLimit := TypeToSessionsLimit(backend.PlanType(workspace.PlanTier))
+	if workspace.MonthlySessionLimit != nil {
+		sessionsLimit = *workspace.MonthlySessionLimit
+	}
+	if err := AddOrUpdateOverageItem(stripeClient, &workspace, prices[ProductTypeSessions], invoiceLines[ProductTypeSessions], c, subscription, &sessionsLimit, sessionsMeter); err != nil {
+		return e.Wrap(err, "error updating overage item")
+	}
 
-		limit := TypeToQuota(backend.PlanType(workspace.PlanTier))
-		if workspace.MonthlySessionLimit != nil {
-			limit = *workspace.MonthlySessionLimit
-		}
+	// Update errors overage
+	errorsMeter, err := GetWorkspaceErrorsMeter(DB, workspace.ID)
+	if err != nil {
+		return e.Wrap(err, "error getting errors meter")
+	}
+	errorsLimit := TypeToErrorsLimit(backend.PlanType(workspace.PlanTier))
+	if workspace.MonthlyErrorsLimit != nil {
+		errorsLimit = *workspace.MonthlyErrorsLimit
+	}
+	if err := AddOrUpdateOverageItem(stripeClient, &workspace, prices[ProductTypeErrors], invoiceLines[ProductTypeErrors], c, subscription, &errorsLimit, errorsMeter); err != nil {
+		return e.Wrap(err, "error updating overage item")
+	}
 
-		overage := int64(0)
-		// Charge overage if
-		if backend.PlanType(workspace.PlanTier) != backend.PlanTypeFree &&
-			workspace.AllowMeterOverage && meter > int64(limit) {
-			overage = meter - int64(limit)
-		}
+	return nil
+}
 
-		log.WithContext(ctx).Infof("reporting sessions usage for workspace %d", workspaceID)
-		if sessionsLine, ok := invoiceLines[ProductTypeSessions]; ok {
-			if _, err := stripeClient.InvoiceItems.Update(sessionsLine.InvoiceItem, &stripe.InvoiceItemParams{
-				Price:    &newPrice.ID,
-				Quantity: stripe.Int64(overage),
-			}); err != nil {
-				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update sessions invoice item")
-			}
-		} else {
-			params := &stripe.InvoiceItemParams{
-				Customer:     &c.ID,
-				Subscription: &subscription.ID,
-				Price:        &newPrice.ID,
-				Quantity:     stripe.Int64(overage),
-			}
-			params.SetIdempotencyKey(c.ID + ":" + subscription.ID + ":" + newPrice.ID)
-			if _, err := stripeClient.InvoiceItems.New(params); err != nil {
-				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add sessions invoice item")
-			}
+func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace, newPrice *stripe.Price, invoiceLine *stripe.InvoiceLine, customer *stripe.Customer, subscription *stripe.Subscription, limit *int, meter int64) error {
+	// Calculate overage if the workspace allows it
+	overage := int64(0)
+	if limit != nil &&
+		backend.PlanType(workspace.PlanTier) != backend.PlanTypeFree &&
+		workspace.AllowMeterOverage && meter > int64(*limit) {
+		overage = meter - int64(*limit)
+	}
+
+	if invoiceLine != nil {
+		if _, err := stripeClient.InvoiceItems.Update(invoiceLine.InvoiceItem, &stripe.InvoiceItemParams{
+			Price:    &newPrice.ID,
+			Quantity: stripe.Int64(overage),
+		}); err != nil {
+			return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update invoice item")
+		}
+	} else {
+		params := &stripe.InvoiceItemParams{
+			Customer:     &customer.ID,
+			Subscription: &subscription.ID,
+			Price:        &newPrice.ID,
+			Quantity:     stripe.Int64(overage),
+		}
+		params.SetIdempotencyKey(customer.ID + ":" + subscription.ID + ":" + newPrice.ID)
+		if _, err := stripeClient.InvoiceItems.New(params); err != nil {
+			return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add invoice item")
 		}
 	}
 

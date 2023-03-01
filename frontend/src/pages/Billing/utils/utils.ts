@@ -12,8 +12,16 @@ export const didUpgradePlan = (
 	switch (newPlan) {
 		case PlanType.Free:
 			return false
-		case PlanType.Basic:
+		case PlanType.Lite:
 			if (previousPlan === PlanType.Free) {
+				return true
+			}
+			return false
+		case PlanType.Basic:
+			if (
+				previousPlan === PlanType.Free ||
+				previousPlan === PlanType.Lite
+			) {
 				return true
 			}
 			return false
