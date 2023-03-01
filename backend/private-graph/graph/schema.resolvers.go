@@ -6282,10 +6282,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		tracer.Tag("admin_uid", uid))
 	admin := &model.Admin{UID: &uid}
 	tx := r.DB.Where(admin).
-		Clauses(clause.Returning{Columns: []clause.Column{{Name: "uid"}}}, clause.OnConflict{
-			Columns:   []clause.Column{{Name: "uid"}},
-			DoNothing: true,
-		}).
+		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "uid"}}, DoNothing: true}).
 		Create(&admin).
 		Attrs(&admin)
 	if tx.Error != nil {
