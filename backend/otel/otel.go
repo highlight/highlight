@@ -180,12 +180,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					eventAttributes := event.Attributes().AsRaw()
 					setHighlightAttributes(eventAttributes, &projectID, &sessionID, &requestID, &source)
 					if event.Name() == semconv.ExceptionEventName {
-						ts := event.Timestamp().AsTime()
 						traceID := cast(requestID, span.TraceID().String())
 						spanID := span.SpanID().String()
 						excMessage := cast(eventAttributes[string(semconv.ExceptionMessageKey)], "")
 
+						ts := event.Timestamp().AsTime()
 						uuid := uuid.New().String()
+
 						func() {
 							projectIDInt, err := projectToInt(projectID)
 							if err != nil {
@@ -235,7 +236,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 								RequestID:       &requestID,
 								TraceID:         pointy.String(traceID),
 								SpanID:          pointy.String(spanID),
-								LogUUID:         pointy.String(uuid),
+								LogCursor:       pointy.String(clickhouse.EncodeCursor(ts, uuid)),
 								Event:           excMessage,
 								Type:            excType,
 								Source: strings.Join(lo.Filter([]string{

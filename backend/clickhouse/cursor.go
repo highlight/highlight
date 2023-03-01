@@ -30,7 +30,7 @@ func getLogsPayload(logs []*modelInputs.LogEdge, limit uint64) *modelInputs.Logs
 	}
 }
 
-func encodeCursor(t time.Time, uuid string) string {
+func EncodeCursor(t time.Time, uuid string) string {
 	key := fmt.Sprintf("%s,%s", t.Format(time.RFC3339Nano), uuid)
 	return base64.StdEncoding.EncodeToString([]byte(key))
 }

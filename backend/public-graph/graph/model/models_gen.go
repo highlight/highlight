@@ -14,7 +14,7 @@ type BackendErrorObjectInput struct {
 	RequestID       *string   `json:"request_id"`
 	TraceID         *string   `json:"trace_id"`
 	SpanID          *string   `json:"span_id"`
-	LogUUID         *string   `json:"log_uuid"`
+	LogCursor       *string   `json:"log_cursor"`
 	Event           string    `json:"event"`
 	Type            string    `json:"type"`
 	URL             string    `json:"url"`

@@ -84,7 +84,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 		}
 
 		logs = append(logs, &modelInputs.LogEdge{
-			Cursor: encodeCursor(Timestamp, UUID),
+			Cursor: EncodeCursor(Timestamp, UUID),
 			Node: &modelInputs.Log{
 				Timestamp:     Timestamp,
 				SeverityText:  makeSeverityText(SeverityText),
