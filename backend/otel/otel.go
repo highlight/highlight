@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi"
-	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	model2 "github.com/highlight-run/highlight/backend/model"
@@ -183,31 +182,22 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						traceID := cast(requestID, span.TraceID().String())
 						spanID := span.SpanID().String()
 						excMessage := cast(eventAttributes[string(semconv.ExceptionMessageKey)], "")
-
 						ts := event.Timestamp().AsTime()
-						uuid := uuid.New().String()
 
-						func() {
+						logCursor := func() *string {
 							projectIDInt, err := projectToInt(projectID)
 							if err != nil {
 								log.WithContext(ctx).WithField("ProjectVerboseID", projectID).WithField("ExcMessage", excMessage).Errorf("otel span error got invalid project id")
-								return
+								return nil
 							}
 							resourceAttributesMap, logAttributesMap := getAttributesMaps(resourceAttributes, eventAttributes)
-							logRow := &clickhouse.LogRow{
-								UUID:               uuid,
-								Timestamp:          ts,
-								TraceId:            traceID,
-								SpanId:             spanID,
-								SeverityText:       "ERROR",
-								SeverityNumber:     int32(log.ErrorLevel),
-								ServiceName:        serviceName,
-								Body:               excMessage,
-								ResourceAttributes: resourceAttributesMap,
-								LogAttributes:      logAttributesMap,
-								ProjectId:          uint32(projectIDInt),
-								SecureSessionId:    sessionID,
-							}
+							logRow := clickhouse.NewLogRow(ts, projectIDInt, sessionID, traceID, spanID)
+							logRow.SeverityText = "ERROR"
+							logRow.SeverityNumber = int32(log.ErrorLevel)
+							logRow.ServiceName = serviceName
+							logRow.Body = excMessage
+							logRow.ResourceAttributes = resourceAttributesMap
+							logRow.LogAttributes = logAttributesMap
 							if projectID != "" {
 								if _, ok := projectLogs[projectID]; !ok {
 									projectLogs[projectID] = []*clickhouse.LogRow{}
@@ -217,6 +207,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 								data, _ := req.MarshalJSON()
 								log.WithContext(ctx).WithField("LogEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span log got no project")
 							}
+							return pointy.String(logRow.Cursor())
 						}()
 
 						func() {
@@ -236,7 +227,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 								RequestID:       &requestID,
 								TraceID:         pointy.String(traceID),
 								SpanID:          pointy.String(spanID),
-								LogCursor:       pointy.String(clickhouse.EncodeCursor(ts, uuid)),
+								LogCursor:       logCursor,
 								Event:           excMessage,
 								Type:            excType,
 								Source: strings.Join(lo.Filter([]string{
