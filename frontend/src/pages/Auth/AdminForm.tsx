@@ -63,6 +63,7 @@ export const AdminForm: React.FC = () => {
 	)
 
 	const workspace = workspacesData?.workspaces && workspacesData.workspaces[0]
+	const inWorkspace = !!workspace
 
 	const formState = useFormState({
 		defaultValues: {
@@ -90,7 +91,7 @@ export const AdminForm: React.FC = () => {
 		try {
 			const attributionData = getAttributionData()
 
-			if (workspace) {
+			if (inWorkspace) {
 				await updateAdminAboutYouDetails({
 					variables: {
 						adminDetails: {
@@ -146,7 +147,7 @@ export const AdminForm: React.FC = () => {
 		if (!workspacesLoading) {
 			setLoadingState(AppLoadingState.LOADED)
 
-			if (workspace) {
+			if (inWorkspace) {
 				formState.setValue('companyName', workspace.name)
 			}
 		}
@@ -183,7 +184,7 @@ export const AdminForm: React.FC = () => {
 						<Form.Input
 							name={formState.names.companyName}
 							label="Company"
-							disabled={!!workspace}
+							disabled={inWorkspace}
 							required
 						/>
 						<Form.NamedSection
@@ -209,7 +210,7 @@ export const AdminForm: React.FC = () => {
 								<option value="Founder">Founder</option>
 							</select>
 						</Form.NamedSection>
-						{!isCommonEmailDomain && !workspace && (
+						{!isCommonEmailDomain && !inWorkspace && (
 							<Box mt="4">
 								<AutoJoinEmailsInput
 									onChange={(domains) =>
@@ -221,7 +222,7 @@ export const AdminForm: React.FC = () => {
 								/>
 							</Box>
 						)}
-						{!workspace &&
+						{!inWorkspace &&
 							(showPromoCodeField ? (
 								<Form.Input
 									name={formState.names.promoCode}
@@ -251,7 +252,7 @@ export const AdminForm: React.FC = () => {
 						loading={loading || formState.submitSucceed > 0}
 						type="submit"
 					>
-						Create Workspace
+						{inWorkspace ? 'Submit' : 'Create Workspace'}
 					</Button>
 				</AuthFooter>
 			</Form>
