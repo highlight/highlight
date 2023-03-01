@@ -281,7 +281,6 @@ const AuthenticationRoleRouter = () => {
 						// Try to create an admin if it's a new account. This can't be
 						// handled on the sign up form because this callback is triggered
 						// before the admin is created.
-						debugger
 						if (!user.emailVerified && !creatingAdmin) {
 							await createAdminMutation()
 						}

@@ -6246,7 +6246,7 @@ func (r *queryResolver) WorkspaceForInviteLink(ctx context.Context, secret strin
 	}
 
 	var workspace model.Workspace
-	if err := r.DB.Model(&model.Workspace{Model: model.Model{ID: *workspaceInviteLink.WorkspaceID}}).First(&workspace).Error; err != nil {
+	if err := r.DB.Model(&model.Workspace{}).Where("id = ?", *workspaceInviteLink.WorkspaceID).First(&workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace for invite link")
 	}
 
@@ -6257,9 +6257,6 @@ func (r *queryResolver) WorkspaceForInviteLink(ctx context.Context, secret strin
 		}
 	}
 
-	fmt.Printf("::: workspace: %+v\n", workspace)
-	fmt.Printf("::: workspaceInviteLink: %+v\n", workspaceInviteLink)
-	fmt.Printf("::: ExistingAccount: %+v\n", admin != nil)
 	workspaceForInvite := &modelInputs.WorkspaceForInviteLink{
 		ExpirationDate:  workspaceInviteLink.ExpirationDate,
 		InviteeEmail:    workspaceInviteLink.InviteeEmail,

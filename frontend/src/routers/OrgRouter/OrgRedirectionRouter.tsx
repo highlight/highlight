@@ -6,16 +6,12 @@ import {
 import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
 import React, { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { StringParam, useQueryParam } from 'use-query-params'
 
 export const ProjectRedirectionRouter = () => {
 	const { loading, error, data } = useGetProjectsAndWorkspacesQuery()
 	const { admin } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
 	const location = useLocation()
-	const [nextParam] = useQueryParam('next', StringParam)
-	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
-	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
 
 	useEffect(() => {
 		if (loading) {
@@ -37,6 +33,7 @@ export const ProjectRedirectionRouter = () => {
 	let redirectTo
 	if (data?.projects?.length) {
 		redirectTo = `/${data!.projects[0]!.id}${location.pathname}`
+		// TODO: See if we can get rid of the need for these other redirects entirely.
 	} else if (data?.workspaces?.length) {
 		redirectTo = `/w/${data!.workspaces[0]!.id}/new`
 	} else {

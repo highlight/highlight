@@ -49,7 +49,6 @@ export const SignUp: React.FC = () => {
 			},
 		})
 	const workspaceInvite = data?.workspace_for_invite_link
-	console.log('::: inviteCode', inviteCode, data, loadingWorkspace)
 
 	const handleSubmit = useCallback(
 		(credential: firebase.auth.UserCredential) => {
@@ -105,7 +104,6 @@ export const SignUp: React.FC = () => {
 								? `You're invited to join '${workspaceInvite.workspace_name}'`
 								: 'Welcome to Highlight.'}
 						</Heading>
-						{/* TODO: If the user has an account, they should be signing in */}
 						<Text>
 							Have an account?{' '}
 							<Link to={SIGN_IN_ROUTE}>Sign in</Link>.

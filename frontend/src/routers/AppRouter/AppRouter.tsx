@@ -6,6 +6,7 @@ import { useNumericProjectId } from '@hooks/useProjectId'
 import { AccountsPage } from '@pages/Accounts/Accounts'
 import { AdminForm } from '@pages/Auth/AdminForm'
 import { AuthRouter, SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
+import { JoinWorkspace } from '@pages/Auth/JoinWorkspace'
 import { VerifyEmail } from '@pages/Auth/VerifyEmail'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
@@ -46,7 +47,10 @@ export const AppRouter = () => {
 	const [nextParam] = useQueryParam('next', StringParam)
 	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
 	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
-	const [_, setInviteCode] = useLocalStorage('highlightInviteCode', '')
+	const [inviteCode, setInviteCode] = useLocalStorage(
+		'highlightInviteCode',
+		'',
+	)
 	const navigate = useNavigate()
 
 	useEffect(() => {
@@ -57,9 +61,10 @@ export const AppRouter = () => {
 	}, [])
 
 	useEffect(() => {
-		// TODO: Handle redirection if a user is coming from an invite and hasn't
-		// accepted the invitation yet. Need to Julianify <JoinWorkspace /> and
-		// render if coming from an invite link. We store whether the user is coming
+		if (admin && inviteCode) {
+			navigate('/join_workspace')
+			return
+		}
 
 		if (admin && admin.email_verified === false) {
 			navigate('/verify_email')
@@ -74,7 +79,7 @@ export const AppRouter = () => {
 			navigate('/about_you')
 			return
 		}
-	}, [admin, isVercelIntegrationFlow, navigate])
+	}, [admin, isVercelIntegrationFlow, inviteCode, navigate])
 
 	useEffect(() => {
 		if (admin) {
@@ -107,6 +112,10 @@ export const AppRouter = () => {
 	return (
 		<Box height="screen" width="screen">
 			<Routes>
+				{isLoggedIn && inviteCode && (
+					<Route path="/join_workspace" element={<JoinWorkspace />} />
+				)}
+
 				{isLoggedIn && !admin?.about_you_details_filled && (
 					<Route path="/about_you" element={<AdminForm />} />
 				)}
