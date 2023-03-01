@@ -1,5 +1,5 @@
-import { keepsLines } from '@utils/css'
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
+import { keepsLines } from '../../../utils/css'
 
 export const variants = recipe({
 	variants: {
