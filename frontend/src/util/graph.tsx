@@ -10,7 +10,10 @@ import {
 } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
-import { getMainDefinition } from '@apollo/client/utilities'
+import {
+	getMainDefinition,
+	relayStylePagination,
+} from '@apollo/client/utilities'
 import { namedOperations } from '@graph/operations'
 import { auth } from '@util/auth'
 import { IndexedDBLink } from '@util/db'
@@ -108,6 +111,11 @@ const cache = new InMemoryCache({
 				metrics_histogram: {
 					keyArgs: ['project_id', 'metric_name', 'params'],
 				},
+			},
+		},
+		Query: {
+			fields: {
+				logs: relayStylePagination(),
 			},
 		},
 	},

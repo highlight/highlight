@@ -83,7 +83,9 @@ export const AlertConfigurationCard = ({
 		getFrequencyOption(alert?.Frequency).value,
 	)
 	const [isDisabled, setIsDisabled] = useState(alert?.disabled || false)
-	const [emailsToNotify, setEmailsToNotify] = useState<string[]>([])
+	const [emailsToNotify, setEmailsToNotify] = useState<string[]>(
+		alert?.EmailsToNotify || [],
+	)
 	const [selectedDiscordChannels, setSelectedDiscordChannels] = useState<
 		DiscordChannel[]
 	>(alert?.DiscordChannelsToNotify || [])

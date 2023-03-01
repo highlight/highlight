@@ -3,6 +3,7 @@ name: Docker
 on:
     push:
         branches: ['main']
+    workflow_dispatch:
     merge_group:
 
 jobs:
@@ -30,7 +31,7 @@ jobs:
               run: |
                   yarn;
                   cd docker;
-                  export NODE_EXTRA_CA_CERTS="../backend/localhostssl/server.crt";
+                  export NODE_EXTRA_CA_CERTS="$(PWD)/../backend/localhostssl/server.crt";
 
                   docker compose up -d --build --remove-orphans;
                   echo 'Docker compose started; waiting for services to come online'

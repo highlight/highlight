@@ -1,6 +1,6 @@
 import { BaseSearchContext } from '@context/BaseSearchContext'
 import { SearchParamsInput } from '@graph/schemas'
-import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
+import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { createContext } from '@util/context/context'
 import React from 'react'
 

@@ -21,10 +21,14 @@ interface Props {
 }
 
 const ApplicationRouter = ({ integrated }: Props) => {
-	const { page } = useSearchContext()
-	const { page: errorPage } = useErrorSearchContext()
-	usePreloadSessions({ page: page || 1 })
-	usePreloadErrors({ page: errorPage || 1 })
+	const { page, backendSearchQuery } = useSearchContext()
+	const { page: errorPage, backendSearchQuery: errorBackendSearchQuery } =
+		useErrorSearchContext()
+	usePreloadSessions({ page: page || 1, backendSearchQuery })
+	usePreloadErrors({
+		page: errorPage || 1,
+		backendSearchQuery: errorBackendSearchQuery,
+	})
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 
 	return (

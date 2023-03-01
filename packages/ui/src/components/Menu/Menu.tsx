@@ -8,7 +8,7 @@ import {
 	MenuState,
 	useMenuState,
 	MenuProps,
-	MenuButtonProps,
+	MenuButtonProps as AriakitMenuButtonProps,
 	MenuHeading as AriakitMenuHeading,
 	MenuHeadingProps,
 } from 'ariakit'
@@ -41,10 +41,10 @@ export const Menu: MenuComponent = ({ children, ...props }: Props) => {
 	return <MenuContext.Provider value={menu}>{children}</MenuContext.Provider>
 }
 
-type UIButtonProps = React.PropsWithChildren<{
+export type MenuButtonProps = React.PropsWithChildren<{
 	cssClass?: ClassValue | ClassValue[]
 }> &
-	Omit<MenuButtonProps, 'state'> &
+	Omit<AriakitMenuButtonProps, 'state'> &
 	Pick<ButtonProps, 'iconLeft' | 'iconRight'> & {
 		emphasis?: ButtonProps['emphasis']
 		icon?: ButtonIconProps['icon']
@@ -52,7 +52,7 @@ type UIButtonProps = React.PropsWithChildren<{
 		size?: ButtonProps['size'] | ButtonIconProps['size']
 	}
 
-const Button = forwardRef<HTMLButtonElement, UIButtonProps>(
+const Button = forwardRef<HTMLButtonElement, MenuButtonProps>(
 	({ children, ...props }, ref) => {
 		const menu = useMenu()
 		const Component = props.icon && !children ? ButtonIcon : OriginalButton

@@ -304,11 +304,13 @@ export const CreateOrUpdateStripeSubscriptionDocument = gql`
 		$workspace_id: ID!
 		$plan_type: PlanType!
 		$interval: SubscriptionInterval!
+		$retention_period: RetentionPeriod!
 	) {
 		createOrUpdateStripeSubscription(
 			workspace_id: $workspace_id
 			plan_type: $plan_type
 			interval: $interval
+			retention_period: $retention_period
 		)
 	}
 `
@@ -334,6 +336,7 @@ export type CreateOrUpdateStripeSubscriptionMutationFn =
  *      workspace_id: // value for 'workspace_id'
  *      plan_type: // value for 'plan_type'
  *      interval: // value for 'interval'
+ *      retention_period: // value for 'retention_period'
  *   },
  * });
  */
@@ -7513,9 +7516,11 @@ export const GetBillingDetailsDocument = gql`
 				quota
 				interval
 				membersLimit
+				errorsLimit
 			}
 			meter
 			membersMeter
+			errorsMeter
 		}
 		workspace(id: $workspace_id) {
 			id
@@ -7524,6 +7529,7 @@ export const GetBillingDetailsDocument = gql`
 			next_invoice_date
 			allow_meter_overage
 			eligible_for_trial_extension
+			retention_period
 		}
 	}
 `
@@ -11492,12 +11498,21 @@ export type GetEmailOptOutsQueryResult = Apollo.QueryResult<
 	Types.GetEmailOptOutsQueryVariables
 >
 export const GetLogsDocument = gql`
-	query GetLogs($project_id: ID!, $params: LogsParamsInput!) {
-		logs(project_id: $project_id, params: $params) {
-			timestamp
-			severityText
-			body
-			logAttributes
+	query GetLogs($project_id: ID!, $params: LogsParamsInput!, $after: String) {
+		logs(project_id: $project_id, params: $params, after: $after) {
+			edges {
+				cursor
+				node {
+					timestamp
+					severityText
+					body
+					logAttributes
+				}
+			}
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
 		}
 	}
 `
@@ -11516,6 +11531,7 @@ export const GetLogsDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      params: // value for 'params'
+ *      after: // value for 'after'
  *   },
  * });
  */
@@ -11656,4 +11672,59 @@ export type GetLogsKeysLazyQueryHookResult = ReturnType<
 export type GetLogsKeysQueryResult = Apollo.QueryResult<
 	Types.GetLogsKeysQuery,
 	Types.GetLogsKeysQueryVariables
+>
+export const GetLogsKeyValuesDocument = gql`
+	query GetLogsKeyValues($project_id: ID!, $key_name: String!) {
+		logs_key_values(project_id: $project_id, key_name: $key_name)
+	}
+`
+
+/**
+ * __useGetLogsKeyValuesQuery__
+ *
+ * To run a query within a React component, call `useGetLogsKeyValuesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogsKeyValuesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogsKeyValuesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      key_name: // value for 'key_name'
+ *   },
+ * });
+ */
+export function useGetLogsKeyValuesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLogsKeyValuesQuery,
+		Types.GetLogsKeyValuesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetLogsKeyValuesQuery,
+		Types.GetLogsKeyValuesQueryVariables
+	>(GetLogsKeyValuesDocument, baseOptions)
+}
+export function useGetLogsKeyValuesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLogsKeyValuesQuery,
+		Types.GetLogsKeyValuesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetLogsKeyValuesQuery,
+		Types.GetLogsKeyValuesQueryVariables
+	>(GetLogsKeyValuesDocument, baseOptions)
+}
+export type GetLogsKeyValuesQueryHookResult = ReturnType<
+	typeof useGetLogsKeyValuesQuery
+>
+export type GetLogsKeyValuesLazyQueryHookResult = ReturnType<
+	typeof useGetLogsKeyValuesLazyQuery
+>
+export type GetLogsKeyValuesQueryResult = Apollo.QueryResult<
+	Types.GetLogsKeyValuesQuery,
+	Types.GetLogsKeyValuesQueryVariables
 >

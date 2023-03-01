@@ -4,13 +4,13 @@
 <p align="center">
   <a href='https://github.com/highlight/highlight/graphs/contributors'><img src='https://img.shields.io/badge/all_contributors-17-orange.svg' /></a>
   <a href='http://makeapullrequest.com'><img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields'/></a>
-  <a href='https://community.highlight.com'><img alt="Join Discord Community" src="https://img.shields.io/badge/discord%20community-join-blue"/></a>
+  <a href='https://highlight.io/community'><img alt="Join Discord Community" src="https://img.shields.io/badge/discord%20community-join-blue"/></a>
   <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/highlight/highlight"/>
   <img alt="GitHub closed issues" src="https://img.shields.io/github/issues-closed/highlight/highlight"/>
 </p>
 
 <p align="center">
-  <a href="https://highlight.io/docs">Docs</a> - <a href="https://community.highlight.io">Community (Support & Feedback)</a> - <a href="https://github.com/highlight/highlight/issues/new?assignees=&labels=external+bug+%2F+request&template=feature_request.md&title=">Feature request</a> - <a href="https://github.com/highlight/highlight/issues/new?assignees=&labels=external+bug+%2F+request&template=bug_report.md&title=">Bug report</a>
+  <a href="https://highlight.io/docs">Docs</a> - <a href="https://highlight.io/community">Community (Support & Feedback)</a> - <a href="https://github.com/highlight/highlight/issues/new?assignees=&labels=external+bug+%2F+request&template=feature_request.md&title=">Feature request</a> - <a href="https://github.com/highlight/highlight/issues/new?assignees=&labels=external+bug+%2F+request&template=bug_report.md&title=">Bug report</a>
 </p>
 
 # [highlight.io](https://highlight.io): The open-source, fullstack monitoring platform.
@@ -97,20 +97,13 @@ Our logging product is still in beta, but please [message us in discord](https:/
 
 ### More?! Metrics? Traces? Merch?
 
-Have an idea for what we should build next? Please share our [community](https://community.highlight.io) or via a Github Issue!
+Have an idea for what we should build next? Please share our [community](https://highlight.io/community) or via a Github Issue!
 
 [Read a full list of highlight.io features](https://highlight.io/docs).
 
 ## SDKs
 
-All of our SDKs for highlight.io can be found in the `sdk` [directory](https://github.com/highlight/highlight/tree/main/sdk). We currently support:
-
--   Server Libraries:
-    -   Node.js: [repo link](https://github.com/highlight/highlight/tree/main/sdk/highlight-node)
-    -   Golang: [repo link](https://github.com/highlight/highlight/tree/main/sdk/highlight-go)
--   Client Libraries:
-    -   Javascript: [repo link](https://github.com/highlight/highlight/tree/main/sdk/firstload)
-    -   Next.js: [repo link](https://github.com/highlight/highlight/tree/main/sdk/highlight-next)
+All of our SDKs for highlight.io can be found in the `sdk` [directory](https://github.com/highlight/highlight/tree/main/sdk). To get started with these SDKs, we recommend the [getting started guide](https://www.highlight.io/docs/getting-started/overview) in our docs.
 
 ## Our Mission
 
@@ -130,4 +123,4 @@ People may think that we're building multiple products (session replay, error mo
 
 If you're building software, why should you care about grafana or loki or the elk stack? highlight.io is built for developers that want to **develop**. Leave the monitoring stuff to us 👍.
 
-Read more about [our values here](https://highlight.io/docs/company/values).
+Read more about [our values here](https://www.highlight.io/docs/general/company/values).

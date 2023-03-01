@@ -15,6 +15,11 @@ import {
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
+import {
+	getDisplayName,
+	getDisplayNameAndField,
+	getIdentifiedUserProfileImage,
+} from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard, validateEmail } from '@util/string'
 import { buildQueryStateString } from '@util/url/params'
@@ -30,11 +35,6 @@ import {
 	FaTwitterSquare,
 } from 'react-icons/fa'
 
-import {
-	getDisplayName,
-	getDisplayNameAndField,
-	getIdentifiedUserProfileImage,
-} from '../../Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import { useReplayerContext } from '../ReplayerContext'
 import * as style from './MetadataBox.css'
 import { getAbsoluteUrl, getMajorVersion } from './utils/utils'

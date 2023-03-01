@@ -36,7 +36,6 @@ import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommen
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
-import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import { SESSION_FEED_LEFT_PANEL_WIDTH } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
 import { SessionFeedV3 } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
 import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
@@ -52,6 +51,7 @@ import { useNavigate } from 'react-router-dom'
 
 import WaitingAnimation from '../../lottie/waiting.json'
 import * as style from './styles.css'
+import { getDisplayName } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 
 interface Props {
 	integrated: boolean
@@ -449,7 +449,6 @@ const PlayerPage = ({ integrated }: Props) => {
 		currentWorkspace?.id,
 		isSessionPendingData?.isSessionPending,
 		loading,
-		playerFiller,
 		sessionViewability,
 		session_secure_id,
 		integrated,

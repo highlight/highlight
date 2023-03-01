@@ -103,7 +103,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 			completed: integrated,
 		})
 		STEPS.push({
-			displayName: 'Backend SDK (Beta)',
+			displayName: 'Backend SDK',
 			path: 'backend',
 			action: () => {
 				navigate(`/${project_id}/setup/backend`)
@@ -829,7 +829,7 @@ const MoreSetup = ({
 						<ul>
 							<li>
 								<a
-									href="https://docs.highlight.run/comments"
+									href="https://www.highlight.io/docs/general/product-features/general-features/comments"
 									target="_blank"
 									rel="noreferrer"
 								>
@@ -838,17 +838,7 @@ const MoreSetup = ({
 							</li>
 							<li>
 								<a
-									href="https://docs.highlight.run/user-feedback"
-									target="_blank"
-									rel="noreferrer"
-								>
-									Collecting user feedback with retained
-									context
-								</a>
-							</li>
-							<li>
-								<a
-									href="https://docs.highlight.run/network-devtools"
+									href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses"
 									target="_blank"
 									rel="noreferrer"
 								>
@@ -857,7 +847,7 @@ const MoreSetup = ({
 							</li>
 							<li>
 								<a
-									href="https://docs.highlight.run/deployment-overview"
+									href="https://www.highlight.io/docs/getting-started/self-host/self-hosted-hobby-guide"
 									target="_blank"
 									rel="noreferrer"
 								>
@@ -866,7 +856,7 @@ const MoreSetup = ({
 							</li>
 							<li>
 								<a
-									href="https://docs.highlight.run/sourcemaps"
+									href="https://www.highlight.io/docs/getting-started/fullstack-frameworks/next-js/env-variables"
 									target="_blank"
 									rel="noreferrer"
 								>
@@ -879,7 +869,7 @@ const MoreSetup = ({
 						<div className={styles.integrationContainer}>
 							<ButtonLink
 								anchor
-								href="https://docs.highlight.run/"
+								href="https://highlight.io/docs"
 								trackingId="SetupPageDocs"
 							>
 								Read the Docs

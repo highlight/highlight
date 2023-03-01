@@ -4,6 +4,7 @@ import { Avatar } from '@components/Avatar/Avatar'
 import { Button } from '@components/Button'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
 import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
+import { LinkButton } from '@components/LinkButton'
 import LoadingBox from '@components/LoadingBox'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
@@ -18,6 +19,7 @@ import type {
 } from '@graph/schemas'
 import {
 	Box,
+	Callout,
 	Heading,
 	IconSolidExternalLink,
 	IconSolidPlay,
@@ -32,12 +34,11 @@ import {
 } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import {
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
 	getUserProperties,
-} from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
+} from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import analytics from '@util/analytics'
 import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
@@ -295,7 +296,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						<Button
 							kind="primary"
 							emphasis="high"
-							disabled={!isLoggedIn}
+							disabled={!isLoggedIn || !errorObject.session}
 							onClick={() => {
 								if (!isLoggedIn) {
 									return
@@ -470,11 +471,46 @@ const User: React.FC<{
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
-	const { setSearchParams } = useSearchContext()
 	const [truncated, setTruncated] = useState(true)
 
 	if (!errorObject?.session) {
-		return null
+		return (
+			<Box width="full">
+				<Box pb="20" mt="12">
+					<Text weight="bold" size="large">
+						User details
+					</Text>
+				</Box>
+				<Callout title="We didn't find a session for this error">
+					<Box>
+						<Text size="small" weight="medium" color="moderate">
+							We weren't able to match this error to a session.
+							This error was either thrown in isolation or you
+							aren't mapping errors to sessions.
+						</Text>
+					</Box>
+					<Box display="flex">
+						<LinkButton
+							kind="secondary"
+							to="/setup/backend"
+							trackingId="error-mapping-setup"
+							target="_blank"
+						>
+							Backend SDK setup
+						</LinkButton>
+						<LinkButton
+							kind="secondary"
+							to="https://www.highlight.io/docs/getting-started/frontend-backend-mapping"
+							trackingId="error-mapping-docs"
+							emphasis="low"
+							target="_blank"
+						>
+							Learn more
+						</LinkButton>
+					</Box>
+				</Callout>
+			</Box>
+		)
 	}
 
 	const { session } = errorObject

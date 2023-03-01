@@ -1,5 +1,7 @@
 import logging
 import random
+import time
+from datetime import datetime
 
 import azure.functions as func
 
@@ -11,7 +13,12 @@ H = highlight_io.H("1", record_logs=True)
 
 @observe_handler
 def main(req: func.HttpRequest) -> func.HttpResponse:
+    start = datetime.now()
     logging.info("Python HTTP trigger function processed a request.")
+    logging.info(
+        "Python Azure hello handler",
+        {"customer": req.headers.get("customer") or "unknown"},
+    )
 
     if random.random() < 0.2:
         raise ValueError("oh no!")
@@ -24,6 +31,16 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             pass
         else:
             name = req_body.get("name")
+
+    logging.info(
+        "Python Azure got name",
+        {
+            "customer": req.headers.get("customer") or "unknown",
+            "name": name,
+            "float": 1.2345,
+            "duration": datetime.now() - start,
+        },
+    )
 
     if name:
         return func.HttpResponse(

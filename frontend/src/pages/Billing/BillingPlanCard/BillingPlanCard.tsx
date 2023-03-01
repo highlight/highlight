@@ -1,9 +1,8 @@
-import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
-import { PlanType, SubscriptionInterval } from '@graph/schemas'
-import MessageIcon from '@icons/MessageIcon'
+import { PlanType, RetentionPeriod, SubscriptionInterval } from '@graph/schemas'
 import { MEMBERS_PRICE } from '@pages/Billing/BillingStatusCard/BillingStatusCard'
 import { formatNumberWithDelimiters } from '@util/numbers'
+import classNames from 'classnames'
 import clsx from 'clsx'
 import React from 'react'
 
@@ -13,12 +12,20 @@ import SvgVerifyCheckIcon from '../../../static/VerifyCheckIcon'
 import { BillingPlan } from './BillingConfig'
 import styles from './BillingPlanCard.module.scss'
 
+const RETENTION_PERIOD_MULTIPLIER = {
+	[RetentionPeriod.ThreeMonths]: 1,
+	[RetentionPeriod.SixMonths]: 1.5,
+	[RetentionPeriod.TwelveMonths]: 2,
+	[RetentionPeriod.TwoYears]: 2.5,
+}
+
 export const BillingPlanCard = ({
 	billingPlan,
 	onSelect,
 	current,
 	loading,
 	subscriptionInterval,
+	retentionPeriod,
 	disabled,
 	memberCount,
 	glowing,
@@ -28,6 +35,7 @@ export const BillingPlanCard = ({
 	onSelect: () => void
 	loading: boolean
 	subscriptionInterval: SubscriptionInterval
+	retentionPeriod: RetentionPeriod
 	disabled?: boolean
 	memberCount: number
 	glowing?: boolean
@@ -38,6 +46,13 @@ export const BillingPlanCard = ({
 	}
 	const membersPrice = membersOverage * MEMBERS_PRICE
 
+	let basePrice =
+		subscriptionInterval === SubscriptionInterval.Annual
+			? billingPlan.annualPrice
+			: billingPlan.monthlyPrice
+
+	basePrice *= RETENTION_PERIOD_MULTIPLIER[retentionPeriod]
+
 	return (
 		<div
 			className={clsx(styles.billingPlanCard, {
@@ -46,43 +61,24 @@ export const BillingPlanCard = ({
 			})}
 		>
 			<h3 className={styles.billingPlanTitle}>{billingPlan.name}</h3>
-			{billingPlan.type === PlanType.Enterprise ? (
-				<div className={styles.enterpriseRow}>
-					<span
-						className={clsx(
-							commonStyles.title,
-							styles.billingPlanPrice,
-						)}
-					>
-						<MessageIcon />
-					</span>
-					<span>reach out for more details</span>
-				</div>
-			) : (
-				<div>
-					<span
-						className={clsx(
-							commonStyles.title,
-							styles.billingPlanPrice,
-						)}
-					>
-						{`$${formatNumberWithDelimiters(
-							subscriptionInterval === SubscriptionInterval.Annual
-								? billingPlan.annualPrice
-								: billingPlan.monthlyPrice,
-						)}`}
-					</span>
-					{billingPlan.type !== PlanType.Free && (
-						<span>
-							/mo, billed{' '}
-							{subscriptionInterval ===
-							SubscriptionInterval.Annual
-								? 'annually'
-								: 'monthly'}
-						</span>
+			<div>
+				<span
+					className={classNames(
+						commonStyles.title,
+						styles.billingPlanPrice,
 					)}
-				</div>
-			)}
+				>
+					{`$${formatNumberWithDelimiters(basePrice)}`}
+				</span>
+				{billingPlan.type !== PlanType.Free && (
+					<span>
+						/mo, billed{' '}
+						{subscriptionInterval === SubscriptionInterval.Annual
+							? 'annually'
+							: 'monthly'}
+					</span>
+				)}
+			</div>
 			<div className={styles.extraMembers}>
 				{billingPlan.type === PlanType.Free ? null : membersOverage >
 				  0 ? (
@@ -135,31 +131,15 @@ export const BillingPlanCard = ({
 					</li>
 				))}
 			</ul>
-			{billingPlan.type === PlanType.Enterprise ? (
-				<ButtonLink
-					trackingId="ChangeBillingPlan"
-					disabled={disabled}
-					className={styles.button}
-					anchor
-					href="mailto:sales@highlight.run"
-					type="default"
-					fullWidth
-				>
-					Contact Sales
-				</ButtonLink>
-			) : (
-				<Button
-					trackingId="ChangeBillingPlan"
-					disabled={current || disabled}
-					onClick={onSelect}
-					className={styles.button}
-					loading={loading}
-				>
-					{current
-						? 'Current plan'
-						: `Select ${billingPlan.name} Plan`}
-				</Button>
-			)}
+			<Button
+				trackingId="ChangeBillingPlan"
+				disabled={current || disabled}
+				onClick={onSelect}
+				className={styles.button}
+				loading={loading}
+			>
+				{current ? 'Current plan' : `Select ${billingPlan.name} Plan`}
+			</Button>
 		</div>
 	)
 }

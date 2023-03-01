@@ -84,7 +84,7 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 						last_name: lastName,
 						user_defined_role: role,
 						user_defined_persona: persona,
-						...attributionData,
+						referral: attributionData.referral,
 					},
 				},
 			})
