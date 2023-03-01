@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { useGetWorkspaceForInviteLinkQuery } from '@graph/hooks'
 import {
 	Box,
 	Form,
@@ -10,6 +11,7 @@ import {
 } from '@highlight-run/ui'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
+import useLocalStorage from '@rehooks/local-storage'
 import { auth } from '@util/auth'
 import firebase from 'firebase/app'
 import React, { useCallback } from 'react'
@@ -23,6 +25,7 @@ type Props = {
 
 export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const navigate = useNavigate()
+	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
 	const formState = useFormState({
@@ -31,6 +34,13 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			password: '',
 		},
 	})
+	const { data } = useGetWorkspaceForInviteLinkQuery({
+		variables: {
+			secret: inviteCode!,
+		},
+		skip: !inviteCode,
+	})
+	const workspaceInvite = data?.workspace_for_invite_link
 
 	const handleAuthError = useCallback(
 		(error: firebase.auth.MultiFactorError) => {
@@ -78,7 +88,11 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						TODO: Render info for workspace they were invited to by fetching it
 						from WorkspaceForInviteLink, similar to what we do on SignUp.
 						*/}
-						<Heading level="h4">Welcome back.</Heading>
+						<Heading level="h4">
+							{workspaceInvite
+								? `You're invited to join ‘${workspaceInvite.workspace_name}’`
+								: 'Welcome back.'}
+						</Heading>
 						<Text>
 							New here?{' '}
 							<Link to="/sign_up">Create an account</Link>.

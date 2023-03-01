@@ -33,21 +33,20 @@ export const SignUp: React.FC = () => {
 			password: '',
 		},
 	})
-	const { data, loading: loadingWorkspace } =
-		useGetWorkspaceForInviteLinkQuery({
-			variables: {
-				secret: inviteCode!,
-			},
-			skip: !inviteCode,
-			onCompleted: (data) => {
-				if (data?.workspace_for_invite_link.invitee_email) {
-					formState.setValue(
-						'email',
-						data?.workspace_for_invite_link.invitee_email,
-					)
-				}
-			},
-		})
+	const { data } = useGetWorkspaceForInviteLinkQuery({
+		variables: {
+			secret: inviteCode!,
+		},
+		skip: !inviteCode,
+		onCompleted: (data) => {
+			if (data?.workspace_for_invite_link.invitee_email) {
+				formState.setValue(
+					'email',
+					data?.workspace_for_invite_link.invitee_email,
+				)
+			}
+		},
+	})
 	const workspaceInvite = data?.workspace_for_invite_link
 
 	const handleSubmit = useCallback(
@@ -101,7 +100,7 @@ export const SignUp: React.FC = () => {
 						<SvgHighlightLogoOnLight height="48" width="48" />
 						<Heading level="h4">
 							{workspaceInvite
-								? `You're invited to join '${workspaceInvite.workspace_name}'`
+								? `You're invited to join ‘${workspaceInvite.workspace_name}’`
 								: 'Welcome to Highlight.'}
 						</Heading>
 						<Text>
@@ -115,7 +114,6 @@ export const SignUp: React.FC = () => {
 				<Stack gap="12">
 					<Form.Input
 						name={formState.names.email}
-						disabled={!!workspaceInvite?.invitee_email?.length}
 						label="Email"
 						type="email"
 						autoFocus

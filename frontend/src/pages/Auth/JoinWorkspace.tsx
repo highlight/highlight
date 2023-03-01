@@ -33,7 +33,6 @@ export const JoinWorkspace = () => {
 		useAddAdminToWorkspaceMutation()
 	const workspaceId = data?.workspace_for_invite_link?.workspace_id
 	const workspaceName = data?.workspace_for_invite_link?.workspace_name
-	console.log(':::', data?.workspace_for_invite_link)
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
