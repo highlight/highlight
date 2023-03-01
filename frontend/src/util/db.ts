@@ -136,10 +136,15 @@ export class IndexedDBLink extends ApolloLink {
 
 	/* determines whether an operation should be stored in the cache.
 	 * */
-	static shouldCache({}: {
+	static shouldCache({
+		operation,
+	}: {
 		operation: Operation
 		result: FetchResult<Record<string, any>>
 	}): boolean {
+		if (operation.operationName === 'GetAdmin') {
+			return false
+		}
 		return true
 	}
 

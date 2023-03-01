@@ -112,13 +112,13 @@ func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 			errorExpected: false,
 		},
 		"same email different case": {
-			adminEmail:    "foo@bar.com",
-			inviteEmail:   "fOO@Bar.com",
+			adminEmail:    "boo@bar.com",
+			inviteEmail:   "bOO@Bar.com",
 			errorExpected: false,
 		},
 		"different email": {
-			adminEmail:    "foo@bar.com",
-			inviteEmail:   "f00@bar.com",
+			adminEmail:    "zoo@bar.com",
+			inviteEmail:   "z00@bar.com",
 			errorExpected: true,
 		},
 	}
@@ -126,6 +126,7 @@ func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 		util.RunTestWithDBWipe(t, "Test AddAdminToWorkspace", DB, func(t *testing.T) {
 			// inserting the data
 			admin := model.Admin{
+				Model:         model.Model{ID: 1},
 				UID:           ptr.String("a1b2c3"),
 				Name:          ptr.String("adm1"),
 				PhotoURL:      ptr.String("asdf"),
@@ -157,12 +158,12 @@ func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 
 			t.Logf("workspace id: %v", workspace.ID)
 			t.Logf("invite link: %v", *inviteLink.Secret)
-			workspaceID, err := r.AddAdminToWorkspace(ctx, workspace.ID, *inviteLink.Secret)
+			adminID, err := r.AddAdminToWorkspace(ctx, workspace.ID, *inviteLink.Secret)
 			if v.errorExpected != (err != nil) {
 				t.Fatalf("error result invalid, expected? %t but saw %s", v.errorExpected, err)
 			}
-			if err == nil && *workspaceID != workspace.ID {
-				t.Fatalf("received invalid workspace ID %d", workspaceID)
+			if err == nil && *adminID != 1 {
+				t.Fatalf("received invalid admin ID %d", adminID)
 			}
 		})
 	}
