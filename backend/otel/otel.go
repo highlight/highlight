@@ -99,7 +99,7 @@ func getAttributesMaps(resourceAttributes, eventAttributes map[string]any) (map[
 		}
 		vFlt := cast[float64](v, 0.)
 		if vFlt > 0. {
-			resourceAttributesMap[k] = strconv.FormatFloat(vFlt, 'd', -1, 64)
+			resourceAttributesMap[k] = strconv.FormatFloat(vFlt, 'f', -1, 64)
 		}
 	}
 	logAttributesMap := make(map[string]string)
