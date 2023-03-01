@@ -335,14 +335,17 @@ func TestLogsKeys(t *testing.T) {
 	expected := []*modelInputs.LogKey{
 		{
 			Name: "workspace_id", // workspace_id has more hits so it should be ranked higher
+			Type: modelInputs.LogKeyTypeString,
 		},
 		{
 			Name: "user_id",
+			Type: modelInputs.LogKeyTypeString,
 		},
 
 		// Non-custom keys ranked lower
 		{
 			Name: "level",
+			Type: modelInputs.LogKeyTypeString,
 		},
 	}
 	assert.Equal(t, expected, keys)

@@ -171,11 +171,13 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 
 		keys = append(keys, &modelInputs.LogKey{
 			Name: Key,
+			Type: modelInputs.LogKeyTypeString, // For now, assume everything is a string
 		})
 	}
 
 	keys = append(keys, &modelInputs.LogKey{
 		Name: "level",
+		Type: modelInputs.LogKeyTypeString,
 	})
 
 	rows.Close()
@@ -186,6 +188,7 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 
+	// TODO(et) - this is going to be a mess when we add other reserved keys like Trace. Clean this up when that happens.
 	if keyName == "level" {
 		sb.Select("SeverityText level, count() as cnt").
 			From("logs").

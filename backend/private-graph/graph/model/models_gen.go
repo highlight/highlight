@@ -365,7 +365,8 @@ type LogEdge struct {
 }
 
 type LogKey struct {
-	Name string `json:"name"`
+	Name string     `json:"name"`
+	Type LogKeyType `json:"type"`
 }
 
 type LogsParamsInput struct {
@@ -773,6 +774,45 @@ func (e *IntegrationType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e IntegrationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type LogKeyType string
+
+const (
+	LogKeyTypeString LogKeyType = "String"
+)
+
+var AllLogKeyType = []LogKeyType{
+	LogKeyTypeString,
+}
+
+func (e LogKeyType) IsValid() bool {
+	switch e {
+	case LogKeyTypeString:
+		return true
+	}
+	return false
+}
+
+func (e LogKeyType) String() string {
+	return string(e)
+}
+
+func (e *LogKeyType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LogKeyType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LogKeyType", str)
+	}
+	return nil
+}
+
+func (e LogKeyType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

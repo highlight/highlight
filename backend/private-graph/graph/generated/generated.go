@@ -505,6 +505,7 @@ type ComplexityRoot struct {
 
 	LogKey struct {
 		Name func(childComplexity int) int
+		Type func(childComplexity int) int
 	}
 
 	LogsPayload struct {
@@ -3372,6 +3373,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LogKey.Name(childComplexity), true
+
+	case "LogKey.type":
+		if e.complexity.LogKey.Type == nil {
+			break
+		}
+
+		return e.complexity.LogKey.Type(childComplexity), true
 
 	case "LogsPayload.edges":
 		if e.complexity.LogsPayload.Edges == nil {
@@ -8078,8 +8086,13 @@ type LogsPayload {
 	pageInfo: PageInfo!
 }
 
+enum LogKeyType {
+	String
+}
+
 type LogKey {
 	name: String!
+	type: LogKeyType!
 }
 
 type ReferrerTablePayload {
@@ -27067,6 +27080,50 @@ func (ec *executionContext) fieldContext_LogKey_name(ctx context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _LogKey_type(ctx context.Context, field graphql.CollectedField, obj *model.LogKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogKey_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.LogKeyType)
+	fc.Result = res
+	return ec.marshalNLogKeyType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogKeyType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogKey_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type LogKeyType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _LogsPayload_edges(ctx context.Context, field graphql.CollectedField, obj *model.LogsPayload) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_LogsPayload_edges(ctx, field)
 	if err != nil {
@@ -41740,6 +41797,8 @@ func (ec *executionContext) fieldContext_Query_logs_keys(ctx context.Context, fi
 			switch field.Name {
 			case "name":
 				return ec.fieldContext_LogKey_name(ctx, field)
+			case "type":
+				return ec.fieldContext_LogKey_type(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type LogKey", field.Name)
 		},
@@ -57802,6 +57861,13 @@ func (ec *executionContext) _LogKey(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "type":
+
+			out.Values[i] = ec._LogKey_type(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -65967,6 +66033,16 @@ func (ec *executionContext) marshalNLogKey2ᚖgithubᚗcomᚋhighlightᚑrunᚋh
 		return graphql.Null
 	}
 	return ec._LogKey(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNLogKeyType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogKeyType(ctx context.Context, v interface{}) (model.LogKeyType, error) {
+	var res model.LogKeyType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNLogKeyType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogKeyType(ctx context.Context, sel ast.SelectionSet, v model.LogKeyType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNLogsParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsParamsInput(ctx context.Context, v interface{}) (model.LogsParamsInput, error) {
