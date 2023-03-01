@@ -211,7 +211,7 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 		{
 			Timestamp: now,
 			ProjectId: 1,
-			LogAttributes: map[string]any{
+			LogAttributes: map[string]string{
 				"service":      "image processor",
 				"workspace_id": "1",
 				"user_id":      "1",
@@ -259,12 +259,12 @@ func TestLogsKeys(t *testing.T) {
 		{
 			Timestamp:     time.Now(),
 			ProjectId:     1,
-			LogAttributes: map[string]any{"user_id": "1", "workspace_id": "2"},
+			LogAttributes: map[string]string{"user_id": "1", "workspace_id": "2"},
 		},
 		{
 			Timestamp:     time.Now(),
 			ProjectId:     1,
-			LogAttributes: map[string]any{"workspace_id": "3"},
+			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 	}
 
@@ -295,37 +295,37 @@ func TestLogKeyValues(t *testing.T) {
 		{
 			Timestamp:     time.Now(),
 			ProjectId:     1,
-			LogAttributes: map[string]any{"workspace_id": "2"},
+			LogAttributes: map[string]string{"workspace_id": "2"},
 		},
 		{
 			Timestamp:     time.Now(),
 			ProjectId:     1,
-			LogAttributes: map[string]any{"workspace_id": "2"},
+			LogAttributes: map[string]string{"workspace_id": "2"},
 		},
 		{
 			Timestamp:     time.Now(),
 			ProjectId:     1,
-			LogAttributes: map[string]any{"workspace_id": "3"},
+			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 		{
 			Timestamp:     time.Now(),
 			ProjectId:     1,
-			LogAttributes: map[string]any{"workspace_id": "3"},
+			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 		{
 			Timestamp:     time.Now(),
 			ProjectId:     1,
-			LogAttributes: map[string]any{"workspace_id": "3"},
+			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 		{
 			Timestamp:     time.Now(),
 			ProjectId:     1,
-			LogAttributes: map[string]any{"workspace_id": "4"},
+			LogAttributes: map[string]string{"workspace_id": "4"},
 		},
 		{
 			Timestamp:     time.Now(),
 			ProjectId:     1,
-			LogAttributes: map[string]any{"unrelated_key": "value"},
+			LogAttributes: map[string]string{"unrelated_key": "value"},
 		},
 	}
 

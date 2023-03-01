@@ -81,8 +81,8 @@ func projectToInt(projectID string) (int, error) {
 	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
 }
 
-func getAttributesMaps(resourceAttributes, eventAttributes map[string]any) (map[string]any, map[string]any) {
-	resourceAttributesMap := make(map[string]any)
+func getAttributesMaps(resourceAttributes, eventAttributes map[string]any) (map[string]string, map[string]string) {
+	resourceAttributesMap := make(map[string]string)
 	for k, v := range resourceAttributes {
 		for _, attr := range highlight.InternalAttributes {
 			if k == attr {
@@ -93,16 +93,16 @@ func getAttributesMaps(resourceAttributes, eventAttributes map[string]any) (map[
 		if vStr != "" {
 			resourceAttributesMap[k] = vStr
 		}
-		vInt := cast(v, "")
-		if vStr != "" {
-			resourceAttributesMap[k] = vInt
+		vInt := cast[int64](v, 0)
+		if vInt != 0 {
+			resourceAttributesMap[k] = strconv.FormatInt(vInt, 10)
 		}
-		vFlt := cast(v, "")
-		if vStr != "" {
-			resourceAttributesMap[k] = vFlt
+		vFlt := cast[float64](v, 0.)
+		if vFlt > 0. {
+			resourceAttributesMap[k] = strconv.FormatFloat(vFlt, 'd', -1, 64)
 		}
 	}
-	logAttributesMap := make(map[string]any)
+	logAttributesMap := make(map[string]string)
 	for k, v := range eventAttributes {
 		for _, attr := range highlight.InternalAttributes {
 			if k == attr {
