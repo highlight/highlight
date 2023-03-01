@@ -274,7 +274,7 @@ func makeSelectQuery(selectStr string, projectID int, params modelInputs.LogsPar
 
 	if len(filters.level) > 0 {
 		if strings.Contains(filters.level, "%") {
-			query = query.Where(sq.Eq{"SeverityText": filters.level})
+			query = query.Where(sq.Like{"SeverityText": filters.level})
 
 		} else {
 			query = query.Where(sq.Eq{"SeverityText": filters.level})
@@ -323,7 +323,7 @@ func makeFilters(query string) filters {
 			wildcardValue := strings.ReplaceAll(value, "*", "%")
 
 			if key == "level" {
-				filters.level = value
+				filters.level = wildcardValue
 			} else {
 				filters.attributes[key] = wildcardValue
 			}
