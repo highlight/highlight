@@ -24,14 +24,13 @@ type LogRowPrimaryAttrs struct {
 
 type LogRow struct {
 	LogRowPrimaryAttrs
-	UUID               string
-	TraceFlags         uint32
-	SeverityText       string
-	SeverityNumber     int32
-	ServiceName        string
-	Body               string
-	ResourceAttributes map[string]string
-	LogAttributes      map[string]string
+	UUID           string
+	TraceFlags     uint32
+	SeverityText   string
+	SeverityNumber int32
+	ServiceName    string
+	Body           string
+	LogAttributes  map[string]string
 }
 
 func NewLogRow(attrs LogRowPrimaryAttrs) *LogRow {
