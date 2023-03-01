@@ -221,7 +221,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 		t.Fatalf("error creating storage client: %v", err)
 	}
 
-	fsClient, err := storage.NewFSClient(ctx, "/tmp", "", "", "8083")
+	fsClient, err := storage.NewFSClient(ctx, "https://localhost:8082/public", "")
 	if err != nil {
 		t.Fatalf("error creating storage client: %v", err)
 	}
