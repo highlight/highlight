@@ -61,12 +61,7 @@
 		},
 		"lint": {
 			"outputs": [],
-			"inputs": [
-				"src/**/*.tsx",
-				"src/**/*.ts",
-				"test/**/*.ts",
-				"test/**/*.tsx"
-			]
+			"inputs": ["**/*.ts*"]
 		},
 		"nextjs#lint": {
 			"dependsOn": ["^build"]
