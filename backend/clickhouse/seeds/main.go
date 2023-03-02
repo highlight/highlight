@@ -95,10 +95,22 @@ func makeRandomSeverityText() string {
 	return severities[rand.Intn(len(severities))]
 }
 
+func makeRandomTraceID() string {
+	spanIDs := [6]string{
+		"",
+		"trace_1",
+		"trace_2",
+		"trace_3",
+	}
+	return spanIDs[rand.Intn(len(spanIDs))]
+}
+
 func makeRandomSpanID() string {
 	spanIDs := [6]string{
 		"",
-		"span_id",
+		"span_1",
+		"span_2",
+		"span_3",
 	}
 	return spanIDs[rand.Intn(len(spanIDs))]
 }
@@ -106,7 +118,9 @@ func makeRandomSpanID() string {
 func makeRandomSecureSessionID() string {
 	secureSessionIDs := [6]string{
 		"",
-		"secure_session_id",
+		"secure_session_id_1",
+		"secure_session_id_2",
+		"secure_session_id_3",
 	}
 	return secureSessionIDs[rand.Intn(len(secureSessionIDs))]
 }
@@ -129,7 +143,7 @@ func main() {
 			LogRowPrimaryAttrs: clickhouse.LogRowPrimaryAttrs{
 				Timestamp:       now.Add(-time.Duration(i) * time.Second),
 				ProjectId:       1,
-				TraceId:         "trace_id",
+				TraceId:         makeRandomTraceID(),
 				SpanId:          makeRandomSpanID(),
 				SecureSessionId: makeRandomSecureSessionID(),
 			},
