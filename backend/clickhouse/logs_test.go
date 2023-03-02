@@ -38,8 +38,10 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
-			Timestamp: now,
-			ProjectId: 1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
 		},
 	}
 
@@ -76,8 +78,10 @@ func TestReadLogsHasNextPage(t *testing.T) {
 
 	for i := uint64(1); i <= Limit; i++ { // 100 is a hardcoded limit
 		rows = append(rows, &LogRow{
-			Timestamp: now,
-			ProjectId: 1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
 		})
 	}
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -93,8 +97,10 @@ func TestReadLogsHasNextPage(t *testing.T) {
 	// Add more more row to have 101 rows
 	assert.NoError(t, client.BatchWriteLogRows(ctx, []*LogRow{
 		{
-			Timestamp: now,
-			ProjectId: 1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
 		},
 	}))
 
@@ -115,19 +121,25 @@ func TestReadLogsAfterCursor(t *testing.T) {
 
 	rows := []*LogRow{
 		{
-			Timestamp: now,
-			ProjectId: 1,
-			UUID:      "c051edc8-3749-4e44-8f48-0ea90f3fc3d9",
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			UUID: "c051edc8-3749-4e44-8f48-0ea90f3fc3d9",
 		},
 		{
-			Timestamp: oneSecondAgo,
-			ProjectId: 1,
-			UUID:      "a0d9abd6-7cbf-47de-b211-d16bb0935e04",
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: oneSecondAgo,
+				ProjectId: 1,
+			},
+			UUID: "a0d9abd6-7cbf-47de-b211-d16bb0935e04",
 		},
 		{
-			Timestamp: oneSecondAgo,
-			ProjectId: 1,
-			UUID:      "b6e255ee-049e-4563-bbfe-c33503cde94c",
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: oneSecondAgo,
+				ProjectId: 1,
+			},
+			UUID: "b6e255ee-049e-4563-bbfe-c33503cde94c",
 		},
 	}
 
@@ -164,9 +176,11 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
-			Timestamp: now,
-			ProjectId: 1,
-			Body:      "body",
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			Body: "body",
 		},
 	}
 
@@ -209,8 +223,10 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
-			Timestamp: now,
-			ProjectId: 1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
 			LogAttributes: map[string]string{
 				"service":      "image processor",
 				"workspace_id": "1",
@@ -257,13 +273,17 @@ func TestLogsKeys(t *testing.T) {
 
 	rows := []*LogRow{
 		{
-			Timestamp:     time.Now(),
-			ProjectId:     1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
 			LogAttributes: map[string]string{"user_id": "1", "workspace_id": "2"},
 		},
 		{
-			Timestamp:     time.Now(),
-			ProjectId:     1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
 			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 	}
@@ -293,38 +313,52 @@ func TestLogKeyValues(t *testing.T) {
 
 	rows := []*LogRow{
 		{
-			Timestamp:     time.Now(),
-			ProjectId:     1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
 			LogAttributes: map[string]string{"workspace_id": "2"},
 		},
 		{
-			Timestamp:     time.Now(),
-			ProjectId:     1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
 			LogAttributes: map[string]string{"workspace_id": "2"},
 		},
 		{
-			Timestamp:     time.Now(),
-			ProjectId:     1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
 			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 		{
-			Timestamp:     time.Now(),
-			ProjectId:     1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
 			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 		{
-			Timestamp:     time.Now(),
-			ProjectId:     1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
 			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 		{
-			Timestamp:     time.Now(),
-			ProjectId:     1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
 			LogAttributes: map[string]string{"workspace_id": "4"},
 		},
 		{
-			Timestamp:     time.Now(),
-			ProjectId:     1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
 			LogAttributes: map[string]string{"unrelated_key": "value"},
 		},
 	}

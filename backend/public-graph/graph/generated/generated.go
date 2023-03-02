@@ -368,6 +368,7 @@ input BackendErrorObjectInput {
 	request_id: String
 	trace_id: String
 	span_id: String
+	log_cursor: String
 	event: String!
 	type: String!
 	url: String!
@@ -3576,7 +3577,7 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session_secure_id", "request_id", "trace_id", "span_id", "event", "type", "url", "source", "stackTrace", "timestamp", "payload"}
+	fieldsInOrder := [...]string{"session_secure_id", "request_id", "trace_id", "span_id", "log_cursor", "event", "type", "url", "source", "stackTrace", "timestamp", "payload"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3612,6 +3613,14 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("span_id"))
 			it.SpanID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "log_cursor":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("log_cursor"))
+			it.LogCursor, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
