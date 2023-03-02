@@ -19,7 +19,12 @@ def observe_serverless(highlight_header_value: str, fn):
             session_id, request_id = highlight_header_value.split("/")
         except ValueError:
             pass
-        with H.get_instance().trace(session_id, request_id):
-            return fn(*args, **kwargs)
+        try:
+            with H.get_instance().trace(session_id, request_id):
+                return fn(*args, **kwargs)
+        finally:
+            # cloud functions may terminate quickly after response is sent.
+            # flush to make sure logs / traces are delivered.
+            H.get_instance().flush()
 
     return wrapper
