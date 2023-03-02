@@ -1,8 +1,10 @@
-import { PlanType } from '@graph/schemas'
+import { USD } from '@dinero.js/currencies'
+import { PlanType, RetentionPeriod } from '@graph/schemas'
+import { dinero, toDecimal } from 'dinero.js'
 
 type FeatureWithTooltip = {
 	text: string
-	tooltip?: string
+	tooltip?: (rp: RetentionPeriod) => string
 }
 
 export type BillingPlan = {
@@ -14,11 +16,30 @@ export type BillingPlan = {
 	membersIncluded?: number
 }
 
-const SESSIONS_AFTER_LIMIT_TOOLTIP =
-	'After this monthly limit is reached, extra sessions will be charged $5.00 per 1,000 sessions.'
+const sessionsPrices = {
+	[RetentionPeriod.ThreeMonths]: 500,
+	[RetentionPeriod.SixMonths]: 750,
+	[RetentionPeriod.TwelveMonths]: 1000,
+	[RetentionPeriod.TwoYears]: 1250,
+}
 
-const ERRORS_AFTER_LIMIT_TOOLTIP =
-	'After this monthly limit is reached, extra errors will be charged $0.20 per 1,000 errors.'
+const getSessionsAfterLimitTooltip = (rp: RetentionPeriod) => {
+	const amt = dinero({ amount: sessionsPrices[rp], currency: USD })
+	const formatted = toDecimal(amt)
+	return `After this monthly limit is reached, extra sessions will be charged $${formatted} per 1,000 sessions.`
+}
+
+const errorsPrices = {
+	[RetentionPeriod.ThreeMonths]: 20,
+	[RetentionPeriod.SixMonths]: 30,
+	[RetentionPeriod.TwelveMonths]: 40,
+	[RetentionPeriod.TwoYears]: 50,
+}
+const getErrorsAfterLimitTooltip = (rp: RetentionPeriod) => {
+	const amt = dinero({ amount: errorsPrices[rp], currency: USD })
+	const formatted = toDecimal(amt)
+	return `After this monthly limit is reached, extra errors will be charged $${formatted} per 1,000 errors.`
+}
 
 const freePlan: BillingPlan = {
 	name: 'Free',
@@ -28,12 +49,12 @@ const freePlan: BillingPlan = {
 	advertisedFeatures: [
 		{
 			text: '500 sessions / month',
-			tooltip:
+			tooltip: () =>
 				'After this monthly limit is reached, sessions will be recorded but will not be visible until your plan is upgraded.',
 		},
 		{
 			text: '1,000 errors / month',
-			tooltip:
+			tooltip: () =>
 				'After this monthly limit is reached, errors will be recorded but will not be visible until your plan is upgraded.',
 		},
 		'3 month retention',
@@ -49,11 +70,11 @@ const litePlan: BillingPlan = {
 	advertisedFeatures: [
 		{
 			text: '2,000 free sessions / mo',
-			tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
+			tooltip: getSessionsAfterLimitTooltip,
 		},
 		{
 			text: '4,000 free errors / mo',
-			tooltip: ERRORS_AFTER_LIMIT_TOOLTIP,
+			tooltip: getErrorsAfterLimitTooltip,
 		},
 		'Unlimited members included',
 		'Unlimited dev tools access',
@@ -68,11 +89,11 @@ const basicPlan: BillingPlan = {
 	advertisedFeatures: [
 		{
 			text: '10,000 free sessions / mo',
-			tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
+			tooltip: getSessionsAfterLimitTooltip,
 		},
 		{
 			text: '20,000 free errors / mo',
-			tooltip: ERRORS_AFTER_LIMIT_TOOLTIP,
+			tooltip: getErrorsAfterLimitTooltip,
 		},
 		'Everything in Basic',
 	],
@@ -86,11 +107,11 @@ const startupPlan: BillingPlan = {
 	advertisedFeatures: [
 		{
 			text: '80,000 free sessions / mo',
-			tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
+			tooltip: getSessionsAfterLimitTooltip,
 		},
 		{
 			text: '160,000 free errors / mo',
-			tooltip: ERRORS_AFTER_LIMIT_TOOLTIP,
+			tooltip: getErrorsAfterLimitTooltip,
 		},
 		'Everything in Essentials',
 		'Enhanced user metadata',
