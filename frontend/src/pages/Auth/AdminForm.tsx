@@ -202,7 +202,7 @@ export const AdminForm: React.FC = () => {
 									)
 								}
 							>
-								<option value="" disabled selected>
+								<option value="" disabled>
 									Select your role
 								</option>
 								<option value="Product">Product</option>
