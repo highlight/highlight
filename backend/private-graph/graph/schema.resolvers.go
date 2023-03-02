@@ -401,11 +401,15 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
-	admin.Phone = adminDetails.Phone
+	admin.Phone = pointy.String("")
 	admin.AboutYouDetailsFilled = &model.T
 
 	if !util.IsDevEnv() {
 		r.PrivateWorkerPool.SubmitRecover(func() {
+			// Delay this because we want the DB transaction creating the workspace
+			// (UpdateAdminAndCreateWorkspace) to complete before this executes.
+			time.Sleep(10 * time.Second)
+
 			if _, err := r.HubspotApi.CreateContactForAdmin(
 				ctx,
 				admin.ID,
@@ -519,8 +523,13 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 	}
 
 	if !util.IsDevEnv() {
-		// TODO: Flex this logic locally.
 		r.PrivateWorkerPool.SubmitRecover(func() {
+			// Delay this because we want the DB transaction creating the workspace
+			// (UpdateAdminAndCreateWorkspace) to complete before this executes. We
+			// also need the CreateContactForAdmin call in UpdateAdminAboutYouDetails
+			// to complete before this, so delay a few seconds longer.
+			time.Sleep(15 * time.Second)
+
 			// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
 			if _, err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name); err != nil {
 				log.WithContext(ctx).Error(err, "error creating hubspot company")
