@@ -91,10 +91,7 @@ func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, ema
 		hubspotContactId = resp.Vid
 	}
 	log.WithContext(ctx).Infof("succesfully created a hubspot contact with id: %v", hubspotContactId)
-	if err := db.Model(&model.Admin{Model: model.Model{ID: adminID}}).
-		Updates(&model.Admin{HubspotContactID: &hubspotContactId}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating workspace HubspotContactID")
-	}
+
 	return &hubspotContactId, nil
 }
 

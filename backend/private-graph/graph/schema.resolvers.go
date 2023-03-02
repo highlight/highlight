@@ -405,26 +405,24 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.AboutYouDetailsFilled = &model.T
 
 	if !util.IsDevEnv() {
-		r.PrivateWorkerPool.SubmitRecover(func() {
-			// Delay this because we want the DB transaction creating the workspace
-			// (UpdateAdminAndCreateWorkspace) to complete before this executes.
-			time.Sleep(10 * time.Second)
-
-			if _, err := r.HubspotApi.CreateContactForAdmin(
-				ctx,
-				admin.ID,
-				*admin.Email,
-				*admin.UserDefinedRole,
-				*admin.UserDefinedPersona,
-				*admin.FirstName,
-				*admin.LastName,
-				*admin.Phone,
-				*admin.Referral,
-				r.DB,
-			); err != nil {
-				log.WithContext(ctx).Error(err, "error creating hubspot contact")
-			}
-		})
+		hubspotContactId, err := r.HubspotApi.CreateContactForAdmin(
+			ctx,
+			admin.ID,
+			*admin.Email,
+			*admin.UserDefinedRole,
+			*admin.UserDefinedPersona,
+			*admin.FirstName,
+			*admin.LastName,
+			*admin.Phone,
+			*admin.Referral,
+			r.DB,
+		)
+		if err != nil {
+			log.WithContext(ctx).Error(err, "error creating hubspot contact")
+		}
+		if hubspotContactId != nil {
+			admin.HubspotContactID = hubspotContactId
+		}
 	}
 
 	if err := r.DB.Save(admin).Error; err != nil {
@@ -524,20 +522,12 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 	}
 
 	if !util.IsDevEnv() {
-		r.PrivateWorkerPool.SubmitRecover(func() {
-			// Delay this because we want the DB transaction creating the workspace
-			// (UpdateAdminAndCreateWorkspace) to complete before this executes. We
-			// also need the CreateContactForAdmin call in UpdateAdminAboutYouDetails
-			// to complete before this, so delay a few seconds longer.
-			time.Sleep(15 * time.Second)
-
-			// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
-			if _, err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name, r.DB); err != nil {
-				log.WithContext(ctx).Error(err, "error creating hubspot company")
-			} else if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID, r.DB); err != nil {
-				log.WithContext(ctx).Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
-			}
-		})
+		// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
+		if _, err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name, r.DB); err != nil {
+			log.WithContext(ctx).Error(err, "error creating hubspot company")
+		} else if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID, r.DB); err != nil {
+			log.WithContext(ctx).Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
+		}
 	}
 
 	c := &stripe.Customer{}
