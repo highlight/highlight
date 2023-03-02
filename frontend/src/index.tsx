@@ -261,7 +261,7 @@ const AuthenticationRoleRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [adminData, authRole, projectId])
 
-	const [createAdminMutation, { loading: creatingAdmin }] =
+	const [createAdminMutation, { called: createAdminCalled }] =
 		useCreateAdminMutation()
 
 	useEffect(() => {
@@ -281,7 +281,7 @@ const AuthenticationRoleRouter = () => {
 						// Try to create an admin if it's a new account. This can't be
 						// handled on the sign up form because this callback is triggered
 						// before the admin is created.
-						if (!user.emailVerified && !creatingAdmin) {
+						if (!user.emailVerified && !createAdminCalled) {
 							await createAdminMutation()
 						}
 					} finally {
