@@ -9,8 +9,7 @@ import React, { useEffect } from 'react'
 import { Navigate, useMatch } from 'react-router-dom'
 
 export const DefaultWorkspaceRouter = () => {
-	const { isLoggedIn, workspaceRole } = useAuthContext()
-	console.log('workspaceRole', workspaceRole)
+	const { isLoggedIn } = useAuthContext()
 
 	const workspaceMatch = useMatch('/w/:page_id')
 	const pageId = workspaceMatch?.params.page_id ?? ''
