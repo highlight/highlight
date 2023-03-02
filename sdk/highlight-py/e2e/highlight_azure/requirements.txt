@@ -3,4 +3,4 @@
 # Manually managing azure-functions-worker may cause unexpected issues
 
 azure-functions
-highlight-io>=0.1.7
+highlight-io>=0.4.0

@@ -1,3 +1,5 @@
+import functools
+
 from highlight_io import H
 from highlight_io.integrations.serverless import observe_serverless
 
@@ -10,6 +12,7 @@ def observe_handler(fn):
     :return: a wrapped function that will record exceptions.
     """
 
+    @functools.wraps(fn)
     def wrapper(*args, **kwargs):
         highlight_header_value: str = ""
         if args and args[0] and args[0].headers and callable(args[0].headers.get):
