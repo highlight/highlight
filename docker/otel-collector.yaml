@@ -17,10 +17,6 @@ exporters:
             Authorization: 969e17fe-77aa-4f5a-8602-e50ebfccf816
 processors:
     batch:
-    groupbytrace:
-        wait_duration: 10s
-        num_traces: 100
-        num_workers: 1
 service:
     extensions: [health_check]
     pipelines:
@@ -38,7 +34,7 @@ service:
             exporters: [otlphttp]
         traces/traceloop:
             receivers: [otlp]
-            processors: [groupbytrace, batch]
+            processors: [batch]
             exporters: [otlphttp/traceloop]
 extensions:
     health_check:
