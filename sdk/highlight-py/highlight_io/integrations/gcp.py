@@ -7,7 +7,7 @@ from highlight_io.integrations.serverless import observe_serverless
 def observe_handler(fn):
     """
     Decorator for serverless request handlers. Extracts the request context
-    to associate the request in azure functions.
+    to associate the request in google cloud functions.
     :param fn: a function handler that the decorator is applied to.
     :return: a wrapped function that will record exceptions.
     """

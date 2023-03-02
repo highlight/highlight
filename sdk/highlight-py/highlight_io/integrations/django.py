@@ -24,7 +24,6 @@ class DjangoIntegration(Integration):
         self._orig_django = None
 
     def enable(self):
-
         self._orig_django = WSGIHandler.__call__
 
         def wrapped_call(app, environ, start_response):
