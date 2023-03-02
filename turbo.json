@@ -60,7 +60,7 @@
 			"dependsOn": ["build"]
 		},
 		"lint": {},
-		"highlight.run/next#lint": {
+		"@highlight-run/nextjs#lint": {
 			"dependsOn": ["^build"]
 		},
 		"test": {
