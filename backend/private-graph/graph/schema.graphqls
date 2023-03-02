@@ -1483,11 +1483,6 @@ type Mutation {
 		snoozed_until: Timestamp
 	): ErrorGroup
 	deleteProject(id: ID!): Boolean
-	sendAdminProjectInvite(
-		project_id: ID!
-		email: String!
-		base_url: String!
-	): String
 	sendAdminWorkspaceInvite(
 		workspace_id: ID!
 		email: String!

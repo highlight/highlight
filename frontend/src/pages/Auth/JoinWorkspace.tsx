@@ -7,6 +7,7 @@ import {
 import {
 	useAddAdminToWorkspaceMutation,
 	useGetWorkspaceForInviteLinkQuery,
+	useGetWorkspacesQuery,
 } from '@graph/hooks'
 import { Box, Callout, Stack, Text } from '@highlight-run/ui'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
@@ -15,14 +16,14 @@ import useLocalStorage from '@rehooks/local-storage'
 import { message } from 'antd'
 import { H } from 'highlight.run'
 import React, { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 
 import * as styles from './AuthRouter.css'
 
 export const JoinWorkspace = () => {
+	const [inviteCode, setInviteCode] = useLocalStorage('highlightInviteCode')
 	const { setLoadingState } = useAppLoadingContext()
 	const navigate = useNavigate()
-	const [inviteCode, setInviteCode] = useLocalStorage('highlightInviteCode')
 	const { data, loading } = useGetWorkspaceForInviteLinkQuery({
 		variables: {
 			secret: inviteCode!,
@@ -31,20 +32,30 @@ export const JoinWorkspace = () => {
 	})
 	const [addAdminToWorkspace, { loading: addAdminLoading, error }] =
 		useAddAdminToWorkspaceMutation()
+	const { data: workspacesData, loading: workspacesLoading } =
+		useGetWorkspacesQuery()
 	const workspaceId = data?.workspace_for_invite_link?.workspace_id
 	const workspaceName = data?.workspace_for_invite_link?.workspace_name
+	const alreadyInWorkspace = workspacesData?.workspaces?.some(
+		(w) => w?.id && w.id === workspaceId,
+	)
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
 	}, [setLoadingState])
 
-	if (loading) {
+	useEffect(() => {
+		if (alreadyInWorkspace) {
+			setInviteCode('')
+		}
+	}, [alreadyInWorkspace, setInviteCode])
+
+	if (loading || workspacesLoading) {
 		return null
 	}
 
-	if (!workspaceId) {
-		// TODO: Error, or redirect
-		return null
+	if (!workspaceId || !inviteCode) {
+		return <Navigate replace to="/" />
 	}
 
 	return (
@@ -70,38 +81,50 @@ export const JoinWorkspace = () => {
 					</Stack>
 				</AuthBody>
 				<AuthFooter>
-					<Button
-						trackingId="ErrorStateJoinWorkspace"
-						kind="primary"
-						loading={addAdminLoading}
-						onClick={async () => {
-							try {
-								await addAdminToWorkspace({
-									variables: {
-										workspace_id: workspaceId,
-										invite_id: inviteCode!,
-									},
-								})
+					<Stack gap="8">
+						<Button
+							trackingId="join-workspace-accept"
+							kind="primary"
+							loading={addAdminLoading}
+							onClick={async () => {
+								try {
+									await addAdminToWorkspace({
+										variables: {
+											workspace_id: workspaceId,
+											invite_id: inviteCode!,
+										},
+									})
 
-								message.success(
-									`Successfully joined workspace "${workspaceName}"!`,
-								)
+									message.success(
+										`Successfully joined workspace "${workspaceName}"!`,
+									)
 
+									setInviteCode('')
+									navigate('/')
+								} catch (_e) {
+									message.error(
+										'Failed to join the workspace. Please try again.',
+									)
+									window.Intercom(
+										'showNewMessage',
+										`I'm having trouble joining the "${workspaceName}" workspace....`,
+									)
+								}
+							}}
+						>
+							Join
+						</Button>
+						<Button
+							kind="secondary"
+							trackingId="join-workspace-ignore"
+							onClick={() => {
 								setInviteCode('')
 								navigate('/')
-							} catch (_e) {
-								message.error(
-									'Failed to join the workspace. Please try again.',
-								)
-								window.Intercom(
-									'showNewMessage',
-									`I'm having trouble joining the "${workspaceName}" workspace....`,
-								)
-							}
-						}}
-					>
-						Join
-					</Button>
+							}}
+						>
+							Ignore invitation
+						</Button>
+					</Stack>
 				</AuthFooter>
 			</Box>
 		</Landing>

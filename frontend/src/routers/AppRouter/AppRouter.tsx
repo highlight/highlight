@@ -11,7 +11,6 @@ import { VerifyEmail } from '@pages/Auth/VerifyEmail'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import { Landing } from '@pages/Landing/Landing'
-import NewMemberPage from '@pages/NewMember/NewMemberPage'
 import NewProjectPage from '@pages/NewProject/NewProjectPage'
 import OAuthApprovalPage from '@pages/OAuthApproval/OAuthApprovalPage'
 import RegistrationForm from '@pages/RegistrationForm/RegistrationForm'
@@ -39,18 +38,16 @@ import {
 import { StringParam, useQueryParam } from 'use-query-params'
 
 export const AppRouter = () => {
-	const { admin, isLoggedIn, isHighlightAdmin } = useAuthContext()
+	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
+		useAuthContext()
 	const workspaceMatch = useMatch('/w/:workspace_id/*')
-	const workspaceInviteMatch = useMatch('/w/:workspace_id/invite/:invite')
 	const workspaceId = workspaceMatch?.params.workspace_id
+	const workspaceInviteMatch = useMatch('/w/:workspace_id/invite/:invite')
+	const [inviteCode, setInviteCode] = useLocalStorage('highlightInviteCode')
 	const { projectId } = useNumericProjectId()
 	const [nextParam] = useQueryParam('next', StringParam)
 	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
 	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
-	const [inviteCode, setInviteCode] = useLocalStorage(
-		'highlightInviteCode',
-		'',
-	)
 	const navigate = useNavigate()
 
 	useEffect(() => {
@@ -61,13 +58,13 @@ export const AppRouter = () => {
 	}, [])
 
 	useEffect(() => {
-		if (admin && inviteCode) {
-			navigate('/join_workspace')
+		if (admin && admin.email_verified === false) {
+			navigate('/verify_email')
 			return
 		}
 
-		if (admin && admin.email_verified === false) {
-			navigate('/verify_email')
+		if (admin && inviteCode) {
+			navigate(`/invite/${inviteCode}`)
 			return
 		}
 
@@ -79,7 +76,7 @@ export const AppRouter = () => {
 			navigate('/about_you')
 			return
 		}
-	}, [admin, isVercelIntegrationFlow, inviteCode, navigate])
+	}, [admin, isVercelIntegrationFlow, navigate, inviteCode])
 
 	useEffect(() => {
 		if (admin) {
@@ -109,13 +106,13 @@ export const AppRouter = () => {
 		}
 	}, [admin])
 
+	if (isAuthLoading) {
+		return null
+	}
+
 	return (
 		<Box height="screen" width="screen">
 			<Routes>
-				{isLoggedIn && inviteCode && (
-					<Route path="/join_workspace" element={<JoinWorkspace />} />
-				)}
-
 				{isLoggedIn && !admin?.about_you_details_filled && (
 					<Route path="/about_you" element={<AdminForm />} />
 				)}
@@ -172,16 +169,10 @@ export const AppRouter = () => {
 				/>
 
 				<Route
-					path="/w/:workspace_id/invite/:invite_id"
+					path="/invite/:invite_id"
 					element={
 						isLoggedIn ? (
-							// TODO 1: Julianify this page.
-							// TODO 2: Pop this up after sign up/in when a user is invited to
-							// a workspace. Store the invite secret locally so we can check if
-							// someone should be redirected here.
-							<Landing>
-								<NewMemberPage />
-							</Landing>
+							<JoinWorkspace />
 						) : (
 							<Navigate to="/sign_up" />
 						)

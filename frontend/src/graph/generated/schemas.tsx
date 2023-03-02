@@ -811,7 +811,6 @@ export type Mutation = {
 	replyToErrorComment?: Maybe<CommentReply>
 	replyToSessionComment?: Maybe<CommentReply>
 	requestAccess?: Maybe<Scalars['Boolean']>
-	sendAdminProjectInvite?: Maybe<Scalars['String']>
 	sendAdminWorkspaceInvite?: Maybe<Scalars['String']>
 	submitRegistrationForm?: Maybe<Scalars['Boolean']>
 	syncSlackIntegration: SlackSyncResponse
@@ -1145,12 +1144,6 @@ export type MutationReplyToSessionCommentArgs = {
 }
 
 export type MutationRequestAccessArgs = {
-	project_id: Scalars['ID']
-}
-
-export type MutationSendAdminProjectInviteArgs = {
-	base_url: Scalars['String']
-	email: Scalars['String']
 	project_id: Scalars['ID']
 }
 

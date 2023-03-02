@@ -48,7 +48,6 @@ import (
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
-	"github.com/rs/xid"
 	"github.com/rs/zerolog"
 	zlog "github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
@@ -856,33 +855,6 @@ func (r *mutationResolver) DeleteProject(ctx context.Context, id int) (*bool, er
 		return nil, e.Wrap(err, "error deleting project")
 	}
 	return &model.T, nil
-}
-
-// SendAdminProjectInvite is the resolver for the sendAdminProjectInvite field.
-func (r *mutationResolver) SendAdminProjectInvite(ctx context.Context, projectID int, email string, baseURL string) (*string, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
-	}
-	admin, err := r.getCurrentAdmin(ctx)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying admin")
-	}
-
-	// TODO: Should migrate these nil secrets so we can remove this
-	var secret string
-	if project.Secret == nil {
-		uid := xid.New().String()
-		if err := r.DB.Model(project).Updates(&model.Project{Secret: &uid}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating uid in project secret")
-		}
-		secret = uid
-	} else {
-		secret = *project.Secret
-	}
-
-	inviteLink := baseURL + "/" + strconv.Itoa(projectID) + "/invite/" + secret
-	return r.SendAdminInviteImpl(*admin.Name, *project.Name, inviteLink, email)
 }
 
 // SendAdminWorkspaceInvite is the resolver for the sendAdminWorkspaceInvite field.
