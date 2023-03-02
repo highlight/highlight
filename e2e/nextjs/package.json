@@ -6,7 +6,7 @@
 		"dev": "yarn build:sdk && next dev",
 		"build": "yarn build:sdk && next build",
 		"start": "next start",
-		"lint": "yarn build:sdk && next lint"
+		"lint": "next lint"
 	},
 	"dependencies": {
 		"@highlight-run/next": "workspace:*",
