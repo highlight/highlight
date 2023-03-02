@@ -13,10 +13,8 @@ def observe_handler(fn):
     """
 
     @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
-        highlight_header_value: str = ""
-        if args and args[0] and args[0].headers and callable(args[0].headers.get):
-            highlight_header_value = args[0].headers.get(H.REQUEST_HEADER) or ""
-        return observe_serverless(highlight_header_value, fn)(*args, **kwargs)
+    def wrapper(request):
+        highlight_header_value = request.headers.get(H.REQUEST_HEADER) or ""
+        return observe_serverless(highlight_header_value, fn)(request)
 
     return wrapper
