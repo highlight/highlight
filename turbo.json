@@ -59,9 +59,20 @@
 		"enforce-size": {
 			"dependsOn": ["build"]
 		},
-		"lint": {},
+		"lint": {
+			"outputs": [],
+			"inputs": [
+				"src/**/*.tsx",
+				"src/**/*.ts",
+				"test/**/*.ts",
+				"test/**/*.tsx"
+			]
+		},
+		"nextjs#lint": {
+			"dependsOn": ["^build"]
+		},
 		"test": {
-			"dependsOn": ["prepublish", "enforce-size"],
+			"dependsOn": ["lint", "prepublish", "enforce-size"],
 			"outputs": [],
 			"inputs": [
 				"src/**/*.tsx",
