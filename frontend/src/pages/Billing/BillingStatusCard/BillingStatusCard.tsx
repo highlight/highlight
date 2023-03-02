@@ -112,10 +112,8 @@ export const BillingStatusCard = ({
 	})
 	const overageSubtotal = dinero({
 		amount:
-			Math.ceil(sessionsOverage / 1000) *
-				SESSIONS_CENTS_PER_THOUSAND *
-				100 +
-			Math.ceil(errorsOverage / 1000) * ERRORS_CENTS_PER_THOUSAND * 100,
+			Math.ceil(sessionsOverage / 1000) * SESSIONS_CENTS_PER_THOUSAND +
+			Math.ceil(errorsOverage / 1000) * ERRORS_CENTS_PER_THOUSAND,
 		currency: USD,
 	})
 
