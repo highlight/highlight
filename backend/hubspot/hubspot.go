@@ -35,7 +35,7 @@ type CustomContactsResponse struct {
 	ProfileURL   string `json:"profile-url"`
 }
 
-func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string, db *gorm.DB) (contactId *int, err error) {
+func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	var hubspotContactId int
 	if emailproviders.Exists(email) {
 		email = ""
@@ -186,7 +186,6 @@ func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, pro
 			ptr.ToString(admin.LastName),
 			ptr.ToString(admin.Phone),
 			ptr.ToString(admin.Referral),
-			db,
 		)
 		if err != nil {
 			return e.Wrap(err, "error creating contact when trying to update contact property")

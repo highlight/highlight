@@ -415,7 +415,6 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 			*admin.LastName,
 			*admin.Phone,
 			*admin.Referral,
-			r.DB,
 		)
 		if err != nil {
 			log.WithContext(ctx).Error(err, "error creating hubspot contact")
