@@ -43,6 +43,7 @@
 		"frontend:start": "yarn dev:frontend",
 		"g": "yarn generate",
 		"generate": "hygen",
+		"lint": "yarn run turbo lint --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs",
 		"prepare": "husky install && patch-package",
 		"prepublish": "yarn workspace scripts prepublish:client",
 		"private-gen": "cd backend && make private-gen",
@@ -51,7 +52,7 @@
 		"publish:client": "yarn workspace scripts publish:client",
 		"publish:render": "yarn workspace render publish",
 		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish",
-		"test:all": "yarn turbo run test --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrweb-snapshot",
+		"test:all": "yarn turbo run test --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs",
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},
 	"devDependencies": {

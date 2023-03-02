@@ -1,11 +1,11 @@
 import { Avatar } from '@components/Avatar/Avatar'
 import { getPercentageDisplayValue } from '@components/ProgressBarTable/utils/utils'
 import { Session } from '@graph/schemas'
+import { getIdentifiedUserProfileImage } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import clsx from 'clsx'
 import React from 'react'
 
 import styles from './ProgressBarTableColumns.module.scss'
-import { getIdentifiedUserProfileImage } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 
 interface ProgressBarTablePercentageProps {
 	percent: number
