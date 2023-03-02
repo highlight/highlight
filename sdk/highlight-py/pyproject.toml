@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "highlight-io"
-version = "0.3.2"
+version = "0.4.0"
 description = "Session replay and error monitoring: stop guessing why bugs happen!"
 license = "Apache-2.0"
 authors = [
@@ -26,24 +26,23 @@ packages = [{ include = "highlight_io" }]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-azure-functions = { version = "^1.13.2", optional = true }
 blinker = { version = "^1.5", optional = true }
 django = { version = "^4.1.7", optional = true }
 flask = { version = "^2.2.2", optional = true }
 fastapi = { version = "^0.92.0", optional = true }
 uvicorn = {version = "^0.20.0", extras = ["standard"], optional = true }
 opentelemetry-api = "^1.15.0"
-opentelemetry-distro = { extras = ["otlp"], version = "^0.36b0" }
-opentelemetry-exporter-otlp-proto-http = "^1.15.0"
-opentelemetry-instrumentation = "^0.36b0"
-opentelemetry-instrumentation-logging = "^0.36b0"
-opentelemetry-proto = "^1.15.0"
+opentelemetry-distro = { extras = ["otlp"], version = "^0.37b0" }
+opentelemetry-exporter-otlp-proto-http = "^1.16.0"
+opentelemetry-instrumentation = "^0.37b0"
+opentelemetry-instrumentation-logging = "^0.37b0"
+opentelemetry-proto = "^1.16.0"
 opentelemetry-sdk = "^1.15.0"
 
-[tool.poetry.dev-dependencies]
-black = "^22.10.0"
-
 [tool.poetry.group.dev.dependencies]
+azure-functions = "^1.13.2"
+black = "^23"
+functions-framework = "^3.3.0"
 pytest = "^7.2.1"
 pytest-mock = "^3.10.0"
 pytest-cov = "^4.0.0"
@@ -51,9 +50,8 @@ pytest-asyncio = "^0.20.3"
 
 [tool.poetry.extras]
 Django = ["django"]
-Flask = ["blinker", "flask"]
-Azure = ["azure-functions"]
 FastAPI = ["fastapi", "uvicorn"]
+Flask = ["blinker", "flask"]
 
 [build-system]
 requires = ["poetry-core"]
