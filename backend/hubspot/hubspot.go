@@ -109,7 +109,6 @@ func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminI
 	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
 		return e.Wrap(err, "error retrieving workspace details")
 	}
-	// TODO: Figure out why we're failing here...
 	if workspace.HubspotCompanyID == nil {
 		return e.New("hubspot company id is empy")
 	} else if admin.HubspotContactID == nil {
