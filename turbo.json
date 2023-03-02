@@ -60,6 +60,9 @@
 			"dependsOn": ["build"]
 		},
 		"lint": {},
+		"next#lint": {
+			"dependsOn": ["^build"]
+		},
 		"test": {
 			"dependsOn": ["prepublish", "enforce-size"],
 			"outputs": [],

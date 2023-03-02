@@ -43,7 +43,7 @@
 		"frontend:start": "yarn dev:frontend",
 		"g": "yarn generate",
 		"generate": "hygen",
-		"lint": "yarn workspace @highlight-run/frontend lint",
+		"lint": "yarn run turbo lint --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs",
 		"prepare": "husky install && patch-package",
 		"prepublish": "yarn workspace scripts prepublish:client",
 		"publish:all": "run-p --print-label publish:client publish:turbo publish:render",
