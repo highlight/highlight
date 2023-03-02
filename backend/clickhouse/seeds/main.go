@@ -103,6 +103,14 @@ func makeRandomSpanID() string {
 	return spanIDs[rand.Intn(len(spanIDs))]
 }
 
+func makeRandomSecureSessionID() string {
+	secureSessionIDs := [6]string{
+		"",
+		"secure_session_id",
+	}
+	return secureSessionIDs[rand.Intn(len(secureSessionIDs))]
+}
+
 // Run via
 // `doppler run -- go run backend/clickhouse/seeds/main.go“
 func main() {
@@ -122,8 +130,8 @@ func main() {
 				Timestamp:       now.Add(-time.Duration(i) * time.Second),
 				ProjectId:       1,
 				TraceId:         "trace_id",
-				SpanId:          "span_id",
-				SecureSessionId: "span_id",
+				SpanId:          makeRandomSpanID(),
+				SecureSessionId: makeRandomSecureSessionID(),
 			},
 			Body:          fmt.Sprintf("Body %d", i),
 			LogAttributes: makeRandLogAttributes(),
