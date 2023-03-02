@@ -76,7 +76,7 @@ func TestReadLogsHasNextPage(t *testing.T) {
 	now := time.Now()
 	var rows []*LogRow
 
-	for i := uint64(1); i <= Limit; i++ { // 100 is a hardcoded limit
+	for i := 1; i <= Limit; i++ { // 100 is a hardcoded limit
 		rows = append(rows, &LogRow{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now,
@@ -266,6 +266,57 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	assert.Len(t, payload.Edges, 1)
 }
 
+func TestReadLogsWithLevelFilter(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
+	now := time.Now()
+	rows := []*LogRow{
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			SeverityText: "INFO",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			LogAttributes: map[string]string{
+				"level": "WARN",
+			},
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "level:INFO",
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, modelInputs.SeverityText("INFO"), payload.Edges[0].Node.SeverityText)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "level:*NF*",
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, modelInputs.SeverityText("INFO"), payload.Edges[0].Node.SeverityText)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "level:WARN",
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 0)
+}
+
 func TestLogsKeys(t *testing.T) {
 	ctx := context.Background()
 	client := setup(t)
@@ -300,6 +351,12 @@ func TestLogsKeys(t *testing.T) {
 		},
 		{
 			Name: "user_id",
+			Type: modelInputs.LogKeyTypeString,
+		},
+
+		// Non-custom keys ranked lower
+		{
+			Name: "level",
 			Type: modelInputs.LogKeyTypeString,
 		},
 	}
@@ -369,6 +426,51 @@ func TestLogKeyValues(t *testing.T) {
 	assert.NoError(t, err)
 
 	expected := []string{"3", "2", "4"}
+	assert.Equal(t, expected, values)
+}
+
+func TestLogKeyValuesLevel(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
+	rows := []*LogRow{
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
+			SeverityText: "INFO",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
+			SeverityText: "WARN",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
+			SeverityText: "INFO",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
+			LogAttributes: map[string]string{"level": "FATAL"}, // should be skipped in the output
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	values, err := client.LogsKeyValues(ctx, 1, "level")
+	assert.NoError(t, err)
+
+	expected := []string{"INFO", "WARN"}
 	assert.Equal(t, expected, values)
 }
 

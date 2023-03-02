@@ -12,12 +12,12 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
-func getLogsPayload(logs []*modelInputs.LogEdge, limit uint64) *modelInputs.LogsPayload {
-	hasNextPage := uint64(len(logs)) == limit+1
+func getLogsPayload(logs []*modelInputs.LogEdge) *modelInputs.LogsPayload {
+	hasNextPage := len(logs) == Limit+1
 
 	var endCursor string
 	if hasNextPage {
-		logs = logs[:limit]
+		logs = logs[:Limit]
 		endCursor = logs[len(logs)-1].Cursor
 	}
 
