@@ -10031,7 +10031,6 @@ __metadata:
     "@graphql-codegen/typescript": ^2.8.1
     "@graphql-codegen/typescript-graphql-request": ^4.5.2
     "@graphql-codegen/typescript-operations": ^2.5.2
-    "@highlight-run/fingerprintjs": ^3.3.5
     "@highlight-run/rrweb": "workspace:*"
     "@highlight-run/rrweb-types": "workspace:*"
     "@rollup/plugin-commonjs": ^22.0.1
@@ -10088,15 +10087,6 @@ __metadata:
     typescript: ^4.9.5
   languageName: unknown
   linkType: soft
-
-"@highlight-run/fingerprintjs@npm:^3.3.5":
-  version: 3.3.5
-  resolution: "@highlight-run/fingerprintjs@npm:3.3.5"
-  dependencies:
-    tslib: ^2.0.1
-  checksum: 130575d91be5ba9b767f3d0fb49584769f7ae04864f2c8487f57248497746b8002a5f46e22c60022f170b4005097aaed4186747473664c09e55ce2bb656b09c2
-  languageName: node
-  linkType: hard
 
 "@highlight-run/frontend@workspace:frontend":
   version: 0.0.0-use.local
