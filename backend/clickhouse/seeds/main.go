@@ -109,7 +109,6 @@ func main() {
 
 	for i := 1; i < 10000; i++ {
 		logRows := []*clickhouse.LogRow{}
-
 		logRows = append(logRows, &clickhouse.LogRow{
 			LogRowPrimaryAttrs: clickhouse.LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Duration(i) * time.Second),

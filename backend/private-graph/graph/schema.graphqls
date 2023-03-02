@@ -510,6 +510,9 @@ type Log {
 	severityText: SeverityText!
 	body: String!
 	logAttributes: Map!
+	traceID: String!
+	spanID: String!
+	secureSessionID: String!
 }
 
 type LogEdge {
@@ -525,6 +528,16 @@ type PageInfo {
 type LogsPayload {
 	edges: [LogEdge!]!
 	pageInfo: PageInfo!
+}
+
+enum ReservedLogKey {
+	"""
+	Keep this in alpha order
+	"""
+	level
+	secure_session_id
+	span_id
+	trace_id
 }
 
 enum LogKeyType {
