@@ -420,6 +420,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 				*admin.LastName,
 				*admin.Phone,
 				*admin.Referral,
+				r.DB,
 			); err != nil {
 				log.WithContext(ctx).Error(err, "error creating hubspot contact")
 			}
@@ -531,9 +532,9 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 			time.Sleep(15 * time.Second)
 
 			// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
-			if _, err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name); err != nil {
+			if _, err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name, r.DB); err != nil {
 				log.WithContext(ctx).Error(err, "error creating hubspot company")
-			} else if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID); err != nil {
+			} else if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID, r.DB); err != nil {
 				log.WithContext(ctx).Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
 			}
 		})
@@ -669,7 +670,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 				Name:     "number_of_highlight_error_groups_viewed",
 				Property: "number_of_highlight_error_groups_viewed",
 				Value:    totalErrorGroupCountAsInt,
-			}}); err != nil {
+			}}, r.DB); err != nil {
 				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
@@ -764,7 +765,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 				Name:     "number_of_highlight_sessions_viewed",
 				Property: "number_of_highlight_sessions_viewed",
 				Value:    totalSessionCountAsInt,
-			}}); err != nil {
+			}}, r.DB); err != nil {
 				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
@@ -922,7 +923,7 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		return adminID, err
 	}
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, *adminID, workspaceID); err != nil {
+		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, *adminID, workspaceID, r.DB); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(
 				err,
 				"error creating association between hubspot records with admin ID [%v] and workspace ID [%v]",

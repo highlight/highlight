@@ -1484,7 +1484,7 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 					Name:     "backend_setup",
 					Property: "backend_setup",
 					Value:    true,
-				}}); err != nil {
+				}}, r.DB); err != nil {
 					log.WithContext(ctx).Errorf("failed to update hubspot")
 				}
 			}
