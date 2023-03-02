@@ -15,20 +15,19 @@ import { Divider } from 'antd'
 import {
 	add,
 	dinero,
-	down,
 	isZero,
 	lessThan,
 	multiply,
 	subtract,
-	toUnit,
+	toDecimal,
 } from 'dinero.js'
 import moment from 'moment'
 import React from 'react'
 
 import styles from './BillingStatusCard.module.scss'
 
-const SESSIONS_PRICE_PER_THOUSAND = 5
-const ERRORS_PRICE_PER_THOUSAND = 0.2
+const SESSIONS_CENTS_PER_THOUSAND = 500
+const ERRORS_CENTS_PER_THOUSAND = 20
 export const MEMBERS_PRICE = 20
 
 export const BillingStatusCard = ({
@@ -113,10 +112,8 @@ export const BillingStatusCard = ({
 	})
 	const overageSubtotal = dinero({
 		amount:
-			Math.ceil(sessionsOverage / 1000) *
-				SESSIONS_PRICE_PER_THOUSAND *
-				100 +
-			Math.ceil(errorsOverage / 1000) * ERRORS_PRICE_PER_THOUSAND * 100,
+			Math.ceil(sessionsOverage / 1000) * SESSIONS_CENTS_PER_THOUSAND +
+			Math.ceil(errorsOverage / 1000) * ERRORS_CENTS_PER_THOUSAND,
 		currency: USD,
 	})
 
@@ -204,7 +201,7 @@ export const BillingStatusCard = ({
 					<Skeleton width="45px" />
 				) : (
 					<span className={styles.subtotal}>
-						${toUnit(baseSubtotal, { digits: 2, round: down })}
+						${toDecimal(baseSubtotal)}
 					</span>
 				)}
 			</div>
@@ -278,11 +275,7 @@ export const BillingStatusCard = ({
 							<Skeleton width="45px" />
 						) : (
 							<span className={styles.subtotal}>
-								$
-								{toUnit(membersSubtotal, {
-									digits: 2,
-									round: down,
-								})}
+								${toDecimal(membersSubtotal)}
 							</span>
 						)}
 					</div>
@@ -314,11 +307,7 @@ export const BillingStatusCard = ({
 							<Skeleton width="45px" />
 						) : (
 							<span className={styles.subtotal}>
-								$
-								{toUnit(overageSubtotal, {
-									digits: 2,
-									round: down,
-								})}
+								${toDecimal(overageSubtotal)}
 							</span>
 						)}
 					</div>
@@ -382,12 +371,7 @@ export const BillingStatusCard = ({
 								<span>Discount: {discountPercent}% off</span>
 							) : (
 								<span>
-									Discount: $
-									{toUnit(discountAmount, {
-										digits: 2,
-										round: down,
-									})}{' '}
-									off
+									Discount: ${toDecimal(discountAmount)} off
 								</span>
 							)
 						) : null}
@@ -409,11 +393,7 @@ export const BillingStatusCard = ({
 										</span>
 									)}
 									<span className={styles.subtotal}>
-										$
-										{toUnit(total, {
-											digits: 2,
-											round: down,
-										})}{' '}
+										${toDecimal(total)}
 									</span>
 								</>
 							)}

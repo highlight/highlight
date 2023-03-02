@@ -1,5 +1,4 @@
 import contextlib
-import functools
 import logging
 import typing
 
@@ -74,6 +73,10 @@ class H(object):
 
         for integration in self._integrations:
             integration.enable()
+
+    def flush(self):
+        self._trace_provider.force_flush()
+        self._log_provider.force_flush()
 
     @contextlib.contextmanager
     def trace(

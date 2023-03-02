@@ -32,7 +32,7 @@ import {
 } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { message } from 'antd'
-import { dinero, down, toUnit } from 'dinero.js'
+import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
@@ -545,14 +545,8 @@ const BillingPage = () => {
 								Your last invoice failed to process!
 							</span>
 							<br />
-							<span>
-								$
-								{toUnit(outstandingAmount, {
-									digits: 2,
-									round: down,
-								})}
-							</span>{' '}
-							is past due as of{' '}
+							<span>${toDecimal(outstandingAmount)}</span> is past
+							due as of{' '}
 							{moment(
 								subscriptionData?.subscription_details
 									?.lastInvoice?.date,

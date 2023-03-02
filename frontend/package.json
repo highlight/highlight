@@ -24,7 +24,7 @@
 		"color-hash": "^2.0.1",
 		"dexie": "^3.2.2",
 		"dexie-react-hooks": "^1.1.1",
-		"dinero.js": "^2.0.0-alpha.8",
+		"dinero.js": "alpha",
 		"eslint-plugin-simple-import-sort": "^7.0.0",
 		"firebase": "^8.10.1",
 		"framer-motion": "^6.3.15",

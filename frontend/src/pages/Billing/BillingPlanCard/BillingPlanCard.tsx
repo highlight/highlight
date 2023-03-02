@@ -123,7 +123,10 @@ export const BillingPlanCard = ({
 							<span>
 								{feature.text}
 								<InfoTooltip
-									title={feature.tooltip}
+									title={
+										feature.tooltip &&
+										feature.tooltip(retentionPeriod)
+									}
 									size="medium"
 								/>
 							</span>

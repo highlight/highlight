@@ -10,7 +10,7 @@ import styles from './JsonViewer.module.scss'
 
 type Props = { allowDownload?: boolean; downloadFileName?: string } & Pick<
 	ReactJsonViewProps,
-	'src' | 'collapsed' | 'name'
+	'src' | 'collapsed' | 'name' | 'style'
 >
 
 const JsonViewer = ({
@@ -18,6 +18,7 @@ const JsonViewer = ({
 	name = null,
 	allowDownload = false,
 	downloadFileName = 'highlight-json',
+	style,
 	...props
 }: Props) => {
 	const { download } = specific.useJSONDownloader()
@@ -58,6 +59,7 @@ const JsonViewer = ({
 				style={{
 					wordBreak: 'break-word',
 					fontFamily: 'var(--monospace-font-family)',
+					...style,
 				}}
 			/>
 		</div>
