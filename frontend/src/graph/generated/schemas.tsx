@@ -660,8 +660,11 @@ export type Log = {
 	__typename?: 'Log'
 	body: Scalars['String']
 	logAttributes: Scalars['Map']
+	sessionID: Scalars['String']
 	severityText: SeverityText
+	spanID: Scalars['String']
 	timestamp: Scalars['Timestamp']
+	traceID: Scalars['String']
 }
 
 export type LogEdge = {
@@ -2042,6 +2045,14 @@ export type ReferrerTablePayload = {
 	count: Scalars['Int']
 	host: Scalars['String']
 	percent: Scalars['Float']
+}
+
+export enum ReservedLogKey {
+	/** Keep this in alpha order */
+	Level = 'level',
+	SessionId = 'session_id',
+	SpanId = 'span_id',
+	TraceId = 'trace_id',
 }
 
 export enum RetentionPeriod {

@@ -494,8 +494,11 @@ type ComplexityRoot struct {
 	Log struct {
 		Body          func(childComplexity int) int
 		LogAttributes func(childComplexity int) int
+		SessionID     func(childComplexity int) int
 		SeverityText  func(childComplexity int) int
+		SpanID        func(childComplexity int) int
 		Timestamp     func(childComplexity int) int
+		TraceID       func(childComplexity int) int
 	}
 
 	LogEdge struct {
@@ -3339,6 +3342,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Log.LogAttributes(childComplexity), true
 
+	case "Log.sessionID":
+		if e.complexity.Log.SessionID == nil {
+			break
+		}
+
+		return e.complexity.Log.SessionID(childComplexity), true
+
 	case "Log.severityText":
 		if e.complexity.Log.SeverityText == nil {
 			break
@@ -3346,12 +3356,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Log.SeverityText(childComplexity), true
 
+	case "Log.spanID":
+		if e.complexity.Log.SpanID == nil {
+			break
+		}
+
+		return e.complexity.Log.SpanID(childComplexity), true
+
 	case "Log.timestamp":
 		if e.complexity.Log.Timestamp == nil {
 			break
 		}
 
 		return e.complexity.Log.Timestamp(childComplexity), true
+
+	case "Log.traceID":
+		if e.complexity.Log.TraceID == nil {
+			break
+		}
+
+		return e.complexity.Log.TraceID(childComplexity), true
 
 	case "LogEdge.cursor":
 		if e.complexity.LogEdge.Cursor == nil {
@@ -8069,6 +8093,9 @@ type Log {
 	severityText: SeverityText!
 	body: String!
 	logAttributes: Map!
+	traceID: String!
+	spanID: String!
+	sessionID: String!
 }
 
 type LogEdge {
@@ -8088,6 +8115,16 @@ type LogsPayload {
 
 enum LogKeyType {
 	String
+}
+
+enum ReservedLogKey {
+	"""
+	Keep this in alpha order
+	"""
+	level
+	session_id
+	span_id
+	trace_id
 }
 
 type LogKey {
@@ -26938,6 +26975,138 @@ func (ec *executionContext) fieldContext_Log_logAttributes(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Log_traceID(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Log_traceID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TraceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Log_traceID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Log",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Log_spanID(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Log_spanID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SpanID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Log_spanID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Log",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Log_sessionID(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Log_sessionID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Log_sessionID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Log",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _LogEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *model.LogEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_LogEdge_cursor(ctx, field)
 	if err != nil {
@@ -27029,6 +27198,12 @@ func (ec *executionContext) fieldContext_LogEdge_node(ctx context.Context, field
 				return ec.fieldContext_Log_body(ctx, field)
 			case "logAttributes":
 				return ec.fieldContext_Log_logAttributes(ctx, field)
+			case "traceID":
+				return ec.fieldContext_Log_traceID(ctx, field)
+			case "spanID":
+				return ec.fieldContext_Log_spanID(ctx, field)
+			case "sessionID":
+				return ec.fieldContext_Log_sessionID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Log", field.Name)
 		},
@@ -57794,6 +57969,27 @@ func (ec *executionContext) _Log(ctx context.Context, sel ast.SelectionSet, obj 
 		case "logAttributes":
 
 			out.Values[i] = ec._Log_logAttributes(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "traceID":
+
+			out.Values[i] = ec._Log_traceID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "spanID":
+
+			out.Values[i] = ec._Log_spanID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sessionID":
+
+			out.Values[i] = ec._Log_sessionID(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

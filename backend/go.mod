@@ -129,8 +129,6 @@ require (
 	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
-	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/marconi/go-resthooks v0.0.0-20190225103922-ad217f832acb // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -176,7 +174,6 @@ require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.5.1
 	github.com/DataDog/gostackparse v0.5.0 // indirect
 	github.com/DataDog/sketches-go v1.2.1 // indirect
-	github.com/Masterminds/squirrel v1.5.3
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/ReneKroon/ttlcache v1.7.0
 	github.com/agnivade/levenshtein v1.1.1 // indirect
