@@ -95,6 +95,14 @@ func makeRandomSeverityText() string {
 	return severities[rand.Intn(len(severities))]
 }
 
+func makeRandomSpanID() string {
+	spanIDs := [6]string{
+		"",
+		"span_id",
+	}
+	return spanIDs[rand.Intn(len(spanIDs))]
+}
+
 // Run via
 // `doppler run -- go run backend/clickhouse/seeds/main.go“
 func main() {
@@ -111,8 +119,11 @@ func main() {
 		logRows := []*clickhouse.LogRow{}
 		logRows = append(logRows, &clickhouse.LogRow{
 			LogRowPrimaryAttrs: clickhouse.LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Duration(i) * time.Second),
-				ProjectId: 1,
+				Timestamp:       now.Add(-time.Duration(i) * time.Second),
+				ProjectId:       1,
+				TraceId:         "trace_id",
+				SpanId:          "span_id",
+				SecureSessionId: "span_id",
 			},
 			Body:          fmt.Sprintf("Body %d", i),
 			LogAttributes: makeRandLogAttributes(),
