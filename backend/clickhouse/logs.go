@@ -331,6 +331,14 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 		sb.Where("Body ILIKE" + sb.Var(filters.body))
 	}
 
+	if len(filters.level) > 0 {
+		if strings.Contains(filters.level, "%") {
+			sb.Where(sb.Like("SeverityText", filters.level))
+		} else {
+			sb.Where(sb.Equal("SeverityText", filters.level))
+		}
+	}
+
 	if len(filters.secure_session_id) > 0 {
 		if strings.Contains(filters.secure_session_id, "%") {
 			sb.Where(sb.Like("SecureSessionId", filters.secure_session_id))
