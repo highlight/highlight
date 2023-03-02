@@ -274,13 +274,17 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
-			Timestamp:    now,
-			ProjectId:    1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
 			SeverityText: "INFO",
 		},
 		{
-			Timestamp: now,
-			ProjectId: 1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
 			LogAttributes: map[string]string{
 				"level": "WARN",
 			},
@@ -432,23 +436,31 @@ func TestLogKeyValuesLevel(t *testing.T) {
 
 	rows := []*LogRow{
 		{
-			Timestamp:    time.Now(),
-			ProjectId:    1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
 			SeverityText: "INFO",
 		},
 		{
-			Timestamp:    time.Now(),
-			ProjectId:    1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
 			SeverityText: "WARN",
 		},
 		{
-			Timestamp:    time.Now(),
-			ProjectId:    1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
 			SeverityText: "INFO",
 		},
 		{
-			Timestamp:     time.Now(),
-			ProjectId:     1,
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: time.Now(),
+				ProjectId: 1,
+			},
 			LogAttributes: map[string]string{"level": "FATAL"}, // should be skipped in the output
 		},
 	}
