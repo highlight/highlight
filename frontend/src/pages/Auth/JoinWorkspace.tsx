@@ -66,7 +66,7 @@ export const JoinWorkspace = () => {
 				</AuthHeader>
 				<AuthBody>
 					<Stack gap="20">
-						<Text>
+						<Text align="center">
 							Do you want to accept the invitation to join "
 							{workspaceName}"?
 						</Text>
