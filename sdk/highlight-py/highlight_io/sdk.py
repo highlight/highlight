@@ -29,11 +29,11 @@ class H(object):
         return cls._instance
 
     def __init__(
-            self,
-            project_id: str,
-            integrations: typing.List[Integration] = None,
-            record_logs: bool = False,
-            otlp_endpoint: str = "",
+        self,
+        project_id: str,
+        integrations: typing.List[Integration] = None,
+        record_logs: bool = False,
+        otlp_endpoint: str = "",
     ):
         """
         Setup Highlight backend instrumentation.
@@ -80,9 +80,9 @@ class H(object):
 
     @contextlib.contextmanager
     def trace(
-            self,
-            session_id: typing.Optional[str] = "",
-            request_id: typing.Optional[str] = "",
+        self,
+        session_id: typing.Optional[str] = "",
+        request_id: typing.Optional[str] = "",
     ) -> None:
         """
         Catch exceptions raised by your app using this context manager.

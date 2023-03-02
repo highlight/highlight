@@ -23,7 +23,7 @@ def lambda_handler(event, context):
     if random.random() < 0.2:
         raise ValueError("oh no!")
 
-    name = event.get("name") or 'unknown'
+    name = event.get("name") or "unknown"
     customer = event.get("customer") or "unknown"
     logger.info(
         "Python AWS Lambda got name",
