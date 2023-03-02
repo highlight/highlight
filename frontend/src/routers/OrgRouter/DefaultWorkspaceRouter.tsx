@@ -9,9 +9,10 @@ import React, { useEffect } from 'react'
 import { Navigate, useMatch } from 'react-router-dom'
 
 export const DefaultWorkspaceRouter = () => {
-	const { isLoggedIn } = useAuthContext()
+	const { isLoggedIn, workspaceRole } = useAuthContext()
+	console.log('workspaceRole', workspaceRole)
 
-	const workspaceMatch = useMatch('/w/:workspace_id/:page_id')
+	const workspaceMatch = useMatch('/w/:page_id')
 	const pageId = workspaceMatch?.params.page_id ?? ''
 	const { setLoadingState } = useAppLoadingContext()
 
