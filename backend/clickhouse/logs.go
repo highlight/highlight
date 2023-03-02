@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"strings"
 	"time"
 
@@ -13,20 +14,42 @@ import (
 	e "github.com/pkg/errors"
 )
 
+type LogRowPrimaryAttrs struct {
+	Timestamp       time.Time
+	ProjectId       uint32
+	TraceId         string
+	SpanId          string
+	SecureSessionId string
+}
+
 type LogRow struct {
-	Timestamp          time.Time
-	UUID               string
-	TraceId            string
-	SpanId             string
-	TraceFlags         uint32
-	SeverityText       string
-	SeverityNumber     int32
-	ServiceName        string
-	Body               string
-	ResourceAttributes map[string]string
-	LogAttributes      map[string]string
-	ProjectId          uint32
-	SecureSessionId    string
+	LogRowPrimaryAttrs
+	UUID           string
+	TraceFlags     uint32
+	SeverityText   string
+	SeverityNumber int32
+	ServiceName    string
+	Body           string
+	LogAttributes  map[string]string
+}
+
+func NewLogRow(attrs LogRowPrimaryAttrs) *LogRow {
+	return &LogRow{
+		LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+			Timestamp:       attrs.Timestamp,
+			TraceId:         attrs.TraceId,
+			SpanId:          attrs.SpanId,
+			ProjectId:       attrs.ProjectId,
+			SecureSessionId: attrs.SecureSessionId,
+		},
+		UUID:           uuid.New().String(),
+		SeverityText:   "INFO",
+		SeverityNumber: int32(log.InfoLevel),
+	}
+}
+
+func (l *LogRow) Cursor() string {
+	return encodeCursor(l.Timestamp, l.UUID)
 }
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {

@@ -111,8 +111,10 @@ func main() {
 		logRows := []*clickhouse.LogRow{}
 
 		logRows = append(logRows, &clickhouse.LogRow{
-			Timestamp:     now.Add(-time.Duration(i) * time.Second),
-			ProjectId:     1,
+			LogRowPrimaryAttrs: clickhouse.LogRowPrimaryAttrs{
+				Timestamp: now.Add(-time.Duration(i) * time.Second),
+				ProjectId: 1,
+			},
 			Body:          fmt.Sprintf("Body %d", i),
 			LogAttributes: makeRandLogAttributes(),
 			SeverityText:  makeRandomSeverityText(),
