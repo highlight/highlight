@@ -16,6 +16,7 @@ import {
 	useGetAdminLazyQuery,
 	useUpdateAdminAboutYouDetailsMutation,
 } from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
 import { Landing } from '@pages/Landing/Landing'
 import analytics from '@util/analytics'
 import { getAttributionData } from '@util/attribution'
@@ -25,7 +26,6 @@ import { Helmet } from 'react-helmet'
 import { useToggle } from 'react-use'
 
 import styles from './AboutYouCard.module.scss'
-import { namedOperations } from '@graph/operations'
 
 interface Props {
 	onSubmitHandler: () => void

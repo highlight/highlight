@@ -7,6 +7,7 @@ import {
 } from '@apollo/client'
 import Dexie, { Table } from 'dexie'
 import moment from 'moment'
+
 import log from './log'
 
 const CLEANUP_CHECK_MS = 1000

@@ -26,6 +26,7 @@ export type Scalars = {
 
 export type BackendErrorObjectInput = {
 	event: Scalars['String']
+	log_cursor?: InputMaybe<Scalars['String']>
 	payload?: InputMaybe<Scalars['String']>
 	request_id?: InputMaybe<Scalars['String']>
 	session_secure_id?: InputMaybe<Scalars['String']>

@@ -7,6 +7,7 @@ import { updateQueriedTimeRange } from '@pages/Sessions/SessionsFeedV3/SessionQu
 import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import React, { useCallback } from 'react'
+
 import { TIME_RANGE_FIELD } from '../ErrorQueryBuilder/ErrorQueryBuilder'
 
 const ErrorFeedHistogram = React.memo(() => {

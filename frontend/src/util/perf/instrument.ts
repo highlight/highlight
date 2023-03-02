@@ -47,8 +47,3 @@ export const timedCallback = <T extends Function>(
 		}
 	}
 }
-
-// Datadog RUM does not allow timing names with `/`
-function ddSanitize(name: string): string {
-	return name.replaceAll('/', '_')
-}

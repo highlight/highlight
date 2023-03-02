@@ -24,6 +24,7 @@ import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
+import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
@@ -36,7 +37,6 @@ import { useNavigate } from 'react-router'
 import { useLocation } from 'react-router-dom'
 
 import * as styles from './styles.css'
-import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
 
 const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 	integrated,
