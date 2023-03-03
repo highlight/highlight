@@ -12,7 +12,7 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
-func getLogsConnection(logs []*modelInputs.LogEdge, pagination Pagination) *modelInputs.LogsConnection {
+func getLogsConnection(edges []*modelInputs.LogEdge, pagination Pagination) *modelInputs.LogsConnection {
 	var (
 		endCursor       string
 		startCursor     string
@@ -21,34 +21,36 @@ func getLogsConnection(logs []*modelInputs.LogEdge, pagination Pagination) *mode
 	)
 
 	if pagination.At != nil && len(*pagination.At) > 1 {
-		if len(logs) == Limit+3 { // has forward and backwards
+		if len(edges) == Limit+3 { // has forward and backwards
 			hasNextPage = true
 			hasPreviousPage = true
 
-			logs = logs[1:]           // remove first
-			logs = logs[:len(logs)-1] // remove last
-		} else if len(logs) == Limit+2 { // has forward pagination (not backwards)
+			edges = edges[1:]            // remove first
+			edges = edges[:len(edges)-1] // remove last
+		} else if len(edges) == Limit+2 { // has forward pagination (not backwards)
 			hasNextPage = true
-			logs = logs[:len(logs)-1] // remove last
+			edges = edges[:len(edges)-1] // remove last
 		}
 
 	} else if pagination.After != nil && len(*pagination.After) > 1 {
-		if len(logs) == Limit+1 {
-			hasNextPage = len(logs) == Limit+1
-			logs = logs[:Limit]
+		if len(edges) == Limit+1 {
+			hasNextPage = len(edges) == Limit+1
+			edges = edges[:Limit]
 		}
 	} else if pagination.Before != nil && len(*pagination.Before) > 1 {
-		if len(logs) == Limit+1 {
-			hasPreviousPage = len(logs) == Limit+1
-			logs = logs[1 : Limit-1]
+		if len(edges) == Limit+1 {
+			hasPreviousPage = len(edges) == Limit+1
+			edges = edges[1 : Limit-1]
 		}
 	}
 
-	startCursor = logs[0].Cursor
-	endCursor = logs[len(logs)-1].Cursor
+	if len(edges) > 0 {
+		startCursor = edges[0].Cursor
+		endCursor = edges[len(edges)-1].Cursor
+	}
 
 	return &modelInputs.LogsConnection{
-		Edges: logs,
+		Edges: edges,
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     hasNextPage,
 			HasPreviousPage: hasPreviousPage,

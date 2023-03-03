@@ -129,7 +129,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 		return nil, err
 	}
 
-	logs := []*modelInputs.LogEdge{}
+	edges := []*modelInputs.LogEdge{}
 
 	for rows.Next() {
 		var result struct {
@@ -146,7 +146,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 			return nil, err
 		}
 
-		logs = append(logs, &modelInputs.LogEdge{
+		edges = append(edges, &modelInputs.LogEdge{
 			Cursor: encodeCursor(result.Timestamp, result.UUID),
 			Node: &modelInputs.Log{
 				Timestamp:       result.Timestamp,
@@ -161,7 +161,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	}
 	rows.Close()
 
-	return getLogsConnection(logs, pagination), rows.Err()
+	return getLogsConnection(edges, pagination), rows.Err()
 }
 
 func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
@@ -196,7 +196,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		),
 		projectID,
 		params,
-		nil,
+		Pagination{},
 	)
 
 	if err != nil {
