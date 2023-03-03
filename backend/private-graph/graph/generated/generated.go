@@ -8093,9 +8093,9 @@ type Log {
 	severityText: SeverityText!
 	body: String!
 	logAttributes: Map!
-	traceID: String!
-	spanID: String!
-	secureSessionID: String!
+	traceID: String
+	spanID: String
+	secureSessionID: String
 }
 
 type LogEdge {
@@ -26996,14 +26996,11 @@ func (ec *executionContext) _Log_traceID(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Log_traceID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -27040,14 +27037,11 @@ func (ec *executionContext) _Log_spanID(ctx context.Context, field graphql.Colle
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Log_spanID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -27084,14 +27078,11 @@ func (ec *executionContext) _Log_secureSessionID(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Log_secureSessionID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -57977,23 +57968,14 @@ func (ec *executionContext) _Log(ctx context.Context, sel ast.SelectionSet, obj 
 
 			out.Values[i] = ec._Log_traceID(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "spanID":
 
 			out.Values[i] = ec._Log_spanID(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "secureSessionID":
 
 			out.Values[i] = ec._Log_secureSessionID(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
