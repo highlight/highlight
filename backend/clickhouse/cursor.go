@@ -12,20 +12,48 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
-func getLogsPayload(logs []*modelInputs.LogEdge) *modelInputs.LogsPayload {
-	hasNextPage := len(logs) == Limit+1
+func getLogsConnection(logs []*modelInputs.LogEdge, pagination Pagination) *modelInputs.LogsConnection {
+	var (
+		endCursor       string
+		startCursor     string
+		hasNextPage     bool
+		hasPreviousPage bool
+	)
 
-	var endCursor string
-	if hasNextPage {
-		logs = logs[:Limit]
-		endCursor = logs[len(logs)-1].Cursor
+	if pagination.At != nil && len(*pagination.At) > 1 {
+		if len(logs) == Limit+3 { // has forward and backwards
+			hasNextPage = true
+			hasPreviousPage = true
+
+			logs = logs[1:]           // remove first
+			logs = logs[:len(logs)-1] // remove last
+		} else if len(logs) == Limit+2 { // has forward pagination (not backwards)
+			hasNextPage = true
+			logs = logs[:len(logs)-1] // remove last
+		}
+
+	} else if pagination.After != nil && len(*pagination.After) > 1 {
+		if len(logs) == Limit+1 {
+			hasNextPage = len(logs) == Limit+1
+			logs = logs[:Limit]
+		}
+	} else if pagination.Before != nil && len(*pagination.Before) > 1 {
+		if len(logs) == Limit+1 {
+			hasPreviousPage = len(logs) == Limit+1
+			logs = logs[1 : Limit-1]
+		}
 	}
 
-	return &modelInputs.LogsPayload{
+	startCursor = logs[0].Cursor
+	endCursor = logs[len(logs)-1].Cursor
+
+	return &modelInputs.LogsConnection{
 		Edges: logs,
 		PageInfo: &modelInputs.PageInfo{
-			HasNextPage: hasNextPage,
-			EndCursor:   endCursor,
+			HasNextPage:     hasNextPage,
+			HasPreviousPage: hasPreviousPage,
+			EndCursor:       endCursor,
+			StartCursor:     startCursor,
 		},
 	}
 }

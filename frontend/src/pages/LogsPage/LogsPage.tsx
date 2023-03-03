@@ -1,7 +1,8 @@
-import { useGetLogsQuery, useGetLogsTotalCountQuery } from '@graph/hooks'
+import { useGetLogsTotalCountQuery } from '@graph/hooks'
 import { Box, Preset, Stack, Text } from '@highlight-run/ui'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
+import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
@@ -53,6 +54,9 @@ const LogsPage = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
+	const { log_cursor } = useParams<{
+		log_cursor: string
+	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const [startDate, setStartDate] = useQueryParam(
 		'start_date',
@@ -63,20 +67,14 @@ const LogsPage = () => {
 
 	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
 
-	const { data, loading, fetchMore } = useGetLogsQuery({
-		variables: {
-			project_id: project_id!,
-			params: {
-				query,
-				date_range: {
-					start_date: moment(startDate).format(FORMAT),
-					end_date: moment(endDate).format(FORMAT),
-				},
-			},
-		},
-		skip: !project_id,
-		fetchPolicy: 'cache-and-network',
-	})
+	const { logEdges, loading, fetchMoreForward, fetchMoreBackward } =
+		useGetLogs({
+			query,
+			project_id,
+			log_cursor,
+			startDate,
+			endDate,
+		})
 
 	const { data: totalCount, loading: logCountLoading } =
 		useGetLogsTotalCountQuery({
@@ -102,36 +100,20 @@ const LogsPage = () => {
 		setEndDate(newEndDate)
 	}
 
-	const fetchMoreOnBottomReached = React.useCallback(
+	const fetchMore = React.useCallback(
 		(containerRefElement?: HTMLDivElement | null) => {
 			if (containerRefElement) {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
 				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
 				if (scrollHeight - scrollTop - clientHeight < 100) {
-					const pageInfo = data?.logs.pageInfo
-
-					if (pageInfo && pageInfo.hasNextPage) {
-						fetchMore({
-							variables: {
-								project_id: project_id!,
-								params: {
-									query,
-									date_range: {
-										start_date:
-											moment(startDate).format(FORMAT),
-										end_date:
-											moment(endDate).format(FORMAT),
-									},
-								},
-								after: pageInfo.endCursor,
-							},
-						})
-					}
+					fetchMoreForward()
+				} else if (scrollTop === 0) {
+					fetchMoreBackward()
 				}
 			}
 		},
-		[data?.logs.pageInfo, endDate, fetchMore, project_id, query, startDate],
+		[fetchMoreForward, fetchMoreBackward],
 	)
 
 	return (
@@ -189,15 +171,14 @@ const LogsPage = () => {
 							height: '100vh',
 							overflow: 'auto',
 						}}
-						onScroll={(e) =>
-							fetchMoreOnBottomReached(e.target as HTMLDivElement)
-						}
+						onScroll={(e) => fetchMore(e.target as HTMLDivElement)}
 						ref={tableContainerRef}
 					>
 						<LogsTable
-							data={data}
+							logEdges={logEdges}
 							loading={loading}
 							query={query}
+							selectedCursor={log_cursor}
 						/>
 					</div>
 				</Box>

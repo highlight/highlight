@@ -1,14 +1,15 @@
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
-import { Text } from '@highlight-run/ui'
+import { IconSolidCheck, Text } from '@highlight-run/ui'
 import React from 'react'
 
 type Props = {
 	body: string
 	expanded: boolean
 	query: string
+	selected: boolean
 }
 
-const LogBody = ({ body, expanded, query }: Props) => {
+const LogBody = ({ body, expanded, query, selected }: Props) => {
 	const searchWords = query.split(' ')
 
 	return (
@@ -19,6 +20,7 @@ const LogBody = ({ body, expanded, query }: Props) => {
 			break="word"
 		>
 			<TextHighlighter searchWords={searchWords} textToHighlight={body} />
+			{selected && <IconSolidCheck />}
 		</Text>
 	)
 }

@@ -46,7 +46,10 @@ const ApplicationRouter = ({ integrated }: Props) => {
 			{isLoggedIn ? (
 				<>
 					{isHighlightAdmin && (
-						<Route path="logs/*" element={<LogsPage />} />
+						<Route
+							path="logs/:log_cursor?"
+							element={<LogsPage />}
+						/>
 					)}
 					<Route
 						path="settings/:tab?"

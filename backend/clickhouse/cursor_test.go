@@ -43,7 +43,7 @@ func TestClickhouseDecode(t *testing.T) {
 
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 
 	cursor := payload.Edges[0].Cursor

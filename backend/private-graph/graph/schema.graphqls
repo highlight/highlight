@@ -522,10 +522,12 @@ type LogEdge {
 
 type PageInfo {
 	hasNextPage: Boolean!
+	hasPreviousPage: Boolean!
+	startCursor: String!
 	endCursor: String!
 }
 
-type LogsPayload {
+type LogsConnection {
 	edges: [LogEdge!]!
 	pageInfo: PageInfo!
 }
@@ -1458,7 +1460,13 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
-	logs(project_id: ID!, params: LogsParamsInput!, after: String): LogsPayload!
+	logs(
+		project_id: ID!
+		params: LogsParamsInput!
+		after: String
+		before: String
+		at: String
+	): LogsConnection!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): [UInt64!]!
 	logs_keys(project_id: ID!): [LogKey!]!

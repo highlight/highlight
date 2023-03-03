@@ -5,6 +5,7 @@ import {
 	IconSolidChevronDoubleDown,
 	IconSolidChevronDoubleUp,
 	IconSolidClipboard,
+	IconSolidLink,
 	Stack,
 	Text,
 } from '@highlight-run/ui'
@@ -15,11 +16,20 @@ import {
 import { Row } from '@tanstack/react-table'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
+import { generatePath } from 'react-router-dom'
 
 import * as styles from './LogDetails.css'
 
 type Props = {
 	row: Row<LogEdge>
+}
+
+export const getLogURL = (row: Row<LogEdge>) => {
+	const currentUrl = new URL(window.location.href)
+	const path = generatePath('/logs/:log_cursor', {
+		log_cursor: row.original.cursor,
+	})
+	return currentUrl.origin + path
 }
 
 export const LogDetails = ({ row }: Props) => {
@@ -131,7 +141,27 @@ export const LogDetails = ({ row }: Props) => {
 						gap="4"
 					>
 						<IconSolidClipboard />
-						Copy
+						Copy JSON
+					</Box>
+				</ButtonLink>
+
+				<ButtonLink
+					kind="secondary"
+					onClick={(e) => {
+						const url = getLogURL(row)
+						e.stopPropagation()
+						navigator.clipboard.writeText(url)
+						message.success('Copied link!')
+					}}
+				>
+					<Box
+						display="flex"
+						alignItems="center"
+						flexDirection="row"
+						gap="4"
+					>
+						<IconSolidLink />
+						Copy link
 					</Box>
 				</ButtonLink>
 			</Box>

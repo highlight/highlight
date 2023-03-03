@@ -1,5 +1,4 @@
 import LoadingBox from '@components/LoadingBox'
-import { GetLogsQuery } from '@graph/operations'
 import { SeverityText } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
 import {
@@ -22,17 +21,23 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import clsx from 'clsx'
-import React, { Fragment, useEffect, useMemo, useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 
 import * as styles from './LogsTable.css'
 
 type Props = {
 	loading: boolean
-	data: GetLogsQuery | undefined
+	logEdges: LogEdge[]
 	query: string
+	selectedCursor: string | undefined
 }
 
-export const LogsTable = ({ data, loading, query }: Props) => {
+export const LogsTable = ({
+	logEdges,
+	loading,
+	query,
+	selectedCursor,
+}: Props) => {
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const columns = React.useMemo<ColumnDef<LogEdge>[]>(
@@ -79,18 +84,13 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 						query={query}
 						body={getValue() as string}
 						expanded={row.getIsExpanded()}
+						selected={row.original.cursor === selectedCursor}
 					/>
 				),
 			},
 		],
-		[query],
+		[query, selectedCursor],
 	)
-
-	let logEdges: LogEdge[] = useMemo(() => [], [])
-
-	if (data?.logs?.edges) {
-		logEdges = data.logs.edges
-	}
 
 	const table = useReactTable({
 		data: logEdges,
