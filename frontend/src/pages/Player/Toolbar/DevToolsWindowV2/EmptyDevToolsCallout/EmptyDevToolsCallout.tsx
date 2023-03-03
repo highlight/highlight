@@ -107,8 +107,8 @@ export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
 						onClick={() => {
 							window.open(
 								kind === Tab.Console
-									? 'https://www.highlight.io/docs/session-replay/console-messages'
-									: 'https://www.highlight.io/docs/error-monitoring/grouping-errors',
+									? 'https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/console-messages'
+									: 'https://www.highlight.io/docs/general/product-features/error-monitoring/grouping-errors',
 								'_blank',
 							)
 						}}

@@ -192,7 +192,7 @@ const SessionShareButtonV2 = () => {
 						iconLeft={<IconSolidQuestionMarkCircle size={12} />}
 						onClick={() => {
 							window.open(
-								'https://www.highlight.io/docs/session-replay/session-sharing',
+								'https://www.highlight.io/docs/general/product-features/session-replay/sessions-search-deep-linking',
 								'_blank',
 							)
 						}}
