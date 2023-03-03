@@ -1,4 +1,3 @@
-import LoadingBox from '@components/LoadingBox'
 import { GetLogsQuery } from '@graph/operations'
 import { SeverityText } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
@@ -7,6 +6,7 @@ import {
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	Stack,
+	Text,
 } from '@highlight-run/ui'
 import { LogBody } from '@pages/LogsPage/LogsTable/LogBody'
 import { LogDetails } from '@pages/LogsPage/LogsTable/LogDetails'
@@ -21,9 +21,9 @@ import {
 	getExpandedRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
 import React, { Fragment, useEffect, useMemo, useState } from 'react'
-import { useVirtual } from 'react-virtual'
 
 import * as styles from './LogsTable.css'
 
@@ -114,16 +114,18 @@ export const LogsTable = ({
 
 	const { rows } = table.getRowModel()
 
-	const rowVirtualizer = useVirtual({
-		parentRef: tableContainerRef,
-		size: rows.length,
-		overscan: 20,
+	const rowVirtualizer = useVirtualizer({
+		count: rows.length,
+		estimateSize: () => 26,
+		getScrollElement: () => tableContainerRef.current,
+		overscan: 10,
 	})
-	const { virtualItems: virtualRows, totalSize } = rowVirtualizer
-	const paddingTop = virtualRows.length > 0 ? virtualRows[0].start || 0 : 0
+	const totalSize = rowVirtualizer.getTotalSize()
+	const virtualRows = rowVirtualizer.getVirtualItems()
+	const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start || 0 : 0
 	const paddingBottom =
 		virtualRows.length > 0
-			? totalSize - (virtualRows[virtualRows.length - 5].end || 0)
+			? totalSize - (virtualRows[virtualRows.length - 1]?.end || 0)
 			: 0
 	console.log('::: firstVirtualRow', virtualRows?.[0])
 	console.log('::: lastVirtualRow', virtualRows?.[virtualRows.length - 1])
@@ -135,19 +137,6 @@ export const LogsTable = ({
 		// Collapse all rows when search changes
 		table.toggleAllRowsExpanded(false)
 	}, [logEdges, table])
-
-	if (loading) {
-		return (
-			<Box
-				display="flex"
-				flexGrow={1}
-				alignItems="center"
-				justifyContent="center"
-			>
-				<LoadingBox />
-			</Box>
-		)
-	}
 
 	if (logEdges.length === 0) {
 		return (
@@ -164,6 +153,8 @@ export const LogsTable = ({
 
 	return (
 		<div style={{ height: `${totalSize}px`, position: 'relative' }}>
+			{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
+
 			{virtualRows.map((virtualRow) => {
 				const row = rows[virtualRow.index]
 
@@ -172,18 +163,12 @@ export const LogsTable = ({
 						cssClass={clsx(styles.row, {
 							[styles.rowExpanded]: row.getIsExpanded(),
 						})}
-						key={row.id}
+						key={virtualRow.key}
+						data-index={virtualRow.index}
 						cursor="pointer"
 						onClick={row.getToggleExpandedHandler()}
-						mb="1"
-						style={{
-							position: 'absolute',
-							top: 0,
-							left: 0,
-							width: '100%',
-							height: `${virtualRow.size}px`,
-							transform: `translateY(${virtualRow.start}px)`,
-						}}
+						mb="2"
+						ref={rowVirtualizer.measureElement}
 					>
 						<Stack direction="row" align="flex-start">
 							{row.getVisibleCells().map((cell) => {
@@ -202,6 +187,32 @@ export const LogsTable = ({
 					</Box>
 				)
 			})}
+
+			{paddingBottom > 0 && <Box style={{ height: paddingBottom }} />}
+
+			{loading && (
+				<Box
+					backgroundColor="white"
+					border="dividerWeak"
+					display="flex"
+					flexGrow={1}
+					alignItems="center"
+					justifyContent="center"
+					padding="12"
+					position="fixed"
+					shadow="small"
+					borderRadius="6"
+					textAlign="center"
+					style={{
+						bottom: 20,
+						left: 'calc(50% - 150px)',
+						width: 300,
+						zIndex: 10,
+					}}
+				>
+					<Text color="weak">Loading...</Text>
+				</Box>
+			)}
 		</div>
 	)
 }
