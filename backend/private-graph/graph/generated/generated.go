@@ -511,6 +511,21 @@ type ComplexityRoot struct {
 		Type func(childComplexity int) int
 	}
 
+	LogsHistogram struct {
+		Buckets    func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	LogsHistogramBucket struct {
+		BucketID func(childComplexity int) int
+		Counts   func(childComplexity int) int
+	}
+
+	LogsHistogramBucketCount struct {
+		Count        func(childComplexity int) int
+		SeverityText func(childComplexity int) int
+	}
+
 	LogsPayload struct {
 		Edges    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
@@ -1346,7 +1361,7 @@ type QueryResolver interface {
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
 	Logs(ctx context.Context, projectID int, params model.LogsParamsInput, after *string) (*model.LogsPayload, error)
 	LogsTotalCount(ctx context.Context, projectID int, params model.LogsParamsInput) (uint64, error)
-	LogsHistogram(ctx context.Context, projectID int, params model.LogsParamsInput) ([]uint64, error)
+	LogsHistogram(ctx context.Context, projectID int, params model.LogsParamsInput) (*model.LogsHistogram, error)
 	LogsKeys(ctx context.Context, projectID int) ([]*model.LogKey, error)
 	LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error)
 }
@@ -3417,6 +3432,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LogKey.Type(childComplexity), true
+
+	case "LogsHistogram.buckets":
+		if e.complexity.LogsHistogram.Buckets == nil {
+			break
+		}
+
+		return e.complexity.LogsHistogram.Buckets(childComplexity), true
+
+	case "LogsHistogram.totalCount":
+		if e.complexity.LogsHistogram.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.LogsHistogram.TotalCount(childComplexity), true
+
+	case "LogsHistogramBucket.bucketId":
+		if e.complexity.LogsHistogramBucket.BucketID == nil {
+			break
+		}
+
+		return e.complexity.LogsHistogramBucket.BucketID(childComplexity), true
+
+	case "LogsHistogramBucket.counts":
+		if e.complexity.LogsHistogramBucket.Counts == nil {
+			break
+		}
+
+		return e.complexity.LogsHistogramBucket.Counts(childComplexity), true
+
+	case "LogsHistogramBucketCount.count":
+		if e.complexity.LogsHistogramBucketCount.Count == nil {
+			break
+		}
+
+		return e.complexity.LogsHistogramBucketCount.Count(childComplexity), true
+
+	case "LogsHistogramBucketCount.severityText":
+		if e.complexity.LogsHistogramBucketCount.SeverityText == nil {
+			break
+		}
+
+		return e.complexity.LogsHistogramBucketCount.SeverityText(childComplexity), true
 
 	case "LogsPayload.edges":
 		if e.complexity.LogsPayload.Edges == nil {
@@ -8201,6 +8258,21 @@ enum LogKeyType {
 	String
 }
 
+type LogsHistogramBucketCount {
+	count: UInt64!
+	severityText: SeverityText!
+}
+
+type LogsHistogramBucket {
+	bucketId: UInt64!
+	counts: [LogsHistogramBucketCount!]!
+}
+
+type LogsHistogram {
+	buckets: [LogsHistogramBucket!]!
+	totalCount: UInt64!
+}
+
 type LogKey {
 	name: String!
 	type: LogKeyType!
@@ -9117,7 +9189,7 @@ type Query {
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 	logs(project_id: ID!, params: LogsParamsInput!, after: String): LogsPayload!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
-	logs_histogram(project_id: ID!, params: LogsParamsInput!): [UInt64!]!
+	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
 	logs_keys(project_id: ID!): [LogKey!]!
 	logs_key_values(project_id: ID!, key_name: String!): [String!]!
 }
@@ -27377,6 +27449,282 @@ func (ec *executionContext) fieldContext_LogKey_type(ctx context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _LogsHistogram_buckets(ctx context.Context, field graphql.CollectedField, obj *model.LogsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogsHistogram_buckets(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Buckets, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.LogsHistogramBucket)
+	fc.Result = res
+	return ec.marshalNLogsHistogramBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsHistogramBucketᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogsHistogram_buckets(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogsHistogram",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "bucketId":
+				return ec.fieldContext_LogsHistogramBucket_bucketId(ctx, field)
+			case "counts":
+				return ec.fieldContext_LogsHistogramBucket_counts(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LogsHistogramBucket", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LogsHistogram_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.LogsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogsHistogram_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogsHistogram_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogsHistogram",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UInt64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LogsHistogramBucket_bucketId(ctx context.Context, field graphql.CollectedField, obj *model.LogsHistogramBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogsHistogramBucket_bucketId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BucketID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogsHistogramBucket_bucketId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogsHistogramBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UInt64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LogsHistogramBucket_counts(ctx context.Context, field graphql.CollectedField, obj *model.LogsHistogramBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogsHistogramBucket_counts(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Counts, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.LogsHistogramBucketCount)
+	fc.Result = res
+	return ec.marshalNLogsHistogramBucketCount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsHistogramBucketCountᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogsHistogramBucket_counts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogsHistogramBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "count":
+				return ec.fieldContext_LogsHistogramBucketCount_count(ctx, field)
+			case "severityText":
+				return ec.fieldContext_LogsHistogramBucketCount_severityText(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LogsHistogramBucketCount", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LogsHistogramBucketCount_count(ctx context.Context, field graphql.CollectedField, obj *model.LogsHistogramBucketCount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogsHistogramBucketCount_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogsHistogramBucketCount_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogsHistogramBucketCount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UInt64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LogsHistogramBucketCount_severityText(ctx context.Context, field graphql.CollectedField, obj *model.LogsHistogramBucketCount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogsHistogramBucketCount_severityText(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SeverityText, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.SeverityText)
+	fc.Result = res
+	return ec.marshalNSeverityText2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSeverityText(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogsHistogramBucketCount_severityText(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogsHistogramBucketCount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SeverityText does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _LogsPayload_edges(ctx context.Context, field graphql.CollectedField, obj *model.LogsPayload) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_LogsPayload_edges(ctx, field)
 	if err != nil {
@@ -42121,9 +42469,9 @@ func (ec *executionContext) _Query_logs_histogram(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]uint64)
+	res := resTmp.(*model.LogsHistogram)
 	fc.Result = res
-	return ec.marshalNUInt642ᚕuint64ᚄ(ctx, field.Selections, res)
+	return ec.marshalNLogsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsHistogram(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_logs_histogram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42133,7 +42481,13 @@ func (ec *executionContext) fieldContext_Query_logs_histogram(ctx context.Contex
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UInt64 does not have child fields")
+			switch field.Name {
+			case "buckets":
+				return ec.fieldContext_LogsHistogram_buckets(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_LogsHistogram_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LogsHistogram", field.Name)
 		},
 	}
 	defer func() {
@@ -58542,6 +58896,111 @@ func (ec *executionContext) _LogKey(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
+var logsHistogramImplementors = []string{"LogsHistogram"}
+
+func (ec *executionContext) _LogsHistogram(ctx context.Context, sel ast.SelectionSet, obj *model.LogsHistogram) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, logsHistogramImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LogsHistogram")
+		case "buckets":
+
+			out.Values[i] = ec._LogsHistogram_buckets(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalCount":
+
+			out.Values[i] = ec._LogsHistogram_totalCount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var logsHistogramBucketImplementors = []string{"LogsHistogramBucket"}
+
+func (ec *executionContext) _LogsHistogramBucket(ctx context.Context, sel ast.SelectionSet, obj *model.LogsHistogramBucket) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, logsHistogramBucketImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LogsHistogramBucket")
+		case "bucketId":
+
+			out.Values[i] = ec._LogsHistogramBucket_bucketId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "counts":
+
+			out.Values[i] = ec._LogsHistogramBucket_counts(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var logsHistogramBucketCountImplementors = []string{"LogsHistogramBucketCount"}
+
+func (ec *executionContext) _LogsHistogramBucketCount(ctx context.Context, sel ast.SelectionSet, obj *model.LogsHistogramBucketCount) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, logsHistogramBucketCountImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LogsHistogramBucketCount")
+		case "count":
+
+			out.Values[i] = ec._LogsHistogramBucketCount_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "severityText":
+
+			out.Values[i] = ec._LogsHistogramBucketCount_severityText(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var logsPayloadImplementors = []string{"LogsPayload"}
 
 func (ec *executionContext) _LogsPayload(ctx context.Context, sel ast.SelectionSet, obj *model.LogsPayload) graphql.Marshaler {
@@ -66809,6 +67268,128 @@ func (ec *executionContext) marshalNLogKeyType2githubᚗcomᚋhighlightᚑrunᚋ
 	return v
 }
 
+func (ec *executionContext) marshalNLogsHistogram2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsHistogram(ctx context.Context, sel ast.SelectionSet, v model.LogsHistogram) graphql.Marshaler {
+	return ec._LogsHistogram(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLogsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsHistogram(ctx context.Context, sel ast.SelectionSet, v *model.LogsHistogram) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LogsHistogram(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNLogsHistogramBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsHistogramBucketᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.LogsHistogramBucket) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLogsHistogramBucket2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsHistogramBucket(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNLogsHistogramBucket2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsHistogramBucket(ctx context.Context, sel ast.SelectionSet, v *model.LogsHistogramBucket) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LogsHistogramBucket(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNLogsHistogramBucketCount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsHistogramBucketCountᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.LogsHistogramBucketCount) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLogsHistogramBucketCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsHistogramBucketCount(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNLogsHistogramBucketCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsHistogramBucketCount(ctx context.Context, sel ast.SelectionSet, v *model.LogsHistogramBucketCount) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LogsHistogramBucketCount(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNLogsParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsParamsInput(ctx context.Context, v interface{}) (model.LogsParamsInput, error) {
 	res, err := ec.unmarshalInputLogsParamsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -68261,38 +68842,6 @@ func (ec *executionContext) marshalNUInt642uint64(ctx context.Context, sel ast.S
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNUInt642ᚕuint64ᚄ(ctx context.Context, v interface{}) ([]uint64, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]uint64, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNUInt642uint64(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNUInt642ᚕuint64ᚄ(ctx context.Context, sel ast.SelectionSet, v []uint64) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNUInt642uint64(ctx, sel, v[i])
-	}
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalNUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx context.Context, sel ast.SelectionSet, v []*model1.UserProperty) graphql.Marshaler {

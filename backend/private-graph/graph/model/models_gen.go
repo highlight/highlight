@@ -372,6 +372,21 @@ type LogKey struct {
 	Type LogKeyType `json:"type"`
 }
 
+type LogsHistogram struct {
+	Buckets    []*LogsHistogramBucket `json:"buckets"`
+	TotalCount uint64                 `json:"totalCount"`
+}
+
+type LogsHistogramBucket struct {
+	BucketID uint64                      `json:"bucketId"`
+	Counts   []*LogsHistogramBucketCount `json:"counts"`
+}
+
+type LogsHistogramBucketCount struct {
+	Count        uint64       `json:"count"`
+	SeverityText SeverityText `json:"severityText"`
+}
+
 type LogsParamsInput struct {
 	Query     string                  `json:"query"`
 	DateRange *DateRangeRequiredInput `json:"date_range"`
