@@ -74,8 +74,7 @@ func TestReadLogsHistogram(t *testing.T) {
 	client := setup(t)
 	defer teardown(client)
 
-	now, err := time.Parse(time.RFC3339, "2023-01-01T00:00:00Z")
-	assert.NoError(t, err)
+	now := time.Now()
 	rows := []*LogRow{
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
@@ -86,7 +85,7 @@ func TestReadLogsHistogram(t *testing.T) {
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Hour - time.Minute*30),
+				Timestamp: now.Add(-time.Hour - time.Minute*29),
 				ProjectId: 1,
 			},
 			SeverityText: "DEBUG",
