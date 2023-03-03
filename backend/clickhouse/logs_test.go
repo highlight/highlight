@@ -366,6 +366,159 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 	assert.Len(t, payload.Edges, 0)
 }
 
+func TestReadLogsWithSessionIdFilter(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
+	now := time.Now()
+	rows := []*LogRow{
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp:       now,
+				ProjectId:       1,
+				SecureSessionId: "match",
+			},
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			LogAttributes: map[string]string{
+				"secure_session_id": "no_match",
+			},
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "secure_session_id:match",
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "match", payload.Edges[0].Node.SecureSessionID)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "secure_session_id:*atc*",
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "match", payload.Edges[0].Node.SecureSessionID)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "secure_session_id:no_match",
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 0)
+}
+
+func TestReadLogsWithSpanIdFilter(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
+	now := time.Now()
+	rows := []*LogRow{
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+				SpanId:    "match",
+			},
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			LogAttributes: map[string]string{
+				"span_id": "no_match",
+			},
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "span_id:match",
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "match", payload.Edges[0].Node.SpanID)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "span_id:*atc*",
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "match", payload.Edges[0].Node.SpanID)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "span_id:no_match",
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 0)
+}
+
+func TestReadLogsWithTraceIdFilter(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
+	now := time.Now()
+	rows := []*LogRow{
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+				TraceId:   "match",
+			},
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			LogAttributes: map[string]string{
+				"trace_id": "no_match",
+			},
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "trace_id:match",
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "match", payload.Edges[0].Node.TraceID)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "trace_id:*atc*",
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "match", payload.Edges[0].Node.TraceID)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "trace_id:no_match",
+	}, nil)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 0)
+}
+
 func TestLogsKeys(t *testing.T) {
 	ctx := context.Background()
 	client := setup(t)
@@ -406,6 +559,18 @@ func TestLogsKeys(t *testing.T) {
 		// Non-custom keys ranked lower
 		{
 			Name: "level",
+			Type: modelInputs.LogKeyTypeString,
+		},
+		{
+			Name: "secure_session_id",
+			Type: modelInputs.LogKeyTypeString,
+		},
+		{
+			Name: "span_id",
+			Type: modelInputs.LogKeyTypeString,
+		},
+		{
+			Name: "trace_id",
 			Type: modelInputs.LogKeyTypeString,
 		},
 	}

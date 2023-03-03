@@ -48,7 +48,6 @@ import (
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
-	"github.com/rs/xid"
 	"github.com/rs/zerolog"
 	zlog "github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
@@ -402,25 +401,27 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
-	admin.Phone = adminDetails.Phone
+	admin.Phone = pointy.String("")
 	admin.AboutYouDetailsFilled = &model.T
 
 	if !util.IsDevEnv() {
-		r.PrivateWorkerPool.SubmitRecover(func() {
-			if _, err := r.HubspotApi.CreateContactForAdmin(
-				ctx,
-				admin.ID,
-				*admin.Email,
-				*admin.UserDefinedRole,
-				*admin.UserDefinedPersona,
-				*admin.FirstName,
-				*admin.LastName,
-				*admin.Phone,
-				*admin.Referral,
-			); err != nil {
-				log.WithContext(ctx).Error(err, "error creating hubspot contact")
-			}
-		})
+		hubspotContactId, err := r.HubspotApi.CreateContactForAdmin(
+			ctx,
+			admin.ID,
+			*admin.Email,
+			*admin.UserDefinedRole,
+			*admin.UserDefinedPersona,
+			*admin.FirstName,
+			*admin.LastName,
+			*admin.Phone,
+			*admin.Referral,
+		)
+		if err != nil {
+			log.WithContext(ctx).Error(err, "error creating hubspot contact")
+		}
+		if hubspotContactId != nil {
+			admin.HubspotContactID = hubspotContactId
+		}
 	}
 
 	if err := r.DB.Save(admin).Error; err != nil {
@@ -428,6 +429,37 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	}
 
 	return true, nil
+}
+
+// CreateAdmin is the resolver for the createAdmin field.
+func (r *mutationResolver) CreateAdmin(ctx context.Context) (*model.Admin, error) {
+	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
+
+	firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
+		tracer.Tag("admin_uid", uid))
+	firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
+
+	if err != nil {
+		spanError := e.Wrap(err, "error retrieving user from firebase api")
+		firebaseSpan.Finish(tracer.WithError(spanError))
+		return nil, spanError
+	}
+
+	admin := &model.Admin{
+		UID:                   &uid,
+		Name:                  &firebaseUser.DisplayName,
+		Email:                 &firebaseUser.Email,
+		PhotoURL:              &firebaseUser.PhotoURL,
+		EmailVerified:         &firebaseUser.EmailVerified,
+		Phone:                 &firebaseUser.PhoneNumber,
+		AboutYouDetailsFilled: &model.F,
+	}
+	if err := r.DB.Create(admin).Error; err != nil {
+		return nil, e.Wrap(err, "error creating new admin")
+	}
+
+	firebaseSpan.Finish()
+	return admin, nil
 }
 
 // CreateProject is the resolver for the createProject field.
@@ -489,14 +521,12 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 	}
 
 	if !util.IsDevEnv() {
-		r.PrivateWorkerPool.SubmitRecover(func() {
-			// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
-			if _, err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name); err != nil {
-				log.WithContext(ctx).Error(err, "error creating hubspot company")
-			} else if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID); err != nil {
-				log.WithContext(ctx).Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
-			}
-		})
+		// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
+		if _, err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name, r.DB); err != nil {
+			log.WithContext(ctx).Error(err, "error creating hubspot company")
+		} else if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID, r.DB); err != nil {
+			log.WithContext(ctx).Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
+		}
 	}
 
 	c := &stripe.Customer{}
@@ -629,7 +659,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 				Name:     "number_of_highlight_error_groups_viewed",
 				Property: "number_of_highlight_error_groups_viewed",
 				Value:    totalErrorGroupCountAsInt,
-			}}); err != nil {
+			}}, r.DB); err != nil {
 				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
@@ -724,7 +754,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 				Name:     "number_of_highlight_sessions_viewed",
 				Property: "number_of_highlight_sessions_viewed",
 				Value:    totalSessionCountAsInt,
-			}}); err != nil {
+			}}, r.DB); err != nil {
 				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
@@ -826,33 +856,6 @@ func (r *mutationResolver) DeleteProject(ctx context.Context, id int) (*bool, er
 	return &model.T, nil
 }
 
-// SendAdminProjectInvite is the resolver for the sendAdminProjectInvite field.
-func (r *mutationResolver) SendAdminProjectInvite(ctx context.Context, projectID int, email string, baseURL string) (*string, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
-	}
-	admin, err := r.getCurrentAdmin(ctx)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying admin")
-	}
-
-	// TODO: Should migrate these nil secrets so we can remove this
-	var secret string
-	if project.Secret == nil {
-		uid := xid.New().String()
-		if err := r.DB.Model(project).Updates(&model.Project{Secret: &uid}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating uid in project secret")
-		}
-		secret = uid
-	} else {
-		secret = *project.Secret
-	}
-
-	inviteLink := baseURL + "/" + strconv.Itoa(projectID) + "/invite/" + secret
-	return r.SendAdminInviteImpl(*admin.Name, *project.Name, inviteLink, email)
-}
-
 // SendAdminWorkspaceInvite is the resolver for the sendAdminWorkspaceInvite field.
 func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
@@ -909,7 +912,7 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		return adminID, err
 	}
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, *adminID, workspaceID); err != nil {
+		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, *adminID, workspaceID, r.DB); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(
 				err,
 				"error creating association between hubspot records with admin ID [%v] and workspace ID [%v]",
@@ -4896,7 +4899,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 		GROUP BY identifier
 		LIMIT 50
 	) as topUsers
-	INNER JOIN sessions s 
+	INNER JOIN sessions s
 	ON topUsers.identifier = s.identifier
 	AND s.project_id = ?
     ) as q2
@@ -6206,6 +6209,37 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 	return workspace, nil
 }
 
+// WorkspaceForInviteLink is the resolver for the workspace_for_invite_link field.
+func (r *queryResolver) WorkspaceForInviteLink(ctx context.Context, secret string) (*modelInputs.WorkspaceForInviteLink, error) {
+	var workspaceInviteLink model.WorkspaceInviteLink
+	if err := r.DB.Where(&model.WorkspaceInviteLink{Secret: &secret}).First(&workspaceInviteLink).Error; err != nil {
+		return nil, e.Wrap(err, "error querying workspace invite link")
+	}
+
+	var workspace model.Workspace
+	if err := r.DB.Model(&model.Workspace{}).Where("id = ?", *workspaceInviteLink.WorkspaceID).First(&workspace).Error; err != nil {
+		return nil, e.Wrap(err, "error querying workspace for invite link")
+	}
+
+	var admin *model.Admin
+	if workspaceInviteLink.InviteeEmail != nil {
+		if err := r.DB.Model(&model.Admin{Email: workspaceInviteLink.InviteeEmail}).First(&admin).Error; err != nil {
+			return nil, e.Wrap(err, "error querying admin for invitee_email")
+		}
+	}
+
+	workspaceForInvite := &modelInputs.WorkspaceForInviteLink{
+		ExpirationDate:  workspaceInviteLink.ExpirationDate,
+		InviteeEmail:    workspaceInviteLink.InviteeEmail,
+		Secret:          *workspaceInviteLink.Secret,
+		WorkspaceID:     workspace.ID,
+		WorkspaceName:   *workspace.Name,
+		ExistingAccount: admin != nil,
+	}
+
+	return workspaceForInvite, nil
+}
+
 // WorkspaceInviteLinks is the resolver for the workspace_invite_links field.
 func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID int) (*model.WorkspaceInviteLink, error) {
 	_, err := r.isAdminInWorkspace(ctx, workspaceID)
@@ -6278,48 +6312,16 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 // Admin is the resolver for the admin field.
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
+	admin := &model.Admin{UID: &uid}
 	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.admin"),
 		tracer.Tag("admin_uid", uid))
-	admin := &model.Admin{UID: &uid}
-	tx := r.DB.Where(admin).
-		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "uid"}}, DoNothing: true}).
-		Create(&admin).
-		Attrs(&admin)
-	if tx.Error != nil {
-		spanError := e.Wrap(tx.Error, "error retrieving user from db")
-		adminSpan.Finish(tracer.WithError(spanError))
-		return nil, spanError
-	}
-	if tx.RowsAffected != 0 {
-		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
-			tracer.Tag("admin_uid", *admin.UID))
-		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
-		if err != nil {
-			spanError := e.Wrap(err, "error retrieving user from firebase api")
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			adminSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
-			UID:                   admin.UID,
-			Name:                  &firebaseUser.DisplayName,
-			Email:                 &firebaseUser.Email,
-			PhotoURL:              &firebaseUser.PhotoURL,
-			EmailVerified:         &firebaseUser.EmailVerified,
-			Phone:                 &firebaseUser.PhoneNumber,
-			AboutYouDetailsFilled: &model.F,
-		}).Error; err != nil {
-			spanError := e.Wrap(err, "error creating new admin")
-			adminSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		firebaseSpan.Finish()
-	}
+
 	if err := r.DB.Where(&model.Admin{UID: admin.UID}).First(&admin).Error; err != nil {
-		spanError := e.Wrap(err, "error fetching admin")
+		spanError := e.Wrap(err, "error retrieving user from postgres")
 		adminSpan.Finish(tracer.WithError(spanError))
 		return nil, spanError
 	}
+
 	if admin.PhotoURL == nil || admin.Name == nil {
 		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
 			tracer.Tag("admin_uid", *admin.UID))
@@ -6367,8 +6369,8 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		}
 		admin.EmailVerified = &firebaseUser.EmailVerified
 		firebaseSpan.Finish()
-
 	}
+
 	adminSpan.Finish()
 	return admin, nil
 }

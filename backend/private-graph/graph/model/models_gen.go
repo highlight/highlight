@@ -353,10 +353,13 @@ type LinearTeam struct {
 }
 
 type Log struct {
-	Timestamp     time.Time              `json:"timestamp"`
-	SeverityText  SeverityText           `json:"severityText"`
-	Body          string                 `json:"body"`
-	LogAttributes map[string]interface{} `json:"logAttributes"`
+	Timestamp       time.Time              `json:"timestamp"`
+	SeverityText    SeverityText           `json:"severityText"`
+	Body            string                 `json:"body"`
+	LogAttributes   map[string]interface{} `json:"logAttributes"`
+	TraceID         string                 `json:"traceID"`
+	SpanID          string                 `json:"spanID"`
+	SecureSessionID string                 `json:"secureSessionID"`
 }
 
 type LogEdge struct {
@@ -598,6 +601,15 @@ type VercelProjectMappingInput struct {
 	VercelProjectID string  `json:"vercel_project_id"`
 	NewProjectName  *string `json:"new_project_name"`
 	ProjectID       *int    `json:"project_id"`
+}
+
+type WorkspaceForInviteLink struct {
+	ExpirationDate  *time.Time `json:"expiration_date"`
+	InviteeEmail    *string    `json:"invitee_email"`
+	Secret          string     `json:"secret"`
+	WorkspaceID     int        `json:"workspace_id"`
+	WorkspaceName   string     `json:"workspace_name"`
+	ExistingAccount bool       `json:"existing_account"`
 }
 
 type DashboardChartType string
@@ -1118,6 +1130,52 @@ func (e *PlanType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PlanType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ReservedLogKey string
+
+const (
+	// Keep this in alpha order
+	ReservedLogKeyLevel           ReservedLogKey = "level"
+	ReservedLogKeySecureSessionID ReservedLogKey = "secure_session_id"
+	ReservedLogKeySpanID          ReservedLogKey = "span_id"
+	ReservedLogKeyTraceID         ReservedLogKey = "trace_id"
+)
+
+var AllReservedLogKey = []ReservedLogKey{
+	ReservedLogKeyLevel,
+	ReservedLogKeySecureSessionID,
+	ReservedLogKeySpanID,
+	ReservedLogKeyTraceID,
+}
+
+func (e ReservedLogKey) IsValid() bool {
+	switch e {
+	case ReservedLogKeyLevel, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID:
+		return true
+	}
+	return false
+}
+
+func (e ReservedLogKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedLogKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedLogKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedLogKey", str)
+	}
+	return nil
+}
+
+func (e ReservedLogKey) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
