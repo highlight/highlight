@@ -73,6 +73,7 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 }
 
 const Limit int = 100
+const KeyValuesLimit int = 50
 
 func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string) (*modelInputs.LogsPayload, error) {
 	sb, err := makeSelectBuilder("Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId", projectID, params, after)
@@ -202,7 +203,7 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 			Where(sb.NotEqual("level", "")).
 			GroupBy("level").
 			OrderBy("cnt DESC").
-			Limit(50)
+			Limit(KeyValuesLimit)
 	case modelInputs.ReservedLogKeySecureSessionID.String():
 		sb.Select("SecureSessionId secure_session_id, count() as cnt").
 			From("logs").
@@ -210,7 +211,7 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 			Where(sb.NotEqual("secure_session_id", "")).
 			GroupBy("secure_session_id").
 			OrderBy("cnt DESC").
-			Limit(50)
+			Limit(KeyValuesLimit)
 	case modelInputs.ReservedLogKeySpanID.String():
 		sb.Select("SpanId span_id, count() as cnt").
 			From("logs").
@@ -218,7 +219,7 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 			Where(sb.NotEqual("span_id", "")).
 			GroupBy("span_id").
 			OrderBy("cnt DESC").
-			Limit(50)
+			Limit(KeyValuesLimit)
 	case modelInputs.ReservedLogKeyTraceID.String():
 		sb.Select("TraceId trace_id, count() as cnt").
 			From("logs").
@@ -226,7 +227,7 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 			Where(sb.NotEqual("trace_id", "")).
 			GroupBy("trace_id").
 			OrderBy("cnt DESC").
-			Limit(50)
+			Limit(KeyValuesLimit)
 	default:
 		sb.Select("LogAttributes [" + sb.Var(keyName) + "] as value, count() as cnt").
 			From("logs").
@@ -234,7 +235,7 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 			Where("mapContains(LogAttributes, " + sb.Var(keyName) + ")").
 			GroupBy("value").
 			OrderBy("cnt DESC").
-			Limit(50)
+			Limit(KeyValuesLimit)
 	}
 
 	sql, args := sb.Build()
