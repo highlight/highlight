@@ -197,6 +197,11 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		if err := rows.Scan(&bucket, &count); err != nil {
 			return nil, err
 		}
+		// clamp bucket to [0, nBuckets)
+		if bucket >= uint64(nBuckets) {
+			bucket = uint64(nBuckets - 1)
+		}
+
 		counts[bucket] = count
 	}
 
