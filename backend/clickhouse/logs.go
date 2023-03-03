@@ -147,7 +147,7 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 	return count, err
 }
 
-func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, nBuckets int) ([]*modelInputs.LogHistogramBucket, error) {
+func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, nBuckets int) ([]uint64, error) {
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())
 
@@ -178,7 +178,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 
 	sql, args := sb.Build()
 
-	counts := []*modelInputs.LogHistogramBucket{}
+	counts := make([]uint64, nBuckets)
 	rows, err := client.conn.Query(
 		ctx,
 		sql,
@@ -197,10 +197,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		if err := rows.Scan(&bucket, &count); err != nil {
 			return nil, err
 		}
-		counts = append(counts, &modelInputs.LogHistogramBucket{
-			Bucket: bucket,
-			Count:  count,
-		})
+		counts[bucket] = count
 	}
 
 	return counts, err

@@ -104,17 +104,17 @@ func TestReadLogsHistogram(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
+	nBuckets := 48
 	payload, err := client.ReadLogsHistogram(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
 			StartDate: now.Add(-time.Hour * 2),
 			EndDate:   now.Add(-time.Hour * 1),
 		},
-	}, 48)
+	}, nBuckets)
 	assert.NoError(t, err)
 
-	assert.Len(t, payload, 1)
-	assert.Equal(t, uint64(1), payload[0].Count)
-	assert.Equal(t, uint64(24), payload[0].Bucket)
+	assert.Len(t, payload, nBuckets)
+	assert.Equal(t, uint64(1), payload[24])
 }
 
 func TestReadLogsHasNextPage(t *testing.T) {
