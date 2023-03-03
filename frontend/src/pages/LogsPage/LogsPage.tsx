@@ -184,11 +184,11 @@ const LogsPage = () => {
 						)}
 					</Stack>
 
-					<div
-						style={{
-							height: '100vh',
-							overflow: 'auto',
-						}}
+					<Box
+						height="screen"
+						px="12"
+						pb="12"
+						overflowY="scroll"
 						onScroll={(e) =>
 							fetchMoreOnBottomReached(e.target as HTMLDivElement)
 						}
@@ -198,8 +198,9 @@ const LogsPage = () => {
 							data={data}
 							loading={loading}
 							query={query}
+							tableContainerRef={tableContainerRef}
 						/>
-					</div>
+					</Box>
 				</Box>
 			</Box>
 		</>

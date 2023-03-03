@@ -23,6 +23,7 @@ import {
 } from '@tanstack/react-table'
 import clsx from 'clsx'
 import React, { Fragment, useEffect, useMemo, useState } from 'react'
+import { useVirtual } from 'react-virtual'
 
 import * as styles from './LogsTable.css'
 
@@ -30,9 +31,15 @@ type Props = {
 	loading: boolean
 	data: GetLogsQuery | undefined
 	query: string
+	tableContainerRef: React.RefObject<HTMLDivElement>
 }
 
-export const LogsTable = ({ data, loading, query }: Props) => {
+export const LogsTable = ({
+	data,
+	loading,
+	query,
+	tableContainerRef,
+}: Props) => {
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const columns = React.useMemo<ColumnDef<LogEdge>[]>(
@@ -105,6 +112,25 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 		debugTable: true,
 	})
 
+	const { rows } = table.getRowModel()
+
+	const rowVirtualizer = useVirtual({
+		parentRef: tableContainerRef,
+		size: rows.length,
+		overscan: 20,
+	})
+	const { virtualItems: virtualRows, totalSize } = rowVirtualizer
+	const paddingTop = virtualRows.length > 0 ? virtualRows[0].start || 0 : 0
+	const paddingBottom =
+		virtualRows.length > 0
+			? totalSize - (virtualRows[virtualRows.length - 5].end || 0)
+			: 0
+	console.log('::: firstVirtualRow', virtualRows?.[0])
+	console.log('::: lastVirtualRow', virtualRows?.[virtualRows.length - 1])
+	console.log('::: totalSize', totalSize)
+	console.log('::: paddingTop', paddingTop)
+	console.log('::: paddingBottom', paddingBottom)
+
 	useEffect(() => {
 		// Collapse all rows when search changes
 		table.toggleAllRowsExpanded(false)
@@ -137,8 +163,10 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 	}
 
 	return (
-		<Box px="12" overflowY="scroll">
-			{table.getRowModel().rows.map((row) => {
+		<div style={{ height: `${totalSize}px`, position: 'relative' }}>
+			{virtualRows.map((virtualRow) => {
+				const row = rows[virtualRow.index]
+
 				return (
 					<Box
 						cssClass={clsx(styles.row, {
@@ -148,6 +176,14 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 						cursor="pointer"
 						onClick={row.getToggleExpandedHandler()}
 						mb="1"
+						style={{
+							position: 'absolute',
+							top: 0,
+							left: 0,
+							width: '100%',
+							height: `${virtualRow.size}px`,
+							transform: `translateY(${virtualRow.start}px)`,
+						}}
 					>
 						<Stack direction="row" align="flex-start">
 							{row.getVisibleCells().map((cell) => {
@@ -166,7 +202,7 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 					</Box>
 				)
 			})}
-		</Box>
+		</div>
 	)
 }
 
