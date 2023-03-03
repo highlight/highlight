@@ -72,7 +72,7 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 	return batch.Send()
 }
 
-const Limit int = 50
+const LogsLimit int = 50
 const KeyValuesLimit int = 50
 
 type Pagination struct {
@@ -98,8 +98,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 		if err != nil {
 			return nil, err
 		}
-		//sb1.OrderBy("Timestamp ASC, UUID ASC").Limit(Limit/2 + 1)
-		sb1.OrderBy("Timestamp ASC, UUID ASC").Limit(Limit/2 + 1)
+		sb1.OrderBy("Timestamp ASC, UUID ASC").Limit(LogsLimit/2 + 1)
 
 		sb2, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
 			AfterOrEqualTo: pagination.At,
@@ -107,8 +106,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 		if err != nil {
 			return nil, err
 		}
-		//sb2.OrderBy(orderBy).Limit(Limit/2 + 1 + 1)
-		sb2.OrderBy(orderBy).Limit(Limit/2 + 2)
+		sb2.OrderBy(orderBy).Limit(LogsLimit/2 + 2)
 
 		ub := sqlbuilder.UnionAll(sb1, sb2)
 		sb.Select(selectStr).From(sb.BuilderAs(ub, "logs_window")).OrderBy(orderBy)
@@ -118,7 +116,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 			return nil, err
 		}
 
-		sb.OrderBy(orderBy).Limit(Limit + 1)
+		sb.OrderBy(orderBy).Limit(LogsLimit + 1)
 	}
 
 	sql, args := sb.Build()
