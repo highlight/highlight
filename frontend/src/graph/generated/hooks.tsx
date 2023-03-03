@@ -11340,6 +11340,9 @@ export const GetLogsDocument = gql`
 					severityText
 					body
 					logAttributes
+					traceID
+					spanID
+					secureSessionID
 				}
 			}
 			pageInfo {

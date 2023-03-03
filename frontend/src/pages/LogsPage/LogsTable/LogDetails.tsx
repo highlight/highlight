@@ -24,7 +24,8 @@ type Props = {
 
 export const LogDetails = ({ row }: Props) => {
 	const [allExpanded, setAllExpanded] = useState(false)
-	const { logAttributes } = row.original.node
+	const { traceID, spanID, secureSessionID, logAttributes } =
+		row.original.node
 	const expanded = row.getIsExpanded()
 	const expandable = Object.values(logAttributes).some(
 		(v) => typeof v === 'object',
@@ -58,6 +59,25 @@ export const LogDetails = ({ row }: Props) => {
 					</Box>
 				)
 			})}
+
+			{traceID && (
+				<Box>
+					<LogValue label="trace_id" value={traceID} />
+				</Box>
+			)}
+			{spanID && (
+				<Box>
+					<LogValue label="span_id" value={spanID} />
+				</Box>
+			)}
+			{secureSessionID && (
+				<Box>
+					<LogValue
+						label="secure_session_id"
+						value={secureSessionID}
+					/>
+				</Box>
+			)}
 
 			<Box
 				display="flex"

@@ -3,9 +3,10 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -72,9 +73,10 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 }
 
 const Limit int = 100
+const KeyValuesLimit int = 50
 
 func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string) (*modelInputs.LogsPayload, error) {
-	sb, err := makeSelectBuilder("Timestamp, UUID, SeverityText, Body, LogAttributes", projectID, params, after)
+	sb, err := makeSelectBuilder("Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId", projectID, params, after)
 	if err != nil {
 		return nil, err
 	}
@@ -95,24 +97,30 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	logs := []*modelInputs.LogEdge{}
 
 	for rows.Next() {
-		var (
-			Timestamp     time.Time
-			UUID          string
-			SeverityText  string
-			Body          string
-			LogAttributes map[string]string
-		)
-		if err := rows.Scan(&Timestamp, &UUID, &SeverityText, &Body, &LogAttributes); err != nil {
+		var result struct {
+			Timestamp       time.Time
+			UUID            string
+			SeverityText    string
+			Body            string
+			LogAttributes   map[string]string
+			TraceId         string
+			SpanId          string
+			SecureSessionId string
+		}
+		if err := rows.ScanStruct(&result); err != nil {
 			return nil, err
 		}
 
 		logs = append(logs, &modelInputs.LogEdge{
-			Cursor: encodeCursor(Timestamp, UUID),
+			Cursor: encodeCursor(result.Timestamp, result.UUID),
 			Node: &modelInputs.Log{
-				Timestamp:     Timestamp,
-				SeverityText:  makeSeverityText(SeverityText),
-				Body:          Body,
-				LogAttributes: expandJSON(LogAttributes),
+				Timestamp:       result.Timestamp,
+				SeverityText:    makeSeverityText(result.SeverityText),
+				Body:            result.Body,
+				LogAttributes:   expandJSON(result.LogAttributes),
+				TraceID:         result.TraceId,
+				SpanID:          result.SpanId,
+				SecureSessionID: result.SecureSessionId,
 			},
 		})
 	}
@@ -172,10 +180,12 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 		})
 	}
 
-	keys = append(keys, &modelInputs.LogKey{
-		Name: "level",
-		Type: modelInputs.LogKeyTypeString,
-	})
+	for _, key := range modelInputs.AllReservedLogKey {
+		keys = append(keys, &modelInputs.LogKey{
+			Name: key.String(),
+			Type: modelInputs.LogKeyTypeString,
+		})
+	}
 
 	rows.Close()
 	return keys, rows.Err()
@@ -185,23 +195,47 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 
-	// TODO(et) - this is going to be a mess when we add other reserved keys like Trace. Clean this up when that happens.
-	if keyName == "level" {
+	switch keyName {
+	case modelInputs.ReservedLogKeyLevel.String():
 		sb.Select("SeverityText level, count() as cnt").
 			From("logs").
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.NotEqual("level", "")).
 			GroupBy("level").
 			OrderBy("cnt DESC").
-			Limit(50)
-	} else {
+			Limit(KeyValuesLimit)
+	case modelInputs.ReservedLogKeySecureSessionID.String():
+		sb.Select("SecureSessionId secure_session_id, count() as cnt").
+			From("logs").
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.NotEqual("secure_session_id", "")).
+			GroupBy("secure_session_id").
+			OrderBy("cnt DESC").
+			Limit(KeyValuesLimit)
+	case modelInputs.ReservedLogKeySpanID.String():
+		sb.Select("SpanId span_id, count() as cnt").
+			From("logs").
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.NotEqual("span_id", "")).
+			GroupBy("span_id").
+			OrderBy("cnt DESC").
+			Limit(KeyValuesLimit)
+	case modelInputs.ReservedLogKeyTraceID.String():
+		sb.Select("TraceId trace_id, count() as cnt").
+			From("logs").
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.NotEqual("trace_id", "")).
+			GroupBy("trace_id").
+			OrderBy("cnt DESC").
+			Limit(KeyValuesLimit)
+	default:
 		sb.Select("LogAttributes [" + sb.Var(keyName) + "] as value, count() as cnt").
 			From("logs").
 			Where(sb.Equal("ProjectId", projectID)).
 			Where("mapContains(LogAttributes, " + sb.Var(keyName) + ")").
 			GroupBy("value").
 			OrderBy("cnt DESC").
-			Limit(50)
+			Limit(KeyValuesLimit)
 	}
 
 	sql, args := sb.Build()
@@ -306,6 +340,30 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 		}
 	}
 
+	if len(filters.secure_session_id) > 0 {
+		if strings.Contains(filters.secure_session_id, "%") {
+			sb.Where(sb.Like("SecureSessionId", filters.secure_session_id))
+		} else {
+			sb.Where(sb.Equal("SecureSessionId", filters.secure_session_id))
+		}
+	}
+
+	if len(filters.span_id) > 0 {
+		if strings.Contains(filters.span_id, "%") {
+			sb.Where(sb.Like("SpanId", filters.span_id))
+		} else {
+			sb.Where(sb.Equal("SpanId", filters.span_id))
+		}
+	}
+
+	if len(filters.trace_id) > 0 {
+		if strings.Contains(filters.trace_id, "%") {
+			sb.Where(sb.Like("TraceId", filters.trace_id))
+		} else {
+			sb.Where(sb.Equal("TraceId", filters.trace_id))
+		}
+	}
+
 	for key, value := range filters.attributes {
 		column := fmt.Sprintf("LogAttributes['%s']", key)
 		if strings.Contains(value, "%") {
@@ -319,9 +377,12 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 }
 
 type filters struct {
-	body       string
-	level      string
-	attributes map[string]string
+	body              string
+	level             string
+	trace_id          string
+	span_id           string
+	secure_session_id string
+	attributes        map[string]string
 }
 
 func makeFilters(query string) filters {
@@ -346,9 +407,16 @@ func makeFilters(query string) filters {
 
 			wildcardValue := strings.ReplaceAll(value, "*", "%")
 
-			if key == "level" {
+			switch key {
+			case modelInputs.ReservedLogKeyLevel.String():
 				filters.level = wildcardValue
-			} else {
+			case modelInputs.ReservedLogKeySecureSessionID.String():
+				filters.secure_session_id = wildcardValue
+			case modelInputs.ReservedLogKeySpanID.String():
+				filters.span_id = wildcardValue
+			case modelInputs.ReservedLogKeyTraceID.String():
+				filters.trace_id = wildcardValue
+			default:
 				filters.attributes[key] = wildcardValue
 			}
 		}
