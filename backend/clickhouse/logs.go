@@ -3,7 +3,6 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 	"time"
 
@@ -220,18 +219,10 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		buckets[bucketId][makeSeverityText(level)] = count
 	}
 
-	// sort bucketIds
-	bucketIds := make([]uint64, 0, len(buckets))
-
-	for bucketId := range buckets {
-		bucketIds = append(bucketIds, bucketId)
-	}
-
-	sort.Slice(bucketIds, func(i, j int) bool {
-		return bucketIds[i] < bucketIds[j]
-	})
-
-	for _, bucketId := range bucketIds {
+	for bucketId = uint64(0); bucketId < uint64(nBuckets); bucketId++ {
+		if _, ok := buckets[bucketId]; !ok {
+			continue
+		}
 		bucket := buckets[bucketId]
 		counts := make([]*modelInputs.LogsHistogramBucketCount, 0, len(bucket))
 		for _, level := range modelInputs.AllSeverityText {
