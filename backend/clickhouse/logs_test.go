@@ -14,7 +14,10 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	setupClickhouseTestDB()
+	_, err := setupClickhouseTestDB()
+	if err != nil {
+		panic("Failed to setup clickhouse test database")
+	}
 	code := m.Run()
 	// teardown() - we could drop the testing database here
 	os.Exit(code)
