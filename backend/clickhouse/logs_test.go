@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -66,6 +67,55 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Len(t, payload.Edges, 1)
+}
+
+func TestReadLogsHistogram(t *testing.T) {
+	ctx := context.Background()
+	client := setup(t)
+	defer teardown(client)
+
+	now, err := time.Parse(time.RFC3339, "2023-01-01T00:00:00Z")
+	assert.NoError(t, err)
+	rows := []*LogRow{
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now.Add(-time.Hour - time.Minute*30),
+				ProjectId: 1,
+			},
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now.Add(-time.Hour*2 - time.Minute*30),
+				ProjectId: 1,
+			},
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now.Add(-time.Hour * 3),
+				ProjectId: 1,
+			},
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	nBuckets := 48
+	payload, err := client.ReadLogsHistogram(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: &modelInputs.DateRangeRequiredInput{
+			StartDate: now.Add(-time.Hour * 2),
+			EndDate:   now.Add(-time.Hour * 1),
+		},
+	}, nBuckets)
+	assert.NoError(t, err)
+
+	assert.Len(t, payload, nBuckets)
+	assert.Equal(t, uint64(1), payload[24])
 }
 
 func TestReadLogsHasNextPage(t *testing.T) {
@@ -350,7 +400,7 @@ func TestReadLogsWithSessionIdFilter(t *testing.T) {
 	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "match", payload.Edges[0].Node.SecureSessionID)
+	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.SecureSessionID)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
@@ -358,7 +408,7 @@ func TestReadLogsWithSessionIdFilter(t *testing.T) {
 	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "match", payload.Edges[0].Node.SecureSessionID)
+	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.SecureSessionID)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
@@ -401,7 +451,7 @@ func TestReadLogsWithSpanIdFilter(t *testing.T) {
 	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "match", payload.Edges[0].Node.SpanID)
+	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.SpanID)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
@@ -409,7 +459,7 @@ func TestReadLogsWithSpanIdFilter(t *testing.T) {
 	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "match", payload.Edges[0].Node.SpanID)
+	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.SpanID)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
@@ -452,7 +502,7 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "match", payload.Edges[0].Node.TraceID)
+	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.TraceID)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
@@ -460,7 +510,7 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "match", payload.Edges[0].Node.TraceID)
+	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.TraceID)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),

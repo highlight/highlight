@@ -357,9 +357,9 @@ type Log struct {
 	SeverityText    SeverityText           `json:"severityText"`
 	Body            string                 `json:"body"`
 	LogAttributes   map[string]interface{} `json:"logAttributes"`
-	TraceID         string                 `json:"traceID"`
-	SpanID          string                 `json:"spanID"`
-	SecureSessionID string                 `json:"secureSessionID"`
+	TraceID         *string                `json:"traceID"`
+	SpanID          *string                `json:"spanID"`
+	SecureSessionID *string                `json:"secureSessionID"`
 }
 
 type LogEdge struct {
