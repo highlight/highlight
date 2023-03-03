@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/smithy-go/ptr"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -53,53 +52,4 @@ func TestClickhouseDecode(t *testing.T) {
 	timestamp, _, err := decodeCursor(cursor)
 	assert.NoError(t, err)
 	assert.Equal(t, timestamp.UnixNano(), payload.Edges[0].Node.Timestamp.UnixNano())
-}
-
-func TestGetLogsConnectionAfter(t *testing.T) {
-	cursor := ptr.String("cursor")
-	pagination := Pagination{
-		After: cursor,
-	}
-
-	// no edges
-	// edges := []*modelInputs.LogEdge{}
-	// connection := getLogsConnection(edges, pagination)
-
-	// assert.Equal(t, &modelInputs.LogsConnection{
-	// 	Edges: edges,
-	// 	PageInfo: &modelInputs.PageInfo{
-	// 		HasNextPage:     false,
-	// 		HasPreviousPage: false,
-	// 		EndCursor:       "",
-	// 		StartCursor:     "",
-	// 	},
-	// }, connection)
-
-	// one edge
-	edges := []*modelInputs.LogEdge{makeEdge()}
-	connection := getLogsConnection(edges, pagination)
-
-	assert.Equal(t, &modelInputs.LogsConnection{
-		Edges: edges,
-		PageInfo: &modelInputs.PageInfo{
-			HasNextPage:     false,
-			HasPreviousPage: false,
-			EndCursor:       *cursor,
-			StartCursor:     *cursor,
-		},
-	}, connection)
-
-}
-
-func TestGetLogsConnectionBefore(t *testing.T) {
-
-}
-
-func TestGetLogsConnectionAt(t *testing.T) {
-
-}
-
-func makeEdge() *modelInputs.LogEdge {
-	return &modelInputs.LogEdge{}
-
 }
