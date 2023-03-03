@@ -660,11 +660,11 @@ export type Log = {
 	__typename?: 'Log'
 	body: Scalars['String']
 	logAttributes: Scalars['Map']
-	secureSessionID: Scalars['String']
+	secureSessionID?: Maybe<Scalars['String']>
 	severityText: SeverityText
-	spanID: Scalars['String']
+	spanID?: Maybe<Scalars['String']>
 	timestamp: Scalars['Timestamp']
-	traceID: Scalars['String']
+	traceID?: Maybe<Scalars['String']>
 }
 
 export type LogEdge = {

@@ -118,9 +118,9 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 				SeverityText:    makeSeverityText(result.SeverityText),
 				Body:            result.Body,
 				LogAttributes:   expandJSON(result.LogAttributes),
-				TraceID:         result.TraceId,
-				SpanID:          result.SpanId,
-				SecureSessionID: result.SecureSessionId,
+				TraceID:         &result.TraceId,
+				SpanID:          &result.SpanId,
+				SecureSessionID: &result.SecureSessionId,
 			},
 		})
 	}

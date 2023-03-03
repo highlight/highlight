@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -350,7 +351,7 @@ func TestReadLogsWithSessionIdFilter(t *testing.T) {
 	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "match", payload.Edges[0].Node.SecureSessionID)
+	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.SecureSessionID)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
@@ -358,7 +359,7 @@ func TestReadLogsWithSessionIdFilter(t *testing.T) {
 	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "match", payload.Edges[0].Node.SecureSessionID)
+	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.SecureSessionID)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
@@ -401,7 +402,7 @@ func TestReadLogsWithSpanIdFilter(t *testing.T) {
 	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "match", payload.Edges[0].Node.SpanID)
+	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.SpanID)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
@@ -409,7 +410,7 @@ func TestReadLogsWithSpanIdFilter(t *testing.T) {
 	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "match", payload.Edges[0].Node.SpanID)
+	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.SpanID)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
@@ -452,7 +453,7 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "match", payload.Edges[0].Node.TraceID)
+	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.TraceID)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
@@ -460,7 +461,7 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "match", payload.Edges[0].Node.TraceID)
+	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.TraceID)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
