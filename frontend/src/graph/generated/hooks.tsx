@@ -1165,6 +1165,58 @@ export type SubmitRegistrationFormMutationOptions = Apollo.BaseMutationOptions<
 	Types.SubmitRegistrationFormMutation,
 	Types.SubmitRegistrationFormMutationVariables
 >
+export const CreateAdminDocument = gql`
+	mutation CreateAdmin {
+		createAdmin {
+			id
+			name
+			email
+			email_verified
+			about_you_details_filled
+		}
+	}
+`
+export type CreateAdminMutationFn = Apollo.MutationFunction<
+	Types.CreateAdminMutation,
+	Types.CreateAdminMutationVariables
+>
+
+/**
+ * __useCreateAdminMutation__
+ *
+ * To run a mutation, you first call `useCreateAdminMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateAdminMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createAdminMutation, { data, loading, error }] = useCreateAdminMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useCreateAdminMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.CreateAdminMutation,
+		Types.CreateAdminMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.CreateAdminMutation,
+		Types.CreateAdminMutationVariables
+	>(CreateAdminDocument, baseOptions)
+}
+export type CreateAdminMutationHookResult = ReturnType<
+	typeof useCreateAdminMutation
+>
+export type CreateAdminMutationResult =
+	Apollo.MutationResult<Types.CreateAdminMutation>
+export type CreateAdminMutationOptions = Apollo.BaseMutationOptions<
+	Types.CreateAdminMutation,
+	Types.CreateAdminMutationVariables
+>
 export const CreateWorkspaceDocument = gql`
 	mutation CreateWorkspace($name: String!, $promo_code: String) {
 		createWorkspace(name: $name, promo_code: $promo_code) {
@@ -2869,6 +2921,60 @@ export type DeleteMetricMonitorMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteMetricMonitorMutation,
 	Types.DeleteMetricMonitorMutationVariables
 >
+export const UpdateAdminAndCreateWorkspaceDocument = gql`
+	mutation UpdateAdminAndCreateWorkspace(
+		$admin_and_workspace_details: AdminAndWorkspaceDetails!
+	) {
+		updateAdminAndCreateWorkspace(
+			admin_and_workspace_details: $admin_and_workspace_details
+		) {
+			id
+		}
+	}
+`
+export type UpdateAdminAndCreateWorkspaceMutationFn = Apollo.MutationFunction<
+	Types.UpdateAdminAndCreateWorkspaceMutation,
+	Types.UpdateAdminAndCreateWorkspaceMutationVariables
+>
+
+/**
+ * __useUpdateAdminAndCreateWorkspaceMutation__
+ *
+ * To run a mutation, you first call `useUpdateAdminAndCreateWorkspaceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateAdminAndCreateWorkspaceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateAdminAndCreateWorkspaceMutation, { data, loading, error }] = useUpdateAdminAndCreateWorkspaceMutation({
+ *   variables: {
+ *      admin_and_workspace_details: // value for 'admin_and_workspace_details'
+ *   },
+ * });
+ */
+export function useUpdateAdminAndCreateWorkspaceMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpdateAdminAndCreateWorkspaceMutation,
+		Types.UpdateAdminAndCreateWorkspaceMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpdateAdminAndCreateWorkspaceMutation,
+		Types.UpdateAdminAndCreateWorkspaceMutationVariables
+	>(UpdateAdminAndCreateWorkspaceDocument, baseOptions)
+}
+export type UpdateAdminAndCreateWorkspaceMutationHookResult = ReturnType<
+	typeof useUpdateAdminAndCreateWorkspaceMutation
+>
+export type UpdateAdminAndCreateWorkspaceMutationResult =
+	Apollo.MutationResult<Types.UpdateAdminAndCreateWorkspaceMutation>
+export type UpdateAdminAndCreateWorkspaceMutationOptions =
+	Apollo.BaseMutationOptions<
+		Types.UpdateAdminAndCreateWorkspaceMutation,
+		Types.UpdateAdminAndCreateWorkspaceMutationVariables
+	>
 export const UpdateAdminAboutYouDetailsDocument = gql`
 	mutation UpdateAdminAboutYouDetails($adminDetails: AdminAboutYouDetails!) {
 		updateAdminAboutYouDetails(adminDetails: $adminDetails)
@@ -6547,6 +6653,67 @@ export type GetWorkspaceLazyQueryHookResult = ReturnType<
 export type GetWorkspaceQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceQuery,
 	Types.GetWorkspaceQueryVariables
+>
+export const GetWorkspaceForInviteLinkDocument = gql`
+	query GetWorkspaceForInviteLink($secret: String!) {
+		workspace_for_invite_link(secret: $secret) {
+			expiration_date
+			existing_account
+			invitee_email
+			secret
+			workspace_id
+			workspace_name
+		}
+	}
+`
+
+/**
+ * __useGetWorkspaceForInviteLinkQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceForInviteLinkQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceForInviteLinkQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceForInviteLinkQuery({
+ *   variables: {
+ *      secret: // value for 'secret'
+ *   },
+ * });
+ */
+export function useGetWorkspaceForInviteLinkQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceForInviteLinkQuery,
+		Types.GetWorkspaceForInviteLinkQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceForInviteLinkQuery,
+		Types.GetWorkspaceForInviteLinkQueryVariables
+	>(GetWorkspaceForInviteLinkDocument, baseOptions)
+}
+export function useGetWorkspaceForInviteLinkLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceForInviteLinkQuery,
+		Types.GetWorkspaceForInviteLinkQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceForInviteLinkQuery,
+		Types.GetWorkspaceForInviteLinkQueryVariables
+	>(GetWorkspaceForInviteLinkDocument, baseOptions)
+}
+export type GetWorkspaceForInviteLinkQueryHookResult = ReturnType<
+	typeof useGetWorkspaceForInviteLinkQuery
+>
+export type GetWorkspaceForInviteLinkLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceForInviteLinkLazyQuery
+>
+export type GetWorkspaceForInviteLinkQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceForInviteLinkQuery,
+	Types.GetWorkspaceForInviteLinkQueryVariables
 >
 export const GetWorkspacesDocument = gql`
 	query GetWorkspaces {

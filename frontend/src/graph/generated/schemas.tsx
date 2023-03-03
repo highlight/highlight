@@ -770,6 +770,7 @@ export type Mutation = {
 	addIntegrationToProject: Scalars['Boolean']
 	addIntegrationToWorkspace: Scalars['Boolean']
 	changeAdminRole: Scalars['Boolean']
+	createAdmin: Admin
 	createDefaultAlerts?: Maybe<Scalars['Boolean']>
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
@@ -813,7 +814,6 @@ export type Mutation = {
 	replyToErrorComment?: Maybe<CommentReply>
 	replyToSessionComment?: Maybe<CommentReply>
 	requestAccess?: Maybe<Scalars['Boolean']>
-	sendAdminProjectInvite?: Maybe<Scalars['String']>
 	sendAdminWorkspaceInvite?: Maybe<Scalars['String']>
 	submitRegistrationForm?: Maybe<Scalars['Boolean']>
 	syncSlackIntegration: SlackSyncResponse
@@ -1147,12 +1147,6 @@ export type MutationReplyToSessionCommentArgs = {
 }
 
 export type MutationRequestAccessArgs = {
-	project_id: Scalars['ID']
-}
-
-export type MutationSendAdminProjectInviteArgs = {
-	base_url: Scalars['String']
-	email: Scalars['String']
 	project_id: Scalars['ID']
 }
 
@@ -1502,6 +1496,7 @@ export type Query = {
 	workspaceSuggestion: Array<Maybe<Workspace>>
 	workspace_admins: Array<WorkspaceAdminRole>
 	workspace_admins_by_project_id: Array<WorkspaceAdminRole>
+	workspace_for_invite_link: WorkspaceForInviteLink
 	workspace_for_project?: Maybe<Workspace>
 	workspace_invite_links: WorkspaceInviteLink
 	workspaces?: Maybe<Array<Maybe<Workspace>>>
@@ -2014,6 +2009,10 @@ export type QueryWorkspace_Admins_By_Project_IdArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryWorkspace_For_Invite_LinkArgs = {
+	secret: Scalars['String']
+}
+
 export type QueryWorkspace_For_ProjectArgs = {
 	project_id: Scalars['ID']
 }
@@ -2502,6 +2501,16 @@ export type WorkspaceAdminRole = {
 	__typename?: 'WorkspaceAdminRole'
 	admin: Admin
 	role: Scalars['String']
+}
+
+export type WorkspaceForInviteLink = {
+	__typename?: 'WorkspaceForInviteLink'
+	existing_account: Scalars['Boolean']
+	expiration_date?: Maybe<Scalars['Timestamp']>
+	invitee_email?: Maybe<Scalars['String']>
+	secret: Scalars['String']
+	workspace_id: Scalars['ID']
+	workspace_name: Scalars['String']
 }
 
 export type WorkspaceInviteLink = {

@@ -1,19 +1,15 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import {
-	useGetAdminAboutYouQuery,
-	useGetProjectsAndWorkspacesQuery,
-} from '@graph/hooks'
+import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
 import React, { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
 export const ProjectRedirectionRouter = () => {
 	const { loading, error, data } = useGetProjectsAndWorkspacesQuery()
-	const { loading: adminAboutYouLoading } = useGetAdminAboutYouQuery({
-		fetchPolicy: 'no-cache',
-	})
+	const { admin } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
 	const location = useLocation()
 
@@ -30,17 +26,15 @@ export const ProjectRedirectionRouter = () => {
 		return <p>{'App error: ' + JSON.stringify(error)}</p>
 	}
 
-	if (loading || adminAboutYouLoading) {
+	if (loading || !admin) {
 		return null
 	}
 
 	let redirectTo
 	if (data?.projects?.length) {
 		redirectTo = `/${data!.projects[0]!.id}${location.pathname}`
-	} else if (data?.workspaces?.length) {
-		redirectTo = `/w/${data!.workspaces[0]!.id}/new`
 	} else {
-		redirectTo = '/new'
+		redirectTo = '/'
 	}
 
 	// Redirects the user to their default project when the URL does not have an project ID.

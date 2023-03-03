@@ -1037,6 +1037,15 @@ type WorkspaceInviteLink {
 	secret: String!
 }
 
+type WorkspaceForInviteLink {
+	expiration_date: Timestamp
+	invitee_email: String
+	secret: String!
+	workspace_id: ID!
+	workspace_name: String!
+	existing_account: Boolean!
+}
+
 type SessionPayload {
 	events: [Any]!
 	errors: [ErrorObject]!
@@ -1408,6 +1417,7 @@ type Query {
 	linear_teams(project_id: ID!): [LinearTeam!]
 	project(id: ID!): Project
 	workspace(id: ID!): Workspace
+	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
 	workspace_for_project(project_id: ID!): Workspace
 	admin: Admin
@@ -1459,6 +1469,7 @@ type Mutation {
 		admin_and_workspace_details: AdminAndWorkspaceDetails!
 	): Project
 	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
+	createAdmin: Admin!
 	createProject(name: String!, workspace_id: ID!): Project
 	createWorkspace(name: String!, promo_code: String): Workspace
 	editProject(
@@ -1485,11 +1496,6 @@ type Mutation {
 		snoozed_until: Timestamp
 	): ErrorGroup
 	deleteProject(id: ID!): Boolean
-	sendAdminProjectInvite(
-		project_id: ID!
-		email: String!
-		base_url: String!
-	): String
 	sendAdminWorkspaceInvite(
 		workspace_id: ID!
 		email: String!

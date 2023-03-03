@@ -753,6 +753,17 @@ query GetWorkspace($id: ID!) {
 	}
 }
 
+query GetWorkspaceForInviteLink($secret: String!) {
+	workspace_for_invite_link(secret: $secret) {
+		expiration_date
+		existing_account
+		invitee_email
+		secret
+		workspace_id
+		workspace_name
+	}
+}
+
 query GetWorkspaces {
 	workspaces {
 		id

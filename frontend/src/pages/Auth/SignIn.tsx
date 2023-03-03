@@ -2,7 +2,6 @@ import { Button } from '@components/Button'
 import { useGetWorkspaceForInviteLinkQuery } from '@graph/hooks'
 import {
 	Box,
-	Callout,
 	Form,
 	Heading,
 	IconSolidSparkles,
@@ -11,19 +10,21 @@ import {
 	useFormState,
 } from '@highlight-run/ui'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
-import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
-import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
+import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import useLocalStorage from '@rehooks/local-storage'
-import analytics from '@util/analytics'
 import { auth } from '@util/auth'
-import { message } from 'antd'
 import firebase from 'firebase/app'
 import React, { useCallback } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
-export const SignUp: React.FC = () => {
+type Props = {
+	setResolver: React.Dispatch<
+		React.SetStateAction<firebase.auth.MultiFactorResolver | undefined>
+	>
+}
+
+export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const navigate = useNavigate()
-	const location = useLocation()
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
@@ -38,39 +39,27 @@ export const SignUp: React.FC = () => {
 			secret: inviteCode!,
 		},
 		skip: !inviteCode,
-		onCompleted: (data) => {
-			if (data?.workspace_for_invite_link.invitee_email) {
-				formState.setValue(
-					'email',
-					data?.workspace_for_invite_link.invitee_email,
-				)
-			}
-		},
 	})
 	const workspaceInvite = data?.workspace_for_invite_link
 
-	const handleSubmit = useCallback(
-		(credential: firebase.auth.UserCredential) => {
-			message.success('Account created succesfully!')
+	const handleAuthError = useCallback(
+		(error: firebase.auth.MultiFactorError) => {
+			let errorMessage = error.message
 
-			// Redirect the user to their initial path instead to creating a new
-			// workspace. We do this because this happens when a new user clicks
-			// on a Highlight link that was shared to them and they don't have
-			// an account yet.
-			const redirect = location.state?.previousPathName
-
-			if (credential.user?.email) {
-				analytics.track('Sign up', {
-					email: credential.user.email,
-					redirect,
-				})
+			if (error.code == 'auth/multi-factor-auth-required') {
+				setResolver(error.resolver)
+				navigate('/multi_factor')
+				return
 			}
 
-			if (redirect) {
-				navigate(redirect, { replace: true })
+			if (error.code === 'auth/popup-closed-by-user') {
+				errorMessage =
+					'Pop-up closed without successfully authenticating. Please try again.'
 			}
+
+			setError(errorMessage)
 		},
-		[location.state?.previousPathName, navigate],
+		[navigate, setResolver],
 	)
 
 	return (
@@ -80,16 +69,13 @@ export const SignUp: React.FC = () => {
 			onSubmit={() => {
 				setLoading(true)
 
-				auth.createUserWithEmailAndPassword(
+				auth.signInWithEmailAndPassword(
 					formState.values.email,
 					formState.values.password,
 				)
-					.then(async (credential) => {
-						auth.currentUser?.sendEmailVerification()
-						handleSubmit(credential)
-					})
-					.catch((error) => {
-						setError(error.message || error.toString())
+					.then(() => {})
+					.catch((e) => {
+						handleAuthError(e)
 						setLoading(false)
 					})
 			}}
@@ -98,14 +84,18 @@ export const SignUp: React.FC = () => {
 				<Box mb="4">
 					<Stack direction="column" gap="16" align="center">
 						<SvgHighlightLogoOnLight height="48" width="48" />
+						{/*
+						TODO: Render info for workspace they were invited to by fetching it
+						from WorkspaceForInviteLink, similar to what we do on SignUp.
+						*/}
 						<Heading level="h4">
 							{workspaceInvite
 								? `You're invited to join ‘${workspaceInvite.workspace_name}’`
-								: 'Welcome to Highlight.'}
+								: 'Welcome back.'}
 						</Heading>
 						<Text>
-							Have an account?{' '}
-							<Link to={SIGN_IN_ROUTE}>Sign in</Link>.
+							New here?{' '}
+							<Link to="/sign_up">Create an account</Link>.
 						</Text>
 					</Stack>
 				</Box>
@@ -123,20 +113,22 @@ export const SignUp: React.FC = () => {
 						name={formState.names.password}
 						label="Password"
 						type="password"
-						autoComplete="new-password"
+						autoComplete="current-password"
 					/>
-					{error && <Callout kind="error">{error}</Callout>}
+					<Link to="/reset_password">
+						<Text size="xSmall">Forgot your password?</Text>
+					</Link>
+					{error && <AuthError>{error}</AuthError>}
 				</Stack>
 			</AuthBody>
 			<AuthFooter>
 				<Stack gap="12">
 					<Button
-						onClick={() => null}
 						trackingId="sign-up-submit"
 						loading={loading}
 						type="submit"
 					>
-						Sign up
+						Sign in
 					</Button>
 					<Stack direction="row" align="center">
 						<Box
@@ -154,28 +146,16 @@ export const SignUp: React.FC = () => {
 					<Button
 						kind="secondary"
 						type="button"
-						trackingId="sign-up-with-google"
+						trackingId="sign-in-with-google"
 						onClick={() => {
-							auth.signInWithPopup(auth.googleProvider!)
-								.then(handleSubmit)
-								.catch(
-									(error: firebase.auth.MultiFactorError) => {
-										let errorMessage = error.message
-
-										if (
-											error.code ===
-											'auth/popup-closed-by-user'
-										) {
-											errorMessage =
-												'Pop-up closed without successfully authenticating. Please try again.'
-										}
-
-										setError(errorMessage)
-									},
-								)
+							auth.signInWithPopup(auth.googleProvider!).catch(
+								handleAuthError,
+							)
 						}}
 					>
-						Sign up with Google <IconSolidSparkles />
+						<Box display="flex" alignItems="center" gap="6">
+							Sign in with Google <IconSolidSparkles />
+						</Box>
 					</Button>
 				</Stack>
 			</AuthFooter>
