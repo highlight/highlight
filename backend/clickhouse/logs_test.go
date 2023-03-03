@@ -82,24 +82,42 @@ func TestReadLogsHistogram(t *testing.T) {
 				Timestamp: now,
 				ProjectId: 1,
 			},
+			SeverityText: "INFO",
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour - time.Minute*30),
 				ProjectId: 1,
 			},
+			SeverityText: "DEBUG",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now.Add(-time.Hour - time.Minute*30),
+				ProjectId: 1,
+			},
+			SeverityText: "INFO",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now.Add(-time.Hour * 2),
+				ProjectId: 1,
+			},
+			SeverityText: "ERROR",
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour*2 - time.Minute*30),
 				ProjectId: 1,
 			},
+			SeverityText: "ERROR",
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour * 3),
 				ProjectId: 1,
 			},
+			SeverityText: "ERROR",
 		},
 	}
 
@@ -114,8 +132,82 @@ func TestReadLogsHistogram(t *testing.T) {
 	}, nBuckets)
 	assert.NoError(t, err)
 
-	assert.Len(t, payload, nBuckets)
-	assert.Equal(t, uint64(1), payload[24])
+	assert.Equal(
+		t,
+		uint64(nBuckets),
+		payload.TotalCount,
+		"The total number of buckets should be equal to the number of buckets requested",
+	)
+	assert.Len(
+		t,
+		payload.Buckets, 2,
+		"Two buckets should be returned",
+	)
+
+	assert.Equal(
+		t,
+		uint64(0),
+		payload.Buckets[0].BucketID,
+		"The first bucket should have a bucketID of 0",
+	)
+	assert.Equal(
+		t,
+		uint64(24),
+		payload.Buckets[1].BucketID,
+		"The second bucket should have a bucketID of 24",
+	)
+
+	assert.Equal(
+		t,
+		len(modelInputs.AllSeverityText),
+		len(payload.Buckets[0].Counts),
+		"The first bucket should have a count for each severity",
+	)
+	assert.Equal(
+		t,
+		len(modelInputs.AllSeverityText),
+		len(payload.Buckets[1].Counts),
+		"The second bucket should have a count for each severity",
+	)
+
+	assert.Equal(
+		t,
+		modelInputs.SeverityText("ERROR"),
+		payload.Buckets[0].Counts[4].SeverityText,
+		"The first bucket should have the count 4 with severity of ERROR",
+	)
+	assert.Equal(
+		t,
+		uint64(1),
+		payload.Buckets[0].Counts[4].Count,
+		"The first bucket should have a single count with severity ERROR",
+	)
+
+	assert.Equal(
+		t,
+		modelInputs.SeverityText("DEBUG"),
+		payload.Buckets[1].Counts[1].SeverityText,
+		"The second bucket should have the count 1 with severity of DEBUG",
+	)
+	assert.Equal(
+		t,
+		uint64(1),
+		payload.Buckets[1].Counts[1].Count,
+		"The second bucket should have a single count with severity DEBUG",
+	)
+	assert.Equal(
+		t,
+		modelInputs.SeverityText("INFO"),
+		payload.Buckets[1].Counts[2].SeverityText,
+		"The second bucket should have the second count with severity of INFO",
+	)
+	assert.Equal(
+		t,
+		uint64(1),
+		payload.Buckets[1].Counts[2].Count,
+		"The second bucket should have a single count with severity INFO",
+	)
+
 }
 
 func TestReadLogsHasNextPage(t *testing.T) {

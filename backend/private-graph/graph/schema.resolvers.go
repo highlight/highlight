@@ -7038,7 +7038,7 @@ func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, param
 }
 
 // LogsHistogram is the resolver for the logs_histogram field.
-func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]uint64, error) {
+func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (*modelInputs.LogsHistogram, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")

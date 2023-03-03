@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -147,13 +148,13 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 	return count, err
 }
 
-func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, nBuckets int) ([]uint64, error) {
+func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, nBuckets int) (*modelInputs.LogsHistogram, error) {
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())
 
 	fromSb, err := makeSelectBuilder(
 		fmt.Sprintf(
-			"toUInt64(floor(%d * (toUInt64(Timestamp) - %d) / (%d - %d))) AS bucket",
+			"toUInt64(floor(%d * (toUInt64(Timestamp) - %d) / (%d - %d))) AS bucketId, SeverityText AS level",
 			nBuckets,
 			startTimestamp,
 			endTimestamp,
@@ -171,14 +172,18 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	sb := sqlbuilder.NewSelectBuilder()
 
 	sb.
-		Select("bucket, count()").
+		Select("bucketId, level, count()").
 		From(sb.BuilderAs(fromSb, "logs")).
-		GroupBy("bucket").
-		OrderBy("bucket")
+		GroupBy("bucketId, level").
+		OrderBy("bucketId, level")
 
 	sql, args := sb.Build()
 
-	counts := make([]uint64, nBuckets)
+	histogram := &modelInputs.LogsHistogram{
+		Buckets:    make([]*modelInputs.LogsHistogramBucket, 0, nBuckets),
+		TotalCount: uint64(nBuckets),
+	}
+
 	rows, err := client.conn.Query(
 		ctx,
 		sql,
@@ -190,22 +195,62 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	}
 
 	var (
-		bucket uint64
-		count  uint64
+		bucketId uint64
+		level    string
+		count    uint64
 	)
+
+	buckets := make(map[uint64]map[modelInputs.SeverityText]uint64)
+
 	for rows.Next() {
-		if err := rows.Scan(&bucket, &count); err != nil {
+		if err := rows.Scan(&bucketId, &level, &count); err != nil {
 			return nil, err
 		}
 		// clamp bucket to [0, nBuckets)
-		if bucket >= uint64(nBuckets) {
-			bucket = uint64(nBuckets - 1)
+		if bucketId >= uint64(nBuckets) {
+			bucketId = uint64(nBuckets - 1)
 		}
 
-		counts[bucket] = count
+		// create bucket if not exists
+		if _, ok := buckets[bucketId]; !ok {
+			buckets[bucketId] = make(map[modelInputs.SeverityText]uint64)
+		}
+
+		// add count to bucket
+		buckets[bucketId][makeSeverityText(level)] = count
 	}
 
-	return counts, err
+	// sort bucketIds
+	bucketIds := make([]uint64, 0, len(buckets))
+
+	for bucketId := range buckets {
+		bucketIds = append(bucketIds, bucketId)
+	}
+
+	sort.Slice(bucketIds, func(i, j int) bool {
+		return bucketIds[i] < bucketIds[j]
+	})
+
+	for _, bucketId := range bucketIds {
+		bucket := buckets[bucketId]
+		counts := make([]*modelInputs.LogsHistogramBucketCount, 0, len(bucket))
+		for _, level := range modelInputs.AllSeverityText {
+			if _, ok := bucket[level]; !ok {
+				bucket[level] = 0
+			}
+			counts = append(counts, &modelInputs.LogsHistogramBucketCount{
+				SeverityText: level,
+				Count:        bucket[level],
+			})
+		}
+
+		histogram.Buckets = append(histogram.Buckets, &modelInputs.LogsHistogramBucket{
+			BucketID: bucketId,
+			Counts:   counts,
+		})
+	}
+
+	return histogram, err
 }
 
 func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
