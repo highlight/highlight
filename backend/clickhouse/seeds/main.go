@@ -142,7 +142,7 @@ func main() {
 		logRows = append(logRows, &clickhouse.LogRow{
 			LogRowPrimaryAttrs: clickhouse.LogRowPrimaryAttrs{
 				Timestamp:       now.Add(-time.Duration(i) * time.Second),
-				ProjectId:       4,
+				ProjectId:       1,
 				TraceId:         makeRandomTraceID(),
 				SpanId:          makeRandomSpanID(),
 				SecureSessionId: makeRandomSecureSessionID(),
