@@ -42,6 +42,11 @@ func getLogsConnection(edges []*modelInputs.LogEdge, pagination Pagination) *mod
 			hasPreviousPage = len(edges) == LogsLimit+1
 			edges = edges[1 : LogsLimit-1]
 		}
+	} else {
+		if len(edges) == LogsLimit+1 { // has forward page
+			hasNextPage = len(edges) == LogsLimit+1
+			edges = edges[:LogsLimit]
+		}
 	}
 
 	if len(edges) > 0 {

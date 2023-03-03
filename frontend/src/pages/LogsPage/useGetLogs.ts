@@ -45,8 +45,7 @@ export const useGetLogs = ({
 	useEffect(() => {
 		getLogs().then((result) => {
 			if (result.data?.logs) {
-				const { pageInfo } = result.data?.logs;
-				setWindowInfo(pageInfo)
+				setWindowInfo(result.data.logs.pageInfo)
 			}
 		})
 	}, [project_id, query, startDate, endDate, getLogs, log_cursor])
@@ -58,6 +57,10 @@ export const useGetLogs = ({
 	}, [data])
 
 	const fetchMoreForward = useCallback(() => {
+		if (!windowInfo.hasNextPage) {
+			return
+		}
+
 		fetchMore({
 			variables: {
 				after: windowInfo.endCursor,
@@ -76,6 +79,10 @@ export const useGetLogs = ({
 	}, [fetchMore, windowInfo])
 
 	const fetchMoreBackward = useCallback(() => {
+		if (!windowInfo.hasPreviousPage) {
+			return
+		}
+
 		fetchMore({
 			variables: {
 				after: undefined,

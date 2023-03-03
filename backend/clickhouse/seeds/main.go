@@ -137,7 +137,7 @@ func main() {
 
 	now := time.Now()
 
-	for i := 1; i < 10000; i++ {
+	for i := 1; i < 200; i++ {
 		logRows := []*clickhouse.LogRow{}
 		logRows = append(logRows, &clickhouse.LogRow{
 			LogRowPrimaryAttrs: clickhouse.LogRowPrimaryAttrs{
