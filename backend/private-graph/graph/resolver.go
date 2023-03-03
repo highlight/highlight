@@ -140,6 +140,77 @@ func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) 
 	})
 }
 
+func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
+	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.admin"))
+
+	admin := &model.Admin{UID: pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))}
+	tx := r.DB.Where(admin).
+		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "uid"}}, DoNothing: true}).
+		Create(&admin).
+		Attrs(&admin)
+	if tx.Error != nil {
+		spanError := e.Wrap(tx.Error, "error retrieving user from db")
+		adminSpan.Finish(tracer.WithError(spanError))
+		return nil, spanError
+	}
+	if tx.RowsAffected != 0 {
+		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
+			tracer.Tag("admin_uid", *admin.UID))
+		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
+		if err != nil {
+			spanError := e.Wrap(err, "error retrieving user from firebase api")
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			adminSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
+			UID:                   admin.UID,
+			Name:                  &firebaseUser.DisplayName,
+			Email:                 &firebaseUser.Email,
+			PhotoURL:              &firebaseUser.PhotoURL,
+			EmailVerified:         &firebaseUser.EmailVerified,
+			Phone:                 &firebaseUser.PhoneNumber,
+			AboutYouDetailsFilled: &model.F,
+		}).Error; err != nil {
+			spanError := e.Wrap(err, "error creating new admin")
+			adminSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		firebaseSpan.Finish()
+	}
+	if err := r.DB.Where(&model.Admin{UID: admin.UID}).First(&admin).Error; err != nil {
+		spanError := e.Wrap(err, "error fetching admin")
+		adminSpan.Finish(tracer.WithError(spanError))
+		return nil, spanError
+	}
+	if admin.PhotoURL == nil || admin.Name == nil {
+		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
+			tracer.Tag("admin_uid", *admin.UID))
+		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
+		if err != nil {
+			spanError := e.Wrap(err, "error retrieving user from firebase api")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
+			PhotoURL: &firebaseUser.PhotoURL,
+			Name:     &firebaseUser.DisplayName,
+			Phone:    &firebaseUser.PhoneNumber,
+		}).Error; err != nil {
+			spanError := e.Wrap(err, "error updating org fields")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		admin.PhotoURL = &firebaseUser.PhotoURL
+		admin.Name = &firebaseUser.DisplayName
+		admin.Phone = &firebaseUser.PhoneNumber
+		firebaseSpan.Finish()
+	}
+	return admin, nil
+}
+
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
 	return r.Query().Admin(ctx)
 }

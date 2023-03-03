@@ -114,7 +114,7 @@ if (dev) {
 	options.environment = 'Pull Request Preview'
 }
 H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
-H.track('attribution', getAttributionData())
+analytics.track('attribution', getAttributionData())
 if (!isOnPrem) {
 	H.start()
 	showIntercom({ hideMessage: true })
