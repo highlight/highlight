@@ -7035,6 +7035,16 @@ func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, param
 	return r.ClickhouseClient.ReadLogsTotalCount(ctx, project.ID, params)
 }
 
+// LogsHistogram is the resolver for the logs_histogram field.
+func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogHistogramBucket, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.ReadLogsHistogram(ctx, project.ID, params, 48)
+}
+
 // LogsKeys is the resolver for the logs_keys field.
 func (r *queryResolver) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
 	project, err := r.isAdminInProject(ctx, projectID)

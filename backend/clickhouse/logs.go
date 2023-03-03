@@ -3,9 +3,10 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -137,6 +138,65 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 	).Scan(&count)
 
 	return count, err
+}
+
+func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, nBuckets int) ([]*modelInputs.LogHistogramBucket, error) {
+	startTimestamp := uint64(params.DateRange.StartDate.Unix())
+	endTimestamp := uint64(params.DateRange.EndDate.Unix())
+
+	fromSb, err := makeSelectBuilder(
+		fmt.Sprintf(
+			"toUInt64(floor(%d * (toUInt64(Timestamp) - %d) / (%d - %d))) AS bucket",
+			nBuckets,
+			startTimestamp,
+			endTimestamp,
+			startTimestamp,
+		),
+		projectID,
+		params,
+		nil,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	sb := sqlbuilder.NewSelectBuilder()
+
+	sb.
+		Select("bucket, count()").
+		From(sb.BuilderAs(fromSb, "logs")).
+		GroupBy("bucket").
+		OrderBy("bucket")
+
+	sql, args := sb.Build()
+
+	counts := []*modelInputs.LogHistogramBucket{}
+	rows, err := client.conn.Query(
+		ctx,
+		sql,
+		args...,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		bucket uint64
+		count  uint64
+	)
+	for rows.Next() {
+		if err := rows.Scan(&bucket, &count); err != nil {
+			return nil, err
+		}
+		counts = append(counts, &modelInputs.LogHistogramBucket{
+			Bucket: bucket,
+			Count:  count,
+		})
+	}
+
+	return counts, err
 }
 
 func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {

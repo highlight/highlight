@@ -1446,6 +1446,7 @@ export type Query = {
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	logs: LogsPayload
+	logs_histogram?: Maybe<Array<Maybe<Scalars['UInt64']>>>
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<LogKey>
 	logs_total_count: Scalars['UInt64']
@@ -1775,6 +1776,11 @@ export type QueryLiveUsersCountArgs = {
 
 export type QueryLogsArgs = {
 	after?: InputMaybe<Scalars['String']>
+	params: LogsParamsInput
+	project_id: Scalars['ID']
+}
+
+export type QueryLogs_HistogramArgs = {
 	params: LogsParamsInput
 	project_id: Scalars['ID']
 }

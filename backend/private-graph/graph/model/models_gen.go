@@ -364,6 +364,11 @@ type LogEdge struct {
 	Node   *Log   `json:"node"`
 }
 
+type LogHistogramBucket struct {
+	Count  uint64 `json:"count"`
+	Bucket uint64 `json:"bucket"`
+}
+
 type LogKey struct {
 	Name string     `json:"name"`
 	Type LogKeyType `json:"type"`
