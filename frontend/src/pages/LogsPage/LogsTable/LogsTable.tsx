@@ -127,11 +127,6 @@ export const LogsTable = ({
 		virtualRows.length > 0
 			? totalSize - (virtualRows[virtualRows.length - 1]?.end || 0)
 			: 0
-	console.log('::: firstVirtualRow', virtualRows?.[0])
-	console.log('::: lastVirtualRow', virtualRows?.[virtualRows.length - 1])
-	console.log('::: totalSize', totalSize)
-	console.log('::: paddingTop', paddingTop)
-	console.log('::: paddingBottom', paddingBottom)
 
 	useEffect(() => {
 		// Collapse all rows when search changes
