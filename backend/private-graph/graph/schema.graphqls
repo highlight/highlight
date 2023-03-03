@@ -1460,6 +1460,7 @@ type Query {
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 	logs(project_id: ID!, params: LogsParamsInput!, after: String): LogsPayload!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
+	logs_histogram(project_id: ID!, params: LogsParamsInput!): [UInt64!]!
 	logs_keys(project_id: ID!): [LogKey!]!
 	logs_key_values(project_id: ID!, key_name: String!): [String!]!
 }

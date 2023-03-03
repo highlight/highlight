@@ -147,6 +147,67 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 	return count, err
 }
 
+func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, nBuckets int) ([]uint64, error) {
+	startTimestamp := uint64(params.DateRange.StartDate.Unix())
+	endTimestamp := uint64(params.DateRange.EndDate.Unix())
+
+	fromSb, err := makeSelectBuilder(
+		fmt.Sprintf(
+			"toUInt64(floor(%d * (toUInt64(Timestamp) - %d) / (%d - %d))) AS bucket",
+			nBuckets,
+			startTimestamp,
+			endTimestamp,
+			startTimestamp,
+		),
+		projectID,
+		params,
+		nil,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	sb := sqlbuilder.NewSelectBuilder()
+
+	sb.
+		Select("bucket, count()").
+		From(sb.BuilderAs(fromSb, "logs")).
+		GroupBy("bucket").
+		OrderBy("bucket")
+
+	sql, args := sb.Build()
+
+	counts := make([]uint64, nBuckets)
+	rows, err := client.conn.Query(
+		ctx,
+		sql,
+		args...,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		bucket uint64
+		count  uint64
+	)
+	for rows.Next() {
+		if err := rows.Scan(&bucket, &count); err != nil {
+			return nil, err
+		}
+		// clamp bucket to [0, nBuckets)
+		if bucket >= uint64(nBuckets) {
+			bucket = uint64(nBuckets - 1)
+		}
+
+		counts[bucket] = count
+	}
+
+	return counts, err
+}
+
 func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select("arrayJoin(LogAttributes.keys) as key, count() as cnt").
