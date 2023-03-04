@@ -683,6 +683,24 @@ export enum LogKeyType {
 	String = 'String',
 }
 
+export type LogsHistogram = {
+	__typename?: 'LogsHistogram'
+	buckets: Array<LogsHistogramBucket>
+	totalCount: Scalars['UInt64']
+}
+
+export type LogsHistogramBucket = {
+	__typename?: 'LogsHistogramBucket'
+	bucketId: Scalars['UInt64']
+	counts: Array<LogsHistogramBucketCount>
+}
+
+export type LogsHistogramBucketCount = {
+	__typename?: 'LogsHistogramBucketCount'
+	count: Scalars['UInt64']
+	severityText: SeverityText
+}
+
 export type LogsParamsInput = {
 	date_range: DateRangeRequiredInput
 	query: Scalars['String']
@@ -1443,7 +1461,7 @@ export type Query = {
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	logs: LogsPayload
-	logs_histogram?: Maybe<Array<Maybe<Scalars['UInt64']>>>
+	logs_histogram: LogsHistogram
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<LogKey>
 	logs_total_count: Scalars['UInt64']
