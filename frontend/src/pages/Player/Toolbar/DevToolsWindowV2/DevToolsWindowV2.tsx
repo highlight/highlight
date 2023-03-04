@@ -23,6 +23,7 @@ import {
 	RequestType,
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import { NETWORK_REQUEST_DISPLAY_NAMES } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
 import React from 'react'
@@ -208,15 +209,17 @@ const DevToolsWindowV2: React.FC<
 											size="medium"
 											options={Object.values(
 												RequestType,
-											).map((rt: string) => ({
-												key: rt,
-												render: rt,
+											).map((request: string) => ({
+												key: request,
+												render: NETWORK_REQUEST_DISPLAY_NAMES[
+													request
+												],
 											}))}
-											onChange={(rt: string) =>
+											onChange={(rt: string) => {
 												setRequestType(
 													rt as RequestType,
 												)
-											}
+											}}
 										/>
 									) : null}
 
