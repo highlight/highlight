@@ -129,14 +129,14 @@ export enum RequestType {
 	Script = 'script',
 	Other = 'other',
 	XHR = 'xmlhttprequest',
-	CSS = 'css', 
+	CSS = 'css',
 	iFrame = 'iframe', // didn't find a request to verify that 'iframe' is what is actually received
 	Fetch = 'fetch',
 	Img = 'img',
 }
 
 export const NETWORK_REQUEST_DISPLAY_NAMES: { [key: string]: string } = {
-	All: "All",
+	All: 'All',
 	link: 'Link',
 	script: 'Script',
 	other: 'Other',
@@ -144,7 +144,7 @@ export const NETWORK_REQUEST_DISPLAY_NAMES: { [key: string]: string } = {
 	css: 'CSS',
 	iframe: 'iFrame',
 	fetch: 'Fetch',
-	img: "Img"
+	img: 'Img',
 } as const
 
 export const getNetworkResourcesDisplayName = (value: string): string => {
