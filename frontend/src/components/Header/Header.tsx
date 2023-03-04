@@ -95,7 +95,7 @@ export const Header = () => {
 			icon: IconSolidSpeakerphone,
 		},
 	]
-	if (isHighlightAdmin) {
+	if (isHighlightAdmin || projectIdRemapped === '759') {
 		pages.splice(2, 0, {
 			key: 'logs',
 			icon: IconSolidViewList,

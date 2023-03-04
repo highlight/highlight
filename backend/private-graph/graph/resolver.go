@@ -141,7 +141,7 @@ func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) 
 }
 
 func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
-	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.admin"))
+	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.admin"))
 
 	admin := &model.Admin{UID: pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))}
 	tx := r.DB.Where(admin).
