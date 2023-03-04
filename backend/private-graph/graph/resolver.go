@@ -154,7 +154,7 @@ func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
 		return nil, spanError
 	}
 	if tx.RowsAffected != 0 {
-		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
+		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
 			tracer.Tag("admin_uid", *admin.UID))
 		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
 		if err != nil {
@@ -184,7 +184,7 @@ func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
 		return nil, spanError
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
-		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
+		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
 			tracer.Tag("admin_uid", *admin.UID))
 		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
 		if err != nil {
