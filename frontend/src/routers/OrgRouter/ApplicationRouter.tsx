@@ -45,9 +45,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 
 			{isLoggedIn ? (
 				<>
-					{isHighlightAdmin && (
-						<Route path="logs/*" element={<LogsPage />} />
-					)}
+					<Route path="logs/*" element={<LogsPage />} />
 					<Route
 						path="settings/:tab?"
 						element={<ProjectSettings />}
