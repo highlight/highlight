@@ -215,11 +215,11 @@ const DevToolsWindowV2: React.FC<
 													request
 												],
 											}))}
-											onChange={(rt: string) => {
+											onChange={(rt: string) =>
 												setRequestType(
 													rt as RequestType,
 												)
-											}}
+											}
 										/>
 									) : null}
 

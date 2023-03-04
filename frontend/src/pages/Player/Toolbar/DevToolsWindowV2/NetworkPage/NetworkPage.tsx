@@ -95,9 +95,6 @@ export const NetworkPage = ({
 	}, [parsedResources])
 
 	const resourcesToRender = useMemo(() => {
-		//----//
-		// Start with parsedResources
-		//
 		const current =
 			(parsedResources
 				.filter(
@@ -109,8 +106,6 @@ export const NetworkPage = ({
 					...event,
 					timestamp: event.startTime + startTime,
 				})) as NetworkResource[]) ?? []
-
-		//----//
 
 		if (filter !== '') {
 			return current.filter((resource) => {
