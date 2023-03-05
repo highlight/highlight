@@ -9,6 +9,8 @@ H.init('1', {
     enabled: true,
     recordHeadersAndBody: true,
   },
+  scriptUrl: 'http://localhost:8080/dist/index.js',
+  backendUrl: 'https://localhost:8082/public',
 });
 
 const App = ({ Component, pageProps }: AppProps) => {
