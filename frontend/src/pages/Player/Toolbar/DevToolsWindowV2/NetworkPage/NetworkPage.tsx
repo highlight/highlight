@@ -37,13 +37,11 @@ export const NetworkPage = ({
 	autoScroll,
 	filter,
 	requestType,
-	method,
 }: {
 	time: number
 	autoScroll: boolean
 	filter: string
 	requestType: RequestType
-	method?: string
 }) => {
 	const {
 		state,
@@ -100,11 +98,9 @@ export const NetworkPage = ({
 		const current =
 			(parsedResources
 				.filter(
-					(r) =>
-						(method === undefined ||
-							method === r.requestResponsePairs?.request.verb) &&
-						(requestType === RequestType.All ||
-							requestType === r.initiatorType),
+					(request) =>
+						requestType === RequestType.All ||
+						requestType === request.initiatorType,
 				)
 				.map((event) => ({
 					...event,
@@ -124,7 +120,7 @@ export const NetworkPage = ({
 		}
 
 		return current
-	}, [parsedResources, filter, method, requestType, startTime])
+	}, [parsedResources, filter, requestType, startTime])
 
 	const currentResourceIdx = useMemo(() => {
 		return findLastActiveEventIndex(
