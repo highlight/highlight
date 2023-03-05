@@ -635,6 +635,14 @@ const BillingBanner = () => {
 		setHasReportedTrialExtension,
 	])
 
+	const isMaintenance = moment().isBetween(
+		'2023-03-05T23:30:00Z',
+		'2023-03-06T01:45:00Z',
+	)
+	if (isMaintenance) {
+		return <MaintenanceBanner />
+	}
+
 	if (billingIssues) {
 		toggleShowBanner(true)
 		return <BillingIssuesBanner />
@@ -865,6 +873,33 @@ const HighlightRoadshowBanner = () => {
 
 	return (
 		<div className={clsx(styles.trialWrapper, styles.youtube)}>
+			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
+		</div>
+	)
+}
+
+const MaintenanceBanner = () => {
+	const { toggleShowBanner } = useGlobalContext()
+
+	toggleShowBanner(true)
+
+	const bannerMessage = (
+		<span>
+			We are performance maintenance which may result in delayed data.
+			Apologies for the inconvenience.{' '}
+			<a
+				target="_blank"
+				href="https://highlight.io/community"
+				className={styles.trialLink}
+				rel="noreferrer"
+			>
+				Follow on Discord #incidents for updates.
+			</a>
+		</span>
+	)
+
+	return (
+		<div className={clsx(styles.trialWrapper, styles.maintenance)}>
 			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
 		</div>
 	)
