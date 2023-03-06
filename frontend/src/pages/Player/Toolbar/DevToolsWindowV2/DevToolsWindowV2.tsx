@@ -24,10 +24,7 @@ import {
 	RequestType,
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import {
-	ICountPerRequestType,
-	NETWORK_REQUEST_DISPLAY_NAMES,
-} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import { ICountPerRequestType } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
 import React, { useMemo } from 'react'
@@ -241,25 +238,23 @@ const DevToolsWindowV2: React.FC<
 									) : selectedDevToolsTab === Tab.Network ? (
 										<MenuButton
 											size="medium"
-											options={Object.values(
+											options={Object.entries(
 												RequestType,
-											).map((requestType: string) => ({
-												key: NETWORK_REQUEST_DISPLAY_NAMES[
-													requestType
-												],
-												render: `${
-													NETWORK_REQUEST_DISPLAY_NAMES[
-														requestType
-													]
-												} (${
-													countPerRequestType[
-														requestType as keyof ICountPerRequestType
-													]
-												})`,
-											}))}
-											onChange={(rt: string) => {
+											).map(
+												([
+													displayName,
+													requestName,
+												]) => ({
+													key: displayName,
+													render: `${displayName} (${countPerRequestType[requestName]})`,
+												}),
+											)}
+											onChange={(displayName) => {
 												setRequestType(
-													rt as RequestType,
+													//-- Set type to be the requestName value --//
+													RequestType[
+														displayName as keyof typeof RequestType
+													],
 												)
 											}}
 										/>

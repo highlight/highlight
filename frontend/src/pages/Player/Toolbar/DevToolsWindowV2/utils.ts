@@ -124,6 +124,7 @@ export const LogLevelVariants = {
 } as const
 
 export enum RequestType {
+	//-- [displayName]: requestName --//
 	All = 'All',
 	CSS = 'css',
 	Fetch = 'fetch',
@@ -147,24 +148,11 @@ export interface ICountPerRequestType {
 	xmlhttprequest: number
 }
 
-export const NETWORK_REQUEST_DISPLAY_NAMES: { [key: string]: string } = {
-	All: 'All',
-	css: 'CSS',
-	fetch: 'Fetch',
-	iframe: 'iFrame',
-	img: 'Img',
-	link: 'Link',
-	other: 'Other',
-	script: 'Script',
-	xmlhttprequest: 'XHR',
-} as const
-
 export const getNetworkResourcesDisplayName = (value: string): string => {
-	switch (true) {
-		case value in NETWORK_REQUEST_DISPLAY_NAMES: {
-			return NETWORK_REQUEST_DISPLAY_NAMES[value]
+	for (const [displayName, requestName] of Object.entries(RequestType)) {
+		if (value === requestName) {
+			return displayName
 		}
-		default:
-			return value?.charAt(0).toUpperCase() + value?.slice(1)
 	}
+	return value?.charAt(0).toUpperCase() + value?.slice(1)
 }
