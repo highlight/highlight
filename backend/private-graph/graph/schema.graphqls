@@ -298,7 +298,7 @@ enum SessionAlertType {
 	NEW_SESSION_ALERT
 }
 
-enum SeverityText {
+enum LogLevel {
 	TRACE
 	DEBUG
 	INFO
@@ -507,8 +507,8 @@ type S3File {
 
 type Log {
 	timestamp: Timestamp!
-	severityText: SeverityText!
-	body: String!
+	level: LogLevel!
+	message: String!
 	logAttributes: Map!
 	traceID: String
 	spanID: String
@@ -546,7 +546,7 @@ enum LogKeyType {
 
 type LogsHistogramBucketCount {
 	count: UInt64!
-	severityText: SeverityText!
+	level: LogLevel!
 }
 
 type LogsHistogramBucket {

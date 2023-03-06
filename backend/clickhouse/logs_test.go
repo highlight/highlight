@@ -166,21 +166,21 @@ func TestReadLogsHistogram(t *testing.T) {
 
 	assert.Equal(
 		t,
-		len(modelInputs.AllSeverityText),
+		len(modelInputs.AllLogLevel),
 		len(payload.Buckets[0].Counts),
 		"The first bucket should have a count for each severity",
 	)
 	assert.Equal(
 		t,
-		len(modelInputs.AllSeverityText),
+		len(modelInputs.AllLogLevel),
 		len(payload.Buckets[1].Counts),
 		"The second bucket should have a count for each severity",
 	)
 
 	assert.Equal(
 		t,
-		modelInputs.SeverityText("ERROR"),
-		payload.Buckets[0].Counts[4].SeverityText,
+		modelInputs.LogLevel("ERROR"),
+		payload.Buckets[0].Counts[4].Level,
 		"The first bucket should have the count 4 with severity of ERROR",
 	)
 	assert.Equal(
@@ -192,8 +192,8 @@ func TestReadLogsHistogram(t *testing.T) {
 
 	assert.Equal(
 		t,
-		modelInputs.SeverityText("DEBUG"),
-		payload.Buckets[1].Counts[1].SeverityText,
+		modelInputs.LogLevel("DEBUG"),
+		payload.Buckets[1].Counts[1].Level,
 		"The second bucket should have the count 1 with severity of DEBUG",
 	)
 	assert.Equal(
@@ -204,8 +204,8 @@ func TestReadLogsHistogram(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		modelInputs.SeverityText("INFO"),
-		payload.Buckets[1].Counts[2].SeverityText,
+		modelInputs.LogLevel("INFO"),
+		payload.Buckets[1].Counts[2].Level,
 		"The second bucket should have the second count with severity of INFO",
 	)
 	assert.Equal(
@@ -449,7 +449,7 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, modelInputs.SeverityText("INFO"), payload.Edges[0].Node.SeverityText)
+	assert.Equal(t, modelInputs.LogLevel("INFO"), payload.Edges[0].Node.Level)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
@@ -457,7 +457,7 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 	}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, modelInputs.SeverityText("INFO"), payload.Edges[0].Node.SeverityText)
+	assert.Equal(t, modelInputs.LogLevel("INFO"), payload.Edges[0].Node.Level)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),

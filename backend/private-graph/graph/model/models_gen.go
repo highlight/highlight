@@ -354,8 +354,8 @@ type LinearTeam struct {
 
 type Log struct {
 	Timestamp       time.Time              `json:"timestamp"`
-	SeverityText    SeverityText           `json:"severityText"`
-	Body            string                 `json:"body"`
+	Level           LogLevel               `json:"level"`
+	Message         string                 `json:"message"`
 	LogAttributes   map[string]interface{} `json:"logAttributes"`
 	TraceID         *string                `json:"traceID"`
 	SpanID          *string                `json:"spanID"`
@@ -383,8 +383,8 @@ type LogsHistogramBucket struct {
 }
 
 type LogsHistogramBucketCount struct {
-	Count        uint64       `json:"count"`
-	SeverityText SeverityText `json:"severityText"`
+	Count uint64   `json:"count"`
+	Level LogLevel `json:"level"`
 }
 
 type LogsParamsInput struct {
@@ -840,6 +840,55 @@ func (e *LogKeyType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e LogKeyType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type LogLevel string
+
+const (
+	LogLevelTrace LogLevel = "TRACE"
+	LogLevelDebug LogLevel = "DEBUG"
+	LogLevelInfo  LogLevel = "INFO"
+	LogLevelWarn  LogLevel = "WARN"
+	LogLevelError LogLevel = "ERROR"
+	LogLevelFatal LogLevel = "FATAL"
+)
+
+var AllLogLevel = []LogLevel{
+	LogLevelTrace,
+	LogLevelDebug,
+	LogLevelInfo,
+	LogLevelWarn,
+	LogLevelError,
+	LogLevelFatal,
+}
+
+func (e LogLevel) IsValid() bool {
+	switch e {
+	case LogLevelTrace, LogLevelDebug, LogLevelInfo, LogLevelWarn, LogLevelError, LogLevelFatal:
+		return true
+	}
+	return false
+}
+
+func (e LogLevel) String() string {
+	return string(e)
+}
+
+func (e *LogLevel) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LogLevel(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LogLevel", str)
+	}
+	return nil
+}
+
+func (e LogLevel) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1366,55 +1415,6 @@ func (e *SessionLifecycle) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SessionLifecycle) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type SeverityText string
-
-const (
-	SeverityTextTrace SeverityText = "TRACE"
-	SeverityTextDebug SeverityText = "DEBUG"
-	SeverityTextInfo  SeverityText = "INFO"
-	SeverityTextWarn  SeverityText = "WARN"
-	SeverityTextError SeverityText = "ERROR"
-	SeverityTextFatal SeverityText = "FATAL"
-)
-
-var AllSeverityText = []SeverityText{
-	SeverityTextTrace,
-	SeverityTextDebug,
-	SeverityTextInfo,
-	SeverityTextWarn,
-	SeverityTextError,
-	SeverityTextFatal,
-}
-
-func (e SeverityText) IsValid() bool {
-	switch e {
-	case SeverityTextTrace, SeverityTextDebug, SeverityTextInfo, SeverityTextWarn, SeverityTextError, SeverityTextFatal:
-		return true
-	}
-	return false
-}
-
-func (e SeverityText) String() string {
-	return string(e)
-}
-
-func (e *SeverityText) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = SeverityText(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid SeverityText", str)
-	}
-	return nil
-}
-
-func (e SeverityText) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

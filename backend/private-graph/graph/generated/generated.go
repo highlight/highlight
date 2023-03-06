@@ -492,10 +492,10 @@ type ComplexityRoot struct {
 	}
 
 	Log struct {
-		Body            func(childComplexity int) int
+		Level           func(childComplexity int) int
 		LogAttributes   func(childComplexity int) int
+		Message         func(childComplexity int) int
 		SecureSessionID func(childComplexity int) int
-		SeverityText    func(childComplexity int) int
 		SpanID          func(childComplexity int) int
 		Timestamp       func(childComplexity int) int
 		TraceID         func(childComplexity int) int
@@ -522,8 +522,8 @@ type ComplexityRoot struct {
 	}
 
 	LogsHistogramBucketCount struct {
-		Count        func(childComplexity int) int
-		SeverityText func(childComplexity int) int
+		Count func(childComplexity int) int
+		Level func(childComplexity int) int
 	}
 
 	LogsPayload struct {
@@ -3356,12 +3356,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LinearTeam.TeamID(childComplexity), true
 
-	case "Log.body":
-		if e.complexity.Log.Body == nil {
+	case "Log.level":
+		if e.complexity.Log.Level == nil {
 			break
 		}
 
-		return e.complexity.Log.Body(childComplexity), true
+		return e.complexity.Log.Level(childComplexity), true
 
 	case "Log.logAttributes":
 		if e.complexity.Log.LogAttributes == nil {
@@ -3370,19 +3370,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Log.LogAttributes(childComplexity), true
 
+	case "Log.message":
+		if e.complexity.Log.Message == nil {
+			break
+		}
+
+		return e.complexity.Log.Message(childComplexity), true
+
 	case "Log.secureSessionID":
 		if e.complexity.Log.SecureSessionID == nil {
 			break
 		}
 
 		return e.complexity.Log.SecureSessionID(childComplexity), true
-
-	case "Log.severityText":
-		if e.complexity.Log.SeverityText == nil {
-			break
-		}
-
-		return e.complexity.Log.SeverityText(childComplexity), true
 
 	case "Log.spanID":
 		if e.complexity.Log.SpanID == nil {
@@ -3468,12 +3468,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LogsHistogramBucketCount.Count(childComplexity), true
 
-	case "LogsHistogramBucketCount.severityText":
-		if e.complexity.LogsHistogramBucketCount.SeverityText == nil {
+	case "LogsHistogramBucketCount.level":
+		if e.complexity.LogsHistogramBucketCount.Level == nil {
 			break
 		}
 
-		return e.complexity.LogsHistogramBucketCount.SeverityText(childComplexity), true
+		return e.complexity.LogsHistogramBucketCount.Level(childComplexity), true
 
 	case "LogsPayload.edges":
 		if e.complexity.LogsPayload.Edges == nil {
@@ -8012,7 +8012,7 @@ enum SessionAlertType {
 	NEW_SESSION_ALERT
 }
 
-enum SeverityText {
+enum LogLevel {
 	TRACE
 	DEBUG
 	INFO
@@ -8221,8 +8221,8 @@ type S3File {
 
 type Log {
 	timestamp: Timestamp!
-	severityText: SeverityText!
-	body: String!
+	level: LogLevel!
+	message: String!
 	logAttributes: Map!
 	traceID: String
 	spanID: String
@@ -8260,7 +8260,7 @@ enum LogKeyType {
 
 type LogsHistogramBucketCount {
 	count: UInt64!
-	severityText: SeverityText!
+	level: LogLevel!
 }
 
 type LogsHistogramBucket {
@@ -27015,8 +27015,8 @@ func (ec *executionContext) fieldContext_Log_timestamp(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Log_severityText(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Log_severityText(ctx, field)
+func (ec *executionContext) _Log_level(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Log_level(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -27029,7 +27029,7 @@ func (ec *executionContext) _Log_severityText(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.SeverityText, nil
+		return obj.Level, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27041,26 +27041,26 @@ func (ec *executionContext) _Log_severityText(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.SeverityText)
+	res := resTmp.(model.LogLevel)
 	fc.Result = res
-	return ec.marshalNSeverityText2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSeverityText(ctx, field.Selections, res)
+	return ec.marshalNLogLevel2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogLevel(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Log_severityText(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Log_level(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Log",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type SeverityText does not have child fields")
+			return nil, errors.New("field of type LogLevel does not have child fields")
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Log_body(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Log_body(ctx, field)
+func (ec *executionContext) _Log_message(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Log_message(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -27073,7 +27073,7 @@ func (ec *executionContext) _Log_body(ctx context.Context, field graphql.Collect
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Body, nil
+		return obj.Message, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27090,7 +27090,7 @@ func (ec *executionContext) _Log_body(ctx context.Context, field graphql.Collect
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Log_body(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Log_message(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Log",
 		Field:      field,
@@ -27355,10 +27355,10 @@ func (ec *executionContext) fieldContext_LogEdge_node(ctx context.Context, field
 			switch field.Name {
 			case "timestamp":
 				return ec.fieldContext_Log_timestamp(ctx, field)
-			case "severityText":
-				return ec.fieldContext_Log_severityText(ctx, field)
-			case "body":
-				return ec.fieldContext_Log_body(ctx, field)
+			case "level":
+				return ec.fieldContext_Log_level(ctx, field)
+			case "message":
+				return ec.fieldContext_Log_message(ctx, field)
 			case "logAttributes":
 				return ec.fieldContext_Log_logAttributes(ctx, field)
 			case "traceID":
@@ -27641,8 +27641,8 @@ func (ec *executionContext) fieldContext_LogsHistogramBucket_counts(ctx context.
 			switch field.Name {
 			case "count":
 				return ec.fieldContext_LogsHistogramBucketCount_count(ctx, field)
-			case "severityText":
-				return ec.fieldContext_LogsHistogramBucketCount_severityText(ctx, field)
+			case "level":
+				return ec.fieldContext_LogsHistogramBucketCount_level(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type LogsHistogramBucketCount", field.Name)
 		},
@@ -27694,8 +27694,8 @@ func (ec *executionContext) fieldContext_LogsHistogramBucketCount_count(ctx cont
 	return fc, nil
 }
 
-func (ec *executionContext) _LogsHistogramBucketCount_severityText(ctx context.Context, field graphql.CollectedField, obj *model.LogsHistogramBucketCount) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LogsHistogramBucketCount_severityText(ctx, field)
+func (ec *executionContext) _LogsHistogramBucketCount_level(ctx context.Context, field graphql.CollectedField, obj *model.LogsHistogramBucketCount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogsHistogramBucketCount_level(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -27708,7 +27708,7 @@ func (ec *executionContext) _LogsHistogramBucketCount_severityText(ctx context.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.SeverityText, nil
+		return obj.Level, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27720,19 +27720,19 @@ func (ec *executionContext) _LogsHistogramBucketCount_severityText(ctx context.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.SeverityText)
+	res := resTmp.(model.LogLevel)
 	fc.Result = res
-	return ec.marshalNSeverityText2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSeverityText(ctx, field.Selections, res)
+	return ec.marshalNLogLevel2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogLevel(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_LogsHistogramBucketCount_severityText(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_LogsHistogramBucketCount_level(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "LogsHistogramBucketCount",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type SeverityText does not have child fields")
+			return nil, errors.New("field of type LogLevel does not have child fields")
 		},
 	}
 	return fc, nil
@@ -58795,16 +58795,16 @@ func (ec *executionContext) _Log(ctx context.Context, sel ast.SelectionSet, obj 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "severityText":
+		case "level":
 
-			out.Values[i] = ec._Log_severityText(ctx, field, obj)
+			out.Values[i] = ec._Log_level(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "body":
+		case "message":
 
-			out.Values[i] = ec._Log_body(ctx, field, obj)
+			out.Values[i] = ec._Log_message(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -58996,9 +58996,9 @@ func (ec *executionContext) _LogsHistogramBucketCount(ctx context.Context, sel a
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "severityText":
+		case "level":
 
-			out.Values[i] = ec._LogsHistogramBucketCount_severityText(ctx, field, obj)
+			out.Values[i] = ec._LogsHistogramBucketCount_level(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -67286,6 +67286,16 @@ func (ec *executionContext) marshalNLogKeyType2githubᚗcomᚋhighlightᚑrunᚋ
 	return v
 }
 
+func (ec *executionContext) unmarshalNLogLevel2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogLevel(ctx context.Context, v interface{}) (model.LogLevel, error) {
+	var res model.LogLevel
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNLogLevel2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogLevel(ctx context.Context, sel ast.SelectionSet, v model.LogLevel) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNLogsHistogram2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsHistogram(ctx context.Context, sel ast.SelectionSet, v model.LogsHistogram) graphql.Marshaler {
 	return ec._LogsHistogram(ctx, sel, &v)
 }
@@ -68473,16 +68483,6 @@ func (ec *executionContext) marshalNSessionsHistogram2ᚖgithubᚗcomᚋhighligh
 		return graphql.Null
 	}
 	return ec._SessionsHistogram(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNSeverityText2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSeverityText(ctx context.Context, v interface{}) (model.SeverityText, error) {
-	var res model.SeverityText
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNSeverityText2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSeverityText(ctx context.Context, sel ast.SelectionSet, v model.SeverityText) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) marshalNSlackSyncResponse2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSlackSyncResponse(ctx context.Context, sel ast.SelectionSet, v model.SlackSyncResponse) graphql.Marshaler {

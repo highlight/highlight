@@ -115,8 +115,8 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 			Cursor: encodeCursor(result.Timestamp, result.UUID),
 			Node: &modelInputs.Log{
 				Timestamp:       result.Timestamp,
-				SeverityText:    makeSeverityText(result.SeverityText),
-				Body:            result.Body,
+				Level:           makeLogLevel(result.SeverityText),
+				Message:         result.Body,
 				LogAttributes:   expandJSON(result.LogAttributes),
 				TraceID:         &result.TraceId,
 				SpanID:          &result.SpanId,
@@ -199,7 +199,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		count    uint64
 	)
 
-	buckets := make(map[uint64]map[modelInputs.SeverityText]uint64)
+	buckets := make(map[uint64]map[modelInputs.LogLevel]uint64)
 
 	for rows.Next() {
 		if err := rows.Scan(&bucketId, &level, &count); err != nil {
@@ -212,11 +212,11 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 
 		// create bucket if not exists
 		if _, ok := buckets[bucketId]; !ok {
-			buckets[bucketId] = make(map[modelInputs.SeverityText]uint64)
+			buckets[bucketId] = make(map[modelInputs.LogLevel]uint64)
 		}
 
 		// add count to bucket
-		buckets[bucketId][makeSeverityText(level)] = count
+		buckets[bucketId][makeLogLevel(level)] = count
 	}
 
 	for bucketId = uint64(0); bucketId < uint64(nBuckets); bucketId++ {
@@ -225,13 +225,13 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		}
 		bucket := buckets[bucketId]
 		counts := make([]*modelInputs.LogsHistogramBucketCount, 0, len(bucket))
-		for _, level := range modelInputs.AllSeverityText {
+		for _, level := range modelInputs.AllLogLevel {
 			if _, ok := bucket[level]; !ok {
 				bucket[level] = 0
 			}
 			counts = append(counts, &modelInputs.LogsHistogramBucketCount{
-				SeverityText: level,
-				Count:        bucket[level],
+				Level: level,
+				Count: bucket[level],
 			})
 		}
 
@@ -353,39 +353,39 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 	return values, rows.Err()
 }
 
-func makeSeverityText(severityText string) modelInputs.SeverityText {
+func makeLogLevel(severityText string) modelInputs.LogLevel {
 	switch strings.ToLower(severityText) {
 	case "trace":
 		{
-			return modelInputs.SeverityTextTrace
+			return modelInputs.LogLevelTrace
 
 		}
 	case "debug":
 		{
-			return modelInputs.SeverityTextDebug
+			return modelInputs.LogLevelDebug
 
 		}
 	case "info":
 		{
-			return modelInputs.SeverityTextInfo
+			return modelInputs.LogLevelInfo
 
 		}
 	case "warn":
 		{
-			return modelInputs.SeverityTextWarn
+			return modelInputs.LogLevelWarn
 		}
 	case "error":
 		{
-			return modelInputs.SeverityTextError
+			return modelInputs.LogLevelError
 		}
 
 	case "fatal":
 		{
-			return modelInputs.SeverityTextFatal
+			return modelInputs.LogLevelFatal
 		}
 
 	default:
-		return modelInputs.SeverityTextInfo
+		return modelInputs.LogLevelInfo
 	}
 }
 

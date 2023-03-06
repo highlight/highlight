@@ -1,5 +1,5 @@
 import { GetLogsQuery } from '@graph/operations'
-import { SeverityText } from '@graph/schemas'
+import { LogLevel as LogLevelType } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
 import {
 	Box,
@@ -8,9 +8,9 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui'
-import { LogBody } from '@pages/LogsPage/LogsTable/LogBody'
 import { LogDetails } from '@pages/LogsPage/LogsTable/LogDetails'
-import { LogSeverityText } from '@pages/LogsPage/LogsTable/LogSeverityText'
+import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
+import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
 import {
@@ -72,19 +72,17 @@ export const LogsTable = ({
 				),
 			},
 			{
-				accessorKey: 'node.severityText',
+				accessorKey: 'node.level',
 				cell: ({ getValue }) => (
-					<LogSeverityText
-						severityText={getValue() as SeverityText}
-					/>
+					<LogLevel level={getValue() as LogLevelType} />
 				),
 			},
 			{
-				accessorKey: 'node.body',
+				accessorKey: 'node.message',
 				cell: ({ row, getValue }) => (
-					<LogBody
+					<LogMessage
 						query={query}
-						body={getValue() as string}
+						message={getValue() as string}
 						expanded={row.getIsExpanded()}
 					/>
 				),
