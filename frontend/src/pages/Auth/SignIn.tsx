@@ -15,7 +15,8 @@ import useLocalStorage from '@rehooks/local-storage'
 import { auth } from '@util/auth'
 import firebase from 'firebase/app'
 import React, { useCallback } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { StringParam, useQueryParam } from 'use-query-params'
 
 type Props = {
 	setResolver: React.Dispatch<
@@ -28,11 +29,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
-	const location = useLocation()
-	const initialEmail: string = location.state?.email ?? ''
+	const [initialEmail] = useQueryParam('email', StringParam)
 	const formState = useFormState({
 		defaultValues: {
-			email: initialEmail,
+			email: initialEmail ?? '',
 			password: '',
 		},
 	})
@@ -97,7 +97,12 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						</Heading>
 						<Text>
 							New here?{' '}
-							<Link to="/sign_up">Create an account</Link>.
+							<Link
+								to={`/sign_up?email=${formState.values.email}`}
+							>
+								Create an account
+							</Link>
+							.
 						</Text>
 					</Stack>
 				</Box>
@@ -118,10 +123,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						autoComplete="current-password"
 					/>
 					<Link
-						to="/reset_password"
-						state={{
-							email: formState.values.email,
-						}}
+						to={`/reset_password?email=${formState.values.email}`}
 					>
 						<Text size="xSmall">Forgot your password?</Text>
 					</Link>

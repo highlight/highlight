@@ -43,6 +43,8 @@ export const AppRouter = () => {
 	const workspaceMatch = useMatch('/w/:workspace_id/*')
 	const workspaceId = workspaceMatch?.params.workspace_id
 	const workspaceInviteMatch = useMatch('/w/:workspace_id/invite/:invite')
+	const inviteMatch = useMatch('/invite/:invite')
+	const isInvitePage = !!inviteMatch
 	const [inviteCode, setInviteCode] = useLocalStorage('highlightInviteCode')
 	const { projectId } = useNumericProjectId()
 	const [nextParam] = useQueryParam('next', StringParam)
@@ -59,24 +61,25 @@ export const AppRouter = () => {
 
 	useEffect(() => {
 		if (admin && admin.email_verified === false) {
-			navigate('/verify_email')
+			navigate('/verify_email', { replace: true })
 			return
 		}
 
-		if (admin && inviteCode && inviteCode !== 'ignored') {
-			navigate(`/invite/${inviteCode}`)
+		if (admin && inviteCode && inviteCode !== 'ignored' && !isInvitePage) {
+			navigate(`/invite/${inviteCode}`, { replace: true })
 			return
 		}
 
 		if (
 			admin &&
 			!admin.about_you_details_filled &&
-			!isVercelIntegrationFlow
+			!isVercelIntegrationFlow &&
+			!isInvitePage
 		) {
-			navigate('/about_you')
+			navigate('/about_you', { replace: true })
 			return
 		}
-	}, [admin, isVercelIntegrationFlow, navigate, inviteCode])
+	}, [admin, isVercelIntegrationFlow, navigate, inviteCode, isInvitePage])
 
 	useEffect(() => {
 		if (admin) {

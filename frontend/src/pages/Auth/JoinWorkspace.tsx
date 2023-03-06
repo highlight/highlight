@@ -16,22 +16,25 @@ import useLocalStorage from '@rehooks/local-storage'
 import { message } from 'antd'
 import { H } from 'highlight.run'
 import React, { useEffect } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useMatch, useNavigate } from 'react-router-dom'
 
 import * as styles from './AuthRouter.css'
 
 export const JoinWorkspace = () => {
-	const [inviteCode, setInviteCode] = useLocalStorage('highlightInviteCode')
+	const [_, setInviteCode] = useLocalStorage('highlightInviteCode')
+	const joinWorkspaceMatch = useMatch('/invite/:inviteCode')
+	const inviteCode = joinWorkspaceMatch?.params.inviteCode
 	const { setLoadingState } = useAppLoadingContext()
 	const navigate = useNavigate()
-	const { data, loading } = useGetWorkspaceForInviteLinkQuery({
+	const { data, error, loading } = useGetWorkspaceForInviteLinkQuery({
 		variables: {
 			secret: inviteCode!,
 		},
-		skip: !inviteCode,
 	})
-	const [addAdminToWorkspace, { loading: addAdminLoading, error }] =
-		useAddAdminToWorkspaceMutation()
+	const [
+		addAdminToWorkspace,
+		{ loading: addAdminLoading, error: addAdminError },
+	] = useAddAdminToWorkspaceMutation()
 	const { data: workspacesData, loading: workspacesLoading } =
 		useGetWorkspacesQuery()
 	const workspaceId = data?.workspace_for_invite_link?.workspace_id
@@ -40,22 +43,34 @@ export const JoinWorkspace = () => {
 		(w) => w?.id && w.id === workspaceId,
 	)
 
+	const clearInviteAndRedirect = () => {
+		setInviteCode('')
+		navigate('/')
+	}
+
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
 	}, [setLoadingState])
 
 	useEffect(() => {
-		if (alreadyInWorkspace) {
-			setInviteCode('')
+		if (error) {
+			clearInviteAndRedirect()
+			message.error('Invalid invite code.')
 		}
-	}, [alreadyInWorkspace, setInviteCode])
+
+		if (alreadyInWorkspace) {
+			clearInviteAndRedirect()
+			message.success('You are already a member of this workspace.')
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [alreadyInWorkspace, error])
 
 	if (loading || workspacesLoading) {
 		return null
 	}
 
-	if (!workspaceId || !inviteCode) {
-		return <Navigate replace to="/" />
+	if (!workspaceId) {
+		return <Navigate to="/" />
 	}
 
 	return (
@@ -70,12 +85,12 @@ export const JoinWorkspace = () => {
 							Do you want to accept the invitation to join "
 							{workspaceName}"?
 						</Text>
-						{!!error && (
+						{!!addAdminError && (
 							<Callout
 								kind="error"
-								title={getAlertMessage(error).title}
+								title={getAlertMessage(addAdminError).title}
 							>
-								{getAlertMessage(error).description}
+								{getAlertMessage(addAdminError).description}
 							</Callout>
 						)}
 					</Stack>
@@ -99,8 +114,7 @@ export const JoinWorkspace = () => {
 										`Successfully joined workspace "${workspaceName}"!`,
 									)
 
-									setInviteCode('')
-									navigate('/')
+									clearInviteAndRedirect()
 								} catch (_e) {
 									message.error(
 										'Failed to join the workspace. Please try again.',
