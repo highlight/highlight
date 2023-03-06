@@ -29,9 +29,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
 	const location = useLocation()
+	const initialEmail: string = location.state?.email ?? ''
 	const formState = useFormState({
 		defaultValues: {
-			email: location.state?.email ?? '',
+			email: initialEmail,
 			password: '',
 		},
 	})
