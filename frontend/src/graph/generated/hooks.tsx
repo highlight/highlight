@@ -11677,8 +11677,16 @@ export type GetLogsKeysQueryResult = Apollo.QueryResult<
 	Types.GetLogsKeysQueryVariables
 >
 export const GetLogsKeyValuesDocument = gql`
-	query GetLogsKeyValues($project_id: ID!, $key_name: String!) {
-		logs_key_values(project_id: $project_id, key_name: $key_name)
+	query GetLogsKeyValues(
+		$project_id: ID!
+		$key_name: String!
+		$date_range: DateRangeRequiredInput!
+	) {
+		logs_key_values(
+			project_id: $project_id
+			key_name: $key_name
+			date_range: $date_range
+		)
 	}
 `
 
@@ -11696,6 +11704,7 @@ export const GetLogsKeyValuesDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      key_name: // value for 'key_name'
+ *      date_range: // value for 'date_range'
  *   },
  * });
  */
