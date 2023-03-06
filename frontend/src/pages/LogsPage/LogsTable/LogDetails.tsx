@@ -13,6 +13,7 @@ import {
 	IconExpanded,
 } from '@pages/LogsPage/LogsTable/LogsTable'
 import { Row } from '@tanstack/react-table'
+import { message as antdMessage } from 'antd'
 import React, { useEffect, useState } from 'react'
 
 import * as styles from './LogDetails.css'
@@ -128,7 +129,7 @@ export const LogDetails = ({ row }: Props) => {
 						navigator.clipboard.writeText(
 							JSON.stringify(row.original),
 						)
-						message.success('Copied logs!')
+						antdMessage.success('Copied logs!')
 					}}
 				>
 					<Box
