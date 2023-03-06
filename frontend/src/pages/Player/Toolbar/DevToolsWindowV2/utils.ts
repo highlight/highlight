@@ -125,6 +125,7 @@ export const LogLevelVariants = {
 
 export enum RequestType {
 	All = 'All',
+	Beacon = 'beacon',
 	Link = 'link',
 	Script = 'script',
 	Other = 'other',
@@ -135,8 +136,22 @@ export enum RequestType {
 	Img = 'img',
 }
 
+export interface ICountPerRequestType {
+	All: number
+	beacon: number
+	link: number
+	script: number
+	other: number
+	xmlhttprequest: number
+	css: number
+	iframe: number
+	fetch: number
+	img: number
+}
+
 export const NETWORK_REQUEST_DISPLAY_NAMES: { [key: string]: string } = {
 	All: 'All',
+	beacon: 'Beacon',
 	link: 'Link',
 	script: 'Script',
 	other: 'Other',

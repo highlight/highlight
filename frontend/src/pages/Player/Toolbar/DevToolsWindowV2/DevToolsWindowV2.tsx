@@ -12,6 +12,7 @@ import { useWindowSize } from '@hooks/useWindowSize'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
+import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
 import { NetworkPage } from '@pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
 import {
 	DEV_TOOLS_MIN_HEIGHT,
@@ -23,10 +24,13 @@ import {
 	RequestType,
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { NETWORK_REQUEST_DISPLAY_NAMES } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import {
+	ICountPerRequestType,
+	NETWORK_REQUEST_DISPLAY_NAMES,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { styledVerticalScrollbar } from 'style/common.css'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
@@ -61,6 +65,32 @@ const DevToolsWindowV2: React.FC<
 	const maxHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, height / 2)
 	const defaultHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, maxHeight / 2)
 	const { showDevTools, showHistogram } = usePlayerConfiguration()
+
+	const { resources: parsedResources } = useResourcesContext()
+
+	const countPerRequestType = useMemo(() => {
+		const count: ICountPerRequestType = {
+			All: 0,
+			beacon: 0,
+			link: 0,
+			script: 0,
+			other: 0,
+			xmlhttprequest: 0,
+			css: 0,
+			iframe: 0,
+			fetch: 0,
+			img: 0,
+		}
+
+		parsedResources.forEach((request) => {
+			const type = request.initiatorType as keyof ICountPerRequestType
+			count[type] += 1
+			count['All'] += 1
+		})
+
+		return count
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [parsedResources])
 
 	if (!showDevTools || isPlayerFullscreen) {
 		return null
@@ -209,17 +239,23 @@ const DevToolsWindowV2: React.FC<
 											size="medium"
 											options={Object.values(
 												RequestType,
-											).map((request: string) => ({
-												key: request,
-												render: NETWORK_REQUEST_DISPLAY_NAMES[
-													request
-												],
+											).map((requestType: string) => ({
+												key: requestType,
+												render: `${
+													NETWORK_REQUEST_DISPLAY_NAMES[
+														requestType
+													]
+												} (${
+													countPerRequestType[
+														requestType as keyof ICountPerRequestType
+													]
+												})`,
 											}))}
-											onChange={(rt: string) =>
+											onChange={(rt: string) => {
 												setRequestType(
 													rt as RequestType,
 												)
-											}
+											}}
 										/>
 									) : null}
 
