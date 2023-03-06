@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { Inter } from '@next/font/google'
 import styles from './page.module.css'
 import HelloButton from '@/components/HelloButton'
+import ConsoleButtons from '@/components/ConsoleButtons'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -53,6 +54,7 @@ export default function Home() {
 			</div>
 
 			<HelloButton />
+			<ConsoleButtons />
 
 			<div className={styles.grid}>
 				<a
