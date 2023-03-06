@@ -25,22 +25,23 @@ func getLogsConnection(edges []*modelInputs.LogEdge, pagination Pagination) *mod
 			hasNextPage = true
 			hasPreviousPage = true
 
-			edges = edges[1:]            // remove first
-			edges = edges[:len(edges)-1] // remove last
+			edges = edges[1 : len(edges)-1] // remove first and last
 		} else if len(edges) == LogsLimit+2 { // has forward pagination (not backwards)
 			hasNextPage = true
 			edges = edges[:len(edges)-1] // remove last
 		}
 
 	} else if pagination.After != nil && len(*pagination.After) > 1 {
+		hasPreviousPage = true // implicitly true because the passed in cursor should match
 		if len(edges) == LogsLimit+1 {
 			hasNextPage = len(edges) == LogsLimit+1
-			edges = edges[:LogsLimit]
+			edges = edges[:len(edges)-1]
 		}
 	} else if pagination.Before != nil && len(*pagination.Before) > 1 {
+		hasNextPage = true // implicitly true because the passed in cursor should match
 		if len(edges) == LogsLimit+1 {
 			hasPreviousPage = len(edges) == LogsLimit+1
-			edges = edges[1 : LogsLimit-1]
+			edges = edges[1 : len(edges)-1]
 		}
 	} else {
 		if len(edges) == LogsLimit+1 { // has forward page
