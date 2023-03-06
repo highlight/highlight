@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"sort"
 	"testing"
 	"time"
 
@@ -682,52 +683,61 @@ func TestLogKeyValues(t *testing.T) {
 	client, teardown := setupTest(t)
 	defer teardown(t)
 
+	now := time.Now()
+
 	rows := []*LogRow{
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "2"},
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "2"},
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "4"},
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now.Add(-time.Second * 1), // out of range, should not be included
+				ProjectId: 1,
+			},
+			LogAttributes: map[string]string{"workspace_id": "5"},
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"unrelated_key": "value"},
@@ -736,10 +746,15 @@ func TestLogKeyValues(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	values, err := client.LogsKeyValues(ctx, 1, "workspace_id")
+	values, err := client.LogsKeyValues(ctx, 1, "workspace_id", now, now)
 	assert.NoError(t, err)
 
 	expected := []string{"3", "2", "4"}
+
+	// Order is not guaranteed (see #4369)
+	sort.Strings(values)
+	sort.Strings(expected)
+
 	assert.Equal(t, expected, values)
 }
 
@@ -748,31 +763,33 @@ func TestLogKeyValuesLevel(t *testing.T) {
 	client, teardown := setupTest(t)
 	defer teardown(t)
 
+	now := time.Now()
+
 	rows := []*LogRow{
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			SeverityText: "INFO",
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			SeverityText: "WARN",
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			SeverityText: "INFO",
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"level": "FATAL"}, // should be skipped in the output
@@ -781,10 +798,14 @@ func TestLogKeyValuesLevel(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	values, err := client.LogsKeyValues(ctx, 1, "level")
+	values, err := client.LogsKeyValues(ctx, 1, "level", now, now)
 	assert.NoError(t, err)
 
 	expected := []string{"INFO", "WARN"}
+
+	sort.Strings(values)
+	sort.Strings(expected)
+
 	assert.Equal(t, expected, values)
 }
 

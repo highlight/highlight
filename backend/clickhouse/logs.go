@@ -289,51 +289,44 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 
 }
 
-func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error) {
+func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 
 	switch keyName {
 	case modelInputs.ReservedLogKeyLevel.String():
-		sb.Select("SeverityText level, count() as cnt").
+		sb.Select("DISTINCT SeverityText level").
 			From("logs").
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.NotEqual("level", "")).
-			GroupBy("level").
-			OrderBy("cnt DESC").
 			Limit(KeyValuesLimit)
 	case modelInputs.ReservedLogKeySecureSessionID.String():
-		sb.Select("SecureSessionId secure_session_id, count() as cnt").
+		sb.Select("DISTINCT SecureSessionId secure_session_id").
 			From("logs").
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.NotEqual("secure_session_id", "")).
-			GroupBy("secure_session_id").
-			OrderBy("cnt DESC").
 			Limit(KeyValuesLimit)
 	case modelInputs.ReservedLogKeySpanID.String():
-		sb.Select("SpanId span_id, count() as cnt").
+		sb.Select("DISTINCT SpanId span_id").
 			From("logs").
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.NotEqual("span_id", "")).
-			GroupBy("span_id").
-			OrderBy("cnt DESC").
 			Limit(KeyValuesLimit)
 	case modelInputs.ReservedLogKeyTraceID.String():
-		sb.Select("TraceId trace_id, count() as cnt").
+		sb.Select("DISTINCT TraceId trace_id").
 			From("logs").
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.NotEqual("trace_id", "")).
-			GroupBy("trace_id").
-			OrderBy("cnt DESC").
 			Limit(KeyValuesLimit)
 	default:
-		sb.Select("LogAttributes [" + sb.Var(keyName) + "] as value, count() as cnt").
+		sb.Select("DISTINCT LogAttributes [" + sb.Var(keyName) + "] as value").
 			From("logs").
 			Where(sb.Equal("ProjectId", projectID)).
 			Where("mapContains(LogAttributes, " + sb.Var(keyName) + ")").
-			GroupBy("value").
-			OrderBy("cnt DESC").
 			Limit(KeyValuesLimit)
 	}
+
+	sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(endDate.Unix()))).
+		Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(startDate.Unix())))
 
 	sql, args := sb.Build()
 
@@ -347,9 +340,8 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 	for rows.Next() {
 		var (
 			Value string
-			Count uint64
 		)
-		if err := rows.Scan(&Value, &Count); err != nil {
+		if err := rows.Scan(&Value); err != nil {
 			return nil, err
 		}
 

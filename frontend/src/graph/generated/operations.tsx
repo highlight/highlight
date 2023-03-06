@@ -4002,6 +4002,7 @@ export type GetLogsKeysQuery = { __typename?: 'Query' } & {
 export type GetLogsKeyValuesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	key_name: Types.Scalars['String']
+	date_range: Types.DateRangeRequiredInput
 }>
 
 export type GetLogsKeyValuesQuery = { __typename?: 'Query' } & Pick<

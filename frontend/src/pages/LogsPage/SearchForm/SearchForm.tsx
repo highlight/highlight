@@ -16,6 +16,7 @@ import {
 	useFormState,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
+import { FORMAT } from '@pages/LogsPage/LogsPage'
 import {
 	BODY_KEY,
 	LogsSearchParam,
@@ -23,6 +24,7 @@ import {
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
 import { useParams } from '@util/react-router/useParams'
+import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 
 import * as styles from './SearchForm.css'
@@ -81,7 +83,11 @@ const SearchForm = ({
 				width="full"
 				borderBottom="dividerWeak"
 			>
-				<Search keys={keysData?.logs_keys} />
+				<Search
+					keys={keysData?.logs_keys}
+					startDate={startDate}
+					endDate={endDate}
+				/>
 				<Box display="flex" pr="8" py="6">
 					<PreviousDateRangePicker
 						selectedDates={selectedDates}
@@ -99,7 +105,9 @@ export { SearchForm }
 
 const Search: React.FC<{
 	keys?: GetLogsKeysQuery['logs_keys']
-}> = ({ keys }) => {
+	startDate: Date
+	endDate: Date
+}> = ({ keys, startDate, endDate }) => {
 	const formState = useForm()
 	const [autoSelect, setAutoSelect] = useState(true)
 	const { query } = formState.values
@@ -138,9 +146,20 @@ const Search: React.FC<{
 			variables: {
 				project_id: project_id!,
 				key_name: activeTerm.key,
+				date_range: {
+					start_date: moment(startDate).format(FORMAT),
+					end_date: moment(endDate).format(FORMAT),
+				},
 			},
 		})
-	}, [activeTerm.key, getLogsKeyValues, project_id, showValues])
+	}, [
+		activeTerm.key,
+		endDate,
+		getLogsKeyValues,
+		project_id,
+		showValues,
+		startDate,
+	])
 
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,

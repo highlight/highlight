@@ -14,7 +14,7 @@ import {
 	withDefault,
 } from 'use-query-params'
 
-const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
+export const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
 const now = moment()
 const fifteenMinutesAgo = now.clone().subtract(15, 'minutes').toDate()
 const thirtyDaysAgo = now.clone().subtract(30, 'days').toDate()
