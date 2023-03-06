@@ -76,6 +76,8 @@ const LogsPage = () => {
 		},
 		skip: !project_id,
 		fetchPolicy: 'cache-and-network',
+		// Required for loading to get set properly when using fetchMore.
+		notifyOnNetworkStatusChange: true,
 	})
 
 	const { data: totalCount, loading: logCountLoading } =
