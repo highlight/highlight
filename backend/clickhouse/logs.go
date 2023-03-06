@@ -89,7 +89,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
-	selectStr := "Timestamp, UUID, SeverityText, Body, LogAttributes"
+	selectStr := "Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId"
 
 	if pagination.At != nil && len(*pagination.At) > 1 {
 		// Create a "window" around the cursor
@@ -123,8 +123,6 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	}
 
 	sql, args := sb.Build()
-	test := sb.String()
-	fmt.Print(test)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
