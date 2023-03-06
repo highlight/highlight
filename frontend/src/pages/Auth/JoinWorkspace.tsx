@@ -118,7 +118,7 @@ export const JoinWorkspace = () => {
 							kind="secondary"
 							trackingId="join-workspace-ignore"
 							onClick={() => {
-								setInviteCode('')
+								setInviteCode('ignored')
 								navigate('/')
 							}}
 						>

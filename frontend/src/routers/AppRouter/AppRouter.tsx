@@ -63,7 +63,7 @@ export const AppRouter = () => {
 			return
 		}
 
-		if (admin && inviteCode) {
+		if (admin && inviteCode && inviteCode !== 'ignored') {
 			navigate(`/invite/${inviteCode}`)
 			return
 		}
