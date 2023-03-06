@@ -16,13 +16,13 @@ import { auth } from '@util/auth'
 import { validateEmail } from '@util/string'
 import { message } from 'antd'
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { StringParam, useQueryParam } from 'use-query-params'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 export const ResetPassword: React.FC = () => {
 	const navigate = useNavigate()
+	const location = useLocation()
+	const initialEmail: string = location.state?.email ?? ''
 	const [loading, setLoading] = useState(false)
-	const [initialEmail] = useQueryParam('email', StringParam)
 	const formState = useFormState({
 		defaultValues: {
 			email: initialEmail ?? '',
@@ -56,9 +56,9 @@ export const ResetPassword: React.FC = () => {
 						)
 
 						setTimeout(() => {
-							navigate(
-								`${SIGN_IN_ROUTE}?email=${formState.values.email}`,
-							)
+							navigate(SIGN_IN_ROUTE, {
+								state: { email: formState.values.email },
+							})
 						}, 1000)
 					})
 			}}
@@ -76,9 +76,11 @@ export const ResetPassword: React.FC = () => {
 								/>
 							}
 							onClick={() => {
-								navigate(
-									`${SIGN_IN_ROUTE}?email=${formState.values.email}`,
-								)
+								navigate(SIGN_IN_ROUTE, {
+									state: {
+										email: formState.values.email,
+									},
+								})
 							}}
 						/>
 					</Box>

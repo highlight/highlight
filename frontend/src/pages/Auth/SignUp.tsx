@@ -20,19 +20,17 @@ import { message } from 'antd'
 import firebase from 'firebase/app'
 import React, { useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { StringParam, useQueryParam } from 'use-query-params'
 
 export const SignUp: React.FC = () => {
 	const navigate = useNavigate()
 	const location = useLocation()
+	const initialEmail: string = location.state?.email ?? ''
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
-	const [initialEmail] = useQueryParam('email', StringParam)
-	debugger
 	const formState = useFormState({
 		defaultValues: {
-			email: initialEmail ?? '',
+			email: initialEmail,
 			password: '',
 		},
 	})
@@ -44,7 +42,7 @@ export const SignUp: React.FC = () => {
 		onCompleted: (data) => {
 			if (
 				data?.workspace_for_invite_link.invitee_email &&
-				!formState.values.email
+				!initialEmail
 			) {
 				formState.setValue(
 					'email',
@@ -112,7 +110,8 @@ export const SignUp: React.FC = () => {
 						<Text>
 							Have an account?{' '}
 							<Link
-								to={`${SIGN_IN_ROUTE}?email=${formState.values.email}`}
+								to={SIGN_IN_ROUTE}
+								state={{ email: formState.values.email }}
 							>
 								Sign in
 							</Link>
