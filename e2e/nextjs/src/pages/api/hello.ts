@@ -7,9 +7,12 @@ type Data = {
 }
 
 function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+	console.log('hey handler')
+	console.warn('warning!')
 	if (Math.random() < 0.25) {
 		throw new Error(`a random api error occurred! ${Math.random()}`)
 	}
+	console.error(`whoa there! ${Math.random()}`)
 	res.status(200).json({ name: 'John Doe' })
 }
 

@@ -5,70 +5,76 @@ import (
 	"testing"
 
 	"github.com/go-test/deep"
-	"github.com/highlight-run/highlight/backend/model"
 	modelInput "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModelInput "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	storage "github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 )
 
+type Testcase struct {
+	stackFrameInput    []*publicModelInput.StackFrameInput
+	expectedStackTrace []modelInput.ErrorTrace
+	fetcher            fetcher
+	version            string
+	err                error
+}
+
+var proper = Testcase{
+	stackFrameInput: []*publicModelInput.StackFrameInput{
+		{
+			FileName:     util.MakeStringPointer("./test-files/lodash.min.js?400"),
+			LineNumber:   util.MakeIntPointer(1),
+			ColumnNumber: util.MakeIntPointer(813),
+		},
+		{
+			FileName:     util.MakeStringPointer("./test-files/lodash.min.js?ts=123&foo=bar"),
+			LineNumber:   util.MakeIntPointer(1),
+			ColumnNumber: util.MakeIntPointer(799),
+		},
+		{
+			FileName:     util.MakeStringPointer("./test-files/vendors.js"),
+			LineNumber:   util.MakeIntPointer(1),
+			ColumnNumber: util.MakeIntPointer(422367),
+		},
+	},
+	expectedStackTrace: []modelInput.ErrorTrace{
+		{
+			FileName:     util.MakeStringPointer("lodash.js"),
+			LineNumber:   util.MakeIntPointer(634),
+			ColumnNumber: util.MakeIntPointer(4),
+			FunctionName: util.MakeStringPointer(""),
+		},
+		{
+			FileName:     util.MakeStringPointer("lodash.js"),
+			LineNumber:   util.MakeIntPointer(633),
+			ColumnNumber: util.MakeIntPointer(11),
+			FunctionName: util.MakeStringPointer("arrayIncludesWith"),
+		},
+		{
+			FileName:     util.MakeStringPointer("pages/Buttons/Buttons.tsx"),
+			LineNumber:   util.MakeIntPointer(13),
+			ColumnNumber: util.MakeIntPointer(30),
+			LineContent:  util.MakeStringPointer("                        throw new Error('errors page');\n"),
+			FunctionName: util.MakeStringPointer(""),
+			LinesBefore:  util.MakeStringPointer("        <div className={styles.buttonBody}>\n            <div>\n                <button\n                    className={commonStyles.submitButton}\n                    onClick={() => {\n"),
+			LinesAfter:   util.MakeStringPointer("                    }}\n                >\n                    Throw an Error\n                </button>\n                <button\n"),
+		},
+	},
+	fetcher: DiskFetcher{},
+	err:     e.New(""),
+}
+
 func TestEnhanceStackTrace(t *testing.T) {
 	ctx := context.TODO()
 	stackTraceErrorCode := modelInput.SourceMappingErrorCodeMinifiedFileMissingInS3AndURL
+	properVersioned := proper
+	properVersioned.version = "foo/bar/baz"
 
 	// construct table of sub-tests to run
-	tests := map[string]struct {
-		stackFrameInput     []*publicModelInput.StackFrameInput
-		expectedErrorObject model.ErrorObject
-		expectedStackTrace  []modelInput.ErrorTrace
-		fetcher             fetcher
-		err                 error
-	}{
-		"test source mapping with proper stack trace": {
-			stackFrameInput: []*publicModelInput.StackFrameInput{
-				{
-					FileName:     util.MakeStringPointer("./test-files/lodash.min.js?400"),
-					LineNumber:   util.MakeIntPointer(1),
-					ColumnNumber: util.MakeIntPointer(813),
-				},
-				{
-					FileName:     util.MakeStringPointer("./test-files/lodash.min.js?ts=123&foo=bar"),
-					LineNumber:   util.MakeIntPointer(1),
-					ColumnNumber: util.MakeIntPointer(799),
-				},
-				{
-					FileName:     util.MakeStringPointer("./test-files/vendors.js"),
-					LineNumber:   util.MakeIntPointer(1),
-					ColumnNumber: util.MakeIntPointer(422367),
-				},
-			},
-			expectedStackTrace: []modelInput.ErrorTrace{
-				{
-					FileName:     util.MakeStringPointer("lodash.js"),
-					LineNumber:   util.MakeIntPointer(634),
-					ColumnNumber: util.MakeIntPointer(4),
-					FunctionName: util.MakeStringPointer(""),
-				},
-				{
-					FileName:     util.MakeStringPointer("lodash.js"),
-					LineNumber:   util.MakeIntPointer(633),
-					ColumnNumber: util.MakeIntPointer(11),
-					FunctionName: util.MakeStringPointer("arrayIncludesWith"),
-				},
-				{
-					FileName:     util.MakeStringPointer("pages/Buttons/Buttons.tsx"),
-					LineNumber:   util.MakeIntPointer(13),
-					ColumnNumber: util.MakeIntPointer(30),
-					LineContent:  util.MakeStringPointer("                        throw new Error('errors page');\n"),
-					FunctionName: util.MakeStringPointer(""),
-					LinesBefore:  util.MakeStringPointer("        <div className={styles.buttonBody}>\n            <div>\n                <button\n                    className={commonStyles.submitButton}\n                    onClick={() => {\n"),
-					LinesAfter:   util.MakeStringPointer("                    }}\n                >\n                    Throw an Error\n                </button>\n                <button\n"),
-				},
-			},
-			fetcher: DiskFetcher{},
-			err:     e.New(""),
-		},
+	tests := map[string]Testcase{
+		"test source mapping with proper stack trace":               proper,
+		"test source mapping with proper stack trace weird version": properVersioned,
 		"test source mapping with proper stack trace with network fetcher": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
@@ -215,7 +221,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 		t.Fatalf("error creating storage client: %v", err)
 	}
 
-	fsClient, err := storage.NewFSClient(ctx, "/tmp", "", "", "8083")
+	fsClient, err := storage.NewFSClient(ctx, "https://localhost:8082/public", "")
 	if err != nil {
 		t.Fatalf("error creating storage client: %v", err)
 	}
@@ -224,8 +230,12 @@ func TestEnhanceStackTrace(t *testing.T) {
 	for _, client := range []storage.Client{s3Client, fsClient} {
 		for name, tc := range tests {
 			t.Run(name, func(t *testing.T) {
+				var v *string
+				if tc.version != "" {
+					v = &tc.version
+				}
 				fetch = tc.fetcher
-				mappedStackTrace, err := EnhanceStackTrace(ctx, tc.stackFrameInput, 1, nil, client)
+				mappedStackTrace, err := EnhanceStackTrace(ctx, tc.stackFrameInput, 1, v, client)
 				if err != nil {
 					if err.Error() == tc.err.Error() {
 						return

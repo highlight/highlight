@@ -753,6 +753,17 @@ query GetWorkspace($id: ID!) {
 	}
 }
 
+query GetWorkspaceForInviteLink($secret: String!) {
+	workspace_for_invite_link(secret: $secret) {
+		expiration_date
+		existing_account
+		invitee_email
+		secret
+		workspace_id
+		workspace_name
+	}
+}
+
 query GetWorkspaces {
 	workspaces {
 		id
@@ -960,9 +971,11 @@ query GetBillingDetails($workspace_id: ID!) {
 			quota
 			interval
 			membersLimit
+			errorsLimit
 		}
 		meter
 		membersMeter
+		errorsMeter
 	}
 	workspace(id: $workspace_id) {
 		id
@@ -971,6 +984,7 @@ query GetBillingDetails($workspace_id: ID!) {
 		next_invoice_date
 		allow_meter_overage
 		eligible_for_trial_extension
+		retention_period
 	}
 }
 
@@ -1848,12 +1862,24 @@ query GetEmailOptOuts($token: String, $admin_id: ID) {
 	email_opt_outs(token: $token, admin_id: $admin_id)
 }
 
-query GetLogs($project_id: ID!, $params: LogsParamsInput!) {
-	logs(project_id: $project_id, params: $params) {
-		timestamp
-		severityText
-		body
-		logAttributes
+query GetLogs($project_id: ID!, $params: LogsParamsInput!, $after: String) {
+	logs(project_id: $project_id, params: $params, after: $after) {
+		edges {
+			cursor
+			node {
+				timestamp
+				severityText
+				body
+				logAttributes
+				traceID
+				spanID
+				secureSessionID
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
 	}
 }
 
@@ -1866,4 +1892,8 @@ query GetLogsKeys($project_id: ID!) {
 		name
 		type
 	}
+}
+
+query GetLogsKeyValues($project_id: ID!, $key_name: String!) {
+	logs_key_values(project_id: $project_id, key_name: $key_name)
 }

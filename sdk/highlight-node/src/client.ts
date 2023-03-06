@@ -8,17 +8,11 @@ import {
 import { GraphQLClient } from 'graphql-request'
 import { NodeOptions } from './types.js'
 import log from './log'
-
 import * as opentelemetry from '@opentelemetry/sdk-node'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import {
-	diag,
-	DiagConsoleLogger,
-	DiagLogLevel,
-	trace,
-	Tracer,
-} from '@opentelemetry/api'
+import { trace, Tracer } from '@opentelemetry/api'
+import { hookConsole } from './hooks'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -39,14 +33,15 @@ export class Highlight {
 		this._debug = !!options.debug
 		this._projectID = options.projectID
 		this._backendUrl = options.backendUrl || 'https://pub.highlight.run'
+		if (!options.disableConsoleRecording) {
+			hookConsole(options.consoleMethodsToRecord, (c) => {
+				this.log(c.date, c.message, c.level, c.stack)
+			})
+		}
 		const client = new GraphQLClient(this._backendUrl, {
 			headers: {},
 		})
 		this._graphqlSdk = getSdk(client)
-
-		if (options.debug) {
-			diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG)
-		}
 
 		this.tracer = trace.getTracer('highlight-node')
 		const exporter = new OTLPTraceExporter({
@@ -101,6 +96,40 @@ export class Highlight {
 		})
 	}
 
+	log(
+		date: Date,
+		msg: string,
+		level: string,
+		stack: object,
+		secureSessionId?: string,
+		requestId?: string,
+	) {
+		if (!this.tracer) return
+		const span = this.tracer.startSpan('highlight-ctx')
+		// log specific events from https://github.com/highlight/highlight/blob/19ea44c616c432ef977c73c888c6dfa7d6bc82f3/sdk/highlight-go/otel.go#L34-L36
+		span.addEvent(
+			'log',
+			{
+				['highlight.project_id']: this._projectID,
+				['code.stack']: JSON.stringify(stack),
+				['log.severity']: level,
+				['log.message']: msg,
+				...(secureSessionId
+					? {
+							['highlight.session_id']: secureSessionId,
+					  }
+					: {}),
+				...(requestId
+					? {
+							['highlight.trace_id']: requestId,
+					  }
+					: {}),
+			},
+			date,
+		)
+		span.end()
+	}
+
 	consumeCustomError(
 		error: Error,
 		secureSessionId: string | undefined,
@@ -114,9 +143,9 @@ export class Highlight {
 		}
 		span.recordException(error)
 		span.setAttributes({
-			highlight_project_id: this._projectID,
-			highlight_session_id: secureSessionId,
-			highlight_trace_id: requestId,
+			['highlight.project_id']: this._projectID,
+			['highlight.session_id']: secureSessionId,
+			['highlight.trace_id']: requestId,
 		})
 		if (spanCreated) {
 			span.end()

@@ -18,6 +18,7 @@ export const iconVariants = recipe({
 		cursor: 'pointer',
 		display: 'inline-flex',
 		justifyContent: 'center',
+		flexShrink: 0,
 		selectors: {
 			'&[disabled]': {
 				color: vars.theme.interactive.fill.primary.disabled,

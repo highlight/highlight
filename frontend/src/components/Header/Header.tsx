@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
+import CommandBar from '@components/CommandBar/CommandBar'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -7,10 +8,12 @@ import {
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
 import Notifications from '@components/Header/Notifications/NotificationsV2'
 import { linkStyle } from '@components/Header/styles.css'
+import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
 import { Maybe, PlanType, Project } from '@graph/schemas'
 import {
+	Badge,
 	Box,
 	IconSolidArrowSmLeft,
 	IconSolidAtSymbol,
@@ -24,6 +27,7 @@ import {
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidQuestionMarkCircle,
+	IconSolidSearch,
 	IconSolidSpeakerphone,
 	IconSolidSwitchHorizontal,
 	IconSolidUserCircle,
@@ -38,7 +42,6 @@ import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
 import { useBillingHook } from '@pages/Billing/Billing'
 import { getTrialEndDateMessage } from '@pages/Billing/utils/utils'
-import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch'
 import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
@@ -58,7 +61,7 @@ import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
-import { CommandBar } from './CommandBar/CommandBar'
+import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.scss'
 
 export const Header = () => {
@@ -74,7 +77,8 @@ export const Header = () => {
 	const parts = pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
 
-	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
+	const { toggleShowKeyboardShortcutsGuide, commandBarDialog } =
+		useGlobalContext()
 	const { admin } = useAuthContext()
 
 	const pages = [
@@ -91,7 +95,11 @@ export const Header = () => {
 			icon: IconSolidSpeakerphone,
 		},
 	]
-	if (isHighlightAdmin) {
+	if (
+		isHighlightAdmin ||
+		projectIdRemapped === '759' ||
+		projectIdRemapped === '1434'
+	) {
 		pages.splice(2, 0, {
 			key: 'logs',
 			icon: IconSolidViewList,
@@ -104,6 +112,7 @@ export const Header = () => {
 	return (
 		<>
 			<CommandBar />
+			<CommandBarV1 />
 			<Box background="n2" borderBottom="secondary">
 				{!!project_id && getBanner(project_id)}
 				<Box
@@ -320,9 +329,23 @@ export const Header = () => {
 							width="full"
 						>
 							{!!project_id && (
-								<Box className={styles.quicksearchWrapper}>
-									<QuickSearch />
-								</Box>
+								<Button
+									trackingId="quickSearchClicked"
+									kind="secondary"
+									size="small"
+									emphasis="high"
+									iconLeft={<IconSolidSearch />}
+									onClick={commandBarDialog.toggle}
+								>
+									<Badge
+										variant="outlineGray"
+										shape="basic"
+										size="small"
+										label={OpenCommandBarShortcut.shortcut.join(
+											'+',
+										)}
+									/>
+								</Button>
 							)}
 							<Box display="flex" alignItems="center" gap="4">
 								<Button
@@ -612,6 +635,14 @@ const BillingBanner = () => {
 		setHasReportedTrialExtension,
 	])
 
+	const isMaintenance = moment().isBetween(
+		'2023-03-05T23:30:00Z',
+		'2023-03-06T01:45:00Z',
+	)
+	if (isMaintenance) {
+		return <MaintenanceBanner />
+	}
+
 	if (billingIssues) {
 		toggleShowBanner(true)
 		return <BillingIssuesBanner />
@@ -842,6 +873,33 @@ const HighlightRoadshowBanner = () => {
 
 	return (
 		<div className={clsx(styles.trialWrapper, styles.youtube)}>
+			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
+		</div>
+	)
+}
+
+const MaintenanceBanner = () => {
+	const { toggleShowBanner } = useGlobalContext()
+
+	toggleShowBanner(true)
+
+	const bannerMessage = (
+		<span>
+			We are performance maintenance which may result in delayed data.
+			Apologies for the inconvenience.{' '}
+			<a
+				target="_blank"
+				href="https://highlight.io/community"
+				className={styles.trialLink}
+				rel="noreferrer"
+			>
+				Follow on Discord #incidents for updates.
+			</a>
+		</span>
+	)
+
+	return (
+		<div className={clsx(styles.trialWrapper, styles.maintenance)}>
 			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
 		</div>
 	)

@@ -111,6 +111,7 @@ export type AverageSessionLength = {
 
 export type BillingDetails = {
 	__typename?: 'BillingDetails'
+	errorsMeter: Scalars['Int64']
 	membersMeter: Scalars['Int64']
 	meter: Scalars['Int64']
 	plan: Plan
@@ -655,6 +656,23 @@ export type LinearTeam = {
 	team_id: Scalars['String']
 }
 
+export type Log = {
+	__typename?: 'Log'
+	body: Scalars['String']
+	logAttributes: Scalars['Map']
+	secureSessionID?: Maybe<Scalars['String']>
+	severityText: SeverityText
+	spanID?: Maybe<Scalars['String']>
+	timestamp: Scalars['Timestamp']
+	traceID?: Maybe<Scalars['String']>
+}
+
+export type LogEdge = {
+	__typename?: 'LogEdge'
+	cursor: Scalars['String']
+	node: Log
+}
+
 export type LogKey = {
 	__typename?: 'LogKey'
 	name: Scalars['String']
@@ -665,17 +683,33 @@ export enum LogKeyType {
 	String = 'String',
 }
 
-export type LogLine = {
-	__typename?: 'LogLine'
-	body: Scalars['String']
-	logAttributes: Scalars['Map']
+export type LogsHistogram = {
+	__typename?: 'LogsHistogram'
+	buckets: Array<LogsHistogramBucket>
+	totalCount: Scalars['UInt64']
+}
+
+export type LogsHistogramBucket = {
+	__typename?: 'LogsHistogramBucket'
+	bucketId: Scalars['UInt64']
+	counts: Array<LogsHistogramBucketCount>
+}
+
+export type LogsHistogramBucketCount = {
+	__typename?: 'LogsHistogramBucketCount'
+	count: Scalars['UInt64']
 	severityText: SeverityText
-	timestamp: Scalars['Timestamp']
 }
 
 export type LogsParamsInput = {
 	date_range: DateRangeRequiredInput
 	query: Scalars['String']
+}
+
+export type LogsPayload = {
+	__typename?: 'LogsPayload'
+	edges: Array<LogEdge>
+	pageInfo: PageInfo
 }
 
 export type Metric = {
@@ -798,7 +832,6 @@ export type Mutation = {
 	replyToErrorComment?: Maybe<CommentReply>
 	replyToSessionComment?: Maybe<CommentReply>
 	requestAccess?: Maybe<Scalars['Boolean']>
-	sendAdminProjectInvite?: Maybe<Scalars['String']>
 	sendAdminWorkspaceInvite?: Maybe<Scalars['String']>
 	submitRegistrationForm?: Maybe<Scalars['Boolean']>
 	syncSlackIntegration: SlackSyncResponse
@@ -929,6 +962,7 @@ export type MutationCreateMetricMonitorArgs = {
 export type MutationCreateOrUpdateStripeSubscriptionArgs = {
 	interval: SubscriptionInterval
 	plan_type: PlanType
+	retention_period: RetentionPeriod
 	workspace_id: Scalars['ID']
 }
 
@@ -1134,12 +1168,6 @@ export type MutationRequestAccessArgs = {
 	project_id: Scalars['ID']
 }
 
-export type MutationSendAdminProjectInviteArgs = {
-	base_url: Scalars['String']
-	email: Scalars['String']
-	project_id: Scalars['ID']
-}
-
 export type MutationSendAdminWorkspaceInviteArgs = {
 	base_url: Scalars['String']
 	email: Scalars['String']
@@ -1329,8 +1357,15 @@ export enum OpenSearchCalendarInterval {
 	Year = 'year',
 }
 
+export type PageInfo = {
+	__typename?: 'PageInfo'
+	endCursor: Scalars['String']
+	hasNextPage: Scalars['Boolean']
+}
+
 export type Plan = {
 	__typename?: 'Plan'
+	errorsLimit: Scalars['Int']
 	interval: SubscriptionInterval
 	membersLimit?: Maybe<Scalars['Int']>
 	quota: Scalars['Int']
@@ -1341,6 +1376,7 @@ export enum PlanType {
 	Basic = 'Basic',
 	Enterprise = 'Enterprise',
 	Free = 'Free',
+	Lite = 'Lite',
 	Startup = 'Startup',
 }
 
@@ -1424,7 +1460,8 @@ export type Query = {
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
-	logs: Array<LogLine>
+	logs: LogsPayload
+	logs_histogram: LogsHistogram
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<LogKey>
 	logs_total_count: Scalars['UInt64']
@@ -1478,6 +1515,7 @@ export type Query = {
 	workspaceSuggestion: Array<Maybe<Workspace>>
 	workspace_admins: Array<WorkspaceAdminRole>
 	workspace_admins_by_project_id: Array<WorkspaceAdminRole>
+	workspace_for_invite_link: WorkspaceForInviteLink
 	workspace_for_project?: Maybe<Workspace>
 	workspace_invite_links: WorkspaceInviteLink
 	workspaces?: Maybe<Array<Maybe<Workspace>>>
@@ -1753,6 +1791,12 @@ export type QueryLiveUsersCountArgs = {
 }
 
 export type QueryLogsArgs = {
+	after?: InputMaybe<Scalars['String']>
+	params: LogsParamsInput
+	project_id: Scalars['ID']
+}
+
+export type QueryLogs_HistogramArgs = {
 	params: LogsParamsInput
 	project_id: Scalars['ID']
 }
@@ -1989,6 +2033,10 @@ export type QueryWorkspace_Admins_By_Project_IdArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryWorkspace_For_Invite_LinkArgs = {
+	secret: Scalars['String']
+}
+
 export type QueryWorkspace_For_ProjectArgs = {
 	project_id: Scalars['ID']
 }
@@ -2020,6 +2068,21 @@ export type ReferrerTablePayload = {
 	count: Scalars['Int']
 	host: Scalars['String']
 	percent: Scalars['Float']
+}
+
+export enum ReservedLogKey {
+	/** Keep this in alpha order */
+	Level = 'level',
+	SecureSessionId = 'secure_session_id',
+	SpanId = 'span_id',
+	TraceId = 'trace_id',
+}
+
+export enum RetentionPeriod {
+	SixMonths = 'SixMonths',
+	ThreeMonths = 'ThreeMonths',
+	TwelveMonths = 'TwelveMonths',
+	TwoYears = 'TwoYears',
 }
 
 export type S3File = {
@@ -2449,6 +2512,7 @@ export type Workspace = {
 	next_invoice_date?: Maybe<Scalars['Timestamp']>
 	plan_tier: Scalars['String']
 	projects: Array<Maybe<Project>>
+	retention_period?: Maybe<RetentionPeriod>
 	secret?: Maybe<Scalars['String']>
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>
@@ -2461,6 +2525,16 @@ export type WorkspaceAdminRole = {
 	__typename?: 'WorkspaceAdminRole'
 	admin: Admin
 	role: Scalars['String']
+}
+
+export type WorkspaceForInviteLink = {
+	__typename?: 'WorkspaceForInviteLink'
+	existing_account: Scalars['Boolean']
+	expiration_date?: Maybe<Scalars['Timestamp']>
+	invitee_email?: Maybe<Scalars['String']>
+	secret: Scalars['String']
+	workspace_id: Scalars['ID']
+	workspace_name: Scalars['String']
 }
 
 export type WorkspaceInviteLink = {

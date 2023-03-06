@@ -73,6 +73,7 @@ type BillingDetails struct {
 	Meter              int64 `json:"meter"`
 	MembersMeter       int64 `json:"membersMeter"`
 	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
+	ErrorsMeter        int64 `json:"errorsMeter"`
 }
 
 type CategoryHistogramBucket struct {
@@ -351,21 +352,49 @@ type LinearTeam struct {
 	Key    string `json:"key"`
 }
 
+type Log struct {
+	Timestamp       time.Time              `json:"timestamp"`
+	SeverityText    SeverityText           `json:"severityText"`
+	Body            string                 `json:"body"`
+	LogAttributes   map[string]interface{} `json:"logAttributes"`
+	TraceID         *string                `json:"traceID"`
+	SpanID          *string                `json:"spanID"`
+	SecureSessionID *string                `json:"secureSessionID"`
+}
+
+type LogEdge struct {
+	Cursor string `json:"cursor"`
+	Node   *Log   `json:"node"`
+}
+
 type LogKey struct {
 	Name string     `json:"name"`
 	Type LogKeyType `json:"type"`
 }
 
-type LogLine struct {
-	Timestamp     time.Time              `json:"timestamp"`
-	SeverityText  SeverityText           `json:"severityText"`
-	Body          string                 `json:"body"`
-	LogAttributes map[string]interface{} `json:"logAttributes"`
+type LogsHistogram struct {
+	Buckets    []*LogsHistogramBucket `json:"buckets"`
+	TotalCount uint64                 `json:"totalCount"`
+}
+
+type LogsHistogramBucket struct {
+	BucketID uint64                      `json:"bucketId"`
+	Counts   []*LogsHistogramBucketCount `json:"counts"`
+}
+
+type LogsHistogramBucketCount struct {
+	Count        uint64       `json:"count"`
+	SeverityText SeverityText `json:"severityText"`
 }
 
 type LogsParamsInput struct {
 	Query     string                  `json:"query"`
 	DateRange *DateRangeRequiredInput `json:"date_range"`
+}
+
+type LogsPayload struct {
+	Edges    []*LogEdge `json:"edges"`
+	PageInfo *PageInfo  `json:"pageInfo"`
 }
 
 type MetricPreview struct {
@@ -405,11 +434,17 @@ type OAuthClient struct {
 	AppName   string    `json:"app_name"`
 }
 
+type PageInfo struct {
+	HasNextPage bool   `json:"hasNextPage"`
+	EndCursor   string `json:"endCursor"`
+}
+
 type Plan struct {
 	Type         PlanType             `json:"type"`
 	Interval     SubscriptionInterval `json:"interval"`
 	Quota        int                  `json:"quota"`
 	MembersLimit *int                 `json:"membersLimit"`
+	ErrorsLimit  int                  `json:"errorsLimit"`
 }
 
 type RageClickEventForProject struct {
@@ -576,6 +611,15 @@ type VercelProjectMappingInput struct {
 	VercelProjectID string  `json:"vercel_project_id"`
 	NewProjectName  *string `json:"new_project_name"`
 	ProjectID       *int    `json:"project_id"`
+}
+
+type WorkspaceForInviteLink struct {
+	ExpirationDate  *time.Time `json:"expiration_date"`
+	InviteeEmail    *string    `json:"invitee_email"`
+	Secret          string     `json:"secret"`
+	WorkspaceID     int        `json:"workspace_id"`
+	WorkspaceName   string     `json:"workspace_name"`
+	ExistingAccount bool       `json:"existing_account"`
 }
 
 type DashboardChartType string
@@ -1056,6 +1100,7 @@ type PlanType string
 
 const (
 	PlanTypeFree       PlanType = "Free"
+	PlanTypeLite       PlanType = "Lite"
 	PlanTypeBasic      PlanType = "Basic"
 	PlanTypeStartup    PlanType = "Startup"
 	PlanTypeEnterprise PlanType = "Enterprise"
@@ -1063,6 +1108,7 @@ const (
 
 var AllPlanType = []PlanType{
 	PlanTypeFree,
+	PlanTypeLite,
 	PlanTypeBasic,
 	PlanTypeStartup,
 	PlanTypeEnterprise,
@@ -1070,7 +1116,7 @@ var AllPlanType = []PlanType{
 
 func (e PlanType) IsValid() bool {
 	switch e {
-	case PlanTypeFree, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise:
+	case PlanTypeFree, PlanTypeLite, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise:
 		return true
 	}
 	return false
@@ -1094,6 +1140,97 @@ func (e *PlanType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PlanType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ReservedLogKey string
+
+const (
+	// Keep this in alpha order
+	ReservedLogKeyLevel           ReservedLogKey = "level"
+	ReservedLogKeySecureSessionID ReservedLogKey = "secure_session_id"
+	ReservedLogKeySpanID          ReservedLogKey = "span_id"
+	ReservedLogKeyTraceID         ReservedLogKey = "trace_id"
+)
+
+var AllReservedLogKey = []ReservedLogKey{
+	ReservedLogKeyLevel,
+	ReservedLogKeySecureSessionID,
+	ReservedLogKeySpanID,
+	ReservedLogKeyTraceID,
+}
+
+func (e ReservedLogKey) IsValid() bool {
+	switch e {
+	case ReservedLogKeyLevel, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID:
+		return true
+	}
+	return false
+}
+
+func (e ReservedLogKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedLogKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedLogKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedLogKey", str)
+	}
+	return nil
+}
+
+func (e ReservedLogKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type RetentionPeriod string
+
+const (
+	RetentionPeriodThreeMonths  RetentionPeriod = "ThreeMonths"
+	RetentionPeriodSixMonths    RetentionPeriod = "SixMonths"
+	RetentionPeriodTwelveMonths RetentionPeriod = "TwelveMonths"
+	RetentionPeriodTwoYears     RetentionPeriod = "TwoYears"
+)
+
+var AllRetentionPeriod = []RetentionPeriod{
+	RetentionPeriodThreeMonths,
+	RetentionPeriodSixMonths,
+	RetentionPeriodTwelveMonths,
+	RetentionPeriodTwoYears,
+}
+
+func (e RetentionPeriod) IsValid() bool {
+	switch e {
+	case RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears:
+		return true
+	}
+	return false
+}
+
+func (e RetentionPeriod) String() string {
+	return string(e)
+}
+
+func (e *RetentionPeriod) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RetentionPeriod(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid RetentionPeriod", str)
+	}
+	return nil
+}
+
+func (e RetentionPeriod) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

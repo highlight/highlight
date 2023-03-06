@@ -1,5 +1,4 @@
 import contextlib
-import functools
 import logging
 import typing
 
@@ -75,6 +74,10 @@ class H(object):
         for integration in self._integrations:
             integration.enable()
 
+    def flush(self):
+        self._trace_provider.force_flush()
+        self._log_provider.force_flush()
+
     @contextlib.contextmanager
     def trace(
         self,
@@ -100,9 +103,9 @@ class H(object):
         :return: None
         """
         with self.tracer.start_as_current_span("highlight-ctx") as span:
-            span.set_attributes({"highlight_project_id": self._project_id})
-            span.set_attributes({"highlight_session_id": session_id})
-            span.set_attributes({"highlight_trace_id": request_id})
+            span.set_attributes({"highlight.project_id": self._project_id})
+            span.set_attributes({"highlight.session_id": session_id})
+            span.set_attributes({"highlight.trace_id": request_id})
             try:
                 yield
             except Exception as e:
@@ -146,6 +149,7 @@ class H(object):
             attributes["code.namespace"] = record.module
             attributes["code.filepath"] = record.pathname
             attributes["code.lineno"] = record.lineno
+            attributes.update(record.args or {})
             r = LogRecord(
                 timestamp=ts,
                 trace_id=ctx.trace_id,

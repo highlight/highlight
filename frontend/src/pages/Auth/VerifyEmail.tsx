@@ -8,7 +8,6 @@ import { Box, Stack, Text } from '@highlight-run/ui'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
 import { auth } from '@util/auth'
-import { showIntercom } from '@util/window'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -17,8 +16,10 @@ import * as styles from './AuthRouter.css'
 
 export const VerifyEmail: React.FC = () => {
 	const { setLoadingState } = useAppLoadingContext()
-	const { data, stopPolling } = useGetAdminQuery({
-		pollInterval: 1000,
+	// Want to use pollInterval but it is not working in React v18. More info:
+	// https://github.com/apollographql/apollo-client/issues/9819
+	const { data, startPolling, stopPolling } = useGetAdminQuery({
+		nextFetchPolicy: 'network-only',
 	})
 	const [loading, setLoading] = useState(false)
 	const navigate = useNavigate()
@@ -29,14 +30,22 @@ export const VerifyEmail: React.FC = () => {
 			stopPolling()
 			navigate('/about_you')
 		} else {
-			// Show the Intercom message after 5 seconds in case the user needs help.
-			setTimeout(showIntercom, 5000)
+			startPolling(1000)
 		}
-	}, [isEmailVerified, navigate, stopPolling])
+	}, [isEmailVerified, navigate, startPolling, stopPolling])
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
-	}, [setLoadingState])
+
+		// Show the Intercom message after 5 seconds in case the user needs help.
+		setTimeout(() => {
+			window.Intercom('update', {
+				hide_default_launcher: false,
+			})
+		}, 5000)
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	return (
 		<Landing>

@@ -100,6 +100,13 @@ export const getHighlightRequestId = (resource?: NetworkResource) => {
 	return resource?.requestResponsePairs?.request?.id
 }
 
+export enum Tab {
+	Errors = 'Errors',
+	Console = 'Console',
+	Network = 'Network',
+	Events = 'Events',
+}
+
 export enum LogLevel {
 	All = 'All',
 	Info = 'Info',
@@ -118,37 +125,32 @@ export const LogLevelVariants = {
 
 export enum RequestType {
 	All = 'All',
-	Link = 'Link',
-	Script = 'Script',
-	Other = 'Other',
-	XHR = 'XHR',
-	CSS = 'CSS',
-	iFrame = 'iFrame',
-	Fetch = 'Fetch',
-	Img = 'Img',
+	Link = 'link',
+	Script = 'script',
+	Other = 'other',
+	XHR = 'xmlhttprequest',
+	CSS = 'css',
+	iFrame = 'iframe', // didn't find a request to verify that 'iframe' is what is actually received
+	Fetch = 'fetch',
+	Img = 'img',
 }
 
-export enum Tab {
-	Errors = 'Errors',
-	Console = 'Console',
-	Network = 'Network',
-	Events = 'Events',
-}
-
-const DISPLAY_NAMES: { [key: string]: string } = {
-	iframe: 'iFrame',
-	other: 'Other',
-	css: 'CSS',
-	xmlhttprequest: 'XHR',
-	script: 'Script',
+export const NETWORK_REQUEST_DISPLAY_NAMES: { [key: string]: string } = {
+	All: 'All',
 	link: 'Link',
+	script: 'Script',
+	other: 'Other',
+	xmlhttprequest: 'XHR',
+	css: 'CSS',
+	iframe: 'iFrame',
 	fetch: 'Fetch',
+	img: 'Img',
 } as const
 
 export const getNetworkResourcesDisplayName = (value: string): string => {
 	switch (true) {
-		case value in DISPLAY_NAMES: {
-			return DISPLAY_NAMES[value]
+		case value in NETWORK_REQUEST_DISPLAY_NAMES: {
+			return NETWORK_REQUEST_DISPLAY_NAMES[value]
 		}
 		default:
 			return value?.charAt(0).toUpperCase() + value?.slice(1)

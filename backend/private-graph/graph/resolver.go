@@ -140,6 +140,77 @@ func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) 
 	})
 }
 
+func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
+	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.admin"))
+
+	admin := &model.Admin{UID: pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))}
+	tx := r.DB.Where(admin).
+		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "uid"}}, DoNothing: true}).
+		Create(&admin).
+		Attrs(&admin)
+	if tx.Error != nil {
+		spanError := e.Wrap(tx.Error, "error retrieving user from db")
+		adminSpan.Finish(tracer.WithError(spanError))
+		return nil, spanError
+	}
+	if tx.RowsAffected != 0 {
+		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
+			tracer.Tag("admin_uid", *admin.UID))
+		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
+		if err != nil {
+			spanError := e.Wrap(err, "error retrieving user from firebase api")
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			adminSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
+			UID:                   admin.UID,
+			Name:                  &firebaseUser.DisplayName,
+			Email:                 &firebaseUser.Email,
+			PhotoURL:              &firebaseUser.PhotoURL,
+			EmailVerified:         &firebaseUser.EmailVerified,
+			Phone:                 &firebaseUser.PhoneNumber,
+			AboutYouDetailsFilled: &model.F,
+		}).Error; err != nil {
+			spanError := e.Wrap(err, "error creating new admin")
+			adminSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		firebaseSpan.Finish()
+	}
+	if err := r.DB.Where(&model.Admin{UID: admin.UID}).First(&admin).Error; err != nil {
+		spanError := e.Wrap(err, "error fetching admin")
+		adminSpan.Finish(tracer.WithError(spanError))
+		return nil, spanError
+	}
+	if admin.PhotoURL == nil || admin.Name == nil {
+		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
+			tracer.Tag("admin_uid", *admin.UID))
+		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
+		if err != nil {
+			spanError := e.Wrap(err, "error retrieving user from firebase api")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
+			PhotoURL: &firebaseUser.PhotoURL,
+			Name:     &firebaseUser.DisplayName,
+			Phone:    &firebaseUser.PhoneNumber,
+		}).Error; err != nil {
+			spanError := e.Wrap(err, "error updating org fields")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		admin.PhotoURL = &firebaseUser.PhotoURL
+		admin.Name = &firebaseUser.DisplayName
+		admin.Phone = &firebaseUser.PhoneNumber
+		firebaseSpan.Finish()
+	}
+	return admin, nil
+}
+
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
 	return r.Query().Admin(ctx)
 }
@@ -160,10 +231,10 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 
 type HubspotApiInterface interface {
 	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (*int, error)
-	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) (*int, error)
-	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error
-	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error
-	UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error
+	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string, db *gorm.DB) (*int, error)
+	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int, db *gorm.DB) error
+	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property, db *gorm.DB) error
+	UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property, db *gorm.DB) error
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -1332,6 +1403,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 
 	// Default to free tier
 	tier := modelInputs.PlanTypeFree
+	retentionPeriod := modelInputs.RetentionPeriodSixMonths
 	unlimitedMembers := false
 	var billingPeriodStart *time.Time
 	var billingPeriodEnd *time.Time
@@ -1341,9 +1413,10 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 	// and set the workspace's tier if the Stripe product has one
 	for _, subscription := range subscriptions {
 		for _, subscriptionItem := range subscription.Items.Data {
-			if _, productTier, productUnlimitedMembers, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
+			if _, productTier, productUnlimitedMembers, _, priceRetentionPeriod := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
 				tier = *productTier
 				unlimitedMembers = productUnlimitedMembers
+				retentionPeriod = priceRetentionPeriod
 				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
 				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
 				nextInvoiceTimestamp := time.Unix(subscription.NextPendingInvoiceItemInvoice, 0)
@@ -1372,6 +1445,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 			"BillingPeriodStart": billingPeriodStart,
 			"BillingPeriodEnd":   billingPeriodEnd,
 			"NextInvoiceDate":    nextInvoiceDate,
+			"RetentionPeriod":    retentionPeriod,
 		}).Error; err != nil {
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
 	}
@@ -3119,11 +3193,84 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 	return
 }
 
-func FormatSessionsQuery(query string) string {
+func (r *Resolver) GetProjectRetentionDate(ctx context.Context, projectId int) (time.Time, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectId)
+	if err != nil {
+		return time.Time{}, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return GetRetentionDate(workspace.RetentionPeriod), nil
+}
+
+func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time {
+	retentionPeriod := modelInputs.RetentionPeriodSixMonths
+	if retentionPeriodPtr != nil {
+		retentionPeriod = *retentionPeriodPtr
+	}
+	switch retentionPeriod {
+	case modelInputs.RetentionPeriodThreeMonths:
+		return time.Now().AddDate(0, -3, 0)
+	case modelInputs.RetentionPeriodSixMonths:
+		return time.Now().AddDate(0, -6, 0)
+	case modelInputs.RetentionPeriodTwelveMonths:
+		return time.Now().AddDate(-1, 0, 0)
+	case modelInputs.RetentionPeriodTwoYears:
+		return time.Now().AddDate(-2, 0, 0)
+	}
+	return time.Now()
+}
+
+func FormatErrorInstancesQuery(query string, retentionDate time.Time) string {
 	return fmt.Sprintf(`
 	{
 		"bool": {
 		   "must": [
+			  {
+				"range": {
+					"timestamp": {
+					   "gt": "%s"
+					}
+				 }
+			  },
+			  %s
+		   ]
+		}
+	 }`, retentionDate.Format(time.RFC3339), query)
+}
+
+func FormatErrorGroupsQuery(query string, retentionDate time.Time) string {
+	return fmt.Sprintf(`
+	{
+		"bool": {
+		   "must": [
+			  {
+				"range": {
+					"updated_at": {
+					   "gt": "%s"
+					}
+				 }
+			  },
+			  %s
+		   ]
+		}
+	 }`, retentionDate.Format(time.RFC3339), query)
+}
+
+func FormatSessionsQuery(query string, retentionDate time.Time) string {
+	return fmt.Sprintf(`
+	{
+		"bool": {
+		   "must": [
+			  {
+				"range": {
+					"created_at": {
+					   "gt": "%s"
+					}
+				 }
+			  },
 			  {
 				 "bool": {
 					"must_not": [
@@ -3174,7 +3321,7 @@ func FormatSessionsQuery(query string) string {
 			  %s
 		   ]
 		}
-	 }`, query)
+	 }`, retentionDate.Format(time.RFC3339), query)
 }
 
 func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptions, field string, subAggregation *opensearch.TermsAggregation) *opensearch.DateHistogramAggregation {

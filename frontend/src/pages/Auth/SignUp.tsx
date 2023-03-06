@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { useGetWorkspaceForInviteLinkQuery } from '@graph/hooks'
 import {
 	Box,
 	Callout,
@@ -12,6 +13,7 @@ import {
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
+import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { message } from 'antd'
@@ -22,6 +24,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 export const SignUp: React.FC = () => {
 	const navigate = useNavigate()
 	const location = useLocation()
+	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
 	const formState = useFormState({
@@ -30,6 +33,21 @@ export const SignUp: React.FC = () => {
 			password: '',
 		},
 	})
+	const { data } = useGetWorkspaceForInviteLinkQuery({
+		variables: {
+			secret: inviteCode!,
+		},
+		skip: !inviteCode,
+		onCompleted: (data) => {
+			if (data?.workspace_for_invite_link.invitee_email) {
+				formState.setValue(
+					'email',
+					data?.workspace_for_invite_link.invitee_email,
+				)
+			}
+		},
+	})
+	const workspaceInvite = data?.workspace_for_invite_link
 
 	const handleSubmit = useCallback(
 		(credential: firebase.auth.UserCredential) => {
@@ -80,7 +98,11 @@ export const SignUp: React.FC = () => {
 				<Box mb="4">
 					<Stack direction="column" gap="16" align="center">
 						<SvgHighlightLogoOnLight height="48" width="48" />
-						<Heading level="h4">Welcome to Highlight.</Heading>
+						<Heading level="h4">
+							{workspaceInvite
+								? `You're invited to join ‘${workspaceInvite.workspace_name}’`
+								: 'Welcome to Highlight.'}
+						</Heading>
 						<Text>
 							Have an account?{' '}
 							<Link to={SIGN_IN_ROUTE}>Sign in</Link>.

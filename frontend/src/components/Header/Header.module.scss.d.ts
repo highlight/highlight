@@ -3,6 +3,7 @@ export const demoLink: string
 export const error: string
 export const homeLink: string
 export const logoWrapper: string
+export const maintenance: string
 export const productHunt: string
 export const quicksearchWrapper: string
 export const trialCloseStyle: string

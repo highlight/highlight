@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi"
 	"github.com/samber/lo"
 	"io"
 	"net/http"
@@ -80,7 +80,7 @@ type Client interface {
 	GetRawData(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType) (map[int]string, error)
 	GetSourceMapUploadUrl(ctx context.Context, key string) (string, error)
 	GetSourcemapFiles(ctx context.Context, projectId int, version *string) ([]s3Types.Object, error)
-	GetSourcemapVersions(ctx context.Context, projectId int) ([]s3Types.CommonPrefix, error)
+	GetSourcemapVersions(ctx context.Context, projectId int) ([]string, error)
 	PushCompressedFile(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType) (*int64, error)
 	PushFiles(ctx context.Context, sessionId, projectId int, payloadManager *payload.PayloadManager) (int64, error)
 	PushRawEvents(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType, events []redis.Z) error
@@ -98,11 +98,11 @@ type FilesystemClient struct {
 }
 
 func (f *FilesystemClient) GetDirectDownloadURL(_ context.Context, projectId int, sessionId int, payloadType PayloadType, chunkId *int) (*string, error) {
-	key := fmt.Sprintf("/direct/%d/%d/%v", sessionId, projectId, payloadType)
+	key := fmt.Sprintf("/direct/%d/%d/%v", projectId, sessionId, payloadType)
 	if chunkId != nil {
 		key = fmt.Sprintf("%s-%04d", key, *chunkId)
 	}
-
+	key = fmt.Sprintf("%s%s", f.origin, key)
 	return &key, nil
 }
 
@@ -188,21 +188,23 @@ func (f *FilesystemClient) GetSourcemapFiles(ctx context.Context, projectId int,
 	}), nil
 }
 
-func (f *FilesystemClient) GetSourcemapVersions(ctx context.Context, projectId int) ([]s3Types.CommonPrefix, error) {
+func (f *FilesystemClient) GetSourcemapVersions(ctx context.Context, projectId int) ([]string, error) {
 	dir, err := os.ReadDir(fmt.Sprintf("%s/sourcemaps/%d", f.fsRoot, projectId))
 	if err != nil {
 		log.WithContext(ctx).Warnf("error listing objects in fs: %s", err)
 		return nil, nil
 	}
-	return lo.Map(dir, func(t os.DirEntry, i int) s3Types.CommonPrefix {
-		return s3Types.CommonPrefix{
-			Prefix: pointy.String(t.Name()),
-		}
+	return lo.Map(dir, func(t os.DirEntry, i int) string {
+		return t.Name()
 	}), nil
 }
 
 func (f *FilesystemClient) PushCompressedFile(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType) (*int64, error) {
-	key := fmt.Sprintf("%s/%d/%d/%v", f.fsRoot, sessionId, projectId, payloadType)
+	_, err := file.Seek(0, io.SeekStart)
+	if err != nil {
+		return nil, errors.Wrap(err, "error seeking to beginning of file")
+	}
+	key := fmt.Sprintf("%s/%d/%d/%v", f.fsRoot, projectId, sessionId, payloadType)
 	size, err := f.writeFSBytes(ctx, key, file)
 	return &size, err
 }
@@ -294,7 +296,7 @@ func (f *FilesystemClient) ReadSourceMapFile(ctx context.Context, projectId int,
 }
 
 func (f *FilesystemClient) GetAssetURL(_ context.Context, projectId string, hashVal string) (string, error) {
-	return fmt.Sprintf("%s/assets/%s/%s", f.origin, projectId, hashVal), nil
+	return fmt.Sprintf("%s/direct/assets/%s/%s", f.origin, projectId, hashVal), nil
 }
 
 func (f *FilesystemClient) UploadAsset(ctx context.Context, uuid, _ string, reader io.Reader) error {
@@ -377,49 +379,34 @@ func (f *FilesystemClient) writeFSBytes(ctx context.Context, fp string, data io.
 	return n, err
 }
 
-func NewFSClient(ctx context.Context, fsRoot, certPath, keyPath, port string) (*FilesystemClient, error) {
-	f := FilesystemClient{
-		origin: fmt.Sprintf("https://localhost:%s", port),
-		fsRoot: fsRoot,
-	}
-	go func() {
-		r := chi.NewMux()
-		r.Route("/", func(r chi.Router) {
-			r.Get("/assets/{project-id}/{hash-val}", func(w http.ResponseWriter, r *http.Request) {
-				projectId := chi.URLParam(r, "project-id")
-				hashVal := chi.URLParam(r, "hash-val")
-				fp := fmt.Sprintf("%s/assets/%s/%s", fsRoot, projectId, hashVal)
-				http.ServeFile(w, r, fp)
-			})
-			r.Get("/direct/{session-id}/{project-id}/{payload-type}", func(w http.ResponseWriter, r *http.Request) {
-				sessionId := chi.URLParam(r, "session-id")
-				projectId := chi.URLParam(r, "project-id")
-				payloadType := chi.URLParam(r, "payload-type")
-				fp := fmt.Sprintf("%s/direct/%s/%s/%v", fsRoot, sessionId, projectId, payloadType)
-				http.ServeFile(w, r, fp)
-			})
-			r.Get("/direct/{session-id}/{project-id}/{payload-type}", func(w http.ResponseWriter, r *http.Request) {
-				sessionId := chi.URLParam(r, "session-id")
-				projectId := chi.URLParam(r, "project-id")
-				payloadType := chi.URLParam(r, "payload-type")
-				fp := fmt.Sprintf("%s/direct/%s/%s/%v", fsRoot, sessionId, projectId, payloadType)
-				http.ServeFile(w, r, fp)
-			})
-			r.Put("/sourcemap-upload/{key}", func(w http.ResponseWriter, r *http.Request) {
-				key := chi.URLParam(r, "key")
-				if err := f.handleUploadSourcemap(r.Context(), key, r.Body); err != nil {
-					http.Error(w, fmt.Sprintf("failed to upload sourcemap: %s", err), http.StatusBadRequest)
-				} else {
-					w.WriteHeader(http.StatusOK)
-				}
-			})
-		})
-		err := http.ListenAndServeTLS(":"+port, certPath, keyPath, r)
-		if err != nil {
-			log.WithContext(ctx).Error(err)
+func (f *FilesystemClient) SetupHTTPSListener(r chi.Router) {
+	r.Get("/direct/assets/{project-id}/{hash-val}", func(w http.ResponseWriter, r *http.Request) {
+		projectId := chi.URLParam(r, "project-id")
+		hashVal := chi.URLParam(r, "hash-val")
+		fp := fmt.Sprintf("%s/assets/%s/%s", f.fsRoot, projectId, hashVal)
+		http.ServeFile(w, r, fp)
+	})
+	r.Get("/direct/{project-id}/{session-id}/{payload-type}", func(w http.ResponseWriter, r *http.Request) {
+		projectId := chi.URLParam(r, "project-id")
+		sessionId := chi.URLParam(r, "session-id")
+		payloadType := chi.URLParam(r, "payload-type")
+		fp := fmt.Sprintf("%s/%s/%s/%v", f.fsRoot, projectId, sessionId, payloadType)
+		w.Header().Add("Content-Type", MIME_TYPE_JSON)
+		w.Header().Add("Content-Encoding", CONTENT_ENCODING_BROTLI)
+		http.ServeFile(w, r, fp)
+	})
+	r.Put("/sourcemap-upload/{key}", func(w http.ResponseWriter, r *http.Request) {
+		key := chi.URLParam(r, "key")
+		if err := f.handleUploadSourcemap(r.Context(), key, r.Body); err != nil {
+			http.Error(w, fmt.Sprintf("failed to upload sourcemap: %s", err), http.StatusBadRequest)
+		} else {
+			w.WriteHeader(http.StatusOK)
 		}
-	}()
-	return &f, nil
+	})
+}
+
+func NewFSClient(_ context.Context, origin, fsRoot string) (*FilesystemClient, error) {
+	return &FilesystemClient{origin: origin, fsRoot: fsRoot}, nil
 }
 
 type S3Client struct {
@@ -943,7 +930,7 @@ func (s *S3Client) GetSourcemapFiles(ctx context.Context, projectId int, version
 	return output.Contents, nil
 }
 
-func (s *S3Client) GetSourcemapVersions(ctx context.Context, projectId int) ([]s3Types.CommonPrefix, error) {
+func (s *S3Client) GetSourcemapVersions(ctx context.Context, projectId int) ([]string, error) {
 	output, err := s.S3ClientEast2.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
 		Bucket:    pointy.String(S3SourceMapBucketNameNew),
 		Prefix:    pointy.String(fmt.Sprintf("%d/", projectId)),
@@ -954,5 +941,7 @@ func (s *S3Client) GetSourcemapVersions(ctx context.Context, projectId int) ([]s
 		return nil, errors.Wrap(err, "error getting sourcemap app versions from s3")
 	}
 
-	return output.CommonPrefixes, nil
+	return lo.Map(output.CommonPrefixes, func(t s3Types.CommonPrefix, i int) string {
+		return *t.Prefix
+	}), nil
 }

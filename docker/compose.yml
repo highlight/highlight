@@ -47,10 +47,12 @@ x-backend-env: &backend-env
         - PSQL_PASSWORD
         - PSQL_PORT
         - PSQL_USER
+        - PRIVATE_GRAPH_URI
         - PUBLIC_GRAPH_URI
         - REDIS_ADDRESS
         - REDIS_EVENTS_STAGING_ENDPOINT
         - SESSION_FILE_PATH_PREFIX
+        - TZ
 
 services:
     zookeeper:

@@ -18,13 +18,24 @@ const textColors = {
 	caution: vars.theme.static.content.sentiment.caution,
 	informative: vars.theme.static.content.sentiment.informative,
 	weak: vars.theme.static.content.weak,
-	primaryOnEnabled: vars.theme.interactive.fill.primary.content.onEnabled,
-	primaryOnDisabled: vars.theme.interactive.fill.primary.content.onDisabled,
-	primaryText: vars.theme.interactive.fill.primary.content.text,
-	secondaryOnEnabled: vars.theme.interactive.fill.secondary.content.onEnabled,
-	secondaryOnDisabled:
+	primaryEnabled: vars.theme.interactive.fill.primary.enabled,
+	primaryHover: vars.theme.interactive.fill.primary.hover,
+	primaryPressed: vars.theme.interactive.fill.primary.pressed,
+	primaryDisabled: vars.theme.interactive.fill.primary.disabled,
+	primaryContentOnEnabled:
+		vars.theme.interactive.fill.primary.content.onEnabled,
+	primaryContentOnDisabled:
+		vars.theme.interactive.fill.primary.content.onDisabled,
+	primaryContentText: vars.theme.interactive.fill.primary.content.text,
+	secondaryEnabled: vars.theme.interactive.fill.secondary.enabled,
+	secondaryHover: vars.theme.interactive.fill.secondary.hover,
+	secondaryPressed: vars.theme.interactive.fill.secondary.pressed,
+	secondaryDisabled: vars.theme.interactive.fill.secondary.disabled,
+	secondaryContentOnEnabled:
+		vars.theme.interactive.fill.secondary.content.onEnabled,
+	secondaryContentOnDisabled:
 		vars.theme.interactive.fill.secondary.content.onDisabled,
-	secondaryText: vars.theme.interactive.fill.secondary.content.text,
+	secondaryContentText: vars.theme.interactive.fill.secondary.content.text,
 } as const
 
 const backgroundColors = {
@@ -38,6 +49,14 @@ const backgroundColors = {
 	caution: vars.theme.static.content.sentiment.caution,
 	bad: vars.theme.static.content.sentiment.bad,
 	informative: vars.theme.static.content.sentiment.informative,
+	secondaryDisabled: vars.theme.interactive.overlay.secondary.disabled,
+	secondaryEnabled: vars.theme.interactive.overlay.secondary.enabled,
+	secondaryHover: vars.theme.interactive.overlay.secondary.hover,
+	secondaryPressed: vars.theme.interactive.overlay.secondary.pressed,
+	primaryDisabled: vars.theme.interactive.overlay.primary.disabled,
+	primaryEnabled: vars.theme.interactive.overlay.primary.enabled,
+	primaryHover: vars.theme.interactive.overlay.primary.hover,
+	primaryPressed: vars.theme.interactive.overlay.primary.pressed,
 } as const
 
 const responsiveProperties = defineProperties({

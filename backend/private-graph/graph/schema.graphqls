@@ -102,6 +102,7 @@ type BillingDetails {
 	meter: Int64!
 	membersMeter: Int64!
 	sessionsOutOfQuota: Int64!
+	errorsMeter: Int64!
 }
 
 type Invoice {
@@ -125,6 +126,7 @@ type Plan {
 	interval: SubscriptionInterval!
 	quota: Int!
 	membersLimit: Int
+	errorsLimit: Int!
 }
 
 type DiscordChannel {
@@ -134,6 +136,7 @@ type DiscordChannel {
 
 enum PlanType {
 	Free
+	Lite
 	Basic
 	Startup
 	Enterprise
@@ -142,6 +145,13 @@ enum PlanType {
 enum SubscriptionInterval {
 	Monthly
 	Annual
+}
+
+enum RetentionPeriod {
+	ThreeMonths
+	SixMonths
+	TwelveMonths
+	TwoYears
 }
 
 enum OpenSearchCalendarInterval {
@@ -370,6 +380,7 @@ type Workspace {
 	eligible_for_trial_extension: Boolean!
 	trial_extension_enabled: Boolean!
 	clearbit_enabled: Boolean!
+	retention_period: RetentionPeriod
 }
 
 type Segment {
@@ -494,15 +505,58 @@ type S3File {
 	key: String
 }
 
-type LogLine {
+type Log {
 	timestamp: Timestamp!
 	severityText: SeverityText!
 	body: String!
 	logAttributes: Map!
+	traceID: String
+	spanID: String
+	secureSessionID: String
+}
+
+type LogEdge {
+	cursor: String!
+	node: Log!
+}
+
+type PageInfo {
+	hasNextPage: Boolean!
+	endCursor: String!
+}
+
+type LogsPayload {
+	edges: [LogEdge!]!
+	pageInfo: PageInfo!
+}
+
+enum ReservedLogKey {
+	"""
+	Keep this in alpha order
+	"""
+	level
+	secure_session_id
+	span_id
+	trace_id
 }
 
 enum LogKeyType {
 	String
+}
+
+type LogsHistogramBucketCount {
+	count: UInt64!
+	severityText: SeverityText!
+}
+
+type LogsHistogramBucket {
+	bucketId: UInt64!
+	counts: [LogsHistogramBucketCount!]!
+}
+
+type LogsHistogram {
+	buckets: [LogsHistogramBucket!]!
+	totalCount: UInt64!
 }
 
 type LogKey {
@@ -998,6 +1052,15 @@ type WorkspaceInviteLink {
 	secret: String!
 }
 
+type WorkspaceForInviteLink {
+	expiration_date: Timestamp
+	invitee_email: String
+	secret: String!
+	workspace_id: ID!
+	workspace_name: String!
+	existing_account: Boolean!
+}
+
 type SessionPayload {
 	events: [Any]!
 	errors: [ErrorObject]!
@@ -1369,6 +1432,7 @@ type Query {
 	linear_teams(project_id: ID!): [LinearTeam!]
 	project(id: ID!): Project
 	workspace(id: ID!): Workspace
+	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
 	workspace_for_project(project_id: ID!): Workspace
 	admin: Admin
@@ -1409,8 +1473,9 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
-	logs(project_id: ID!, params: LogsParamsInput!): [LogLine!]!
+	logs(project_id: ID!, params: LogsParamsInput!, after: String): LogsPayload!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
+	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
 	logs_keys(project_id: ID!): [LogKey!]!
 	logs_key_values(project_id: ID!, key_name: String!): [String!]!
 }
@@ -1447,11 +1512,6 @@ type Mutation {
 		snoozed_until: Timestamp
 	): ErrorGroup
 	deleteProject(id: ID!): Boolean
-	sendAdminProjectInvite(
-		project_id: ID!
-		email: String!
-		base_url: String!
-	): String
 	sendAdminWorkspaceInvite(
 		workspace_id: ID!
 		email: String!
@@ -1502,6 +1562,7 @@ type Mutation {
 		workspace_id: ID!
 		plan_type: PlanType!
 		interval: SubscriptionInterval!
+		retention_period: RetentionPeriod!
 	): String
 	updateBillingDetails(workspace_id: ID!): Boolean
 	createSessionComment(

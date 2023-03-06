@@ -88,7 +88,7 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 		}
 	}
 
-	span.AddEvent(LogName, trace.WithAttributes(attrs...))
+	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...))
 
 	if entry.Level <= hook.errorStatusLevel {
 		span.SetStatus(codes.Error, entry.Message)

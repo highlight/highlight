@@ -1,7 +1,7 @@
 import {
 	cmdKey,
 	DevToolsShortcut,
-	ShortcutItem,
+	ShortcutTextGuide,
 	TimelineShortcut,
 } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import Popover from '@components/Popover/Popover'
@@ -65,23 +65,6 @@ import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/Timeline
 import style from './ToolbarControlBar.module.scss'
 
 const EventTypeToExclude: readonly string[] = ['Web Vitals']
-
-type ShortcutGuideProps = {
-	shortcut: ShortcutItem
-	className?: string
-}
-
-const ShortcutTextGuide: React.FC<ShortcutGuideProps> = React.memo(
-	({ shortcut, className }) => {
-		return (
-			<Box display="flex" gap="2" cssClass={className}>
-				{shortcut.shortcut.map((char, idx) => (
-					<Badge key={idx} variant="gray" size="small" label={char} />
-				))}
-			</Box>
-		)
-	},
-)
 
 export const ToolbarControlBar = () => {
 	const {

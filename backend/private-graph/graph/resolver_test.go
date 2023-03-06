@@ -81,20 +81,20 @@ func (h *HubspotMock) CreateContactForAdmin(ctx context.Context, adminID int, em
 	return nil, nil
 }
 
-func (h *HubspotMock) CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error {
+func (h *HubspotMock) CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int, db *gorm.DB) error {
 	return nil
 }
 
-func (h *HubspotMock) CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) (*int, error) {
+func (h *HubspotMock) CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string, db *gorm.DB) (*int, error) {
 	return nil, nil
 }
 
-func (h *HubspotMock) UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error {
+func (h *HubspotMock) UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property, db *gorm.DB) error {
 	return nil
 
 }
 
-func (h *HubspotMock) UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
+func (h *HubspotMock) UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property, db *gorm.DB) error {
 	return nil
 
 }
@@ -112,13 +112,13 @@ func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 			errorExpected: false,
 		},
 		"same email different case": {
-			adminEmail:    "foo@bar.com",
-			inviteEmail:   "fOO@Bar.com",
+			adminEmail:    "boo@bar.com",
+			inviteEmail:   "bOO@Bar.com",
 			errorExpected: false,
 		},
 		"different email": {
-			adminEmail:    "foo@bar.com",
-			inviteEmail:   "f00@bar.com",
+			adminEmail:    "zoo@bar.com",
+			inviteEmail:   "z00@bar.com",
 			errorExpected: true,
 		},
 	}
@@ -126,6 +126,7 @@ func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 		util.RunTestWithDBWipe(t, "Test AddAdminToWorkspace", DB, func(t *testing.T) {
 			// inserting the data
 			admin := model.Admin{
+				Model:         model.Model{ID: 1},
 				UID:           ptr.String("a1b2c3"),
 				Name:          ptr.String("adm1"),
 				PhotoURL:      ptr.String("asdf"),
@@ -157,12 +158,12 @@ func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 
 			t.Logf("workspace id: %v", workspace.ID)
 			t.Logf("invite link: %v", *inviteLink.Secret)
-			workspaceID, err := r.AddAdminToWorkspace(ctx, workspace.ID, *inviteLink.Secret)
+			adminID, err := r.AddAdminToWorkspace(ctx, workspace.ID, *inviteLink.Secret)
 			if v.errorExpected != (err != nil) {
 				t.Fatalf("error result invalid, expected? %t but saw %s", v.errorExpected, err)
 			}
-			if err == nil && *workspaceID != workspace.ID {
-				t.Fatalf("received invalid workspace ID %d", workspaceID)
+			if err == nil && *adminID != 1 {
+				t.Fatalf("received invalid admin ID %d", adminID)
 			}
 		})
 	}

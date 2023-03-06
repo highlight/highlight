@@ -258,6 +258,8 @@ type Workspace struct {
 	NextInvoiceDate             *time.Time
 	MonthlySessionLimit         *int
 	MonthlyMembersLimit         *int
+	MonthlyErrorsLimit          *int
+	RetentionPeriod             *modelInputs.RetentionPeriod
 	TrialEndDate                *time.Time `json:"trial_end_date"`
 	AllowMeterOverage           bool       `gorm:"default:true"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`

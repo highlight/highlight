@@ -6,16 +6,17 @@ import { useNumericProjectId } from '@hooks/useProjectId'
 import { AccountsPage } from '@pages/Accounts/Accounts'
 import { AdminForm } from '@pages/Auth/AdminForm'
 import { AuthRouter, SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
+import { JoinWorkspace } from '@pages/Auth/JoinWorkspace'
 import { VerifyEmail } from '@pages/Auth/VerifyEmail'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import { Landing } from '@pages/Landing/Landing'
-import NewMemberPage from '@pages/NewMember/NewMemberPage'
 import NewProjectPage from '@pages/NewProject/NewProjectPage'
 import OAuthApprovalPage from '@pages/OAuthApproval/OAuthApprovalPage'
 import RegistrationForm from '@pages/RegistrationForm/RegistrationForm'
 import SwitchProject from '@pages/SwitchProject/SwitchProject'
 import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace'
+import useLocalStorage from '@rehooks/local-storage'
 import InternalRouter from '@routers/InternalRouter/InternalRouter'
 import { DefaultWorkspaceRouter } from '@routers/OrgRouter/DefaultWorkspaceRouter'
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter'
@@ -37,9 +38,12 @@ import {
 import { StringParam, useQueryParam } from 'use-query-params'
 
 export const AppRouter = () => {
-	const { admin, isLoggedIn, isHighlightAdmin } = useAuthContext()
+	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
+		useAuthContext()
 	const workspaceMatch = useMatch('/w/:workspace_id/*')
 	const workspaceId = workspaceMatch?.params.workspace_id
+	const workspaceInviteMatch = useMatch('/w/:workspace_id/invite/:invite')
+	const [inviteCode, setInviteCode] = useLocalStorage('highlightInviteCode')
 	const { projectId } = useNumericProjectId()
 	const [nextParam] = useQueryParam('next', StringParam)
 	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
@@ -47,8 +51,20 @@ export const AppRouter = () => {
 	const navigate = useNavigate()
 
 	useEffect(() => {
+		if (workspaceInviteMatch?.params.invite) {
+			setInviteCode(workspaceInviteMatch.params.invite)
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
+	useEffect(() => {
 		if (admin && admin.email_verified === false) {
 			navigate('/verify_email')
+			return
+		}
+
+		if (admin && inviteCode) {
+			navigate(`/invite/${inviteCode}`)
 			return
 		}
 
@@ -60,7 +76,7 @@ export const AppRouter = () => {
 			navigate('/about_you')
 			return
 		}
-	}, [admin, isVercelIntegrationFlow, navigate])
+	}, [admin, isVercelIntegrationFlow, navigate, inviteCode])
 
 	useEffect(() => {
 		if (admin) {
@@ -89,6 +105,10 @@ export const AppRouter = () => {
 			showIntercom({ admin, hideMessage: true })
 		}
 	}, [admin])
+
+	if (isAuthLoading) {
+		return null
+	}
 
 	return (
 		<Box height="screen" width="screen">
@@ -149,14 +169,12 @@ export const AppRouter = () => {
 				/>
 
 				<Route
-					path="/w/:workspace_id/invite/:invite_id"
+					path="/invite/:invite_id"
 					element={
 						isLoggedIn ? (
-							<Landing>
-								<NewMemberPage />
-							</Landing>
+							<JoinWorkspace />
 						) : (
-							<Navigate to={SIGN_IN_ROUTE} />
+							<Navigate to="/sign_up" />
 						)
 					}
 				/>

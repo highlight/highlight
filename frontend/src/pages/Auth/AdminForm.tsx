@@ -8,7 +8,11 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { useUpdateAdminAndCreateWorkspaceMutation } from '@graph/hooks'
+import {
+	useGetWorkspacesQuery,
+	useUpdateAdminAboutYouDetailsMutation,
+	useUpdateAdminAndCreateWorkspaceMutation,
+} from '@graph/hooks'
 import {
 	Box,
 	ButtonLink,
@@ -43,8 +47,11 @@ export const AdminForm: React.FC = () => {
 	const { setLoadingState } = useAppLoadingContext()
 	const { admin, refetchAdmin } = useAuthContext()
 	const navigate = useNavigate()
+	const { data: workspacesData, loading: workspacesLoading } =
+		useGetWorkspacesQuery()
 	const [updateAdminAndCreateWorkspace, { loading }] =
 		useUpdateAdminAndCreateWorkspaceMutation()
+	const [updateAdminAboutYouDetails] = useUpdateAdminAboutYouDetailsMutation()
 
 	if (admin?.about_you_details_filled) {
 		navigate('/setup')
@@ -54,6 +61,9 @@ export const AdminForm: React.FC = () => {
 	const isCommonEmailDomain = COMMON_EMAIL_PROVIDERS.some(
 		(p) => adminEmailDomain.indexOf(p) !== -1,
 	)
+
+	const workspace = workspacesData?.workspaces && workspacesData.workspaces[0]
+	const inWorkspace = !!workspace
 
 	const formState = useFormState({
 		defaultValues: {
@@ -80,20 +90,35 @@ export const AdminForm: React.FC = () => {
 
 		try {
 			const attributionData = getAttributionData()
-			await updateAdminAndCreateWorkspace({
-				variables: {
-					admin_and_workspace_details: {
-						first_name: formState.values.firstName,
-						last_name: formState.values.lastName,
-						user_defined_role: formState.values.role,
-						workspace_name: formState.values.companyName,
-						allowed_auto_join_email_origins:
-							formState.values.autoJoinDomains,
-						promo_code: formState.values.promoCode || undefined,
-						...attributionData,
+
+			if (inWorkspace) {
+				await updateAdminAboutYouDetails({
+					variables: {
+						adminDetails: {
+							first_name: formState.values.firstName,
+							last_name: formState.values.lastName,
+							user_defined_role: formState.values.role,
+							user_defined_persona: '',
+							referral: attributionData.referral,
+						},
 					},
-				},
-			})
+				})
+			} else {
+				await updateAdminAndCreateWorkspace({
+					variables: {
+						admin_and_workspace_details: {
+							first_name: formState.values.firstName,
+							last_name: formState.values.lastName,
+							user_defined_role: formState.values.role,
+							workspace_name: formState.values.companyName,
+							allowed_auto_join_email_origins:
+								formState.values.autoJoinDomains,
+							promo_code: formState.values.promoCode || undefined,
+							referral: attributionData.referral,
+						},
+					},
+				})
+			}
 
 			message.success(
 				`Nice to meet you ${formState.values.firstName}, let's get started!`,
@@ -119,8 +144,19 @@ export const AdminForm: React.FC = () => {
 	})
 
 	useEffect(() => {
-		setLoadingState(AppLoadingState.LOADED)
-	}, [setLoadingState])
+		if (!workspacesLoading) {
+			setLoadingState(AppLoadingState.LOADED)
+
+			if (inWorkspace) {
+				formState.setValue('companyName', workspace.name)
+			}
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [workspace?.name, workspacesLoading])
+
+	if (workspacesLoading) {
+		return null
+	}
 
 	return (
 		<Landing>
@@ -148,6 +184,7 @@ export const AdminForm: React.FC = () => {
 						<Form.Input
 							name={formState.names.companyName}
 							label="Company"
+							disabled={inWorkspace}
 							required
 						/>
 						<Form.NamedSection
@@ -165,7 +202,7 @@ export const AdminForm: React.FC = () => {
 									)
 								}
 							>
-								<option value="" disabled selected>
+								<option value="" disabled>
 									Select your role
 								</option>
 								<option value="Product">Product</option>
@@ -173,7 +210,7 @@ export const AdminForm: React.FC = () => {
 								<option value="Founder">Founder</option>
 							</select>
 						</Form.NamedSection>
-						{!isCommonEmailDomain && (
+						{!isCommonEmailDomain && !inWorkspace && (
 							<Box mt="4">
 								<AutoJoinEmailsInput
 									onChange={(domains) =>
@@ -185,20 +222,23 @@ export const AdminForm: React.FC = () => {
 								/>
 							</Box>
 						)}
-						{showPromoCodeField ? (
-							<Form.Input
-								name={formState.names.promoCode}
-								label="Promo Code"
-							/>
-						) : (
-							<Box mt="4">
-								<ButtonLink
-									onClick={() => setShowPromoCodeField(true)}
-								>
-									+ Add promo code
-								</ButtonLink>
-							</Box>
-						)}
+						{!inWorkspace &&
+							(showPromoCodeField ? (
+								<Form.Input
+									name={formState.names.promoCode}
+									label="Promo Code"
+								/>
+							) : (
+								<Box mt="4">
+									<ButtonLink
+										onClick={() =>
+											setShowPromoCodeField(true)
+										}
+									>
+										+ Add promo code
+									</ButtonLink>
+								</Box>
+							))}
 						{(formState.errors as any).__error && (
 							<Callout kind="error">
 								{(formState.errors as any).__error}
@@ -212,7 +252,7 @@ export const AdminForm: React.FC = () => {
 						loading={loading || formState.submitSucceed > 0}
 						type="submit"
 					>
-						Create Workspace
+						{inWorkspace ? 'Submit' : 'Create Workspace'}
 					</Button>
 				</AuthFooter>
 			</Form>

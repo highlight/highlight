@@ -5636,13 +5636,13 @@ __metadata:
   linkType: hard
 
 "@babel/types@npm:^7.21.0":
-  version: 7.21.0
-  resolution: "@babel/types@npm:7.21.0"
+  version: 7.21.2
+  resolution: "@babel/types@npm:7.21.2"
   dependencies:
     "@babel/helper-string-parser": ^7.19.4
     "@babel/helper-validator-identifier": ^7.19.1
     to-fast-properties: ^2.0.0
-  checksum: dbcdda202b3a2bfd59e4de880ce38652f1f8957893a9751be069ac86e47ad751222070fe6cd92220214d77973f1474e4e1111c16dc48199dfca1489c0ee8c0c5
+  checksum: a45a52acde139e575502c6de42c994bdbe262bafcb92ae9381fb54cdf1a3672149086843fda655c7683ce9806e998fd002bbe878fa44984498d0fdc7935ce7ff
   languageName: node
   linkType: hard
 
@@ -7074,28 +7074,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dinero.js/calculator-number@npm:2.0.0-alpha.8":
-  version: 2.0.0-alpha.8
-  resolution: "@dinero.js/calculator-number@npm:2.0.0-alpha.8"
+"@dinero.js/calculator-number@npm:2.0.0-alpha.14":
+  version: 2.0.0-alpha.14
+  resolution: "@dinero.js/calculator-number@npm:2.0.0-alpha.14"
   dependencies:
-    "@dinero.js/core": 2.0.0-alpha.8
-  checksum: 843f05ba3f30e08f78469f1ad0c83bcbbc789455a60061a5a956867c950b2e627ad17708d86e088ff2bc39458d847ba242f6e5c6cdedca1db9d61965f60195b4
+    "@dinero.js/core": 2.0.0-alpha.14
+  checksum: 8d3a726daa7e7448aa83159132ba5751a295d5bdbb81f7a220781a0d8924843e491c998357ce63697e373d104e6a8c9aacd13355f6389e00463c9b22ab1f19ca
   languageName: node
   linkType: hard
 
-"@dinero.js/core@npm:2.0.0-alpha.8":
-  version: 2.0.0-alpha.8
-  resolution: "@dinero.js/core@npm:2.0.0-alpha.8"
+"@dinero.js/core@npm:2.0.0-alpha.14":
+  version: 2.0.0-alpha.14
+  resolution: "@dinero.js/core@npm:2.0.0-alpha.14"
   dependencies:
-    "@dinero.js/currencies": 2.0.0-alpha.8
-  checksum: a747cec35e6709e23d8e41666fcce467faffa58248dbbd3440785dbecc8fc55379f608e16ecb7fe9c0007e29b1872f05666ce10891138fe0f856d0e825ecfe2d
+    "@dinero.js/currencies": 2.0.0-alpha.14
+  checksum: cb13efd3de18de1d7805ddad382d176d74428235efeb19be6cc3b06c5ad38c297300c14043c33b20e4567be851a66ff68115c87eec97bdcaf31568b3ed785243
   languageName: node
   linkType: hard
 
-"@dinero.js/currencies@npm:2.0.0-alpha.8":
-  version: 2.0.0-alpha.8
-  resolution: "@dinero.js/currencies@npm:2.0.0-alpha.8"
-  checksum: db1e2e775df9c2c211f245bd966c9f66d7e3fb7b6989ce6f2246b2c5685337c72eb9b1ae9c38adcb5aa745f5a7e6f8c8e3207dac47f87ab31698b5e9b00c3206
+"@dinero.js/currencies@npm:2.0.0-alpha.14":
+  version: 2.0.0-alpha.14
+  resolution: "@dinero.js/currencies@npm:2.0.0-alpha.14"
+  checksum: d764b60e993e90d1385c01ee372cab74ca19a33c1354b22f529ef8961a496e4bbc84e41a20229548258e00e6cb349f41aa88a80d9d3d52b3deb7378da7b76dd6
   languageName: node
   linkType: hard
 
@@ -10031,7 +10031,6 @@ __metadata:
     "@graphql-codegen/typescript": ^2.8.1
     "@graphql-codegen/typescript-graphql-request": ^4.5.2
     "@graphql-codegen/typescript-operations": ^2.5.2
-    "@highlight-run/fingerprintjs": ^3.3.5
     "@highlight-run/rrweb": "workspace:*"
     "@highlight-run/rrweb-types": "workspace:*"
     "@rollup/plugin-commonjs": ^22.0.1
@@ -10088,15 +10087,6 @@ __metadata:
     typescript: ^4.9.5
   languageName: unknown
   linkType: soft
-
-"@highlight-run/fingerprintjs@npm:^3.3.5":
-  version: 3.3.5
-  resolution: "@highlight-run/fingerprintjs@npm:3.3.5"
-  dependencies:
-    tslib: ^2.0.1
-  checksum: 130575d91be5ba9b767f3d0fb49584769f7ae04864f2c8487f57248497746b8002a5f46e22c60022f170b4005097aaed4186747473664c09e55ce2bb656b09c2
-  languageName: node
-  linkType: hard
 
 "@highlight-run/frontend@workspace:frontend":
   version: 0.0.0-use.local
@@ -10159,7 +10149,7 @@ __metadata:
     color-hash: ^2.0.1
     dexie: ^3.2.2
     dexie-react-hooks: ^1.1.1
-    dinero.js: ^2.0.0-alpha.8
+    dinero.js: alpha
     eslint: ^7.0.0
     eslint-config-prettier: ^7.2.0
     eslint-plugin-react: ^7.31.11
@@ -13371,6 +13361,13 @@ __metadata:
   version: 1.3.2
   resolution: "@remix-run/router@npm:1.3.2"
   checksum: ee2108b87d4a1241cdea137dd7e1741ee679228bd33fd81e22a6bb2940f81186cefe9a85e26d60cc49bbcc1bdbc57d1954b7d4d62f8a51ef69feddfc899f55fa
+  languageName: node
+  linkType: hard
+
+"@remix-run/router@npm:1.3.3":
+  version: 1.3.3
+  resolution: "@remix-run/router@npm:1.3.3"
+  checksum: 9280f1c3e44c0fb84a74b401b5a47022dace06d5da0f26a7a68c7c0e57ad5ef95d30f3c2d333df2db3b63f84de81f7f8caa7e53189a7709d6c3eb466d126ed76
   languageName: node
   linkType: hard
 
@@ -24691,14 +24688,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dinero.js@npm:^2.0.0-alpha.8":
-  version: 2.0.0-alpha.8
-  resolution: "dinero.js@npm:2.0.0-alpha.8"
+"dinero.js@npm:alpha":
+  version: 2.0.0-alpha.14
+  resolution: "dinero.js@npm:2.0.0-alpha.14"
   dependencies:
-    "@dinero.js/calculator-number": 2.0.0-alpha.8
-    "@dinero.js/core": 2.0.0-alpha.8
-    "@dinero.js/currencies": 2.0.0-alpha.8
-  checksum: ca57fc25fa296d3b188ff4b6c47b21461d8d709c8b55c41cb5ce848b7f4986e882ed06ed6348a2c088406a6a57ef683c112b472c7af88c84903d95483ebd0a69
+    "@dinero.js/calculator-number": 2.0.0-alpha.14
+    "@dinero.js/core": 2.0.0-alpha.14
+    "@dinero.js/currencies": 2.0.0-alpha.14
+  checksum: c48163bf32bb9ba260de6a8018bde4e2294c87c2f4f85c6a5b796d4b96bef42cac79a2bfb00d2da7fd841067a228ebf4c0302c6c300ca60c1eaee5154112c75a
   languageName: node
   linkType: hard
 
@@ -37698,6 +37695,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"next-build-id@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "next-build-id@npm:3.0.0"
+  checksum: e36e15979420c343e32a5e7a55efc1300a4b12aea1637df8300f0085ca862bf78e4fd3ac969ce7c7757cfad40c3c77e02ae4859be77692c9bdcb4243cbabb810
+  languageName: node
+  linkType: hard
+
 "next@npm:13.1.6, next@npm:^13.1.6":
   version: 13.1.6
   resolution: "next@npm:13.1.6"
@@ -37779,6 +37783,7 @@ __metadata:
     eslint-config-next: 13.1.6
     highlight.run: "workspace:*"
     next: 13.1.6
+    next-build-id: ^3.0.0
     react: 18.2.0
     react-dom: 18.2.0
     typescript: 4.9.5
@@ -42578,7 +42583,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:^6.4.1, react-router-dom@npm:^6.8.1":
+"react-router-dom@npm:^6.4.1":
+  version: 6.8.2
+  resolution: "react-router-dom@npm:6.8.2"
+  dependencies:
+    "@remix-run/router": 1.3.3
+    react-router: 6.8.2
+  peerDependencies:
+    react: ">=16.8"
+    react-dom: ">=16.8"
+  checksum: eddc8b88e26c66408df894bdcf95efd6731e21b7cbfd7417cd456f0043916279e0559b06c6cdc19c2a55c6aefc4cc745fa4065d3505e519a95adbef0cc89e77f
+  languageName: node
+  linkType: hard
+
+"react-router-dom@npm:^6.8.1":
   version: 6.8.1
   resolution: "react-router-dom@npm:6.8.1"
   dependencies:
@@ -42599,6 +42617,17 @@ __metadata:
   peerDependencies:
     react: ">=16.8"
   checksum: 8e7cc7a516adeb6060911861af99d9b512893c15ec732cbf8574872919be4f3fe439ffa8c0876d1bcbced880d081bfeda3c01cb505b5a243565d10500ee0ac36
+  languageName: node
+  linkType: hard
+
+"react-router@npm:6.8.2":
+  version: 6.8.2
+  resolution: "react-router@npm:6.8.2"
+  dependencies:
+    "@remix-run/router": 1.3.3
+  peerDependencies:
+    react: ">=16.8"
+  checksum: 9e98d03e1f18bfd5a35144a0c675adaf7c46a9ad436efdea2b52ef3a6e501ac6174a67ea90004e1339cd45019d6b1eb370627518320f7af9323ae74e0c6756ad
   languageName: node
   linkType: hard
 

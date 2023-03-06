@@ -47,14 +47,23 @@ export interface HighlightConfigOptions {
 	sourceMapsBasePath?: string
 }
 
-const getDefaultOpts = (
+const getDefaultOpts = async (
 	config: NextConfig,
 	highlightOpts?: HighlightConfigOptions,
-): HighlightConfigOptionsDefault => {
+): Promise<HighlightConfigOptionsDefault> => {
 	const isProdBuild = process.env.NODE_ENV === 'production'
 	const hasSourcemapApiKey =
 		!!process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY ||
 		!!highlightOpts?.apiKey
+	let version: string | null = null
+	if (config.generateBuildId) {
+		const buildId = config.generateBuildId()
+		if (typeof buildId === 'string') {
+			version = buildId
+		} else {
+			version = await buildId
+		}
+	}
 
 	return {
 		uploadSourceMaps:
@@ -63,7 +72,7 @@ const getDefaultOpts = (
 				(!config.productionBrowserSourceMaps && hasSourcemapApiKey)),
 		configureHighlightProxy: highlightOpts?.configureHighlightProxy ?? true,
 		apiKey: highlightOpts?.apiKey ?? '',
-		appVersion: highlightOpts?.appVersion ?? '',
+		appVersion: highlightOpts?.appVersion ?? version ?? '',
 		sourceMapsPath: highlightOpts?.sourceMapsPath ?? '.next/',
 		sourceMapsBasePath: highlightOpts?.sourceMapsBasePath ?? '_next/',
 	}
@@ -83,11 +92,11 @@ type NextConfigInput =
 	| NextConfigFunction
 	| NextConfigAsyncFunction
 
-const getHighlightConfig = (
+const getHighlightConfig = async (
 	config: NextConfig,
 	highlightOpts?: HighlightConfigOptions,
 ) => {
-	const defaultOpts = getDefaultOpts(config, highlightOpts)
+	const defaultOpts = await getDefaultOpts(config, highlightOpts)
 
 	let newRewrites = config.rewrites
 	if (defaultOpts.uploadSourceMaps || defaultOpts.configureHighlightProxy) {
@@ -163,26 +172,28 @@ const getHighlightConfig = (
 	}
 }
 
-export const withHighlightConfig = (
+export const withHighlightConfig = async (
 	config: NextConfigInput,
 	highlightOpts?: HighlightConfigOptions,
-): NextConfig => {
+): Promise<NextConfig> => {
 	if (typeof config === 'function') {
-		return (
+		return async (
 			phase: string,
 			{ defaultConfig }: { defaultConfig: any },
-		): NextConfig | Promise<NextConfig> => {
+		): Promise<NextConfig> => {
 			const userNextConfigObject: NextConfig | Promise<NextConfig> =
 				config(phase, { defaultConfig })
 			if (typeof userNextConfigObject === 'function') {
-				return (userNextConfigObject as Promise<NextConfig>).then(
-					(nc) => getHighlightConfig(nc, highlightOpts),
-				)
+				const nc = await (userNextConfigObject as Promise<NextConfig>)
+				return await getHighlightConfig(nc, highlightOpts)
 			} else {
-				return getHighlightConfig(userNextConfigObject, highlightOpts)
+				return await getHighlightConfig(
+					userNextConfigObject as NextConfig,
+					highlightOpts,
+				)
 			}
 		}
 	} else {
-		return getHighlightConfig(config, highlightOpts)
+		return await getHighlightConfig(config, highlightOpts)
 	}
 }

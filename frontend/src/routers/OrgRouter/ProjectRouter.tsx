@@ -26,6 +26,7 @@ import WithSessionSearchContext from '@routers/OrgRouter/WithSessionSearchContex
 import { auth } from '@util/auth'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
+import { useDialogState } from 'ariakit/dialog'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
@@ -169,6 +170,8 @@ export const ProjectRouter = () => {
 		setRightPanelView,
 	}
 
+	const commandBarDialog = useDialogState()
+
 	if (loading || integratedLoading) {
 		return null
 	}
@@ -180,6 +183,7 @@ export const ProjectRouter = () => {
 				toggleShowKeyboardShortcutsGuide,
 				showBanner,
 				toggleShowBanner,
+				commandBarDialog,
 			}}
 		>
 			<ApplicationContextProvider

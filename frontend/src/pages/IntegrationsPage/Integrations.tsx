@@ -86,7 +86,6 @@ export const CLEARBIT_INTEGRATION: Integration = {
 	icon: '/images/integrations/clearbit.svg',
 	configurationPage: (opts) => <ClearbitIntegrationConfig {...opts} />,
 	hasSettings: false,
-	docs: 'https://www.highlight.io/docs/integrations/clearbit-integration',
 }
 
 export const FRONT_INTEGRATION: Integration = {

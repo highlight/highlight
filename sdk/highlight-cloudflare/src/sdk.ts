@@ -55,9 +55,9 @@ export const H: HighlightInterface = {
 				url: `${endpoints.default}/v1/logs`,
 			}),
 			resource: new Resource({
-				highlight_project_id: projectID,
-				highlight_session_id: sessionID,
-				highlight_trace_id: requestID,
+				['highlight.project_id']: projectID,
+				['highlight.session_id']: sessionID,
+				['highlight.trace_id']: requestID,
 			}),
 		})
 	},

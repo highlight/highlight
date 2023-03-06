@@ -12,6 +12,7 @@ import { WorkspaceTabs } from '@pages/WorkspaceTabs/WorkspaceTabs'
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
+import { useDialogState } from 'ariakit/dialog'
 import React, { useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
@@ -56,6 +57,8 @@ export const WorkspaceRouter = () => {
 		}
 	}, [isLoggedIn, setLoadingState])
 
+	const commandBarDialog = useDialogState()
+
 	if (loading) {
 		return null
 	}
@@ -72,6 +75,7 @@ export const WorkspaceRouter = () => {
 				toggleShowKeyboardShortcutsGuide,
 				showBanner,
 				toggleShowBanner,
+				commandBarDialog,
 			}}
 		>
 			<ApplicationContextProvider

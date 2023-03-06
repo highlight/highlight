@@ -1,4 +1,3 @@
-import JsonViewer from '@components/JsonViewer/JsonViewer'
 import LoadingBox from '@components/LoadingBox'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { ErrorObject } from '@graph/schemas'
@@ -145,26 +144,29 @@ const ErrorRow = React.memo(
 				})}
 				onClick={setSelectedError}
 			>
-				<Box className={styles.errorBody}>
-					{typeof body === 'object' ? (
-						<JsonViewer src={body} collapsed={1} />
-					) : (
+				<Box>
+					<TextHighlighter
+						searchWords={[searchQuery]}
+						textToHighlight={
+							typeof body === 'object'
+								? JSON.stringify(body)
+								: body
+						}
+						className={styles.singleLine}
+					/>
+				</Box>
+				<Box>
+					{context && (
 						<TextHighlighter
 							searchWords={[searchQuery]}
-							textToHighlight={body}
+							textToHighlight={
+								typeof context === 'object'
+									? JSON.stringify(context)
+									: context
+							}
+							className={styles.singleLine}
 						/>
 					)}
-				</Box>
-				<Box className={styles.errorBody}>
-					{context &&
-						(typeof context === 'object' ? (
-							<JsonViewer src={context} collapsed={1} />
-						) : (
-							<TextHighlighter
-								searchWords={[searchQuery]}
-								textToHighlight={context}
-							/>
-						))}
 				</Box>
 				<Box display="flex" align="center" justifyContent="flex-end">
 					<Text color="n11">

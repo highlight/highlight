@@ -18,11 +18,11 @@ import { useProjectId } from '@hooks/useProjectId'
 import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
 import { SourcemapErrorDetails } from '@pages/ErrorsV2/SourcemapErrorDetails/SourcemapErrorDetails'
 import { UnstructuredStackTrace } from '@pages/ErrorsV2/UnstructuredStackTrace/UnstructuredStackTrace'
+import clsx from 'clsx'
 import React from 'react'
 import ReactCollapsible from 'react-collapsible'
 
 import * as styles from './ErrorStackTrace.css'
-import clsx from 'clsx'
 
 interface Props {
 	errorObject?: ErrorInstance['error_object']

@@ -1,8 +1,10 @@
-import { PlanType } from '@graph/schemas'
+import { USD } from '@dinero.js/currencies'
+import { PlanType, RetentionPeriod } from '@graph/schemas'
+import { dinero, toDecimal } from 'dinero.js'
 
 type FeatureWithTooltip = {
 	text: string
-	tooltip?: string
+	tooltip?: (rp: RetentionPeriod) => string
 }
 
 export type BillingPlan = {
@@ -14,20 +16,67 @@ export type BillingPlan = {
 	membersIncluded?: number
 }
 
-const SESSIONS_AFTER_LIMIT_TOOLTIP =
-	'After this monthly limit is reached, extra sessions will be charged $5 per 1000 sessions.'
+const sessionsPrices = {
+	[RetentionPeriod.ThreeMonths]: 500,
+	[RetentionPeriod.SixMonths]: 750,
+	[RetentionPeriod.TwelveMonths]: 1000,
+	[RetentionPeriod.TwoYears]: 1250,
+}
+
+const getSessionsAfterLimitTooltip = (rp: RetentionPeriod) => {
+	const amt = dinero({ amount: sessionsPrices[rp], currency: USD })
+	const formatted = toDecimal(amt)
+	return `After this monthly limit is reached, extra sessions will be charged $${formatted} per 1,000 sessions.`
+}
+
+const errorsPrices = {
+	[RetentionPeriod.ThreeMonths]: 20,
+	[RetentionPeriod.SixMonths]: 30,
+	[RetentionPeriod.TwelveMonths]: 40,
+	[RetentionPeriod.TwoYears]: 50,
+}
+const getErrorsAfterLimitTooltip = (rp: RetentionPeriod) => {
+	const amt = dinero({ amount: errorsPrices[rp], currency: USD })
+	const formatted = toDecimal(amt)
+	return `After this monthly limit is reached, extra errors will be charged $${formatted} per 1,000 errors.`
+}
 
 const freePlan: BillingPlan = {
-	name: 'Basic',
+	name: 'Free',
 	type: PlanType.Free,
 	monthlyPrice: 0,
 	annualPrice: 0,
 	advertisedFeatures: [
 		{
 			text: '500 sessions / month',
-			tooltip:
+			tooltip: () =>
 				'After this monthly limit is reached, sessions will be recorded but will not be visible until your plan is upgraded.',
 		},
+		{
+			text: '1,000 errors / month',
+			tooltip: () =>
+				'After this monthly limit is reached, errors will be recorded but will not be visible until your plan is upgraded.',
+		},
+		'3 month retention',
+		'Unlimited dev tools access',
+	],
+}
+
+const litePlan: BillingPlan = {
+	name: 'Basic',
+	type: PlanType.Lite,
+	monthlyPrice: 50,
+	annualPrice: 40,
+	advertisedFeatures: [
+		{
+			text: '2,000 free sessions / mo',
+			tooltip: getSessionsAfterLimitTooltip,
+		},
+		{
+			text: '4,000 free errors / mo',
+			tooltip: getErrorsAfterLimitTooltip,
+		},
+		'Unlimited members included',
 		'Unlimited dev tools access',
 	],
 }
@@ -40,11 +89,13 @@ const basicPlan: BillingPlan = {
 	advertisedFeatures: [
 		{
 			text: '10,000 free sessions / mo',
-			tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
+			tooltip: getSessionsAfterLimitTooltip,
 		},
-		'Unlimited members included',
-		'Unlimited dev tools access',
-		'Unlimited retention',
+		{
+			text: '20,000 free errors / mo',
+			tooltip: getErrorsAfterLimitTooltip,
+		},
+		'Everything in Basic',
 	],
 }
 
@@ -56,37 +107,22 @@ const startupPlan: BillingPlan = {
 	advertisedFeatures: [
 		{
 			text: '80,000 free sessions / mo',
-			tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
+			tooltip: getSessionsAfterLimitTooltip,
 		},
-		'Everything in Basic',
+		{
+			text: '160,000 free errors / mo',
+			tooltip: getErrorsAfterLimitTooltip,
+		},
+		'Everything in Essentials',
 		'Enhanced user metadata',
 		'App performance metrics',
 		'Issue tracking integrations',
 	],
 }
 
-const enterprisePlan: BillingPlan = {
-	name: 'Enterprise',
-	type: PlanType.Enterprise,
-	monthlyPrice: 1500,
-	annualPrice: 1200,
-	// customPrice: <MessageIcon/>,
-	advertisedFeatures: [
-		{
-			text: '300,000 free sessions / mo',
-			tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
-		},
-		'Everything in Basic/Startup',
-		'Personalized support',
-		'User RBAC/Permissioning',
-		'On-premise deployments',
-		'SSO/SAML',
-	],
-}
-
 export const BILLING_PLANS = [
 	freePlan,
+	litePlan,
 	basicPlan,
 	startupPlan,
-	enterprisePlan,
 ] as const

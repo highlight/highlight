@@ -1,6 +1,13 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import Switch from '@components/Switch/Switch'
-import { Box, Text, Tooltip } from '@highlight-run/ui'
+import {
+	Box,
+	IconOutlineQuestionMarkCircle,
+	Stack,
+	Text,
+	Tooltip,
+} from '@highlight-run/ui'
+import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
 import { Select } from 'antd'
 import React, { useEffect, useState } from 'react'
 
@@ -36,52 +43,66 @@ export const AutoJoinEmailsInput: React.FC<Props> = ({ onChange }) => {
 	const noEmailDomains = origins.emailOrigins.length === 0
 
 	return (
-		<Tooltip
-			trigger={
-				<Box width="full">
-					<Switch
-						className={styles.toggle}
-						trackingId="WorkspaceAutoJoin"
-						label={<Text color="weak">Auto join</Text>}
-						labelFirst
-						checked={origins.emailOrigins.length > 0}
-						onChange={(checked) => {
-							if (checked) {
-								handleChange([adminsEmailDomain])
-							} else {
-								handleChange([])
-							}
-						}}
-					/>
-					<Select
-						className={styles.select}
-						placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
-						value={
-							noEmailDomains
-								? [adminsEmailDomain]
-								: origins.emailOrigins
+		<>
+			<Box width="full">
+				<Switch
+					className={styles.toggle}
+					trackingId="WorkspaceAutoJoin"
+					label={
+						<Stack
+							direction="row"
+							gap="4"
+							align="center"
+							paddingRight="4"
+						>
+							<Text color="weak" weight="bold">
+								Auto join
+							</Text>
+							<Tooltip
+								trigger={
+									<IconOutlineQuestionMarkCircle
+										className={sprinkles({ color: 'weak' })}
+									/>
+								}
+							>
+								<Box style={{ maxWidth: 250 }} p="8">
+									<Text>
+										Automatically share the workspace with
+										all users on this domain.
+									</Text>
+								</Box>
+							</Tooltip>
+						</Stack>
+					}
+					labelFirst
+					checked={origins.emailOrigins.length > 0}
+					onChange={(checked) => {
+						if (checked) {
+							handleChange([adminsEmailDomain])
+						} else {
+							handleChange([])
 						}
-						mode="tags"
-						disabled={noEmailDomains}
-						onChange={handleChange}
-						options={origins.allowedEmailOrigins.map(
-							(emailOrigin) => ({
-								displayValue: emailOrigin,
-								id: emailOrigin,
-								value: emailOrigin,
-							}),
-						)}
-					/>
-				</Box>
-			}
-		>
-			<Box style={{ maxWidth: 250 }} p="8">
-				<Text>
-					Automatically share the workspace with all users on this
-					domain.
-				</Text>
+					}}
+				/>
+				<Select
+					className={styles.select}
+					placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
+					value={
+						noEmailDomains
+							? [adminsEmailDomain]
+							: origins.emailOrigins
+					}
+					mode="tags"
+					disabled={noEmailDomains}
+					onChange={handleChange}
+					options={origins.allowedEmailOrigins.map((emailOrigin) => ({
+						displayValue: emailOrigin,
+						id: emailOrigin,
+						value: emailOrigin,
+					}))}
+				/>
 			</Box>
-		</Tooltip>
+		</>
 	)
 }
 
