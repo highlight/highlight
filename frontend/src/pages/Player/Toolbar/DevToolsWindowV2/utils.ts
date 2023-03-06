@@ -125,41 +125,38 @@ export const LogLevelVariants = {
 
 export enum RequestType {
 	All = 'All',
-	Beacon = 'beacon',
-	Link = 'link',
-	Script = 'script',
-	Other = 'other',
-	XHR = 'xmlhttprequest',
 	CSS = 'css',
-	iFrame = 'iframe', // didn't find a request to verify that 'iframe' is what is actually received
 	Fetch = 'fetch',
+	iFrame = 'iframe', // didn't find a request to verify that 'iframe' is what is actually received
 	Img = 'img',
+	Link = 'link',
+	Other = 'other',
+	Script = 'script',
+	XHR = 'xmlhttprequest',
 }
 
 export interface ICountPerRequestType {
 	All: number
-	beacon: number
-	link: number
-	script: number
-	other: number
-	xmlhttprequest: number
 	css: number
-	iframe: number
 	fetch: number
+	iframe: number
 	img: number
+	link: number
+	other: number
+	script: number
+	xmlhttprequest: number
 }
 
 export const NETWORK_REQUEST_DISPLAY_NAMES: { [key: string]: string } = {
 	All: 'All',
-	beacon: 'Beacon',
-	link: 'Link',
-	script: 'Script',
-	other: 'Other',
-	xmlhttprequest: 'XHR',
 	css: 'CSS',
-	iframe: 'iFrame',
 	fetch: 'Fetch',
+	iframe: 'iFrame',
 	img: 'Img',
+	link: 'Link',
+	other: 'Other',
+	script: 'Script',
+	xmlhttprequest: 'XHR',
 } as const
 
 export const getNetworkResourcesDisplayName = (value: string): string => {

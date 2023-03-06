@@ -71,7 +71,6 @@ const DevToolsWindowV2: React.FC<
 	const countPerRequestType = useMemo(() => {
 		const count: ICountPerRequestType = {
 			All: 0,
-			beacon: 0,
 			link: 0,
 			script: 0,
 			other: 0,
@@ -83,9 +82,14 @@ const DevToolsWindowV2: React.FC<
 		}
 
 		parsedResources.forEach((request) => {
-			const type = request.initiatorType as keyof ICountPerRequestType
-			count[type] += 1
-			count['All'] += 1
+			const requestType =
+				request.initiatorType as keyof ICountPerRequestType
+
+			//-- Only count request types defined in ICountPerRequestType, e.g. skip 'beacon' --//
+			if (count.hasOwnProperty(request.initiatorType)) {
+				count['All'] += 1
+				count[requestType] += 1
+			}
 		})
 
 		return count
@@ -240,7 +244,9 @@ const DevToolsWindowV2: React.FC<
 											options={Object.values(
 												RequestType,
 											).map((requestType: string) => ({
-												key: requestType,
+												key: NETWORK_REQUEST_DISPLAY_NAMES[
+													requestType
+												],
 												render: `${
 													NETWORK_REQUEST_DISPLAY_NAMES[
 														requestType
