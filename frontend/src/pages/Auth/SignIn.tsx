@@ -15,7 +15,7 @@ import useLocalStorage from '@rehooks/local-storage'
 import { auth } from '@util/auth'
 import firebase from 'firebase/app'
 import React, { useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 type Props = {
 	setResolver: React.Dispatch<
@@ -28,9 +28,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
+	const location = useLocation()
 	const formState = useFormState({
 		defaultValues: {
-			email: '',
+			email: location.state?.email ?? '',
 			password: '',
 		},
 	})
@@ -115,7 +116,12 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						type="password"
 						autoComplete="current-password"
 					/>
-					<Link to="/reset_password">
+					<Link
+						to="/reset_password"
+						state={{
+							email: formState.values.email,
+						}}
+					>
 						<Text size="xSmall">Forgot your password?</Text>
 					</Link>
 					{error && <AuthError>{error}</AuthError>}
