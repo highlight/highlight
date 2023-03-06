@@ -127,3 +127,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 - Defaults to inlining stylesheets.
 - Replaces fingerprint with generated client id.
 - Enables console and error recording on localhost.
+
+## 5.4.0
+
+### Minor Changes
+
+- Adds `recordCrossOriginIframe` setting to opt-in enable cross-origin iframe recording.
