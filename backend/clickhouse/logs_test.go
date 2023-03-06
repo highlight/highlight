@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -12,16 +13,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setup(t *testing.T) *Client {
-	client, err := setupClickhouseTestDB()
-
-	assert.NoError(t, err)
-
-	return client
+func TestMain(m *testing.M) {
+	_, err := setupClickhouseTestDB()
+	if err != nil {
+		panic("Failed to setup clickhouse test database")
+	}
+	code := m.Run()
+	// teardown() - we could drop the testing database here
+	os.Exit(code)
 }
 
-func teardown(client *Client) {
-	client.conn.Exec(context.Background(), "TRUNCATE TABLE logs") //nolint:errcheck
+func setupTest(tb testing.TB) (*Client, func(tb testing.TB)) {
+	client, _ := NewClient(TestDatabase)
+
+	return client, func(tb testing.TB) {
+		client.conn.Exec(context.Background(), "TRUNCATE TABLE logs") //nolint:errcheck
+	}
 }
 
 func makeDateWithinRange(now time.Time) *modelInputs.DateRangeRequiredInput {
@@ -33,8 +40,8 @@ func makeDateWithinRange(now time.Time) *modelInputs.DateRangeRequiredInput {
 
 func TestReadLogsWithTimeQuery(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	rows := []*LogRow{
@@ -71,35 +78,52 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 
 func TestReadLogsHistogram(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
-	now, err := time.Parse(time.RFC3339, "2023-01-01T00:00:00Z")
-	assert.NoError(t, err)
+	now := time.Now()
 	rows := []*LogRow{
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now,
 				ProjectId: 1,
 			},
+			SeverityText: "INFO",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now.Add(-time.Hour - time.Minute*29),
+				ProjectId: 1,
+			},
+			SeverityText: "DEBUG",
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour - time.Minute*30),
 				ProjectId: 1,
 			},
+			SeverityText: "INFO",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now.Add(-time.Hour * 2),
+				ProjectId: 1,
+			},
+			SeverityText: "ERROR",
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour*2 - time.Minute*30),
 				ProjectId: 1,
 			},
+			SeverityText: "ERROR",
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour * 3),
 				ProjectId: 1,
 			},
+			SeverityText: "ERROR",
 		},
 	}
 
@@ -114,14 +138,88 @@ func TestReadLogsHistogram(t *testing.T) {
 	}, nBuckets)
 	assert.NoError(t, err)
 
-	assert.Len(t, payload, nBuckets)
-	assert.Equal(t, uint64(1), payload[24])
+	assert.Equal(
+		t,
+		uint64(nBuckets),
+		payload.TotalCount,
+		"The total number of buckets should be equal to the number of buckets requested",
+	)
+	assert.Len(
+		t,
+		payload.Buckets, 2,
+		"Two buckets should be returned",
+	)
+
+	assert.Equal(
+		t,
+		uint64(0),
+		payload.Buckets[0].BucketID,
+		"The first bucket should have a bucketID of 0",
+	)
+	assert.Equal(
+		t,
+		uint64(24),
+		payload.Buckets[1].BucketID,
+		"The second bucket should have a bucketID of 24",
+	)
+
+	assert.Equal(
+		t,
+		len(modelInputs.AllSeverityText),
+		len(payload.Buckets[0].Counts),
+		"The first bucket should have a count for each severity",
+	)
+	assert.Equal(
+		t,
+		len(modelInputs.AllSeverityText),
+		len(payload.Buckets[1].Counts),
+		"The second bucket should have a count for each severity",
+	)
+
+	assert.Equal(
+		t,
+		modelInputs.SeverityText("ERROR"),
+		payload.Buckets[0].Counts[4].SeverityText,
+		"The first bucket should have the count 4 with severity of ERROR",
+	)
+	assert.Equal(
+		t,
+		uint64(1),
+		payload.Buckets[0].Counts[4].Count,
+		"The first bucket should have a single count with severity ERROR",
+	)
+
+	assert.Equal(
+		t,
+		modelInputs.SeverityText("DEBUG"),
+		payload.Buckets[1].Counts[1].SeverityText,
+		"The second bucket should have the count 1 with severity of DEBUG",
+	)
+	assert.Equal(
+		t,
+		uint64(1),
+		payload.Buckets[1].Counts[1].Count,
+		"The second bucket should have a single count with severity DEBUG",
+	)
+	assert.Equal(
+		t,
+		modelInputs.SeverityText("INFO"),
+		payload.Buckets[1].Counts[2].SeverityText,
+		"The second bucket should have the second count with severity of INFO",
+	)
+	assert.Equal(
+		t,
+		uint64(1),
+		payload.Buckets[1].Counts[2].Count,
+		"The second bucket should have a single count with severity INFO",
+	)
+
 }
 
 func TestReadLogsHasNextPage(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	var rows []*LogRow
@@ -164,10 +262,11 @@ func TestReadLogsHasNextPage(t *testing.T) {
 
 func TestReadLogsAfterCursor(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
 	now := time.Now()
 	oneSecondAgo := now.Add(-time.Second * 1)
-	defer teardown(client)
 
 	rows := []*LogRow{
 		{
@@ -220,8 +319,8 @@ func TestReadLogsAfterCursor(t *testing.T) {
 
 func TestReadLogsWithBodyFilter(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	rows := []*LogRow{
@@ -267,8 +366,8 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 
 func TestReadLogsWithKeyFilter(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	rows := []*LogRow{
@@ -318,8 +417,8 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 
 func TestReadLogsWithLevelFilter(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	rows := []*LogRow{
@@ -369,8 +468,8 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 
 func TestReadLogsWithSessionIdFilter(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	rows := []*LogRow{
@@ -420,8 +519,8 @@ func TestReadLogsWithSessionIdFilter(t *testing.T) {
 
 func TestReadLogsWithSpanIdFilter(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	rows := []*LogRow{
@@ -471,8 +570,8 @@ func TestReadLogsWithSpanIdFilter(t *testing.T) {
 
 func TestReadLogsWithTraceIdFilter(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	rows := []*LogRow{
@@ -522,8 +621,8 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 
 func TestLogsKeys(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	rows := []*LogRow{
 		{
@@ -580,8 +679,8 @@ func TestLogsKeys(t *testing.T) {
 
 func TestLogKeyValues(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	rows := []*LogRow{
 		{
@@ -646,8 +745,8 @@ func TestLogKeyValues(t *testing.T) {
 
 func TestLogKeyValuesLevel(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	rows := []*LogRow{
 		{

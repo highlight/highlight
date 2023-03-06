@@ -45,7 +45,7 @@
 		"generate": "hygen",
 		"lint": "yarn run turbo lint --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs",
 		"prepare": "husky install && patch-package",
-		"preinstall": "git submodule update --init --recursive",
+		"preinstall": "git submodule update --init --recursive || true",
 		"prepublish": "yarn workspace scripts prepublish:client",
 		"private-gen": "cd backend && make private-gen",
 		"public-gen": "cd backend && make public-gen",
