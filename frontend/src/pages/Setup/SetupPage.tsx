@@ -430,7 +430,7 @@ const App = () => {
 								<div className={styles.integrationContainer}>
 									<ButtonLink
 										anchor
-										href="https://docs.highlight.run/reactjs-integration"
+										href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/react-error-boundary"
 										trackingId="SetupPageDocsReact"
 									>
 										Learn More about the React Package
@@ -454,7 +454,7 @@ const App = () => {
 						<ul>
 							<li>
 								<a
-									href="https://docs.highlight.run/comments"
+									href="https://www.highlight.io/docs/general/product-features/general-features/comments"
 									target="_blank"
 									rel="noreferrer"
 								>
@@ -463,7 +463,7 @@ const App = () => {
 							</li>
 							<li>
 								<a
-									href="https://docs.highlight.run/user-feedback"
+									href="https://www.highlight.io/docs/sdk/client#feedbackWidget"
 									target="_blank"
 									rel="noreferrer"
 								>
@@ -473,7 +473,7 @@ const App = () => {
 							</li>
 							<li>
 								<a
-									href="https://docs.highlight.run/network-devtools"
+									href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses"
 									target="_blank"
 									rel="noreferrer"
 								>
@@ -482,7 +482,7 @@ const App = () => {
 							</li>
 							<li>
 								<a
-									href="https://docs.highlight.run/deployment-overview"
+									href="https://www.highlight.io/docs/general/company/open-source/self-host-hobby"
 									target="_blank"
 									rel="noreferrer"
 								>
@@ -491,7 +491,7 @@ const App = () => {
 							</li>
 							<li>
 								<a
-									href="https://docs.highlight.run/sourcemaps"
+									href="https://www.highlight.io/docs/general/product-features/error-monitoring/sourcemaps"
 									target="_blank"
 									rel="noreferrer"
 								>
@@ -504,7 +504,7 @@ const App = () => {
 						<div className={styles.integrationContainer}>
 							<ButtonLink
 								anchor
-								href="https://docs.highlight.run/"
+								href="https://www.highlight.io/docs/general/welcome"
 								trackingId="SetupPageDocs"
 							>
 								Read the Docs
@@ -531,6 +531,8 @@ const BackendSetup = ({
 	projectLoading: boolean
 	integrated: boolean
 }) => {
+	const projectVerboseId =
+		projectData?.project?.verbose_id || 'YOUR_PROJECT_ID'
 	return (
 		<>
 			<div className={styles.headingWrapper}>
@@ -560,11 +562,17 @@ const BackendSetup = ({
 			) : (
 				<div className={styles.stepsContainer}>
 					{backendPlatform === BackendPlatformType.NextJs ? (
-						<NextBackendInstructions />
+						<NextBackendInstructions
+							projectVerboseId={projectVerboseId}
+						/>
 					) : backendPlatform === BackendPlatformType.Express ? (
-						<ExpressBackendInstructions />
+						<ExpressBackendInstructions
+							projectVerboseId={projectVerboseId}
+						/>
 					) : (
-						<GoBackendInstructions />
+						<GoBackendInstructions
+							projectVerboseId={projectVerboseId}
+						/>
 					)}
 					<Section title="Frontend Configuration" defaultOpen>
 						<p>
@@ -572,7 +580,7 @@ const BackendSetup = ({
 							initialized with the below settings included.{' '}
 						</p>
 						<CodeBlock
-							text={`H.init("<YOUR_PROJECT_ID>", {
+							text={`H.init("${projectVerboseId}", {
     ...
     tracingOrigins: true,
     networkRecording: {
@@ -627,7 +635,7 @@ const BackendSetup = ({
 						<ul>
 							<li>
 								<a
-									href="https://docs.highlight.run/comments"
+									href="https://www.highlight.io/docs/general/product-features/general-features/comments"
 									target="_blank"
 									rel="noreferrer"
 								>
@@ -636,7 +644,7 @@ const BackendSetup = ({
 							</li>
 							<li>
 								<a
-									href="https://docs.highlight.run/user-feedback"
+									href="https://www.highlight.io/docs/sdk/client#feedbackWidget"
 									target="_blank"
 									rel="noreferrer"
 								>
@@ -646,7 +654,7 @@ const BackendSetup = ({
 							</li>
 							<li>
 								<a
-									href="https://docs.highlight.run/network-devtools"
+									href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses"
 									target="_blank"
 									rel="noreferrer"
 								>
@@ -655,7 +663,7 @@ const BackendSetup = ({
 							</li>
 							<li>
 								<a
-									href="https://docs.highlight.run/deployment-overview"
+									href="https://www.highlight.io/docs/general/company/open-source/self-host-hobby"
 									target="_blank"
 									rel="noreferrer"
 								>
@@ -664,7 +672,7 @@ const BackendSetup = ({
 							</li>
 							<li>
 								<a
-									href="https://docs.highlight.run/sourcemaps"
+									href="https://www.highlight.io/docs/general/product-features/error-monitoring/sourcemaps"
 									target="_blank"
 									rel="noreferrer"
 								>
@@ -677,7 +685,7 @@ const BackendSetup = ({
 						<div className={styles.integrationContainer}>
 							<ButtonLink
 								anchor
-								href="https://docs.highlight.run/"
+								href="https://www.highlight.io/docs/general/welcome"
 								trackingId="SetupPageDocs"
 							>
 								Read the Docs
@@ -804,7 +812,7 @@ const MoreSetup = ({
 						</p>
 						<div className={styles.integrationContainer}>
 							<ButtonLink
-								href="https://docs.highlight.run/proxying-highlight"
+								href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/proxying-highlight"
 								trackingId="ProxyDocsFromSetupPage"
 								anchor
 							>
@@ -913,7 +921,11 @@ const HtmlInstructions = ({
 	)
 }
 
-const NextBackendInstructions = () => {
+const NextBackendInstructions = ({
+	projectVerboseId,
+}: {
+	projectVerboseId: string
+}) => {
 	return (
 		<>
 			<Section title="Vercel Integration" defaultOpen>
@@ -969,7 +981,7 @@ export default withHighlightConfig({
 					and then defining it in a common file. You can configure how
 					Highlight records with the{' '}
 					<a
-						href="https://docs.highlight.run/api#w0-highlightoptions"
+						href="https://www.highlight.io/docs/sdk/client#Hinit"
 						target="_blank"
 						rel="noreferrer"
 					>
@@ -980,7 +992,7 @@ export default withHighlightConfig({
 				<p>
 					<CodeBlock
 						language="javascript"
-						text={`export const withHighlight = Highlight({projectID: 'YOUR_PROJECT_ID'});`}
+						text={`export const withHighlight = Highlight({projectID: '${projectVerboseId}'});`}
 					/>
 				</p>
 				<p>
@@ -1004,7 +1016,11 @@ export default withHighlight(handler);`}
 	)
 }
 
-const ExpressBackendInstructions = () => {
+const ExpressBackendInstructions = ({
+	projectVerboseId,
+}: {
+	projectVerboseId: string
+}) => {
 	return (
 		<>
 			<Section title="Installing the SDK" defaultOpen>
@@ -1032,7 +1048,7 @@ const ExpressBackendInstructions = () => {
 					and then calling as soon as you can in your site's startup
 					process. You can configure how Highlight records with the{' '}
 					<a
-						href="https://docs.highlight.run/api#w0-highlightoptions"
+						href="https://www.highlight.io/docs/sdk/client#Hinit"
 						target="_blank"
 						rel="noreferrer"
 					>
@@ -1043,9 +1059,7 @@ const ExpressBackendInstructions = () => {
 				<p>
 					<CodeBlock
 						language="javascript"
-						text={`const highlightOptions = {};
-const highlightHandler = Handlers.errorHandler(highlightOptions);
-`}
+						text={`const highlightHandler = Handlers.errorHandler({projectID: '${projectVerboseId}'});`}
 					/>
 				</p>
 				<p>
@@ -1067,7 +1081,11 @@ app.use(highlightHandler);`}
 	)
 }
 
-const GoBackendInstructions = () => {
+const GoBackendInstructions = ({
+	projectVerboseId,
+}: {
+	projectVerboseId: string
+}) => {
 	return (
 		<>
 			<Section title="Installing the SDK" defaultOpen>
@@ -1092,6 +1110,7 @@ const GoBackendInstructions = () => {
 
 func main() {
     //...application logic...
+    highlight.SetProjectID("${projectVerboseId}")
     highlight.Start()
     defer highlight.Stop()
     //...application logic...
@@ -1144,7 +1163,7 @@ func main() {
 					<div className={styles.integrationContainer}>
 						<ButtonLink
 							anchor
-							href="https://docs.highlight.run/go-backend"
+							href="https://www.highlight.io/docs/getting-started/backend-sdk/go/overview"
 							trackingId="SetupPageBackend"
 						>
 							See an Example
@@ -1212,7 +1231,7 @@ const JsAppInstructions = ({
 					you can in your site's startup process. You can configure
 					how Highlight records with the{' '}
 					<a
-						href="https://docs.highlight.run/api#w0-highlightoptions"
+						href="https://www.highlight.io/docs/sdk/client#Hinit"
 						target="_blank"
 						rel="noreferrer"
 					>
