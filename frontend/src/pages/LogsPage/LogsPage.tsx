@@ -53,6 +53,8 @@ const LogsPage = () => {
 		},
 		skip: !project_id,
 		fetchPolicy: 'cache-and-network',
+		// Required for loading to get set properly when using fetchMore.
+		notifyOnNetworkStatusChange: true,
 	})
 
 	const handleFormSubmit = (value: string) => {
@@ -138,11 +140,11 @@ const LogsPage = () => {
 						presets={PRESETS}
 					/>
 
-					<div
-						style={{
-							height: '100vh',
-							overflow: 'auto',
-						}}
+					<Box
+						height="screen"
+						px="12"
+						pb="12"
+						overflowY="scroll"
 						onScroll={(e) =>
 							fetchMoreOnBottomReached(e.target as HTMLDivElement)
 						}
@@ -152,8 +154,9 @@ const LogsPage = () => {
 							data={data}
 							loading={loading}
 							query={query}
+							tableContainerRef={tableContainerRef}
 						/>
-					</div>
+					</Box>
 				</Box>
 			</Box>
 		</>

@@ -433,33 +433,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 
 // CreateAdmin is the resolver for the createAdmin field.
 func (r *mutationResolver) CreateAdmin(ctx context.Context) (*model.Admin, error) {
-	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
-
-	firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
-		tracer.Tag("admin_uid", uid))
-	firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
-
-	if err != nil {
-		spanError := e.Wrap(err, "error retrieving user from firebase api")
-		firebaseSpan.Finish(tracer.WithError(spanError))
-		return nil, spanError
-	}
-
-	admin := &model.Admin{
-		UID:                   &uid,
-		Name:                  &firebaseUser.DisplayName,
-		Email:                 &firebaseUser.Email,
-		PhotoURL:              &firebaseUser.PhotoURL,
-		EmailVerified:         &firebaseUser.EmailVerified,
-		Phone:                 &firebaseUser.PhoneNumber,
-		AboutYouDetailsFilled: &model.F,
-	}
-	if err := r.DB.Create(admin).Error; err != nil {
-		return nil, e.Wrap(err, "error creating new admin")
-	}
-
-	firebaseSpan.Finish()
-	return admin, nil
+	return r.createAdmin(ctx)
 }
 
 // CreateProject is the resolver for the createProject field.
@@ -6311,15 +6285,16 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 
 // Admin is the resolver for the admin field.
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
-	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
-	admin := &model.Admin{UID: &uid}
+	admin := &model.Admin{UID: pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))}
 	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.admin"),
-		tracer.Tag("admin_uid", uid))
+		tracer.Tag("admin_uid", admin.UID))
 
 	if err := r.DB.Where(&model.Admin{UID: admin.UID}).First(&admin).Error; err != nil {
-		spanError := e.Wrap(err, "error retrieving user from postgres")
-		adminSpan.Finish(tracer.WithError(spanError))
-		return nil, spanError
+		if admin, err = r.createAdmin(ctx); err != nil {
+			spanError := e.Wrap(err, "error creating user in postgres")
+			adminSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
 	}
 
 	if admin.PhotoURL == nil || admin.Name == nil {

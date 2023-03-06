@@ -118,7 +118,7 @@ const Search: React.FC<{
 		activeTerm.key !== BODY_KEY ||
 		!!keys?.find((k) => k.name === activeTerm.key)
 	const loading = keys?.length === 0 || (showValues && valuesLoading)
-	const showTermSelect = activeTerm.value.length
+	const showTermSelect = !!activeTerm.value.length
 
 	const visibleItems = showValues
 		? getVisibleValues(activeTerm, data?.logs_key_values)

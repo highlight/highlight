@@ -21,6 +21,10 @@
 		background-color: var(--color-red-600);
 	}
 
+	&.maintenance {
+		background-color: var(--color-purple-600);
+	}
+
 	&.error {
 		background-color: var(--color-red-400);
 

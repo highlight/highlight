@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -12,16 +13,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setup(t *testing.T) *Client {
-	client, err := setupClickhouseTestDB()
-
-	assert.NoError(t, err)
-
-	return client
+func TestMain(m *testing.M) {
+	_, err := setupClickhouseTestDB()
+	if err != nil {
+		panic("Failed to setup clickhouse test database")
+	}
+	code := m.Run()
+	// teardown() - we could drop the testing database here
+	os.Exit(code)
 }
 
-func teardown(client *Client) {
-	client.conn.Exec(context.Background(), "TRUNCATE TABLE logs") //nolint:errcheck
+func setupTest(tb testing.TB) (*Client, func(tb testing.TB)) {
+	client, _ := NewClient(TestDatabase)
+
+	return client, func(tb testing.TB) {
+		client.conn.Exec(context.Background(), "TRUNCATE TABLE logs") //nolint:errcheck
+	}
 }
 
 func makeDateWithinRange(now time.Time) *modelInputs.DateRangeRequiredInput {
@@ -33,8 +40,8 @@ func makeDateWithinRange(now time.Time) *modelInputs.DateRangeRequiredInput {
 
 func TestReadLogsWithTimeQuery(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	rows := []*LogRow{
@@ -71,11 +78,10 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 
 func TestReadLogsHistogram(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
-	now, err := time.Parse(time.RFC3339, "2023-01-01T00:00:00Z")
-	assert.NoError(t, err)
+	now := time.Now()
 	rows := []*LogRow{
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
@@ -86,7 +92,7 @@ func TestReadLogsHistogram(t *testing.T) {
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Hour - time.Minute*30),
+				Timestamp: now.Add(-time.Hour - time.Minute*29),
 				ProjectId: 1,
 			},
 			SeverityText: "DEBUG",
@@ -212,8 +218,8 @@ func TestReadLogsHistogram(t *testing.T) {
 
 func TestReadLogsHasNextPage(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	var rows []*LogRow
@@ -256,10 +262,11 @@ func TestReadLogsHasNextPage(t *testing.T) {
 
 func TestReadLogsAfterCursor(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
 	now := time.Now()
 	oneSecondAgo := now.Add(-time.Second * 1)
-	defer teardown(client)
 
 	rows := []*LogRow{
 		{
@@ -312,8 +319,8 @@ func TestReadLogsAfterCursor(t *testing.T) {
 
 func TestReadLogsWithBodyFilter(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	rows := []*LogRow{
@@ -359,8 +366,8 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 
 func TestReadLogsWithKeyFilter(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	rows := []*LogRow{
@@ -410,8 +417,8 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 
 func TestReadLogsWithLevelFilter(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	rows := []*LogRow{
@@ -461,8 +468,8 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 
 func TestReadLogsWithSessionIdFilter(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	rows := []*LogRow{
@@ -512,8 +519,8 @@ func TestReadLogsWithSessionIdFilter(t *testing.T) {
 
 func TestReadLogsWithSpanIdFilter(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	rows := []*LogRow{
@@ -563,8 +570,8 @@ func TestReadLogsWithSpanIdFilter(t *testing.T) {
 
 func TestReadLogsWithTraceIdFilter(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	now := time.Now()
 	rows := []*LogRow{
@@ -614,8 +621,8 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 
 func TestLogsKeys(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	rows := []*LogRow{
 		{
@@ -672,8 +679,8 @@ func TestLogsKeys(t *testing.T) {
 
 func TestLogKeyValues(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	rows := []*LogRow{
 		{
@@ -738,8 +745,8 @@ func TestLogKeyValues(t *testing.T) {
 
 func TestLogKeyValuesLevel(t *testing.T) {
 	ctx := context.Background()
-	client := setup(t)
-	defer teardown(client)
+	client, teardown := setupTest(t)
+	defer teardown(t)
 
 	rows := []*LogRow{
 		{

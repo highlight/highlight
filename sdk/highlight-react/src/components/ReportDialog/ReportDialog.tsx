@@ -11,6 +11,7 @@ export interface ReportDialogOptions {
 	labelName?: string
 	labelEmail?: string
 	labelComments?: string
+	placeholderComments?: string
 	labelClose?: string
 	labelSubmit?: string
 	successMessage?: string
@@ -34,6 +35,7 @@ const ReportDialog = ({
 	successMessage = 'Your feedback has been sent. Thank you!',
 	successSubtitle = "Thank you for sending us feedback. If you have any other concerns/questions, reach out to this application's support email.",
 	title = 'It looks like we’re having issues.',
+	placeholderComments = 'I typed in a name then clicked the button',
 	user,
 	onCloseHandler,
 	onSubmitHandler,
@@ -131,7 +133,7 @@ const ReportDialog = ({
 							{labelComments}
 							<textarea
 								value={verbatim}
-								placeholder="I typed in a name then clicked the button"
+								placeholder={placeholderComments}
 								name="verbatim"
 								rows={3}
 								onChange={(e) => {

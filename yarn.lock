@@ -10114,6 +10114,7 @@ __metadata:
     "@stripe/stripe-js": ^1.32.0
     "@svgr/cli": ^5.5.0
     "@tanstack/react-table": ^8.7.9
+    "@tanstack/react-virtual": beta
     "@testing-library/jest-dom": ^5.1.0
     "@testing-library/react-hooks": ^8.0.1
     "@types/classnames": ^2.2.11
@@ -15657,10 +15658,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/react-virtual@npm:beta":
+  version: 3.0.0-beta.52
+  resolution: "@tanstack/react-virtual@npm:3.0.0-beta.52"
+  dependencies:
+    "@tanstack/virtual-core": 3.0.0-beta.52
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: 39620aeb9b2b7d52366706ba5995044c494d6fb75933d08cf1fe76cd31fe60a3bf49b0a6f293d1b619a5232081eec1bc7e527f8a1970af6b8e087138a8deaf34
+  languageName: node
+  linkType: hard
+
 "@tanstack/table-core@npm:8.7.9":
   version: 8.7.9
   resolution: "@tanstack/table-core@npm:8.7.9"
   checksum: 78d2314928c29559088e4bada0248cc7f94e93756e1a2c1f37a651db30276e9ae960d647bd3a61b67b3f0f9f7e4dec5dd58eb49b8adb80ee5952ef417b6e581f
+  languageName: node
+  linkType: hard
+
+"@tanstack/virtual-core@npm:3.0.0-beta.52":
+  version: 3.0.0-beta.52
+  resolution: "@tanstack/virtual-core@npm:3.0.0-beta.52"
+  checksum: f2a5922284983a0689b275b01182fc3cfa3cd6d83166ec03110165f0d5ffd6bcf5b9579397f8acd27551f9fe2e6bb8f8ff8f1f028beda8cd89317ba1989ef236
   languageName: node
   linkType: hard
 
