@@ -11,12 +11,14 @@ export type TooltipProps = Partial<TooltipState> &
 	React.PropsWithChildren<{
 		trigger: React.ReactElement
 		disabled?: boolean
+		style?: React.CSSProperties
 	}>
 
 export const Tooltip: React.FC<TooltipProps> = ({
 	children,
 	trigger,
 	disabled,
+	style,
 	...props
 }: TooltipProps) => {
 	const tooltipState = useTooltipState({
@@ -27,7 +29,10 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
 	return (
 		<>
-			<TooltipAnchor state={tooltipState} style={{ display: 'flex' }}>
+			<TooltipAnchor
+				state={tooltipState}
+				style={{ display: 'flex', ...style }}
+			>
 				{trigger}
 			</TooltipAnchor>
 			{!disabled && (

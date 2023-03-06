@@ -1,4 +1,5 @@
 import { useGetLogsQuery } from '@graph/hooks'
+import { SeverityText } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
 import {
 	fifteenMinutesAgo,
@@ -64,6 +65,10 @@ const LogsPage = () => {
 	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
 		setStartDate(newStartDate)
 		setEndDate(newEndDate)
+	}
+
+	const handleLevelChange = (level: SeverityText) => {
+		setQuery(`level:${String(level).toLowerCase()}`)
 	}
 
 	const fetchMoreOnBottomReached = React.useCallback(
@@ -132,6 +137,8 @@ const LogsPage = () => {
 						query={query}
 						startDate={startDate}
 						endDate={endDate}
+						onDatesChange={handleDatesChange}
+						onLevelChange={handleLevelChange}
 					/>
 					<LogsCount
 						query={query}

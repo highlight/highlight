@@ -2,6 +2,7 @@ import { useGetLogsTotalCountQuery } from '@graph/hooks'
 import { Box, Preset, Stack, Text } from '@highlight-run/ui'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import { FORMAT } from '@pages/LogsPage/constants'
+import { formatDate } from '@pages/LogsPage/utils'
 import { formatNumber } from '@util/numbers'
 import moment from 'moment'
 import { useMemo } from 'react'
@@ -72,10 +73,6 @@ const LogsCount = ({
 			)}
 		</Stack>
 	)
-}
-
-const formatDate = (date: Date) => {
-	return moment(date).format('M/D/YY h:mm:s A')
 }
 
 export default LogsCount

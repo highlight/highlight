@@ -49,8 +49,20 @@ const SearchForm = ({
 	minDate,
 }: Props) => {
 	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
+
 	const { projectId } = useProjectId()
 	const formState = useFormState({ defaultValues: { query: initialQuery } })
+
+	useEffect(() => {
+		if (!startDate || !endDate) return
+		if (
+			selectedDates[0].getTime() === startDate.getTime() &&
+			selectedDates[1].getTime() === endDate.getTime()
+		) {
+			return
+		}
+		setSelectedDates([startDate, endDate])
+	}, [startDate, endDate, selectedDates])
 
 	const { data: keysData } = useGetLogsKeysQuery({
 		variables: {
