@@ -1025,7 +1025,7 @@ const ExpressBackendInstructions = () => {
 			<Section title="Initializing Highlight on the Backend" defaultOpen>
 				<p>Initialize the SDK by importing Highlight like so: </p>
 				<CodeBlock
-					text={`import { Highlight } from '@highlight-run/node';`}
+					text={`import { Handlers } from '@highlight-run/node';`}
 					language="javascript"
 				/>
 				<p>
@@ -1044,19 +1044,19 @@ const ExpressBackendInstructions = () => {
 					<CodeBlock
 						language="javascript"
 						text={`const highlightOptions = {};
-const highlightHandler = Highlight.Handlers.errorHandler(highlightOptions);
+const highlightHandler = Handlers.errorHandler(highlightOptions);
 `}
 					/>
 				</p>
 				<p>
 					<CodeBlock
 						language="javascript"
-						text={`import { Highlight } from "@highlight-run/node";
+						text={`import { Handlers } from "@highlight-run/node";
 
 const app = express();
 
 const highlightOptions = {};
-const highlightHandler = Highlight.Handlers.errorHandler(highlightOptions);
+const highlightHandler = Handlers.errorHandler(highlightOptions);
 
 // This should be before any other error middleware and after all controllers
 app.use(highlightHandler);`}
