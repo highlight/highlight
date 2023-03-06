@@ -897,7 +897,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			},
 		},
 	}); err != nil {
-		log.Errorf("failed to count sessions metric for %s: %s", s.SecureID, err)
+		log.WithContext(ctx).Errorf("failed to count sessions metric for %s: %s", s.SecureID, err)
 	}
 
 	// Update session count on dailydb
