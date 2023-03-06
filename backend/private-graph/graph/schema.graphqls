@@ -1477,7 +1477,11 @@ type Query {
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
 	logs_keys(project_id: ID!): [LogKey!]!
-	logs_key_values(project_id: ID!, key_name: String!): [String!]!
+	logs_key_values(
+		project_id: ID!
+		key_name: String!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 }
 
 type Mutation {

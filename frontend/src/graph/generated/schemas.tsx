@@ -1802,6 +1802,7 @@ export type QueryLogs_HistogramArgs = {
 }
 
 export type QueryLogs_Key_ValuesArgs = {
+	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
 }

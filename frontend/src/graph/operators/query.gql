@@ -1907,6 +1907,14 @@ query GetLogsKeys($project_id: ID!) {
 	}
 }
 
-query GetLogsKeyValues($project_id: ID!, $key_name: String!) {
-	logs_key_values(project_id: $project_id, key_name: $key_name)
+query GetLogsKeyValues(
+	$project_id: ID!
+	$key_name: String!
+	$date_range: DateRangeRequiredInput!
+) {
+	logs_key_values(
+		project_id: $project_id
+		key_name: $key_name
+		date_range: $date_range
+	)
 }

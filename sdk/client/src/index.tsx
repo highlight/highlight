@@ -103,6 +103,7 @@ export type HighlightClassOptions = {
 	inlineImages?: boolean
 	inlineStylesheet?: boolean
 	isCrossOriginIframe?: boolean
+	recordCrossOriginIframe?: boolean
 	firstloadVersion?: string
 	environment?: 'development' | 'production' | 'staging' | string
 	appVersion?: string
@@ -668,7 +669,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
 					emit,
-					recordCrossOriginIframes: true,
+					recordCrossOriginIframes:
+						this.options.recordCrossOriginIframe,
 					enableStrictPrivacy: this.enableStrictPrivacy,
 					maskAllInputs: this.enableStrictPrivacy,
 					recordCanvas: this.enableCanvasRecording,
@@ -683,7 +685,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						},
 					},
 					keepIframeSrcFn: (_src) => {
-						return !this.options.isCrossOriginIframe
+						return !this.options.recordCrossOriginIframe
 					},
 					inlineImages: this.inlineImages,
 					inlineStylesheet: this.inlineStylesheet,
