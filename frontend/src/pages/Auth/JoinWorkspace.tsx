@@ -70,7 +70,7 @@ export const JoinWorkspace = () => {
 	}
 
 	if (!workspaceId) {
-		return <Navigate to="/" />
+		return <Navigate replace to="/" />
 	}
 
 	return (
