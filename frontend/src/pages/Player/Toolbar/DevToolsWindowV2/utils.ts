@@ -124,35 +124,35 @@ export const LogLevelVariants = {
 } as const
 
 export enum RequestType {
+	//-- [displayName]: requestName --//
 	All = 'All',
-	Link = 'link',
-	Script = 'script',
-	Other = 'other',
-	XHR = 'xmlhttprequest',
 	CSS = 'css',
-	iFrame = 'iframe', // didn't find a request to verify that 'iframe' is what is actually received
 	Fetch = 'fetch',
+	iFrame = 'iframe', // didn't find a request to verify that 'iframe' is what is actually received
 	Img = 'img',
+	Link = 'link',
+	Other = 'other',
+	Script = 'script',
+	XHR = 'xmlhttprequest',
 }
 
-export const NETWORK_REQUEST_DISPLAY_NAMES: { [key: string]: string } = {
-	All: 'All',
-	link: 'Link',
-	script: 'Script',
-	other: 'Other',
-	xmlhttprequest: 'XHR',
-	css: 'CSS',
-	iframe: 'iFrame',
-	fetch: 'Fetch',
-	img: 'Img',
-} as const
+export interface ICountPerRequestType {
+	All: number
+	css: number
+	fetch: number
+	iframe: number
+	img: number
+	link: number
+	other: number
+	script: number
+	xmlhttprequest: number
+}
 
 export const getNetworkResourcesDisplayName = (value: string): string => {
-	switch (true) {
-		case value in NETWORK_REQUEST_DISPLAY_NAMES: {
-			return NETWORK_REQUEST_DISPLAY_NAMES[value]
+	for (const [displayName, requestName] of Object.entries(RequestType)) {
+		if (value === requestName) {
+			return displayName
 		}
-		default:
-			return value?.charAt(0).toUpperCase() + value?.slice(1)
 	}
+	return value?.charAt(0).toUpperCase() + value?.slice(1)
 }
