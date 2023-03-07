@@ -137,10 +137,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var projectErrors = make(map[string][]*model.BackendErrorObjectInput)
-	var traceErrors = make(map[string][]*model.BackendErrorObjectInput)
-
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
+	var projectErrorLogs = make(map[string][]*kafkaqueue.ErrorLog)
 
 	spans := req.Traces().ResourceSpans()
 	for i := 0; i < spans.Len(); i++ {
@@ -174,7 +172,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						excMessage := cast(eventAttributes[string(semconv.ExceptionMessageKey)], "")
 						ts := event.Timestamp().AsTime()
 
-						logCursor := func() *string {
+						logRow := func() *clickhouse.LogRow {
 							projectIDInt, err := projectToInt(projectID)
 							if err != nil {
 								log.WithContext(ctx).WithField("ProjectVerboseID", projectID).WithField("ExcMessage", excMessage).Errorf("otel span error got invalid project id")
@@ -193,36 +191,26 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							logRow.ServiceName = serviceName
 							logRow.Body = excMessage
 							logRow.LogAttributes = attributesMap
-							if projectID != "" {
-								if _, ok := projectLogs[projectID]; !ok {
-									projectLogs[projectID] = []*clickhouse.LogRow{}
-								}
-								projectLogs[projectID] = append(projectLogs[projectID], logRow)
-							} else {
-								data, _ := req.MarshalJSON()
-								log.WithContext(ctx).WithField("LogEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span log got no project")
-							}
-							return pointy.String(logRow.Cursor())
+							return logRow
 						}()
 
-						func() {
+						errObj := func() *model.BackendErrorObjectInput {
 							excType := cast(eventAttributes[string(semconv.ExceptionTypeKey)], source)
 							errorUrl := cast(eventAttributes[highlight.ErrorURLAttribute], "")
 							stackTrace := cast(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
 							if excType == "" && excMessage == "" {
 								log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Error("otel received exception with no type and no message")
-								return
+								return nil
 							} else if stackTrace == "" || stackTrace == "null" {
 								log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received exception with no stacktrace")
 								stackTrace = ""
 							}
 							stackTrace = formatStructureStackTrace(ctx, stackTrace)
-							err := &model.BackendErrorObjectInput{
+							return &model.BackendErrorObjectInput{
 								SessionSecureID: &sessionID,
 								RequestID:       &requestID,
 								TraceID:         pointy.String(traceID),
 								SpanID:          pointy.String(spanID),
-								LogCursor:       logCursor,
 								Event:           excMessage,
 								Type:            excType,
 								Source: strings.Join(lo.Filter([]string{
@@ -237,21 +225,25 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 								Payload:    pointy.String(string(tagsBytes)),
 								URL:        errorUrl,
 							}
-							if sessionID != "" {
-								if _, ok := traceErrors[sessionID]; !ok {
-									traceErrors[sessionID] = []*model.BackendErrorObjectInput{}
-								}
-								traceErrors[sessionID] = append(traceErrors[sessionID], err)
-							} else if projectID != "" {
-								if _, ok := projectErrors[projectID]; !ok {
-									projectErrors[projectID] = []*model.BackendErrorObjectInput{}
-								}
-								projectErrors[projectID] = append(projectErrors[projectID], err)
-							} else {
-								log.WithContext(ctx).WithField("BackendErrorObjectInput", *err).Errorf("otel error got no session and no project")
-								return
-							}
 						}()
+
+						if errObj != nil && logRow != nil {
+							errObj.LogCursor = pointy.String(logRow.Cursor())
+						}
+						if projectID != "" {
+							if _, ok := projectErrorLogs[projectID]; !ok {
+								projectErrorLogs[projectID] = []*kafkaqueue.ErrorLog{}
+							}
+							projectErrorLogs[projectID] = append(projectErrorLogs[projectID], &kafkaqueue.ErrorLog{
+								ProjectVerboseID: projectID,
+								Log:              logRow,
+								Error:            errObj,
+							})
+						} else {
+							data, _ := req.MarshalJSON()
+							log.WithContext(ctx).WithField("LogEvent", event).WithField("LogRow", logRow).WithField("LogRow", errObj).WithField("RequestJSON", string(data)).Errorf("otel span error got no project")
+							continue
+						}
 					} else if event.Name() == highlight.LogEvent {
 						logSev := cast(eventAttributes[string(hlog.LogSeverityKey)], "unknown")
 						logMessage := cast(eventAttributes[string(hlog.LogMessageKey)], "")
@@ -294,77 +286,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	for sessionID, errors := range traceErrors {
-		var backendError = false
-		for _, err := range errors {
-			if err.Type != highlight.SourceAttributeFrontend {
-				backendError = true
-			}
-		}
-		if backendError {
-			err = o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
-				Type: kafkaqueue.MarkBackendSetup,
-				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
-					SessionSecureID: pointy.String(sessionID),
-				},
-			}, sessionID)
-			if err != nil {
-				log.WithContext(ctx).Error(err, "failed to submit otel mark backend setup")
-				w.WriteHeader(http.StatusServiceUnavailable)
-				return
-			}
-		}
-
-		err = o.resolver.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
-			Type: kafkaqueue.PushBackendPayload,
-			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				SessionSecureID: &sessionID,
-				Errors:          errors,
-			}}, sessionID)
-		if err != nil {
-			log.WithContext(ctx).Error(err, "failed to submit otel session errors to public worker queue")
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
-		}
-	}
-
-	for projectID, errors := range projectErrors {
-		var backendError = false
-		for _, err := range errors {
-			if err.Type != highlight.SourceAttributeFrontend {
-				backendError = true
-			}
-		}
-		if backendError {
-			if projectIDInt, err := projectToInt(projectID); err == nil {
-				err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
-					Type: kafkaqueue.MarkBackendSetup,
-					MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
-						ProjectID: projectIDInt,
-					},
-				}, projectID)
-				if err != nil {
-					log.WithContext(ctx).Error(err, "failed to submit otel mark backend setup")
-					w.WriteHeader(http.StatusServiceUnavailable)
-					return
-				}
-			}
-		}
-
-		err = o.resolver.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
-			Type: kafkaqueue.PushBackendPayload,
-			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				ProjectVerboseID: &projectID,
-				Errors:           errors,
-			}}, projectID)
-		if err != nil {
-			log.WithContext(ctx).Error(err, "failed to submit otel project errors to public worker queue")
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
-		}
-	}
-
 	if err := o.submitProjectLogs(ctx, projectLogs, false); err != nil {
+		log.WithContext(ctx).Error(err, "failed to submit otel project logs")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
+	if err := o.submitProjectErrorLogs(ctx, projectErrorLogs, true); err != nil {
 		log.WithContext(ctx).Error(err, "failed to submit otel project logs")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
@@ -479,6 +406,33 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 			Type: kafkaqueue.PushLogs,
 			PushLogs: &kafkaqueue.PushLogsArgs{
 				LogRows: logRows,
+			}}, projectID)
+		if err != nil {
+			return e.Wrap(err, "failed to submit otel project logs to public worker queue")
+		}
+	}
+	return nil
+}
+
+func (o *Handler) submitProjectErrorLogs(ctx context.Context, projectErrorLogs map[string][]*kafkaqueue.ErrorLog, backend bool) error {
+	for projectID, errs := range projectErrorLogs {
+		if projectIDInt, err := projectToInt(projectID); backend && err == nil {
+			// otel logs only come from python sdk
+			err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
+				Type: kafkaqueue.MarkBackendSetup,
+				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
+					ProjectID: projectIDInt,
+				},
+			}, projectID)
+			if err != nil {
+				return e.Wrap(err, "failed to submit otel mark backend setup")
+			}
+		}
+
+		err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
+			Type: kafkaqueue.PushLogs,
+			PushLogs: &kafkaqueue.PushLogsArgs{
+				ErrorLogs: errs,
 			}}, projectID)
 		if err != nil {
 			return e.Wrap(err, "failed to submit otel project logs to public worker queue")

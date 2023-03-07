@@ -32,6 +32,7 @@ type LogRow struct {
 	ServiceName    string
 	Body           string
 	LogAttributes  map[string]string
+	ErrorObjectID  uint64
 }
 
 func NewLogRow(attrs LogRowPrimaryAttrs) *LogRow {
@@ -54,6 +55,9 @@ func (l *LogRow) Cursor() string {
 }
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
+	if len(logRows) == 0 {
+		return nil
+	}
 	batch, err := client.conn.PrepareBatch(ctx, "INSERT INTO logs")
 
 	if err != nil {

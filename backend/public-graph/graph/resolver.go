@@ -2275,7 +2275,7 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, errorsByProject map[in
 	}
 }
 
-func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureID *string, projectVerboseID *string, errorObjects []*publicModel.BackendErrorObjectInput) {
+func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureID *string, projectVerboseID *string, errorObjects []*publicModel.BackendErrorObjectInput) map[int][]*model.ErrorObject {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
 	querySessionSpan.SetTag("numberOfErrors", len(errorObjects))
 	querySessionSpan.SetTag("numberOfSessions", 1)
@@ -2287,7 +2287,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			retErr := e.New("ProcessBackendPayloadImpl failed to find session " + *sessionSecureID)
 			querySessionSpan.Finish(tracer.WithError(retErr))
 			log.WithContext(ctx).Error(retErr)
-			return
+			return nil
 		}
 		sessionID = &session.ID
 	}
@@ -2298,7 +2298,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		projectID, err = model.FromVerboseID(*projectVerboseID)
 		if err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "An unsupported verboseID was used: %s", *projectVerboseID))
-			return
+			return nil
 		}
 	}
 
@@ -2328,7 +2328,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	errorObjects = filteredErrors
 
 	if len(errorObjects) == 0 {
-		return
+		return nil
 	}
 
 	// Count the number of errors for each project
@@ -2413,9 +2413,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", sessionSecureID).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error updating session payload time"))
 		putErrorsToDBSpan.Finish(tracer.WithError(err))
-		return
+		return nil
 	}
 	putErrorsToDBSpan.Finish()
+
+	return groupedErrors
 }
 
 func (r *Resolver) RecordErrorGroupMetrics(ctx context.Context, errorGroup *model.ErrorGroup, errors []*model.ErrorObject) error {

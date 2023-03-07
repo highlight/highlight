@@ -97,8 +97,15 @@ type AddSessionFeedbackArgs struct {
 	Timestamp       time.Time
 }
 
+type ErrorLog struct {
+	ProjectVerboseID string
+	Log              *clickhouse.LogRow
+	Error            *customModels.BackendErrorObjectInput
+}
+
 type PushLogsArgs struct {
-	LogRows []*clickhouse.LogRow
+	LogRows   []*clickhouse.LogRow
+	ErrorLogs []*ErrorLog
 }
 
 type Message struct {

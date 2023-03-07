@@ -2,6 +2,8 @@ package worker
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/samber/lo"
 	"sync"
 	"time"
 
@@ -82,6 +84,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	defer s.Finish()
 
 	var logRows []*clickhouse.LogRow
+	var errLogs []*kafkaqueue.ErrorLog
 	setupProjectIDs := make(map[int]bool)
 	setupSessionIDs := make(map[string]bool)
 
@@ -93,7 +96,12 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 			case lastMsg = <-k.BatchBuffer.messageQueue:
 				switch lastMsg.Type {
 				case kafkaqueue.PushLogs:
-					logRows = append(logRows, lastMsg.PushLogs.LogRows...)
+					if len(lastMsg.PushLogs.LogRows) > 0 {
+						logRows = append(logRows, lastMsg.PushLogs.LogRows...)
+					}
+					if len(lastMsg.PushLogs.ErrorLogs) > 0 {
+						errLogs = append(errLogs, lastMsg.PushLogs.ErrorLogs...)
+					}
 				case kafkaqueue.MarkBackendSetup:
 					if lastMsg.MarkBackendSetup.ProjectID != 0 {
 						setupProjectIDs[lastMsg.MarkBackendSetup.ProjectID] = true
@@ -113,29 +121,80 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 		}
 	}()
 
-	writeSpan, writeCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.process"))
-	writeSpan.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
-	writeSpan.SetTag("NumLogRows", len(logRows))
-	writeSpan.SetTag("PayloadSizeBytes", binary.Size(logRows))
-	if len(logRows) > 0 {
-		err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(writeCtx, logRows)
-		if err != nil {
-			log.WithContext(writeCtx).WithError(err).Error("failed to batch write to clickhouse")
+	wSpan, wCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.process"))
+	wSpan.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
+
+	span, ctxT := tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.clickhouse"))
+	span.SetTag("NumLogRows", len(logRows))
+	span.SetTag("PayloadSizeBytes", binary.Size(logRows))
+	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, logRows)
+	if err != nil {
+		log.WithContext(ctxT).WithError(err).Error("failed to batch write to clickhouse")
+	}
+	span.Finish(tracer.WithError(err))
+
+	span, ctxT = tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.errors"))
+	span.SetTag("NumErrRows", len(errLogs))
+	var errorLogs = make(map[string]*clickhouse.LogRow)
+	var projectErrors = make(map[string][]*model.BackendErrorObjectInput)
+	var sessionErrors = make(map[string][]*model.BackendErrorObjectInput)
+	for _, row := range errLogs {
+		if row.Log != nil {
+			errorLogs[row.Log.Cursor()] = row.Log
+		}
+		if row.Error.SessionSecureID != nil {
+			sessionID := *row.Error.SessionSecureID
+			if _, ok := sessionErrors[sessionID]; !ok {
+				sessionErrors[sessionID] = []*model.BackendErrorObjectInput{}
+			}
+			sessionErrors[sessionID] = append(sessionErrors[sessionID], row.Error)
+		} else {
+			if _, ok := projectErrors[row.ProjectVerboseID]; !ok {
+				projectErrors[row.ProjectVerboseID] = []*model.BackendErrorObjectInput{}
+			}
+			projectErrors[row.ProjectVerboseID] = append(projectErrors[row.ProjectVerboseID], row.Error)
 		}
 	}
+	for p, errs := range projectErrors {
+		groupedErrors := k.Worker.PublicResolver.ProcessBackendPayloadImpl(ctx, nil, pointy.String(p), errs)
+		for _, errorObjs := range groupedErrors {
+			for _, eObj := range errorObjs {
+				errorLogs[*eObj.LogCursor].ErrorObjectID = uint64(eObj.ID)
+			}
+		}
+	}
+	for s, errs := range sessionErrors {
+		groupedErrors := k.Worker.PublicResolver.ProcessBackendPayloadImpl(ctx, pointy.String(s), nil, errs)
+		for _, errorObjs := range groupedErrors {
+			for _, eObj := range errorObjs {
+				errorLogs[*eObj.LogCursor].ErrorObjectID = uint64(eObj.ID)
+			}
+		}
+	}
+	err = k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, lo.Values(errorLogs))
+	if err != nil {
+		log.WithContext(ctxT).WithError(err).Error("failed to batch write to clickhouse")
+	}
+	span.Finish(tracer.WithError(err))
+
+	span, ctxT = tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.markBackend"))
+	span.SetTag("NumProjectRows", len(setupProjectIDs))
+	span.SetTag("NumSessionRows", len(setupSessionIDs))
 	for projectID := range setupProjectIDs {
-		err := k.Worker.PublicResolver.MarkBackendSetupImpl(writeCtx, nil, nil, projectID)
+		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctxT, nil, nil, projectID)
 		if err != nil {
-			log.WithContext(writeCtx).WithError(err).Errorf("failed to batch mark backend setup for project %d", projectID)
+			log.WithContext(ctxT).WithError(err).Errorf("failed to batch mark backend setup for project %d", projectID)
 		}
 	}
 	for sessionID := range setupSessionIDs {
-		err := k.Worker.PublicResolver.MarkBackendSetupImpl(writeCtx, nil, pointy.String(sessionID), 0)
+		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctxT, nil, pointy.String(sessionID), 0)
 		if err != nil {
-			log.WithContext(writeCtx).WithError(err).Errorf("failed to batch mark backend setup for session %s", sessionID)
+			log.WithContext(ctxT).WithError(err).Errorf("failed to batch mark backend setup for session %s", sessionID)
 		}
 	}
-	writeSpan.Finish()
+	span.Finish()
+
+	wSpan.Finish()
 
 	k.KafkaQueue.Commit(ctx, lastMsg.KafkaMessage)
 	k.BatchBuffer.lastMessage = nil
