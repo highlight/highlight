@@ -388,7 +388,11 @@ func TestReadLogsAtCursor(t *testing.T) {
 
 	rows := []*LogRow{}
 
-	for i := 1; i <= 500; i++ {
+	// LogsLimit+3 = 103
+	// 1 log not visible on the previous page
+	// 101 logs visible (50 before + 50 after + permalinked log)
+	// 1 log not visible on the next page
+	for i := 1; i <= LogsLimit+3; i++ {
 		rows = append(rows, &LogRow{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now,
