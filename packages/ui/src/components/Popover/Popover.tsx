@@ -1,4 +1,3 @@
-import { Box, BoxProps } from '@components/Box/Box'
 import {
 	Popover as AriakitPopover,
 	PopoverDisclosure,
@@ -9,6 +8,7 @@ import {
 import React from 'react'
 import { Button, ButtonProps as ButtonProps } from '../Button/Button'
 import { Tag, Props as TagProps } from '../Tag/Tag'
+import { Box, BoxProps } from '../Box/Box'
 
 const PopoverContext = React.createContext<PopoverState>({} as PopoverState)
 export const usePopover = () => React.useContext(PopoverContext)
