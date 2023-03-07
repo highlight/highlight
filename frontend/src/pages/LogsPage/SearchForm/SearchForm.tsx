@@ -121,7 +121,6 @@ const Search: React.FC<{
 	endDate: Date
 }> = ({ keys, startDate, endDate }) => {
 	const formState = useForm()
-	const [autoSelect, setAutoSelect] = useState(true)
 	const { query } = formState.values
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
@@ -208,7 +207,6 @@ const Search: React.FC<{
 			<IconSolidSearch className={styles.searchIcon} />
 
 			<Combobox
-				autoSelect={autoSelect}
 				ref={inputRef}
 				state={state}
 				name="search"
@@ -217,22 +215,11 @@ const Search: React.FC<{
 				onChange={(e) => {
 					const value = e.target.value
 					formState.setValue('query', value)
-
-					if (!state.open) {
-						state.setOpen(true)
-					}
-
-					if (value === '' && autoSelect) {
-						setAutoSelect(false)
-					} else if (value !== '' && !autoSelect) {
-						setAutoSelect(true)
-					}
 				}}
 				className={styles.combobox}
 				setValueOnChange={false}
 				onBlur={() => {
 					formState.submit()
-					setAutoSelect(true)
 				}}
 			/>
 
@@ -256,7 +243,9 @@ const Search: React.FC<{
 										state={state}
 									>
 										<Stack direction="row" gap="8">
-											<Text>{activeTerm.value}:</Text>{' '}
+											<Text lines="1">
+												{activeTerm.value}:
+											</Text>{' '}
 											<Text color="weak">
 												{activeTerm.key ?? 'Body'}
 											</Text>
