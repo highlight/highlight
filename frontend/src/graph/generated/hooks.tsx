@@ -11629,7 +11629,7 @@ export const GetLogsHistogramDocument = gql`
 				bucketId
 				counts {
 					count
-					severityText
+					level
 				}
 			}
 		}

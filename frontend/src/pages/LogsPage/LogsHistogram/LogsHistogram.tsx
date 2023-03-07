@@ -1,10 +1,10 @@
 import LoadingBox from '@components/LoadingBox'
 import { useGetLogsHistogramQuery } from '@graph/hooks'
-import { SeverityText } from '@graph/schemas'
+import { LogLevel as Level } from '@graph/schemas'
 import { Box, Popover, Text } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { FORMAT } from '@pages/LogsPage/constants'
-import { LogSeverityText } from '@pages/LogsPage/LogsTable/LogSeverityText'
+import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import { useMemo, useState } from 'react'
@@ -13,7 +13,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import * as styles from './LogsHistogram.css'
 
 type LogCount = {
-	severityText: string
+	level: string
 	count: number
 }
 interface HistogramBucket {
@@ -33,7 +33,7 @@ const LogsHistogram = ({
 	startDate: Date
 	endDate: Date
 	onDatesChange?: (startDate: Date, endDate: Date) => void
-	onLevelChange?: (level: SeverityText) => void
+	onLevelChange?: (level: Level) => void
 }) => {
 	const { project_id } = useParams<{
 		project_id: string
@@ -154,7 +154,7 @@ const LogBucketBar = ({
 	maxBucketCount: number
 	width: string | number
 	onDatesChange?: (startDate: Date, endDate: Date) => void
-	onLevelChange?: (level: SeverityText) => void
+	onLevelChange?: (level: Level) => void
 }) => {
 	const [open, setOpen] = useState(false)
 	useHotkeys('esc', () => {
@@ -179,13 +179,11 @@ const LogBucketBar = ({
 			>
 				{bucket?.counts?.map((bar) => (
 					<Box
-						key={bar.severityText}
+						key={bar.level}
 						style={{
 							height: `${(bar.count / maxBucketCount) * 100}%`,
 							backgroundColor:
-								severityToColor[
-									bar.severityText as SeverityText
-								],
+								severityToColor[bar.level as Level],
 						}}
 						width="full"
 						borderRadius="2"
@@ -222,9 +220,7 @@ const LogBucketBar = ({
 							cssClass={[styles.popoverContentRow, styles.hover]}
 							onClick={() => {
 								if (onLevelChange) {
-									onLevelChange(
-										bar.severityText as SeverityText,
-									)
+									onLevelChange(bar.level as Level)
 								}
 								if (onDatesChange) {
 									onDatesChange(
@@ -238,16 +234,12 @@ const LogBucketBar = ({
 								borderRadius="round"
 								style={{
 									backgroundColor:
-										severityToColor[
-											bar.severityText as SeverityText
-										],
+										severityToColor[bar.level as Level],
 									height: 8,
 									width: 8,
 								}}
 							/>
-							<LogSeverityText
-								severityText={bar.severityText as SeverityText}
-							/>
+							<LogLevel level={bar.level as Level} />
 							<Box ml="auto" color="weak">
 								<Text size="small" weight="medium">
 									{bar.count}
@@ -276,12 +268,12 @@ const LogBucketBar = ({
 }
 
 const severityToColor = {
-	[SeverityText.Trace]: colors.n6,
-	[SeverityText.Debug]: colors.n8,
-	[SeverityText.Info]: colors.n9,
-	[SeverityText.Warn]: colors.n10,
-	[SeverityText.Error]: colors.n11,
-	[SeverityText.Fatal]: colors.n12,
+	[Level.Trace]: colors.n6,
+	[Level.Debug]: colors.n8,
+	[Level.Info]: colors.n9,
+	[Level.Warn]: colors.n10,
+	[Level.Error]: colors.n11,
+	[Level.Fatal]: colors.n12,
 } as const
 
 export default LogsHistogram

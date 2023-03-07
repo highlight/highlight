@@ -4007,7 +4007,7 @@ export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
 						counts: Array<
 							{ __typename?: 'LogsHistogramBucketCount' } & Pick<
 								Types.LogsHistogramBucketCount,
-								'count' | 'severityText'
+								'count' | 'level'
 							>
 						>
 					}

@@ -1,5 +1,5 @@
 import { useGetLogsQuery } from '@graph/hooks'
-import { SeverityText } from '@graph/schemas'
+import { LogLevel } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
 import {
 	fifteenMinutesAgo,
@@ -66,7 +66,7 @@ const LogsPage = () => {
 		setEndDate(newEndDate)
 	}
 
-	const handleLevelChange = (level: SeverityText) => {
+	const handleLevelChange = (level: LogLevel) => {
 		setQuery(`level:${String(level).toLowerCase()}`)
 	}
 
