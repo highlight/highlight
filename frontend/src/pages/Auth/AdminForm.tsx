@@ -27,6 +27,7 @@ import { Landing } from '@pages/Landing/Landing'
 import analytics from '@util/analytics'
 import { getAttributionData } from '@util/attribution'
 import { message } from 'antd'
+import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -84,6 +85,14 @@ export const AdminForm: React.FC = () => {
 				'Please fill out all form fields correctly.',
 			)
 			return
+		}
+
+		try {
+			window.gtag('event', 'conversion', {
+				send_to: 'AW-10833687189/_C5MCLfmoY0YEJXl860o',
+			})
+		} catch (e: any) {
+			H.consumeError(e as Error, "Couldn't send gtag event")
 		}
 
 		analytics.track('About you submitted')
