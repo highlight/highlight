@@ -177,18 +177,22 @@ const LogBucketBar = ({
 					height: '100%',
 				}}
 			>
-				{bucket?.counts?.map((bar) => (
-					<Box
-						key={bar.level}
-						style={{
-							height: `${(bar.count / maxBucketCount) * 100}%`,
-							backgroundColor:
-								severityToColor[bar.level as Level],
-						}}
-						width="full"
-						borderRadius="2"
-					/>
-				))}
+				{bucket?.counts?.map((bar) =>
+					bar.count ? (
+						<Box
+							key={bar.level}
+							style={{
+								height: `${
+									(bar.count / maxBucketCount) * 100
+								}%`,
+								backgroundColor:
+									severityToColor[bar.level as Level],
+							}}
+							width="full"
+							borderRadius="2"
+						/>
+					) : null,
+				)}
 			</Popover.BoxTrigger>
 		)
 	}, [bucket, maxBucketCount, width])
@@ -209,44 +213,49 @@ const LogBucketBar = ({
 				}}
 			>
 				<Box display="flex" flexDirection="column" py="4">
-					{bucket?.counts?.map((bar, index) => (
-						<Box
-							key={index}
-							display="flex"
-							alignItems="center"
-							gap="8"
-							px="8"
-							py="4"
-							cssClass={[styles.popoverContentRow, styles.hover]}
-							onClick={() => {
-								if (onLevelChange) {
-									onLevelChange(bar.level as Level)
-								}
-								if (onDatesChange) {
-									onDatesChange(
-										bucket.startDate,
-										bucket.endDate,
-									)
-								}
-							}}
-						>
+					{bucket?.counts?.map((bar, index) =>
+						bar.count ? (
 							<Box
-								borderRadius="round"
-								style={{
-									backgroundColor:
-										severityToColor[bar.level as Level],
-									height: 8,
-									width: 8,
+								key={index}
+								display="flex"
+								alignItems="center"
+								gap="8"
+								px="8"
+								py="4"
+								cssClass={[
+									styles.popoverContentRow,
+									styles.hover,
+								]}
+								onClick={() => {
+									if (onLevelChange) {
+										onLevelChange(bar.level as Level)
+									}
+									if (onDatesChange) {
+										onDatesChange(
+											bucket.startDate,
+											bucket.endDate,
+										)
+									}
 								}}
-							/>
-							<LogLevel level={bar.level as Level} />
-							<Box ml="auto" color="weak">
-								<Text size="small" weight="medium">
-									{bar.count}
-								</Text>
+							>
+								<Box
+									borderRadius="round"
+									style={{
+										backgroundColor:
+											severityToColor[bar.level as Level],
+										height: 8,
+										width: 8,
+									}}
+								/>
+								<LogLevel level={bar.level as Level} />
+								<Box ml="auto" color="weak">
+									<Text size="small" weight="medium">
+										{bar.count}
+									</Text>
+								</Box>
 							</Box>
-						</Box>
-					))}
+						) : null,
+					)}
 				</Box>
 			</Popover.Content>
 		)

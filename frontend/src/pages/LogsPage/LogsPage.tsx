@@ -58,7 +58,11 @@ const LogsPage = () => {
 	})
 
 	const handleFormSubmit = (value: string) => {
-		setQuery(value)
+		if (!!value) {
+			setQuery(value)
+		} else {
+			setQuery(undefined)
+		}
 	}
 
 	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {

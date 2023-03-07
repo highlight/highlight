@@ -7,6 +7,7 @@ import {
 	Form,
 	IconSolidSearch,
 	IconSolidSwitchVertical,
+	IconSolidXCircle,
 	Preset,
 	PreviousDateRangePicker,
 	Stack,
@@ -96,6 +97,7 @@ const SearchForm = ({
 				borderBottom="dividerWeak"
 			>
 				<Search
+					initialQuery={initialQuery}
 					keys={keysData?.logs_keys}
 					startDate={startDate}
 					endDate={endDate}
@@ -116,10 +118,11 @@ const SearchForm = ({
 export { SearchForm }
 
 const Search: React.FC<{
+	initialQuery: string
 	keys?: GetLogsKeysQuery['logs_keys']
 	startDate: Date
 	endDate: Date
-}> = ({ keys, startDate, endDate }) => {
+}> = ({ initialQuery, keys, startDate, endDate }) => {
 	const formState = useForm()
 	const { query } = formState.values
 	const { project_id } = useParams()
@@ -148,6 +151,8 @@ const Search: React.FC<{
 
 	const showResults = loading || visibleItems.length > 0 || showTermSelect
 
+	const isDirty = state.value !== ''
+
 	useEffect(() => {
 		if (!showValues) {
 			return
@@ -171,6 +176,23 @@ const Search: React.FC<{
 		showValues,
 		startDate,
 	])
+
+	useEffect(() => {
+		state.setValue(initialQuery)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [initialQuery])
+
+	useEffect(() => {
+		formState.setValue('query', state.value)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [state.value])
+
+	useEffect(() => {
+		if (!query) {
+			formState.submit()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [query])
 
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
@@ -206,22 +228,39 @@ const Search: React.FC<{
 		>
 			<IconSolidSearch className={styles.searchIcon} />
 
-			<Combobox
-				ref={inputRef}
-				state={state}
-				name="search"
-				placeholder="Search your logs..."
-				value={query}
-				onChange={(e) => {
-					const value = e.target.value
-					formState.setValue('query', value)
-				}}
-				className={styles.combobox}
-				setValueOnChange={false}
-				onBlur={() => {
-					formState.submit()
-				}}
-			/>
+			<Box
+				display="flex"
+				alignItems="center"
+				gap="6"
+				width="full"
+				color="weak"
+			>
+				<Combobox
+					ref={inputRef}
+					autoSelect
+					autoComplete="none"
+					state={state}
+					name="search"
+					placeholder="Search your logs..."
+					className={styles.combobox}
+					onBlur={() => {
+						formState.setValue('query', state.value)
+						formState.submit()
+						inputRef?.current?.blur()
+					}}
+				/>
+
+				{isDirty ? (
+					<IconSolidXCircle
+						size={16}
+						onClick={(e) => {
+							e.preventDefault()
+							e.stopPropagation()
+							state.setValue('')
+						}}
+					/>
+				) : null}
+			</Box>
 
 			{showResults && (
 				<Combobox.Popover

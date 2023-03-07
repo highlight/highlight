@@ -1,7 +1,7 @@
 import { Preset } from '@highlight-run/ui'
 import moment from 'moment'
 
-export const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
+export const FORMAT = 'YYYY-MM-DDTHH:mm:ss.000000000Z'
 
 export const now = moment()
 export const fifteenMinutesAgo = now.clone().subtract(15, 'minutes').toDate()
