@@ -1868,8 +1868,8 @@ query GetLogs($project_id: ID!, $params: LogsParamsInput!, $after: String) {
 			cursor
 			node {
 				timestamp
-				severityText
-				body
+				level
+				message
 				logAttributes
 				traceID
 				spanID
