@@ -320,10 +320,12 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 	}
 
 	for _, key := range modelInputs.AllReservedLogKey {
-		keys = append(keys, &modelInputs.LogKey{
-			Name: key.String(),
-			Type: modelInputs.LogKeyTypeString,
-		})
+		if key != modelInputs.ReservedLogKeyMessage { // skip `message` since it's just noise
+			keys = append(keys, &modelInputs.LogKey{
+				Name: key.String(),
+				Type: modelInputs.LogKeyTypeString,
+			})
+		}
 	}
 
 	rows.Close()
