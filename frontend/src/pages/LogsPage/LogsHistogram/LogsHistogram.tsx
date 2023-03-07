@@ -252,9 +252,10 @@ const LogBucketBar = ({
 						<Box
 							key={bar.level}
 							style={{
-								height: `${
-									(bar.count / maxBucketCount) * 100
-								}%`,
+								height: `${Math.max(
+									(bar.count / maxBucketCount) * 100,
+									2,
+								)}%`,
 								backgroundColor:
 									severityToColor[bar.level as Level],
 							}}
