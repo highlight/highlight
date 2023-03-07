@@ -79,10 +79,9 @@ const OrderBackward = "Timestamp ASC, UUID ASC"
 const OrderForward = "Timestamp DESC, UUID DESC"
 
 type Pagination struct {
-	After          *string
-	AfterOrEqualTo *string // currently only used internally
-	Before         *string
-	At             *string
+	After  *string
+	Before *string
+	At     *string
 }
 
 func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*modelInputs.LogsConnection, error) {
@@ -94,23 +93,30 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	if pagination.At != nil && len(*pagination.At) > 1 {
 		// Create a "window" around the cursor
 		// https://stackoverflow.com/a/71738696
-		sb1, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
+		beforeSb, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
 			Before: pagination.At,
 		})
 		if err != nil {
 			return nil, err
 		}
-		sb1.Limit(LogsLimit/2 + 1)
+		beforeSb.Limit(LogsLimit/2 + 1)
 
-		sb2, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
-			AfterOrEqualTo: pagination.At,
+		atSb, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
+			At: pagination.At,
 		})
 		if err != nil {
 			return nil, err
 		}
-		sb2.Limit(LogsLimit/2 + 2)
 
-		ub := sqlbuilder.UnionAll(sb1, sb2)
+		afterSb, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
+			After: pagination.At,
+		})
+		if err != nil {
+			return nil, err
+		}
+		afterSb.Limit(LogsLimit/2 + 1)
+
+		ub := sqlbuilder.UnionAll(beforeSb, atSb, afterSb)
 		sb.Select(selectStr).From(sb.BuilderAs(ub, "logs_window")).OrderBy(OrderForward)
 	} else {
 		fromSb, err := makeSelectBuilder(selectStr, projectID, params, pagination)
@@ -445,18 +451,13 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 					sb.LessThan("UUID", uuid),
 				),
 			).OrderBy(OrderForward)
-	} else if pagination.AfterOrEqualTo != nil && len(*pagination.AfterOrEqualTo) > 1 {
-		timestamp, uuid, err := decodeCursor(*pagination.AfterOrEqualTo)
+	} else if pagination.At != nil && len(*pagination.At) > 1 {
+		timestamp, uuid, err := decodeCursor(*pagination.At)
 		if err != nil {
 			return nil, err
 		}
-		sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
-			Where(
-				sb.Or(
-					sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix())),
-					sb.LessEqualThan("UUID", uuid),
-				),
-			).OrderBy(OrderForward)
+		sb.Where(sb.Equal("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
+			Where(sb.Equal("UUID", uuid))
 	} else if pagination.Before != nil && len(*pagination.Before) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.Before)
 		if err != nil {
