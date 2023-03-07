@@ -122,11 +122,16 @@ const LogsHistogram = ({
 					maxBucketCount={maxBucketCount}
 					onDatesChange={onDatesChange}
 					onLevelChange={onLevelChange}
+					isDragging={
+						dragLeft !== undefined && dragRight !== undefined
+					}
 				/>
 			)
 		})
 	}, [
 		data?.logs_histogram,
+		dragLeft,
+		dragRight,
 		endDate,
 		loading,
 		maxBucketCount,
@@ -235,7 +240,7 @@ const LogBucketBar = ({
 				width="full"
 				p="1"
 				gap="1"
-				cssClass={{ [styles.hover]: isDragging }}
+				cssClass={{ [styles.hover]: !isDragging }}
 				style={{
 					width,
 					height: '100%',
