@@ -345,11 +345,11 @@ const LogBucketBar = ({
 }
 
 const severityToColor = {
-	[Level.Trace]: colors.n6,
-	[Level.Debug]: colors.n8,
-	[Level.Info]: colors.n9,
-	[Level.Warn]: colors.n10,
-	[Level.Error]: colors.n11,
+	[Level.Trace]: colors.n2,
+	[Level.Debug]: colors.n4,
+	[Level.Info]: colors.n6,
+	[Level.Warn]: colors.n8,
+	[Level.Error]: colors.n10,
 	[Level.Fatal]: colors.n12,
 } as const
 
