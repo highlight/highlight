@@ -2364,6 +2364,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			SessionID:   sessionID,
 			TraceID:     v.TraceID,
 			SpanID:      v.SpanID,
+			LogCursor:   v.LogCursor,
 			Environment: session.Environment,
 			Event:       v.Event,
 			Type:        model.ErrorType.BACKEND,

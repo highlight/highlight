@@ -1447,6 +1447,7 @@ export type Query = {
 	error_instance?: Maybe<ErrorInstance>
 	error_issue: Array<Maybe<ExternalAttachment>>
 	error_object?: Maybe<ErrorObject>
+	error_object_for_log?: Maybe<ErrorObject>
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram: ErrorsHistogram
@@ -1692,6 +1693,10 @@ export type QueryError_IssueArgs = {
 
 export type QueryError_ObjectArgs = {
 	id: Scalars['ID']
+}
+
+export type QueryError_Object_For_LogArgs = {
+	log_cursor: Scalars['String']
 }
 
 export type QueryError_SegmentsArgs = {
