@@ -178,16 +178,20 @@ const Search: React.FC<{
 	])
 
 	useEffect(() => {
+		// necessary to update the combobox with the URL state
 		state.setValue(initialQuery)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [initialQuery])
 
 	useEffect(() => {
+		// links combobox and form states;
+		// necessary to update the URL when the query changes
 		formState.setValue('query', state.value)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [state.value])
 
 	useEffect(() => {
+		// removes the dirty state from URL when the query is empty
 		if (!query) {
 			formState.submit()
 		}
