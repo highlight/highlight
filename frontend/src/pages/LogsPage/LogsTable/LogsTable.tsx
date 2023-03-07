@@ -1,3 +1,4 @@
+import { CircularSpinner } from '@components/Loading/Loading'
 import { GetLogsQuery } from '@graph/operations'
 import { SeverityText } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
@@ -29,6 +30,7 @@ import * as styles from './LogsTable.css'
 
 type Props = {
 	loading: boolean
+	loadingAfter: boolean
 	data: GetLogsQuery | undefined
 	query: string
 	tableContainerRef: React.RefObject<HTMLDivElement>
@@ -37,6 +39,7 @@ type Props = {
 export const LogsTable = ({
 	data,
 	loading,
+	loadingAfter,
 	query,
 	tableContainerRef,
 }: Props) => {
@@ -133,6 +136,19 @@ export const LogsTable = ({
 		table.toggleAllRowsExpanded(false)
 	}, [logEdges, table])
 
+	if (loading) {
+		return (
+			<Box
+				display="flex"
+				flexGrow={1}
+				alignItems="center"
+				justifyContent="center"
+			>
+				<CircularSpinner />
+			</Box>
+		)
+	}
+
 	if (logEdges.length === 0) {
 		return (
 			<Box
@@ -185,7 +201,7 @@ export const LogsTable = ({
 
 			{paddingBottom > 0 && <Box style={{ height: paddingBottom }} />}
 
-			{loading && (
+			{loadingAfter && (
 				<Box
 					backgroundColor="white"
 					border="dividerWeak"

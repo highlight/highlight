@@ -5,7 +5,7 @@ import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import {
 	DateTimeParam,
@@ -63,6 +63,7 @@ const LogsPage = () => {
 
 	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
 
+	const [loadingAfter, setLoadingAfter] = useState(false)
 	const { data, loading, fetchMore } = useGetLogsQuery({
 		variables: {
 			project_id: project_id!,
@@ -76,8 +77,6 @@ const LogsPage = () => {
 		},
 		skip: !project_id,
 		fetchPolicy: 'cache-and-network',
-		// Required for loading to get set properly when using fetchMore.
-		notifyOnNetworkStatusChange: true,
 	})
 
 	const { data: totalCount, loading: logCountLoading } =
@@ -114,6 +113,7 @@ const LogsPage = () => {
 					const pageInfo = data?.logs.pageInfo
 
 					if (pageInfo && pageInfo.hasNextPage) {
+						setLoadingAfter(true)
 						fetchMore({
 							variables: {
 								project_id: project_id!,
@@ -128,6 +128,8 @@ const LogsPage = () => {
 								},
 								after: pageInfo.endCursor,
 							},
+						}).finally(() => {
+							setLoadingAfter(false)
 						})
 					}
 				}
@@ -199,6 +201,7 @@ const LogsPage = () => {
 						<LogsTable
 							data={data}
 							loading={loading}
+							loadingAfter={loadingAfter}
 							query={query}
 							tableContainerRef={tableContainerRef}
 						/>
