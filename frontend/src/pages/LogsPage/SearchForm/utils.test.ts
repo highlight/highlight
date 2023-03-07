@@ -1,5 +1,5 @@
 import {
-	BODY_KEY,
+	MESSAGE_KEY,
 	parseLogsQuery,
 	stringifyLogsQuery,
 	validateLogsQuery,
@@ -26,7 +26,7 @@ const complexQueryParams = [
 		offsetStart: 46,
 	},
 	{
-		key: BODY_KEY,
+		key: MESSAGE_KEY,
 		operator: '=',
 		value: 'freetext query',
 		offsetStart: 59,
@@ -39,7 +39,7 @@ describe('parseLogsQuery', () => {
 
 		expect(parseLogsQuery(query)).toEqual([
 			{
-				key: BODY_KEY,
+				key: MESSAGE_KEY,
 				operator: '=',
 				value: query,
 				offsetStart: 0,
@@ -62,7 +62,7 @@ describe('parseLogsQuery', () => {
 				offsetStart: 0,
 			},
 			{
-				key: BODY_KEY,
+				key: MESSAGE_KEY,
 				operator: '=',
 				value: 'search query',
 				offsetStart: 14,
@@ -86,7 +86,7 @@ describe('parseLogsQuery', () => {
 				offsetStart: 0,
 			},
 			{
-				key: BODY_KEY,
+				key: MESSAGE_KEY,
 				operator: '=',
 				value: '',
 				offsetStart: 19,
@@ -100,7 +100,7 @@ describe('stringifyLogsQuery', () => {
 		expect(
 			stringifyLogsQuery([
 				{
-					key: BODY_KEY,
+					key: MESSAGE_KEY,
 					operator: '=',
 					value: 'a test query',
 					offsetStart: 0,
