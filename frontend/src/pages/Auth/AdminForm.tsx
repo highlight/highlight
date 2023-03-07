@@ -91,8 +91,8 @@ export const AdminForm: React.FC = () => {
 			window.gtag('event', 'conversion', {
 				send_to: 'AW-10833687189/_C5MCLfmoY0YEJXl860o',
 			})
-		} catch (e) {
-			H.consumeError(e, "Couldn't send gtag event")
+		} catch (e: any) {
+			H.consumeError(e as Error, "Couldn't send gtag event")
 		}
 
 		analytics.track('About you submitted')
