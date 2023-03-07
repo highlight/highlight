@@ -12,6 +12,7 @@ import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
+import { isSignificantDateRange } from '@pages/LogsPage/utils'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import React, { useRef, useState } from 'react'
@@ -66,6 +67,7 @@ const LogsPage = () => {
 	}
 
 	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
+		if (!isSignificantDateRange(newStartDate, newEndDate)) return
 		setStartDate(newStartDate)
 		setEndDate(newEndDate)
 	}

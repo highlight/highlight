@@ -7,7 +7,7 @@ import { FORMAT } from '@pages/LogsPage/constants'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import * as styles from './LogsHistogram.css'
@@ -38,6 +38,7 @@ const LogsHistogram = ({
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
+
 	const { data, loading } = useGetLogsHistogramQuery({
 		variables: {
 			project_id: project_id!,
@@ -51,6 +52,15 @@ const LogsHistogram = ({
 		},
 		skip: !project_id,
 	})
+
+	const [dragStart, setDragStart] = useState<number | undefined>()
+	const [dragEnd, setDragEnd] = useState<number | undefined>()
+	let dragLeft: number | undefined
+	let dragRight: number | undefined
+	if (dragStart !== undefined && dragEnd !== undefined) {
+		dragLeft = Math.min(dragStart, dragEnd)
+		dragRight = Math.max(dragStart, dragEnd)
+	}
 
 	const maxBucketCount = useMemo(() => {
 		if (!data?.logs_histogram) {
@@ -125,6 +135,7 @@ const LogsHistogram = ({
 		startDate,
 	])
 
+	const containerRef = useRef<HTMLDivElement>(null)
 	if (!loading && !maxBucketCount) {
 		return null
 	}
@@ -136,9 +147,60 @@ const LogsHistogram = ({
 			cssClass={styles.histogramContainer}
 			width="full"
 			px="12"
-			pt="8"
+			mt="8"
+			position="relative"
+			ref={containerRef}
+			onMouseDown={(e: any) => {
+				if (!e || !containerRef.current) {
+					return
+				}
+				const rect = containerRef.current.getBoundingClientRect()
+				const pos = ((e.clientX - rect.left) / rect.width) * 100
+				setDragStart(pos)
+				setDragEnd(pos)
+			}}
+			onMouseMove={(e: any) => {
+				if (!e || !containerRef.current) {
+					return
+				}
+				if (dragStart !== undefined) {
+					const rect = containerRef.current.getBoundingClientRect()
+					const pos = ((e.clientX - rect.left) / rect.width) * 100
+					setDragEnd(pos)
+				}
+			}}
+			onMouseUp={() => {
+				if (dragLeft !== undefined && dragRight !== undefined) {
+					const range = endDate.getTime() - startDate.getTime()
+					const start = new Date(
+						startDate.getTime() + (dragLeft / 100) * range,
+					)
+					const end = new Date(
+						startDate.getTime() + (dragRight / 100) * range,
+					)
+					onDatesChange?.(start, end)
+				}
+
+				setDragStart(undefined)
+				setDragEnd(undefined)
+			}}
+			onMouseLeave={() => {
+				setDragStart(undefined)
+				setDragEnd(undefined)
+			}}
 		>
 			{content}
+			{dragLeft !== undefined && dragRight !== undefined && (
+				<Box
+					position="absolute"
+					height="full"
+					style={{
+						left: `${dragLeft}%`,
+						width: `${dragRight - dragLeft}%`,
+					}}
+					cssClass={styles.dragSelection}
+				/>
+			)}
 		</Box>
 	)
 }
@@ -149,12 +211,14 @@ const LogBucketBar = ({
 	width,
 	onDatesChange,
 	onLevelChange,
+	isDragging,
 }: {
 	bucket?: HistogramBucket
 	maxBucketCount: number
 	width: string | number
 	onDatesChange?: (startDate: Date, endDate: Date) => void
 	onLevelChange?: (level: Level) => void
+	isDragging?: boolean
 }) => {
 	const [open, setOpen] = useState(false)
 	useHotkeys('esc', () => {
@@ -171,14 +235,15 @@ const LogBucketBar = ({
 				width="full"
 				p="1"
 				gap="1"
-				cssClass={styles.hover}
+				cssClass={{ [styles.hover]: isDragging }}
 				style={{
 					width,
 					height: '100%',
 				}}
 			>
-				{bucket?.counts?.map((bar) =>
-					bar.count ? (
+				{bucket?.counts?.map((bar) => {
+					if (!bar.count) return null
+					return (
 						<Box
 							key={bar.level}
 							style={{
@@ -191,11 +256,11 @@ const LogBucketBar = ({
 							width="full"
 							borderRadius="2"
 						/>
-					) : null,
-				)}
+					)
+				})}
 			</Popover.BoxTrigger>
 		)
-	}, [bucket, maxBucketCount, width])
+	}, [bucket?.counts, isDragging, maxBucketCount, width])
 
 	const content = useMemo(() => {
 		const bucketCount = bucket?.counts?.reduce(
@@ -213,8 +278,9 @@ const LogBucketBar = ({
 				}}
 			>
 				<Box display="flex" flexDirection="column" py="4">
-					{bucket?.counts?.map((bar, index) =>
-						bar.count ? (
+					{bucket?.counts?.map((bar, index) => {
+						if (!bar.count) return null
+						return (
 							<Box
 								key={index}
 								display="flex"
@@ -227,20 +293,11 @@ const LogBucketBar = ({
 									styles.hover,
 								]}
 								onClick={() => {
-									if (onLevelChange) {
-										onLevelChange(bar.level as Level)
-									}
-									const isSignificant =
-										moment(bucket.endDate).format(
-											FORMAT,
-										) !==
-										moment(bucket.startDate).format(FORMAT)
-									if (onDatesChange && isSignificant) {
-										onDatesChange(
-											bucket.startDate,
-											bucket.endDate,
-										)
-									}
+									onLevelChange?.(bar.level as Level)
+									onDatesChange?.(
+										bucket.startDate,
+										bucket.endDate,
+									)
 								}}
 							>
 								<Box
@@ -259,8 +316,8 @@ const LogBucketBar = ({
 									</Text>
 								</Box>
 							</Box>
-						) : null,
-					)}
+						)
+					})}
 				</Box>
 			</Popover.Content>
 		)

@@ -1,5 +1,6 @@
 import { vars } from '@highlight-run/ui'
 import { borders } from '@highlight-run/ui/src/css/borders'
+import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
 
 export const histogramContainer = style({
@@ -26,4 +27,9 @@ export const popoverContent = style({
 
 export const popoverContentRow = style({
 	height: 28,
+})
+
+export const dragSelection = style({
+	backgroundColor: colors.n7,
+	opacity: 0.5,
 })
