@@ -230,7 +230,12 @@ const LogBucketBar = ({
 									if (onLevelChange) {
 										onLevelChange(bar.level as Level)
 									}
-									if (onDatesChange) {
+									const isSignificant =
+										moment(bucket.endDate).format(
+											FORMAT,
+										) !==
+										moment(bucket.startDate).format(FORMAT)
+									if (onDatesChange && isSignificant) {
 										onDatesChange(
 											bucket.startDate,
 											bucket.endDate,
