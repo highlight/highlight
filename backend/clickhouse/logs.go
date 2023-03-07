@@ -551,7 +551,9 @@ type filters struct {
 }
 
 func makeFilters(query string) filters {
-	filters := filters{}
+	filters := filters{
+		attributes: make(map[string]string),
+	}
 
 	queries := splitQuery(query)
 
