@@ -27,6 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	"github.com/highlight-run/highlight/backend/apolloio"
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
 	highlightErrors "github.com/highlight-run/highlight/backend/errors"
@@ -6993,13 +6994,17 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 }
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string) (*modelInputs.LogsPayload, error) {
+func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string) (*modelInputs.LogsConnection, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 
-	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params, after)
+	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params, clickhouse.Pagination{
+		After:  after,
+		Before: before,
+		At:     at,
+	})
 }
 
 // LogsTotalCount is the resolver for the logs_total_count field.

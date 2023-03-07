@@ -3957,7 +3957,7 @@ export type GetLogsQueryVariables = Types.Exact<{
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
-	logs: { __typename?: 'LogsPayload' } & {
+	logs: { __typename?: 'LogsConnection' } & {
 		edges: Array<
 			{ __typename?: 'LogEdge' } & Pick<Types.LogEdge, 'cursor'> & {
 					node: { __typename?: 'Log' } & Pick<
