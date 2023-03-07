@@ -11504,8 +11504,8 @@ export const GetLogsDocument = gql`
 				cursor
 				node {
 					timestamp
-					severityText
-					body
+					level
+					message
 					logAttributes
 					traceID
 					spanID

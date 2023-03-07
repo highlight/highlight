@@ -658,10 +658,10 @@ export type LinearTeam = {
 
 export type Log = {
 	__typename?: 'Log'
-	body: Scalars['String']
+	level: LogLevel
 	logAttributes: Scalars['Map']
+	message: Scalars['String']
 	secureSessionID?: Maybe<Scalars['String']>
-	severityText: SeverityText
 	spanID?: Maybe<Scalars['String']>
 	timestamp: Scalars['Timestamp']
 	traceID?: Maybe<Scalars['String']>
@@ -683,6 +683,15 @@ export enum LogKeyType {
 	String = 'String',
 }
 
+export enum LogLevel {
+	Debug = 'DEBUG',
+	Error = 'ERROR',
+	Fatal = 'FATAL',
+	Info = 'INFO',
+	Trace = 'TRACE',
+	Warn = 'WARN',
+}
+
 export type LogsHistogram = {
 	__typename?: 'LogsHistogram'
 	buckets: Array<LogsHistogramBucket>
@@ -698,7 +707,7 @@ export type LogsHistogramBucket = {
 export type LogsHistogramBucketCount = {
 	__typename?: 'LogsHistogramBucketCount'
 	count: Scalars['UInt64']
-	severityText: SeverityText
+	level: LogLevel
 }
 
 export type LogsParamsInput = {
@@ -2337,15 +2346,6 @@ export type SessionsHistogram = {
 	sessions_with_errors: Array<Scalars['Int64']>
 	sessions_without_errors: Array<Scalars['Int64']>
 	total_sessions: Array<Scalars['Int64']>
-}
-
-export enum SeverityText {
-	Debug = 'DEBUG',
-	Error = 'ERROR',
-	Fatal = 'FATAL',
-	Info = 'INFO',
-	Trace = 'TRACE',
-	Warn = 'WARN',
 }
 
 export type SlackSyncResponse = {

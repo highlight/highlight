@@ -3963,8 +3963,8 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 					node: { __typename?: 'Log' } & Pick<
 						Types.Log,
 						| 'timestamp'
-						| 'severityText'
-						| 'body'
+						| 'level'
+						| 'message'
 						| 'logAttributes'
 						| 'traceID'
 						| 'spanID'

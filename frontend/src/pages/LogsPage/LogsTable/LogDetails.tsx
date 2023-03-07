@@ -13,7 +13,7 @@ import {
 	IconExpanded,
 } from '@pages/LogsPage/LogsTable/LogsTable'
 import { Row } from '@tanstack/react-table'
-import { message } from 'antd'
+import { message as antdMessage } from 'antd'
 import React, { useEffect, useState } from 'react'
 
 import * as styles from './LogDetails.css'
@@ -24,7 +24,7 @@ type Props = {
 
 export const LogDetails = ({ row }: Props) => {
 	const [allExpanded, setAllExpanded] = useState(false)
-	const { traceID, spanID, secureSessionID, logAttributes } =
+	const { traceID, spanID, secureSessionID, logAttributes, message, level } =
 		row.original.node
 	const expanded = row.getIsExpanded()
 	const expandable = Object.values(logAttributes).some(
@@ -59,6 +59,14 @@ export const LogDetails = ({ row }: Props) => {
 					</Box>
 				)
 			})}
+
+			<Box>
+				<LogValue label="level" value={level} />
+			</Box>
+
+			<Box>
+				<LogValue label="message" value={message} />
+			</Box>
 
 			{traceID && (
 				<Box>
@@ -121,7 +129,7 @@ export const LogDetails = ({ row }: Props) => {
 						navigator.clipboard.writeText(
 							JSON.stringify(row.original),
 						)
-						message.success('Copied logs!')
+						antdMessage.success('Copied logs!')
 					}}
 				>
 					<Box

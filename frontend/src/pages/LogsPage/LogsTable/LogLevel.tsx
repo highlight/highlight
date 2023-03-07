@@ -1,13 +1,13 @@
-import { SeverityText } from '@graph/schemas'
+import { LogLevel as LogLevelType } from '@graph/schemas'
 import { Text } from '@highlight-run/ui'
 import { Box, BoxProps } from '@highlight-run/ui'
 import React from 'react'
 
 type Props = {
-	severityText: SeverityText
+	level: LogLevelType
 }
 
-const COLOR_MAPPING: { [key in SeverityText]: BoxProps['color'] } = {
+const COLOR_MAPPING: { [key in LogLevelType]: BoxProps['color'] } = {
 	WARN: 'caution',
 	DEBUG: 'strong',
 	INFO: 'informative',
@@ -16,16 +16,16 @@ const COLOR_MAPPING: { [key in SeverityText]: BoxProps['color'] } = {
 	TRACE: 'strong',
 }
 
-const LogSeverityText = ({ severityText }: Props) => {
-	const color: BoxProps['color'] = COLOR_MAPPING[severityText] ?? 'default'
+const LogLevel = ({ level }: Props) => {
+	const color: BoxProps['color'] = COLOR_MAPPING[level] ?? 'default'
 
 	return (
 		<Box flexShrink={0} style={{ width: 46 }}>
 			<Text color={color} weight="bold" family="monospace">
-				{severityText}
+				{level}
 			</Text>
 		</Box>
 	)
 }
 
-export { LogSeverityText }
+export { LogLevel }
