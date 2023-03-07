@@ -453,7 +453,7 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 				Timestamp: now,
 				ProjectId: 1,
 			},
-			Body: "body",
+			Body: "body with space",
 		},
 	}
 
@@ -468,7 +468,7 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "body", // direct match
+		Query:     "body with space", // direct match
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)

@@ -552,7 +552,11 @@ func makeFilters(query string) filters {
 			if strings.Contains(body, "*") {
 				body = strings.ReplaceAll(body, "*", "%")
 			}
-			filters.body = filters.body + body
+			if len(filters.body) == 0 {
+				filters.body = body
+			} else {
+				filters.body = filters.body + " " + body
+			}
 		} else if len(parts) == 2 {
 			key, value := parts[0], parts[1]
 
