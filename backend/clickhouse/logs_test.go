@@ -61,7 +61,7 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 			StartDate: now.Add(-time.Hour * 2),
 			EndDate:   now.Add(-time.Hour * 1),
 		},
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 
 	assert.Len(t, payload.Edges, 0)
@@ -71,7 +71,7 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 			StartDate: now.Add(-time.Hour * 1),
 			EndDate:   now.Add(time.Hour * 1),
 		},
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 
 	assert.Len(t, payload.Edges, 1)
@@ -225,7 +225,7 @@ func TestReadLogsHasNextPage(t *testing.T) {
 	now := time.Now()
 	var rows []*LogRow
 
-	for i := 1; i <= Limit; i++ { // 100 is a hardcoded limit
+	for i := 1; i <= LogsLimit; i++ { // 100 is a hardcoded limit
 		rows = append(rows, &LogRow{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now,
@@ -237,7 +237,7 @@ func TestReadLogsHasNextPage(t *testing.T) {
 
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 
 	assert.Len(t, payload.Edges, 100)
@@ -255,7 +255,7 @@ func TestReadLogsHasNextPage(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 
 	assert.True(t, payload.PageInfo.HasNextPage)
@@ -297,7 +297,7 @@ func TestReadLogsAfterCursor(t *testing.T) {
 
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 3)
 
@@ -311,7 +311,9 @@ func TestReadLogsAfterCursor(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-	}, &secondCursor)
+	}, Pagination{
+		After: &secondCursor,
+	})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
@@ -339,28 +341,28 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "no match",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 0)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "body", // direct match
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "od", // wildcard match
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "BODY", // case insensitive match
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 }
@@ -390,28 +392,28 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "service:foo",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 0)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     `service:"image processor"`,
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "service:*mage*",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "service:image* workspace_id:1 user_id:1",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 }
@@ -446,7 +448,7 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "level:INFO",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 	assert.Equal(t, modelInputs.LogLevel("INFO"), payload.Edges[0].Node.Level)
@@ -454,7 +456,7 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "level:*NF*",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 	assert.Equal(t, modelInputs.LogLevel("INFO"), payload.Edges[0].Node.Level)
@@ -462,7 +464,7 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "level:WARN",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 0)
 }
@@ -497,7 +499,7 @@ func TestReadLogsWithSessionIdFilter(t *testing.T) {
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "secure_session_id:match",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.SecureSessionID)
@@ -505,7 +507,7 @@ func TestReadLogsWithSessionIdFilter(t *testing.T) {
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "secure_session_id:*atc*",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.SecureSessionID)
@@ -513,7 +515,7 @@ func TestReadLogsWithSessionIdFilter(t *testing.T) {
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "secure_session_id:no_match",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 0)
 }
@@ -548,7 +550,7 @@ func TestReadLogsWithSpanIdFilter(t *testing.T) {
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "span_id:match",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.SpanID)
@@ -556,7 +558,7 @@ func TestReadLogsWithSpanIdFilter(t *testing.T) {
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "span_id:*atc*",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.SpanID)
@@ -564,7 +566,7 @@ func TestReadLogsWithSpanIdFilter(t *testing.T) {
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "span_id:no_match",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 0)
 }
@@ -599,7 +601,7 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "trace_id:match",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.TraceID)
@@ -607,7 +609,7 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "trace_id:*atc*",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 	assert.Equal(t, ptr.String("match"), payload.Edges[0].Node.TraceID)
@@ -615,7 +617,7 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "trace_id:no_match",
-	}, nil)
+	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 0)
 }
