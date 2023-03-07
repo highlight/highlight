@@ -1,5 +1,6 @@
 import { useGetLogsKeysQuery, useGetLogsKeyValuesLazyQuery } from '@graph/hooks'
 import { GetLogsKeysQuery } from '@graph/operations'
+import { ReservedLogKey } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -142,16 +143,18 @@ const Search: React.FC<{
 			return
 		}
 
-		getLogsKeyValues({
-			variables: {
-				project_id: project_id!,
-				key_name: activeTerm.key,
-				date_range: {
-					start_date: moment(startDate).format(FORMAT),
-					end_date: moment(endDate).format(FORMAT),
+		if (activeTerm.key !== ReservedLogKey.Message) {
+			getLogsKeyValues({
+				variables: {
+					project_id: project_id!,
+					key_name: activeTerm.key,
+					date_range: {
+						start_date: moment(startDate).format(FORMAT),
+						end_date: moment(endDate).format(FORMAT),
+					},
 				},
-			},
-		})
+			})
+		}
 	}, [
 		activeTerm.key,
 		endDate,
