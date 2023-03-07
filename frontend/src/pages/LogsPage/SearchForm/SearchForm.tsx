@@ -1,6 +1,5 @@
 import { useGetLogsKeysQuery, useGetLogsKeyValuesLazyQuery } from '@graph/hooks'
 import { GetLogsKeysQuery } from '@graph/operations'
-import { ReservedLogKey } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -143,7 +142,7 @@ const Search: React.FC<{
 			return
 		}
 
-		if (activeTerm.key !== ReservedLogKey.Message) {
+		if (activeTerm.key !== 'message') {
 			getLogsKeyValues({
 				variables: {
 					project_id: project_id!,
