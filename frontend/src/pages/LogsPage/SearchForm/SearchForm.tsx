@@ -18,8 +18,8 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import { FORMAT } from '@pages/LogsPage/LogsPage'
 import {
-	BODY_KEY,
 	LogsSearchParam,
+	MESSAGE_KEY,
 	parseLogsQuery,
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
@@ -123,7 +123,7 @@ const Search: React.FC<{
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
 	const showValues =
-		activeTerm.key !== BODY_KEY ||
+		activeTerm.key !== MESSAGE_KEY ||
 		!!keys?.find((k) => k.name === activeTerm.key)
 	const loading = keys?.length === 0 || (showValues && valuesLoading)
 	const showTermSelect = !!activeTerm.value.length
@@ -246,7 +246,7 @@ const Search: React.FC<{
 										<Stack direction="row" gap="8">
 											<Text>{activeTerm.value}:</Text>{' '}
 											<Text color="weak">
-												{activeTerm.key ?? 'Body'}
+												{activeTerm.key ?? 'Message'}
 											</Text>
 										</Stack>
 									</Combobox.Item>
@@ -379,8 +379,8 @@ const getVisibleKeys = (
 			(key) =>
 				// If it's a new term, don't filter results.
 				startingNewTerm ||
-				// Only filter for body queries
-				(activeQueryTerm.key === BODY_KEY &&
+				// Only filter for message queries
+				(activeQueryTerm.key === MESSAGE_KEY &&
 					// Don't filter if no query term
 					(!activeQueryTerm.value.length ||
 						startingNewTerm ||

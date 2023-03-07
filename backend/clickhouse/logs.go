@@ -320,10 +320,12 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 	}
 
 	for _, key := range modelInputs.AllReservedLogKey {
-		keys = append(keys, &modelInputs.LogKey{
-			Name: key.String(),
-			Type: modelInputs.LogKeyTypeString,
-		})
+		if key != modelInputs.ReservedLogKeyMessage { // skip `message` since it's just noise
+			keys = append(keys, &modelInputs.LogKey{
+				Name: key.String(),
+				Type: modelInputs.LogKeyTypeString,
+			})
+		}
 	}
 
 	rows.Close()
@@ -483,6 +485,14 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 		sb.Where("Body ILIKE" + sb.Var(filters.body))
 	}
 
+	if len(filters.message) > 0 {
+		if strings.Contains(filters.message, "%") {
+			sb.Where(sb.Like("Body", filters.message))
+		} else {
+			sb.Where(sb.Equal("Body", filters.message))
+		}
+	}
+
 	if len(filters.level) > 0 {
 		if strings.Contains(filters.level, "%") {
 			sb.Where(sb.Like("SeverityText", filters.level))
@@ -528,7 +538,13 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 }
 
 type filters struct {
-	body              string
+	// Free form text, not required to be delimited by a colon `:`
+	// Will be a case insensitive, wildcard search by default for convenience.
+	body string
+
+	// Equivalent to body except that it must be delimited (e.g. message:foo)
+	// Similar to the keys below, it's case sensitive and only uses a wildcard if one is provided.
+	message           string
 	level             string
 	trace_id          string
 	span_id           string
@@ -538,7 +554,6 @@ type filters struct {
 
 func makeFilters(query string) filters {
 	filters := filters{
-		body:       "",
 		attributes: make(map[string]string),
 	}
 
@@ -563,6 +578,8 @@ func makeFilters(query string) filters {
 			wildcardValue := strings.ReplaceAll(value, "*", "%")
 
 			switch key {
+			case modelInputs.ReservedLogKeyMessage.String():
+				filters.message = wildcardValue
 			case modelInputs.ReservedLogKeyLevel.String():
 				filters.level = wildcardValue
 			case modelInputs.ReservedLogKeySecureSessionID.String():
