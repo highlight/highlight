@@ -1,4 +1,4 @@
-import { LogEdge } from '@graph/schemas'
+import { LogEdge, LogLevel } from '@graph/schemas'
 import {
 	Box,
 	ButtonLink,
@@ -162,9 +162,7 @@ export const LogDetails = ({ row }: Props) => {
 					flexDirection="row"
 					gap="16"
 				>
-					{row.original.node.severityText
-						.toLowerCase()
-						.indexOf('error') !== -1 && (
+					{row.original.node.level === LogLevel.Error && (
 						<Tag
 							shape="basic"
 							kind="secondary"

@@ -94,7 +94,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 
 	const { data: errorObjectForLogData, loading: errorObjectForLogLoading } =
 		useGetErrorObjectForLogQuery({
-			variables: { log_cursor: logCursor },
+			variables: { log_cursor: logCursor! },
 			skip: !logCursor,
 		})
 
