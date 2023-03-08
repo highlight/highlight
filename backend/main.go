@@ -48,7 +48,7 @@ import (
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
 	H "github.com/highlight/highlight/sdk/highlight-go"
-	"github.com/highlight/highlight/sdk/highlight-go/log"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"

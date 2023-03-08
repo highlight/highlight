@@ -10,6 +10,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
 	"runtime"
+	"strings"
 )
 
 var (
@@ -17,17 +18,22 @@ var (
 	LogMessageKey  = attribute.Key(highlight.LogMessageAttribute)
 )
 
+// Level follows the otel spec: https://github.com/open-telemetry/opentelemetry-specification/blob/b674b49a9be32bf38a58865e9a04803c0f9349fb/specification/logs/data-model.md
 type Level = uint32
 
 const (
-	ErrorLevel Level = iota
-	WarnLevel  Level = iota
-	InfoLevel  Level = iota
-	DebugLevel Level = iota
+	FatalLevel Level = iota
+	ErrorLevel
+	WarnLevel
+	InfoLevel
+	DebugLevel
+	TraceLevel
 )
 
 func levelToString(l Level) string {
 	switch l {
+	case FatalLevel:
+		return "fatal"
 	case ErrorLevel:
 		return "error"
 	case WarnLevel:
@@ -36,8 +42,31 @@ func levelToString(l Level) string {
 		return "info"
 	case DebugLevel:
 		return "debug"
+	case TraceLevel:
+		return "trace"
 	}
 	return ""
+}
+
+// ParseLevel takes a string level and returns the highlight log level constant.
+func parseLevel(lvl string) (Level, error) {
+	switch strings.ToLower(lvl) {
+	case "fatal":
+		return FatalLevel, nil
+	case "error":
+		return ErrorLevel, nil
+	case "warn", "warning":
+		return WarnLevel, nil
+	case "info":
+		return InfoLevel, nil
+	case "debug":
+		return DebugLevel, nil
+	case "trace":
+		return TraceLevel, nil
+	}
+
+	var l Level
+	return l, fmt.Errorf("not a valid hlog Level: %q", lvl)
 }
 
 var printOut = true
@@ -56,15 +85,15 @@ type Printer struct {
 	Tags    []attribute.KeyValue
 }
 
-func (p *Printer) log(level Level, message string) {
+func (p *Printer) log(level Level, message string, attrs ...attribute.KeyValue) {
 	span, _ := highlight.StartTrace(p.Context, "highlight-go/log")
 	defer highlight.EndTrace(span)
 
-	attrs := []attribute.KeyValue{
+	attrs = append(attrs,
 		attribute.String(highlight.ProjectIDAttribute, highlight.GetProjectID()),
 		LogSeverityKey.String(levelToString(level)),
 		LogMessageKey.String(message),
-	}
+	)
 	if _, file, line, ok := runtime.Caller(1); ok {
 		attrs = append(attrs, semconv.CodeFilepathKey.String(file))
 		attrs = append(attrs, semconv.CodeLineNumberKey.Int(line))

@@ -78,7 +78,8 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 		}
 	}
 
-	LogWithContext(ctx, levelString(entry.Level), entry.Message, attrs...)
+	lvl, _ := parseLevel(levelString(entry.Level))
+	WithContext(ctx).log(lvl, entry.Message, attrs...)
 	return nil
 }
 
