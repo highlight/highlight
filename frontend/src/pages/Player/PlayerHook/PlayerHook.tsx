@@ -1019,7 +1019,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 		ensureChunksLoaded(
 			state.time,
 			state.time + LOOKAHEAD_MS,
-			targetState.current,
+			targetState.current === ReplayerState.Playing
+				? ReplayerState.Playing
+				: targetState.current === ReplayerState.Paused
+				? ReplayerState.Paused
+				: ReplayerState.Playing,
 			lastLoadedEventTimestamp - state.time < LOOKAHEAD_MS,
 		).then()
 	}, [
