@@ -1,6 +1,5 @@
 import { LoadingOutlined } from '@ant-design/icons'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
-import { RadioGroup } from '@components/RadioGroup/RadioGroup'
 import { useGetProjectQuery } from '@graph/hooks'
 import { GetProjectQuery } from '@graph/operations'
 import { Box, Text } from '@highlight-run/ui'
@@ -189,7 +188,9 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 	const [docsLoading, setDocsLoading] = useState<boolean>(true)
 
 	useEffect(() => {
-		fetch(`https://www.highlight.io/api/quickstart`)
+		fetch(
+			`https://highlight-landing-kfm9e3h49-highlight-run.vercel.app/api/quickstart`,
+		)
 			.then((res) => res.json())
 			.then(setDocs)
 			.catch(() => {
@@ -558,7 +559,7 @@ const Framework: React.FC<{
 
 	return (
 		<>
-			<VerticalRadioGroup<BackendFrameworkLabel>
+			<RadioGroup<BackendFrameworkLabel>
 				style={{ marginTop: 20, marginBottom: 20 }}
 				selectedLabel={BACKEND_FRAMEWORK_OPTIONS[framework]}
 				labels={frameworkKeys.map((k) => BACKEND_FRAMEWORK_OPTIONS[k])}
@@ -968,7 +969,7 @@ const verifyDocsMapping = (docs?: Guides) => {
 
 // Copied from RadioGroup.tsx for now. Will refactor and break out to a separate
 // component once designs are finalized.
-export const VerticalRadioGroup = <T extends string | number>({
+export const RadioGroup = <T extends string | number>({
 	onSelect,
 	labels,
 	selectedLabel,
@@ -985,7 +986,7 @@ export const VerticalRadioGroup = <T extends string | number>({
 		return (
 			<Box
 				key={index}
-				border="secondary"
+				border={isSelected ? 'primaryPressed' : 'secondary'}
 				borderRadius="6"
 				backgroundColor={isSelected ? 'p10' : 'white'}
 				cursor="pointer"
@@ -998,12 +999,7 @@ export const VerticalRadioGroup = <T extends string | number>({
 		)
 	})
 	return (
-		<Box
-			display="flex"
-			flexDirection="column"
-			style={{ maxWidth: 200, ...style }}
-			gap="4"
-		>
+		<Box display="flex" flexDirection="row" style={style} gap="6">
 			{labelDivs}
 		</Box>
 	)
