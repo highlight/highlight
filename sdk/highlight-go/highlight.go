@@ -25,6 +25,8 @@ var (
 	wg                   sync.WaitGroup
 	graphqlClientAddress string
 	otlpEndpoint         string
+	projectID            string
+	logOut               = true
 )
 
 // contextKey represents the keys that highlight may store in the users' context
@@ -83,8 +85,6 @@ type Logger interface {
 	Error(v ...interface{})
 	Errorf(format string, v ...interface{})
 }
-
-var projectID string
 
 // log is this packages logger
 var logger struct {
@@ -253,6 +253,16 @@ func SetDebugMode(l Logger) {
 
 func SetProjectID(id string) {
 	projectID = id
+}
+
+func SetLogOut(print bool) {
+	logOut = print
+}
+
+func Print(message string) {
+	if logOut {
+		fmt.Print(message)
+	}
 }
 
 func GetProjectID() string {

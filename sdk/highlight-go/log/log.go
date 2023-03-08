@@ -2,6 +2,8 @@ package hlog
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -66,10 +68,6 @@ func HighlightTags(projectID, sessionID, requestID string) []attribute.KeyValue 
 	return tags
 }
 
-func Log(level, message string, tags ...attribute.KeyValue) {
-	LogWithContext(context.TODO(), level, message, tags...)
-}
-
 func LogWithContext(ctx context.Context, level, message string, tags ...attribute.KeyValue) {
 	span, _ := highlight.StartTrace(ctx, "highlight-go/log")
 	defer highlight.EndTrace(span)
@@ -89,6 +87,16 @@ func LogWithContext(ctx context.Context, level, message string, tags ...attribut
 	if strings.Contains(strings.ToLower(level), "error") {
 		span.SetStatus(codes.Error, message)
 	}
+}
+
+func Log(level, message string, tags ...attribute.KeyValue) {
+	var tagsStr string
+	if len(tags) > 0 {
+		s, _ := json.Marshal(tags)
+		tagsStr = fmt.Sprintf(" %s", s)
+	}
+	highlight.Print(fmt.Sprintf("[%s] %s%s\n", level, message, tagsStr))
+	LogWithContext(context.TODO(), level, message, tags...)
 }
 
 func Trace(message string, tags ...attribute.KeyValue) {
