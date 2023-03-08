@@ -193,6 +193,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const resetPlayer = useCallback(
 		(nextState?: ReplayerState) => {
+			currentChunkIdx.current = 0
+			targetTime.current = 0
+			targetState.current = nextState
+			inactivityEndTime.current = 0
+			loadingChunks.current.clear()
+			lastTimeRef.current = 0
 			if (unsubscribeSessionPayloadFn.current) {
 				unsubscribeSessionPayloadFn.current()
 				unsubscribeSessionPayloadFn.current = undefined
@@ -201,8 +207,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				cancelAnimationFrame(animationFrameID.current)
 				animationFrameID.current = 0
 			}
-			loadingChunks.current.clear()
-			currentChunkIdx.current = 0
+
 			chunkEventsReset()
 			if (!project_id || !session_secure_id) {
 				return
