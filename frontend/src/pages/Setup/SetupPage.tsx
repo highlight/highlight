@@ -188,9 +188,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 	const [docsLoading, setDocsLoading] = useState<boolean>(true)
 
 	useEffect(() => {
-		fetch(
-			`https://highlight-landing-kfm9e3h49-highlight-run.vercel.app/api/quickstart`,
-		)
+		fetch(`https://www.highlight.io/api/quickstart`)
 			.then((res) => res.json())
 			.then(setDocs)
 			.catch(() => {
