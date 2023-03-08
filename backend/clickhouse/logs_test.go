@@ -539,46 +539,6 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	assert.Len(t, payload.Edges, 1)
 }
 
-func TestReadLogsWithMessageFilter(t *testing.T) {
-	ctx := context.Background()
-	client, teardown := setupTest(t)
-	defer teardown(t)
-
-	now := time.Now()
-	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			Body: "foo",
-		},
-	}
-
-	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
-
-	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
-		DateRange: makeDateWithinRange(now),
-		Query:     "message:foo",
-	}, Pagination{})
-	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 1)
-
-	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
-		DateRange: makeDateWithinRange(now),
-		Query:     "message:*o*",
-	}, Pagination{})
-	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 1)
-
-	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
-		DateRange: makeDateWithinRange(now),
-		Query:     "message:bar",
-	}, Pagination{})
-	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 0)
-}
-
 func TestReadLogsWithLevelFilter(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)

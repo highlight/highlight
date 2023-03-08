@@ -2087,7 +2087,6 @@ export type ReferrerTablePayload = {
 export enum ReservedLogKey {
 	/** Keep this in alpha order */
 	Level = 'level',
-	Message = 'message',
 	SecureSessionId = 'secure_session_id',
 	SpanId = 'span_id',
 	TraceId = 'trace_id',
