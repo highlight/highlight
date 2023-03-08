@@ -7,6 +7,7 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -50,6 +51,64 @@ type VercelLog struct {
 	Destination string      `json:"destination"`
 	Path        string      `json:"path"`
 	Proxy       VercelProxy `json:"proxy"`
+}
+
+func HighlightTags(projectID, sessionID, requestID string) []attribute.KeyValue {
+	tags := []attribute.KeyValue{
+		attribute.String(highlight.ProjectIDAttribute, projectID),
+	}
+	if sessionID != "" {
+		tags = append(tags, attribute.String(highlight.SessionIDAttribute, sessionID))
+	}
+	if requestID != "" {
+		tags = append(tags, attribute.String(highlight.ProjectIDAttribute, sessionID))
+	}
+	return tags
+}
+
+func Log(level, message string, tags ...attribute.KeyValue) {
+	LogWithContext(context.TODO(), level, message, tags...)
+}
+
+func LogWithContext(ctx context.Context, level, message string, tags ...attribute.KeyValue) {
+	span, _ := highlight.StartTrace(ctx, "highlight-go/log")
+	defer highlight.EndTrace(span)
+
+	attrs := []attribute.KeyValue{
+		LogSeverityKey.String(level),
+		LogMessageKey.String(message),
+	}
+	attrs = append(attrs, HighlightTags(highlight.GetProjectID(), "", "")...)
+	if _, file, line, ok := runtime.Caller(1); ok {
+		attrs = append(attrs, semconv.CodeFilepathKey.String(file))
+		attrs = append(attrs, semconv.CodeLineNumberKey.Int(line))
+	}
+	attrs = append(attrs, tags...)
+
+	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...))
+	if strings.Contains(strings.ToLower(level), "error") {
+		span.SetStatus(codes.Error, message)
+	}
+}
+
+func Trace(message string, tags ...attribute.KeyValue) {
+	Log("trace", message, tags...)
+}
+
+func Debug(message string, tags ...attribute.KeyValue) {
+	Log("debug", message, tags...)
+}
+
+func Info(message string, tags ...attribute.KeyValue) {
+	Log("info", message, tags...)
+}
+
+func Warn(message string, tags ...attribute.KeyValue) {
+	Log("warn", message, tags...)
+}
+
+func Error(message string, tags ...attribute.KeyValue) {
+	Log("error", message, tags...)
 }
 
 func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSecureID string, messages string) error {

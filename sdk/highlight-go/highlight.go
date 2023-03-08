@@ -255,6 +255,10 @@ func SetProjectID(id string) {
 	projectID = id
 }
 
+func GetProjectID() string {
+	return projectID
+}
+
 // InterceptRequest calls InterceptRequestWithContext using the request object's context
 func InterceptRequest(r *http.Request) context.Context {
 	return InterceptRequestWithContext(r.Context(), r)
