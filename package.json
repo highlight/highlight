@@ -6,7 +6,8 @@
 	"author": "Highlight",
 	"license": "MIT",
 	"dependencies": {
-		"concurrently": "^6.5.1"
+		"concurrently": "^6.5.1",
+		"react-markdown": "^8.0.5"
 	},
 	"workspaces": [
 		"e2e/*",

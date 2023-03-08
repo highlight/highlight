@@ -1,25 +1,21 @@
 import { LoadingOutlined } from '@ant-design/icons'
-import { useAuthContext } from '@authentication/AuthContext'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
-import { IntercomInlineMessage } from '@components/IntercomMessage/IntercomMessage'
 import { RadioGroup } from '@components/RadioGroup/RadioGroup'
 import { useGetProjectQuery } from '@graph/hooks'
 import { GetProjectQuery } from '@graph/operations'
-import { Admin } from '@graph/schemas'
+import { Box, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
-import { getInitSnippet } from '@pages/Setup/util'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { useBackendIntegrated } from '@util/integrated'
-import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
-import { GetBaseURL } from '@util/window'
-import { Spin } from 'antd'
+import { message, Spin } from 'antd'
 import clsx from 'clsx'
 import React, { FunctionComponent, useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
+import ReactMarkdown from 'react-markdown'
 import { useNavigate } from 'react-router'
 
 import ButtonLink from '../../components/Button/ButtonLink/ButtonLink'
@@ -28,9 +24,7 @@ import SvgSlackLogo from '../../components/icons/SlackLogo'
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout'
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 import { ReactComponent as CheckIcon } from '../../static/verify-check-icon.svg'
-import { AngularSetup } from './Angular/AngularSetup'
 import { CodeBlock } from './CodeBlock/CodeBlock'
-import { GatsbySetup } from './Gatsby/GatsbySetup'
 import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector'
 import styles from './SetupPage.module.scss'
 
@@ -43,39 +37,96 @@ interface SetupStep {
 	tooltip?: string
 }
 
-enum PlatformType {
-	Html = 'Other',
-	React = 'React',
-	Vue = 'Vue.js',
-	NextJs = 'Next.js',
-	SvelteKit = 'SvelteKit',
-	Gatsby = 'Gatsby.js',
-	Angular = 'Angular',
+// The keys of these *_OPTIONS variables must match what we get back from the
+// quickstart endpoint in the docs.
+const PLATFORM_OPTIONS = {
+	client: 'Client',
+	server: 'Server',
+	other: 'Other',
+} as const
+
+const CLIENT_FRAMEWORK_OPTIONS = {
+	angular: 'Angular',
+	react: 'React',
+	next: 'Next',
+	vue: 'Vue',
+	gatsby: 'Gatsby',
+	other: 'Other',
 }
 
-enum BackendPlatformType {
-	Express = 'Express',
-	NextJs = 'Next.js',
-	Go = 'Go',
+const OTHER_OPTIONS = {
+	'self-host': 'Self Host',
+	'dev-deploy': 'Dev Deploy',
+}
+
+const BACKEND_LANGUAGE_OPTIONS = {
+	python: 'Python',
+	go: 'Go',
+	js: 'JavaScript',
+} as const
+
+const BACKEND_FRAMEWORK_OPTIONS = {
+	flask: 'Flask',
+	django: 'Django',
+	fastapi: 'FastAPI',
+	other: 'Other',
+	'aws-lambda': 'AWS Lambda',
+	'azure-functions': 'Azure Functions',
+	'google-cloud-functions': 'Google Cloud Functions',
+	gqlgen: 'GQLGen',
+	fiber: 'Fiber',
+	chi: 'Chi',
+	mux: 'Mux',
+	gin: 'Gin',
+	apollo: 'Apollo',
+	cloudflare: 'Cloudflare',
+	express: 'Express',
+	firebase: 'Firebase',
+	nodejs: 'Node.js',
+	trpc: 'tRPC',
+} as const
+
+type ClientFrameworkKey = keyof typeof CLIENT_FRAMEWORK_OPTIONS
+type ClientFrameworkLabel = typeof CLIENT_FRAMEWORK_OPTIONS[ClientFrameworkKey]
+type BackendLanguageKey = keyof typeof BACKEND_LANGUAGE_OPTIONS
+type BackendLanguageLabel = typeof BACKEND_LANGUAGE_OPTIONS[BackendLanguageKey]
+type BackendFrameworkKey = keyof typeof BACKEND_FRAMEWORK_OPTIONS
+type BackendFrameworkLabel =
+	typeof BACKEND_FRAMEWORK_OPTIONS[BackendFrameworkKey]
+
+type Guide = {
+	subtitle: string
+	entries: Array<{
+		title: string
+		content: string
+		code?: {
+			text: string
+			language: string
+		}
+	}>
+}
+
+type Guides = {
+	client: {
+		[key: string]: Guide
+	}
+	server: {
+		[key: string]: {
+			[key: string]: Guide
+		}
+	}
+	other: {
+		[key: string]: Guide
+	}
 }
 
 const SetupPage = ({ integrated }: { integrated: boolean }) => {
 	const navigate = useNavigate()
-	const { admin } = useAuthContext()
 	const { project_id, step = 'client' } = useParams<{
 		project_id: string
 		step: string
 	}>()
-
-	const [platform, setPlatform] = useLocalStorage(
-		`selectedSetupPlatform-${project_id}`,
-		PlatformType.React,
-	)
-	const [backendPlatform, setBackendPlatform] = useLocalStorage(
-		`selectedSetupBackendPlatform-${project_id}`,
-		BackendPlatformType.Express,
-	)
-	const { data, loading } = useGetProjectQuery({
+	const { data } = useGetProjectQuery({
 		variables: { id: project_id! },
 		skip: !project_id,
 	})
@@ -134,11 +185,34 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 		project_id,
 	])
 
+	const [docs, setDocs] = useState<Guides>()
+	const [docsLoading, setDocsLoading] = useState<boolean>(true)
+
+	useEffect(() => {
+		// fetch(`https://www.highlight.io/api/quickstart`)
+		fetch(`http://localhost:3001/api/quickstart`)
+			.then((res) => res.json())
+			.then(setDocs)
+			.catch(() => {
+				message.error('Error loading docs...')
+			})
+			.finally(() => {
+				setDocsLoading(false)
+			})
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
+	if (docsLoading) {
+		// TODO: Loading state
+		return <Box>Loading...</Box>
+	}
+
+	if (import.meta.env.DEV) {
+		verifyDocsMapping(docs)
+	}
+
 	return (
 		<>
-			<Helmet>
-				<title>Setup: {platform}</title>
-			</Helmet>
 			<LeadAlignLayout maxWidth={1000}>
 				<div className={styles.flexLayout}>
 					<div className={styles.leftColumn}>
@@ -191,34 +265,37 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 						</div>
 					</div>
 					<div>
-						{step === 'client' && (
-							<ClientSetup
-								admin={admin}
-								platform={platform}
-								setPlatform={setPlatform}
-								project_id={projectId!}
-								projectData={data}
-								projectLoading={loading}
-								integrated={integrated}
+						{!data?.project || !data?.workspace || !docs ? (
+							<Skeleton
+								height={75}
+								count={3}
+								style={{ borderRadius: 8, marginBottom: 14 }}
 							/>
-						)}
-						{step === 'backend' && (
-							<BackendSetup
-								admin={admin}
-								backendPlatform={backendPlatform}
-								setBackendPlatform={setBackendPlatform}
-								projectData={data}
-								projectLoading={loading}
-								integrated={isBackendIntegrated}
-							/>
-						)}
-						{step === 'more' && (
-							<MoreSetup
-								project_id={projectId!}
-								projectData={data}
-								projectLoading={loading}
-								integrated={integrated}
-							/>
+						) : (
+							<>
+								{step === 'client' && (
+									<ClientSetup
+										project_id={projectId!}
+										integrated={integrated}
+										docs={docs.client}
+									/>
+								)}
+								{step === 'backend' && (
+									<BackendSetup
+										projectData={data}
+										integrated={isBackendIntegrated}
+										docs={docs.server}
+									/>
+								)}
+								{step === 'more' && (
+									<MoreSetup
+										project_id={projectId!}
+										projectData={data}
+										integrated={integrated}
+										// docs={docs.other}
+									/>
+								)}
+							</>
 						)}
 					</div>
 				</div>
@@ -228,359 +305,308 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 }
 
 const ClientSetup = ({
-	admin,
-	platform,
-	setPlatform,
 	project_id,
-	projectData,
-	projectLoading,
 	integrated,
+	docs,
 }: {
-	admin: Admin | undefined
-	platform: PlatformType
-	setPlatform: (newValue: PlatformType) => void
 	project_id: string
-	projectData: GetProjectQuery | undefined
-	projectLoading: boolean
 	integrated: boolean
+	docs: Guides['client']
 }) => {
+	// TODO: Rename from platform to framework
+	const [framework, setFramework] = useLocalStorage<ClientFrameworkKey>(
+		`selectedSetupClientFramework-${project_id}`,
+		Object.keys(docs)[0] as ClientFrameworkKey,
+	)
+	const guide = docs[framework.split('.')[0].toLowerCase()]
+	const frameworkKeys = Object.keys(docs) as ClientFrameworkKey[]
+
 	return (
 		<>
+			<Helmet>
+				<title>Setup: {framework}</title>
+			</Helmet>
+
 			<div className={styles.headingWrapper}>
 				<h2>Your Highlight Snippet</h2>
 			</div>
 			<p className={layoutStyles.subTitle}>
 				Setup Highlight in your web application!
 			</p>
-			<RadioGroup<PlatformType>
+
+			<RadioGroup<ClientFrameworkLabel>
 				style={{ marginTop: 20, marginBottom: 20 }}
-				selectedLabel={platform}
-				labels={[
-					PlatformType.React,
-					PlatformType.Vue,
-					PlatformType.NextJs,
-					PlatformType.SvelteKit,
-					PlatformType.Gatsby,
-					PlatformType.Angular,
-					PlatformType.Html,
-				]}
-				onSelect={(p: PlatformType) => setPlatform(p)}
+				selectedLabel={CLIENT_FRAMEWORK_OPTIONS[framework]}
+				labels={frameworkKeys.map((k) => CLIENT_FRAMEWORK_OPTIONS[k])}
+				onSelect={(l) => {
+					const frameworkKey = frameworkKeys.find(
+						(k) => CLIENT_FRAMEWORK_OPTIONS[k] === l,
+					)
+					setFramework(frameworkKey!)
+				}}
 			/>
-			{!projectData?.project ||
-			!projectData?.workspace ||
-			projectLoading ? (
-				<Skeleton
-					height={75}
-					count={3}
-					style={{ borderRadius: 8, marginBottom: 14 }}
-				/>
-			) : (
-				<div className={styles.stepsContainer}>
-					{platform === PlatformType.Html && (
-						<Section title="Is This for Me?" defaultOpen>
-							<p>
-								These steps apply to other types of apps and
-								websites where you have access to a file like{' '}
-								<code>index.html</code>.
-							</p>
-							<p>Some examples are:</p>
-							<ul>
-								<li>WordPress</li>
-								<li>Webflow</li>
-								<li>Shopify</li>
-								<li>Squarespace</li>
-							</ul>
-							<p>
-								If you're not sure how to integrate or have any
-								questions feel free to{' '}
-								<IntercomInlineMessage defaultMessage="Hi! I need help integrating Highlight.">
-									message us
-								</IntercomInlineMessage>
-								!
-							</p>
-						</Section>
-					)}
-					{platform === PlatformType.Html ||
-					platform === PlatformType.SvelteKit ? (
-						<HtmlInstructions
-							projectVerboseId={projectData?.project?.verbose_id}
-						/>
-					) : platform === PlatformType.Gatsby ? (
-						<GatsbySetup
-							projectVerboseId={projectData?.project?.verbose_id}
-						/>
-					) : platform === PlatformType.Angular ? (
-						<AngularSetup
-							projectVerboseId={projectData?.project?.verbose_id}
-						/>
-					) : (
-						<JsAppInstructions
-							projectVerboseId={projectData?.project?.verbose_id}
-							platform={platform}
-						/>
-					)}
-					<Section
-						defaultOpen
-						title={
-							<span className={styles.sectionTitleWithIcon}>
-								Verify Installation
-								{integrated && (
-									<IntegrationDetector
-										verbose={false}
-										integrated={integrated}
+
+			<div className={styles.stepsContainer}>
+				{guide.entries.map((entry, index) => {
+					return (
+						<Section title={entry.title} key={index} defaultOpen>
+							<ReactMarkdown>{entry.content}</ReactMarkdown>
+							{entry.code && (
+								// Wrapper prevents code blocks from expanding width of the code
+								// block beyond the containing element.
+								<div style={{ maxWidth: 650 }}>
+									<CodeBlock
+										language={entry.code.language}
+										onCopy={() => {
+											analytics.track(
+												'Copied Setup Code',
+												{
+													copied: 'script',
+													language:
+														entry.code?.language,
+												},
+											)
+										}}
+										text={entry.code.text}
 									/>
-								)}
-							</span>
-						}
-						id="highlightIntegration"
-					>
-						<p>
-							Please follow the setup instructions above to
-							install Highlight. It should take less than a minute
-							for us to detect installation.
-						</p>
-						<div className={styles.integrationContainer}>
-							<IntegrationDetector
-								integrated={integrated}
-								verbose={true}
-							/>
-							{integrated && (
-								<ButtonLink
-									to={`/${project_id}/sessions`}
-									trackingId="ViewSessionFromSetupPage"
-								>
-									View Session
-								</ButtonLink>
-							)}
-						</div>
-					</Section>
-					<Section title="Identifying Users">
-						<p>
-							To tag sessions with user specific identifiers
-							(name, email, etc.), you can call the
-							<code>
-								{`${
-									platform === PlatformType.Html
-										? 'window.'
-										: ''
-								}H.identify()`}
-							</code>{' '}
-							method in your app. Here's an example:
-						</p>
-						<CodeBlock
-							language="javascript"
-							onCopy={() => {
-								analytics.track(
-									'Copied Code Snippet (Highlight Event)',
-									{ copied: 'code snippet' },
-								)
-							}}
-							text={`${
-								platform === PlatformType.Html ? 'window.' : ''
-							}H.identify('${
-								admin?.email || 'eliza@gmail.com'
-							}', {
-  id: '8909b017-c0d9-4cc2-90ae-fb519c9e028a',
-  phone: '867-5309'
-});`}
-						/>
-					</Section>
-					{platform === PlatformType.React ||
-						(platform === PlatformType.NextJs && (
-							<Section title="React Error Boundary">
-								<p>
-									Highlight's{' '}
-									<code>@highlight-run/react</code> package
-									includes React components to improve both
-									the developer and customer experience. We
-									recommend using our{' '}
-									<code>{'<ErrorBoundary/>'}</code> to catch
-									errors and provide an error recovery
-									mechanism for your users.
-								</p>
-								<CodeBlock
-									language="javascript"
-									onCopy={() => {
-										analytics.track(
-											'Copied Code Snippet (Highlight Event)',
-											{ copied: 'code snippet' },
-										)
-									}}
-									text={`import { ErrorBoundary } from '@highlight-run/react';
-
-const App = () => {
-  return (
-    <ErrorBoundary showDialog>
-      <YourMainAppComponent />
-    </ErrorBoundary>
-  );
-};`}
-								/>
-								<p>
-									You can test your{' '}
-									<code>{'<ErrorBoundary/>'}</code> by using
-									the <code>{'<SampleBuggyButton/>'}</code>{' '}
-									imported from the
-									<code>@highlight-run/react</code> package.
-									Adding the button to your page and clicking
-									it should show you the error recovery dialog
-									if configured correctly.
-								</p>
-
-								<div className={styles.integrationContainer}>
-									<ButtonLink
-										anchor
-										href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/react-error-boundary"
-										trackingId="SetupPageDocsReact"
-									>
-										Learn More about the React Package
-									</ButtonLink>
 								</div>
-							</Section>
-						))}
-					<Section
-						title={
-							<span className={styles.sectionTitleWithIcon}>
-								Read the Docs
-							</span>
-						}
-						id="slackAlerts"
-					>
-						<p>
-							Interested in learning how Highlight can help you
-							move faster? Check out our docs!
-						</p>
-						<p>Some things you'll learn more about are:</p>
-						<ul>
-							<li>
-								<a
-									href="https://www.highlight.io/docs/general/product-features/general-features/comments"
-									target="_blank"
-									rel="noreferrer"
-								>
-									Collaborating with comments
-								</a>
-							</li>
-							<li>
-								<a
-									href="https://www.highlight.io/docs/sdk/client#feedbackWidget"
-									target="_blank"
-									rel="noreferrer"
-								>
-									Collecting user feedback with retained
-									context
-								</a>
-							</li>
-							<li>
-								<a
-									href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses"
-									target="_blank"
-									rel="noreferrer"
-								>
-									Debugging network requests
-								</a>
-							</li>
-							<li>
-								<a
-									href="https://www.highlight.io/docs/general/company/open-source/self-host-hobby"
-									target="_blank"
-									rel="noreferrer"
-								>
-									On-prem
-								</a>
-							</li>
-							<li>
-								<a
-									href="https://www.highlight.io/docs/general/product-features/error-monitoring/sourcemaps"
-									target="_blank"
-									rel="noreferrer"
-								>
-									Getting more useful error stack traces if
-									you don't ship sourcemap
-								</a>
-							</li>
-						</ul>
-
-						<div className={styles.integrationContainer}>
+							)}
+						</Section>
+					)
+				})}
+				<Section
+					defaultOpen
+					title={
+						<span className={styles.sectionTitleWithIcon}>
+							Verify Installation
+							{integrated && (
+								<IntegrationDetector
+									verbose={false}
+									integrated={integrated}
+								/>
+							)}
+						</span>
+					}
+					id="highlightIntegration"
+				>
+					<p>
+						Please follow the setup instructions above to install
+						Highlight. It should take less than a minute for us to
+						detect installation.
+					</p>
+					<div className={styles.integrationContainer}>
+						<IntegrationDetector
+							integrated={integrated}
+							verbose={true}
+						/>
+						{integrated && (
 							<ButtonLink
-								anchor
-								href="https://www.highlight.io/docs/general/welcome"
-								trackingId="SetupPageDocs"
+								to={`/${project_id}/sessions`}
+								trackingId="ViewSessionFromSetupPage"
 							>
-								Read the Docs
+								View Session
 							</ButtonLink>
-						</div>
-					</Section>
-				</div>
-			)}
+						)}
+					</div>
+				</Section>
+				<Section
+					title={
+						<span className={styles.sectionTitleWithIcon}>
+							Read the Docs
+						</span>
+					}
+					id="slackAlerts"
+				>
+					<p>
+						Interested in learning how Highlight can help you move
+						faster? Check out our docs!
+					</p>
+					<p>Some things you'll learn more about are:</p>
+					<ul>
+						<li>
+							<a
+								href="https://www.highlight.io/docs/general/product-features/general-features/comments"
+								target="_blank"
+								rel="noreferrer"
+							>
+								Collaborating with comments
+							</a>
+						</li>
+						<li>
+							<a
+								href="https://www.highlight.io/docs/sdk/client#feedbackWidget"
+								target="_blank"
+								rel="noreferrer"
+							>
+								Collecting user feedback with retained context
+							</a>
+						</li>
+						<li>
+							<a
+								href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses"
+								target="_blank"
+								rel="noreferrer"
+							>
+								Debugging network requests
+							</a>
+						</li>
+						<li>
+							<a
+								href="https://www.highlight.io/docs/general/company/open-source/self-host-hobby"
+								target="_blank"
+								rel="noreferrer"
+							>
+								On-prem
+							</a>
+						</li>
+						<li>
+							<a
+								href="https://www.highlight.io/docs/general/product-features/error-monitoring/sourcemaps"
+								target="_blank"
+								rel="noreferrer"
+							>
+								Getting more useful error stack traces if you
+								don't ship sourcemap
+							</a>
+						</li>
+					</ul>
+
+					<div className={styles.integrationContainer}>
+						<ButtonLink
+							anchor
+							href="https://www.highlight.io/docs/general/welcome"
+							trackingId="SetupPageDocs"
+						>
+							Read the Docs
+						</ButtonLink>
+					</div>
+				</Section>
+			</div>
 		</>
 	)
 }
 
 const BackendSetup = ({
-	backendPlatform,
-	setBackendPlatform,
 	projectData,
-	projectLoading,
 	integrated,
+	docs,
 }: {
-	admin: Admin | undefined
-	backendPlatform: BackendPlatformType
-	setBackendPlatform: (newValue: BackendPlatformType) => void
 	projectData: GetProjectQuery | undefined
-	projectLoading: boolean
 	integrated: boolean
+	docs: Guides['server']
 }) => {
-	const projectVerboseId =
-		projectData?.project?.verbose_id || 'YOUR_PROJECT_ID'
+	const [language, setLanguage] = useLocalStorage<BackendLanguageKey>(
+		`selectedSetupLanguage-${projectData?.project?.id}`,
+		Object.keys(docs)[0] as BackendLanguageKey,
+	)
+	const languageKeys = Object.keys(docs) as BackendLanguageKey[]
+
 	return (
 		<>
+			<Helmet>
+				<title>Setup: {language}</title>
+			</Helmet>
+
 			<div className={styles.headingWrapper}>
 				<h2>Your Backend Integrations</h2>
 			</div>
 			<p className={layoutStyles.subTitle}>
 				Setup Highlight in your backend!
 			</p>
-			<RadioGroup<BackendPlatformType>
+
+			<RadioGroup<BackendLanguageLabel>
 				style={{ marginTop: 20, marginBottom: 20 }}
-				selectedLabel={backendPlatform}
-				labels={[
-					BackendPlatformType.Express,
-					BackendPlatformType.NextJs,
-					BackendPlatformType.Go,
-				]}
-				onSelect={(p: BackendPlatformType) => setBackendPlatform(p)}
+				selectedLabel={BACKEND_LANGUAGE_OPTIONS[language]}
+				labels={languageKeys.map((k) => BACKEND_LANGUAGE_OPTIONS[k])}
+				onSelect={(l) => {
+					const languageKey = languageKeys.find(
+						(k) => BACKEND_LANGUAGE_OPTIONS[k] === l,
+					)
+					setLanguage(languageKey!)
+				}}
 			/>
-			{!projectData?.project ||
-			!projectData?.workspace ||
-			projectLoading ? (
-				<Skeleton
-					height={75}
-					count={3}
-					style={{ borderRadius: 8, marginBottom: 14 }}
-				/>
-			) : (
-				<div className={styles.stepsContainer}>
-					{backendPlatform === BackendPlatformType.NextJs ? (
-						<NextBackendInstructions
-							projectVerboseId={projectVerboseId}
-						/>
-					) : backendPlatform === BackendPlatformType.Express ? (
-						<ExpressBackendInstructions
-							projectVerboseId={projectVerboseId}
-						/>
-					) : (
-						<GoBackendInstructions
-							projectVerboseId={projectVerboseId}
-						/>
-					)}
-					<Section title="Frontend Configuration" defaultOpen>
-						<p>
-							Ensure that your client Highlight snippet is
-							initialized with the below settings included.{' '}
-						</p>
-						<CodeBlock
-							text={`H.init("${projectVerboseId}", {
+
+			<Framework
+				docs={docs}
+				language={language}
+				integrated={integrated}
+				projectData={projectData}
+			/>
+		</>
+	)
+}
+
+const Framework: React.FC<{
+	docs: Guides['server']
+	integrated: boolean
+	language: BackendLanguageKey
+	projectData: GetProjectQuery | undefined
+}> = ({ docs, integrated, language, projectData }) => {
+	const [framework, setFramework] = useLocalStorage<BackendFrameworkKey>(
+		`selectedSetupFramework-${projectData?.project?.id}`,
+		Object.keys(docs[language])[0] as BackendFrameworkKey,
+	)
+	const guide = docs[language] && docs[language][framework]
+	const frameworkKeys = Object.keys(docs[language]) as BackendFrameworkKey[]
+
+	if (!guide) {
+		setFramework(Object.keys(docs[language])[0] as BackendFrameworkKey)
+		return null
+	}
+
+	const projectVerboseId =
+		projectData?.project?.verbose_id || 'YOUR_PROJECT_ID'
+
+	return (
+		<>
+			<VerticalRadioGroup<BackendFrameworkLabel>
+				style={{ marginTop: 20, marginBottom: 20 }}
+				selectedLabel={BACKEND_FRAMEWORK_OPTIONS[framework]}
+				labels={frameworkKeys.map((k) => BACKEND_FRAMEWORK_OPTIONS[k])}
+				onSelect={(f) => {
+					const frameworkKey = frameworkKeys.find(
+						(k) => BACKEND_FRAMEWORK_OPTIONS[k] === f,
+					)
+					setFramework(frameworkKey!)
+				}}
+			/>
+
+			<div className={styles.stepsContainer}>
+				{guide.entries.map((entry, index) => {
+					return (
+						<Section title={entry.title} key={index} defaultOpen>
+							<ReactMarkdown>{entry.content}</ReactMarkdown>
+							{entry.code && (
+								// Wrapper prevents code blocks from expanding width of the code
+								// block beyond the containing element.
+								<div style={{ maxWidth: 650 }}>
+									<CodeBlock
+										language={entry.code.language}
+										onCopy={() => {
+											analytics.track(
+												'Copied Setup Code',
+												{
+													copied: 'script',
+													language:
+														entry.code?.language,
+												},
+											)
+										}}
+										text={entry.code.text}
+									/>
+								</div>
+							)}
+						</Section>
+					)
+				})}
+
+				<Section title="Frontend Configuration" defaultOpen>
+					<p>
+						Ensure that your client Highlight snippet is initialized
+						with the below settings included.{' '}
+					</p>
+					<CodeBlock
+						text={`H.init("${projectVerboseId}", {
     ...
     tracingOrigins: true,
     networkRecording: {
@@ -589,111 +615,109 @@ const BackendSetup = ({
     },
     ...
 });`}
-							language="javascript"
+						language="javascript"
+					/>
+				</Section>
+				<Section
+					defaultOpen
+					title={
+						<span className={styles.sectionTitleWithIcon}>
+							Verify Backend Installation
+							{integrated && (
+								<IntegrationDetector
+									verbose={false}
+									integrated={integrated}
+								/>
+							)}
+						</span>
+					}
+					id="highlightIntegration"
+				>
+					<p>
+						Please follow the setup instructions above to install
+						Highlight on your backend. It should take less than a
+						minute for us to detect installation.
+					</p>
+					<div className={styles.integrationContainer}>
+						<IntegrationDetector
+							integrated={integrated}
+							verbose={true}
 						/>
-					</Section>
-					<Section
-						defaultOpen
-						title={
-							<span className={styles.sectionTitleWithIcon}>
-								Verify Backend Installation
-								{integrated && (
-									<IntegrationDetector
-										verbose={false}
-										integrated={integrated}
-									/>
-								)}
-							</span>
-						}
-						id="highlightIntegration"
-					>
-						<p>
-							Please follow the setup instructions above to
-							install Highlight on your backend. It should take
-							less than a minute for us to detect installation.
-						</p>
-						<div className={styles.integrationContainer}>
-							<IntegrationDetector
-								integrated={integrated}
-								verbose={true}
-							/>
-						</div>
-					</Section>
-					<Section
-						title={
-							<span className={styles.sectionTitleWithIcon}>
-								Read the Docs
-							</span>
-						}
-						id="slackAlerts"
-					>
-						<p>
-							Interested in learning how Highlight can help you
-							move faster? Check out our docs!
-						</p>
-						<p>Some things you'll learn more about are:</p>
-						<ul>
-							<li>
-								<a
-									href="https://www.highlight.io/docs/general/product-features/general-features/comments"
-									target="_blank"
-									rel="noreferrer"
-								>
-									Collaborating with comments
-								</a>
-							</li>
-							<li>
-								<a
-									href="https://www.highlight.io/docs/sdk/client#feedbackWidget"
-									target="_blank"
-									rel="noreferrer"
-								>
-									Collecting user feedback with retained
-									context
-								</a>
-							</li>
-							<li>
-								<a
-									href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses"
-									target="_blank"
-									rel="noreferrer"
-								>
-									Debugging network requests
-								</a>
-							</li>
-							<li>
-								<a
-									href="https://www.highlight.io/docs/general/company/open-source/self-host-hobby"
-									target="_blank"
-									rel="noreferrer"
-								>
-									On-prem
-								</a>
-							</li>
-							<li>
-								<a
-									href="https://www.highlight.io/docs/general/product-features/error-monitoring/sourcemaps"
-									target="_blank"
-									rel="noreferrer"
-								>
-									Getting more useful error stack traces if
-									you don't ship sourcemap
-								</a>
-							</li>
-						</ul>
-
-						<div className={styles.integrationContainer}>
-							<ButtonLink
-								anchor
-								href="https://www.highlight.io/docs/general/welcome"
-								trackingId="SetupPageDocs"
+					</div>
+				</Section>
+				<Section
+					title={
+						<span className={styles.sectionTitleWithIcon}>
+							Read the Docs
+						</span>
+					}
+					id="slackAlerts"
+				>
+					<p>
+						Interested in learning how Highlight can help you move
+						faster? Check out our docs!
+					</p>
+					<p>Some things you'll learn more about are:</p>
+					<ul>
+						<li>
+							<a
+								href="https://www.highlight.io/docs/general/product-features/general-features/comments"
+								target="_blank"
+								rel="noreferrer"
 							>
-								Read the Docs
-							</ButtonLink>
-						</div>
-					</Section>
-				</div>
-			)}
+								Collaborating with comments
+							</a>
+						</li>
+						<li>
+							<a
+								href="https://www.highlight.io/docs/sdk/client#feedbackWidget"
+								target="_blank"
+								rel="noreferrer"
+							>
+								Collecting user feedback with retained context
+							</a>
+						</li>
+						<li>
+							<a
+								href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses"
+								target="_blank"
+								rel="noreferrer"
+							>
+								Debugging network requests
+							</a>
+						</li>
+						<li>
+							<a
+								href="https://www.highlight.io/docs/general/company/open-source/self-host-hobby"
+								target="_blank"
+								rel="noreferrer"
+							>
+								On-prem
+							</a>
+						</li>
+						<li>
+							<a
+								href="https://www.highlight.io/docs/general/product-features/error-monitoring/sourcemaps"
+								target="_blank"
+								rel="noreferrer"
+							>
+								Getting more useful error stack traces if you
+								don't ship sourcemap
+							</a>
+						</li>
+					</ul>
+
+					<div className={styles.integrationContainer}>
+						<ButtonLink
+							anchor
+							href="https://www.highlight.io/docs/general/welcome"
+							trackingId="SetupPageDocs"
+						>
+							Read the Docs
+						</ButtonLink>
+					</div>
+				</Section>
+			</div>
 		</>
 	)
 }
@@ -701,12 +725,10 @@ const BackendSetup = ({
 const MoreSetup = ({
 	project_id,
 	projectData,
-	projectLoading,
 	integrated,
 }: {
 	project_id: string
 	projectData: GetProjectQuery | undefined
-	projectLoading: boolean
 	integrated: boolean
 }) => {
 	return (
@@ -717,596 +739,165 @@ const MoreSetup = ({
 			<p className={layoutStyles.subTitle}>
 				More superpowers from Highlight!
 			</p>
-			{!projectData?.project ||
-			!projectData?.workspace ||
-			projectLoading ? (
-				<Skeleton
-					height={75}
-					count={3}
-					style={{ borderRadius: 8, marginBottom: 14 }}
-				/>
-			) : (
-				<div className={styles.stepsContainer}>
-					<Section
-						title={
-							<span className={styles.sectionTitleWithIcon}>
-								Enable Slack Alerts
-								{projectData.workspace.slack_webhook_channel ? (
-									<IntegrationDetector
-										verbose={false}
-										integrated={integrated}
-									/>
-								) : (
-									<SvgSlackLogo height="15" width="15" />
-								)}
-							</span>
-						}
-						id="slackAlerts"
-						defaultOpen
-					>
-						<p>
-							Get notified of different events happening in your
-							application like:
-						</p>
-						<ul>
-							<li>Errors thrown</li>
-							<li>New users</li>
-							<li>A new feature is used</li>
-							<li>User submitting feedback</li>
-						</ul>
-						<div className={styles.integrationContainer}>
-							<ButtonLink
-								to={`/${project_id}/alerts`}
-								trackingId="ConfigureAlertsFromSetupPage"
+			<div className={styles.stepsContainer}>
+				<Section
+					title={
+						<span className={styles.sectionTitleWithIcon}>
+							Enable Slack Alerts
+							{projectData?.workspace?.slack_webhook_channel ? (
+								<IntegrationDetector
+									verbose={false}
+									integrated={integrated}
+								/>
+							) : (
+								<SvgSlackLogo height="15" width="15" />
+							)}
+						</span>
+					}
+					id="slackAlerts"
+					defaultOpen
+				>
+					<p>
+						Get notified of different events happening in your
+						application like:
+					</p>
+					<ul>
+						<li>Errors thrown</li>
+						<li>New users</li>
+						<li>A new feature is used</li>
+						<li>User submitting feedback</li>
+					</ul>
+					<div className={styles.integrationContainer}>
+						<ButtonLink
+							to={`/${project_id}/alerts`}
+							trackingId="ConfigureAlertsFromSetupPage"
+						>
+							Configure Your Alerts
+						</ButtonLink>
+					</div>
+				</Section>
+				<Section
+					title={
+						<span className={styles.sectionTitleWithIcon}>
+							Integrations
+						</span>
+					}
+					id="integrations"
+					defaultOpen
+				>
+					<p>
+						Supercharge your workflows and attach Highlight with the
+						tools you use everyday such as:
+					</p>
+					<ul>
+						<li>Slack</li>
+						<li>Linear</li>
+					</ul>
+					<div className={styles.integrationContainer}>
+						<ButtonLink
+							to={`/${project_id}/integrations`}
+							trackingId="ConfigureIntegrationsFromSetupPage"
+						>
+							Enable Integrations
+						</ButtonLink>
+					</div>
+				</Section>
+				<Section
+					title={
+						<span className={styles.sectionTitleWithIcon}>
+							Proxying Highlight
+						</span>
+					}
+					id="proxying"
+					defaultOpen
+				>
+					<p>
+						If you're not seeing sessions or errors on Highlight,
+						chances are that requests to Highlight are being
+						blocked. This can happen for different reasons such as a
+						third-party browser extensions, browser configuration,
+						or VPN settings.
+					</p>
+					<p>
+						One way we can avoid this is by setting up proxy from
+						your domain to Highlight. To do this, you will need
+						access to your domain's DNS settings.
+					</p>
+					<div className={styles.integrationContainer}>
+						<ButtonLink
+							href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/proxying-highlight"
+							trackingId="ProxyDocsFromSetupPage"
+							anchor
+						>
+							Set Up Proxy
+						</ButtonLink>
+					</div>
+				</Section>
+				<Section
+					title={
+						<span className={styles.sectionTitleWithIcon}>
+							Read the Docs
+						</span>
+					}
+					id="docs"
+					defaultOpen
+				>
+					<p>
+						Interested in learning how Highlight can help you move
+						faster? Check out our docs!
+					</p>
+					<p>Some things you'll learn more about are:</p>
+					<ul>
+						<li>
+							<a
+								href="https://www.highlight.io/docs/general/product-features/general-features/comments"
+								target="_blank"
+								rel="noreferrer"
 							>
-								Configure Your Alerts
-							</ButtonLink>
-						</div>
-					</Section>
-					<Section
-						title={
-							<span className={styles.sectionTitleWithIcon}>
-								Integrations
-							</span>
-						}
-						id="integrations"
-						defaultOpen
-					>
-						<p>
-							Supercharge your workflows and attach Highlight with
-							the tools you use everyday such as:
-						</p>
-						<ul>
-							<li>Slack</li>
-							<li>Linear</li>
-						</ul>
-						<div className={styles.integrationContainer}>
-							<ButtonLink
-								to={`/${project_id}/integrations`}
-								trackingId="ConfigureIntegrationsFromSetupPage"
+								Collaborating with comments
+							</a>
+						</li>
+						<li>
+							<a
+								href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses"
+								target="_blank"
+								rel="noreferrer"
 							>
-								Enable Integrations
-							</ButtonLink>
-						</div>
-					</Section>
-					<Section
-						title={
-							<span className={styles.sectionTitleWithIcon}>
-								Proxying Highlight
-							</span>
-						}
-						id="proxying"
-						defaultOpen
-					>
-						<p>
-							If you're not seeing sessions or errors on
-							Highlight, chances are that requests to Highlight
-							are being blocked. This can happen for different
-							reasons such as a third-party browser extensions,
-							browser configuration, or VPN settings.
-						</p>
-						<p>
-							One way we can avoid this is by setting up proxy
-							from your domain to Highlight. To do this, you will
-							need access to your domain's DNS settings.
-						</p>
-						<div className={styles.integrationContainer}>
-							<ButtonLink
-								href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/proxying-highlight"
-								trackingId="ProxyDocsFromSetupPage"
-								anchor
+								Debugging network requests
+							</a>
+						</li>
+						<li>
+							<a
+								href="https://www.highlight.io/docs/getting-started/self-host/self-hosted-hobby-guide"
+								target="_blank"
+								rel="noreferrer"
 							>
-								Set Up Proxy
-							</ButtonLink>
-						</div>
-					</Section>
-					<Section
-						title={
-							<span className={styles.sectionTitleWithIcon}>
-								Read the Docs
-							</span>
-						}
-						id="docs"
-						defaultOpen
-					>
-						<p>
-							Interested in learning how Highlight can help you
-							move faster? Check out our docs!
-						</p>
-						<p>Some things you'll learn more about are:</p>
-						<ul>
-							<li>
-								<a
-									href="https://www.highlight.io/docs/general/product-features/general-features/comments"
-									target="_blank"
-									rel="noreferrer"
-								>
-									Collaborating with comments
-								</a>
-							</li>
-							<li>
-								<a
-									href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses"
-									target="_blank"
-									rel="noreferrer"
-								>
-									Debugging network requests
-								</a>
-							</li>
-							<li>
-								<a
-									href="https://www.highlight.io/docs/getting-started/self-host/self-hosted-hobby-guide"
-									target="_blank"
-									rel="noreferrer"
-								>
-									On-prem
-								</a>
-							</li>
-							<li>
-								<a
-									href="https://www.highlight.io/docs/getting-started/fullstack-frameworks/next-js/env-variables"
-									target="_blank"
-									rel="noreferrer"
-								>
-									Getting more useful error stack traces if
-									you don't ship sourcemap
-								</a>
-							</li>
-						</ul>
-
-						<div className={styles.integrationContainer}>
-							<ButtonLink
-								anchor
-								href="https://highlight.io/docs"
-								trackingId="SetupPageDocs"
+								On-prem
+							</a>
+						</li>
+						<li>
+							<a
+								href="https://www.highlight.io/docs/getting-started/fullstack-frameworks/next-js/env-variables"
+								target="_blank"
+								rel="noreferrer"
 							>
-								Read the Docs
-							</ButtonLink>
-						</div>
-					</Section>
-				</div>
-			)}
-		</>
-	)
-}
+								Getting more useful error stack traces if you
+								don't ship sourcemap
+							</a>
+						</li>
+					</ul>
 
-const HtmlInstructions = ({
-	projectVerboseId,
-}: {
-	projectVerboseId: string
-}) => {
-	return (
-		<Section title="Installing the SDK" defaultOpen>
-			<p>
-				Copy and paste the <code>{'<script>'}</code> below into the
-				<code>{'<head>'}</code> of every page you wish to record.
-			</p>
-			<div>
-				<CodeBlock
-					language="html"
-					onCopy={() => {
-						analytics.track('Copied Script (Highlight Event)', {
-							copied: 'script',
-						})
-					}}
-					text={`<script src="https://cdn.jsdelivr.net/npm/highlight.run@latest"></script>
-<script>window.H.init('${projectVerboseId}'${
-						isOnPrem
-							? ', {backendUrl: "' + GetBaseURL() + '/public"}'
-							: ''
-					})</script>`}
-				/>
-			</div>
-		</Section>
-	)
-}
-
-const NextBackendInstructions = ({
-	projectVerboseId,
-}: {
-	projectVerboseId: string
-}) => {
-	return (
-		<>
-			<Section title="Vercel Integration" defaultOpen>
-				<p>
-					If your app runs on Vercel, you can{' '}
-					<a href="https://vercel.com/integrations/highlight/new">
-						install the Highlight integration
-					</a>{' '}
-					to automatically update your environment variables with API
-					keys for source map uploading.
-				</p>
-			</Section>
-			<Section title="Installing the SDK" defaultOpen>
-				<p>
-					Install the
-					<code>@highlight-run/next</code> package.
-				</p>
-				<CodeBlock
-					text="npm install @highlight-run/next"
-					language="shell"
-				/>
-				<p>or with Yarn:</p>
-				<CodeBlock
-					text="yarn add @highlight-run/next"
-					language="shell"
-				/>
-			</Section>
-			<Section title="Wrapping your Next Config" defaultOpen>
-				<p>
-					In <code>next.config.js</code>, use{' '}
-					<code>withHighlightConfig</code> to wrap your config. This
-					will automatically configure source map uploading and
-					proxying for Highlight requests.
-				</p>
-				<p>
-					<CodeBlock
-						language="javascript"
-						text={`import { withHighlightConfig } from "@highlight-run/next";
-
-export default withHighlightConfig({
-	// your next.config.js options here
-})`}
-					/>
-				</p>
-			</Section>
-			<Section title="Initializing Highlight on the Backend" defaultOpen>
-				<p>Initialize the SDK by importing Highlight like so: </p>
-				<CodeBlock
-					text={`import { Highlight } from '@highlight-run/next';`}
-					language="javascript"
-				/>
-				<p>
-					and then defining it in a common file. You can configure how
-					Highlight records with the{' '}
-					<a
-						href="https://www.highlight.io/docs/sdk/client#Hinit"
-						target="_blank"
-						rel="noreferrer"
-					>
-						options
-					</a>
-					.
-				</p>
-				<p>
-					<CodeBlock
-						language="javascript"
-						text={`export const withHighlight = Highlight({projectID: '${projectVerboseId}'});`}
-					/>
-				</p>
-				<p>
-					Wrap each of your route handlers in <code>/api/</code> using
-					<code>withHighlight</code>
-				</p>
-				<p>
-					<CodeBlock
-						language="javascript"
-						text={`import { withHighlight } from "./common";
-
-const handler = async (req, res) => {
-  res.status(200).json({ name: "Jay" });
-};
-
-export default withHighlight(handler);`}
-					/>
-				</p>
-			</Section>
-		</>
-	)
-}
-
-const ExpressBackendInstructions = ({
-	projectVerboseId,
-}: {
-	projectVerboseId: string
-}) => {
-	return (
-		<>
-			<Section title="Installing the SDK" defaultOpen>
-				<p>
-					Install the
-					<code>@highlight-run/node</code> package.
-				</p>
-				<CodeBlock
-					text="npm install @highlight-run/node"
-					language="shell"
-				/>
-				<p>or with Yarn:</p>
-				<CodeBlock
-					text="yarn add @highlight-run/node"
-					language="shell"
-				/>
-			</Section>
-			<Section title="Initializing Highlight on the Backend" defaultOpen>
-				<p>Initialize the SDK by importing Highlight like so: </p>
-				<CodeBlock
-					text={`import { Handlers } from '@highlight-run/node';`}
-					language="javascript"
-				/>
-				<p>
-					and then calling as soon as you can in your site's startup
-					process. You can configure how Highlight records with the{' '}
-					<a
-						href="https://www.highlight.io/docs/sdk/client#Hinit"
-						target="_blank"
-						rel="noreferrer"
-					>
-						options
-					</a>
-					.
-				</p>
-				<p>
-					<CodeBlock
-						language="javascript"
-						text={`const highlightHandler = Handlers.errorHandler({projectID: '${projectVerboseId}'});`}
-					/>
-				</p>
-				<p>
-					<CodeBlock
-						language="javascript"
-						text={`import { Handlers } from "@highlight-run/node";
-
-const app = express();
-
-const highlightOptions = {};
-const highlightHandler = Handlers.errorHandler(highlightOptions);
-
-// This should be before any other error middleware and after all controllers
-app.use(highlightHandler);`}
-					/>
-				</p>
-			</Section>
-		</>
-	)
-}
-
-const GoBackendInstructions = ({
-	projectVerboseId,
-}: {
-	projectVerboseId: string
-}) => {
-	return (
-		<>
-			<Section title="Installing the SDK" defaultOpen>
-				<p>
-					Install the
-					<code>highlight-go</code> package.
-				</p>
-				<CodeBlock
-					text="go get -u github.com/highlight/highlight/sdk/highlight-go"
-					language="shell"
-				/>
-			</Section>
-			<Section title="Initializing Highlight on the Backend" defaultOpen>
-				<p>
-					Add the following lines to your application's main{' '}
-					<code>(func main)</code> function:
-				</p>
-				<CodeBlock
-					text={`import (
-    "github.com/highlight/highlight/sdk/highlight-go"
-)
-
-func main() {
-    //...application logic...
-    highlight.SetProjectID("${projectVerboseId}")
-    highlight.Start()
-    defer highlight.Stop()
-    //...application logic...
-}
-                    `}
-					language="go"
-				/>
-				<p>
-					and then using a Highlight middleware in your app's router:
-				</p>
-				<p>
-					If you're using <code>go-chi/chi</code>:
-				</p>
-				<p>
-					<CodeBlock
-						language="go"
-						text={`import (
-    highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
-)
-
-func main() {
-    //...
-    r := chi.NewRouter()
-    r.Use(highlightChi.Middleware)
-    //...
-}`}
-					/>
-				</p>
-				<p>
-					If you're using <code>gin-gonic/gin</code>:
-				</p>
-				<p>
-					<CodeBlock
-						language="go"
-						text={`import (
-    highlightGin "github.com/highlight/highlight/sdk/highlight-go/middleware/gin"
-)
-
-func main() {
-    //...
-    r := gin.Default()
-    r.Use(highlightGin.Middleware())
-    //...
-}`}
-					/>
-				</p>
-				<p>
-					You'll need to instrument your endpoint handlers to specify
-					how you want to track errors or other events.
 					<div className={styles.integrationContainer}>
 						<ButtonLink
 							anchor
-							href="https://www.highlight.io/docs/getting-started/backend-sdk/go/overview"
-							trackingId="SetupPageBackend"
+							href="https://highlight.io/docs"
+							trackingId="SetupPageDocs"
 						>
-							See an Example
+							Read the Docs
 						</ButtonLink>
 					</div>
-				</p>
-			</Section>
-		</>
-	)
-}
-
-const JsAppInstructions = ({
-	platform,
-	projectVerboseId,
-}: {
-	platform: PlatformType
-	projectVerboseId: string
-}) => {
-	return (
-		<>
-			<Section title="Installing the SDK" defaultOpen>
-				{platform === PlatformType.React ||
-				platform === PlatformType.NextJs ? (
-					<>
-						<p>
-							Install the <code>highlight.run</code> and{' '}
-							<code>@highlight-run/react</code> packages.
-						</p>
-						<CodeBlock
-							text="npm install highlight.run @highlight-run/react"
-							language="shell"
-						/>
-						<p>or with Yarn:</p>
-						<CodeBlock
-							text="yarn add highlight.run @highlight-run/react"
-							language="shell"
-						/>
-					</>
-				) : (
-					<>
-						<p>
-							Install the <code>highlight.run</code> package.
-						</p>
-						<CodeBlock
-							text="npm install highlight.run"
-							language="shell"
-						/>
-						<p>or with Yarn:</p>
-						<CodeBlock
-							text="yarn add highlight.run"
-							language="shell"
-						/>
-					</>
-				)}
-			</Section>
-			<Section title="Initializing Highlight" defaultOpen>
-				<p>Initialize the SDK by importing Highlight like so: </p>
-				<CodeBlock
-					text={`import { H } from 'highlight.run';`}
-					language="javascript"
-				/>
-				<p>
-					and then calling{' '}
-					<code>{getInitSnippet(projectVerboseId)}</code> as soon as
-					you can in your site's startup process. You can configure
-					how Highlight records with the{' '}
-					<a
-						href="https://www.highlight.io/docs/sdk/client#Hinit"
-						target="_blank"
-						rel="noreferrer"
-					>
-						options
-					</a>
-					.
-				</p>
-				<p>
-					{platform !== PlatformType.NextJs ? (
-						<CodeBlock
-							language="javascript"
-							text={`${getInitSnippet(projectVerboseId, true)}`}
-						/>
-					) : (
-						<CodeBlock
-							language="javascript"
-							text={`${getInitSnippet(
-								projectVerboseId,
-							)} // ${projectVerboseId} is your PROJECT_ID`}
-						/>
-					)}
-				</p>
-				<p>
-					In{' '}
-					{platform === PlatformType.React
-						? 'React'
-						: platform === PlatformType.Vue
-						? 'Vue'
-						: 'Next.js'}
-					, it can be called at the top of your main component's file
-					like this:
-				</p>
-				{platform === PlatformType.React ? (
-					<CodeBlock
-						language="javascript"
-						text={`import React from 'react';
-import App from './App';
-import { H } from 'highlight.run';
-import { ErrorBoundary } from '@highlight-run/react';
-
-${getInitSnippet(projectVerboseId)}
-
-ReactDOM.render(
-  <ErrorBoundary showDialog>
-    <App />
-  </ErrorBoundary>,
-  document.getElementById('root')
-);`}
-					/>
-				) : platform === PlatformType.Vue ? (
-					<CodeBlock
-						language="javascript"
-						text={`import { createApp } from 'vue';
-import App from './App.vue';
-import { H } from 'highlight.run';
-
-${getInitSnippet(projectVerboseId, true)}
-
-createApp(App).mount('#app');`}
-					/>
-				) : (
-					<CodeBlock
-						language="javascript"
-						text={`import { H } from 'highlight.run';
-
-${getInitSnippet(projectVerboseId)}
-
-function MyApp({ Component, pageProps }) {
-  return <Component {...pageProps} />
-}
-
-export default MyApp`}
-					/>
-				)}
-			</Section>
+				</Section>
+			</div>
 		</>
 	)
 }
@@ -1324,6 +915,98 @@ export const Section: FunctionComponent<
 		<Collapsible title={title} id={id} defaultOpen={defaultOpen}>
 			{children}
 		</Collapsible>
+	)
+}
+
+const verifyDocsMapping = (docs?: Guides) => {
+	if (!docs) {
+		return
+	}
+
+	for (const platform in docs) {
+		console.assert(
+			!!PLATFORM_OPTIONS[platform as keyof typeof PLATFORM_OPTIONS],
+			`Mapping for docs platforms to PLATFORM_OPTIONS is broken for ${platform}`,
+		)
+
+		if (platform === 'server') {
+			for (const language in (docs as any)[platform]) {
+				console.assert(
+					!!BACKEND_LANGUAGE_OPTIONS[
+						language as keyof typeof BACKEND_LANGUAGE_OPTIONS
+					],
+					`Mapping for docs languages to LANGUAGE_OPTIONS is broken for ${language}`,
+				)
+
+				for (const framework in (docs as any)[platform][language]) {
+					console.assert(
+						!!BACKEND_FRAMEWORK_OPTIONS[
+							framework as keyof typeof BACKEND_FRAMEWORK_OPTIONS
+						],
+						`Mapping for docs frameworks to FRAMEWORK_OPTIONS is broken for ${framework}`,
+					)
+				}
+			}
+		} else if (platform === 'client') {
+			for (const language in (docs as any)[platform]) {
+				console.assert(
+					!!CLIENT_FRAMEWORK_OPTIONS[
+						language as keyof typeof CLIENT_FRAMEWORK_OPTIONS
+					],
+					`Mapping for docs languages to CLIENT_FRAMEWORK_OPTIONS is broken for ${language}`,
+				)
+			}
+		} else if (platform === 'other') {
+			for (const language in (docs as any)[platform]) {
+				console.assert(
+					!!OTHER_OPTIONS[language as keyof typeof OTHER_OPTIONS],
+					`Mapping for docs languages to OTHER_OPTIONS is broken for ${language}`,
+				)
+			}
+		}
+	}
+}
+
+// Copied from RadioGroup.tsx for now. Will refactor and break out to a separate
+// component once designs are finalized.
+export const VerticalRadioGroup = <T extends string | number>({
+	onSelect,
+	labels,
+	selectedLabel,
+	style,
+}: {
+	onSelect: (p: T) => void
+	labels: T[]
+	selectedLabel: T
+	style?: React.CSSProperties
+}) => {
+	const labelDivs = labels.map((label, index) => {
+		const isSelected = label === selectedLabel
+
+		return (
+			<Box
+				key={index}
+				border="secondary"
+				borderRadius="6"
+				backgroundColor={isSelected ? 'p10' : 'white'}
+				cursor="pointer"
+				display="flex"
+				onClick={() => onSelect(label)}
+				p="10"
+			>
+				<Text color={isSelected ? 'white' : undefined}>{label}</Text>
+			</Box>
+		)
+	})
+	return (
+		<Box
+			display="flex"
+			flexDirection="column"
+			style={{ maxWidth: 200, ...style }}
+			gap="4"
+		>
+			{labelDivs}
+		</Box>
 	)
 }
 
