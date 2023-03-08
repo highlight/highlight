@@ -10,9 +10,6 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
 	"runtime"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var (
@@ -20,205 +17,135 @@ var (
 	LogMessageKey  = attribute.Key(highlight.LogMessageAttribute)
 )
 
-type VercelProxy struct {
-	Timestamp   int64    `json:"timestamp"`
-	Method      string   `json:"method"`
-	Scheme      string   `json:"scheme"`
-	Host        string   `json:"host"`
-	Path        string   `json:"path"`
-	UserAgent   []string `json:"userAgent"`
-	Referer     string   `json:"referer"`
-	StatusCode  int64    `json:"statusCode"`
-	ClientIp    string   `json:"clientIp"`
-	Region      string   `json:"region"`
-	CacheId     string   `json:"cacheId"`
-	VercelCache string   `json:"vercelCache"`
+type Level = uint32
+
+const (
+	ErrorLevel Level = iota
+	WarnLevel  Level = iota
+	InfoLevel  Level = iota
+	DebugLevel Level = iota
+)
+
+func levelToString(l Level) string {
+	switch l {
+	case ErrorLevel:
+		return "error"
+	case WarnLevel:
+		return "warn"
+	case InfoLevel:
+		return "info"
+	case DebugLevel:
+		return "debug"
+	}
+	return ""
 }
 
-type VercelLog struct {
-	Id           string `json:"id"`
-	Message      string `json:"message"`
-	Timestamp    int64  `json:"timestamp"`
-	Source       string `json:"source"`
-	ProjectId    string `json:"projectId"`
-	DeploymentId string `json:"deploymentId"`
-	BuildId      string `json:"buildId"`
-	Host         string `json:"host"`
+var printOut = true
+var printLevel = DebugLevel
 
-	Type       string `json:"type"`
-	Entrypoint string `json:"entrypoint"`
-
-	RequestId   string      `json:"requestId"`
-	StatusCode  int64       `json:"statusCode"`
-	Destination string      `json:"destination"`
-	Path        string      `json:"path"`
-	Proxy       VercelProxy `json:"proxy"`
+func SetOutput(output bool) {
+	printOut = output
 }
 
-func HighlightTags(projectID, sessionID, requestID string) []attribute.KeyValue {
-	tags := []attribute.KeyValue{
-		attribute.String(highlight.ProjectIDAttribute, projectID),
-	}
-	if sessionID != "" {
-		tags = append(tags, attribute.String(highlight.SessionIDAttribute, sessionID))
-	}
-	if requestID != "" {
-		tags = append(tags, attribute.String(highlight.RequestIDAttribute, requestID))
-	}
-	return tags
+func SetOutputLevel(print Level) {
+	printLevel = print
 }
 
-func LogWithContext(ctx context.Context, level, message string, tags ...attribute.KeyValue) {
-	span, _ := highlight.StartTrace(ctx, "highlight-go/log")
+type Printer struct {
+	Context context.Context
+	Tags    []attribute.KeyValue
+}
+
+func (p *Printer) log(level Level, message string) {
+	span, _ := highlight.StartTrace(p.Context, "highlight-go/log")
 	defer highlight.EndTrace(span)
 
 	attrs := []attribute.KeyValue{
-		LogSeverityKey.String(level),
+		attribute.String(highlight.ProjectIDAttribute, highlight.GetProjectID()),
+		LogSeverityKey.String(levelToString(level)),
 		LogMessageKey.String(message),
 	}
-	attrs = append(attrs, HighlightTags(highlight.GetProjectID(), "", "")...)
 	if _, file, line, ok := runtime.Caller(1); ok {
 		attrs = append(attrs, semconv.CodeFilepathKey.String(file))
 		attrs = append(attrs, semconv.CodeLineNumberKey.Int(line))
 	}
-	attrs = append(attrs, tags...)
+	attrs = append(attrs, p.Tags...)
 
 	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...))
-	if strings.Contains(strings.ToLower(level), "error") {
+	if level <= ErrorLevel {
 		span.SetStatus(codes.Error, message)
 	}
-}
 
-func Log(level, message string, tags ...attribute.KeyValue) {
-	var tagsStr string
-	if len(tags) > 0 {
-		s, _ := json.Marshal(tags)
-		tagsStr = fmt.Sprintf(" %s", s)
-	}
-	highlight.Print(fmt.Sprintf("[%s] %s%s\n", level, message, tagsStr))
-	LogWithContext(context.TODO(), level, message, tags...)
-}
-
-func Trace(message string, tags ...attribute.KeyValue) {
-	Log("trace", message, tags...)
-}
-
-func Debug(message string, tags ...attribute.KeyValue) {
-	Log("debug", message, tags...)
-}
-
-func Info(message string, tags ...attribute.KeyValue) {
-	Log("info", message, tags...)
-}
-
-func Warn(message string, tags ...attribute.KeyValue) {
-	Log("warn", message, tags...)
-}
-
-func Error(message string, tags ...attribute.KeyValue) {
-	Log("error", message, tags...)
-}
-
-func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSecureID string, messages string) error {
-	logRows, err := ParseConsoleMessages(messages)
-	if err != nil {
-		return err
-	}
-
-	if len(logRows) == 0 {
-		return nil
-	}
-
-	span, _ := highlight.StartTrace(
-		ctx, "highlight-ctx",
-		attribute.String(highlight.SourceAttribute, highlight.SourceAttributeFrontend),
-		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
-		attribute.String(highlight.SessionIDAttribute, sessionSecureID),
-	)
-	defer highlight.EndTrace(span)
-
-	for _, row := range logRows {
-		message := strings.Join(row.Value, " ")
-		attrs := []attribute.KeyValue{
-			LogSeverityKey.String(row.Type),
-			LogMessageKey.String(message),
-		}
-		if len(row.Trace) > 0 {
-			traceEnd := &row.Trace[len(row.Trace)-1]
-			attrs = append(
-				attrs,
-				semconv.CodeFunctionKey.String(traceEnd.FunctionName),
-				semconv.CodeNamespaceKey.String(traceEnd.Source),
-				semconv.CodeFilepathKey.String(traceEnd.FileName),
-			)
-
-			var ln int
-			if x, ok := traceEnd.LineNumber.(int); ok {
-				ln = x
-			} else if x, ok := traceEnd.LineNumber.(string); ok {
-				if i, err := strconv.ParseInt(x, 10, 32); err == nil {
-					ln = int(i)
-				}
+	if printOut {
+		if level <= printLevel {
+			var tagsStr string
+			if len(p.Tags) > 0 {
+				s, _ := json.Marshal(p.Tags)
+				tagsStr = fmt.Sprintf(" %s", s)
 			}
-			if ln != 0 {
-				attrs = append(attrs, semconv.CodeLineNumberKey.Int(ln))
-			}
-
-			var cn int
-			if x, ok := traceEnd.ColumnNumber.(int); ok {
-				cn = x
-			} else if x, ok := traceEnd.ColumnNumber.(string); ok {
-				if i, err := strconv.ParseInt(x, 10, 32); err == nil {
-					cn = int(i)
-				}
-			}
-			if cn != 0 {
-				attrs = append(attrs, semconv.CodeColumnKey.Int(cn))
-			}
-		}
-
-		span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(row.Time)))
-		if row.Type == "error" {
-			span.SetStatus(codes.Error, message)
+			fmt.Printf("[%s] %s%s\n", levelToString(level), message, tagsStr)
 		}
 	}
-
-	return nil
 }
 
-func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
-	span, _ := highlight.StartTrace(
-		ctx, "highlight-ctx",
-		attribute.String("Source", "SubmitVercelLogs"),
-		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
-	)
-	defer highlight.EndTrace(span)
-
-	attrs := []attribute.KeyValue{
-		LogSeverityKey.String(log.Type),
-		LogMessageKey.String(log.Message),
-	}
-	attrs = append(
-		attrs,
-		semconv.CodeNamespaceKey.String(log.Source),
-		semconv.CodeFilepathKey.String(log.Path),
-		semconv.CodeFunctionKey.String(log.Entrypoint),
-		semconv.HostNameKey.String(log.Host),
-		semconv.HTTPMethodKey.Int64(log.StatusCode),
-	)
-
-	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))
-	if log.Type == "error" {
-		span.SetStatus(codes.Error, log.Message)
-	}
+func (p *Printer) WithContext(ctx context.Context) *Printer {
+	p.Context = ctx
+	return p
 }
 
-func SubmitVercelLogs(ctx context.Context, projectID int, logs []VercelLog) {
-	if len(logs) == 0 {
-		return
-	}
+func (p *Printer) WithSession(sessionID string) *Printer {
+	p.Tags = append(p.Tags, attribute.String(highlight.SessionIDAttribute, sessionID))
+	return p
+}
 
-	for _, log := range logs {
-		submitVercelLog(ctx, projectID, log)
-	}
+func (p *Printer) WithRequest(requestID string) *Printer {
+	p.Tags = append(p.Tags, attribute.String(highlight.RequestIDAttribute, requestID))
+	return p
+}
+
+func (p *Printer) Debug(message string) {
+	p.log(DebugLevel, message)
+}
+
+func (p *Printer) Info(message string) {
+	p.log(InfoLevel, message)
+}
+
+func (p *Printer) Warn(message string) {
+	p.log(WarnLevel, message)
+}
+
+func (p *Printer) Error(message string) {
+	p.log(ErrorLevel, message)
+}
+
+func WithContext(ctx context.Context) *Printer {
+	p := &Printer{}
+	return p.WithContext(ctx)
+}
+
+func WithSession(sessionID string) *Printer {
+	p := &Printer{}
+	return p.WithRequest(sessionID)
+}
+
+func WithRequest(requestID string) *Printer {
+	p := &Printer{}
+	return p.WithRequest(requestID)
+}
+
+func Debug(message string) {
+	WithContext(context.TODO()).Debug(message)
+}
+
+func Info(message string) {
+	WithContext(context.TODO()).Info(message)
+}
+
+func Warn(message string) {
+	WithContext(context.TODO()).Warn(message)
+}
+
+func Error(message string) {
+	WithContext(context.TODO()).Error(message)
 }

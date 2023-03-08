@@ -238,7 +238,9 @@ func main() {
 	H.Start()
 	defer H.Stop()
 	H.SetDebugMode(log.StandardLogger())
-	hlog.Info("welcome to highlight.io")
+	hlog.SetOutput(true)
+	hlog.SetOutputLevel(hlog.DebugLevel)
+	hlog.WithContext(ctx).Info("welcome to highlight.io")
 	// setup highlight logrus hook
 	log.AddHook(hlog.NewHook(hlog.WithLevels(
 		log.PanicLevel,

@@ -26,7 +26,6 @@ var (
 	graphqlClientAddress string
 	otlpEndpoint         string
 	projectID            string
-	logOut               = true
 )
 
 // contextKey represents the keys that highlight may store in the users' context
@@ -253,16 +252,6 @@ func SetDebugMode(l Logger) {
 
 func SetProjectID(id string) {
 	projectID = id
-}
-
-func SetLogOut(print bool) {
-	logOut = print
-}
-
-func Print(message string) {
-	if logOut {
-		fmt.Print(message)
-	}
 }
 
 func GetProjectID() string {
