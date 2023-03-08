@@ -234,7 +234,6 @@ export const SessionFeedV3 = React.memo(() => {
 		if (!searchParams.query) {
 			setSearchParams({
 				...searchParams,
-				show_live_sessions: true,
 			})
 		} else {
 			// Replace any 'custom_processed' values with ['true', 'false']

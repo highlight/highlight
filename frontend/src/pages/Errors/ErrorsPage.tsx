@@ -3,6 +3,7 @@ import { ErrorSearchParamsInput } from '@graph/schemas'
 import { ErrorState } from '../../graph/generated/schemas'
 import { Complete } from '../../util/types'
 
+// TODO: only keep query (remove all other attributes) after deprecating static filters
 export const EmptyErrorsSearchParams: Complete<ErrorSearchParamsInput> = {
 	browser: undefined,
 	date_range: undefined,
