@@ -2,7 +2,7 @@ import { LoadingOutlined } from '@ant-design/icons'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import { useGetProjectQuery } from '@graph/hooks'
 import { GetProjectQuery } from '@graph/operations'
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Stack, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import useLocalStorage from '@rehooks/local-storage'
@@ -131,6 +131,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 	})
 
 	const { projectId } = useProjectId()
+	const [docs, setDocs] = useState<Guides>()
 	const [steps, setSteps] = useState<SetupStep[]>([])
 	const {
 		integrated: isBackendIntegrated,
@@ -184,30 +185,18 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 		project_id,
 	])
 
-	const [docs, setDocs] = useState<Guides>()
-	const [docsLoading, setDocsLoading] = useState<boolean>(true)
-
 	useEffect(() => {
 		fetch(`https://www.highlight.io/api/quickstart`)
 			.then((res) => res.json())
-			.then(setDocs)
+			.then((docs) => {
+				setDocs(docs)
+				verifyDocsMapping(docs)
+			})
 			.catch(() => {
 				message.error('Error loading docs...')
 			})
-			.finally(() => {
-				setDocsLoading(false)
-			})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
-
-	if (docsLoading) {
-		// TODO: Loading state
-		return <Box>Loading...</Box>
-	}
-
-	if (import.meta.env.DEV) {
-		verifyDocsMapping(docs)
-	}
 
 	return (
 		<>
@@ -264,11 +253,32 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 					</div>
 					<div>
 						{!data?.project || !data?.workspace || !docs ? (
-							<Skeleton
-								height={75}
-								count={3}
-								style={{ borderRadius: 8, marginBottom: 14 }}
-							/>
+							<Stack gap="24">
+								<Skeleton
+									height={40}
+									width={500}
+									style={{ borderRadius: 8 }}
+								/>
+								<Skeleton
+									height={20}
+									width={400}
+									style={{ borderRadius: 8 }}
+								/>
+								<Skeleton
+									height={30}
+									width={600}
+									style={{ borderRadius: 8 }}
+								/>
+								<Skeleton
+									height={150}
+									count={3}
+									width={700}
+									style={{
+										borderRadius: 8,
+										marginBottom: 24,
+									}}
+								/>
+							</Stack>
 						) : (
 							<>
 								{step === 'client' && (
