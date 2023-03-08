@@ -5,7 +5,9 @@ import {
 	IconSolidChevronDoubleDown,
 	IconSolidChevronDoubleUp,
 	IconSolidClipboard,
+	IconSolidLightningBolt,
 	Stack,
+	Tag,
 	Text,
 } from '@highlight-run/ui'
 import {
@@ -15,6 +17,7 @@ import {
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
 
 import * as styles from './LogDetails.css'
 
@@ -23,6 +26,7 @@ type Props = {
 }
 
 export const LogDetails = ({ row }: Props) => {
+	const navigate = useNavigate()
 	const [allExpanded, setAllExpanded] = useState(false)
 	const { traceID, spanID, secureSessionID, logAttributes, message, level } =
 		row.original.node
@@ -90,58 +94,99 @@ export const LogDetails = ({ row }: Props) => {
 			<Box
 				display="flex"
 				alignItems="center"
+				justifyContent="space-between"
 				flexDirection="row"
 				gap="16"
-				my="10"
+				mt="8"
 			>
-				{expandable && (
+				<Box
+					display="flex"
+					alignItems="center"
+					flexDirection="row"
+					gap="16"
+				>
+					{expandable && (
+						<ButtonLink
+							kind="secondary"
+							onClick={(e) => {
+								e.stopPropagation()
+								setAllExpanded(!allExpanded)
+							}}
+						>
+							<Box
+								alignItems="center"
+								display="flex"
+								flexDirection="row"
+								gap="4"
+							>
+								{allExpanded ? (
+									<>
+										<IconSolidChevronDoubleUp /> Collapse
+										all
+									</>
+								) : (
+									<>
+										<IconSolidChevronDoubleDown />
+										Expand all
+									</>
+								)}
+							</Box>
+						</ButtonLink>
+					)}
+
 					<ButtonLink
 						kind="secondary"
 						onClick={(e) => {
 							e.stopPropagation()
-							setAllExpanded(!allExpanded)
+							navigator.clipboard.writeText(
+								JSON.stringify(row.original),
+							)
+							antdMessage.success('Copied logs!')
 						}}
 					>
 						<Box
-							alignItems="center"
 							display="flex"
+							alignItems="center"
 							flexDirection="row"
 							gap="4"
 						>
-							{allExpanded ? (
-								<>
-									<IconSolidChevronDoubleUp /> Collapse all
-								</>
-							) : (
-								<>
-									<IconSolidChevronDoubleDown />
-									Expand all
-								</>
-							)}
+							<IconSolidClipboard />
+							Copy
 						</Box>
 					</ButtonLink>
-				)}
+				</Box>
 
-				<ButtonLink
-					kind="secondary"
-					onClick={(e) => {
-						e.stopPropagation()
-						navigator.clipboard.writeText(
-							JSON.stringify(row.original),
-						)
-						antdMessage.success('Copied logs!')
-					}}
+				<Box
+					display="flex"
+					alignItems="center"
+					flexDirection="row"
+					gap="16"
 				>
-					<Box
-						display="flex"
-						alignItems="center"
-						flexDirection="row"
-						gap="4"
-					>
-						<IconSolidClipboard />
-						Copy
-					</Box>
-				</ButtonLink>
+					{row.original.node.severityText
+						.toLowerCase()
+						.indexOf('error') !== -1 && (
+						<Tag
+							shape="basic"
+							kind="secondary"
+							emphasis="medium"
+							className={styles.linkButton}
+							onClick={(e) => {
+								e.stopPropagation()
+								navigate(`/errors?log=${row.original.cursor}`)
+							}}
+						>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidLightningBolt />
+								Related Error
+							</Box>
+						</Tag>
+					)}
+				</Box>
 			</Box>
 		</Stack>
 	)

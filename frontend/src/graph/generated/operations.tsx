@@ -2697,6 +2697,19 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorObjectForLogQueryVariables = Types.Exact<{
+	log_cursor: Types.Scalars['String']
+}>
+
+export type GetErrorObjectForLogQuery = { __typename?: 'Query' } & {
+	error_object_for_log?: Types.Maybe<
+		{ __typename?: 'ErrorObject' } & Pick<
+			Types.ErrorObject,
+			'id' | 'error_group_secure_id'
+		>
+	>
+}
+
 export type GetErrorObjectQueryVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 }>
@@ -4060,6 +4073,7 @@ export const namedOperations = {
 		GetBillingDetails: 'GetBillingDetails' as const,
 		GetSubscriptionDetails: 'GetSubscriptionDetails' as const,
 		GetErrorGroup: 'GetErrorGroup' as const,
+		GetErrorObjectForLog: 'GetErrorObjectForLog' as const,
 		GetErrorObject: 'GetErrorObject' as const,
 		GetErrorInstance: 'GetErrorInstance' as const,
 		GetRecentErrors: 'GetRecentErrors' as const,
