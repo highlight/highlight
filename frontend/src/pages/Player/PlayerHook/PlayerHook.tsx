@@ -373,11 +373,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 				// signal that we are loading chunks once
 				if (!promises.length) {
-					if (action || i == startIdx) {
+					if (i == startIdx) {
 						log(
 							'PlayerHook.tsx:ensureChunksLoaded',
 							'needs blocking load for chunk',
-							{ i, startIdx, action },
+							{ i, startIdx },
 						)
 						dispatch({
 							type: PlayerActionType.startChunksLoad,
@@ -459,34 +459,19 @@ export const usePlayer = (): ReplayerContextInterface => {
 						state.sessionMetadata.startTime +
 							inactivityEndTime.current,
 					)
-					if (loadedChunks.has(inactivityEndChunkIdx)) {
-						log(
-							'PlayerHook.tsx:ensureChunksLoaded',
-							'calling dispatchAction due to inactive skip',
-							{
-								inactivityEndTime: inactivityEndTime.current,
-								loadedChunks,
-								inactivityEndChunkIdx,
-								chunks: chunkEventsRef.current,
-								prevState: replayerStateBeforeLoad.current,
-							},
-						)
-						dispatchAction(inactivityEndTime.current)
-						inactivityEndTime.current = undefined
-					} else {
-						log(
-							'PlayerHook.tsx:ensureChunksLoaded',
-							'cancelling dispatchAction due to inactive skip',
-							'chunk not loaded',
-							{
-								inactivityEndTime: inactivityEndTime.current,
-								loadedChunks,
-								inactivityEndChunkIdx,
-								chunks: chunkEventsRef.current,
-								prevState: replayerStateBeforeLoad.current,
-							},
-						)
-					}
+					log(
+						'PlayerHook.tsx:ensureChunksLoaded',
+						'calling dispatchAction due to inactive skip',
+						{
+							inactivityEndTime: inactivityEndTime.current,
+							loadedChunks,
+							inactivityEndChunkIdx,
+							chunks: chunkEventsRef.current,
+							prevState: replayerStateBeforeLoad.current,
+						},
+					)
+					dispatchAction(inactivityEndTime.current)
+					inactivityEndTime.current = undefined
 				} else if (!action) {
 					log(
 						'PlayerHook.tsx:ensureChunksLoaded',
