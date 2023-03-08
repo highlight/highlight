@@ -4,6 +4,7 @@ import { LogLevel as Level } from '@graph/schemas'
 import { Box, Popover, Text } from '@highlight-run/ui'
 import { COLOR_MAPPING, FORMAT } from '@pages/LogsPage/constants'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
+import { isSignificantDateRange } from '@pages/LogsPage/utils'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import { useMemo, useRef, useState } from 'react'
@@ -161,7 +162,6 @@ const LogsHistogram = ({
 				const rect = containerRef.current.getBoundingClientRect()
 				const pos = ((e.clientX - rect.left) / rect.width) * 100
 				setDragStart(pos)
-				setDragEnd(pos)
 			}}
 			onMouseMove={(e: any) => {
 				if (!e || !containerRef.current) {
@@ -182,7 +182,9 @@ const LogsHistogram = ({
 					const end = new Date(
 						startDate.getTime() + (dragRight / 100) * range,
 					)
-					onDatesChange?.(start, end)
+					if (isSignificantDateRange(start, end)) {
+						onDatesChange?.(start, end)
+					}
 				}
 
 				setDragStart(undefined)
@@ -298,10 +300,17 @@ const LogBucketBar = ({
 								]}
 								onClick={() => {
 									onLevelChange?.(bar.level as Level)
-									onDatesChange?.(
-										bucket.startDate,
-										bucket.endDate,
-									)
+									if (
+										isSignificantDateRange(
+											bucket.startDate,
+											bucket.endDate,
+										)
+									) {
+										onDatesChange?.(
+											bucket.startDate,
+											bucket.endDate,
+										)
+									}
 								}}
 							>
 								<Box

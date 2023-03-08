@@ -24,6 +24,7 @@ import {
 	parseLogsQuery,
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
+import { isSignificantDateRange } from '@pages/LogsPage/utils'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
@@ -56,16 +57,20 @@ const SearchForm = ({
 	const { projectId } = useProjectId()
 	const formState = useFormState({ defaultValues: { query: initialQuery } })
 
+	const [isPickingCustomDate, setIsPickingCustomDate] = useState(false)
 	useEffect(() => {
 		if (!startDate || !endDate) return
+		if (!isSignificantDateRange(startDate, endDate)) return
 		if (
 			selectedDates[0].getTime() === startDate.getTime() &&
 			selectedDates[1].getTime() === endDate.getTime()
 		) {
 			return
 		}
-		setSelectedDates([startDate, endDate])
-	}, [startDate, endDate, selectedDates])
+		if (!isPickingCustomDate) {
+			setSelectedDates([startDate, endDate])
+		}
+	}, [startDate, endDate, selectedDates, isPickingCustomDate])
 
 	const { data: keysData } = useGetLogsKeysQuery({
 		variables: {
@@ -81,6 +86,7 @@ const SearchForm = ({
 		if (dates.length == 2) {
 			onDatesChange(dates[0], dates[1])
 		}
+		setIsPickingCustomDate(dates.length !== 2)
 	}
 
 	return (
