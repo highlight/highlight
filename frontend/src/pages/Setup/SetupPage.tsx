@@ -94,7 +94,6 @@ type BackendFrameworkLabel =
 	typeof BACKEND_FRAMEWORK_OPTIONS[BackendFrameworkKey]
 
 type Guide = {
-	subtitle: string
 	entries: Array<{
 		title: string
 		content: string
@@ -343,7 +342,7 @@ const ClientSetup = ({
 			</p>
 
 			<RadioGroup<ClientFrameworkLabel>
-				style={{ marginTop: 20, marginBottom: 20 }}
+				style={{ marginBottom: 20 }}
 				selectedLabel={CLIENT_FRAMEWORK_OPTIONS[framework]}
 				labels={frameworkKeys.map((k) => CLIENT_FRAMEWORK_OPTIONS[k])}
 				onSelect={(l) => {
@@ -523,7 +522,7 @@ const BackendSetup = ({
 			</p>
 
 			<RadioGroup<BackendLanguageLabel>
-				style={{ marginTop: 20, marginBottom: 20 }}
+				style={{ marginBottom: 10 }}
 				selectedLabel={BACKEND_LANGUAGE_OPTIONS[language]}
 				labels={languageKeys.map((k) => BACKEND_LANGUAGE_OPTIONS[k])}
 				onSelect={(l) => {
@@ -568,7 +567,7 @@ const Framework: React.FC<{
 	return (
 		<>
 			<RadioGroup<BackendFrameworkLabel>
-				style={{ marginTop: 20, marginBottom: 20 }}
+				style={{ marginBottom: 20 }}
 				selectedLabel={BACKEND_FRAMEWORK_OPTIONS[framework]}
 				labels={frameworkKeys.map((k) => BACKEND_FRAMEWORK_OPTIONS[k])}
 				onSelect={(f) => {
