@@ -153,6 +153,11 @@ const Search: React.FC<{
 
 	const isDirty = state.value !== ''
 
+	const submitQuery = (query: string) => {
+		formState.setValue('query', query)
+		formState.submit()
+	}
+
 	useEffect(() => {
 		if (!showValues) {
 			return
@@ -193,7 +198,7 @@ const Search: React.FC<{
 	useEffect(() => {
 		// removes the dirty state from URL when the query is empty
 		if (!query) {
-			formState.submit()
+			submitQuery('')
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [query])
@@ -211,11 +216,12 @@ const Search: React.FC<{
 			queryTerms[activeTermIndex].value = ''
 		}
 
-		formState.setValue('query', stringifyLogsQuery(queryTerms))
+		const newQuery = stringifyLogsQuery(queryTerms)
+		state.setValue(newQuery)
 
 		if (isValueSelect) {
+			submitQuery(newQuery)
 			state.setOpen(false)
-			formState.submit()
 		}
 
 		state.setActiveId(null)
@@ -242,14 +248,12 @@ const Search: React.FC<{
 				<Combobox
 					ref={inputRef}
 					autoSelect
-					autoComplete="none"
 					state={state}
 					name="search"
 					placeholder="Search your logs..."
 					className={styles.combobox}
 					onBlur={() => {
-						formState.setValue('query', state.value)
-						formState.submit()
+						submitQuery(state.value)
 						inputRef?.current?.blur()
 					}}
 				/>
