@@ -2,8 +2,7 @@ import LoadingBox from '@components/LoadingBox'
 import { useGetLogsHistogramQuery } from '@graph/hooks'
 import { LogLevel as Level } from '@graph/schemas'
 import { Box, Popover, Text } from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
-import { FORMAT } from '@pages/LogsPage/constants'
+import { COLOR_MAPPING, FORMAT } from '@pages/LogsPage/constants'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
@@ -256,11 +255,10 @@ const LogBucketBar = ({
 									(bar.count / maxBucketCount) * 100,
 									2,
 								)}%`,
-								backgroundColor:
-									severityToColor[bar.level as Level],
 							}}
 							width="full"
 							borderRadius="2"
+							backgroundColor={COLOR_MAPPING[bar.level as Level]}
 						/>
 					)
 				})}
@@ -310,7 +308,7 @@ const LogBucketBar = ({
 									borderRadius="round"
 									style={{
 										backgroundColor:
-											severityToColor[bar.level as Level],
+											COLOR_MAPPING[bar.level as Level],
 										height: 8,
 										width: 8,
 									}}
@@ -343,14 +341,5 @@ const LogBucketBar = ({
 		</Popover>
 	)
 }
-
-const severityToColor = {
-	[Level.Trace]: colors.n2,
-	[Level.Debug]: colors.n4,
-	[Level.Info]: colors.n6,
-	[Level.Warn]: colors.n8,
-	[Level.Error]: colors.n10,
-	[Level.Fatal]: colors.n12,
-} as const
 
 export default LogsHistogram

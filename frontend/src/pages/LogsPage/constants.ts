@@ -1,3 +1,4 @@
+import { LogLevel } from '@graph/schemas'
 import { Preset } from '@highlight-run/ui'
 import moment from 'moment'
 
@@ -32,3 +33,14 @@ export const PRESETS: Preset[] = [
 		label: 'Last 30 days',
 	},
 ]
+
+export const COLOR_MAPPING: {
+	[key in LogLevel]: 'caution' | 'informative' | 'strong' | 'bad'
+} = {
+	WARN: 'caution',
+	DEBUG: 'strong',
+	INFO: 'informative',
+	ERROR: 'bad',
+	FATAL: 'bad',
+	TRACE: 'strong',
+}
