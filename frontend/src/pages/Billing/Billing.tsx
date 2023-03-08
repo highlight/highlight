@@ -23,7 +23,7 @@ import BellRingingIcon from '@icons/BellRingingIcon'
 import SvgLogInIcon from '@icons/LogInIcon'
 import { BillingStatusCard } from '@pages/Billing/BillingStatusCard/BillingStatusCard'
 import { WorkspaceSettingsTab } from '@pages/WorkspaceTabs/WorkspaceTabs'
-import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import { loadStripe } from '@stripe/stripe-js'
 import analytics from '@util/analytics'
 import {

@@ -31,7 +31,7 @@ import {
 	useFormState,
 } from '@highlight-run/ui'
 import { PreviousDateRangePicker } from '@highlight-run/ui/src/components/DatePicker/PreviousDateRangePicker'
-import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { isInsideElement } from '@util/dom'
 import { Dialog } from 'ariakit/dialog'
 import { FormState } from 'ariakit/form'

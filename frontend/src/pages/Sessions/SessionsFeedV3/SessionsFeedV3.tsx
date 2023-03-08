@@ -38,7 +38,7 @@ import {
 import SessionQueryBuilder, {
 	TIME_RANGE_FIELD,
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
-import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'

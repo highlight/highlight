@@ -18,10 +18,10 @@ import SwitchProject from '@pages/SwitchProject/SwitchProject'
 import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace'
 import useLocalStorage from '@rehooks/local-storage'
 import InternalRouter from '@routers/InternalRouter/InternalRouter'
-import { DefaultWorkspaceRouter } from '@routers/OrgRouter/DefaultWorkspaceRouter'
-import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter'
-import { ProjectRouter } from '@routers/OrgRouter/ProjectRouter'
-import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter'
+import { DefaultWorkspaceRouter } from '@routers/ProjectRouter/DefaultWorkspaceRouter'
+import { ProjectRedirectionRouter } from '@routers/ProjectRouter/ProjectRedirectionRouter'
+import { ProjectRouter } from '@routers/ProjectRouter/ProjectRouter'
+import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { showIntercom } from '@util/window'
@@ -70,12 +70,18 @@ export const AppRouter = () => {
 			return
 		}
 
+		console.log(
+			'::: about_you_details_filled',
+			admin?.about_you_details_filled,
+			admin,
+		)
 		if (
 			admin &&
 			!admin.about_you_details_filled &&
 			!isVercelIntegrationFlow &&
 			!isInvitePage
 		) {
+			console.log('::: redirected /about_you')
 			navigate('/about_you', { replace: true })
 			return
 		}
