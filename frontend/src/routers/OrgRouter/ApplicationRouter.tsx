@@ -10,6 +10,7 @@ const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import ErrorLogCursorRedirect from '@pages/ErrorsV2/ErrorLogCursor/ErrorLogCursorRedirect'
 import LogsPage from '@pages/LogsPage/LogsPage'
 import PlayerPage from '@pages/Player/PlayerPage'
 import ProjectSettings from '@pages/ProjectSettings/ProjectSettings'
@@ -36,6 +37,11 @@ const ApplicationRouter = ({ integrated }: Props) => {
 			<Route
 				path="sessions/:session_secure_id?"
 				element={<PlayerPage integrated={integrated} />}
+			/>
+
+			<Route
+				path="errors/logs/:cursor_id"
+				element={<ErrorLogCursorRedirect />}
 			/>
 
 			<Route

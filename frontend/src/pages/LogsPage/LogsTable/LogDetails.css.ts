@@ -8,15 +8,3 @@ export const line = style({
 		},
 	},
 })
-
-export const linkButton = style({
-	background: vars.theme.interactive.overlay.secondary.pressed,
-	selectors: {
-		'&:hover': {
-			backgroundColor: vars.theme.interactive.overlay.secondary.hover,
-		},
-		'&:active': {
-			backgroundColor: vars.theme.interactive.overlay.secondary.pressed,
-		},
-	},
-})

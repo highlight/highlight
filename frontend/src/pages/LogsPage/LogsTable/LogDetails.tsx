@@ -167,10 +167,12 @@ export const LogDetails = ({ row }: Props) => {
 							shape="basic"
 							kind="secondary"
 							emphasis="medium"
-							className={styles.linkButton}
 							onClick={(e) => {
 								e.stopPropagation()
-								navigate(`/errors?log=${row.original.cursor}`)
+								navigate(
+									`/errors/logs/${row.original.cursor}`,
+									{ replace: true },
+								)
 							}}
 						>
 							<Box

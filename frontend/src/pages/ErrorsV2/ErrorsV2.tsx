@@ -3,12 +3,7 @@ import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import {
-	AppLoadingState,
-	useAppLoadingContext,
-} from '@context/AppLoadingContext'
-import {
 	useGetErrorGroupQuery,
-	useGetErrorObjectForLogQuery,
 	useMarkErrorGroupAsViewedMutation,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
@@ -41,7 +36,6 @@ import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router'
 import { useLocation } from 'react-router-dom'
-import { StringParam, useQueryParams } from 'use-query-params'
 
 import * as styles from './styles.css'
 
@@ -52,10 +46,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 		project_id: string
 		error_secure_id: string
 	}>()
-	const [{ log: logCursor }] = useQueryParams({
-		log: StringParam,
-	})
-	const { setLoadingState } = useAppLoadingContext()
 	const { isLoggedIn } = useAuthContext()
 	const { searchResultSecureIds } = useErrorSearchContext()
 	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
@@ -91,12 +81,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 			analytics.track('Viewed error', { is_guest: !isLoggedIn })
 		},
 	})
-
-	const { data: errorObjectForLogData, loading: errorObjectForLogLoading } =
-		useGetErrorObjectForLogQuery({
-			variables: { log_cursor: logCursor! },
-			skip: !logCursor,
-		})
 
 	const navigate = useNavigate()
 	const location = useLocation()
@@ -144,28 +128,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 		analytics.page({ is_guest: !isLoggedIn })
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [error_secure_id])
-
-	useEffect(() => {
-		if (logCursor) {
-			if (errorObjectForLogLoading) {
-				setLoadingState(AppLoadingState.LOADING)
-			} else {
-				setLoadingState(AppLoadingState.LOADED)
-				console.log('vadim', errorObjectForLogData)
-				if (errorObjectForLogData?.error_object_for_log) {
-					navigate(
-						`/errors/${errorObjectForLogData.error_object_for_log.error_group_secure_id}/instances/${errorObjectForLogData.error_object_for_log.id}`,
-					)
-				}
-			}
-		}
-	}, [
-		errorObjectForLogData,
-		errorObjectForLogLoading,
-		logCursor,
-		navigate,
-		setLoadingState,
-	])
 
 	useHotkeys(
 		'j',
