@@ -266,16 +266,16 @@ const AuthenticationRoleRouter = () => {
 		useCreateAdminMutation()
 
 	useEffect(() => {
-		const variables: any = {}
-		if (workspaceId) {
-			variables.workspace_id = workspaceId
-		} else if (projectId) {
-			variables.project_id = projectId
-		}
-
 		const unsubscribeFirebase = auth.onAuthStateChanged(
 			async (user) => {
 				setUser(user)
+
+				const variables: any = {}
+				if (workspaceId) {
+					variables.workspace_id = workspaceId
+				} else if (projectId) {
+					variables.project_id = projectId
+				}
 
 				if (user) {
 					try {
@@ -305,9 +305,11 @@ const AuthenticationRoleRouter = () => {
 		return () => {
 			unsubscribeFirebase()
 		}
-		// we want to run this on url changes to recalculate the workspace_id and project_id
+
+		// We need to make sure this doesn't run more than once or it will create
+		// multiple auth state change listeners.
 		// eslint-disable-next-line
-	}, [getAdminQuery, adminData, called, refetch, workspaceId, projectId])
+	}, [])
 
 	useEffect(() => {
 		// Check user exists here as well because adminData isn't cleared correctly
