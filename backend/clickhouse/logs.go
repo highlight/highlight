@@ -32,7 +32,6 @@ type LogRow struct {
 	ServiceName    string
 	Body           string
 	LogAttributes  map[string]string
-	ErrorObjectID  uint64
 }
 
 func NewLogRow(attrs LogRowPrimaryAttrs) *LogRow {
