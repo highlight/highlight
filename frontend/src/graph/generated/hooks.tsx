@@ -11621,6 +11621,70 @@ export type GetLogsTotalCountQueryResult = Apollo.QueryResult<
 	Types.GetLogsTotalCountQuery,
 	Types.GetLogsTotalCountQueryVariables
 >
+export const GetLogsHistogramDocument = gql`
+	query GetLogsHistogram($project_id: ID!, $params: LogsParamsInput!) {
+		logs_histogram(project_id: $project_id, params: $params) {
+			totalCount
+			buckets {
+				bucketId
+				counts {
+					count
+					level
+				}
+			}
+		}
+	}
+`
+
+/**
+ * __useGetLogsHistogramQuery__
+ *
+ * To run a query within a React component, call `useGetLogsHistogramQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogsHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogsHistogramQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *   },
+ * });
+ */
+export function useGetLogsHistogramQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLogsHistogramQuery,
+		Types.GetLogsHistogramQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetLogsHistogramQuery,
+		Types.GetLogsHistogramQueryVariables
+	>(GetLogsHistogramDocument, baseOptions)
+}
+export function useGetLogsHistogramLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLogsHistogramQuery,
+		Types.GetLogsHistogramQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetLogsHistogramQuery,
+		Types.GetLogsHistogramQueryVariables
+	>(GetLogsHistogramDocument, baseOptions)
+}
+export type GetLogsHistogramQueryHookResult = ReturnType<
+	typeof useGetLogsHistogramQuery
+>
+export type GetLogsHistogramLazyQueryHookResult = ReturnType<
+	typeof useGetLogsHistogramLazyQuery
+>
+export type GetLogsHistogramQueryResult = Apollo.QueryResult<
+	Types.GetLogsHistogramQuery,
+	Types.GetLogsHistogramQueryVariables
+>
 export const GetLogsKeysDocument = gql`
 	query GetLogsKeys($project_id: ID!) {
 		logs_keys(project_id: $project_id) {

@@ -7,6 +7,7 @@ import {
 	Form,
 	IconSolidSearch,
 	IconSolidSwitchVertical,
+	IconSolidXCircle,
 	Preset,
 	PreviousDateRangePicker,
 	Stack,
@@ -16,7 +17,7 @@ import {
 	useFormState,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { FORMAT } from '@pages/LogsPage/LogsPage'
+import { FORMAT } from '@pages/LogsPage/constants'
 import {
 	BODY_KEY,
 	LogsSearchParam,
@@ -51,6 +52,7 @@ const SearchForm = ({
 	minDate,
 }: Props) => {
 	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
+
 	const { projectId } = useProjectId()
 	const formState = useFormState({ defaultValues: { query: initialQuery } })
 
@@ -84,6 +86,7 @@ const SearchForm = ({
 				borderBottom="dividerWeak"
 			>
 				<Search
+					initialQuery={initialQuery}
 					keys={keysData?.logs_keys}
 					startDate={startDate}
 					endDate={endDate}
@@ -104,12 +107,12 @@ const SearchForm = ({
 export { SearchForm }
 
 const Search: React.FC<{
+	initialQuery: string
 	keys?: GetLogsKeysQuery['logs_keys']
 	startDate: Date
 	endDate: Date
-}> = ({ keys, startDate, endDate }) => {
+}> = ({ initialQuery, keys, startDate, endDate }) => {
 	const formState = useForm()
-	const [autoSelect, setAutoSelect] = useState(true)
 	const { query } = formState.values
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
@@ -137,6 +140,13 @@ const Search: React.FC<{
 
 	const showResults = loading || visibleItems.length > 0 || showTermSelect
 
+	const isDirty = state.value !== ''
+
+	const submitQuery = (query: string) => {
+		formState.setValue('query', query)
+		formState.submit()
+	}
+
 	useEffect(() => {
 		if (!showValues) {
 			return
@@ -161,6 +171,27 @@ const Search: React.FC<{
 		startDate,
 	])
 
+	useEffect(() => {
+		// necessary to update the combobox with the URL state
+		state.setValue(initialQuery)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [initialQuery])
+
+	useEffect(() => {
+		// links combobox and form states;
+		// necessary to update the URL when the query changes
+		formState.setValue('query', state.value)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [state.value])
+
+	useEffect(() => {
+		// removes the dirty state from URL when the query is empty
+		if (!query) {
+			submitQuery('')
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [query])
+
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
 	) => {
@@ -174,11 +205,12 @@ const Search: React.FC<{
 			queryTerms[activeTermIndex].value = ''
 		}
 
-		formState.setValue('query', stringifyLogsQuery(queryTerms))
+		const newQuery = stringifyLogsQuery(queryTerms)
+		state.setValue(newQuery)
 
 		if (isValueSelect) {
+			submitQuery(newQuery)
 			state.setOpen(false)
-			formState.submit()
 		}
 
 		state.setActiveId(null)
@@ -195,34 +227,37 @@ const Search: React.FC<{
 		>
 			<IconSolidSearch className={styles.searchIcon} />
 
-			<Combobox
-				autoSelect={autoSelect}
-				ref={inputRef}
-				state={state}
-				name="search"
-				placeholder="Search your logs..."
-				value={query}
-				onChange={(e) => {
-					const value = e.target.value
-					formState.setValue('query', value)
+			<Box
+				display="flex"
+				alignItems="center"
+				gap="6"
+				width="full"
+				color="weak"
+			>
+				<Combobox
+					ref={inputRef}
+					autoSelect
+					state={state}
+					name="search"
+					placeholder="Search your logs..."
+					className={styles.combobox}
+					onBlur={() => {
+						submitQuery(state.value)
+						inputRef?.current?.blur()
+					}}
+				/>
 
-					if (!state.open) {
-						state.setOpen(true)
-					}
-
-					if (value === '' && autoSelect) {
-						setAutoSelect(false)
-					} else if (value !== '' && !autoSelect) {
-						setAutoSelect(true)
-					}
-				}}
-				className={styles.combobox}
-				setValueOnChange={false}
-				onBlur={() => {
-					formState.submit()
-					setAutoSelect(true)
-				}}
-			/>
+				{isDirty ? (
+					<IconSolidXCircle
+						size={16}
+						onClick={(e) => {
+							e.preventDefault()
+							e.stopPropagation()
+							state.setValue('')
+						}}
+					/>
+				) : null}
+			</Box>
 
 			{showResults && (
 				<Combobox.Popover
@@ -244,7 +279,9 @@ const Search: React.FC<{
 										state={state}
 									>
 										<Stack direction="row" gap="8">
-											<Text>{activeTerm.value}:</Text>{' '}
+											<Text lines="1">
+												{activeTerm.value}:
+											</Text>{' '}
 											<Text color="weak">
 												{activeTerm.key ?? 'Body'}
 											</Text>

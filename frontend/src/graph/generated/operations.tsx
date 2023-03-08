@@ -3989,6 +3989,32 @@ export type GetLogsTotalCountQuery = { __typename?: 'Query' } & Pick<
 	'logs_total_count'
 >
 
+export type GetLogsHistogramQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.LogsParamsInput
+}>
+
+export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
+	logs_histogram: { __typename?: 'LogsHistogram' } & Pick<
+		Types.LogsHistogram,
+		'totalCount'
+	> & {
+			buckets: Array<
+				{ __typename?: 'LogsHistogramBucket' } & Pick<
+					Types.LogsHistogramBucket,
+					'bucketId'
+				> & {
+						counts: Array<
+							{ __typename?: 'LogsHistogramBucketCount' } & Pick<
+								Types.LogsHistogramBucketCount,
+								'count' | 'level'
+							>
+						>
+					}
+			>
+		}
+}
+
 export type GetLogsKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -4126,6 +4152,7 @@ export const namedOperations = {
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
 		GetLogsTotalCount: 'GetLogsTotalCount' as const,
+		GetLogsHistogram: 'GetLogsHistogram' as const,
 		GetLogsKeys: 'GetLogsKeys' as const,
 		GetLogsKeyValues: 'GetLogsKeyValues' as const,
 	},

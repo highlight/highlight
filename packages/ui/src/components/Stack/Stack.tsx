@@ -9,6 +9,7 @@ type Props = React.PropsWithChildren & {
 	gap?: BoxProps['gap']
 	justify?: BoxProps['justifyContent']
 	wrap?: boolean | BoxProps['flexWrap']
+	cssClass?: BoxProps['cssClass']
 } & PaddingProps
 
 export const Stack: React.FC<Props> = ({
