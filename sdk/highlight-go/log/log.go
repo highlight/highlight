@@ -63,7 +63,7 @@ func HighlightTags(projectID, sessionID, requestID string) []attribute.KeyValue 
 		tags = append(tags, attribute.String(highlight.SessionIDAttribute, sessionID))
 	}
 	if requestID != "" {
-		tags = append(tags, attribute.String(highlight.ProjectIDAttribute, sessionID))
+		tags = append(tags, attribute.String(highlight.RequestIDAttribute, requestID))
 	}
 	return tags
 }
