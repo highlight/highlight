@@ -1,5 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Tag, Text } from '@highlight-run/ui'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -306,6 +306,7 @@ export const NetworkPage = ({
 												RightPanelView.NetworkResource,
 											)
 										}}
+										setTime={setTime}
 										playerStartTime={startTime}
 										hasError={!!error}
 										networkRequestAndResponseRecordingEnabled={
@@ -340,6 +341,7 @@ interface ResourceRowProps {
 	isCurrentResource: boolean
 	searchTerm: string
 	onClickHandler: () => void
+	setTime: (time: number) => void
 	networkRequestAndResponseRecordingEnabled: boolean
 	playerStartTime: number
 	hasError?: boolean
@@ -353,6 +355,7 @@ const ResourceRow = ({
 	searchTerm,
 	onClickHandler,
 	networkRequestAndResponseRecordingEnabled,
+	setTime,
 	playerStartTime,
 	hasError,
 	showPlayerAbsoluteTime,
@@ -414,10 +417,17 @@ const ResourceRow = ({
 						textToHighlight={resource.displayName || resource.name}
 					/>
 				</Tooltip>
-				<Text
-					size="small"
-					weight={showingDetails ? 'bold' : 'medium'}
-					lines="1"
+				<Tag
+					shape="basic"
+					kind="secondary"
+					size="medium"
+					onClick={() => {
+						setTime(resource.startTime)
+					}}
+					style={{
+						marginRight: 'auto',
+						flexShrink: 0,
+					}}
 				>
 					{showPlayerAbsoluteTime
 						? playerTimeToSessionAbsoluteTime({
@@ -425,7 +435,7 @@ const ResourceRow = ({
 								relativeTime: resource.startTime,
 						  })
 						: MillisToMinutesAndSeconds(resource.startTime)}
-				</Text>
+				</Tag>
 				<Box className={styles.timingBarWrapper}>
 					<Box
 						style={{
