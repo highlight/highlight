@@ -1,8 +1,8 @@
+import { ErrorState } from '@components/ErrorState/ErrorState'
 import { useGetErrorObjectForLogQuery } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { Navigate } from 'react-router'
-import { ErrorState } from '@components/ErrorState/ErrorState'
 
 const ErrorLogCursorRedirect: React.FC = () => {
 	const { cursor_id: logCursor } = useParams<{
