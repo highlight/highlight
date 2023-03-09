@@ -7,13 +7,13 @@ import { useCallback, useEffect, useState } from 'react'
 export const useGetLogs = ({
 	query,
 	project_id,
-	log_cursor,
+	logCursor,
 	startDate,
 	endDate,
 }: {
 	query: string
 	project_id: string | undefined
-	log_cursor: string | undefined
+	logCursor: string | undefined
 	startDate: Date
 	endDate: Date
 }) => {
@@ -30,7 +30,7 @@ export const useGetLogs = ({
 	const [getLogs, { data, loading, error, fetchMore }] = useGetLogsLazyQuery({
 		variables: {
 			project_id: project_id!,
-			at: log_cursor,
+			at: logCursor,
 			params: {
 				query,
 				date_range: {
@@ -48,7 +48,7 @@ export const useGetLogs = ({
 				setWindowInfo(result.data.logs.pageInfo)
 			}
 		})
-	}, [project_id, query, startDate, endDate, getLogs, log_cursor])
+	}, [getLogs])
 
 	useEffect(() => {
 		if (data?.logs) {
@@ -117,6 +117,7 @@ export const useGetLogs = ({
 		logEdges,
 		loading,
 		loadingAfter,
+		loadingBefore,
 		error,
 		fetchMoreForward,
 		fetchMoreBackward,

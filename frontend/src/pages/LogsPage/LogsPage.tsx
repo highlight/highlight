@@ -5,6 +5,7 @@ import {
 	now,
 	PRESETS,
 	thirtyDaysAgo,
+	TIME_MODE,
 } from '@pages/LogsPage/constants'
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
@@ -16,26 +17,51 @@ import React, { useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import {
 	DateTimeParam,
+	QueryParamConfig,
 	StringParam,
 	useQueryParam,
 	withDefault,
 } from 'use-query-params'
 
 const QueryParam = withDefault(StringParam, '')
-const StartDateParam = withDefault(DateTimeParam, fifteenMinutesAgo)
+const FixedRangeStartDateParam = withDefault(DateTimeParam, fifteenMinutesAgo)
+const PermalinkStartDateParam = withDefault(DateTimeParam, thirtyDaysAgo)
 const EndDateParam = withDefault(DateTimeParam, now.toDate())
 
 const LogsPage = () => {
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
 	const { log_cursor } = useParams<{
 		log_cursor: string
+	}>()
+
+	const timeMode = log_cursor !== undefined ? 'permalink' : 'fixed-range'
+	const startDateDefault =
+		timeMode === 'permalink'
+			? PermalinkStartDateParam
+			: FixedRangeStartDateParam
+
+	return (
+		<LogsPageInner
+			logCursor={log_cursor}
+			timeMode={timeMode}
+			startDateDefault={startDateDefault}
+		/>
+	)
+}
+
+type Props = {
+	timeMode: TIME_MODE
+	logCursor: string | undefined
+	startDateDefault: QueryParamConfig<Date | null | undefined, Date>
+}
+
+const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
+	const { project_id } = useParams<{
+		project_id: string
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const [startDate, setStartDate] = useQueryParam(
 		'start_date',
-		StartDateParam,
+		startDateDefault,
 	)
 
 	const tableContainerRef = useRef<HTMLDivElement>(null)
@@ -51,7 +77,7 @@ const LogsPage = () => {
 	} = useGetLogs({
 		query,
 		project_id,
-		log_cursor,
+		logCursor,
 		startDate,
 		endDate,
 	})
@@ -118,6 +144,7 @@ const LogsPage = () => {
 						onDatesChange={handleDatesChange}
 						presets={PRESETS}
 						minDate={thirtyDaysAgo}
+						timeMode={timeMode}
 					/>
 					<LogsHistogram
 						query={query}
@@ -150,7 +177,7 @@ const LogsPage = () => {
 								loadingAfter={loadingAfter}
 								query={query}
 								tableContainerRef={tableContainerRef}
-								selectedCursor={log_cursor}
+								selectedCursor={logCursor}
 							/>
 						)}
 					</Box>
