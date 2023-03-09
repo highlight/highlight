@@ -6,7 +6,7 @@ import { useCreateSegmentMutation, useEditSegmentMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Maybe, Segment } from '@graph/schemas'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
+import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
@@ -32,10 +32,9 @@ const CreateSegmentModal = ({
 			refetchQueries: [namedOperations.Query.GetSegments],
 		})
 
-	const [editErrorSegment, { loading: updatingSegment }] =
-		useEditSegmentMutation({
-			refetchQueries: [namedOperations.Query.GetSegments],
-		})
+	const [editSegment, { loading: updatingSegment }] = useEditSegmentMutation({
+		refetchQueries: [namedOperations.Query.GetSegments],
+	})
 
 	const [newSegmentName, setNewSegmentName] = useState(
 		currentSegment?.name ?? '',
@@ -63,7 +62,7 @@ const CreateSegmentModal = ({
 		}
 
 		if (shouldUpdate) {
-			editErrorSegment({
+			editSegment({
 				variables: {
 					project_id,
 					id: currentSegment.id!,
@@ -95,7 +94,7 @@ const CreateSegmentModal = ({
 					name: newSegmentName,
 					params: searchParams,
 				},
-				refetchQueries: [namedOperations.Query.GetErrorSegments],
+				refetchQueries: [namedOperations.Query.GetSegments],
 				onCompleted: (r) => {
 					if (afterCreateHandler) {
 						afterCreateHandler(
@@ -135,7 +134,7 @@ const CreateSegmentModal = ({
 						specific set of sessions.
 					</p>
 					<div className={styles.queryBuilderContainer}>
-						<SessionsQueryBuilder readonly />
+						<SessionQueryBuilder readonly />
 					</div>
 					<Input
 						name="name"

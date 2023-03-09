@@ -258,6 +258,8 @@ type Workspace struct {
 	NextInvoiceDate             *time.Time
 	MonthlySessionLimit         *int
 	MonthlyMembersLimit         *int
+	MonthlyErrorsLimit          *int
+	RetentionPeriod             *modelInputs.RetentionPeriod
 	TrialEndDate                *time.Time `json:"trial_end_date"`
 	AllowMeterOverage           bool       `gorm:"default:true"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
@@ -898,7 +900,8 @@ type ErrorObject struct {
 	SessionID        *int
 	TraceID          *string
 	SpanID           *string
-	ErrorGroupID     int `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
+	LogCursor        *string `gorm:"index:idx_error_object_log_cursor,option:CONCURRENTLY"`
+	ErrorGroupID     int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
 	Event            string
 	Type             string
 	URL              string

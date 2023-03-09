@@ -4,7 +4,7 @@ import '@fontsource/poppins'
 import './index.scss'
 import './style/tailwind.css'
 
-import { ApolloError, ApolloProvider, QueryLazyOptions } from '@apollo/client'
+import { ApolloError, ApolloProvider } from '@apollo/client'
 import {
 	AuthContextProvider,
 	AuthRole,
@@ -20,6 +20,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import {
+	useCreateAdminMutation,
 	useGetAdminLazyQuery,
 	useGetAdminRoleByProjectLazyQuery,
 	useGetAdminRoleLazyQuery,
@@ -27,14 +28,12 @@ import {
 } from '@graph/hooks'
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
-import { SignUp } from '@pages/Auth/SignUp'
-import { AuthAdminRouter } from '@pages/Login/Login'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
 import * as Sentry from '@sentry/react'
 import { BrowserTracing } from '@sentry/tracing'
 import analytics from '@util/analytics'
-import { setAttributionData } from '@util/attribution'
+import { getAttributionData, setAttributionData } from '@util/attribution'
 import { auth } from '@util/auth'
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils'
 import { showHiringMessage } from '@util/console/hiringMessage'
@@ -44,11 +43,10 @@ import { showIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
 import React, { useEffect, useState } from 'react'
-import ReactDOM from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
@@ -118,6 +116,7 @@ if (dev) {
 	options.environment = 'Pull Request Preview'
 }
 H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
+analytics.track('attribution', getAttributionData())
 if (!isOnPrem) {
 	H.start()
 	showIntercom({ hideMessage: true })
@@ -178,8 +177,9 @@ const App = () => {
 }
 
 const AuthenticationRoleRouter = () => {
-	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
-	const projectId = /^\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
+	const location = useLocation()
+	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(location.pathname)?.pop()
+	const projectId = /^\/(\d+)\/.*$/.exec(location.pathname)?.pop()
 
 	const [
 		getAdminWorkspaceRoleQuery,
@@ -212,27 +212,9 @@ const AuthenticationRoleRouter = () => {
 	] = useGetAdminLazyQuery()
 
 	let getAdminQuery:
-			| ((
-					workspace_id:
-						| QueryLazyOptions<
-								Partial<{
-									workspace_id: string
-									project_id: string
-								}>
-						  >
-						| undefined,
-			  ) => void)
-			| ((
-					project_id:
-						| QueryLazyOptions<
-								Partial<{
-									workspace_id: string
-									project_id: string
-								}>
-						  >
-						| undefined,
-			  ) => void)
-			| (() => void),
+			| typeof getAdminWorkspaceRoleQuery
+			| typeof getAdminProjectRoleQuery
+			| typeof getAdminSimpleQuery,
 		adminError: ApolloError | undefined,
 		adminData: Admin | undefined | null,
 		adminRole: string | undefined,
@@ -290,25 +272,35 @@ const AuthenticationRoleRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [adminData, authRole, projectId])
 
+	const [createAdminMutation, { called: createAdminCalled }] =
+		useCreateAdminMutation()
+
 	useEffect(() => {
-		const variables: Partial<{ workspace_id: string; project_id: string }> =
-			{}
+		const variables: any = {}
 		if (workspaceId) {
 			variables.workspace_id = workspaceId
 		} else if (projectId) {
 			variables.project_id = projectId
 		}
+
 		const unsubscribeFirebase = auth.onAuthStateChanged(
-			(user) => {
+			async (user) => {
 				setUser(user)
 
 				if (user) {
-					if (!called) {
-						getAdminQuery({
-							variables,
-						})
-					} else {
-						refetch!()
+					try {
+						// Try to create an admin if it's a new account. This can't be
+						// handled on the sign up form because this callback is triggered
+						// before the admin is created.
+						if (!user.emailVerified && !createAdminCalled) {
+							await createAdminMutation()
+						}
+					} finally {
+						if (!called) {
+							getAdminQuery({ variables })
+						} else {
+							refetch!()
+						}
 					}
 				} else {
 					setAuthRole(AuthRole.UNAUTHENTICATED)
@@ -361,17 +353,18 @@ const AuthenticationRoleRouter = () => {
 		true,
 	)
 
+	const loggedIn = isLoggedIn(authRole)
+
 	return (
 		<AuthContextProvider
 			value={{
 				role: authRole,
-				admin: isLoggedIn(authRole)
-					? adminData ?? undefined
-					: undefined,
+				admin: loggedIn ? adminData ?? undefined : undefined,
 				workspaceRole: adminRole || undefined,
 				isAuthLoading: isAuthLoading(authRole),
-				isLoggedIn: isLoggedIn(authRole),
+				isLoggedIn: loggedIn,
 				isHighlightAdmin: isHighlightAdmin(authRole) && enableStaffView,
+				refetchAdmin: refetch,
 			}}
 		>
 			<Helmet>
@@ -388,8 +381,7 @@ const AuthenticationRoleRouter = () => {
 				/>
 			) : (
 				<Routes>
-					<Route path="sign_up" element={<SignUp />} />
-					<Route path="/*" element={<AuthAdminRouter />} />
+					<Route path="/*" element={<AppRouter />} />
 				</Routes>
 			)}
 		</AuthContextProvider>

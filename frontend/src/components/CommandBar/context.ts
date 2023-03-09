@@ -1,8 +1,8 @@
 import {
 	ERROR_FIELD_TYPE,
 	ERROR_TYPE,
-} from '@pages/ErrorsV2/ErrorQueryBuilder/components/QueryBuilder/QueryBuilder'
-import { SESSION_TYPE } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
+} from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
+import { SESSION_TYPE } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { createContext } from '@util/context/context'
 import { FormState } from 'ariakit/form'
 
@@ -14,12 +14,17 @@ export interface CommandBarSearch {
 export const ATTRIBUTES = [
 	{
 		type: 'user',
+		name: 'email',
+		displayName: 'Email',
+	},
+	{
+		type: 'user',
 		name: 'identifier',
 		displayName: 'Identifier',
 	},
 	{
 		type: SESSION_TYPE,
-		name: 'visited_url',
+		name: 'visited-url',
 		displayName: 'Visited URL',
 	},
 	{
@@ -29,7 +34,7 @@ export const ATTRIBUTES = [
 	},
 	{
 		type: SESSION_TYPE,
-		name: 'browser',
+		name: 'browser_name',
 		displayName: 'Browser',
 	},
 	{
@@ -49,7 +54,7 @@ export const ATTRIBUTES = [
 	},
 	{
 		type: ERROR_TYPE,
-		name: 'event',
+		name: 'Event',
 		displayName: 'Error Body',
 	},
 ] as const

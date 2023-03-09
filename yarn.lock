@@ -7074,28 +7074,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dinero.js/calculator-number@npm:2.0.0-alpha.8":
-  version: 2.0.0-alpha.8
-  resolution: "@dinero.js/calculator-number@npm:2.0.0-alpha.8"
+"@dinero.js/calculator-number@npm:2.0.0-alpha.14":
+  version: 2.0.0-alpha.14
+  resolution: "@dinero.js/calculator-number@npm:2.0.0-alpha.14"
   dependencies:
-    "@dinero.js/core": 2.0.0-alpha.8
-  checksum: 843f05ba3f30e08f78469f1ad0c83bcbbc789455a60061a5a956867c950b2e627ad17708d86e088ff2bc39458d847ba242f6e5c6cdedca1db9d61965f60195b4
+    "@dinero.js/core": 2.0.0-alpha.14
+  checksum: 8d3a726daa7e7448aa83159132ba5751a295d5bdbb81f7a220781a0d8924843e491c998357ce63697e373d104e6a8c9aacd13355f6389e00463c9b22ab1f19ca
   languageName: node
   linkType: hard
 
-"@dinero.js/core@npm:2.0.0-alpha.8":
-  version: 2.0.0-alpha.8
-  resolution: "@dinero.js/core@npm:2.0.0-alpha.8"
+"@dinero.js/core@npm:2.0.0-alpha.14":
+  version: 2.0.0-alpha.14
+  resolution: "@dinero.js/core@npm:2.0.0-alpha.14"
   dependencies:
-    "@dinero.js/currencies": 2.0.0-alpha.8
-  checksum: a747cec35e6709e23d8e41666fcce467faffa58248dbbd3440785dbecc8fc55379f608e16ecb7fe9c0007e29b1872f05666ce10891138fe0f856d0e825ecfe2d
+    "@dinero.js/currencies": 2.0.0-alpha.14
+  checksum: cb13efd3de18de1d7805ddad382d176d74428235efeb19be6cc3b06c5ad38c297300c14043c33b20e4567be851a66ff68115c87eec97bdcaf31568b3ed785243
   languageName: node
   linkType: hard
 
-"@dinero.js/currencies@npm:2.0.0-alpha.8":
-  version: 2.0.0-alpha.8
-  resolution: "@dinero.js/currencies@npm:2.0.0-alpha.8"
-  checksum: db1e2e775df9c2c211f245bd966c9f66d7e3fb7b6989ce6f2246b2c5685337c72eb9b1ae9c38adcb5aa745f5a7e6f8c8e3207dac47f87ab31698b5e9b00c3206
+"@dinero.js/currencies@npm:2.0.0-alpha.14":
+  version: 2.0.0-alpha.14
+  resolution: "@dinero.js/currencies@npm:2.0.0-alpha.14"
+  checksum: d764b60e993e90d1385c01ee372cab74ca19a33c1354b22f529ef8961a496e4bbc84e41a20229548258e00e6cb349f41aa88a80d9d3d52b3deb7378da7b76dd6
   languageName: node
   linkType: hard
 
@@ -10031,7 +10031,6 @@ __metadata:
     "@graphql-codegen/typescript": ^2.8.1
     "@graphql-codegen/typescript-graphql-request": ^4.5.2
     "@graphql-codegen/typescript-operations": ^2.5.2
-    "@highlight-run/fingerprintjs": ^3.3.5
     "@highlight-run/rrweb": "workspace:*"
     "@highlight-run/rrweb-types": "workspace:*"
     "@rollup/plugin-commonjs": ^22.0.1
@@ -10089,15 +10088,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/fingerprintjs@npm:^3.3.5":
-  version: 3.3.5
-  resolution: "@highlight-run/fingerprintjs@npm:3.3.5"
-  dependencies:
-    tslib: ^2.0.1
-  checksum: 130575d91be5ba9b767f3d0fb49584769f7ae04864f2c8487f57248497746b8002a5f46e22c60022f170b4005097aaed4186747473664c09e55ce2bb656b09c2
-  languageName: node
-  linkType: hard
-
 "@highlight-run/frontend@workspace:frontend":
   version: 0.0.0-use.local
   resolution: "@highlight-run/frontend@workspace:frontend"
@@ -10126,6 +10116,7 @@ __metadata:
     "@stripe/stripe-js": ^1.32.0
     "@svgr/cli": ^5.5.0
     "@tanstack/react-table": ^8.7.9
+    "@tanstack/react-virtual": beta
     "@testing-library/jest-dom": ^5.1.0
     "@testing-library/react-hooks": ^8.0.1
     "@types/classnames": ^2.2.11
@@ -10161,7 +10152,7 @@ __metadata:
     color-hash: ^2.0.1
     dexie: ^3.2.2
     dexie-react-hooks: ^1.1.1
-    dinero.js: ^2.0.0-alpha.8
+    dinero.js: alpha
     eslint: ^7.0.0
     eslint-config-prettier: ^7.2.0
     eslint-plugin-react: ^7.31.11
@@ -15740,10 +15731,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/react-virtual@npm:beta":
+  version: 3.0.0-beta.54
+  resolution: "@tanstack/react-virtual@npm:3.0.0-beta.54"
+  dependencies:
+    "@tanstack/virtual-core": 3.0.0-beta.54
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: ddeb3cb46db89365609d5bc402b8a8d410dc7e5f38ee579f39e5589c62a2123799ba36586939a5a6ad1a701650a5b169f657fd24687687bf08f4827b0099bc75
+  languageName: node
+  linkType: hard
+
 "@tanstack/table-core@npm:8.7.9":
   version: 8.7.9
   resolution: "@tanstack/table-core@npm:8.7.9"
   checksum: 78d2314928c29559088e4bada0248cc7f94e93756e1a2c1f37a651db30276e9ae960d647bd3a61b67b3f0f9f7e4dec5dd58eb49b8adb80ee5952ef417b6e581f
+  languageName: node
+  linkType: hard
+
+"@tanstack/virtual-core@npm:3.0.0-beta.54":
+  version: 3.0.0-beta.54
+  resolution: "@tanstack/virtual-core@npm:3.0.0-beta.54"
+  checksum: a58cb30e1bbf8a0420caea8693df11c909c1190908163fef75aeddfa11bba621ca993ab218f4e7537c05c1651f9398e61016f3e3d374093c87029b52c868f0e7
   languageName: node
   linkType: hard
 
@@ -24721,14 +24730,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dinero.js@npm:^2.0.0-alpha.8":
-  version: 2.0.0-alpha.8
-  resolution: "dinero.js@npm:2.0.0-alpha.8"
+"dinero.js@npm:alpha":
+  version: 2.0.0-alpha.14
+  resolution: "dinero.js@npm:2.0.0-alpha.14"
   dependencies:
-    "@dinero.js/calculator-number": 2.0.0-alpha.8
-    "@dinero.js/core": 2.0.0-alpha.8
-    "@dinero.js/currencies": 2.0.0-alpha.8
-  checksum: ca57fc25fa296d3b188ff4b6c47b21461d8d709c8b55c41cb5ce848b7f4986e882ed06ed6348a2c088406a6a57ef683c112b472c7af88c84903d95483ebd0a69
+    "@dinero.js/calculator-number": 2.0.0-alpha.14
+    "@dinero.js/core": 2.0.0-alpha.14
+    "@dinero.js/currencies": 2.0.0-alpha.14
+  checksum: c48163bf32bb9ba260de6a8018bde4e2294c87c2f4f85c6a5b796d4b96bef42cac79a2bfb00d2da7fd841067a228ebf4c0302c6c300ca60c1eaee5154112c75a
   languageName: node
   linkType: hard
 
@@ -37705,6 +37714,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"next-build-id@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "next-build-id@npm:3.0.0"
+  checksum: e36e15979420c343e32a5e7a55efc1300a4b12aea1637df8300f0085ca862bf78e4fd3ac969ce7c7757cfad40c3c77e02ae4859be77692c9bdcb4243cbabb810
+  languageName: node
+  linkType: hard
+
 "next@npm:13.1.6, next@npm:^13.1.6":
   version: 13.1.6
   resolution: "next@npm:13.1.6"
@@ -37786,6 +37802,7 @@ __metadata:
     eslint-config-next: 13.1.6
     highlight.run: "workspace:*"
     next: 13.1.6
+    next-build-id: ^3.0.0
     react: 18.2.0
     react-dom: 18.2.0
     typescript: 4.9.5

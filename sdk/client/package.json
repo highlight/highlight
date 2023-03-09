@@ -59,7 +59,6 @@
 		"vitest": "^0.24.1"
 	},
 	"dependencies": {
-		"@highlight-run/fingerprintjs": "^3.3.5",
 		"@highlight-run/rrweb": "workspace:*",
 		"error-stack-parser": "2.0.6",
 		"esbuild": "^0.14.47",

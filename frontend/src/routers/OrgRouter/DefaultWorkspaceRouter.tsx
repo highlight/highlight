@@ -4,14 +4,13 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetWorkspacesQuery } from '@graph/hooks'
-import LoginForm from '@pages/Login/Login'
 import React, { useEffect } from 'react'
 import { Navigate, useMatch } from 'react-router-dom'
 
 export const DefaultWorkspaceRouter = () => {
 	const { isLoggedIn } = useAuthContext()
 
-	const workspaceMatch = useMatch('/w/:workspace_id/:page_id')
+	const workspaceMatch = useMatch('/w/:page_id')
 	const pageId = workspaceMatch?.params.page_id ?? ''
 	const { setLoadingState } = useAppLoadingContext()
 
@@ -38,5 +37,5 @@ export const DefaultWorkspaceRouter = () => {
 		return <Navigate to={`/w/${firstWorkspace.id}/${pageId}`} replace />
 	}
 
-	return <LoginForm />
+	return <Navigate to="/" />
 }

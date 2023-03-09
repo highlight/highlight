@@ -12,6 +12,7 @@ import { useWindowSize } from '@hooks/useWindowSize'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
+import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
 import { NetworkPage } from '@pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
 import {
 	DEV_TOOLS_MIN_HEIGHT,
@@ -23,9 +24,10 @@ import {
 	RequestType,
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import { ICountPerRequestType } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { styledVerticalScrollbar } from 'style/common.css'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
@@ -60,6 +62,36 @@ const DevToolsWindowV2: React.FC<
 	const maxHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, height / 2)
 	const defaultHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, maxHeight / 2)
 	const { showDevTools, showHistogram } = usePlayerConfiguration()
+
+	const { resources: parsedResources } = useResourcesContext()
+
+	const countPerRequestType = useMemo(() => {
+		const count: ICountPerRequestType = {
+			All: 0,
+			link: 0,
+			script: 0,
+			other: 0,
+			xmlhttprequest: 0,
+			css: 0,
+			iframe: 0,
+			fetch: 0,
+			img: 0,
+		}
+
+		parsedResources.forEach((request) => {
+			const requestType =
+				request.initiatorType as keyof ICountPerRequestType
+
+			//-- Only count request types defined in ICountPerRequestType, e.g. skip 'beacon' --//
+			if (count.hasOwnProperty(request.initiatorType)) {
+				count['All'] += 1
+				count[requestType] += 1
+			}
+		})
+
+		return count
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [parsedResources])
 
 	if (!showDevTools || isPlayerFullscreen) {
 		return null
@@ -206,17 +238,25 @@ const DevToolsWindowV2: React.FC<
 									) : selectedDevToolsTab === Tab.Network ? (
 										<MenuButton
 											size="medium"
-											options={Object.values(
+											options={Object.entries(
 												RequestType,
-											).map((rt: string) => ({
-												key: rt,
-												render: rt,
-											}))}
-											onChange={(rt: string) =>
+											).map(
+												([
+													displayName,
+													requestName,
+												]) => ({
+													key: displayName,
+													render: `${displayName} (${countPerRequestType[requestName]})`,
+												}),
+											)}
+											onChange={(displayName) => {
 												setRequestType(
-													rt as RequestType,
+													//-- Set type to be the requestName value --//
+													RequestType[
+														displayName as keyof typeof RequestType
+													],
 												)
-											}
+											}}
 										/>
 									) : null}
 

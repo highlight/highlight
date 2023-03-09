@@ -14,9 +14,9 @@ export const variants = recipe({
 
 	variants: {
 		size: {
-			small: [sprinkles({ px: '6' }), { minHeight: 16 }],
-			medium: [sprinkles({ px: '8' }), { minHeight: 20 }],
-			large: [sprinkles({ px: '10' }), { minHeight: 24 }],
+			small: [sprinkles({ px: '3' }), { minHeight: 16 }],
+			medium: [sprinkles({ px: '4' }), { minHeight: 20 }],
+			large: [sprinkles({ px: '6' }), { minHeight: 24 }],
 		},
 		shape: {
 			rounded: {},

@@ -2,12 +2,14 @@ import { useGetErrorFieldsOpensearchQuery } from '@graph/hooks'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import QueryBuilder, {
 	CustomField,
-	ERROR_FIELD_TYPE,
-	ERROR_TYPE,
 	FetchFieldVariables,
 	SelectOption,
 } from '@pages/ErrorsV2/ErrorQueryBuilder/components/QueryBuilder/QueryBuilder'
 
+export const CUSTOM_TYPE = 'custom'
+export const SESSION_TYPE = 'session'
+export const ERROR_TYPE = 'error'
+export const ERROR_FIELD_TYPE = 'error-field'
 export const TIME_RANGE_FIELD: SelectOption = {
 	kind: 'single',
 	label: 'timestamp',

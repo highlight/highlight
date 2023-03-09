@@ -1,5 +1,5 @@
 import { UserPropertyInput } from '@graph/schemas'
-import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
+import { QueryBuilderState } from '@pages/ErrorsV2/ErrorQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { decodeDelimitedArray, encodeDelimitedArray } from 'use-query-params'
 
 /**

@@ -17,3 +17,9 @@
 
 -   require project id for H.init
 -   support for errors without associated sessions/requests
+
+## 2.4.0
+
+### Minor Changes
+
+-   Adds ability to record `console` methods.

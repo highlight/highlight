@@ -1484,7 +1484,7 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 					Name:     "backend_setup",
 					Property: "backend_setup",
 					Value:    true,
-				}}); err != nil {
+				}}, r.DB); err != nil {
 					log.WithContext(ctx).Errorf("failed to update hubspot")
 				}
 			}
@@ -1885,10 +1885,10 @@ func (r *Resolver) isWithinBillingQuota(ctx context.Context, project *model.Proj
 	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
 		quota = *workspace.MonthlySessionLimit
 	} else {
-		quota = pricing.TypeToQuota(stripePlan)
+		quota = pricing.TypeToSessionsLimit(stripePlan)
 	}
 
-	monthToDateSessionCount, err := pricing.GetWorkspaceMeter(r.DB, workspace.ID)
+	monthToDateSessionCount, err := pricing.GetWorkspaceSessionsMeter(r.DB, workspace.ID)
 	if err != nil {
 		log.WithContext(ctx).Warn(fmt.Sprintf("error getting sessions meter for workspace %d", workspace.ID))
 	}
@@ -2364,6 +2364,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			SessionID:   sessionID,
 			TraceID:     v.TraceID,
 			SpanID:      v.SpanID,
+			LogCursor:   v.LogCursor,
 			Environment: session.Environment,
 			Event:       v.Event,
 			Type:        model.ErrorType.BACKEND,

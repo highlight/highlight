@@ -228,14 +228,19 @@ func main() {
 	log.SetReportCaller(true)
 	// setup highlight
 	H.SetProjectID("1jdkoe52")
-	if util.IsDevOrTestEnv() && !util.IsInDocker() {
+	if util.IsDevOrTestEnv() {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql client address...")
 		H.SetGraphqlClientAddress("https://localhost:8082/public")
-		H.SetOTLPEndpoint("http://collector:4318")
+		if util.IsInDocker() {
+			H.SetOTLPEndpoint("http://collector:4318")
+		}
 	}
 	H.Start()
 	defer H.Stop()
 	H.SetDebugMode(log.StandardLogger())
+	hlog.SetOutput(true)
+	hlog.SetOutputLevel(hlog.DebugLevel)
+	hlog.WithContext(ctx).Info("welcome to highlight.io")
 	// setup highlight logrus hook
 	log.AddHook(hlog.NewHook(hlog.WithLevels(
 		log.PanicLevel,
@@ -306,7 +311,7 @@ func main() {
 		if os.Getenv("OBJECT_STORAGE_FS") != "" {
 			fsRoot = os.Getenv("OBJECT_STORAGE_FS")
 		}
-		if storageClient, err = storage.NewFSClient(ctx, fsRoot, localhostCertPath, localhostKeyPath, "8085"); err != nil {
+		if storageClient, err = storage.NewFSClient(ctx, os.Getenv("PRIVATE_GRAPH_URI"), fsRoot); err != nil {
 			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
 		}
 	} else {
@@ -361,7 +366,7 @@ func main() {
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
 		OpenSearch:             opensearchClient,
-		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
+		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig())),
 		Redis:                  redisClient,
 		StepFunctions:          sfnClient,
 		OAuthServer:            oauthSrv,
@@ -428,6 +433,9 @@ func main() {
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
 			r.Use(highlightChi.Middleware)
+			if fsClient, ok := storageClient.(*storage.FilesystemClient); ok {
+				fsClient.SetupHTTPSListener(r)
+			}
 			r.Get("/assets/{project_id}/{hash_val}", privateResolver.AssetHandler)
 			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
 
@@ -488,7 +496,7 @@ func main() {
 			StorageClient:   storageClient,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
-			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
+			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig())),
 			Redis:           redisClient,
 			RH:              &rh,
 		}
@@ -578,7 +586,7 @@ func main() {
 			StorageClient:   storageClient,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
-			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
+			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig())),
 			Redis:           redisClient,
 			Clickhouse:      clickhouseClient,
 			RH:              &rh,

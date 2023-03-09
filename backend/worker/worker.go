@@ -1037,7 +1037,7 @@ func (w *Worker) Start(ctx context.Context) {
 								SELECT ID FROM (
 									SELECT id
 									FROM sessions
-									WHERE (processed = false) 
+									WHERE (processed = false)
 										AND (excluded = false)
 										AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
 										AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))
@@ -1268,7 +1268,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 				Name:     "highlight_error_count",
 				Property: "highlight_error_count",
 				Value:    c.ErrorCount,
-			}}); err != nil {
+			}}, w.Resolver.DB); err != nil {
 				log.WithContext(ctx).WithFields(log.Fields{
 					"workspace_id":  c.WorkspaceID,
 					"session_count": c.SessionCount,
@@ -1588,7 +1588,7 @@ func reportProcessSessionCount(ctx context.Context, db *gorm.DB, lookbackPeriod,
 		if err := db.Raw(`
 			SELECT COUNT(*)
 			FROM sessions
-			WHERE (processed = false) 
+			WHERE (processed = false)
 				AND (excluded = false)
 				AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
 				AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))

@@ -4,7 +4,6 @@ import { vars } from '../../css/vars'
 
 export const inputVariants = recipe({
 	base: {
-		borderRadius: 6,
 		border: 'none',
 		fontSize: 13,
 		color: vars.theme.static.content.default,
@@ -50,6 +49,7 @@ export const inputVariants = recipe({
 		},
 		outline: {
 			true: {
+				borderRadius: 6,
 				padding: '4px 6px',
 				border: vars.border.secondary,
 				selectors: {

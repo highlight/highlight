@@ -27,11 +27,13 @@ mutation CreateOrUpdateStripeSubscription(
 	$workspace_id: ID!
 	$plan_type: PlanType!
 	$interval: SubscriptionInterval!
+	$retention_period: RetentionPeriod!
 ) {
 	createOrUpdateStripeSubscription(
 		workspace_id: $workspace_id
 		plan_type: $plan_type
 		interval: $interval
+		retention_period: $retention_period
 	)
 }
 
@@ -164,6 +166,16 @@ mutation SubmitRegistrationForm(
 		heard_about: $heard_about
 		pun: $pun
 	)
+}
+
+mutation CreateAdmin {
+	createAdmin {
+		id
+		name
+		email
+		email_verified
+		about_you_details_filled
+	}
 }
 
 mutation CreateWorkspace($name: String!, $promo_code: String) {
@@ -714,6 +726,16 @@ mutation DeleteMetricMonitor($metric_monitor_id: ID!, $project_id: ID!) {
 		metric_to_monitor
 		last_admin_to_edit_id
 		threshold
+	}
+}
+
+mutation UpdateAdminAndCreateWorkspace(
+	$admin_and_workspace_details: AdminAndWorkspaceDetails!
+) {
+	updateAdminAndCreateWorkspace(
+		admin_and_workspace_details: $admin_and_workspace_details
+	) {
+		id
 	}
 }
 

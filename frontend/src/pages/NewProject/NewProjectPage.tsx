@@ -36,6 +36,7 @@ const NewProjectPage = () => {
 
 	const { data: currentWorkspaceData } = useGetWorkspaceQuery({
 		variables: { id: workspace_id! },
+		skip: !workspace_id,
 	})
 	const [
 		createProject,

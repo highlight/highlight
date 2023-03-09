@@ -153,6 +153,12 @@ export declare type HighlightOptions = {
 	 */
 	inlineStylesheet?: boolean
 	/**
+	 * Enables recording of cross-origin iframes. Should be set in both the parent window and
+	 * in the cross-origin iframe.
+	 * @default false
+	 */
+	recordCrossOriginIframe?: boolean
+	/**
 	 * Specifies that the current app is a cross origin iframe in an app where Highlight is also enabled.
 	 * This flag should only be set in the iframe, not in the parent application hosting the iframe.
 	 * This allows the iframe to forward its recording to the parent to be included as part of the session.

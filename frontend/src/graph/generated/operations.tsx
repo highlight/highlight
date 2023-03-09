@@ -52,6 +52,7 @@ export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	plan_type: Types.PlanType
 	interval: Types.SubscriptionInterval
+	retention_period: Types.RetentionPeriod
 }>
 
 export type CreateOrUpdateStripeSubscriptionMutation = {
@@ -211,6 +212,15 @@ export type SubmitRegistrationFormMutation = { __typename?: 'Mutation' } & Pick<
 	Types.Mutation,
 	'submitRegistrationForm'
 >
+
+export type CreateAdminMutationVariables = Types.Exact<{ [key: string]: never }>
+
+export type CreateAdminMutation = { __typename?: 'Mutation' } & {
+	createAdmin: { __typename?: 'Admin' } & Pick<
+		Types.Admin,
+		'id' | 'name' | 'email' | 'email_verified' | 'about_you_details_filled'
+	>
+}
 
 export type CreateWorkspaceMutationVariables = Types.Exact<{
 	name: Types.Scalars['String']
@@ -842,6 +852,18 @@ export type DeleteMetricMonitorMutation = { __typename?: 'Mutation' } & {
 					>
 				>
 			}
+	>
+}
+
+export type UpdateAdminAndCreateWorkspaceMutationVariables = Types.Exact<{
+	admin_and_workspace_details: Types.AdminAndWorkspaceDetails
+}>
+
+export type UpdateAdminAndCreateWorkspaceMutation = {
+	__typename?: 'Mutation'
+} & {
+	updateAdminAndCreateWorkspace?: Types.Maybe<
+		{ __typename?: 'Project' } & Pick<Types.Project, 'id'>
 	>
 }
 
@@ -2211,6 +2233,22 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetWorkspaceForInviteLinkQueryVariables = Types.Exact<{
+	secret: Types.Scalars['String']
+}>
+
+export type GetWorkspaceForInviteLinkQuery = { __typename?: 'Query' } & {
+	workspace_for_invite_link: { __typename?: 'WorkspaceForInviteLink' } & Pick<
+		Types.WorkspaceForInviteLink,
+		| 'expiration_date'
+		| 'existing_account'
+		| 'invitee_email'
+		| 'secret'
+		| 'workspace_id'
+		| 'workspace_name'
+	>
+}
+
 export type GetWorkspacesQueryVariables = Types.Exact<{ [key: string]: never }>
 
 export type GetWorkspacesQuery = { __typename?: 'Query' } & {
@@ -2556,11 +2594,11 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 	billingDetails: { __typename?: 'BillingDetails' } & Pick<
 		Types.BillingDetails,
-		'meter' | 'membersMeter'
+		'meter' | 'membersMeter' | 'errorsMeter'
 	> & {
 			plan: { __typename?: 'Plan' } & Pick<
 				Types.Plan,
-				'type' | 'quota' | 'interval' | 'membersLimit'
+				'type' | 'quota' | 'interval' | 'membersLimit' | 'errorsLimit'
 			>
 		}
 	workspace?: Types.Maybe<
@@ -2572,6 +2610,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 			| 'next_invoice_date'
 			| 'allow_meter_overage'
 			| 'eligible_for_trial_extension'
+			| 'retention_period'
 		>
 	>
 }
@@ -2655,6 +2694,19 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 					>
 				>
 			}
+	>
+}
+
+export type GetErrorObjectForLogQueryVariables = Types.Exact<{
+	log_cursor: Types.Scalars['String']
+}>
+
+export type GetErrorObjectForLogQuery = { __typename?: 'Query' } & {
+	error_object_for_log?: Types.Maybe<
+		{ __typename?: 'ErrorObject' } & Pick<
+			Types.ErrorObject,
+			'id' | 'error_group_secure_id'
+		>
 	>
 }
 
@@ -3914,15 +3966,30 @@ export type GetEmailOptOutsQuery = { __typename?: 'Query' } & Pick<
 export type GetLogsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.LogsParamsInput
+	after?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
-	logs: Array<
-		{ __typename?: 'LogLine' } & Pick<
-			Types.LogLine,
-			'timestamp' | 'severityText' | 'body' | 'logAttributes'
+	logs: { __typename?: 'LogsConnection' } & {
+		edges: Array<
+			{ __typename?: 'LogEdge' } & Pick<Types.LogEdge, 'cursor'> & {
+					node: { __typename?: 'Log' } & Pick<
+						Types.Log,
+						| 'timestamp'
+						| 'level'
+						| 'message'
+						| 'logAttributes'
+						| 'traceID'
+						| 'spanID'
+						| 'secureSessionID'
+					>
+				}
 		>
-	>
+		pageInfo: { __typename?: 'PageInfo' } & Pick<
+			Types.PageInfo,
+			'hasNextPage' | 'endCursor'
+		>
+	}
 }
 
 export type GetLogsTotalCountQueryVariables = Types.Exact<{
@@ -3934,6 +4001,32 @@ export type GetLogsTotalCountQuery = { __typename?: 'Query' } & Pick<
 	Types.Query,
 	'logs_total_count'
 >
+
+export type GetLogsHistogramQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.LogsParamsInput
+}>
+
+export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
+	logs_histogram: { __typename?: 'LogsHistogram' } & Pick<
+		Types.LogsHistogram,
+		'totalCount'
+	> & {
+			buckets: Array<
+				{ __typename?: 'LogsHistogramBucket' } & Pick<
+					Types.LogsHistogramBucket,
+					'bucketId'
+				> & {
+						counts: Array<
+							{ __typename?: 'LogsHistogramBucketCount' } & Pick<
+								Types.LogsHistogramBucketCount,
+								'count' | 'level'
+							>
+						>
+					}
+			>
+		}
+}
 
 export type GetLogsKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
@@ -3948,6 +4041,7 @@ export type GetLogsKeysQuery = { __typename?: 'Query' } & {
 export type GetLogsKeyValuesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	key_name: Types.Scalars['String']
+	date_range: Types.DateRangeRequiredInput
 }>
 
 export type GetLogsKeyValuesQuery = { __typename?: 'Query' } & Pick<
@@ -3989,6 +4083,7 @@ export const namedOperations = {
 		GetErrorsHistogram: 'GetErrorsHistogram' as const,
 		GetProjects: 'GetProjects' as const,
 		GetWorkspace: 'GetWorkspace' as const,
+		GetWorkspaceForInviteLink: 'GetWorkspaceForInviteLink' as const,
 		GetWorkspaces: 'GetWorkspaces' as const,
 		GetWorkspacesCount: 'GetWorkspacesCount' as const,
 		GetProjectsAndWorkspaces: 'GetProjectsAndWorkspaces' as const,
@@ -4004,6 +4099,7 @@ export const namedOperations = {
 		GetBillingDetails: 'GetBillingDetails' as const,
 		GetSubscriptionDetails: 'GetSubscriptionDetails' as const,
 		GetErrorGroup: 'GetErrorGroup' as const,
+		GetErrorObjectForLog: 'GetErrorObjectForLog' as const,
 		GetErrorObject: 'GetErrorObject' as const,
 		GetErrorInstance: 'GetErrorInstance' as const,
 		GetRecentErrors: 'GetRecentErrors' as const,
@@ -4070,6 +4166,7 @@ export const namedOperations = {
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
 		GetLogsTotalCount: 'GetLogsTotalCount' as const,
+		GetLogsHistogram: 'GetLogsHistogram' as const,
 		GetLogsKeys: 'GetLogsKeys' as const,
 		GetLogsKeyValues: 'GetLogsKeyValues' as const,
 	},
@@ -4096,6 +4193,7 @@ export const namedOperations = {
 		UpdateAllowedEmailOrigins: 'UpdateAllowedEmailOrigins' as const,
 		CreateProject: 'CreateProject' as const,
 		SubmitRegistrationForm: 'SubmitRegistrationForm' as const,
+		CreateAdmin: 'CreateAdmin' as const,
 		CreateWorkspace: 'CreateWorkspace' as const,
 		EditProject: 'EditProject' as const,
 		DeleteProject: 'DeleteProject' as const,
@@ -4120,6 +4218,7 @@ export const namedOperations = {
 		CreateMetricMonitor: 'CreateMetricMonitor' as const,
 		UpdateMetricMonitor: 'UpdateMetricMonitor' as const,
 		DeleteMetricMonitor: 'DeleteMetricMonitor' as const,
+		UpdateAdminAndCreateWorkspace: 'UpdateAdminAndCreateWorkspace' as const,
 		UpdateAdminAboutYouDetails: 'UpdateAdminAboutYouDetails' as const,
 		UpdateErrorAlert: 'UpdateErrorAlert' as const,
 		DeleteErrorAlert: 'DeleteErrorAlert' as const,

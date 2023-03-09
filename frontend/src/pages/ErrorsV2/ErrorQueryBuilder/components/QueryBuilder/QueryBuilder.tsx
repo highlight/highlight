@@ -48,13 +48,19 @@ import {
 	Tooltip,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import CreateErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
 import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
+import {
+	CUSTOM_TYPE,
+	ERROR_FIELD_TYPE,
+	ERROR_TYPE,
+	SESSION_TYPE,
+} from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
+import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
-import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput'
-import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput'
+import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
+import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
 import { gqlSanitize } from '@util/gql'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
@@ -80,6 +86,7 @@ import {
 
 import * as newStyle from './QueryBuilder.css'
 import styles from './QueryBuilder.module.scss'
+
 export interface RuleProps {
 	field: SelectOption | undefined
 	op: Operator | undefined
@@ -91,6 +98,7 @@ export interface SelectOption {
 	label: string
 	value: string
 }
+
 interface MultiselectOption {
 	kind: 'multi'
 	options: readonly {
@@ -125,6 +133,7 @@ type PopoutType =
 	| 'date_range'
 	| 'time_range'
 	| 'range'
+
 interface PopoutContentProps {
 	type: PopoutType
 	value: OnChangeInput
@@ -327,9 +336,11 @@ export const getAbsoluteStartTime = (value?: string): string | null => {
 		// value is a relative duration such as '7 days', subtract it from current time
 		const amount = parseInt(value.split(' ')[0])
 		const unit = value.split(' ')[1].toLowerCase()
-		return moment()
-			.subtract(amount, unit as unitOfTime.DurationConstructor)
-			.toISOString()
+		return roundDateToMinute(
+			moment()
+				.subtract(amount, unit as unitOfTime.DurationConstructor)
+				.toISOString(),
+		).toISOString()
 	}
 	return value!.split('_')[0]
 }
@@ -337,7 +348,7 @@ export const getAbsoluteEndTime = (value?: string): string | null => {
 	if (!value) return null
 	if (!isAbsoluteTimeRange(value)) {
 		// value is a relative duration such as '7 days', use current time as end of range
-		return moment().toISOString()
+		return roundDateToMinute(moment().toISOString()).toISOString()
 	}
 	return value!.split('_')[1]
 }
@@ -1097,6 +1108,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	reload: 'Reloaded',
 	state: 'State',
 	event: 'Error Body',
+	Event: 'Error Body',
 	timestamp: 'Date',
 	has_rage_clicks: 'Has Rage Clicks',
 	has_errors: 'Has Errors',
@@ -1124,11 +1136,6 @@ const getOperator = (
 const isSingle = (val: OnChangeInput) =>
 	!(val?.kind === 'multi' && val.options.length > 1)
 
-export const CUSTOM_TYPE = 'custom'
-export const SESSION_TYPE = 'session'
-export const ERROR_TYPE = 'error'
-export const ERROR_FIELD_TYPE = 'error-field'
-
 interface FieldOptions {
 	operators?: Operator[]
 	type?: string
@@ -1137,6 +1144,7 @@ interface FieldOptions {
 interface HasOptions {
 	options?: FieldOptions
 }
+
 export type CustomField = HasOptions & Pick<Field, 'type' | 'name'>
 
 export type QueryBuilderRule = string[]
@@ -2277,9 +2285,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 						emphasis="medium"
 						iconLeft={<IconSolidSegment size={12} />}
 						iconRight={<IconSolidCheveronDown size={12} />}
-						onClick={() => {}}
 					>
-						{selectedSegment?.name}
+						<Text lines="1">{selectedSegment?.name}</Text>
 					</Menu.Button>
 				)
 			case QueryBuilderMode.SEGMENT_UPDATE:
@@ -2291,7 +2298,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						iconLeft={<IconSolidSegment size={12} />}
 						iconRight={<IconSolidCheveronDown size={12} />}
 					>
-						{selectedSegment?.name}
+						<Text lines="1">{selectedSegment?.name}</Text>
 					</Menu.Button>
 				)
 		}
@@ -2393,7 +2400,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						userSelect="none"
 					>
 						<IconSolidCloudUpload size={16} color={colors.n9} />
-						Push segment changes
+						Update segment
 					</Box>
 				</Menu.Item>
 				<Menu.Item
@@ -2569,11 +2576,18 @@ function QueryBuilder(props: QueryBuilderProps) {
 							weight="medium"
 							color="n9"
 							userSelect="none"
+							lines="1"
 						>
 							{formatNumber(searchResultsCount)} results
 						</Text>
 					)}
-					<Box display="flex" gap="4" alignItems="center">
+					<Box
+						display="flex"
+						gap="4"
+						alignItems="center"
+						justifyContent="flex-end"
+						cssClass={newStyle.maxHalfWidth}
+					>
 						<Menu placement="bottom-end">
 							{actionButton}
 							<Menu.List cssClass={styles.menuList}>
@@ -2672,6 +2686,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 								emphasis="high"
 								icon={<IconSolidSegment size={12} />}
 								size="xSmall"
+								cssClass={newStyle.noShrink}
 							/>
 							<Menu.List cssClass={styles.menuList}>
 								<Box
@@ -2746,7 +2761,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 											selectSegment(segment)
 										}}
 									>
-										{segment.name}
+										<Text lines="1">{segment.name}</Text>
 									</Menu.Item>
 								))}
 								{segmentOptions.length > 0 && <Menu.Divider />}

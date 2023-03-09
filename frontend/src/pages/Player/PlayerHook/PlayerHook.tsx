@@ -86,15 +86,18 @@ export const usePlayer = (): ReplayerContextInterface => {
 				secure_id,
 				index,
 			}
-			let result = ''
-			for await (const url of indexedDBString({
-				key: JSON.stringify(args),
-				fn: async () =>
-					(await rawFetchEventChunkURL(args)).data.event_chunk_url,
-			})) {
-				result = url
-			}
-			return result
+			return (
+				(
+					await indexedDBString({
+						key: JSON.stringify(args),
+						operation: 'FetchEventChunkURL',
+						fn: async () =>
+							(
+								await rawFetchEventChunkURL(args)
+							).data.event_chunk_url,
+					}).next()
+				).value || ''
+			)
 		},
 		[rawFetchEventChunkURL],
 	)
@@ -156,6 +159,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const currentChunkIdx = useRef<number>(0)
 	// the timestamp we are moving to next.
 	const targetTime = useRef<number>()
+	// the timestamp we are moving to next.
+	const targetState = useRef<ReplayerState>()
+	// the current inactivity period we are jumping past
+	const inactivityEndTime = useRef<number>()
 	// chunk indexes that are currently being loaded (fetched over the network)
 	const loadingChunks = useRef<Set<number>>(new Set<number>())
 	// used to track latest time atomically where the state may be out of date
@@ -318,13 +325,21 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 			if (action) replayerStateBeforeLoad.current = action
 
-			const startIdx = getChunkIdx(
-				state.sessionMetadata.startTime + startTime,
+			const startIdx = Math.max(
+				0,
+				getChunkIdx(state.sessionMetadata.startTime + startTime),
 			)
 			let endIdx = endTime
 				? getChunkIdx(state.sessionMetadata.startTime + endTime)
 				: startIdx
 			if (forceLoadNext) endIdx += 1
+
+			const lastChunkIdx =
+				eventChunksData?.event_chunks[
+					eventChunksData?.event_chunks.length - 1
+				].chunk_index
+			if (lastChunkIdx !== undefined)
+				endIdx = Math.min(lastChunkIdx, endIdx)
 
 			const promises = []
 			log(
@@ -334,35 +349,36 @@ export const usePlayer = (): ReplayerContextInterface => {
 				endIdx,
 			)
 			for (let i = startIdx; i <= endIdx; i++) {
-				log(
-					'PlayerHook.tsx:ensureChunksLoaded',
-					'hasChunk',
-					i,
-					chunkEventsRef.current.has(i),
-				)
+				log('PlayerHook.tsx:ensureChunksLoaded', 'has', i, {
+					loading: loadingChunks.current.has(i),
+					has: chunkEventsRef.current.has(i),
+				})
+				if (chunkEventsRef.current.has(i)) {
+					continue
+				}
+
+				// signal that we are loading chunks once
+				if (!promises.length) {
+					if (action || i == startIdx) {
+						log(
+							'PlayerHook.tsx:ensureChunksLoaded',
+							'needs blocking load for chunk',
+							i,
+						)
+						dispatch({
+							type: PlayerActionType.startChunksLoad,
+						})
+					}
+				}
+
 				if (loadingChunks.current.has(i)) {
 					log(
 						'PlayerHook.tsx:ensureChunksLoaded',
 						'waiting for loading chunk',
 						i,
 					)
-				} else if (!chunkEventsRef.current.has(i)) {
+				} else {
 					loadingChunks.current.add(i)
-					chunkEventsSet(i, [])
-
-					// signal that we are loading chunks once
-					if (!promises.length) {
-						if (action || i == startIdx) {
-							log(
-								'PlayerHook.tsx:ensureChunksLoaded',
-								'needs blocking load for chunk',
-								i,
-							)
-							dispatch({
-								type: PlayerActionType.startChunksLoad,
-							})
-						}
-					}
 					promises.push(
 						(async (_i: number) => {
 							try {
@@ -373,31 +389,30 @@ export const usePlayer = (): ReplayerContextInterface => {
 								log('PlayerHook.tsx', 'loading chunk', {
 									url,
 								})
-								for await (const chunkResponse of indexedDBFetch(
-									url,
-								)) {
-									log('PlayerHook.tsx', 'chunk data', {
-										chunkResponse,
-									})
-									chunkEventsSet(
-										_i,
-										toHighlightEvents(
-											await chunkResponse.json(),
-										),
-									)
-									log(
-										'PlayerHook.tsx:ensureChunksLoaded',
-										'set data for chunk',
-										_i,
-									)
-								}
+								const iter = indexedDBFetch(url)
+								const chunkResponse = (await iter.next()).value!
+								log('PlayerHook.tsx', 'chunk data', {
+									chunkResponse,
+								})
+								chunkEventsSet(
+									_i,
+									toHighlightEvents(
+										await chunkResponse.json(),
+									),
+								)
+								log(
+									'PlayerHook.tsx:ensureChunksLoaded',
+									'set data for chunk',
+									_i,
+								)
+								return _i
 							} catch (e: any) {
-								H.consumeError(
+								log(
 									e,
 									'Error direct downloading session payload',
 									{ chunk: `${_i}` },
 								)
-								return [_i, []]
+								return -1
 							} finally {
 								loadingChunks.current.delete(_i)
 							}
@@ -420,16 +435,62 @@ export const usePlayer = (): ReplayerContextInterface => {
 				toRemove.forEach((idx) => chunkEventsRemove(idx))
 				// while we wait for the promises to resolve, set the targetTime as a lock for other ensureChunksLoaded
 				targetTime.current = startTime
-				await Promise.all(promises)
+				const loadedChunks = new Set<number>(
+					await Promise.all(promises),
+				)
 				// check that the target chunk has not moved since we started the loading.
 				// eg. if we start loading, then someone clicks to a new spot, we should cancel first action.
-				if (startTime === targetTime.current) {
+				if (inactivityEndTime.current) {
+					const inactivityEndChunkIdx = getChunkIdx(
+						state.sessionMetadata.startTime +
+							inactivityEndTime.current,
+					)
+					if (loadedChunks.has(inactivityEndChunkIdx)) {
+						log(
+							'PlayerHook.tsx:ensureChunksLoaded',
+							'calling dispatchAction due to inactive skip',
+							{
+								inactivityEndTime: inactivityEndTime.current,
+								loadedChunks,
+								inactivityEndChunkIdx,
+								chunks: chunkEventsRef.current,
+								prevState: replayerStateBeforeLoad.current,
+							},
+						)
+						dispatchAction(inactivityEndTime.current)
+						inactivityEndTime.current = undefined
+					} else {
+						log(
+							'PlayerHook.tsx:ensureChunksLoaded',
+							'cancelling dispatchAction due to inactive skip',
+							'chunk not loaded',
+							{
+								inactivityEndTime: inactivityEndTime.current,
+								loadedChunks,
+								inactivityEndChunkIdx,
+								chunks: chunkEventsRef.current,
+								prevState: replayerStateBeforeLoad.current,
+							},
+						)
+					}
+				} else if (!action) {
+					log(
+						'PlayerHook.tsx:ensureChunksLoaded',
+						'ignoring background load action',
+						{
+							startTime,
+							lastTime: lastTimeRef.current,
+							startIdx,
+							targetTime: targetTime.current,
+						},
+					)
+				} else if (startTime === targetTime.current) {
 					log(
 						'PlayerHook.tsx:ensureChunksLoaded',
 						'calling dispatchAction due to loading',
 						{
-							time: lastTimeRef.current,
-							promises,
+							startTime,
+							lastTime: lastTimeRef.current,
 							chunks: chunkEventsRef.current,
 							prevState: replayerStateBeforeLoad.current,
 						},
@@ -442,6 +503,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						'calling dispatchAction due to seek while loading',
 						{
 							startTime,
+							lastTime: lastTimeRef.current,
 							startIdx,
 							targetTime: targetTime.current,
 						},
@@ -454,6 +516,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						'canceling dispatchAction',
 						{
 							startTime,
+							lastTime: lastTimeRef.current,
 							startIdx,
 							targetTime: targetTime.current,
 						},
@@ -478,11 +541,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.session?.chunked,
 			state.sessionMetadata.startTime,
 			getChunkIdx,
+			eventChunksData?.event_chunks,
 			dispatchAction,
 			chunkEventsRef,
-			chunkEventsSet,
 			fetchEventChunkURL,
 			session_secure_id,
+			chunkEventsSet,
 			getChunksToRemove,
 			chunkEventsRemove,
 		],
@@ -571,35 +635,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 				}
 			}
 			log('PlayerHook.tsx', 'seeking to', time)
+			targetState.current = state.replayerState
 			dispatch({ type: PlayerActionType.setTime, time })
-			return new Promise<void>((r) =>
-				requestAnimationFrame(() =>
-					ensureChunksLoaded(
-						time,
-						undefined,
-						state.replayerState,
-					).then(() => {
-						// Log how long it took to move to the new time.
-						const timelineChangeTime =
-							timerEnd('timelineChangeTime')
-						analytics.track('Session seek', {
-							time,
-							duration: timelineChangeTime,
-							secure_id: state.session_secure_id,
-						})
-						r()
-					}),
-				),
-			)
+			return Promise.resolve()
 		},
-		[
-			ensureChunksLoaded,
-			getInactivityEnd,
-			skipInactive,
-			state.isLiveMode,
-			state.replayerState,
-			state.session_secure_id,
-		],
+		[getInactivityEnd, skipInactive, state.isLiveMode, state.replayerState],
 	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -935,7 +975,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.replayerState === ReplayerState.Playing
 		) {
 			inactivityEnd = getInactivityEnd(state.time)
-			if (inactivityEnd !== undefined) {
+			if (
+				inactivityEnd !== undefined &&
+				inactivityEnd !== inactivityEndTime.current
+			) {
 				log(
 					'PlayerHook.tsx',
 					'seeking to',
@@ -943,6 +986,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					'due to inactivity at',
 					state.time,
 				)
+				inactivityEndTime.current = inactivityEnd
 				play(inactivityEnd).then()
 				return
 			}
@@ -962,9 +1006,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 		ensureChunksLoaded(
 			state.time,
 			state.time + LOOKAHEAD_MS,
-			undefined,
+			targetState.current,
 			lastLoadedEventTimestamp - state.time < LOOKAHEAD_MS,
 		).then()
+		targetState.current = undefined
 	}, [
 		state.time,
 		ensureChunksLoaded,

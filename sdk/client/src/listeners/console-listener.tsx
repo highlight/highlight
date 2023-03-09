@@ -18,13 +18,13 @@ export type StringifyOptions = {
 	depthOfLimit: number
 }
 
-type LogRecordOptions = {
+export type LogRecordOptions = {
 	level: ConsoleMethods[]
 	stringifyOptions: StringifyOptions
 	logger: Logger | 'console'
 }
 
-type Logger = {
+export type Logger = {
 	assert?: typeof console.assert
 	clear?: typeof console.clear
 	count?: typeof console.count
