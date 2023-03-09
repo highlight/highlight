@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-type Trace struct {
+type MessageTrace struct {
 	ColumnNumber any    `json:"columnNumber"`
 	LineNumber   any    `json:"lineNumber"`
 	FileName     string `json:"fileName"`
@@ -15,10 +15,10 @@ type Trace struct {
 }
 
 type Message struct {
-	Type  string   `json:"type"`
-	Trace []Trace  `json:"trace"`
-	Value []string `json:"value"`
-	Time  int64    `json:"time"`
+	Type  string         `json:"type"`
+	Trace []MessageTrace `json:"trace"`
+	Value []string       `json:"value"`
+	Time  int64          `json:"time"`
 }
 
 type Messages struct {
