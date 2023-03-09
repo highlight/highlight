@@ -158,7 +158,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						endDate={endDate}
 						onDatesChange={handleDatesChange}
 						onLevelChange={handleLevelChange}
-						outline
 						mx="12"
 						py="2"
 						borderBottom="dividerWeak"

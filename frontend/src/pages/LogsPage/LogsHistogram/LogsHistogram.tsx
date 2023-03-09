@@ -155,9 +155,11 @@ const LogsHistogram = ({
 				display="flex"
 				flexDirection="column-reverse"
 				justifyContent="space-between"
-				alignItems="center"
+				alignItems="flex-start"
 				p="2"
-				cssClass={styles.axis}
+				style={{
+					width: formatNumber(maxBucketCount).length * 8,
+				}}
 			>
 				{loading ? null : ticks}
 			</Box>

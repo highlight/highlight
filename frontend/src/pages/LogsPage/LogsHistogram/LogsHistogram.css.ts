@@ -32,7 +32,3 @@ export const dragSelection = style({
 	backgroundColor: colors.n7,
 	opacity: 0.5,
 })
-
-export const axis = style({
-	width: 22,
-})
