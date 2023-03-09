@@ -133,6 +133,21 @@ export const LogsTable = ({
 		table.toggleAllRowsExpanded(false)
 	}, [logEdges, table])
 
+	useEffect(() => {
+		const foundRow = rows.find(
+			(row) => row.original.cursor === selectedCursor,
+		)
+
+		if (foundRow) {
+			rowVirtualizer.scrollToIndex(foundRow.index, {
+				align: 'start',
+				behavior: 'smooth',
+			})
+		}
+		// Only run when the component mounts
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
 	if (loading) {
 		return (
 			<Box
