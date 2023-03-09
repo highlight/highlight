@@ -1,5 +1,4 @@
 import { CircularSpinner } from '@components/Loading/Loading'
-import { GetLogsQuery } from '@graph/operations'
 import { LogLevel as LogLevelType } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
 import {
@@ -24,24 +23,26 @@ import {
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
-import React, { Fragment, useEffect, useMemo, useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 
 import * as styles from './LogsTable.css'
 
 type Props = {
 	loading: boolean
 	loadingAfter: boolean
-	data: GetLogsQuery | undefined
+	logEdges: LogEdge[]
 	query: string
 	tableContainerRef: React.RefObject<HTMLDivElement>
+	selectedCursor: string | undefined
 }
 
 export const LogsTable = ({
-	data,
+	logEdges,
 	loading,
 	loadingAfter,
 	query,
 	tableContainerRef,
+	selectedCursor,
 }: Props) => {
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
@@ -93,12 +94,6 @@ export const LogsTable = ({
 		],
 		[query],
 	)
-
-	let logEdges: LogEdge[] = useMemo(() => [], [])
-
-	if (data?.logs?.edges) {
-		logEdges = data.logs.edges
-	}
 
 	const table = useReactTable({
 		data: logEdges,
@@ -193,6 +188,9 @@ export const LogsTable = ({
 						</Stack>
 
 						<LogDetails row={row} />
+						{selectedCursor === row.original.cursor && (
+							<>Selected</>
+						)}
 					</Box>
 				)
 			})}
