@@ -1198,11 +1198,11 @@ const (
 
 type Retryable struct {
 	Model
-	Type     RetryableType
-	Path     string
-	Function string
-	Payload  JSONB `sql:"type:jsonb"`
-	Error    string
+	Type        RetryableType
+	PayloadType string
+	PayloadID   string
+	Payload     JSONB `sql:"type:jsonb"`
+	Error       string
 }
 
 func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {

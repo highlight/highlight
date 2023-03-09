@@ -252,7 +252,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 								return
 							}
 						}()
-					} else if event.Name() == highlight.LogEvent {
+					}
+					if event.Name() == highlight.LogEvent {
 						logSev := cast(eventAttributes[string(hlog.LogSeverityKey)], "unknown")
 						logMessage := cast(eventAttributes[string(hlog.LogMessageKey)], "")
 						if logMessage == "" {
