@@ -373,7 +373,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 				// signal that we are loading chunks once
 				if (!promises.length) {
-					if (action || i == startIdx) {
+					if (i == startIdx) {
 						log(
 							'PlayerHook.tsx:ensureChunksLoaded',
 							'needs blocking load for chunk',
@@ -452,6 +452,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 				const loadedChunks = new Set<number>(
 					await Promise.all(promises),
 				)
+				// update the replayer events
+				dispatch({ type: PlayerActionType.updateEvents })
 				// check that the target chunk has not moved since we started the loading.
 				// eg. if we start loading, then someone clicks to a new spot, we should cancel first action.
 				if (inactivityEndTime.current) {
