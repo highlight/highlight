@@ -1,5 +1,5 @@
 import { useGetLogsLazyQuery } from '@graph/hooks'
-import { LogEdge, PageInfo } from '@graph/schemas'
+import { PageInfo } from '@graph/schemas'
 import { FORMAT } from '@pages/LogsPage/constants'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
@@ -17,8 +17,6 @@ export const useGetLogs = ({
 	startDate: Date
 	endDate: Date
 }) => {
-	const [logEdges, setLogEdges] = useState<LogEdge[]>([])
-
 	// The backend can only tell us page info about a single page.
 	// It has no idea what pages have already been loaded.
 	//
@@ -58,12 +56,6 @@ export const useGetLogs = ({
 			}
 		})
 	}, [getLogs])
-
-	useEffect(() => {
-		if (data?.logs) {
-			setLogEdges(data.logs.edges)
-		}
-	}, [data])
 
 	const fetchMoreForward = useCallback(() => {
 		if (!windowInfo.hasNextPage) {
@@ -123,7 +115,7 @@ export const useGetLogs = ({
 	}, [fetchMore, windowInfo])
 
 	return {
-		logEdges,
+		logEdges: data?.logs.edges || [],
 		loading,
 		loadingAfter,
 		loadingBefore,
