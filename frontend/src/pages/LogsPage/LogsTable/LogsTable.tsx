@@ -1,4 +1,3 @@
-import { CircularSpinner } from '@components/Loading/Loading'
 import { LogLevel as LogLevelType } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
 import {
@@ -12,7 +11,6 @@ import { LogDetails } from '@pages/LogsPage/LogsTable/LogDetails'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
-import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
 import {
 	ColumnDef,
 	ExpandedState,
@@ -28,7 +26,6 @@ import React, { Fragment, useEffect, useState } from 'react'
 import * as styles from './LogsTable.css'
 
 type Props = {
-	loading: boolean
 	loadingAfter: boolean
 	logEdges: LogEdge[]
 	query: string
@@ -38,7 +35,6 @@ type Props = {
 
 export const LogsTable = ({
 	logEdges,
-	loading,
 	loadingAfter,
 	query,
 	tableContainerRef,
@@ -143,32 +139,6 @@ export const LogsTable = ({
 		// Only run when the component mounts
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
-
-	if (loading) {
-		return (
-			<Box
-				display="flex"
-				flexGrow={1}
-				alignItems="center"
-				justifyContent="center"
-			>
-				<CircularSpinner />
-			</Box>
-		)
-	}
-
-	if (logEdges.length === 0) {
-		return (
-			<Box
-				display="flex"
-				flexGrow={1}
-				alignItems="center"
-				justifyContent="center"
-			>
-				<NoLogsFound />
-			</Box>
-		)
-	}
 
 	return (
 		<div style={{ height: `${totalSize}px`, position: 'relative' }}>

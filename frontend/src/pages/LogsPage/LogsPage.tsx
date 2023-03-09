@@ -1,3 +1,4 @@
+import { CircularSpinner } from '@components/Loading/Loading'
 import { LogLevel } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
 import {
@@ -10,6 +11,7 @@ import {
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
+import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
@@ -170,10 +172,30 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						}
 						ref={tableContainerRef}
 					>
+						{loading && (
+							<Box
+								display="flex"
+								flexGrow={1}
+								alignItems="center"
+								justifyContent="center"
+							>
+								<CircularSpinner />
+							</Box>
+						)}
+						{logEdges.length === 0 && (
+							<Box
+								display="flex"
+								flexGrow={1}
+								alignItems="center"
+								justifyContent="center"
+							>
+								<NoLogsFound />
+							</Box>
+						)}
+						{/** Pagination smooth scrolling does not work without this guard. */}
 						{logEdges.length > 0 && (
 							<LogsTable
 								logEdges={logEdges}
-								loading={loading}
 								loadingAfter={loadingAfter}
 								query={query}
 								tableContainerRef={tableContainerRef}
