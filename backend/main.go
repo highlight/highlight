@@ -324,7 +324,7 @@ func main() {
 		}
 	}
 
-	opensearchClient, err := opensearch.NewOpensearchClient()
+	opensearchClient, err := opensearch.NewOpensearchClient(db)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating opensearch client: %v", err)
 	}

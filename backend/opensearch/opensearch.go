@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/retryables"
+	"gorm.io/gorm"
 	"io"
 	"net/http"
 	"os"
@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/retryables"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -64,7 +65,7 @@ type Client struct {
 	Client          *opensearch.Client
 	ReadClient      *opensearch.Client
 	BulkIndexer     opensearchutil.BulkIndexer
-	RetryableClient *retryables.RetryableClient
+	RetryableClient retryables.Client
 	isInitialized   bool
 }
 
@@ -191,7 +192,7 @@ type SearchOptions struct {
 	SearchAfter       []interface{}
 }
 
-func NewOpensearchClient() (*Client, error) {
+func NewOpensearchClient(db *gorm.DB) (*Client, error) {
 	client, err := opensearch.NewClient(opensearch.Config{
 		Transport: http.DefaultTransport,
 		Addresses: []string{OpensearchDomain},
@@ -225,11 +226,16 @@ func NewOpensearchClient() (*Client, error) {
 		return nil, e.Wrap(err, "OPENSEARCH_ERROR failed to initialize opensearch bulk indexer")
 	}
 
+	var rClient retryables.Client = &retryables.DummyClient{}
+	if db != nil {
+		rClient = &retryables.RetryableClient{DB: db}
+	}
 	return &Client{
-		Client:        client,
-		ReadClient:    readClient,
-		BulkIndexer:   indexer,
-		isInitialized: true,
+		Client:          client,
+		ReadClient:      readClient,
+		RetryableClient: rClient,
+		BulkIndexer:     indexer,
+		isInitialized:   true,
 	}, nil
 }
 

@@ -30,7 +30,7 @@ func main() {
 		log.WithContext(ctx).Fatalf("error pinging db: %+v", err)
 	}
 
-	opensearchClient, err := opensearch.NewOpensearchClient()
+	opensearchClient, err := opensearch.NewOpensearchClient(nil)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating opensearch client: %v", err)
 	}
