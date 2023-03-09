@@ -1044,6 +1044,13 @@ query GetErrorGroup($secure_id: String!) {
 	}
 }
 
+query GetErrorObjectForLog($log_cursor: String!) {
+	error_object_for_log(log_cursor: $log_cursor) {
+		id
+		error_group_secure_id
+	}
+}
+
 query GetErrorObject($id: ID!) {
 	error_object(id: $id) {
 		id
@@ -1862,8 +1869,20 @@ query GetEmailOptOuts($token: String, $admin_id: ID) {
 	email_opt_outs(token: $token, admin_id: $admin_id)
 }
 
-query GetLogs($project_id: ID!, $params: LogsParamsInput!, $after: String) {
-	logs(project_id: $project_id, params: $params, after: $after) {
+query GetLogs(
+	$project_id: ID!
+	$params: LogsParamsInput!
+	$after: String
+	$before: String
+	$at: String
+) {
+	logs(
+		project_id: $project_id
+		params: $params
+		after: $after
+		before: $before
+		at: $at
+	) {
 		edges {
 			cursor
 			node {
@@ -1878,6 +1897,8 @@ query GetLogs($project_id: ID!, $params: LogsParamsInput!, $after: String) {
 		}
 		pageInfo {
 			hasNextPage
+			hasPreviousPage
+			startCursor
 			endCursor
 		}
 	}

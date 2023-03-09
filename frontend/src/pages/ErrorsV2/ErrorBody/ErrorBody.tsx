@@ -33,7 +33,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 
 	const scrollToInstances = () => {
 		// Using client directly here because there was some issues with the
-		// onCompleted handler competing with the logic already in ErrorInstance.
+		// onCompleted handler competing with the logic already in ErrorLogCursorRedirect.
 		client
 			.query({
 				query: GetErrorInstanceDocument,

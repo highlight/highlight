@@ -8,9 +8,7 @@ import (
 	"strings"
 
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"go.opentelemetry.io/otel/trace"
 )
 
 // Option applies a configuration to the given config.
@@ -59,13 +57,7 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 		ctx = context.TODO()
 	}
 
-	span, _ := highlight.StartTrace(ctx, "highlight-go/logrus")
-	defer highlight.EndTrace(span)
-
-	attrs := []attribute.KeyValue{
-		LogSeverityKey.String(levelString(entry.Level)),
-		LogMessageKey.String(entry.Message),
-	}
+	var attrs []attribute.KeyValue
 	if entry.Caller != nil {
 		if entry.Caller.Function != "" {
 			attrs = append(attrs, semconv.CodeFunctionKey.String(entry.Caller.Function))
@@ -78,22 +70,16 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 
 	for k, v := range entry.Data {
 		if k == "error" {
-			if err, ok := v.(highlight.ErrorWithStack); ok {
-				highlight.RecordSpanErrorWithStack(span, err)
-			} else if err, ok := v.(error); ok {
-				span.RecordError(err)
+			if err, ok := v.(error); ok {
+				highlight.RecordError(ctx, err)
 			}
 		} else {
 			attrs = append(attrs, attribute.String(k, fmt.Sprintf("%+v", v)))
 		}
 	}
 
-	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...))
-
-	if entry.Level <= hook.errorStatusLevel {
-		span.SetStatus(codes.Error, entry.Message)
-	}
-
+	lvl, _ := parseLevel(levelString(entry.Level))
+	WithContext(ctx).log(lvl, entry.Message, attrs...)
 	return nil
 }
 

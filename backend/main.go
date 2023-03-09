@@ -228,14 +228,19 @@ func main() {
 	log.SetReportCaller(true)
 	// setup highlight
 	H.SetProjectID("1jdkoe52")
-	if util.IsDevOrTestEnv() && !util.IsInDocker() {
+	if util.IsDevOrTestEnv() {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql client address...")
 		H.SetGraphqlClientAddress("https://localhost:8082/public")
-		H.SetOTLPEndpoint("http://collector:4318")
+		if util.IsInDocker() {
+			H.SetOTLPEndpoint("http://collector:4318")
+		}
 	}
 	H.Start()
 	defer H.Stop()
 	H.SetDebugMode(log.StandardLogger())
+	hlog.SetOutput(true)
+	hlog.SetOutputLevel(hlog.DebugLevel)
+	hlog.WithContext(ctx).Info("welcome to highlight.io")
 	// setup highlight logrus hook
 	log.AddHook(hlog.NewHook(hlog.WithLevels(
 		log.PanicLevel,

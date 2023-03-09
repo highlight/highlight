@@ -7738,6 +7738,63 @@ export type GetErrorGroupQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupQuery,
 	Types.GetErrorGroupQueryVariables
 >
+export const GetErrorObjectForLogDocument = gql`
+	query GetErrorObjectForLog($log_cursor: String!) {
+		error_object_for_log(log_cursor: $log_cursor) {
+			id
+			error_group_secure_id
+		}
+	}
+`
+
+/**
+ * __useGetErrorObjectForLogQuery__
+ *
+ * To run a query within a React component, call `useGetErrorObjectForLogQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorObjectForLogQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorObjectForLogQuery({
+ *   variables: {
+ *      log_cursor: // value for 'log_cursor'
+ *   },
+ * });
+ */
+export function useGetErrorObjectForLogQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorObjectForLogQuery,
+		Types.GetErrorObjectForLogQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorObjectForLogQuery,
+		Types.GetErrorObjectForLogQueryVariables
+	>(GetErrorObjectForLogDocument, baseOptions)
+}
+export function useGetErrorObjectForLogLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorObjectForLogQuery,
+		Types.GetErrorObjectForLogQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorObjectForLogQuery,
+		Types.GetErrorObjectForLogQueryVariables
+	>(GetErrorObjectForLogDocument, baseOptions)
+}
+export type GetErrorObjectForLogQueryHookResult = ReturnType<
+	typeof useGetErrorObjectForLogQuery
+>
+export type GetErrorObjectForLogLazyQueryHookResult = ReturnType<
+	typeof useGetErrorObjectForLogLazyQuery
+>
+export type GetErrorObjectForLogQueryResult = Apollo.QueryResult<
+	Types.GetErrorObjectForLogQuery,
+	Types.GetErrorObjectForLogQueryVariables
+>
 export const GetErrorObjectDocument = gql`
 	query GetErrorObject($id: ID!) {
 		error_object(id: $id) {
@@ -11498,8 +11555,20 @@ export type GetEmailOptOutsQueryResult = Apollo.QueryResult<
 	Types.GetEmailOptOutsQueryVariables
 >
 export const GetLogsDocument = gql`
-	query GetLogs($project_id: ID!, $params: LogsParamsInput!, $after: String) {
-		logs(project_id: $project_id, params: $params, after: $after) {
+	query GetLogs(
+		$project_id: ID!
+		$params: LogsParamsInput!
+		$after: String
+		$before: String
+		$at: String
+	) {
+		logs(
+			project_id: $project_id
+			params: $params
+			after: $after
+			before: $before
+			at: $at
+		) {
 			edges {
 				cursor
 				node {
@@ -11514,6 +11583,8 @@ export const GetLogsDocument = gql`
 			}
 			pageInfo {
 				hasNextPage
+				hasPreviousPage
+				startCursor
 				endCursor
 			}
 		}
@@ -11535,6 +11606,8 @@ export const GetLogsDocument = gql`
  *      project_id: // value for 'project_id'
  *      params: // value for 'params'
  *      after: // value for 'after'
+ *      before: // value for 'before'
+ *      at: // value for 'at'
  *   },
  * });
  */

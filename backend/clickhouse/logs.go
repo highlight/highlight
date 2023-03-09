@@ -54,6 +54,9 @@ func (l *LogRow) Cursor() string {
 }
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
+	if len(logRows) == 0 {
+		return nil
+	}
 	batch, err := client.conn.PrepareBatch(ctx, "INSERT INTO logs")
 
 	if err != nil {
@@ -79,9 +82,10 @@ const OrderBackward = "Timestamp ASC, UUID ASC"
 const OrderForward = "Timestamp DESC, UUID DESC"
 
 type Pagination struct {
-	After  *string
-	Before *string
-	At     *string
+	After     *string
+	Before    *string
+	At        *string
+	CountOnly bool
 }
 
 func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*modelInputs.LogsConnection, error) {
@@ -172,7 +176,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 }
 
 func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
-	sb, err := makeSelectBuilder("COUNT(*)", projectID, params, Pagination{})
+	sb, err := makeSelectBuilder("COUNT(*)", projectID, params, Pagination{CountOnly: true})
 	if err != nil {
 		return 0, err
 	}
@@ -475,6 +479,11 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 	} else {
 		sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.EndDate.Unix()))).
 			Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.StartDate.Unix())))
+
+		if !pagination.CountOnly { // count queries can't be ordered because we don't include Timestamp in the select
+			sb.OrderBy(OrderForward)
+		}
+
 	}
 
 	filters := makeFilters(params.Query)

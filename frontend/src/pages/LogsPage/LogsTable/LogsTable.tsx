@@ -1,5 +1,4 @@
 import { CircularSpinner } from '@components/Loading/Loading'
-import { GetLogsQuery } from '@graph/operations'
 import { LogLevel as LogLevelType } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
 import {
@@ -24,24 +23,55 @@ import {
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
-import React, { Fragment, useEffect, useMemo, useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 
 import * as styles from './LogsTable.css'
 
 type Props = {
 	loading: boolean
 	loadingAfter: boolean
-	data: GetLogsQuery | undefined
+	logEdges: LogEdge[]
 	query: string
 	tableContainerRef: React.RefObject<HTMLDivElement>
+	selectedCursor: string | undefined
 }
 
-export const LogsTable = ({
-	data,
-	loading,
+export const LogsTable = (props: Props) => {
+	if (props.loading) {
+		return (
+			<Box
+				display="flex"
+				flexGrow={1}
+				alignItems="center"
+				justifyContent="center"
+			>
+				<CircularSpinner />
+			</Box>
+		)
+	}
+
+	if (props.logEdges.length === 0) {
+		return (
+			<Box
+				display="flex"
+				flexGrow={1}
+				alignItems="center"
+				justifyContent="center"
+			>
+				<NoLogsFound />
+			</Box>
+		)
+	}
+
+	return <LogsTableInner {...props} />
+}
+
+const LogsTableInner = ({
+	logEdges,
 	loadingAfter,
 	query,
 	tableContainerRef,
+	selectedCursor,
 }: Props) => {
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
@@ -94,12 +124,6 @@ export const LogsTable = ({
 		[query],
 	)
 
-	let logEdges: LogEdge[] = useMemo(() => [], [])
-
-	if (data?.logs?.edges) {
-		logEdges = data.logs.edges
-	}
-
 	const table = useReactTable({
 		data: logEdges,
 		columns,
@@ -134,31 +158,22 @@ export const LogsTable = ({
 		table.toggleAllRowsExpanded(false)
 	}, [logEdges, table])
 
-	if (loading) {
-		return (
-			<Box
-				display="flex"
-				flexGrow={1}
-				alignItems="center"
-				justifyContent="center"
-			>
-				<CircularSpinner />
-			</Box>
+	useEffect(() => {
+		const foundRow = rows.find(
+			(row) => row.original.cursor === selectedCursor,
 		)
-	}
 
-	if (logEdges.length === 0) {
-		return (
-			<Box
-				display="flex"
-				flexGrow={1}
-				alignItems="center"
-				justifyContent="center"
-			>
-				<NoLogsFound />
-			</Box>
-		)
-	}
+		if (foundRow) {
+			rowVirtualizer.scrollToIndex(foundRow.index, {
+				align: 'start',
+				behavior: 'smooth',
+			})
+			foundRow.toggleExpanded(true)
+		}
+
+		// Only run when the component mounts
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	return (
 		<div style={{ height: `${totalSize}px`, position: 'relative' }}>

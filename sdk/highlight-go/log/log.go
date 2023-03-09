@@ -2,14 +2,15 @@ package hlog
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
-	"strconv"
+	"runtime"
 	"strings"
-	"time"
 )
 
 var (
@@ -17,141 +18,180 @@ var (
 	LogMessageKey  = attribute.Key(highlight.LogMessageAttribute)
 )
 
-type VercelProxy struct {
-	Timestamp   int64    `json:"timestamp"`
-	Method      string   `json:"method"`
-	Scheme      string   `json:"scheme"`
-	Host        string   `json:"host"`
-	Path        string   `json:"path"`
-	UserAgent   []string `json:"userAgent"`
-	Referer     string   `json:"referer"`
-	StatusCode  int64    `json:"statusCode"`
-	ClientIp    string   `json:"clientIp"`
-	Region      string   `json:"region"`
-	CacheId     string   `json:"cacheId"`
-	VercelCache string   `json:"vercelCache"`
+// Level follows the otel spec: https://github.com/open-telemetry/opentelemetry-specification/blob/b674b49a9be32bf38a58865e9a04803c0f9349fb/specification/logs/data-model.md
+type Level = uint32
+
+const (
+	FatalLevel Level = iota
+	ErrorLevel
+	WarnLevel
+	InfoLevel
+	DebugLevel
+	TraceLevel
+)
+
+func levelToString(l Level) string {
+	switch l {
+	case FatalLevel:
+		return "fatal"
+	case ErrorLevel:
+		return "error"
+	case WarnLevel:
+		return "warn"
+	case InfoLevel:
+		return "info"
+	case DebugLevel:
+		return "debug"
+	case TraceLevel:
+		return "trace"
+	}
+	return ""
 }
 
-type VercelLog struct {
-	Id           string `json:"id"`
-	Message      string `json:"message"`
-	Timestamp    int64  `json:"timestamp"`
-	Source       string `json:"source"`
-	ProjectId    string `json:"projectId"`
-	DeploymentId string `json:"deploymentId"`
-	BuildId      string `json:"buildId"`
-	Host         string `json:"host"`
+// ParseLevel takes a string level and returns the highlight log level constant.
+func parseLevel(lvl string) (Level, error) {
+	switch strings.ToLower(lvl) {
+	case "fatal":
+		return FatalLevel, nil
+	case "error":
+		return ErrorLevel, nil
+	case "warn", "warning":
+		return WarnLevel, nil
+	case "info":
+		return InfoLevel, nil
+	case "debug":
+		return DebugLevel, nil
+	case "trace":
+		return TraceLevel, nil
+	}
 
-	Type       string `json:"type"`
-	Entrypoint string `json:"entrypoint"`
-
-	RequestId   string      `json:"requestId"`
-	StatusCode  int64       `json:"statusCode"`
-	Destination string      `json:"destination"`
-	Path        string      `json:"path"`
-	Proxy       VercelProxy `json:"proxy"`
+	var l Level
+	return l, fmt.Errorf("not a valid hlog Level: %q", lvl)
 }
 
-func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSecureID string, messages string) error {
-	logRows, err := ParseConsoleMessages(messages)
-	if err != nil {
-		return err
-	}
+var printOut = true
+var printLevel = DebugLevel
 
-	if len(logRows) == 0 {
-		return nil
-	}
+func SetOutput(output bool) {
+	printOut = output
+}
 
-	span, _ := highlight.StartTrace(
-		ctx, "highlight-ctx",
-		attribute.String(highlight.SourceAttribute, highlight.SourceAttributeFrontend),
-		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
-		attribute.String(highlight.SessionIDAttribute, sessionSecureID),
-	)
+func SetOutputLevel(print Level) {
+	printLevel = print
+}
+
+type Printer struct {
+	Context context.Context
+	Tags    []attribute.KeyValue
+}
+
+func (p *Printer) log(level Level, message string, attrs ...attribute.KeyValue) {
+	span, _ := highlight.StartTrace(p.Context, "highlight-go/log")
 	defer highlight.EndTrace(span)
 
-	for _, row := range logRows {
-		message := strings.Join(row.Value, " ")
-		attrs := []attribute.KeyValue{
-			LogSeverityKey.String(row.Type),
-			LogMessageKey.String(message),
-		}
-		if len(row.Trace) > 0 {
-			traceEnd := &row.Trace[len(row.Trace)-1]
-			attrs = append(
-				attrs,
-				semconv.CodeFunctionKey.String(traceEnd.FunctionName),
-				semconv.CodeNamespaceKey.String(traceEnd.Source),
-				semconv.CodeFilepathKey.String(traceEnd.FileName),
-			)
+	attrs = append(attrs,
+		attribute.String(highlight.ProjectIDAttribute, highlight.GetProjectID()),
+		LogSeverityKey.String(levelToString(level)),
+		LogMessageKey.String(message),
+	)
+	if _, file, line, ok := runtime.Caller(1); ok {
+		attrs = append(attrs, semconv.CodeFilepathKey.String(file))
+		attrs = append(attrs, semconv.CodeLineNumberKey.Int(line))
+	}
+	attrs = append(attrs, p.Tags...)
 
-			var ln int
-			if x, ok := traceEnd.LineNumber.(int); ok {
-				ln = x
-			} else if x, ok := traceEnd.LineNumber.(string); ok {
-				if i, err := strconv.ParseInt(x, 10, 32); err == nil {
-					ln = int(i)
-				}
-			}
-			if ln != 0 {
-				attrs = append(attrs, semconv.CodeLineNumberKey.Int(ln))
-			}
-
-			var cn int
-			if x, ok := traceEnd.ColumnNumber.(int); ok {
-				cn = x
-			} else if x, ok := traceEnd.ColumnNumber.(string); ok {
-				if i, err := strconv.ParseInt(x, 10, 32); err == nil {
-					cn = int(i)
-				}
-			}
-			if cn != 0 {
-				attrs = append(attrs, semconv.CodeColumnKey.Int(cn))
-			}
-		}
-
-		span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(row.Time)))
-		if row.Type == "error" {
-			span.SetStatus(codes.Error, message)
-		}
+	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...))
+	if level <= ErrorLevel {
+		span.SetStatus(codes.Error, message)
 	}
 
-	return nil
-}
-
-func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
-	span, _ := highlight.StartTrace(
-		ctx, "highlight-ctx",
-		attribute.String("Source", "SubmitVercelLogs"),
-		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
-	)
-	defer highlight.EndTrace(span)
-
-	attrs := []attribute.KeyValue{
-		LogSeverityKey.String(log.Type),
-		LogMessageKey.String(log.Message),
-	}
-	attrs = append(
-		attrs,
-		semconv.CodeNamespaceKey.String(log.Source),
-		semconv.CodeFilepathKey.String(log.Path),
-		semconv.CodeFunctionKey.String(log.Entrypoint),
-		semconv.HostNameKey.String(log.Host),
-		semconv.HTTPMethodKey.Int64(log.StatusCode),
-	)
-
-	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))
-	if log.Type == "error" {
-		span.SetStatus(codes.Error, log.Message)
+	if printOut {
+		if level <= printLevel {
+			var tagsStr string
+			if len(p.Tags) > 0 {
+				s, _ := json.Marshal(p.Tags)
+				tagsStr = fmt.Sprintf(" %s", s)
+			}
+			fmt.Printf("[%s] %s%s\n", levelToString(level), message, tagsStr)
+		}
 	}
 }
 
-func SubmitVercelLogs(ctx context.Context, projectID int, logs []VercelLog) {
-	if len(logs) == 0 {
-		return
-	}
+func (p *Printer) WithContext(ctx context.Context) *Printer {
+	p.Context = ctx
+	return p
+}
 
-	for _, log := range logs {
-		submitVercelLog(ctx, projectID, log)
-	}
+func (p *Printer) WithSession(sessionID string) *Printer {
+	p.Tags = append(p.Tags, attribute.String(highlight.SessionIDAttribute, sessionID))
+	return p
+}
+
+func (p *Printer) WithRequest(requestID string) *Printer {
+	p.Tags = append(p.Tags, attribute.String(highlight.RequestIDAttribute, requestID))
+	return p
+}
+
+func (p *Printer) Trace(message string) {
+	p.log(TraceLevel, message)
+}
+
+func (p *Printer) Debug(message string) {
+	p.log(DebugLevel, message)
+}
+
+func (p *Printer) Info(message string) {
+	p.log(InfoLevel, message)
+}
+
+func (p *Printer) Warn(message string) {
+	p.log(WarnLevel, message)
+}
+
+func (p *Printer) Error(message string) {
+	p.log(ErrorLevel, message)
+}
+
+func (p *Printer) Fatal(message string) {
+	p.log(FatalLevel, message)
+	panic(message)
+}
+
+func WithContext(ctx context.Context) *Printer {
+	p := &Printer{}
+	return p.WithContext(ctx)
+}
+
+func WithSession(sessionID string) *Printer {
+	p := &Printer{}
+	return p.WithRequest(sessionID)
+}
+
+func WithRequest(requestID string) *Printer {
+	p := &Printer{}
+	return p.WithRequest(requestID)
+}
+
+func Trace(message string) {
+	WithContext(context.TODO()).Trace(message)
+}
+
+func Debug(message string) {
+	WithContext(context.TODO()).Debug(message)
+}
+
+func Info(message string) {
+	WithContext(context.TODO()).Info(message)
+}
+
+func Warn(message string) {
+	WithContext(context.TODO()).Warn(message)
+}
+
+func Error(message string) {
+	WithContext(context.TODO()).Error(message)
+}
+
+func Fatal(message string) {
+	WithContext(context.TODO()).Fatal(message)
 }
