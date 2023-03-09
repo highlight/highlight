@@ -33,7 +33,7 @@ import {
 } from '@highlight-run/ui'
 import { PreviousDateRangePicker } from '@highlight-run/ui/src/components/DatePicker/PreviousDateRangePicker'
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
-import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { isInsideElement } from '@util/dom'
 import { Dialog } from 'ariakit/dialog'
 import isEqual from 'lodash/isEqual'

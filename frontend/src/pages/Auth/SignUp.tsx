@@ -24,12 +24,13 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 export const SignUp: React.FC = () => {
 	const navigate = useNavigate()
 	const location = useLocation()
+	const initialEmail: string = location.state?.email ?? ''
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
 	const formState = useFormState({
 		defaultValues: {
-			email: '',
+			email: initialEmail,
 			password: '',
 		},
 	})
@@ -39,7 +40,10 @@ export const SignUp: React.FC = () => {
 		},
 		skip: !inviteCode,
 		onCompleted: (data) => {
-			if (data?.workspace_for_invite_link.invitee_email) {
+			if (
+				data?.workspace_for_invite_link.invitee_email &&
+				!initialEmail
+			) {
 				formState.setValue(
 					'email',
 					data?.workspace_for_invite_link.invitee_email,
@@ -105,7 +109,13 @@ export const SignUp: React.FC = () => {
 						</Heading>
 						<Text>
 							Have an account?{' '}
-							<Link to={SIGN_IN_ROUTE}>Sign in</Link>.
+							<Link
+								to={SIGN_IN_ROUTE}
+								state={{ email: formState.values.email }}
+							>
+								Sign in
+							</Link>
+							.
 						</Text>
 					</Stack>
 				</Box>

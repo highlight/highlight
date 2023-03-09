@@ -18,10 +18,10 @@ import SwitchProject from '@pages/SwitchProject/SwitchProject'
 import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace'
 import useLocalStorage from '@rehooks/local-storage'
 import InternalRouter from '@routers/InternalRouter/InternalRouter'
-import { DefaultWorkspaceRouter } from '@routers/OrgRouter/DefaultWorkspaceRouter'
-import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter'
-import { ProjectRouter } from '@routers/OrgRouter/ProjectRouter'
-import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter'
+import { DefaultWorkspaceRouter } from '@routers/ProjectRouter/DefaultWorkspaceRouter'
+import { ProjectRedirectionRouter } from '@routers/ProjectRouter/ProjectRedirectionRouter'
+import { ProjectRouter } from '@routers/ProjectRouter/ProjectRouter'
+import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { showIntercom } from '@util/window'
@@ -43,6 +43,8 @@ export const AppRouter = () => {
 	const workspaceMatch = useMatch('/w/:workspace_id/*')
 	const workspaceId = workspaceMatch?.params.workspace_id
 	const workspaceInviteMatch = useMatch('/w/:workspace_id/invite/:invite')
+	const inviteMatch = useMatch('/invite/:invite')
+	const isInvitePage = !!inviteMatch
 	const [inviteCode, setInviteCode] = useLocalStorage('highlightInviteCode')
 	const { projectId } = useNumericProjectId()
 	const [nextParam] = useQueryParam('next', StringParam)
@@ -59,24 +61,25 @@ export const AppRouter = () => {
 
 	useEffect(() => {
 		if (admin && admin.email_verified === false) {
-			navigate('/verify_email')
+			navigate('/verify_email', { replace: true })
 			return
 		}
 
-		if (admin && inviteCode) {
-			navigate(`/invite/${inviteCode}`)
+		if (admin && inviteCode && inviteCode !== 'ignored' && !isInvitePage) {
+			navigate(`/invite/${inviteCode}`, { replace: true })
 			return
 		}
 
 		if (
 			admin &&
 			!admin.about_you_details_filled &&
-			!isVercelIntegrationFlow
+			!isVercelIntegrationFlow &&
+			!isInvitePage
 		) {
-			navigate('/about_you')
+			navigate('/about_you', { replace: true })
 			return
 		}
-	}, [admin, isVercelIntegrationFlow, navigate, inviteCode])
+	}, [admin, isVercelIntegrationFlow, navigate, inviteCode, isInvitePage])
 
 	useEffect(() => {
 		if (admin) {
