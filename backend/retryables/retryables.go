@@ -23,7 +23,7 @@ func (c *RetryableClient) ReportError(ctx context.Context, t model.RetryableType
 		WithField("Payload", payload).
 		WithError(e).
 		Errorf("RetryableError %s [%s::%s] - %+v, %+v", t, path, function, payload, e)
-	r := model.Retryable{
+	r := &model.Retryable{
 		Type:     t,
 		Path:     path,
 		Function: function,

@@ -1201,7 +1201,7 @@ type Retryable struct {
 	Type     RetryableType
 	Path     string
 	Function string
-	Payload  JSONB `json:"user_object" sql:"type:jsonb"`
+	Payload  JSONB `sql:"type:jsonb"`
 	Error    string
 }
 
