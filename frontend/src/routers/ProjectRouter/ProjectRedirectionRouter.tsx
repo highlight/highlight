@@ -42,10 +42,7 @@ export const ProjectRedirectionRouter = () => {
 	// redirect the user to /${firstProjectId}/sessions.
 	return (
 		<Navigate
-			to={{
-				pathname: redirectTo,
-				search: location.search,
-			}}
+			to={{ pathname: redirectTo, search: location.search }}
 			replace
 		/>
 	)
