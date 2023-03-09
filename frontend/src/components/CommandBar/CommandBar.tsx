@@ -1,9 +1,11 @@
+import { last30Days, now, PRESETS } from '@components/CommandBar/constants'
 import {
 	Attribute,
 	ATTRIBUTES,
 	CommandBarContextProvider,
-	CommandBarSearch,
-	useCommandBarContext,
+	useCommandBarAPI,
+	useCommandBarForm,
+	useCurrentAttribute,
 } from '@components/CommandBar/context'
 import {
 	isErrorAttribute,
@@ -28,153 +30,73 @@ import {
 	IconSolidXCircle,
 	Tag,
 	Text,
-	useFormState,
 } from '@highlight-run/ui'
 import { PreviousDateRangePicker } from '@highlight-run/ui/src/components/DatePicker/PreviousDateRangePicker'
+import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { isInsideElement } from '@util/dom'
 import { Dialog } from 'ariakit/dialog'
-import { FormState } from 'ariakit/form'
 import isEqual from 'lodash/isEqual'
-import moment from 'moment'
-import React, { useRef, useState } from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
+import React, { useRef } from 'react'
 
 import * as styles from './style.css'
 
-const now = moment().startOf('day')
-
-const last30Days = {
-	startDate: now.clone().subtract(30, 'days').toDate(),
-	label: 'Last 30 days',
-}
-
-const PRESETS = [
-	{
-		startDate: now.clone().subtract(60, 'minutes').toDate(),
-		label: 'Last 60 minutes',
-	},
-	{
-		startDate: now.clone().subtract(24, 'hours').toDate(),
-		label: 'Last 24 hours',
-	},
-	{
-		startDate: now.clone().subtract(7, 'days').toDate(),
-		label: 'Last 7 days',
-	},
-	last30Days,
-	{
-		startDate: now.clone().subtract(90, 'days').toDate(),
-		label: 'Last 90 days',
-	},
-	{
-		startDate: now.clone().subtract(1, 'y').toDate(),
-		label: 'Last year',
-	},
-]
-
 const CommandBar = () => {
-	const { commandBarDialog } = useGlobalContext()
-	const form = useFormState<CommandBarSearch>({
-		defaultValues: {
-			search: '',
-			selectedDates: [last30Days.startDate, moment().toDate()],
-		},
-	})
-
-	const containerRef = useRef<HTMLDivElement>(null)
-	const query = form.getValue<string>(form.names.search)
-	const selectedDates = form.getValue<[Date, Date]>(form.names.selectedDates)
-	const [currentAttribute, setCurrentAttributeImpl] = useState<Attribute>(
-		ATTRIBUTES[0],
-	)
-
-	const setCurrentAttribute = (row: Attribute) => setCurrentAttributeImpl(row)
-
-	const searchAttribute = useAttributeSearch(form)
-
-	form.useSubmit(() => {
-		if (query) {
-			searchAttribute(currentAttribute, {
-				withDate:
-					selectedDates[0].getTime() !==
-					last30Days.startDate.getTime(),
-			})
-		}
-	})
-
-	useHotkeys(
-		'cmd+k, ctrl+k, /',
-		(e) => {
-			e.preventDefault()
-			form.reset()
-			setCurrentAttribute(ATTRIBUTES[0])
-			commandBarDialog.toggle()
-		},
-		[],
-	)
-	useHotkeys('esc', commandBarDialog.hide, [])
-
-	useHotkeys(
-		'up',
-		() => {
-			setCurrentAttribute(nextAttribute(currentAttribute, 'prev'))
-		},
-		[currentAttribute],
-	)
-
-	useHotkeys(
-		'down',
-		() => {
-			setCurrentAttribute(nextAttribute(currentAttribute, 'next'))
-		},
-		[currentAttribute],
-	)
-
 	return (
-		<CommandBarContextProvider
-			value={{
-				currentAttribute,
-				setCurrentAttribute,
-				form,
-			}}
-		>
-			<Dialog
-				state={commandBarDialog}
-				className={styles.dialog}
-				onClick={(e) => {
-					if (!isInsideElement(e.nativeEvent, containerRef.current)) {
-						commandBarDialog.hide()
-					}
-				}}
-			>
-				<Box
-					display="flex"
-					alignItems="center"
-					justifyContent="center"
-					ref={containerRef}
-					background="white"
-					borderRadius="8"
-					flexDirection="column"
-					cssClass={styles.container}
-					position="absolute"
-				>
-					<SearchBar form={form} />
-
-					{!!query ? (
-						<>
-							<SessionOptions />
-							<ErrorOptions />
-							<CommandBarHelp />
-						</>
-					) : null}
-				</Box>
-			</Dialog>
+		<CommandBarContextProvider>
+			<CommandBarBox />
 		</CommandBarContextProvider>
 	)
 }
 
-const SearchBar = ({ form }: { form: FormState<CommandBarSearch> }) => {
+const CommandBarBox = () => {
+	const containerRef = useRef<HTMLDivElement>(null)
+	const { setTouched } = useCommandBarAPI()
+
+	const { commandBarDialog } = useGlobalContext()
+	return (
+		<Dialog
+			state={commandBarDialog}
+			className={styles.dialog}
+			onClick={(e) => {
+				if (!isInsideElement(e.nativeEvent, containerRef.current)) {
+					setTouched(false)
+					commandBarDialog.hide()
+				}
+			}}
+		>
+			<Box
+				display="flex"
+				alignItems="center"
+				justifyContent="center"
+				ref={containerRef}
+				background="white"
+				borderRadius="8"
+				flexDirection="column"
+				cssClass={styles.container}
+				position="absolute"
+			>
+				<SearchBar />
+				<SearchOptions />
+			</Box>
+		</Dialog>
+	)
+}
+const SearchOptions = () => {
+	const form = useCommandBarForm()
+	const query = form.getValue<string>(form.names.search)
+	if (!query) return null
+	return (
+		<>
+			<SessionOptions />
+			<ErrorOptions />
+			<CommandBarHelp />
+		</>
+	)
+}
+
+const SearchBar = () => {
+	const form = useCommandBarForm()
 	const query = form.getValue<string>(form.names.search)
 	const selectedDates = form.getValue<Date[]>(form.names.selectedDates)
 
@@ -182,8 +104,38 @@ const SearchBar = ({ form }: { form: FormState<CommandBarSearch> }) => {
 	const isDirty =
 		!!query || selectedDates[0].getTime() !== last30Days.startDate.getTime()
 
-	const { currentAttribute, setCurrentAttribute } = useCommandBarContext()
 	const searchAttribute = useAttributeSearch(form)
+
+	const currentAttribute = useCurrentAttribute()
+	const { setCurrentAttribute } = useCommandBarAPI()
+
+	useHTMLElementEvent(inputRef.current, 'keydown', (e) => {
+		if (!query) return
+
+		if (e.code === 'ArrowDown' || e.code === 'ArrowUp') {
+			e.preventDefault()
+			setCurrentAttribute(
+				nextAttribute(
+					currentAttribute,
+					e.code === 'ArrowUp' ? 'prev' : 'next',
+				),
+			)
+		}
+
+		if (e.code === 'Enter') {
+			e.preventDefault()
+			if (e.metaKey || e.ctrlKey) {
+				searchAttribute(currentAttribute, {
+					newTab: true,
+					withDate:
+						selectedDates[0].getTime() !==
+						last30Days.startDate.getTime(),
+				})
+			} else {
+				form.submit()
+			}
+		}
+	})
 
 	return (
 		<Box p="8" display="flex" alignItems="center" width="full">
@@ -207,36 +159,7 @@ const SearchBar = ({ form }: { form: FormState<CommandBarSearch> }) => {
 							width="full"
 							ref={inputRef}
 							autoComplete="off"
-							onKeyDown={(e) => {
-								if (!query) return
-								if (
-									e.code === 'ArrowDown' ||
-									e.code === 'ArrowUp'
-								) {
-									e.preventDefault()
-									setCurrentAttribute(
-										nextAttribute(
-											currentAttribute,
-											e.code === 'ArrowUp'
-												? 'prev'
-												: 'next',
-										),
-									)
-								}
-								if (e.code === 'Enter') {
-									e.preventDefault()
-									if (e.metaKey || e.ctrlKey) {
-										searchAttribute(currentAttribute, {
-											newTab: true,
-											withDate:
-												selectedDates[0].getTime() !==
-												last30Days.startDate.getTime(),
-										})
-									} else {
-										form.submit()
-									}
-								}
-							}}
+							autoFocus
 						/>
 						{isDirty ? (
 							<IconSolidXCircle
@@ -284,8 +207,9 @@ const SectionRow = ({
 	icon?: React.ReactElement<IconProps>
 	attribute: Attribute
 }) => {
-	const { currentAttribute, setCurrentAttribute, form } =
-		useCommandBarContext()
+	const { setCurrentAttribute, setTouched } = useCommandBarAPI()
+	const currentAttribute = useCurrentAttribute()
+	const form = useCommandBarForm()
 	const selected = isEqual(currentAttribute, attribute)
 	const searchAttribute = useAttributeSearch(form)
 
@@ -304,9 +228,11 @@ const SectionRow = ({
 				},
 			]}
 			onMouseMove={() => {
+				setTouched(true)
 				setCurrentAttribute(attribute)
 			}}
 			onClick={(e) => {
+				setTouched(true)
 				searchAttribute(attribute, {
 					withDate:
 						form.getValue(form.names.selectedDates)[0].getTime() !==

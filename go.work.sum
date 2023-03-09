@@ -95,10 +95,10 @@ github.com/hashicorp/vault/api v1.1.0 h1:QcxC7FuqEl0sZaIjcXB/kNEeBa0DH5z57qbWBvZ
 github.com/hashicorp/vault/sdk v0.1.14-0.20200519221838-e0cfd64bc267 h1:e1ok06zGrWJW91rzRroyl5nRNqraaBe4d5hiKcVZuHM=
 github.com/highlight/highlight v0.7.0 h1:GGJhg9XSyG9RIlBwyEcUDJOCRp01lewVdvYxwBJW52c=
 github.com/highlight/highlight v0.7.0/go.mod h1:MbXfqlrLhXpi6xEEu8WXrlNaG2pKdlS/y28UjyQm9rI=
-github.com/highlight/highlight/sdk/highlight-go v0.9.1/go.mod h1:VhowtuXaYBYDugF6LAAftX31TraMIHenvA0BFxPdn3c=
 github.com/hpcloud/tail v1.0.0 h1:nfCOvKYfkgYP8hkirhJocXT2+zOD8yUNjXaWfTlyFKI=
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639 h1:mV02weKRL81bEnm8A0HT1/CAelMQDBuQIfLw8n+d6xI=
 github.com/imdario/mergo v0.3.5 h1:JboBksRwiiAJWvIYJVo46AfV+IAIKZpfrSzVKj42R4Q=
+github.com/imdario/mergo v0.3.12 h1:b6R2BslTbIEToALKP7LxUvijTsNI9TAe80pLWN2g/HU=
 github.com/jackc/chunkreader v1.0.0 h1:4s39bBR8ByfqH+DKm8rQA3E1LHZWB9XWcrz8fqaZbe0=
 github.com/jackc/pgproto3 v1.1.0 h1:FYYE4yRw+AgI8wXIinMlNjBbp/UitDJwfj5LqqewP1A=
 github.com/jackc/puddle v1.2.0 h1:DNDKdn/pDrWvDWyT2FYvpZVE81OAhWrjCv19I9n108Q=
