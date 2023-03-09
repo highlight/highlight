@@ -1,5 +1,3 @@
-import { CircularSpinner } from '@components/Loading/Loading'
-import { GetLogsQuery } from '@graph/operations'
 import { LogLevel as LogLevelType } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
 import {
@@ -13,7 +11,6 @@ import { LogDetails } from '@pages/LogsPage/LogsTable/LogDetails'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
-import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
 import {
 	ColumnDef,
 	ExpandedState,
@@ -24,24 +21,24 @@ import {
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
-import React, { Fragment, useEffect, useMemo, useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 
 import * as styles from './LogsTable.css'
 
 type Props = {
-	loading: boolean
 	loadingAfter: boolean
-	data: GetLogsQuery | undefined
+	logEdges: LogEdge[]
 	query: string
 	tableContainerRef: React.RefObject<HTMLDivElement>
+	selectedCursor: string | undefined
 }
 
 export const LogsTable = ({
-	data,
-	loading,
+	logEdges,
 	loadingAfter,
 	query,
 	tableContainerRef,
+	selectedCursor,
 }: Props) => {
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
@@ -94,12 +91,6 @@ export const LogsTable = ({
 		[query],
 	)
 
-	let logEdges: LogEdge[] = useMemo(() => [], [])
-
-	if (data?.logs?.edges) {
-		logEdges = data.logs.edges
-	}
-
 	const table = useReactTable({
 		data: logEdges,
 		columns,
@@ -134,31 +125,20 @@ export const LogsTable = ({
 		table.toggleAllRowsExpanded(false)
 	}, [logEdges, table])
 
-	if (loading) {
-		return (
-			<Box
-				display="flex"
-				flexGrow={1}
-				alignItems="center"
-				justifyContent="center"
-			>
-				<CircularSpinner />
-			</Box>
+	useEffect(() => {
+		const foundRow = rows.find(
+			(row) => row.original.cursor === selectedCursor,
 		)
-	}
 
-	if (logEdges.length === 0) {
-		return (
-			<Box
-				display="flex"
-				flexGrow={1}
-				alignItems="center"
-				justifyContent="center"
-			>
-				<NoLogsFound />
-			</Box>
-		)
-	}
+		if (foundRow) {
+			rowVirtualizer.scrollToIndex(foundRow.index, {
+				align: 'start',
+				behavior: 'smooth',
+			})
+		}
+		// Only run when the component mounts
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	return (
 		<div style={{ height: `${totalSize}px`, position: 'relative' }}>
@@ -190,6 +170,14 @@ export const LogsTable = ({
 									</Fragment>
 								)
 							})}
+
+							{/* TODO(et) - Wire this up with react-table's expanded state
+							    Currently, it seems non-trivial and we may have to possibly manage the state using `manualExpanding
+								https://tanstack.com/table/v8/docs/api/features/expanding?from=reactTableV7&original=https://react-table-v7.tanstack.com/docs/api/useExpanded#manualexpanding
+							*/}
+							{selectedCursor === row.original.cursor && (
+								<>Selected</>
+							)}
 						</Stack>
 
 						<LogDetails row={row} />

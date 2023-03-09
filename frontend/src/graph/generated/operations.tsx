@@ -3967,6 +3967,8 @@ export type GetLogsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.LogsParamsInput
 	after?: Types.Maybe<Types.Scalars['String']>
+	before?: Types.Maybe<Types.Scalars['String']>
+	at?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
@@ -3987,7 +3989,7 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 		>
 		pageInfo: { __typename?: 'PageInfo' } & Pick<
 			Types.PageInfo,
-			'hasNextPage' | 'endCursor'
+			'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
 		>
 	}
 }

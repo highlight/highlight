@@ -1869,8 +1869,20 @@ query GetEmailOptOuts($token: String, $admin_id: ID) {
 	email_opt_outs(token: $token, admin_id: $admin_id)
 }
 
-query GetLogs($project_id: ID!, $params: LogsParamsInput!, $after: String) {
-	logs(project_id: $project_id, params: $params, after: $after) {
+query GetLogs(
+	$project_id: ID!
+	$params: LogsParamsInput!
+	$after: String
+	$before: String
+	$at: String
+) {
+	logs(
+		project_id: $project_id
+		params: $params
+		after: $after
+		before: $before
+		at: $at
+	) {
 		edges {
 			cursor
 			node {
@@ -1885,6 +1897,8 @@ query GetLogs($project_id: ID!, $params: LogsParamsInput!, $after: String) {
 		}
 		pageInfo {
 			hasNextPage
+			hasPreviousPage
+			startCursor
 			endCursor
 		}
 	}
