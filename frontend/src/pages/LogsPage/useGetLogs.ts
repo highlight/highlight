@@ -1,5 +1,5 @@
 import { useGetLogsLazyQuery } from '@graph/hooks'
-import { LogEdge } from '@graph/schemas'
+import { LogEdge, PageInfo } from '@graph/schemas'
 import { FORMAT } from '@pages/LogsPage/constants'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
@@ -18,7 +18,16 @@ export const useGetLogs = ({
 	endDate: Date
 }) => {
 	const [logEdges, setLogEdges] = useState<LogEdge[]>([])
-	const [windowInfo, setWindowInfo] = useState({
+
+	// The backend can only tell us page info about a single page.
+	// It has no idea what pages have already been loaded.
+	//
+	// For example: say we make the initial request for 100 logs and hasNextPage=true and hasPreviousPage=false
+	// That means that we should not make any requests when going backwards.
+	//
+	// If the user scrolls forward to get the next 100 logs, the server will say that hasPreviousPage is `true` since we're on page 2.
+	// Hence, we track the initial information (where "window" is effectively multiple pages) to ensure we aren't making requests unnecessarily.
+	const [windowInfo, setWindowInfo] = useState<PageInfo>({
 		hasNextPage: false,
 		hasPreviousPage: false,
 		startCursor: '',
