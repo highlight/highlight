@@ -70,11 +70,6 @@ export const AppRouter = () => {
 			return
 		}
 
-		console.log(
-			'::: about_you_details_filled',
-			admin?.about_you_details_filled,
-			admin,
-		)
 		if (
 			admin &&
 			!admin.about_you_details_filled &&
