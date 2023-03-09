@@ -5,7 +5,7 @@ import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'
 import analytics from '@util/analytics'
 import React, { Suspense, useEffect } from 'react'
 import { Helmet } from 'react-helmet'
-import { useLocation, useMatch, useNavigate } from 'react-router-dom'
+import { useLocation, useMatch, useNavigate, useParams } from 'react-router-dom'
 
 import styles from './WorkspaceTabs.module.scss'
 
@@ -36,8 +36,8 @@ export const WorkspaceTabs = () => {
 	const location = useLocation()
 	const navigate = useNavigate()
 
+	const { workspace_id: workspaceId } = useParams<{ workspace_id: string }>()
 	const workspaceMatch = useMatch('/w/:workspace_id/:page_id')
-	const workspaceId = workspaceMatch?.params.workspace_id
 	const pageId = workspaceMatch?.params.page_id as WorkspaceSettingsTab
 
 	useEffect(() => {
