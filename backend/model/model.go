@@ -900,7 +900,8 @@ type ErrorObject struct {
 	SessionID        *int
 	TraceID          *string
 	SpanID           *string
-	ErrorGroupID     int `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
+	LogCursor        *string `gorm:"index:idx_error_object_log_cursor,option:CONCURRENTLY"`
+	ErrorGroupID     int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
 	Event            string
 	Type             string
 	URL              string

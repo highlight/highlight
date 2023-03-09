@@ -3953,6 +3953,15 @@ func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorOb
 	return errorObject, nil
 }
 
+// ErrorObjectForLog is the resolver for the error_object_for_log field.
+func (r *queryResolver) ErrorObjectForLog(ctx context.Context, logCursor string) (*model.ErrorObject, error) {
+	errorObject := &model.ErrorObject{}
+	if err := r.DB.Where(&model.ErrorObject{LogCursor: pointy.String(logCursor)}).First(&errorObject).Error; err != nil {
+		return nil, e.Wrap(err, "error reading error object")
+	}
+	return errorObject, nil
+}
+
 // ErrorInstance is the resolver for the error_instance field.
 func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int) (*model.ErrorInstance, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, true)

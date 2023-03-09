@@ -1044,6 +1044,13 @@ query GetErrorGroup($secure_id: String!) {
 	}
 }
 
+query GetErrorObjectForLog($log_cursor: String!) {
+	error_object_for_log(log_cursor: $log_cursor) {
+		id
+		error_group_secure_id
+	}
+}
+
 query GetErrorObject($id: ID!) {
 	error_object(id: $id) {
 		id

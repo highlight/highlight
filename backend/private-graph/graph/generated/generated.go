@@ -721,6 +721,7 @@ type ComplexityRoot struct {
 		ErrorInstance                func(childComplexity int, errorGroupSecureID string, errorObjectID *int) int
 		ErrorIssue                   func(childComplexity int, errorGroupSecureID string) int
 		ErrorObject                  func(childComplexity int, id int) int
+		ErrorObjectForLog            func(childComplexity int, logCursor string) int
 		ErrorSegments                func(childComplexity int, projectID int) int
 		Errors                       func(childComplexity int, sessionSecureID string) int
 		ErrorsHistogram              func(childComplexity int, projectID int, query string, histogramOptions model.DateHistogramOptions) int
@@ -1256,6 +1257,7 @@ type QueryResolver interface {
 	ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions model.DateHistogramOptions) (*model1.ErrorsHistogram, error)
 	ErrorGroup(ctx context.Context, secureID string) (*model1.ErrorGroup, error)
 	ErrorObject(ctx context.Context, id int) (*model1.ErrorObject, error)
+	ErrorObjectForLog(ctx context.Context, logCursor string) (*model1.ErrorObject, error)
 	ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int) (*model1.ErrorInstance, error)
 	Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*model.EnhancedUserDetailsResult, error)
@@ -5102,6 +5104,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ErrorObject(childComplexity, args["id"].(int)), true
+
+	case "Query.error_object_for_log":
+		if e.complexity.Query.ErrorObjectForLog == nil {
+			break
+		}
+
+		args, err := ec.field_Query_error_object_for_log_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ErrorObjectForLog(childComplexity, args["log_cursor"].(string)), true
 
 	case "Query.error_segments":
 		if e.complexity.Query.ErrorSegments == nil {
@@ -9013,6 +9027,7 @@ type Query {
 	): ErrorsHistogram!
 	error_group(secure_id: String!): ErrorGroup
 	error_object(id: ID!): ErrorObject
+	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(
 		error_group_secure_id: String!
 		error_object_id: ID
@@ -12939,6 +12954,21 @@ func (ec *executionContext) field_Query_error_object_args(ctx context.Context, r
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_error_object_for_log_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["log_cursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("log_cursor"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["log_cursor"] = arg0
 	return args, nil
 }
 
@@ -35683,6 +35713,101 @@ func (ec *executionContext) fieldContext_Query_error_object(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_error_object_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_error_object_for_log(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_error_object_for_log(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorObjectForLog(rctx, fc.Args["log_cursor"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.ErrorObject)
+	fc.Result = res
+	return ec.marshalOErrorObject2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_error_object_for_log(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ErrorObject_id(ctx, field)
+			case "created_at":
+				return ec.fieldContext_ErrorObject_created_at(ctx, field)
+			case "project_id":
+				return ec.fieldContext_ErrorObject_project_id(ctx, field)
+			case "session_id":
+				return ec.fieldContext_ErrorObject_session_id(ctx, field)
+			case "error_group_id":
+				return ec.fieldContext_ErrorObject_error_group_id(ctx, field)
+			case "error_group_secure_id":
+				return ec.fieldContext_ErrorObject_error_group_secure_id(ctx, field)
+			case "event":
+				return ec.fieldContext_ErrorObject_event(ctx, field)
+			case "type":
+				return ec.fieldContext_ErrorObject_type(ctx, field)
+			case "url":
+				return ec.fieldContext_ErrorObject_url(ctx, field)
+			case "source":
+				return ec.fieldContext_ErrorObject_source(ctx, field)
+			case "lineNumber":
+				return ec.fieldContext_ErrorObject_lineNumber(ctx, field)
+			case "columnNumber":
+				return ec.fieldContext_ErrorObject_columnNumber(ctx, field)
+			case "stack_trace":
+				return ec.fieldContext_ErrorObject_stack_trace(ctx, field)
+			case "structured_stack_trace":
+				return ec.fieldContext_ErrorObject_structured_stack_trace(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ErrorObject_timestamp(ctx, field)
+			case "payload":
+				return ec.fieldContext_ErrorObject_payload(ctx, field)
+			case "request_id":
+				return ec.fieldContext_ErrorObject_request_id(ctx, field)
+			case "os":
+				return ec.fieldContext_ErrorObject_os(ctx, field)
+			case "browser":
+				return ec.fieldContext_ErrorObject_browser(ctx, field)
+			case "environment":
+				return ec.fieldContext_ErrorObject_environment(ctx, field)
+			case "session":
+				return ec.fieldContext_ErrorObject_session(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_error_object_for_log_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -60439,6 +60564,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_error_object(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "error_object_for_log":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_error_object_for_log(ctx, field)
 				return res
 			}
 
