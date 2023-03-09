@@ -1715,7 +1715,7 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 	}
 
 	frontendURL := os.Getenv("FRONTEND_URI")
-	errorURL := fmt.Sprintf("%s/%d/errors/%s", frontendURL, obj.ProjectID, input.Group.SecureID)
+	errorURL := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
 
 	for _, email := range emailsToNotify {
@@ -2317,6 +2317,8 @@ type SendSlackAlertInput struct {
 	UserObject JSONB
 	// Group is a required parameter for Error alerts
 	Group *ErrorGroup
+	// ErrorObject is a required parameter for Error alerts
+	ErrorObject *ErrorObject
 	// URL is an optional parameter for Error alerts
 	URL *string
 	// ErrorsCount is a required parameter for Error alerts

@@ -1902,7 +1902,7 @@ func (r *Resolver) isWithinBillingQuota(ctx context.Context, project *model.Proj
 	return quotaPercent < 1, quotaPercent
 }
 
-func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, visitedUrl string) {
+func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorObject *model.ErrorObject, visitedUrl string) {
 	r.AlertWorkerPool.SubmitRecover(func() {
 		var errorAlerts []*model.ErrorAlert
 		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
@@ -2031,17 +2031,18 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			}
 
 			if err := alerts.SendErrorAlert(alerts.SendErrorAlertEvent{
-				Session:    sessionObj,
-				ErrorAlert: errorAlert,
-				ErrorGroup: group,
-				Workspace:  workspace,
-				ErrorCount: numErrors,
-				VisitedURL: visitedUrl,
+				Session:     sessionObj,
+				ErrorAlert:  errorAlert,
+				ErrorGroup:  group,
+				ErrorObject: errorObject,
+				Workspace:   workspace,
+				ErrorCount:  numErrors,
+				VisitedURL:  visitedUrl,
 			}); err != nil {
 				log.WithContext(ctx).Error(err)
 			}
 
-			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
+			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, ErrorObject: errorObject, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
 		}
 	})
 }
@@ -2392,8 +2393,10 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
 	}
 
-	for _, data := range groups {
-		r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, data.VisitedURL)
+	for _, errorInstances := range groupedErrors {
+		instance := errorInstances[len(errorInstances)-1]
+		data := groups[instance.ErrorGroupID]
+		r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
 	}
 
 	influxSpan := tracer.StartSpan("public-graph.recordErrorGroupMetrics", tracer.ChildOf(putErrorsToDBSpan.Context()),
@@ -2888,8 +2891,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 		influxSpan.Finish()
 
-		for _, data := range groups {
-			r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, data.VisitedURL)
+		for _, errorInstances := range groupedErrors {
+			instance := errorInstances[len(errorInstances)-1]
+			data := groups[instance.ErrorGroupID]
+			r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
 		}
 
 		putErrorsToDBSpan.Finish()
