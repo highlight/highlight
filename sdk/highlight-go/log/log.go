@@ -132,6 +132,11 @@ func (p *Printer) WithRequest(requestID string) *Printer {
 	return p
 }
 
+func (p *Printer) WithTag(key, value string) *Printer {
+	p.Tags = append(p.Tags, attribute.String(key, value))
+	return p
+}
+
 func (p *Printer) Trace(message string) {
 	p.log(TraceLevel, message)
 }
@@ -170,6 +175,11 @@ func WithSession(sessionID string) *Printer {
 func WithRequest(requestID string) *Printer {
 	p := &Printer{}
 	return p.WithRequest(requestID)
+}
+
+func WithTag(key, value string) *Printer {
+	p := &Printer{}
+	return p.WithTag(key, value)
 }
 
 func Trace(message string) {
