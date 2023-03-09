@@ -36,10 +36,6 @@ type Props = {
 	selectedCursor: string | undefined
 }
 
-function easeInOutQuint(t: number) {
-	return t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * --t * t * t * t * t
-}
-
 export const LogsTable = ({
 	logEdges,
 	loading,
@@ -204,6 +200,11 @@ export const LogsTable = ({
 									</Fragment>
 								)
 							})}
+
+							{/* TODO(et) - Wire this up with react-table's expanded state
+							    Currently, it seems non-trivial and we may have to possibly manage the state using `manualExpanding
+								https://tanstack.com/table/v8/docs/api/features/expanding?from=reactTableV7&original=https://react-table-v7.tanstack.com/docs/api/useExpanded#manualexpanding
+							*/}
 							{selectedCursor === row.original.cursor && (
 								<>Selected</>
 							)}
