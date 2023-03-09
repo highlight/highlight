@@ -3956,8 +3956,8 @@ func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorOb
 // ErrorObjectForLog is the resolver for the error_object_for_log field.
 func (r *queryResolver) ErrorObjectForLog(ctx context.Context, logCursor string) (*model.ErrorObject, error) {
 	errorObject := &model.ErrorObject{}
-	if err := r.DB.Where(&model.ErrorObject{LogCursor: pointy.String(logCursor)}).First(&errorObject).Error; err != nil {
-		return nil, e.Wrap(err, "error reading error object")
+	if err := r.DB.Order("log_cursor").Model(&errorObject).Where(&model.ErrorObject{LogCursor: pointy.String(logCursor)}).Limit(1).Find(&errorObject).Error; err != nil || errorObject.ID == 0 {
+		return nil, e.Wrapf(err, "no error found for log cursor %s", logCursor)
 	}
 	return errorObject, nil
 }
