@@ -169,10 +169,7 @@ export const LogDetails = ({ row }: Props) => {
 							emphasis="medium"
 							onClick={(e) => {
 								e.stopPropagation()
-								navigate(
-									`/errors/logs/${row.original.cursor}`,
-									{ replace: true },
-								)
+								navigate(`/errors/logs/${row.original.cursor}`)
 							}}
 						>
 							<Box

@@ -1,10 +1,6 @@
 import { useGetErrorObjectForLogQuery } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
-import React, { useEffect } from 'react'
-import {
-	AppLoadingState,
-	useAppLoadingContext,
-} from '@context/AppLoadingContext'
+import React from 'react'
 import { Navigate } from 'react-router'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 
@@ -12,20 +8,11 @@ const ErrorLogCursorRedirect: React.FC = () => {
 	const { cursor_id: logCursor } = useParams<{
 		cursor_id: string
 	}>() as { cursor_id: string }
-	const { setLoadingState } = useAppLoadingContext()
 
 	const { loading, data, error } = useGetErrorObjectForLogQuery({
 		variables: { log_cursor: logCursor! },
 		skip: !logCursor,
 	})
-
-	useEffect(() => {
-		if (loading) {
-			setLoadingState(AppLoadingState.LOADING)
-		} else {
-			setLoadingState(AppLoadingState.LOADED)
-		}
-	}, [loading, setLoadingState])
 
 	if (loading) {
 		return null
