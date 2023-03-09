@@ -6,7 +6,7 @@ import {
 	ERROR_TYPE,
 } from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import { SESSION_TYPE } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
-import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { createContext } from '@util/context/context'
 import { validateEmail } from '@util/string'
 import { FormState } from 'ariakit/form'
