@@ -1,60 +1,87 @@
-import { useGetLogsQuery } from '@graph/hooks'
+import { CircularSpinner } from '@components/Loading/Loading'
 import { LogLevel } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
 import {
 	fifteenMinutesAgo,
-	FORMAT,
 	now,
 	PRESETS,
 	thirtyDaysAgo,
+	TIME_MODE,
 } from '@pages/LogsPage/constants'
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
+import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
+import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
-import moment from 'moment'
-import React, { useRef, useState } from 'react'
+import React, { useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import {
 	DateTimeParam,
+	QueryParamConfig,
 	StringParam,
 	useQueryParam,
 	withDefault,
 } from 'use-query-params'
 
 const QueryParam = withDefault(StringParam, '')
-const StartDateParam = withDefault(DateTimeParam, fifteenMinutesAgo)
+const FixedRangeStartDateParam = withDefault(DateTimeParam, fifteenMinutesAgo)
+const PermalinkStartDateParam = withDefault(DateTimeParam, thirtyDaysAgo)
 const EndDateParam = withDefault(DateTimeParam, now.toDate())
 
 const LogsPage = () => {
+	const { log_cursor } = useParams<{
+		log_cursor: string
+	}>()
+
+	const timeMode = log_cursor !== undefined ? 'permalink' : 'fixed-range'
+	const startDateDefault =
+		timeMode === 'permalink'
+			? PermalinkStartDateParam
+			: FixedRangeStartDateParam
+
+	return (
+		<LogsPageInner
+			logCursor={log_cursor}
+			timeMode={timeMode}
+			startDateDefault={startDateDefault}
+		/>
+	)
+}
+
+type Props = {
+	timeMode: TIME_MODE
+	logCursor: string | undefined
+	startDateDefault: QueryParamConfig<Date | null | undefined, Date>
+}
+
+const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const [startDate, setStartDate] = useQueryParam(
 		'start_date',
-		StartDateParam,
+		startDateDefault,
 	)
 
 	const tableContainerRef = useRef<HTMLDivElement>(null)
 
 	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
 
-	const [loadingAfter, setLoadingAfter] = useState(false)
-	const { data, loading, fetchMore } = useGetLogsQuery({
-		variables: {
-			project_id: project_id!,
-			params: {
-				query,
-				date_range: {
-					start_date: moment(startDate).format(FORMAT),
-					end_date: moment(endDate).format(FORMAT),
-				},
-			},
-		},
-		skip: !project_id,
-		fetchPolicy: 'cache-and-network',
+	const {
+		logEdges,
+		loading,
+		loadingAfter,
+		fetchMoreForward,
+		fetchMoreBackward,
+	} = useGetLogs({
+		query,
+		project_id,
+		logCursor,
+		startDate,
+		endDate,
 	})
 
 	const handleFormSubmit = (value: string) => {
@@ -74,39 +101,20 @@ const LogsPage = () => {
 		setQuery(`level:${String(level).toLowerCase()}`)
 	}
 
-	const fetchMoreOnBottomReached = React.useCallback(
+	const fetchMoreWhenScrolled = React.useCallback(
 		(containerRefElement?: HTMLDivElement | null) => {
 			if (containerRefElement) {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
 				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
 				if (scrollHeight - scrollTop - clientHeight < 100) {
-					const pageInfo = data?.logs.pageInfo
-
-					if (pageInfo && pageInfo.hasNextPage) {
-						setLoadingAfter(true)
-						fetchMore({
-							variables: {
-								project_id: project_id!,
-								params: {
-									query,
-									date_range: {
-										start_date:
-											moment(startDate).format(FORMAT),
-										end_date:
-											moment(endDate).format(FORMAT),
-									},
-								},
-								after: pageInfo.endCursor,
-							},
-						}).finally(() => {
-							setLoadingAfter(false)
-						})
-					}
+					fetchMoreForward()
+				} else if (scrollTop === 0) {
+					fetchMoreBackward()
 				}
 			}
 		},
-		[data?.logs.pageInfo, endDate, fetchMore, project_id, query, startDate],
+		[fetchMoreForward, fetchMoreBackward],
 	)
 
 	return (
@@ -138,6 +146,7 @@ const LogsPage = () => {
 						onDatesChange={handleDatesChange}
 						presets={PRESETS}
 						minDate={thirtyDaysAgo}
+						timeMode={timeMode}
 					/>
 					<LogsHistogram
 						query={query}
@@ -159,17 +168,40 @@ const LogsPage = () => {
 						pb="12"
 						overflowY="scroll"
 						onScroll={(e) =>
-							fetchMoreOnBottomReached(e.target as HTMLDivElement)
+							fetchMoreWhenScrolled(e.target as HTMLDivElement)
 						}
 						ref={tableContainerRef}
 					>
-						<LogsTable
-							data={data}
-							loading={loading}
-							loadingAfter={loadingAfter}
-							query={query}
-							tableContainerRef={tableContainerRef}
-						/>
+						{loading && (
+							<Box
+								display="flex"
+								flexGrow={1}
+								alignItems="center"
+								justifyContent="center"
+							>
+								<CircularSpinner />
+							</Box>
+						)}
+						{logEdges.length === 0 && (
+							<Box
+								display="flex"
+								flexGrow={1}
+								alignItems="center"
+								justifyContent="center"
+							>
+								<NoLogsFound />
+							</Box>
+						)}
+						{/** Pagination smooth scrolling does not work without this guard. */}
+						{logEdges.length > 0 && (
+							<LogsTable
+								logEdges={logEdges}
+								loadingAfter={loadingAfter}
+								query={query}
+								tableContainerRef={tableContainerRef}
+								selectedCursor={logCursor}
+							/>
+						)}
 					</Box>
 				</Box>
 			</Box>

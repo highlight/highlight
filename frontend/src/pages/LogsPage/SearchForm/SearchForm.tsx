@@ -17,7 +17,7 @@ import {
 	useFormState,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { FORMAT } from '@pages/LogsPage/constants'
+import { FORMAT, TIME_MODE } from '@pages/LogsPage/constants'
 import {
 	BODY_KEY,
 	LogsSearchParam,
@@ -38,6 +38,7 @@ type Props = {
 	onDatesChange: (startDate: Date, endDate: Date) => void
 	presets: Preset[]
 	minDate: Date
+	timeMode: TIME_MODE
 }
 
 const MAX_ITEMS = 10
@@ -50,6 +51,7 @@ const SearchForm = ({
 	onFormSubmit,
 	presets,
 	minDate,
+	timeMode,
 }: Props) => {
 	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
 
@@ -97,6 +99,7 @@ const SearchForm = ({
 						onDatesChange={handleDatesChange}
 						presets={presets}
 						minDate={minDate}
+						disabled={timeMode === 'permalink'}
 					/>
 				</Box>
 			</Box>

@@ -51,7 +51,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 
 			{isLoggedIn ? (
 				<>
-					<Route path="logs/*" element={<LogsPage />} />
+					<Route path="logs/:log_cursor?" element={<LogsPage />} />
 					<Route
 						path="settings/:tab?"
 						element={<ProjectSettings />}

@@ -44,3 +44,5 @@ export const COLOR_MAPPING: {
 	FATAL: 'bad',
 	TRACE: 'strong',
 }
+
+export type TIME_MODE = 'fixed-range' | 'permalink'

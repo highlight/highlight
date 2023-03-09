@@ -39,6 +39,23 @@ func makeDateWithinRange(now time.Time) *modelInputs.DateRangeRequiredInput {
 	}
 }
 
+func assertCursorsOutput(t *testing.T, edges []*modelInputs.LogEdge, expectedCursor string) {
+	allCursorsUnique := make(map[string]struct{})
+	for _, edge := range edges {
+		_, ok := allCursorsUnique[edge.Cursor]
+		if ok {
+			assert.Fail(t, "Cursors are not unique")
+		} else {
+			allCursorsUnique[edge.Cursor] = struct{}{}
+		}
+	}
+
+	_, ok := allCursorsUnique[expectedCursor]
+	if !ok {
+		assert.Fail(t, "Expected cursor is not in the returned output")
+	}
+}
+
 func TestReadLogsWithTimeQuery(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)
@@ -75,6 +92,30 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Len(t, payload.Edges, 1)
+}
+
+func TestReadLogsTotalCount(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+	rows := []*LogRow{
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	count, err := client.ReadLogsTotalCount(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, uint64(1), count)
 }
 
 func TestReadLogsHistogram(t *testing.T) {
@@ -403,42 +444,54 @@ func TestReadLogsAtCursor(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	connection, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	// Load the initial page with no pagination
+	originalConnection, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{})
 	assert.NoError(t, err)
 
-	assert.Len(t, connection.Edges, 100)
+	assert.Len(t, originalConnection.Edges, 100)
 
-	middleLog := connection.Edges[49]
-
-	connection, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	// Permalink the log in the middle ensuring there is a previous and next page
+	permalink := originalConnection.Edges[51]
+	connection, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{
-		At: ptr.String(middleLog.Cursor),
+		At: ptr.String(permalink.Cursor),
 	})
 	assert.NoError(t, err)
 
 	assert.Len(t, connection.Edges, 101) // 50 before + 50 after + the permalinked log
-	assert.True(t, connection.PageInfo.HasPreviousPage, true)
-	assert.True(t, connection.PageInfo.HasNextPage, true)
+	assert.Equal(t, connection.Edges[50], permalink)
+	assert.True(t, connection.PageInfo.HasPreviousPage)
+	assert.True(t, connection.PageInfo.HasNextPage)
+	assertCursorsOutput(t, connection.Edges, permalink.Cursor)
 
-	allCursorsUnique := make(map[string]struct{})
+	// Permalink the log before the middle ensuring there is not a previous page but has a next page
+	permalink = originalConnection.Edges[50]
+	connection, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+	}, Pagination{
+		At: ptr.String(permalink.Cursor),
+	})
 
-	for _, edge := range connection.Edges {
-		_, ok := allCursorsUnique[edge.Cursor]
-		if ok {
-			assert.Fail(t, "Cursors are not unique")
-		} else {
-			allCursorsUnique[edge.Cursor] = struct{}{}
-		}
-	}
+	assert.NoError(t, err)
+	assert.False(t, connection.PageInfo.HasPreviousPage)
+	assert.True(t, connection.PageInfo.HasNextPage)
+	assertCursorsOutput(t, connection.Edges, permalink.Cursor)
 
-	_, ok := allCursorsUnique[middleLog.Cursor]
-	if !ok {
-		assert.Fail(t, "Middle cursor is not in the returned output")
+	// Permalink the log after the middle ensuring there is a previous page but no next page
+	permalink = originalConnection.Edges[52]
+	connection, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+	}, Pagination{
+		At: ptr.String(permalink.Cursor),
+	})
 
-	}
+	assert.NoError(t, err)
+	assert.True(t, connection.PageInfo.HasPreviousPage)
+	assert.False(t, connection.PageInfo.HasNextPage)
+	assertCursorsOutput(t, connection.Edges, permalink.Cursor)
 }
 
 func TestReadLogsWithBodyFilter(t *testing.T) {
