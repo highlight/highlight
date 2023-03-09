@@ -12,12 +12,13 @@ import (
 )
 
 type SendErrorAlertEvent struct {
-	Session    *model.Session
-	ErrorAlert *model.ErrorAlert
-	ErrorGroup *model.ErrorGroup
-	Workspace  *model.Workspace
-	ErrorCount int64
-	VisitedURL string
+	Session     *model.Session
+	ErrorAlert  *model.ErrorAlert
+	ErrorGroup  *model.ErrorGroup
+	ErrorObject *model.ErrorObject
+	Workspace   *model.Workspace
+	ErrorCount  int64
+	VisitedURL  string
 }
 
 func SendErrorAlert(event SendErrorAlertEvent) error {
@@ -30,10 +31,10 @@ func SendErrorAlert(event SendErrorAlertEvent) error {
 		ErrorCount:      event.ErrorCount,
 		ErrorTitle:      errorTitle,
 		UserIdentifier:  event.Session.Identifier,
-		ErrorURL:        getErrorURL(event.ErrorAlert, event.ErrorGroup),
-		ErrorResolveURL: getErrorResolveURL(event.ErrorAlert, event.ErrorGroup),
-		ErrorIgnoreURL:  getErrorIgnoreURL(event.ErrorAlert, event.ErrorGroup),
-		ErrorSnoozeURL:  getErrorSnoozeURL(event.ErrorAlert, event.ErrorGroup),
+		ErrorURL:        getErrorURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),
+		ErrorResolveURL: getErrorResolveURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),
+		ErrorIgnoreURL:  getErrorIgnoreURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),
+		ErrorSnoozeURL:  getErrorSnoozeURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),
 		SessionURL:      getSessionURL(event.ErrorAlert.ProjectID, event.Session),
 		VisitedURL:      event.VisitedURL,
 	}
