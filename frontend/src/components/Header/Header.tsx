@@ -118,8 +118,8 @@ export const Header = () => {
 				<Box
 					display="flex"
 					alignItems="center"
-					px="12"
-					py={isLoggedIn ? '8' : '0'}
+					px={isLoggedIn ? '12' : '8'}
+					py="8"
 					justifyContent="space-between"
 				>
 					{inProjectOrWorkspace ||
