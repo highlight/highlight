@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"gorm.io/gorm"
 	"io"
 	"net/http"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/retryables"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -60,10 +62,11 @@ func GetScript(suffix Script) string {
 }
 
 type Client struct {
-	Client        *opensearch.Client
-	ReadClient    *opensearch.Client
-	BulkIndexer   opensearchutil.BulkIndexer
-	isInitialized bool
+	Client          *opensearch.Client
+	ReadClient      *opensearch.Client
+	BulkIndexer     opensearchutil.BulkIndexer
+	RetryableClient retryables.Client
+	isInitialized   bool
 }
 
 type Aggregation interface {
@@ -189,7 +192,7 @@ type SearchOptions struct {
 	SearchAfter       []interface{}
 }
 
-func NewOpensearchClient() (*Client, error) {
+func NewOpensearchClient(db *gorm.DB) (*Client, error) {
 	client, err := opensearch.NewClient(opensearch.Config{
 		Transport: http.DefaultTransport,
 		Addresses: []string{OpensearchDomain},
@@ -223,11 +226,16 @@ func NewOpensearchClient() (*Client, error) {
 		return nil, e.Wrap(err, "OPENSEARCH_ERROR failed to initialize opensearch bulk indexer")
 	}
 
+	var rClient retryables.Client = &retryables.DummyClient{}
+	if db != nil {
+		rClient = &retryables.RetryableClient{DB: db}
+	}
 	return &Client{
-		Client:        client,
-		ReadClient:    readClient,
-		BulkIndexer:   indexer,
-		isInitialized: true,
+		Client:          client,
+		ReadClient:      readClient,
+		RetryableClient: rClient,
+		BulkIndexer:     indexer,
+		isInitialized:   true,
 	}, nil
 }
 
@@ -257,8 +265,10 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 		},
 		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
 			if err != nil {
+				c.RetryableClient.ReportError(ctx, model.RetryableOpensearchError, item.Index, item.DocumentID, map[string]interface{}{"item.Action": item.Action, "res": res}, err)
 				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
 			} else {
+				c.RetryableClient.ReportError(ctx, model.RetryableOpensearchError, item.Index, item.DocumentID, map[string]interface{}{"item.Action": item.Action, "res": res}, nil)
 				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
 			}
 		},
@@ -300,6 +310,7 @@ func (c *Client) UpdateSynchronous(index Index, id int, obj map[string]interface
 	}
 
 	if res.IsError() {
+		c.RetryableClient.ReportError(context.Background(), model.RetryableOpensearchError, indexStr, documentId, map[string]interface{}{"id": id, "obj": obj, "res": res}, nil)
 		return e.New(
 			fmt.Sprintf(
 				"OPENSEARCH_ERROR (%s : %s) [%d] %s",
@@ -332,8 +343,10 @@ func (c *Client) Delete(index Index, id int) error {
 		RetryOnConflict: pointy.Int(3),
 		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
 			if err != nil {
+				c.RetryableClient.ReportError(ctx, model.RetryableOpensearchError, item.Index, item.DocumentID, map[string]interface{}{"item.Action": item.Action, "res": res}, err)
 				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
 			} else {
+				c.RetryableClient.ReportError(ctx, model.RetryableOpensearchError, item.Index, item.DocumentID, map[string]interface{}{"item.Action": item.Action, "res": res}, nil)
 				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
 			}
 		},
@@ -391,8 +404,10 @@ func (c *Client) Index(index Index, id int64, parentId *int, obj interface{}) er
 		},
 		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
 			if err != nil {
+				c.RetryableClient.ReportError(ctx, model.RetryableOpensearchError, item.Index, item.DocumentID, map[string]interface{}{"item.Action": item.Action, "res": res}, err)
 				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
 			} else {
+				c.RetryableClient.ReportError(ctx, model.RetryableOpensearchError, item.Index, item.DocumentID, map[string]interface{}{"item.Action": item.Action, "res": res}, nil)
 				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
 			}
 		},
@@ -436,8 +451,10 @@ func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fie
 		},
 		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
 			if err != nil {
+				c.RetryableClient.ReportError(ctx, model.RetryableOpensearchError, item.Index, item.DocumentID, map[string]interface{}{"item.Action": item.Action, "res": res}, err)
 				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
 			} else {
+				c.RetryableClient.ReportError(ctx, model.RetryableOpensearchError, item.Index, item.DocumentID, map[string]interface{}{"item.Action": item.Action, "res": res}, nil)
 				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
 			}
 		},

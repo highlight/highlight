@@ -57,7 +57,7 @@ func NewHandlers() *handlers {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error setting up DB"))
 	}
 
-	opensearchClient, err := opensearch.NewOpensearchClient()
+	opensearchClient, err := opensearch.NewOpensearchClient(nil)
 	if err != nil {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error creating opensearch client"))
 	}

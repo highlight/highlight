@@ -24,7 +24,7 @@ func main() {
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating db: %v", err)
 	}
-	opensearchClient, err := opensearch.NewOpensearchClient()
+	opensearchClient, err := opensearch.NewOpensearchClient(nil)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating opensearch client: %v", err)
 	}
