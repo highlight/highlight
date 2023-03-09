@@ -132,6 +132,10 @@ func (p *Printer) WithRequest(requestID string) *Printer {
 	return p
 }
 
+func (p *Printer) Trace(message string) {
+	p.log(TraceLevel, message)
+}
+
 func (p *Printer) Debug(message string) {
 	p.log(DebugLevel, message)
 }
@@ -146,6 +150,11 @@ func (p *Printer) Warn(message string) {
 
 func (p *Printer) Error(message string) {
 	p.log(ErrorLevel, message)
+}
+
+func (p *Printer) Fatal(message string) {
+	p.log(FatalLevel, message)
+	panic(message)
 }
 
 func WithContext(ctx context.Context) *Printer {
@@ -163,6 +172,10 @@ func WithRequest(requestID string) *Printer {
 	return p.WithRequest(requestID)
 }
 
+func Trace(message string) {
+	WithContext(context.TODO()).Trace(message)
+}
+
 func Debug(message string) {
 	WithContext(context.TODO()).Debug(message)
 }
@@ -177,4 +190,8 @@ func Warn(message string) {
 
 func Error(message string) {
 	WithContext(context.TODO()).Error(message)
+}
+
+func Fatal(message string) {
+	WithContext(context.TODO()).Fatal(message)
 }
