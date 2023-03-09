@@ -135,7 +135,9 @@ export const LogsTable = ({
 				align: 'start',
 				behavior: 'smooth',
 			})
+			foundRow.toggleExpanded(true)
 		}
+
 		// Only run when the component mounts
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
@@ -170,14 +172,6 @@ export const LogsTable = ({
 									</Fragment>
 								)
 							})}
-
-							{/* TODO(et) - Wire this up with react-table's expanded state
-							    Currently, it seems non-trivial and we may have to possibly manage the state using `manualExpanding
-								https://tanstack.com/table/v8/docs/api/features/expanding?from=reactTableV7&original=https://react-table-v7.tanstack.com/docs/api/useExpanded#manualexpanding
-							*/}
-							{selectedCursor === row.original.cursor && (
-								<>Selected</>
-							)}
 						</Stack>
 
 						<LogDetails row={row} />
