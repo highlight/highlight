@@ -122,7 +122,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 			</Helmet>
 			<Box
 				background="n2"
-				padding="8"
+				px="8"
 				flex="stretch"
 				justifyContent="stretch"
 				display="flex"

@@ -113,12 +113,12 @@ export const Header = () => {
 		<>
 			<CommandBar />
 			<CommandBarV1 />
-			<Box background="n2" borderBottom="secondary">
+			<Box background="raised">
 				{!!project_id && getBanner(project_id)}
 				<Box
 					display="flex"
 					alignItems="center"
-					px="12"
+					px="8"
 					py={isLoggedIn ? '8' : '0'}
 					justifyContent="space-between"
 				>

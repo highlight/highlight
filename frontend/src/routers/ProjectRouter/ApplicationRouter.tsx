@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import AlertsRouter from '@pages/Alerts/AlertsRouter'
+import LogAlertsRouter from '@pages/Alerts/LogAlert/LogAlertRouter'
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorLogCursorRedirect from '@pages/ErrorsV2/ErrorLogCursor/ErrorLogCursorRedirect'
@@ -30,7 +31,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 		page: errorPage || 1,
 		backendSearchQuery: errorBackendSearchQuery,
 	})
-	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
+	const { isLoggedIn } = useAuthContext()
 
 	return (
 		<Routes>
@@ -57,6 +58,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 						element={<ProjectSettings />}
 					/>
 					<Route path="alerts/*" element={<AlertsRouter />} />
+					<Route path="alerts/logs/*" element={<LogAlertsRouter />} />
 
 					<Route
 						path="setup/*"
