@@ -13,7 +13,9 @@ import {
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
+// import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { parseOptionalJSON } from '@util/string'
+// import { MillisToMinutesAndSeconds } from '@util/time'
 import React, { useLayoutEffect, useMemo, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
@@ -33,11 +35,12 @@ const ErrorsPage = ({
 }) => {
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const location = useLocation()
-	const { errors, state, session, sessionMetadata, isPlayerReady } =
+	const { errors, state, session, sessionMetadata, isPlayerReady, setTime } =
 		useReplayerContext()
 
 	const { setActiveError, setRightPanelView } = usePlayerUIContext()
-	const { setShowRightPanel } = usePlayerConfiguration()
+	const { setShowRightPanel, showPlayerAbsoluteTime } =
+		usePlayerConfiguration()
 
 	const loading = state === ReplayerState.Loading
 
@@ -104,6 +107,9 @@ const ErrorsPage = ({
 								setActiveError(error)
 								setRightPanelView(RightPanelView.Error)
 							}}
+							setTime={setTime}
+							startTime={sessionMetadata.startTime}
+							showPlayerAbsoluteTime={showPlayerAbsoluteTime}
 							searchQuery={filter}
 							current={index === lastActiveErrorIndex}
 						/>
@@ -122,12 +128,23 @@ export enum ErrorCardState {
 interface Props {
 	error: ErrorObject
 	setSelectedError: () => void
+	setTime: (time: number) => void
+	startTime: number
+	showPlayerAbsoluteTime: boolean
 	searchQuery: string
 	current?: boolean
 }
 
 const ErrorRow = React.memo(
-	({ error, setSelectedError, searchQuery, current }: Props) => {
+	({
+		error,
+		setSelectedError,
+		setTime,
+		startTime,
+		showPlayerAbsoluteTime,
+		searchQuery,
+		current,
+	}: Props) => {
 		const body = useMemo(
 			() => parseOptionalJSON(getErrorBody(error.event)),
 			[error.event],
@@ -136,6 +153,11 @@ const ErrorRow = React.memo(
 			const data = parseOptionalJSON(error.payload || '')
 			return data === 'null' ? '' : data
 		}, [error.payload])
+
+		const timestamp = useMemo(() => {
+			return new Date(error.timestamp).getTime() - startTime
+		}, [error.timestamp, startTime])
+
 		return (
 			<Box
 				key={error.id}
@@ -168,6 +190,29 @@ const ErrorRow = React.memo(
 						/>
 					)}
 				</Box>
+				{/* @Julian - can this timestamp tag be arranged nicely into the row? */}
+				{/* Once ready, 'uncomment' imports for playerTimeToSessionAbsoluteTime & MillisToMinutesAndSeconds */}
+				{/* <Box>
+					<Tag
+						shape="basic"
+						kind="secondary"
+						size="medium"
+						style={{
+							marginRight: 'auto',
+							flexShrink: 0,
+						}}
+						onClick={() => {
+							setTime(timestamp)
+						}}
+					>
+						{showPlayerAbsoluteTime
+							? playerTimeToSessionAbsoluteTime({
+									sessionStartTime: startTime,
+									relativeTime: timestamp,
+							  })
+							: MillisToMinutesAndSeconds(timestamp)}
+					</Tag>
+				</Box> */}
 				<Box display="flex" align="center" justifyContent="flex-end">
 					<Text color="n11">
 						{error.structured_stack_trace[0] &&
