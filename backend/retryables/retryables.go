@@ -28,7 +28,9 @@ func (c *RetryableClient) ReportError(ctx context.Context, t model.RetryableType
 		Path:     path,
 		Function: function,
 		Payload:  payload,
-		Error:    e.Error(),
+	}
+	if e != nil {
+		r.Error = e.Error()
 	}
 	if err := c.DB.Create(r).Error; err != nil {
 		log.WithContext(ctx).WithError(err).Error("error writing retryable error")
