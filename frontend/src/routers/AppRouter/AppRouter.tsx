@@ -81,7 +81,6 @@ export const AppRouter = () => {
 			!isVercelIntegrationFlow &&
 			!isInvitePage
 		) {
-			console.log('::: redirected /about_you')
 			navigate('/about_you', { replace: true })
 			return
 		}
