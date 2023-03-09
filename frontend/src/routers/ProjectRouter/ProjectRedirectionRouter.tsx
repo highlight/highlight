@@ -26,8 +26,15 @@ export const ProjectRedirectionRouter = () => {
 		return <p>{'App error: ' + JSON.stringify(error)}</p>
 	}
 
-	if (!data?.projects?.length || !admin) {
+	if (loading || !admin) {
 		return null
+	}
+
+	let redirectTo
+	if (data?.projects?.length) {
+		redirectTo = `/${data!.projects[0]!.id}${location.pathname}`
+	} else {
+		redirectTo = '/new'
 	}
 
 	// Redirects the user to their default project when the URL does not have an
@@ -36,7 +43,7 @@ export const ProjectRedirectionRouter = () => {
 	return (
 		<Navigate
 			to={{
-				pathname: `/${data.projects[0]!.id}${location.pathname}`,
+				pathname: redirectTo,
 				search: location.search,
 			}}
 			replace
