@@ -54,7 +54,6 @@ export const AdminForm: React.FC = () => {
 	const [updateAdminAboutYouDetails] = useUpdateAdminAboutYouDetailsMutation()
 
 	if (admin?.about_you_details_filled) {
-		debugger
 		navigate('/setup')
 	}
 
