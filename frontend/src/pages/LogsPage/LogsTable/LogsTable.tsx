@@ -204,12 +204,12 @@ export const LogsTable = ({
 									</Fragment>
 								)
 							})}
+							{selectedCursor === row.original.cursor && (
+								<>Selected</>
+							)}
 						</Stack>
 
 						<LogDetails row={row} />
-						{selectedCursor === row.original.cursor && (
-							<>Selected</>
-						)}
 					</Box>
 				)
 			})}
