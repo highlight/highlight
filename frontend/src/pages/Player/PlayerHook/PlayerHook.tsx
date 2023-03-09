@@ -160,7 +160,13 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// the timestamp we are moving to next.
 	const targetTime = useRef<number>()
 	// the timestamp we are moving to next.
-	const targetState = useRef<ReplayerState>()
+	const targetState = useRef<
+		ReplayerState.Paused | ReplayerState.Playing | ReplayerState.Loading
+	>(ReplayerState.Loading)
+	// the replayer state before loading chunks
+	const replayerStateBeforeLoad = useRef<
+		ReplayerState.Paused | ReplayerState.Playing | ReplayerState.Loading
+	>(ReplayerState.Loading)
 	// the current inactivity period we are jumping past
 	const inactivityEndTime = useRef<number>()
 	// chunk indexes that are currently being loaded (fetched over the network)
@@ -169,7 +175,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const lastTimeRef = useRef<number>(0)
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
 	const animationFrameID = useRef<number>(0)
-	const replayerStateBeforeLoad = useRef<ReplayerState>(ReplayerState.Empty)
 
 	const [
 		chunkEventsRef,
@@ -191,31 +196,34 @@ export const usePlayer = (): ReplayerContextInterface => {
 		state.replayer,
 	)
 
-	const resetPlayer = useCallback(
-		(nextState?: ReplayerState) => {
-			if (unsubscribeSessionPayloadFn.current) {
-				unsubscribeSessionPayloadFn.current()
-				unsubscribeSessionPayloadFn.current = undefined
-			}
-			if (animationFrameID.current) {
-				cancelAnimationFrame(animationFrameID.current)
-				animationFrameID.current = 0
-			}
-			loadingChunks.current.clear()
-			currentChunkIdx.current = 0
-			chunkEventsReset()
-			if (!project_id || !session_secure_id) {
-				return
-			}
-			dispatch({
-				type: PlayerActionType.reset,
-				projectId: project_id,
-				sessionSecureId: session_secure_id,
-				nextState,
-			})
-		},
-		[chunkEventsReset, project_id, session_secure_id],
-	)
+	const resetPlayer = useCallback(() => {
+		currentChunkIdx.current = 0
+		targetTime.current = 0
+		targetState.current = ReplayerState.Loading
+		replayerStateBeforeLoad.current = ReplayerState.Loading
+		inactivityEndTime.current = 0
+		loadingChunks.current.clear()
+		lastTimeRef.current = 0
+		if (unsubscribeSessionPayloadFn.current) {
+			unsubscribeSessionPayloadFn.current()
+			unsubscribeSessionPayloadFn.current = undefined
+		}
+		if (animationFrameID.current) {
+			cancelAnimationFrame(animationFrameID.current)
+			animationFrameID.current = 0
+		}
+
+		chunkEventsReset()
+		if (!project_id || !session_secure_id) {
+			return
+		}
+		dispatch({
+			type: PlayerActionType.reset,
+			projectId: project_id,
+			sessionSecureId: session_secure_id,
+			nextState: targetState.current,
+		})
+	}, [chunkEventsReset, project_id, session_secure_id])
 
 	// Returns the player-relative timestamp of the end of the current inactive interval.
 	// Returns undefined if not in an interval or the interval is marked as active.
@@ -302,6 +310,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 				time,
 				action: action || replayerStateBeforeLoad.current,
 			})
+			if (targetState.current === ReplayerState.Loading) {
+				targetState.current = ReplayerState.Playing
+			}
+			if (replayerStateBeforeLoad.current === ReplayerState.Loading) {
+				replayerStateBeforeLoad.current = ReplayerState.Playing
+			}
 		},
 		[getChunkIdx, showPlayerMouseTail, state.sessionMetadata.startTime],
 	)
@@ -311,7 +325,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		async (
 			startTime: number,
 			endTime?: number,
-			action?: ReplayerState,
+			action?: ReplayerState.Playing | ReplayerState.Paused,
 			forceLoadNext?: boolean,
 		) => {
 			if (
@@ -359,11 +373,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 				// signal that we are loading chunks once
 				if (!promises.length) {
-					if (action || i == startIdx) {
+					if (i == startIdx) {
 						log(
 							'PlayerHook.tsx:ensureChunksLoaded',
 							'needs blocking load for chunk',
-							i,
+							{ i, startIdx },
 						)
 						dispatch({
 							type: PlayerActionType.startChunksLoad,
@@ -445,34 +459,19 @@ export const usePlayer = (): ReplayerContextInterface => {
 						state.sessionMetadata.startTime +
 							inactivityEndTime.current,
 					)
-					if (loadedChunks.has(inactivityEndChunkIdx)) {
-						log(
-							'PlayerHook.tsx:ensureChunksLoaded',
-							'calling dispatchAction due to inactive skip',
-							{
-								inactivityEndTime: inactivityEndTime.current,
-								loadedChunks,
-								inactivityEndChunkIdx,
-								chunks: chunkEventsRef.current,
-								prevState: replayerStateBeforeLoad.current,
-							},
-						)
-						dispatchAction(inactivityEndTime.current)
-						inactivityEndTime.current = undefined
-					} else {
-						log(
-							'PlayerHook.tsx:ensureChunksLoaded',
-							'cancelling dispatchAction due to inactive skip',
-							'chunk not loaded',
-							{
-								inactivityEndTime: inactivityEndTime.current,
-								loadedChunks,
-								inactivityEndChunkIdx,
-								chunks: chunkEventsRef.current,
-								prevState: replayerStateBeforeLoad.current,
-							},
-						)
-					}
+					log(
+						'PlayerHook.tsx:ensureChunksLoaded',
+						'calling dispatchAction due to inactive skip',
+						{
+							inactivityEndTime: inactivityEndTime.current,
+							loadedChunks,
+							inactivityEndChunkIdx,
+							chunks: chunkEventsRef.current,
+							prevState: replayerStateBeforeLoad.current,
+						},
+					)
+					dispatchAction(inactivityEndTime.current)
+					inactivityEndTime.current = undefined
 				} else if (!action) {
 					log(
 						'PlayerHook.tsx:ensureChunksLoaded',
@@ -635,7 +634,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 				}
 			}
 			log('PlayerHook.tsx', 'seeking to', time)
-			targetState.current = state.replayerState
+			targetState.current =
+				state.replayerState === ReplayerState.Paused
+					? ReplayerState.Paused
+					: ReplayerState.Playing
 			dispatch({ type: PlayerActionType.setTime, time })
 			return Promise.resolve()
 		},
@@ -699,11 +701,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	// Initializes the session state and fetches the session data
 	useEffect(() => {
-		resetPlayer(
-			project_id && session_secure_id
-				? ReplayerState.Loading
-				: ReplayerState.Empty,
-		)
+		resetPlayer()
 	}, [project_id, session_secure_id, resetPlayer])
 
 	useEffect(() => {
@@ -937,7 +935,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 			if (nextSessionInList) {
 				pause(state.time).then(() => {
-					resetPlayer(ReplayerState.Empty)
+					resetPlayer()
 					navigate(
 						`/${project_id}/sessions/${nextSessionInList.secure_id}`,
 					)
@@ -1006,10 +1004,13 @@ export const usePlayer = (): ReplayerContextInterface => {
 		ensureChunksLoaded(
 			state.time,
 			state.time + LOOKAHEAD_MS,
-			targetState.current,
+			targetState.current === ReplayerState.Playing
+				? ReplayerState.Playing
+				: targetState.current === ReplayerState.Paused
+				? ReplayerState.Paused
+				: ReplayerState.Playing,
 			lastLoadedEventTimestamp - state.time < LOOKAHEAD_MS,
 		).then()
-		targetState.current = undefined
 	}, [
 		state.time,
 		ensureChunksLoaded,
