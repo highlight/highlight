@@ -14,6 +14,11 @@ export interface CommandBarSearch {
 export const ATTRIBUTES = [
 	{
 		type: 'user',
+		name: 'email',
+		displayName: 'Email',
+	},
+	{
+		type: 'user',
 		name: 'identifier',
 		displayName: 'Identifier',
 	},

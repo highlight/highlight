@@ -33,7 +33,7 @@ func TestParseConsoleMessages(t *testing.T) {
 	assert.Equal(t, message, msg)
 
 	tr := rows[0].Trace[0]
-	trace := Trace{
+	trace := MessageTrace{
 		ColumnNumber: "23",
 		LineNumber:   "18070",
 		FileName:     "http://localhost:8080/dist/index.js",

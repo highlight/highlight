@@ -298,7 +298,7 @@ enum SessionAlertType {
 	NEW_SESSION_ALERT
 }
 
-enum SeverityText {
+enum LogLevel {
 	TRACE
 	DEBUG
 	INFO
@@ -507,8 +507,8 @@ type S3File {
 
 type Log {
 	timestamp: Timestamp!
-	severityText: SeverityText!
-	body: String!
+	level: LogLevel!
+	message: String!
 	logAttributes: Map!
 	traceID: String
 	spanID: String
@@ -522,10 +522,12 @@ type LogEdge {
 
 type PageInfo {
 	hasNextPage: Boolean!
+	hasPreviousPage: Boolean!
+	startCursor: String!
 	endCursor: String!
 }
 
-type LogsPayload {
+type LogsConnection {
 	edges: [LogEdge!]!
 	pageInfo: PageInfo!
 }
@@ -546,7 +548,7 @@ enum LogKeyType {
 
 type LogsHistogramBucketCount {
 	count: UInt64!
-	severityText: SeverityText!
+	level: LogLevel!
 }
 
 type LogsHistogramBucket {
@@ -1281,6 +1283,7 @@ type Query {
 	): ErrorsHistogram!
 	error_group(secure_id: String!): ErrorGroup
 	error_object(id: ID!): ErrorObject
+	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(
 		error_group_secure_id: String!
 		error_object_id: ID
@@ -1473,11 +1476,21 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
-	logs(project_id: ID!, params: LogsParamsInput!, after: String): LogsPayload!
+	logs(
+		project_id: ID!
+		params: LogsParamsInput!
+		after: String
+		before: String
+		at: String
+	): LogsConnection!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
 	logs_keys(project_id: ID!): [LogKey!]!
-	logs_key_values(project_id: ID!, key_name: String!): [String!]!
+	logs_key_values(
+		project_id: ID!
+		key_name: String!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 }
 
 type Mutation {

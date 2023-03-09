@@ -492,10 +492,10 @@ type ComplexityRoot struct {
 	}
 
 	Log struct {
-		Body            func(childComplexity int) int
+		Level           func(childComplexity int) int
 		LogAttributes   func(childComplexity int) int
+		Message         func(childComplexity int) int
 		SecureSessionID func(childComplexity int) int
-		SeverityText    func(childComplexity int) int
 		SpanID          func(childComplexity int) int
 		Timestamp       func(childComplexity int) int
 		TraceID         func(childComplexity int) int
@@ -511,6 +511,11 @@ type ComplexityRoot struct {
 		Type func(childComplexity int) int
 	}
 
+	LogsConnection struct {
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
 	LogsHistogram struct {
 		Buckets    func(childComplexity int) int
 		TotalCount func(childComplexity int) int
@@ -522,13 +527,8 @@ type ComplexityRoot struct {
 	}
 
 	LogsHistogramBucketCount struct {
-		Count        func(childComplexity int) int
-		SeverityText func(childComplexity int) int
-	}
-
-	LogsPayload struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Count func(childComplexity int) int
+		Level func(childComplexity int) int
 	}
 
 	Metric struct {
@@ -653,8 +653,10 @@ type ComplexityRoot struct {
 	}
 
 	PageInfo struct {
-		EndCursor   func(childComplexity int) int
-		HasNextPage func(childComplexity int) int
+		EndCursor       func(childComplexity int) int
+		HasNextPage     func(childComplexity int) int
+		HasPreviousPage func(childComplexity int) int
+		StartCursor     func(childComplexity int) int
 	}
 
 	Plan struct {
@@ -719,6 +721,7 @@ type ComplexityRoot struct {
 		ErrorInstance                func(childComplexity int, errorGroupSecureID string, errorObjectID *int) int
 		ErrorIssue                   func(childComplexity int, errorGroupSecureID string) int
 		ErrorObject                  func(childComplexity int, id int) int
+		ErrorObjectForLog            func(childComplexity int, logCursor string) int
 		ErrorSegments                func(childComplexity int, projectID int) int
 		Errors                       func(childComplexity int, sessionSecureID string) int
 		ErrorsHistogram              func(childComplexity int, projectID int, query string, histogramOptions model.DateHistogramOptions) int
@@ -743,9 +746,9 @@ type ComplexityRoot struct {
 		JoinableWorkspaces           func(childComplexity int) int
 		LinearTeams                  func(childComplexity int, projectID int) int
 		LiveUsersCount               func(childComplexity int, projectID int) int
-		Logs                         func(childComplexity int, projectID int, params model.LogsParamsInput, after *string) int
+		Logs                         func(childComplexity int, projectID int, params model.LogsParamsInput, after *string, before *string, at *string) int
 		LogsHistogram                func(childComplexity int, projectID int, params model.LogsParamsInput) int
-		LogsKeyValues                func(childComplexity int, projectID int, keyName string) int
+		LogsKeyValues                func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
 		LogsKeys                     func(childComplexity int, projectID int) int
 		LogsTotalCount               func(childComplexity int, projectID int, params model.LogsParamsInput) int
 		Messages                     func(childComplexity int, sessionSecureID string) int
@@ -1254,6 +1257,7 @@ type QueryResolver interface {
 	ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions model.DateHistogramOptions) (*model1.ErrorsHistogram, error)
 	ErrorGroup(ctx context.Context, secureID string) (*model1.ErrorGroup, error)
 	ErrorObject(ctx context.Context, id int) (*model1.ErrorObject, error)
+	ErrorObjectForLog(ctx context.Context, logCursor string) (*model1.ErrorObject, error)
 	ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int) (*model1.ErrorInstance, error)
 	Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*model.EnhancedUserDetailsResult, error)
@@ -1359,11 +1363,11 @@ type QueryResolver interface {
 	SourcemapVersions(ctx context.Context, projectID int) ([]string, error)
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
-	Logs(ctx context.Context, projectID int, params model.LogsParamsInput, after *string) (*model.LogsPayload, error)
+	Logs(ctx context.Context, projectID int, params model.LogsParamsInput, after *string, before *string, at *string) (*model.LogsConnection, error)
 	LogsTotalCount(ctx context.Context, projectID int, params model.LogsParamsInput) (uint64, error)
 	LogsHistogram(ctx context.Context, projectID int, params model.LogsParamsInput) (*model.LogsHistogram, error)
 	LogsKeys(ctx context.Context, projectID int) ([]*model.LogKey, error)
-	LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error)
+	LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -3356,12 +3360,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LinearTeam.TeamID(childComplexity), true
 
-	case "Log.body":
-		if e.complexity.Log.Body == nil {
+	case "Log.level":
+		if e.complexity.Log.Level == nil {
 			break
 		}
 
-		return e.complexity.Log.Body(childComplexity), true
+		return e.complexity.Log.Level(childComplexity), true
 
 	case "Log.logAttributes":
 		if e.complexity.Log.LogAttributes == nil {
@@ -3370,19 +3374,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Log.LogAttributes(childComplexity), true
 
+	case "Log.message":
+		if e.complexity.Log.Message == nil {
+			break
+		}
+
+		return e.complexity.Log.Message(childComplexity), true
+
 	case "Log.secureSessionID":
 		if e.complexity.Log.SecureSessionID == nil {
 			break
 		}
 
 		return e.complexity.Log.SecureSessionID(childComplexity), true
-
-	case "Log.severityText":
-		if e.complexity.Log.SeverityText == nil {
-			break
-		}
-
-		return e.complexity.Log.SeverityText(childComplexity), true
 
 	case "Log.spanID":
 		if e.complexity.Log.SpanID == nil {
@@ -3433,6 +3437,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LogKey.Type(childComplexity), true
 
+	case "LogsConnection.edges":
+		if e.complexity.LogsConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.LogsConnection.Edges(childComplexity), true
+
+	case "LogsConnection.pageInfo":
+		if e.complexity.LogsConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.LogsConnection.PageInfo(childComplexity), true
+
 	case "LogsHistogram.buckets":
 		if e.complexity.LogsHistogram.Buckets == nil {
 			break
@@ -3468,26 +3486,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LogsHistogramBucketCount.Count(childComplexity), true
 
-	case "LogsHistogramBucketCount.severityText":
-		if e.complexity.LogsHistogramBucketCount.SeverityText == nil {
+	case "LogsHistogramBucketCount.level":
+		if e.complexity.LogsHistogramBucketCount.Level == nil {
 			break
 		}
 
-		return e.complexity.LogsHistogramBucketCount.SeverityText(childComplexity), true
-
-	case "LogsPayload.edges":
-		if e.complexity.LogsPayload.Edges == nil {
-			break
-		}
-
-		return e.complexity.LogsPayload.Edges(childComplexity), true
-
-	case "LogsPayload.pageInfo":
-		if e.complexity.LogsPayload.PageInfo == nil {
-			break
-		}
-
-		return e.complexity.LogsPayload.PageInfo(childComplexity), true
+		return e.complexity.LogsHistogramBucketCount.Level(childComplexity), true
 
 	case "Metric.name":
 		if e.complexity.Metric.Name == nil {
@@ -4527,6 +4531,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PageInfo.HasNextPage(childComplexity), true
 
+	case "PageInfo.hasPreviousPage":
+		if e.complexity.PageInfo.HasPreviousPage == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.HasPreviousPage(childComplexity), true
+
+	case "PageInfo.startCursor":
+		if e.complexity.PageInfo.StartCursor == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.StartCursor(childComplexity), true
+
 	case "Plan.errorsLimit":
 		if e.complexity.Plan.ErrorsLimit == nil {
 			break
@@ -5087,6 +5105,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ErrorObject(childComplexity, args["id"].(int)), true
 
+	case "Query.error_object_for_log":
+		if e.complexity.Query.ErrorObjectForLog == nil {
+			break
+		}
+
+		args, err := ec.field_Query_error_object_for_log_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ErrorObjectForLog(childComplexity, args["log_cursor"].(string)), true
+
 	case "Query.error_segments":
 		if e.complexity.Query.ErrorSegments == nil {
 			break
@@ -5380,7 +5410,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Logs(childComplexity, args["project_id"].(int), args["params"].(model.LogsParamsInput), args["after"].(*string)), true
+		return e.complexity.Query.Logs(childComplexity, args["project_id"].(int), args["params"].(model.LogsParamsInput), args["after"].(*string), args["before"].(*string), args["at"].(*string)), true
 
 	case "Query.logs_histogram":
 		if e.complexity.Query.LogsHistogram == nil {
@@ -5404,7 +5434,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.LogsKeyValues(childComplexity, args["project_id"].(int), args["key_name"].(string)), true
+		return e.complexity.Query.LogsKeyValues(childComplexity, args["project_id"].(int), args["key_name"].(string), args["date_range"].(model.DateRangeRequiredInput)), true
 
 	case "Query.logs_keys":
 		if e.complexity.Query.LogsKeys == nil {
@@ -8012,7 +8042,7 @@ enum SessionAlertType {
 	NEW_SESSION_ALERT
 }
 
-enum SeverityText {
+enum LogLevel {
 	TRACE
 	DEBUG
 	INFO
@@ -8221,8 +8251,8 @@ type S3File {
 
 type Log {
 	timestamp: Timestamp!
-	severityText: SeverityText!
-	body: String!
+	level: LogLevel!
+	message: String!
 	logAttributes: Map!
 	traceID: String
 	spanID: String
@@ -8236,10 +8266,12 @@ type LogEdge {
 
 type PageInfo {
 	hasNextPage: Boolean!
+	hasPreviousPage: Boolean!
+	startCursor: String!
 	endCursor: String!
 }
 
-type LogsPayload {
+type LogsConnection {
 	edges: [LogEdge!]!
 	pageInfo: PageInfo!
 }
@@ -8260,7 +8292,7 @@ enum LogKeyType {
 
 type LogsHistogramBucketCount {
 	count: UInt64!
-	severityText: SeverityText!
+	level: LogLevel!
 }
 
 type LogsHistogramBucket {
@@ -8995,6 +9027,7 @@ type Query {
 	): ErrorsHistogram!
 	error_group(secure_id: String!): ErrorGroup
 	error_object(id: ID!): ErrorObject
+	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(
 		error_group_secure_id: String!
 		error_object_id: ID
@@ -9187,11 +9220,21 @@ type Query {
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
-	logs(project_id: ID!, params: LogsParamsInput!, after: String): LogsPayload!
+	logs(
+		project_id: ID!
+		params: LogsParamsInput!
+		after: String
+		before: String
+		at: String
+	): LogsConnection!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
 	logs_keys(project_id: ID!): [LogKey!]!
-	logs_key_values(project_id: ID!, key_name: String!): [String!]!
+	logs_key_values(
+		project_id: ID!
+		key_name: String!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 }
 
 type Mutation {
@@ -12914,6 +12957,21 @@ func (ec *executionContext) field_Query_error_object_args(ctx context.Context, r
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_error_object_for_log_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["log_cursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("log_cursor"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["log_cursor"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_error_segments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -13424,6 +13482,24 @@ func (ec *executionContext) field_Query_logs_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["after"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["at"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("at"))
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["at"] = arg4
 	return args, nil
 }
 
@@ -13472,6 +13548,15 @@ func (ec *executionContext) field_Query_logs_key_values_args(ctx context.Context
 		}
 	}
 	args["key_name"] = arg1
+	var arg2 model.DateRangeRequiredInput
+	if tmp, ok := rawArgs["date_range"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
+		arg2, err = ec.unmarshalNDateRangeRequiredInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["date_range"] = arg2
 	return args, nil
 }
 
@@ -27002,8 +27087,8 @@ func (ec *executionContext) fieldContext_Log_timestamp(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Log_severityText(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Log_severityText(ctx, field)
+func (ec *executionContext) _Log_level(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Log_level(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -27016,7 +27101,7 @@ func (ec *executionContext) _Log_severityText(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.SeverityText, nil
+		return obj.Level, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27028,26 +27113,26 @@ func (ec *executionContext) _Log_severityText(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.SeverityText)
+	res := resTmp.(model.LogLevel)
 	fc.Result = res
-	return ec.marshalNSeverityText2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSeverityText(ctx, field.Selections, res)
+	return ec.marshalNLogLevel2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogLevel(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Log_severityText(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Log_level(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Log",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type SeverityText does not have child fields")
+			return nil, errors.New("field of type LogLevel does not have child fields")
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Log_body(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Log_body(ctx, field)
+func (ec *executionContext) _Log_message(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Log_message(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -27060,7 +27145,7 @@ func (ec *executionContext) _Log_body(ctx context.Context, field graphql.Collect
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Body, nil
+		return obj.Message, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27077,7 +27162,7 @@ func (ec *executionContext) _Log_body(ctx context.Context, field graphql.Collect
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Log_body(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Log_message(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Log",
 		Field:      field,
@@ -27342,10 +27427,10 @@ func (ec *executionContext) fieldContext_LogEdge_node(ctx context.Context, field
 			switch field.Name {
 			case "timestamp":
 				return ec.fieldContext_Log_timestamp(ctx, field)
-			case "severityText":
-				return ec.fieldContext_Log_severityText(ctx, field)
-			case "body":
-				return ec.fieldContext_Log_body(ctx, field)
+			case "level":
+				return ec.fieldContext_Log_level(ctx, field)
+			case "message":
+				return ec.fieldContext_Log_message(ctx, field)
 			case "logAttributes":
 				return ec.fieldContext_Log_logAttributes(ctx, field)
 			case "traceID":
@@ -27444,6 +27529,110 @@ func (ec *executionContext) fieldContext_LogKey_type(ctx context.Context, field 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type LogKeyType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LogsConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.LogsConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogsConnection_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.LogEdge)
+	fc.Result = res
+	return ec.marshalNLogEdge2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogsConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogsConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cursor":
+				return ec.fieldContext_LogEdge_cursor(ctx, field)
+			case "node":
+				return ec.fieldContext_LogEdge_node(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LogEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LogsConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.LogsConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogsConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogsConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogsConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			case "hasPreviousPage":
+				return ec.fieldContext_PageInfo_hasPreviousPage(ctx, field)
+			case "startCursor":
+				return ec.fieldContext_PageInfo_startCursor(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
 		},
 	}
 	return fc, nil
@@ -27628,8 +27817,8 @@ func (ec *executionContext) fieldContext_LogsHistogramBucket_counts(ctx context.
 			switch field.Name {
 			case "count":
 				return ec.fieldContext_LogsHistogramBucketCount_count(ctx, field)
-			case "severityText":
-				return ec.fieldContext_LogsHistogramBucketCount_severityText(ctx, field)
+			case "level":
+				return ec.fieldContext_LogsHistogramBucketCount_level(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type LogsHistogramBucketCount", field.Name)
 		},
@@ -27681,8 +27870,8 @@ func (ec *executionContext) fieldContext_LogsHistogramBucketCount_count(ctx cont
 	return fc, nil
 }
 
-func (ec *executionContext) _LogsHistogramBucketCount_severityText(ctx context.Context, field graphql.CollectedField, obj *model.LogsHistogramBucketCount) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LogsHistogramBucketCount_severityText(ctx, field)
+func (ec *executionContext) _LogsHistogramBucketCount_level(ctx context.Context, field graphql.CollectedField, obj *model.LogsHistogramBucketCount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogsHistogramBucketCount_level(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -27695,7 +27884,7 @@ func (ec *executionContext) _LogsHistogramBucketCount_severityText(ctx context.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.SeverityText, nil
+		return obj.Level, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27707,119 +27896,19 @@ func (ec *executionContext) _LogsHistogramBucketCount_severityText(ctx context.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.SeverityText)
+	res := resTmp.(model.LogLevel)
 	fc.Result = res
-	return ec.marshalNSeverityText2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSeverityText(ctx, field.Selections, res)
+	return ec.marshalNLogLevel2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogLevel(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_LogsHistogramBucketCount_severityText(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_LogsHistogramBucketCount_level(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "LogsHistogramBucketCount",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type SeverityText does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _LogsPayload_edges(ctx context.Context, field graphql.CollectedField, obj *model.LogsPayload) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LogsPayload_edges(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Edges, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.LogEdge)
-	fc.Result = res
-	return ec.marshalNLogEdge2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogEdgeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_LogsPayload_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "LogsPayload",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "cursor":
-				return ec.fieldContext_LogEdge_cursor(ctx, field)
-			case "node":
-				return ec.fieldContext_LogEdge_node(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type LogEdge", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _LogsPayload_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.LogsPayload) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LogsPayload_pageInfo(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PageInfo, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.PageInfo)
-	fc.Result = res
-	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPageInfo(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_LogsPayload_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "LogsPayload",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "hasNextPage":
-				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
-			case "endCursor":
-				return ec.fieldContext_PageInfo_endCursor(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+			return nil, errors.New("field of type LogLevel does not have child fields")
 		},
 	}
 	return fc, nil
@@ -33859,6 +33948,94 @@ func (ec *executionContext) fieldContext_PageInfo_hasNextPage(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _PageInfo_hasPreviousPage(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PageInfo_hasPreviousPage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasPreviousPage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PageInfo_hasPreviousPage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PageInfo_startCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PageInfo_startCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PageInfo_endCursor(ctx, field)
 	if err != nil {
@@ -35536,6 +35713,101 @@ func (ec *executionContext) fieldContext_Query_error_object(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_error_object_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_error_object_for_log(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_error_object_for_log(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorObjectForLog(rctx, fc.Args["log_cursor"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.ErrorObject)
+	fc.Result = res
+	return ec.marshalOErrorObject2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_error_object_for_log(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ErrorObject_id(ctx, field)
+			case "created_at":
+				return ec.fieldContext_ErrorObject_created_at(ctx, field)
+			case "project_id":
+				return ec.fieldContext_ErrorObject_project_id(ctx, field)
+			case "session_id":
+				return ec.fieldContext_ErrorObject_session_id(ctx, field)
+			case "error_group_id":
+				return ec.fieldContext_ErrorObject_error_group_id(ctx, field)
+			case "error_group_secure_id":
+				return ec.fieldContext_ErrorObject_error_group_secure_id(ctx, field)
+			case "event":
+				return ec.fieldContext_ErrorObject_event(ctx, field)
+			case "type":
+				return ec.fieldContext_ErrorObject_type(ctx, field)
+			case "url":
+				return ec.fieldContext_ErrorObject_url(ctx, field)
+			case "source":
+				return ec.fieldContext_ErrorObject_source(ctx, field)
+			case "lineNumber":
+				return ec.fieldContext_ErrorObject_lineNumber(ctx, field)
+			case "columnNumber":
+				return ec.fieldContext_ErrorObject_columnNumber(ctx, field)
+			case "stack_trace":
+				return ec.fieldContext_ErrorObject_stack_trace(ctx, field)
+			case "structured_stack_trace":
+				return ec.fieldContext_ErrorObject_structured_stack_trace(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ErrorObject_timestamp(ctx, field)
+			case "payload":
+				return ec.fieldContext_ErrorObject_payload(ctx, field)
+			case "request_id":
+				return ec.fieldContext_ErrorObject_request_id(ctx, field)
+			case "os":
+				return ec.fieldContext_ErrorObject_os(ctx, field)
+			case "browser":
+				return ec.fieldContext_ErrorObject_browser(ctx, field)
+			case "environment":
+				return ec.fieldContext_ErrorObject_environment(ctx, field)
+			case "session":
+				return ec.fieldContext_ErrorObject_session(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_error_object_for_log_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -42344,7 +42616,7 @@ func (ec *executionContext) _Query_logs(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Logs(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.LogsParamsInput), fc.Args["after"].(*string))
+		return ec.resolvers.Query().Logs(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.LogsParamsInput), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["at"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -42355,9 +42627,9 @@ func (ec *executionContext) _Query_logs(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.LogsPayload)
+	res := resTmp.(*model.LogsConnection)
 	fc.Result = res
-	return ec.marshalNLogsPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsPayload(ctx, field.Selections, res)
+	return ec.marshalNLogsConnection2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_logs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42369,11 +42641,11 @@ func (ec *executionContext) fieldContext_Query_logs(ctx context.Context, field g
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "edges":
-				return ec.fieldContext_LogsPayload_edges(ctx, field)
+				return ec.fieldContext_LogsConnection_edges(ctx, field)
 			case "pageInfo":
-				return ec.fieldContext_LogsPayload_pageInfo(ctx, field)
+				return ec.fieldContext_LogsConnection_pageInfo(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type LogsPayload", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type LogsConnection", field.Name)
 		},
 	}
 	defer func() {
@@ -42578,7 +42850,7 @@ func (ec *executionContext) _Query_logs_key_values(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().LogsKeyValues(rctx, fc.Args["project_id"].(int), fc.Args["key_name"].(string))
+		return ec.resolvers.Query().LogsKeyValues(rctx, fc.Args["project_id"].(int), fc.Args["key_name"].(string), fc.Args["date_range"].(model.DateRangeRequiredInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -58782,16 +59054,16 @@ func (ec *executionContext) _Log(ctx context.Context, sel ast.SelectionSet, obj 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "severityText":
+		case "level":
 
-			out.Values[i] = ec._Log_severityText(ctx, field, obj)
+			out.Values[i] = ec._Log_level(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "body":
+		case "message":
 
-			out.Values[i] = ec._Log_body(ctx, field, obj)
+			out.Values[i] = ec._Log_message(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -58896,6 +59168,41 @@ func (ec *executionContext) _LogKey(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
+var logsConnectionImplementors = []string{"LogsConnection"}
+
+func (ec *executionContext) _LogsConnection(ctx context.Context, sel ast.SelectionSet, obj *model.LogsConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, logsConnectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LogsConnection")
+		case "edges":
+
+			out.Values[i] = ec._LogsConnection_edges(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+
+			out.Values[i] = ec._LogsConnection_pageInfo(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var logsHistogramImplementors = []string{"LogsHistogram"}
 
 func (ec *executionContext) _LogsHistogram(ctx context.Context, sel ast.SelectionSet, obj *model.LogsHistogram) graphql.Marshaler {
@@ -58983,44 +59290,9 @@ func (ec *executionContext) _LogsHistogramBucketCount(ctx context.Context, sel a
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "severityText":
+		case "level":
 
-			out.Values[i] = ec._LogsHistogramBucketCount_severityText(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var logsPayloadImplementors = []string{"LogsPayload"}
-
-func (ec *executionContext) _LogsPayload(ctx context.Context, sel ast.SelectionSet, obj *model.LogsPayload) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, logsPayloadImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("LogsPayload")
-		case "edges":
-
-			out.Values[i] = ec._LogsPayload_edges(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "pageInfo":
-
-			out.Values[i] = ec._LogsPayload_pageInfo(ctx, field, obj)
+			out.Values[i] = ec._LogsHistogramBucketCount_level(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -59878,6 +60150,20 @@ func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "hasPreviousPage":
+
+			out.Values[i] = ec._PageInfo_hasPreviousPage(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "startCursor":
+
+			out.Values[i] = ec._PageInfo_startCursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "endCursor":
 
 			out.Values[i] = ec._PageInfo_endCursor(ctx, field, obj)
@@ -60278,6 +60564,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_error_object(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "error_object_for_log":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_error_object_for_log(ctx, field)
 				return res
 			}
 
@@ -65843,6 +66149,11 @@ func (ec *executionContext) unmarshalNDateRangeInput2ᚖgithubᚗcomᚋhighlight
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNDateRangeRequiredInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx context.Context, v interface{}) (model.DateRangeRequiredInput, error) {
+	res, err := ec.unmarshalInputDateRangeRequiredInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx context.Context, v interface{}) (*model.DateRangeRequiredInput, error) {
 	res, err := ec.unmarshalInputDateRangeRequiredInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -67268,6 +67579,30 @@ func (ec *executionContext) marshalNLogKeyType2githubᚗcomᚋhighlightᚑrunᚋ
 	return v
 }
 
+func (ec *executionContext) unmarshalNLogLevel2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogLevel(ctx context.Context, v interface{}) (model.LogLevel, error) {
+	var res model.LogLevel
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNLogLevel2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogLevel(ctx context.Context, sel ast.SelectionSet, v model.LogLevel) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNLogsConnection2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsConnection(ctx context.Context, sel ast.SelectionSet, v model.LogsConnection) graphql.Marshaler {
+	return ec._LogsConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLogsConnection2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsConnection(ctx context.Context, sel ast.SelectionSet, v *model.LogsConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LogsConnection(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNLogsHistogram2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsHistogram(ctx context.Context, sel ast.SelectionSet, v model.LogsHistogram) graphql.Marshaler {
 	return ec._LogsHistogram(ctx, sel, &v)
 }
@@ -67393,20 +67728,6 @@ func (ec *executionContext) marshalNLogsHistogramBucketCount2ᚖgithubᚗcomᚋh
 func (ec *executionContext) unmarshalNLogsParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsParamsInput(ctx context.Context, v interface{}) (model.LogsParamsInput, error) {
 	res, err := ec.unmarshalInputLogsParamsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNLogsPayload2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsPayload(ctx context.Context, sel ast.SelectionSet, v model.LogsPayload) graphql.Marshaler {
-	return ec._LogsPayload(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNLogsPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsPayload(ctx context.Context, sel ast.SelectionSet, v *model.LogsPayload) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._LogsPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
@@ -68455,16 +68776,6 @@ func (ec *executionContext) marshalNSessionsHistogram2ᚖgithubᚗcomᚋhighligh
 		return graphql.Null
 	}
 	return ec._SessionsHistogram(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNSeverityText2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSeverityText(ctx context.Context, v interface{}) (model.SeverityText, error) {
-	var res model.SeverityText
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNSeverityText2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSeverityText(ctx context.Context, sel ast.SelectionSet, v model.SeverityText) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) marshalNSlackSyncResponse2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSlackSyncResponse(ctx context.Context, sel ast.SelectionSet, v model.SlackSyncResponse) graphql.Marshaler {

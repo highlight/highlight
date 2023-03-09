@@ -1,20 +1,21 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import AlertsRouter from '@pages/Alerts/AlertsRouter'
+import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
+import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import ErrorLogCursorRedirect from '@pages/ErrorsV2/ErrorLogCursor/ErrorLogCursorRedirect'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
 import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
+import LogsPage from '@pages/LogsPage/LogsPage'
+import PlayerPage from '@pages/Player/PlayerPage'
+import ProjectSettings from '@pages/ProjectSettings/ProjectSettings'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import SetupRouter from '@pages/Setup/SetupRouter/SetupRouter'
+import { usePreloadErrors, usePreloadSessions } from '@util/preload'
 import React, { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
-import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
-import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import LogsPage from '@pages/LogsPage/LogsPage'
-import PlayerPage from '@pages/Player/PlayerPage'
-import ProjectSettings from '@pages/ProjectSettings/ProjectSettings'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import { usePreloadErrors, usePreloadSessions } from '@util/preload'
 
 interface Props {
 	integrated: boolean
@@ -36,6 +37,11 @@ const ApplicationRouter = ({ integrated }: Props) => {
 			<Route
 				path="sessions/:session_secure_id?"
 				element={<PlayerPage integrated={integrated} />}
+			/>
+
+			<Route
+				path="errors/logs/:cursor_id"
+				element={<ErrorLogCursorRedirect />}
 			/>
 
 			<Route

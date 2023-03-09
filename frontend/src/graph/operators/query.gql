@@ -1044,6 +1044,13 @@ query GetErrorGroup($secure_id: String!) {
 	}
 }
 
+query GetErrorObjectForLog($log_cursor: String!) {
+	error_object_for_log(log_cursor: $log_cursor) {
+		id
+		error_group_secure_id
+	}
+}
+
 query GetErrorObject($id: ID!) {
 	error_object(id: $id) {
 		id
@@ -1868,8 +1875,8 @@ query GetLogs($project_id: ID!, $params: LogsParamsInput!, $after: String) {
 			cursor
 			node {
 				timestamp
-				severityText
-				body
+				level
+				message
 				logAttributes
 				traceID
 				spanID
@@ -1887,6 +1894,19 @@ query GetLogsTotalCount($project_id: ID!, $params: LogsParamsInput!) {
 	logs_total_count(project_id: $project_id, params: $params)
 }
 
+query GetLogsHistogram($project_id: ID!, $params: LogsParamsInput!) {
+	logs_histogram(project_id: $project_id, params: $params) {
+		totalCount
+		buckets {
+			bucketId
+			counts {
+				count
+				level
+			}
+		}
+	}
+}
+
 query GetLogsKeys($project_id: ID!) {
 	logs_keys(project_id: $project_id) {
 		name
@@ -1894,6 +1914,14 @@ query GetLogsKeys($project_id: ID!) {
 	}
 }
 
-query GetLogsKeyValues($project_id: ID!, $key_name: String!) {
-	logs_key_values(project_id: $project_id, key_name: $key_name)
+query GetLogsKeyValues(
+	$project_id: ID!
+	$key_name: String!
+	$date_range: DateRangeRequiredInput!
+) {
+	logs_key_values(
+		project_id: $project_id
+		key_name: $key_name
+		date_range: $date_range
+	)
 }

@@ -1,16 +1,17 @@
-import LoadingBox from '@components/LoadingBox'
+import { CircularSpinner } from '@components/Loading/Loading'
 import { GetLogsQuery } from '@graph/operations'
-import { SeverityText } from '@graph/schemas'
+import { LogLevel as LogLevelType } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
 import {
 	Box,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	Stack,
+	Text,
 } from '@highlight-run/ui'
-import { LogBody } from '@pages/LogsPage/LogsTable/LogBody'
 import { LogDetails } from '@pages/LogsPage/LogsTable/LogDetails'
-import { LogSeverityText } from '@pages/LogsPage/LogsTable/LogSeverityText'
+import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
+import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
 import {
@@ -21,6 +22,7 @@ import {
 	getExpandedRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
 import React, { Fragment, useEffect, useMemo, useState } from 'react'
 
@@ -28,11 +30,19 @@ import * as styles from './LogsTable.css'
 
 type Props = {
 	loading: boolean
+	loadingAfter: boolean
 	data: GetLogsQuery | undefined
 	query: string
+	tableContainerRef: React.RefObject<HTMLDivElement>
 }
 
-export const LogsTable = ({ data, loading, query }: Props) => {
+export const LogsTable = ({
+	data,
+	loading,
+	loadingAfter,
+	query,
+	tableContainerRef,
+}: Props) => {
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const columns = React.useMemo<ColumnDef<LogEdge>[]>(
@@ -65,19 +75,17 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 				),
 			},
 			{
-				accessorKey: 'node.severityText',
+				accessorKey: 'node.level',
 				cell: ({ getValue }) => (
-					<LogSeverityText
-						severityText={getValue() as SeverityText}
-					/>
+					<LogLevel level={getValue() as LogLevelType} />
 				),
 			},
 			{
-				accessorKey: 'node.body',
+				accessorKey: 'node.message',
 				cell: ({ row, getValue }) => (
-					<LogBody
+					<LogMessage
 						query={query}
-						body={getValue() as string}
+						message={getValue() as string}
 						expanded={row.getIsExpanded()}
 					/>
 				),
@@ -105,6 +113,22 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 		debugTable: true,
 	})
 
+	const { rows } = table.getRowModel()
+
+	const rowVirtualizer = useVirtualizer({
+		count: rows.length,
+		estimateSize: () => 26,
+		getScrollElement: () => tableContainerRef.current,
+		overscan: 10,
+	})
+	const totalSize = rowVirtualizer.getTotalSize()
+	const virtualRows = rowVirtualizer.getVirtualItems()
+	const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start || 0 : 0
+	const paddingBottom =
+		virtualRows.length > 0
+			? totalSize - (virtualRows[virtualRows.length - 1]?.end || 0)
+			: 0
+
 	useEffect(() => {
 		// Collapse all rows when search changes
 		table.toggleAllRowsExpanded(false)
@@ -118,7 +142,7 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 				alignItems="center"
 				justifyContent="center"
 			>
-				<LoadingBox />
+				<CircularSpinner />
 			</Box>
 		)
 	}
@@ -137,17 +161,23 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 	}
 
 	return (
-		<Box px="12" overflowY="scroll">
-			{table.getRowModel().rows.map((row) => {
+		<div style={{ height: `${totalSize}px`, position: 'relative' }}>
+			{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
+
+			{virtualRows.map((virtualRow) => {
+				const row = rows[virtualRow.index]
+
 				return (
 					<Box
 						cssClass={clsx(styles.row, {
 							[styles.rowExpanded]: row.getIsExpanded(),
 						})}
-						key={row.id}
+						key={virtualRow.key}
+						data-index={virtualRow.index}
 						cursor="pointer"
 						onClick={row.getToggleExpandedHandler()}
-						mb="1"
+						mb="2"
+						ref={rowVirtualizer.measureElement}
 					>
 						<Stack direction="row" align="flex-start">
 							{row.getVisibleCells().map((cell) => {
@@ -166,7 +196,33 @@ export const LogsTable = ({ data, loading, query }: Props) => {
 					</Box>
 				)
 			})}
-		</Box>
+
+			{paddingBottom > 0 && <Box style={{ height: paddingBottom }} />}
+
+			{loadingAfter && (
+				<Box
+					backgroundColor="white"
+					border="dividerWeak"
+					display="flex"
+					flexGrow={1}
+					alignItems="center"
+					justifyContent="center"
+					padding="12"
+					position="fixed"
+					shadow="small"
+					borderRadius="6"
+					textAlign="center"
+					style={{
+						bottom: 20,
+						left: 'calc(50% - 150px)',
+						width: 300,
+						zIndex: 10,
+					}}
+				>
+					<Text color="weak">Loading...</Text>
+				</Box>
+			)}
+		</div>
 	)
 }
 

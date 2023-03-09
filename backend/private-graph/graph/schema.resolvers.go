@@ -27,6 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	"github.com/highlight-run/highlight/backend/apolloio"
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
 	highlightErrors "github.com/highlight-run/highlight/backend/errors"
@@ -3952,6 +3953,15 @@ func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorOb
 	return errorObject, nil
 }
 
+// ErrorObjectForLog is the resolver for the error_object_for_log field.
+func (r *queryResolver) ErrorObjectForLog(ctx context.Context, logCursor string) (*model.ErrorObject, error) {
+	errorObject := &model.ErrorObject{}
+	if err := r.DB.Where(&model.ErrorObject{LogCursor: pointy.String(logCursor)}).First(&errorObject).Error; err != nil {
+		return nil, e.Wrap(err, "error reading error object")
+	}
+	return errorObject, nil
+}
+
 // ErrorInstance is the resolver for the error_instance field.
 func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int) (*model.ErrorInstance, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, true)
@@ -6993,13 +7003,17 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 }
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string) (*modelInputs.LogsPayload, error) {
+func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string) (*modelInputs.LogsConnection, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 
-	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params, after)
+	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params, clickhouse.Pagination{
+		After:  after,
+		Before: before,
+		At:     at,
+	})
 }
 
 // LogsTotalCount is the resolver for the logs_total_count field.
@@ -7033,13 +7047,13 @@ func (r *queryResolver) LogsKeys(ctx context.Context, projectID int) ([]*modelIn
 }
 
 // LogsKeyValues is the resolver for the logs_key_values field.
-func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyName string) ([]string, error) {
+func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 
-	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName)
+	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
 // Params is the resolver for the params field.

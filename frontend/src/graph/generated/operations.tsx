@@ -2697,6 +2697,19 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorObjectForLogQueryVariables = Types.Exact<{
+	log_cursor: Types.Scalars['String']
+}>
+
+export type GetErrorObjectForLogQuery = { __typename?: 'Query' } & {
+	error_object_for_log?: Types.Maybe<
+		{ __typename?: 'ErrorObject' } & Pick<
+			Types.ErrorObject,
+			'id' | 'error_group_secure_id'
+		>
+	>
+}
+
 export type GetErrorObjectQueryVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 }>
@@ -3957,14 +3970,14 @@ export type GetLogsQueryVariables = Types.Exact<{
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
-	logs: { __typename?: 'LogsPayload' } & {
+	logs: { __typename?: 'LogsConnection' } & {
 		edges: Array<
 			{ __typename?: 'LogEdge' } & Pick<Types.LogEdge, 'cursor'> & {
 					node: { __typename?: 'Log' } & Pick<
 						Types.Log,
 						| 'timestamp'
-						| 'severityText'
-						| 'body'
+						| 'level'
+						| 'message'
 						| 'logAttributes'
 						| 'traceID'
 						| 'spanID'
@@ -3989,6 +4002,32 @@ export type GetLogsTotalCountQuery = { __typename?: 'Query' } & Pick<
 	'logs_total_count'
 >
 
+export type GetLogsHistogramQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.LogsParamsInput
+}>
+
+export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
+	logs_histogram: { __typename?: 'LogsHistogram' } & Pick<
+		Types.LogsHistogram,
+		'totalCount'
+	> & {
+			buckets: Array<
+				{ __typename?: 'LogsHistogramBucket' } & Pick<
+					Types.LogsHistogramBucket,
+					'bucketId'
+				> & {
+						counts: Array<
+							{ __typename?: 'LogsHistogramBucketCount' } & Pick<
+								Types.LogsHistogramBucketCount,
+								'count' | 'level'
+							>
+						>
+					}
+			>
+		}
+}
+
 export type GetLogsKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -4002,6 +4041,7 @@ export type GetLogsKeysQuery = { __typename?: 'Query' } & {
 export type GetLogsKeyValuesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	key_name: Types.Scalars['String']
+	date_range: Types.DateRangeRequiredInput
 }>
 
 export type GetLogsKeyValuesQuery = { __typename?: 'Query' } & Pick<
@@ -4059,6 +4099,7 @@ export const namedOperations = {
 		GetBillingDetails: 'GetBillingDetails' as const,
 		GetSubscriptionDetails: 'GetSubscriptionDetails' as const,
 		GetErrorGroup: 'GetErrorGroup' as const,
+		GetErrorObjectForLog: 'GetErrorObjectForLog' as const,
 		GetErrorObject: 'GetErrorObject' as const,
 		GetErrorInstance: 'GetErrorInstance' as const,
 		GetRecentErrors: 'GetRecentErrors' as const,
@@ -4125,6 +4166,7 @@ export const namedOperations = {
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
 		GetLogsTotalCount: 'GetLogsTotalCount' as const,
+		GetLogsHistogram: 'GetLogsHistogram' as const,
 		GetLogsKeys: 'GetLogsKeys' as const,
 		GetLogsKeyValues: 'GetLogsKeyValues' as const,
 	},

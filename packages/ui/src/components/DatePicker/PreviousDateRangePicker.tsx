@@ -104,7 +104,13 @@ const PreviousDateRangePickerImpl = ({
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
 	)
+
 	const menu = useMenu()
+	useEffect(() => {
+		if (!menu.open) {
+			setMenuState(MenuState.Default)
+		}
+	}, [menu.open])
 
 	const [buttonLabel, setButtonLabel] = useState<string>(
 		getLabel({ selectedDates, presets }),

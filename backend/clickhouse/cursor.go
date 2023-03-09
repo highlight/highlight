@@ -12,20 +12,56 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
-func getLogsPayload(logs []*modelInputs.LogEdge) *modelInputs.LogsPayload {
-	hasNextPage := len(logs) == Limit+1
+func getLogsConnection(edges []*modelInputs.LogEdge, pagination Pagination) *modelInputs.LogsConnection {
+	var (
+		endCursor       string
+		startCursor     string
+		hasNextPage     bool
+		hasPreviousPage bool
+	)
 
-	var endCursor string
-	if hasNextPage {
-		logs = logs[:Limit]
-		endCursor = logs[len(logs)-1].Cursor
+	if pagination.At != nil && len(*pagination.At) > 1 {
+		if len(edges) == LogsLimit+3 { // has forward and backwards
+			hasNextPage = true
+			hasPreviousPage = true
+
+			edges = edges[1 : len(edges)-1] // remove first and last
+		} else if len(edges) == LogsLimit+2 { // has forward pagination (not backwards)
+			hasNextPage = true
+			edges = edges[:len(edges)-1] // remove last
+		}
+
+	} else if pagination.After != nil && len(*pagination.After) > 1 {
+		hasPreviousPage = true // implicitly true because the passed in cursor should match
+		if len(edges) == LogsLimit+1 {
+			hasNextPage = len(edges) == LogsLimit+1
+			edges = edges[:len(edges)-1]
+		}
+	} else if pagination.Before != nil && len(*pagination.Before) > 1 {
+		hasNextPage = true // implicitly true because the passed in cursor should match
+		if len(edges) == LogsLimit+1 {
+			hasPreviousPage = len(edges) == LogsLimit+1
+			edges = edges[1 : len(edges)-1]
+		}
+	} else {
+		if len(edges) == LogsLimit+1 { // has forward page
+			hasNextPage = len(edges) == LogsLimit+1
+			edges = edges[:LogsLimit]
+		}
 	}
 
-	return &modelInputs.LogsPayload{
-		Edges: logs,
+	if len(edges) > 0 {
+		startCursor = edges[0].Cursor
+		endCursor = edges[len(edges)-1].Cursor
+	}
+
+	return &modelInputs.LogsConnection{
+		Edges: edges,
 		PageInfo: &modelInputs.PageInfo{
-			HasNextPage: hasNextPage,
-			EndCursor:   endCursor,
+			HasNextPage:     hasNextPage,
+			HasPreviousPage: hasPreviousPage,
+			EndCursor:       endCursor,
+			StartCursor:     startCursor,
 		},
 	}
 }

@@ -7738,6 +7738,63 @@ export type GetErrorGroupQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupQuery,
 	Types.GetErrorGroupQueryVariables
 >
+export const GetErrorObjectForLogDocument = gql`
+	query GetErrorObjectForLog($log_cursor: String!) {
+		error_object_for_log(log_cursor: $log_cursor) {
+			id
+			error_group_secure_id
+		}
+	}
+`
+
+/**
+ * __useGetErrorObjectForLogQuery__
+ *
+ * To run a query within a React component, call `useGetErrorObjectForLogQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorObjectForLogQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorObjectForLogQuery({
+ *   variables: {
+ *      log_cursor: // value for 'log_cursor'
+ *   },
+ * });
+ */
+export function useGetErrorObjectForLogQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorObjectForLogQuery,
+		Types.GetErrorObjectForLogQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorObjectForLogQuery,
+		Types.GetErrorObjectForLogQueryVariables
+	>(GetErrorObjectForLogDocument, baseOptions)
+}
+export function useGetErrorObjectForLogLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorObjectForLogQuery,
+		Types.GetErrorObjectForLogQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorObjectForLogQuery,
+		Types.GetErrorObjectForLogQueryVariables
+	>(GetErrorObjectForLogDocument, baseOptions)
+}
+export type GetErrorObjectForLogQueryHookResult = ReturnType<
+	typeof useGetErrorObjectForLogQuery
+>
+export type GetErrorObjectForLogLazyQueryHookResult = ReturnType<
+	typeof useGetErrorObjectForLogLazyQuery
+>
+export type GetErrorObjectForLogQueryResult = Apollo.QueryResult<
+	Types.GetErrorObjectForLogQuery,
+	Types.GetErrorObjectForLogQueryVariables
+>
 export const GetErrorObjectDocument = gql`
 	query GetErrorObject($id: ID!) {
 		error_object(id: $id) {
@@ -11504,8 +11561,8 @@ export const GetLogsDocument = gql`
 				cursor
 				node {
 					timestamp
-					severityText
-					body
+					level
+					message
 					logAttributes
 					traceID
 					spanID
@@ -11621,6 +11678,70 @@ export type GetLogsTotalCountQueryResult = Apollo.QueryResult<
 	Types.GetLogsTotalCountQuery,
 	Types.GetLogsTotalCountQueryVariables
 >
+export const GetLogsHistogramDocument = gql`
+	query GetLogsHistogram($project_id: ID!, $params: LogsParamsInput!) {
+		logs_histogram(project_id: $project_id, params: $params) {
+			totalCount
+			buckets {
+				bucketId
+				counts {
+					count
+					level
+				}
+			}
+		}
+	}
+`
+
+/**
+ * __useGetLogsHistogramQuery__
+ *
+ * To run a query within a React component, call `useGetLogsHistogramQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogsHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogsHistogramQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *   },
+ * });
+ */
+export function useGetLogsHistogramQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLogsHistogramQuery,
+		Types.GetLogsHistogramQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetLogsHistogramQuery,
+		Types.GetLogsHistogramQueryVariables
+	>(GetLogsHistogramDocument, baseOptions)
+}
+export function useGetLogsHistogramLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLogsHistogramQuery,
+		Types.GetLogsHistogramQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetLogsHistogramQuery,
+		Types.GetLogsHistogramQueryVariables
+	>(GetLogsHistogramDocument, baseOptions)
+}
+export type GetLogsHistogramQueryHookResult = ReturnType<
+	typeof useGetLogsHistogramQuery
+>
+export type GetLogsHistogramLazyQueryHookResult = ReturnType<
+	typeof useGetLogsHistogramLazyQuery
+>
+export type GetLogsHistogramQueryResult = Apollo.QueryResult<
+	Types.GetLogsHistogramQuery,
+	Types.GetLogsHistogramQueryVariables
+>
 export const GetLogsKeysDocument = gql`
 	query GetLogsKeys($project_id: ID!) {
 		logs_keys(project_id: $project_id) {
@@ -11677,8 +11798,16 @@ export type GetLogsKeysQueryResult = Apollo.QueryResult<
 	Types.GetLogsKeysQueryVariables
 >
 export const GetLogsKeyValuesDocument = gql`
-	query GetLogsKeyValues($project_id: ID!, $key_name: String!) {
-		logs_key_values(project_id: $project_id, key_name: $key_name)
+	query GetLogsKeyValues(
+		$project_id: ID!
+		$key_name: String!
+		$date_range: DateRangeRequiredInput!
+	) {
+		logs_key_values(
+			project_id: $project_id
+			key_name: $key_name
+			date_range: $date_range
+		)
 	}
 `
 
@@ -11696,6 +11825,7 @@ export const GetLogsKeyValuesDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      key_name: // value for 'key_name'
+ *      date_range: // value for 'date_range'
  *   },
  * });
  */

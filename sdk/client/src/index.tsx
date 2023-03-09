@@ -103,6 +103,7 @@ export type HighlightClassOptions = {
 	inlineImages?: boolean
 	inlineStylesheet?: boolean
 	isCrossOriginIframe?: boolean
+	recordCrossOriginIframe?: boolean
 	firstloadVersion?: string
 	environment?: 'development' | 'production' | 'staging' | string
 	appVersion?: string
@@ -316,7 +317,7 @@ export class Highlight {
 	_initMembers(options: HighlightClassOptions) {
 		this.sessionShortcut = false
 		this._recordingStartTime = 0
-		this._isOnLocalHost = false
+		this._isOnLocalHost = window.location.hostname === 'localhost'
 
 		this.ready = false
 		this.state = 'NotRecording'
@@ -327,10 +328,8 @@ export class Highlight {
 		this.enablePerformanceRecording =
 			options.enablePerformanceRecording ?? true
 		// default to inlining stylesheets/images locally to help with recording accuracy
-		this.inlineImages =
-			options.inlineImages ?? window.location.hostname === 'localhost'
-		this.inlineStylesheet =
-			options.inlineStylesheet ?? window.location.hostname === 'localhost'
+		this.inlineImages = options.inlineImages ?? this._isOnLocalHost
+		this.inlineStylesheet = options.inlineStylesheet ?? this._isOnLocalHost
 		this.samplingStrategy = {
 			canvas: 5,
 			canvasQuality: 'low',
@@ -370,7 +369,6 @@ export class Highlight {
 		}
 		this.isRunningOnHighlight =
 			this.organizationID === '1' || this.organizationID === '1jdkoe52'
-		this._isOnLocalHost = window.location.hostname === 'localhost'
 		this.firstloadVersion = options.firstloadVersion || 'unknown'
 		this.sessionShortcut = options.sessionShortcut || false
 		this.feedbackWidgetOptions = {
@@ -671,7 +669,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
 					emit,
-					recordCrossOriginIframes: true,
+					recordCrossOriginIframes:
+						this.options.recordCrossOriginIframe,
 					enableStrictPrivacy: this.enableStrictPrivacy,
 					maskAllInputs: this.enableStrictPrivacy,
 					recordCanvas: this.enableCanvasRecording,
@@ -686,7 +685,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						},
 					},
 					keepIframeSrcFn: (_src) => {
-						return !this.options.isCrossOriginIframe
+						return !this.options.recordCrossOriginIframe
 					},
 					inlineImages: this.inlineImages,
 					inlineStylesheet: this.inlineStylesheet,
