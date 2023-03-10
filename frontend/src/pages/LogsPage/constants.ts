@@ -2,12 +2,12 @@ import { LogLevel } from '@graph/schemas'
 import { Preset } from '@highlight-run/ui'
 import moment from 'moment'
 
-export const FORMAT = 'YYYY-MM-DDTHH:mm:ss.000000000Z'
+export const LOG_TIME_FORMAT = 'YYYY-MM-DDTHH:mm:ss.000000000Z'
 
 export const now = moment()
 export const fifteenMinutesAgo = now.clone().subtract(15, 'minutes').toDate()
 export const thirtyDaysAgo = now.clone().subtract(30, 'days').toDate()
-export const PRESETS: Preset[] = [
+export const LOG_TIME_PRESETS: Preset[] = [
 	{
 		startDate: fifteenMinutesAgo,
 		label: 'Last 15 minutes',
@@ -34,7 +34,7 @@ export const PRESETS: Preset[] = [
 	},
 ]
 
-export const COLOR_MAPPING: {
+export const LOG_PAGE_COLOR_MAPPING: {
 	[key in LogLevel]: 'caution' | 'informative' | 'strong' | 'bad'
 } = {
 	WARN: 'caution',

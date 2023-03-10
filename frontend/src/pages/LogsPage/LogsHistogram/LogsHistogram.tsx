@@ -2,7 +2,10 @@ import LoadingBox from '@components/LoadingBox'
 import { useGetLogsHistogramQuery } from '@graph/hooks'
 import { LogLevel as Level } from '@graph/schemas'
 import { Box, BoxProps, Popover, Text } from '@highlight-run/ui'
-import { COLOR_MAPPING, FORMAT } from '@pages/LogsPage/constants'
+import {
+	LOG_PAGE_COLOR_MAPPING,
+	LOG_TIME_FORMAT,
+} from '@pages/LogsPage/constants'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { isSignificantDateRange } from '@pages/LogsPage/utils'
 import { formatNumber } from '@util/numbers'
@@ -57,8 +60,8 @@ const LogsHistogram = ({
 			params: {
 				query,
 				date_range: {
-					start_date: moment(startDate).format(FORMAT),
-					end_date: moment(endDate).format(FORMAT),
+					start_date: moment(startDate).format(LOG_TIME_FORMAT),
+					end_date: moment(endDate).format(LOG_TIME_FORMAT),
 				},
 			},
 		},
@@ -171,17 +174,23 @@ const LogsHistogram = ({
 	}
 
 	return (
-		<Box display="flex" alignItems="center" gap="4" {...props}>
+		<Box
+			display="flex"
+			alignItems="center"
+			gap="4"
+			{...props}
+			style={{
+				height: outline
+					? styles.OUTLINE_HISTOGRAM_HEIGHT
+					: styles.REGULAR_HISTOGRAM_HEIGHT,
+			}}
+		>
 			<Box
 				p={outline ? '2' : undefined}
 				border={outline ? 'dividerWeak' : undefined}
 				borderRadius="4"
 				width="full"
-				style={{
-					height: outline
-						? styles.OUTLINE_HISTOGRAM_HEIGHT
-						: styles.REGULAR_HISTOGRAM_HEIGHT,
-				}}
+				height="full"
 			>
 				{loading ? (
 					<LoadingBox />
@@ -340,7 +349,9 @@ const LogBucketBar = ({
 							}}
 							width="full"
 							borderRadius="2"
-							backgroundColor={COLOR_MAPPING[bar.level as Level]}
+							backgroundColor={
+								LOG_PAGE_COLOR_MAPPING[bar.level as Level]
+							}
 						/>
 					)
 				})}
@@ -397,7 +408,9 @@ const LogBucketBar = ({
 									borderRadius="round"
 									style={{
 										backgroundColor:
-											COLOR_MAPPING[bar.level as Level],
+											LOG_PAGE_COLOR_MAPPING[
+												bar.level as Level
+											],
 										height: 8,
 										width: 8,
 									}}

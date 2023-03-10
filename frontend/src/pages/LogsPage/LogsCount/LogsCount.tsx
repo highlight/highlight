@@ -1,7 +1,7 @@
 import { useGetLogsTotalCountQuery } from '@graph/hooks'
 import { Box, Preset, Stack, Text } from '@highlight-run/ui'
 import { useNumericProjectId } from '@hooks/useProjectId'
-import { FORMAT } from '@pages/LogsPage/constants'
+import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import { formatDate } from '@pages/LogsPage/utils'
 import { formatNumber } from '@util/numbers'
 import moment from 'moment'
@@ -28,8 +28,8 @@ const LogsCount = ({
 				params: {
 					query,
 					date_range: {
-						start_date: moment(startDate).format(FORMAT),
-						end_date: moment(endDate).format(FORMAT),
+						start_date: moment(startDate).format(LOG_TIME_FORMAT),
+						end_date: moment(endDate).format(LOG_TIME_FORMAT),
 					},
 				},
 			},

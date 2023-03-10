@@ -1,4 +1,4 @@
-import { FORMAT } from '@pages/LogsPage/constants'
+import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import moment from 'moment'
 
 export const formatDate = (date: Date) => {
@@ -6,5 +6,8 @@ export const formatDate = (date: Date) => {
 }
 
 export const isSignificantDateRange = (startDate: Date, endDate: Date) => {
-	return moment(startDate).format(FORMAT) !== moment(endDate).format(FORMAT)
+	return (
+		moment(startDate).format(LOG_TIME_FORMAT) !==
+		moment(endDate).format(LOG_TIME_FORMAT)
+	)
 }

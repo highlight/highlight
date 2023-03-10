@@ -17,7 +17,7 @@ import {
 	useFormState,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { FORMAT, TIME_MODE } from '@pages/LogsPage/constants'
+import { LOG_TIME_FORMAT, TIME_MODE } from '@pages/LogsPage/constants'
 import {
 	BODY_KEY,
 	LogsSearchParam,
@@ -160,8 +160,8 @@ const Search: React.FC<{
 				project_id: project_id!,
 				key_name: activeTerm.key,
 				date_range: {
-					start_date: moment(startDate).format(FORMAT),
-					end_date: moment(endDate).format(FORMAT),
+					start_date: moment(startDate).format(LOG_TIME_FORMAT),
+					end_date: moment(endDate).format(LOG_TIME_FORMAT),
 				},
 			},
 		})

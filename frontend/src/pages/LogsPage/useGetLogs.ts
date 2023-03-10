@@ -1,6 +1,6 @@
 import { useGetLogsLazyQuery } from '@graph/hooks'
 import { PageInfo } from '@graph/schemas'
-import { FORMAT } from '@pages/LogsPage/constants'
+import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -41,8 +41,8 @@ export const useGetLogs = ({
 			params: {
 				query,
 				date_range: {
-					start_date: moment(startDate).format(FORMAT),
-					end_date: moment(endDate).format(FORMAT),
+					start_date: moment(startDate).format(LOG_TIME_FORMAT),
+					end_date: moment(endDate).format(LOG_TIME_FORMAT),
 				},
 			},
 		},
