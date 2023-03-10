@@ -78,6 +78,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 								attribute={value}
 								label={key}
 								queryTerms={queryTerms}
+								queryBaseKeys={[key]}
 							/>
 						) : (
 							<LogValue
@@ -252,8 +253,9 @@ const LogDetailsObject: React.FC<{
 	allExpanded: boolean
 	attribute: string | object
 	label: string
+	queryBaseKeys: string[]
 	queryTerms: LogsSearchParam[]
-}> = ({ allExpanded, attribute, label, queryTerms }) => {
+}> = ({ allExpanded, attribute, label, queryBaseKeys, queryTerms }) => {
 	const [open, setOpen] = useState(false)
 
 	let stringIsJson = false
@@ -295,12 +297,18 @@ const LogDetailsObject: React.FC<{
 						attribute={attribute[key as keyof typeof attribute]}
 						label={key}
 						queryTerms={queryTerms}
+						queryBaseKeys={[...queryBaseKeys, key]}
 					/>
 				))}
 		</Box>
 	) : (
 		<Box cssClass={styles.line}>
-			<LogValue label={label} value={attribute} queryTerms={queryTerms} />
+			<LogValue
+				label={label}
+				value={attribute}
+				queryBaseKeys={queryBaseKeys}
+				queryTerms={queryTerms}
+			/>
 		</Box>
 	)
 }
@@ -309,10 +317,11 @@ const LogValue: React.FC<{
 	label: string
 	value: string
 	queryTerms: LogsSearchParam[]
-}> = ({ label, queryTerms, value }) => {
+	queryBaseKeys?: string[]
+}> = ({ label, queryBaseKeys = [], queryTerms, value }) => {
 	const [_, setQuery] = useQueryParam('query', QueryParam)
-	const matchesQuery = queryTerms?.some((t) => t.key === label)
-	console.log()
+	const queryKey = queryBaseKeys.join('.')
+	const matchesQuery = queryTerms?.some((t) => t.key === queryKey)
 
 	return (
 		<LogAttributeLine>
@@ -378,6 +387,8 @@ const LogValue: React.FC<{
 
 										// TODO: See if we can reopen this log. Maybe something we can
 										// do with the log cursor.
+										// TODO: Fix empty space at beginning of query
+										// TODO: Handle setting values for nested keys
 										setQuery(stringifyLogsQuery(queryTerms))
 									}}
 								/>

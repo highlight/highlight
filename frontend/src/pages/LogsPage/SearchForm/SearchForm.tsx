@@ -176,7 +176,7 @@ const Search: React.FC<{
 
 	useEffect(() => {
 		// necessary to update the combobox with the URL state
-		state.setValue(initialQuery)
+		state.setValue(initialQuery.trim())
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [initialQuery])
 
