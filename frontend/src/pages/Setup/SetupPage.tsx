@@ -11,6 +11,7 @@ import { useBackendIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message, Spin } from 'antd'
 import clsx from 'clsx'
+import { capitalize } from 'lodash'
 import React, { FunctionComponent, useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
@@ -36,64 +37,9 @@ interface SetupStep {
 	tooltip?: string
 }
 
-// The keys of these *_OPTIONS variables must match what we get back from the
-// quickstart endpoint in the docs.
-const PLATFORM_OPTIONS = {
-	client: 'Client',
-	server: 'Server',
-	other: 'Other',
-} as const
-
-const CLIENT_FRAMEWORK_OPTIONS = {
-	angular: 'Angular',
-	react: 'React',
-	next: 'Next',
-	vue: 'Vue',
-	gatsby: 'Gatsby',
-	other: 'Other',
-}
-
-const OTHER_OPTIONS = {
-	'self-host': 'Self Host',
-	'dev-deploy': 'Dev Deploy',
-}
-
-const BACKEND_LANGUAGE_OPTIONS = {
-	python: 'Python',
-	go: 'Go',
-	js: 'JavaScript',
-} as const
-
-const BACKEND_FRAMEWORK_OPTIONS = {
-	flask: 'Flask',
-	django: 'Django',
-	fastapi: 'FastAPI',
-	other: 'Other',
-	'aws-lambda': 'AWS Lambda',
-	'azure-functions': 'Azure Functions',
-	'google-cloud-functions': 'Google Cloud Functions',
-	gqlgen: 'GQLGen',
-	fiber: 'Fiber',
-	chi: 'Chi',
-	mux: 'Mux',
-	gin: 'Gin',
-	apollo: 'Apollo',
-	cloudflare: 'Cloudflare',
-	express: 'Express',
-	firebase: 'Firebase',
-	nodejs: 'Node.js',
-	trpc: 'tRPC',
-} as const
-
-type ClientFrameworkKey = keyof typeof CLIENT_FRAMEWORK_OPTIONS
-type ClientFrameworkLabel = typeof CLIENT_FRAMEWORK_OPTIONS[ClientFrameworkKey]
-type BackendLanguageKey = keyof typeof BACKEND_LANGUAGE_OPTIONS
-type BackendLanguageLabel = typeof BACKEND_LANGUAGE_OPTIONS[BackendLanguageKey]
-type BackendFrameworkKey = keyof typeof BACKEND_FRAMEWORK_OPTIONS
-type BackendFrameworkLabel =
-	typeof BACKEND_FRAMEWORK_OPTIONS[BackendFrameworkKey]
-
 type Guide = {
+	title: string
+	subtitle: string
 	entries: Array<{
 		title: string
 		content: string
@@ -187,13 +133,8 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 	useEffect(() => {
 		fetch(`https://www.highlight.io/api/quickstart`)
 			.then((res) => res.json())
-			.then((docs) => {
-				setDocs(docs)
-				verifyDocsMapping(docs)
-			})
-			.catch(() => {
-				message.error('Error loading docs...')
-			})
+			.then((docs) => setDocs(docs))
+			.catch(() => message.error('Error loading docs...'))
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
@@ -320,13 +261,12 @@ const ClientSetup = ({
 	integrated: boolean
 	docs: Guides['client']
 }) => {
-	// TODO: Rename from platform to framework
-	const [framework, setFramework] = useLocalStorage<ClientFrameworkKey>(
+	const frameworkKeys = Object.keys(docs)
+	const [framework, setFramework] = useLocalStorage<string>(
 		`selectedSetupClientFramework-${project_id}`,
-		Object.keys(docs)[0] as ClientFrameworkKey,
+		frameworkKeys[0],
 	)
-	const guide = docs[framework.split('.')[0].toLowerCase()]
-	const frameworkKeys = Object.keys(docs) as ClientFrameworkKey[]
+	const guide = docs[framework]
 
 	return (
 		<>
@@ -341,13 +281,13 @@ const ClientSetup = ({
 				Setup Highlight in your web application!
 			</p>
 
-			<RadioGroup<ClientFrameworkLabel>
+			<RadioGroup<string>
 				style={{ marginBottom: 20 }}
-				selectedLabel={CLIENT_FRAMEWORK_OPTIONS[framework]}
-				labels={frameworkKeys.map((k) => CLIENT_FRAMEWORK_OPTIONS[k])}
+				selectedLabel={guide.title}
+				labels={frameworkKeys.map((k) => docs[k].title)}
 				onSelect={(l) => {
 					const frameworkKey = frameworkKeys.find(
-						(k) => CLIENT_FRAMEWORK_OPTIONS[k] === l,
+						(k) => docs[k].title === l,
 					)
 					setFramework(frameworkKey!)
 				}}
@@ -502,11 +442,12 @@ const BackendSetup = ({
 	integrated: boolean
 	docs: Guides['server']
 }) => {
-	const [language, setLanguage] = useLocalStorage<BackendLanguageKey>(
+	const languageKeys = Object.keys(docs)
+	const languageValues = languageKeys.map((k) => capitalize(k))
+	const [language, setLanguage] = useLocalStorage<string>(
 		`selectedSetupLanguage-${projectData?.project?.id}`,
-		Object.keys(docs)[0] as BackendLanguageKey,
+		languageKeys[0],
 	)
-	const languageKeys = Object.keys(docs) as BackendLanguageKey[]
 
 	return (
 		<>
@@ -521,16 +462,11 @@ const BackendSetup = ({
 				Setup Highlight in your backend!
 			</p>
 
-			<RadioGroup<BackendLanguageLabel>
+			<RadioGroup<string>
 				style={{ marginBottom: 10 }}
-				selectedLabel={BACKEND_LANGUAGE_OPTIONS[language]}
-				labels={languageKeys.map((k) => BACKEND_LANGUAGE_OPTIONS[k])}
-				onSelect={(l) => {
-					const languageKey = languageKeys.find(
-						(k) => BACKEND_LANGUAGE_OPTIONS[k] === l,
-					)
-					setLanguage(languageKey!)
-				}}
+				selectedLabel={capitalize(language)}
+				labels={languageValues}
+				onSelect={(l) => setLanguage(l.toLowerCase())}
 			/>
 
 			<Framework
@@ -546,18 +482,18 @@ const BackendSetup = ({
 const Framework: React.FC<{
 	docs: Guides['server']
 	integrated: boolean
-	language: BackendLanguageKey
+	language: string
 	projectData: GetProjectQuery | undefined
 }> = ({ docs, integrated, language, projectData }) => {
-	const [framework, setFramework] = useLocalStorage<BackendFrameworkKey>(
+	const frameworkKeys = Object.keys(docs[language])
+	const [framework, setFramework] = useLocalStorage<string>(
 		`selectedSetupFramework-${projectData?.project?.id}`,
-		Object.keys(docs[language])[0] as BackendFrameworkKey,
+		frameworkKeys[0],
 	)
 	const guide = docs[language] && docs[language][framework]
-	const frameworkKeys = Object.keys(docs[language]) as BackendFrameworkKey[]
 
 	if (!guide) {
-		setFramework(Object.keys(docs[language])[0] as BackendFrameworkKey)
+		setFramework(frameworkKeys[0])
 		return null
 	}
 
@@ -566,14 +502,21 @@ const Framework: React.FC<{
 
 	return (
 		<>
-			<RadioGroup<BackendFrameworkLabel>
+			<RadioGroup<string>
 				style={{ marginBottom: 20 }}
-				selectedLabel={BACKEND_FRAMEWORK_OPTIONS[framework]}
-				labels={frameworkKeys.map((k) => BACKEND_FRAMEWORK_OPTIONS[k])}
-				onSelect={(f) => {
+				selectedLabel={getBackendFrameworkTitle(language, guide.title)}
+				labels={frameworkKeys.map((k) =>
+					getBackendFrameworkTitle(language, docs[language][k].title),
+				)}
+				onSelect={(l) => {
 					const frameworkKey = frameworkKeys.find(
-						(k) => BACKEND_FRAMEWORK_OPTIONS[k] === f,
+						(k) =>
+							getBackendFrameworkTitle(
+								language,
+								docs[language][k].title,
+							) === l,
 					)
+					debugger
 					setFramework(frameworkKey!)
 				}}
 			/>
@@ -925,53 +868,14 @@ export const Section: FunctionComponent<
 	)
 }
 
-const verifyDocsMapping = (docs?: Guides) => {
-	if (!docs) {
-		return
+const getBackendFrameworkTitle = (language: string, framework: string) => {
+	const languageTitle = capitalize(language)
+
+	if (framework.startsWith(`${languageTitle} `)) {
+		// Clean up `Python Flask` to `Flask`
+		framework = framework.replace(`${languageTitle} `, '')
 	}
-
-	for (const platform in docs) {
-		console.assert(
-			!!PLATFORM_OPTIONS[platform as keyof typeof PLATFORM_OPTIONS],
-			`Mapping for docs platforms to PLATFORM_OPTIONS is broken for ${platform}`,
-		)
-
-		if (platform === 'server') {
-			for (const language in (docs as any)[platform]) {
-				console.assert(
-					!!BACKEND_LANGUAGE_OPTIONS[
-						language as keyof typeof BACKEND_LANGUAGE_OPTIONS
-					],
-					`Mapping for docs languages to LANGUAGE_OPTIONS is broken for ${language}`,
-				)
-
-				for (const framework in (docs as any)[platform][language]) {
-					console.assert(
-						!!BACKEND_FRAMEWORK_OPTIONS[
-							framework as keyof typeof BACKEND_FRAMEWORK_OPTIONS
-						],
-						`Mapping for docs frameworks to FRAMEWORK_OPTIONS is broken for ${framework}`,
-					)
-				}
-			}
-		} else if (platform === 'client') {
-			for (const language in (docs as any)[platform]) {
-				console.assert(
-					!!CLIENT_FRAMEWORK_OPTIONS[
-						language as keyof typeof CLIENT_FRAMEWORK_OPTIONS
-					],
-					`Mapping for docs languages to CLIENT_FRAMEWORK_OPTIONS is broken for ${language}`,
-				)
-			}
-		} else if (platform === 'other') {
-			for (const language in (docs as any)[platform]) {
-				console.assert(
-					!!OTHER_OPTIONS[language as keyof typeof OTHER_OPTIONS],
-					`Mapping for docs languages to OTHER_OPTIONS is broken for ${language}`,
-				)
-			}
-		}
-	}
+	return framework
 }
 
 // Copied from RadioGroup.tsx for now. Will refactor and break out to a separate
