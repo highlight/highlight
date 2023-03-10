@@ -320,7 +320,7 @@ const LogValue: React.FC<{
 	queryBaseKeys?: string[]
 }> = ({ label, queryBaseKeys = [], queryTerms, value }) => {
 	const [_, setQuery] = useQueryParam('query', QueryParam)
-	const queryKey = queryBaseKeys.join('.')
+	const queryKey = queryBaseKeys.join('.') || label
 	const matchesQuery = queryTerms?.some((t) => t.key === queryKey)
 
 	return (
