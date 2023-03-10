@@ -6,8 +6,8 @@ import {
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	Stack,
-	Text,
 } from '@highlight-run/ui'
+import { LoadingPage } from '@pages/LogsPage/LogsTable/LoadingPage'
 import { LogDetails } from '@pages/LogsPage/LogsTable/LogDetails'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
@@ -24,16 +24,22 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
 import React, { Fragment, useEffect, useState } from 'react'
+import { useInView } from 'react-intersection-observer'
 
 import * as styles from './LogsTable.css'
 
 type Props = {
 	loading: boolean
 	loadingAfter: boolean
+	loadingBefore: boolean
 	logEdges: LogEdge[]
 	query: string
 	tableContainerRef: React.RefObject<HTMLDivElement>
 	selectedCursor: string | undefined
+	fetchMoreForward: () => void
+	fetchMoreBackward: () => void
+	hasNextPage: boolean
+	hasPreviousPage: boolean
 }
 
 export const LogsTable = (props: Props) => {
@@ -69,10 +75,18 @@ export const LogsTable = (props: Props) => {
 const LogsTableInner = ({
 	logEdges,
 	loadingAfter,
+	loadingBefore,
 	query,
 	tableContainerRef,
 	selectedCursor,
+	fetchMoreForward,
+	fetchMoreBackward,
+	hasNextPage,
+	hasPreviousPage,
 }: Props) => {
+	const { ref: previousRef, inView: inPreviousView } = useInView()
+	const { ref: nextRef, inView: inNextView } = useInView()
+
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const columns = React.useMemo<ColumnDef<LogEdge>[]>(
@@ -144,14 +158,25 @@ const LogsTableInner = ({
 		estimateSize: () => 26,
 		getScrollElement: () => tableContainerRef.current,
 		overscan: 10,
+		scrollMargin: 50,
 	})
 	const totalSize = rowVirtualizer.getTotalSize()
 	const virtualRows = rowVirtualizer.getVirtualItems()
-	const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start || 0 : 0
-	const paddingBottom =
-		virtualRows.length > 0
-			? totalSize - (virtualRows[virtualRows.length - 1]?.end || 0)
-			: 0
+	const [paddingTop, paddingBottom] =
+		rows.length > 0
+			? [
+					Math.max(
+						0,
+						virtualRows[0].start -
+							rowVirtualizer.options.scrollMargin,
+					),
+					Math.max(
+						0,
+						rowVirtualizer.getTotalSize() -
+							virtualRows[virtualRows.length - 1].end,
+					),
+			  ]
+			: [0, 0]
 
 	useEffect(() => {
 		// Collapse all rows when search changes
@@ -175,68 +200,74 @@ const LogsTableInner = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
+	React.useEffect(() => {
+		if (rowVirtualizer.isScrolling) {
+			return
+		}
+		if (inPreviousView && hasPreviousPage && !loadingBefore) {
+			fetchMoreBackward()
+		}
+	}, [
+		rowVirtualizer.isScrolling,
+		fetchMoreBackward,
+		hasPreviousPage,
+		inPreviousView,
+		loadingBefore,
+	])
+
+	React.useEffect(() => {
+		if (inNextView && hasNextPage && !loadingAfter) {
+			fetchMoreForward()
+		}
+	}, [fetchMoreForward, hasNextPage, inNextView, loadingAfter])
+
 	return (
-		<div style={{ height: `${totalSize}px`, position: 'relative' }}>
-			{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
+		<div>
+			<div style={{ height: 50 }} ref={previousRef}>
+				{loadingBefore && <LoadingPage alignTop={true} />}
+			</div>
 
-			{virtualRows.map((virtualRow) => {
-				const row = rows[virtualRow.index]
+			<div style={{ height: `${totalSize}px`, position: 'relative' }}>
+				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
 
-				return (
-					<Box
-						cssClass={clsx(styles.row, {
-							[styles.rowExpanded]: row.getIsExpanded(),
-						})}
-						key={virtualRow.key}
-						data-index={virtualRow.index}
-						cursor="pointer"
-						onClick={row.getToggleExpandedHandler()}
-						mb="2"
-						ref={rowVirtualizer.measureElement}
-					>
-						<Stack direction="row" align="flex-start">
-							{row.getVisibleCells().map((cell) => {
-								return (
-									<Fragment key={cell.id}>
-										{flexRender(
-											cell.column.columnDef.cell,
-											cell.getContext(),
-										)}
-									</Fragment>
-								)
+				{virtualRows.map((virtualRow) => {
+					const row = rows[virtualRow.index]
+					return (
+						<Box
+							cssClass={clsx(styles.row, {
+								[styles.rowExpanded]: row.getIsExpanded(),
 							})}
-						</Stack>
+							key={virtualRow.key}
+							data-index={virtualRow.index}
+							cursor="pointer"
+							onClick={row.getToggleExpandedHandler()}
+							mb="2"
+							ref={rowVirtualizer.measureElement}
+						>
+							<Stack direction="row" align="flex-start">
+								{row.getVisibleCells().map((cell) => {
+									return (
+										<Fragment key={cell.id}>
+											{flexRender(
+												cell.column.columnDef.cell,
+												cell.getContext(),
+											)}
+										</Fragment>
+									)
+								})}
+							</Stack>
 
-						<LogDetails row={row} />
-					</Box>
-				)
-			})}
+							<LogDetails row={row} />
+						</Box>
+					)
+				})}
 
-			{paddingBottom > 0 && <Box style={{ height: paddingBottom }} />}
+				{paddingBottom > 0 && <Box style={{ height: paddingBottom }} />}
 
-			{loadingAfter && (
-				<Box
-					backgroundColor="white"
-					border="dividerWeak"
-					display="flex"
-					flexGrow={1}
-					alignItems="center"
-					justifyContent="center"
-					padding="12"
-					position="fixed"
-					shadow="small"
-					borderRadius="6"
-					textAlign="center"
-					style={{
-						bottom: 20,
-						left: 'calc(50% - 150px)',
-						width: 300,
-						zIndex: 10,
-					}}
-				>
-					<Text color="weak">Loading...</Text>
-				</Box>
-			)}
+				<div style={{ height: 50 }} ref={nextRef}>
+					{loadingAfter && <LoadingPage alignTop={false} />}
+				</div>
+			</div>
 		</div>
 	)
 }

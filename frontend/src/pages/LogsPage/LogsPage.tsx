@@ -72,8 +72,11 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		logEdges,
 		loading,
 		loadingAfter,
+		loadingBefore,
 		fetchMoreForward,
 		fetchMoreBackward,
+		hasNextPage,
+		hasPreviousPage,
 	} = useGetLogs({
 		query,
 		project_id,
@@ -98,22 +101,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	const handleLevelChange = (level: LogLevel) => {
 		setQuery(`level:${String(level).toLowerCase()}`)
 	}
-
-	const fetchMoreWhenScrolled = React.useCallback(
-		(containerRefElement?: HTMLDivElement | null) => {
-			if (containerRefElement) {
-				const { scrollHeight, scrollTop, clientHeight } =
-					containerRefElement
-				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
-				if (scrollHeight - scrollTop - clientHeight < 100) {
-					fetchMoreForward()
-				} else if (scrollTop === 0) {
-					fetchMoreBackward()
-				}
-			}
-		},
-		[fetchMoreForward, fetchMoreBackward],
-	)
 
 	return (
 		<>
@@ -165,18 +152,20 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						px="12"
 						pb="12"
 						overflowY="scroll"
-						onScroll={(e) =>
-							fetchMoreWhenScrolled(e.target as HTMLDivElement)
-						}
 						ref={tableContainerRef}
 					>
 						<LogsTable
 							logEdges={logEdges}
 							loading={loading}
 							loadingAfter={loadingAfter}
+							loadingBefore={loadingBefore}
 							query={query}
 							tableContainerRef={tableContainerRef}
 							selectedCursor={logCursor}
+							fetchMoreForward={fetchMoreForward}
+							fetchMoreBackward={fetchMoreBackward}
+							hasNextPage={hasNextPage}
+							hasPreviousPage={hasPreviousPage}
 						/>
 					</Box>
 				</Box>

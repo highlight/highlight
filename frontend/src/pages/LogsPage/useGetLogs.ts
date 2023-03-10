@@ -122,5 +122,7 @@ export const useGetLogs = ({
 		error,
 		fetchMoreForward,
 		fetchMoreBackward,
+		hasNextPage: windowInfo.hasNextPage,
+		hasPreviousPage: windowInfo.hasPreviousPage,
 	}
 }

@@ -10199,6 +10199,7 @@ __metadata:
     react-hotkeys-hook: ^3.3.1
     react-icons: ^4.7.1
     react-infinite-scroll-hook: ^3.0.0
+    react-intersection-observer: ^9.4.3
     react-json-view: ^1.21.3
     react-lines-ellipsis: ^0.14.1
     react-linkify: ^1.0.0-alpha
@@ -42362,6 +42363,15 @@ __metadata:
   peerDependencies:
     react: ^16.8.4 || ^17.0.0 || ^18.0.0
   checksum: 877cbccf36fdc6213abb9611fb9279c4bb76ef7ecb4ec554b3935419a99d55e6d30a80799a054d468d43cc59a9777f21d22d6219a4597bfbd27f3f08a4cdfdc6
+  languageName: node
+  linkType: hard
+
+"react-intersection-observer@npm:^9.4.3":
+  version: 9.4.3
+  resolution: "react-intersection-observer@npm:9.4.3"
+  peerDependencies:
+    react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+  checksum: ac31c6c76ce72019a1fb50fe6b53ef6429d98b9e9b937f92d16635ef8586392c7058bb61526a8fe6bea6ce36c006015fe2d8893bac43eda6157b9e6b17ad9b68
   languageName: node
   linkType: hard
 

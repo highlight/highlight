@@ -353,7 +353,7 @@ func TestReadLogsAfterCursor(t *testing.T) {
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{
-		After: &secondCursor,
+		After: ptr.String("MjAyMy0wMy0wOVQxNjo0MDo0MS44Mzg5MTUwOFosMDEyZjUxYmItMzg1NC00M2VjLThjMzQtNmU4MWI1ZjE2M2E2"),
 	})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
