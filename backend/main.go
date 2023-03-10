@@ -224,8 +224,6 @@ var defaultPort = "8082"
 func main() {
 	ctx := context.TODO()
 
-	// initialize logger
-	log.SetReportCaller(true)
 	// setup highlight
 	H.SetProjectID("1jdkoe52")
 	if util.IsDevOrTestEnv() {
@@ -238,17 +236,10 @@ func main() {
 	H.Start()
 	defer H.Stop()
 	H.SetDebugMode(log.StandardLogger())
-	hlog.SetOutput(true)
-	hlog.SetOutputLevel(hlog.DebugLevel)
-	hlog.WithContext(ctx).WithTag("hello", "world").Info("welcome to highlight.io")
+
 	// setup highlight logrus hook
-	log.AddHook(hlog.NewHook(hlog.WithLevels(
-		log.PanicLevel,
-		log.FatalLevel,
-		log.ErrorLevel,
-		log.WarnLevel,
-		log.InfoLevel,
-	)))
+	hlog.Init()
+	log.WithContext(ctx).WithField("hello", "world").Info("welcome to highlight.io")
 
 	switch os.Getenv("DEPLOYMENT_KEY") {
 	case "HIGHLIGHT_ONPREM_BETA":
