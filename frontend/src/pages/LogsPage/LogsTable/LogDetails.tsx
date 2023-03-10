@@ -91,21 +91,33 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 			})}
 
 			<Box>
-				<LogValue label="level" value={level} />
+				<LogValue label="level" value={level} queryTerms={queryTerms} />
 			</Box>
 
 			<Box>
-				<LogValue label="message" value={message} />
+				<LogValue
+					label="message"
+					value={message}
+					queryTerms={queryTerms}
+				/>
 			</Box>
 
 			{traceID && (
 				<Box>
-					<LogValue label="trace_id" value={traceID} />
+					<LogValue
+						label="trace_id"
+						value={traceID}
+						queryTerms={queryTerms}
+					/>
 				</Box>
 			)}
 			{spanID && (
 				<Box>
-					<LogValue label="span_id" value={spanID} />
+					<LogValue
+						label="span_id"
+						value={spanID}
+						queryTerms={queryTerms}
+					/>
 				</Box>
 			)}
 			{secureSessionID && (
@@ -113,6 +125,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 					<LogValue
 						label="secure_session_id"
 						value={secureSessionID}
+						queryTerms={queryTerms}
 					/>
 				</Box>
 			)}
@@ -295,7 +308,7 @@ const LogDetailsObject: React.FC<{
 const LogValue: React.FC<{
 	label: string
 	value: string
-	queryTerms?: LogsSearchParam[]
+	queryTerms: LogsSearchParam[]
 }> = ({ label, queryTerms, value }) => {
 	const [_, setQuery] = useQueryParam('query', QueryParam)
 	const matchesQuery = queryTerms?.some((t) => t.key === label)
@@ -348,11 +361,17 @@ const LogValue: React.FC<{
 										const index = queryTerms.findIndex(
 											(term) => term.key === label,
 										)
+										const newValue =
+											label === 'level'
+												? value.toLowerCase()
+												: value
+
 										index !== -1
-											? (queryTerms[index].value = value)
+											? (queryTerms[index].value =
+													newValue)
 											: queryTerms.push({
 													key: label,
-													value,
+													value: newValue,
 													operator: DEFAULT_OPERATOR,
 													offsetStart: 0, // not used
 											  })
