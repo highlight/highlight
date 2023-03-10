@@ -7,8 +7,8 @@ import {
 	LOG_TIME_FORMAT,
 } from '@pages/LogsPage/constants'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
-import { isSignificantDateRange } from '@pages/LogsPage/utils'
-import { formatNumber } from '@util/numbers'
+import { formatDate, isSignificantDateRange } from '@pages/LogsPage/utils'
+import { clamp, formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import { useMemo, useRef, useState } from 'react'
@@ -31,6 +31,8 @@ interface HistogramBucket {
 type LogsHistogramProps = Omit<LogsHistogramChartProps, 'buckets'> & {
 	query: string
 	outline?: boolean
+	threshold?: number
+	belowThreshold?: boolean
 } & BoxProps
 
 interface LogsHistogramChartProps {
@@ -48,6 +50,8 @@ const LogsHistogram = ({
 	endDate,
 	onDatesChange,
 	onLevelChange,
+	threshold,
+	belowThreshold,
 	...props
 }: LogsHistogramProps) => {
 	const { project_id } = useParams<{
@@ -131,14 +135,24 @@ const LogsHistogram = ({
 		})
 	}, [data?.logs_histogram, endDate, maxBucketCount, startDate])
 
+	const tickValues = useMemo(() => {
+		// return the axis with 5 ticks based on maxBucketCount
+		const count = 5
+		return [
+			...new Set(
+				[...Array(count + 1)].map((_, idx) => {
+					const tick = Math.ceil(maxBucketCount / count) * idx
+					return tick
+				}),
+			),
+		]
+	}, [maxBucketCount])
 	const axis = useMemo(() => {
 		if (!outline) {
 			return null
 		}
-		// return the axis with 5 ticks based on maxBucketCount
-		const count = 5
-		const ticks = [...Array(count + 1)].map((_, idx) => {
-			const tick = Math.ceil(maxBucketCount / count) * idx
+
+		const ticks = (tickValues.length > 1 ? tickValues : []).map((tick) => {
 			return (
 				<Text
 					key={tick}
@@ -167,9 +181,23 @@ const LogsHistogram = ({
 				{loading ? null : ticks}
 			</Box>
 		)
-	}, [loading, maxBucketCount, outline])
+	}, [loading, maxBucketCount, outline, tickValues])
 
-	if (!loading && !maxBucketCount) {
+	const maxValue = tickValues[tickValues.length - 1] ?? 0
+	const referenceValue = belowThreshold ? 0 : maxValue
+	const clampedThreshold = clamp(
+		Math.abs(threshold ?? referenceValue),
+		0,
+		maxValue,
+	)
+	const thresholdAreaHeight =
+		clamp(
+			Math.abs(referenceValue - clampedThreshold) / maxValue,
+			0,
+			1 - (2 * styles.OUTLINE_PADDING) / styles.OUTLINE_HISTOGRAM_HEIGHT,
+		) * 100
+
+	if (!loading && !maxBucketCount && !outline) {
 		return null
 	}
 
@@ -186,22 +214,52 @@ const LogsHistogram = ({
 			}}
 		>
 			<Box
-				p={outline ? '2' : undefined}
+				p={outline ? `${styles.OUTLINE_PADDING}` : undefined}
 				border={outline ? 'dividerWeak' : undefined}
+				position="relative"
 				borderRadius="4"
 				width="full"
 				height="full"
 			>
 				{loading ? (
 					<LoadingBox />
+				) : !!maxBucketCount ? (
+					<>
+						{outline && thresholdAreaHeight ? (
+							<Box
+								position="absolute"
+								display="inline-flex"
+								background="bad"
+								borderRadius="3"
+								cssClass={styles.thresholdArea}
+								style={{
+									height: `${thresholdAreaHeight}%`,
+									left: 2,
+									right: 2,
+									top: belowThreshold ? undefined : 2,
+									bottom: belowThreshold ? 2 : undefined,
+								}}
+							/>
+						) : null}
+						<LogsHistogramChart
+							buckets={buckets}
+							startDate={startDate}
+							endDate={endDate}
+							onDatesChange={onDatesChange}
+							onLevelChange={onLevelChange}
+						/>
+					</>
 				) : (
-					<LogsHistogramChart
-						buckets={buckets}
-						startDate={startDate}
-						endDate={endDate}
-						onDatesChange={onDatesChange}
-						onLevelChange={onLevelChange}
-					/>
+					<Box
+						width="full"
+						height="full"
+						display="flex"
+						alignItems="center"
+						justifyContent="center"
+					>
+						No logs from {formatDate(startDate)} to{' '}
+						{formatDate(endDate)}.
+					</Box>
 				)}
 			</Box>
 			{axis}

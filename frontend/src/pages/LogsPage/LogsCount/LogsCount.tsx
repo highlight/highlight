@@ -45,6 +45,7 @@ const LogsCount = ({
 		}
 		return `${formatDate(startDate)} to ${formatDate(endDate)}`
 	}, [endDate, presets, startDate])
+
 	return (
 		<Stack
 			direction="row"

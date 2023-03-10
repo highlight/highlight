@@ -13,6 +13,11 @@ export const vars = {
 		auto: 'auto',
 		...spaces,
 	},
+	padding: {
+		auto: 'auto',
+		inherit: 'inherit',
+		...spaces,
+	},
 	border: borders,
 	borderRadius: borderRadii,
 	borderWidth: borderWidths,

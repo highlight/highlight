@@ -55,9 +55,9 @@ const SearchForm = ({
 }: Props) => {
 	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
 
-	const { projectId } = useProjectId()
 	const formState = useFormState({ defaultValues: { query: initialQuery } })
 
+	const { projectId } = useProjectId()
 	const { data: keysData } = useGetLogsKeysQuery({
 		variables: {
 			project_id: projectId,
@@ -109,12 +109,14 @@ const SearchForm = ({
 
 export { SearchForm }
 
-const Search: React.FC<{
+export const Search: React.FC<{
 	initialQuery: string
-	keys?: GetLogsKeysQuery['logs_keys']
 	startDate: Date
 	endDate: Date
-}> = ({ initialQuery, keys, startDate, endDate }) => {
+	keys?: GetLogsKeysQuery['logs_keys']
+	hideIcon?: boolean
+	className?: string
+}> = ({ initialQuery, startDate, endDate, hideIcon, className, keys }) => {
 	const formState = useForm()
 	const { query } = formState.values
 	const { project_id } = useParams()
@@ -124,10 +126,11 @@ const Search: React.FC<{
 	const [getLogsKeyValues, { data, loading: valuesLoading }] =
 		useGetLogsKeyValuesLazyQuery()
 
-	const queryTerms = parseLogsQuery(query)
+	const queryTerms = parseLogsQuery(state.value)
 	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
+
 	const showValues =
 		activeTerm.key !== BODY_KEY ||
 		!!keys?.find((k) => k.name === activeTerm.key)
@@ -136,7 +139,7 @@ const Search: React.FC<{
 
 	const visibleItems = showValues
 		? getVisibleValues(activeTerm, data?.logs_key_values)
-		: getVisibleKeys(query, queryTerms, activeTerm, keys)
+		: getVisibleKeys(state.value, queryTerms, activeTerm, keys)
 
 	// Limit number of items shown
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
@@ -181,13 +184,6 @@ const Search: React.FC<{
 	}, [initialQuery])
 
 	useEffect(() => {
-		// links combobox and form states;
-		// necessary to update the URL when the query changes
-		formState.setValue('query', state.value)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [state.value])
-
-	useEffect(() => {
 		// removes the dirty state from URL when the query is empty
 		if (!query) {
 			submitQuery('')
@@ -228,7 +224,9 @@ const Search: React.FC<{
 			ref={containerRef}
 			position="relative"
 		>
-			<IconSolidSearch className={styles.searchIcon} />
+			{!hideIcon ? (
+				<IconSolidSearch className={styles.searchIcon} />
+			) : null}
 
 			<Box
 				display="flex"
@@ -243,9 +241,13 @@ const Search: React.FC<{
 					state={state}
 					name="search"
 					placeholder="Search your logs..."
-					className={styles.combobox}
+					className={className ?? styles.combobox}
+					style={{
+						paddingLeft: hideIcon ? undefined : 40,
+					}}
 					onBlur={() => {
 						submitQuery(state.value)
+						formState.setValue('query', state.value)
 						inputRef?.current?.blur()
 					}}
 				/>
@@ -256,7 +258,9 @@ const Search: React.FC<{
 						onClick={(e) => {
 							e.preventDefault()
 							e.stopPropagation()
+
 							state.setValue('')
+							formState.setValue('query', '')
 						}}
 					/>
 				) : null}
@@ -265,67 +269,70 @@ const Search: React.FC<{
 			{showResults && (
 				<Combobox.Popover
 					className={styles.comboboxPopover}
+					style={{
+						left: hideIcon ? undefined : 6,
+					}}
 					state={state}
 				>
-					<Box py="4">
-						<Combobox.Group
-							className={styles.comboboxGroup}
-							state={state}
-						>
-							<Combobox.GroupLabel state={state}>
-								{activeTerm.value && (
-									<Combobox.Item
-										className={styles.comboboxItem}
-										onClick={() =>
-											handleItemSelect(activeTerm.value)
-										}
-										state={state}
-									>
-										<Stack direction="row" gap="8">
-											<Text lines="1">
-												{activeTerm.value}:
-											</Text>{' '}
-											<Text color="weak">
-												{activeTerm.key ?? 'Body'}
-											</Text>
-										</Stack>
-									</Combobox.Item>
-								)}
-								<Box px="10" py="6">
-									<Text size="xSmall" color="weak">
-										Filters
-									</Text>
-								</Box>
-							</Combobox.GroupLabel>
-							{loading && (
+					<Box pt="4">
+						<Combobox.GroupLabel state={state}>
+							{activeTerm.value && (
 								<Combobox.Item
 									className={styles.comboboxItem}
-									disabled
-								>
-									<Text>Loading...</Text>
-								</Combobox.Item>
-							)}
-							{visibleItems.map((key, index) => (
-								<Combobox.Item
-									className={styles.comboboxItem}
-									key={index}
-									onClick={() => handleItemSelect(key)}
+									onClick={() =>
+										handleItemSelect(activeTerm.value)
+									}
 									state={state}
 								>
-									{typeof key === 'string' ? (
-										<Text>{key}</Text>
-									) : (
-										<Stack direction="row" gap="8">
-											<Text>{key.name}:</Text>{' '}
-											<Text color="weak">
-												{key.type.toLowerCase()}
-											</Text>
-										</Stack>
-									)}
+									<Stack direction="row" gap="8">
+										<Text lines="1">
+											{activeTerm.value}:
+										</Text>{' '}
+										<Text color="weak">
+											{activeTerm.key ?? 'Body'}
+										</Text>
+									</Stack>
 								</Combobox.Item>
-							))}
-						</Combobox.Group>
+							)}
+							<Box px="10" py="6">
+								<Text size="xSmall" color="weak">
+									Filters
+								</Text>
+							</Box>
+						</Combobox.GroupLabel>
 					</Box>
+					<Combobox.Group
+						className={styles.comboboxGroup}
+						state={state}
+					>
+						{loading && (
+							<Combobox.Item
+								className={styles.comboboxItem}
+								disabled
+							>
+								<Text>Loading...</Text>
+							</Combobox.Item>
+						)}
+						{visibleItems.map((key, index) => (
+							<Combobox.Item
+								className={styles.comboboxItem}
+								key={index}
+								onClick={() => handleItemSelect(key)}
+								state={state}
+							>
+								{typeof key === 'string' ? (
+									<Text>{key}</Text>
+								) : (
+									<Stack direction="row" gap="8">
+										<Text>{key.name}:</Text>{' '}
+										<Text color="weak">
+											{key.type.toLowerCase()}
+										</Text>
+									</Stack>
+								)}
+							</Combobox.Item>
+						))}
+					</Combobox.Group>
 					<Box
 						bbr="8"
 						py="4"

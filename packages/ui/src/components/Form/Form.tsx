@@ -44,7 +44,7 @@ export const Label = ({
 				<Text
 					userSelect="none"
 					size="xSmall"
-					weight="bold"
+					weight="medium"
 					color="weak"
 				>
 					{label}
@@ -186,5 +186,6 @@ Form.Submit = Submit
 Form.Field = Field
 Form.NamedSection = NamedSection
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type FormState = AriaKitFormState<any>
 export const useFormState = useAriaKitFormState

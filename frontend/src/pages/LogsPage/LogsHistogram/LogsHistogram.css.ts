@@ -3,8 +3,9 @@ import { borders } from '@highlight-run/ui/src/css/borders'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
 
-export const REGULAR_HISTOGRAM_HEIGHT = 48
+export const REGULAR_HISTOGRAM_HEIGHT = '4.67em' // computed as 52px in Chrome
 export const OUTLINE_HISTOGRAM_HEIGHT = 120
+export const OUTLINE_PADDING = 2
 
 export const hover = style({
 	cursor: 'pointer',
@@ -31,4 +32,12 @@ export const popoverContentRow = style({
 export const dragSelection = style({
 	backgroundColor: colors.n7,
 	opacity: 0.5,
+})
+
+export const thresholdArea = style({
+	opacity: 0.2,
+	left: 0,
+	zIndex: 1,
+	width: 'calc(100% - 4px)',
+	pointerEvents: 'none',
 })
