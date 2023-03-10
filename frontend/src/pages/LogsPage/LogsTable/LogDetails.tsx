@@ -368,7 +368,7 @@ const LogValue: React.FC<{
 										}
 
 										const index = queryTerms.findIndex(
-											(term) => term.key === label,
+											(term) => term.key === queryKey,
 										)
 										const newValue =
 											label === 'level'
@@ -379,16 +379,12 @@ const LogValue: React.FC<{
 											? (queryTerms[index].value =
 													newValue)
 											: queryTerms.push({
-													key: label,
+													key: queryKey,
 													value: newValue,
 													operator: DEFAULT_OPERATOR,
-													offsetStart: 0, // not used
+													offsetStart: 0, // not actually used
 											  })
 
-										// TODO: See if we can reopen this log. Maybe something we can
-										// do with the log cursor.
-										// TODO: Fix empty space at beginning of query
-										// TODO: Handle setting values for nested keys
 										setQuery(stringifyLogsQuery(queryTerms))
 									}}
 								/>
