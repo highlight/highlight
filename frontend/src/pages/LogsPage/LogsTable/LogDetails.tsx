@@ -5,22 +5,31 @@ import {
 	IconSolidChevronDoubleDown,
 	IconSolidChevronDoubleUp,
 	IconSolidClipboard,
+	IconSolidClipboardCopy,
+	IconSolidFilter,
 	IconSolidLightningBolt,
 	IconSolidLink,
 	Stack,
 	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui'
+import { QueryParam } from '@pages/LogsPage/LogsPage'
 import {
 	IconCollapsed,
 	IconExpanded,
 } from '@pages/LogsPage/LogsTable/LogsTable'
-import { BODY_KEY, LogsSearchParam } from '@pages/LogsPage/SearchForm/utils'
+import {
+	DEFAULT_OPERATOR,
+	LogsSearchParam,
+	stringifyLogsQuery,
+} from '@pages/LogsPage/SearchForm/utils'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { generatePath } from 'react-router-dom'
+import { useQueryParam } from 'use-query-params'
 
 import * as styles from './LogDetails.css'
 
@@ -46,12 +55,6 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 	const expandable = Object.values(logAttributes).some(
 		(v) => typeof v === 'object',
 	)
-	const queryTermKeys = queryTerms.reduce((acc, q) => {
-		if (q.key !== BODY_KEY) {
-			acc = [...acc, q.key]
-		}
-		return acc
-	}, [] as Array<string>)
 
 	if (!expanded) {
 		if (allExpanded) {
@@ -66,13 +69,6 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 			{Object.keys(logAttributes).map((key, index) => {
 				const value = logAttributes[key as keyof typeof logAttributes]
 				const isObject = typeof value === 'object'
-				const matchesQuery = queryTermKeys.includes(key)
-				console.log(
-					'::: matchesQuery',
-					matchesQuery,
-					queryTermKeys,
-					key,
-				)
 
 				return (
 					<Box key={index}>
@@ -81,13 +77,13 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 								allExpanded={allExpanded}
 								attribute={value}
 								label={key}
-								queryTermKeys={queryTermKeys}
+								queryTerms={queryTerms}
 							/>
 						) : (
 							<LogValue
 								label={key}
 								value={value}
-								matchesQuery={matchesQuery}
+								queryTerms={queryTerms}
 							/>
 						)}
 					</Box>
@@ -243,10 +239,9 @@ const LogDetailsObject: React.FC<{
 	allExpanded: boolean
 	attribute: string | object
 	label: string
-	queryTermKeys: string[]
-}> = ({ allExpanded, attribute, label, queryTermKeys }) => {
+	queryTerms: LogsSearchParam[]
+}> = ({ allExpanded, attribute, label, queryTerms }) => {
 	const [open, setOpen] = useState(false)
-	const matchesQuery = queryTermKeys.includes(label)
 
 	let stringIsJson = false
 	if (typeof attribute === 'string') {
@@ -286,17 +281,13 @@ const LogDetailsObject: React.FC<{
 						allExpanded={allExpanded}
 						attribute={attribute[key as keyof typeof attribute]}
 						label={key}
-						queryTermKeys={queryTermKeys}
+						queryTerms={queryTerms}
 					/>
 				))}
 		</Box>
 	) : (
 		<Box cssClass={styles.line}>
-			<LogValue
-				label={label}
-				value={attribute}
-				matchesQuery={matchesQuery}
-			/>
+			<LogValue label={label} value={attribute} queryTerms={queryTerms} />
 		</Box>
 	)
 }
@@ -304,36 +295,112 @@ const LogDetailsObject: React.FC<{
 const LogValue: React.FC<{
 	label: string
 	value: string
-	matchesQuery?: boolean
-}> = ({ label, matchesQuery, value }) => (
-	<LogAttributeLine>
-		<Box flexShrink={0} py="6">
-			<Text family="monospace" weight="bold">
-				"{label}":
-			</Text>
-		</Box>
-		<Box>
+	queryTerms?: LogsSearchParam[]
+}> = ({ label, queryTerms, value }) => {
+	const [_, setQuery] = useQueryParam('query', QueryParam)
+	const matchesQuery = queryTerms?.some((t) => t.key === label)
+	console.log()
+
+	return (
+		<LogAttributeLine>
 			<Box
-				backgroundColor={matchesQuery ? 'informative' : undefined}
-				borderRadius="4"
-				p="6"
+				flexShrink={0}
+				py="6"
+				onClick={(e: any) => e.stopPropagation()}
 			>
-				<Text
-					family="monospace"
-					weight="bold"
-					color="caution"
-					break="word"
-				>
-					{value}
+				<Text family="monospace" weight="bold">
+					"{label}":
 				</Text>
 			</Box>
-		</Box>
-	</LogAttributeLine>
-)
+			<Box
+				display="flex"
+				flexDirection="row"
+				alignItems="center"
+				gap="8"
+				onClick={(e: any) => e.stopPropagation()}
+			>
+				<Box
+					backgroundColor={matchesQuery ? 'informative' : undefined}
+					borderRadius="4"
+					p="6"
+				>
+					<Text
+						family="monospace"
+						weight="bold"
+						color="caution"
+						break="word"
+					>
+						{value}
+					</Text>
+				</Box>
+				<Box cssClass={styles.attributeActions}>
+					<Box>
+						<Tooltip
+							trigger={
+								<IconSolidFilter
+									className={styles.attributeAction}
+									size="12"
+									onClick={() => {
+										if (!queryTerms) {
+											return
+										}
+
+										const index = queryTerms.findIndex(
+											(term) => term.key === label,
+										)
+										index !== -1
+											? (queryTerms[index].value = value)
+											: queryTerms.push({
+													key: label,
+													value,
+													operator: DEFAULT_OPERATOR,
+													offsetStart: 0, // not used
+											  })
+
+										// TODO: See if we can reopen this log. Maybe something we can
+										// do with the log cursor.
+										setQuery(stringifyLogsQuery(queryTerms))
+									}}
+								/>
+							}
+						>
+							<Box p="4">
+								<Text size="small">Apply as filter</Text>
+							</Box>
+						</Tooltip>
+					</Box>
+					<Box>
+						<Tooltip
+							trigger={
+								<IconSolidClipboardCopy
+									className={styles.attributeAction}
+									size="12"
+									onClick={() => {
+										navigator.clipboard.writeText(
+											JSON.stringify(value),
+										)
+										antdMessage.success(
+											'Value copied to your clipboard',
+										)
+									}}
+								/>
+							}
+						>
+							<Box p="4">
+								<Text size="small">Copy to your clipboard</Text>
+							</Box>
+						</Tooltip>
+					</Box>
+				</Box>
+			</Box>
+		</LogAttributeLine>
+	)
+}
 
 const LogAttributeLine: React.FC<React.PropsWithChildren> = ({ children }) => {
 	return (
 		<Box
+			cssClass={styles.logAttributeLine}
 			display="flex"
 			alignItems="center"
 			flexDirection="row"

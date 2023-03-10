@@ -6,7 +6,7 @@ export type LogsSearchParam = {
 }
 
 const SEPARATOR = ':'
-const DEFAULT_OPERATOR = '='
+export const DEFAULT_OPERATOR = '='
 export const BODY_KEY = 'body'
 
 // Inspired by search-query-parser:
