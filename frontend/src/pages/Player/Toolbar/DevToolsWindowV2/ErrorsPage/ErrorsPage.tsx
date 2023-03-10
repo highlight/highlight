@@ -1,7 +1,7 @@
 import LoadingBox from '@components/LoadingBox'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { ErrorObject } from '@graph/schemas'
-import { Box, Tag, Text } from '@highlight-run/ui'
+import { Box, IconSolidArrowCircleRight, Tag, Text } from '@highlight-run/ui'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -33,7 +33,7 @@ const ErrorsPage = ({
 }) => {
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const location = useLocation()
-	const { errors, state, session, sessionMetadata, isPlayerReady } =
+	const { errors, state, session, sessionMetadata, isPlayerReady, setTime } =
 		useReplayerContext()
 
 	const { setActiveError, setRightPanelView } = usePlayerUIContext()
@@ -104,6 +104,8 @@ const ErrorsPage = ({
 								setActiveError(error)
 								setRightPanelView(RightPanelView.Error)
 							}}
+							setTime={setTime}
+							startTime={sessionMetadata.startTime}
 							searchQuery={filter}
 							current={index === lastActiveErrorIndex}
 						/>
@@ -122,12 +124,21 @@ export enum ErrorCardState {
 interface Props {
 	error: ErrorObject
 	setSelectedError: () => void
+	setTime: (time: number) => void
+	startTime: number
 	searchQuery: string
 	current?: boolean
 }
 
 const ErrorRow = React.memo(
-	({ error, setSelectedError, searchQuery, current }: Props) => {
+	({
+		error,
+		setSelectedError,
+		setTime,
+		startTime,
+		searchQuery,
+		current,
+	}: Props) => {
 		const body = useMemo(
 			() => parseOptionalJSON(getErrorBody(error.event)),
 			[error.event],
@@ -136,6 +147,11 @@ const ErrorRow = React.memo(
 			const data = parseOptionalJSON(error.payload || '')
 			return data === 'null' ? '' : data
 		}, [error.payload])
+
+		const timestamp = useMemo(() => {
+			return new Date(error.timestamp).getTime() - startTime
+		}, [error.timestamp, startTime])
+
 		return (
 			<Box
 				key={error.id}
@@ -178,6 +194,19 @@ const ErrorRow = React.memo(
 				<Box display="flex" align="center" justifyContent="flex-end">
 					<Tag kind="secondary" lines="1">
 						{error.type}
+					</Tag>
+				</Box>
+				<Box display="flex" align="center" justifyContent="flex-end">
+					<Tag
+						shape="basic"
+						emphasis="low"
+						kind="secondary"
+						size="medium"
+						onClick={() => {
+							setTime(timestamp)
+						}}
+					>
+						<IconSolidArrowCircleRight />
 					</Tag>
 				</Box>
 			</Box>
