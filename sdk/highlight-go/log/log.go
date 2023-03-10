@@ -12,14 +12,13 @@ var (
 	LogMessageKey  = attribute.Key(highlight.LogMessageAttribute)
 )
 
+// Init configures logrus to ship logs to highlight.io
 func Init() {
 	logrus.SetReportCaller(true)
+	logrus.AddHook(NewHook(WithLevels(logrus.AllLevels...)))
+}
+
+// DisableOutput turns off stdout / stderr output from logrus, in case another logger is already used.
+func DisableOutput() {
 	logrus.SetOutput(io.Discard)
-	logrus.AddHook(NewHook(WithLevels(
-		logrus.PanicLevel,
-		logrus.FatalLevel,
-		logrus.ErrorLevel,
-		logrus.WarnLevel,
-		logrus.InfoLevel,
-	)))
 }
