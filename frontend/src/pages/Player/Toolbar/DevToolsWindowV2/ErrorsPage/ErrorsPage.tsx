@@ -1,7 +1,7 @@
 import LoadingBox from '@components/LoadingBox'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { ErrorObject } from '@graph/schemas'
-import { Box, Tag, Text } from '@highlight-run/ui'
+import { Box, IconSolidArrowCircleRight, Tag, Text } from '@highlight-run/ui'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -13,9 +13,7 @@ import {
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
-// import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { parseOptionalJSON } from '@util/string'
-// import { MillisToMinutesAndSeconds } from '@util/time'
 import React, { useLayoutEffect, useMemo, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
@@ -39,8 +37,7 @@ const ErrorsPage = ({
 		useReplayerContext()
 
 	const { setActiveError, setRightPanelView } = usePlayerUIContext()
-	const { setShowRightPanel, showPlayerAbsoluteTime } =
-		usePlayerConfiguration()
+	const { setShowRightPanel } = usePlayerConfiguration()
 
 	const loading = state === ReplayerState.Loading
 
@@ -109,7 +106,6 @@ const ErrorsPage = ({
 							}}
 							setTime={setTime}
 							startTime={sessionMetadata.startTime}
-							showPlayerAbsoluteTime={showPlayerAbsoluteTime}
 							searchQuery={filter}
 							current={index === lastActiveErrorIndex}
 						/>
@@ -130,7 +126,6 @@ interface Props {
 	setSelectedError: () => void
 	setTime: (time: number) => void
 	startTime: number
-	showPlayerAbsoluteTime: boolean
 	searchQuery: string
 	current?: boolean
 }
@@ -141,7 +136,6 @@ const ErrorRow = React.memo(
 		setSelectedError,
 		setTime,
 		startTime,
-		showPlayerAbsoluteTime,
 		searchQuery,
 		current,
 	}: Props) => {
@@ -190,29 +184,6 @@ const ErrorRow = React.memo(
 						/>
 					)}
 				</Box>
-				{/* @Julian - can this timestamp tag be arranged nicely into the row? */}
-				{/* Once ready, 'uncomment' imports for playerTimeToSessionAbsoluteTime & MillisToMinutesAndSeconds */}
-				{/* <Box>
-					<Tag
-						shape="basic"
-						kind="secondary"
-						size="medium"
-						style={{
-							marginRight: 'auto',
-							flexShrink: 0,
-						}}
-						onClick={() => {
-							setTime(timestamp)
-						}}
-					>
-						{showPlayerAbsoluteTime
-							? playerTimeToSessionAbsoluteTime({
-									sessionStartTime: startTime,
-									relativeTime: timestamp,
-							  })
-							: MillisToMinutesAndSeconds(timestamp)}
-					</Tag>
-				</Box> */}
 				<Box display="flex" align="center" justifyContent="flex-end">
 					<Text color="n11">
 						{error.structured_stack_trace[0] &&
@@ -223,6 +194,19 @@ const ErrorRow = React.memo(
 				<Box display="flex" align="center" justifyContent="flex-end">
 					<Tag kind="secondary" lines="1">
 						{error.type}
+					</Tag>
+				</Box>
+				<Box display="flex" align="center" justifyContent="flex-end">
+					<Tag
+						shape="basic"
+						emphasis="low"
+						kind="secondary"
+						size="medium"
+						onClick={() => {
+							setTime(timestamp)
+						}}
+					>
+						<IconSolidArrowCircleRight />
 					</Tag>
 				</Box>
 			</Box>

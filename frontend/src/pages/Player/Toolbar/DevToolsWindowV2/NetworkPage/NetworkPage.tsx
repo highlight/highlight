@@ -1,5 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
-import { Box, Tag, Text } from '@highlight-run/ui'
+import { Box, IconSolidArrowCircleRight, Tag, Text } from '@highlight-run/ui'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -417,17 +417,10 @@ const ResourceRow = ({
 						textToHighlight={resource.displayName || resource.name}
 					/>
 				</Tooltip>
-				<Tag
-					shape="basic"
-					kind="secondary"
-					size="medium"
-					onClick={() => {
-						setTime(resource.startTime)
-					}}
-					style={{
-						marginRight: 'auto',
-						flexShrink: 0,
-					}}
+				<Text
+					size="small"
+					weight={showingDetails ? 'bold' : 'medium'}
+					lines="1"
 				>
 					{showPlayerAbsoluteTime
 						? playerTimeToSessionAbsoluteTime({
@@ -435,7 +428,7 @@ const ResourceRow = ({
 								relativeTime: resource.startTime,
 						  })
 						: MillisToMinutesAndSeconds(resource.startTime)}
-				</Tag>
+				</Text>
 				<Box className={styles.timingBarWrapper}>
 					<Box
 						style={{
@@ -456,6 +449,17 @@ const ResourceRow = ({
 						className={styles.timingBarEmptySection}
 					/>
 				</Box>
+				<Tag
+					shape="basic"
+					emphasis="low"
+					kind="secondary"
+					size="medium"
+					onClick={() => {
+						setTime(resource.startTime)
+					}}
+				>
+					<IconSolidArrowCircleRight />
+				</Tag>
 			</Box>
 		</Box>
 	)
