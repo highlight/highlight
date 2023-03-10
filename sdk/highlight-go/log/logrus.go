@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 	"strings"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -57,7 +59,13 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 		ctx = context.TODO()
 	}
 
-	var attrs []attribute.KeyValue
+	span, _ := highlight.StartTrace(ctx, "highlight-go/log")
+	defer highlight.EndTrace(span)
+
+	attrs := []attribute.KeyValue{
+		LogSeverityKey.String(levelString(entry.Level)),
+		LogMessageKey.String(entry.Message),
+	}
 	if entry.Caller != nil {
 		if entry.Caller.Function != "" {
 			attrs = append(attrs, semconv.CodeFunctionKey.String(entry.Caller.Function))
@@ -70,16 +78,22 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 
 	for k, v := range entry.Data {
 		if k == "error" {
-			if err, ok := v.(error); ok {
-				highlight.RecordError(ctx, err)
+			if err, ok := v.(highlight.ErrorWithStack); ok {
+				highlight.RecordSpanErrorWithStack(span, err)
+			} else if err, ok := v.(error); ok {
+				span.RecordError(err)
 			}
 		} else {
 			attrs = append(attrs, attribute.String(k, fmt.Sprintf("%+v", v)))
 		}
 	}
 
-	lvl, _ := parseLevel(levelString(entry.Level))
-	WithContext(ctx).log(lvl, entry.Message, attrs...)
+	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...))
+
+	if entry.Level <= hook.errorStatusLevel {
+		span.SetStatus(codes.Error, entry.Message)
+	}
+
 	return nil
 }
 
