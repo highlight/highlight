@@ -15,6 +15,7 @@ import {
 	IconCollapsed,
 	IconExpanded,
 } from '@pages/LogsPage/LogsTable/LogsTable'
+import { BODY_KEY, LogsSearchParam } from '@pages/LogsPage/SearchForm/utils'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
 import React, { useEffect, useState } from 'react'
@@ -25,6 +26,7 @@ import * as styles from './LogDetails.css'
 
 type Props = {
 	row: Row<LogEdge>
+	queryTerms: LogsSearchParam[]
 }
 
 export const getLogURL = (row: Row<LogEdge>) => {
@@ -35,7 +37,7 @@ export const getLogURL = (row: Row<LogEdge>) => {
 	return currentUrl.origin + path
 }
 
-export const LogDetails = ({ row }: Props) => {
+export const LogDetails = ({ row, queryTerms }: Props) => {
 	const navigate = useNavigate()
 	const [allExpanded, setAllExpanded] = useState(false)
 	const { traceID, spanID, secureSessionID, logAttributes, message, level } =
@@ -44,6 +46,12 @@ export const LogDetails = ({ row }: Props) => {
 	const expandable = Object.values(logAttributes).some(
 		(v) => typeof v === 'object',
 	)
+	const queryTermKeys = queryTerms.reduce((acc, q) => {
+		if (q.key !== BODY_KEY) {
+			acc = [...acc, q.key]
+		}
+		return acc
+	}, [] as Array<string>)
 
 	if (!expanded) {
 		if (allExpanded) {
@@ -58,6 +66,13 @@ export const LogDetails = ({ row }: Props) => {
 			{Object.keys(logAttributes).map((key, index) => {
 				const value = logAttributes[key as keyof typeof logAttributes]
 				const isObject = typeof value === 'object'
+				const matchesQuery = queryTermKeys.includes(key)
+				console.log(
+					'::: matchesQuery',
+					matchesQuery,
+					queryTermKeys,
+					key,
+				)
 
 				return (
 					<Box key={index}>
@@ -66,9 +81,14 @@ export const LogDetails = ({ row }: Props) => {
 								allExpanded={allExpanded}
 								attribute={value}
 								label={key}
+								queryTermKeys={queryTermKeys}
 							/>
 						) : (
-							<LogValue label={key} value={value} />
+							<LogValue
+								label={key}
+								value={value}
+								matchesQuery={matchesQuery}
+							/>
 						)}
 					</Box>
 				)
@@ -223,8 +243,10 @@ const LogDetailsObject: React.FC<{
 	allExpanded: boolean
 	attribute: string | object
 	label: string
-}> = ({ allExpanded, attribute, label }) => {
+	queryTermKeys: string[]
+}> = ({ allExpanded, attribute, label, queryTermKeys }) => {
 	const [open, setOpen] = useState(false)
+	const matchesQuery = queryTermKeys.includes(label)
 
 	let stringIsJson = false
 	if (typeof attribute === 'string') {
@@ -250,7 +272,7 @@ const LogDetailsObject: React.FC<{
 		>
 			<LogAttributeLine>
 				{open ? <IconExpanded /> : <IconCollapsed />}
-				<Box>
+				<Box py="6">
 					<Text color="weak" family="monospace" weight="bold">
 						{label}
 					</Text>
@@ -264,29 +286,48 @@ const LogDetailsObject: React.FC<{
 						allExpanded={allExpanded}
 						attribute={attribute[key as keyof typeof attribute]}
 						label={key}
+						queryTermKeys={queryTermKeys}
 					/>
 				))}
 		</Box>
 	) : (
 		<Box cssClass={styles.line}>
-			<LogValue label={label} value={attribute} />
+			<LogValue
+				label={label}
+				value={attribute}
+				matchesQuery={matchesQuery}
+			/>
 		</Box>
 	)
 }
 
-const LogValue: React.FC<{ label: string; value: string }> = ({
-	label,
-	value,
-}) => (
+const LogValue: React.FC<{
+	label: string
+	value: string
+	matchesQuery?: boolean
+}> = ({ label, matchesQuery, value }) => (
 	<LogAttributeLine>
-		<Box flexShrink={0}>
+		<Box flexShrink={0} py="6">
 			<Text family="monospace" weight="bold">
 				"{label}":
 			</Text>
 		</Box>
-		<Text family="monospace" weight="bold" color="caution" break="word">
-			{value}
-		</Text>
+		<Box>
+			<Box
+				backgroundColor={matchesQuery ? 'informative' : undefined}
+				borderRadius="4"
+				p="6"
+			>
+				<Text
+					family="monospace"
+					weight="bold"
+					color="caution"
+					break="word"
+				>
+					{value}
+				</Text>
+			</Box>
+		</Box>
 	</LogAttributeLine>
 )
 
@@ -296,8 +337,7 @@ const LogAttributeLine: React.FC<React.PropsWithChildren> = ({ children }) => {
 			display="flex"
 			alignItems="center"
 			flexDirection="row"
-			gap="10"
-			py="6"
+			gap="4"
 			flexShrink={0}
 		>
 			{children}
