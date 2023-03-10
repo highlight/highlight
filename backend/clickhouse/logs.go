@@ -54,6 +54,9 @@ func (l *LogRow) Cursor() string {
 }
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
+	if len(logRows) == 0 {
+		return nil
+	}
 	batch, err := client.conn.PrepareBatch(ctx, "INSERT INTO logs")
 
 	if err != nil {
@@ -72,21 +75,64 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 	return batch.Send()
 }
 
-const Limit int = 100
+const LogsLimit int = 100
 const KeyValuesLimit int = 50
 
-func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string) (*modelInputs.LogsPayload, error) {
-	sb, err := makeSelectBuilder("Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId", projectID, params, after)
-	if err != nil {
-		return nil, err
-	}
+const OrderBackward = "Timestamp ASC, UUID ASC"
+const OrderForward = "Timestamp DESC, UUID DESC"
 
-	sb.OrderBy("Timestamp DESC, UUID DESC").Limit(Limit + 1)
+type Pagination struct {
+	After     *string
+	Before    *string
+	At        *string
+	CountOnly bool
+}
+
+func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*modelInputs.LogsConnection, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	var err error
+	var args []interface{}
+	selectStr := "Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId"
+
+	if pagination.At != nil && len(*pagination.At) > 1 {
+		// Create a "window" around the cursor
+		// https://stackoverflow.com/a/71738696
+		beforeSb, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
+			Before: pagination.At,
+		})
+		if err != nil {
+			return nil, err
+		}
+		beforeSb.Limit(LogsLimit/2 + 1)
+
+		atSb, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
+			At: pagination.At,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		afterSb, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
+			After: pagination.At,
+		})
+		if err != nil {
+			return nil, err
+		}
+		afterSb.Limit(LogsLimit/2 + 1)
+
+		ub := sqlbuilder.UnionAll(beforeSb, atSb, afterSb)
+		sb.Select(selectStr).From(sb.BuilderAs(ub, "logs_window")).OrderBy(OrderForward)
+	} else {
+		fromSb, err := makeSelectBuilder(selectStr, projectID, params, pagination)
+		if err != nil {
+			return nil, err
+		}
+
+		fromSb.Limit(LogsLimit + 1)
+		sb.Select(selectStr).From(sb.BuilderAs(fromSb, "logs_window")).OrderBy(OrderForward)
+	}
 
 	sql, args := sb.Build()
-	if err != nil {
-		return nil, err
-	}
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
@@ -94,7 +140,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 		return nil, err
 	}
 
-	logs := []*modelInputs.LogEdge{}
+	edges := []*modelInputs.LogEdge{}
 
 	for rows.Next() {
 		var result struct {
@@ -111,12 +157,12 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 			return nil, err
 		}
 
-		logs = append(logs, &modelInputs.LogEdge{
+		edges = append(edges, &modelInputs.LogEdge{
 			Cursor: encodeCursor(result.Timestamp, result.UUID),
 			Node: &modelInputs.Log{
 				Timestamp:       result.Timestamp,
-				SeverityText:    makeSeverityText(result.SeverityText),
-				Body:            result.Body,
+				Level:           makeLogLevel(result.SeverityText),
+				Message:         result.Body,
 				LogAttributes:   expandJSON(result.LogAttributes),
 				TraceID:         &result.TraceId,
 				SpanID:          &result.SpanId,
@@ -126,11 +172,11 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	}
 	rows.Close()
 
-	return getLogsPayload(logs), rows.Err()
+	return getLogsConnection(edges, pagination), rows.Err()
 }
 
 func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
-	sb, err := makeSelectBuilder("COUNT(*)", projectID, params, nil)
+	sb, err := makeSelectBuilder("COUNT(*)", projectID, params, Pagination{CountOnly: true})
 	if err != nil {
 		return 0, err
 	}
@@ -161,7 +207,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		),
 		projectID,
 		params,
-		nil,
+		Pagination{},
 	)
 
 	if err != nil {
@@ -199,7 +245,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		count    uint64
 	)
 
-	buckets := make(map[uint64]map[modelInputs.SeverityText]uint64)
+	buckets := make(map[uint64]map[modelInputs.LogLevel]uint64)
 
 	for rows.Next() {
 		if err := rows.Scan(&bucketId, &level, &count); err != nil {
@@ -212,11 +258,11 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 
 		// create bucket if not exists
 		if _, ok := buckets[bucketId]; !ok {
-			buckets[bucketId] = make(map[modelInputs.SeverityText]uint64)
+			buckets[bucketId] = make(map[modelInputs.LogLevel]uint64)
 		}
 
 		// add count to bucket
-		buckets[bucketId][makeSeverityText(level)] = count
+		buckets[bucketId][makeLogLevel(level)] = count
 	}
 
 	for bucketId = uint64(0); bucketId < uint64(nBuckets); bucketId++ {
@@ -225,13 +271,13 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		}
 		bucket := buckets[bucketId]
 		counts := make([]*modelInputs.LogsHistogramBucketCount, 0, len(bucket))
-		for _, level := range modelInputs.AllSeverityText {
+		for _, level := range modelInputs.AllLogLevel {
 			if _, ok := bucket[level]; !ok {
 				bucket[level] = 0
 			}
 			counts = append(counts, &modelInputs.LogsHistogramBucketCount{
-				SeverityText: level,
-				Count:        bucket[level],
+				Level: level,
+				Count: bucket[level],
 			})
 		}
 
@@ -353,50 +399,50 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 	return values, rows.Err()
 }
 
-func makeSeverityText(severityText string) modelInputs.SeverityText {
+func makeLogLevel(severityText string) modelInputs.LogLevel {
 	switch strings.ToLower(severityText) {
 	case "trace":
 		{
-			return modelInputs.SeverityTextTrace
+			return modelInputs.LogLevelTrace
 
 		}
 	case "debug":
 		{
-			return modelInputs.SeverityTextDebug
+			return modelInputs.LogLevelDebug
 
 		}
 	case "info":
 		{
-			return modelInputs.SeverityTextInfo
+			return modelInputs.LogLevelInfo
 
 		}
 	case "warn":
 		{
-			return modelInputs.SeverityTextWarn
+			return modelInputs.LogLevelWarn
 		}
 	case "error":
 		{
-			return modelInputs.SeverityTextError
+			return modelInputs.LogLevelError
 		}
 
 	case "fatal":
 		{
-			return modelInputs.SeverityTextFatal
+			return modelInputs.LogLevelFatal
 		}
 
 	default:
-		return modelInputs.SeverityTextInfo
+		return modelInputs.LogLevelInfo
 	}
 }
 
-func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsParamsInput, after *string) (*sqlbuilder.SelectBuilder, error) {
+func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*sqlbuilder.SelectBuilder, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select(selectStr).
 		From("logs").
 		Where(sb.Equal("ProjectId", projectID))
 
-	if after != nil && len(*after) > 1 {
-		timestamp, uuid, err := decodeCursor(*after)
+	if pagination.After != nil && len(*pagination.After) > 1 {
+		timestamp, uuid, err := decodeCursor(*pagination.After)
 		if err != nil {
 			return nil, err
 		}
@@ -408,11 +454,36 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 					sb.LessThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix())),
 					sb.LessThan("UUID", uuid),
 				),
-			)
+			).OrderBy(OrderForward)
+	} else if pagination.At != nil && len(*pagination.At) > 1 {
+		timestamp, uuid, err := decodeCursor(*pagination.At)
+		if err != nil {
+			return nil, err
+		}
+		sb.Where(sb.Equal("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
+			Where(sb.Equal("UUID", uuid))
+	} else if pagination.Before != nil && len(*pagination.Before) > 1 {
+		timestamp, uuid, err := decodeCursor(*pagination.Before)
+		if err != nil {
+			return nil, err
+		}
 
+		sb.Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
+			Where(
+				sb.Or(
+					sb.GreaterThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix())),
+					sb.GreaterThan("UUID", uuid),
+				),
+			).
+			OrderBy(OrderBackward)
 	} else {
 		sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.EndDate.Unix()))).
 			Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.StartDate.Unix())))
+
+		if !pagination.CountOnly { // count queries can't be ordered because we don't include Timestamp in the select
+			sb.OrderBy(OrderForward)
+		}
+
 	}
 
 	filters := makeFilters(params.Query)
@@ -490,7 +561,11 @@ func makeFilters(query string) filters {
 			if strings.Contains(body, "*") {
 				body = strings.ReplaceAll(body, "*", "%")
 			}
-			filters.body = filters.body + body
+			if len(filters.body) == 0 {
+				filters.body = body
+			} else {
+				filters.body = filters.body + " " + body
+			}
 		} else if len(parts) == 2 {
 			key, value := parts[0], parts[1]
 

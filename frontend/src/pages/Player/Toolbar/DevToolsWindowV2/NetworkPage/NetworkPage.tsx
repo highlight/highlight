@@ -1,5 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
-import { Box, Text } from '@highlight-run/ui'
+import { Box, IconSolidArrowCircleRight, Tag, Text } from '@highlight-run/ui'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -306,6 +306,7 @@ export const NetworkPage = ({
 												RightPanelView.NetworkResource,
 											)
 										}}
+										setTime={setTime}
 										playerStartTime={startTime}
 										hasError={!!error}
 										networkRequestAndResponseRecordingEnabled={
@@ -340,6 +341,7 @@ interface ResourceRowProps {
 	isCurrentResource: boolean
 	searchTerm: string
 	onClickHandler: () => void
+	setTime: (time: number) => void
 	networkRequestAndResponseRecordingEnabled: boolean
 	playerStartTime: number
 	hasError?: boolean
@@ -353,6 +355,7 @@ const ResourceRow = ({
 	searchTerm,
 	onClickHandler,
 	networkRequestAndResponseRecordingEnabled,
+	setTime,
 	playerStartTime,
 	hasError,
 	showPlayerAbsoluteTime,
@@ -446,6 +449,17 @@ const ResourceRow = ({
 						className={styles.timingBarEmptySection}
 					/>
 				</Box>
+				<Tag
+					shape="basic"
+					emphasis="low"
+					kind="secondary"
+					size="medium"
+					onClick={() => {
+						setTime(resource.startTime)
+					}}
+				>
+					<IconSolidArrowCircleRight />
+				</Tag>
 			</Box>
 		</Box>
 	)

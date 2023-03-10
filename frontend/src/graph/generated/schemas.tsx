@@ -658,10 +658,10 @@ export type LinearTeam = {
 
 export type Log = {
 	__typename?: 'Log'
-	body: Scalars['String']
+	level: LogLevel
 	logAttributes: Scalars['Map']
+	message: Scalars['String']
 	secureSessionID?: Maybe<Scalars['String']>
-	severityText: SeverityText
 	spanID?: Maybe<Scalars['String']>
 	timestamp: Scalars['Timestamp']
 	traceID?: Maybe<Scalars['String']>
@@ -683,6 +683,21 @@ export enum LogKeyType {
 	String = 'String',
 }
 
+export enum LogLevel {
+	Debug = 'DEBUG',
+	Error = 'ERROR',
+	Fatal = 'FATAL',
+	Info = 'INFO',
+	Trace = 'TRACE',
+	Warn = 'WARN',
+}
+
+export type LogsConnection = {
+	__typename?: 'LogsConnection'
+	edges: Array<LogEdge>
+	pageInfo: PageInfo
+}
+
 export type LogsHistogram = {
 	__typename?: 'LogsHistogram'
 	buckets: Array<LogsHistogramBucket>
@@ -698,18 +713,12 @@ export type LogsHistogramBucket = {
 export type LogsHistogramBucketCount = {
 	__typename?: 'LogsHistogramBucketCount'
 	count: Scalars['UInt64']
-	severityText: SeverityText
+	level: LogLevel
 }
 
 export type LogsParamsInput = {
 	date_range: DateRangeRequiredInput
 	query: Scalars['String']
-}
-
-export type LogsPayload = {
-	__typename?: 'LogsPayload'
-	edges: Array<LogEdge>
-	pageInfo: PageInfo
 }
 
 export type Metric = {
@@ -1361,6 +1370,8 @@ export type PageInfo = {
 	__typename?: 'PageInfo'
 	endCursor: Scalars['String']
 	hasNextPage: Scalars['Boolean']
+	hasPreviousPage: Scalars['Boolean']
+	startCursor: Scalars['String']
 }
 
 export type Plan = {
@@ -1436,6 +1447,7 @@ export type Query = {
 	error_instance?: Maybe<ErrorInstance>
 	error_issue: Array<Maybe<ExternalAttachment>>
 	error_object?: Maybe<ErrorObject>
+	error_object_for_log?: Maybe<ErrorObject>
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram: ErrorsHistogram
@@ -1460,7 +1472,7 @@ export type Query = {
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
-	logs: LogsPayload
+	logs: LogsConnection
 	logs_histogram: LogsHistogram
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<LogKey>
@@ -1683,6 +1695,10 @@ export type QueryError_ObjectArgs = {
 	id: Scalars['ID']
 }
 
+export type QueryError_Object_For_LogArgs = {
+	log_cursor: Scalars['String']
+}
+
 export type QueryError_SegmentsArgs = {
 	project_id: Scalars['ID']
 }
@@ -1792,6 +1808,8 @@ export type QueryLiveUsersCountArgs = {
 
 export type QueryLogsArgs = {
 	after?: InputMaybe<Scalars['String']>
+	at?: InputMaybe<Scalars['String']>
+	before?: InputMaybe<Scalars['String']>
 	params: LogsParamsInput
 	project_id: Scalars['ID']
 }
@@ -2337,15 +2355,6 @@ export type SessionsHistogram = {
 	sessions_with_errors: Array<Scalars['Int64']>
 	sessions_without_errors: Array<Scalars['Int64']>
 	total_sessions: Array<Scalars['Int64']>
-}
-
-export enum SeverityText {
-	Debug = 'DEBUG',
-	Error = 'ERROR',
-	Fatal = 'FATAL',
-	Info = 'INFO',
-	Trace = 'TRACE',
-	Warn = 'WARN',
 }
 
 export type SlackSyncResponse = {

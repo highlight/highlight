@@ -147,6 +147,7 @@ export enum PlayerActionType {
 	setViewingUnauthorizedSession,
 	startChunksLoad,
 	updateCurrentUrl,
+	updateEvents,
 	updateViewport,
 }
 
@@ -169,6 +170,7 @@ type PlayerAction =
 	| setTime
 	| setViewingUnauthorizedSession
 	| startChunksLoad
+	| updateEvents
 	| updateCurrentUrl
 	| updateViewport
 
@@ -214,6 +216,10 @@ interface reset {
 interface onEvent {
 	type: PlayerActionType.onEvent
 	event: HighlightEvent
+}
+
+interface updateEvents {
+	type: PlayerActionType.updateEvents
 }
 
 interface updateViewport {
@@ -431,6 +437,11 @@ export const PlayerReducer = (
 				sessionViewability: SessionViewability.VIEWABLE,
 				session_secure_id: action.sessionSecureId,
 				time: 0,
+			}
+			break
+		case PlayerActionType.updateEvents:
+			if (s.replayer) {
+				s.replayer.replaceEvents(events)
 			}
 			break
 		case PlayerActionType.updateViewport:

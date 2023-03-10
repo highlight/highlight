@@ -9,7 +9,7 @@ import {
 import { useGetWorkspaceDropdownOptionsQuery } from '@graph/hooks'
 import UserSettings from '@pages/UserSettings/UserSettings'
 import { WorkspaceTabs } from '@pages/WorkspaceTabs/WorkspaceTabs'
-import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
+import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { useDialogState } from 'ariakit/dialog'

@@ -12,7 +12,7 @@ import {
 	CUSTOM_TYPE,
 	SESSION_TYPE,
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
-import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { BuilderParams, buildQueryURLString } from '@util/url/params'
 import { FormState } from 'ariakit/form'
 import moment from 'moment'

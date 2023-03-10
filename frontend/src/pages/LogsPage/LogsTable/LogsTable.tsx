@@ -1,5 +1,5 @@
-import { GetLogsQuery } from '@graph/operations'
-import { SeverityText } from '@graph/schemas'
+import { CircularSpinner } from '@components/Loading/Loading'
+import { LogLevel as LogLevelType } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
 import {
 	Box,
@@ -8,9 +8,9 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui'
-import { LogBody } from '@pages/LogsPage/LogsTable/LogBody'
 import { LogDetails } from '@pages/LogsPage/LogsTable/LogDetails'
-import { LogSeverityText } from '@pages/LogsPage/LogsTable/LogSeverityText'
+import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
+import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
 import {
@@ -23,22 +23,55 @@ import {
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
-import React, { Fragment, useEffect, useMemo, useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 
 import * as styles from './LogsTable.css'
 
 type Props = {
 	loading: boolean
-	data: GetLogsQuery | undefined
+	loadingAfter: boolean
+	logEdges: LogEdge[]
 	query: string
 	tableContainerRef: React.RefObject<HTMLDivElement>
+	selectedCursor: string | undefined
 }
 
-export const LogsTable = ({
-	data,
-	loading,
+export const LogsTable = (props: Props) => {
+	if (props.loading) {
+		return (
+			<Box
+				display="flex"
+				flexGrow={1}
+				alignItems="center"
+				justifyContent="center"
+			>
+				<CircularSpinner />
+			</Box>
+		)
+	}
+
+	if (props.logEdges.length === 0) {
+		return (
+			<Box
+				display="flex"
+				flexGrow={1}
+				alignItems="center"
+				justifyContent="center"
+			>
+				<NoLogsFound />
+			</Box>
+		)
+	}
+
+	return <LogsTableInner {...props} />
+}
+
+const LogsTableInner = ({
+	logEdges,
+	loadingAfter,
 	query,
 	tableContainerRef,
+	selectedCursor,
 }: Props) => {
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
@@ -72,19 +105,17 @@ export const LogsTable = ({
 				),
 			},
 			{
-				accessorKey: 'node.severityText',
+				accessorKey: 'node.level',
 				cell: ({ getValue }) => (
-					<LogSeverityText
-						severityText={getValue() as SeverityText}
-					/>
+					<LogLevel level={getValue() as LogLevelType} />
 				),
 			},
 			{
-				accessorKey: 'node.body',
+				accessorKey: 'node.message',
 				cell: ({ row, getValue }) => (
-					<LogBody
+					<LogMessage
 						query={query}
-						body={getValue() as string}
+						message={getValue() as string}
 						expanded={row.getIsExpanded()}
 					/>
 				),
@@ -92,12 +123,6 @@ export const LogsTable = ({
 		],
 		[query],
 	)
-
-	let logEdges: LogEdge[] = useMemo(() => [], [])
-
-	if (data?.logs?.edges) {
-		logEdges = data.logs.edges
-	}
 
 	const table = useReactTable({
 		data: logEdges,
@@ -133,18 +158,22 @@ export const LogsTable = ({
 		table.toggleAllRowsExpanded(false)
 	}, [logEdges, table])
 
-	if (logEdges.length === 0) {
-		return (
-			<Box
-				display="flex"
-				flexGrow={1}
-				alignItems="center"
-				justifyContent="center"
-			>
-				<NoLogsFound />
-			</Box>
+	useEffect(() => {
+		const foundRow = rows.find(
+			(row) => row.original.cursor === selectedCursor,
 		)
-	}
+
+		if (foundRow) {
+			rowVirtualizer.scrollToIndex(foundRow.index, {
+				align: 'start',
+				behavior: 'smooth',
+			})
+			foundRow.toggleExpanded(true)
+		}
+
+		// Only run when the component mounts
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	return (
 		<div style={{ height: `${totalSize}px`, position: 'relative' }}>
@@ -185,7 +214,7 @@ export const LogsTable = ({
 
 			{paddingBottom > 0 && <Box style={{ height: paddingBottom }} />}
 
-			{loading && (
+			{loadingAfter && (
 				<Box
 					backgroundColor="white"
 					border="dividerWeak"

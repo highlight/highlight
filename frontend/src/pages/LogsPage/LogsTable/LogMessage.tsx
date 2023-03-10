@@ -3,12 +3,12 @@ import { Text } from '@highlight-run/ui'
 import React from 'react'
 
 type Props = {
-	body: string
+	message: string
 	expanded: boolean
 	query: string
 }
 
-const LogBody = ({ body, expanded, query }: Props) => {
+const LogMessage = ({ message, expanded, query }: Props) => {
 	const searchWords = query.split(' ')
 
 	return (
@@ -18,9 +18,12 @@ const LogBody = ({ body, expanded, query }: Props) => {
 			lines={expanded ? undefined : '1'}
 			break="word"
 		>
-			<TextHighlighter searchWords={searchWords} textToHighlight={body} />
+			<TextHighlighter
+				searchWords={searchWords}
+				textToHighlight={message}
+			/>
 		</Text>
 	)
 }
 
-export { LogBody }
+export { LogMessage }

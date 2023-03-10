@@ -1,11 +1,14 @@
-import { LogEdge } from '@graph/schemas'
+import { LogEdge, LogLevel } from '@graph/schemas'
 import {
 	Box,
 	ButtonLink,
 	IconSolidChevronDoubleDown,
 	IconSolidChevronDoubleUp,
 	IconSolidClipboard,
+	IconSolidLightningBolt,
+	IconSolidLink,
 	Stack,
+	Tag,
 	Text,
 } from '@highlight-run/ui'
 import {
@@ -13,8 +16,10 @@ import {
 	IconExpanded,
 } from '@pages/LogsPage/LogsTable/LogsTable'
 import { Row } from '@tanstack/react-table'
-import { message } from 'antd'
+import { message as antdMessage } from 'antd'
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
+import { generatePath } from 'react-router-dom'
 
 import * as styles from './LogDetails.css'
 
@@ -22,9 +27,18 @@ type Props = {
 	row: Row<LogEdge>
 }
 
+export const getLogURL = (row: Row<LogEdge>) => {
+	const currentUrl = new URL(window.location.href)
+	const path = generatePath('/logs/:log_cursor', {
+		log_cursor: row.original.cursor,
+	})
+	return currentUrl.origin + path
+}
+
 export const LogDetails = ({ row }: Props) => {
+	const navigate = useNavigate()
 	const [allExpanded, setAllExpanded] = useState(false)
-	const { traceID, spanID, secureSessionID, logAttributes } =
+	const { traceID, spanID, secureSessionID, logAttributes, message, level } =
 		row.original.node
 	const expanded = row.getIsExpanded()
 	const expandable = Object.values(logAttributes).some(
@@ -60,6 +74,14 @@ export const LogDetails = ({ row }: Props) => {
 				)
 			})}
 
+			<Box>
+				<LogValue label="level" value={level} />
+			</Box>
+
+			<Box>
+				<LogValue label="message" value={message} />
+			</Box>
+
 			{traceID && (
 				<Box>
 					<LogValue label="trace_id" value={traceID} />
@@ -82,58 +104,116 @@ export const LogDetails = ({ row }: Props) => {
 			<Box
 				display="flex"
 				alignItems="center"
+				justifyContent="space-between"
 				flexDirection="row"
 				gap="16"
-				my="10"
+				mt="8"
 			>
-				{expandable && (
+				<Box
+					display="flex"
+					alignItems="center"
+					flexDirection="row"
+					gap="16"
+				>
+					{expandable && (
+						<ButtonLink
+							kind="secondary"
+							onClick={(e) => {
+								e.stopPropagation()
+								setAllExpanded(!allExpanded)
+							}}
+						>
+							<Box
+								alignItems="center"
+								display="flex"
+								flexDirection="row"
+								gap="4"
+							>
+								{allExpanded ? (
+									<>
+										<IconSolidChevronDoubleUp /> Collapse
+										all
+									</>
+								) : (
+									<>
+										<IconSolidChevronDoubleDown />
+										Expand all
+									</>
+								)}
+							</Box>
+						</ButtonLink>
+					)}
+
 					<ButtonLink
 						kind="secondary"
 						onClick={(e) => {
 							e.stopPropagation()
-							setAllExpanded(!allExpanded)
+							navigator.clipboard.writeText(
+								JSON.stringify(row.original),
+							)
+							antdMessage.success('Copied logs!')
 						}}
 					>
 						<Box
-							alignItems="center"
 							display="flex"
+							alignItems="center"
 							flexDirection="row"
 							gap="4"
 						>
-							{allExpanded ? (
-								<>
-									<IconSolidChevronDoubleUp /> Collapse all
-								</>
-							) : (
-								<>
-									<IconSolidChevronDoubleDown />
-									Expand all
-								</>
-							)}
+							<IconSolidClipboard />
+							Copy JSON
 						</Box>
 					</ButtonLink>
-				)}
 
-				<ButtonLink
-					kind="secondary"
-					onClick={(e) => {
-						e.stopPropagation()
-						navigator.clipboard.writeText(
-							JSON.stringify(row.original),
-						)
-						message.success('Copied logs!')
-					}}
-				>
-					<Box
-						display="flex"
-						alignItems="center"
-						flexDirection="row"
-						gap="4"
+					<ButtonLink
+						kind="secondary"
+						onClick={(e) => {
+							const url = getLogURL(row)
+							e.stopPropagation()
+							navigator.clipboard.writeText(url)
+							antdMessage.success('Copied link!')
+						}}
 					>
-						<IconSolidClipboard />
-						Copy
-					</Box>
-				</ButtonLink>
+						<Box
+							display="flex"
+							alignItems="center"
+							flexDirection="row"
+							gap="4"
+						>
+							<IconSolidLink />
+							Copy link
+						</Box>
+					</ButtonLink>
+				</Box>
+
+				<Box
+					display="flex"
+					alignItems="center"
+					flexDirection="row"
+					gap="16"
+				>
+					{row.original.node.level === LogLevel.Error && (
+						<Tag
+							shape="basic"
+							kind="secondary"
+							emphasis="medium"
+							onClick={(e) => {
+								e.stopPropagation()
+								navigate(`/errors/logs/${row.original.cursor}`)
+							}}
+						>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidLightningBolt />
+								Related Error
+							</Box>
+						</Tag>
+					)}
+				</Box>
 			</Box>
 		</Stack>
 	)

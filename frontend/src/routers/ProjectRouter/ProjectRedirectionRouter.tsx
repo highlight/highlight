@@ -34,11 +34,12 @@ export const ProjectRedirectionRouter = () => {
 	if (data?.projects?.length) {
 		redirectTo = `/${data!.projects[0]!.id}${location.pathname}`
 	} else {
-		redirectTo = '/'
+		redirectTo = '/new'
 	}
 
-	// Redirects the user to their default project when the URL does not have an project ID.
-	// For example, this allows linking to https://app.highlight.run/sessions for https://app.highlight.run/1/sessions
+	// Redirects the user to their default project when the URL does not have an
+	// project ID. For example, this allows linking to /sessions which will
+	// redirect the user to /${firstProjectId}/sessions.
 	return (
 		<Navigate
 			to={{ pathname: redirectTo, search: location.search }}

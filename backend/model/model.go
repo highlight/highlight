@@ -183,6 +183,7 @@ var Models = []interface{}{
 	&IntegrationWorkspaceMapping{},
 	&EmailOptOut{},
 	&BillingEmailHistory{},
+	&Retryable{},
 }
 
 func init() {
@@ -900,7 +901,8 @@ type ErrorObject struct {
 	SessionID        *int
 	TraceID          *string
 	SpanID           *string
-	ErrorGroupID     int `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
+	LogCursor        *string `gorm:"index:idx_error_object_log_cursor,option:CONCURRENTLY"`
+	ErrorGroupID     int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
 	Event            string
 	Type             string
 	URL              string
@@ -1187,6 +1189,21 @@ type BillingEmailHistory struct {
 	Active      bool
 	WorkspaceID int
 	Type        Email.EmailType
+}
+
+type RetryableType string
+
+const (
+	RetryableOpensearchError RetryableType = "OPENSEARCH_ERROR"
+)
+
+type Retryable struct {
+	Model
+	Type        RetryableType
+	PayloadType string
+	PayloadID   string
+	Payload     JSONB `sql:"type:jsonb"`
+	Error       string
 }
 
 func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {
@@ -1714,7 +1731,7 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 	}
 
 	frontendURL := os.Getenv("FRONTEND_URI")
-	errorURL := fmt.Sprintf("%s/%d/errors/%s", frontendURL, obj.ProjectID, input.Group.SecureID)
+	errorURL := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
 
 	for _, email := range emailsToNotify {
@@ -2316,6 +2333,8 @@ type SendSlackAlertInput struct {
 	UserObject JSONB
 	// Group is a required parameter for Error alerts
 	Group *ErrorGroup
+	// ErrorObject is a required parameter for Error alerts
+	ErrorObject *ErrorObject
 	// URL is an optional parameter for Error alerts
 	URL *string
 	// ErrorsCount is a required parameter for Error alerts
@@ -2444,7 +2463,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		if len(input.Group.Event) > 50 {
 			shortEvent = input.Group.Event[:50] + "..."
 		}
-		errorLink := fmt.Sprintf("%s/%d/errors/%s", frontendURL, obj.ProjectID, input.Group.SecureID)
+		errorLink := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 		// construct Slack message
 		previewText = fmt.Sprintf("Highlight: Error Alert: %s", shortEvent)
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/|View Thread>", *input.ErrorsCount, shortEvent, errorLink), false, false)

@@ -124,6 +124,16 @@ func EndTrace(span trace.Span) {
 	span.End(trace.WithStackTrace(true))
 }
 
+// RecordError processes `err` to be recorded as a part of the session or network request.
+// Highlight session and trace are inferred from the context.
+// If no sessionID is set, then the error is associated with the project without a session context.
+func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) context.Context {
+	span, ctx := StartTrace(ctx, "highlight-ctx", tags...)
+	defer EndTrace(span)
+	RecordSpanError(span, err)
+	return ctx
+}
+
 func RecordSpanError(span trace.Span, err error, tags ...attribute.KeyValue) {
 	if urlErr, ok := err.(*url.Error); ok {
 		span.SetAttributes(attribute.String("Op", urlErr.Op))
@@ -136,16 +146,6 @@ func RecordSpanError(span trace.Span, err error, tags ...attribute.KeyValue) {
 	} else {
 		span.RecordError(err, trace.WithStackTrace(true))
 	}
-}
-
-// RecordError processes `err` to be recorded as a part of the session or network request.
-// Highlight session and trace are inferred from the context.
-// If no sessionID is set, then the error is associated with the project without a session context.
-func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) context.Context {
-	span, ctx := StartTrace(ctx, "highlight-ctx", tags...)
-	defer EndTrace(span)
-	RecordSpanError(span, err)
-	return ctx
 }
 
 func RecordSpanErrorWithStack(span trace.Span, err ErrorWithStack) {
