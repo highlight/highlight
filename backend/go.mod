@@ -42,6 +42,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign v1.3.5
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.16.1
 	github.com/aws/smithy-go v1.13.5
+	github.com/bradleyfalzon/ghinstallation/v2 v2.2.0
 	github.com/clearbit/clearbit-go v1.0.1
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
 	github.com/go-chi/chi v4.1.2+incompatible
@@ -51,8 +52,9 @@ require (
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/golang-jwt/jwt/v4 v4.4.3
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang/snappy v0.0.4
+	github.com/google/go-github/v50 v50.1.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
