@@ -3586,6 +3586,40 @@ export type GetIdentifierSuggestionsQuery = { __typename?: 'Query' } & Pick<
 	'identifier_suggestion'
 >
 
+export type GetLogAlertsPagePayloadQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetLogAlertsPagePayloadQuery = { __typename?: 'Query' } & {
+	is_integrated_with_slack: Types.Query['is_integrated_with']
+	is_integrated_with_discord: Types.Query['is_integrated_with']
+} & {
+	slack_channel_suggestion: Array<
+		{ __typename?: 'SanitizedSlackChannel' } & Pick<
+			Types.SanitizedSlackChannel,
+			'webhook_channel' | 'webhook_channel_id'
+		>
+	>
+	discord_channel_suggestions: Array<
+		{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
+	>
+	admins: Array<
+		{ __typename?: 'WorkspaceAdminRole' } & {
+			admin: { __typename?: 'Admin' } & Pick<
+				Types.Admin,
+				'id' | 'name' | 'email' | 'photo_url'
+			>
+		}
+	>
+	environment_suggestion?: Types.Maybe<
+		Array<
+			Types.Maybe<
+				{ __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+			>
+		>
+	>
+}
+
 export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -4151,6 +4185,7 @@ export const namedOperations = {
 		GenerateNewZapierAccessTokenJwt:
 			'GenerateNewZapierAccessTokenJwt' as const,
 		GetIdentifierSuggestions: 'GetIdentifierSuggestions' as const,
+		GetLogAlertsPagePayload: 'GetLogAlertsPagePayload' as const,
 		GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
 		GetMetricMonitors: 'GetMetricMonitors' as const,
 		GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,

@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import Select from '@components/Select/Select'
 import { useGetLogsKeysQuery } from '@graph/hooks'
 import {
 	Badge,
@@ -21,6 +22,11 @@ import {
 	useMenu,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
+import { useLogAlertsContext } from '@pages/Alerts/LogAlert/context'
+import {
+	dedupeEnvironments,
+	EnvironmentSuggestion,
+} from '@pages/Alerts/utils/AlertsUtils'
 import { LOG_TIME_PRESETS, now, thirtyDaysAgo } from '@pages/LogsPage/constants'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { Search } from '@pages/LogsPage/SearchForm/SearchForm'
@@ -54,7 +60,7 @@ export const LogMonitorPage = () => {
 			discordChannels: [],
 			emails: [],
 			threshold: undefined,
-			frequency: undefined,
+			frequency: 15,
 		},
 	})
 
@@ -201,6 +207,41 @@ const LogAlertForm = ({
 	const form = useForm() as FormState<LogMonitorForm>
 	const query = form.values.query
 
+	const { alertsPayload } = useLogAlertsContext()
+
+	const environments = dedupeEnvironments(
+		(alertsPayload?.environment_suggestion ??
+			[]) as EnvironmentSuggestion[],
+	).map((environmentSuggestion) => ({
+		displayValue: environmentSuggestion,
+		value: environmentSuggestion,
+		id: environmentSuggestion,
+	}))
+
+	const slackChannels = (alertsPayload?.slack_channel_suggestion ?? []).map(
+		({ webhook_channel, webhook_channel_id }) => ({
+			displayValue: webhook_channel!,
+			value: webhook_channel_id!,
+			id: webhook_channel_id!,
+		}),
+	)
+
+	const discordChannels = (
+		alertsPayload?.discord_channel_suggestions ?? []
+	).map(({ name, id }) => ({
+		displayValue: name,
+		value: id,
+		id: id,
+	}))
+
+	const emails = (alertsPayload?.admins ?? [])
+		.map((wa) => wa.admin!.email)
+		.map((email) => ({
+			displayValue: email,
+			value: email,
+			id: email,
+		}))
+
 	return (
 		<Box cssClass={styles.grid}>
 			<Stack gap="12">
@@ -211,7 +252,7 @@ const LogAlertForm = ({
 				</Box>
 				<Box borderTop="dividerWeak" width="full" />
 				<Form.NamedSection label="Search query" name={form.names.query}>
-					<Box cssClass={styles.queryContainer} mt="4">
+					<Box cssClass={styles.queryContainer}>
 						<Search
 							initialQuery={query}
 							keys={keysData?.logs_keys ?? []}
@@ -238,9 +279,10 @@ const LogAlertForm = ({
 				<Box borderTop="dividerWeak" width="full" />
 				<Column.Container gap="12">
 					<Column>
-						<Form.NamedSection
-							label="Alert threshold"
+						<Form.Input
 							name={form.names.threshold}
+							type="number"
+							label="Alert threshold"
 							tag={
 								<Badge
 									shape="basic"
@@ -249,12 +291,7 @@ const LogAlertForm = ({
 									label="Red"
 								/>
 							}
-						>
-							<Form.Input
-								name={form.names.threshold}
-								type="number"
-							/>
-						</Form.NamedSection>
+						/>
 					</Column>
 
 					<Column>
@@ -262,10 +299,25 @@ const LogAlertForm = ({
 							label="Alert frequency"
 							name={form.names.frequency}
 						>
-							<Form.Input
-								name={form.names.frequency}
-								type="number"
-							/>
+							<select
+								className={styles.select}
+								value={form.values.frequency}
+								onChange={(e) =>
+									form.setValue(
+										form.names.frequency,
+										e.target.value,
+									)
+								}
+							>
+								<option value="" disabled>
+									Select alert frequency
+								</option>
+								<option value={15}>15 seconds</option>
+								<option value={60}>1 minute</option>
+								<option value={300}>5 minutes</option>
+								<option value={900}>15 minutes</option>
+								<option value={1800}>30 minutes</option>
+							</select>
 						</Form.NamedSection>
 					</Column>
 				</Column.Container>
@@ -280,22 +332,30 @@ const LogAlertForm = ({
 
 				<Box borderTop="dividerWeak" width="full" />
 
-				<Form.NamedSection label="Name" name={form.names.name}>
-					<Form.Input
-						name={form.names.name}
-						type="text"
-						placeholder="Type alert name"
-					/>
-				</Form.NamedSection>
+				<Form.Input
+					name={form.names.name}
+					type="text"
+					placeholder="Type alert name"
+					label="Name"
+				/>
 
 				<Form.NamedSection
 					label="Excluded environments"
 					name={form.names.excludedEnvironments}
 				>
-					<Form.Input
-						name={form.names.excludedEnvironments}
-						type="text"
-						placeholder="Select environment to ignore"
+					<Select
+						aria-label="Excluded environments list"
+						placeholder="Select excluded environments"
+						options={environments}
+						onChange={(values) =>
+							form.setValue(
+								form.names.excludedEnvironments,
+								values,
+							)
+						}
+						notFoundContent={<p>No environment suggestions</p>}
+						className={styles.selectContainer}
+						mode="multiple"
 					/>
 				</Form.NamedSection>
 			</Stack>
@@ -312,10 +372,16 @@ const LogAlertForm = ({
 					label="Slack channels to notify"
 					name={form.names.slackChannels}
 				>
-					<Form.Input
-						name={form.names.slackChannels}
-						type="text"
-						placeholder="Select environment to ignore"
+					<Select
+						aria-label="Slack channels to notify"
+						placeholder="Select Slack channels"
+						options={slackChannels}
+						onChange={(values) =>
+							form.setValue(form.names.slackChannels, values)
+						}
+						notFoundContent={<p>No channel suggestions</p>}
+						className={styles.selectContainer}
+						mode="multiple"
 					/>
 				</Form.NamedSection>
 
@@ -323,10 +389,16 @@ const LogAlertForm = ({
 					label="Discord channels to notify"
 					name={form.names.discordChannels}
 				>
-					<Form.Input
-						name={form.names.discordChannels}
-						type="text"
-						placeholder="Select environment to ignore"
+					<Select
+						aria-label="Discord channels to notify"
+						placeholder="Select Discord channels"
+						options={discordChannels}
+						onChange={(values) =>
+							form.setValue(form.names.discordChannels, values)
+						}
+						notFoundContent={<p>No channel suggestions</p>}
+						className={styles.selectContainer}
+						mode="multiple"
 					/>
 				</Form.NamedSection>
 
@@ -334,10 +406,16 @@ const LogAlertForm = ({
 					label="Emails to notify"
 					name={form.names.emails}
 				>
-					<Form.Input
-						name={form.names.emails}
-						type="text"
-						placeholder="Select environment to ignore"
+					<Select
+						aria-label="Emails to notify"
+						placeholder="Pick emails"
+						options={emails}
+						onChange={(values) =>
+							form.setValue(form.names.emails, values)
+						}
+						notFoundContent={<p>No email suggestions</p>}
+						className={styles.selectContainer}
+						mode="multiple"
 					/>
 				</Form.NamedSection>
 			</Stack>
@@ -391,7 +469,7 @@ interface LogMonitorForm {
 	name: string
 	belowThreshold: boolean
 	threshold: number | undefined
-	frequency: number | undefined
+	frequency: number
 	excludedEnvironments: string[]
 	slackChannels: string[]
 	discordChannels: string[]

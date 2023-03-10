@@ -10507,6 +10507,87 @@ export type GetIdentifierSuggestionsQueryResult = Apollo.QueryResult<
 	Types.GetIdentifierSuggestionsQuery,
 	Types.GetIdentifierSuggestionsQueryVariables
 >
+export const GetLogAlertsPagePayloadDocument = gql`
+	query GetLogAlertsPagePayload($project_id: ID!) {
+		is_integrated_with_slack: is_integrated_with(
+			integration_type: Slack
+			project_id: $project_id
+		)
+		is_integrated_with_discord: is_integrated_with(
+			integration_type: Discord
+			project_id: $project_id
+		)
+		slack_channel_suggestion(project_id: $project_id) {
+			webhook_channel
+			webhook_channel_id
+		}
+		discord_channel_suggestions(project_id: $project_id) {
+			...DiscordChannelFragment
+		}
+		admins: workspace_admins_by_project_id(project_id: $project_id) {
+			admin {
+				id
+				name
+				email
+				photo_url
+			}
+		}
+		environment_suggestion(project_id: $project_id) {
+			name
+			value
+		}
+	}
+	${DiscordChannelFragmentFragmentDoc}
+`
+
+/**
+ * __useGetLogAlertsPagePayloadQuery__
+ *
+ * To run a query within a React component, call `useGetLogAlertsPagePayloadQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogAlertsPagePayloadQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogAlertsPagePayloadQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetLogAlertsPagePayloadQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLogAlertsPagePayloadQuery,
+		Types.GetLogAlertsPagePayloadQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetLogAlertsPagePayloadQuery,
+		Types.GetLogAlertsPagePayloadQueryVariables
+	>(GetLogAlertsPagePayloadDocument, baseOptions)
+}
+export function useGetLogAlertsPagePayloadLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLogAlertsPagePayloadQuery,
+		Types.GetLogAlertsPagePayloadQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetLogAlertsPagePayloadQuery,
+		Types.GetLogAlertsPagePayloadQueryVariables
+	>(GetLogAlertsPagePayloadDocument, baseOptions)
+}
+export type GetLogAlertsPagePayloadQueryHookResult = ReturnType<
+	typeof useGetLogAlertsPagePayloadQuery
+>
+export type GetLogAlertsPagePayloadLazyQueryHookResult = ReturnType<
+	typeof useGetLogAlertsPagePayloadLazyQuery
+>
+export type GetLogAlertsPagePayloadQueryResult = Apollo.QueryResult<
+	Types.GetLogAlertsPagePayloadQuery,
+	Types.GetLogAlertsPagePayloadQueryVariables
+>
 export const GetAlertsPagePayloadDocument = gql`
 	query GetAlertsPagePayload($project_id: ID!) {
 		is_integrated_with_slack: is_integrated_with(
