@@ -9,7 +9,7 @@ export const header = style({
 export const grid = style({
 	display: 'grid',
 	gridTemplateColumns: '1fr 1fr',
-	gridTemplateRows: '1fr 1fr',
+	gridTemplateRows: 'auto auto',
 	gridColumnGap: 40,
 	gridRowGap: 40,
 })

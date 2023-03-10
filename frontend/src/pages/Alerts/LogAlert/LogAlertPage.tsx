@@ -1,10 +1,12 @@
 import { Button } from '@components/Button'
 import { useGetLogsKeysQuery } from '@graph/hooks'
 import {
+	Badge,
 	Box,
 	Column,
 	Container,
 	Form,
+	FormState,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidCheveronUp,
@@ -42,25 +44,23 @@ export const LogMonitorPage = () => {
 		}
 	}, [selectedDates])
 
-	const form = useFormState<{
-		query: string
-		belowThreshold: boolean
-		threshold?: number
-		frequency?: number
-	}>({
+	const form = useFormState<LogMonitorForm>({
 		defaultValues: {
 			query: '',
+			name: '',
 			belowThreshold: false,
+			excludedEnvironments: [],
+			slackChannels: [],
+			discordChannels: [],
+			emails: [],
+			threshold: undefined,
+			frequency: undefined,
 		},
 	})
 
-	form.useSubmit(() => {
-		console.log('::: TEST')
-	})
 	const query = form.getValue(form.names.query)
 	const belowThreshold = form.getValue(form.names.belowThreshold)
-	// optional values can't be accessed via form.names
-	const threshold = form.getValue('threshold')
+	const threshold = form.getValue(form.names.threshold)
 
 	const header = useMemo(() => {
 		return (
@@ -198,7 +198,7 @@ const LogAlertForm = ({
 			project_id: projectId,
 		},
 	})
-	const form = useForm()
+	const form = useForm() as FormState<LogMonitorForm>
 	const query = form.values.query
 
 	return (
@@ -210,7 +210,7 @@ const LogAlertForm = ({
 					</Text>
 				</Box>
 				<Box borderTop="dividerWeak" width="full" />
-				<Form.NamedSection label="Search query" name="query">
+				<Form.NamedSection label="Search query" name={form.names.query}>
 					<Box cssClass={styles.queryContainer} mt="4">
 						<Search
 							initialQuery={query}
@@ -240,28 +240,64 @@ const LogAlertForm = ({
 					<Column>
 						<Form.NamedSection
 							label="Alert threshold"
-							name="threshold"
+							name={form.names.threshold}
+							tag={
+								<Badge
+									shape="basic"
+									variant="red"
+									size="small"
+									label="Red"
+								/>
+							}
 						>
-							<Form.Input name="threshold" type="number" />
+							<Form.Input
+								name={form.names.threshold}
+								type="number"
+							/>
 						</Form.NamedSection>
 					</Column>
+
 					<Column>
 						<Form.NamedSection
 							label="Alert frequency"
-							name="frequency"
+							name={form.names.frequency}
 						>
-							<Form.Input name="frequency" type="number" />
+							<Form.Input
+								name={form.names.frequency}
+								type="number"
+							/>
 						</Form.NamedSection>
 					</Column>
 				</Column.Container>
 			</Stack>
+
 			<Stack gap="12">
 				<Box cssClass={styles.sectionHeader}>
 					<Text size="large" weight="bold" color="strong">
 						General
 					</Text>
 				</Box>
+
 				<Box borderTop="dividerWeak" width="full" />
+
+				<Form.NamedSection label="Name" name={form.names.name}>
+					<Form.Input
+						name={form.names.name}
+						type="text"
+						placeholder="Type alert name"
+					/>
+				</Form.NamedSection>
+
+				<Form.NamedSection
+					label="Excluded environments"
+					name={form.names.excludedEnvironments}
+				>
+					<Form.Input
+						name={form.names.excludedEnvironments}
+						type="text"
+						placeholder="Select environment to ignore"
+					/>
+				</Form.NamedSection>
 			</Stack>
 			<Stack gap="12">
 				<Box cssClass={styles.sectionHeader}>
@@ -269,7 +305,41 @@ const LogAlertForm = ({
 						Notify team
 					</Text>
 				</Box>
+
 				<Box borderTop="dividerWeak" width="full" />
+
+				<Form.NamedSection
+					label="Slack channels to notify"
+					name={form.names.slackChannels}
+				>
+					<Form.Input
+						name={form.names.slackChannels}
+						type="text"
+						placeholder="Select environment to ignore"
+					/>
+				</Form.NamedSection>
+
+				<Form.NamedSection
+					label="Discord channels to notify"
+					name={form.names.discordChannels}
+				>
+					<Form.Input
+						name={form.names.discordChannels}
+						type="text"
+						placeholder="Select environment to ignore"
+					/>
+				</Form.NamedSection>
+
+				<Form.NamedSection
+					label="Emails to notify"
+					name={form.names.emails}
+				>
+					<Form.Input
+						name={form.names.emails}
+						type="text"
+						placeholder="Select environment to ignore"
+					/>
+				</Form.NamedSection>
 			</Stack>
 		</Box>
 	)
@@ -314,6 +384,18 @@ const ThresholdTypeConfiguration = () => {
 			</Menu.List>
 		</>
 	)
+}
+
+interface LogMonitorForm {
+	query: string
+	name: string
+	belowThreshold: boolean
+	threshold: number | undefined
+	frequency: number | undefined
+	excludedEnvironments: string[]
+	slackChannels: string[]
+	discordChannels: string[]
+	emails: string[]
 }
 
 export default LogMonitorPage
