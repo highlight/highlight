@@ -1,5 +1,9 @@
 import { LogLevel } from '@graph/schemas'
 import { Preset } from '@highlight-run/ui'
+import {
+	backgroundColors,
+	textColors,
+} from '@highlight-run/ui/src/css/sprinkles.css'
 import moment from 'moment'
 
 export const FORMAT = 'YYYY-MM-DDTHH:mm:ss.000000000Z'
@@ -34,8 +38,19 @@ export const PRESETS: Preset[] = [
 	},
 ]
 
-export const COLOR_MAPPING: {
-	[key in LogLevel]: 'caution' | 'informative' | 'strong' | 'bad'
+export const BACKGROUND_COLOR_MAPPING: {
+	[key in LogLevel]: keyof typeof backgroundColors
+} = {
+	WARN: 'contentCaution',
+	DEBUG: 'contentStrong',
+	INFO: 'contentInformative',
+	ERROR: 'contentBad',
+	FATAL: 'contentBad',
+	TRACE: 'contentStrong',
+}
+
+export const TEXT_COLOR_MAPPING: {
+	[key in LogLevel]: keyof typeof textColors
 } = {
 	WARN: 'caution',
 	DEBUG: 'strong',

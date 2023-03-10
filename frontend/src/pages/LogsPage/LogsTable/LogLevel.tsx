@@ -1,7 +1,7 @@
 import { LogLevel as LogLevelType } from '@graph/schemas'
 import { Text } from '@highlight-run/ui'
 import { Box, BoxProps } from '@highlight-run/ui'
-import { COLOR_MAPPING } from '@pages/LogsPage/constants'
+import { TEXT_COLOR_MAPPING } from '@pages/LogsPage/constants'
 import React from 'react'
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
 }
 
 const LogLevel = ({ level }: Props) => {
-	const color: BoxProps['color'] = COLOR_MAPPING[level] ?? 'default'
+	const color: BoxProps['color'] = TEXT_COLOR_MAPPING[level] ?? 'default'
 
 	return (
 		<Box flexShrink={0} style={{ width: 46 }}>
