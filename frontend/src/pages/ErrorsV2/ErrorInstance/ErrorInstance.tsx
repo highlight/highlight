@@ -334,11 +334,11 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 										offsetStart: 2,
 									})
 								}
-								if (errorObject.request_id) {
+								if (errorObject.trace_id) {
 									queryParams.push({
-										key: 'span_id',
+										key: 'trace_id',
 										operator: DEFAULT_LOGS_OPERATOR,
-										value: errorObject.request_id,
+										value: errorObject.trace_id,
 										offsetStart: 3,
 									})
 								}
