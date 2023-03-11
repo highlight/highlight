@@ -32,7 +32,7 @@ class H(object):
         self,
         project_id: str,
         integrations: typing.List[Integration] = None,
-        record_logs: bool = False,
+        record_logs: bool = True,
         otlp_endpoint: str = "",
     ):
         """
