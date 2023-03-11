@@ -26,9 +26,11 @@ func Middleware() fiber.Handler {
 			ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, ids[1])
 		}
 
-		highlight.MarkBackendSetup(ctx)
-		span, _ := highlight.StartTrace(ctx, c.OriginalURL())
-		c.SetUserContext(ctx)
+		span, hCtx := highlight.StartTrace(ctx, c.OriginalURL())
+		defer highlight.EndTrace(span)
+		
+		highlight.MarkBackendSetup(hCtx)
+		c.SetUserContext(hCtx)
 		err := c.Next()
 		highlight.RecordSpanError(
 			span, err,
@@ -39,7 +41,6 @@ func Middleware() fiber.Handler {
 			attribute.String(string(semconv.HTTPClientIPKey), c.IP()),
 			attribute.Int(string(semconv.HTTPStatusCodeKey), c.Response().StatusCode()),
 		)
-		highlight.EndTrace(span)
 		return err
 	}
 }
