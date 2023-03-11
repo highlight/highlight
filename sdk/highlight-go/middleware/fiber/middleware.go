@@ -28,10 +28,11 @@ func Middleware() fiber.Handler {
 
 		span, hCtx := highlight.StartTrace(ctx, c.OriginalURL())
 		defer highlight.EndTrace(span)
-		
-		highlight.MarkBackendSetup(hCtx)
+
 		c.SetUserContext(hCtx)
 		err := c.Next()
+		
+		highlight.MarkBackendSetup(hCtx)
 		highlight.RecordSpanError(
 			span, err,
 			attribute.String("Source", "GoFiberMiddleware"),

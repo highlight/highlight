@@ -289,7 +289,7 @@ func MarkBackendSetup(ctx context.Context) {
 				"session_secure_id": graphql.String(fmt.Sprintf("%v", sessionSecureID)),
 			}
 
-			err := client.Mutate(context.Background(), &mutation, variables)
+			err := client.Mutate(ctx, &mutation, variables)
 			if err != nil {
 				logger.Errorf("[highlight-go] %v", errors.Wrap(err, "error marking backend setup"))
 				return
