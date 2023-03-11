@@ -36,7 +36,8 @@ const ErrorsPage = ({
 	const { errors, state, session, sessionMetadata, isPlayerReady, setTime } =
 		useReplayerContext()
 
-	const { setActiveError, setRightPanelView } = usePlayerUIContext()
+	const { activeError, setActiveError, setRightPanelView } =
+		usePlayerUIContext()
 	const { setShowRightPanel } = usePlayerConfiguration()
 
 	const loading = state === ReplayerState.Loading
@@ -99,11 +100,12 @@ const ErrorsPage = ({
 						<ErrorRow
 							key={error.error_group_secure_id}
 							error={error}
-							setSelectedError={() => {
-								setShowRightPanel(true)
+							onClickHandler={() => {
 								setActiveError(error)
+								setShowRightPanel(true)
 								setRightPanelView(RightPanelView.Error)
 							}}
+							setActiveError={setActiveError}
 							setTime={setTime}
 							startTime={sessionMetadata.startTime}
 							searchQuery={filter}
@@ -123,7 +125,10 @@ export enum ErrorCardState {
 }
 interface Props {
 	error: ErrorObject
-	setSelectedError: () => void
+	onClickHandler: () => void
+	setActiveError: React.Dispatch<
+		React.SetStateAction<ErrorObject | undefined>
+	>
 	setTime: (time: number) => void
 	startTime: number
 	searchQuery: string
@@ -133,7 +138,8 @@ interface Props {
 const ErrorRow = React.memo(
 	({
 		error,
-		setSelectedError,
+		onClickHandler,
+		setActiveError,
 		setTime,
 		startTime,
 		searchQuery,
@@ -158,7 +164,7 @@ const ErrorRow = React.memo(
 				className={styles.errorRowVariants({
 					current,
 				})}
-				onClick={setSelectedError}
+				onClick={onClickHandler}
 			>
 				<Box>
 					<TextHighlighter
@@ -202,8 +208,10 @@ const ErrorRow = React.memo(
 						emphasis="low"
 						kind="secondary"
 						size="medium"
-						onClick={() => {
+						onClick={(event) => {
 							setTime(timestamp)
+							event.stopPropagation() /* Prevents opening of right panel by parent row's onClick handler */
+							setActiveError(error)
 						}}
 					>
 						<IconSolidArrowCircleRight />
