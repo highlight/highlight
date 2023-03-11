@@ -292,7 +292,6 @@ export const NetworkPage = ({
 								return (
 									<ResourceRow
 										key={index.toString()}
-										index={index}
 										resource={resource}
 										networkRange={networkRange}
 										isCurrentResource={
@@ -307,12 +306,6 @@ export const NetworkPage = ({
 												RightPanelView.NetworkResource,
 											)
 										}}
-										setCurrentActiveIndex={
-											setCurrentActiveIndex
-										}
-										setActiveNetworkResource={
-											setActiveNetworkResource
-										}
 										setTime={setTime}
 										playerStartTime={startTime}
 										hasError={!!error}
@@ -343,18 +336,11 @@ export const NetworkPage = ({
 }
 
 interface ResourceRowProps {
-	index: number
 	resource: NetworkResource
 	networkRange: number
 	isCurrentResource: boolean
 	searchTerm: string
 	onClickHandler: () => void
-	setCurrentActiveIndex: React.Dispatch<
-		React.SetStateAction<number | undefined>
-	>
-	setActiveNetworkResource: React.Dispatch<
-		React.SetStateAction<NetworkResource | undefined>
-	>
 	setTime: (time: number) => void
 	networkRequestAndResponseRecordingEnabled: boolean
 	playerStartTime: number
@@ -363,14 +349,11 @@ interface ResourceRowProps {
 }
 
 const ResourceRow = ({
-	index,
 	resource,
 	networkRange,
 	isCurrentResource,
 	searchTerm,
 	onClickHandler,
-	setCurrentActiveIndex,
-	setActiveNetworkResource,
 	networkRequestAndResponseRecordingEnabled,
 	setTime,
 	playerStartTime,
@@ -471,11 +454,8 @@ const ResourceRow = ({
 					emphasis="low"
 					kind="secondary"
 					size="medium"
-					onClick={(event) => {
+					onClick={() => {
 						setTime(resource.startTime)
-						event.stopPropagation() /* Prevents opening of right panel by parent row's onClick handler */
-						setCurrentActiveIndex(index)
-						setActiveNetworkResource(resource)
 					}}
 				>
 					<IconSolidArrowCircleRight />
