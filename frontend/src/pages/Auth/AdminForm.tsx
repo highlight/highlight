@@ -13,6 +13,7 @@ import {
 	useUpdateAdminAboutYouDetailsMutation,
 	useUpdateAdminAndCreateWorkspaceMutation,
 } from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
 import {
 	Box,
 	ButtonLink,
@@ -105,6 +106,10 @@ export const AdminForm: React.FC = () => {
 				})
 			} else {
 				await updateAdminAndCreateWorkspace({
+					awaitRefetchQueries: true,
+					refetchQueries: [
+						namedOperations.Query.GetProjectsAndWorkspaces,
+					],
 					variables: {
 						admin_and_workspace_details: {
 							first_name: formState.values.firstName,
