@@ -9,6 +9,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import {
+	useGetProjectsAndWorkspacesQuery,
 	useGetWorkspacesQuery,
 	useUpdateAdminAboutYouDetailsMutation,
 	useUpdateAdminAndCreateWorkspaceMutation,
@@ -44,6 +45,7 @@ const COMMON_EMAIL_PROVIDERS = [
 ] as const
 
 export const AdminForm: React.FC = () => {
+	const { refetch: refetchProjects } = useGetProjectsAndWorkspacesQuery()
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
 	const { setLoadingState } = useAppLoadingContext()
 	const { admin, refetchAdmin } = useAuthContext()
@@ -94,6 +96,10 @@ export const AdminForm: React.FC = () => {
 
 			if (inWorkspace) {
 				await updateAdminAboutYouDetails({
+					awaitRefetchQueries: true,
+					refetchQueries: [
+						namedOperations.Query.GetProjectsAndWorkspaces,
+					],
 					variables: {
 						adminDetails: {
 							first_name: formState.values.firstName,
@@ -129,7 +135,8 @@ export const AdminForm: React.FC = () => {
 				`Nice to meet you ${formState.values.firstName}, let's get started!`,
 			)
 
-			refetchAdmin() // updates admin in auth context
+			await refetchProjects()
+			await refetchAdmin() // updates admin in auth context
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)
