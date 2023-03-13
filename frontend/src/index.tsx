@@ -316,10 +316,9 @@ const AuthenticationRoleRouter = () => {
 			unsubscribeFirebase()
 		}
 
-		// We need to make sure this doesn't run more than once or it will create
-		// multiple auth state change listeners.
+		// Don't rerun this more than necessary. Rerun if the project / workspace context changes.
 		// eslint-disable-next-line
-	}, [])
+	}, [getAdminQuery])
 
 	useEffect(() => {
 		// Check user exists here as well because adminData isn't cleared correctly
