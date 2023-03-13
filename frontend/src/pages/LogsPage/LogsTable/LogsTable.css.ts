@@ -9,9 +9,6 @@ export const row = style({
 		'&:hover': {
 			backgroundColor: vars.theme.interactive.overlay.secondary.hover,
 		},
-		'&:active': {
-			backgroundColor: vars.theme.interactive.overlay.secondary.pressed,
-		},
 	},
 })
 

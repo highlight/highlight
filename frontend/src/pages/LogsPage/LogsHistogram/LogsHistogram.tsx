@@ -2,7 +2,7 @@ import LoadingBox from '@components/LoadingBox'
 import { useGetLogsHistogramQuery } from '@graph/hooks'
 import { LogLevel as Level } from '@graph/schemas'
 import { Box, Popover, Text } from '@highlight-run/ui'
-import { COLOR_MAPPING, FORMAT } from '@pages/LogsPage/constants'
+import { BACKGROUND_COLOR_MAPPING, FORMAT } from '@pages/LogsPage/constants'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { isSignificantDateRange } from '@pages/LogsPage/utils'
 import { useParams } from '@util/react-router/useParams'
@@ -260,7 +260,9 @@ const LogBucketBar = ({
 							}}
 							width="full"
 							borderRadius="2"
-							backgroundColor={COLOR_MAPPING[bar.level as Level]}
+							backgroundColor={
+								BACKGROUND_COLOR_MAPPING[bar.level as Level]
+							}
 						/>
 					)
 				})}
@@ -317,7 +319,9 @@ const LogBucketBar = ({
 									borderRadius="round"
 									style={{
 										backgroundColor:
-											COLOR_MAPPING[bar.level as Level],
+											BACKGROUND_COLOR_MAPPING[
+												bar.level as Level
+											],
 										height: 8,
 										width: 8,
 									}}

@@ -8,7 +8,7 @@ import { Breakpoint, mediaQueries } from './breakpoints'
 import { colors } from './colors'
 import { vars } from './vars'
 
-const textColors = {
+export const textColors = {
 	...colors,
 	default: vars.theme.static.content.default,
 	moderate: vars.theme.static.content.moderate,
@@ -38,19 +38,20 @@ const textColors = {
 	secondaryContentText: vars.theme.interactive.fill.secondary.content.text,
 } as const
 
-const backgroundColors = {
+export const backgroundColors = {
 	...colors,
 	nested: vars.theme.static.surface.nested,
 	default: vars.theme.static.surface.default,
 	raised: vars.theme.static.surface.raised,
 	elevated: vars.theme.static.surface.elevated,
 	scrim: vars.theme.static.surface.scrim,
-	moderate: vars.theme.static.content.moderate,
-	strong: vars.theme.static.content.strong,
-	bad: vars.theme.static.content.sentiment.bad,
-	good: vars.theme.static.content.sentiment.good,
-	caution: vars.theme.static.content.sentiment.caution,
-	informative: vars.theme.static.content.sentiment.informative,
+	informative: vars.theme.static.surface.sentiment.informative,
+	contentModerate: vars.theme.static.content.moderate,
+	contentStrong: vars.theme.static.content.strong,
+	contentBad: vars.theme.static.content.sentiment.bad,
+	contentGood: vars.theme.static.content.sentiment.good,
+	contentCaution: vars.theme.static.content.sentiment.caution,
+	contentInformative: vars.theme.static.content.sentiment.informative,
 	weak: vars.theme.static.content.weak,
 	secondaryDisabled: vars.theme.interactive.overlay.secondary.disabled,
 	secondaryEnabled: vars.theme.interactive.overlay.secondary.enabled,
