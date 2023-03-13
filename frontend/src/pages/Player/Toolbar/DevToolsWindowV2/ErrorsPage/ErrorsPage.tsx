@@ -36,8 +36,7 @@ const ErrorsPage = ({
 	const { errors, state, session, sessionMetadata, isPlayerReady, setTime } =
 		useReplayerContext()
 
-	const { activeError, setActiveError, setRightPanelView } =
-		usePlayerUIContext()
+	const { setActiveError, setRightPanelView } = usePlayerUIContext()
 	const { setShowRightPanel } = usePlayerConfiguration()
 
 	const loading = state === ReplayerState.Loading
