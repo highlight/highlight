@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/DmitriyVTitov/size"
+	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
@@ -136,7 +137,7 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, projectID *st
 		if secureID != nil {
 			partitionKey = *secureID
 		} else if projectID != nil {
-			partitionKey = *projectID
+			partitionKey = uuid.New().String()
 		}
 		err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
@@ -164,7 +165,7 @@ func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *stri
 	if sessionSecureID != nil {
 		partitionKey = *sessionSecureID
 	} else if projectID != nil {
-		partitionKey = *projectID
+		partitionKey = uuid.New().String()
 	}
 	err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
 		Type: kafkaqueue.MarkBackendSetup,
