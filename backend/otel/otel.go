@@ -6,7 +6,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/go-chi/chi"
+	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	model2 "github.com/highlight-run/highlight/backend/model"
@@ -21,10 +27,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"io"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 type Handler struct {
@@ -342,7 +344,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 						ProjectID: projectIDInt,
 					},
-				}, projectID)
+				}, uuid.New().String())
 				if err != nil {
 					log.WithContext(ctx).Error(err, "failed to submit otel mark backend setup")
 					w.WriteHeader(http.StatusServiceUnavailable)
@@ -356,7 +358,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 				ProjectVerboseID: &projectID,
 				Errors:           errors,
-			}}, projectID)
+			}}, uuid.New().String())
 		if err != nil {
 			log.WithContext(ctx).Error(err, "failed to submit otel project errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -469,7 +471,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 					ProjectID: projectIDInt,
 				},
-			}, projectID)
+			}, uuid.New().String())
 			if err != nil {
 				return e.Wrap(err, "failed to submit otel mark backend setup")
 			}
@@ -479,7 +481,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 			Type: kafkaqueue.PushLogs,
 			PushLogs: &kafkaqueue.PushLogsArgs{
 				LogRows: logRows,
-			}}, projectID)
+			}}, uuid.New().String())
 		if err != nil {
 			return e.Wrap(err, "failed to submit otel project logs to public worker queue")
 		}

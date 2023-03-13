@@ -391,7 +391,7 @@ const Metadata: React.FC<{
 		{ key: 'browser', label: errorObject?.browser },
 		{ key: 'os', label: errorObject?.os },
 		{ key: 'url', label: errorObject?.url },
-		{ key: 'created_at', label: errorObject?.created_at },
+		{ key: 'timestamp', label: errorObject?.timestamp },
 		{
 			key: 'Custom Properties',
 			label: customProperties ? (
@@ -411,9 +411,9 @@ const Metadata: React.FC<{
 			<Box>
 				{metadata.map((meta) => {
 					const value =
-						meta.key === 'created_at'
+						meta.key === 'timestamp'
 							? moment(meta.label as string).format(
-									'M/D/YY h:mm:s.SSS A',
+									'M/D/YY h:mm:ss.SSS A',
 							  )
 							: meta.label
 					return (
