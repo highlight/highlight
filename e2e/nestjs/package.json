@@ -1,0 +1,30 @@
+{
+	"name": "nestjs",
+	"packageManager": "yarn@3.3.1",
+	"private": true,
+	"scripts": {
+		"build": "nest build",
+		"start": "nest start"
+	},
+	"dependencies": {
+		"@highlight-run/nest": "workspace:*",
+		"@nestjs/axios": "^0.0.7",
+		"@nestjs/common": "^8.0.0",
+		"@nestjs/config": "^2.0.0",
+		"@nestjs/core": "^8.0.0",
+		"@nestjs/jwt": "^8.0.0",
+		"@nestjs/mapped-types": "*",
+		"@nestjs/microservices": "^8.0.11",
+		"@nestjs/passport": "^8.0.1",
+		"@nestjs/platform-express": "^8.0.0",
+		"@nestjs/schedule": "^1.0.2",
+		"@nestjs/swagger": "^5.1.5",
+		"reflect-metadata": "^0.1.13"
+	},
+	"devDependencies": {
+		"@nestjs/cli": "^8.0.0",
+		"@nestjs/schematics": "^8.0.0",
+		"@nestjs/testing": "^8.0.0",
+		"typescript": "^4.9.5"
+	}
+}
