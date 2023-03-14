@@ -1,11 +1,38 @@
 {
-	"compilerOptions": {
-		"typeRoots": ["./node_modules/@types"],
-		"types": [],
-		"target": "ESNext",
-		"module": "esnext",
-		"moduleResolution": "node",
-		"skipLibCheck": true,
-		"jsx": "react-jsx"
-	}
+  "compilerOptions": {
+    // Sets the appropriate root directory.
+    "baseUrl": "./app",
+    // Allows us to run tsc for typechecking without using it as a compiler.
+    "noEmit": true,
+    // This is required for .tsx files to work.
+    // We're not using the TypeScript compiler, so it doesn't matter what value we put here.
+    "jsx": "react-jsx",
+    // Required for packages with esm type declarations to work.
+    "esModuleInterop": true,
+    // Reflame works by transpiling and deploying independent modules.
+    // This ensures we don't use any TypeScript features that would prevent that.
+    // (specifically namespaces and const enums, which are features we probably wouldn't want to use anyways)
+    "isolatedModules": true,
+    // Includes types for all the latest browser features.
+    "lib": [
+      "DOM",
+      "ESNext"
+    ],
+    // Enables typechecking for importing with .ts/tsx file extensions.
+    // Using typescript 5.0-rc for this, will update to stable once ready.
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "module": "ESNext",
+    // Reflame supports importing by absolute path using the browser native '/some/long/path.ts' format.
+    // This enables typechecking for this pattern.
+    "paths": {
+      "/*": [
+        "./*"
+      ]
+    },
+    // Just a generally helpful flag to avoid issues around case consistency between source control and different OSes.
+    "forceConsistentCasingInFileNames": true,
+    // Not strictly required, but highly recommended.
+    "strict": true,
+  }
 }

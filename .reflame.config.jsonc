@@ -1,0 +1,33 @@
+{
+  // This is a JSON with Comments file.
+  // It's basically JSON, with the addition of comments, and looser syntax 
+  // (trailing commas!).
+  
+  // Reflame uses this to identify your app.
+  "appId": "01GVH35S71FJP26W72V3K7CB2N",
+    
+  // This is what shows up in the browser's tab bar.
+  "title": "Reflame App",
+  // This is the description that shows up in Google search.
+  "description": "A new Reflame app.",
+    
+  // Reflame will watch this directory for your React source code and deploy changes
+  // instantly. 
+  "sourceDirectory": "app",
+  
+  // Reflame will use this to keep your app up to date as we make improvements. 
+  "foundation": {
+    "name": "ts-react",
+    "version": 2,
+  },
+  
+  // NPM packages listed here will be installed by Reflame every time you update this file.
+  // 
+  // It's important to only include packages that will be used by your app in browsers here.
+  // Including dev-time dependencies that run in node can result in deploy failures and poor
+  // performance.
+  "npmPackages": {
+    // // Specify npm packages in the same format as you would with package.json
+    // "framer-motion": "^6.2.8",
+  },
+}

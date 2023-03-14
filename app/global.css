@@ -1,0 +1,55 @@
+/* Intended for global CSS, fonts, resets, etc. */
+
+/* For all other styling needs, we recommend a CSS-in-JS library to colocate
+   styles with components, for dev experience and cache granularity.
+
+   Some recommendations, in no particular order:
+
+     - https://emotion.sh
+     - https://styled-components.com
+     - https://styled-system.com
+     - https://theme-ui.com
+     - https://twind.dev
+*/
+
+/*
+  This one's more aggressive than the rest, uncomment to opt-in.
+  Removes most default browser styles. No more overrides!
+  Inspired by https://github.com/elad2412/the-new-css-reset
+*/
+/*
+*:where(:not(iframe, canvas, img, svg, video):not(svg *, symbol *)) {
+  all: unset;
+  display: revert;
+}
+*/
+
+/* Border box for sanity. */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* System font stack. Removes latency and layout shift from font loading. */
+:root {
+  --font-sans-serif: system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
+  --font-monospace: SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+}
+
+body {
+  font-family: var(--font-sans-serif);
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-monospace);
+  direction: ltr /* rtl:ignore */;
+  unicode-bidi: bidi-override;
+}
