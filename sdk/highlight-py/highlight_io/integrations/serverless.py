@@ -3,7 +3,7 @@ import functools
 from highlight_io import H
 
 
-def observe_serverless(highlight_header_value: str, fn):
+def observe_serverless(get_highlight_header, fn):
     """
     Generic decorator for serverless request handlers. Extracts the request context
     to associate the request in azure functions, aws lambda, gcp, etc.
@@ -14,11 +14,7 @@ def observe_serverless(highlight_header_value: str, fn):
 
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
-        session_id, request_id = "", ""
-        try:
-            session_id, request_id = highlight_header_value.split("/")
-        except ValueError:
-            pass
+        session_id, request_id = get_highlight_header(*args, **kwargs)
         try:
             with H.get_instance().trace(session_id, request_id):
                 return fn(*args, **kwargs)

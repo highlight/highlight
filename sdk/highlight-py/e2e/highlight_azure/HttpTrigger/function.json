@@ -6,7 +6,8 @@
 			"type": "httpTrigger",
 			"direction": "in",
 			"name": "req",
-			"methods": ["get", "post"]
+			"methods": ["get", "post"],
+			"route": "test/{session_id}"
 		},
 		{
 			"type": "http",
