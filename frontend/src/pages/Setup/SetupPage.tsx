@@ -224,6 +224,9 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 								{step === 'client' && (
 									<ClientSetup
 										project_id={projectId!}
+										projectVerboseId={
+											data.project.verbose_id
+										}
 										integrated={integrated}
 										docs={docs.client}
 									/>
@@ -254,10 +257,12 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 
 const ClientSetup = ({
 	project_id,
+	projectVerboseId,
 	integrated,
 	docs,
 }: {
 	project_id: string
+	projectVerboseId: string
 	integrated: boolean
 	docs: Guides['client']
 }) => {
@@ -314,7 +319,10 @@ const ClientSetup = ({
 												},
 											)
 										}}
-										text={entry.code.text}
+										text={entry.code.text.replace(
+											'<YOUR_PROJECT_ID>',
+											projectVerboseId,
+										)}
 									/>
 								</div>
 							)}
@@ -498,7 +506,7 @@ const Framework: React.FC<{
 	}
 
 	const projectVerboseId =
-		projectData?.project?.verbose_id || 'YOUR_PROJECT_ID'
+		projectData?.project?.verbose_id || '<YOUR_PROJECT_ID>'
 
 	return (
 		<>
@@ -516,7 +524,6 @@ const Framework: React.FC<{
 								docs[language][k].title,
 							) === l,
 					)
-					debugger
 					setFramework(frameworkKey!)
 				}}
 			/>
@@ -542,7 +549,10 @@ const Framework: React.FC<{
 												},
 											)
 										}}
-										text={entry.code.text}
+										text={entry.code.text.replace(
+											'<YOUR_PROJECT_ID>',
+											projectVerboseId,
+										)}
 									/>
 								</div>
 							)}
