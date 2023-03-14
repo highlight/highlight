@@ -92,10 +92,7 @@ export const H: HighlightInterface = {
 		requestId?: string | undefined,
 	) => {
 		const o: { stack: any } = { stack: {} }
-		const saveTraceLimit = Error.stackTraceLimit
-		Error.stackTraceLimit = 3
 		Error.captureStackTrace(o)
-		Error.stackTraceLimit = saveTraceLimit
 		try {
 			highlight_obj.log(
 				new Date(),

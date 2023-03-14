@@ -1,4 +1,3 @@
-import { NodeOptions } from './types.js'
 // inspired by https://github.com/getsentry/sentry-javascript/issues/5639
 
 export function hookOutput(
@@ -17,9 +16,21 @@ export function hookOutput(
 	}
 }
 
+const ConsoleLevels = {
+	debug: 'debug',
+	info: 'info',
+	log: 'info',
+	count: 'info',
+	dir: 'info',
+	warn: 'warn',
+	assert: 'warn',
+	error: 'error',
+	trace: 'trace',
+} as const
+
 interface ConsolePayload {
 	date: Date
-	level: string
+	level: keyof typeof ConsoleLevels
 	message: string
 	stack: object
 }
@@ -34,18 +45,7 @@ export function hookConsole(
 ) {
 	if (consoleHooked) return
 	consoleHooked = true
-	const levels = {
-		debug: 'debug',
-		info: 'info',
-		log: 'info',
-		count: 'info',
-		dir: 'info',
-		warn: 'warn',
-		assert: 'warn',
-		error: 'error',
-		trace: 'trace',
-	} as { [k in keyof Console]: string }
-	for (const [level, highlightLevel] of Object.entries(levels)) {
+	for (const [level, highlightLevel] of Object.entries(ConsoleLevels)) {
 		if (methodsToRecord?.length && methodsToRecord.indexOf(level) === -1) {
 			continue
 		}
@@ -58,10 +58,7 @@ export function hookConsole(
 				return origWrite(...data)
 			} finally {
 				const o: { stack: any } = { stack: {} }
-				const saveTraceLimit = Error.stackTraceLimit
-				Error.stackTraceLimit = 3
 				Error.captureStackTrace(o)
-				Error.stackTraceLimit = saveTraceLimit
 				cb({
 					date,
 					level: highlightLevel,
