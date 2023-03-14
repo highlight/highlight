@@ -508,6 +508,20 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 			},
 			Body: "body with space",
 		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			Body: "STRIPE_INTEGRATION_ERROR cannot report usage - customer has no subscriptions",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			Body: "STRIPE-INTEGRATION-ERROR cannot report usage - customer has no subscriptions",
+		},
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -528,7 +542,7 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "od", // wildcard match
+		Query:     "*od*", // wildcard match
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
@@ -539,6 +553,20 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "STRIPE_INTEGRATION_ERROR", // uses reserved separator character
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 2)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "STRIPE-INTEGRATION-ERROR", // uses reserved separator character
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 2)
 }
 
 func TestReadLogsWithKeyFilter(t *testing.T) {
