@@ -138,6 +138,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("ReadLogs"))
 	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
 	if err != nil {
+		span.Finish(tracer.WithError(err))
 		return nil, err
 	}
 	span.SetTag("Query", query)
@@ -145,7 +146,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
-	span.Finish()
+	span.Finish(tracer.WithError(err))
 
 	if err != nil {
 		return nil, err
