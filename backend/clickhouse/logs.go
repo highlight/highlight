@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -500,8 +501,12 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 
 	filters := makeFilters(params.Query)
 
-	if len(filters.body) > 0 {
-		sb.Where("Body ILIKE" + sb.Var(filters.body))
+	for _, body := range filters.body {
+		if strings.Contains(body, "%") {
+			sb.Where("Body ILIKE" + sb.Var(body))
+		} else {
+			sb.Where("hasTokenCaseInsensitive(Body, " + sb.Var(body) + ")")
+		}
 	}
 
 	if len(filters.level) > 0 {
@@ -549,7 +554,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 }
 
 type filters struct {
-	body              string
+	body              []string
 	level             string
 	trace_id          string
 	span_id           string
@@ -559,7 +564,6 @@ type filters struct {
 
 func makeFilters(query string) filters {
 	filters := filters{
-		body:       "",
 		attributes: make(map[string]string),
 	}
 
@@ -570,13 +574,13 @@ func makeFilters(query string) filters {
 
 		if len(parts) == 1 && len(parts[0]) > 0 {
 			body := parts[0]
+
 			if strings.Contains(body, "*") {
 				body = strings.ReplaceAll(body, "*", "%")
-			}
-			if len(filters.body) == 0 {
-				filters.body = body
+				filters.body = append(filters.body, body)
 			} else {
-				filters.body = filters.body + " " + body
+				splitBody := strings.FieldsFunc(body, isSeparator)
+				filters.body = append(filters.body, splitBody...)
 			}
 		} else if len(parts) == 2 {
 			key, value := parts[0], parts[1]
@@ -598,11 +602,11 @@ func makeFilters(query string) filters {
 		}
 	}
 
-	if len(filters.body) > 0 && !strings.Contains(filters.body, "%") {
-		filters.body = "%" + filters.body + "%"
-	}
-
 	return filters
+}
+
+func isSeparator(r rune) bool {
+	return !unicode.IsLetter(r) && !unicode.IsDigit(r)
 }
 
 // Splits the query by spaces _unless_ it is quoted
