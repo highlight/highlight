@@ -141,6 +141,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 		return nil, err
 	}
 	span.SetTag("Query", query)
+	span.SetTag("Params", params)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
