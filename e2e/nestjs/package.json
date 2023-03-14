@@ -3,8 +3,8 @@
 	"packageManager": "yarn@3.3.1",
 	"private": true,
 	"scripts": {
-		"build": "nest build",
-		"start": "nest start"
+		"build": "yarn build:sdk && nest build",
+		"start": "yarn build:sdk && nest start"
 	},
 	"dependencies": {
 		"@highlight-run/nest": "workspace:*",
@@ -18,8 +18,7 @@
 		"@nestjs/passport": "^8.0.1",
 		"@nestjs/platform-express": "^8.0.0",
 		"@nestjs/schedule": "^1.0.2",
-		"@nestjs/swagger": "^5.1.5",
-		"reflect-metadata": "^0.1.13"
+		"@nestjs/swagger": "^5.1.5"
 	},
 	"devDependencies": {
 		"@nestjs/cli": "^8.0.0",

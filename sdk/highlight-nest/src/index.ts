@@ -60,7 +60,6 @@ export class HighlightLogger
 	extends ConsoleLogger
 	implements OnApplicationShutdown
 {
-	app = '@highlight-run/nest: '
 	constructor(
 		@Inject(Symbol('HighlightModuleOptions'))
 		readonly opts: NodeOptions,
@@ -72,44 +71,48 @@ export class HighlightLogger
 	}
 
 	log(message: string, context?: string, asBreadcrumb?: boolean) {
-		message = `${this.app} ${message}`
 		try {
 			super.log(message, context)
 			NodeH.log(message, 'info')
-		} catch (err) {}
+		} catch (err) {
+			NodeH._debug('failed to print log', err)
+		}
 	}
 
 	error(message: string, trace?: string, context?: string) {
-		message = `${this.app} ${message}`
 		try {
 			super.error(message, trace, context)
 			NodeH.log(message, 'error')
-			NodeH.consumeError(new Error(message), context)
-		} catch (err) {}
+		} catch (err) {
+			NodeH._debug('failed to print error', err)
+		}
 	}
 
 	warn(message: string, context?: string, asBreadcrumb?: boolean) {
-		message = `${this.app} ${message}`
 		try {
 			super.warn(message, context)
 			NodeH.log(message, 'warn')
-		} catch (err) {}
+		} catch (err) {
+			NodeH._debug('failed to print warn', err)
+		}
 	}
 
 	debug(message: string, context?: string, asBreadcrumb?: boolean) {
-		message = `${this.app} ${message}`
 		try {
 			super.debug(message, context)
 			NodeH.log(message, 'debug')
-		} catch (err) {}
+		} catch (err) {
+			NodeH._debug('failed to print debug', err)
+		}
 	}
 
 	verbose(message: string, context?: string, asBreadcrumb?: boolean) {
-		message = `${this.app} ${message}`
 		try {
 			super.verbose(message, context)
 			NodeH.log(message, 'trace')
-		} catch (err) {}
+		} catch (err) {
+			NodeH._debug('failed to print verbose', err)
+		}
 	}
 
 	async onApplicationShutdown(signal?: string) {
