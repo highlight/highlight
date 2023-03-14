@@ -318,12 +318,13 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								}
 
 								const queryParams: LogsSearchParam[] = []
+								let offsetStart = 1
 								if (errorObject.source) {
 									queryParams.push({
 										key: 'host.name',
 										operator: DEFAULT_LOGS_OPERATOR,
 										value: errorObject.source,
-										offsetStart: 1,
+										offsetStart: offsetStart++,
 									})
 								}
 								if (errorObject.session?.secure_id) {
@@ -331,7 +332,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 										key: 'secure_session_id',
 										operator: DEFAULT_LOGS_OPERATOR,
 										value: errorObject.session?.secure_id,
-										offsetStart: 2,
+										offsetStart: offsetStart++,
 									})
 								}
 								if (errorObject.trace_id) {
@@ -339,7 +340,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 										key: 'trace_id',
 										operator: DEFAULT_LOGS_OPERATOR,
 										value: errorObject.trace_id,
-										offsetStart: 3,
+										offsetStart: offsetStart++,
 									})
 								}
 								const query = stringifyLogsQuery(queryParams)
