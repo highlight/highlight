@@ -24,10 +24,14 @@ import {
 import {
 	LogLevel,
 	LogLevelVariants,
+	RequestStatus,
 	RequestType,
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { ICountPerRequestType } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import {
+	ICountPerRequestStatus,
+	ICountPerRequestType,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
 import React, { useMemo } from 'react'
@@ -51,6 +55,10 @@ const DevToolsWindowV2: React.FC<
 	const [requestType, setRequestType] = React.useState<RequestType>(
 		RequestType.All,
 	)
+	const [requestStatus, setRequestStatus] = React.useState<RequestStatus>(
+		RequestStatus.All,
+	)
+
 	const [searchShown, setSearchShown] = React.useState<boolean>(false)
 	const [logLevel, setLogLevel] = React.useState<LogLevel>(LogLevel.All)
 	const form = useFormState({
@@ -70,6 +78,7 @@ const DevToolsWindowV2: React.FC<
 
 	const { resources: parsedResources } = useResourcesContext()
 
+	/* Count request per type (XHR, etc.) */
 	const countPerRequestType = useMemo(() => {
 		const count: ICountPerRequestType = {
 			All: 0,
@@ -87,7 +96,7 @@ const DevToolsWindowV2: React.FC<
 			const requestType =
 				request.initiatorType as keyof ICountPerRequestType
 
-			//-- Only count request types defined in ICountPerRequestType, e.g. skip 'beacon' --//
+			/* Only count request types defined in ICountPerRequestType, e.g. skip 'beacon' */
 			if (count.hasOwnProperty(request.initiatorType)) {
 				count['All'] += 1
 				count[requestType] += 1
@@ -95,6 +104,51 @@ const DevToolsWindowV2: React.FC<
 		})
 
 		return count
+	}, [parsedResources])
+
+	/* Count request per http status (200, etc.) */
+	const countPerRequestStatus = useMemo(() => {
+		const count: ICountPerRequestStatus = {
+			All: 0,
+			'1XX': 0,
+			'2XX': 0,
+			'3XX': 0,
+			'4XX': 0,
+			'5XX': 0,
+			'???': 0,
+		}
+
+		parsedResources.forEach((request) => {
+			const status: number | undefined =
+				request?.requestResponsePairs?.response?.status
+
+			if (status) {
+				count['All'] += 1
+				switch (true) {
+					case status >= 100 && status < 200:
+						count['1XX'] += 1
+						break
+					case status >= 200 && status < 300:
+						count['2XX'] += 1
+						break
+					case status >= 300 && status < 400:
+						count['3XX'] += 1
+						break
+					case status >= 400 && status < 500:
+						count['4XX'] += 1
+						break
+					case status >= 500 && status < 600:
+						count['5XX'] += 1
+						break
+					default:
+						count['???'] += 1
+						break
+				}
+			}
+		})
+
+		return count
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [parsedResources])
 
 	if (!showDevTools || isPlayerFullscreen) {
@@ -150,6 +204,7 @@ const DevToolsWindowV2: React.FC<
 									<NetworkPage
 										autoScroll={autoScroll}
 										requestType={requestType}
+										requestStatus={requestStatus}
 										filter={filter}
 										time={time}
 									/>
@@ -240,28 +295,52 @@ const DevToolsWindowV2: React.FC<
 											}
 										/>
 									) : selectedDevToolsTab === Tab.Network ? (
-										<MenuButton
-											size="medium"
-											options={Object.entries(
-												RequestType,
-											).map(
-												([
-													displayName,
-													requestName,
-												]) => ({
-													key: displayName,
-													render: `${displayName} (${countPerRequestType[requestName]})`,
-												}),
-											)}
-											onChange={(displayName) => {
-												setRequestType(
-													//-- Set type to be the requestName value --//
-													RequestType[
-														displayName as keyof typeof RequestType
-													],
-												)
-											}}
-										/>
+										<>
+											<MenuButton
+												size="medium"
+												options={Object.entries(
+													RequestType,
+												).map(
+													([
+														displayName,
+														requestName,
+													]) => ({
+														key: displayName,
+														render: `${displayName} (${countPerRequestType[requestName]})`,
+													}),
+												)}
+												onChange={(displayName) => {
+													setRequestType(
+														//-- Set type to be the requestName value --//
+														RequestType[
+															displayName as keyof typeof RequestType
+														],
+													)
+												}}
+											/>
+											<MenuButton
+												size="medium"
+												options={Object.entries(
+													RequestStatus,
+												).map(
+													([
+														statusKey,
+														statusValue,
+													]) => ({
+														key: statusKey,
+														render: `${statusKey} (${countPerRequestStatus[statusValue]})`,
+													}),
+												)}
+												onChange={(statusKey) => {
+													setRequestStatus(
+														//-- Set type to be the requestName value --//
+														RequestStatus[
+															statusKey as keyof typeof RequestStatus
+														],
+													)
+												}}
+											/>
+										</>
 									) : null}
 
 									{selectedDevToolsTab === Tab.Console &&
