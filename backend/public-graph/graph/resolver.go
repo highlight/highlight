@@ -783,6 +783,11 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil, e.New("error object event was nil or empty")
 	}
 
+	if projectID == 1 {
+		if errorObj.Event == `input: initializeSession BillingQuotaExceeded` || errorObj.Event == `BillingQuotaExceeded` || errorObj.Event == `panic {error: missing operation context}` {
+			return nil, e.New("Filtering out noisy Highlight error")
+		}
+	}
 	if projectID == 356 {
 		if errorObj.Event == `["\"ReferenceError: Can't find variable: widgetContainerAttribute\""]` ||
 			errorObj.Event == `"ReferenceError: Can't find variable: widgetContainerAttribute"` ||
