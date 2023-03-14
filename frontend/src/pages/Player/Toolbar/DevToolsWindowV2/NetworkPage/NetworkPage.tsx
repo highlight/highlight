@@ -97,8 +97,6 @@ export const NetworkPage = ({
 		return 0
 	}, [parsedResources])
 
-	console.log(parsedResources)
-
 	const resourcesToRender = useMemo(() => {
 		const current =
 			(parsedResources
