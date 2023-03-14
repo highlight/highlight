@@ -86,11 +86,18 @@ func getAttributesMap(resourceAttributes, eventAttributes map[string]any) map[st
 	attributesMap := make(map[string]string)
 	for _, m := range []map[string]any{resourceAttributes, eventAttributes} {
 		for k, v := range m {
+			shouldSkip := false
+
 			for _, attr := range highlight.InternalAttributes {
 				if k == attr {
-					continue
+					shouldSkip = true
 				}
 			}
+
+			if shouldSkip {
+				continue
+			}
+
 			vStr := cast(v, "")
 			if vStr != "" {
 				attributesMap[k] = vStr
