@@ -14,7 +14,7 @@ def observe_serverless(get_highlight_header, fn):
 
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
-        session_id, request_id = get_highlight_header(*args, **kwargs)
+        session_id, request_id = get_highlight_header(*args, **kwargs).split('/')
         try:
             with H.get_instance().trace(session_id, request_id):
                 return fn(*args, **kwargs)
