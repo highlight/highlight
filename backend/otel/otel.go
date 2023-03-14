@@ -91,6 +91,7 @@ func getAttributesMap(resourceAttributes, eventAttributes map[string]any) map[st
 			for _, attr := range highlight.InternalAttributes {
 				if k == attr {
 					shouldSkip = true
+					continue
 				}
 			}
 
