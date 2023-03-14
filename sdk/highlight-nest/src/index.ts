@@ -142,3 +142,5 @@ export class HighlightModule {
 		}
 	}
 }
+
+export { NodeH as H }
