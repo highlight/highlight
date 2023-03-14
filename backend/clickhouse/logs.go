@@ -7,6 +7,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -134,7 +135,16 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 
 	sql, args := sb.Build()
 
+	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("ReadLogs"))
+	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	if err != nil {
+		return nil, err
+	}
+	span.SetTag("Query", query)
+
 	rows, err := client.conn.Query(ctx, sql, args...)
+
+	span.Finish()
 
 	if err != nil {
 		return nil, err
