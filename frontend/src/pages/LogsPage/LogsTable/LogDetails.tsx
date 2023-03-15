@@ -370,17 +370,12 @@ const LogValue: React.FC<{
 										const index = queryTerms.findIndex(
 											(term) => term.key === queryKey,
 										)
-										const newValue =
-											label === 'level'
-												? value.toLowerCase()
-												: value
 
 										index !== -1
-											? (queryTerms[index].value =
-													newValue)
+											? (queryTerms[index].value = value)
 											: queryTerms.push({
 													key: queryKey,
-													value: newValue,
+													value,
 													operator: DEFAULT_OPERATOR,
 													offsetStart: 0, // not actually used
 											  })
