@@ -632,7 +632,7 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 				Timestamp: now,
 				ProjectId: 1,
 			},
-			SeverityText: "INFO",
+			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
@@ -640,7 +640,7 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{
-				"level": "WARN",
+				"level": modelInputs.LogLevelWarn.String(),
 			},
 		},
 	}
@@ -649,23 +649,23 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "level:INFO",
+		Query:     "level:info",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, modelInputs.LogLevel("INFO"), payload.Edges[0].Node.Level)
+	assert.Equal(t, modelInputs.LogLevelInfo, payload.Edges[0].Node.Level)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "level:*NF*",
+		Query:     "level:*nf*",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, modelInputs.LogLevel("INFO"), payload.Edges[0].Node.Level)
+	assert.Equal(t, modelInputs.LogLevelInfo, payload.Edges[0].Node.Level)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "level:WARN",
+		Query:     "level:warn",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 0)
