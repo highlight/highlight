@@ -784,7 +784,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 
 	if projectID == 1 {
-		if errorObj.Event == `input: initializeSession BillingQuotaExceeded` || errorObj.Event == `BillingQuotaExceeded` || errorObj.Event == `panic {error: missing operation context}` {
+		if errorObj.Event == `input: initializeSession BillingQuotaExceeded` || errorObj.Event == `BillingQuotaExceeded` || errorObj.Event == `panic {error: missing operation context}` || errorObj.Event == `input: could not get json request body: unable to get Request Body unexpected EOF` || errorObj.Event == `no metrics provided` || errorObj.Event == `input: pushMetrics no metrics provided` {
 			return nil, e.New("Filtering out noisy Highlight error")
 		}
 	}
@@ -811,6 +811,12 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	if projectID == 1703 {
 		if errorObj.Event == `["\"Uncaught TypeError: Cannot read properties of null (reading 'play')\""]` ||
 			errorObj.Event == `"Uncaught TypeError: Cannot read properties of null (reading 'play')"` {
+			return nil, e.New("Filtering out noisy error")
+		}
+	}
+	if projectID == 3322 {
+		if errorObj.Event == `["\"Failed to fetch feature flags from PostHog.\""]` ||
+			errorObj.Event == `["\"Bad HTTP status: 0 \""]` {
 			return nil, e.New("Filtering out noisy error")
 		}
 	}
