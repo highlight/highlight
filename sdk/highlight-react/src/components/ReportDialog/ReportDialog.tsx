@@ -143,6 +143,26 @@ const ReportDialog = ({
 						</label>
 
 						<div className={`formFooter`}>
+							{!hideHighlightBranding && (
+								<div className={`ad`}>
+									<p className={`logoContainer`}>
+										Crash reports powered by:
+										{/*  eslint-disable-next-line react/jsx-no-target-blank */}
+										{/* <a
+											href="https://highlight.run"
+											target="_blank"
+										>
+											<img
+												src="https://app.highlight.run/logo-24x130.png"
+												alt="Highlight"
+												height="25"
+												className={`logo`}
+											/>
+										</a> */}
+									</p>
+								</div>
+							)}
+
 							<div className={`formActionsContainer`}>
 								<button
 									type="submit"
@@ -162,25 +182,6 @@ const ReportDialog = ({
 									{labelClose}
 								</button>
 							</div>
-							{!hideHighlightBranding && (
-								<div className={`ad`}>
-									<p className={`logoContainer`}>
-										Crash reports powered by:
-										{/*  eslint-disable-next-line react/jsx-no-target-blank */}
-										<a
-											href="https://highlight.run"
-											target="_blank"
-										>
-											<img
-												src="https://app.highlight.run/logo-24x130.png"
-												alt="Highlight"
-												height="25"
-												className={`logo`}
-											/>
-										</a>
-									</p>
-								</div>
-							)}
 						</div>
 					</form>
 				</div>
