@@ -73,9 +73,9 @@ func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, ema
 				Value:    phone,
 			},
 			{
-				Property: "referral",
-				Name:     "referral",
-				Value:    phone,
+				Property: "referral_url",
+				Name:     "referral_url",
+				Value:    referral,
 			},
 		},
 	}); err != nil {
