@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import CheckboxList from '@components/CheckboxList/CheckboxList'
 import {
 	Box,
 	Form,
@@ -368,7 +369,7 @@ const DevToolsWindowV2: React.FC<
 										/>
 									) : selectedDevToolsTab === Tab.Network ? (
 										<>
-											{/* <CheckboxList
+											<CheckboxList
 												checkboxOptions={Object.entries(
 													RequestStatus,
 												).map(
@@ -378,35 +379,33 @@ const DevToolsWindowV2: React.FC<
 													]) => ({
 														checked:
 															requestStatus.includes(
-																statusKey as RequestStatus,
+																statusValue,
 															),
 														onChange: (e) => {
-															e.target.checked
-																  setRequestStatus(
-																		(
-																			state,
-																		) => {
-																			return {
-																				...state,
-																				statusKey,
-																			}
-																		},
-																  )
-																  setRequestStatus(
-																		(
-																			state,
-																		) => {
-																			return {
-																				...state.filter(
-																					(
-																						x,
-																					) =>
-																						x !==
-																						statusKey,
-																				),
-																			}
-																		},
-																  )
+															if (
+																e.target
+																	.checked /** Value after click */
+															) {
+																/** Add to state array */
+																setRequestStatus(
+																	(state) => [
+																		...state,
+																		statusValue,
+																	],
+																)
+															} else {
+																/** Remove from state array */
+																setRequestStatus(
+																	(state) =>
+																		state.filter(
+																			(
+																				x,
+																			) =>
+																				x !==
+																				statusValue,
+																		),
+																)
+															}
 														},
 														label: `${statusKey} (${
 															countPerRequestStatus?.[
@@ -416,7 +415,7 @@ const DevToolsWindowV2: React.FC<
 														key: statusKey,
 													}),
 												)}
-											/> */}
+											/>
 											<MenuButton
 												size="medium"
 												options={Object.entries(
