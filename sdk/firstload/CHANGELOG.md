@@ -133,3 +133,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Minor Changes
 
 - Adds `recordCrossOriginIframe` setting to opt-in enable cross-origin iframe recording.
+
+## 5.4.1
+
+### Patch Changes
+
+- Ensure integrations are not initialized when `disabled: true`.
