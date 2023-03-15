@@ -1,0 +1,33 @@
+{
+	"name": "@highlight-run/apollo",
+	"version": "1.0.0",
+	"license": "MIT",
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"require": "./dist/index.js",
+			"import": "./dist/index.mjs",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"scripts": {
+		"codegen": "graphql-codegen --config codegen.yml",
+		"typegen": "tsup src/index.ts --dts-only",
+		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"test": "jest"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"dependencies": {
+		"@apollo/server": "^4",
+		"@highlight-run/node": "workspace:*",
+		"apollo-server-plugin-base": "^3"
+	},
+	"devDependencies": {
+		"tsup": "^6.6.3",
+		"typescript": "^4.9.5"
+	}
+}
