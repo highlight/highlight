@@ -130,42 +130,42 @@ func TestReadLogsHistogram(t *testing.T) {
 				Timestamp: now,
 				ProjectId: 1,
 			},
-			SeverityText: "INFO",
+			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour - time.Minute*29),
 				ProjectId: 1,
 			},
-			SeverityText: "DEBUG",
+			SeverityText: modelInputs.LogLevelDebug.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour - time.Minute*30),
 				ProjectId: 1,
 			},
-			SeverityText: "INFO",
+			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour * 2),
 				ProjectId: 1,
 			},
-			SeverityText: "ERROR",
+			SeverityText: modelInputs.LogLevelError.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour*2 - time.Minute*30),
 				ProjectId: 1,
 			},
-			SeverityText: "ERROR",
+			SeverityText: modelInputs.LogLevelError.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour * 3),
 				ProjectId: 1,
 			},
-			SeverityText: "ERROR",
+			SeverityText: modelInputs.LogLevelError.String(),
 		},
 	}
 
@@ -220,7 +220,7 @@ func TestReadLogsHistogram(t *testing.T) {
 
 	assert.Equal(
 		t,
-		modelInputs.LogLevel("ERROR"),
+		modelInputs.LogLevelError,
 		payload.Buckets[0].Counts[4].Level,
 		"The first bucket should have the count 4 with severity of ERROR",
 	)
@@ -233,7 +233,7 @@ func TestReadLogsHistogram(t *testing.T) {
 
 	assert.Equal(
 		t,
-		modelInputs.LogLevel("DEBUG"),
+		modelInputs.LogLevelDebug,
 		payload.Buckets[1].Counts[1].Level,
 		"The second bucket should have the count 1 with severity of DEBUG",
 	)
@@ -245,7 +245,7 @@ func TestReadLogsHistogram(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		modelInputs.LogLevel("INFO"),
+		modelInputs.LogLevelInfo,
 		payload.Buckets[1].Counts[2].Level,
 		"The second bucket should have the second count with severity of INFO",
 	)
@@ -632,7 +632,7 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 				Timestamp: now,
 				ProjectId: 1,
 			},
-			SeverityText: "INFO",
+			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
@@ -640,7 +640,7 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{
-				"level": "WARN",
+				"level": modelInputs.LogLevelWarn.String(),
 			},
 		},
 	}
@@ -649,23 +649,23 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "level:INFO",
+		Query:     "level:info",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, modelInputs.LogLevel("INFO"), payload.Edges[0].Node.Level)
+	assert.Equal(t, modelInputs.LogLevelInfo, payload.Edges[0].Node.Level)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "level:*NF*",
+		Query:     "level:*nf*",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, modelInputs.LogLevel("INFO"), payload.Edges[0].Node.Level)
+	assert.Equal(t, modelInputs.LogLevelInfo, payload.Edges[0].Node.Level)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "level:WARN",
+		Query:     "level:warn",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 0)
@@ -975,28 +975,28 @@ func TestLogKeyValuesLevel(t *testing.T) {
 				Timestamp: now,
 				ProjectId: 1,
 			},
-			SeverityText: "INFO",
+			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now,
 				ProjectId: 1,
 			},
-			SeverityText: "WARN",
+			SeverityText: modelInputs.LogLevelWarn.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now,
 				ProjectId: 1,
 			},
-			SeverityText: "INFO",
+			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now,
 				ProjectId: 1,
 			},
-			LogAttributes: map[string]string{"level": "FATAL"}, // should be skipped in the output
+			LogAttributes: map[string]string{"level": modelInputs.LogLevelFatal.String()}, // should be skipped in the output
 		},
 	}
 
@@ -1005,7 +1005,7 @@ func TestLogKeyValuesLevel(t *testing.T) {
 	values, err := client.LogsKeyValues(ctx, 1, "level", now, now)
 	assert.NoError(t, err)
 
-	expected := []string{"INFO", "WARN"}
+	expected := []string{"info", "warn"}
 
 	sort.Strings(values)
 	sort.Strings(expected)

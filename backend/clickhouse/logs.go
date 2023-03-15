@@ -69,6 +69,8 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 		if len(logRow.UUID) == 0 {
 			logRow.UUID = uuid.New().String()
 		}
+		// TODO (et) - move this logic to a builder function (#4464)
+		logRow.SeverityText = strings.ToLower(logRow.SeverityText)
 		err = batch.AppendStruct(logRow)
 		if err != nil {
 			return err

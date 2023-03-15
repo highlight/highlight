@@ -684,12 +684,12 @@ export enum LogKeyType {
 }
 
 export enum LogLevel {
-	Debug = 'DEBUG',
-	Error = 'ERROR',
-	Fatal = 'FATAL',
-	Info = 'INFO',
-	Trace = 'TRACE',
-	Warn = 'WARN',
+	Debug = 'debug',
+	Error = 'error',
+	Fatal = 'fatal',
+	Info = 'info',
+	Trace = 'trace',
+	Warn = 'warn',
 }
 
 export type LogsConnection = {
