@@ -24,6 +24,7 @@ COPY ../sourcemap-uploader/package.json ./sourcemap-uploader/package.json
 COPY ../sdk/client/package.json ./sdk/client/package.json
 COPY ../sdk/firstload/package.json ./sdk/firstload/package.json
 COPY ../sdk/highlight-cloudflare/package.json ./sdk/highlight-cloudflare/package.json
+COPY ../sdk/highlight-nest/package.json ./sdk/highlight-nest/package.json
 COPY ../sdk/highlight-next/package.json ./sdk/highlight-next/package.json
 COPY ../sdk/highlight-node/package.json ./sdk/highlight-node/package.json
 COPY ../sdk/highlight-react/package.json ./sdk/highlight-react/package.json
