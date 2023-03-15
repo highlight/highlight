@@ -52,9 +52,6 @@ type CustomContactsResponse struct {
 
 func (h *HubspotApi) createContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	var hubspotContactId int
-	if emailproviders.Exists(email) {
-		email = ""
-	}
 	if resp, err := h.hubspotClient.Contacts().Create(hubspot.ContactsRequest{
 		Properties: []hubspot.Property{
 			{
