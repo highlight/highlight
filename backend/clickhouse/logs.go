@@ -7,7 +7,6 @@ import (
 	"time"
 	"unicode"
 
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"github.com/google/uuid"
@@ -16,44 +15,6 @@ import (
 	flat "github.com/nqd/flat"
 	e "github.com/pkg/errors"
 )
-
-type LogRowPrimaryAttrs struct {
-	Timestamp       time.Time
-	ProjectId       uint32
-	TraceId         string
-	SpanId          string
-	SecureSessionId string
-}
-
-type LogRow struct {
-	LogRowPrimaryAttrs
-	UUID           string
-	TraceFlags     uint32
-	SeverityText   string
-	SeverityNumber int32
-	ServiceName    string
-	Body           string
-	LogAttributes  map[string]string
-}
-
-func NewLogRow(attrs LogRowPrimaryAttrs) *LogRow {
-	return &LogRow{
-		LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-			Timestamp:       attrs.Timestamp,
-			TraceId:         attrs.TraceId,
-			SpanId:          attrs.SpanId,
-			ProjectId:       attrs.ProjectId,
-			SecureSessionId: attrs.SecureSessionId,
-		},
-		UUID:           uuid.New().String(),
-		SeverityText:   "INFO",
-		SeverityNumber: int32(log.InfoLevel),
-	}
-}
-
-func (l *LogRow) Cursor() string {
-	return encodeCursor(l.Timestamp, l.UUID)
-}
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
 	if len(logRows) == 0 {
