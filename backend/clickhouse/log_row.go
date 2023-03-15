@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/highlight/highlight/sdk/highlight-go"
-	"github.com/influxdata/influxdb-client-go/v2/log"
+	log "github.com/sirupsen/logrus"
 )
 
 type LogRowPrimaryAttrs struct {
