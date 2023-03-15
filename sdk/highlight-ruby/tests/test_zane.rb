@@ -1,32 +1,20 @@
-# import pytest
-
-# from e2e.highlight_aws.lambda_function import lambda_handler
-# from highlight_io import H
-
 require_relative '../highlight_io/sdk'
 require 'logger'
 
-# def test_aws
-#     mocker.patch("random.random", return_value=0.1)
-#     mock_trace = mocker.patch("highlight_io.H.trace")
-#     # Construct a mock HTTP request.
-#     req = {
-#         H.REQUEST_HEADER: "a1b2c3/1234",
-#     }
-
-#     with pytest.raises(expected_exception=ValueError):
-#         lambda_handler(req, None)
-
-#     mock_trace.assert_called_with("a1b2c3", "1234")
-# end
-
 def test_zane
-    H.new("1jdkoe52")
+    H.new("qe9y4yg1")
     begin
-        H.instance.trace(nil, nil) { raise RuntimeError.new('another zane test!') }
+        H.instance.trace(nil, nil) do
+            raise RuntimeError.new('another zane test!')
+        end
     rescue
     end
-    # H.instance.record_log(nil, nil, Logger::ERROR, 'zane test log!')
+    H.instance.record_log(nil, nil, Logger::INFO, 'zane test log!')
+    H.instance.record_log(nil, nil, Logger::ERROR, 'zane test error!')
+    logger = H::LoggerWrapper.new(Logger.new(STDOUT))
+    # logger = H::LoggerWrapper.new(Logger.new(STDOUT))
+    logger.add(Logger::INFO, 'zane test log 2!')
+    logger.info('zane test log 3!')
     puts 'flushing'
     H.instance.flush
     puts 'flushed'

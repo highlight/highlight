@@ -1,25 +1,27 @@
-require 'opentelemetry/sdk'
-require 'opentelemetry/exporter/otlp'
-require 'opentelemetry/instrumentation/all'
-require 'opentelemetry/semantic_conventions'
-require 'logger'
+require "highlight/version"
+require "opentelemetry/sdk"
+require "opentelemetry/exporter/otlp"
+require "opentelemetry/instrumentation/all"
+require "opentelemetry/semantic_conventions"
+require "logger"
 
-class H
-    HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
-    OTLP_HTTP = 'https://otel.highlight.io:4318'
-    HIGHLIGHT_PROJECT_ATTRIBUTE = 'highlight.project_id'
-    HIGHLIGHT_SESSION_ATTRIBUTE = 'highlight.session_id'
-    HIGHLIGHT_TRACE_ATTRIBUTE = 'highlight.trace_id'
-    LOG_EVENT = 'log'
-    LOG_SEVERITY_ATTRIBUTE = 'log.severity'
-    LOG_MESSAGE_ATTRIBUTE = 'log.message'
+module Highlight
+  class H
+    HIGHLIGHT_REQUEST_HEADER = "X-Highlight-Request"
+    OTLP_HTTP = "https://otel.highlight.io:4318"
+    HIGHLIGHT_PROJECT_ATTRIBUTE = "highlight.project_id"
+    HIGHLIGHT_SESSION_ATTRIBUTE = "highlight.session_id"
+    HIGHLIGHT_TRACE_ATTRIBUTE = "highlight.trace_id"
+    LOG_EVENT = "log"
+    LOG_SEVERITY_ATTRIBUTE = "log.severity"
+    LOG_MESSAGE_ATTRIBUTE = "log.message"
     CODE_FILEPATH = OpenTelemetry::SemanticConventions::Trace::CODE_FILEPATH
     CODE_LINENO = OpenTelemetry::SemanticConventions::Trace::CODE_LINENO
     CODE_FUNCTION = OpenTelemetry::SemanticConventions::Trace::CODE_FUNCTION
 
     def self.instance
         if @@instance == nil
-            raise NotImplementedError 'highlight_io H object is not configured, please instantiate it by calling H()'
+            raise NotImplementedError "highlight H object is not configured, please instantiate it by calling H()"
         end
         return @@instance
     end
@@ -33,14 +35,14 @@ class H
         @otlp_endpoint = otlp_endpoint || H.OTLP_HTTP
 
         OpenTelemetry::SDK.configure do |c|
-            c.service_name = 'highlight-sdk'
+            c.service_name = "highlight-sdk"
             c.add_span_processor(OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
-                OpenTelemetry::Exporter::OTLP::Exporter.new(endpoint: @otlp_endpoint + '/v1/traces')
+                OpenTelemetry::Exporter::OTLP::Exporter.new(endpoint: @otlp_endpoint + "/v1/traces")
             ))
         end
 
         @tracer_provider = OpenTelemetry.tracer_provider
-        @tracer = @tracer_provider.tracer('highlight-tracer')
+        @tracer = @tracer_provider.tracer("highlight-tracer")
     end
 
     def flush
@@ -48,7 +50,7 @@ class H
     end
 
     def trace(session_id, request_id)
-        @tracer.in_span('highlight-ctx', attributes: { 
+        @tracer.in_span("highlight-ctx", attributes: { 
             HIGHLIGHT_PROJECT_ATTRIBUTE => @project_id, 
             HIGHLIGHT_SESSION_ATTRIBUTE => session_id,
             HIGHLIGHT_TRACE_ATTRIBUTE => request_id,
@@ -65,20 +67,20 @@ class H
     def record_exception(e)
         span = OpenTelemetry::Trace.current_span
         if !span
-            raise 'H.record_exception called without a span context'
+            raise "H.record_exception called without a span context"
         end
         span.record_exception(e)
     end
 
     def record_log(session_id, request_id, level, message)
-        caller_info = caller[0].split(':', 3)
+        caller_info = caller[0].split(":", 3)
         function = caller_info[2]
         if function
-            # format: "in `<function_name>'"
-            function.delete_prefix!('in `')
-            function.delete_suffix!('\'')
+            # format: "in `<function_name>""
+            function.delete_prefix!("in `")
+            function.delete_suffix!("\"")
         end
-        @tracer.in_span('highlight-ctx', attributes: { 
+        @tracer.in_span("highlight-ctx", attributes: { 
             HIGHLIGHT_PROJECT_ATTRIBUTE => @project_id, 
             HIGHLIGHT_SESSION_ATTRIBUTE => session_id,
             HIGHLIGHT_TRACE_ATTRIBUTE => request_id,
@@ -99,7 +101,7 @@ class H
     InjectedHeaders = Struct.new("InjectedHeaders", :secureSessionId, :requestId)
     def self.parse_headers(headers)
         if headers && headers[HIGHLIGHT_REQUEST_HEADER]
-            secureSessionId, requestId = headers[HIGHLIGHT_REQUEST_HEADER].split('/')
+            secureSessionId, requestId = headers[HIGHLIGHT_REQUEST_HEADER].split("/")
             return InjectedHeaders.new(secureSessionId, requestId)
         end
         return InjectedHeaders.new(nil, nil)
@@ -110,19 +112,19 @@ class H
     def self.log_level_string(level)
         case level
         when Logger::UNKNOWN
-            'UNKNOWN'
+            "UNKNOWN"
         when Logger::FATAL
-            'FATAL'
+            "FATAL"
         when Logger::ERROR
-            'ERROR'
+            "ERROR"
         when Logger::WARN
-            'WARN'
+            "WARN"
         when Logger::INFO
-            'INFO'
+            "INFO"
         when Logger::DEBUG
-            'DEBUG'
+            "DEBUG"
         else
-            'UNKNOWN'
+            "UNKNOWN"
         end
     end
 
@@ -167,4 +169,5 @@ class H
             add(Logger::UNKNOWN, nil, progname, &block)
         end
     end
+  end
 end
