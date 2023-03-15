@@ -200,6 +200,26 @@ const DevToolsWindowV2: React.FC<
 		return count
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [resourcesToRender])
+
+	//--
+	// Object.entries(RequestStatus).map(([statusKey, statusValue]) => ({
+	// 	checked: requestStatus.includes(statusKey as RequestStatus)
+	// 	onChange: (e) => {
+	// 		/* e.target.checked is the status (boolean) after the click */
+	// 		e.target.checked ?
+	// 		/* add to state */
+	// 		setRequestStatus((state) => { return {...state, statusKey}}) :
+	// 		/* remove from state */
+	// 		setRequestStatus((state) => {
+	// 			return {
+	// 				...state.filter((x) => x !== statusKey)
+	// 			}
+	// 		})
+	// 		// add statusKey to requestStatus array
+	// 	},
+	// 	label: `${statusKey} (${countPerRequestStatus?.[statusValue] ?? 0})`,
+	// 	key: statusKey,
+	// }))
 	//--
 
 	if (!showDevTools || isPlayerFullscreen) {
@@ -348,6 +368,55 @@ const DevToolsWindowV2: React.FC<
 										/>
 									) : selectedDevToolsTab === Tab.Network ? (
 										<>
+											{/* <CheckboxList
+												checkboxOptions={Object.entries(
+													RequestStatus,
+												).map(
+													([
+														statusKey,
+														statusValue,
+													]) => ({
+														checked:
+															requestStatus.includes(
+																statusKey as RequestStatus,
+															),
+														onChange: (e) => {
+															e.target.checked
+																  setRequestStatus(
+																		(
+																			state,
+																		) => {
+																			return {
+																				...state,
+																				statusKey,
+																			}
+																		},
+																  )
+																  setRequestStatus(
+																		(
+																			state,
+																		) => {
+																			return {
+																				...state.filter(
+																					(
+																						x,
+																					) =>
+																						x !==
+																						statusKey,
+																				),
+																			}
+																		},
+																  )
+														},
+														label: `${statusKey} (${
+															countPerRequestStatus?.[
+																statusValue
+															] ?? 0
+														})`,
+														key: statusKey,
+													}),
+												)}
+											/> */}
 											<MenuButton
 												size="medium"
 												options={Object.entries(
