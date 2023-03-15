@@ -1480,7 +1480,7 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 		return e.Wrap(err, "error querying backend_setup flag")
 	}
 	if backendSetupCount < 1 {
-		if !util.IsDevEnv() {
+		if util.IsHubspotEnabled() {
 			project, err := r.getProject(projectID)
 			if err != nil {
 				log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)

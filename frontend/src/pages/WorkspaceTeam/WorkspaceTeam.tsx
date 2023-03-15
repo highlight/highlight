@@ -140,7 +140,7 @@ const WorkspaceTeam = () => {
 								className={styles.emailInput}
 								placeholder="Email"
 								type="email"
-								name="email"
+								name="invitedEmail"
 								autoFocus
 								value={email}
 								onChange={(e) => {
