@@ -11,9 +11,7 @@
 			"debugAdapter": "dlv-dap",
 			"mode": "remote",
 			"port": 2345,
-			"substitutePath": [
-				{ "from": "${workspaceFolder}", "to": "/build" },
-			]
+			"substitutePath": [{ "from": "${workspaceFolder}", "to": "/build" }]
 		}
 	]
 }
