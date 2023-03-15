@@ -975,28 +975,28 @@ func TestLogKeyValuesLevel(t *testing.T) {
 				Timestamp: now,
 				ProjectId: 1,
 			},
-			SeverityText: "INFO",
+			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now,
 				ProjectId: 1,
 			},
-			SeverityText: "WARN",
+			SeverityText: modelInputs.LogLevelWarn.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now,
 				ProjectId: 1,
 			},
-			SeverityText: "INFO",
+			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now,
 				ProjectId: 1,
 			},
-			LogAttributes: map[string]string{"level": "FATAL"}, // should be skipped in the output
+			LogAttributes: map[string]string{"level": modelInputs.LogLevelFatal.String()}, // should be skipped in the output
 		},
 	}
 
@@ -1005,7 +1005,7 @@ func TestLogKeyValuesLevel(t *testing.T) {
 	values, err := client.LogsKeyValues(ctx, 1, "level", now, now)
 	assert.NoError(t, err)
 
-	expected := []string{"INFO", "WARN"}
+	expected := []string{"info", "warn"}
 
 	sort.Strings(values)
 	sort.Strings(expected)
