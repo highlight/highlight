@@ -1,6 +1,6 @@
 import 'antd/dist/antd.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
-import '@highlight-run/react/dist/index.css' // new
+import '@highlight-run/react/dist/index.css'
 import '@fontsource/poppins'
 import './index.scss'
 import './style/tailwind.css'
