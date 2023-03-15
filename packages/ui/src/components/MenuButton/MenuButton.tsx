@@ -1,27 +1,33 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import * as styles from './styles.css'
 import { Menu } from '../Menu/Menu'
 import { Text } from '../Text/Text'
 import { Box } from '../Box/Box'
-import { Badge } from '../Badge/Badge'
-import { Variants } from '../Badge/styles.css'
 import { IconSolidCheveronDown } from '../icons'
+import { useMenuState } from 'ariakit'
 
 type Props = styles.Variants & {
 	options: {
 		key: string
 		render: React.ReactNode
-		variants?: Variants
 	}[]
-	onChange: (value: string) => void
+	onChange: (value: ReturnType<typeof useMenuState>['values']) => void
 	divider?: boolean
 }
 
 export const MenuButton: React.FC<Props> = ({ ...props }) => {
-	const [selected, setSelected] = React.useState<string>(props.options[0].key)
+	const menuState = useMenuState()
+	const selectedItems = Object.keys(menuState.values).filter(
+		(k) => menuState.values[k],
+	)
+
+	useEffect(() => {
+		props.onChange(menuState.values)
+	}, [menuState.values])
+
 	return (
-		<Menu>
+		<Menu state={menuState}>
 			<Menu.Button
 				size={props.size}
 				kind="secondary"
@@ -29,34 +35,25 @@ export const MenuButton: React.FC<Props> = ({ ...props }) => {
 				className={styles.variants({ size: props.size })}
 			>
 				<Box display={'flex'} alignItems={'center'}>
-					<Text case="capital">{selected}</Text>
+					<Text case="capital">
+						{selectedItems.length === 0 && 'All'}
+						{selectedItems.length === 1 && selectedItems[0]}
+						{selectedItems.length > 1 &&
+							`${selectedItems.length} filters`}
+					</Text>
 					<IconSolidCheveronDown />
 				</Box>
 			</Menu.Button>
 			<Menu.List>
 				{props.options.map((o, idx) => {
+					const isSelected = !!menuState.values[o.key]
 					const item = (
-						<Menu.Item
-							key={o.key}
-							onClick={() => {
-								setSelected(o.key)
-								props.onChange(o.key)
-							}}
-						>
-							{o.variants ? (
-								<Box display="flex" alignItems="center">
-									<Badge
-										size="medium"
-										label={o.render?.toString()}
-										{...o.variants}
-									/>
-								</Box>
-							) : (
-								<Box paddingLeft="2">
-									<Text>{o.render}</Text>
-								</Box>
-							)}
-						</Menu.Item>
+						<Menu.ItemCheckbox name={o.key} key={o.key}>
+							<input type="checkbox" checked={isSelected} />
+							<Box paddingLeft="2">
+								<Text>{o.render}</Text>
+							</Box>
+						</Menu.ItemCheckbox>
 					)
 					if (
 						props.divider &&

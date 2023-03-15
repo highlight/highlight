@@ -10,9 +10,13 @@ export default {
 
 export const Basic = () => (
 	<MenuButton
-		options={[{ key: 'Hello!', render: 'Hello!' }]}
+		options={[
+			{ key: '200', render: '200' },
+			{ key: '300', render: '300' },
+			{ key: '400', render: '400' },
+		]}
 		onChange={(v) => {
-			console.log(v)
+			alert(JSON.stringify(v))
 		}}
 	/>
 )

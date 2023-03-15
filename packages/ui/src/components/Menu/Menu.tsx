@@ -2,6 +2,8 @@ import {
 	MenuButton,
 	MenuItem,
 	MenuItemProps,
+	MenuItemCheckbox,
+	MenuItemCheckboxProps,
 	Menu as AriakitMenu,
 	MenuSeparator,
 	MenuSeparatorProps,
@@ -25,18 +27,23 @@ import * as styles from './styles.css'
 const MenuContext = React.createContext<MenuState>({} as MenuState)
 export const useMenu = () => React.useContext(MenuContext)
 
-type Props = React.PropsWithChildren<Partial<MenuState>>
+type Props = React.PropsWithChildren<Partial<MenuState>> & {
+	state?: MenuState
+}
 
 type MenuComponent = React.FC<Props> & {
 	Button: typeof Button
 	List: typeof List
 	Item: typeof Item
+	ItemCheckbox: typeof ItemCheckbox
 	Divider: typeof Divider
 	Heading: typeof Heading
 }
 
 export const Menu: MenuComponent = ({ children, ...props }: Props) => {
-	const menu = useMenuState({ gutter: 6, ...props })
+	const menu = props.state
+		? props.state
+		: useMenuState({ gutter: 6, ...props })
 
 	return <MenuContext.Provider value={menu}>{children}</MenuContext.Provider>
 }
@@ -99,6 +106,18 @@ const Item = forwardRef<HTMLDivElement, MenuItemProps>(
 	),
 )
 
+const ItemCheckbox = forwardRef<HTMLDivElement, MenuItemCheckboxProps>(
+	({ children, ...props }, ref) => (
+		<MenuItemCheckbox
+			className={styles.menuItemVariants({ selected: false })}
+			ref={ref}
+			{...props}
+		>
+			{children}
+		</MenuItemCheckbox>
+	),
+)
+
 const Divider = forwardRef<HTMLHRElement, MenuSeparatorProps>(
 	({ children, ...props }, ref) => (
 		<MenuSeparator className={styles.menuDivider} ref={ref} {...props}>
@@ -125,5 +144,6 @@ const Heading = forwardRef<HTMLHeadingElement, MenuHeadingProps>(
 Menu.Button = Button
 Menu.List = List
 Menu.Item = Item
+Menu.ItemCheckbox = ItemCheckbox
 Menu.Divider = Divider
 Menu.Heading = Heading
