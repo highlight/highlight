@@ -11,8 +11,10 @@ export const menuItem = style({
 			backgroundColor: themeVars.interactive.overlay.secondary.pressed,
 			color: themeVars.interactive.fill.secondary.content.onEnabled,
 		},
-		'&:disabled': {
-			color: themeVars.interactive.fill.secondary.content.onDisabled,
-		},
 	},
+})
+
+export const menuItemDisabled = style({
+	color: themeVars.interactive.fill.secondary.content.onDisabled,
+	pointerEvents: 'none',
 })

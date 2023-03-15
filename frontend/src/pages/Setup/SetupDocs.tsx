@@ -6,6 +6,7 @@ import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import * as React from 'react'
 import ReactMarkdown from 'react-markdown'
+import { useMatch } from 'react-router-dom'
 
 export type OptionListItem = {
 	key: string
@@ -20,11 +21,16 @@ type Props = {
 }
 
 export const SetupDocs: React.FC<Props> = ({ docs, integrated }) => {
-	const { framework, language } = useParams<{
-		framework: string
-		language: string
-	}>()
-	const guide = docs[language as keyof typeof docs][framework!] as Guide
+	const serverMatch = useMatch(
+		'/:project_id/setup/server/:language/:framework',
+	)
+	const languageMatch = useMatch('/:project_id/setup/:language/:framework')
+	const match = serverMatch ?? languageMatch
+	const { framework, language } = match!.params
+	const docsBase = serverMatch ? docs.server : docs
+	const guide = docsBase[language as keyof typeof docsBase][
+		framework!
+	] as Guide
 	console.log('::: guide', guide)
 
 	return (

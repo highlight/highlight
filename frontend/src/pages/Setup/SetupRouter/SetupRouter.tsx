@@ -1,11 +1,11 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Box, Stack, Text } from '@highlight-run/ui'
-import { useProjectId } from '@hooks/useProjectId'
 import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
 import SetupPage from '@pages/Setup/SetupPage'
 import analytics from '@util/analytics'
 import { message } from 'antd'
+import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import { Link, Route, Routes, useMatch } from 'react-router-dom'
 
@@ -46,7 +46,6 @@ type Props = {
 const SetupRouter = ({ integrated }: Props) => {
 	const { isHighlightAdmin } = useAuthContext()
 	const [docs, setDocs] = useState<Guides>()
-	const { projectId } = useProjectId()
 	const uxDocsMatch = useMatch('/setup/ux/:step')
 	console.log('::: uxDocsMatch', uxDocsMatch)
 
@@ -87,7 +86,13 @@ const SetupRouter = ({ integrated }: Props) => {
 					<Link to="server" className={styles.menuItem}>
 						<Text>Server Monitoring</Text>
 					</Link>
-					<Link to="logging" className={styles.menuItem} disabled>
+					<Link
+						to=""
+						className={clsx(
+							styles.menuItem,
+							styles.menuItemDisabled,
+						)}
+					>
 						<Text>Logging</Text>
 					</Link>
 				</Stack>
@@ -118,6 +123,15 @@ const SetupRouter = ({ integrated }: Props) => {
 				>
 					<Routes>
 						<Route
+							path="server/:language?"
+							element={
+								<SetupOptionsList
+									docs={docs}
+									integrated={integrated}
+								/>
+							}
+						/>
+						<Route
 							path=":language"
 							element={
 								<SetupOptionsList
@@ -126,7 +140,15 @@ const SetupRouter = ({ integrated }: Props) => {
 								/>
 							}
 						/>
-						{/* TODO: Create a component for displaying instrutions */}
+						<Route
+							path="/server/:language/:framework"
+							element={
+								<SetupDocs
+									docs={docs}
+									integrated={integrated}
+								/>
+							}
+						/>
 						<Route
 							path=":language/:framework"
 							element={
