@@ -299,12 +299,12 @@ enum SessionAlertType {
 }
 
 enum LogLevel {
-	TRACE
-	DEBUG
-	INFO
-	WARN
-	ERROR
-	FATAL
+	trace
+	debug
+	info
+	warn
+	error
+	fatal
 }
 
 type Project {

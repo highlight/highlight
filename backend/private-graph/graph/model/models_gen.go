@@ -848,12 +848,12 @@ func (e LogKeyType) MarshalGQL(w io.Writer) {
 type LogLevel string
 
 const (
-	LogLevelTrace LogLevel = "TRACE"
-	LogLevelDebug LogLevel = "DEBUG"
-	LogLevelInfo  LogLevel = "INFO"
-	LogLevelWarn  LogLevel = "WARN"
-	LogLevelError LogLevel = "ERROR"
-	LogLevelFatal LogLevel = "FATAL"
+	LogLevelTrace LogLevel = "trace"
+	LogLevelDebug LogLevel = "debug"
+	LogLevelInfo  LogLevel = "info"
+	LogLevelWarn  LogLevel = "warn"
+	LogLevelError LogLevel = "error"
+	LogLevelFatal LogLevel = "fatal"
 )
 
 var AllLogLevel = []LogLevel{
