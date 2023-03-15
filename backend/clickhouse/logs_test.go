@@ -130,42 +130,42 @@ func TestReadLogsHistogram(t *testing.T) {
 				Timestamp: now,
 				ProjectId: 1,
 			},
-			SeverityText: "INFO",
+			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour - time.Minute*29),
 				ProjectId: 1,
 			},
-			SeverityText: "DEBUG",
+			SeverityText: modelInputs.LogLevelDebug.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour - time.Minute*30),
 				ProjectId: 1,
 			},
-			SeverityText: "INFO",
+			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour * 2),
 				ProjectId: 1,
 			},
-			SeverityText: "ERROR",
+			SeverityText: modelInputs.LogLevelError.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour*2 - time.Minute*30),
 				ProjectId: 1,
 			},
-			SeverityText: "ERROR",
+			SeverityText: modelInputs.LogLevelError.String(),
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now.Add(-time.Hour * 3),
 				ProjectId: 1,
 			},
-			SeverityText: "ERROR",
+			SeverityText: modelInputs.LogLevelError.String(),
 		},
 	}
 
@@ -220,7 +220,7 @@ func TestReadLogsHistogram(t *testing.T) {
 
 	assert.Equal(
 		t,
-		modelInputs.LogLevel("ERROR"),
+		modelInputs.LogLevelError,
 		payload.Buckets[0].Counts[4].Level,
 		"The first bucket should have the count 4 with severity of ERROR",
 	)
@@ -233,7 +233,7 @@ func TestReadLogsHistogram(t *testing.T) {
 
 	assert.Equal(
 		t,
-		modelInputs.LogLevel("DEBUG"),
+		modelInputs.LogLevelDebug,
 		payload.Buckets[1].Counts[1].Level,
 		"The second bucket should have the count 1 with severity of DEBUG",
 	)
@@ -245,7 +245,7 @@ func TestReadLogsHistogram(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		modelInputs.LogLevel("INFO"),
+		modelInputs.LogLevelInfo,
 		payload.Buckets[1].Counts[2].Level,
 		"The second bucket should have the second count with severity of INFO",
 	)
