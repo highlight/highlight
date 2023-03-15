@@ -39,12 +39,14 @@ export const NetworkPage = ({
 	filter,
 	requestType,
 	requestStatus,
+	resourcesToRender,
 }: {
 	time: number
 	autoScroll: boolean
 	filter: string
-	requestType: RequestType
-	requestStatus: RequestStatus
+	requestType: RequestType[]
+	requestStatus: RequestStatus[]
+	resourcesToRender: NetworkResource[]
 }) => {
 	const {
 		state,
@@ -97,50 +99,7 @@ export const NetworkPage = ({
 		return 0
 	}, [parsedResources])
 
-	const resourcesToRender = useMemo(() => {
-		const current =
-			(parsedResources
-				.filter(
-					(request) =>
-						requestType === RequestType.All ||
-						requestType === request.initiatorType,
-				)
-				.filter((request) => {
-					/* No filter for RequestStatus.All */
-					if (requestStatus === RequestStatus.All) {
-						return true
-					}
-					/* Filter on RequestStatus */
-					const status =
-						request?.requestResponsePairs?.response?.status
-					if (status) {
-						const statusString = status.toString()
-						/* '1', '2', '3', '4', '5', '?' */
-						if (requestStatus[0] === statusString[0]) {
-							return true
-						}
-					}
-					return false
-				})
-				.map((event) => ({
-					...event,
-					timestamp: event.startTime + startTime,
-				})) as NetworkResource[]) ?? []
-
-		if (filter !== '') {
-			return current.filter((resource) => {
-				if (!resource.name) {
-					return false
-				}
-
-				return (resource.displayName || resource.name)
-					.toLocaleLowerCase()
-					.includes(filter.toLocaleLowerCase())
-			})
-		}
-
-		return current
-	}, [parsedResources, filter, requestType, requestStatus, startTime])
+	//--
 
 	const currentResourceIdx = useMemo(() => {
 		return findLastActiveEventIndex(
@@ -470,9 +429,15 @@ const ResourceRow = ({
 						  })
 						: MillisToMinutesAndSeconds(resource.startTime)}
 				</Text>
-				<Text size="small" weight={showingDetails ? 'bold' : 'medium'}>
-					{formatTime(resource.responseEnd - resource.startTime)}
-				</Text>
+				<Box paddingRight="28">
+					<Text
+						size="small"
+						weight={showingDetails ? 'bold' : 'medium'}
+						align="right"
+					>
+						{formatTime(resource.responseEnd - resource.startTime)}
+					</Text>
+				</Box>
 				<Box className={styles.timingBarWrapper}>
 					<Box
 						style={{

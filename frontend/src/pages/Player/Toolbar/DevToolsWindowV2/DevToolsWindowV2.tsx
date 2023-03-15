@@ -19,15 +19,14 @@ import {
 	ResizePanel,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/ResizePanel'
 import {
+	ICountPerRequestStatus,
+	ICountPerRequestType,
 	LogLevel,
 	LogLevelVariants,
+	NetworkResource,
 	RequestStatus,
 	RequestType,
 	Tab,
-} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import {
-	ICountPerRequestStatus,
-	ICountPerRequestType,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
@@ -44,16 +43,17 @@ const DevToolsWindowV2: React.FC<
 	}
 > = (props) => {
 	const { isPlayerFullscreen } = usePlayerUIContext()
-	const { time } = useReplayerContext()
+	const { time, sessionMetadata } = useReplayerContext()
+	const startTime = sessionMetadata.startTime
 	const { selectedDevToolsTab, setSelectedDevToolsTab } =
 		usePlayerConfiguration()
-	const [requestType, setRequestType] = React.useState<RequestType>(
-		RequestType.All,
-	)
-	const [requestStatus, setRequestStatus] = React.useState<RequestStatus>(
-		RequestStatus.All,
-	)
 
+	const [requestType, setRequestType] = React.useState<RequestType[]>([
+		RequestType.All,
+	]) // DEV - init value probably needs to change once multi-select enabled
+	const [requestStatus, setRequestStatus] = React.useState<RequestStatus[]>([
+		RequestStatus.All,
+	]) // DEV - init value probably needs to change once multi-select enabled
 	const [searchShown, setSearchShown] = React.useState<boolean>(false)
 	const [logLevel, setLogLevel] = React.useState<LogLevel>(LogLevel.All)
 	const form = useFormState({
@@ -73,6 +73,55 @@ const DevToolsWindowV2: React.FC<
 
 	const { resources: parsedResources } = useResourcesContext()
 
+	/* Filter on RequestType[] and RequestStatus[] */
+	const resourcesToRender = useMemo(() => {
+		const current =
+			(parsedResources
+				/* Filter on RequestType */
+				.filter(
+					(request) =>
+						requestType.includes(RequestType.All) ||
+						requestType.includes(
+							request.initiatorType as RequestType,
+						),
+				)
+				.filter((request) => {
+					/* No filter for RequestStatus.All */
+					if (requestStatus.includes(RequestStatus.All)) {
+						return true
+					}
+					/* Filter on RequestStatus */
+					const status =
+						request?.requestResponsePairs?.response?.status
+					if (status) {
+						const statusString = status.toString()
+						/* First char match: '1', '2', '3', '4', '5', '?' */
+						if (requestStatus[0] === statusString[0]) {
+							return true
+						}
+					}
+					return false
+				})
+				.map((event) => ({
+					...event,
+					timestamp: event.startTime + startTime,
+				})) as NetworkResource[]) ?? []
+
+		if (filter !== '') {
+			return current.filter((resource) => {
+				if (!resource.name) {
+					return false
+				}
+
+				return (resource.displayName || resource.name)
+					.toLocaleLowerCase()
+					.includes(filter.toLocaleLowerCase())
+			})
+		}
+
+		return current
+	}, [parsedResources, filter, requestType, requestStatus, startTime])
+
 	/* Count request per type (XHR, etc.) */
 	const countPerRequestType = useMemo(() => {
 		const count: ICountPerRequestType = {
@@ -87,7 +136,7 @@ const DevToolsWindowV2: React.FC<
 			img: 0,
 		}
 
-		parsedResources.forEach((request) => {
+		resourcesToRender.forEach((request) => {
 			const requestType =
 				request.initiatorType as keyof ICountPerRequestType
 
@@ -100,7 +149,7 @@ const DevToolsWindowV2: React.FC<
 
 		return count
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [parsedResources])
+	}, [resourcesToRender])
 
 	/* Count request per http status (200, etc.) */
 	const countPerRequestStatus = useMemo(() => {
@@ -114,38 +163,44 @@ const DevToolsWindowV2: React.FC<
 			'???': 0,
 		}
 
-		parsedResources.forEach((request) => {
-			const status: number | undefined =
-				request?.requestResponsePairs?.response?.status
+		resourcesToRender.forEach((request) => {
+			/* Only counting http status for types 'Fetch' and 'XHR' */
+			if (['fetch', 'xmlhttprequest'].includes(request.initiatorType)) {
+				const status: number | undefined =
+					request?.requestResponsePairs?.response?.status
 
-			if (status) {
-				count['All'] += 1
-				switch (true) {
-					case status >= 100 && status < 200:
-						count['1XX'] += 1
-						break
-					case status >= 200 && status < 300:
-						count['2XX'] += 1
-						break
-					case status >= 300 && status < 400:
-						count['3XX'] += 1
-						break
-					case status >= 400 && status < 500:
-						count['4XX'] += 1
-						break
-					case status >= 500 && status < 600:
-						count['5XX'] += 1
-						break
-					default:
-						count['???'] += 1
-						break
+				if (status) {
+					count['All'] += 1
+					switch (true) {
+						case status >= 100 && status < 200:
+							count['1XX'] += 1
+							break
+						case status >= 200 && status < 300:
+							count['2XX'] += 1
+							break
+						case status >= 300 && status < 400:
+							count['3XX'] += 1
+							break
+						case status >= 400 && status < 500:
+							count['4XX'] += 1
+							break
+						case status >= 500 && status < 600:
+							count['5XX'] += 1
+							break
+						default:
+							count['???'] += 1
+							break
+					}
+				} else {
+					count['???'] += 1 /* if no 'status' value */
 				}
 			}
 		})
 
 		return count
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [parsedResources])
+	}, [resourcesToRender])
+	//--
 
 	if (!showDevTools || isPlayerFullscreen) {
 		return null
@@ -199,10 +254,11 @@ const DevToolsWindowV2: React.FC<
 								page: (
 									<NetworkPage
 										autoScroll={autoScroll}
-										requestType={requestType}
-										requestStatus={requestStatus}
 										filter={filter}
 										time={time}
+										requestType={requestType}
+										requestStatus={requestStatus}
+										resourcesToRender={resourcesToRender}
 									/>
 								),
 							},
@@ -295,28 +351,6 @@ const DevToolsWindowV2: React.FC<
 											<MenuButton
 												size="medium"
 												options={Object.entries(
-													RequestType,
-												).map(
-													([
-														displayName,
-														requestName,
-													]) => ({
-														key: displayName,
-														render: `${displayName} (${countPerRequestType[requestName]})`,
-													}),
-												)}
-												onChange={(displayName) => {
-													setRequestType(
-														//-- Set type to be the requestName value --//
-														RequestType[
-															displayName as keyof typeof RequestType
-														],
-													)
-												}}
-											/>
-											<MenuButton
-												size="medium"
-												options={Object.entries(
 													RequestStatus,
 												).map(
 													([
@@ -324,16 +358,56 @@ const DevToolsWindowV2: React.FC<
 														statusValue,
 													]) => ({
 														key: statusKey,
-														render: `${statusKey} (${countPerRequestStatus[statusValue]})`,
+														render: `${statusKey} (${
+															countPerRequestStatus?.[
+																statusValue
+															] ?? 0
+														})`,
 													}),
 												)}
 												onChange={(statusKey) => {
+													// DEV - need to be able to add and remove to have mutli-select functionality
+													// Checkboxes?
 													setRequestStatus(
-														//-- Set type to be the requestName value --//
-														RequestStatus[
-															statusKey as keyof typeof RequestStatus
-														],
+														(state) => {
+															return [
+																...state,
+																RequestStatus[
+																	statusKey as keyof typeof RequestStatus
+																],
+															]
+														},
 													)
+												}}
+											/>
+											<MenuButton
+												size="medium"
+												options={Object.entries(
+													RequestType,
+												).map(
+													([
+														displayName,
+														requestName,
+													]) => ({
+														key: displayName,
+														render: `${displayName} (${
+															countPerRequestType?.[
+																requestName
+															] ?? 0
+														})`,
+													}),
+												)}
+												onChange={(displayName) => {
+													// DEV - need to be able to add and remove to have mutli-select functionality
+													// Checkboxes?
+													setRequestType((state) => {
+														return [
+															...state,
+															RequestType[
+																displayName as keyof typeof RequestType
+															],
+														]
+													})
 												}}
 											/>
 										</>

@@ -18,8 +18,8 @@ import React from 'react'
 interface Props {
 	kind: Tab
 	filter?: string
-	requestType?: RequestType
-	requestStatus?: RequestStatus
+	requestType?: RequestType[]
+	requestStatus?: RequestStatus[]
 }
 
 export const EmptyDevToolsCallout = ({
@@ -68,13 +68,13 @@ export const EmptyDevToolsCallout = ({
 					<>
 						<Text color="n11">
 							{`No ${
-								requestType !== RequestType.All
+								!requestType?.includes(RequestType.All)
 									? requestType
 									: ''
 							} network resources${
 								filter !== '' ? ` matching '${filter}'` : ''
 							}${
-								requestStatus !== RequestStatus.All
+								!requestStatus?.includes(RequestStatus.All)
 									? ' with status ' + requestStatus
 									: ''
 							}.`}
