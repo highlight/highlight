@@ -1,7 +1,6 @@
 import { SearchParamsInput } from '@graph/schemas'
 import { Complete } from '@util/types'
 
-// TODO: only keep query (remove all other attributes) after deprecating static filters
 export const EmptySessionsSearchParams: Complete<SearchParamsInput> = {
 	user_properties: [],
 	identified: false,
@@ -20,5 +19,5 @@ export const EmptySessionsSearchParams: Complete<SearchParamsInput> = {
 	environments: [],
 	app_versions: [],
 	show_live_sessions: false,
-	query: ``,
+	query: `{\"isAnd\":true,\"rules\":[[\"custom_processed\",\"is\",\"true\"]]}`,
 }
