@@ -15,3 +15,9 @@ func TestNewLogRowWithLogAttributes(t *testing.T) {
 
 	assert.Equal(t, map[string]string{"os.description": "Debian GNU/Linux 11 (bullseye)"}, logRow.LogAttributes)
 }
+
+func TestNewLogRowWithSeverityText(t *testing.T) {
+	assert.Equal(t, "warn", NewLogRow(time.Now(), 1, WithSeverityText("WARN")).SeverityText, "it downcases")
+	assert.Equal(t, "info", NewLogRow(time.Now(), 1, WithSeverityText("dir")).SeverityText, "it defaults to info when unknown")
+	assert.Equal(t, int32(4), NewLogRow(time.Now(), 1, WithSeverityText("dir")).SeverityNumber, "it handles figuring out the severity number")
+}
