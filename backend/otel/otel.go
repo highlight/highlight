@@ -249,6 +249,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						// create a backend error for this error log
 						lvl, _ := log.ParseLevel(logSev)
 						if lvl <= log.ErrorLevel {
+							// TODO(vkorolik) stacktrace?
 							isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, source, logMessage, string(tagsBytes), resourceAttributes, eventAttributes)
 							if backendError == nil {
 								data, _ := req.MarshalJSON()
