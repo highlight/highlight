@@ -64,13 +64,13 @@ func (w *Worker) IndexSessions(ctx context.Context, isUpdate bool) {
 				and r.created_at <= ?)`, opensearch.GetIndex(opensearch.IndexSessions)), start)
 	}
 
-	if err := query.Debug().Preload("Fields").
+	if err := query.Preload("Fields").
 		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
 		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
 	}
 
 	if isUpdate {
-		w.Resolver.DB.Debug().Exec(fmt.Sprintf(`
+		w.Resolver.DB.Exec(fmt.Sprintf(`
 			update retryables r
 			set deleted_at = now()
 			where r.deleted_at is null
@@ -96,7 +96,7 @@ func (w *Worker) IndexErrorGroups(ctx context.Context, isUpdate bool) {
 				and r.created_at <= ?)`, opensearch.GetIndex(opensearch.IndexErrorsCombined)), start)
 	}
 
-	rows, err := query.Debug().
+	rows, err := query.
 		Order("created_at asc").Rows()
 	if err != nil {
 		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
@@ -129,7 +129,7 @@ func (w *Worker) IndexErrorGroups(ctx context.Context, isUpdate bool) {
 	}
 
 	if isUpdate {
-		w.Resolver.DB.Debug().Exec(fmt.Sprintf(`
+		w.Resolver.DB.Exec(fmt.Sprintf(`
 			update retryables r
 			set deleted_at = now()
 			where r.deleted_at is null
@@ -156,7 +156,7 @@ func (w *Worker) IndexErrorObjects(ctx context.Context, isUpdate bool) {
 				and r.created_at <= ?)`, opensearch.GetIndex(opensearch.IndexErrorsCombined)), start)
 	}
 
-	rows, err := query.Debug().
+	rows, err := query.
 		Order("created_at asc").Rows()
 
 	if err != nil {
@@ -183,7 +183,7 @@ func (w *Worker) IndexErrorObjects(ctx context.Context, isUpdate bool) {
 	}
 
 	if isUpdate {
-		w.Resolver.DB.Debug().Exec(fmt.Sprintf(`
+		w.Resolver.DB.Exec(fmt.Sprintf(`
 			update retryables r
 			set deleted_at = now()
 			where r.deleted_at is null
@@ -216,7 +216,7 @@ func (w *Worker) IndexTable(ctx context.Context, index opensearch.Index, modelPr
 				and r.created_at <= ?)`, opensearch.GetIndex(index), table), start)
 	}
 
-	rows, err := query.Debug().Order("created_at asc").Rows()
+	rows, err := query.Order("created_at asc").Rows()
 	if err != nil {
 		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
 	}
@@ -231,7 +231,7 @@ func (w *Worker) IndexTable(ctx context.Context, index opensearch.Index, modelPr
 	}
 
 	if isUpdate {
-		w.Resolver.DB.Debug().Exec(fmt.Sprintf(`
+		w.Resolver.DB.Exec(fmt.Sprintf(`
 			update retryables r
 			set deleted_at = now()
 			where r.deleted_at is null
