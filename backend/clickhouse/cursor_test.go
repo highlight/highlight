@@ -183,12 +183,7 @@ func TestClickhouseDecode(t *testing.T) {
 
 	now := time.Now()
 	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-		},
+		NewLogRow(now, 1),
 	}
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
