@@ -6,6 +6,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -21,9 +25,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"io"
-	"net/http"
-	"strconv"
 )
 
 type Handler struct {
@@ -268,6 +269,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				Type: kafkaqueue.MarkBackendSetup,
 				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 					SessionSecureID: pointy.String(sessionID),
+					Type:            model2.MarkBackendSetupTypeError,
 				},
 			}, sessionID)
 			if err != nil {
@@ -303,6 +305,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					Type: kafkaqueue.MarkBackendSetup,
 					MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 						ProjectID: projectIDInt,
+						Type:      model2.MarkBackendSetupTypeError,
 					},
 				}, uuid.New().String())
 				if err != nil {
@@ -428,6 +431,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 				Type: kafkaqueue.MarkBackendSetup,
 				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 					ProjectID: projectIDInt,
+					Type:      model2.MarkBackendSetupTypeLogs,
 				},
 			}, uuid.New().String())
 			if err != nil {

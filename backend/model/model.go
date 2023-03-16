@@ -325,7 +325,8 @@ type Project struct {
 	BackendDomains pq.StringArray `gorm:"type:text[]"`
 
 	// BackendSetup will be true if this is the session where HighlightBackend is run for the first time
-	BackendSetup *bool `json:"backend_setup"`
+	BackendSetup *bool         `json:"backend_setup"`
+	SetupEvent   []*SetupEvent `gorm:"foreignKey:ProjectID"`
 
 	// Maximum time window considered for a rage click event
 	RageClickWindowSeconds int `gorm:"default:5"`
@@ -333,6 +334,23 @@ type Project struct {
 	RageClickRadiusPixels int `gorm:"default:8"`
 	// Minimum count of clicks in a rage click event
 	RageClickCount int `gorm:"default:5"`
+}
+
+type MarkBackendSetupType = int
+
+const (
+	// Generic is temporary and can be removed once all messages are processed.
+	MarkBackendSetupTypeGeneric MarkBackendSetupType = iota
+	MarkBackendSetupTypeSession MarkBackendSetupType = iota
+	MarkBackendSetupTypeError   MarkBackendSetupType = iota
+	MarkBackendSetupTypeLogs    MarkBackendSetupType = iota
+)
+
+type SetupEvent struct {
+	Model
+	ProjectID int                  `gorm:"uniqueIndex:idx_type_project_id"`
+	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_type_project_id"`
+	ObjectID  *int
 }
 
 type HasSecret interface {

@@ -160,7 +160,7 @@ func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customMod
 }
 
 // MarkBackendSetup is the resolver for the markBackendSetup field.
-func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string) (interface{}, error) {
+func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string, typeArg model.MarkBackendSetupType) (interface{}, error) {
 	var partitionKey string
 	if sessionSecureID != nil {
 		partitionKey = *sessionSecureID
@@ -172,6 +172,7 @@ func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *stri
 		MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 			ProjectVerboseID: projectID,
 			SessionSecureID:  sessionSecureID,
+			Type:             typeArg,
 		}}, partitionKey)
 	return nil, err
 }

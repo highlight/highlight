@@ -1461,7 +1461,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	return session, nil
 }
 
-func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *string, sessionSecureID *string, projectID int) error {
+func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *string, sessionSecureID *string, projectID int, setupType model.MarkBackendSetupType) error {
 	if projectID == 0 {
 		if projectVerboseID != nil {
 			var err error
