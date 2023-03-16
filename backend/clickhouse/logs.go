@@ -9,7 +9,6 @@ import (
 
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
-	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/huandu/go-sqlbuilder"
 	flat "github.com/nqd/flat"
@@ -27,11 +26,6 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 	}
 
 	for _, logRow := range logRows {
-		if len(logRow.UUID) == 0 {
-			logRow.UUID = uuid.New().String()
-		}
-		// TODO (et) - move this logic to a builder function (#4464)
-		logRow.SeverityText = strings.ToLower(logRow.SeverityText)
 		err = batch.AppendStruct(logRow)
 		if err != nil {
 			return err
