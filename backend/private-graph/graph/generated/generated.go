@@ -360,6 +360,7 @@ type ComplexityRoot struct {
 		Event                func(childComplexity int) int
 		ID                   func(childComplexity int) int
 		LineNumber           func(childComplexity int) int
+		LogCursor            func(childComplexity int) int
 		OS                   func(childComplexity int) int
 		Payload              func(childComplexity int) int
 		ProjectID            func(childComplexity int) int
@@ -367,9 +368,11 @@ type ComplexityRoot struct {
 		Session              func(childComplexity int) int
 		SessionID            func(childComplexity int) int
 		Source               func(childComplexity int) int
+		SpanID               func(childComplexity int) int
 		StackTrace           func(childComplexity int) int
 		StructuredStackTrace func(childComplexity int) int
 		Timestamp            func(childComplexity int) int
+		TraceID              func(childComplexity int) int
 		Type                 func(childComplexity int) int
 		URL                  func(childComplexity int) int
 	}
@@ -2814,6 +2817,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.LineNumber(childComplexity), true
 
+	case "ErrorObject.log_cursor":
+		if e.complexity.ErrorObject.LogCursor == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.LogCursor(childComplexity), true
+
 	case "ErrorObject.os":
 		if e.complexity.ErrorObject.OS == nil {
 			break
@@ -2863,6 +2873,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.Source(childComplexity), true
 
+	case "ErrorObject.span_id":
+		if e.complexity.ErrorObject.SpanID == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.SpanID(childComplexity), true
+
 	case "ErrorObject.stack_trace":
 		if e.complexity.ErrorObject.StackTrace == nil {
 			break
@@ -2883,6 +2900,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObject.Timestamp(childComplexity), true
+
+	case "ErrorObject.trace_id":
+		if e.complexity.ErrorObject.TraceID == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.TraceID(childComplexity), true
 
 	case "ErrorObject.type":
 		if e.complexity.ErrorObject.Type == nil {
@@ -8146,6 +8170,9 @@ type ErrorObject {
 	created_at: Timestamp!
 	project_id: Int!
 	session_id: Int
+	trace_id: String
+	span_id: String
+	log_cursor: String
 	error_group_id: Int!
 	error_group_secure_id: String!
 	event: [String]!
@@ -22439,6 +22466,12 @@ func (ec *executionContext) fieldContext_ErrorInstance_error_object(ctx context.
 				return ec.fieldContext_ErrorObject_project_id(ctx, field)
 			case "session_id":
 				return ec.fieldContext_ErrorObject_session_id(ctx, field)
+			case "trace_id":
+				return ec.fieldContext_ErrorObject_trace_id(ctx, field)
+			case "span_id":
+				return ec.fieldContext_ErrorObject_span_id(ctx, field)
+			case "log_cursor":
+				return ec.fieldContext_ErrorObject_log_cursor(ctx, field)
 			case "error_group_id":
 				return ec.fieldContext_ErrorObject_error_group_id(ctx, field)
 			case "error_group_secure_id":
@@ -23275,6 +23308,129 @@ func (ec *executionContext) fieldContext_ErrorObject_session_id(ctx context.Cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorObject_trace_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorObject_trace_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TraceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorObject_trace_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorObject",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorObject_span_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorObject_span_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SpanID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorObject_span_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorObject",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorObject_log_cursor(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorObject_log_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorObject_log_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorObject",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -35667,6 +35823,12 @@ func (ec *executionContext) fieldContext_Query_error_object(ctx context.Context,
 				return ec.fieldContext_ErrorObject_project_id(ctx, field)
 			case "session_id":
 				return ec.fieldContext_ErrorObject_session_id(ctx, field)
+			case "trace_id":
+				return ec.fieldContext_ErrorObject_trace_id(ctx, field)
+			case "span_id":
+				return ec.fieldContext_ErrorObject_span_id(ctx, field)
+			case "log_cursor":
+				return ec.fieldContext_ErrorObject_log_cursor(ctx, field)
 			case "error_group_id":
 				return ec.fieldContext_ErrorObject_error_group_id(ctx, field)
 			case "error_group_secure_id":
@@ -35762,6 +35924,12 @@ func (ec *executionContext) fieldContext_Query_error_object_for_log(ctx context.
 				return ec.fieldContext_ErrorObject_project_id(ctx, field)
 			case "session_id":
 				return ec.fieldContext_ErrorObject_session_id(ctx, field)
+			case "trace_id":
+				return ec.fieldContext_ErrorObject_trace_id(ctx, field)
+			case "span_id":
+				return ec.fieldContext_ErrorObject_span_id(ctx, field)
+			case "log_cursor":
+				return ec.fieldContext_ErrorObject_log_cursor(ctx, field)
 			case "error_group_id":
 				return ec.fieldContext_ErrorObject_error_group_id(ctx, field)
 			case "error_group_secure_id":
@@ -36032,6 +36200,12 @@ func (ec *executionContext) fieldContext_Query_errors(ctx context.Context, field
 				return ec.fieldContext_ErrorObject_project_id(ctx, field)
 			case "session_id":
 				return ec.fieldContext_ErrorObject_session_id(ctx, field)
+			case "trace_id":
+				return ec.fieldContext_ErrorObject_trace_id(ctx, field)
+			case "span_id":
+				return ec.fieldContext_ErrorObject_span_id(ctx, field)
+			case "log_cursor":
+				return ec.fieldContext_ErrorObject_log_cursor(ctx, field)
 			case "error_group_id":
 				return ec.fieldContext_ErrorObject_error_group_id(ctx, field)
 			case "error_group_secure_id":
@@ -48754,6 +48928,12 @@ func (ec *executionContext) fieldContext_SessionPayload_errors(ctx context.Conte
 				return ec.fieldContext_ErrorObject_project_id(ctx, field)
 			case "session_id":
 				return ec.fieldContext_ErrorObject_session_id(ctx, field)
+			case "trace_id":
+				return ec.fieldContext_ErrorObject_trace_id(ctx, field)
+			case "span_id":
+				return ec.fieldContext_ErrorObject_span_id(ctx, field)
+			case "log_cursor":
+				return ec.fieldContext_ErrorObject_log_cursor(ctx, field)
 			case "error_group_id":
 				return ec.fieldContext_ErrorObject_error_group_id(ctx, field)
 			case "error_group_secure_id":
@@ -58133,6 +58313,18 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 		case "session_id":
 
 			out.Values[i] = ec._ErrorObject_session_id(ctx, field, obj)
+
+		case "trace_id":
+
+			out.Values[i] = ec._ErrorObject_trace_id(ctx, field, obj)
+
+		case "span_id":
+
+			out.Values[i] = ec._ErrorObject_span_id(ctx, field, obj)
+
+		case "log_cursor":
+
+			out.Values[i] = ec._ErrorObject_log_cursor(ctx, field, obj)
 
 		case "error_group_id":
 

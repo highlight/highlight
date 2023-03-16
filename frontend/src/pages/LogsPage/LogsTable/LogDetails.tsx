@@ -20,7 +20,7 @@ import {
 	IconExpanded,
 } from '@pages/LogsPage/LogsTable/LogsTable'
 import {
-	DEFAULT_OPERATOR,
+	DEFAULT_LOGS_OPERATOR,
 	LogsSearchParam,
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
@@ -376,7 +376,8 @@ const LogValue: React.FC<{
 											: queryTerms.push({
 													key: queryKey,
 													value,
-													operator: DEFAULT_OPERATOR,
+													operator:
+														DEFAULT_LOGS_OPERATOR,
 													offsetStart: 0, // not actually used
 											  })
 

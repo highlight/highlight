@@ -459,6 +459,7 @@ export type ErrorObject = {
 	event: Array<Maybe<Scalars['String']>>
 	id: Scalars['ID']
 	lineNumber?: Maybe<Scalars['Int']>
+	log_cursor?: Maybe<Scalars['String']>
 	os?: Maybe<Scalars['String']>
 	payload?: Maybe<Scalars['String']>
 	project_id: Scalars['Int']
@@ -466,9 +467,11 @@ export type ErrorObject = {
 	session?: Maybe<Session>
 	session_id?: Maybe<Scalars['Int']>
 	source?: Maybe<Scalars['String']>
+	span_id?: Maybe<Scalars['String']>
 	stack_trace: Scalars['String']
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
 	timestamp: Scalars['Timestamp']
+	trace_id?: Maybe<Scalars['String']>
 	type: Scalars['String']
 	url: Scalars['String']
 }

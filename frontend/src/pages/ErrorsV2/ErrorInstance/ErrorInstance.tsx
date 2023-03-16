@@ -23,11 +23,17 @@ import {
 	Heading,
 	IconSolidExternalLink,
 	IconSolidPlay,
+	IconSolidViewList,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
+import {
+	DEFAULT_LOGS_OPERATOR,
+	LogsSearchParam,
+	stringifyLogsQuery,
+} from '@pages/LogsPage/SearchForm/utils'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -185,6 +191,15 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								kind="primary"
 								emphasis="high"
 								disabled={true}
+								iconLeft={<IconSolidViewList />}
+								trackingId="errorInstanceShowLogs"
+							>
+								Show logs
+							</Button>
+							<Button
+								kind="primary"
+								emphasis="high"
+								disabled={true}
 								iconLeft={<IconSolidPlay />}
 								trackingId="errorInstanceShowSession"
 							>
@@ -293,6 +308,58 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						>
 							<KeyboardShortcut label="Next" shortcut="]" />
 						</Tooltip>
+						<Button
+							kind="primary"
+							emphasis="high"
+							disabled={!isLoggedIn || !errorObject.session}
+							onClick={() => {
+								if (!isLoggedIn) {
+									return
+								}
+
+								const queryParams: LogsSearchParam[] = []
+								let offsetStart = 1
+								if (errorObject.source) {
+									queryParams.push({
+										key: 'host.name',
+										operator: DEFAULT_LOGS_OPERATOR,
+										value: errorObject.source,
+										offsetStart: offsetStart++,
+									})
+								}
+								if (errorObject.session?.secure_id) {
+									queryParams.push({
+										key: 'secure_session_id',
+										operator: DEFAULT_LOGS_OPERATOR,
+										value: errorObject.session?.secure_id,
+										offsetStart: offsetStart++,
+									})
+								}
+								if (errorObject.trace_id) {
+									queryParams.push({
+										key: 'trace_id',
+										operator: DEFAULT_LOGS_OPERATOR,
+										value: errorObject.trace_id,
+										offsetStart: offsetStart++,
+									})
+								}
+								const query = stringifyLogsQuery(queryParams)
+								const logCursor = errorObject.log_cursor
+								if (logCursor) {
+									navigate(
+										`/${projectId}/logs/${logCursor}?query=${query}`,
+									)
+								} else {
+									navigate(
+										`/${projectId}/logs?query=${query}`,
+									)
+								}
+							}}
+							iconLeft={<IconSolidViewList />}
+							trackingId="errorInstanceShowLogs"
+						>
+							Show logs
+						</Button>
 						<Button
 							kind="primary"
 							emphasis="high"

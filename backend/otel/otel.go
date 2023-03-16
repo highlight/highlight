@@ -6,11 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"strconv"
-	"strings"
-
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -22,11 +17,13 @@ import (
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
-	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"io"
+	"net/http"
+	"strconv"
 )
 
 type Handler struct {
@@ -123,12 +120,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		var projectID, sessionID, requestID, source string
 		resource := spans.At(i).Resource()
 		resourceAttributes := resource.Attributes().AsRaw()
-		sdkLanguage := cast(resource.Attributes().AsRaw()[string(semconv.TelemetrySDKLanguageKey)], "")
+		hostName := cast(resource.Attributes().AsRaw()[string(semconv.HostNameKey)], "")
 		serviceName := cast(resource.Attributes().AsRaw()[string(semconv.ServiceNameKey)], "")
 		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source)
 		scopeScans := spans.At(i).ScopeSpans()
 		for j := 0; j < scopeScans.Len(); j++ {
-			scope := scopeScans.At(j).Scope()
 			spans := scopeScans.At(j).Spans()
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
@@ -199,17 +195,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 								LogCursor:       logCursor,
 								Event:           excMessage,
 								Type:            excType,
-								Source: strings.Join(lo.Filter([]string{
-									sdkLanguage,
-									serviceName,
-									scope.Name(),
-								}, func(s string, i int) bool {
-									return s != ""
-								}), "-"),
-								StackTrace: stackTrace,
-								Timestamp:  ts,
-								Payload:    pointy.String(string(tagsBytes)),
-								URL:        errorUrl,
+								Source:          hostName,
+								StackTrace:      stackTrace,
+								Timestamp:       ts,
+								Payload:         pointy.String(string(tagsBytes)),
+								URL:             errorUrl,
 							}
 							if sessionID != "" {
 								if _, ok := traceErrors[sessionID]; !ok {
