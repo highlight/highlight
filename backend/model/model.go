@@ -184,6 +184,7 @@ var Models = []interface{}{
 	&EmailOptOut{},
 	&BillingEmailHistory{},
 	&Retryable{},
+	&SetupEvent{},
 }
 
 func init() {
@@ -336,21 +337,20 @@ type Project struct {
 	RageClickCount int `gorm:"default:5"`
 }
 
-type MarkBackendSetupType = int
+type MarkBackendSetupType = string
 
 const (
 	// Generic is temporary and can be removed once all messages are processed.
-	MarkBackendSetupTypeGeneric MarkBackendSetupType = iota
-	MarkBackendSetupTypeSession MarkBackendSetupType = iota
-	MarkBackendSetupTypeError   MarkBackendSetupType = iota
-	MarkBackendSetupTypeLogs    MarkBackendSetupType = iota
+	MarkBackendSetupTypeGeneric MarkBackendSetupType = "generic"
+	MarkBackendSetupTypeSession MarkBackendSetupType = "session"
+	MarkBackendSetupTypeError   MarkBackendSetupType = "error"
+	MarkBackendSetupTypeLogs    MarkBackendSetupType = "logs"
 )
 
 type SetupEvent struct {
 	Model
 	ProjectID int                  `gorm:"uniqueIndex:idx_type_project_id"`
 	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_type_project_id"`
-	ObjectID  *int
 }
 
 type HasSecret interface {

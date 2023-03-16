@@ -123,7 +123,7 @@ type Mutation {
 	markBackendSetup(
 		project_id: String
 		session_secure_id: String
-		type: Int!
+		type: String!
 	): Any
 	addSessionFeedback(
 		session_secure_id: String!

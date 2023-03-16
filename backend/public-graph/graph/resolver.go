@@ -1503,6 +1503,14 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 		if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
 			return e.Wrap(err, "error updating backend_setup flag")
 		}
+
+		setupEvent := &model.SetupEvent{
+			ProjectID: projectID,
+			Type:      setupType,
+		}
+		if err := r.DB.Model(&model.SetupEvent{}).Create(&setupEvent).Error; err != nil {
+			return e.Wrap(err, "error creating setup event")
+		}
 	}
 	return nil
 }

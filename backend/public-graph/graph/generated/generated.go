@@ -55,7 +55,7 @@ type ComplexityRoot struct {
 		AddSessionProperties func(childComplexity int, sessionSecureID string, propertiesObject interface{}) int
 		IdentifySession      func(childComplexity int, sessionSecureID string, userIdentifier string, userObject interface{}) int
 		InitializeSession    func(childComplexity int, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, clientID string, networkRecordingDomains []string) int
-		MarkBackendSetup     func(childComplexity int, projectID *string, sessionSecureID *string, typeArg int) int
+		MarkBackendSetup     func(childComplexity int, projectID *string, sessionSecureID *string, typeArg string) int
 		PushBackendPayload   func(childComplexity int, projectID *string, errors []*model.BackendErrorObjectInput) int
 		PushMetrics          func(childComplexity int, metrics []*model.MetricInput) int
 		PushPayload          func(childComplexity int, sessionSecureID string, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) int
@@ -80,7 +80,7 @@ type MutationResolver interface {
 	PushPayload(ctx context.Context, sessionSecureID string, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error)
 	PushBackendPayload(ctx context.Context, projectID *string, errors []*model.BackendErrorObjectInput) (interface{}, error)
 	PushMetrics(ctx context.Context, metrics []*model.MetricInput) (int, error)
-	MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string, typeArg int) (interface{}, error)
+	MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string, typeArg string) (interface{}, error)
 	AddSessionFeedback(ctx context.Context, sessionSecureID string, userName *string, userEmail *string, verbatim string, timestamp time.Time) (string, error)
 }
 type QueryResolver interface {
@@ -174,7 +174,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.MarkBackendSetup(childComplexity, args["project_id"].(*string), args["session_secure_id"].(*string), args["type"].(int)), true
+		return e.complexity.Mutation.MarkBackendSetup(childComplexity, args["project_id"].(*string), args["session_secure_id"].(*string), args["type"].(string)), true
 
 	case "Mutation.pushBackendPayload":
 		if e.complexity.Mutation.PushBackendPayload == nil {
@@ -452,7 +452,7 @@ type Mutation {
 	markBackendSetup(
 		project_id: String
 		session_secure_id: String
-		type: Int!
+		type: String!
 	): Any
 	addSessionFeedback(
 		session_secure_id: String!
@@ -721,10 +721,10 @@ func (ec *executionContext) field_Mutation_markBackendSetup_args(ctx context.Con
 		}
 	}
 	args["session_secure_id"] = arg1
-	var arg2 int
+	var arg2 string
 	if tmp, ok := rawArgs["type"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1368,7 +1368,7 @@ func (ec *executionContext) _Mutation_markBackendSetup(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MarkBackendSetup(rctx, fc.Args["project_id"].(*string), fc.Args["session_secure_id"].(*string), fc.Args["type"].(int))
+		return ec.resolvers.Mutation().MarkBackendSetup(rctx, fc.Args["project_id"].(*string), fc.Args["session_secure_id"].(*string), fc.Args["type"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
