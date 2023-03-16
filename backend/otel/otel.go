@@ -6,6 +6,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -21,9 +25,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"io"
-	"net/http"
-	"strconv"
 )
 
 type Handler struct {
@@ -152,17 +153,15 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 								log.WithContext(ctx).WithField("ProjectVerboseID", projectID).WithField("ExcMessage", excMessage).Errorf("otel span error got invalid project id")
 								return nil
 							}
-							logRow := clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
-								Timestamp:       ts,
-								ProjectId:       uint32(projectIDInt),
-								TraceId:         traceID,
-								SpanId:          spanID,
-								SecureSessionId: sessionID,
-							}, clickhouse.WithLogAttributes(resourceAttributes, eventAttributes))
-							logRow.SeverityText = "ERROR"
-							logRow.SeverityNumber = int32(log.ErrorLevel)
-							logRow.ServiceName = serviceName
-							logRow.Body = excMessage
+							logRow := clickhouse.NewLogRow(ts, uint32(projectIDInt),
+								clickhouse.WithBody(excMessage),
+								clickhouse.WithTraceID(traceID),
+								clickhouse.WithSpanID(spanID),
+								clickhouse.WithSecureSessionID(sessionID),
+								clickhouse.WithSeverviceName(serviceName),
+								clickhouse.WithLogAttributes(resourceAttributes, eventAttributes),
+								clickhouse.WithSeverityText("error"),
+							)
 							if projectID != "" {
 								if _, ok := projectLogs[projectID]; !ok {
 									projectLogs[projectID] = []*clickhouse.LogRow{}
@@ -228,18 +227,15 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							log.WithContext(ctx).WithField("ProjectVerboseID", projectID).WithField("LogMessage", logMessage).Errorf("otel span log got invalid project id")
 							continue
 						}
-						lvl, _ := log.ParseLevel(logSev)
-						logRow := clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
-							Timestamp:       event.Timestamp().AsTime(),
-							TraceId:         cast(requestID, span.TraceID().String()),
-							SpanId:          span.SpanID().String(),
-							ProjectId:       uint32(projectIDInt),
-							SecureSessionId: sessionID,
-						}, clickhouse.WithLogAttributes(resourceAttributes, eventAttributes))
-						logRow.SeverityText = logSev
-						logRow.SeverityNumber = int32(lvl)
-						logRow.ServiceName = serviceName
-						logRow.Body = logMessage
+						logRow := clickhouse.NewLogRow(event.Timestamp().AsTime(), uint32(projectIDInt),
+							clickhouse.WithTraceID(cast(requestID, span.TraceID().String())),
+							clickhouse.WithSpanID(span.SpanID().String()),
+							clickhouse.WithSecureSessionID(sessionID),
+							clickhouse.WithLogAttributes(resourceAttributes, eventAttributes),
+							clickhouse.WithSeverityText(logSev),
+							clickhouse.WithSeverviceName(serviceName),
+							clickhouse.WithBody(logMessage),
+						)
 						if projectID != "" {
 							if _, ok := projectLogs[projectID]; !ok {
 								projectLogs[projectID] = []*clickhouse.LogRow{}
@@ -387,17 +383,15 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					log.WithContext(ctx).WithField("ProjectID", projectID).WithField("LogMessage", logRecord.Body().AsRaw()).Errorf("otel log got invalid project id")
 					continue
 				}
-				logRow := clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
-					Timestamp:       logRecord.Timestamp().AsTime(),
-					TraceId:         logRecord.TraceID().String(),
-					SpanId:          logRecord.SpanID().String(),
-					ProjectId:       uint32(projectIDInt),
-					SecureSessionId: sessionID,
-				}, clickhouse.WithLogAttributes(resourceAttributes, logAttributes))
-				logRow.SeverityText = logRecord.SeverityText()
-				logRow.SeverityNumber = int32(logRecord.SeverityNumber())
-				logRow.ServiceName = serviceName
-				logRow.Body = logRecord.Body().Str()
+				logRow := clickhouse.NewLogRow(logRecord.Timestamp().AsTime(), uint32(projectIDInt),
+					clickhouse.WithTraceID(logRecord.TraceID().String()),
+					clickhouse.WithSpanID(logRecord.SpanID().String()),
+					clickhouse.WithSecureSessionID(sessionID),
+					clickhouse.WithLogAttributes(resourceAttributes, logAttributes),
+					clickhouse.WithSeverityText(logRecord.SeverityText()),
+					clickhouse.WithSeverviceName(serviceName),
+					clickhouse.WithBody(logRecord.Body().Str()),
+				)
 				if projectID != "" {
 					if _, ok := projectLogs[projectID]; !ok {
 						projectLogs[projectID] = []*clickhouse.LogRow{}

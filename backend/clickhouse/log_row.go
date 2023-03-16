@@ -2,45 +2,38 @@ package clickhouse
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	log "github.com/sirupsen/logrus"
 )
 
-type LogRowPrimaryAttrs struct {
+type LogRow struct {
 	Timestamp       time.Time
 	ProjectId       uint32
 	TraceId         string
 	SpanId          string
 	SecureSessionId string
+	UUID            string
+	TraceFlags      uint32
+	SeverityText    string
+	SeverityNumber  int32
+	ServiceName     string
+	Body            string
+	LogAttributes   map[string]string
 }
 
-type LogRow struct {
-	LogRowPrimaryAttrs
-	UUID           string
-	TraceFlags     uint32
-	SeverityText   string
-	SeverityNumber int32
-	ServiceName    string
-	Body           string
-	LogAttributes  map[string]string
-}
-
-func NewLogRow(attrs LogRowPrimaryAttrs, opts ...LogRowOption) *LogRow {
+func NewLogRow(timestamp time.Time, projectID uint32, opts ...LogRowOption) *LogRow {
 	logRow := &LogRow{
-		LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-			Timestamp:       attrs.Timestamp,
-			TraceId:         attrs.TraceId,
-			SpanId:          attrs.SpanId,
-			ProjectId:       attrs.ProjectId,
-			SecureSessionId: attrs.SecureSessionId,
-		},
-		UUID:           uuid.New().String(),
-		SeverityText:   "INFO",
-		SeverityNumber: int32(log.InfoLevel),
+		Timestamp: timestamp,
+		ProjectId: projectID,
+		UUID:      uuid.New().String(),
 	}
+
+	opts = append([]LogRowOption{WithSeverityText("info")}, opts...)
 
 	for _, opt := range opts {
 		opt(logRow)
@@ -55,9 +48,47 @@ func (l *LogRow) Cursor() string {
 
 type LogRowOption func(*LogRow)
 
+func WithBody(body string) LogRowOption {
+	return func(h *LogRow) {
+		h.Body = body
+	}
+}
+
+func WithSeverviceName(serviceName string) LogRowOption {
+	return func(h *LogRow) {
+		h.ServiceName = serviceName
+	}
+}
+
+func WithTraceID(traceID string) LogRowOption {
+	return func(h *LogRow) {
+		h.TraceId = traceID
+	}
+}
+
+func WithSpanID(spanID string) LogRowOption {
+	return func(h *LogRow) {
+		h.SpanId = spanID
+	}
+}
+
 func WithLogAttributes(resourceAttributes, eventAttributes map[string]any) LogRowOption {
 	return func(h *LogRow) {
 		h.LogAttributes = getAttributesMap(resourceAttributes, eventAttributes)
+	}
+}
+
+func WithSeverityText(severityText string) LogRowOption {
+	logLevel := makeLogLevel(severityText)
+	return func(h *LogRow) {
+		h.SeverityText = logLevel.String()
+		h.SeverityNumber = getSeverityNumber(logLevel)
+	}
+}
+
+func WithSecureSessionID(secureSessionID string) LogRowOption {
+	return func(h *LogRow) {
+		h.SecureSessionId = secureSessionID
 	}
 }
 
@@ -101,4 +132,77 @@ func getAttributesMap(resourceAttributes, eventAttributes map[string]any) map[st
 		}
 	}
 	return attributesMap
+}
+
+func makeLogLevel(severityText string) modelInputs.LogLevel {
+	switch strings.ToLower(severityText) {
+	case "trace":
+		{
+			return modelInputs.LogLevelTrace
+
+		}
+	case "debug":
+		{
+			return modelInputs.LogLevelDebug
+
+		}
+	case "info":
+		{
+			return modelInputs.LogLevelInfo
+
+		}
+	case "warn":
+		{
+			return modelInputs.LogLevelWarn
+		}
+	case "error":
+		{
+			return modelInputs.LogLevelError
+		}
+
+	case "fatal":
+		{
+			return modelInputs.LogLevelFatal
+		}
+
+	default:
+		return modelInputs.LogLevelInfo
+	}
+}
+
+func getSeverityNumber(logLevel modelInputs.LogLevel) int32 {
+	switch logLevel {
+	case modelInputs.LogLevelTrace:
+		{
+			return int32(log.TraceLevel)
+
+		}
+	case modelInputs.LogLevelDebug:
+		{
+			return int32(log.DebugLevel)
+
+		}
+	case modelInputs.LogLevelInfo:
+		{
+			return int32(log.InfoLevel)
+
+		}
+	case modelInputs.LogLevelWarn:
+		{
+			return int32(log.WarnLevel)
+		}
+	case modelInputs.LogLevelError:
+		{
+			return int32(log.ErrorLevel)
+		}
+
+	case modelInputs.LogLevelFatal:
+		{
+			return int32(log.FatalLevel)
+		}
+
+	default:
+		return int32(log.InfoLevel)
+	}
+
 }

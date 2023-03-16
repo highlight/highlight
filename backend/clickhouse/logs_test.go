@@ -63,12 +63,7 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 
 	now := time.Now()
 	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-		},
+		NewLogRow(now, 1),
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -101,12 +96,7 @@ func TestReadLogsTotalCount(t *testing.T) {
 
 	now := time.Now()
 	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-		},
+		NewLogRow(now, 1),
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -125,48 +115,12 @@ func TestReadLogsHistogram(t *testing.T) {
 
 	now := time.Now()
 	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			SeverityText: modelInputs.LogLevelInfo.String(),
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Hour - time.Minute*29),
-				ProjectId: 1,
-			},
-			SeverityText: modelInputs.LogLevelDebug.String(),
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Hour - time.Minute*30),
-				ProjectId: 1,
-			},
-			SeverityText: modelInputs.LogLevelInfo.String(),
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Hour * 2),
-				ProjectId: 1,
-			},
-			SeverityText: modelInputs.LogLevelError.String(),
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Hour*2 - time.Minute*30),
-				ProjectId: 1,
-			},
-			SeverityText: modelInputs.LogLevelError.String(),
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Hour * 3),
-				ProjectId: 1,
-			},
-			SeverityText: modelInputs.LogLevelError.String(),
-		},
+		NewLogRow(now, 1, WithSeverityText("info")),
+		NewLogRow(now.Add(-time.Hour-time.Minute*29), 1, WithSeverityText("debug")),
+		NewLogRow(now.Add(-time.Hour-time.Minute*30), 1, WithSeverityText("info")),
+		NewLogRow(now.Add(-time.Hour*2), 1, WithSeverityText("error")),
+		NewLogRow(now.Add(-time.Hour*2-time.Minute*30), 1, WithSeverityText("error")),
+		NewLogRow(now.Add(-time.Hour*3), 1, WithSeverityText("error")),
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -267,12 +221,7 @@ func TestReadLogsHasNextPage(t *testing.T) {
 	var rows []*LogRow
 
 	for i := 1; i <= LogsLimit; i++ { // 100 is a hardcoded limit
-		rows = append(rows, &LogRow{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-		})
+		rows = append(rows, NewLogRow(now, 1))
 	}
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
@@ -286,12 +235,7 @@ func TestReadLogsHasNextPage(t *testing.T) {
 
 	// Add more more row to have 101 rows
 	assert.NoError(t, client.BatchWriteLogRows(ctx, []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-		},
+		NewLogRow(now, 1),
 	}))
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
@@ -310,29 +254,14 @@ func TestReadLogsAfterCursor(t *testing.T) {
 	now := time.Now()
 	oneSecondAgo := now.Add(-time.Second * 1)
 
-	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			UUID: "c051edc8-3749-4e44-8f48-0ea90f3fc3d9",
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: oneSecondAgo,
-				ProjectId: 1,
-			},
-			UUID: "a0d9abd6-7cbf-47de-b211-d16bb0935e04",
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: oneSecondAgo,
-				ProjectId: 1,
-			},
-			UUID: "b6e255ee-049e-4563-bbfe-c33503cde94c",
-		},
-	}
+	logRow1 := NewLogRow(now, 1)
+	logRow1.UUID = "c051edc8-3749-4e44-8f48-0ea90f3fc3d9"
+	logRow2 := NewLogRow(now, 1)
+	logRow2.UUID = "a0d9abd6-7cbf-47de-b211-d16bb0935e04"
+	logRow3 := NewLogRow(now, 1)
+	logRow3.UUID = "b6e255ee-049e-4563-bbfe-c33503cde94c"
+
+	rows := []*LogRow{logRow1, logRow2, logRow3}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
@@ -369,29 +298,14 @@ func TestReadLogsBeforeCursor(t *testing.T) {
 	now := time.Now()
 	oneSecondAgo := now.Add(-time.Second * 1)
 
-	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			UUID: "c051edc8-3749-4e44-8f48-0ea90f3fc3d9",
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: oneSecondAgo,
-				ProjectId: 1,
-			},
-			UUID: "a0d9abd6-7cbf-47de-b211-d16bb0935e04",
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: oneSecondAgo,
-				ProjectId: 1,
-			},
-			UUID: "b6e255ee-049e-4563-bbfe-c33503cde94c",
-		},
-	}
+	logRow1 := NewLogRow(now, 1)
+	logRow1.UUID = "c051edc8-3749-4e44-8f48-0ea90f3fc3d9"
+	logRow2 := NewLogRow(now, 1)
+	logRow2.UUID = "a0d9abd6-7cbf-47de-b211-d16bb0935e04"
+	logRow3 := NewLogRow(now, 1)
+	logRow3.UUID = "b6e255ee-049e-4563-bbfe-c33503cde94c"
+
+	rows := []*LogRow{logRow1, logRow2, logRow3}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
@@ -434,12 +348,7 @@ func TestReadLogsAtCursor(t *testing.T) {
 	// 101 logs visible (50 before + 50 after + permalinked log)
 	// 1 log not visible on the next page
 	for i := 1; i <= LogsLimit+3; i++ {
-		rows = append(rows, &LogRow{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-		})
+		rows = append(rows, NewLogRow(now, 1))
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -501,27 +410,9 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 
 	now := time.Now()
 	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			Body: "body with space",
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			Body: "STRIPE_INTEGRATION_ERROR cannot report usage - customer has no subscriptions",
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			Body: "STRIPE-INTEGRATION-ERROR cannot report usage - customer has no subscriptions",
-		},
+		NewLogRow(now, 1, WithBody("body with space")),
+		NewLogRow(now, 1, WithBody("STRIPE_INTEGRATION_ERROR cannot report usage - customer has no subscriptions")),
+		NewLogRow(now, 1, WithBody("STRIPE-INTEGRATION-ERROR cannot report usage - customer has no subscriptions")),
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -576,17 +467,7 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 
 	now := time.Now()
 	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{
-				"service":      "image processor",
-				"workspace_id": "1",
-				"user_id":      "1",
-			},
-		},
+		NewLogRow(now, 1, WithLogAttributes(map[string]any{"service": "image processor", "workspace_id": "1", "user_id": 1}, map[string]any{})),
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -627,22 +508,8 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 
 	now := time.Now()
 	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			SeverityText: modelInputs.LogLevelInfo.String(),
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{
-				"level": modelInputs.LogLevelWarn.String(),
-			},
-		},
+		NewLogRow(now, 1, WithSeverityText("info")),
+		NewLogRow(time.Now(), 1, WithLogAttributes(map[string]any{"level": "info"}, map[string]any{})),
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -678,22 +545,8 @@ func TestReadLogsWithSessionIdFilter(t *testing.T) {
 
 	now := time.Now()
 	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp:       now,
-				ProjectId:       1,
-				SecureSessionId: "match",
-			},
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{
-				"secure_session_id": "no_match",
-			},
-		},
+		NewLogRow(now, 1, WithSecureSessionID("match")),
+		NewLogRow(time.Now(), 1, WithLogAttributes(map[string]any{"secure_session_id": "no_match"}, map[string]any{})),
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -729,22 +582,8 @@ func TestReadLogsWithSpanIdFilter(t *testing.T) {
 
 	now := time.Now()
 	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-				SpanId:    "match",
-			},
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{
-				"span_id": "no_match",
-			},
-		},
+		NewLogRow(now, 1, WithSpanID("match")),
+		NewLogRow(time.Now(), 1, WithLogAttributes(map[string]any{"span_id": "no_match"}, map[string]any{})),
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -780,22 +619,8 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 
 	now := time.Now()
 	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-				TraceId:   "match",
-			},
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{
-				"trace_id": "no_match",
-			},
-		},
+		NewLogRow(now, 1, WithTraceID("match")),
+		NewLogRow(time.Now(), 1, WithLogAttributes(map[string]any{"trace_id": "no_match"}, map[string]any{})),
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -830,20 +655,8 @@ func TestLogsKeys(t *testing.T) {
 	defer teardown(t)
 
 	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{"user_id": "1", "workspace_id": "2"},
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{"workspace_id": "3"},
-		},
+		NewLogRow(time.Now(), 1, WithLogAttributes(map[string]any{"user_id": "1", "workspace_id": "2"}, map[string]any{})),
+		NewLogRow(time.Now(), 1, WithLogAttributes(map[string]any{"workspace_id": "3"}, map[string]any{})),
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -890,62 +703,17 @@ func TestLogKeyValues(t *testing.T) {
 	now := time.Now()
 
 	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{"workspace_id": "2"},
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{"workspace_id": "2"},
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{"workspace_id": "3"},
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{"workspace_id": "3"},
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{"workspace_id": "3"},
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{"workspace_id": "4"},
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Second * 1), // out of range, should not be included
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{"workspace_id": "5"},
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{"unrelated_key": "value"},
-		},
+		NewLogRow(now, 1, WithLogAttributes(map[string]any{"workspace_id": "2"}, map[string]any{})),
+		NewLogRow(now, 1, WithLogAttributes(map[string]any{"workspace_id": "2"}, map[string]any{})),
+		NewLogRow(now, 1, WithLogAttributes(map[string]any{"workspace_id": "3"}, map[string]any{})),
+		NewLogRow(now, 1, WithLogAttributes(map[string]any{"workspace_id": "3"}, map[string]any{})),
+		NewLogRow(now, 1, WithLogAttributes(map[string]any{"workspace_id": "3"}, map[string]any{})),
+		NewLogRow(now, 1, WithLogAttributes(map[string]any{"workspace_id": "4"}, map[string]any{})),
+		NewLogRow(
+			now.Add(-time.Second*1), // out of range, should not be included
+			1,
+			WithLogAttributes(map[string]any{"workspace_Id": "5"}, map[string]any{})),
+		NewLogRow(now, 1, WithLogAttributes(map[string]any{"unrelated_key": "value"}, map[string]any{})),
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -970,34 +738,10 @@ func TestLogKeyValuesLevel(t *testing.T) {
 	now := time.Now()
 
 	rows := []*LogRow{
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			SeverityText: modelInputs.LogLevelInfo.String(),
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			SeverityText: modelInputs.LogLevelWarn.String(),
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			SeverityText: modelInputs.LogLevelInfo.String(),
-		},
-		{
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{"level": modelInputs.LogLevelFatal.String()}, // should be skipped in the output
-		},
+		NewLogRow(now, 1, WithSeverityText("info")),
+		NewLogRow(now, 1, WithSeverityText("warn")),
+		NewLogRow(now, 1, WithSeverityText("info")),
+		NewLogRow(now, 1, WithLogAttributes(map[string]any{"level": modelInputs.LogLevelFatal.String()}, map[string]any{})), // should be skipped in the output
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))

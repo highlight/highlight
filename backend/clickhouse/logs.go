@@ -375,42 +375,6 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 	return values, rows.Err()
 }
 
-func makeLogLevel(severityText string) modelInputs.LogLevel {
-	switch strings.ToLower(severityText) {
-	case "trace":
-		{
-			return modelInputs.LogLevelTrace
-
-		}
-	case "debug":
-		{
-			return modelInputs.LogLevelDebug
-
-		}
-	case "info":
-		{
-			return modelInputs.LogLevelInfo
-
-		}
-	case "warn":
-		{
-			return modelInputs.LogLevelWarn
-		}
-	case "error":
-		{
-			return modelInputs.LogLevelError
-		}
-
-	case "fatal":
-		{
-			return modelInputs.LogLevelFatal
-		}
-
-	default:
-		return modelInputs.LogLevelInfo
-	}
-}
-
 func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*sqlbuilder.SelectBuilder, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select(selectStr).
