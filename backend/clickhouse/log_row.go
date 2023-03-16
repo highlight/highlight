@@ -2,9 +2,11 @@ package clickhouse
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	log "github.com/sirupsen/logrus"
 )
@@ -61,6 +63,14 @@ func WithLogAttributes(resourceAttributes, eventAttributes map[string]any) LogRo
 	}
 }
 
+func WithSeverityText(severityText string) LogRowOption {
+	logLevel := makeLogLevel(severityText)
+	return func(h *LogRow) {
+		h.SeverityText = logLevel.String()
+		h.SeverityNumber = getSeverityNumber(logLevel)
+	}
+}
+
 func cast[T string | int64 | float64](v interface{}, fallback T) T {
 	c, ok := v.(T)
 	if !ok {
@@ -101,4 +111,77 @@ func getAttributesMap(resourceAttributes, eventAttributes map[string]any) map[st
 		}
 	}
 	return attributesMap
+}
+
+func makeLogLevel(severityText string) modelInputs.LogLevel {
+	switch strings.ToLower(severityText) {
+	case "trace":
+		{
+			return modelInputs.LogLevelTrace
+
+		}
+	case "debug":
+		{
+			return modelInputs.LogLevelDebug
+
+		}
+	case "info":
+		{
+			return modelInputs.LogLevelInfo
+
+		}
+	case "warn":
+		{
+			return modelInputs.LogLevelWarn
+		}
+	case "error":
+		{
+			return modelInputs.LogLevelError
+		}
+
+	case "fatal":
+		{
+			return modelInputs.LogLevelFatal
+		}
+
+	default:
+		return modelInputs.LogLevelInfo
+	}
+}
+
+func getSeverityNumber(logLevel modelInputs.LogLevel) int32 {
+	switch logLevel {
+	case modelInputs.LogLevelTrace:
+		{
+			return int32(log.TraceLevel)
+
+		}
+	case modelInputs.LogLevelDebug:
+		{
+			return int32(log.DebugLevel)
+
+		}
+	case modelInputs.LogLevelInfo:
+		{
+			return int32(log.InfoLevel)
+
+		}
+	case modelInputs.LogLevelWarn:
+		{
+			return int32(log.WarnLevel)
+		}
+	case modelInputs.LogLevelError:
+		{
+			return int32(log.ErrorLevel)
+		}
+
+	case modelInputs.LogLevelFatal:
+		{
+			return int32(log.FatalLevel)
+		}
+
+	default:
+		return int32(log.InfoLevel)
+	}
+
 }

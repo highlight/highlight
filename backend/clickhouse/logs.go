@@ -30,8 +30,6 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 		if len(logRow.UUID) == 0 {
 			logRow.UUID = uuid.New().String()
 		}
-		// TODO (et) - move this logic to a builder function (#4464)
-		logRow.SeverityText = strings.ToLower(logRow.SeverityText)
 		err = batch.AppendStruct(logRow)
 		if err != nil {
 			return err
@@ -373,42 +371,6 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 	rows.Close()
 
 	return values, rows.Err()
-}
-
-func makeLogLevel(severityText string) modelInputs.LogLevel {
-	switch strings.ToLower(severityText) {
-	case "trace":
-		{
-			return modelInputs.LogLevelTrace
-
-		}
-	case "debug":
-		{
-			return modelInputs.LogLevelDebug
-
-		}
-	case "info":
-		{
-			return modelInputs.LogLevelInfo
-
-		}
-	case "warn":
-		{
-			return modelInputs.LogLevelWarn
-		}
-	case "error":
-		{
-			return modelInputs.LogLevelError
-		}
-
-	case "fatal":
-		{
-			return modelInputs.LogLevelFatal
-		}
-
-	default:
-		return modelInputs.LogLevelInfo
-	}
 }
 
 func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*sqlbuilder.SelectBuilder, error) {
