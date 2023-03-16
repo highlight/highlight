@@ -41,23 +41,23 @@ export const PRESETS: Preset[] = [
 export const BACKGROUND_COLOR_MAPPING: {
 	[key in LogLevel]: keyof typeof backgroundColors
 } = {
-	WARN: 'contentCaution',
-	DEBUG: 'contentStrong',
-	INFO: 'contentInformative',
-	ERROR: 'contentBad',
-	FATAL: 'contentBad',
-	TRACE: 'contentStrong',
+	[LogLevel.Warn]: 'contentCaution',
+	[LogLevel.Debug]: 'contentStrong',
+	[LogLevel.Info]: 'contentInformative',
+	[LogLevel.Error]: 'contentBad',
+	[LogLevel.Fatal]: 'contentBad',
+	[LogLevel.Trace]: 'contentStrong',
 }
 
 export const TEXT_COLOR_MAPPING: {
 	[key in LogLevel]: keyof typeof textColors
 } = {
-	WARN: 'caution',
-	DEBUG: 'strong',
-	INFO: 'informative',
-	ERROR: 'bad',
-	FATAL: 'bad',
-	TRACE: 'strong',
+	[LogLevel.Warn]: 'caution',
+	[LogLevel.Debug]: 'strong',
+	[LogLevel.Info]: 'informative',
+	[LogLevel.Error]: 'bad',
+	[LogLevel.Fatal]: 'bad',
+	[LogLevel.Trace]: 'strong',
 }
 
 export type TIME_MODE = 'fixed-range' | 'permalink'
