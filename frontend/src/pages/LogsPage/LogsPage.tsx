@@ -85,8 +85,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	const handleFormSubmit = (value: string) => {
 		if (!!value) {
 			setQuery(value)
-		} else {
-			setQuery(undefined)
 		}
 	}
 

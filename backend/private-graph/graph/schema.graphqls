@@ -299,12 +299,12 @@ enum SessionAlertType {
 }
 
 enum LogLevel {
-	TRACE
-	DEBUG
-	INFO
-	WARN
-	ERROR
-	FATAL
+	trace
+	debug
+	info
+	warn
+	error
+	fatal
 }
 
 type Project {
@@ -402,6 +402,9 @@ type ErrorObject {
 	created_at: Timestamp!
 	project_id: Int!
 	session_id: Int
+	trace_id: String
+	span_id: String
+	log_cursor: String
 	error_group_id: Int!
 	error_group_secure_id: String!
 	event: [String]!

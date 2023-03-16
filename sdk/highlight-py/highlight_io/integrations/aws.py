@@ -12,11 +12,10 @@ def observe_handler(fn):
     :return: a wrapped function that will record exceptions.
     """
 
-    @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
+    def get_highlight_header(*args, **kwargs):
         highlight_header_value: str = ""
         if args and args[0] and callable(args[0].get):
             highlight_header_value = args[0].get(H.REQUEST_HEADER) or ""
-        return observe_serverless(highlight_header_value, fn)(*args, **kwargs)
+        return highlight_header_value
 
-    return wrapper
+    return observe_serverless(get_highlight_header, fn)

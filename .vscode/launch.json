@@ -8,8 +8,10 @@
 			"name": "Attach to Process",
 			"type": "go",
 			"request": "attach",
-			"mode": "local",
-			"processId": "main"
+			"debugAdapter": "dlv-dap",
+			"mode": "remote",
+			"port": 2345,
+			"substitutePath": [{ "from": "${workspaceFolder}", "to": "/build" }]
 		}
 	]
 }

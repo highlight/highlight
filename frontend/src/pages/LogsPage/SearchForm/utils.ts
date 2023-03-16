@@ -6,7 +6,7 @@ export type LogsSearchParam = {
 }
 
 const SEPARATOR = ':'
-export const DEFAULT_OPERATOR = '='
+export const DEFAULT_LOGS_OPERATOR = '='
 export const BODY_KEY = 'body'
 
 // Inspired by search-query-parser:
@@ -19,7 +19,7 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 		return [
 			{
 				key: BODY_KEY,
-				operator: DEFAULT_OPERATOR,
+				operator: DEFAULT_LOGS_OPERATOR,
 				value: query,
 				offsetStart: 0,
 			},
@@ -37,7 +37,7 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 
 			terms.push({
 				key,
-				operator: DEFAULT_OPERATOR,
+				operator: DEFAULT_LOGS_OPERATOR,
 				value: value?.replace(/^\"|\"$|^\'|\'$/g, ''), // strip quotes
 				offsetStart: match.index,
 			})
@@ -54,7 +54,7 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 
 				terms.push({
 					key: BODY_KEY,
-					operator: DEFAULT_OPERATOR,
+					operator: DEFAULT_LOGS_OPERATOR,
 					value: isEmptyString ? '' : term,
 					offsetStart: isEmptyString ? match.index + 1 : match.index,
 				})
