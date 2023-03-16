@@ -1,6 +1,14 @@
-import Collapsible from '@components/Collapsible/Collapsible'
-import { Box, Stack } from '@highlight-run/ui'
+import {
+	Box,
+	ButtonIcon,
+	Heading,
+	IconSolidCheveronDown,
+	IconSolidCheveronUp,
+	Stack,
+} from '@highlight-run/ui'
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
+import { Header } from '@pages/Setup/Header'
+import { IntegrationBar } from '@pages/Setup/IntegrationBar'
 import { Guide, Guides } from '@pages/Setup/SetupRouter/SetupRouter'
 import analytics from '@util/analytics'
 import * as React from 'react'
@@ -22,16 +30,15 @@ type Props = {
 export const SetupDocs: React.FC<Props> = ({ docs, integrated }) => {
 	const match = useMatch('/:project_id/setup/:area/:language/:framework')
 	const { area, framework, language } = match!.params
-	const guide = docs[area][language][framework] as Guide
-	console.log('::: guide', guide)
+	const guide = (docs as any)[area!][language!][framework!] as Guide
 
 	return (
 		<Box>
-			<Box backgroundColor="elevated" p="10">
-				Integrated: {integrated.toString()}
-			</Box>
+			<IntegrationBar integrated={integrated} />
 
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
+				<Header title={guide.title} subtitle={guide.subtitle} />
+
 				<Stack gap="6" p="10">
 					{guide.entries.map((entry, index) => {
 						return (
@@ -42,25 +49,20 @@ export const SetupDocs: React.FC<Props> = ({ docs, integrated }) => {
 							>
 								<ReactMarkdown>{entry.content}</ReactMarkdown>
 								{entry.code && (
-									// Wrapper prevents code blocks from expanding width of the code
-									// block beyond the containing element.
-									<div style={{ maxWidth: 650 }}>
-										<CodeBlock
-											language={entry.code.language}
-											onCopy={() => {
-												analytics.track(
-													'Copied Setup Code',
-													{
-														copied: 'script',
-														language:
-															entry.code
-																?.language,
-													},
-												)
-											}}
-											text={entry.code.text}
-										/>
-									</div>
+									<CodeBlock
+										language={entry.code.language}
+										onCopy={() => {
+											analytics.track(
+												'Copied Setup Code',
+												{
+													copied: 'script',
+													language:
+														entry.code?.language,
+												},
+											)
+										}}
+										text={entry.code.text}
+									/>
 								)}
 							</Section>
 						)
@@ -73,19 +75,37 @@ export const SetupDocs: React.FC<Props> = ({ docs, integrated }) => {
 
 type SectionProps = {
 	title: string | React.ReactNode
-	id?: string
 	defaultOpen?: boolean
 }
 
 export const Section: React.FC<React.PropsWithChildren<SectionProps>> = ({
 	children,
-	id,
 	title,
 	defaultOpen,
 }) => {
+	const [open, setOpen] = React.useState(!!defaultOpen)
+
 	return (
-		<Collapsible title={title} id={id} defaultOpen={defaultOpen}>
-			{children}
-		</Collapsible>
+		<Box border="secondary" borderRadius="8" p="16">
+			<Stack justify="space-between" direction="row" align="center">
+				<Heading level="h4">{title}</Heading>
+				<Box flexShrink={0}>
+					<ButtonIcon
+						kind="secondary"
+						emphasis="low"
+						onClick={() => setOpen(!open)}
+						icon={
+							open ? (
+								<IconSolidCheveronDown />
+							) : (
+								<IconSolidCheveronUp />
+							)
+						}
+					/>
+				</Box>
+			</Stack>
+
+			{open && <Box mt="24">{children}</Box>}
+		</Box>
 	)
 }

@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { Box, Stack, Text } from '@highlight-run/ui'
+import { Box, IconSolidBadgeCheck, Stack, Text } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
 import SetupPage from '@pages/Setup/SetupPage'
@@ -7,7 +8,7 @@ import analytics from '@util/analytics'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
-import { Navigate, NavLink, Route, Routes, useMatch } from 'react-router-dom'
+import { Navigate, NavLink, Route, Routes } from 'react-router-dom'
 
 import * as styles from './SetupRouter.css'
 
@@ -25,20 +26,22 @@ export type Guide = {
 	}>
 }
 
-export type Guides = {
-	client: {
+type DocsKey = 'client' | 'server' | 'server-logging'
+export type DocsSection = {
+	title: string
+	description: string
+} & {
+	[key: string]: {
+		title: string
+		description: string
+	} & {
 		[key: string]: Guide
 	}
-	server: {
-		[key: string]: {
-			[key: string]: Guide
-		}
-	}
-	['server-logging']: {
-		[key: string]: {
-			[key: string]: Guide
-		}
-	}
+}
+
+export type Guides = {
+	[key in DocsKey]: DocsSection
+} & {
 	other: {
 		[key: string]: Guide
 	}
@@ -48,11 +51,11 @@ type Props = {
 	integrated: boolean
 }
 
+// TODO: Pass server/logging integrated props as well.
 const SetupRouter = ({ integrated }: Props) => {
+	const { projectId } = useProjectId()
 	const { isHighlightAdmin } = useAuthContext()
 	const [docs, setDocs] = useState<Guides>()
-	const uxDocsMatch = useMatch('/setup/ux/:step')
-	console.log('::: uxDocsMatch', uxDocsMatch)
 
 	useEffect(() => analytics.page(), [])
 
@@ -90,7 +93,6 @@ const SetupRouter = ({ integrated }: Props) => {
 			<Stack justify="space-between" p="8">
 				<Stack gap="0">
 					<NavLink
-						// TODO: Now all docs will be at language/framework
 						to="client/js"
 						className={({ isActive }) =>
 							clsx(styles.menuItem, {
@@ -98,7 +100,10 @@ const SetupRouter = ({ integrated }: Props) => {
 							})
 						}
 					>
-						<Text>UX Monitoring</Text>
+						<Stack direction="row" align="center" gap="4">
+							{integrated && <IconSolidBadgeCheck />}
+							<Text>UX monitoring</Text>
+						</Stack>
 					</NavLink>
 					<NavLink
 						to="server"
@@ -108,7 +113,10 @@ const SetupRouter = ({ integrated }: Props) => {
 							})
 						}
 					>
-						<Text>Server Monitoring</Text>
+						<Stack direction="row" align="center" gap="4">
+							{integrated && <IconSolidBadgeCheck />}
+							<Text>Server monitoring</Text>
+						</Stack>
 					</NavLink>
 					<NavLink
 						to="server-logging"
@@ -127,7 +135,7 @@ const SetupRouter = ({ integrated }: Props) => {
 						<Text weight="bold">More stuff</Text>
 					</Box>
 					<NavLink
-						to="alerts"
+						to={`/${projectId}/alerts`}
 						className={({ isActive }) =>
 							clsx(styles.menuItem, {
 								[styles.menuItemActive]: isActive,
@@ -137,7 +145,7 @@ const SetupRouter = ({ integrated }: Props) => {
 						<Text>Add integrations & alerts</Text>
 					</NavLink>
 					<NavLink
-						to="team"
+						to="/w/team"
 						className={({ isActive }) =>
 							clsx(styles.menuItem, {
 								[styles.menuItemActive]: isActive,
@@ -147,7 +155,8 @@ const SetupRouter = ({ integrated }: Props) => {
 						<Text>Invite team</Text>
 					</NavLink>
 					<NavLink
-						to="community"
+						to="https://discord.gg/yxaXEAqgwN"
+						target="_blank"
 						className={({ isActive }) =>
 							clsx(styles.menuItem, {
 								[styles.menuItemActive]: isActive,
