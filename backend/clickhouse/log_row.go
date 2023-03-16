@@ -115,6 +115,12 @@ func getAttributesMap(resourceAttributes, eventAttributes map[string]any) map[st
 
 func makeLogLevel(severityText string) modelInputs.LogLevel {
 	switch strings.ToLower(severityText) {
+	case "log":
+		return modelInputs.LogLevelError
+	case "console.error":
+		return modelInputs.LogLevelError
+	case "window.onerror":
+		return modelInputs.LogLevelError
 	case "trace":
 		{
 			return modelInputs.LogLevelTrace
