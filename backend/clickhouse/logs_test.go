@@ -1045,3 +1045,11 @@ func TestExpandJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestToClickhouseTimestamp(t *testing.T) {
+	now := time.Date(
+		2009, 11, 17, 20, 34, 58, 651387237, time.UTC)
+
+	result := toClickhouseTimestamp(now)
+	assert.Equal(t, "2009-11-17 20:34:58.999000000", result)
+}

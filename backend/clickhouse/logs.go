@@ -345,8 +345,8 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 			Limit(KeyValuesLimit)
 	}
 
-	sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(endDate.Unix()))).
-		Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(startDate.Unix())))
+	sb.Where(sb.LessEqualThan("Timestamp", toClickhouseTimestamp(endDate))).
+		Where(sb.GreaterEqualThan("Timestamp", toClickhouseTimestamp(startDate)))
 
 	sql, args := sb.Build()
 
@@ -386,10 +386,10 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 		}
 
 		// See https://dba.stackexchange.com/a/206811
-		sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
+		sb.Where(sb.LessEqualThan("Timestamp", toClickhouseTimestamp(timestamp))).
 			Where(
 				sb.Or(
-					sb.LessThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix())),
+					sb.LessThan("Timestamp", toClickhouseTimestamp(timestamp)),
 					sb.LessThan("UUID", uuid),
 				),
 			).OrderBy(OrderForward)
@@ -398,7 +398,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 		if err != nil {
 			return nil, err
 		}
-		sb.Where(sb.Equal("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
+		sb.Where(sb.Equal("Timestamp", toClickhouseTimestamp(timestamp))).
 			Where(sb.Equal("UUID", uuid))
 	} else if pagination.Before != nil && len(*pagination.Before) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.Before)
@@ -406,17 +406,17 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 			return nil, err
 		}
 
-		sb.Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
+		sb.Where(sb.GreaterEqualThan("Timestamp", toClickhouseTimestamp(timestamp))).
 			Where(
 				sb.Or(
-					sb.GreaterThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix())),
+					sb.GreaterThan("Timestamp", toClickhouseTimestamp(timestamp)),
 					sb.GreaterThan("UUID", uuid),
 				),
 			).
 			OrderBy(OrderBackward)
 	} else {
-		sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.EndDate.Unix()))).
-			Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.StartDate.Unix())))
+		sb.Where(sb.LessEqualThan("Timestamp", toClickhouseTimestamp(params.DateRange.EndDate))).
+			Where(sb.GreaterEqualThan("Timestamp", toClickhouseTimestamp(params.DateRange.StartDate)))
 
 		if !pagination.CountOnly { // count queries can't be ordered because we don't include Timestamp in the select
 			sb.OrderBy(OrderForward)
@@ -568,4 +568,8 @@ func expandJSON(logAttributes map[string]string) map[string]interface{} {
 	}
 
 	return out
+}
+
+func toClickhouseTimestamp(t time.Time) string {
+	return t.UTC().Format("2006-01-02 15:04:05.999000000")
 }
