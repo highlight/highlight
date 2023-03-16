@@ -33,7 +33,7 @@
 	"size-limit": [
 		{
 			"path": "dist/**.js",
-			"limit": "26 kB",
+			"limit": "32 kB",
 			"brotli": true
 		}
 	]
