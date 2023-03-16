@@ -4,17 +4,18 @@ import { style } from '@vanilla-extract/css'
 export const menuItem = style({
 	borderRadius: 4,
 	color: themeVars.interactive.fill.secondary.content.text,
+	cursor: 'pointer',
 	padding: 14,
 	width: 325,
 	selectors: {
-		'&:hover:not(&:disabled)': {
-			backgroundColor: themeVars.interactive.overlay.secondary.pressed,
+		'&:hover': {
+			backgroundColor: themeVars.interactive.overlay.secondary.hover,
 			color: themeVars.interactive.fill.secondary.content.onEnabled,
 		},
 	},
 })
 
-export const menuItemDisabled = style({
-	color: themeVars.interactive.fill.secondary.content.onDisabled,
-	pointerEvents: 'none',
+export const menuItemActive = style({
+	backgroundColor: themeVars.interactive.overlay.secondary.pressed,
+	color: themeVars.interactive.fill.secondary.content.onEnabled,
 })

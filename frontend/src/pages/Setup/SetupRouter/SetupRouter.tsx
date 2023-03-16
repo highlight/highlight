@@ -7,7 +7,7 @@ import analytics from '@util/analytics'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
-import { Link, Route, Routes, useMatch } from 'react-router-dom'
+import { Navigate, NavLink, Route, Routes, useMatch } from 'react-router-dom'
 
 import * as styles from './SetupRouter.css'
 
@@ -34,6 +34,11 @@ export type Guides = {
 			[key: string]: Guide
 		}
 	}
+	['server-logging']: {
+		[key: string]: {
+			[key: string]: Guide
+		}
+	}
 	other: {
 		[key: string]: Guide
 	}
@@ -52,7 +57,8 @@ const SetupRouter = ({ integrated }: Props) => {
 	useEffect(() => analytics.page(), [])
 
 	useEffect(() => {
-		fetch(`https://www.highlight.io/api/quickstart`)
+		// fetch(`https://www.highlight.io/api/quickstart`)
+		fetch(`http://localhost:3001/api/quickstart`)
 			.then((res) => res.json())
 			.then((docs) => setDocs(docs))
 			.catch(() => message.error('Error loading docs...'))
@@ -76,40 +82,80 @@ const SetupRouter = ({ integrated }: Props) => {
 		)
 	}
 
+	const optionsList = <SetupOptionsList docs={docs} integrated={integrated} />
+	const docsPage = <SetupDocs docs={docs} integrated={integrated} />
+
 	return (
 		<Box display="flex" flexDirection="row" flexGrow={1}>
 			<Stack justify="space-between" p="8">
 				<Stack gap="0">
-					<Link to="client" className={styles.menuItem}>
+					<NavLink
+						// TODO: Now all docs will be at language/framework
+						to="client/js"
+						className={({ isActive }) =>
+							clsx(styles.menuItem, {
+								[styles.menuItemActive]: isActive,
+							})
+						}
+					>
 						<Text>UX Monitoring</Text>
-					</Link>
-					<Link to="server" className={styles.menuItem}>
+					</NavLink>
+					<NavLink
+						to="server"
+						className={({ isActive }) =>
+							clsx(styles.menuItem, {
+								[styles.menuItemActive]: isActive,
+							})
+						}
+					>
 						<Text>Server Monitoring</Text>
-					</Link>
-					<Link
-						to=""
-						className={clsx(
-							styles.menuItem,
-							styles.menuItemDisabled,
-						)}
+					</NavLink>
+					<NavLink
+						to="server-logging"
+						className={({ isActive }) =>
+							clsx(styles.menuItem, {
+								[styles.menuItemActive]: isActive,
+							})
+						}
 					>
 						<Text>Logging</Text>
-					</Link>
+					</NavLink>
 				</Stack>
 
 				<Stack gap="0">
 					<Box mb="10" ml="12">
 						<Text weight="bold">More stuff</Text>
 					</Box>
-					<Link to="alerts" className={styles.menuItem}>
+					<NavLink
+						to="alerts"
+						className={({ isActive }) =>
+							clsx(styles.menuItem, {
+								[styles.menuItemActive]: isActive,
+							})
+						}
+					>
 						<Text>Add integrations & alerts</Text>
-					</Link>
-					<Link to="team" className={styles.menuItem}>
+					</NavLink>
+					<NavLink
+						to="team"
+						className={({ isActive }) =>
+							clsx(styles.menuItem, {
+								[styles.menuItemActive]: isActive,
+							})
+						}
+					>
 						<Text>Invite team</Text>
-					</Link>
-					<Link to="community" className={styles.menuItem}>
+					</NavLink>
+					<NavLink
+						to="community"
+						className={({ isActive }) =>
+							clsx(styles.menuItem, {
+								[styles.menuItemActive]: isActive,
+							})
+						}
+					>
 						<Text>Join community</Text>
-					</Link>
+					</NavLink>
 				</Stack>
 			</Stack>
 			<Box flexGrow={1} display="flex" flexDirection="column">
@@ -122,41 +168,16 @@ const SetupRouter = ({ integrated }: Props) => {
 					overflowY="scroll"
 				>
 					<Routes>
+						<Route path=":area/:language?" element={optionsList} />
 						<Route
-							path="server/:language?"
-							element={
-								<SetupOptionsList
-									docs={docs}
-									integrated={integrated}
-								/>
-							}
+							path=":area/:language/:framework"
+							element={docsPage}
 						/>
+
+						{/* Redirect to default docs. */}
 						<Route
-							path=":language"
-							element={
-								<SetupOptionsList
-									docs={docs}
-									integrated={integrated}
-								/>
-							}
-						/>
-						<Route
-							path="/server/:language/:framework"
-							element={
-								<SetupDocs
-									docs={docs}
-									integrated={integrated}
-								/>
-							}
-						/>
-						<Route
-							path=":language/:framework"
-							element={
-								<SetupDocs
-									docs={docs}
-									integrated={integrated}
-								/>
-							}
+							path="*"
+							element={<Navigate to="client/js" replace={true} />}
 						/>
 					</Routes>
 				</Box>

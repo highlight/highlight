@@ -1,9 +1,8 @@
 import { LinkButton } from '@components/LinkButton'
-import { Badge, Box, Heading, Stack, Tag, Text } from '@highlight-run/ui'
+import { Badge, Box, Heading, Stack, Text } from '@highlight-run/ui'
 import { Guides } from '@pages/Setup/SetupRouter/SetupRouter'
-import { useParams } from '@util/react-router/useParams'
 import * as React from 'react'
-import { useMatch } from 'react-router-dom'
+import { Navigate, useMatch } from 'react-router-dom'
 
 export type OptionListItem = {
 	name: string
@@ -38,25 +37,29 @@ const SERVER_LANGUAGE_OPTIONS: {
 
 export const SetupOptionsList: React.FC<Props> = ({ docs, integrated }) => {
 	// TODO: See if we can handle an optional parameter.
-	const serverMatch = useMatch('/:project_id/setup/server')
-	const serverLanguageMatch = useMatch('/:project_id/setup/server/:language')
-	const languageMatch = useMatch('/:project_id/setup/:language')
-	debugger
-	const matchParams = languageMatch?.params ?? serverLanguageMatch?.params
-	const language = matchParams?.language
-	const docsBase = serverLanguageMatch ? docs.server : docs
-	const docsSection = serverMatch
-		? SERVER_LANGUAGE_OPTIONS
-		: docsBase[language as keyof typeof docsBase]
+	const areaMatch = useMatch('/:project_id/setup/:area')
+	const languageMatch = useMatch('/:project_id/setup/:area/:language')
+	const match = areaMatch ?? languageMatch
+	const { area, language } = match?.params ?? {}
+	const docsSection = language ? docs[area][language] : docs[area]
+	const optionKeys = Object.keys(docsSection || {}).filter(
+		(k) => ['title', 'subtitle'].indexOf(k) === -1,
+	)
+	console.log('::: docsSection', docsSection)
 
-	const options = Object.keys(docsSection || {}).map((option) => {
-		const optionDocs = docsSection[option]
+	// Redirect if there is only one option.
+	if (optionKeys.length === 1) {
+		return <Navigate to={optionKeys[0]} />
+	}
+
+	const options = optionKeys.map((optionKey) => {
+		const optionDocs = docsSection[optionKey]
 
 		return {
-			key: option,
+			key: optionKey,
 			name: optionDocs.title,
 			imageUrl: optionDocs.logoUrl,
-			path: option,
+			path: optionKey,
 		}
 	})
 	console.log('::: options', options)
@@ -69,15 +72,10 @@ export const SetupOptionsList: React.FC<Props> = ({ docs, integrated }) => {
 
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
 				{/* TODO: Make this dynamic */}
-
 				<Badge kind="white" label="UX monitoring" size="medium" />
-				<Heading mt="16">Select your app's framework</Heading>
+				<Heading mt="16">{docsSection.title}</Heading>
 				<Box my="24">
-					<Text>
-						This explains this step. If we don't have any content
-						for this subline we can delete it for now. I'd prefer us
-						using this space for something useful though.
-					</Text>
+					<Text>{docsSection.subtitle}</Text>
 				</Box>
 
 				{/* TODO: Break this out to a separate component, or consider taking
