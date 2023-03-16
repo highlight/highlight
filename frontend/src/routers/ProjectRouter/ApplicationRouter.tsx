@@ -60,7 +60,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 
 					<Route
 						path="setup/*"
-						element={<SetupRouter integrated={integrated} />}
+						element={<SetupRouter clientIntegrated={integrated} />}
 					/>
 
 					<Route

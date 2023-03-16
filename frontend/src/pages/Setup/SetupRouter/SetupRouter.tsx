@@ -1,10 +1,11 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { Box, IconSolidBadgeCheck, Stack, Text } from '@highlight-run/ui'
+import { Box, IconSolidCheckCircle, Stack, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
 import SetupPage from '@pages/Setup/SetupPage'
 import analytics from '@util/analytics'
+import { useBackendIntegrated } from '@util/integrated'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
@@ -48,11 +49,12 @@ export type Guides = {
 }
 
 type Props = {
-	integrated: boolean
+	clientIntegrated: boolean
 }
 
-// TODO: Pass server/logging integrated props as well.
-const SetupRouter = ({ integrated }: Props) => {
+const SetupRouter = ({ clientIntegrated }: Props) => {
+	const { integrated: serverIntegrated, loading: serverIntegratedLoading } =
+		useBackendIntegrated()
 	const { projectId } = useProjectId()
 	const { isHighlightAdmin } = useAuthContext()
 	const [docs, setDocs] = useState<Guides>()
@@ -75,18 +77,27 @@ const SetupRouter = ({ integrated }: Props) => {
 			<Routes>
 				<Route
 					path="*"
-					element={<SetupPage integrated={integrated} />}
+					element={
+						<SetupPage
+							clientIntegrated={clientIntegrated}
+							serverIntegrated={serverIntegrated}
+							serverIntegratedLoading={serverIntegratedLoading}
+						/>
+					}
 				/>
 				<Route
 					path=":step"
-					element={<SetupPage integrated={integrated} />}
+					element={
+						<SetupPage
+							clientIntegrated={clientIntegrated}
+							serverIntegrated={serverIntegrated}
+							serverIntegratedLoading={serverIntegratedLoading}
+						/>
+					}
 				/>
 			</Routes>
 		)
 	}
-
-	const optionsList = <SetupOptionsList docs={docs} integrated={integrated} />
-	const docsPage = <SetupDocs docs={docs} integrated={integrated} />
 
 	return (
 		<Box display="flex" flexDirection="row" flexGrow={1}>
@@ -101,7 +112,7 @@ const SetupRouter = ({ integrated }: Props) => {
 						}
 					>
 						<Stack direction="row" align="center" gap="4">
-							{integrated && <IconSolidBadgeCheck />}
+							{clientIntegrated && <IconSolidCheckCircle />}
 							<Text>UX monitoring</Text>
 						</Stack>
 					</NavLink>
@@ -114,7 +125,7 @@ const SetupRouter = ({ integrated }: Props) => {
 						}
 					>
 						<Stack direction="row" align="center" gap="4">
-							{integrated && <IconSolidBadgeCheck />}
+							{serverIntegrated && <IconSolidCheckCircle />}
 							<Text>Server monitoring</Text>
 						</Stack>
 					</NavLink>
@@ -172,15 +183,30 @@ const SetupRouter = ({ integrated }: Props) => {
 					m="10"
 					border="secondary"
 					borderRadius="6"
-					boxShadow="small"
+					boxShadow="medium"
 					flexGrow={1}
 					overflowY="scroll"
 				>
 					<Routes>
-						<Route path=":area/:language?" element={optionsList} />
+						<Route
+							path=":area/:language?"
+							element={
+								<SetupOptionsList
+									docs={docs}
+									clientIntegrated={clientIntegrated}
+									serverIntegrated={serverIntegrated}
+								/>
+							}
+						/>
 						<Route
 							path=":area/:language/:framework"
-							element={docsPage}
+							element={
+								<SetupDocs
+									docs={docs}
+									clientIntegrated={clientIntegrated}
+									serverIntegrated={serverIntegrated}
+								/>
+							}
 						/>
 
 						{/* Redirect to default docs. */}

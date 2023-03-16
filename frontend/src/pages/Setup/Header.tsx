@@ -1,4 +1,12 @@
-import { Badge, Box, Heading, Stack, Tag, Text } from '@highlight-run/ui'
+import {
+	Badge,
+	Box,
+	Heading,
+	IconSolidCheveronRight,
+	Stack,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
 import { upperFirst } from 'lodash'
 import React from 'react'
 import { useMatch, useNavigate } from 'react-router-dom'
@@ -14,27 +22,28 @@ export const Header: React.FC<Props> = ({ title, subtitle }) => {
 
 	return (
 		<>
-			<Stack gap="6" direction="row" align="center">
-				{breadcrumbs.map((breadcrumb, index) =>
-					index < breadcrumbs.length - 1 ? (
-						<Tag
-							key={index}
-							kind="secondary"
-							emphasis="low"
-							shape="basic"
-							onClick={() => navigate(breadcrumb.path)}
-						>
-							{breadcrumb.label}
-						</Tag>
-					) : (
-						<Badge
-							key={index}
-							kind="white"
-							label={breadcrumb.label}
-							size="medium"
-						/>
-					),
-				)}
+			<Stack direction="row" align="center" gap="4">
+				{breadcrumbs.map((breadcrumb, index) => (
+					<Stack gap="6" direction="row" align="center" key={index}>
+						{index > 0 && <IconSolidCheveronRight />}
+						{index < breadcrumbs.length - 1 ? (
+							<Tag
+								kind="secondary"
+								emphasis="low"
+								shape="basic"
+								onClick={() => navigate(breadcrumb.path)}
+							>
+								{breadcrumb.label}
+							</Tag>
+						) : (
+							<Badge
+								kind="white"
+								label={breadcrumb.label}
+								size="medium"
+							/>
+						)}
+					</Stack>
+				))}
 			</Stack>
 			<Heading mt="16">{title}</Heading>
 			<Box my="24">

@@ -23,14 +23,22 @@ export type OptionListItem = {
 }
 
 type Props = {
-	integrated: boolean
+	clientIntegrated: boolean
+	serverIntegrated: boolean
 	docs: Guides
 }
 
-export const SetupDocs: React.FC<Props> = ({ docs, integrated }) => {
+export const SetupDocs: React.FC<Props> = ({
+	docs,
+	clientIntegrated,
+	serverIntegrated,
+}) => {
 	const match = useMatch('/:project_id/setup/:area/:language/:framework')
 	const { area, framework, language } = match!.params
 	const guide = (docs as any)[area!][language!][framework!] as Guide
+	const integrated =
+		(area === 'client' && clientIntegrated) ||
+		(area === 'server' && serverIntegrated)
 
 	return (
 		<Box>
@@ -39,7 +47,7 @@ export const SetupDocs: React.FC<Props> = ({ docs, integrated }) => {
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
 				<Header title={guide.title} subtitle={guide.subtitle} />
 
-				<Stack gap="6" p="10">
+				<Stack gap="8" py="10">
 					{guide.entries.map((entry, index) => {
 						return (
 							<Section
@@ -86,7 +94,7 @@ export const Section: React.FC<React.PropsWithChildren<SectionProps>> = ({
 	const [open, setOpen] = React.useState(!!defaultOpen)
 
 	return (
-		<Box border="secondary" borderRadius="8" p="16">
+		<Box border="secondary" borderRadius="8" p="16" boxShadow="small">
 			<Stack justify="space-between" direction="row" align="center">
 				<Heading level="h4">{title}</Heading>
 				<Box flexShrink={0}>

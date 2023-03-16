@@ -7,7 +7,6 @@ import { useProjectId } from '@hooks/useProjectId'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
-import { useBackendIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message, Spin } from 'antd'
 import clsx from 'clsx'
@@ -64,7 +63,15 @@ type Guides = {
 	}
 }
 
-const SetupPage = ({ integrated }: { integrated: boolean }) => {
+const SetupPage = ({
+	clientIntegrated,
+	serverIntegrated,
+	serverIntegratedLoading,
+}: {
+	clientIntegrated: boolean
+	serverIntegrated: boolean
+	serverIntegratedLoading: boolean
+}) => {
 	const navigate = useNavigate()
 	const { project_id, step = 'client' } = useParams<{
 		project_id: string
@@ -78,10 +85,6 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 	const { projectId } = useProjectId()
 	const [docs, setDocs] = useState<Guides>()
 	const [steps, setSteps] = useState<SetupStep[]>([])
-	const {
-		integrated: isBackendIntegrated,
-		loading: isBackendIntegratedLoading,
-	} = useBackendIntegrated()
 	const { isSlackConnectedToWorkspace, loading: isSlackConnectedLoading } =
 		useSlackBot()
 	const { isLinearIntegratedWithProject, loading: isLinearConnectedLoading } =
@@ -95,8 +98,8 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 			action: () => {
 				navigate(`/${project_id}/setup/client`)
 			},
-			loading: !integrated && integrated !== false,
-			completed: integrated,
+			loading: !clientIntegrated && clientIntegrated !== false,
+			completed: clientIntegrated,
 		})
 		STEPS.push({
 			displayName: 'Backend SDK',
@@ -104,8 +107,8 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 			action: () => {
 				navigate(`/${project_id}/setup/backend`)
 			},
-			loading: isBackendIntegratedLoading,
-			completed: isBackendIntegrated,
+			loading: serverIntegratedLoading,
+			completed: serverIntegrated,
 		})
 		STEPS.push({
 			displayName: 'Features/Integrations',
@@ -119,9 +122,9 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 		})
 		setSteps(STEPS)
 	}, [
-		integrated,
-		isBackendIntegrated,
-		isBackendIntegratedLoading,
+		clientIntegrated,
+		serverIntegrated,
+		serverIntegratedLoading,
 		isLinearConnectedLoading,
 		isLinearIntegratedWithProject,
 		isSlackConnectedLoading,
@@ -224,14 +227,14 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 								{step === 'client' && (
 									<ClientSetup
 										project_id={projectId!}
-										integrated={integrated}
+										integrated={clientIntegrated}
 										docs={docs.client}
 									/>
 								)}
 								{step === 'backend' && (
 									<BackendSetup
 										projectData={data}
-										integrated={isBackendIntegrated}
+										integrated={serverIntegrated}
 										docs={docs.server}
 									/>
 								)}
@@ -239,7 +242,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 									<MoreSetup
 										project_id={projectId!}
 										projectData={data}
-										integrated={integrated}
+										integrated={clientIntegrated}
 										// docs={docs.other}
 									/>
 								)}

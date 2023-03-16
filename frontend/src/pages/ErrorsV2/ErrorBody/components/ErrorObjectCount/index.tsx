@@ -56,7 +56,7 @@ const ErrorObjectCount = ({ errorGroup }: Props) => {
 						<Box
 							borderRadius="3"
 							p="4"
-							boxShadow="small"
+							boxShadow="medium"
 							style={{
 								margin: -1,
 							}}

@@ -14,20 +14,28 @@ export type OptionListItem = {
 
 type Props = {
 	docs: Guides
-	integrated: boolean
+	clientIntegrated: boolean
+	serverIntegrated: boolean
 }
 
-export const SetupOptionsList: React.FC<Props> = ({ docs, integrated }) => {
+export const SetupOptionsList: React.FC<Props> = ({
+	docs,
+	clientIntegrated,
+	serverIntegrated,
+}) => {
 	// TODO: See if we can handle an optional parameter.
 	const clientMatch = useMatch('/:project_id/setup/client')
 	const areaMatch = useMatch('/:project_id/setup/:area')
 	const languageMatch = useMatch('/:project_id/setup/:area/:language')
 	const match = areaMatch || languageMatch
-	const { project_id, area, language } = (match?.params as any) ?? {}
+	const { area, language } = (match?.params as any) ?? {}
 	const docsSection = language
 		? (docs[area as keyof typeof docs][language] as any)
 		: (docs[area as keyof typeof docs] as any)
 	const optionKeys = getOptionKeys(docsSection)
+	const integrated =
+		(area === 'client' && clientIntegrated) ||
+		(area === 'server' && serverIntegrated)
 
 	// Redirect if there is only one option. Also has a temporary redirect for
 	// clientMatch until the extra docs keys are removed from the top level of the
