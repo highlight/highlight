@@ -15,7 +15,7 @@
 
 # [highlight.io](https://highlight.io): The open-source, fullstack monitoring platform.
 
-highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a [cohesive](#cohesion), [modern](#for-todays-developer) and [fully-featured](#features) monitoring solution, something we wished WE had. And it's all open source :)
+highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a [cohesive](#we-build-a-cohesive-product), [modern](#we-build-for-todays-developer) and [fully-featured](#features) monitoring solution, something we wished WE had. And it's all open source :)
 
 At a high level, highlight.io's feature set is:
 - Session Replay (read more [here](#session-replay-understand-why-bugs-happen))
