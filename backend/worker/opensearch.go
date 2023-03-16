@@ -59,7 +59,8 @@ func (w *Worker) IndexSessions(ctx context.Context, isUpdate bool) {
 				where r.deleted_at is null
 				and r.type = 'OPENSEARCH_ERROR'
 				and r.payload_type = '%s'
-				and r.payload_id = cast(sessions.id as text)
+				and r.payload_id ~ '^[0-9]+$'
+				and cast(r.payload_id as bigint) = sessions.id
 				and r.created_at <= ?)`, opensearch.GetIndex(opensearch.IndexSessions)), start)
 	}
 
@@ -90,7 +91,8 @@ func (w *Worker) IndexErrorGroups(ctx context.Context, isUpdate bool) {
 				where r.deleted_at is null
 				and r.type = 'OPENSEARCH_ERROR'
 				and r.payload_type = '%s'
-				and r.payload_id = cast(error_groups.id as text)
+				and r.payload_id ~ '^[0-9]+$'
+				and cast(r.payload_id as bigint) = error_groups.id
 				and r.created_at <= ?)`, opensearch.GetIndex(opensearch.IndexErrorsCombined)), start)
 	}
 
@@ -149,7 +151,8 @@ func (w *Worker) IndexErrorObjects(ctx context.Context, isUpdate bool) {
 				where r.deleted_at is null
 				and r.type = 'OPENSEARCH_ERROR'
 				and r.payload_type = '%s'
-				and r.payload_id = concat('child_', cast(error_objects.id as text))
+				and r.payload_id ~ '^child_[0-9]+$'
+				and cast(ltrim(r.payload_id, 'child_') as bigint) = error_objects.id
 				and r.created_at <= ?)`, opensearch.GetIndex(opensearch.IndexErrorsCombined)), start)
 	}
 
@@ -208,7 +211,8 @@ func (w *Worker) IndexTable(ctx context.Context, index opensearch.Index, modelPr
 				where r.deleted_at is null
 				and r.type = 'OPENSEARCH_ERROR'
 				and r.payload_type = '%s'
-				and r.payload_id = cast(%s.id as text)
+				and r.payload_id ~ '^[0-9]+$'
+				and cast(r.payload_id as bigint) = %s.id
 				and r.created_at <= ?)`, opensearch.GetIndex(index), table), start)
 	}
 
