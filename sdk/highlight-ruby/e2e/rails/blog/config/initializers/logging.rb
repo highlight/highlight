@@ -1,1 +1,4 @@
-Rails.logger = H::LoggerWrapper.new(Logger.new(STDOUT))
+require "highlight"
+
+Highlight::H.new("qe9y4yg1")
+Rails.logger = Highlight::Logger.new(STDOUT)
