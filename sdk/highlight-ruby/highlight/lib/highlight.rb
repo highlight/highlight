@@ -22,13 +22,11 @@ module Highlight
             return @@instance
         end
 
-        def initialize(project_id, integrations=[], record_logs=true, otlp_endpoint=OTLP_HTTP)
+        def initialize(project_id, otlp_endpoint=OTLP_HTTP)
             @@instance = self
 
             @project_id = project_id
-            @integrations = integrations || []
-            @record_logs = record_logs
-            @otlp_endpoint = otlp_endpoint || H.OTLP_HTTP
+            @otlp_endpoint = otlp_endpoint
 
             OpenTelemetry::SDK.configure do |c|
                 c.service_name = "highlight-sdk"
@@ -94,11 +92,11 @@ module Highlight
             end
         end
 
-        HighlightHeaders = Struct.new("HighlightHeaders", :secureSessionId, :requestId)
+        HighlightHeaders = Struct.new("HighlightHeaders", :session_id, :request_id)
         def self.parse_headers(headers)
             if headers && headers[HIGHLIGHT_REQUEST_HEADER]
-                secureSessionId, requestId = headers[HIGHLIGHT_REQUEST_HEADER].split("/")
-                return HighlightHeaders.new(secureSessionId, requestId)
+                session_id, request_id = headers[HIGHLIGHT_REQUEST_HEADER].split("/")
+                return HighlightHeaders.new(session_id, request_id)
             end
             return HighlightHeaders.new(nil, nil)
         end
@@ -150,9 +148,9 @@ module Highlight
 
     module Integrations
         module Rails
-            def self.with_highlight_context(request)
+            def with_highlight_context
                 highlight_headers = H.parse_headers(request.headers)
-                H.instance.trace(highlight_headers.secureSessionId, highlight_headers.requestId) { yield }
+                H.instance.trace(highlight_headers.session_id, highlight_headers.request_id) { yield }
             end
         end
     end
