@@ -1,5 +1,6 @@
 import { Button } from '@components/Button'
-import CheckboxList from '@components/CheckboxList/CheckboxList'
+import { Listbox } from '@headlessui/react'
+// import CheckboxList from '@components/CheckboxList/CheckboxList'
 import {
 	Box,
 	Form,
@@ -202,27 +203,6 @@ const DevToolsWindowV2: React.FC<
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [resourcesToRender])
 
-	//--
-	// Object.entries(RequestStatus).map(([statusKey, statusValue]) => ({
-	// 	checked: requestStatus.includes(statusKey as RequestStatus)
-	// 	onChange: (e) => {
-	// 		/* e.target.checked is the status (boolean) after the click */
-	// 		e.target.checked ?
-	// 		/* add to state */
-	// 		setRequestStatus((state) => { return {...state, statusKey}}) :
-	// 		/* remove from state */
-	// 		setRequestStatus((state) => {
-	// 			return {
-	// 				...state.filter((x) => x !== statusKey)
-	// 			}
-	// 		})
-	// 		// add statusKey to requestStatus array
-	// 	},
-	// 	label: `${statusKey} (${countPerRequestStatus?.[statusValue] ?? 0})`,
-	// 	key: statusKey,
-	// }))
-	//--
-
 	if (!showDevTools || isPlayerFullscreen) {
 		return null
 	}
@@ -369,7 +349,8 @@ const DevToolsWindowV2: React.FC<
 										/>
 									) : selectedDevToolsTab === Tab.Network ? (
 										<>
-											<CheckboxList
+											<Listbox>foo</Listbox>
+											{/* <CheckboxList
 												checkboxOptions={Object.entries(
 													RequestStatus,
 												).map(
@@ -383,10 +364,8 @@ const DevToolsWindowV2: React.FC<
 															),
 														onChange: (e) => {
 															if (
-																e.target
-																	.checked /** Value after click */
+																e.target.checked
 															) {
-																/** Add to state array */
 																setRequestStatus(
 																	(state) => [
 																		...state,
@@ -394,7 +373,6 @@ const DevToolsWindowV2: React.FC<
 																	],
 																)
 															} else {
-																/** Remove from state array */
 																setRequestStatus(
 																	(state) =>
 																		state.filter(
@@ -415,6 +393,12 @@ const DevToolsWindowV2: React.FC<
 														key: statusKey,
 													}),
 												)}
+											/> */}
+											<HUI_MultiSelectCancel
+												options={people}
+												state={person} // DEV - change to request type (e.g. "XHR")
+												setState={setPerson}
+												mode="light"
 											/>
 											<MenuButton
 												size="medium"
