@@ -110,9 +110,8 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
-	span.Finish(tracer.WithError(err))
-
 	if err != nil {
+		span.Finish(tracer.WithError(err))
 		return nil, err
 	}
 
@@ -148,6 +147,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	}
 	rows.Close()
 
+	span.Finish(tracer.WithError(rows.Err()))
 	return getLogsConnection(edges, pagination), rows.Err()
 }
 
