@@ -1,3 +1,9 @@
+import { Button } from '@components/Button'
+import { LinkButton } from '@components/LinkButton'
+import {
+	GetClientIntegrationDataQuery,
+	GetServerIntegrationDataQuery,
+} from '@graph/operations'
 import {
 	Box,
 	ButtonIcon,
@@ -25,31 +31,65 @@ export type OptionListItem = {
 }
 
 type Props = {
-	clientIntegrated: boolean
-	serverIntegrated: boolean
+	clientIntegrationData: GetClientIntegrationDataQuery['clientIntegrationData']
+	serverIntegrationData: GetServerIntegrationDataQuery['serverIntegrationData']
 	docs: Guides
 }
 
 export const SetupDocs: React.FC<Props> = ({
 	docs,
-	clientIntegrated,
-	serverIntegrated,
+	clientIntegrationData,
+	serverIntegrationData,
 }) => {
 	const match = useMatch('/:project_id/setup/:area/:language/:framework')
-	const { area, framework, language } = match!.params
+	const { project_id, area, framework, language } = match!.params
 	const guide = (docs as any)[area!][language!][framework!] as Guide
-	const integrated =
-		(area === 'client' && clientIntegrated) ||
-		(area === 'server' && serverIntegrated)
+	const integrationDataPath = buildIntegrationDataPath(
+		project_id!,
+		area!,
+		clientIntegrationData,
+		serverIntegrationData,
+	)
 
 	return (
 		<Box>
-			<IntegrationBar integrated={integrated} />
+			<IntegrationBar integrated={!!integrationDataPath} />
 
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
 				<Header title={guide.title} subtitle={guide.subtitle} />
 
 				<Stack gap="8" py="10">
+					<Box
+						backgroundColor="informative"
+						p="16"
+						borderRadius="6"
+						display="flex"
+						alignItems="center"
+						justifyContent="space-between"
+						flexDirection="row"
+					>
+						<Heading level="h4">
+							View your first{' '}
+							{area === 'client' ? 'session' : 'error'}
+						</Heading>
+
+						{integrationDataPath ? (
+							<LinkButton
+								to={integrationDataPath}
+								trackingId={`integration-complete-cta-${area}`}
+							>
+								Open
+							</LinkButton>
+						) : (
+							<Button
+								trackingId="integration-complete-cta"
+								disabled
+							>
+								Waiting for installation
+							</Button>
+						)}
+					</Box>
+
 					{guide.entries.map((entry, index) => {
 						return (
 							<Section
@@ -119,4 +159,17 @@ export const Section: React.FC<React.PropsWithChildren<SectionProps>> = ({
 			{open && <Box mt="24">{children}</Box>}
 		</Box>
 	)
+}
+
+const buildIntegrationDataPath = (
+	projectId: string,
+	area: string,
+	clientIntegrationData?: GetClientIntegrationDataQuery['clientIntegrationData'],
+	serverIntegrationData?: GetServerIntegrationDataQuery['serverIntegrationData'],
+) => {
+	if (area === 'client' && clientIntegrationData) {
+		return `/${projectId}/sessions/${clientIntegrationData.secure_id}`
+	} else if (area === 'server' && serverIntegrationData) {
+		return `/${projectId}/error_groups/${serverIntegrationData.secure_id}`
+	}
 }

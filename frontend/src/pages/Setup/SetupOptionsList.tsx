@@ -1,4 +1,8 @@
 import { LinkButton } from '@components/LinkButton'
+import {
+	GetClientIntegrationDataQuery,
+	GetServerIntegrationDataQuery,
+} from '@graph/operations'
 import { Box, Stack, Text } from '@highlight-run/ui'
 import { Header } from '@pages/Setup/Header'
 import { IntegrationBar } from '@pages/Setup/IntegrationBar'
@@ -14,14 +18,14 @@ export type OptionListItem = {
 
 type Props = {
 	docs: Guides
-	clientIntegrated: boolean
-	serverIntegrated: boolean
+	clientIntegrationData: GetClientIntegrationDataQuery
+	serverIntegrationData: GetServerIntegrationDataQuery
 }
 
 export const SetupOptionsList: React.FC<Props> = ({
 	docs,
-	clientIntegrated,
-	serverIntegrated,
+	clientIntegrationData,
+	serverIntegrationData,
 }) => {
 	// TODO: See if we can handle an optional parameter.
 	const clientMatch = useMatch('/:project_id/setup/client')
@@ -34,8 +38,8 @@ export const SetupOptionsList: React.FC<Props> = ({
 		: (docs[area as keyof typeof docs] as any)
 	const optionKeys = getOptionKeys(docsSection)
 	const integrated =
-		(area === 'client' && clientIntegrated) ||
-		(area === 'server' && serverIntegrated)
+		(area === 'client' && !!clientIntegrationData) ||
+		(area === 'server' && !!serverIntegrationData)
 
 	// Redirect if there is only one option. Also has a temporary redirect for
 	// clientMatch until the extra docs keys are removed from the top level of the

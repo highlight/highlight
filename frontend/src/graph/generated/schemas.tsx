@@ -1427,6 +1427,7 @@ export type Query = {
 	clickup_folders: Array<ClickUpFolder>
 	clickup_project_mappings: Array<ClickUpProjectMapping>
 	clickup_teams: Array<ClickUpTeam>
+	clientIntegrationData?: Maybe<Session>
 	customer_portal_url: Scalars['String']
 	dailyErrorFrequency: Array<Scalars['Int64']>
 	dailyErrorsCount: Array<Maybe<DailyErrorCount>>
@@ -1476,6 +1477,7 @@ export type Query = {
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	logs: LogsConnection
+	logsIntegrationData?: Maybe<LogsConnection>
 	logs_histogram: LogsHistogram
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<LogKey>
@@ -1503,6 +1505,7 @@ export type Query = {
 	referrers: Array<Maybe<ReferrerTablePayload>>
 	resources?: Maybe<Array<Maybe<Scalars['Any']>>>
 	segments?: Maybe<Array<Maybe<Segment>>>
+	serverIntegrationData?: Maybe<ErrorGroup>
 	session?: Maybe<Session>
 	session_comment_tags_for_project: Array<SessionCommentTag>
 	session_comments: Array<Maybe<SessionComment>>
@@ -1588,6 +1591,10 @@ export type QueryClickup_Project_MappingsArgs = {
 
 export type QueryClickup_TeamsArgs = {
 	workspace_id: Scalars['ID']
+}
+
+export type QueryClientIntegrationDataArgs = {
+	project_id: Scalars['ID']
 }
 
 export type QueryCustomer_Portal_UrlArgs = {
@@ -1817,6 +1824,10 @@ export type QueryLogsArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryLogsIntegrationDataArgs = {
+	project_id: Scalars['ID']
+}
+
 export type QueryLogs_HistogramArgs = {
 	params: LogsParamsInput
 	project_id: Scalars['ID']
@@ -1938,6 +1949,10 @@ export type QueryResourcesArgs = {
 }
 
 export type QuerySegmentsArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryServerIntegrationDataArgs = {
 	project_id: Scalars['ID']
 }
 

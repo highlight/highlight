@@ -1376,6 +1376,20 @@ query IsBackendIntegrated($project_id: ID!) {
 	isBackendIntegrated(project_id: $project_id)
 }
 
+query GetClientIntegrationData($project_id: ID!) {
+	clientIntegrationData(project_id: $project_id) {
+		id
+		secure_id
+	}
+}
+
+query GetServerIntegrationData($project_id: ID!) {
+	serverIntegrationData(project_id: $project_id) {
+		id
+		secure_id
+	}
+}
+
 query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
 	unprocessedSessionsCount(project_id: $project_id)
 	liveUsersCount(project_id: $project_id)

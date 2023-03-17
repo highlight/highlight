@@ -5,7 +5,7 @@ import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
 import SetupPage from '@pages/Setup/SetupPage'
 import analytics from '@util/analytics'
-import { useBackendIntegrated } from '@util/integrated'
+import { useClientIntegrated, useServerIntegrated } from '@util/integrated'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
@@ -48,13 +48,11 @@ export type Guides = {
 	}
 }
 
-type Props = {
-	clientIntegrated: boolean
-}
-
-const SetupRouter = ({ clientIntegrated }: Props) => {
-	const { integrated: serverIntegrated, loading: serverIntegratedLoading } =
-		useBackendIntegrated()
+const SetupRouter = () => {
+	const { data: serverIntegrationData, loading: serverIntegratedLoading } =
+		useServerIntegrated()
+	const { data: clientIntegrationData, loading: clientIntegratedLoading } =
+		useClientIntegrated()
 	const { projectId } = useProjectId()
 	const { isHighlightAdmin } = useAuthContext()
 	const [docs, setDocs] = useState<Guides>()
@@ -79,8 +77,8 @@ const SetupRouter = ({ clientIntegrated }: Props) => {
 					path="*"
 					element={
 						<SetupPage
-							clientIntegrated={clientIntegrated}
-							serverIntegrated={serverIntegrated}
+							clientIntegrationData={clientIntegrationData}
+							serverIntegrationData={serverIntegrationData}
 							serverIntegratedLoading={serverIntegratedLoading}
 						/>
 					}
@@ -89,8 +87,8 @@ const SetupRouter = ({ clientIntegrated }: Props) => {
 					path=":step"
 					element={
 						<SetupPage
-							clientIntegrated={clientIntegrated}
-							serverIntegrated={serverIntegrated}
+							clientIntegrationData={clientIntegrationData}
+							serverIntegrationData={serverIntegrationData}
 							serverIntegratedLoading={serverIntegratedLoading}
 						/>
 					}
@@ -112,7 +110,7 @@ const SetupRouter = ({ clientIntegrated }: Props) => {
 						}
 					>
 						<Stack direction="row" align="center" gap="4">
-							{clientIntegrated && <IconSolidCheckCircle />}
+							{clientIntegrationData && <IconSolidCheckCircle />}
 							<Text>UX monitoring</Text>
 						</Stack>
 					</NavLink>
@@ -125,7 +123,7 @@ const SetupRouter = ({ clientIntegrated }: Props) => {
 						}
 					>
 						<Stack direction="row" align="center" gap="4">
-							{serverIntegrated && <IconSolidCheckCircle />}
+							{serverIntegrationData && <IconSolidCheckCircle />}
 							<Text>Server monitoring</Text>
 						</Stack>
 					</NavLink>
@@ -193,8 +191,12 @@ const SetupRouter = ({ clientIntegrated }: Props) => {
 							element={
 								<SetupOptionsList
 									docs={docs}
-									clientIntegrated={clientIntegrated}
-									serverIntegrated={serverIntegrated}
+									clientIntegrationData={
+										clientIntegrationData
+									}
+									serverIntegrationData={
+										serverIntegrationData
+									}
 								/>
 							}
 						/>
@@ -203,8 +205,12 @@ const SetupRouter = ({ clientIntegrated }: Props) => {
 							element={
 								<SetupDocs
 									docs={docs}
-									clientIntegrated={clientIntegrated}
-									serverIntegrated={serverIntegrated}
+									clientIntegrationData={
+										clientIntegrationData
+									}
+									serverIntegrationData={
+										serverIntegrationData
+									}
 								/>
 							}
 						/>

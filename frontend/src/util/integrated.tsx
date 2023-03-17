@@ -1,5 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import {
+	useGetClientIntegrationDataLazyQuery,
+	useGetServerIntegrationDataLazyQuery,
 	useIsBackendIntegratedLazyQuery,
 	useIsIntegratedLazyQuery,
 } from '@graph/hooks'
@@ -144,4 +146,118 @@ export const useBackendIntegrated = (): {
 	}
 
 	return { integrated: integrated || false, loading: loadingState }
+}
+
+export const useClientIntegrated = () => {
+	const { isLoggedIn } = useAuthContext()
+	const { projectId } = useNumericProjectId()
+	const [query, { data, loading }] = useGetClientIntegrationDataLazyQuery({
+		variables: { project_id: projectId! },
+		fetchPolicy: 'cache-and-network',
+	})
+	const [localStorageIntegrated, setLocalStorageIntegrated] = useLocalStorage(
+		`highlight-${projectId}-client-integrated`,
+		false,
+	)
+	const [integrated, setIntegrated] = useState<boolean | undefined>(undefined)
+	const integratedRaw = !!data?.clientIntegrationData
+
+	useEffect(() => {
+		if (!isLoggedIn) return
+		if (!localStorageIntegrated) {
+			query()
+			const timer = setInterval(() => {
+				if (!integrated) {
+					query()
+				} else {
+					clearInterval(timer)
+				}
+			}, 5000)
+			return () => {
+				clearInterval(timer)
+			}
+		} else {
+			setIntegrated(localStorageIntegrated)
+		}
+	}, [integrated, localStorageIntegrated, query, isLoggedIn])
+
+	useEffect(() => {
+		if (integratedRaw !== undefined) {
+			setIntegrated(integratedRaw?.valueOf())
+			setLocalStorageIntegrated(integratedRaw?.valueOf() || false)
+			if (
+				localStorageIntegrated === false &&
+				integratedRaw?.valueOf() === true
+			) {
+				analytics.track('IntegratedClient', { id: projectId })
+			}
+		}
+	}, [
+		integratedRaw,
+		localStorageIntegrated,
+		projectId,
+		setLocalStorageIntegrated,
+	])
+
+	return {
+		data: data?.clientIntegrationData || false,
+		loading,
+	}
+}
+
+export const useServerIntegrated = () => {
+	const { isLoggedIn } = useAuthContext()
+	const { projectId } = useNumericProjectId()
+	const [query, { data, loading }] = useGetServerIntegrationDataLazyQuery({
+		variables: { project_id: projectId! },
+		fetchPolicy: 'cache-and-network',
+	})
+	const [localStorageIntegrated, setLocalStorageIntegrated] = useLocalStorage(
+		`highlight-${projectId}-server-integrated`,
+		false,
+	)
+	const [integrated, setIntegrated] = useState<boolean | undefined>(undefined)
+	const integratedRaw = !!data?.serverIntegrationData
+
+	useEffect(() => {
+		if (!isLoggedIn) return
+		if (!localStorageIntegrated) {
+			query()
+			const timer = setInterval(() => {
+				if (!integrated) {
+					query()
+				} else {
+					clearInterval(timer)
+				}
+			}, 5000)
+			return () => {
+				clearInterval(timer)
+			}
+		} else {
+			setIntegrated(localStorageIntegrated)
+		}
+	}, [integrated, localStorageIntegrated, query, isLoggedIn])
+
+	useEffect(() => {
+		if (integratedRaw !== undefined) {
+			setIntegrated(integratedRaw?.valueOf())
+			setLocalStorageIntegrated(integratedRaw?.valueOf() || false)
+			if (
+				localStorageIntegrated === false &&
+				integratedRaw?.valueOf() === true
+			) {
+				analytics.track('IntegratedClient', { id: projectId })
+			}
+		}
+	}, [
+		integratedRaw,
+		localStorageIntegrated,
+		projectId,
+		setLocalStorageIntegrated,
+	])
+
+	return {
+		data: data?.serverIntegrationData || false,
+		loading,
+	}
 }

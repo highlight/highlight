@@ -9040,6 +9040,120 @@ export type IsBackendIntegratedQueryResult = Apollo.QueryResult<
 	Types.IsBackendIntegratedQuery,
 	Types.IsBackendIntegratedQueryVariables
 >
+export const GetClientIntegrationDataDocument = gql`
+	query GetClientIntegrationData($project_id: ID!) {
+		clientIntegrationData(project_id: $project_id) {
+			id
+			secure_id
+		}
+	}
+`
+
+/**
+ * __useGetClientIntegrationDataQuery__
+ *
+ * To run a query within a React component, call `useGetClientIntegrationDataQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetClientIntegrationDataQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetClientIntegrationDataQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetClientIntegrationDataQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetClientIntegrationDataQuery,
+		Types.GetClientIntegrationDataQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetClientIntegrationDataQuery,
+		Types.GetClientIntegrationDataQueryVariables
+	>(GetClientIntegrationDataDocument, baseOptions)
+}
+export function useGetClientIntegrationDataLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetClientIntegrationDataQuery,
+		Types.GetClientIntegrationDataQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetClientIntegrationDataQuery,
+		Types.GetClientIntegrationDataQueryVariables
+	>(GetClientIntegrationDataDocument, baseOptions)
+}
+export type GetClientIntegrationDataQueryHookResult = ReturnType<
+	typeof useGetClientIntegrationDataQuery
+>
+export type GetClientIntegrationDataLazyQueryHookResult = ReturnType<
+	typeof useGetClientIntegrationDataLazyQuery
+>
+export type GetClientIntegrationDataQueryResult = Apollo.QueryResult<
+	Types.GetClientIntegrationDataQuery,
+	Types.GetClientIntegrationDataQueryVariables
+>
+export const GetServerIntegrationDataDocument = gql`
+	query GetServerIntegrationData($project_id: ID!) {
+		serverIntegrationData(project_id: $project_id) {
+			id
+			secure_id
+		}
+	}
+`
+
+/**
+ * __useGetServerIntegrationDataQuery__
+ *
+ * To run a query within a React component, call `useGetServerIntegrationDataQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetServerIntegrationDataQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetServerIntegrationDataQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetServerIntegrationDataQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetServerIntegrationDataQuery,
+		Types.GetServerIntegrationDataQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetServerIntegrationDataQuery,
+		Types.GetServerIntegrationDataQueryVariables
+	>(GetServerIntegrationDataDocument, baseOptions)
+}
+export function useGetServerIntegrationDataLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetServerIntegrationDataQuery,
+		Types.GetServerIntegrationDataQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetServerIntegrationDataQuery,
+		Types.GetServerIntegrationDataQueryVariables
+	>(GetServerIntegrationDataDocument, baseOptions)
+}
+export type GetServerIntegrationDataQueryHookResult = ReturnType<
+	typeof useGetServerIntegrationDataQuery
+>
+export type GetServerIntegrationDataLazyQueryHookResult = ReturnType<
+	typeof useGetServerIntegrationDataLazyQuery
+>
+export type GetServerIntegrationDataQueryResult = Apollo.QueryResult<
+	Types.GetServerIntegrationDataQuery,
+	Types.GetServerIntegrationDataQueryVariables
+>
 export const GetKeyPerformanceIndicatorsDocument = gql`
 	query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
 		unprocessedSessionsCount(project_id: $project_id)

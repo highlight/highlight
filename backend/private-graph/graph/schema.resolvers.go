@@ -4533,6 +4533,59 @@ func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) 
 	return &model.F, nil
 }
 
+// ClientIntegrationData is the resolver for the ClientIntegrationData field.
+func (r *queryResolver) ClientIntegrationData(ctx context.Context, projectID int) (*model.Session, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, nil
+	}
+
+	firstSession := model.Session{}
+	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).First(&firstSession).Error
+	if e.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, e.Wrap(err, "error querying session for project")
+	}
+
+	return &firstSession, nil
+}
+
+// ServerIntegrationData is the resolver for the ServerIntegrationData field.
+func (r *queryResolver) ServerIntegrationData(ctx context.Context, projectID int) (*model.ErrorGroup, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, nil
+	}
+
+	firstErrorGroup := model.ErrorGroup{}
+	err := r.DB.Model(&model.ErrorGroup{}).Where("project_id = ?", projectID).First(&firstErrorGroup).Error
+	if e.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, e.Wrap(err, "error querying error group for project")
+	}
+
+	return &firstErrorGroup, nil
+}
+
+// LogsIntegrationData is the resolver for the LogsIntegrationData field.
+func (r *queryResolver) LogsIntegrationData(ctx context.Context, projectID int) (*modelInputs.LogsConnection, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	params := &modelInputs.LogsParamsInput{Query: ""}
+	pagination := &clickhouse.Pagination{}
+
+	fmt.Printf("::: project.ID: %+v\n", project.ID)
+	fmt.Printf("::: params: %+v\n", params)
+	fmt.Printf("::: pagination: %+v\n", pagination)
+
+	return r.ClickhouseClient.ReadLogs(ctx, project.ID, *params, *pagination)
+}
+
 // UnprocessedSessionsCount is the resolver for the unprocessedSessionsCount field.
 func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {

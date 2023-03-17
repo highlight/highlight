@@ -1309,6 +1309,9 @@ type Query {
 	workspace_admins_by_project_id(project_id: ID!): [WorkspaceAdminRole!]!
 	isIntegrated(project_id: ID!): Boolean
 	isBackendIntegrated(project_id: ID!): Boolean
+	clientIntegrationData(project_id: ID!): Session
+	serverIntegrationData(project_id: ID!): ErrorGroup
+	logsIntegrationData(project_id: ID!): LogsConnection
 	unprocessedSessionsCount(project_id: ID!): Int64
 	liveUsersCount(project_id: ID!): Int64
 	adminHasCreatedComment(admin_id: ID!): Boolean
