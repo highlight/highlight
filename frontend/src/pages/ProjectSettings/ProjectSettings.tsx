@@ -1,6 +1,7 @@
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import Tabs from '@components/Tabs/Tabs'
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm'
+import { ErrorFiltersForm } from '@pages/ProjectSettings/ErrorFiltersForm/ErrorFiltersForm'
 import { ErrorSettingsForm } from '@pages/ProjectSettings/ErrorSettingsForm/ErrorSettingsForm'
 import { ExcludedUsersForm } from '@pages/ProjectSettings/ExcludedUsersForm/ExcludedUsersForm'
 import { NetworkRecordingForm } from '@pages/ProjectSettings/NetworkRecordingForm/NetworkRecordingForm'
@@ -52,6 +53,7 @@ const ProjectSettings = () => {
 								panelContent: (
 									<>
 										<ErrorSettingsForm />
+										<ErrorFiltersForm />
 										<SourcemapSettings />
 									</>
 								),

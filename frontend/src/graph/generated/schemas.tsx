@@ -1085,6 +1085,7 @@ export type MutationEditErrorSegmentArgs = {
 export type MutationEditProjectArgs = {
 	backend_domains?: InputMaybe<Scalars['StringArray']>
 	billing_email?: InputMaybe<Scalars['String']>
+	error_filters?: InputMaybe<Scalars['StringArray']>
 	error_json_paths?: InputMaybe<Scalars['StringArray']>
 	excluded_users?: InputMaybe<Scalars['StringArray']>
 	id: Scalars['ID']
@@ -1398,6 +1399,7 @@ export type Project = {
 	__typename?: 'Project'
 	backend_domains?: Maybe<Scalars['StringArray']>
 	billing_email?: Maybe<Scalars['String']>
+	error_filters?: Maybe<Scalars['StringArray']>
 	error_json_paths?: Maybe<Scalars['StringArray']>
 	excluded_users?: Maybe<Scalars['StringArray']>
 	id: Scalars['ID']
