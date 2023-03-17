@@ -6,6 +6,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -21,9 +25,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"io"
-	"net/http"
-	"strconv"
 )
 
 type Handler struct {
@@ -158,9 +159,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 								TraceId:         traceID,
 								SpanId:          spanID,
 								SecureSessionId: sessionID,
-							}, clickhouse.WithLogAttributes(resourceAttributes, eventAttributes))
-							logRow.SeverityText = "ERROR"
-							logRow.SeverityNumber = int32(log.ErrorLevel)
+							},
+								clickhouse.WithLogAttributes(resourceAttributes, eventAttributes),
+								clickhouse.WithSeverityText("ERROR"),
+							)
 							logRow.ServiceName = serviceName
 							logRow.Body = excMessage
 							if projectID != "" {
@@ -228,16 +230,17 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							log.WithContext(ctx).WithField("ProjectVerboseID", projectID).WithField("LogMessage", logMessage).Errorf("otel span log got invalid project id")
 							continue
 						}
-						lvl, _ := log.ParseLevel(logSev)
 						logRow := clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
 							Timestamp:       event.Timestamp().AsTime(),
 							TraceId:         cast(requestID, span.TraceID().String()),
 							SpanId:          span.SpanID().String(),
 							ProjectId:       uint32(projectIDInt),
 							SecureSessionId: sessionID,
-						}, clickhouse.WithLogAttributes(resourceAttributes, eventAttributes))
-						logRow.SeverityText = logSev
-						logRow.SeverityNumber = int32(lvl)
+						},
+							clickhouse.WithLogAttributes(resourceAttributes, eventAttributes),
+							clickhouse.WithSeverityText(logSev),
+						)
+
 						logRow.ServiceName = serviceName
 						logRow.Body = logMessage
 						if projectID != "" {
@@ -393,9 +396,11 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					SpanId:          logRecord.SpanID().String(),
 					ProjectId:       uint32(projectIDInt),
 					SecureSessionId: sessionID,
-				}, clickhouse.WithLogAttributes(resourceAttributes, logAttributes))
-				logRow.SeverityText = logRecord.SeverityText()
-				logRow.SeverityNumber = int32(logRecord.SeverityNumber())
+				},
+					clickhouse.WithLogAttributes(resourceAttributes, logAttributes),
+					clickhouse.WithSeverityText(logRecord.SeverityText()),
+				)
+
 				logRow.ServiceName = serviceName
 				logRow.Body = logRecord.Body().Str()
 				if projectID != "" {
