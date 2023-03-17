@@ -174,7 +174,7 @@ func TestReadLogsHistogram(t *testing.T) {
 	nBuckets := 48
 	payload, err := client.ReadLogsHistogram(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
-			StartDate: now.Add(-time.Hour * 2),
+			StartDate: now.Add(-time.Hour*2 - time.Second*1),
 			EndDate:   now.Add(-time.Hour * 1),
 		},
 	}, nBuckets)
