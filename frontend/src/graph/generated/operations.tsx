@@ -3997,6 +3997,37 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 	}
 }
 
+export type StreamLogsSubscriptionVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.LogsParamsInput
+	after?: Types.Maybe<Types.Scalars['String']>
+	before?: Types.Maybe<Types.Scalars['String']>
+	at?: Types.Maybe<Types.Scalars['String']>
+}>
+
+export type StreamLogsSubscription = { __typename?: 'Subscription' } & {
+	logs: { __typename?: 'LogsConnection' } & {
+		edges: Array<
+			{ __typename?: 'LogEdge' } & Pick<Types.LogEdge, 'cursor'> & {
+					node: { __typename?: 'Log' } & Pick<
+						Types.Log,
+						| 'timestamp'
+						| 'level'
+						| 'message'
+						| 'logAttributes'
+						| 'traceID'
+						| 'spanID'
+						| 'secureSessionID'
+					>
+				}
+		>
+		pageInfo: { __typename?: 'PageInfo' } & Pick<
+			Types.PageInfo,
+			'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
+		>
+	}
+}
+
 export type GetLogsTotalCountQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.LogsParamsInput
@@ -4252,6 +4283,7 @@ export const namedOperations = {
 	},
 	Subscription: {
 		OnSessionPayloadAppended: 'OnSessionPayloadAppended' as const,
+		StreamLogs: 'StreamLogs' as const,
 	},
 	Fragment: {
 		SessionPayloadFragment: 'SessionPayloadFragment' as const,

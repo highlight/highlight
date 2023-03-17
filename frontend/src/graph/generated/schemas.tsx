@@ -2412,7 +2412,16 @@ export enum SourceMappingErrorCode {
 
 export type Subscription = {
 	__typename?: 'Subscription'
+	logs: LogsConnection
 	session_payload_appended?: Maybe<SessionPayload>
+}
+
+export type SubscriptionLogsArgs = {
+	after?: InputMaybe<Scalars['String']>
+	at?: InputMaybe<Scalars['String']>
+	before?: InputMaybe<Scalars['String']>
+	params: LogsParamsInput
+	project_id: Scalars['ID']
 }
 
 export type SubscriptionSession_Payload_AppendedArgs = {

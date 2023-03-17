@@ -7346,6 +7346,21 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 	return ch, nil
 }
 
+// Logs is the resolver for the logs field.
+func (r *subscriptionResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string) (<-chan *modelInputs.LogsConnection, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.StreamLogs(ctx, project.ID, params, clickhouse.Pagination{
+		After:  after,
+		Before: before,
+		At:     at,
+	})
+
+}
+
 // Data is the resolver for the data field.
 func (r *timelineIndicatorEventResolver) Data(ctx context.Context, obj *model.TimelineIndicatorEvent) (interface{}, error) {
 	return obj.Data, nil
