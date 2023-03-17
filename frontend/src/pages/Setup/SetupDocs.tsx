@@ -15,6 +15,8 @@ import * as React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useMatch } from 'react-router-dom'
 
+import * as styles from './SetupDocs.css'
+
 export type OptionListItem = {
 	key: string
 	name: string
@@ -70,6 +72,7 @@ export const SetupDocs: React.FC<Props> = ({
 											)
 										}}
 										text={entry.code.text}
+										className={styles.codeBlock}
 									/>
 								)}
 							</Section>
