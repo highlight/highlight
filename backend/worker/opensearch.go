@@ -2,7 +2,9 @@ package worker
 
 import (
 	"context"
+	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -25,7 +27,6 @@ func (w *Worker) indexItem(ctx context.Context, index opensearch.Index, item int
 }
 
 func (w *Worker) IndexSessions(ctx context.Context, isUpdate bool) {
-	modelProto := &model.Session{}
 	results := &[]*model.Session{}
 
 	inner := func(tx *gorm.DB, batch int) error {
@@ -48,25 +49,54 @@ func (w *Worker) IndexSessions(ctx context.Context, isUpdate bool) {
 		return nil
 	}
 
-	whereClause := "True"
+	start := time.Now()
+	query := w.Resolver.DB.Model(&model.Session{})
 	if isUpdate {
-		whereClause = "updated_at > NOW() - interval '30 minutes'"
+		query = query.Where(fmt.Sprintf(`
+			exists (
+				select * 
+				from retryables r 
+				where r.deleted_at is null
+				and r.type = 'OPENSEARCH_ERROR'
+				and r.payload_type = '%s'
+				and r.payload_id ~ '^[0-9]+$'
+				and cast(r.payload_id as bigint) = sessions.id
+				and r.created_at <= ?)`, opensearch.GetIndex(opensearch.IndexSessions)), start)
 	}
 
-	if err := w.Resolver.DB.Preload("Fields").Where(whereClause).Model(modelProto).
+	if err := query.Preload("Fields").
 		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
 		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
+	}
+
+	if isUpdate {
+		w.Resolver.DB.Exec(fmt.Sprintf(`
+			update retryables r
+			set deleted_at = now()
+			where r.deleted_at is null
+			and r.type = 'OPENSEARCH_ERROR'
+			and r.payload_type = '%s'
+			and r.created_at <= ?`, opensearch.GetIndex(opensearch.IndexSessions)), start)
 	}
 }
 
 func (w *Worker) IndexErrorGroups(ctx context.Context, isUpdate bool) {
-	whereClause := "True"
+	start := time.Now()
+	query := w.Resolver.DB.Model(&model.ErrorGroup{})
 	if isUpdate {
-		whereClause = "updated_at > NOW() - interval '30 minutes'"
+		query = query.Where(fmt.Sprintf(`
+			exists (
+				select * 
+				from retryables r 
+				where r.deleted_at is null
+				and r.type = 'OPENSEARCH_ERROR'
+				and r.payload_type = '%s'
+				and r.payload_id ~ '^[0-9]+$'
+				and cast(r.payload_id as bigint) = error_groups.id
+				and r.created_at <= ?)`, opensearch.GetIndex(opensearch.IndexErrorsCombined)), start)
 	}
 
-	rows, err := w.Resolver.DB.Model(&model.ErrorGroup{}).
-		Where(whereClause).
+	rows, err := query.
 		Order("created_at asc").Rows()
 	if err != nil {
 		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
@@ -97,16 +127,36 @@ func (w *Worker) IndexErrorGroups(ctx context.Context, isUpdate bool) {
 			log.WithContext(ctx).Error(e.Wrap(err, "OPENSEARCH_ERROR error adding error group to the indexer (combined)"))
 		}
 	}
+
+	if isUpdate {
+		w.Resolver.DB.Exec(fmt.Sprintf(`
+			update retryables r
+			set deleted_at = now()
+			where r.deleted_at is null
+			and r.type = 'OPENSEARCH_ERROR'
+			and r.payload_type = '%s'
+			and r.created_at <= ?
+			and r.payload_id not like 'child_%%'`, opensearch.GetIndex(opensearch.IndexErrorsCombined)), start)
+	}
 }
 
 func (w *Worker) IndexErrorObjects(ctx context.Context, isUpdate bool) {
-	whereClause := "True"
+	start := time.Now()
+	query := w.Resolver.DB.Model(&model.ErrorObject{})
 	if isUpdate {
-		whereClause = "updated_at > NOW() - interval '30 minutes'"
+		query = query.Where(fmt.Sprintf(`
+			exists (
+				select * 
+				from retryables r 
+				where r.deleted_at is null
+				and r.type = 'OPENSEARCH_ERROR'
+				and r.payload_type = '%s'
+				and r.payload_id ~ '^child_[0-9]+$'
+				and cast(ltrim(r.payload_id, 'child_') as bigint) = error_objects.id
+				and r.created_at <= ?)`, opensearch.GetIndex(opensearch.IndexErrorsCombined)), start)
 	}
 
-	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
-		Where(whereClause).
+	rows, err := query.
 		Order("created_at asc").Rows()
 
 	if err != nil {
@@ -131,19 +181,42 @@ func (w *Worker) IndexErrorObjects(ctx context.Context, isUpdate bool) {
 			log.WithContext(ctx).Error(e.Wrap(err, "OPENSEARCH_ERROR error adding error object to the indexer (combined)"))
 		}
 	}
+
+	if isUpdate {
+		w.Resolver.DB.Exec(fmt.Sprintf(`
+			update retryables r
+			set deleted_at = now()
+			where r.deleted_at is null
+			and r.type = 'OPENSEARCH_ERROR'
+			and r.payload_type = '%s'
+			and r.created_at <= ?
+			and r.payload_id like 'child_%%'`, opensearch.GetIndex(opensearch.IndexErrorsCombined)), start)
+	}
 }
 
 func (w *Worker) IndexTable(ctx context.Context, index opensearch.Index, modelPrototype interface{}, isUpdate bool) {
 	modelProto := modelPrototype
 
-	whereClause := "True"
+	start := time.Now()
+	query := w.Resolver.DB.Model(modelProto)
 	if isUpdate {
-		whereClause = "updated_at > NOW() - interval '30 minutes'"
+		table := "fields"
+		if index == opensearch.IndexErrorFields {
+			table = "error_fields"
+		}
+		query = query.Where(fmt.Sprintf(`
+			exists (
+				select * 
+				from retryables r 
+				where r.deleted_at is null
+				and r.type = 'OPENSEARCH_ERROR'
+				and r.payload_type = '%s'
+				and r.payload_id ~ '^[0-9]+$'
+				and cast(r.payload_id as bigint) = %s.id
+				and r.created_at <= ?)`, opensearch.GetIndex(index), table), start)
 	}
 
-	rows, err := w.Resolver.DB.Model(modelProto).
-		Where(whereClause).
-		Order("created_at asc").Rows()
+	rows, err := query.Order("created_at asc").Rows()
 	if err != nil {
 		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
 	}
@@ -155,6 +228,16 @@ func (w *Worker) IndexTable(ctx context.Context, index opensearch.Index, modelPr
 		}
 
 		w.indexItem(ctx, index, modelObj)
+	}
+
+	if isUpdate {
+		w.Resolver.DB.Exec(fmt.Sprintf(`
+			update retryables r
+			set deleted_at = now()
+			where r.deleted_at is null
+			and r.type = 'OPENSEARCH_ERROR'
+			and r.payload_type = '%s'
+			and r.created_at <= ?`, opensearch.GetIndex(index)), start)
 	}
 }
 
