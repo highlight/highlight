@@ -928,6 +928,7 @@ query GetProject($id: ID!) {
 		verbose_id
 		billing_email
 		excluded_users
+		error_filters
 		error_json_paths
 		filter_chrome_extension
 		rage_click_window_seconds

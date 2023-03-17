@@ -1,0 +1,11 @@
+.inputAndButtonRow {
+	align-items: center;
+	display: grid;
+	grid-template-columns: 1fr 80px;
+	margin-top: 5px;
+}
+
+.saveButton {
+	margin-left: 15px;
+	width: max-content;
+}
