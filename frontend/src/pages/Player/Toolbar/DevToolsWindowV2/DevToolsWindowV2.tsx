@@ -8,6 +8,7 @@ import {
 	Tabs,
 	useFormState,
 } from '@highlight-run/ui'
+import { Listbox } from '@headlessui/react'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -27,7 +28,7 @@ import {
 import { ICountPerRequestType } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { styledVerticalScrollbar } from 'style/common.css'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
@@ -43,6 +44,7 @@ const DevToolsWindowV2: React.FC<
 	const { time } = useReplayerContext()
 	const { selectedDevToolsTab, setSelectedDevToolsTab } =
 		usePlayerConfiguration()
+	// DEV - add requests status state
 	const [requestType, setRequestType] = React.useState<RequestType>(
 		RequestType.All,
 	)
@@ -64,6 +66,9 @@ const DevToolsWindowV2: React.FC<
 	const { showDevTools, showHistogram } = usePlayerConfiguration()
 
 	const { resources: parsedResources } = useResourcesContext()
+
+	// DEV
+	// UI --> state --> filter --> rows to render --> count by type & status --> pass rows & counts to NetworkPage
 
 	const countPerRequestType = useMemo(() => {
 		const count: ICountPerRequestType = {
@@ -236,29 +241,66 @@ const DevToolsWindowV2: React.FC<
 											}
 										/>
 									) : selectedDevToolsTab === Tab.Network ? (
-										<MenuButton
-											size="medium"
-											options={Object.entries(
-												RequestType,
-											).map(
-												([
-													displayName,
-													requestName,
-												]) => ({
-													key: displayName,
-													render: `${displayName} (${countPerRequestType[requestName]})`,
-												}),
-											)}
-											onChange={(displayName) => {
-												setRequestType(
-													//-- Set type to be the requestName value --//
-													RequestType[
-														displayName as keyof typeof RequestType
-													],
-												)
-											}}
-										/>
-									) : null}
+										// DEV - put type and status filters here
+										// "MultiSelectCancel" functionality
+										<>
+											<Listbox
+												value={requestType}
+												onChange={setRequestType}
+											>
+												<Listbox.Button className="flex items-center justify-center bg-white border border-n6 rounded-md shadow-none p-1">
+													{/* DEV - to use display name here */}
+													{requestType}
+												</Listbox.Button>
+												<Listbox.Options className="">
+													{Object.entries(
+														RequestType,
+													).map(
+														([
+															displayName,
+															requestName,
+														]) => (
+															<Listbox.Option
+																key={
+																	requestName
+																}
+																value={
+																	requestName
+																}
+																className=""
+															>
+																{displayName}
+															</Listbox.Option>
+														),
+													)}
+												</Listbox.Options>
+											</Listbox>
+
+											<MenuButton
+												size="medium"
+												options={Object.entries(
+													RequestType,
+												).map(
+													([
+														displayName,
+														requestName,
+													]) => ({
+														key: displayName,
+														render: `${displayName} (${countPerRequestType[requestName]})`,
+													}),
+												)}
+												onChange={(displayName) => {
+													setRequestType(
+														//-- Set type to be the requestName value --//
+														RequestType[
+															displayName as keyof typeof RequestType
+														],
+													)
+												}}
+											/>
+										</>
+									) : // DEV - end of type and status filters section
+									null}
 
 									<Button
 										size="xSmall"

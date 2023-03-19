@@ -8,6 +8,7 @@
 		"@ctrl/tinycolor": "^3.4.1",
 		"@fontsource/poppins": "^4.5.9",
 		"@frontapp/plugin-sdk": "^1.1.2",
+		"@headlessui/react": "^1.7.13",
 		"@highlight-run/client": "workspace:*",
 		"@highlight-run/react": "workspace:*",
 		"@highlight-run/react-mentions": "4.4.1",
