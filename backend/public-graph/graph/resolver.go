@@ -2848,12 +2848,28 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			VisitedURL string
 			SessionObj *model.Session
 		})
+
+		var project model.Project
+		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+			return e.Wrap(err, "error querying project")
+		}
+
 		for _, v := range errors {
 			traceBytes, err := json.Marshal(v.StackTrace)
 			if err != nil {
 				log.WithContext(ctx).Errorf("Error marshaling trace: %v", v.StackTrace)
 				continue
 			}
+
+			matched := false
+			for _, errorFilter := range project.ErrorFilters {
+				matched, err = regexp.MatchString(errorFilter, v.Event)
+
+				if matched {
+					return nil
+				}
+			}
+
 			traceString := string(traceBytes)
 
 			errorToInsert := &model.ErrorObject{
