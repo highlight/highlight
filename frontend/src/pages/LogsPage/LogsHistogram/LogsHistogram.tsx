@@ -152,6 +152,7 @@ const LogsHistogram = ({
 			cssClass={styles.histogramContainer}
 			width="full"
 			px="12"
+			pb="4"
 			mt="8"
 			position="relative"
 			ref={containerRef}

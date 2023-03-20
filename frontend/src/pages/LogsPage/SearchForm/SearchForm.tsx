@@ -95,6 +95,7 @@ const SearchForm = ({
 				/>
 				<Box display="flex" pr="8" py="6">
 					<PreviousDateRangePicker
+						emphasis="low"
 						selectedDates={selectedDates}
 						onDatesChange={handleDatesChange}
 						presets={presets}

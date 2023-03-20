@@ -161,7 +161,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 					<Box
 						borderTop="dividerWeak"
 						height="screen"
-						mt="4"
 						pt="4"
 						px="12"
 						pb="12"
