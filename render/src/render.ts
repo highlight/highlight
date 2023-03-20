@@ -2,7 +2,8 @@ import { mkdtemp, readFileSync } from 'fs'
 import { promisify } from 'util'
 import path from 'path'
 import { tmpdir } from 'os'
-import chromium from 'chrome-aws-lambda'
+import chromium from '@sparticuz/chromium'
+import puppeteer from 'puppeteer'
 
 const getHtml = (): string => {
 	return `<html lang="en"><head><title></title><style>
@@ -40,11 +41,12 @@ export async function render(
 		dir = await promisify(mkdtemp)(prefix)
 	}
 
-	const browser = await chromium.puppeteer.launch({
+	const browser = await puppeteer.launch({
+		args: chromium.args,
+		defaultViewport: chromium.defaultViewport,
+		executablePath: await chromium.executablePath(),
 		headless: chromium.headless,
 		ignoreHTTPSErrors: true,
-		args: chromium.args,
-		executablePath: await chromium.executablePath,
 	})
 
 	const page = await browser.newPage()
@@ -89,8 +91,8 @@ export async function render(
 		endTime: number
 		totalTime: number
 	}
-	const width = await page.evaluate(`viewport.width`)
-	const height = await page.evaluate(`viewport.height`)
+	const width = Number(await page.evaluate(`viewport.width`))
+	const height = Number(await page.evaluate(`viewport.height`))
 	await page.setViewport({ width: width + 16, height: height + 16 })
 
 	let interval = 1000

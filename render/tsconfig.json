@@ -1,16 +1,16 @@
 {
 	"compilerOptions": {
-		"target": "ES2020",
-		"module": "commonjs",
-		"outDir": "dist",
+		"target": "es2020",
 		"strict": true,
-		"baseUrl": "./",
+		"preserveConstEnums": true,
+		"noEmit": true,
+		"sourceMap": false,
+		"module": "commonjs",
+		"moduleResolution": "node",
 		"esModuleInterop": true,
-		"sourceMap": true,
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
-		"useUnknownInCatchVariables": false
+		"isolatedModules": true
 	},
-	"include": ["src/*.ts"],
-	"exclude": ["node_modules"]
+	"exclude": ["node_modules", "**/*.test.ts"]
 }

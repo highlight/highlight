@@ -1,11 +1,11 @@
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { Readable } from 'stream'
 import { NodeHttpHandler } from '@aws-sdk/node-http-handler'
-import zlib from 'zlib'
 import * as https from 'https'
+import * as zlib from 'zlib'
 
-const west_client = new S3Client({
-	region: 'us-west-2',
+const east_client = new S3Client({
+	region: 'us-east-2',
 	requestHandler: new NodeHttpHandler({
 		socketTimeout: 10000,
 		connectionTimeout: 5000,
@@ -36,15 +36,15 @@ export async function getEvents(
 	session: number,
 	chunk?: number,
 ) {
-	let key = `${project}/${session}/session-contents-compressed`
+	let key = `v2/${project}/${session}/session-contents-compressed`
 	if (chunk !== undefined) {
 		key = `${key}-${chunk.toString().padStart(4, '0')}`
 	}
 	const command = new GetObjectCommand({
-		Bucket: 'highlight-session-s3-test',
+		Bucket: 'highlight-session-data',
 		Key: key,
 	})
-	const response = await west_client.send(command)
+	const response = await east_client.send(command)
 	if (!response.Body) {
 		throw new Error(`no body downloaded from s3 for ${key}`)
 	}
