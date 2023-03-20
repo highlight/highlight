@@ -144,6 +144,12 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						minDate={thirtyDaysAgo}
 						timeMode={timeMode}
 					/>
+					<LogsCount
+						query={query}
+						startDate={startDate}
+						endDate={endDate}
+						presets={PRESETS}
+					/>
 					<LogsHistogram
 						query={query}
 						startDate={startDate}
@@ -151,15 +157,12 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						onDatesChange={handleDatesChange}
 						onLevelChange={handleLevelChange}
 					/>
-					<LogsCount
-						query={query}
-						startDate={startDate}
-						endDate={endDate}
-						presets={PRESETS}
-					/>
 
 					<Box
+						borderTop="dividerWeak"
 						height="screen"
+						mt="4"
+						pt="4"
 						px="12"
 						pb="12"
 						overflowY="scroll"
