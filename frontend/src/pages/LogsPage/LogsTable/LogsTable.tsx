@@ -45,6 +45,7 @@ export const LogsTable = (props: Props) => {
 				flexGrow={1}
 				alignItems="center"
 				justifyContent="center"
+				height="full"
 			>
 				<CircularSpinner />
 			</Box>
@@ -58,6 +59,7 @@ export const LogsTable = (props: Props) => {
 				flexGrow={1}
 				alignItems="center"
 				justifyContent="center"
+				height="full"
 			>
 				<NoLogsFound />
 			</Box>
