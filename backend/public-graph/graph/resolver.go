@@ -1303,6 +1303,20 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		return nil, e.New("failed to find duplicate session: " + input.SessionSecureID)
 	}
 
+	var setupEventsCount int64
+	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeSession).Count(&setupEventsCount).Error; err != nil {
+		return nil, e.Wrap(err, "error querying setup events")
+	}
+	if setupEventsCount < 1 {
+		setupEvent := &model.SetupEvent{
+			ProjectID: projectID,
+			Type:      model.MarkBackendSetupTypeSession,
+		}
+		if err := r.DB.Model(&model.SetupEvent{}).Create(&setupEvent).Error; err != nil {
+			return nil, e.Wrap(err, "error creating setup event")
+		}
+	}
+
 	log.WithContext(ctx).WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
 

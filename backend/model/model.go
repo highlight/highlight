@@ -348,9 +348,10 @@ const (
 )
 
 type SetupEvent struct {
-	Model
-	ProjectID int                  `gorm:"uniqueIndex:idx_type_project_id"`
-	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_type_project_id"`
+	ID        int                  `gorm:"primary_key;type:serial" json:"id" deep:"-"`
+	CreatedAt time.Time            `json:"created_at" deep:"-"`
+	ProjectID int                  `gorm:"uniqueIndex:idx_project_id_type"`
+	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
 }
 
 type HasSecret interface {
