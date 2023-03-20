@@ -1481,6 +1481,8 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 			projectID = session.ProjectID
 		}
 	}
+
+	// Update projects.backend_setup
 	var backendSetupCount int64
 	if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
 		return e.Wrap(err, "error querying backend_setup flag")
@@ -1503,7 +1505,14 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 		if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
 			return e.Wrap(err, "error updating backend_setup flag")
 		}
+	}
 
+	// Create setup_event record
+	var setupEventsCount int64
+	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, setupType).Count(&setupEventsCount).Error; err != nil {
+		return e.Wrap(err, "error querying setup events")
+	}
+	if setupEventsCount < 1 {
 		setupEvent := &model.SetupEvent{
 			ProjectID: projectID,
 			Type:      setupType,
