@@ -2,7 +2,7 @@ import LoadingBox from '@components/LoadingBox'
 import { useGetLogsHistogramQuery } from '@graph/hooks'
 import { LogLevel as Level } from '@graph/schemas'
 import { Box, Popover, Text } from '@highlight-run/ui'
-import { BACKGROUND_COLOR_MAPPING, FORMAT } from '@pages/LogsPage/constants'
+import { COLOR_MAPPING, FORMAT } from '@pages/LogsPage/constants'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { isSignificantDateRange } from '@pages/LogsPage/utils'
 import { useParams } from '@util/react-router/useParams'
@@ -254,6 +254,8 @@ const LogBucketBar = ({
 						<Box
 							key={bar.level}
 							style={{
+								backgroundColor:
+									COLOR_MAPPING[bar.level as Level],
 								height: `${Math.max(
 									(bar.count / maxBucketCount) * 100,
 									2,
@@ -261,9 +263,6 @@ const LogBucketBar = ({
 							}}
 							width="full"
 							borderRadius="2"
-							backgroundColor={
-								BACKGROUND_COLOR_MAPPING[bar.level as Level]
-							}
 						/>
 					)
 				})}
@@ -316,13 +315,12 @@ const LogBucketBar = ({
 									}
 								}}
 							>
+								{/* TODO: Fix display - not currently appearing in UI */}
 								<Box
 									borderRadius="round"
 									style={{
 										backgroundColor:
-											BACKGROUND_COLOR_MAPPING[
-												bar.level as Level
-											],
+											COLOR_MAPPING[bar.level as Level],
 										height: 8,
 										width: 8,
 									}}
@@ -349,7 +347,12 @@ const LogBucketBar = ({
 	])
 
 	return (
-		<Popover placement="bottom-start" open={open} setOpen={setOpen}>
+		<Popover
+			placement="bottom-start"
+			open={open}
+			setOpen={setOpen}
+			gutter={6}
+		>
 			{trigger}
 			{content}
 		</Popover>
