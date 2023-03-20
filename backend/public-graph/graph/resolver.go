@@ -2316,9 +2316,25 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 	querySessionSpan.Finish()
 
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		return
+	}
+
 	// Filter out empty errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
+
+		// Filter out by project.ErrorFilters, aka regexp filters
+		matchedRegexp := false
+		for _, errorFilter := range project.ErrorFilters {
+			matchedRegexp, _ = regexp.MatchString(errorFilter, errorObject.Event)
+
+			if matchedRegexp {
+				break
+			}
+		}
+
 		if errorObject.Event == "[{}]" {
 			var objString string
 			objBytes, err := json.Marshal(errorObject)
@@ -2333,7 +2349,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 				"session_secure_id": errorObject.SessionSecureID,
 				"error_object":      objString,
 			}).Warn("caught empty error, continuing...")
-		} else {
+		} else if !matchedRegexp {
 			filteredErrors = append(filteredErrors, errorObject)
 		}
 	}
@@ -2861,11 +2877,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				continue
 			}
 
-			matched := false
+			// Filter out by project.ErrorFilters, aka regexp filters
+			matchedRegexp := false
 			for _, errorFilter := range project.ErrorFilters {
-				matched, err = regexp.MatchString(errorFilter, v.Event)
+				matchedRegexp, err = regexp.MatchString(errorFilter, v.Event)
 
-				if matched {
+				if matchedRegexp {
 					return nil
 				}
 			}
