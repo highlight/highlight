@@ -259,6 +259,7 @@ const Search: React.FC<{
 							e.stopPropagation()
 							state.setValue('')
 						}}
+						style={{ cursor: 'pointer' }}
 					/>
 				) : null}
 			</Box>
