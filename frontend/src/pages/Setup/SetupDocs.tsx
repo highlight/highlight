@@ -10,13 +10,17 @@ import {
 	Heading,
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
+	IconSolidLoading,
 	Stack,
+	Text,
 } from '@highlight-run/ui'
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import { Header } from '@pages/Setup/Header'
 import { IntegrationBar } from '@pages/Setup/IntegrationBar'
+import { loading } from '@pages/Setup/IntegrationBar.css'
 import { Guide, Guides } from '@pages/Setup/SetupRouter/SetupRouter'
 import analytics from '@util/analytics'
+import clsx from 'clsx'
 import * as React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useMatch } from 'react-router-dom'
@@ -85,7 +89,10 @@ export const SetupDocs: React.FC<Props> = ({
 								trackingId="integration-complete-cta"
 								disabled
 							>
-								Waiting for installation
+								<Stack direction="row" gap="6" align="center">
+									<Text>Waiting for installation</Text>
+									<IconSolidLoading className={loading} />
+								</Stack>
 							</Button>
 						)}
 					</Box>
@@ -112,7 +119,8 @@ export const SetupDocs: React.FC<Props> = ({
 											)
 										}}
 										text={entry.code.text}
-										className={styles.codeBlock}
+										className={clsx(styles.codeBlock)}
+										customStyle={{}}
 									/>
 								)}
 							</Section>

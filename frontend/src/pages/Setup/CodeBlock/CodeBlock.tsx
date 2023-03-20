@@ -119,7 +119,7 @@ export const CodeBlock = ({
 				<SyntaxHighlighter
 					language={language}
 					style={theme === 'light' ? lightTheme : darkTheme}
-					customStyle={{ padding: '8px 0' }}
+					customStyle={props.customStyle ?? { padding: '8px 0' }}
 					showLineNumbers={showLineNumbers}
 					{...props}
 				>
