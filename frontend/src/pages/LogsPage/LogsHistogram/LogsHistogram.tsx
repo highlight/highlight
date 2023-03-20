@@ -1,4 +1,3 @@
-import LoadingBox from '@components/LoadingBox'
 import { useGetLogsHistogramQuery } from '@graph/hooks'
 import { LogLevel as Level } from '@graph/schemas'
 import { Box, Popover, Text } from '@highlight-run/ui'
@@ -83,7 +82,50 @@ const LogsHistogram = ({
 
 	const content = useMemo(() => {
 		if (loading) {
-			return <LoadingBox />
+			const loadingData: HistogramBucket[] = []
+			const now = new Date()
+
+			for (let i = 50; i > 0; i--) {
+				const startDate = new Date(now)
+				startDate.setMinutes(now.getMinutes() - i)
+				const endDate = new Date(now)
+				endDate.setMinutes(now.getMinutes() - (i + 1))
+
+				loadingData.push({
+					startDate,
+					endDate,
+					counts: [
+						{
+							level: 'info',
+							count: Math.round(Math.random() * 100),
+						},
+						{
+							level: 'warn',
+							count: Math.round(Math.random() * 100),
+						},
+						{
+							level: 'error',
+							count: Math.round(Math.random() * 100),
+						},
+						{
+							level: 'fatal',
+							count: Math.round(Math.random() * 100),
+						},
+					],
+				})
+			}
+
+			return loadingData.map((bucket, index) => {
+				return (
+					<LogBucketBar
+						key={index}
+						bucket={bucket}
+						width={`${100 / 50}%`}
+						maxBucketCount={maxBucketCount}
+						loading={loading}
+					/>
+				)
+			})
 		}
 
 		if (!data?.logs_histogram || !maxBucketCount) {
@@ -152,7 +194,7 @@ const LogsHistogram = ({
 			width="full"
 			px="12"
 			pb="4"
-			mt="8"
+			mt="4"
 			position="relative"
 			ref={containerRef}
 			onMouseDown={(e: any) => {
@@ -218,6 +260,7 @@ const LogBucketBar = ({
 	onDatesChange,
 	onLevelChange,
 	isDragging,
+	loading,
 }: {
 	bucket?: HistogramBucket
 	maxBucketCount: number
@@ -225,6 +268,7 @@ const LogBucketBar = ({
 	onDatesChange?: (startDate: Date, endDate: Date) => void
 	onLevelChange?: (level: Level) => void
 	isDragging?: boolean
+	loading?: boolean
 }) => {
 	const [open, setOpen] = useState(false)
 	useHotkeys('esc', () => {
@@ -239,8 +283,8 @@ const LogBucketBar = ({
 				justifyContent="flex-end"
 				height="full"
 				width="full"
-				p="1"
-				gap="1"
+				p="2"
+				gap="2"
 				cssClass={{ [styles.hover]: !isDragging }}
 				style={{
 					width,
@@ -253,8 +297,9 @@ const LogBucketBar = ({
 						<Box
 							key={bar.level}
 							style={{
-								backgroundColor:
-									COLOR_MAPPING[bar.level as Level],
+								backgroundColor: loading
+									? '#F3F3F4'
+									: COLOR_MAPPING[bar.level as Level],
 								height: `${Math.max(
 									(bar.count / maxBucketCount) * 100,
 									2,
@@ -267,9 +312,13 @@ const LogBucketBar = ({
 				})}
 			</Popover.BoxTrigger>
 		)
-	}, [bucket?.counts, isDragging, maxBucketCount, width])
+	}, [bucket?.counts, isDragging, loading, maxBucketCount, width])
 
 	const content = useMemo(() => {
+		if (loading) {
+			return null
+		}
+
 		const bucketCount = bucket?.counts?.reduce(
 			(acc, curr) => acc + curr.count,
 			0,
@@ -314,7 +363,6 @@ const LogBucketBar = ({
 									}
 								}}
 							>
-								{/* TODO: Fix display - not currently appearing in UI */}
 								<Box
 									borderRadius="round"
 									style={{

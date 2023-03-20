@@ -1,4 +1,4 @@
-import { CircularSpinner } from '@components/Loading/Loading'
+import LoadingBox from '@components/LoadingBox'
 import { LogLevel as LogLevelType } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
 import {
@@ -47,7 +47,7 @@ export const LogsTable = (props: Props) => {
 				justifyContent="center"
 				height="full"
 			>
-				<CircularSpinner />
+				<LoadingBox />
 			</Box>
 		)
 	}
