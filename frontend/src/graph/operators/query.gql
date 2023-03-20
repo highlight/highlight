@@ -1103,6 +1103,9 @@ query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
 			created_at
 			project_id
 			session_id
+			trace_id
+			span_id
+			log_cursor
 			session {
 				identifier
 				fingerprint

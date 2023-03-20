@@ -3,7 +3,7 @@ import { useGetLogsHistogramQuery } from '@graph/hooks'
 import { LogLevel as Level } from '@graph/schemas'
 import { Box, BoxProps, Popover, Text } from '@highlight-run/ui'
 import {
-	LOG_PAGE_COLOR_MAPPING,
+	BACKGROUND_COLOR_MAPPING,
 	LOG_TIME_FORMAT,
 } from '@pages/LogsPage/constants'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
@@ -229,7 +229,7 @@ const LogsHistogram = ({
 							<Box
 								position="absolute"
 								display="inline-flex"
-								background="bad"
+								// background="caution"
 								borderRadius="3"
 								cssClass={styles.thresholdArea}
 								style={{
@@ -408,7 +408,7 @@ const LogBucketBar = ({
 							width="full"
 							borderRadius="2"
 							backgroundColor={
-								LOG_PAGE_COLOR_MAPPING[bar.level as Level]
+								BACKGROUND_COLOR_MAPPING[bar.level as Level]
 							}
 						/>
 					)
@@ -466,7 +466,7 @@ const LogBucketBar = ({
 									borderRadius="round"
 									style={{
 										backgroundColor:
-											LOG_PAGE_COLOR_MAPPING[
+											BACKGROUND_COLOR_MAPPING[
 												bar.level as Level
 											],
 										height: 8,

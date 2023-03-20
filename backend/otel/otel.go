@@ -6,7 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+
 	"github.com/go-chi/chi"
+	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	model2 "github.com/highlight-run/highlight/backend/model"
@@ -16,15 +21,10 @@ import (
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
-	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"io"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 type Handler struct {
@@ -80,32 +80,6 @@ func projectToInt(projectID string) (int, error) {
 	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
 }
 
-func getAttributesMap(resourceAttributes, eventAttributes map[string]any) map[string]string {
-	attributesMap := make(map[string]string)
-	for _, m := range []map[string]any{resourceAttributes, eventAttributes} {
-		for k, v := range m {
-			for _, attr := range highlight.InternalAttributes {
-				if k == attr {
-					continue
-				}
-			}
-			vStr := cast(v, "")
-			if vStr != "" {
-				attributesMap[k] = vStr
-			}
-			vInt := cast[int64](v, 0)
-			if vInt != 0 {
-				attributesMap[k] = strconv.FormatInt(vInt, 10)
-			}
-			vFlt := cast[float64](v, 0.)
-			if vFlt > 0. {
-				attributesMap[k] = strconv.FormatFloat(vFlt, 'f', -1, 64)
-			}
-		}
-	}
-	return attributesMap
-}
-
 func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
@@ -147,12 +121,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		var projectID, sessionID, requestID, source string
 		resource := spans.At(i).Resource()
 		resourceAttributes := resource.Attributes().AsRaw()
-		sdkLanguage := cast(resource.Attributes().AsRaw()[string(semconv.TelemetrySDKLanguageKey)], "")
+		hostName := cast(resource.Attributes().AsRaw()[string(semconv.HostNameKey)], "")
 		serviceName := cast(resource.Attributes().AsRaw()[string(semconv.ServiceNameKey)], "")
 		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source)
 		scopeScans := spans.At(i).ScopeSpans()
 		for j := 0; j < scopeScans.Len(); j++ {
-			scope := scopeScans.At(j).Scope()
 			spans := scopeScans.At(j).Spans()
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
@@ -180,19 +153,18 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 								log.WithContext(ctx).WithField("ProjectVerboseID", projectID).WithField("ExcMessage", excMessage).Errorf("otel span error got invalid project id")
 								return nil
 							}
-							attributesMap := getAttributesMap(resourceAttributes, eventAttributes)
 							logRow := clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
 								Timestamp:       ts,
 								ProjectId:       uint32(projectIDInt),
 								TraceId:         traceID,
 								SpanId:          spanID,
 								SecureSessionId: sessionID,
-							})
-							logRow.SeverityText = "ERROR"
-							logRow.SeverityNumber = int32(log.ErrorLevel)
+							},
+								clickhouse.WithLogAttributes(resourceAttributes, eventAttributes),
+								clickhouse.WithSeverityText("ERROR"),
+							)
 							logRow.ServiceName = serviceName
 							logRow.Body = excMessage
-							logRow.LogAttributes = attributesMap
 							if projectID != "" {
 								if _, ok := projectLogs[projectID]; !ok {
 									projectLogs[projectID] = []*clickhouse.LogRow{}
@@ -225,17 +197,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 								LogCursor:       logCursor,
 								Event:           excMessage,
 								Type:            excType,
-								Source: strings.Join(lo.Filter([]string{
-									sdkLanguage,
-									serviceName,
-									scope.Name(),
-								}, func(s string, i int) bool {
-									return s != ""
-								}), "-"),
-								StackTrace: stackTrace,
-								Timestamp:  ts,
-								Payload:    pointy.String(string(tagsBytes)),
-								URL:        errorUrl,
+								Source:          hostName,
+								StackTrace:      stackTrace,
+								Timestamp:       ts,
+								Payload:         pointy.String(string(tagsBytes)),
+								URL:             errorUrl,
 							}
 							if sessionID != "" {
 								if _, ok := traceErrors[sessionID]; !ok {
@@ -264,20 +230,19 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							log.WithContext(ctx).WithField("ProjectVerboseID", projectID).WithField("LogMessage", logMessage).Errorf("otel span log got invalid project id")
 							continue
 						}
-						attributesMap := getAttributesMap(resourceAttributes, eventAttributes)
-						lvl, _ := log.ParseLevel(logSev)
 						logRow := clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
 							Timestamp:       event.Timestamp().AsTime(),
 							TraceId:         cast(requestID, span.TraceID().String()),
 							SpanId:          span.SpanID().String(),
 							ProjectId:       uint32(projectIDInt),
 							SecureSessionId: sessionID,
-						})
-						logRow.SeverityText = logSev
-						logRow.SeverityNumber = int32(lvl)
+						},
+							clickhouse.WithLogAttributes(resourceAttributes, eventAttributes),
+							clickhouse.WithSeverityText(logSev),
+						)
+
 						logRow.ServiceName = serviceName
 						logRow.Body = logMessage
-						logRow.LogAttributes = attributesMap
 						if projectID != "" {
 							if _, ok := projectLogs[projectID]; !ok {
 								projectLogs[projectID] = []*clickhouse.LogRow{}
@@ -342,7 +307,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 						ProjectID: projectIDInt,
 					},
-				}, projectID)
+				}, uuid.New().String())
 				if err != nil {
 					log.WithContext(ctx).Error(err, "failed to submit otel mark backend setup")
 					w.WriteHeader(http.StatusServiceUnavailable)
@@ -356,7 +321,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 				ProjectVerboseID: &projectID,
 				Errors:           errors,
-			}}, projectID)
+			}}, uuid.New().String())
 		if err != nil {
 			log.WithContext(ctx).Error(err, "failed to submit otel project errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -425,19 +390,19 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					log.WithContext(ctx).WithField("ProjectID", projectID).WithField("LogMessage", logRecord.Body().AsRaw()).Errorf("otel log got invalid project id")
 					continue
 				}
-				attributesMap := getAttributesMap(resourceAttributes, logAttributes)
 				logRow := clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
 					Timestamp:       logRecord.Timestamp().AsTime(),
 					TraceId:         logRecord.TraceID().String(),
 					SpanId:          logRecord.SpanID().String(),
 					ProjectId:       uint32(projectIDInt),
 					SecureSessionId: sessionID,
-				})
-				logRow.SeverityText = logRecord.SeverityText()
-				logRow.SeverityNumber = int32(logRecord.SeverityNumber())
+				},
+					clickhouse.WithLogAttributes(resourceAttributes, logAttributes),
+					clickhouse.WithSeverityText(logRecord.SeverityText()),
+				)
+
 				logRow.ServiceName = serviceName
 				logRow.Body = logRecord.Body().Str()
-				logRow.LogAttributes = attributesMap
 				if projectID != "" {
 					if _, ok := projectLogs[projectID]; !ok {
 						projectLogs[projectID] = []*clickhouse.LogRow{}
@@ -469,7 +434,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 					ProjectID: projectIDInt,
 				},
-			}, projectID)
+			}, uuid.New().String())
 			if err != nil {
 				return e.Wrap(err, "failed to submit otel mark backend setup")
 			}
@@ -479,7 +444,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 			Type: kafkaqueue.PushLogs,
 			PushLogs: &kafkaqueue.PushLogsArgs{
 				LogRows: logRows,
-			}}, projectID)
+			}}, uuid.New().String())
 		if err != nil {
 			return e.Wrap(err, "failed to submit otel project logs to public worker queue")
 		}

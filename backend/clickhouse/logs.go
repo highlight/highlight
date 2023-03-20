@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
-	log "github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -14,44 +15,6 @@ import (
 	flat "github.com/nqd/flat"
 	e "github.com/pkg/errors"
 )
-
-type LogRowPrimaryAttrs struct {
-	Timestamp       time.Time
-	ProjectId       uint32
-	TraceId         string
-	SpanId          string
-	SecureSessionId string
-}
-
-type LogRow struct {
-	LogRowPrimaryAttrs
-	UUID           string
-	TraceFlags     uint32
-	SeverityText   string
-	SeverityNumber int32
-	ServiceName    string
-	Body           string
-	LogAttributes  map[string]string
-}
-
-func NewLogRow(attrs LogRowPrimaryAttrs) *LogRow {
-	return &LogRow{
-		LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-			Timestamp:       attrs.Timestamp,
-			TraceId:         attrs.TraceId,
-			SpanId:          attrs.SpanId,
-			ProjectId:       attrs.ProjectId,
-			SecureSessionId: attrs.SecureSessionId,
-		},
-		UUID:           uuid.New().String(),
-		SeverityText:   "INFO",
-		SeverityNumber: int32(log.InfoLevel),
-	}
-}
-
-func (l *LogRow) Cursor() string {
-	return encodeCursor(l.Timestamp, l.UUID)
-}
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
 	if len(logRows) == 0 {
@@ -78,8 +41,8 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 const LogsLimit int = 100
 const KeyValuesLimit int = 50
 
-const OrderBackward = "Timestamp ASC, UUID ASC"
-const OrderForward = "Timestamp DESC, UUID DESC"
+const OrderBackward = "toUnixTimestamp(Timestamp) ASC, UUID ASC"
+const OrderForward = "toUnixTimestamp(Timestamp) DESC, UUID DESC"
 
 type Pagination struct {
 	After     *string
@@ -134,9 +97,19 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 
 	sql, args := sb.Build()
 
+	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("ReadLogs"))
+	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	if err != nil {
+		span.Finish(tracer.WithError(err))
+		return nil, err
+	}
+	span.SetTag("Query", query)
+	span.SetTag("Params", params)
+
 	rows, err := client.conn.Query(ctx, sql, args...)
 
 	if err != nil {
+		span.Finish(tracer.WithError(err))
 		return nil, err
 	}
 
@@ -172,6 +145,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	}
 	rows.Close()
 
+	span.Finish(tracer.WithError(rows.Err()))
 	return getLogsConnection(edges, pagination), rows.Err()
 }
 
@@ -399,42 +373,6 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 	return values, rows.Err()
 }
 
-func makeLogLevel(severityText string) modelInputs.LogLevel {
-	switch strings.ToLower(severityText) {
-	case "trace":
-		{
-			return modelInputs.LogLevelTrace
-
-		}
-	case "debug":
-		{
-			return modelInputs.LogLevelDebug
-
-		}
-	case "info":
-		{
-			return modelInputs.LogLevelInfo
-
-		}
-	case "warn":
-		{
-			return modelInputs.LogLevelWarn
-		}
-	case "error":
-		{
-			return modelInputs.LogLevelError
-		}
-
-	case "fatal":
-		{
-			return modelInputs.LogLevelFatal
-		}
-
-	default:
-		return modelInputs.LogLevelInfo
-	}
-}
-
 func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*sqlbuilder.SelectBuilder, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select(selectStr).
@@ -488,8 +426,12 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 
 	filters := makeFilters(params.Query)
 
-	if len(filters.body) > 0 {
-		sb.Where("Body ILIKE" + sb.Var(filters.body))
+	for _, body := range filters.body {
+		if strings.Contains(body, "%") {
+			sb.Where("Body ILIKE" + sb.Var(body))
+		} else {
+			sb.Where("hasTokenCaseInsensitive(Body, " + sb.Var(body) + ")")
+		}
 	}
 
 	if len(filters.level) > 0 {
@@ -537,7 +479,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 }
 
 type filters struct {
-	body              string
+	body              []string
 	level             string
 	trace_id          string
 	span_id           string
@@ -547,7 +489,6 @@ type filters struct {
 
 func makeFilters(query string) filters {
 	filters := filters{
-		body:       "",
 		attributes: make(map[string]string),
 	}
 
@@ -558,13 +499,13 @@ func makeFilters(query string) filters {
 
 		if len(parts) == 1 && len(parts[0]) > 0 {
 			body := parts[0]
+
 			if strings.Contains(body, "*") {
 				body = strings.ReplaceAll(body, "*", "%")
-			}
-			if len(filters.body) == 0 {
-				filters.body = body
+				filters.body = append(filters.body, body)
 			} else {
-				filters.body = filters.body + " " + body
+				splitBody := strings.FieldsFunc(body, isSeparator)
+				filters.body = append(filters.body, splitBody...)
 			}
 		} else if len(parts) == 2 {
 			key, value := parts[0], parts[1]
@@ -586,11 +527,11 @@ func makeFilters(query string) filters {
 		}
 	}
 
-	if len(filters.body) > 0 && !strings.Contains(filters.body, "%") {
-		filters.body = "%" + filters.body + "%"
-	}
-
 	return filters
+}
+
+func isSeparator(r rune) bool {
+	return !unicode.IsLetter(r) && !unicode.IsDigit(r)
 }
 
 // Splits the query by spaces _unless_ it is quoted

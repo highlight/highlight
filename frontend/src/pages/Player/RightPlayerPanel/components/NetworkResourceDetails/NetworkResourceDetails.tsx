@@ -56,6 +56,11 @@ const NetworkResourceDetails = React.memo(
 		const canMoveBackward = !!resources[prev]
 		const canMoveForward = !!resources[next]
 
+		const { showPlayerAbsoluteTime } = usePlayerConfiguration()
+		const timestamp = useMemo(() => {
+			return new Date(resource.timestamp).getTime() - startTime
+		}, [resource.timestamp, startTime])
+
 		useHotkeys(
 			'h',
 			() => {
@@ -77,8 +82,6 @@ const NetworkResourceDetails = React.memo(
 			},
 			[canMoveForward, next],
 		)
-
-		const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 
 		return (
 			<Box
@@ -144,12 +147,9 @@ const NetworkResourceDetails = React.memo(
 								showPlayerAbsoluteTime
 									? playerTimeToSessionAbsoluteTime({
 											sessionStartTime: startTime,
-											relativeTime:
-												resource.timestamp as number,
+											relativeTime: timestamp,
 									  })
-									: MillisToMinutesAndSeconds(
-											resource.timestamp as number,
-									  ),
+									: MillisToMinutesAndSeconds(timestamp),
 							)}
 							size="small"
 							shape="basic"

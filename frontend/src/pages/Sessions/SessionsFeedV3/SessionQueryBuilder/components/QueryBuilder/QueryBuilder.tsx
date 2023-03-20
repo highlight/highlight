@@ -199,44 +199,6 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
 	}),
 }
 
-export const defaultSessionsQuery = {
-	bool: {
-		must: [
-			{
-				bool: {
-					should: [
-						{
-							range: {
-								created_at: {
-									gte: moment().subtract(30, 'days').format(),
-									lte: moment().format(),
-								},
-							},
-						},
-					],
-				},
-			},
-			{
-				bool: {
-					must: [
-						{
-							bool: {
-								should: [
-									{
-										term: {
-											processed: 'true',
-										},
-									},
-								],
-							},
-						},
-					],
-				},
-			},
-		],
-	},
-} as const
-
 function useScroll<T extends HTMLElement>(): [() => void, React.RefObject<T>] {
 	const ref = useRef<T>(null)
 	const doScroll = useCallback(() => {

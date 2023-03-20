@@ -405,7 +405,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.Phone = pointy.String("")
 	admin.AboutYouDetailsFilled = &model.T
 
-	if !util.IsDevEnv() {
+	if util.IsHubspotEnabled() {
 		hubspotContactId, err := r.HubspotApi.CreateContactForAdmin(
 			ctx,
 			admin.ID,
@@ -495,7 +495,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 		return nil, e.Wrap(err, "error creating workspace")
 	}
 
-	if !util.IsDevEnv() {
+	if util.IsHubspotEnabled() {
 		// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
 		if _, err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name, r.DB); err != nil {
 			log.WithContext(ctx).Error(err, "error creating hubspot company")
@@ -629,7 +629,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfErrorGroupsViewed: &totalErrorGroupCountAsInt}).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error updating error group count for admin in postgres"))
 		}
-		if !util.IsDevEnv() {
+		if util.IsHubspotEnabled() {
 			if err := r.HubspotApi.UpdateContactProperty(ctx, admin.ID, []hubspot.Property{{
 				Name:     "number_of_highlight_error_groups_viewed",
 				Property: "number_of_highlight_error_groups_viewed",
@@ -724,7 +724,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: &totalSessionCountAsInt}).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error updating session count for admin in postgres"))
 		}
-		if !util.IsDevEnv() {
+		if util.IsHubspotEnabled() {
 			if err := r.HubspotApi.UpdateContactProperty(ctx, admin.ID, []hubspot.Property{{
 				Name:     "number_of_highlight_sessions_viewed",
 				Property: "number_of_highlight_sessions_viewed",

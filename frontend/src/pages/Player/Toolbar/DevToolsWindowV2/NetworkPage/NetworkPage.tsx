@@ -1,5 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
-import { Box, Text } from '@highlight-run/ui'
+import { Box, IconSolidArrowCircleRight, Tag, Text } from '@highlight-run/ui'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -292,6 +292,7 @@ export const NetworkPage = ({
 								return (
 									<ResourceRow
 										key={index.toString()}
+										index={index}
 										resource={resource}
 										networkRange={networkRange}
 										isCurrentResource={
@@ -306,6 +307,13 @@ export const NetworkPage = ({
 												RightPanelView.NetworkResource,
 											)
 										}}
+										setCurrentActiveIndex={
+											setCurrentActiveIndex
+										}
+										setActiveNetworkResource={
+											setActiveNetworkResource
+										}
+										setTime={setTime}
 										playerStartTime={startTime}
 										hasError={!!error}
 										networkRequestAndResponseRecordingEnabled={
@@ -335,11 +343,19 @@ export const NetworkPage = ({
 }
 
 interface ResourceRowProps {
+	index: number
 	resource: NetworkResource
 	networkRange: number
 	isCurrentResource: boolean
 	searchTerm: string
 	onClickHandler: () => void
+	setCurrentActiveIndex: React.Dispatch<
+		React.SetStateAction<number | undefined>
+	>
+	setActiveNetworkResource: React.Dispatch<
+		React.SetStateAction<NetworkResource | undefined>
+	>
+	setTime: (time: number) => void
 	networkRequestAndResponseRecordingEnabled: boolean
 	playerStartTime: number
 	hasError?: boolean
@@ -347,12 +363,16 @@ interface ResourceRowProps {
 }
 
 const ResourceRow = ({
+	index,
 	resource,
 	networkRange,
 	isCurrentResource,
 	searchTerm,
 	onClickHandler,
+	setCurrentActiveIndex,
+	setActiveNetworkResource,
 	networkRequestAndResponseRecordingEnabled,
+	setTime,
 	playerStartTime,
 	hasError,
 	showPlayerAbsoluteTime,
@@ -446,6 +466,20 @@ const ResourceRow = ({
 						className={styles.timingBarEmptySection}
 					/>
 				</Box>
+				<Tag
+					shape="basic"
+					emphasis="low"
+					kind="secondary"
+					size="medium"
+					onClick={(event) => {
+						setTime(resource.startTime)
+						event.stopPropagation() /* Prevents opening of right panel by parent row's onClick handler */
+						setCurrentActiveIndex(index)
+						setActiveNetworkResource(resource)
+					}}
+				>
+					<IconSolidArrowCircleRight />
+				</Tag>
 			</Box>
 		</Box>
 	)

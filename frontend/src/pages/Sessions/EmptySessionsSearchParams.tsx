@@ -1,6 +1,7 @@
 import { SearchParamsInput } from '@graph/schemas'
 import { Complete } from '@util/types'
 
+// TODO: only keep query (remove all other attributes) after deprecating static filters
 export const EmptySessionsSearchParams: Complete<SearchParamsInput> = {
 	user_properties: [],
 	identified: false,

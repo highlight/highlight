@@ -1252,7 +1252,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		log.WithContext(ctx).Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
 	}
 
-	if !util.IsDevOrTestEnv() {
+	if util.IsHubspotEnabled() {
 		for _, c := range counts {
 			// See HIG-2743
 			// Skip updating session count for demo workspace because we exclude it from Hubspot

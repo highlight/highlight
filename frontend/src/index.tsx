@@ -1,5 +1,6 @@
 import 'antd/dist/antd.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
+import '@highlight-run/react/dist/index.css'
 import '@fontsource/poppins'
 import './index.scss'
 import './style/tailwind.css'
@@ -316,10 +317,9 @@ const AuthenticationRoleRouter = () => {
 			unsubscribeFirebase()
 		}
 
-		// We need to make sure this doesn't run more than once or it will create
-		// multiple auth state change listeners.
+		// Don't rerun this more than necessary. Rerun if the project / workspace context changes.
 		// eslint-disable-next-line
-	}, [])
+	}, [getAdminQuery])
 
 	useEffect(() => {
 		// Check user exists here as well because adminData isn't cleared correctly

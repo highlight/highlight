@@ -6,7 +6,8 @@
 	"author": "Highlight",
 	"license": "MIT",
 	"dependencies": {
-		"concurrently": "^6.5.1"
+		"concurrently": "^6.5.1",
+		"react-markdown": "^8.0.5"
 	},
 	"workspaces": [
 		"e2e/*",
@@ -14,7 +15,9 @@
 		"frontend",
 		"sdk/client",
 		"sdk/firstload",
+		"sdk/highlight-apollo",
 		"sdk/highlight-cloudflare",
+		"sdk/highlight-nest",
 		"sdk/highlight-next",
 		"sdk/highlight-node",
 		"sdk/highlight-react",
@@ -27,7 +30,7 @@
 		"build:all": "yarn turbo run prepublish build",
 		"build:backend": "cd backend && go build",
 		"build:frontend": "yarn turbo run build --filter frontend...",
-		"build:sdk": "yarn turbo run build --filter @highlight-run/cloudflare --filter @highlight-run/react --filter @highlight-run/next...",
+		"build:sdk": "yarn turbo run build --filter @highlight-run/cloudflare --filter @highlight-run/react --filter @highlight-run/apollo... --filter @highlight-run/next... --filter @highlight-run/nest...",
 		"cy:run": "cypress run",
 		"cy:run:chrome": "cypress run --headed --browser chrome",
 		"dev": "run-p --print-label --race 'dev:*'",

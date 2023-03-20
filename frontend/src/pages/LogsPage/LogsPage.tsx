@@ -23,7 +23,7 @@ import {
 	withDefault,
 } from 'use-query-params'
 
-const QueryParam = withDefault(StringParam, '')
+export const QueryParam = withDefault(StringParam, '')
 const FixedRangeStartDateParam = withDefault(DateTimeParam, fifteenMinutesAgo)
 const PermalinkStartDateParam = withDefault(DateTimeParam, thirtyDaysAgo)
 const EndDateParam = withDefault(DateTimeParam, now.toDate())
@@ -85,8 +85,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	const handleFormSubmit = (value: string) => {
 		if (!!value) {
 			setQuery(value)
-		} else {
-			setQuery(undefined)
 		}
 	}
 

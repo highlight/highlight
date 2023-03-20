@@ -23,3 +23,15 @@
 ### Minor Changes
 
 -   Adds ability to record `console` methods.
+
+## 2.4.2
+
+### Minor Changes
+
+-   Removes dependence on `apollo` related packages to decrease bundle size and fix types checks.
+
+## 2.4.3
+
+### Minor Changes
+
+-   Exposes internal `log` function for writing logs to highlight.

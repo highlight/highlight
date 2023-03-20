@@ -1,4 +1,4 @@
-import { IncomingHttpHeaders, request } from 'http'
+import { IncomingHttpHeaders } from 'http'
 import { Highlight } from '.'
 import { NodeOptions } from './types.js'
 import log from './log'
@@ -25,7 +25,8 @@ export interface HighlightInterface {
 		tags?: { name: string; value: string }[],
 	) => void
 	flush: () => Promise<void>
-	log: (...data: any[]) => void
+	log: (message: any, level: string, ...optionalParams: any[]) => void
+	_debug: (...data: any[]) => void
 }
 
 let _debug: boolean = false
@@ -84,6 +85,27 @@ export const H: HighlightInterface = {
 			console.warn('highlight-node flush error: ', e)
 		}
 	},
+	log: (
+		message: any,
+		level: string,
+		secureSessionId?: string | undefined,
+		requestId?: string | undefined,
+	) => {
+		const o: { stack: any } = { stack: {} }
+		Error.captureStackTrace(o)
+		try {
+			highlight_obj.log(
+				new Date(),
+				message,
+				level,
+				o.stack,
+				secureSessionId,
+				requestId,
+			)
+		} catch (e) {
+			console.warn('highlight-node log error: ', e)
+		}
+	},
 	parseHeaders: (
 		headers: IncomingHttpHeaders,
 	): { secureSessionId: string; requestId: string } | undefined => {
@@ -93,7 +115,7 @@ export const H: HighlightInterface = {
 					`${headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
 				return { secureSessionId, requestId }
 			} else {
-				H.log(
+				H._debug(
 					`request headers do not contain ${HIGHLIGHT_REQUEST_HEADER}`,
 				)
 			}
@@ -102,7 +124,7 @@ export const H: HighlightInterface = {
 		}
 		return undefined
 	},
-	log: (...data: any[]) => {
+	_debug: (...data: any[]) => {
 		if (_debug) {
 			log('H', ...data)
 		}

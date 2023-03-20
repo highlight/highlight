@@ -91,20 +91,14 @@ export const Header = () => {
 			icon: IconSolidLightningBolt,
 		},
 		{
+			key: 'logs',
+			icon: IconSolidViewList,
+		},
+		{
 			key: 'alerts',
 			icon: IconSolidSpeakerphone,
 		},
 	]
-	if (
-		isHighlightAdmin ||
-		projectIdRemapped === '759' ||
-		projectIdRemapped === '1434'
-	) {
-		pages.splice(2, 0, {
-			key: 'logs',
-			icon: IconSolidViewList,
-		})
-	}
 
 	const inProjectOrWorkspace =
 		isLoggedIn && (projectIdRemapped || workspaceId)

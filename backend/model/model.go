@@ -183,6 +183,7 @@ var Models = []interface{}{
 	&IntegrationWorkspaceMapping{},
 	&EmailOptOut{},
 	&BillingEmailHistory{},
+	&Retryable{},
 }
 
 func init() {
@@ -1188,6 +1189,21 @@ type BillingEmailHistory struct {
 	Active      bool
 	WorkspaceID int
 	Type        Email.EmailType
+}
+
+type RetryableType string
+
+const (
+	RetryableOpensearchError RetryableType = "OPENSEARCH_ERROR"
+)
+
+type Retryable struct {
+	Model
+	Type        RetryableType
+	PayloadType string
+	PayloadID   string
+	Payload     JSONB `sql:"type:jsonb"`
+	Error       string
 }
 
 func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {

@@ -13,6 +13,7 @@ import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
+import { parseLogsQuery } from '@pages/LogsPage/SearchForm/utils'
 import {
 	ColumnDef,
 	ExpandedState,
@@ -73,6 +74,7 @@ const LogsTableInner = ({
 	tableContainerRef,
 	selectedCursor,
 }: Props) => {
+	const queryTerms = parseLogsQuery(query)
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const columns = React.useMemo<ColumnDef<LogEdge>[]>(
@@ -114,13 +116,15 @@ const LogsTableInner = ({
 				accessorKey: 'node.message',
 				cell: ({ row, getValue }) => (
 					<LogMessage
-						query={query}
+						queryTerms={queryTerms}
 						message={getValue() as string}
 						expanded={row.getIsExpanded()}
 					/>
 				),
 			},
 		],
+		// Only want to update when the query string matches.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[query],
 	)
 
@@ -207,7 +211,7 @@ const LogsTableInner = ({
 							})}
 						</Stack>
 
-						<LogDetails row={row} />
+						<LogDetails row={row} queryTerms={queryTerms} />
 					</Box>
 				)
 			})}

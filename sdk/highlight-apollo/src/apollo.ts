@@ -1,11 +1,11 @@
-import {
+import type {
 	ApolloServerPlugin,
 	BaseContext,
 	GraphQLRequestContextDidEncounterErrors,
 	GraphQLRequestListener,
 } from '@apollo/server'
-import { H, HIGHLIGHT_REQUEST_HEADER } from './sdk'
-import { NodeOptions } from './types'
+import { H, HIGHLIGHT_REQUEST_HEADER } from '@highlight-run/node'
+import type { NodeOptions } from '@highlight-run/node'
 
 export const ApolloServerHighlightPlugin = function <T extends BaseContext>(
 	options: NodeOptions,
@@ -20,14 +20,14 @@ export const ApolloServerHighlightPlugin = function <T extends BaseContext>(
 						HIGHLIGHT_REQUEST_HEADER,
 					)}`.split('/')
 			}
-			H.log('processError', 'extracted from headers', {
+			H._debug('processError', 'extracted from headers', {
 				secureSessionId,
 				requestId,
 			})
 
 			if (!H.isInitialized()) {
 				H.init(options)
-				H.log('initialized H in apollo server')
+				H._debug('initialized H in apollo server')
 			}
 			return {
 				async didEncounterErrors(
@@ -36,7 +36,7 @@ export const ApolloServerHighlightPlugin = function <T extends BaseContext>(
 					H.consumeEvent(secureSessionId)
 					for (const error of requestContext.errors) {
 						H.consumeError(error, secureSessionId, requestId)
-						H.log('consumed apollo request error', error)
+						H._debug('consumed apollo request error', error)
 					}
 				},
 			}
