@@ -58,7 +58,7 @@ Good for <10k sessions and <50k errors ingested monthly. See our  [docs for more
 
 ### Developing on Highlight
 
-Want to contribute to Highlight, see our [onboarding](./DEVELOPER_ONBOARDING.md) guide.
+Want to contribute to Highlight? See our [onboarding](./DEVELOPER_ONBOARDING.md) guide.
 
 ### Enterprise self-hosted
 
