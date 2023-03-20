@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/hasura/go-graphql-client"
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/pkg/errors"
 )
 
@@ -282,11 +283,12 @@ func MarkBackendSetup(ctx context.Context) {
 		if currentTime.Sub(lastBackendSetupTimestamp).Minutes() > backendSetupCooldown {
 			lastBackendSetupTimestamp = currentTime
 			var mutation struct {
-				MarkBackendSetup string `graphql:"markBackendSetup(session_secure_id: $session_secure_id)"`
+				MarkBackendSetup string `graphql:"markBackendSetup(session_secure_id: $session_secure_id, type: $type)"`
 			}
 			sessionSecureID := ctx.Value(ContextKeys.SessionSecureID)
 			variables := map[string]interface{}{
 				"session_secure_id": graphql.String(fmt.Sprintf("%v", sessionSecureID)),
+				"type":              graphql.String(fmt.Sprintf("%v", model.MarkBackendSetupTypeError)),
 			}
 
 			err := client.Mutate(ctx, &mutation, variables)
