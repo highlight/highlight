@@ -3,7 +3,6 @@ import { useGetLogsHistogramQuery } from '@graph/hooks'
 import { LogLevel as Level } from '@graph/schemas'
 import { Box, Popover, Text } from '@highlight-run/ui'
 import { COLOR_MAPPING, FORMAT } from '@pages/LogsPage/constants'
-import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { isSignificantDateRange } from '@pages/LogsPage/utils'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
@@ -325,9 +324,18 @@ const LogBucketBar = ({
 										width: 8,
 									}}
 								/>
-								<LogLevel level={bar.level as Level} />
-								<Box ml="auto" color="weak">
-									<Text size="small" weight="medium">
+								<Text
+									color="secondaryContentText"
+									transform="capitalize"
+								>
+									{bar.level}
+								</Text>
+								<Box ml="auto">
+									<Text
+										color="secondaryContentText"
+										size="small"
+										weight="medium"
+									>
 										{bar.count}
 									</Text>
 								</Box>
