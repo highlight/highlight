@@ -16,9 +16,7 @@ func (m *MockResponseWriter) Write(bytes []byte) (int, error) {
 	return 0, nil
 }
 
-func (m *MockResponseWriter) WriteHeader(statusCode int) {
-	return
-}
+func (m *MockResponseWriter) WriteHeader(statusCode int) {}
 
 func TestHandler_HandleLog(t *testing.T) {
 	w := &MockResponseWriter{}
