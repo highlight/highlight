@@ -1,6 +1,9 @@
 package clickhouse
 
 import (
+	"fmt"
+	model2 "github.com/highlight-run/highlight/backend/model"
+	e "github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"time"
@@ -10,6 +13,18 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	log "github.com/sirupsen/logrus"
 )
+
+func ProjectToInt(projectID string) (int, error) {
+	i, err := strconv.ParseInt(projectID, 10, 32)
+	if err == nil {
+		return int(i), nil
+	}
+	i2, err := model2.FromVerboseID(projectID)
+	if err == nil {
+		return i2, nil
+	}
+	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
+}
 
 type LogRowPrimaryAttrs struct {
 	Timestamp       time.Time
@@ -71,6 +86,27 @@ func WithSeverityText(severityText string) LogRowOption {
 	}
 }
 
+func WithBody(body string) LogRowOption {
+	return func(h *LogRow) {
+		h.Body = body
+	}
+}
+
+func WithServiceName(serviceName string) LogRowOption {
+	return func(h *LogRow) {
+		h.ServiceName = serviceName
+	}
+}
+
+func WithProjectIDString(projectID string) LogRowOption {
+	projectIDInt, err := ProjectToInt(projectID)
+	return func(h *LogRow) {
+		if err == nil {
+			h.ProjectId = uint32(projectIDInt)
+		}
+	}
+}
+
 func cast[T string | int64 | float64](v interface{}, fallback T) T {
 	c, ok := v.(T)
 	if !ok {
@@ -115,41 +151,20 @@ func getAttributesMap(resourceAttributes, eventAttributes map[string]any) map[st
 
 func makeLogLevel(severityText string) modelInputs.LogLevel {
 	switch strings.ToLower(severityText) {
-	case "log":
-		return modelInputs.LogLevelError
 	case "console.error":
 		return modelInputs.LogLevelError
 	case "window.onerror":
 		return modelInputs.LogLevelError
 	case "trace":
-		{
-			return modelInputs.LogLevelTrace
-
-		}
+		return modelInputs.LogLevelTrace
 	case "debug":
-		{
-			return modelInputs.LogLevelDebug
-
-		}
-	case "info":
-		{
-			return modelInputs.LogLevelInfo
-
-		}
+		return modelInputs.LogLevelDebug
 	case "warn":
-		{
-			return modelInputs.LogLevelWarn
-		}
+		return modelInputs.LogLevelWarn
 	case "error":
-		{
-			return modelInputs.LogLevelError
-		}
-
+		return modelInputs.LogLevelError
 	case "fatal":
-		{
-			return modelInputs.LogLevelFatal
-		}
-
+		return modelInputs.LogLevelFatal
 	default:
 		return modelInputs.LogLevelInfo
 	}

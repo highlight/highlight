@@ -5,17 +5,14 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
-	model2 "github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -69,39 +66,23 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 	}
 }
 
-func projectToInt(projectID string) (int, error) {
-	i, err := strconv.ParseInt(projectID, 10, 32)
-	if err == nil {
-		return int(i), nil
-	}
-	i2, err := model2.FromVerboseID(projectID)
-	if err == nil {
-		return i2, nil
-	}
-	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
-}
-
-func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, eventAttributes map[string]any) *clickhouse.LogRow {
-	projectIDInt, err := projectToInt(projectID)
-	if err != nil {
-		log.WithContext(ctx).WithField("ProjectVerboseID", projectID).Errorf("otel getLogRow got invalid project id")
+func getLogRow(ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, eventAttributes map[string]any) *clickhouse.LogRow {
+	if projectID == "" {
 		return nil
 	}
-	logRow := clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
-		Timestamp:       ts,
-		ProjectId:       uint32(projectIDInt),
-		TraceId:         traceID,
-		SpanId:          spanID,
-		SecureSessionId: sessionID,
-	}, clickhouse.WithLogAttributes(resourceAttributes, eventAttributes),
-		clickhouse.WithSeverityText(lvl))
-	logRow.ServiceName = cast(resourceAttributes[string(semconv.ServiceNameKey)], "")
-	logRow.Body = excMessage
-	if projectID != "" {
-		return logRow
-	} else {
-		return nil
-	}
+	return clickhouse.NewLogRow(
+		clickhouse.LogRowPrimaryAttrs{
+			Timestamp:       ts,
+			TraceId:         traceID,
+			SpanId:          spanID,
+			SecureSessionId: sessionID,
+		},
+		clickhouse.WithBody(excMessage),
+		clickhouse.WithProjectIDString(projectID),
+		clickhouse.WithServiceName(cast(resourceAttributes[string(semconv.ServiceNameKey)], "")),
+		clickhouse.WithLogAttributes(resourceAttributes, eventAttributes),
+		clickhouse.WithSeverityText(lvl),
+	)
 }
 
 func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, requestID, traceID, spanID string, logCursor *string, source, excMessage, tag string, resourceAttributes, eventAttributes map[string]any) (bool, *model.BackendErrorObjectInput) {
@@ -205,7 +186,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						ts := event.Timestamp().AsTime()
 
 						var logCursor *string
-						logRow := getLogRow(ctx, ts, "ERROR", projectID, sessionID, traceID, spanID, excMessage, resourceAttributes, eventAttributes)
+						logRow := getLogRow(ts, "ERROR", projectID, sessionID, traceID, spanID, excMessage, resourceAttributes, eventAttributes)
 						if logRow == nil {
 							data, _ := req.MarshalJSON()
 							log.WithContext(ctx).WithField("LogEvent", event).WithField("RequestJSON", string(data)).Errorf("otel span log got no project")
@@ -237,7 +218,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						}
 
 						var logCursor *string
-						logRow := getLogRow(ctx, ts, logSev, projectID, sessionID, traceID, spanID, logMessage, resourceAttributes, eventAttributes)
+						logRow := getLogRow(ts, logSev, projectID, sessionID, traceID, spanID, logMessage, resourceAttributes, eventAttributes)
 						if logRow == nil {
 							data, _ := req.MarshalJSON()
 							log.WithContext(ctx).WithField("LogEvent", event).WithField("RequestJSON", string(data)).Errorf("otel span log got no project")
@@ -310,7 +291,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if backendError {
-			if projectIDInt, err := projectToInt(projectID); err == nil {
+			if projectIDInt, err := clickhouse.ProjectToInt(projectID); err == nil {
 				err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
 					Type: kafkaqueue.MarkBackendSetup,
 					MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
@@ -394,7 +375,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				logRecord := logRecords.At(k)
 				logAttributes := logRecord.Attributes().AsRaw()
 				setHighlightAttributes(logAttributes, &projectID, &sessionID, &requestID, &source)
-				projectIDInt, err := projectToInt(projectID)
+				projectIDInt, err := clickhouse.ProjectToInt(projectID)
 				if err != nil {
 					log.WithContext(ctx).WithField("ProjectID", projectID).WithField("LogMessage", logRecord.Body().AsRaw()).Errorf("otel log got invalid project id")
 					continue
@@ -436,7 +417,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow, backend bool) error {
 	for projectID, logRows := range projectLogs {
-		if projectIDInt, err := projectToInt(projectID); backend && err == nil {
+		if projectIDInt, err := clickhouse.ProjectToInt(projectID); backend && err == nil {
 			// otel logs only come from python sdk
 			err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
 				Type: kafkaqueue.MarkBackendSetup,
