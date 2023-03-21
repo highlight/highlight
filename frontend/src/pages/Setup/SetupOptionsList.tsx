@@ -27,7 +27,6 @@ export const SetupOptionsList: React.FC<Props> = ({
 	clientIntegrationData,
 	serverIntegrationData,
 }) => {
-	// TODO: See if we can handle an optional parameter.
 	const clientMatch = useMatch('/:project_id/setup/client')
 	const areaMatch = useMatch('/:project_id/setup/:area')
 	const languageMatch = useMatch('/:project_id/setup/:area/:language')
@@ -39,7 +38,7 @@ export const SetupOptionsList: React.FC<Props> = ({
 	const optionKeys = getOptionKeys(docsSection)
 	const integrated =
 		(area === 'client' && !!clientIntegrationData) ||
-		(area === 'server' && !!serverIntegrationData)
+		(area === 'backend' && !!serverIntegrationData)
 
 	// Redirect if there is only one option. Also has a temporary redirect for
 	// clientMatch until the extra docs keys are removed from the top level of the
@@ -78,6 +77,7 @@ export const SetupOptionsList: React.FC<Props> = ({
 
 				{/* TODO: Break this out to a separate component, or consider taking
 				some props for header content */}
+				{/* TODO: Add view your first session/error/log CTA here. */}
 				{options.map((option, index) => {
 					return (
 						<Box

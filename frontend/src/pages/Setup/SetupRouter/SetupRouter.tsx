@@ -27,7 +27,7 @@ export type Guide = {
 	}>
 }
 
-type DocsKey = 'client' | 'server' | 'server-logging'
+type DocsKey = 'client' | 'backend' | 'backend-logging'
 export type DocsSection = {
 	title: string
 	description: string
@@ -115,7 +115,7 @@ const SetupRouter = () => {
 						</Stack>
 					</NavLink>
 					<NavLink
-						to="server"
+						to="backend"
 						className={({ isActive }) =>
 							clsx(styles.menuItem, {
 								[styles.menuItemActive]: isActive,
@@ -124,11 +124,11 @@ const SetupRouter = () => {
 					>
 						<Stack direction="row" align="center" gap="4">
 							{serverIntegrationData && <IconSolidCheckCircle />}
-							<Text>Server monitoring</Text>
+							<Text>Backend error monitoring</Text>
 						</Stack>
 					</NavLink>
 					<NavLink
-						to="server-logging"
+						to="backend-logging"
 						className={({ isActive }) =>
 							clsx(styles.menuItem, {
 								[styles.menuItemActive]: isActive,

@@ -177,7 +177,7 @@ const buildIntegrationDataPath = (
 ) => {
 	if (area === 'client' && clientIntegrationData) {
 		return `/${projectId}/sessions/${clientIntegrationData.secure_id}`
-	} else if (area === 'server' && serverIntegrationData) {
+	} else if (area === 'backend' && serverIntegrationData) {
 		return `/${projectId}/error_groups/${serverIntegrationData.secure_id}`
 	}
 }

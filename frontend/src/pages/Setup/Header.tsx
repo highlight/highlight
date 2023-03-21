@@ -67,8 +67,8 @@ export const useSetupBreadcrumbs = () => {
 	// when we add more client types (iOS, Android, etc.).
 	const ignoreLanguage =
 		(area === 'client' && language === 'js') ||
-		(area === 'server-logging' && language === 'http-otlp') ||
-		(area === 'server-logging' && language === 'python')
+		(area === 'backend-logging' && language === 'http-otlp') ||
+		(area === 'backend-logging' && language === 'python')
 
 	const breadcrumbs = [
 		{
