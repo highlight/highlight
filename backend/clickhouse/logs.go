@@ -387,6 +387,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 
 		// See https://dba.stackexchange.com/a/206811
 		sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
+			Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.StartDate.Unix()))).
 			Where(
 				sb.Or(
 					sb.LessThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix())),
@@ -407,6 +408,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 		}
 
 		sb.Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
+			Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.EndDate.Unix()))).
 			Where(
 				sb.Or(
 					sb.GreaterThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix())),
