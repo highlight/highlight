@@ -1,5 +1,4 @@
 import { ReservedLogKey, Session } from '@graph/schemas'
-import moment from 'moment'
 import { stringify } from 'query-string'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
@@ -100,7 +99,7 @@ export const getLogsURLForSession = (projectId: string, session: Session) => {
 	})
 
 	const sessionStartDate = new Date(session.created_at)
-	const sessionEndDate = moment(sessionStartDate).add(1, 'day').toDate()
+	const sessionEndDate = new Date()
 
 	const encodedQuery = encodeQueryParams(
 		{
