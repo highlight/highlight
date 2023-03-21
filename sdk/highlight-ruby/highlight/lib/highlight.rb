@@ -128,18 +128,18 @@ module Highlight
             # https://github.com/ruby/logger/blob/master/lib/logger.rb
             severity ||= UNKNOWN
             if @logdev.nil? or severity < level
-            return true
+                return true
             end
             if progname.nil?
-            progname = @progname
-            end
-            if message.nil?
-            if block_given?
-                message = yield
-            else
-                message = progname
                 progname = @progname
             end
+            if message.nil?
+                if block_given?
+                    message = yield
+                else
+                    message = progname
+                    progname = @progname
+                end
             end
             super
             H.instance.record_log(nil, nil, severity, message)
