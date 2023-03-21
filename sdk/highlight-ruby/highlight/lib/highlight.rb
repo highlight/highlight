@@ -60,9 +60,7 @@ module Highlight
 
         def record_exception(e)
             span = OpenTelemetry::Trace.current_span
-            if !span
-                raise "H.record_exception called without a span context"
-            end
+            return unless span
             span.record_exception(e)
         end
 
