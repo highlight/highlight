@@ -144,17 +144,16 @@ async function getAllSourceMapFiles(paths: string[]) {
         glob(
           "**/*.js?(.map)",
           { cwd: realPath, nodir: true, ignore: "**/node_modules/**/*" },
-          async (err, files) => {
-            for (const file of files) {
-              map.push({
-                path: join(realPath, file),
-                name: file,
-              });
-            }
-
-            resolve();
+        ).then((files) => {
+          for (const file of files) {
+            map.push({
+              path: join(realPath, file),
+              name: file,
+            });
           }
-        );
+
+          resolve();
+        });
       });
     })
   );
