@@ -1531,7 +1531,7 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 			ProjectID: projectID,
 			Type:      setupType,
 		}
-		if err := r.DB.Model(&model.SetupEvent{}).Create(&setupEvent).Error; err != nil {
+		if err := r.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&setupEvent).Error; err != nil {
 			return e.Wrap(err, "error creating setup event")
 		}
 	}
