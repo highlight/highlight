@@ -1,4 +1,4 @@
-import { Session } from '@graph/schemas'
+import { ReservedLogKey, Session } from '@graph/schemas'
 import moment from 'moment'
 import { stringify } from 'query-string'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
@@ -93,7 +93,7 @@ export const validateLogsQuery = (params: LogsSearchParam[]): boolean => {
 export const getLogsURLForSession = (projectId: string, session: Session) => {
 	const queryParams: LogsSearchParam[] = []
 	queryParams.push({
-		key: 'secure_session_id',
+		key: ReservedLogKey.SecureSessionId,
 		operator: DEFAULT_LOGS_OPERATOR,
 		value: session.secure_id,
 		offsetStart: 0,
