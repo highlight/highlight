@@ -309,6 +309,7 @@ func TestReadLogsAfterCursor(t *testing.T) {
 
 	now := time.Now()
 	oneSecondAgo := now.Add(-time.Second * 1)
+	oneDayAgo := now.Add(-time.Hour * 24)
 
 	rows := []*LogRow{
 		{
@@ -316,6 +317,7 @@ func TestReadLogsAfterCursor(t *testing.T) {
 				Timestamp: now,
 				ProjectId: 1,
 			},
+			Body: "Body 1",
 			UUID: "c051edc8-3749-4e44-8f48-0ea90f3fc3d9",
 		},
 		{
@@ -323,6 +325,7 @@ func TestReadLogsAfterCursor(t *testing.T) {
 				Timestamp: oneSecondAgo,
 				ProjectId: 1,
 			},
+			Body: "Body 2",
 			UUID: "a0d9abd6-7cbf-47de-b211-d16bb0935e04",
 		},
 		{
@@ -330,35 +333,39 @@ func TestReadLogsAfterCursor(t *testing.T) {
 				Timestamp: oneSecondAgo,
 				ProjectId: 1,
 			},
+			Body: "Body 3",
 			UUID: "b6e255ee-049e-4563-bbfe-c33503cde94c",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: oneDayAgo,
+				ProjectId: 1,
+			},
+			Body: "Body 4",
 		},
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	originalConnection, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{})
 	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 3)
+	assert.Len(t, originalConnection.Edges, 3)
 
-	firstCursor := encodeCursor(now, "c051edc8-3749-4e44-8f48-0ea90f3fc3d9")
-	secondCursor := encodeCursor(oneSecondAgo, "b6e255ee-049e-4563-bbfe-c33503cde94c")
-	thirdCursor := encodeCursor(oneSecondAgo, "a0d9abd6-7cbf-47de-b211-d16bb0935e04")
+	assert.Equal(t, originalConnection.Edges[0].Node.Message, "Body 1")
+	assert.Equal(t, originalConnection.Edges[1].Node.Message, "Body 3")
+	assert.Equal(t, originalConnection.Edges[2].Node.Message, "Body 2")
 
-	assert.Equal(t, payload.Edges[0].Cursor, firstCursor)
-	assert.Equal(t, payload.Edges[1].Cursor, secondCursor)
-	assert.Equal(t, payload.Edges[2].Cursor, thirdCursor)
-
-	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	connection, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{
-		After: &secondCursor,
+		After: &originalConnection.Edges[1].Cursor,
 	})
 	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 1)
+	assert.Len(t, connection.Edges, 1)
 
-	assert.Equal(t, payload.Edges[0].Cursor, thirdCursor)
+	assert.Equal(t, connection.Edges[0].Cursor, originalConnection.Edges[2].Cursor)
 }
 
 func TestReadLogsBeforeCursor(t *testing.T) {
@@ -368,13 +375,22 @@ func TestReadLogsBeforeCursor(t *testing.T) {
 
 	now := time.Now()
 	oneSecondAgo := now.Add(-time.Second * 1)
+	oneDayFromNow := now.Add(time.Hour * 24)
 
 	rows := []*LogRow{
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: oneDayFromNow,
+				ProjectId: 1,
+			},
+			Body: "Body 0",
+		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now,
 				ProjectId: 1,
 			},
+			Body: "Body 1",
 			UUID: "c051edc8-3749-4e44-8f48-0ea90f3fc3d9",
 		},
 		{
@@ -382,6 +398,7 @@ func TestReadLogsBeforeCursor(t *testing.T) {
 				Timestamp: oneSecondAgo,
 				ProjectId: 1,
 			},
+			Body: "Body 2",
 			UUID: "a0d9abd6-7cbf-47de-b211-d16bb0935e04",
 		},
 		{
@@ -389,35 +406,32 @@ func TestReadLogsBeforeCursor(t *testing.T) {
 				Timestamp: oneSecondAgo,
 				ProjectId: 1,
 			},
+			Body: "Body 3",
 			UUID: "b6e255ee-049e-4563-bbfe-c33503cde94c",
 		},
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	originalConnection, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{})
 	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 3)
+	assert.Len(t, originalConnection.Edges, 3)
 
-	firstCursor := encodeCursor(now, "c051edc8-3749-4e44-8f48-0ea90f3fc3d9")
-	secondCursor := encodeCursor(oneSecondAgo, "b6e255ee-049e-4563-bbfe-c33503cde94c")
-	thirdCursor := encodeCursor(oneSecondAgo, "a0d9abd6-7cbf-47de-b211-d16bb0935e04")
+	assert.Equal(t, originalConnection.Edges[0].Node.Message, "Body 1")
+	assert.Equal(t, originalConnection.Edges[1].Node.Message, "Body 3")
+	assert.Equal(t, originalConnection.Edges[2].Node.Message, "Body 2")
 
-	assert.Equal(t, payload.Edges[0].Cursor, firstCursor)
-	assert.Equal(t, payload.Edges[1].Cursor, secondCursor)
-	assert.Equal(t, payload.Edges[2].Cursor, thirdCursor)
-
-	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	connection, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{
-		Before: &secondCursor,
+		Before: &originalConnection.Edges[1].Cursor,
 	})
 	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 1)
+	assert.Len(t, connection.Edges, 1)
 
-	assert.Equal(t, payload.Edges[0].Cursor, firstCursor)
+	assert.Equal(t, connection.Edges[0].Cursor, originalConnection.Edges[0].Cursor)
 }
 
 func TestReadLogsAtCursor(t *testing.T) {
