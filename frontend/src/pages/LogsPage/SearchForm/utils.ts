@@ -1,3 +1,8 @@
+import { Session } from "@graph/schemas"
+import moment from "moment";
+import { stringify } from 'query-string';
+import { DateTimeParam, encodeQueryParams, StringParam } from "use-query-params"
+
 export type LogsSearchParam = {
 	key: string
 	operator: string
@@ -83,4 +88,23 @@ export const stringifyLogsQuery = (params: LogsSearchParam[]) => {
 
 export const validateLogsQuery = (params: LogsSearchParam[]): boolean => {
 	return !params.some((param) => !param.value)
+}
+
+export const getLogsURLForSession = (projectId: string, session: Session) => {
+	const queryParams: LogsSearchParam[] = []
+	queryParams.push({
+		key: 'secure_session_id',
+		operator: DEFAULT_LOGS_OPERATOR,
+		value: session.secure_id,
+		offsetStart: 0,
+	})
+
+	const sessionStartDate = new Date(session.created_at)
+	const sessionEndDate = moment(sessionStartDate).add(1, 'day').toDate()
+
+	const encodedQuery = encodeQueryParams(
+		{ query: StringParam, start_date: DateTimeParam, end_date: DateTimeParam },
+		{ query: stringifyLogsQuery(queryParams), start_date: sessionStartDate, end_date: sessionEndDate}
+	);
+	return `/${projectId}/logs?${stringify(encodedQuery)}`
 }
