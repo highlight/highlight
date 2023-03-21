@@ -8,7 +8,6 @@ import {
 import { GraphQLClient } from 'graphql-request'
 import { NodeOptions } from './types.js'
 import log from './log'
-import * as opentelemetry from '@opentelemetry/sdk-node'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { trace, Tracer } from '@opentelemetry/api'
@@ -17,6 +16,7 @@ import {
 	BatchSpanProcessor,
 	SpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
+import { NodeSDK } from '@opentelemetry/sdk-node'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -30,7 +30,7 @@ export class Highlight {
 	lastBackendSetupEvent: number = 0
 	_projectID: string
 	_debug: boolean
-	private otel: opentelemetry.NodeSDK
+	private otel: NodeSDK
 	private tracer: Tracer
 	private processor: SpanProcessor
 
@@ -55,7 +55,7 @@ export class Highlight {
 		})
 
 		this.processor = new BatchSpanProcessor(exporter, {})
-		this.otel = new opentelemetry.NodeSDK({
+		this.otel = new NodeSDK({
 			autoDetectResources: true,
 			defaultAttributes: { 'highlight.project_id': this._projectID },
 			spanProcessor: this.processor,
