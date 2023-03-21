@@ -102,7 +102,7 @@ export const getLogsURLForSession = (projectId: string, session: Session) => {
 	const sessionStartDate = new Date(session.created_at)
 
 	// Instead of doing `new Date()` (equivalent to the time now), we set an arbitrary end date of one day after the session was created.
-	// We have found that Clickhouse doesn't perform well long time ranges (see https://github.com/highlight/highlight/pull/4652)
+	// We have found that Clickhouse doesn't perform well with long time ranges (see https://github.com/highlight/highlight/pull/4652)
 	// Rarely will a session last longer than a day. If users need to handle this case, we should figure out a way for the backend to optimize
 	// long time ranges.
 	const sessionEndDate = moment(sessionStartDate).add(1, 'day').toDate()
