@@ -41,6 +41,7 @@ export async function render(
 		dir = await promisify(mkdtemp)(prefix)
 	}
 
+	console.log(`starting puppeteer`)
 	const browser = await puppeteer.launch({
 		args: chromium.args,
 		defaultViewport: chromium.defaultViewport,

@@ -6,7 +6,7 @@
 	"main": "./dist/index.js",
 	"scripts": {
 		"build": "esbuild ./src/index.ts --bundle --minify --platform=node --format=cjs --target=es2020 --outfile=dist/index.js",
-		"publish": "zip -r function.zip dist node_modules package.json -x node_modules/puppeteer/node_modules/puppeteer-core/.local-chromium\\* -x node_modules/@highlight-run/rrweb/node_modules/puppeteer/.local-chromium\\* -x node_modules/puppeteer/.local-chromium\\* && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
+		"publish": "zip -r function.zip dist node_modules package.json -x node_modules/puppeteer/node_modules/puppeteer-core/.local-chromium\\* -x node_modules/@highlight-run/rrweb/node_modules/puppeteer/.local-chromium\\* && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
 	},
 	"installConfig": {
 		"hoistingLimits": "dependencies"
