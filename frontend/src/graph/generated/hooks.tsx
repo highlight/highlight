@@ -11762,8 +11762,8 @@ export type GetLogsHistogramQueryResult = Apollo.QueryResult<
 	Types.GetLogsHistogramQueryVariables
 >
 export const GetLogsKeysDocument = gql`
-	query GetLogsKeys($project_id: ID!) {
-		logs_keys(project_id: $project_id) {
+	query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
+		logs_keys(project_id: $project_id, date_range: $date_range) {
 			name
 			type
 		}
@@ -11783,6 +11783,7 @@ export const GetLogsKeysDocument = gql`
  * const { data, loading, error } = useGetLogsKeysQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
+ *      date_range: // value for 'date_range'
  *   },
  * });
  */

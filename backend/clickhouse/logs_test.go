@@ -843,26 +843,35 @@ func TestLogsKeys(t *testing.T) {
 	client, teardown := setupTest(t)
 	defer teardown(t)
 
+	now := time.Now()
+
 	rows := []*LogRow{
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"user_id": "1", "workspace_id": "2"},
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "3"},
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now.Add(-time.Second * 1), // out of range, should not be included
+				ProjectId: 1,
+			},
+			LogAttributes: map[string]string{"workspace_id": "5"},
 		},
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	keys, err := client.LogsKeys(ctx, 1)
+	keys, err := client.LogsKeys(ctx, 1, now, now)
 	assert.NoError(t, err)
 
 	expected := []*modelInputs.LogKey{
