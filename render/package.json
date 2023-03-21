@@ -4,10 +4,9 @@
 	"version": "0.0.0",
 	"type": "commonjs",
 	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
 	"scripts": {
-		"build": "tsup src/index.ts --format cjs --dts --minify --clean",
-		"publish": "zip -r function.zip dist node_modules package.json -x node_modules/typescript/\\* -x node_modules/@highlight-run/rrweb/node_modules/typescript/\\* -x node_modules/puppeteer/node_modules/puppeteer-core/.local-chromium\\* -x node_modules/@highlight-run/rrweb/node_modules/puppeteer/.local-chromium\\* -x node_modules/puppeteer/.local-chromium\\* && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
+		"build": "esbuild ./src/index.ts --bundle --minify --platform=node --format=cjs --target=es2020 --outfile=dist/index.js",
+		"publish": "zip -r function.zip dist node_modules package.json -x node_modules/puppeteer/node_modules/puppeteer-core/.local-chromium\\* -x node_modules/@highlight-run/rrweb/node_modules/puppeteer/.local-chromium\\* -x node_modules/puppeteer/.local-chromium\\* && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
 	},
 	"installConfig": {
 		"hoistingLimits": "dependencies"
@@ -16,8 +15,8 @@
 		"@aws-sdk/client-s3": "^3.294.0",
 		"@highlight-run/rrweb": "workspace:*",
 		"@sparticuz/chromium": "^109",
-		"puppeteer": "^19.7.5",
-		"tsup": "^6.6.3"
+		"esbuild": "^0.17.12",
+		"puppeteer-core": "^19.7.5"
 	},
 	"devDependencies": {
 		"@types/aws-lambda": "^8.10.114",

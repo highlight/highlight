@@ -3,7 +3,7 @@ import { promisify } from 'util'
 import path from 'path'
 import { tmpdir } from 'os'
 import chromium from '@sparticuz/chromium'
-import puppeteer from 'puppeteer'
+import puppeteer from 'puppeteer-core'
 
 const getHtml = (): string => {
 	return `<html lang="en"><head><title></title><style>
