@@ -397,6 +397,7 @@ const LogBucketBar = ({
 		bucket?.counts,
 		bucket?.endDate,
 		bucket?.startDate,
+		loading,
 		onDatesChange,
 		onLevelChange,
 		open,

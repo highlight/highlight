@@ -30,7 +30,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 		page: errorPage || 1,
 		backendSearchQuery: errorBackendSearchQuery,
 	})
-	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
+	const { isLoggedIn } = useAuthContext()
 
 	return (
 		<Routes>
