@@ -41,7 +41,7 @@ export const NetworkPage = ({
 	time: number
 	autoScroll: boolean
 	filter: string
-	requestType: RequestType
+	requestType: RequestType[]
 }) => {
 	const {
 		state,
@@ -97,10 +97,8 @@ export const NetworkPage = ({
 	const resourcesToRender = useMemo(() => {
 		const current =
 			(parsedResources
-				.filter(
-					(request) =>
-						requestType === RequestType.All ||
-						requestType === request.initiatorType,
+				.filter((request) =>
+					requestType.includes(request.initiatorType as RequestType),
 				)
 				.map((event) => ({
 					...event,
