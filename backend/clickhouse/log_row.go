@@ -72,9 +72,9 @@ func (l *LogRow) Cursor() string {
 
 type LogRowOption func(*LogRow)
 
-func WithLogAttributes(resourceAttributes, eventAttributes map[string]any) LogRowOption {
+func WithLogAttributes(resourceAttributes, eventAttributes map[string]any, isFrontendLog bool) LogRowOption {
 	return func(h *LogRow) {
-		h.LogAttributes = getAttributesMap(resourceAttributes, eventAttributes)
+		h.LogAttributes = getAttributesMap(resourceAttributes, eventAttributes, isFrontendLog)
 	}
 }
 
@@ -115,7 +115,7 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 	return c
 }
 
-func getAttributesMap(resourceAttributes, eventAttributes map[string]any) map[string]string {
+func getAttributesMap(resourceAttributes, eventAttributes map[string]any, isFrontendLog bool) map[string]string {
 	attributesMap := make(map[string]string)
 	for _, m := range []map[string]any{resourceAttributes, eventAttributes} {
 		for k, v := range m {
@@ -125,6 +125,15 @@ func getAttributesMap(resourceAttributes, eventAttributes map[string]any) map[st
 				if k == attr {
 					shouldSkip = true
 					break
+				}
+			}
+
+			if isFrontendLog {
+				for _, attr := range highlight.BackendOnlyAttributePrefixes {
+					if strings.HasPrefix(k, attr) {
+						shouldSkip = true
+						break
+					}
 				}
 			}
 
@@ -173,34 +182,17 @@ func makeLogLevel(severityText string) modelInputs.LogLevel {
 func getSeverityNumber(logLevel modelInputs.LogLevel) int32 {
 	switch logLevel {
 	case modelInputs.LogLevelTrace:
-		{
-			return int32(log.TraceLevel)
-
-		}
+		return int32(log.TraceLevel)
 	case modelInputs.LogLevelDebug:
-		{
-			return int32(log.DebugLevel)
-
-		}
+		return int32(log.DebugLevel)
 	case modelInputs.LogLevelInfo:
-		{
-			return int32(log.InfoLevel)
-
-		}
+		return int32(log.InfoLevel)
 	case modelInputs.LogLevelWarn:
-		{
-			return int32(log.WarnLevel)
-		}
+		return int32(log.WarnLevel)
 	case modelInputs.LogLevelError:
-		{
-			return int32(log.ErrorLevel)
-		}
-
+		return int32(log.ErrorLevel)
 	case modelInputs.LogLevelFatal:
-		{
-			return int32(log.FatalLevel)
-		}
-
+		return int32(log.FatalLevel)
 	default:
 		return int32(log.InfoLevel)
 	}

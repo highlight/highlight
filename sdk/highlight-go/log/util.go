@@ -104,9 +104,10 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 			}
 			stackTrace := message
 			for _, t := range row.Trace {
-				stackTrace += fmt.Sprintf(`\n\tat %s (%s:%d:%d)`, t.FunctionName, t.FileName, t.LineNumber, t.ColumnNumber)
 				if t.Source != "" {
-					stackTrace += fmt.Sprintf(` [as %s]`, t.Source)
+					stackTrace += "\n" + t.Source
+				} else {
+					stackTrace += fmt.Sprintf("\n\tat %s (%s:%+v:%+v)", t.FunctionName, t.FileName, t.LineNumber, t.ColumnNumber)
 				}
 			}
 			attrs = append(attrs, semconv.ExceptionStacktraceKey.String(stackTrace))

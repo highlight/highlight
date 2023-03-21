@@ -68,7 +68,7 @@ const backendSetupCooldown = 15
 
 // message channels should be large to avoid blocking request processing
 // in case of a surge of metrics or errors.
-const messageBufferSize = 1 << 16
+const messageBufferSize = 1 << 20
 const metricCategory = "BACKEND"
 
 var (
@@ -306,7 +306,6 @@ func MarkBackendSetup(ctx context.Context) {
 func RecordMetric(ctx context.Context, name string, value float64) {
 	sessionSecureID, requestID, err := validateRequest(ctx)
 	if err != nil {
-		logger.Errorf("[highlight-go] %v", err)
 		return
 	}
 	// track invocation of this function to ensure shutdown waits
@@ -326,7 +325,7 @@ func RecordMetric(ctx context.Context, name string, value float64) {
 	select {
 	case metricChan <- metric:
 	default:
-		logger.Errorf("[highlight-go] metric channel full. discarding value for %s", sessionSecureID)
+		// do nothing if the channel is full, as this is not a correctable error by the SDK user
 	}
 }
 
