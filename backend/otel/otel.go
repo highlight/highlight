@@ -87,7 +87,7 @@ func getLogRow(ts time.Time, lvl, projectID, sessionID, traceID, spanID string, 
 
 func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, requestID, traceID, spanID string, logCursor *string, source, excMessage, tag string, resourceAttributes, eventAttributes map[string]any) (bool, *model.BackendErrorObjectInput) {
 	excType := cast(eventAttributes[string(semconv.ExceptionTypeKey)], source)
-	errorUrl := cast(eventAttributes[highlight.ErrorURLAttribute], "")
+	errorUrl := cast(eventAttributes[highlight.ErrorURLAttribute], source)
 	stackTrace := cast(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
 	if excType == "" && excMessage == "" {
 		log.WithContext(ctx).WithField("EventAttributes", eventAttributes).Error("otel received exception with no type and no message")
@@ -230,7 +230,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						// create a backend error for this error log
 						lvl, _ := log.ParseLevel(logSev)
 						if lvl <= log.ErrorLevel {
-							// TODO(vkorolik) stacktrace?
 							isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, source, logMessage, string(tagsBytes), resourceAttributes, eventAttributes)
 							if backendError == nil {
 								data, _ := req.MarshalJSON()
