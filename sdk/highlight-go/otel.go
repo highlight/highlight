@@ -53,6 +53,7 @@ var BackendOnlyAttributePrefixes = []string{
 	"host.",
 	"os.",
 	"process.",
+	"exception.",
 }
 
 type OTLP struct {

@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
+	"runtime"
 	"strings"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -76,8 +77,10 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 		}
 	}
 
+	hasError := false
 	for k, v := range entry.Data {
 		if k == "error" {
+			hasError = true
 			if err, ok := v.(highlight.ErrorWithStack); ok {
 				highlight.RecordSpanErrorWithStack(span, err)
 			} else if err, ok := v.(error); ok {
@@ -86,6 +89,12 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 		} else {
 			attrs = append(attrs, attribute.String(k, fmt.Sprintf("%+v", v)))
 		}
+	}
+
+	if !hasError {
+		stackTrace := make([]byte, 2048)
+		n := runtime.Stack(stackTrace, false)
+		attrs = append(attrs, semconv.ExceptionStacktraceKey.String(string(stackTrace[0:n])))
 	}
 
 	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...))

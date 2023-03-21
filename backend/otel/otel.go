@@ -67,9 +67,6 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 }
 
 func getLogRow(ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, eventAttributes map[string]any, source string) *clickhouse.LogRow {
-	if projectID == "" {
-		return nil
-	}
 	return clickhouse.NewLogRow(
 		clickhouse.LogRowPrimaryAttrs{
 			Timestamp:       ts,
@@ -187,13 +184,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 						var logCursor *string
 						logRow := getLogRow(ts, "ERROR", projectID, sessionID, traceID, spanID, excMessage, resourceAttributes, eventAttributes, source)
-						if logRow == nil {
-							data, _ := req.MarshalJSON()
-							log.WithContext(ctx).WithField("LogEvent", event).WithField("RequestJSON", string(data)).Errorf("otel span log got no project")
-						} else {
-							projectLogs[projectID] = append(projectLogs[projectID], logRow)
-							logCursor = pointy.String(logRow.Cursor())
-						}
+						projectLogs[projectID] = append(projectLogs[projectID], logRow)
+						logCursor = pointy.String(logRow.Cursor())
 
 						isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, source, excMessage, string(tagsBytes), resourceAttributes, eventAttributes)
 						if backendError == nil {
@@ -201,7 +193,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							log.WithContext(ctx).WithField("BackendErrorEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span error got no session and no project")
 						} else {
 							if isProjectError {
-								traceErrors[projectID] = append(traceErrors[projectID], backendError)
+								projectErrors[projectID] = append(projectErrors[projectID], backendError)
 							} else {
 								traceErrors[sessionID] = append(traceErrors[sessionID], backendError)
 							}
@@ -219,13 +211,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 						var logCursor *string
 						logRow := getLogRow(ts, logSev, projectID, sessionID, traceID, spanID, logMessage, resourceAttributes, eventAttributes, source)
-						if logRow == nil {
-							data, _ := req.MarshalJSON()
-							log.WithContext(ctx).WithField("LogEvent", event).WithField("RequestJSON", string(data)).Errorf("otel span log got no project")
-						} else {
-							projectLogs[projectID] = append(projectLogs[projectID], logRow)
-							logCursor = pointy.String(logRow.Cursor())
-						}
+						projectLogs[projectID] = append(projectLogs[projectID], logRow)
+						logCursor = pointy.String(logRow.Cursor())
 
 						// create a backend error for this error log
 						if logRow.SeverityNumber <= int32(log.ErrorLevel) {
@@ -235,7 +222,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 								log.WithContext(ctx).WithField("BackendErrorEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span error got no session and no project")
 							} else {
 								if isProjectError {
-									traceErrors[projectID] = append(traceErrors[projectID], backendError)
+									projectErrors[projectID] = append(projectErrors[projectID], backendError)
 								} else {
 									traceErrors[sessionID] = append(traceErrors[sessionID], backendError)
 								}
