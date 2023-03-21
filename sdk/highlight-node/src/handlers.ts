@@ -52,7 +52,7 @@ export function errorHandler(
 	next: (error: MiddlewareError) => void,
 ) => void {
 	H._debug('setting up error handler')
-	return async (
+	return (
 		error: MiddlewareError,
 		req: http.IncomingMessage,
 		res: http.ServerResponse,

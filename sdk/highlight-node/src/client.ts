@@ -13,6 +13,10 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { trace, Tracer } from '@opentelemetry/api'
 import { hookConsole } from './hooks'
+import {
+	BatchSpanProcessor,
+	SpanProcessor,
+} from '@opentelemetry/sdk-trace-base'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -28,6 +32,7 @@ export class Highlight {
 	_debug: boolean
 	private otel: opentelemetry.NodeSDK
 	private tracer: Tracer
+	private processor: SpanProcessor
 
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
@@ -44,11 +49,16 @@ export class Highlight {
 		this._graphqlSdk = getSdk(client)
 
 		this.tracer = trace.getTracer('highlight-node')
+
 		const exporter = new OTLPTraceExporter({
 			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
 		})
 
+		this.processor = new BatchSpanProcessor(exporter, {})
 		this.otel = new opentelemetry.NodeSDK({
+			autoDetectResources: true,
+			defaultAttributes: { 'highlight.project_id': this._projectID },
+			spanProcessor: this.processor,
 			traceExporter: exporter,
 			instrumentations: [getNodeAutoInstrumentations()],
 		})
@@ -142,13 +152,18 @@ export class Highlight {
 			spanCreated = true
 		}
 		span.recordException(error)
-		span.setAttributes({
-			['highlight.project_id']: this._projectID,
-			['highlight.session_id']: secureSessionId,
-			['highlight.trace_id']: requestId,
-		})
+		span.setAttributes({ ['highlight.project_id']: this._projectID })
+		if (secureSessionId) {
+			span.setAttributes({ ['highlight.session_id']: secureSessionId })
+		}
+		if (requestId) {
+			span.setAttributes({ ['highlight.trace_id']: requestId })
+		}
 		if (spanCreated) {
+			this._log('created error span', span)
 			span.end()
+		} else {
+			this._log('updated current span with error', span)
 		}
 	}
 
@@ -186,6 +201,6 @@ export class Highlight {
 	}
 
 	async flush() {
-		await Promise.all([this.flushMetrics()])
+		await Promise.all([this.flushMetrics(), this.processor.forceFlush()])
 	}
 }
