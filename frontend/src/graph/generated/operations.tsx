@@ -2705,7 +2705,7 @@ export type GetErrorObjectForLogQuery = { __typename?: 'Query' } & {
 	error_object_for_log?: Types.Maybe<
 		{ __typename?: 'ErrorObject' } & Pick<
 			Types.ErrorObject,
-			'id' | 'error_group_secure_id'
+			'id' | 'error_group_secure_id' | 'project_id'
 		>
 	>
 }

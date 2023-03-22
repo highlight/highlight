@@ -53,7 +53,7 @@ import { buildQueryURLString } from '@util/url/params'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useNavigate } from 'react-router-dom'
+import { createSearchParams, useNavigate } from 'react-router-dom'
 
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
@@ -319,14 +319,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 								const queryParams: LogsSearchParam[] = []
 								let offsetStart = 1
-								if (errorObject.source) {
-									queryParams.push({
-										key: 'host.name',
-										operator: DEFAULT_LOGS_OPERATOR,
-										value: errorObject.source,
-										offsetStart: offsetStart++,
-									})
-								}
 								if (errorObject.session?.secure_id) {
 									queryParams.push({
 										key: 'secure_session_id',
@@ -345,14 +337,22 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								}
 								const query = stringifyLogsQuery(queryParams)
 								const logCursor = errorObject.log_cursor
+								const params = createSearchParams({
+									query,
+									start_date: moment(errorObject.timestamp)
+										.add(-5, 'minutes')
+										.toISOString(),
+									end_date: moment(errorObject.timestamp)
+										.add(5, 'minutes')
+										.toISOString(),
+								})
 								if (logCursor) {
 									navigate(
-										`/${projectId}/logs/${logCursor}?query=${query}`,
+										`/${projectId}/logs/${logCursor}?${params}`,
+										{},
 									)
 								} else {
-									navigate(
-										`/${projectId}/logs?query=${query}`,
-									)
+									navigate(`/${projectId}/logs?${params}`)
 								}
 							}}
 							iconLeft={<IconSolidViewList />}

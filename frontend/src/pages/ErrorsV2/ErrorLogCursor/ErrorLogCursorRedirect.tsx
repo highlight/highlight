@@ -31,7 +31,7 @@ const ErrorLogCursorRedirect: React.FC = () => {
 		return (
 			<Navigate
 				replace
-				to={`/errors/${data.error_object_for_log.error_group_secure_id}/instances/${data.error_object_for_log.id}`}
+				to={`/${data.error_object_for_log.project_id}/errors/${data.error_object_for_log.error_group_secure_id}/instances/${data.error_object_for_log.id}`}
 			></Navigate>
 		)
 	}
