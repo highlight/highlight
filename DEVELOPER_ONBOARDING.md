@@ -26,6 +26,7 @@ After all services are built and running, you can visit [https://localhost:3000]
 ## Running on GitHub Codepsaces (in browser or in VS Code)
 * Make sure you've forked the repo
 * Visit https://github.com/codespaces and start a codepsace for highlight/highlight
+* Install the VS Code Extension "GitHub Codespaces"
 * Using VS Code, enter codespace - `CMD + Shift + P`, type `codespace`, select the Highlight codespace
 ```bash
 # from highlight/
