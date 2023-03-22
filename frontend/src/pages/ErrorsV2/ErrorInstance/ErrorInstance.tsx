@@ -337,13 +337,12 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								}
 								const query = stringifyLogsQuery(queryParams)
 								const logCursor = errorObject.log_cursor
-								const errorTs = moment(errorObject.timestamp)
 								const params = createSearchParams({
 									query,
-									start_date: errorTs
+									start_date: moment(errorObject.timestamp)
 										.add(-5, 'minutes')
 										.toISOString(),
-									end_date: errorTs
+									end_date: moment(errorObject.timestamp)
 										.add(5, 'minutes')
 										.toISOString(),
 								})
