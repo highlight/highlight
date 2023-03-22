@@ -11642,6 +11642,79 @@ export type GetLogsQueryResult = Apollo.QueryResult<
 	Types.GetLogsQuery,
 	Types.GetLogsQueryVariables
 >
+export const StreamLogsDocument = gql`
+	subscription StreamLogs(
+		$project_id: ID!
+		$params: LogsParamsInput!
+		$after: String
+		$before: String
+		$at: String
+	) {
+		stream_logs(
+			project_id: $project_id
+			params: $params
+			after: $after
+			before: $before
+			at: $at
+		) {
+			edges {
+				cursor
+				node {
+					timestamp
+					level
+					message
+					logAttributes
+					traceID
+					spanID
+					secureSessionID
+				}
+			}
+			pageInfo {
+				hasNextPage
+				hasPreviousPage
+				startCursor
+				endCursor
+			}
+		}
+	}
+`
+
+/**
+ * __useStreamLogsSubscription__
+ *
+ * To run a query within a React component, call `useStreamLogsSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useStreamLogsSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useStreamLogsSubscription({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *      after: // value for 'after'
+ *      before: // value for 'before'
+ *      at: // value for 'at'
+ *   },
+ * });
+ */
+export function useStreamLogsSubscription(
+	baseOptions: Apollo.SubscriptionHookOptions<
+		Types.StreamLogsSubscription,
+		Types.StreamLogsSubscriptionVariables
+	>,
+) {
+	return Apollo.useSubscription<
+		Types.StreamLogsSubscription,
+		Types.StreamLogsSubscriptionVariables
+	>(StreamLogsDocument, baseOptions)
+}
+export type StreamLogsSubscriptionHookResult = ReturnType<
+	typeof useStreamLogsSubscription
+>
+export type StreamLogsSubscriptionResult =
+	Apollo.SubscriptionResult<Types.StreamLogsSubscription>
 export const GetLogsTotalCountDocument = gql`
 	query GetLogsTotalCount($project_id: ID!, $params: LogsParamsInput!) {
 		logs_total_count(project_id: $project_id, params: $params)

@@ -1823,4 +1823,12 @@ type Subscription {
 		session_secure_id: String!
 		initial_events_count: Int!
 	): SessionPayload
+
+	stream_logs(
+		project_id: ID!
+		params: LogsParamsInput!
+		after: String
+		before: String
+		at: String
+	): LogsConnection!
 }

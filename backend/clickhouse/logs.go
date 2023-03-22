@@ -51,6 +51,117 @@ type Pagination struct {
 	CountOnly bool
 }
 
+func (client *Client) StreamLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (<-chan *modelInputs.LogsConnection, error) {
+	ch := make(chan *modelInputs.LogsConnection)
+	go func() {
+
+		sb := sqlbuilder.NewSelectBuilder()
+		var err error
+		var args []interface{}
+		selectStr := "Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId"
+
+		if pagination.At != nil && len(*pagination.At) > 1 {
+			// Create a "window" around the cursor
+			// https://stackoverflow.com/a/71738696
+			beforeSb, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
+				Before: pagination.At,
+			})
+			if err != nil {
+				return
+			}
+			beforeSb.Limit(LogsLimit/2 + 1)
+
+			atSb, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
+				At: pagination.At,
+			})
+			if err != nil {
+				return
+			}
+
+			afterSb, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
+				After: pagination.At,
+			})
+			if err != nil {
+				return
+			}
+			afterSb.Limit(LogsLimit/2 + 1)
+
+			ub := sqlbuilder.UnionAll(beforeSb, atSb, afterSb)
+			sb.Select(selectStr).From(sb.BuilderAs(ub, "logs_window")).OrderBy(OrderForward)
+		} else {
+			fromSb, err := makeSelectBuilder(selectStr, projectID, params, pagination)
+			if err != nil {
+				return
+			}
+
+			fromSb.Limit(LogsLimit + 1)
+			sb.Select(selectStr).From(sb.BuilderAs(fromSb, "logs_window")).OrderBy(OrderForward)
+		}
+
+		sql, args := sb.Build()
+
+		span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("ReadLogs"))
+		query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
+		if err != nil {
+			span.Finish(tracer.WithError(err))
+			return
+		}
+		span.SetTag("Query", query)
+		span.SetTag("Params", params)
+
+		rows, err := client.conn.Query(ctx, sql, args...)
+
+		span.Finish(tracer.WithError(err))
+
+		if err != nil {
+			return
+		}
+
+		edges := []*modelInputs.LogEdge{}
+
+		for rows.Next() {
+			var result struct {
+				Timestamp       time.Time
+				UUID            string
+				SeverityText    string
+				Body            string
+				LogAttributes   map[string]string
+				TraceId         string
+				SpanId          string
+				SecureSessionId string
+			}
+			if err := rows.ScanStruct(&result); err != nil {
+				return
+			}
+
+			edges = append(edges, &modelInputs.LogEdge{
+				Cursor: encodeCursor(result.Timestamp, result.UUID),
+				Node: &modelInputs.Log{
+					Timestamp:       result.Timestamp,
+					Level:           makeLogLevel(result.SeverityText),
+					Message:         result.Body,
+					LogAttributes:   expandJSON(result.LogAttributes),
+					TraceID:         &result.TraceId,
+					SpanID:          &result.SpanId,
+					SecureSessionID: &result.SecureSessionId,
+				},
+			})
+
+			connection := getLogsConnection(edges, pagination)
+			fmt.Println(connection)
+			select {
+			case ch <- connection:
+			default:
+				fmt.Println("Channel closed.")
+				return
+			}
+		}
+		rows.Close()
+	}()
+
+	return ch, nil
+}
+
 func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*modelInputs.LogsConnection, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error

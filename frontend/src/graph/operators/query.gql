@@ -1907,6 +1907,41 @@ query GetLogs(
 	}
 }
 
+subscription StreamLogs(
+	$project_id: ID!
+	$params: LogsParamsInput!
+	$after: String
+	$before: String
+	$at: String
+) {
+	stream_logs(
+		project_id: $project_id
+		params: $params
+		after: $after
+		before: $before
+		at: $at
+	) {
+		edges {
+			cursor
+			node {
+				timestamp
+				level
+				message
+				logAttributes
+				traceID
+				spanID
+				secureSessionID
+			}
+		}
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}
+
 query GetLogsTotalCount($project_id: ID!, $params: LogsParamsInput!) {
 	logs_total_count(project_id: $project_id, params: $params)
 }

@@ -1,4 +1,4 @@
-import { useGetLogsLazyQuery } from '@graph/hooks'
+import { useGetLogsLazyQuery, useStreamLogsSubscription } from '@graph/hooks'
 import { PageInfo } from '@graph/schemas'
 import { FORMAT } from '@pages/LogsPage/constants'
 import moment from 'moment'
@@ -48,6 +48,41 @@ export const useGetLogs = ({
 		},
 		fetchPolicy: 'cache-and-network',
 	})
+
+
+	const {
+		data: data2,
+		loading: loading2,
+		error: error2,
+	} = useStreamLogsSubscription({
+		variables: {
+			project_id: project_id!,
+			at: logCursor,
+			params: {
+				query,
+				date_range: {
+					start_date: moment(startDate).format(FORMAT),
+					end_date: moment(endDate).format(FORMAT),
+				},
+			},
+		},
+	})
+
+	// subscribeToMore({
+	// 	document: StreamLogsDocument,
+	// 	updateQuery: (prev, { subscriptionData }) => {
+	// 		if (!subscriptionData.data) {
+	// 			return prev;
+	// 		}
+	// 		const user= subscriptionData.data.user;
+	// 		if (prev.users.find((u) => u === user)) {
+	// 			return prev;
+	// 		}
+	// 		return Object.assign({}, prev, {
+	// 			users: [user, ...prev.users],
+	// 		});
+	// 	},
+	// });
 
 	useEffect(() => {
 		getLogs().then((result) => {
