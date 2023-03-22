@@ -6,6 +6,7 @@ import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import Table from '@components/Table/Table'
 import Tag from '@components/Tag/Tag'
 import { GetAlertsPagePayloadQuery } from '@graph/operations'
+import { IconSolidViewList } from '@highlight-run/ui'
 import SvgBugIcon from '@icons/BugIcon'
 import SvgChevronRightIcon from '@icons/ChevronRightIcon'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
@@ -37,6 +38,7 @@ export enum ALERT_TYPE {
 	NewSession,
 	RageClick,
 	MetricMonitor,
+	Logs,
 }
 
 export enum ALERT_NAMES {
@@ -48,6 +50,7 @@ export enum ALERT_NAMES {
 	NEW_SESSION_ALERT = 'New Sessions',
 	RAGE_CLICK_ALERT = 'Rage Clicks',
 	METRIC_MONITOR = 'Metric Monitor',
+	LOGS_ALERT = 'Logs',
 }
 
 interface AlertConfiguration {
@@ -147,6 +150,14 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 		type: ALERT_TYPE.MetricMonitor,
 		description: 'Get alerted when a metric value exceeds a value.',
 		icon: <SvgMonitorIcon />,
+		supportsExcludeRules: true,
+	},
+	LOGS_ALERT: {
+		name: ALERT_NAMES['LOGS_ALERT'],
+		canControlThreshold: true,
+		type: ALERT_TYPE.Logs,
+		description: 'Get alerted when queried logs exceed a threshold.',
+		icon: <IconSolidViewList />,
 		supportsExcludeRules: true,
 	},
 } as const

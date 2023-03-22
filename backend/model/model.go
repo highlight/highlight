@@ -67,6 +67,7 @@ var AlertType = struct {
 	SESSION_FEEDBACK string
 	RAGE_CLICK       string
 	NEW_SESSION      string
+	LOG              string
 }{
 	ERROR:            "ERROR_ALERT",
 	NEW_USER:         "NEW_USER_ALERT",
@@ -75,6 +76,7 @@ var AlertType = struct {
 	SESSION_FEEDBACK: "SESSION_FEEDBACK_ALERT",
 	RAGE_CLICK:       "RAGE_CLICK_ALERT",
 	NEW_SESSION:      "NEW_SESSION_ALERT",
+	LOG:              "LOG",
 }
 
 var AdminRole = struct {
@@ -157,6 +159,7 @@ var Models = []interface{}{
 	&CommentSlackThread{},
 	&ErrorAlert{},
 	&SessionAlert{},
+	&LogAlert{},
 	&Project{},
 	&RageClickEvent{},
 	&Workspace{},
@@ -1886,6 +1889,52 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 	default:
 		return
 	}
+
+	for _, email := range emailsToNotify {
+		if err := Email.SendAlertEmail(ctx, mailClient, *email, message, alertType, subjectLine); err != nil {
+			log.WithContext(ctx).Error(err)
+
+		}
+	}
+}
+
+type LogAlert struct {
+	Model
+	Alert
+	Query        string
+	TriggerBelow bool
+	AlertIntegrations
+}
+
+func (obj *LogAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
+	if err := obj.sendSlackAlert(ctx, db, obj.ID, input); err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+
+	emailsToNotify, err := GetEmailsToNotify(obj.EmailsToNotify)
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+
+	frontendURL := os.Getenv("FRONTEND_URI")
+	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
+	alertType := ""
+	message := ""
+	subjectLine := ""
+	identifier := input.UserIdentifier
+	if val, ok := input.UserObject["email"].(string); ok && len(val) > 0 {
+		identifier = val
+	}
+	if val, ok := input.UserObject["highlightDisplayName"].(string); ok && len(val) > 0 {
+		identifier = val
+	}
+	if identifier == "" {
+		identifier = "Someone"
+	}
+
+	alertType = "Log Alert"
+	message = fmt.Sprintf("<b>%s</b> logs .<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
+	subjectLine = fmt.Sprintf("%s just started a new session", identifier)
 
 	for _, email := range emailsToNotify {
 		if err := Email.SendAlertEmail(ctx, mailClient, *email, message, alertType, subjectLine); err != nil {

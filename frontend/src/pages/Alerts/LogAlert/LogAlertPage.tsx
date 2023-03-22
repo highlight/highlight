@@ -31,6 +31,7 @@ import { LOG_TIME_PRESETS, now, thirtyDaysAgo } from '@pages/LogsPage/constants'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { Search } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router'
 
 import * as styles from './styles.css'
 
@@ -49,6 +50,12 @@ export const LogMonitorPage = () => {
 			setEndDate(selectedDates[1])
 		}
 	}, [selectedDates])
+
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
+
+	const navigate = useNavigate()
 
 	const form = useFormState<LogMonitorForm>({
 		defaultValues: {
@@ -86,6 +93,9 @@ export const LogMonitorPage = () => {
 						size="small"
 						emphasis="low"
 						trackingId="closeLogMonitoringAlert"
+						onClick={() => {
+							navigate(`/${project_id}/alerts`)
+						}}
 					>
 						Cancel
 					</Button>
