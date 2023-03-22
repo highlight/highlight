@@ -10,6 +10,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight/highlight/sdk/highlight-go"
+	"go.opentelemetry.io/otel/attribute"
 	"math"
 	"math/rand"
 	"net/url"
@@ -7058,6 +7060,13 @@ func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyNam
 
 // LogsErrorObjects is the resolver for the logs_error_objects field.
 func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model.ErrorObject, error) {
+	ddS, _ := tracer.StartSpanFromContext(ctx, "resolver.LogsErrorObjects",
+		tracer.ResourceName("DB.Query"), tracer.Tag("NumLogCursors", len(logCursors)))
+	defer ddS.Finish()
+
+	s, ctx := highlight.StartTrace(ctx, "LogsErrorObjects.DB.Query", attribute.Int("NumLogCursors", len(logCursors)))
+	defer highlight.EndTrace(s)
+
 	var errorObjects []*model.ErrorObject
 	if err := r.DB.Model(&model.ErrorObject{}).Where("log_cursor IN ?", logCursors).Scan(&errorObjects).Error; err != nil {
 		return nil, e.Wrap(err, "failed to find errors for log cursors")
