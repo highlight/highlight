@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
 	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
 
 type GraphqlTracer interface {
@@ -49,7 +50,7 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	RecordSpanError(
 		span, err,
 		attribute.String("Source", "InterceptField"),
-		attribute.String("Operation", name),
+		semconv.GraphqlOperationNameKey.String(name),
 	)
 	EndTrace(span)
 

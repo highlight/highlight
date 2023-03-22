@@ -84,7 +84,7 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 			if err, ok := v.(highlight.ErrorWithStack); ok {
 				highlight.RecordSpanErrorWithStack(span, err)
 			} else if err, ok := v.(error); ok {
-				span.RecordError(err)
+				span.RecordError(err, trace.WithStackTrace(true))
 			}
 		} else {
 			attrs = append(attrs, attribute.String(k, fmt.Sprintf("%+v", v)))
