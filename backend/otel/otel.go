@@ -214,8 +214,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						projectLogs[projectID] = append(projectLogs[projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
 
-						// create a backend error for this error log
-						if logRow.SeverityNumber <= int32(log.ErrorLevel) {
+						// create a backend error for this error log, if this is a backend log
+						if logRow.SeverityNumber <= int32(log.ErrorLevel) && source != highlight.SourceAttributeFrontend {
 							isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, source, logMessage, string(tagsBytes), resourceAttributes, eventAttributes)
 							if backendError == nil {
 								data, _ := req.MarshalJSON()
