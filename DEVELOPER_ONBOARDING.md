@@ -13,8 +13,7 @@ Want to contribute to Highlight? Here's your getting started guide to developing
 
 ![Screenshot 2023-03-20 at 9 21 31 AM](https://user-images.githubusercontent.com/58678/226386832-c398a37a-8ef1-4327-bd54-de4d7e7d4aa2.png)
 
-## Installation
-
+## Installation (local machine)
 
 ```bash
 git clone --recurse-submodules https://github.com/highlight/highlight
@@ -23,6 +22,18 @@ docker compose -f compose.yml -f compose.dev.yml up --build -d
 ```
 
 After all services are built and running, you can visit [https://localhost:3000](https://localhost:3000) to view the dashboard and go through the login flow (there are no credentials).
+
+## Running on GitHub Codepsaces (in browser or in VS Code)
+* Make sure you've forked the repo
+* Visit https://github.com/codespaces and start a codepsace for highlight/highlight
+* Using VS Code, enter codespace - `CMD + Shift + P`, type `codespace`, select the Highlight codespace
+```bash
+# from highlight/
+yarn
+cd docker
+COMPOSE_FILE=compose.yml:compose.dev.yml docker compose up --build -d
+# View `https://localhost:3000`
+```
 
 ## Debugging
 
