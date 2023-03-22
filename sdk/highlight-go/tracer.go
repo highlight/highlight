@@ -46,7 +46,11 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	start := graphql.Now()
 	res, err := next(ctx)
 	end := graphql.Now()
-	RecordSpanError(span, err, attribute.String("Source", "InterceptField"))
+	RecordSpanError(
+		span, err,
+		attribute.String("Source", "InterceptField"),
+		attribute.String("Operation", name),
+	)
 	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
