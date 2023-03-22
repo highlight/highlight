@@ -3166,9 +3166,6 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 		if err := r.DB.Model(&dashboard).Association("Metrics").Append(&dashboardMetric); err != nil {
 			return -1, e.Wrap(err, "error updating fields")
 		}
-		if err := r.AutoCreateMetricMonitor(ctx, &dashboardMetric); err != nil {
-			log.WithContext(ctx).Errorf("failed to auto create metric monitor: %s", err)
-		}
 	}
 
 	// Update the existing record if it already exists
