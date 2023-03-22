@@ -1,4 +1,4 @@
-import { LogEdge, LogLevel } from '@graph/schemas'
+import { LogEdge } from '@graph/schemas'
 import {
 	Box,
 	ButtonLink,
@@ -24,6 +24,7 @@ import {
 	LogsSearchParam,
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
+import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
 import React, { useEffect, useState } from 'react'
@@ -34,7 +35,7 @@ import { useQueryParam } from 'use-query-params'
 import * as styles from './LogDetails.css'
 
 type Props = {
-	row: Row<LogEdge>
+	row: Row<LogEdgeWithError>
 	queryTerms: LogsSearchParam[]
 }
 
@@ -222,14 +223,16 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 					flexDirection="row"
 					gap="16"
 				>
-					{row.original.node.level === LogLevel.Error && (
+					{row.original.error_object && (
 						<Tag
 							shape="basic"
 							kind="secondary"
 							emphasis="medium"
 							onClick={(e) => {
 								e.stopPropagation()
-								navigate(`/errors/logs/${row.original.cursor}`)
+								navigate(
+									`/errors/${row.original.error_object?.error_group_secure_id}/instances/${row.original.error_object?.id}`,
+								)
 							}}
 						>
 							<Box

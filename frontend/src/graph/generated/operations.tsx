@@ -4054,6 +4054,19 @@ export type GetLogsKeyValuesQuery = { __typename?: 'Query' } & Pick<
 	'logs_key_values'
 >
 
+export type GetLogsErrorObjectsQueryVariables = Types.Exact<{
+	log_cursors: Array<Types.Scalars['String']> | Types.Scalars['String']
+}>
+
+export type GetLogsErrorObjectsQuery = { __typename?: 'Query' } & {
+	logs_error_objects: Array<
+		{ __typename?: 'ErrorObject' } & Pick<
+			Types.ErrorObject,
+			'log_cursor' | 'error_group_secure_id' | 'id'
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4174,6 +4187,7 @@ export const namedOperations = {
 		GetLogsHistogram: 'GetLogsHistogram' as const,
 		GetLogsKeys: 'GetLogsKeys' as const,
 		GetLogsKeyValues: 'GetLogsKeyValues' as const,
+		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,

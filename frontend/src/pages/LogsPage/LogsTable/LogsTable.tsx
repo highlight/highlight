@@ -14,6 +14,7 @@ import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
 import { parseLogsQuery } from '@pages/LogsPage/SearchForm/utils'
+import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import {
 	ColumnDef,
 	ExpandedState,
@@ -31,7 +32,7 @@ import * as styles from './LogsTable.css'
 type Props = {
 	loading: boolean
 	loadingAfter: boolean
-	logEdges: LogEdge[]
+	logEdges: LogEdgeWithError[]
 	query: string
 	tableContainerRef: React.RefObject<HTMLDivElement>
 	selectedCursor: string | undefined

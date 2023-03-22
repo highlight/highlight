@@ -1494,6 +1494,7 @@ type Query {
 		key_name: String!
 		date_range: DateRangeRequiredInput!
 	): [String!]!
+	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
 }
 
 type Mutation {

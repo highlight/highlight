@@ -7056,6 +7056,15 @@ func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyNam
 	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
+// LogsErrorObjects is the resolver for the logs_error_objects field.
+func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model.ErrorObject, error) {
+	var errorObjects []*model.ErrorObject
+	if err := r.DB.Model(&model.ErrorObject{}).Where("log_cursor IN ?", logCursors).Scan(&errorObjects).Error; err != nil {
+		return nil, e.Wrap(err, "failed to find errors for log cursors")
+	}
+	return errorObjects, nil
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
