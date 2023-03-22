@@ -7743,6 +7743,7 @@ export const GetErrorObjectForLogDocument = gql`
 		error_object_for_log(log_cursor: $log_cursor) {
 			id
 			error_group_secure_id
+			project_id
 		}
 	}
 `
