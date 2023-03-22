@@ -7062,15 +7062,17 @@ func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyNam
 func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model.ErrorObject, error) {
 	ddS, _ := tracer.StartSpanFromContext(ctx, "resolver.LogsErrorObjects",
 		tracer.ResourceName("DB.Query"), tracer.Tag("NumLogCursors", len(logCursors)))
-	defer ddS.Finish()
-
 	s, ctx := highlight.StartTrace(ctx, "LogsErrorObjects.DB.Query", attribute.Int("NumLogCursors", len(logCursors)))
-	defer highlight.EndTrace(s)
 
 	var errorObjects []*model.ErrorObject
 	if err := r.DB.Model(&model.ErrorObject{}).Where("log_cursor IN ?", logCursors).Scan(&errorObjects).Error; err != nil {
+		s.RecordError(err)
+		highlight.EndTrace(s)
+		ddS.Finish(tracer.WithError(err))
 		return nil, e.Wrap(err, "failed to find errors for log cursors")
 	}
+	highlight.EndTrace(s)
+	ddS.Finish()
 	return errorObjects, nil
 }
 
