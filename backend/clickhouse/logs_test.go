@@ -28,7 +28,8 @@ func setupTest(tb testing.TB) (*Client, func(tb testing.TB)) {
 	client, _ := NewClient(TestDatabase)
 
 	return client, func(tb testing.TB) {
-		client.conn.Exec(context.Background(), "TRUNCATE TABLE logs") //nolint:errcheck
+		err := client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", LogsTable))
+		assert.NoError(tb, err)
 	}
 }
 

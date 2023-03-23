@@ -2,6 +2,7 @@ package clickhouse
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -178,7 +179,8 @@ func TestClickhouseDecode(t *testing.T) {
 	assert.NoError(t, err)
 
 	defer func() {
-		client.conn.Exec(ctx, "TRUNCATE TABLE logs") //nolint:errcheck
+		err := client.conn.Exec(ctx, fmt.Sprintf("TRUNCATE TABLE %s", LogsTable))
+		assert.NoError(t, err)
 	}()
 
 	now := time.Now()
