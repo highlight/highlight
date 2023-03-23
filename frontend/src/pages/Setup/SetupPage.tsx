@@ -50,19 +50,33 @@ type Guide = {
 	}>
 }
 
+type Section = {
+	title: string
+	subtitle: string
+}
+
 type Guides = {
 	client: {
-		[key: string]: Guide
-	}
-	server: {
 		[key: string]: {
 			[key: string]: Guide
-		}
-	}
+		} & Section
+	} & Section
+	backend: {
+		[key: string]: {
+			[key: string]: Guide
+		} & Section
+	} & Section
+	['backend-logging']: {
+		[key: string]: {
+			[key: string]: Guide
+		} & Section
+	} & Section
 	other: {
 		[key: string]: Guide
 	}
 }
+
+const IGNORED_KEYS = ['title', 'subtitle']
 
 const SetupPage = ({ integrated }: { integrated: boolean }) => {
 	const navigate = useNavigate()
@@ -228,14 +242,14 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 											data.project.verbose_id
 										}
 										integrated={integrated}
-										docs={docs.client}
+										docs={docs.client['js']}
 									/>
 								)}
 								{step === 'backend' && (
 									<BackendSetup
 										projectData={data}
 										integrated={isBackendIntegrated}
-										docs={docs.server}
+										docs={docs.backend}
 									/>
 								)}
 								{step === 'more' && (
@@ -264,14 +278,21 @@ const ClientSetup = ({
 	project_id: string
 	projectVerboseId: string
 	integrated: boolean
-	docs: Guides['client']
+	docs: Guides['client']['js']
 }) => {
-	const frameworkKeys = Object.keys(docs)
+	const frameworkKeys = Object.keys(docs).filter(
+		(k) => IGNORED_KEYS.indexOf(k) === -1,
+	)
 	const [framework, setFramework] = useLocalStorage<string>(
-		`selectedSetupClientFramework-${project_id}`,
+		`selectedDocsClientFramework-${project_id}`,
 		frameworkKeys[0],
 	)
 	const guide = docs[framework]
+
+	if (!guide) {
+		setFramework(frameworkKeys[0])
+		return null
+	}
 
 	return (
 		<>
@@ -448,19 +469,27 @@ const BackendSetup = ({
 }: {
 	projectData: GetProjectQuery | undefined
 	integrated: boolean
-	docs: Guides['server']
+	docs: Guides['backend']
 }) => {
-	const languageKeys = Object.keys(docs)
+	const languageKeys = Object.keys(docs).filter(
+		(k) => IGNORED_KEYS.indexOf(k) === -1,
+	)
 	const languageValues = languageKeys.map((k) => capitalize(k))
+
 	const [language, setLanguage] = useLocalStorage<string>(
-		`selectedSetupLanguage-${projectData?.project?.id}`,
+		`selectedDocsLanguage-${projectData?.project?.id}`,
 		languageKeys[0],
 	)
+
+	if (!docs[language]) {
+		setLanguage('client')
+		return null
+	}
 
 	return (
 		<>
 			<Helmet>
-				<title>Setup: {language}</title>
+				<title>Setup: {docs[language].title}</title>
 			</Helmet>
 
 			<div className={styles.headingWrapper}>
@@ -488,14 +517,16 @@ const BackendSetup = ({
 }
 
 const Framework: React.FC<{
-	docs: Guides['server']
+	docs: Guides['backend']
 	integrated: boolean
 	language: string
 	projectData: GetProjectQuery | undefined
 }> = ({ docs, integrated, language, projectData }) => {
-	const frameworkKeys = Object.keys(docs[language])
+	const frameworkKeys = Object.keys(docs[language]).filter(
+		(k) => IGNORED_KEYS.indexOf(k) === -1,
+	)
 	const [framework, setFramework] = useLocalStorage<string>(
-		`selectedSetupFramework-${projectData?.project?.id}`,
+		`selectedDocsFramework-${projectData?.project?.id}`,
 		frameworkKeys[0],
 	)
 	const guide = docs[language] && docs[language][framework]
@@ -512,14 +543,14 @@ const Framework: React.FC<{
 		<>
 			<RadioGroup<string>
 				style={{ marginBottom: 20 }}
-				selectedLabel={getBackendFrameworkTitle(language, guide.title)}
+				selectedLabel={getFrameworkTitle(language, guide.title)}
 				labels={frameworkKeys.map((k) =>
-					getBackendFrameworkTitle(language, docs[language][k].title),
+					getFrameworkTitle(language, docs[language][k].title),
 				)}
 				onSelect={(l) => {
 					const frameworkKey = frameworkKeys.find(
 						(k) =>
-							getBackendFrameworkTitle(
+							getFrameworkTitle(
 								language,
 								docs[language][k].title,
 							) === l,
@@ -862,6 +893,16 @@ const MoreSetup = ({
 	)
 }
 
+const getFrameworkTitle = (language: string, framework: string) => {
+	const languageTitle = capitalize(language)
+
+	if (framework.startsWith(`${languageTitle} `)) {
+		// Clean up `Python Flask` to `Flask`
+		framework = framework.replace(`${languageTitle} `, '')
+	}
+	return framework
+}
+
 type SectionProps = {
 	title: string | React.ReactNode
 	id?: string
@@ -876,16 +917,6 @@ export const Section: FunctionComponent<
 			{children}
 		</Collapsible>
 	)
-}
-
-const getBackendFrameworkTitle = (language: string, framework: string) => {
-	const languageTitle = capitalize(language)
-
-	if (framework.startsWith(`${languageTitle} `)) {
-		// Clean up `Python Flask` to `Flask`
-		framework = framework.replace(`${languageTitle} `, '')
-	}
-	return framework
 }
 
 // Copied from RadioGroup.tsx for now. Will refactor and break out to a separate
