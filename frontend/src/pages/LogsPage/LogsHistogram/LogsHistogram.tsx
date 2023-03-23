@@ -409,17 +409,21 @@ const LoadingState: React.FC<{ maxBucketCount: number }> = ({
 		})
 	}
 
-	return loadingData.map((bucket, index) => {
-		return (
-			<LogBucketBar
-				key={index}
-				bucket={bucket}
-				width={`${100 / 50}%`}
-				maxBucketCount={maxBucketCount}
-				loading
-			/>
-		)
-	})
+	return (
+		<>
+			{loadingData.map((bucket, index) => {
+				return (
+					<LogBucketBar
+						key={index}
+						bucket={bucket}
+						width={`${100 / 50}%`}
+						maxBucketCount={maxBucketCount}
+						loading
+					/>
+				)
+			})}
+		</>
+	)
 }
 
 export default LogsHistogram
