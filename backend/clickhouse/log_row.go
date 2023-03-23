@@ -130,15 +130,6 @@ func GetAttributesMap(resourceAttributes, spanAttributes, eventAttributes map[st
 		for k, v := range m {
 			shouldSkip := false
 
-			if k == highlight.SourceAttribute {
-				vStr := cast(v, "")
-				if vStr == highlight.SourceAttributeFrontend {
-					vStr = "frontend"
-				}
-				attributesMap[k] = vStr
-				continue
-			}
-
 			for _, attr := range highlight.InternalAttributes {
 				if k == attr {
 					shouldSkip = true
