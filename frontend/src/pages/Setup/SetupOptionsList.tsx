@@ -1,8 +1,9 @@
+import { LinkButton } from '@components/LinkButton'
 import {
 	GetClientIntegrationDataQuery,
 	GetServerIntegrationDataQuery,
 } from '@graph/operations'
-import { Box } from '@highlight-run/ui'
+import { Box, Stack, Text } from '@highlight-run/ui'
 import { Header } from '@pages/Setup/Header'
 import { IntegrationBar } from '@pages/Setup/IntegrationBar'
 import { Guides } from '@pages/Setup/SetupRouter/SetupRouter'
@@ -58,9 +59,6 @@ export const SetupOptionsList: React.FC<Props> = ({
 		}
 	})
 
-	console.log('::: docsSection', docsSection)
-	console.log('::: options', options)
-
 	return (
 		<Box>
 			<IntegrationBar integrationData={integrationData} />
@@ -70,6 +68,48 @@ export const SetupOptionsList: React.FC<Props> = ({
 					title={docsSection.title}
 					subtitle={docsSection.subtitle}
 				/>
+
+				{options.map((option, index) => {
+					return (
+						<Box
+							key={index}
+							alignItems="center"
+							backgroundColor="raised"
+							btr={index === 0 ? '6' : undefined}
+							bbr={index === options.length - 1 ? '6' : undefined}
+							borderTop={index !== 0 ? 'dividerWeak' : undefined}
+							display="flex"
+							flexGrow={1}
+							justifyContent="space-between"
+							py="12"
+							px="16"
+						>
+							<Stack align="center" direction="row" gap="10">
+								<Box
+									alignItems="center"
+									backgroundColor="contentGood"
+									borderRadius="4"
+									color="white"
+									display="flex"
+									justifyContent="center"
+									style={{ height: 28, width: 28 }}
+								>
+									{(option.name as string)[0].toUpperCase()}
+								</Box>
+								<Text color="default" weight="bold">
+									{option.name as string}
+								</Text>
+							</Stack>
+							<LinkButton
+								to={option.path}
+								trackingId={`setup-option-${option.key}`}
+								kind="secondary"
+							>
+								Select
+							</LinkButton>
+						</Box>
+					)
+				})}
 			</Box>
 		</Box>
 	)

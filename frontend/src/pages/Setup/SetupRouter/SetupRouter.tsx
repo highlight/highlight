@@ -54,7 +54,11 @@ const SetupRouter = () => {
 	const areaMatch = useMatch('/:project_id/setup/:area/*')
 	const area = areaMatch?.params.area || 'client'
 	const integrationData =
-		area === 'backend' ? serverIntegrationData : clientIntegrationData
+		area === 'backend'
+			? serverIntegrationData
+			: area === 'client'
+			? clientIntegrationData
+			: undefined
 	const { projectId } = useProjectId()
 	const { isHighlightAdmin } = useAuthContext()
 	const [docs, setDocs] = useState<Guides>()
