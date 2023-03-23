@@ -75,23 +75,11 @@ const SetupRouter = () => {
 			<Routes>
 				<Route
 					path="*"
-					element={
-						<SetupPage
-							clientIntegrationData={clientIntegrationData}
-							serverIntegrationData={serverIntegrationData}
-							serverIntegratedLoading={serverIntegratedLoading}
-						/>
-					}
+					element={<SetupPage integrated={!!clientIntegrationData} />}
 				/>
 				<Route
 					path=":step"
-					element={
-						<SetupPage
-							clientIntegrationData={clientIntegrationData}
-							serverIntegrationData={serverIntegrationData}
-							serverIntegratedLoading={serverIntegratedLoading}
-						/>
-					}
+					element={<SetupPage integrated={!!clientIntegrationData} />}
 				/>
 			</Routes>
 		)

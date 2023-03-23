@@ -7,6 +7,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
+import { useBackendIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message, Spin } from 'antd'
 import clsx from 'clsx'
@@ -49,29 +50,35 @@ type Guide = {
 	}>
 }
 
+type Section = {
+	title: string
+	subtitle: string
+}
+
 type Guides = {
 	client: {
-		[key: string]: Guide
-	}
-	server: {
 		[key: string]: {
 			[key: string]: Guide
-		}
-	}
+		} & Section
+	} & Section
+	backend: {
+		[key: string]: {
+			[key: string]: Guide
+		} & Section
+	} & Section
+	['backend-logging']: {
+		[key: string]: {
+			[key: string]: Guide
+		} & Section
+	} & Section
 	other: {
 		[key: string]: Guide
 	}
 }
 
-const SetupPage = ({
-	clientIntegrated,
-	serverIntegrated,
-	serverIntegratedLoading,
-}: {
-	clientIntegrated: boolean
-	serverIntegrated: boolean
-	serverIntegratedLoading: boolean
-}) => {
+const IGNORED_KEYS = ['title', 'subtitle']
+
+const SetupPage = ({ integrated }: { integrated: boolean }) => {
 	const navigate = useNavigate()
 	const { project_id, step = 'client' } = useParams<{
 		project_id: string
@@ -85,6 +92,10 @@ const SetupPage = ({
 	const { projectId } = useProjectId()
 	const [docs, setDocs] = useState<Guides>()
 	const [steps, setSteps] = useState<SetupStep[]>([])
+	const {
+		integrated: isBackendIntegrated,
+		loading: isBackendIntegratedLoading,
+	} = useBackendIntegrated()
 	const { isSlackConnectedToWorkspace, loading: isSlackConnectedLoading } =
 		useSlackBot()
 	const { isLinearIntegratedWithProject, loading: isLinearConnectedLoading } =
@@ -98,8 +109,8 @@ const SetupPage = ({
 			action: () => {
 				navigate(`/${project_id}/setup/client`)
 			},
-			loading: !clientIntegrated && clientIntegrated !== false,
-			completed: clientIntegrated,
+			loading: !integrated && integrated !== false,
+			completed: integrated,
 		})
 		STEPS.push({
 			displayName: 'Backend SDK',
@@ -107,8 +118,8 @@ const SetupPage = ({
 			action: () => {
 				navigate(`/${project_id}/setup/backend`)
 			},
-			loading: serverIntegratedLoading,
-			completed: serverIntegrated,
+			loading: isBackendIntegratedLoading,
+			completed: isBackendIntegrated,
 		})
 		STEPS.push({
 			displayName: 'Features/Integrations',
@@ -122,9 +133,9 @@ const SetupPage = ({
 		})
 		setSteps(STEPS)
 	}, [
-		clientIntegrated,
-		serverIntegrated,
-		serverIntegratedLoading,
+		integrated,
+		isBackendIntegrated,
+		isBackendIntegratedLoading,
 		isLinearConnectedLoading,
 		isLinearIntegratedWithProject,
 		isSlackConnectedLoading,
@@ -227,25 +238,25 @@ const SetupPage = ({
 								{step === 'client' && (
 									<ClientSetup
 										project_id={projectId!}
-										integrated={clientIntegrated}
 										projectVerboseId={
 											data.project.verbose_id
 										}
-										docs={docs.client}
+										integrated={integrated}
+										docs={docs.client['js']}
 									/>
 								)}
 								{step === 'backend' && (
 									<BackendSetup
 										projectData={data}
-										integrated={serverIntegrated}
-										docs={docs.server}
+										integrated={isBackendIntegrated}
+										docs={docs.backend}
 									/>
 								)}
 								{step === 'more' && (
 									<MoreSetup
 										project_id={projectId!}
 										projectData={data}
-										integrated={clientIntegrated}
+										integrated={integrated}
 										// docs={docs.other}
 									/>
 								)}
@@ -267,14 +278,21 @@ const ClientSetup = ({
 	project_id: string
 	projectVerboseId: string
 	integrated: boolean
-	docs: Guides['client']
+	docs: Guides['client']['js']
 }) => {
-	const frameworkKeys = Object.keys(docs)
+	const frameworkKeys = Object.keys(docs).filter(
+		(k) => IGNORED_KEYS.indexOf(k) === -1,
+	)
 	const [framework, setFramework] = useLocalStorage<string>(
-		`selectedSetupClientFramework-${project_id}`,
+		`selectedDocsClientFramework-${project_id}`,
 		frameworkKeys[0],
 	)
 	const guide = docs[framework]
+
+	if (!guide) {
+		setFramework(frameworkKeys[0])
+		return null
+	}
 
 	return (
 		<>
@@ -451,19 +469,27 @@ const BackendSetup = ({
 }: {
 	projectData: GetProjectQuery | undefined
 	integrated: boolean
-	docs: Guides['server']
+	docs: Guides['backend']
 }) => {
-	const languageKeys = Object.keys(docs)
+	const languageKeys = Object.keys(docs).filter(
+		(k) => IGNORED_KEYS.indexOf(k) === -1,
+	)
 	const languageValues = languageKeys.map((k) => capitalize(k))
+
 	const [language, setLanguage] = useLocalStorage<string>(
-		`selectedSetupLanguage-${projectData?.project?.id}`,
+		`selectedDocsLanguage-${projectData?.project?.id}`,
 		languageKeys[0],
 	)
+
+	if (!docs[language]) {
+		setLanguage('client')
+		return null
+	}
 
 	return (
 		<>
 			<Helmet>
-				<title>Setup: {language}</title>
+				<title>Setup: {docs[language].title}</title>
 			</Helmet>
 
 			<div className={styles.headingWrapper}>
@@ -491,14 +517,16 @@ const BackendSetup = ({
 }
 
 const Framework: React.FC<{
-	docs: Guides['server']
+	docs: Guides['backend']
 	integrated: boolean
 	language: string
 	projectData: GetProjectQuery | undefined
 }> = ({ docs, integrated, language, projectData }) => {
-	const frameworkKeys = Object.keys(docs[language])
+	const frameworkKeys = Object.keys(docs[language]).filter(
+		(k) => IGNORED_KEYS.indexOf(k) === -1,
+	)
 	const [framework, setFramework] = useLocalStorage<string>(
-		`selectedSetupFramework-${projectData?.project?.id}`,
+		`selectedDocsFramework-${projectData?.project?.id}`,
 		frameworkKeys[0],
 	)
 	const guide = docs[language] && docs[language][framework]
@@ -515,14 +543,14 @@ const Framework: React.FC<{
 		<>
 			<RadioGroup<string>
 				style={{ marginBottom: 20 }}
-				selectedLabel={getBackendFrameworkTitle(language, guide.title)}
+				selectedLabel={getFrameworkTitle(language, guide.title)}
 				labels={frameworkKeys.map((k) =>
-					getBackendFrameworkTitle(language, docs[language][k].title),
+					getFrameworkTitle(language, docs[language][k].title),
 				)}
 				onSelect={(l) => {
 					const frameworkKey = frameworkKeys.find(
 						(k) =>
-							getBackendFrameworkTitle(
+							getFrameworkTitle(
 								language,
 								docs[language][k].title,
 							) === l,
@@ -865,6 +893,16 @@ const MoreSetup = ({
 	)
 }
 
+const getFrameworkTitle = (language: string, framework: string) => {
+	const languageTitle = capitalize(language)
+
+	if (framework.startsWith(`${languageTitle} `)) {
+		// Clean up `Python Flask` to `Flask`
+		framework = framework.replace(`${languageTitle} `, '')
+	}
+	return framework
+}
+
 type SectionProps = {
 	title: string | React.ReactNode
 	id?: string
@@ -879,16 +917,6 @@ export const Section: FunctionComponent<
 			{children}
 		</Collapsible>
 	)
-}
-
-const getBackendFrameworkTitle = (language: string, framework: string) => {
-	const languageTitle = capitalize(language)
-
-	if (framework.startsWith(`${languageTitle} `)) {
-		// Clean up `Python Flask` to `Flask`
-		framework = framework.replace(`${languageTitle} `, '')
-	}
-	return framework
 }
 
 // Copied from RadioGroup.tsx for now. Will refactor and break out to a separate
