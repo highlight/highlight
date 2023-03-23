@@ -376,8 +376,11 @@ const LogBucketBar = ({
 const LoadingState = () => {
 	const loadingData: HistogramBucket[] = []
 	const now = new Date()
+	const maxBucketCount = 150
 
 	for (let i = 50; i > 0; i--) {
+		const isEmpty = Math.round(Math.random() * 100) % 10 === 0
+		const multiplier = Math.random() * maxBucketCount
 		const startDate = new Date(now)
 		startDate.setMinutes(now.getMinutes() - i)
 		const endDate = new Date(now)
@@ -389,19 +392,19 @@ const LoadingState = () => {
 			counts: [
 				{
 					level: 'info',
-					count: Math.round(Math.random() * 100),
+					count: isEmpty ? 0 : Math.random() * multiplier,
 				},
 				{
 					level: 'warn',
-					count: Math.round(Math.random() * 100),
+					count: isEmpty ? 0 : Math.random() * multiplier,
 				},
 				{
 					level: 'error',
-					count: Math.round(Math.random() * 100),
+					count: isEmpty ? 0 : Math.random() * multiplier,
 				},
 				{
 					level: 'fatal',
-					count: Math.round(Math.random() * 100),
+					count: isEmpty ? 0 : Math.random() * multiplier,
 				},
 			],
 		})
@@ -415,7 +418,7 @@ const LoadingState = () => {
 						key={index}
 						bucket={bucket}
 						width={`${100 / 50}%`}
-						maxBucketCount={4}
+						maxBucketCount={maxBucketCount}
 						loading
 					/>
 				)
