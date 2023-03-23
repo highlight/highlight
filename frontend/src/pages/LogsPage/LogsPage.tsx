@@ -164,7 +164,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						pt="4"
 						px="12"
 						pb="12"
-						overflowY="scroll"
+						overflowY="auto"
 						onScroll={(e) =>
 							fetchMoreWhenScrolled(e.target as HTMLDivElement)
 						}
