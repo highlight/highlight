@@ -45,6 +45,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
+	highlight "github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
@@ -55,6 +56,7 @@ import (
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
+	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -7054,6 +7056,24 @@ func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyNam
 	}
 
 	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
+}
+
+// LogsErrorObjects is the resolver for the logs_error_objects field.
+func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model.ErrorObject, error) {
+	ddS, _ := tracer.StartSpanFromContext(ctx, "resolver.LogsErrorObjects",
+		tracer.ResourceName("DB.Query"), tracer.Tag("NumLogCursors", len(logCursors)))
+	s, ctx := highlight.StartTrace(ctx, "LogsErrorObjects.DB.Query", attribute.Int("NumLogCursors", len(logCursors)))
+
+	var errorObjects []*model.ErrorObject
+	if err := r.DB.Model(&model.ErrorObject{}).Where("log_cursor IN ?", logCursors).Scan(&errorObjects).Error; err != nil {
+		s.RecordError(err)
+		highlight.EndTrace(s)
+		ddS.Finish(tracer.WithError(err))
+		return nil, e.Wrap(err, "failed to find errors for log cursors")
+	}
+	highlight.EndTrace(s)
+	ddS.Finish()
+	return errorObjects, nil
 }
 
 // Params is the resolver for the params field.

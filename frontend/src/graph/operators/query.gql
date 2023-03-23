@@ -1943,3 +1943,11 @@ query GetLogsKeyValues(
 		date_range: $date_range
 	)
 }
+
+query GetLogsErrorObjects($log_cursors: [String!]!) {
+	logs_error_objects(log_cursors: $log_cursors) {
+		log_cursor
+		error_group_secure_id
+		id
+	}
+}

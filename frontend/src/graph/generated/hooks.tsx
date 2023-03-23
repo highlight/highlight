@@ -11881,3 +11881,61 @@ export type GetLogsKeyValuesQueryResult = Apollo.QueryResult<
 	Types.GetLogsKeyValuesQuery,
 	Types.GetLogsKeyValuesQueryVariables
 >
+export const GetLogsErrorObjectsDocument = gql`
+	query GetLogsErrorObjects($log_cursors: [String!]!) {
+		logs_error_objects(log_cursors: $log_cursors) {
+			log_cursor
+			error_group_secure_id
+			id
+		}
+	}
+`
+
+/**
+ * __useGetLogsErrorObjectsQuery__
+ *
+ * To run a query within a React component, call `useGetLogsErrorObjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogsErrorObjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogsErrorObjectsQuery({
+ *   variables: {
+ *      log_cursors: // value for 'log_cursors'
+ *   },
+ * });
+ */
+export function useGetLogsErrorObjectsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLogsErrorObjectsQuery,
+		Types.GetLogsErrorObjectsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetLogsErrorObjectsQuery,
+		Types.GetLogsErrorObjectsQueryVariables
+	>(GetLogsErrorObjectsDocument, baseOptions)
+}
+export function useGetLogsErrorObjectsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLogsErrorObjectsQuery,
+		Types.GetLogsErrorObjectsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetLogsErrorObjectsQuery,
+		Types.GetLogsErrorObjectsQueryVariables
+	>(GetLogsErrorObjectsDocument, baseOptions)
+}
+export type GetLogsErrorObjectsQueryHookResult = ReturnType<
+	typeof useGetLogsErrorObjectsQuery
+>
+export type GetLogsErrorObjectsLazyQueryHookResult = ReturnType<
+	typeof useGetLogsErrorObjectsLazyQuery
+>
+export type GetLogsErrorObjectsQueryResult = Apollo.QueryResult<
+	Types.GetLogsErrorObjectsQuery,
+	Types.GetLogsErrorObjectsQueryVariables
+>
