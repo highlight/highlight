@@ -12,10 +12,11 @@ import {
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
-import type {
+import {
 	ErrorInstance as ErrorInstanceType,
 	ErrorObject,
 	Maybe,
+	ReservedLogKey,
 } from '@graph/schemas'
 import {
 	Box,
@@ -321,7 +322,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								let offsetStart = 1
 								if (errorObject.session?.secure_id) {
 									queryParams.push({
-										key: 'secure_session_id',
+										key: ReservedLogKey.SecureSessionId,
 										operator: DEFAULT_LOGS_OPERATOR,
 										value: errorObject.session?.secure_id,
 										offsetStart: offsetStart++,
@@ -329,7 +330,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								}
 								if (errorObject.trace_id) {
 									queryParams.push({
-										key: 'trace_id',
+										key: ReservedLogKey.TraceId,
 										operator: DEFAULT_LOGS_OPERATOR,
 										value: errorObject.trace_id,
 										offsetStart: offsetStart++,
