@@ -1,4 +1,3 @@
-import { LinkButton } from '@components/LinkButton'
 import { Box, Callout, Text } from '@highlight-run/ui'
 import React from 'react'
 
@@ -17,6 +16,9 @@ const NoLogsFound = () => {
 						filters.
 					</Text>
 
+					{/*
+					TODO: Uncomment and ensure the link is accurate once
+					https://github.com/highlight/highlight/issues/4592 is resolved.
 					<LinkButton
 						trackingId="logs-empty-state_specification-docs"
 						kind="secondary"
@@ -25,6 +27,7 @@ const NoLogsFound = () => {
 					>
 						Log search specification
 					</LinkButton>
+					*/}
 				</Box>
 			</Callout>
 		</Box>
