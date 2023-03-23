@@ -20,20 +20,13 @@ export const menuItemActive = style({
 	color: themeVars.interactive.fill.secondary.content.onEnabled,
 })
 
-export const menuItemSecondary = style({
-	alignItems: 'center',
-	borderRadius: 4,
-	color: themeVars.interactive.fill.secondary.content.text,
-	cursor: 'pointer',
-	display: 'flex',
-	flexDirection: 'row',
-	gap: 4,
-	padding: 8,
-	width: 325,
-	selectors: {
-		'&:hover': {
-			backgroundColor: themeVars.interactive.overlay.secondary.hover,
-			color: themeVars.interactive.fill.secondary.content.onEnabled,
-		},
+export const menuItemSecondary = style([
+	menuItem,
+	{
+		alignItems: 'center',
+		display: 'flex',
+		flexDirection: 'row',
+		gap: 4,
+		padding: 8,
 	},
-})
+])
