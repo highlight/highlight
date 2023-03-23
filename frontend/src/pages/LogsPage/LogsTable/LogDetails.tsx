@@ -9,11 +9,12 @@ import {
 	IconSolidFilter,
 	IconSolidLightningBolt,
 	IconSolidLink,
+	IconSolidPlayCircle,
 	Stack,
-	Tag,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 import { QueryParam } from '@pages/LogsPage/LogsPage'
 import {
 	IconCollapsed,
@@ -48,6 +49,7 @@ export const getLogURL = (row: Row<LogEdge>) => {
 }
 
 export const LogDetails = ({ row, queryTerms }: Props) => {
+	const { projectId } = useProjectId()
 	const navigate = useNavigate()
 	const [allExpanded, setAllExpanded] = useState(false)
 	const { traceID, spanID, secureSessionID, logAttributes, message, level } =
@@ -139,6 +141,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 				flexDirection="row"
 				gap="16"
 				mt="8"
+				mb="4"
 			>
 				<Box
 					display="flex"
@@ -215,23 +218,43 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 							Copy link
 						</Box>
 					</ButtonLink>
-				</Box>
 
-				<Box
-					display="flex"
-					alignItems="center"
-					flexDirection="row"
-					gap="16"
-				>
-					{row.original.error_object && (
-						<Tag
-							shape="basic"
+					{row.original.node.secureSessionID?.length ||
+					row.original.error_object ? (
+						<Box
+							border="divider"
+							style={{ width: 1, height: 14 }}
+						/>
+					) : null}
+
+					{row.original.node.secureSessionID?.length ? (
+						<ButtonLink
 							kind="secondary"
-							emphasis="medium"
 							onClick={(e) => {
 								e.stopPropagation()
 								navigate(
-									`/errors/${row.original.error_object?.error_group_secure_id}/instances/${row.original.error_object?.id}`,
+									`/${projectId}/sessions/${row.original.node.secureSessionID}`,
+								)
+							}}
+						>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidPlayCircle />
+								Related Session
+							</Box>
+						</ButtonLink>
+					) : null}
+					{row.original.error_object && (
+						<ButtonLink
+							kind="secondary"
+							onClick={(e) => {
+								e.stopPropagation()
+								navigate(
+									`/${projectId}/errors/${row.original.error_object?.error_group_secure_id}/instances/${row.original.error_object?.id}`,
 								)
 							}}
 						>
@@ -244,7 +267,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 								<IconSolidLightningBolt />
 								Related Error
 							</Box>
-						</Tag>
+						</ButtonLink>
 					)}
 				</Box>
 			</Box>
