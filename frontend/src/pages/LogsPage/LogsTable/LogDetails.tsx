@@ -30,7 +30,7 @@ import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { generatePath } from 'react-router-dom'
+import { generatePath, Link } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import * as styles from './LogDetails.css'
@@ -219,7 +219,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 						</Box>
 					</ButtonLink>
 
-					{row.original.node.secureSessionID?.length ||
+					{row.original.node.secureSessionID ||
 					row.original.error_object ? (
 						<Box
 							border="divider"
@@ -227,15 +227,10 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 						/>
 					) : null}
 
-					{row.original.node.secureSessionID?.length ? (
-						<ButtonLink
-							kind="secondary"
-							onClick={(e) => {
-								e.stopPropagation()
-								navigate(
-									`/${projectId}/sessions/${row.original.node.secureSessionID}`,
-								)
-							}}
+					{row.original.node.secureSessionID ? (
+						<Link
+							className={styles.buttonLink}
+							to={`/${projectId}/sessions/${row.original.node.secureSessionID}`}
 						>
 							<Box
 								display="flex"
@@ -246,17 +241,12 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 								<IconSolidPlayCircle />
 								Related Session
 							</Box>
-						</ButtonLink>
+						</Link>
 					) : null}
 					{row.original.error_object && (
-						<ButtonLink
-							kind="secondary"
-							onClick={(e) => {
-								e.stopPropagation()
-								navigate(
-									`/${projectId}/errors/${row.original.error_object?.error_group_secure_id}/instances/${row.original.error_object?.id}`,
-								)
-							}}
+						<Link
+							className={styles.buttonLink}
+							to={`/${projectId}/errors/${row.original.error_object?.error_group_secure_id}/instances/${row.original.error_object?.id}`}
 						>
 							<Box
 								display="flex"
@@ -267,7 +257,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 								<IconSolidLightningBolt />
 								Related Error
 							</Box>
-						</ButtonLink>
+						</Link>
 					)}
 				</Box>
 			</Box>
