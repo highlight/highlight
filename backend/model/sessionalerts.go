@@ -33,5 +33,5 @@ func (dc DiscordChannels) Value() (driver.Value, error) {
 
 type AlertIntegrations struct {
 	DiscordChannelsToNotify DiscordChannels `gorm:"type:jsonb;default:'[]'" json:"discord_channels_to_notify"`
-	WebhookDestinations     pq.StringArray  `gorm:"type:text[]"`
+	WebhookDestinations     pq.StringArray  `gorm:"type:text[];default:'{}'"`
 }
