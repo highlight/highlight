@@ -4035,6 +4035,7 @@ export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
 
 export type GetLogsKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
+	date_range: Types.DateRangeRequiredInput
 }>
 
 export type GetLogsKeysQuery = { __typename?: 'Query' } & {

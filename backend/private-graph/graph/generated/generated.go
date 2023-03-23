@@ -753,7 +753,7 @@ type ComplexityRoot struct {
 		LogsErrorObjects             func(childComplexity int, logCursors []string) int
 		LogsHistogram                func(childComplexity int, projectID int, params model.LogsParamsInput) int
 		LogsKeyValues                func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
-		LogsKeys                     func(childComplexity int, projectID int) int
+		LogsKeys                     func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput) int
 		LogsTotalCount               func(childComplexity int, projectID int, params model.LogsParamsInput) int
 		Messages                     func(childComplexity int, sessionSecureID string) int
 		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
@@ -1370,7 +1370,7 @@ type QueryResolver interface {
 	Logs(ctx context.Context, projectID int, params model.LogsParamsInput, after *string, before *string, at *string) (*model.LogsConnection, error)
 	LogsTotalCount(ctx context.Context, projectID int, params model.LogsParamsInput) (uint64, error)
 	LogsHistogram(ctx context.Context, projectID int, params model.LogsParamsInput) (*model.LogsHistogram, error)
-	LogsKeys(ctx context.Context, projectID int) ([]*model.LogKey, error)
+	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput) ([]*model.LogKey, error)
 	LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model1.ErrorObject, error)
 }
@@ -5484,7 +5484,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.LogsKeys(childComplexity, args["project_id"].(int)), true
+		return e.complexity.Query.LogsKeys(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput)), true
 
 	case "Query.logs_total_count":
 		if e.complexity.Query.LogsTotalCount == nil {
@@ -9270,7 +9270,7 @@ type Query {
 	): LogsConnection!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
-	logs_keys(project_id: ID!): [LogKey!]!
+	logs_keys(project_id: ID!, date_range: DateRangeRequiredInput!): [LogKey!]!
 	logs_key_values(
 		project_id: ID!
 		key_name: String!
@@ -13629,6 +13629,15 @@ func (ec *executionContext) field_Query_logs_keys_args(ctx context.Context, rawA
 		}
 	}
 	args["project_id"] = arg0
+	var arg1 model.DateRangeRequiredInput
+	if tmp, ok := rawArgs["date_range"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
+		arg1, err = ec.unmarshalNDateRangeRequiredInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["date_range"] = arg1
 	return args, nil
 }
 
@@ -42994,7 +43003,7 @@ func (ec *executionContext) _Query_logs_keys(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().LogsKeys(rctx, fc.Args["project_id"].(int))
+		return ec.resolvers.Query().LogsKeys(rctx, fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

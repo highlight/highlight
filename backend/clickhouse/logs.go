@@ -266,16 +266,25 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	return histogram, err
 }
 
-func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
+func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.LogKey, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select("arrayJoin(LogAttributes.keys) as key, count() as cnt").
 		From(LogsTable).
 		Where(sb.Equal("ProjectId", projectID)).
 		GroupBy("key").
 		OrderBy("cnt DESC").
-		Limit(50)
+		Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(endDate.Unix()))).
+		Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(startDate.Unix())))
 
 	sql, args := sb.Build()
+
+	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("LogsKeys"))
+	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	if err != nil {
+		span.Finish(tracer.WithError(err))
+		return nil, err
+	}
+	span.SetTag("Query", query)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
@@ -307,6 +316,8 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 	}
 
 	rows.Close()
+
+	span.Finish(tracer.WithError(rows.Err()))
 	return keys, rows.Err()
 
 }

@@ -1834,6 +1834,7 @@ export type QueryLogs_Key_ValuesArgs = {
 }
 
 export type QueryLogs_KeysArgs = {
+	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
 }
 
