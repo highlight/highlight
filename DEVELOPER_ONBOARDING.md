@@ -28,6 +28,7 @@ After all services are built and running, you can visit [https://localhost:3000]
 * Visit https://github.com/codespaces and start a codepsace for highlight/highlight
 * Install the VS Code Extension "GitHub Codespaces"
 * Using VS Code, enter codespace - `CMD + Shift + P`, type `codespace`, select the Highlight codespace
+* If docker is not running (try `docker ps`), run a full rebuild: press `CMD + Shift + P`, select `Codespaces: Full Rebuild Container`
 ```bash
 # from highlight/
 yarn
