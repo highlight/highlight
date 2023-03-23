@@ -3,6 +3,10 @@ package highlight
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"reflect"
+	"strings"
+
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -12,9 +16,6 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
-	"net/url"
-	"reflect"
-	"strings"
 )
 
 const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
@@ -43,7 +44,6 @@ var InternalAttributes = []string{
 	ProjectIDAttribute,
 	SessionIDAttribute,
 	RequestIDAttribute,
-	SourceAttribute,
 	LogMessageAttribute,
 	LogSeverityAttribute,
 }
