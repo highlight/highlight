@@ -1,5 +1,14 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { Box, IconSolidCheckCircle, Stack, Text } from '@highlight-run/ui'
+import {
+	Box,
+	IconSolidCheckCircle,
+	IconSolidGlobe,
+	IconSolidUserAdd,
+	IconSolidViewGridAdd,
+	Stack,
+	Text,
+	vars,
+} from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
@@ -9,7 +18,14 @@ import { useClientIntegrated, useServerIntegrated } from '@util/integrated'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
-import { Navigate, NavLink, Route, Routes, useMatch } from 'react-router-dom'
+import {
+	Link,
+	Navigate,
+	NavLink,
+	Route,
+	Routes,
+	useMatch,
+} from 'react-router-dom'
 
 import * as styles from './SetupRouter.css'
 
@@ -66,8 +82,8 @@ const SetupRouter = () => {
 	useEffect(() => analytics.page(), [])
 
 	useEffect(() => {
-		// fetch(`https://www.highlight.io/api/quickstart`)
-		fetch(`http://localhost:3001/api/quickstart`)
+		fetch(`https://www.highlight.io/api/quickstart`)
+			// fetch(`http://localhost:3001/api/quickstart`)
 			.then((res) => res.json())
 			.then((docs) => setDocs(docs))
 			.catch(() => message.error('Error loading docs...'))
@@ -95,6 +111,7 @@ const SetupRouter = () => {
 		<Box display="flex" flexDirection="row" flexGrow={1}>
 			<Stack justify="space-between" p="8">
 				<Stack gap="0">
+					{/* TODO: Add items to  */}
 					<NavLink
 						to="client/js"
 						className={({ isActive }) =>
@@ -134,40 +151,40 @@ const SetupRouter = () => {
 				</Stack>
 
 				<Stack gap="0">
-					<Box mb="10" ml="12">
-						<Text weight="bold">More stuff</Text>
+					<Box mb="10" ml="8">
+						<Text
+							weight="bold"
+							size="xxSmall"
+							color="secondaryContentText"
+						>
+							More stuff
+						</Text>
 					</Box>
-					<NavLink
+					<Link
 						to={`/${projectId}/alerts`}
-						className={({ isActive }) =>
-							clsx(styles.menuItem, {
-								[styles.menuItemActive]: isActive,
-							})
-						}
+						className={styles.menuItemSecondary}
 					>
+						<IconSolidViewGridAdd
+							color={vars.theme.static.content.weak}
+						/>
 						<Text>Add integrations & alerts</Text>
-					</NavLink>
-					<NavLink
-						to="/w/team"
-						className={({ isActive }) =>
-							clsx(styles.menuItem, {
-								[styles.menuItemActive]: isActive,
-							})
-						}
-					>
+					</Link>
+					<Link to="/w/team" className={styles.menuItemSecondary}>
+						<IconSolidUserAdd
+							color={vars.theme.static.content.weak}
+						/>
 						<Text>Invite team</Text>
-					</NavLink>
-					<NavLink
+					</Link>
+					<Link
 						to="https://discord.gg/yxaXEAqgwN"
 						target="_blank"
-						className={({ isActive }) =>
-							clsx(styles.menuItem, {
-								[styles.menuItemActive]: isActive,
-							})
-						}
+						className={styles.menuItemSecondary}
 					>
+						<IconSolidGlobe
+							color={vars.theme.static.content.weak}
+						/>
 						<Text>Join community</Text>
-					</NavLink>
+					</Link>
 				</Stack>
 			</Stack>
 			<Box flexGrow={1} display="flex" flexDirection="column">

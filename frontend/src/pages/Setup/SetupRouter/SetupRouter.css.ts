@@ -5,7 +5,7 @@ export const menuItem = style({
 	borderRadius: 4,
 	color: themeVars.interactive.fill.secondary.content.text,
 	cursor: 'pointer',
-	padding: 14,
+	padding: '12px 8px',
 	width: 325,
 	selectors: {
 		'&:hover': {
@@ -18,4 +18,22 @@ export const menuItem = style({
 export const menuItemActive = style({
 	backgroundColor: themeVars.interactive.overlay.secondary.pressed,
 	color: themeVars.interactive.fill.secondary.content.onEnabled,
+})
+
+export const menuItemSecondary = style({
+	alignItems: 'center',
+	borderRadius: 4,
+	color: themeVars.interactive.fill.secondary.content.text,
+	cursor: 'pointer',
+	display: 'flex',
+	flexDirection: 'row',
+	gap: 4,
+	padding: 8,
+	width: 325,
+	selectors: {
+		'&:hover': {
+			backgroundColor: themeVars.interactive.overlay.secondary.hover,
+			color: themeVars.interactive.fill.secondary.content.onEnabled,
+		},
+	},
 })
