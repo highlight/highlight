@@ -37,7 +37,7 @@
 		"react/display-name": "off",
 		"@typescript-eslint/no-explicit-any": "off",
 		"@typescript-eslint/no-unused-vars": [
-			"warn",
+			"error",
 			{ "argsIgnorePattern": "^_" }
 		],
 		"unused-imports/no-unused-imports-ts": "error",
