@@ -82,7 +82,7 @@ const LogsHistogram = ({
 
 	const content = useMemo(() => {
 		if (loading) {
-			return <LoadingState maxBucketCount={maxBucketCount} />
+			return <LoadingState />
 		}
 
 		if (!data?.logs_histogram || !maxBucketCount) {
@@ -373,9 +373,7 @@ const LogBucketBar = ({
 	)
 }
 
-const LoadingState: React.FC<{ maxBucketCount: number }> = ({
-	maxBucketCount,
-}) => {
+const LoadingState = () => {
 	const loadingData: HistogramBucket[] = []
 	const now = new Date()
 
@@ -417,7 +415,7 @@ const LoadingState: React.FC<{ maxBucketCount: number }> = ({
 						key={index}
 						bucket={bucket}
 						width={`${100 / 50}%`}
-						maxBucketCount={maxBucketCount}
+						maxBucketCount={4}
 						loading
 					/>
 				)
