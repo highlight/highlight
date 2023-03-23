@@ -86,6 +86,15 @@ func WithSeverityText(severityText string) LogRowOption {
 	}
 }
 
+func WithSource(source string) LogRowOption {
+	return func(h *LogRow) {
+		if source == highlight.SourceAttributeFrontend {
+			source = "frontend"
+		}
+		h.LogAttributes[highlight.SourceAttribute] = source
+	}
+}
+
 func WithBody(body string) LogRowOption {
 	return func(h *LogRow) {
 		h.Body = body
@@ -120,6 +129,15 @@ func GetAttributesMap(resourceAttributes, spanAttributes, eventAttributes map[st
 	for _, m := range []map[string]any{resourceAttributes, spanAttributes, eventAttributes} {
 		for k, v := range m {
 			shouldSkip := false
+
+			if k == highlight.SourceAttribute {
+				vStr := cast(v, "")
+				if vStr == highlight.SourceAttributeFrontend {
+					vStr = "frontend"
+				}
+				attributesMap[k] = vStr
+				continue
+			}
 
 			for _, attr := range highlight.InternalAttributes {
 				if k == attr {
