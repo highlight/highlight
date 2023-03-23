@@ -1,9 +1,8 @@
-import { LinkButton } from '@components/LinkButton'
 import {
 	GetClientIntegrationDataQuery,
 	GetServerIntegrationDataQuery,
 } from '@graph/operations'
-import { Box, Stack, Text } from '@highlight-run/ui'
+import { Box } from '@highlight-run/ui'
 import { Header } from '@pages/Setup/Header'
 import { IntegrationBar } from '@pages/Setup/IntegrationBar'
 import { Guides } from '@pages/Setup/SetupRouter/SetupRouter'
@@ -18,14 +17,14 @@ export type OptionListItem = {
 
 type Props = {
 	docs: Guides
-	clientIntegrationData: GetClientIntegrationDataQuery
-	serverIntegrationData: GetServerIntegrationDataQuery
+	integrationData?:
+		| GetClientIntegrationDataQuery['clientIntegrationData']
+		| GetServerIntegrationDataQuery['serverIntegrationData']
 }
 
 export const SetupOptionsList: React.FC<Props> = ({
 	docs,
-	clientIntegrationData,
-	serverIntegrationData,
+	integrationData,
 }) => {
 	const clientMatch = useMatch('/:project_id/setup/client')
 	const areaMatch = useMatch('/:project_id/setup/:area')
@@ -36,9 +35,6 @@ export const SetupOptionsList: React.FC<Props> = ({
 		? (docs[area as keyof typeof docs][language] as any)
 		: (docs[area as keyof typeof docs] as any)
 	const optionKeys = getOptionKeys(docsSection)
-	const integrated =
-		(area === 'client' && !!clientIntegrationData) ||
-		(area === 'backend' && !!serverIntegrationData)
 
 	// Redirect if there is only one option. Also has a temporary redirect for
 	// clientMatch until the extra docs keys are removed from the top level of the
@@ -67,58 +63,13 @@ export const SetupOptionsList: React.FC<Props> = ({
 
 	return (
 		<Box>
-			<IntegrationBar integrated={integrated} />
+			<IntegrationBar integrationData={integrationData} />
 
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
 				<Header
 					title={docsSection.title}
 					subtitle={docsSection.subtitle}
 				/>
-
-				{/* TODO: Break this out to a separate component, or consider taking
-				some props for header content */}
-				{/* TODO: Add view your first session/error/log CTA here. */}
-				{options.map((option, index) => {
-					return (
-						<Box
-							key={index}
-							alignItems="center"
-							backgroundColor="raised"
-							btr={index === 0 ? '6' : undefined}
-							bbr={index === options.length - 1 ? '6' : undefined}
-							borderTop={index !== 0 ? 'dividerWeak' : undefined}
-							display="flex"
-							flexGrow={1}
-							justifyContent="space-between"
-							py="12"
-							px="16"
-						>
-							<Stack align="center" direction="row" gap="10">
-								<Box
-									alignItems="center"
-									backgroundColor="contentGood"
-									borderRadius="4"
-									color="white"
-									display="flex"
-									justifyContent="center"
-									style={{ height: 28, width: 28 }}
-								>
-									{(option.name as string)[0].toUpperCase()}
-								</Box>
-								<Text color="default" weight="bold">
-									{option.name as string}
-								</Text>
-							</Stack>
-							<LinkButton
-								to={option.path}
-								trackingId={`setup-option-${option.key}`}
-								kind="secondary"
-							>
-								Select
-							</LinkButton>
-						</Box>
-					)
-				})}
 			</Box>
 		</Box>
 	)

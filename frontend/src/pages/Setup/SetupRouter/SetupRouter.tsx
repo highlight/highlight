@@ -9,7 +9,7 @@ import { useClientIntegrated, useServerIntegrated } from '@util/integrated'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
-import { Navigate, NavLink, Route, Routes } from 'react-router-dom'
+import { Navigate, NavLink, Route, Routes, useMatch } from 'react-router-dom'
 
 import * as styles from './SetupRouter.css'
 
@@ -49,10 +49,12 @@ export type Guides = {
 }
 
 const SetupRouter = () => {
-	const { data: serverIntegrationData, loading: serverIntegratedLoading } =
-		useServerIntegrated()
-	const { data: clientIntegrationData, loading: clientIntegratedLoading } =
-		useClientIntegrated()
+	const { data: serverIntegrationData } = useServerIntegrated()
+	const { data: clientIntegrationData } = useClientIntegrated()
+	const areaMatch = useMatch('/:project_id/setup/:area/*')
+	const area = areaMatch?.params.area || 'client'
+	const integrationData =
+		area === 'backend' ? serverIntegrationData : clientIntegrationData
 	const { projectId } = useProjectId()
 	const { isHighlightAdmin } = useAuthContext()
 	const [docs, setDocs] = useState<Guides>()
@@ -179,12 +181,7 @@ const SetupRouter = () => {
 							element={
 								<SetupOptionsList
 									docs={docs}
-									clientIntegrationData={
-										clientIntegrationData
-									}
-									serverIntegrationData={
-										serverIntegrationData
-									}
+									integrationData={integrationData}
 								/>
 							}
 						/>
@@ -193,12 +190,7 @@ const SetupRouter = () => {
 							element={
 								<SetupDocs
 									docs={docs}
-									clientIntegrationData={
-										clientIntegrationData
-									}
-									serverIntegrationData={
-										serverIntegrationData
-									}
+									integrationData={integrationData}
 								/>
 							}
 						/>

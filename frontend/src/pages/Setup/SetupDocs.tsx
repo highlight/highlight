@@ -1,5 +1,3 @@
-import { Button } from '@components/Button'
-import { LinkButton } from '@components/LinkButton'
 import {
 	GetClientIntegrationDataQuery,
 	GetServerIntegrationDataQuery,
@@ -10,14 +8,11 @@ import {
 	Heading,
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
-	IconSolidLoading,
 	Stack,
-	Text,
 } from '@highlight-run/ui'
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import { Header } from '@pages/Setup/Header'
 import { IntegrationBar } from '@pages/Setup/IntegrationBar'
-import { loading } from '@pages/Setup/IntegrationBar.css'
 import { Guide, Guides } from '@pages/Setup/SetupRouter/SetupRouter'
 import analytics from '@util/analytics'
 import clsx from 'clsx'
@@ -35,68 +30,25 @@ export type OptionListItem = {
 }
 
 type Props = {
-	clientIntegrationData: GetClientIntegrationDataQuery['clientIntegrationData']
-	serverIntegrationData: GetServerIntegrationDataQuery['serverIntegrationData']
 	docs: Guides
+	integrationData:
+		| GetClientIntegrationDataQuery['clientIntegrationData']
+		| GetServerIntegrationDataQuery['serverIntegrationData']
 }
 
-export const SetupDocs: React.FC<Props> = ({
-	docs,
-	clientIntegrationData,
-	serverIntegrationData,
-}) => {
+export const SetupDocs: React.FC<Props> = ({ docs, integrationData }) => {
 	const match = useMatch('/:project_id/setup/:area/:language/:framework')
-	const { project_id, area, framework, language } = match!.params
+	const { area, framework, language } = match!.params
 	const guide = (docs as any)[area!][language!][framework!] as Guide
-	const integrationDataPath = buildIntegrationDataPath(
-		project_id!,
-		area!,
-		clientIntegrationData,
-		serverIntegrationData,
-	)
 
 	return (
 		<Box>
-			<IntegrationBar integrated={!!integrationDataPath} />
+			<IntegrationBar integrationData={integrationData} />
 
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
 				<Header title={guide.title} subtitle={guide.subtitle} />
 
 				<Stack gap="8" py="10">
-					<Box
-						backgroundColor="informative"
-						p="16"
-						borderRadius="6"
-						display="flex"
-						alignItems="center"
-						justifyContent="space-between"
-						flexDirection="row"
-					>
-						<Heading level="h4">
-							View your first{' '}
-							{area === 'client' ? 'session' : 'error'}
-						</Heading>
-
-						{integrationDataPath ? (
-							<LinkButton
-								to={integrationDataPath}
-								trackingId={`integration-complete-cta-${area}`}
-							>
-								Open
-							</LinkButton>
-						) : (
-							<Button
-								trackingId="integration-complete-cta"
-								disabled
-							>
-								<Stack direction="row" gap="6" align="center">
-									<Text>Waiting for installation</Text>
-									<IconSolidLoading className={loading} />
-								</Stack>
-							</Button>
-						)}
-					</Box>
-
 					{guide.entries.map((entry, index) => {
 						return (
 							<Section
@@ -167,17 +119,4 @@ export const Section: React.FC<React.PropsWithChildren<SectionProps>> = ({
 			{open && <Box mt="24">{children}</Box>}
 		</Box>
 	)
-}
-
-const buildIntegrationDataPath = (
-	projectId: string,
-	area: string,
-	clientIntegrationData?: GetClientIntegrationDataQuery['clientIntegrationData'],
-	serverIntegrationData?: GetServerIntegrationDataQuery['serverIntegrationData'],
-) => {
-	if (area === 'client' && clientIntegrationData) {
-		return `/${projectId}/sessions/${clientIntegrationData.secure_id}`
-	} else if (area === 'backend' && serverIntegrationData) {
-		return `/${projectId}/error_groups/${serverIntegrationData.secure_id}`
-	}
 }

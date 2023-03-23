@@ -200,7 +200,7 @@ export const useClientIntegrated = () => {
 	])
 
 	return {
-		data: data?.clientIntegrationData || false,
+		data: data?.clientIntegrationData,
 		loading,
 	}
 }
@@ -257,7 +257,7 @@ export const useServerIntegrated = () => {
 	])
 
 	return {
-		data: data?.serverIntegrationData || false,
+		data: data?.serverIntegrationData,
 		loading,
 	}
 }
