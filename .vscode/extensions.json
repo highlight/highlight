@@ -7,6 +7,7 @@
 		"sysoev.vscode-open-in-github",
 		"stylelint.vscode-stylelint",
 		"sourcegraph.sourcegraph",
-		"eamodio.gitlens"
+		"eamodio.gitlens",
+		"github.codespaces"
 	]
 }
