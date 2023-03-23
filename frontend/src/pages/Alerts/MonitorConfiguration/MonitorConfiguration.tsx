@@ -49,9 +49,11 @@ interface Props {
 	units?: string
 	onUnitsChange: (newUnits: string) => void
 	slackChannels: string[]
-	discordChannels: DiscordChannel[]
 	onSlackChannelsChange: (newChannels: string[]) => void
+	discordChannels: DiscordChannel[]
 	onDiscordChannelsChange: (discordChannels: DiscordChannel[]) => void
+	webhooks: string[]
+	onWebhooksChange: (webhooks: string[]) => void
 	emails: string[]
 	onEmailsChange: (newEmails: string[]) => void
 	onFormSubmit: (values: any) => void
@@ -78,6 +80,8 @@ const MonitorConfiguration = ({
 	monitorName,
 	emails,
 	onEmailsChange,
+	webhooks,
+	onWebhooksChange,
 	threshold,
 	filters,
 	onFormSubmit,
@@ -534,6 +538,25 @@ const MonitorConfiguration = ({
 								</Link>
 							</div>
 						}
+					/>
+				</section>
+
+				<section>
+					<h3>Webhooks to Notify</h3>
+					<p>
+						Add webhook destinations for this alert, sent as JSON
+						over HTTP. See the{' '}
+						<Link to="https://www.highlight.io/docs/general/product-features/general-features/alerts/webhooks">
+							docs
+						</Link>{' '}
+						for more info.
+					</p>
+					<Select
+						className={alertConfigurationCardStyles.channelSelect}
+						value={webhooks}
+						mode="tags"
+						placeholder="Select webhook web addresses to send the alert to."
+						onChange={onWebhooksChange}
 					/>
 				</section>
 

@@ -684,6 +684,9 @@ export type CreateErrorAlertMutationVariables = Types.Exact<{
 	discord_channels:
 		| Array<Types.DiscordChannelInput>
 		| Types.DiscordChannelInput
+	webhook_destinations:
+		| Array<Types.Scalars['String']>
+		| Types.Scalars['String']
 	emails:
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -740,6 +743,9 @@ export type CreateMetricMonitorMutationVariables = Types.Exact<{
 	discord_channels:
 		| Array<Types.DiscordChannelInput>
 		| Types.DiscordChannelInput
+	webhook_destinations:
+		| Array<Types.Scalars['String']>
+		| Types.Scalars['String']
 	emails:
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -791,6 +797,9 @@ export type UpdateMetricMonitorMutationVariables = Types.Exact<{
 	discord_channels:
 		| Array<Types.DiscordChannelInput>
 		| Types.DiscordChannelInput
+	webhook_destinations:
+		| Array<Types.Scalars['String']>
+		| Types.Scalars['String']
 	emails?: Types.Maybe<
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -888,6 +897,9 @@ export type UpdateErrorAlertMutationVariables = Types.Exact<{
 	discord_channels:
 		| Array<Types.DiscordChannelInput>
 		| Types.DiscordChannelInput
+	webhook_destinations:
+		| Array<Types.Scalars['String']>
+		| Types.Scalars['String']
 	emails?: Types.Maybe<
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -3625,6 +3637,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 		Types.Maybe<
 			{ __typename?: 'ErrorAlert' } & Pick<
 				Types.ErrorAlert,
+				| 'WebhookDestinations'
 				| 'EmailsToNotify'
 				| 'ExcludedEnvironments'
 				| 'updated_at'
@@ -3694,6 +3707,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				| 'id'
 				| 'updated_at'
 				| 'name'
+				| 'webhook_destinations'
 				| 'emails_to_notify'
 				| 'aggregator'
 				| 'period_minutes'

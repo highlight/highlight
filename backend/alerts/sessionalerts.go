@@ -100,6 +100,7 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 		ExcludeRules:    excludeRulesString,
 		AlertIntegrations: model.AlertIntegrations{
 			DiscordChannelsToNotify: discord.GQLInputToGo(input.DiscordChannels),
+			WebhookDestinations:     input.WebhookDestinations,
 		},
 	}, nil
 }

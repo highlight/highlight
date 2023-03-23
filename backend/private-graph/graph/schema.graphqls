@@ -755,6 +755,7 @@ input SessionAlertInput {
 	threshold_window: Int!
 	slack_channels: [SanitizedSlackChannelInput!]!
 	discord_channels: [DiscordChannelInput!]!
+	webhook_destinations: [String!]!
 	emails: [String!]!
 	environments: [String!]!
 	disabled: Boolean!
@@ -1006,6 +1007,7 @@ type ErrorAlert {
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
 	DiscordChannelsToNotify: [DiscordChannel!]!
+	WebhookDestinations: [String!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
 	CountThreshold: Int!
@@ -1196,6 +1198,7 @@ type MetricMonitor {
 	name: String!
 	channels_to_notify: [SanitizedSlackChannel]!
 	discord_channels_to_notify: [DiscordChannel!]!
+	webhook_destinations: [String!]!
 	emails_to_notify: [String]!
 	aggregator: MetricAggregator!
 	period_minutes: Int
@@ -1696,6 +1699,7 @@ type Mutation {
 		metric_to_monitor: String!
 		slack_channels: [SanitizedSlackChannelInput]!
 		discord_channels: [DiscordChannelInput!]!
+		webhook_destinations: [String!]!
 		emails: [String]!
 		filters: [MetricTagFilterInput!]
 	): MetricMonitor
@@ -1710,6 +1714,7 @@ type Mutation {
 		metric_to_monitor: String
 		slack_channels: [SanitizedSlackChannelInput]
 		discord_channels: [DiscordChannelInput!]!
+		webhook_destinations: [String!]!
 		emails: [String]
 		disabled: Boolean
 		filters: [MetricTagFilterInput!]
@@ -1721,6 +1726,7 @@ type Mutation {
 		threshold_window: Int!
 		slack_channels: [SanitizedSlackChannelInput]!
 		discord_channels: [DiscordChannelInput!]!
+		webhook_destinations: [String!]!
 		emails: [String]!
 		environments: [String]!
 		regex_groups: [String]!
@@ -1734,6 +1740,7 @@ type Mutation {
 		threshold_window: Int
 		slack_channels: [SanitizedSlackChannelInput]
 		discord_channels: [DiscordChannelInput!]!
+		webhook_destinations: [String!]!
 		emails: [String]
 		environments: [String]
 		regex_groups: [String]

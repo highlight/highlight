@@ -15,6 +15,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { DiscordChannel, SessionAlertType } from '@graph/schemas'
+import alertConfigurationCardStyles from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard.module.scss'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
@@ -86,6 +87,9 @@ export const AlertConfigurationCard = ({
 	const [emailsToNotify, setEmailsToNotify] = useState<string[]>(
 		alert?.EmailsToNotify || [],
 	)
+	const [webhooks, setWebhooks] = useState<string[]>(
+		alert?.WebhookDestinations || [],
+	)
 	const [selectedDiscordChannels, setSelectedDiscordChannels] = useState<
 		DiscordChannel[]
 	>(alert?.DiscordChannelsToNotify || [])
@@ -108,6 +112,7 @@ export const AlertConfigurationCard = ({
 			environments: [],
 			slack_channels: [],
 			discord_channels: [],
+			webhook_destinations: [],
 			threshold_window: 30,
 			name: 'Error',
 			regex_groups: [],
@@ -157,7 +162,8 @@ export const AlertConfigurationCard = ({
 				})),
 			name: form.getFieldValue('name'),
 			discord_channels: selectedDiscordChannels,
-		}
+			webhook_destinations: webhooks,
+		} as const
 		const requestBody = {
 			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 		}
@@ -590,6 +596,12 @@ export const AlertConfigurationCard = ({
 		setFormTouched(true)
 	}
 
+	const onWebhooksChange = (webhooks: string[]) => {
+		form.setFieldsValue({ webhooks })
+		setWebhooks(webhooks)
+		setFormTouched(true)
+	}
+
 	const onUserPropertiesChange = (_value: any, options: any) => {
 		const userProperties = options.map(
 			({ value: valueAndName }: { key: string; value: string }) => {
@@ -895,6 +907,27 @@ export const AlertConfigurationCard = ({
 									/>
 								)}
 							</Form.Item>
+						</section>
+
+						<section>
+							<h3>Webhooks to Notify</h3>
+							<p>
+								Add webhook destinations for this alert, sent as
+								JSON over HTTP. See the{' '}
+								<Link to="https://www.highlight.io/docs/general/product-features/general-features/alerts/webhooks">
+									docs
+								</Link>{' '}
+								for more info.
+							</p>
+							<Select
+								className={
+									alertConfigurationCardStyles.channelSelect
+								}
+								value={webhooks}
+								mode="tags"
+								placeholder="Select webhook web addresses to send the alert to."
+								onChange={onWebhooksChange}
+							/>
 						</section>
 
 						<section>

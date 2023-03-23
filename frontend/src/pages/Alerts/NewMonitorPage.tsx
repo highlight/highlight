@@ -52,6 +52,7 @@ const NewMonitorPage = ({
 	)
 	const [slackChannels, setSlackChannels] = useState<string[]>([])
 	const [discordChannels, setDiscordChannels] = useState<DiscordChannel[]>([])
+	const [webhooks, setWebhooks] = useState<string[]>([])
 	const [emails, setEmails] = useState<string[]>([])
 	const [units, setUnits] = useState<string>(metricConfig?.units || '')
 	const [createMonitor] = useCreateMetricMonitorMutation({
@@ -69,6 +70,7 @@ const NewMonitorPage = ({
 				webhook_channel_id,
 			})),
 			discord_channels: discordChannels,
+			webhook_destinations: webhooks,
 			threshold,
 			filters,
 			units,
@@ -114,6 +116,8 @@ const NewMonitorPage = ({
 						slackChannels={slackChannels}
 						discordChannels={discordChannels}
 						onDiscordChannelsChange={setDiscordChannels}
+						webhooks={webhooks}
+						onWebhooksChange={setWebhooks}
 						onThresholdChange={setThreshold}
 						onFiltersChange={setFilters}
 						aggregator={aggregator}

@@ -52,6 +52,7 @@ const EditMonitorPage = ({
 	const [units, setUnits] = useState<string>()
 	const [slackChannels, setSlackChannels] = useState<string[]>([])
 	const [discordChannels, setDiscordChannels] = useState<DiscordChannel[]>([])
+	const [webhooks, setWebhooks] = useState<string[]>([])
 	const [isDisabled, setIsDisabled] = useState<boolean>(false)
 	const [emails, setEmails] = useState<string[]>([])
 	const [updateMonitor] = useUpdateMetricMonitorMutation({
@@ -70,6 +71,7 @@ const EditMonitorPage = ({
 				webhook_channel_id,
 			})),
 			discord_channels: discordChannels,
+			webhook_destinations: webhooks,
 			threshold,
 			filters,
 			units,
@@ -106,6 +108,7 @@ const EditMonitorPage = ({
 				emails_to_notify,
 				disabled,
 				discord_channels_to_notify,
+				webhook_destinations,
 			} = existingMonitor
 
 			setMetricToMonitorName(metric_to_monitor)
@@ -123,6 +126,7 @@ const EditMonitorPage = ({
 			setPeriodMinutes(period || 1)
 			setIsDisabled(disabled)
 			setDiscordChannels(discord_channels_to_notify)
+			setWebhooks(webhook_destinations)
 		}
 
 		if (
@@ -160,6 +164,8 @@ const EditMonitorPage = ({
 						onSlackChannelsChange={setSlackChannels}
 						discordChannels={discordChannels}
 						onDiscordChannelsChange={setDiscordChannels}
+						webhooks={webhooks}
+						onWebhooksChange={setWebhooks}
 						slackChannels={slackChannels}
 						onThresholdChange={setThreshold}
 						onFiltersChange={setFilters}
