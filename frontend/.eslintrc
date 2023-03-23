@@ -38,7 +38,8 @@
 		"@typescript-eslint/no-explicit-any": "off",
 		"@typescript-eslint/no-unused-vars": [
 			"error",
-			{ "argsIgnorePattern": "^_" }
+			{ "argsIgnorePattern": "^_" },
+			{ "varsIgnorePattern": "^_" }
 		],
 		"unused-imports/no-unused-imports-ts": "error",
 		"@typescript-eslint/no-non-null-assertion": "off",
