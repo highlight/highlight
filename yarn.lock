@@ -10144,6 +10144,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@headlessui/react@npm:^1.7.13":
+  version: 1.7.13
+  resolution: "@headlessui/react@npm:1.7.13"
+  dependencies:
+    client-only: ^0.0.1
+  peerDependencies:
+    react: ^16 || ^17 || ^18
+    react-dom: ^16 || ^17 || ^18
+  checksum: 132e5fce86978b9a6fd9d669fb556acec783debcd8f510c99226b3b3229dad50a13aeed69fc9af66465fc7029487ecfc46e6226f14218b760d5a309e08c0d059
+  languageName: node
+  linkType: hard
+
 "@highlight-run/apollo@workspace:sdk/highlight-apollo":
   version: 0.0.0-use.local
   resolution: "@highlight-run/apollo@workspace:sdk/highlight-apollo"
@@ -10236,6 +10248,7 @@ __metadata:
     "@graphql-codegen/typescript": ^2.8.1
     "@graphql-codegen/typescript-operations": ^1.17.14
     "@graphql-codegen/typescript-react-apollo": ^2.2.1
+    "@headlessui/react": ^1.7.13
     "@highlight-run/client": "workspace:*"
     "@highlight-run/react": "workspace:*"
     "@highlight-run/react-mentions": 4.4.1
@@ -22896,7 +22909,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"client-only@npm:0.0.1":
+"client-only@npm:0.0.1, client-only@npm:^0.0.1":
   version: 0.0.1
   resolution: "client-only@npm:0.0.1"
   checksum: 0c16bf660dadb90610553c1d8946a7fdfb81d624adea073b8440b7d795d5b5b08beb3c950c6a2cf16279365a3265158a236876d92bce16423c485c322d7dfaf8

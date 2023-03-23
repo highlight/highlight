@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { MultiSelect } from '@components/MultiSelect/MultiSelect'
 import {
 	Box,
 	Form,
@@ -48,9 +49,7 @@ const DevToolsWindowV2: React.FC<
 	const { time, session } = useReplayerContext()
 	const { selectedDevToolsTab, setSelectedDevToolsTab } =
 		usePlayerConfiguration()
-	const [requestType, setRequestType] = React.useState<RequestType>(
-		RequestType.All,
-	)
+	const [requestType, setRequestType] = React.useState<RequestType[]>([])
 	const [searchShown, setSearchShown] = React.useState<boolean>(false)
 	const [logLevel, setLogLevel] = React.useState<LogLevel>(LogLevel.All)
 	const form = useFormState({
@@ -240,28 +239,30 @@ const DevToolsWindowV2: React.FC<
 											}
 										/>
 									) : selectedDevToolsTab === Tab.Network ? (
-										<MenuButton
-											size="medium"
-											options={Object.entries(
-												RequestType,
-											).map(
-												([
-													displayName,
-													requestName,
-												]) => ({
-													key: displayName,
-													render: `${displayName} (${countPerRequestType[requestName]})`,
-												}),
-											)}
-											onChange={(displayName) => {
-												setRequestType(
-													//-- Set type to be the requestName value --//
-													RequestType[
-														displayName as keyof typeof RequestType
-													],
-												)
-											}}
-										/>
+										<>
+											<MultiSelect
+												showCancel
+												options={Object.entries(
+													RequestType,
+												).map(
+													([
+														displayName,
+														requestName,
+													]) => ({
+														id: requestName,
+														name: displayName,
+														render: `${displayName} (${countPerRequestType[requestName]})`,
+													}),
+												)}
+												onChange={(filters) => {
+													setRequestType(
+														filters.map(
+															(f) => f.id,
+														),
+													)
+												}}
+											/>
+										</>
 									) : null}
 
 									{selectedDevToolsTab === Tab.Console &&

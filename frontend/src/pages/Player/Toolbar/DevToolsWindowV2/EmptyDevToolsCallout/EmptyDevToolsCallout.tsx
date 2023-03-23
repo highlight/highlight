@@ -14,7 +14,7 @@ import React from 'react'
 interface Props {
 	kind: Tab
 	filter?: string
-	requestType?: RequestType
+	requestType?: RequestType[]
 }
 
 export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
@@ -57,11 +57,9 @@ export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
 				{requestType ? (
 					<>
 						<Text color="n11">
-							{`No ${
-								requestType !== RequestType.All
-									? requestType.toLocaleLowerCase()
-									: ''
-							} network resources${
+							{`No ${requestType
+								.map((r) => r.toLocaleLowerCase())
+								.join(', ')} network resources${
 								filter !== '' ? ` matching '${filter}'` : ''
 							}.`}
 						</Text>

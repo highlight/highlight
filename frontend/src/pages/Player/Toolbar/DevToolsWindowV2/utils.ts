@@ -125,7 +125,6 @@ export const LogLevelVariants = {
 
 export enum RequestType {
 	//-- [displayName]: requestName --//
-	All = 'All',
 	CSS = 'css',
 	Fetch = 'fetch',
 	iFrame = 'iframe', // didn't find a request to verify that 'iframe' is what is actually received
