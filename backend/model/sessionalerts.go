@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"github.com/lib/pq"
 
 	"github.com/pkg/errors"
 )
@@ -32,4 +33,5 @@ func (dc DiscordChannels) Value() (driver.Value, error) {
 
 type AlertIntegrations struct {
 	DiscordChannelsToNotify DiscordChannels `gorm:"type:jsonb;default:'[]'" json:"discord_channels_to_notify"`
+	WebhookDestinations     pq.StringArray  `gorm:"type:text[]"`
 }
