@@ -1,3 +1,4 @@
+import { vars } from '@highlight-run/ui/src'
 import { style } from '@vanilla-extract/css'
 
 export const line = style({
@@ -31,6 +32,22 @@ export const attributeAction = style({
 	selectors: {
 		'&:hover': {
 			opacity: 1,
+		},
+	},
+})
+
+export const buttonLink = style({
+	background: 'transparent',
+	border: 0,
+	cursor: 'pointer',
+	padding: 0,
+	color: vars.theme.interactive.fill.secondary.content.text,
+	selectors: {
+		'&:hover': {
+			color: vars.theme.interactive.fill.secondary.content.onEnabled,
+		},
+		'&:active': {
+			color: vars.theme.interactive.fill.secondary.content.onEnabled,
 		},
 	},
 })
