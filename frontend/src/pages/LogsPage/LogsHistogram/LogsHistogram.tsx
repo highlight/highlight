@@ -82,50 +82,7 @@ const LogsHistogram = ({
 
 	const content = useMemo(() => {
 		if (loading) {
-			const loadingData: HistogramBucket[] = []
-			const now = new Date()
-
-			for (let i = 50; i > 0; i--) {
-				const startDate = new Date(now)
-				startDate.setMinutes(now.getMinutes() - i)
-				const endDate = new Date(now)
-				endDate.setMinutes(now.getMinutes() - (i + 1))
-
-				loadingData.push({
-					startDate,
-					endDate,
-					counts: [
-						{
-							level: 'info',
-							count: Math.round(Math.random() * 100),
-						},
-						{
-							level: 'warn',
-							count: Math.round(Math.random() * 100),
-						},
-						{
-							level: 'error',
-							count: Math.round(Math.random() * 100),
-						},
-						{
-							level: 'fatal',
-							count: Math.round(Math.random() * 100),
-						},
-					],
-				})
-			}
-
-			return loadingData.map((bucket, index) => {
-				return (
-					<LogBucketBar
-						key={index}
-						bucket={bucket}
-						width={`${100 / 50}%`}
-						maxBucketCount={maxBucketCount}
-						loading={loading}
-					/>
-				)
-			})
+			return <LoadingState maxBucketCount={maxBucketCount} />
 		}
 
 		if (!data?.logs_histogram || !maxBucketCount) {
@@ -414,6 +371,55 @@ const LogBucketBar = ({
 			{content}
 		</Popover>
 	)
+}
+
+const LoadingState: React.FC<{ maxBucketCount: number }> = ({
+	maxBucketCount,
+}) => {
+	const loadingData: HistogramBucket[] = []
+	const now = new Date()
+
+	for (let i = 50; i > 0; i--) {
+		const startDate = new Date(now)
+		startDate.setMinutes(now.getMinutes() - i)
+		const endDate = new Date(now)
+		endDate.setMinutes(now.getMinutes() - (i + 1))
+
+		loadingData.push({
+			startDate,
+			endDate,
+			counts: [
+				{
+					level: 'info',
+					count: Math.round(Math.random() * 100),
+				},
+				{
+					level: 'warn',
+					count: Math.round(Math.random() * 100),
+				},
+				{
+					level: 'error',
+					count: Math.round(Math.random() * 100),
+				},
+				{
+					level: 'fatal',
+					count: Math.round(Math.random() * 100),
+				},
+			],
+		})
+	}
+
+	return loadingData.map((bucket, index) => {
+		return (
+			<LogBucketBar
+				key={index}
+				bucket={bucket}
+				width={`${100 / 50}%`}
+				maxBucketCount={maxBucketCount}
+				loading
+			/>
+		)
+	})
 }
 
 export default LogsHistogram
