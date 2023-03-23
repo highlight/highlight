@@ -9,11 +9,12 @@ import {
 	IconSolidFilter,
 	IconSolidLightningBolt,
 	IconSolidLink,
+	IconSolidPlayCircle,
 	Stack,
-	Tag,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 import { QueryParam } from '@pages/LogsPage/LogsPage'
 import {
 	IconCollapsed,
@@ -29,7 +30,7 @@ import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { generatePath } from 'react-router-dom'
+import { generatePath, Link } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import * as styles from './LogDetails.css'
@@ -48,6 +49,7 @@ export const getLogURL = (row: Row<LogEdge>) => {
 }
 
 export const LogDetails = ({ row, queryTerms }: Props) => {
+	const { projectId } = useProjectId()
 	const navigate = useNavigate()
 	const [allExpanded, setAllExpanded] = useState(false)
 	const { traceID, spanID, secureSessionID, logAttributes, message, level } =
@@ -139,6 +141,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 				flexDirection="row"
 				gap="16"
 				mt="8"
+				mb="4"
 			>
 				<Box
 					display="flex"
@@ -215,25 +218,35 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 							Copy link
 						</Box>
 					</ButtonLink>
-				</Box>
 
-				<Box
-					display="flex"
-					alignItems="center"
-					flexDirection="row"
-					gap="16"
-				>
+					{row.original.node.secureSessionID ||
+					row.original.error_object ? (
+						<Box
+							border="divider"
+							style={{ width: 1, height: 14 }}
+						/>
+					) : null}
+
+					{row.original.node.secureSessionID ? (
+						<Link
+							className={styles.buttonLink}
+							to={`/${projectId}/sessions/${row.original.node.secureSessionID}`}
+						>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidPlayCircle />
+								Related Session
+							</Box>
+						</Link>
+					) : null}
 					{row.original.error_object && (
-						<Tag
-							shape="basic"
-							kind="secondary"
-							emphasis="medium"
-							onClick={(e) => {
-								e.stopPropagation()
-								navigate(
-									`/errors/${row.original.error_object?.error_group_secure_id}/instances/${row.original.error_object?.id}`,
-								)
-							}}
+						<Link
+							className={styles.buttonLink}
+							to={`/${projectId}/errors/${row.original.error_object?.error_group_secure_id}/instances/${row.original.error_object?.id}`}
 						>
 							<Box
 								display="flex"
@@ -244,7 +257,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 								<IconSolidLightningBolt />
 								Related Error
 							</Box>
-						</Tag>
+						</Link>
 					)}
 				</Box>
 			</Box>
