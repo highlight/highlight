@@ -2,7 +2,6 @@ import { useAuthContext } from '@authentication/AuthContext'
 import AlertsRouter from '@pages/Alerts/AlertsRouter'
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import ErrorLogCursorRedirect from '@pages/ErrorsV2/ErrorLogCursor/ErrorLogCursorRedirect'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
 import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
 import LogsPage from '@pages/LogsPage/LogsPage'
@@ -37,11 +36,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
 			<Route
 				path="sessions/:session_secure_id?"
 				element={<PlayerPage integrated={integrated} />}
-			/>
-
-			<Route
-				path="errors/logs/:cursor_id"
-				element={<ErrorLogCursorRedirect />}
 			/>
 
 			<Route

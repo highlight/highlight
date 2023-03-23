@@ -26,6 +26,7 @@ import {
 	LogsSearchParam,
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
+import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
 import React, { useEffect, useState } from 'react'
@@ -35,7 +36,7 @@ import { useQueryParam } from 'use-query-params'
 import * as styles from './LogDetails.css'
 
 type Props = {
-	row: Row<LogEdge>
+	row: Row<LogEdgeWithError>
 	queryTerms: LogsSearchParam[]
 }
 

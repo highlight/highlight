@@ -48,6 +48,14 @@ var InternalAttributes = []string{
 	LogSeverityAttribute,
 }
 
+var BackendOnlyAttributePrefixes = []string{
+	"container.",
+	"host.",
+	"os.",
+	"process.",
+	"exception.",
+}
+
 type OTLP struct {
 	tracerProvider *sdktrace.TracerProvider
 }

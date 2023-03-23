@@ -1,8 +1,0 @@
-services:
-    backend:
-        extends:
-            file: compose.dev.yml
-            service: backend
-        command:
-            - make
-            - debug-no-doppler

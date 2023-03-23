@@ -1476,6 +1476,7 @@ export type Query = {
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	logs: LogsConnection
+	logs_error_objects: Array<ErrorObject>
 	logs_histogram: LogsHistogram
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<LogKey>
@@ -1817,6 +1818,10 @@ export type QueryLogsArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryLogs_Error_ObjectsArgs = {
+	log_cursors: Array<Scalars['String']>
+}
+
 export type QueryLogs_HistogramArgs = {
 	params: LogsParamsInput
 	project_id: Scalars['ID']
@@ -1829,6 +1834,7 @@ export type QueryLogs_Key_ValuesArgs = {
 }
 
 export type QueryLogs_KeysArgs = {
+	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
 }
 

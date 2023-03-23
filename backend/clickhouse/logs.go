@@ -16,11 +16,13 @@ import (
 	e "github.com/pkg/errors"
 )
 
+const LogsTable = "logs_new"
+
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
 	if len(logRows) == 0 {
 		return nil
 	}
-	batch, err := client.conn.PrepareBatch(ctx, "INSERT INTO logs")
+	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", LogsTable))
 
 	if err != nil {
 		return e.Wrap(err, "failed to create logs batch")
@@ -41,8 +43,8 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 const LogsLimit int = 100
 const KeyValuesLimit int = 50
 
-const OrderBackward = "toUnixTimestamp(Timestamp) ASC, UUID ASC"
-const OrderForward = "toUnixTimestamp(Timestamp) DESC, UUID DESC"
+const OrderBackward = "Timestamp ASC, UUID ASC"
+const OrderForward = "Timestamp DESC, UUID DESC"
 
 type Pagination struct {
 	After     *string
@@ -192,7 +194,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 
 	sb.
 		Select("bucketId, level, count()").
-		From(sb.BuilderAs(fromSb, "logs")).
+		From(sb.BuilderAs(fromSb, LogsTable)).
 		GroupBy("bucketId, level").
 		OrderBy("bucketId, level")
 
@@ -264,16 +266,25 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	return histogram, err
 }
 
-func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
+func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.LogKey, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select("arrayJoin(LogAttributes.keys) as key, count() as cnt").
-		From("logs").
+		From(LogsTable).
 		Where(sb.Equal("ProjectId", projectID)).
 		GroupBy("key").
 		OrderBy("cnt DESC").
-		Limit(50)
+		Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(endDate.Unix()))).
+		Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(startDate.Unix())))
 
 	sql, args := sb.Build()
+
+	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("LogsKeys"))
+	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	if err != nil {
+		span.Finish(tracer.WithError(err))
+		return nil, err
+	}
+	span.SetTag("Query", query)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
@@ -305,6 +316,8 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int) ([]*modelInpu
 	}
 
 	rows.Close()
+
+	span.Finish(tracer.WithError(rows.Err()))
 	return keys, rows.Err()
 
 }
@@ -315,31 +328,31 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 	switch keyName {
 	case modelInputs.ReservedLogKeyLevel.String():
 		sb.Select("DISTINCT SeverityText level").
-			From("logs").
+			From(LogsTable).
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.NotEqual("level", "")).
 			Limit(KeyValuesLimit)
 	case modelInputs.ReservedLogKeySecureSessionID.String():
 		sb.Select("DISTINCT SecureSessionId secure_session_id").
-			From("logs").
+			From(LogsTable).
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.NotEqual("secure_session_id", "")).
 			Limit(KeyValuesLimit)
 	case modelInputs.ReservedLogKeySpanID.String():
 		sb.Select("DISTINCT SpanId span_id").
-			From("logs").
+			From(LogsTable).
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.NotEqual("span_id", "")).
 			Limit(KeyValuesLimit)
 	case modelInputs.ReservedLogKeyTraceID.String():
 		sb.Select("DISTINCT TraceId trace_id").
-			From("logs").
+			From(LogsTable).
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.NotEqual("trace_id", "")).
 			Limit(KeyValuesLimit)
 	default:
 		sb.Select("DISTINCT LogAttributes [" + sb.Var(keyName) + "] as value").
-			From("logs").
+			From(LogsTable).
 			Where(sb.Equal("ProjectId", projectID)).
 			Where("mapContains(LogAttributes, " + sb.Var(keyName) + ")").
 			Limit(KeyValuesLimit)
@@ -376,7 +389,7 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*sqlbuilder.SelectBuilder, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select(selectStr).
-		From("logs").
+		From(LogsTable).
 		Where(sb.Equal("ProjectId", projectID))
 
 	if pagination.After != nil && len(*pagination.After) > 1 {
@@ -387,6 +400,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 
 		// See https://dba.stackexchange.com/a/206811
 		sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
+			Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.StartDate.Unix()))).
 			Where(
 				sb.Or(
 					sb.LessThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix())),
@@ -407,6 +421,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 		}
 
 		sb.Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
+			Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.EndDate.Unix()))).
 			Where(
 				sb.Or(
 					sb.GreaterThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix())),

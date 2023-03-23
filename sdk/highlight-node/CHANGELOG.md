@@ -35,3 +35,9 @@
 ### Minor Changes
 
 -   Exposes internal `log` function for writing logs to highlight.
+
+## 2.5.2
+
+### Minor Changes
+
+-   Ensures `flush` method will send opentelemetry spans to highlight.

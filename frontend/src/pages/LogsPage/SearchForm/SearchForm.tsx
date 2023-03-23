@@ -61,6 +61,10 @@ const SearchForm = ({
 	const { data: keysData } = useGetLogsKeysQuery({
 		variables: {
 			project_id: projectId,
+			date_range: {
+				start_date: moment(startDate).format(FORMAT),
+				end_date: moment(endDate).format(FORMAT),
+			},
 		},
 	})
 
