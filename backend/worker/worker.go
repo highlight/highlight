@@ -1130,11 +1130,12 @@ func (w *Worker) Start(ctx context.Context) {
 						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
+						span.Finish()
 					} else {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error processing main session"))
+						span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					}
 
-					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
 				}
 				hlog.Incr("sessionsProcessed", nil, 1)
