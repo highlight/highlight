@@ -59,7 +59,7 @@ func TestGetConnectionAfter(t *testing.T) {
 	})
 
 	assert.Equal(t, &modelInputs.LogsConnection{
-		Edges: manyEdges[:100],
+		Edges: manyEdges[:LogsLimit],
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     true,
 			HasPreviousPage: true,
@@ -117,7 +117,7 @@ func TestGetConnectionBefore(t *testing.T) {
 	})
 
 	assert.Equal(t, &modelInputs.LogsConnection{
-		Edges: manyEdges[1:100],
+		Edges: manyEdges[1:LogsLimit],
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     true,
 			HasPreviousPage: true,

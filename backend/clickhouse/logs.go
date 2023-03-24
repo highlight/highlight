@@ -40,7 +40,7 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 	return batch.Send()
 }
 
-const LogsLimit int = 100
+const LogsLimit int = 50
 const KeyValuesLimit int = 50
 
 const OrderBackward = "Timestamp ASC, UUID ASC"
