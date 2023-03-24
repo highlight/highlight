@@ -24,14 +24,9 @@ type SendErrorAlertEvent struct {
 }
 
 func SendErrorAlert(event SendErrorAlertEvent) error {
-	errorTitle := event.ErrorGroup.Event
-	if len(event.ErrorGroup.Event) > 50 {
-		errorTitle = event.ErrorGroup.Event[:50] + "..."
-	}
-
 	errorAlertPayload := integrations.ErrorAlertPayload{
 		ErrorCount:      event.ErrorCount,
-		ErrorTitle:      errorTitle,
+		ErrorTitle:      event.ErrorGroup.Event,
 		UserIdentifier:  event.Session.Identifier,
 		ErrorURL:        getErrorURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),
 		ErrorResolveURL: getErrorResolveURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),
@@ -61,8 +56,7 @@ func SendErrorAlert(event SendErrorAlertEvent) error {
 			return err
 		}
 
-		channels := event.ErrorAlert.DiscordChannelsToNotify
-		for _, channel := range channels {
+		for _, channel := range event.ErrorAlert.DiscordChannelsToNotify {
 			err = bot.SendErrorAlert(channel.ID, errorAlertPayload)
 
 			if err != nil {
