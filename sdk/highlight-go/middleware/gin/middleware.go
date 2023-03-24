@@ -1,6 +1,7 @@
 package gin
 
 import (
+	"github.com/highlight/highlight/sdk/highlight-go/middleware"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,7 @@ import (
 // ...
 // r.Use(highlightgin.Middleware())
 func Middleware() gin.HandlerFunc {
+	middleware.CheckStatus()
 	return func(c *gin.Context) {
 		highlightReqDetails := c.GetHeader("X-Highlight-Request")
 		ids := strings.Split(highlightReqDetails, "/")
