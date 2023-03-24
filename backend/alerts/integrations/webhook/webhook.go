@@ -15,8 +15,8 @@ type ErrorAlertWebhook struct {
 	*integrations.ErrorAlertPayload
 }
 
-func sendWebhookData(destination string, body []byte) error {
-	resp, err := retryablehttp.Post(destination, "application/json", body)
+func sendWebhookData(destination *model.WebhookDestination, body []byte) error {
+	resp, err := retryablehttp.Post(destination.URL, "application/json", body)
 	if err != nil {
 		return err
 	}
@@ -28,7 +28,7 @@ func sendWebhookData(destination string, body []byte) error {
 	return e.New(fmt.Sprintf("webhook %s received unexpected response code %d", destination, resp.StatusCode))
 }
 
-func SendErrorAlert(destination string, payload *integrations.ErrorAlertPayload) error {
+func SendErrorAlert(destination *model.WebhookDestination, payload *integrations.ErrorAlertPayload) error {
 	body, err := json.Marshal(&struct {
 		Event string
 		*integrations.ErrorAlertPayload
@@ -42,7 +42,7 @@ func SendErrorAlert(destination string, payload *integrations.ErrorAlertPayload)
 	return sendWebhookData(destination, body)
 }
 
-func SendNewUserAlert(destination string, payload *integrations.NewUserAlertPayload) error {
+func SendNewUserAlert(destination *model.WebhookDestination, payload *integrations.NewUserAlertPayload) error {
 	body, err := json.Marshal(&struct {
 		Event string
 		*integrations.NewUserAlertPayload
@@ -56,7 +56,7 @@ func SendNewUserAlert(destination string, payload *integrations.NewUserAlertPayl
 	return sendWebhookData(destination, body)
 }
 
-func SendNewSessionAlert(destination string, payload *integrations.NewSessionAlertPayload) error {
+func SendNewSessionAlert(destination *model.WebhookDestination, payload *integrations.NewSessionAlertPayload) error {
 	body, err := json.Marshal(&struct {
 		Event string
 		*integrations.NewSessionAlertPayload
@@ -70,7 +70,7 @@ func SendNewSessionAlert(destination string, payload *integrations.NewSessionAle
 	return sendWebhookData(destination, body)
 }
 
-func SendTrackPropertiesAlert(destination string, payload *integrations.TrackPropertiesAlertPayload) error {
+func SendTrackPropertiesAlert(destination *model.WebhookDestination, payload *integrations.TrackPropertiesAlertPayload) error {
 	body, err := json.Marshal(&struct {
 		Event string
 		*integrations.TrackPropertiesAlertPayload
@@ -84,7 +84,7 @@ func SendTrackPropertiesAlert(destination string, payload *integrations.TrackPro
 	return sendWebhookData(destination, body)
 }
 
-func SendUserPropertiesAlert(destination string, payload *integrations.UserPropertiesAlertPayload) error {
+func SendUserPropertiesAlert(destination *model.WebhookDestination, payload *integrations.UserPropertiesAlertPayload) error {
 	body, err := json.Marshal(&struct {
 		Event string
 		*integrations.UserPropertiesAlertPayload
@@ -98,7 +98,7 @@ func SendUserPropertiesAlert(destination string, payload *integrations.UserPrope
 	return sendWebhookData(destination, body)
 }
 
-func SendSessionFeedbackAlert(destination string, payload *integrations.SessionFeedbackAlertPayload) error {
+func SendSessionFeedbackAlert(destination *model.WebhookDestination, payload *integrations.SessionFeedbackAlertPayload) error {
 	body, err := json.Marshal(&struct {
 		Event string
 		*integrations.SessionFeedbackAlertPayload
@@ -112,7 +112,7 @@ func SendSessionFeedbackAlert(destination string, payload *integrations.SessionF
 	return sendWebhookData(destination, body)
 }
 
-func SendRageClicksAlert(destination string, payload *integrations.RageClicksAlertPayload) error {
+func SendRageClicksAlert(destination *model.WebhookDestination, payload *integrations.RageClicksAlertPayload) error {
 	body, err := json.Marshal(&struct {
 		Event string
 		*integrations.RageClicksAlertPayload
@@ -126,7 +126,7 @@ func SendRageClicksAlert(destination string, payload *integrations.RageClicksAle
 	return sendWebhookData(destination, body)
 }
 
-func SendMetricMonitorAlert(destination string, payload *integrations.MetricMonitorAlertPayload) error {
+func SendMetricMonitorAlert(destination *model.WebhookDestination, payload *integrations.MetricMonitorAlertPayload) error {
 	body, err := json.Marshal(&struct {
 		Event string
 		*integrations.MetricMonitorAlertPayload
