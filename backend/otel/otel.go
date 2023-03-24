@@ -5,12 +5,14 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
-	"fmt"
+	"io"
+	"net/http"
+	"time"
+
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
-	model2 "github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -21,9 +23,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"io"
-	"net/http"
-	"strconv"
 )
 
 type Handler struct {
@@ -67,16 +66,55 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 	}
 }
 
-func projectToInt(projectID string) (int, error) {
-	i, err := strconv.ParseInt(projectID, 10, 32)
-	if err == nil {
-		return int(i), nil
+func getLogRow(ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, eventAttributes map[string]any, source string) *clickhouse.LogRow {
+	return clickhouse.NewLogRow(
+		clickhouse.LogRowPrimaryAttrs{
+			Timestamp:       ts,
+			TraceId:         traceID,
+			SpanId:          spanID,
+			SecureSessionId: sessionID,
+		},
+		clickhouse.WithBody(excMessage),
+		clickhouse.WithProjectIDString(projectID),
+		clickhouse.WithServiceName(cast(resourceAttributes[string(semconv.ServiceNameKey)], "")),
+		clickhouse.WithLogAttributes(resourceAttributes, eventAttributes, source == highlight.SourceAttributeFrontend),
+		clickhouse.WithSeverityText(lvl),
+	)
+}
+
+func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, requestID, traceID, spanID string, logCursor *string, source, excMessage, tag string, resourceAttributes, eventAttributes map[string]any) (bool, *model.BackendErrorObjectInput) {
+	excType := cast(eventAttributes[string(semconv.ExceptionTypeKey)], source)
+	errorUrl := cast(eventAttributes[highlight.ErrorURLAttribute], source)
+	stackTrace := cast(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
+	if excType == "" && excMessage == "" {
+		log.WithContext(ctx).WithField("EventAttributes", eventAttributes).Error("otel received exception with no type and no message")
+		return false, nil
+	} else if stackTrace == "" || stackTrace == "null" {
+		log.WithContext(ctx).WithField("EventAttributes", eventAttributes).Warn("otel received exception with no stacktrace")
+		stackTrace = ""
 	}
-	i2, err := model2.FromVerboseID(projectID)
-	if err == nil {
-		return i2, nil
+	stackTrace = formatStructureStackTrace(ctx, stackTrace)
+	err := &model.BackendErrorObjectInput{
+		SessionSecureID: &sessionID,
+		RequestID:       &requestID,
+		TraceID:         pointy.String(traceID),
+		SpanID:          pointy.String(spanID),
+		LogCursor:       logCursor,
+		Event:           excMessage,
+		Type:            excType,
+		Source:          cast(resourceAttributes[string(semconv.HostNameKey)], ""),
+		StackTrace:      stackTrace,
+		Timestamp:       ts,
+		Payload:         pointy.String(tag),
+		URL:             errorUrl,
 	}
-	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
+	if sessionID != "" {
+		return false, err
+	} else if projectID != "" {
+		return true, err
+	} else {
+		return false, nil
+	}
 }
 
 func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
@@ -120,8 +158,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		var projectID, sessionID, requestID, source string
 		resource := spans.At(i).Resource()
 		resourceAttributes := resource.Attributes().AsRaw()
-		hostName := cast(resource.Attributes().AsRaw()[string(semconv.HostNameKey)], "")
-		serviceName := cast(resource.Attributes().AsRaw()[string(semconv.ServiceNameKey)], "")
 		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source)
 		scopeScans := spans.At(i).ScopeSpans()
 		for j := 0; j < scopeScans.Len(); j++ {
@@ -146,109 +182,51 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						excMessage := cast(eventAttributes[string(semconv.ExceptionMessageKey)], "")
 						ts := event.Timestamp().AsTime()
 
-						logCursor := func() *string {
-							projectIDInt, err := projectToInt(projectID)
-							if err != nil {
-								log.WithContext(ctx).WithField("ProjectVerboseID", projectID).WithField("ExcMessage", excMessage).Errorf("otel span error got invalid project id")
-								return nil
-							}
-							logRow := clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
-								Timestamp:       ts,
-								ProjectId:       uint32(projectIDInt),
-								TraceId:         traceID,
-								SpanId:          spanID,
-								SecureSessionId: sessionID,
-							}, clickhouse.WithLogAttributes(resourceAttributes, eventAttributes))
-							logRow.SeverityText = "ERROR"
-							logRow.SeverityNumber = int32(log.ErrorLevel)
-							logRow.ServiceName = serviceName
-							logRow.Body = excMessage
-							if projectID != "" {
-								if _, ok := projectLogs[projectID]; !ok {
-									projectLogs[projectID] = []*clickhouse.LogRow{}
-								}
-								projectLogs[projectID] = append(projectLogs[projectID], logRow)
-							} else {
-								data, _ := req.MarshalJSON()
-								log.WithContext(ctx).WithField("LogEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span log got no project")
-							}
-							return pointy.String(logRow.Cursor())
-						}()
+						var logCursor *string
+						logRow := getLogRow(ts, "ERROR", projectID, sessionID, traceID, spanID, excMessage, resourceAttributes, eventAttributes, source)
+						projectLogs[projectID] = append(projectLogs[projectID], logRow)
+						logCursor = pointy.String(logRow.Cursor())
 
-						func() {
-							excType := cast(eventAttributes[string(semconv.ExceptionTypeKey)], source)
-							errorUrl := cast(eventAttributes[highlight.ErrorURLAttribute], "")
-							stackTrace := cast(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
-							if excType == "" && excMessage == "" {
-								log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Error("otel received exception with no type and no message")
-								return
-							} else if stackTrace == "" || stackTrace == "null" {
-								log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received exception with no stacktrace")
-								stackTrace = ""
-							}
-							stackTrace = formatStructureStackTrace(ctx, stackTrace)
-							err := &model.BackendErrorObjectInput{
-								SessionSecureID: &sessionID,
-								RequestID:       &requestID,
-								TraceID:         pointy.String(traceID),
-								SpanID:          pointy.String(spanID),
-								LogCursor:       logCursor,
-								Event:           excMessage,
-								Type:            excType,
-								Source:          hostName,
-								StackTrace:      stackTrace,
-								Timestamp:       ts,
-								Payload:         pointy.String(string(tagsBytes)),
-								URL:             errorUrl,
-							}
-							if sessionID != "" {
-								if _, ok := traceErrors[sessionID]; !ok {
-									traceErrors[sessionID] = []*model.BackendErrorObjectInput{}
-								}
-								traceErrors[sessionID] = append(traceErrors[sessionID], err)
-							} else if projectID != "" {
-								if _, ok := projectErrors[projectID]; !ok {
-									projectErrors[projectID] = []*model.BackendErrorObjectInput{}
-								}
-								projectErrors[projectID] = append(projectErrors[projectID], err)
+						isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, source, excMessage, string(tagsBytes), resourceAttributes, eventAttributes)
+						if backendError == nil {
+							data, _ := req.MarshalJSON()
+							log.WithContext(ctx).WithField("BackendErrorEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span error got no session and no project")
+						} else {
+							if isProjectError {
+								projectErrors[projectID] = append(projectErrors[projectID], backendError)
 							} else {
-								log.WithContext(ctx).WithField("BackendErrorObjectInput", *err).Errorf("otel error got no session and no project")
-								return
+								traceErrors[sessionID] = append(traceErrors[sessionID], backendError)
 							}
-						}()
+						}
 					} else if event.Name() == highlight.LogEvent {
+						ts := event.Timestamp().AsTime()
+						traceID := cast(requestID, span.TraceID().String())
+						spanID := span.SpanID().String()
 						logSev := cast(eventAttributes[string(hlog.LogSeverityKey)], "unknown")
 						logMessage := cast(eventAttributes[string(hlog.LogMessageKey)], "")
 						if logMessage == "" {
 							log.WithContext(ctx).WithField("Span", span).WithField("EventAttributes", eventAttributes).Warn("otel received log with no message")
 							continue
 						}
-						projectIDInt, err := projectToInt(projectID)
-						if err != nil {
-							log.WithContext(ctx).WithField("ProjectVerboseID", projectID).WithField("LogMessage", logMessage).Errorf("otel span log got invalid project id")
-							continue
-						}
-						lvl, _ := log.ParseLevel(logSev)
-						logRow := clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
-							Timestamp:       event.Timestamp().AsTime(),
-							TraceId:         cast(requestID, span.TraceID().String()),
-							SpanId:          span.SpanID().String(),
-							ProjectId:       uint32(projectIDInt),
-							SecureSessionId: sessionID,
-						}, clickhouse.WithLogAttributes(resourceAttributes, eventAttributes))
-						logRow.SeverityText = logSev
-						logRow.SeverityNumber = int32(lvl)
-						logRow.ServiceName = serviceName
-						logRow.Body = logMessage
-						if projectID != "" {
-							if _, ok := projectLogs[projectID]; !ok {
-								projectLogs[projectID] = []*clickhouse.LogRow{}
+
+						var logCursor *string
+						logRow := getLogRow(ts, logSev, projectID, sessionID, traceID, spanID, logMessage, resourceAttributes, eventAttributes, source)
+						projectLogs[projectID] = append(projectLogs[projectID], logRow)
+						logCursor = pointy.String(logRow.Cursor())
+
+						// create a backend error for this error log, if this is a backend log
+						if logRow.SeverityNumber <= int32(log.ErrorLevel) && source != highlight.SourceAttributeFrontend {
+							isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, source, logMessage, string(tagsBytes), resourceAttributes, eventAttributes)
+							if backendError == nil {
+								data, _ := req.MarshalJSON()
+								log.WithContext(ctx).WithField("BackendErrorEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span error got no session and no project")
+							} else {
+								if isProjectError {
+									projectErrors[projectID] = append(projectErrors[projectID], backendError)
+								} else {
+									traceErrors[sessionID] = append(traceErrors[sessionID], backendError)
+								}
 							}
-							projectLogs[projectID] = append(projectLogs[projectID], logRow)
-						} else {
-							data, _ := req.MarshalJSON()
-							log.WithContext(ctx).WithField("LogEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span log got no project")
-							continue
 						}
 					}
 				}
@@ -298,7 +276,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if backendError {
-			if projectIDInt, err := projectToInt(projectID); err == nil {
+			if projectIDInt, err := clickhouse.ProjectToInt(projectID); err == nil {
 				err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
 					Type: kafkaqueue.MarkBackendSetup,
 					MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
@@ -382,7 +360,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				logRecord := logRecords.At(k)
 				logAttributes := logRecord.Attributes().AsRaw()
 				setHighlightAttributes(logAttributes, &projectID, &sessionID, &requestID, &source)
-				projectIDInt, err := projectToInt(projectID)
+				projectIDInt, err := clickhouse.ProjectToInt(projectID)
 				if err != nil {
 					log.WithContext(ctx).WithField("ProjectID", projectID).WithField("LogMessage", logRecord.Body().AsRaw()).Errorf("otel log got invalid project id")
 					continue
@@ -393,9 +371,11 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					SpanId:          logRecord.SpanID().String(),
 					ProjectId:       uint32(projectIDInt),
 					SecureSessionId: sessionID,
-				}, clickhouse.WithLogAttributes(resourceAttributes, logAttributes))
-				logRow.SeverityText = logRecord.SeverityText()
-				logRow.SeverityNumber = int32(logRecord.SeverityNumber())
+				},
+					clickhouse.WithLogAttributes(resourceAttributes, logAttributes, false),
+					clickhouse.WithSeverityText(logRecord.SeverityText()),
+				)
+
 				logRow.ServiceName = serviceName
 				logRow.Body = logRecord.Body().Str()
 				if projectID != "" {
@@ -422,7 +402,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow, backend bool) error {
 	for projectID, logRows := range projectLogs {
-		if projectIDInt, err := projectToInt(projectID); backend && err == nil {
+		if projectIDInt, err := clickhouse.ProjectToInt(projectID); backend && err == nil {
 			// otel logs only come from python sdk
 			err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
 				Type: kafkaqueue.MarkBackendSetup,

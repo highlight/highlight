@@ -15,7 +15,7 @@
 
 # [highlight.io](https://highlight.io): The open-source, fullstack monitoring platform.
 
-highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a [cohesive](#cohesion), [modern](#for-todays-developer) and [fully-featured](#features) monitoring solution, something we wished WE had. And it's all open source :)
+highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a [cohesive](#we-build-a-cohesive-product), [modern](#we-build-for-todays-developer) and [fully-featured](#features) monitoring solution, something we wished WE had. And it's all open source :)
 
 At a high level, highlight.io's feature set is:
 - Session Replay (read more [here](#session-replay-understand-why-bugs-happen))
@@ -49,16 +49,16 @@ Deploy a hobby instance in one line on Linux with Docker (recommended 16 CPU cor
 ```bash
 git clone --recurse-submodules https://github.com/highlight/highlight
 # or `git submodule update --init --recursive` on git < 2.13
-
-# if you want to run the backend in debug mode (attach GDB), run the following:
-# export COMPOSE_FILE=compose.yml:compose.dev.yml:compose.debug.yml
-# see the `docker/.env` file for other compose configurations.
 cd docker && docker compose up -d --build
 ```
 
 After a brief frontend load time, the app should be accessible at https://localhost:3000
 
 Good for <10k sessions and <50k errors ingested monthly. See our  [docs for more info and limitations](https://www.highlight.io/docs/general/company/open-source/self-host-hobby).
+
+### Developing on Highlight
+
+Want to contribute to Highlight? See our [onboarding](./DEVELOPER_ONBOARDING.md) guide.
 
 ### Enterprise self-hosted
 

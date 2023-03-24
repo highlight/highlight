@@ -1,8 +1,16 @@
-import { useGetLogsLazyQuery } from '@graph/hooks'
-import { PageInfo } from '@graph/schemas'
+import { useGetLogsErrorObjectsQuery, useGetLogsLazyQuery } from '@graph/hooks'
+import { LogEdge, PageInfo } from '@graph/schemas'
+import * as Types from '@graph/schemas'
 import { FORMAT } from '@pages/LogsPage/constants'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
+
+export type LogEdgeWithError = LogEdge & {
+	error_object?: Pick<
+		Types.ErrorObject,
+		'log_cursor' | 'error_group_secure_id' | 'id'
+	>
+}
 
 export const useGetLogs = ({
 	query,
@@ -47,6 +55,11 @@ export const useGetLogs = ({
 			},
 		},
 		fetchPolicy: 'cache-and-network',
+	})
+
+	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({
+		variables: { log_cursors: data?.logs.edges.map((e) => e.cursor) || [] },
+		skip: !data?.logs.edges.length,
 	})
 
 	useEffect(() => {
@@ -114,8 +127,17 @@ export const useGetLogs = ({
 			})
 	}, [fetchMore, windowInfo])
 
+	const logEdgesWithError: LogEdgeWithError[] = (data?.logs.edges || []).map(
+		(e) => ({
+			...e,
+			error_object: (logErrorObjects?.logs_error_objects || []).find(
+				(leo) => leo.log_cursor === e.cursor,
+			),
+		}),
+	)
+
 	return {
-		logEdges: data?.logs.edges || [],
+		logEdges: logEdgesWithError,
 		loading,
 		loadingAfter,
 		loadingBefore,

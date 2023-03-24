@@ -2705,7 +2705,7 @@ export type GetErrorObjectForLogQuery = { __typename?: 'Query' } & {
 	error_object_for_log?: Types.Maybe<
 		{ __typename?: 'ErrorObject' } & Pick<
 			Types.ErrorObject,
-			'id' | 'error_group_secure_id'
+			'id' | 'error_group_secure_id' | 'project_id'
 		>
 	>
 }
@@ -4058,6 +4058,7 @@ export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
 
 export type GetLogsKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
+	date_range: Types.DateRangeRequiredInput
 }>
 
 export type GetLogsKeysQuery = { __typename?: 'Query' } & {
@@ -4076,6 +4077,19 @@ export type GetLogsKeyValuesQuery = { __typename?: 'Query' } & Pick<
 	Types.Query,
 	'logs_key_values'
 >
+
+export type GetLogsErrorObjectsQueryVariables = Types.Exact<{
+	log_cursors: Array<Types.Scalars['String']> | Types.Scalars['String']
+}>
+
+export type GetLogsErrorObjectsQuery = { __typename?: 'Query' } & {
+	logs_error_objects: Array<
+		{ __typename?: 'ErrorObject' } & Pick<
+			Types.ErrorObject,
+			'log_cursor' | 'error_group_secure_id' | 'id'
+		>
+	>
+}
 
 export const namedOperations = {
 	Query: {
@@ -4199,6 +4213,7 @@ export const namedOperations = {
 		GetLogsHistogram: 'GetLogsHistogram' as const,
 		GetLogsKeys: 'GetLogsKeys' as const,
 		GetLogsKeyValues: 'GetLogsKeyValues' as const,
+		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
