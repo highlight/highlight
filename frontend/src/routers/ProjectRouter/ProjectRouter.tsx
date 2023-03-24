@@ -33,7 +33,6 @@ import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import commonStyles from '../../Common.module.scss'
-import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble'
 import ApplicationRouter from './ApplicationRouter'
 import { ApplicationContextProvider } from './context/ApplicationContext'
 
@@ -53,10 +52,6 @@ export const ProjectRouter = () => {
 	})
 
 	const { integrated, loading: integratedLoading } = useIntegrated()
-	const [hasFinishedOnboarding] = useLocalStorage(
-		`highlight-finished-onboarding-${projectId}`,
-		false,
-	)
 
 	useEffect(() => {
 		const uri =
@@ -240,11 +235,6 @@ export const ProjectRouter = () => {
 													/>
 												) : (
 													<>
-														{isLoggedIn &&
-															!hasFinishedOnboarding && (
-																<OnboardingBubble />
-															)}
-
 														<ApplicationRouter
 															integrated={
 																integrated

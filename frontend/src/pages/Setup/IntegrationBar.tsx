@@ -47,6 +47,7 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 			flexDirection="column"
 			justifyContent="center"
 			alignItems="center"
+			cssClass={styles.container}
 		>
 			<Box
 				display="flex"

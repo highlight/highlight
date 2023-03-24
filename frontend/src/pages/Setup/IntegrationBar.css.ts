@@ -1,5 +1,11 @@
 import { keyframes, style } from '@vanilla-extract/css'
 
+export const container = style({
+	position: 'sticky',
+	top: 0,
+	zIndex: 10,
+})
+
 const rotate = keyframes({
 	'0%': {
 		transform: 'rotate(0deg)',

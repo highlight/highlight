@@ -87,14 +87,25 @@ export const SetupOptionsList: React.FC<Props> = ({
 							<Stack align="center" direction="row" gap="10">
 								<Box
 									alignItems="center"
-									backgroundColor="contentGood"
-									borderRadius="4"
-									color="white"
+									backgroundColor="white"
+									borderRadius="5"
 									display="flex"
 									justifyContent="center"
 									style={{ height: 28, width: 28 }}
 								>
-									{(option.name as string)[0].toUpperCase()}
+									{option.imageUrl ? (
+										<img
+											alt={option.name}
+											src={option.imageUrl}
+											style={{ height: 20, width: 20 }}
+										/>
+									) : (
+										<Text userSelect="none" weight="bold">
+											{(
+												option.name as string
+											)[0].toUpperCase()}
+										</Text>
+									)}
 								</Box>
 								<Text color="default" weight="bold">
 									{option.name as string}
@@ -115,10 +126,10 @@ export const SetupOptionsList: React.FC<Props> = ({
 	)
 }
 
-const NON_GUIDE_KEYS = ['title', 'subtitle', 'entries']
+const IGNORED_KEYS = ['title', 'subtitle', 'logoUrl', 'entries']
 const getOptionKeys = (docsSection: any) => {
 	const optionKeys = Object.keys(docsSection || {}).filter(
-		(k) => NON_GUIDE_KEYS.indexOf(k) === -1,
+		(k) => IGNORED_KEYS.indexOf(k) === -1,
 	)
 	return optionKeys
 }

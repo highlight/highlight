@@ -21,6 +21,7 @@ import analytics from '@util/analytics'
 import { useClientIntegrated, useServerIntegrated } from '@util/integrated'
 import { message } from 'antd'
 import clsx from 'clsx'
+import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import {
 	Link,
@@ -36,7 +37,7 @@ import * as styles from './SetupRouter.css'
 export type Guide = {
 	title: string
 	subtitle: string
-	logoUrl: string // TODO: Add in docs
+	logoUrl: string
 	entries: Array<{
 		title: string
 		content: string
@@ -88,11 +89,17 @@ const SetupRouter = () => {
 	useEffect(() => analytics.page(), [])
 
 	useEffect(() => {
-		fetch(`https://www.highlight.io/api/quickstart`)
-			// fetch(`http://localhost:3001/api/quickstart`)
+		// fetch(`https://www.highlight.io/api/quickstart`)
+		fetch(`http://localhost:3001/api/quickstart`)
 			.then((res) => res.json())
 			.then((docs) => setDocs(docs))
-			.catch(() => message.error('Error loading docs...'))
+			.catch((e) => {
+				H.consumeError(e, 'Error loading docs')
+
+				message.error(
+					'Error loading the documentation. Please reload the page...',
+				)
+			})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
@@ -234,7 +241,8 @@ const SetupRouter = () => {
 					borderRadius="6"
 					boxShadow="medium"
 					flexGrow={1}
-					overflowY="auto"
+					overflowY="scroll"
+					position="relative"
 				>
 					<Routes>
 						<Route
