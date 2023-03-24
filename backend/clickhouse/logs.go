@@ -16,7 +16,7 @@ import (
 	e "github.com/pkg/errors"
 )
 
-const LogsTable = "logs_new"
+const LogsTable = "logs"
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
 	if len(logRows) == 0 {
