@@ -3762,6 +3762,40 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				}
 		>
 	>
+	log_alerts: Array<
+		Types.Maybe<
+			{ __typename?: 'LogAlert' } & Pick<
+				Types.LogAlert,
+				| 'CountThreshold'
+				| 'DailyFrequency'
+				| 'disabled'
+				| 'EmailsToNotify'
+				| 'ExcludedEnvironments'
+				| 'ExcludeRules'
+				| 'id'
+				| 'LastAdminToEditID'
+				| 'Name'
+				| 'updated_at'
+				| 'ThresholdWindow'
+				| 'Type'
+				| 'query'
+			> & {
+					ChannelsToNotify: Array<
+						Types.Maybe<
+							{ __typename?: 'SanitizedSlackChannel' } & Pick<
+								Types.SanitizedSlackChannel,
+								'webhook_channel' | 'webhook_channel_id'
+							>
+						>
+					>
+					DiscordChannelsToNotify: Array<
+						{
+							__typename?: 'DiscordChannel'
+						} & DiscordChannelFragmentFragment
+					>
+				}
+		>
+	>
 }
 
 export type GetMetricMonitorsQueryVariables = Types.Exact<{

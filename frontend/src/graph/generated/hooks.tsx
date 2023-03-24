@@ -10686,6 +10686,28 @@ export const GetAlertsPagePayloadDocument = gql`
 			units
 			disabled
 		}
+		log_alerts(project_id: $project_id) {
+			ChannelsToNotify {
+				webhook_channel
+				webhook_channel_id
+			}
+			DiscordChannelsToNotify {
+				...DiscordChannelFragment
+			}
+			CountThreshold
+			DailyFrequency
+			disabled
+			EmailsToNotify
+			ExcludedEnvironments
+			ExcludeRules
+			id
+			LastAdminToEditID
+			Name
+			updated_at
+			ThresholdWindow
+			Type
+			query
+		}
 	}
 	${DiscordChannelFragmentFragmentDoc}
 	${SessionAlertFragmentFragmentDoc}

@@ -670,6 +670,39 @@ export type Log = {
 	traceID?: Maybe<Scalars['String']>
 }
 
+export type LogAlert = {
+	__typename?: 'LogAlert'
+	ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>
+	CountThreshold: Scalars['Int']
+	DailyFrequency: Array<Maybe<Scalars['Int64']>>
+	DiscordChannelsToNotify: Array<DiscordChannel>
+	EmailsToNotify: Array<Maybe<Scalars['String']>>
+	ExcludeRules: Array<Maybe<Scalars['String']>>
+	ExcludedEnvironments: Array<Maybe<Scalars['String']>>
+	LastAdminToEditID?: Maybe<Scalars['ID']>
+	Name?: Maybe<Scalars['String']>
+	ThresholdWindow?: Maybe<Scalars['Int']>
+	Type: Scalars['String']
+	disabled: Scalars['Boolean']
+	id: Scalars['ID']
+	query: Scalars['String']
+	updated_at: Scalars['Timestamp']
+}
+
+export type LogAlertInput = {
+	count_threshold: Scalars['Int']
+	disabled: Scalars['Boolean']
+	discord_channels: Array<DiscordChannelInput>
+	emails: Array<Scalars['String']>
+	environments: Array<Scalars['String']>
+	exclude_rules: Array<Scalars['String']>
+	name: Scalars['String']
+	project_id: Scalars['ID']
+	slack_channels: Array<SanitizedSlackChannelInput>
+	threshold_window: Scalars['Int']
+	type: SessionAlertType
+}
+
 export type LogEdge = {
 	__typename?: 'LogEdge'
 	cursor: Scalars['String']
@@ -807,6 +840,7 @@ export type Mutation = {
 	createErrorSegment?: Maybe<ErrorSegment>
 	createIssueForErrorComment?: Maybe<ErrorComment>
 	createIssueForSessionComment?: Maybe<SessionComment>
+	createLogAlert?: Maybe<LogAlert>
 	createMetricMonitor?: Maybe<MetricMonitor>
 	createOrUpdateStripeSubscription?: Maybe<Scalars['String']>
 	createProject?: Maybe<Project>
@@ -820,6 +854,7 @@ export type Mutation = {
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
 	deleteErrorSegment?: Maybe<Scalars['Boolean']>
+	deleteLogAlert?: Maybe<LogAlert>
 	deleteMetricMonitor?: Maybe<MetricMonitor>
 	deleteProject?: Maybe<Scalars['Boolean']>
 	deleteSegment?: Maybe<Scalars['Boolean']>
@@ -859,6 +894,7 @@ export type Mutation = {
 	updateErrorGroupIsPublic?: Maybe<ErrorGroup>
 	updateErrorGroupState?: Maybe<ErrorGroup>
 	updateIntegrationProjectMappings: Scalars['Boolean']
+	updateLogAlert?: Maybe<LogAlert>
 	updateMetricMonitor?: Maybe<MetricMonitor>
 	updateMetricMonitorIsDisabled?: Maybe<MetricMonitor>
 	updateSessionAlert?: Maybe<SessionAlert>
@@ -957,6 +993,10 @@ export type MutationCreateIssueForSessionCommentArgs = {
 	time: Scalars['Float']
 }
 
+export type MutationCreateLogAlertArgs = {
+	input: LogAlertInput
+}
+
 export type MutationCreateMetricMonitorArgs = {
 	aggregator: MetricAggregator
 	discord_channels: Array<DiscordChannelInput>
@@ -1045,6 +1085,11 @@ export type MutationDeleteErrorCommentArgs = {
 
 export type MutationDeleteErrorSegmentArgs = {
 	segment_id: Scalars['ID']
+}
+
+export type MutationDeleteLogAlertArgs = {
+	project_id: Scalars['ID']
+	session_alert_id: Scalars['ID']
 }
 
 export type MutationDeleteMetricMonitorArgs = {
@@ -1272,6 +1317,11 @@ export type MutationUpdateIntegrationProjectMappingsArgs = {
 	workspace_id: Scalars['ID']
 }
 
+export type MutationUpdateLogAlertArgs = {
+	id: Scalars['ID']
+	input: LogAlertInput
+}
+
 export type MutationUpdateMetricMonitorArgs = {
 	aggregator?: InputMaybe<MetricAggregator>
 	disabled?: InputMaybe<Scalars['Boolean']>
@@ -1475,6 +1525,7 @@ export type Query = {
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
+	log_alerts: Array<Maybe<LogAlert>>
 	logs: LogsConnection
 	logs_histogram: LogsHistogram
 	logs_key_values: Array<Scalars['String']>
@@ -1806,6 +1857,10 @@ export type QueryLinear_TeamsArgs = {
 }
 
 export type QueryLiveUsersCountArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryLog_AlertsArgs = {
 	project_id: Scalars['ID']
 }
 

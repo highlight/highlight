@@ -764,6 +764,20 @@ input SessionAlertInput {
 	track_properties: [TrackPropertyInput!]!
 }
 
+input LogAlertInput {
+	project_id: ID!
+	name: String!
+	count_threshold: Int!
+	threshold_window: Int!
+	slack_channels: [SanitizedSlackChannelInput!]!
+	discord_channels: [DiscordChannelInput!]!
+	emails: [String!]!
+	environments: [String!]!
+	disabled: Boolean!
+	type: SessionAlertType!
+	exclude_rules: [String!]!
+}
+
 type ErrorSearchParams {
 	date_range: DateRange
 	os: String
@@ -1047,6 +1061,24 @@ type SessionAlert {
 	ExcludeRules: [String]!
 	DailyFrequency: [Int64]!
 	disabled: Boolean!
+}
+
+type LogAlert {
+	id: ID!
+	updated_at: Timestamp!
+	Name: String
+	ChannelsToNotify: [SanitizedSlackChannel]!
+	DiscordChannelsToNotify: [DiscordChannel!]!
+	EmailsToNotify: [String]!
+	ExcludedEnvironments: [String]!
+	CountThreshold: Int!
+	ThresholdWindow: Int
+	LastAdminToEditID: ID
+	Type: String!
+	ExcludeRules: [String]!
+	DailyFrequency: [Int64]!
+	disabled: Boolean!
+	query: String!
 }
 
 type WorkspaceInviteLink {
@@ -1403,6 +1435,7 @@ type Query {
 	user_properties_alerts(project_id: ID!): [SessionAlert]!
 	new_session_alerts(project_id: ID!): [SessionAlert]!
 	rage_click_alerts(project_id: ID!): [SessionAlert]!
+	log_alerts(project_id: ID!): [LogAlert]!
 	projectSuggestion(query: String!): [Project]!
 	workspaceSuggestion(query: String!): [Workspace]!
 	environment_suggestion(project_id: ID!): [Field]
@@ -1760,6 +1793,9 @@ type Mutation {
 	updateSessionAlert(id: ID!, input: SessionAlertInput!): SessionAlert
 	createSessionAlert(input: SessionAlertInput!): SessionAlert
 	deleteSessionAlert(project_id: ID!, session_alert_id: ID!): SessionAlert
+	updateLogAlert(id: ID!, input: LogAlertInput!): LogAlert
+	createLogAlert(input: LogAlertInput!): LogAlert
+	deleteLogAlert(project_id: ID!, session_alert_id: ID!): LogAlert
 	updateSessionIsPublic(
 		session_secure_id: String!
 		is_public: Boolean!
