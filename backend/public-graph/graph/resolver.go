@@ -786,7 +786,18 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 
 	if projectID == 1 {
-		if errorObj.Event == `input: initializeSession BillingQuotaExceeded` || errorObj.Event == `BillingQuotaExceeded` || errorObj.Event == `panic {error: missing operation context}` || errorObj.Event == `input: could not get json request body: unable to get Request Body unexpected EOF` || errorObj.Event == `no metrics provided` || errorObj.Event == `input: pushMetrics no metrics provided` {
+		if errorObj.Event == `input: initializeSession BillingQuotaExceeded` ||
+			errorObj.Event == `BillingQuotaExceeded` ||
+			errorObj.Event == `panic {error: missing operation context}` ||
+			errorObj.Event == `input: could not get json request body: unable to get Request Body unexpected EOF` ||
+			errorObj.Event == `no metrics provided` ||
+			errorObj.Event == `input: pushMetrics no metrics provided` ||
+			errorObj.Event == `Error updating error group: Filtering out noisy error` ||
+			errorObj.Event == `Error updating error group: Filtering out noisy Highlight error` ||
+			errorObj.Event == `error processing main session: error scanning session payload: error fetching events from Redis: error processing event chunk: The payload has an IncrementalSnapshot before the first FullSnapshot` ||
+			errorObj.Event == `session has reached the max retry count and will be excluded: error scanning session payload: error fetching events from Redis: error processing event chunk: The payload has an IncrementalSnapshot before the first FullSnapshot` ||
+			errorObj.Event == `invalid metrics payload []` ||
+			errorObj.Event == `public-graph graphql request failed` {
 			return nil, ErrNoisyError
 		}
 	}
