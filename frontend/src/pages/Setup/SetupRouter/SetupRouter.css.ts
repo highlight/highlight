@@ -36,7 +36,6 @@ export const copyProjectIdIdButton = style({
 	alignItems: 'center',
 	border: vars.border.dividerWeak,
 	borderRadius: 6,
-	boxShadow: vars.shadows.small,
 	display: 'flex',
 	height: 36,
 	marginBottom: 6,

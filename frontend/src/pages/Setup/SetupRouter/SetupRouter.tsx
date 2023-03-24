@@ -127,10 +127,7 @@ const SetupRouter = () => {
 		>
 			<Stack justify="space-between" p="8">
 				<Stack gap="0">
-					<Box
-						cssClass={styles.copyProjectIdIdButton}
-						boxShadow="small"
-					>
+					<Box cssClass={styles.copyProjectIdIdButton}>
 						<Stack direction="row" gap="6" align="center">
 							<Text color="weak" size="xSmall">
 								Project ID:
