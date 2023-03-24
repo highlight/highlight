@@ -83,7 +83,7 @@ func processMetricMonitors(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, 
 			continue
 		}
 		if len(payload) < 1 {
-			log.WithContext(ctx).Errorf("invalid metrics payload %+v", payload)
+			log.WithContext(ctx).Warn("invalid empty metrics payload")
 			continue
 		}
 		value = payload[len(payload)-1].Value
