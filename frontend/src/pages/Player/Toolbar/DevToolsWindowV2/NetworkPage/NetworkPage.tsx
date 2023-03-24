@@ -36,12 +36,12 @@ export const NetworkPage = ({
 	time,
 	autoScroll,
 	filter,
-	requestType,
+	requestTypes,
 }: {
 	time: number
 	autoScroll: boolean
 	filter: string
-	requestType: RequestType[]
+	requestTypes: RequestType[]
 }) => {
 	const {
 		state,
@@ -98,7 +98,7 @@ export const NetworkPage = ({
 		const current =
 			(parsedResources
 				.filter((request) =>
-					requestType.includes(request.initiatorType as RequestType),
+					requestTypes.includes(request.initiatorType as RequestType),
 				)
 				.map((event) => ({
 					...event,
@@ -118,7 +118,7 @@ export const NetworkPage = ({
 		}
 
 		return current
-	}, [parsedResources, filter, requestType, startTime])
+	}, [parsedResources, filter, requestTypes, startTime])
 
 	const currentResourceIdx = useMemo(() => {
 		return findLastActiveEventIndex(
@@ -332,7 +332,7 @@ export const NetworkPage = ({
 					<EmptyDevToolsCallout
 						kind={Tab.Network}
 						filter={filter}
-						requestType={requestType}
+						requestType={requestTypes}
 					/>
 				)
 			)}

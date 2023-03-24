@@ -2,7 +2,9 @@ import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
 import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
 
-export const container = style({})
+export const container = style({
+	//
+})
 
 export const variants = recipe({
 	variants: {

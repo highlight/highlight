@@ -14,10 +14,10 @@ import React from 'react'
 interface Props {
 	kind: Tab
 	filter?: string
-	requestType?: RequestType[]
+	requestTypes?: RequestType[]
 }
 
-export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
+export const EmptyDevToolsCallout = ({ kind, filter, requestTypes }: Props) => {
 	const { admin } = useAuthContext()
 
 	return (
@@ -54,10 +54,10 @@ export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
 					</Box>
 				)}
 			>
-				{requestType ? (
+				{requestTypes ? (
 					<>
 						<Text color="n11">
-							{`No ${requestType
+							{`No ${requestTypes
 								.map((r) => r.toLocaleLowerCase())
 								.join(', ')} network resources${
 								filter !== '' ? ` matching '${filter}'` : ''

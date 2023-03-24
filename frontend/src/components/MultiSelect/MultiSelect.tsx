@@ -1,5 +1,6 @@
 import { Listbox } from '@headlessui/react'
 import { Box, IconSolidCheckCircle, IconSolidX } from '@highlight-run/ui'
+import { Badge, Text } from '@highlight-run/ui'
 import React from 'react'
 
 import * as styles from './MultiSelect.css'
@@ -8,35 +9,50 @@ interface Input {
 	id: string
 	name: string
 	render?: string
+	count?: number
 }
 
-type Props<T extends Input> = React.PropsWithChildren & {
+type Props<T extends Input, S extends any[]> = React.PropsWithChildren & {
 	options: T[]
-	onChange?: (selected: T[]) => void
+	selected: S
+	setSelected: React.Dispatch<React.SetStateAction<S>>
 	showCancel?: boolean
 }
 
-export const MultiSelect = function <T extends Input>({
+export const MultiSelect = function <T extends Input, S extends any[]>({
 	children,
 	options,
-	onChange,
+	selected,
+	setSelected,
 	showCancel,
-}: Props<T>) {
-	const [selected, setSelected] = React.useState<T[]>([])
-
-	React.useEffect(() => {
-		if (onChange) {
-			onChange(selected)
+}: Props<T, S>) {
+	const ButtonText = () => {
+		if (selected.length === 0) {
+			return <p>Type</p>
+		} else if (selected.length === 1) {
+			return <p>{selected[0].name}</p>
+		} else if (selected.length === 2) {
+			return <p>{selected.map((item: T) => item.name).join(', ')}</p>
+		} else if (selected.length > 2) {
+			return <p>{`${selected.length} types`}</p>
+		} else {
+			return <></>
 		}
-	}, [onChange, selected])
+	}
 
 	return (
 		<Box cssClass={styles.container}>
-			<Listbox multiple value={selected} onChange={(v) => setSelected(v)}>
-				<Listbox.Button>{selected.map((s) => s.name)}</Listbox.Button>
+			<Listbox multiple value={selected} onChange={setSelected}>
+				<Listbox.Button>
+					<ButtonText />
+				</Listbox.Button>
 				<Listbox.Options>
 					{showCancel && (
-						<div onClick={() => setSelected([])}>
+						<div
+						// onClick={() => {
+						// 	setSelected([])
+						// }}
+						>
 							<IconSolidX />
 						</div>
 					)}
@@ -55,7 +71,14 @@ export const MultiSelect = function <T extends Input>({
 												selected,
 											})}
 										>
-											{o.render}
+											<Text size="medium">
+												{o.render ? o.render : o.name}
+											</Text>
+										</div>
+										<div>
+											<Badge
+												label={o.count?.toString()}
+											></Badge>
 										</div>
 									</Box>
 								)}

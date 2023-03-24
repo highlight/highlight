@@ -1,13 +1,17 @@
 import { Button } from '@components/Button'
-import { MultiSelect } from '@components/MultiSelect/MultiSelect'
+// import { MultiSelect } from '@components/MultiSelect/MultiSelect'
+import { Listbox } from '@headlessui/react'
 import {
+	Badge,
 	Box,
 	Form,
+	IconSolidCheckCircle,
 	IconSolidSearch,
 	IconSolidSwitchHorizontal,
 	IconSolidViewList,
 	MenuButton,
 	Tabs,
+	Text,
 	useFormState,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -49,7 +53,7 @@ const DevToolsWindowV2: React.FC<
 	const { time, session } = useReplayerContext()
 	const { selectedDevToolsTab, setSelectedDevToolsTab } =
 		usePlayerConfiguration()
-	const [requestType, setRequestType] = React.useState<RequestType[]>([])
+	const [requestTypes, setRequestTypes] = React.useState<RequestType[]>([])
 	const [searchShown, setSearchShown] = React.useState<boolean>(false)
 	const [logLevel, setLogLevel] = React.useState<LogLevel>(LogLevel.All)
 	const form = useFormState({
@@ -100,6 +104,25 @@ const DevToolsWindowV2: React.FC<
 		return null
 	}
 
+	console.log(requestTypes.length) // DEV
+	console.log(requestTypes) // DEV
+
+	const requestTypeButton = () => {
+		let text
+
+		if (requestTypes.length === 0) {
+			text = 'Type'
+		} else if (requestTypes.length === 1) {
+			text = requestTypes[0]
+		} else if (requestTypes.length === 2) {
+			text = requestTypes.join(', ')
+		} else if (requestTypes.length > 2) {
+			text = `${requestTypes.length} types`
+		}
+
+		return <Text size="medium">{text}</Text>
+	}
+
 	return (
 		<ResizePanel
 			defaultHeight={defaultHeight}
@@ -148,7 +171,7 @@ const DevToolsWindowV2: React.FC<
 								page: (
 									<NetworkPage
 										autoScroll={autoScroll}
-										requestType={requestType}
+										requestTypes={requestTypes}
 										filter={filter}
 										time={time}
 									/>
@@ -240,8 +263,62 @@ const DevToolsWindowV2: React.FC<
 										/>
 									) : selectedDevToolsTab === Tab.Network ? (
 										<>
-											<MultiSelect
-												showCancel
+											<Listbox
+												value={requestTypes}
+												onChange={(event) => {
+													console.log(event) // DEV
+													setRequestTypes(event)
+												}}
+												multiple
+											>
+												<Listbox.Button>
+													{requestTypeButton}
+												</Listbox.Button>
+												<Listbox.Options>
+													{Object.entries(
+														RequestType,
+													).map(
+														([
+															displayName,
+															requestName,
+														]) => (
+															<Listbox.Option
+																key={
+																	requestName
+																}
+																value={
+																	requestName
+																}
+																as={
+																	React.Fragment
+																}
+															>
+																{({
+																	active,
+																	selected,
+																}) => (
+																	<Box display="flex">
+																		{selected && (
+																			<IconSolidCheckCircle />
+																		)}
+																		<Text size="medium">
+																			{
+																				requestName
+																			}
+																		</Text>
+																		<Badge
+																			label={countPerRequestType[
+																				requestName
+																			].toString()}
+																		/>
+																	</Box>
+																)}
+															</Listbox.Option>
+														),
+													)}
+												</Listbox.Options>
+											</Listbox>
+											{/* <MultiSelect
 												options={Object.entries(
 													RequestType,
 												).map(
@@ -251,17 +328,15 @@ const DevToolsWindowV2: React.FC<
 													]) => ({
 														id: requestName,
 														name: displayName,
-														render: `${displayName} (${countPerRequestType[requestName]})`,
+														count: countPerRequestType[
+															requestName
+														],
 													}),
 												)}
-												onChange={(filters) => {
-													setRequestType(
-														filters.map(
-															(f) => f.id,
-														),
-													)
-												}}
-											/>
+												selected={requestType}
+												setSelected={setRequestType}
+												showCancel={true}
+											/> */}
 										</>
 									) : null}
 
