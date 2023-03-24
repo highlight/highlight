@@ -148,6 +148,7 @@ const responsiveProperties = defineProperties({
 			normal: 'normal',
 			breakWord: 'break-word',
 		},
+		whiteSpace: ['normal', 'nowrap'],
 	},
 	shorthands: {
 		align: ['alignItems'],

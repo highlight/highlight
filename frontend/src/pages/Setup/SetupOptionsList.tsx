@@ -8,7 +8,7 @@ import { Header } from '@pages/Setup/Header'
 import { IntegrationBar } from '@pages/Setup/IntegrationBar'
 import { Guides } from '@pages/Setup/SetupRouter/SetupRouter'
 import * as React from 'react'
-import { Navigate, useMatch } from 'react-router-dom'
+import { Navigate, useLocation, useMatch } from 'react-router-dom'
 
 export type OptionListItem = {
 	name: string
@@ -27,6 +27,7 @@ export const SetupOptionsList: React.FC<Props> = ({
 	docs,
 	integrationData,
 }) => {
+	const location = useLocation()
 	const clientMatch = useMatch('/:project_id/setup/client')
 	const areaMatch = useMatch('/:project_id/setup/:area')
 	const languageMatch = useMatch('/:project_id/setup/:area/:language')
@@ -41,7 +42,13 @@ export const SetupOptionsList: React.FC<Props> = ({
 	// clientMatch until the extra docs keys are removed from the top level of the
 	// `client` key.
 	if (optionKeys.length === 1 || clientMatch) {
-		return <Navigate to={optionKeys[0]} />
+		return (
+			<Navigate
+				to={optionKeys[0]}
+				replace={true}
+				state={location.state}
+			/>
+		)
 	}
 
 	const options = optionKeys.map((optionKey) => {

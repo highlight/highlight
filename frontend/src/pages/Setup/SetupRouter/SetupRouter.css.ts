@@ -21,6 +21,18 @@ export const menuItemActive = style({
 	color: themeVars.interactive.fill.secondary.content.onEnabled,
 })
 
+export const menuItemDisabled = style({
+	backgroundColor: themeVars.interactive.overlay.secondary.disabled,
+	color: themeVars.interactive.fill.secondary.content.onDisabled,
+	cursor: 'not-allowed',
+	selectors: {
+		'&:hover': {
+			backgroundColor: themeVars.interactive.overlay.secondary.disabled,
+			color: themeVars.interactive.fill.secondary.content.onDisabled,
+		},
+	},
+})
+
 export const menuItemSecondary = style([
 	menuItem,
 	{

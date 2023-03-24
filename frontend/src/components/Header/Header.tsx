@@ -16,6 +16,7 @@ import {
 	Badge,
 	Box,
 	IconSolidArrowSmLeft,
+	IconSolidArrowSmRight,
 	IconSolidAtSymbol,
 	IconSolidChartBar,
 	IconSolidChartPie,
@@ -34,6 +35,7 @@ import {
 	IconSolidViewGridAdd,
 	IconSolidViewList,
 	Menu,
+	Stack,
 	Text,
 } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
@@ -49,7 +51,7 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { client } from '@util/graph'
-import { useIntegrated } from '@util/integrated'
+import { useClientIntegrated, useServerIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
@@ -69,13 +71,19 @@ export const Header = () => {
 		project_id: string
 	}>()
 	const { projectId: projectIdRemapped } = useProjectId()
-	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
-	const { currentWorkspace } = useApplicationContext()
+	const { isLoggedIn } = useAuthContext()
+	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
+	const { data: clientIntegrationData } = useClientIntegrated()
+	const { data: serverIntegrationData } = useServerIntegrated()
+	const fullyIntegrated = !!clientIntegrationData && !!serverIntegrationData
+	const integrated = !!clientIntegrationData || !!serverIntegrationData
 
-	const { pathname } = useLocation()
+	const { pathname, state } = useLocation()
+	const goBackPath = state?.previousPath ?? `/${project_id}/sessions`
 	const parts = pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
+	const isSetup = parts.indexOf('setup') !== -1
 
 	const { toggleShowKeyboardShortcutsGuide, commandBarDialog } =
 		useGlobalContext()
@@ -108,7 +116,7 @@ export const Header = () => {
 			<CommandBar />
 			<CommandBarV1 />
 			<Box background="n2" borderBottom="secondary">
-				{!!project_id && getBanner(project_id)}
+				{!!project_id && !isSetup && getBanner(project_id, integrated)}
 				<Box
 					display="flex"
 					alignItems="center"
@@ -116,9 +124,29 @@ export const Header = () => {
 					py={isLoggedIn ? '8' : '0'}
 					justifyContent="space-between"
 				>
-					{inProjectOrWorkspace ||
-					projectIdRemapped ===
-						DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
+					{isSetup ? (
+						<LinkButton
+							to={goBackPath}
+							kind="secondary"
+							emphasis="low"
+							trackingId="setup_back-button"
+						>
+							<Box
+								display="flex"
+								whiteSpace="nowrap"
+								alignItems="center"
+								gap="8"
+							>
+								<IconSolidArrowSmLeft />{' '}
+								<Text>
+									Back to{' '}
+									{currentProject?.name ?? 'Highlight'}
+								</Text>
+							</Box>
+						</LinkButton>
+					) : inProjectOrWorkspace ||
+					  projectIdRemapped ===
+							DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
 						<Box
 							display="flex"
 							alignItems="center"
@@ -322,7 +350,24 @@ export const Header = () => {
 							style={{ zIndex: 20000 }}
 							width="full"
 						>
-							{!!project_id && (
+							{!!fullyIntegrated && !isSetup && (
+								<LinkButton
+									to={`/${project_id}/setup`}
+									state={{ previousPath: location.pathname }}
+									trackingId="header_setup-cta"
+									emphasis="low"
+								>
+									<Stack
+										direction="row"
+										align="center"
+										gap="4"
+									>
+										<Text>Finish setup </Text>
+										<IconSolidArrowSmRight />
+									</Stack>
+								</LinkButton>
+							)}
+							{!!project_id && !isSetup && (
 								<Button
 									trackingId="quickSearchClicked"
 									kind="secondary"
@@ -341,241 +386,259 @@ export const Header = () => {
 									/>
 								</Button>
 							)}
-							<Box display="flex" alignItems="center" gap="4">
-								<Button
-									kind="secondary"
-									size="small"
-									emphasis="high"
-									onClick={() => {
-										window.open(
-											'https://discord.gg/yxaXEAqgwN',
-											'_blank',
-										)
-									}}
-									trackingId="DiscordSupportLinkClicked"
-								>
-									<Box
-										display="flex"
-										alignItems="center"
-										as="span"
-										gap="4"
-									>
-										<FaDiscord
-											style={{ height: 14, width: 14 }}
-											color={
-												vars.theme.interactive.fill
-													.secondary.content.text
-											}
-										/>
-										<Text lines="1">Community</Text>
-									</Box>
-								</Button>
-								<Button
-									kind="secondary"
-									size="small"
-									emphasis="high"
-									onClick={() => {
-										window.open(
-											'https://github.com/highlight/highlight',
-											'_blank',
-										)
-									}}
-									trackingId="GithubButton"
-								>
-									<Box
-										display="flex"
-										alignItems="center"
-										as="span"
-										gap="4"
-									>
-										<FaGithub
-											style={{ height: 14, width: 14 }}
-											color={
-												vars.theme.interactive.fill
-													.secondary.content.text
-											}
-										/>
-										<Text lines="1">GitHub</Text>
-									</Box>
-								</Button>
-								{inProjectOrWorkspace && <Notifications />}
-								<Menu>
-									<Menu.Button
-										emphasis="low"
+							{!isSetup && (
+								<Box display="flex" alignItems="center" gap="4">
+									<Button
 										kind="secondary"
-										icon={
-											<IconSolidCog
-												size={14}
-												color={vars.color.n11}
-											/>
-										}
-									/>
-									<Menu.List>
-										<Link
-											to={`/w/${workspaceId}/team`}
-											className={linkStyle}
+										size="small"
+										emphasis="high"
+										onClick={() => {
+											window.open(
+												'https://discord.gg/yxaXEAqgwN',
+												'_blank',
+											)
+										}}
+										trackingId="DiscordSupportLinkClicked"
+									>
+										<Box
+											display="flex"
+											alignItems="center"
+											as="span"
+											gap="4"
 										>
-											<Menu.Item>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidOfficeBuilding
-														size={14}
-														color={
-															vars.theme
-																.interactive
-																.fill.secondary
-																.content.text
-														}
-													/>
-													Workspace settings
-												</Box>
-											</Menu.Item>
-										</Link>
-										<Link
-											to={`/w/${workspaceId}/account/${
-												auth.googleProvider
-													? 'auth'
-													: 'email-settings'
-											}`}
-											className={linkStyle}
-										>
-											<Menu.Item>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidUserCircle
-														size={14}
-														color={
-															vars.theme
-																.interactive
-																.fill.secondary
-																.content.text
-														}
-													/>
-													Account settings
-												</Box>
-											</Menu.Item>
-										</Link>
-										<Menu.Divider />
-										<Link
-											to="/switch"
-											className={linkStyle}
-										>
-											<Menu.Item>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidSwitchHorizontal
-														size={14}
-														color={
-															vars.theme
-																.interactive
-																.fill.secondary
-																.content.text
-														}
-													/>
-													Switch workspace
-												</Box>
-											</Menu.Item>
-										</Link>
-										<Menu.Item
-											onClick={() =>
-												showIntercom({ admin })
-											}
-										>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
-											>
-												<IconSolidQuestionMarkCircle
-													size={14}
-													color={
-														vars.theme.interactive
-															.fill.secondary
-															.content.text
-													}
-												/>
-												Feedback
-											</Box>
-										</Menu.Item>
-										<a
-											href="https://www.highlight.io/docs"
-											className={linkStyle}
-											target="_blank"
-											rel="noreferrer"
-										>
-											<Menu.Item>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidDocumentText
-														size={14}
-														color={
-															vars.theme
-																.interactive
-																.fill.secondary
-																.content.text
-														}
-													/>
-													Documentation
-												</Box>
-											</Menu.Item>
-										</a>
-										<Menu.Item
-											onClick={() => {
-												toggleShowKeyboardShortcutsGuide(
-													true,
-												)
-											}}
-										>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
-											>
-												<IconSolidAtSymbol
-													size={14}
-													color={
-														vars.theme.interactive
-															.fill.secondary
-															.content.text
-													}
-												/>
-												Shortcuts
-											</Box>
-										</Menu.Item>
-										<Menu.Divider />
-										<Menu.Item
-											onClick={async () => {
-												try {
-													auth.signOut()
-												} catch (e) {
-													console.log(e)
+											<FaDiscord
+												style={{
+													height: 14,
+													width: 14,
+												}}
+												color={
+													vars.theme.interactive.fill
+														.secondary.content.text
 												}
-												await client.clearStore()
-											}}
+											/>
+											<Text lines="1">Community</Text>
+										</Box>
+									</Button>
+									<Button
+										kind="secondary"
+										size="small"
+										emphasis="high"
+										onClick={() => {
+											window.open(
+												'https://github.com/highlight/highlight',
+												'_blank',
+											)
+										}}
+										trackingId="GithubButton"
+									>
+										<Box
+											display="flex"
+											alignItems="center"
+											as="span"
+											gap="4"
 										>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
+											<FaGithub
+												style={{
+													height: 14,
+													width: 14,
+												}}
+												color={
+													vars.theme.interactive.fill
+														.secondary.content.text
+												}
+											/>
+											<Text lines="1">GitHub</Text>
+										</Box>
+									</Button>
+									{inProjectOrWorkspace && <Notifications />}
+									<Menu>
+										<Menu.Button
+											emphasis="low"
+											kind="secondary"
+											icon={
+												<IconSolidCog
+													size={14}
+													color={vars.color.n11}
+												/>
+											}
+										/>
+										<Menu.List>
+											<Link
+												to={`/w/${workspaceId}/team`}
+												className={linkStyle}
 											>
-												Log out
-											</Box>
-										</Menu.Item>
-									</Menu.List>
-								</Menu>
-							</Box>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconSolidOfficeBuilding
+															size={14}
+															color={
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
+															}
+														/>
+														Workspace settings
+													</Box>
+												</Menu.Item>
+											</Link>
+											<Link
+												to={`/w/${workspaceId}/account/${
+													auth.googleProvider
+														? 'auth'
+														: 'email-settings'
+												}`}
+												className={linkStyle}
+											>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconSolidUserCircle
+															size={14}
+															color={
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
+															}
+														/>
+														Account settings
+													</Box>
+												</Menu.Item>
+											</Link>
+											<Menu.Divider />
+											<Link
+												to="/switch"
+												className={linkStyle}
+											>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconSolidSwitchHorizontal
+															size={14}
+															color={
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
+															}
+														/>
+														Switch workspace
+													</Box>
+												</Menu.Item>
+											</Link>
+											<Menu.Item
+												onClick={() =>
+													showIntercom({ admin })
+												}
+											>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconSolidQuestionMarkCircle
+														size={14}
+														color={
+															vars.theme
+																.interactive
+																.fill.secondary
+																.content.text
+														}
+													/>
+													Feedback
+												</Box>
+											</Menu.Item>
+											<a
+												href="https://www.highlight.io/docs"
+												className={linkStyle}
+												target="_blank"
+												rel="noreferrer"
+											>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconSolidDocumentText
+															size={14}
+															color={
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
+															}
+														/>
+														Documentation
+													</Box>
+												</Menu.Item>
+											</a>
+											<Menu.Item
+												onClick={() => {
+													toggleShowKeyboardShortcutsGuide(
+														true,
+													)
+												}}
+											>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconSolidAtSymbol
+														size={14}
+														color={
+															vars.theme
+																.interactive
+																.fill.secondary
+																.content.text
+														}
+													/>
+													Shortcuts
+												</Box>
+											</Menu.Item>
+											<Menu.Divider />
+											<Menu.Item
+												onClick={async () => {
+													try {
+														auth.signOut()
+													} catch (e) {
+														console.log(e)
+													}
+													await client.clearStore()
+												}}
+											>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													Log out
+												</Box>
+											</Menu.Item>
+										</Menu.List>
+									</Menu>
+								</Box>
+							)}
 						</Box>
 					)}
 				</Box>
@@ -584,17 +647,17 @@ export const Header = () => {
 	)
 }
 
-const getBanner = (project_id: string) => {
+const getBanner = (project_id: string, integrated: boolean) => {
 	if (isOnPrem) {
 		return <OnPremiseBanner />
 	} else if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
 		return <DemoWorkspaceBanner />
 	} else {
-		return <BillingBanner />
+		return <BillingBanner integrated={integrated} />
 	}
 }
 
-const BillingBanner = () => {
+const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 	const { toggleShowBanner } = useGlobalContext()
 	const [temporarilyHideBanner, setTemporarilyHideBanner] = useSessionStorage(
 		'highlightHideFreePlanBanner',
@@ -607,7 +670,6 @@ const BillingBanner = () => {
 	})
 	const [hasReportedTrialExtension, setHasReportedTrialExtension] =
 		useLocalStorage('highlightReportedTrialExtension', false)
-	const { integrated } = useIntegrated()
 	const { issues: billingIssues } = useBillingHook({ project_id })
 
 	useEffect(() => {

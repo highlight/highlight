@@ -234,13 +234,9 @@ export const ProjectRouter = () => {
 														showRequestAccess
 													/>
 												) : (
-													<>
-														<ApplicationRouter
-															integrated={
-																integrated
-															}
-														/>
-													</>
+													<ApplicationRouter
+														integrated={integrated}
+													/>
 												)}
 											</div>
 										</>

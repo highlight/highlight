@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useGetProjectQuery } from '@graph/hooks'
 import {
+	Badge,
 	Box,
 	ButtonIcon,
 	IconSolidCheckCircle,
@@ -17,6 +18,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
 import SetupPage from '@pages/Setup/SetupPage'
+import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
 import { useClientIntegrated, useServerIntegrated } from '@util/integrated'
 import { message } from 'antd'
@@ -29,6 +31,7 @@ import {
 	NavLink,
 	Route,
 	Routes,
+	useLocation,
 	useMatch,
 } from 'react-router-dom'
 
@@ -70,6 +73,7 @@ export type Guides = {
 }
 
 const SetupRouter = () => {
+	const { toggleShowBanner } = useGlobalContext()
 	const { data: serverIntegrationData } = useServerIntegrated()
 	const { data: clientIntegrationData } = useClientIntegrated()
 	const areaMatch = useMatch('/:project_id/setup/:area/*')
@@ -85,6 +89,9 @@ const SetupRouter = () => {
 	const [docs, setDocs] = useState<Guides>()
 	const { data } = useGetProjectQuery({ variables: { id: projectId! } })
 	const projectVerboseId = data?.project?.verbose_id
+	const location = useLocation()
+
+	toggleShowBanner(false)
 
 	useEffect(() => analytics.page(), [])
 
@@ -181,16 +188,21 @@ const SetupRouter = () => {
 							<Text>Backend error monitoring</Text>
 						</Stack>
 					</NavLink>
-					<NavLink
-						to="backend-logging"
-						className={({ isActive }) =>
-							clsx(styles.menuItem, {
-								[styles.menuItemActive]: isActive,
-							})
-						}
+					<Box
+						className={clsx(
+							styles.menuItem,
+							styles.menuItemDisabled,
+						)}
 					>
-						<Text>Logging</Text>
-					</NavLink>
+						<Stack
+							direction="row"
+							justify="space-between"
+							align="center"
+						>
+							<Text>Logging</Text>
+							<Badge label="Soon" variant="outlineGray" />
+						</Stack>
+					</Box>
 				</Stack>
 
 				<Stack gap="0">
@@ -268,7 +280,13 @@ const SetupRouter = () => {
 						{/* Redirect to default docs. */}
 						<Route
 							path="*"
-							element={<Navigate to="client/js" replace={true} />}
+							element={
+								<Navigate
+									to="client/js"
+									replace={true}
+									state={location.state}
+								/>
+							}
 						/>
 					</Routes>
 				</Box>
