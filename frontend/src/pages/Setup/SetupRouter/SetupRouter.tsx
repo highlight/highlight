@@ -1,11 +1,15 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { useGetProjectQuery } from '@graph/hooks'
 import {
 	Box,
+	ButtonIcon,
 	IconSolidCheckCircle,
+	IconSolidClipboard,
 	IconSolidGlobe,
 	IconSolidUserAdd,
 	IconSolidViewGridAdd,
 	Stack,
+	Tag,
 	Text,
 	vars,
 } from '@highlight-run/ui'
@@ -78,6 +82,8 @@ const SetupRouter = () => {
 	const { projectId } = useProjectId()
 	const { isHighlightAdmin } = useAuthContext()
 	const [docs, setDocs] = useState<Guides>()
+	const { data } = useGetProjectQuery({ variables: { id: projectId! } })
+	const projectVerboseId = data?.project?.verbose_id
 
 	useEffect(() => analytics.page(), [])
 
@@ -90,7 +96,12 @@ const SetupRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	if (!docs) return null
+	if (!docs || !projectVerboseId) return null
+
+	const copyProjectId = () => {
+		window.navigator.clipboard.writeText(projectVerboseId!)
+		message.success('Project ID copied to your clipboard!')
+	}
 
 	if (!isHighlightAdmin) {
 		return (
@@ -108,10 +119,38 @@ const SetupRouter = () => {
 	}
 
 	return (
-		<Box display="flex" flexDirection="row" flexGrow={1}>
+		<Box
+			display="flex"
+			flexDirection="row"
+			flexGrow={1}
+			backgroundColor="raised"
+		>
 			<Stack justify="space-between" p="8">
 				<Stack gap="0">
-					{/* TODO: Add items to  */}
+					<Box
+						cssClass={styles.copyProjectIdIdButton}
+						boxShadow="small"
+					>
+						<Stack direction="row" gap="6" align="center">
+							<Text color="weak" size="xSmall">
+								Project ID:
+							</Text>
+							<Tag
+								kind="secondary"
+								emphasis="low"
+								shape="basic"
+								onClick={copyProjectId}
+							>
+								{projectVerboseId}
+							</Tag>
+						</Stack>
+						<ButtonIcon
+							kind="secondary"
+							emphasis="low"
+							icon={<IconSolidClipboard />}
+							onClick={copyProjectId}
+						/>
+					</Box>
 					<NavLink
 						to="client/js"
 						className={({ isActive }) =>
@@ -187,14 +226,18 @@ const SetupRouter = () => {
 					</Link>
 				</Stack>
 			</Stack>
+
 			<Box flexGrow={1} display="flex" flexDirection="column">
 				<Box
-					m="10"
+					mt="8"
+					mr="8"
+					mb="8"
+					backgroundColor="white"
 					border="secondary"
 					borderRadius="6"
 					boxShadow="medium"
 					flexGrow={1}
-					overflowY="scroll"
+					overflowY="auto"
 				>
 					<Routes>
 						<Route
@@ -211,6 +254,7 @@ const SetupRouter = () => {
 							element={
 								<SetupDocs
 									docs={docs}
+									projectVerboseId={projectVerboseId}
 									integrationData={integrationData}
 								/>
 							}

@@ -31,12 +31,17 @@ export type OptionListItem = {
 
 type Props = {
 	docs: Guides
+	projectVerboseId: string
 	integrationData:
 		| GetClientIntegrationDataQuery['clientIntegrationData']
 		| GetServerIntegrationDataQuery['serverIntegrationData']
 }
 
-export const SetupDocs: React.FC<Props> = ({ docs, integrationData }) => {
+export const SetupDocs: React.FC<Props> = ({
+	docs,
+	integrationData,
+	projectVerboseId,
+}) => {
 	const match = useMatch('/:project_id/setup/:area/:language/:framework')
 	const { area, framework, language } = match!.params
 	const guide = (docs as any)[area!][language!][framework!] as Guide
@@ -70,9 +75,11 @@ export const SetupDocs: React.FC<Props> = ({ docs, integrationData }) => {
 												},
 											)
 										}}
-										text={entry.code.text}
+										text={entry.code.text.replace(
+											'<YOUR_PROJECT_ID>',
+											projectVerboseId,
+										)}
 										className={clsx(styles.codeBlock)}
-										customStyle={{}}
 									/>
 								)}
 							</Section>

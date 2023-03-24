@@ -1,3 +1,4 @@
+import { vars } from '@highlight-run/ui'
 import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import { style } from '@vanilla-extract/css'
 
@@ -30,3 +31,16 @@ export const menuItemSecondary = style([
 		padding: 8,
 	},
 ])
+
+export const copyProjectIdIdButton = style({
+	alignItems: 'center',
+	border: vars.border.dividerWeak,
+	borderRadius: 6,
+	boxShadow: vars.shadows.small,
+	display: 'flex',
+	height: 36,
+	marginBottom: 6,
+	justifyContent: 'space-between',
+	padding: '0 8px',
+	width: 325,
+})
