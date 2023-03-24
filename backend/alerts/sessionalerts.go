@@ -2,6 +2,7 @@ package alerts
 
 import (
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 
 	"github.com/pkg/errors"
 
@@ -67,7 +68,7 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 		return nil, errors.Wrap(err, "error parsing user properties for user properties alert")
 	}
 	userPropertiesString := string(userPropertiesBytes)
-
+ 
 	excludeRulesString, err := marshalEnvironments(input.ExcludeRules)
 	if err != nil {
 		return nil, err
@@ -100,7 +101,7 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 		ExcludeRules:    excludeRulesString,
 		AlertIntegrations: model.AlertIntegrations{
 			DiscordChannelsToNotify: discord.GQLInputToGo(input.DiscordChannels),
-			WebhookDestinations:     input.WebhookDestinations,
+			WebhookDestinations:     webhook.GQLInputToGo(input.WebhookDestinations),
 		},
 	}, nil
 }

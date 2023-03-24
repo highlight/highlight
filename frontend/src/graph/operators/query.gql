@@ -1660,7 +1660,10 @@ query GetAlertsPagePayload($project_id: ID!) {
 		DiscordChannelsToNotify {
 			...DiscordChannelFragment
 		}
-		WebhookDestinations
+		WebhookDestinations {
+			url
+			authorization
+		}
 		EmailsToNotify
 		ExcludedEnvironments
 		updated_at
@@ -1705,7 +1708,10 @@ query GetAlertsPagePayload($project_id: ID!) {
 			id
 			name
 		}
-		webhook_destinations
+		webhook_destinations {
+			url
+			authorization
+		}
 		emails_to_notify
 		aggregator
 		period_minutes

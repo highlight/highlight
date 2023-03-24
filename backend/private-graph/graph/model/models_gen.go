@@ -517,7 +517,7 @@ type SessionAlertInput struct {
 	ThresholdWindow     int                           `json:"threshold_window"`
 	SlackChannels       []*SanitizedSlackChannelInput `json:"slack_channels"`
 	DiscordChannels     []*DiscordChannelInput        `json:"discord_channels"`
-	WebhookDestinations []string                      `json:"webhook_destinations"`
+	WebhookDestinations []*WebhookDestinationInput    `json:"webhook_destinations"`
 	Emails              []string                      `json:"emails"`
 	Environments        []string                      `json:"environments"`
 	Disabled            bool                          `json:"disabled"`
@@ -614,6 +614,11 @@ type VercelProjectMappingInput struct {
 	VercelProjectID string  `json:"vercel_project_id"`
 	NewProjectName  *string `json:"new_project_name"`
 	ProjectID       *int    `json:"project_id"`
+}
+
+type WebhookDestinationInput struct {
+	URL           string  `json:"url"`
+	Authorization *string `json:"authorization"`
 }
 
 type WorkspaceForInviteLink struct {

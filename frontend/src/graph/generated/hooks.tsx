@@ -2574,7 +2574,7 @@ export const CreateErrorAlertDocument = gql`
 		$threshold_window: Int!
 		$slack_channels: [SanitizedSlackChannelInput]!
 		$discord_channels: [DiscordChannelInput!]!
-		$webhook_destinations: [String!]!
+		$webhook_destinations: [WebhookDestinationInput!]!
 		$emails: [String]!
 		$environments: [String]!
 		$regex_groups: [String]!
@@ -2674,7 +2674,7 @@ export const CreateMetricMonitorDocument = gql`
 		$metric_to_monitor: String!
 		$slack_channels: [SanitizedSlackChannelInput]!
 		$discord_channels: [DiscordChannelInput!]!
-		$webhook_destinations: [String!]!
+		$webhook_destinations: [WebhookDestinationInput!]!
 		$emails: [String]!
 	) {
 		createMetricMonitor(
@@ -2774,7 +2774,7 @@ export const UpdateMetricMonitorDocument = gql`
 		$metric_to_monitor: String
 		$slack_channels: [SanitizedSlackChannelInput]
 		$discord_channels: [DiscordChannelInput!]!
-		$webhook_destinations: [String!]!
+		$webhook_destinations: [WebhookDestinationInput!]!
 		$emails: [String]
 		$disabled: Boolean
 	) {
@@ -3041,7 +3041,7 @@ export const UpdateErrorAlertDocument = gql`
 		$threshold_window: Int
 		$slack_channels: [SanitizedSlackChannelInput]
 		$discord_channels: [DiscordChannelInput!]!
-		$webhook_destinations: [String!]!
+		$webhook_destinations: [WebhookDestinationInput!]!
 		$emails: [String]
 		$environments: [String]
 		$regex_groups: [String]
@@ -10560,7 +10560,10 @@ export const GetAlertsPagePayloadDocument = gql`
 			DiscordChannelsToNotify {
 				...DiscordChannelFragment
 			}
-			WebhookDestinations
+			WebhookDestinations {
+				url
+				authorization
+			}
 			EmailsToNotify
 			ExcludedEnvironments
 			updated_at
@@ -10605,7 +10608,10 @@ export const GetAlertsPagePayloadDocument = gql`
 				id
 				name
 			}
-			webhook_destinations
+			webhook_destinations {
+				url
+				authorization
+			}
 			emails_to_notify
 			aggregator
 			period_minutes

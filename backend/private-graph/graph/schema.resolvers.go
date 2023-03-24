@@ -26,6 +26,7 @@ import (
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
+	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
@@ -86,7 +87,7 @@ func (r *errorAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj *m
 }
 
 // WebhookDestinations is the resolver for the WebhookDestinations field.
-func (r *errorAlertResolver) WebhookDestinations(ctx context.Context, obj *model.ErrorAlert) ([]string, error) {
+func (r *errorAlertResolver) WebhookDestinations(ctx context.Context, obj *model.ErrorAlert) ([]*model.WebhookDestination, error) {
 	return obj.WebhookDestinations, nil
 }
 
@@ -315,7 +316,7 @@ func (r *metricMonitorResolver) DiscordChannelsToNotify(ctx context.Context, obj
 }
 
 // WebhookDestinations is the resolver for the webhook_destinations field.
-func (r *metricMonitorResolver) WebhookDestinations(ctx context.Context, obj *model.MetricMonitor) ([]string, error) {
+func (r *metricMonitorResolver) WebhookDestinations(ctx context.Context, obj *model.MetricMonitor) ([]*model.WebhookDestination, error) {
 	return obj.WebhookDestinations, nil
 }
 
@@ -2443,7 +2444,7 @@ func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID in
 }
 
 // CreateMetricMonitor is the resolver for the createMetricMonitor field.
-func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []string, emails []*string, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
+func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2484,7 +2485,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 		Filters:           mmFilters,
 		AlertIntegrations: model.AlertIntegrations{
 			DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
-			WebhookDestinations:     webhookDestinations,
+			WebhookDestinations:     webhook.GQLInputToGo(webhookDestinations),
 		},
 	}
 
@@ -2499,7 +2500,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 }
 
 // UpdateMetricMonitor is the resolver for the updateMetricMonitor field.
-func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []string, emails []*string, disabled *bool, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
+func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, disabled *bool, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2543,7 +2544,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 
 	metricMonitor.AlertIntegrations = model.AlertIntegrations{
 		DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
-		WebhookDestinations:     webhookDestinations,
+		WebhookDestinations:     webhook.GQLInputToGo(webhookDestinations),
 	}
 
 	if emails != nil {
@@ -2586,7 +2587,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateErrorAlert is the resolver for the createErrorAlert field.
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []string, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2632,7 +2633,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 		RegexGroups: &regexGroupsString,
 		AlertIntegrations: model.AlertIntegrations{
 			DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
-			WebhookDestinations:     webhookDestinations,
+			WebhookDestinations:     webhook.GQLInputToGo(webhookDestinations),
 		},
 	}
 
@@ -2647,7 +2648,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 }
 
 // UpdateErrorAlert is the resolver for the updateErrorAlert field.
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []string, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2715,7 +2716,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 
 	projectAlert.AlertIntegrations = model.AlertIntegrations{
 		DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
-		WebhookDestinations:     webhookDestinations,
+		WebhookDestinations:     webhook.GQLInputToGo(webhookDestinations),
 	}
 
 	if err := r.DB.Model(&model.ErrorAlert{

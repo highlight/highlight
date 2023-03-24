@@ -14,7 +14,11 @@ import {
 	useUpdateSessionAlertMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { DiscordChannel, SessionAlertType } from '@graph/schemas'
+import {
+	DiscordChannel,
+	SessionAlertType,
+	WebhookDestination,
+} from '@graph/schemas'
 import alertConfigurationCardStyles from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard.module.scss'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
@@ -87,7 +91,7 @@ export const AlertConfigurationCard = ({
 	const [emailsToNotify, setEmailsToNotify] = useState<string[]>(
 		alert?.EmailsToNotify || [],
 	)
-	const [webhooks, setWebhooks] = useState<string[]>(
+	const [webhooks, setWebhooks] = useState<WebhookDestination[]>(
 		alert?.WebhookDestinations || [],
 	)
 	const [selectedDiscordChannels, setSelectedDiscordChannels] = useState<
@@ -596,7 +600,7 @@ export const AlertConfigurationCard = ({
 		setFormTouched(true)
 	}
 
-	const onWebhooksChange = (webhooks: string[]) => {
+	const onWebhooksChange = (webhooks: WebhookDestination[]) => {
 		form.setFieldsValue({ webhooks })
 		setWebhooks(webhooks)
 		setFormTouched(true)
@@ -923,10 +927,14 @@ export const AlertConfigurationCard = ({
 								className={
 									alertConfigurationCardStyles.channelSelect
 								}
-								value={webhooks}
+								value={webhooks.map((wh) => wh.url)}
 								mode="tags"
 								placeholder="Select webhook web addresses to send the alert to."
-								onChange={onWebhooksChange}
+								onChange={(whs: string[]) =>
+									onWebhooksChange(
+										whs.map((wh) => ({ url: wh })),
+									)
+								}
 							/>
 						</section>
 

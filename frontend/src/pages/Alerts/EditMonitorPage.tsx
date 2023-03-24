@@ -8,6 +8,7 @@ import {
 	DiscordChannel,
 	MetricAggregator,
 	MetricTagFilter,
+	WebhookDestination,
 } from '@graph/schemas'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration'
@@ -52,7 +53,7 @@ const EditMonitorPage = ({
 	const [units, setUnits] = useState<string>()
 	const [slackChannels, setSlackChannels] = useState<string[]>([])
 	const [discordChannels, setDiscordChannels] = useState<DiscordChannel[]>([])
-	const [webhooks, setWebhooks] = useState<string[]>([])
+	const [webhooks, setWebhooks] = useState<WebhookDestination[]>([])
 	const [isDisabled, setIsDisabled] = useState<boolean>(false)
 	const [emails, setEmails] = useState<string[]>([])
 	const [updateMonitor] = useUpdateMetricMonitorMutation({

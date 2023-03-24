@@ -31,7 +31,7 @@ func (dc DiscordChannels) Value() (driver.Value, error) {
 
 type WebhookDestination struct {
 	URL           string
-	Authorization string
+	Authorization *string
 }
 
 type WebhookDestinations []*WebhookDestination

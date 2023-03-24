@@ -585,7 +585,7 @@ mutation CreateErrorAlert(
 	$threshold_window: Int!
 	$slack_channels: [SanitizedSlackChannelInput]!
 	$discord_channels: [DiscordChannelInput!]!
-	$webhook_destinations: [String!]!
+	$webhook_destinations: [WebhookDestinationInput!]!
 	$emails: [String]!
 	$environments: [String]!
 	$regex_groups: [String]!
@@ -632,7 +632,7 @@ mutation CreateMetricMonitor(
 	$metric_to_monitor: String!
 	$slack_channels: [SanitizedSlackChannelInput]!
 	$discord_channels: [DiscordChannelInput!]!
-	$webhook_destinations: [String!]!
+	$webhook_destinations: [WebhookDestinationInput!]!
 	$emails: [String]!
 ) {
 	createMetricMonitor(
@@ -678,7 +678,7 @@ mutation UpdateMetricMonitor(
 	$metric_to_monitor: String
 	$slack_channels: [SanitizedSlackChannelInput]
 	$discord_channels: [DiscordChannelInput!]!
-	$webhook_destinations: [String!]!
+	$webhook_destinations: [WebhookDestinationInput!]!
 	$emails: [String]
 	$disabled: Boolean
 ) {
@@ -757,7 +757,7 @@ mutation UpdateErrorAlert(
 	$threshold_window: Int
 	$slack_channels: [SanitizedSlackChannelInput]
 	$discord_channels: [DiscordChannelInput!]!
-	$webhook_destinations: [String!]!
+	$webhook_destinations: [WebhookDestinationInput!]!
 	$emails: [String]
 	$environments: [String]
 	$regex_groups: [String]

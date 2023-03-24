@@ -11,6 +11,7 @@ import {
 	DiscordChannel,
 	MetricAggregator,
 	MetricTagFilter,
+	WebhookDestination,
 } from '@graph/schemas'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
@@ -52,8 +53,8 @@ interface Props {
 	onSlackChannelsChange: (newChannels: string[]) => void
 	discordChannels: DiscordChannel[]
 	onDiscordChannelsChange: (discordChannels: DiscordChannel[]) => void
-	webhooks: string[]
-	onWebhooksChange: (webhooks: string[]) => void
+	webhooks: WebhookDestination[]
+	onWebhooksChange: (webhooks: WebhookDestination[]) => void
 	emails: string[]
 	onEmailsChange: (newEmails: string[]) => void
 	onFormSubmit: (values: any) => void
@@ -553,10 +554,12 @@ const MonitorConfiguration = ({
 					</p>
 					<Select
 						className={alertConfigurationCardStyles.channelSelect}
-						value={webhooks}
+						value={webhooks.map((wh) => wh.url)}
 						mode="tags"
 						placeholder="Select webhook web addresses to send the alert to."
-						onChange={onWebhooksChange}
+						onChange={(whs: string[]) =>
+							onWebhooksChange(whs.map((wh) => ({ url: wh })))
+						}
 					/>
 				</section>
 
