@@ -8811,7 +8811,6 @@ input SanitizedSlackChannelInput {
 	webhook_channel_id: String
 }
 
-
 type DiscordChannel {
 	id: String!
 	name: String!
@@ -8821,7 +8820,6 @@ input DiscordChannelInput {
 	name: String!
 	id: String!
 }
-
 
 type WebhookDestination {
 	url: String!

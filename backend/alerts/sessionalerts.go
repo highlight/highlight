@@ -68,7 +68,7 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 		return nil, errors.Wrap(err, "error parsing user properties for user properties alert")
 	}
 	userPropertiesString := string(userPropertiesBytes)
- 
+
 	excludeRulesString, err := marshalEnvironments(input.ExcludeRules)
 	if err != nil {
 		return nil, err
