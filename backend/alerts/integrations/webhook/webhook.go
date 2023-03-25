@@ -25,7 +25,7 @@ func sendWebhookData(destination *model.WebhookDestination, body []byte) error {
 		return nil
 	}
 
-	return e.New(fmt.Sprintf("webhook %s received unexpected response code %d", destination, resp.StatusCode))
+	return e.New(fmt.Sprintf("webhook %+v received unexpected response code %d", destination, resp.StatusCode))
 }
 
 func SendErrorAlert(destination *model.WebhookDestination, payload *integrations.ErrorAlertPayload) error {
