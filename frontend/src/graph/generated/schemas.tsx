@@ -347,6 +347,7 @@ export type ErrorAlert = {
 	RegexGroups: Array<Maybe<Scalars['String']>>
 	ThresholdWindow?: Maybe<Scalars['Int']>
 	Type: Scalars['String']
+	WebhookDestinations: Array<WebhookDestination>
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	updated_at: Scalars['Timestamp']
@@ -758,6 +759,7 @@ export type MetricMonitor = {
 	threshold: Scalars['Float']
 	units?: Maybe<Scalars['String']>
 	updated_at: Scalars['Timestamp']
+	webhook_destinations: Array<WebhookDestination>
 }
 
 export type MetricPreview = {
@@ -909,6 +911,7 @@ export type MutationCreateErrorAlertArgs = {
 	regex_groups: Array<InputMaybe<Scalars['String']>>
 	slack_channels: Array<InputMaybe<SanitizedSlackChannelInput>>
 	threshold_window: Scalars['Int']
+	webhook_destinations: Array<WebhookDestinationInput>
 }
 
 export type MutationCreateErrorCommentArgs = {
@@ -969,6 +972,7 @@ export type MutationCreateMetricMonitorArgs = {
 	slack_channels: Array<InputMaybe<SanitizedSlackChannelInput>>
 	threshold: Scalars['Float']
 	units?: InputMaybe<Scalars['String']>
+	webhook_destinations: Array<WebhookDestinationInput>
 }
 
 export type MutationCreateOrUpdateStripeSubscriptionArgs = {
@@ -1247,6 +1251,7 @@ export type MutationUpdateErrorAlertArgs = {
 	regex_groups?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
 	slack_channels?: InputMaybe<Array<InputMaybe<SanitizedSlackChannelInput>>>
 	threshold_window?: InputMaybe<Scalars['Int']>
+	webhook_destinations: Array<WebhookDestinationInput>
 }
 
 export type MutationUpdateErrorAlertIsDisabledArgs = {
@@ -1286,6 +1291,7 @@ export type MutationUpdateMetricMonitorArgs = {
 	slack_channels?: InputMaybe<Array<InputMaybe<SanitizedSlackChannelInput>>>
 	threshold?: InputMaybe<Scalars['Float']>
 	units?: InputMaybe<Scalars['String']>
+	webhook_destinations: Array<WebhookDestinationInput>
 }
 
 export type MutationUpdateMetricMonitorIsDisabledArgs = {
@@ -2280,6 +2286,7 @@ export type SessionAlertInput = {
 	track_properties: Array<TrackPropertyInput>
 	type: SessionAlertType
 	user_properties: Array<UserPropertyInput>
+	webhook_destinations: Array<WebhookDestinationInput>
 }
 
 export enum SessionAlertType {
@@ -2517,6 +2524,17 @@ export type VercelProjectMappingInput = {
 	new_project_name?: InputMaybe<Scalars['String']>
 	project_id?: InputMaybe<Scalars['ID']>
 	vercel_project_id: Scalars['String']
+}
+
+export type WebhookDestination = {
+	__typename?: 'WebhookDestination'
+	authorization?: Maybe<Scalars['String']>
+	url: Scalars['String']
+}
+
+export type WebhookDestinationInput = {
+	authorization?: InputMaybe<Scalars['String']>
+	url: Scalars['String']
 }
 
 export type Workspace = {

@@ -11,6 +11,7 @@ import {
 	DiscordChannel,
 	MetricAggregator,
 	MetricTagFilter,
+	WebhookDestination,
 } from '@graph/schemas'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
@@ -49,9 +50,11 @@ interface Props {
 	units?: string
 	onUnitsChange: (newUnits: string) => void
 	slackChannels: string[]
-	discordChannels: DiscordChannel[]
 	onSlackChannelsChange: (newChannels: string[]) => void
+	discordChannels: DiscordChannel[]
 	onDiscordChannelsChange: (discordChannels: DiscordChannel[]) => void
+	webhooks: WebhookDestination[]
+	onWebhooksChange: (webhooks: WebhookDestination[]) => void
 	emails: string[]
 	onEmailsChange: (newEmails: string[]) => void
 	onFormSubmit: (values: any) => void
@@ -78,6 +81,8 @@ const MonitorConfiguration = ({
 	monitorName,
 	emails,
 	onEmailsChange,
+	webhooks,
+	onWebhooksChange,
 	threshold,
 	filters,
 	onFormSubmit,
@@ -533,6 +538,27 @@ const MonitorConfiguration = ({
 									invite someone to the workspace?
 								</Link>
 							</div>
+						}
+					/>
+				</section>
+
+				<section>
+					<h3>Webhooks to Notify</h3>
+					<p>
+						Add webhook destinations for this alert, sent as JSON
+						over HTTP. See the{' '}
+						<Link to="https://www.highlight.io/docs/general/product-features/general-features/alerts/webhooks">
+							docs
+						</Link>{' '}
+						for more info.
+					</p>
+					<Select
+						className={alertConfigurationCardStyles.channelSelect}
+						value={webhooks.map((wh) => wh.url)}
+						mode="tags"
+						placeholder="Select webhook web addresses to send the alert to."
+						onChange={(whs: string[]) =>
+							onWebhooksChange(whs.map((wh) => ({ url: wh })))
 						}
 					/>
 				</section>

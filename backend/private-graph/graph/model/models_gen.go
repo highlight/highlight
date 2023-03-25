@@ -511,19 +511,20 @@ type SearchParamsInput struct {
 }
 
 type SessionAlertInput struct {
-	ProjectID       int                           `json:"project_id"`
-	Name            string                        `json:"name"`
-	CountThreshold  int                           `json:"count_threshold"`
-	ThresholdWindow int                           `json:"threshold_window"`
-	SlackChannels   []*SanitizedSlackChannelInput `json:"slack_channels"`
-	DiscordChannels []*DiscordChannelInput        `json:"discord_channels"`
-	Emails          []string                      `json:"emails"`
-	Environments    []string                      `json:"environments"`
-	Disabled        bool                          `json:"disabled"`
-	Type            SessionAlertType              `json:"type"`
-	UserProperties  []*UserPropertyInput          `json:"user_properties"`
-	ExcludeRules    []string                      `json:"exclude_rules"`
-	TrackProperties []*TrackPropertyInput         `json:"track_properties"`
+	ProjectID           int                           `json:"project_id"`
+	Name                string                        `json:"name"`
+	CountThreshold      int                           `json:"count_threshold"`
+	ThresholdWindow     int                           `json:"threshold_window"`
+	SlackChannels       []*SanitizedSlackChannelInput `json:"slack_channels"`
+	DiscordChannels     []*DiscordChannelInput        `json:"discord_channels"`
+	WebhookDestinations []*WebhookDestinationInput    `json:"webhook_destinations"`
+	Emails              []string                      `json:"emails"`
+	Environments        []string                      `json:"environments"`
+	Disabled            bool                          `json:"disabled"`
+	Type                SessionAlertType              `json:"type"`
+	UserProperties      []*UserPropertyInput          `json:"user_properties"`
+	ExcludeRules        []string                      `json:"exclude_rules"`
+	TrackProperties     []*TrackPropertyInput         `json:"track_properties"`
 }
 
 type SessionCommentTagInput struct {
@@ -613,6 +614,11 @@ type VercelProjectMappingInput struct {
 	VercelProjectID string  `json:"vercel_project_id"`
 	NewProjectName  *string `json:"new_project_name"`
 	ProjectID       *int    `json:"project_id"`
+}
+
+type WebhookDestinationInput struct {
+	URL           string  `json:"url"`
+	Authorization *string `json:"authorization"`
 }
 
 type WorkspaceForInviteLink struct {
