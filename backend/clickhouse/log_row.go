@@ -1,6 +1,7 @@
 package clickhouse
 
 import (
+	"context"
 	"fmt"
 	model2 "github.com/highlight-run/highlight/backend/model"
 	e "github.com/pkg/errors"
@@ -13,6 +14,8 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	log "github.com/sirupsen/logrus"
 )
+
+const LogAttributeValueLengthLimit = 2 << 15
 
 func ProjectToInt(projectID string) (int, error) {
 	i, err := strconv.ParseInt(projectID, 10, 32)
@@ -73,9 +76,9 @@ func (l *LogRow) Cursor() string {
 
 type LogRowOption func(*LogRow)
 
-func WithLogAttributes(resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) LogRowOption {
+func WithLogAttributes(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) LogRowOption {
 	return func(h *LogRow) {
-		h.LogAttributes = GetAttributesMap(resourceAttributes, spanAttributes, eventAttributes, isFrontendLog)
+		h.LogAttributes = GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, isFrontendLog)
 	}
 }
 
@@ -125,42 +128,37 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 	return c
 }
 
-func GetAttributesMap(resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) map[string]string {
+func GetAttributesMap(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) map[string]string {
 	attributesMap := make(map[string]string)
 	for _, m := range []map[string]any{resourceAttributes, spanAttributes, eventAttributes} {
 		for k, v := range m {
-			shouldSkip := false
+			prefixes := highlight.InternalAttributePrefixes
+			if isFrontendLog {
+				prefixes = append(prefixes, highlight.BackendOnlyAttributePrefixes...)
+			}
 
-			for _, attr := range highlight.InternalAttributes {
-				if k == attr {
+			shouldSkip := false
+			for _, prefix := range prefixes {
+				if strings.HasPrefix(k, prefix) {
 					shouldSkip = true
 					break
 				}
 			}
-
-			if isFrontendLog {
-				for _, attr := range highlight.BackendOnlyAttributePrefixes {
-					if strings.HasPrefix(k, attr) {
-						shouldSkip = true
-						break
-					}
-				}
-			}
-
 			if shouldSkip {
 				continue
 			}
 
-			vStr := cast(v, "")
-			if vStr != "" {
+			if vStr, ok := v.(string); ok {
+				if len(vStr) > LogAttributeValueLengthLimit {
+					log.WithContext(ctx).Warnf("attribute value for %s is too long %d", k, len(vStr))
+					continue
+				}
 				attributesMap[k] = vStr
 			}
-			vInt := cast[int64](v, 0)
-			if vInt != 0 {
+			if vInt, ok := v.(int64); ok {
 				attributesMap[k] = strconv.FormatInt(vInt, 10)
 			}
-			vFlt := cast(v, 0.)
-			if vFlt > 0. {
+			if vFlt, ok := v.(float64); ok {
 				attributesMap[k] = strconv.FormatFloat(vFlt, 'f', -1, 64)
 			}
 		}

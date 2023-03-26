@@ -1,6 +1,7 @@
 package clickhouse
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,11 +12,11 @@ func TestNewLogRowWithLogAttributes(t *testing.T) {
 	spanAttributes := map[string]any{"highlight.source": "frontend", "foo": "bar"}
 	eventAttributes := map[string]any{"log.severity": "info"} // should be skipped since this is an internal attribute
 
-	logRow := NewLogRow(LogRowPrimaryAttrs{}, WithLogAttributes(resourceAttributes, spanAttributes, eventAttributes, false))
+	logRow := NewLogRow(LogRowPrimaryAttrs{}, WithLogAttributes(context.TODO(), resourceAttributes, spanAttributes, eventAttributes, false))
 
 	assert.Equal(t, map[string]string{"foo": "bar", "os.description": "Debian GNU/Linux 11 (bullseye)"}, logRow.LogAttributes)
 
-	logRow = NewLogRow(LogRowPrimaryAttrs{}, WithLogAttributes(resourceAttributes, spanAttributes, eventAttributes, true))
+	logRow = NewLogRow(LogRowPrimaryAttrs{}, WithLogAttributes(context.TODO(), resourceAttributes, spanAttributes, eventAttributes, true))
 
 	assert.Equal(t, map[string]string{"foo": "bar"}, logRow.LogAttributes)
 }
