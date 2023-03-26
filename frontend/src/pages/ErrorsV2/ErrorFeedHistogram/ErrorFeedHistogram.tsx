@@ -5,7 +5,7 @@ import { DateHistogramBucketSize } from '@graph/schemas'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { updateQueriedTimeRange } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { useParams } from '@util/react-router/useParams'
-import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
+import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import React, { useCallback } from 'react'
 
 import { TIME_RANGE_FIELD } from '../ErrorQueryBuilder/ErrorQueryBuilder'
@@ -24,10 +24,10 @@ const ErrorFeedHistogram = React.memo(() => {
 				time_zone:
 					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
 				bounds: {
-					start_date: roundDateToMinute(
+					start_date: roundFeedDate(
 						backendSearchQuery?.startDate.toISOString() ?? null,
 					).format(),
-					end_date: roundDateToMinute(
+					end_date: roundFeedDate(
 						backendSearchQuery?.endDate.toISOString() ?? null,
 					).format(),
 				},

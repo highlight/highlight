@@ -766,7 +766,7 @@ export const AlertConfigurationCard = ({
 						)}
 
 						<section>
-							<h3>Channels to Notify</h3>
+							<h3>Slack Channels to Notify</h3>
 							<p>
 								Pick Slack channels or people to message when an
 								alert is created.

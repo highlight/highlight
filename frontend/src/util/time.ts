@@ -80,8 +80,14 @@ export const serializeAbsoluteTimeRange = (
 	return `${startIso}_${endIso}`
 }
 
-export const roundDateToMinute = function (date: string | null) {
-	return moment(moment(date || undefined).format('MM/DD/YYYY HH:mm'))
+export const roundFeedDate = function (date: string | null) {
+	// nearest 15 seconds
+	const factor = 15
+	const m = moment(date || undefined)
+	return moment(m.format('MM/DD/YYYY HH:mm')).add(
+		Math.round(m.seconds() / factor) * factor,
+		'seconds',
+	)
 }
 
 export const wait = (ms: number) => new Promise((res) => setTimeout(res, ms))
