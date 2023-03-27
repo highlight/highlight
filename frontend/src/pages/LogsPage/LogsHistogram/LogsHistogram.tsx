@@ -5,7 +5,7 @@ import { COLOR_MAPPING, FORMAT } from '@pages/LogsPage/constants'
 import { isSignificantDateRange } from '@pages/LogsPage/utils'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import { useMemo, useRef, useState } from 'react'
+import { memo, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import * as styles from './LogsHistogram.css'
@@ -80,13 +80,11 @@ const LogsHistogram = ({
 		return maxBucketCount
 	}, [data?.logs_histogram])
 
-	const content = useMemo(() => {
-		if (loading) {
-			return <LoadingState />
-		}
+	const showLoadingState = loading || !data?.logs_histogram || !maxBucketCount
 
-		if (!data?.logs_histogram || !maxBucketCount) {
-			return null
+	const content = useMemo(() => {
+		if (showLoadingState) {
+			return <LoadingState />
 		}
 
 		const { totalCount, buckets } = data.logs_histogram
@@ -131,17 +129,14 @@ const LogsHistogram = ({
 		dragLeft,
 		dragRight,
 		endDate,
-		loading,
 		maxBucketCount,
 		onDatesChange,
 		onLevelChange,
+		showLoadingState,
 		startDate,
 	])
 
 	const containerRef = useRef<HTMLDivElement>(null)
-	if (!loading && !maxBucketCount) {
-		return null
-	}
 
 	return (
 		<Box
@@ -155,7 +150,7 @@ const LogsHistogram = ({
 			position="relative"
 			ref={containerRef}
 			onMouseDown={(e: any) => {
-				if (!e || !containerRef.current) {
+				if (!e || !containerRef.current || showLoadingState) {
 					return
 				}
 				const rect = containerRef.current.getBoundingClientRect()
@@ -163,7 +158,7 @@ const LogsHistogram = ({
 				setDragStart(pos)
 			}}
 			onMouseMove={(e: any) => {
-				if (!e || !containerRef.current) {
+				if (!e || !containerRef.current || showLoadingState) {
 					return
 				}
 				if (dragStart !== undefined) {
@@ -242,7 +237,7 @@ const LogBucketBar = ({
 				width="full"
 				p="2"
 				gap="2"
-				cssClass={{ [styles.hover]: !isDragging }}
+				cssClass={{ [styles.hover]: !loading && !isDragging }}
 				style={{
 					width,
 					height: '100%',
@@ -373,7 +368,7 @@ const LogBucketBar = ({
 	)
 }
 
-const LoadingState = () => {
+const LoadingState = memo(() => {
 	const loadingData: HistogramBucket[] = []
 	const now = new Date()
 	const maxBucketCount = 150
@@ -425,6 +420,6 @@ const LoadingState = () => {
 			})}
 		</>
 	)
-}
+})
 
 export default LogsHistogram
