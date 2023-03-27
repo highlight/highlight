@@ -15,7 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const LogAttributeValueLengthLimit = 2 << 15
+const LogAttributeValueLengthLimit = 2 << 10
 
 func ProjectToInt(projectID string) (int, error) {
 	i, err := strconv.ParseInt(projectID, 10, 32)
@@ -122,7 +122,7 @@ func WithProjectIDString(projectID string) LogRowOption {
 
 func GetAttributesMap(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) map[string]string {
 	attributesMap := make(map[string]string)
-	for _, m := range []map[string]any{resourceAttributes, spanAttributes, eventAttributes} {
+	for mIdx, m := range []map[string]any{resourceAttributes, spanAttributes, eventAttributes} {
 		for k, v := range m {
 			prefixes := highlight.InternalAttributePrefixes
 			if isFrontendLog {
@@ -142,8 +142,12 @@ func GetAttributesMap(ctx context.Context, resourceAttributes, spanAttributes, e
 
 			if vStr, ok := v.(string); ok {
 				if len(vStr) > LogAttributeValueLengthLimit {
-					log.WithContext(ctx).Warnf("attribute value for %s is too long %d", k, len(vStr))
-					continue
+					log.WithContext(ctx).
+						WithField("AttributeMapIdx", mIdx).
+						WithField("Key", k).
+						WithField("ValueLength", len(vStr)).
+						Warnf("attribute value for %s is too long %d", k, len(vStr))
+					vStr = vStr[:LogAttributeValueLengthLimit] + "..."
 				}
 				attributesMap[k] = vStr
 			}

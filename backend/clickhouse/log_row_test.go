@@ -26,3 +26,29 @@ func TestNewLogRowWithSeverityText(t *testing.T) {
 	assert.Equal(t, "info", NewLogRow(LogRowPrimaryAttrs{}, WithSeverityText("dir")).SeverityText, "it defaults to info when unknown")
 	assert.Equal(t, int32(4), NewLogRow(LogRowPrimaryAttrs{}, WithSeverityText("dir")).SeverityNumber, "it handles figuring out the severity number")
 }
+
+func TestNewLogRowWithException(t *testing.T) {
+	ctx := context.TODO()
+	var resourceAttributes, spanAttributes, eventAttributes map[string]any
+	resourceAttributes = map[string]any{
+		"exception.message":    "foo",
+		"exception.stacktrace": "bar",
+		"exception.type":       "baz",
+	}
+	lr := NewLogRow(LogRowPrimaryAttrs{}, WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, false))
+	assert.Equal(t, "", lr.LogAttributes["exception.message"])
+	assert.Equal(t, "", lr.LogAttributes["exception.stacktrace"])
+	assert.Equal(t, "baz", lr.LogAttributes["exception.type"])
+}
+
+func TestNewLogRowWithLongField(t *testing.T) {
+	ctx := context.TODO()
+	var resourceAttributes, spanAttributes, eventAttributes map[string]any
+	var value string
+	for i := 0; i < 2<<16; i++ {
+		value += "a"
+	}
+	spanAttributes = map[string]any{"foo": value}
+	lr := NewLogRow(LogRowPrimaryAttrs{}, WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, false))
+	assert.Equal(t, 2048+3, len(lr.LogAttributes["foo"]))
+}
