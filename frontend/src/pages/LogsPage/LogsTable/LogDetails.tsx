@@ -1,6 +1,6 @@
 import { Button } from '@components/Button'
 import { LinkButton } from '@components/LinkButton'
-import { LogEdge } from '@graph/schemas'
+import { LogEdge, Maybe, ReservedLogKey } from '@graph/schemas'
 import {
 	Box,
 	IconSolidChevronDoubleDown,
@@ -29,7 +29,6 @@ import {
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
-import { omitBy } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { generatePath } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
@@ -58,7 +57,11 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 	const expandable = Object.values(logAttributes).some(
 		(v) => typeof v === 'object',
 	)
-	const attributesShownWhenPresent = {
+	const reservedLogAttributes: {
+		[key in ReservedLogKey]: Maybe<string> | undefined
+	} = {
+		level,
+		message,
 		trace_id: traceID,
 		span_id: spanID,
 		secure_session_id: secureSessionID,
@@ -99,19 +102,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 				)
 			})}
 
-			<Box>
-				<LogValue label="level" value={level} queryTerms={queryTerms} />
-			</Box>
-
-			<Box>
-				<LogValue
-					label="message"
-					value={message}
-					queryTerms={queryTerms}
-				/>
-			</Box>
-
-			{Object.entries(attributesShownWhenPresent).map(
+			{Object.entries(reservedLogAttributes).map(
 				([key, value]) =>
 					value && (
 						<Box key={key}>
@@ -168,12 +159,8 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 						onClick={(e) => {
 							e.stopPropagation()
 
-							const json = omitBy(
-								{ message, level, ...logAttributes },
-								(v) => !Boolean(v),
-							)
-
-							Object.entries(attributesShownWhenPresent).forEach(
+							const json = { ...logAttributes }
+							Object.entries(reservedLogAttributes).forEach(
 								([key, value]) => {
 									if (value) {
 										json[key] = value
