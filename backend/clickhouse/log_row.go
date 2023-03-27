@@ -120,14 +120,6 @@ func WithProjectIDString(projectID string) LogRowOption {
 	}
 }
 
-func cast[T string | int64 | float64](v interface{}, fallback T) T {
-	c, ok := v.(T)
-	if !ok {
-		return fallback
-	}
-	return c
-}
-
 func GetAttributesMap(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) map[string]string {
 	attributesMap := make(map[string]string)
 	for _, m := range []map[string]any{resourceAttributes, spanAttributes, eventAttributes} {
