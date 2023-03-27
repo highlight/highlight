@@ -114,8 +114,8 @@ describe('parseLogsQuery', () => {
 		])
 	})
 
-	it('handles messy quotes', () => {
-		const query = `"test: \"ing" user:"Chilly \"McWilly\""`
+	it('handles nested quotes', () => {
+		const query = `'test: "ing' user:'Chilly "McWilly"'`
 		expect(parseLogsQuery(query)).toEqual([
 			{
 				key: BODY_KEY,
