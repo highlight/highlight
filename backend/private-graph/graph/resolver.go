@@ -638,7 +638,32 @@ func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int,
 		errorGroupMap[strconv.Itoa(errorGroup.ID)] = errorGroup
 		errorGroupIDs = append(errorGroupIDs, errorGroup.ID)
 	}
-	results, err := r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, "")
+	var oldErrorGroupIDs []int
+	var err error
+	var results []*modelInputs.ErrorDistributionItem
+	for _, eg := range errorGroups {
+		if time.Since(eg.CreatedAt) <= time.Hour {
+			results, err = r.GetErrorGroupFrequenciesUnsampled(ctx, eg.ProjectID, eg.ID)
+			if err != nil {
+				log.WithContext(ctx).Error(err)
+			}
+			for _, r := range results {
+				if r.Name == "count" {
+					eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
+				}
+				eg.ErrorMetrics = append(eg.ErrorMetrics, &struct {
+					ErrorGroupID int
+					Date         time.Time
+					Name         string
+					Value        int64
+				}{ErrorGroupID: eg.ID, Date: r.Date, Name: r.Name, Value: r.Value})
+			}
+		} else {
+			oldErrorGroupIDs = append(oldErrorGroupIDs, eg.ID)
+		}
+	}
+
+	results, err = r.GetErrorGroupFrequencies(ctx, projectID, oldErrorGroupIDs, params, "")
 	if err != nil {
 		return err
 	}
@@ -700,7 +725,18 @@ func (r *Resolver) SetErrorFrequencies(errorGroups []*model.ErrorGroup, lookback
 	}
 
 	errFreqs := map[int][]int64{}
+	errMetrics := map[int][]*struct {
+		ErrorGroupID int
+		Date         time.Time
+		Name         string
+		Value        int64
+	}{}
 	for _, ar1 := range aggResults {
+		errorGroupId, err := strconv.Atoi(ar1.Key)
+		if err != nil {
+			return err
+		}
+
 		freqMap := map[string]int64{}
 		for _, ar2 := range ar1.SubAggregationResults {
 			freqMap[ar2.Key] = ar2.DocCount
@@ -714,11 +750,13 @@ func (r *Resolver) SetErrorFrequencies(errorGroups []*model.ErrorGroup, lookback
 				freq = 0
 			}
 			freqs = append(freqs, freq)
-		}
 
-		errorGroupId, err := strconv.Atoi(ar1.Key)
-		if err != nil {
-			return err
+			errMetrics[errorGroupId] = append(errMetrics[errorGroupId], &struct {
+				ErrorGroupID int
+				Date         time.Time
+				Name         string
+				Value        int64
+			}{ErrorGroupID: errorGroupId, Date: curDate.Truncate(24 * time.Hour), Name: "count", Value: freq})
 		}
 
 		errFreqs[errorGroupId] = freqs
@@ -726,6 +764,7 @@ func (r *Resolver) SetErrorFrequencies(errorGroups []*model.ErrorGroup, lookback
 
 	for _, eg := range errorGroups {
 		eg.ErrorFrequency = errFreqs[eg.ID]
+		eg.ErrorMetrics = errMetrics[eg.ID]
 	}
 
 	return nil

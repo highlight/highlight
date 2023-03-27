@@ -16,6 +16,13 @@ export const getErrorGroupStats = function (
 	if (counts.length < lookbackDays) {
 		counts = [...Array(lookbackDays - counts.length).fill(0), ...counts]
 	}
+
+	console.log('vadim', {
+		counts,
+		errorGroup,
+		secure: (errorGroup as ErrorGroup).secure_id,
+	})
+
 	const totalCount = counts?.reduce((a, b) => a + b, 0) || 1
 	const userCount =
 		errorGroup?.error_metrics
