@@ -362,7 +362,7 @@ const LogValue: React.FC<{
 				onClick={(e: any) => e.stopPropagation()}
 			>
 				<Box
-					backgroundColor={matchesQuery ? 'informative' : undefined}
+					backgroundColor={matchesQuery ? 'caution' : undefined}
 					borderRadius="4"
 					p="6"
 				>
