@@ -36,14 +36,16 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 
 	while ((match = PARSE_REGEX.exec(query)) !== null) {
 		const term = match[0]
+		const termIsQuotedString = term.startsWith('"') || term.startsWith("'")
 
-		if (term.indexOf(SEPARATOR) > -1) {
-			const [key, value] = term.split(SEPARATOR)
+		if (!termIsQuotedString && term.indexOf(SEPARATOR) > -1) {
+			const [key, ...rest] = term.split(SEPARATOR)
+			const value = rest.join(SEPARATOR)
 
 			terms.push({
 				key,
+				value,
 				operator: DEFAULT_LOGS_OPERATOR,
-				value: value?.replace(/^\"|\"$|^\'|\'$/g, ''), // strip quotes
 				offsetStart: match.index,
 			})
 		} else {
@@ -55,7 +57,7 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 				terms[textTermIndex].value +=
 					terms[textTermIndex].value.length > 0 ? ` ${term}` : term
 			} else {
-				const isEmptyString = term === ' '
+				const isEmptyString = term.trim() === ''
 
 				terms.push({
 					key: BODY_KEY,
@@ -73,13 +75,33 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 export const stringifyLogsQuery = (params: LogsSearchParam[]) => {
 	const querySegments: string[] = []
 
-	params.forEach((param) => {
-		if (param.key === BODY_KEY) {
-			querySegments.push(param.value)
+	params.forEach(({ key, value }) => {
+		if (key === BODY_KEY) {
+			querySegments.push(value)
 		} else {
-			const value =
-				param.value.indexOf(' ') > -1 ? `"${param.value}"` : param.value
-			querySegments.push(`${param.key}:${value}`)
+			querySegments.push(`${key}:${value}`)
+		}
+	})
+
+	return querySegments.join(' ')
+}
+
+// Same as the method above, but only used for building a query string to send
+// to the server which requires that all strings are wrapped in double quotes.
+export const buildLogsQueryForServer = (params: LogsSearchParam[]) => {
+	const querySegments: string[] = []
+
+	params.forEach(({ key, value }) => {
+		value = value.trim()
+
+		if (value.startsWith("'") && value.endsWith("'")) {
+			value = `"${value.slice(1, -1)}"`
+		}
+
+		if (key === BODY_KEY) {
+			querySegments.push(value)
+		} else {
+			querySegments.push(`${key}:${value}`)
 		}
 	})
 
