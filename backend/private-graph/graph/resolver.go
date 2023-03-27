@@ -645,6 +645,17 @@ func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int,
 			if err != nil {
 				log.WithContext(ctx).Error(err)
 			}
+			endDate := time.Now().UTC().AddDate(0, 0, -1)
+			startDate := endDate.AddDate(0, 0, -1*(lookbackPeriod-1))
+			for curDate := startDate; !curDate.After(endDate); curDate = curDate.AddDate(0, 0, 1) {
+				eg.ErrorFrequency = append(eg.ErrorFrequency, 0)
+				eg.ErrorMetrics = append(eg.ErrorMetrics, &struct {
+					ErrorGroupID int
+					Date         time.Time
+					Name         string
+					Value        int64
+				}{ErrorGroupID: eg.ID, Date: curDate.Truncate(24 * time.Hour), Name: "count", Value: 0})
+			}
 			for _, r := range results {
 				if r.Name == "count" {
 					eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
