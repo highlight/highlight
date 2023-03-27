@@ -511,6 +511,8 @@ type Log {
 	traceID: String
 	spanID: String
 	secureSessionID: String
+	source: String
+	serviceName: String
 }
 
 type LogEdge {
@@ -538,6 +540,8 @@ enum ReservedLogKey {
 	secure_session_id
 	span_id
 	trace_id
+	source
+	service_name
 }
 
 enum LogKeyType {

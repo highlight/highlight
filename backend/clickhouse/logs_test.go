@@ -839,6 +839,66 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 	assert.Len(t, payload.Edges, 0)
 }
 
+func TestReadLogsWithSourceFilter(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+	rows := []*LogRow{
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			Source:      "backend",
+			ServiceName: "bar",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			LogAttributes: map[string]string{
+				"source": "frontend",
+			},
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "service_name:bar source:backend",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "backend", *payload.Edges[0].Node.Source)
+	assert.Equal(t, "bar", *payload.Edges[0].Node.ServiceName)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "source:*ack*",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "backend", *payload.Edges[0].Node.Source)
+	assert.Equal(t, "bar", *payload.Edges[0].Node.ServiceName)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "source:frontend",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 0)
+}
+
 func TestLogsKeys(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)
@@ -860,6 +920,14 @@ func TestLogsKeys(t *testing.T) {
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "3"},
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			Source:      "frontend",
+			ServiceName: "foo-service",
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
@@ -900,6 +968,14 @@ func TestLogsKeys(t *testing.T) {
 		},
 		{
 			Name: "trace_id",
+			Type: modelInputs.LogKeyTypeString,
+		},
+		{
+			Name: "source",
+			Type: modelInputs.LogKeyTypeString,
+		},
+		{
+			Name: "service_name",
 			Type: modelInputs.LogKeyTypeString,
 		},
 	}

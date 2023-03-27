@@ -40,6 +40,7 @@ type LogRow struct {
 	TraceFlags     uint32
 	SeverityText   string
 	SeverityNumber int32
+	Source         string
 	ServiceName    string
 	Body           string
 	LogAttributes  map[string]string
@@ -91,7 +92,7 @@ func WithSource(source string) LogRowOption {
 		if source == highlight.SourceAttributeFrontend {
 			source = "frontend"
 		}
-		h.LogAttributes[highlight.SourceAttribute] = source
+		h.Source = source
 	}
 }
 
