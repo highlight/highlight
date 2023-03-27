@@ -11,6 +11,7 @@
 	"workspaces": [
 		"e2e/*",
 		"packages/*",
+		"highlight.io",
 		"frontend",
 		"sdk/client",
 		"sdk/firstload",
