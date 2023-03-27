@@ -627,7 +627,6 @@ func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int,
 		ResolutionMinutes: 24 * 60,
 	}
 	var errorGroupMap = make(map[string]*model.ErrorGroup)
-	var errorGroupIDs []int
 	for _, errorGroup := range errorGroups {
 		errorGroup.ErrorMetrics = []*struct {
 			ErrorGroupID int
@@ -636,7 +635,6 @@ func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int,
 			Value        int64
 		}{}
 		errorGroupMap[strconv.Itoa(errorGroup.ID)] = errorGroup
-		errorGroupIDs = append(errorGroupIDs, errorGroup.ID)
 	}
 	var oldErrorGroupIDs []int
 	var err error
