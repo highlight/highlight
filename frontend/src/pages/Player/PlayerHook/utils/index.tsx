@@ -244,7 +244,6 @@ export const useSetPlayerTimestampFromSearchParam = (
 		},
 		[
 			location.search,
-			replayer,
 			selectedTimelineAnnotationTypes,
 			setSelectedTimelineAnnotationTypes,
 			setTime,
