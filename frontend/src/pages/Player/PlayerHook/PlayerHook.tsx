@@ -191,9 +191,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 		fetchEventChunkURL,
 	})
 
-	const { setPlayerTimestamp } = useSetPlayerTimestampFromSearchParam(
-		(t) => seek(t),
-		state.replayer,
+	const { setPlayerTimestamp } = useSetPlayerTimestampFromSearchParam((t) =>
+		seek(t),
 	)
 
 	const resetPlayer = useCallback(() => {

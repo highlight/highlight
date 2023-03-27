@@ -151,7 +151,6 @@ export enum PlayerSearchParameters {
  */
 export const useSetPlayerTimestampFromSearchParam = (
 	setTime: (newTime: number) => void,
-	replayer?: Replayer,
 ) => {
 	const location = useLocation()
 	const searchParams = new URLSearchParams(location.search)
