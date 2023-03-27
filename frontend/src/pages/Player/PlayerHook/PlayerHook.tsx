@@ -887,6 +887,15 @@ export const usePlayer = (): ReplayerContextInterface => {
 			sessionIntervals,
 			timelineIndicatorEvents,
 		})
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		sessionPayload,
+		sessionIntervals,
+		timelineIndicatorEvents,
+		chunkEventsSet,
+	])
+
+	useEffect(() => {
 		if (state.replayerState <= ReplayerState.Loading) {
 			pause(0).then()
 		}
@@ -896,12 +905,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.errors,
 		)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		sessionPayload,
-		sessionIntervals,
-		timelineIndicatorEvents,
-		chunkEventsSet,
-	])
+	}, [state.sessionMetadata])
 
 	useEffect(() => {
 		if (state.replayer) {
