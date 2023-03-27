@@ -186,7 +186,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, source, excMessage, resourceAttributes, spanAttributes, eventAttributes)
 						if backendError == nil {
 							data, _ := req.MarshalJSON()
-							log.WithContext(ctx).WithField("BackendErrorEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span error got no session and no project")
+							log.WithContext(ctx).WithField("BackendErrorEvent", event).WithField("RequestJSON", string(data)).Errorf("otel span error got no session and no project")
 						} else {
 							if isProjectError {
 								projectErrors[projectID] = append(projectErrors[projectID], backendError)
