@@ -887,6 +887,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 			sessionIntervals,
 			timelineIndicatorEvents,
 		})
+		if (state.replayerState <= ReplayerState.Loading) {
+			pause(0).then()
+		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		sessionPayload,
@@ -896,9 +899,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	])
 
 	useEffect(() => {
-		if (state.replayerState <= ReplayerState.Loading) {
-			pause(0).then()
-		}
 		setPlayerTimestamp(
 			state.sessionMetadata.totalTime,
 			state.sessionMetadata.startTime,
