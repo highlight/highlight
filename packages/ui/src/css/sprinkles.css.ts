@@ -46,6 +46,7 @@ export const backgroundColors = {
 	elevated: vars.theme.static.surface.elevated,
 	scrim: vars.theme.static.surface.scrim,
 	informative: vars.theme.static.surface.sentiment.informative,
+	caution: vars.theme.static.surface.sentiment.caution,
 	contentModerate: vars.theme.static.content.moderate,
 	contentStrong: vars.theme.static.content.strong,
 	contentBad: vars.theme.static.content.sentiment.bad,

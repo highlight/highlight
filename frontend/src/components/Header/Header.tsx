@@ -69,7 +69,7 @@ export const Header = () => {
 		project_id: string
 	}>()
 	const { projectId: projectIdRemapped } = useProjectId()
-	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
+	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 

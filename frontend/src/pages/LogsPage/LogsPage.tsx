@@ -82,12 +82,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		endDate,
 	})
 
-	const handleFormSubmit = (value: string) => {
-		if (!!value) {
-			setQuery(value)
-		}
-	}
-
 	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
 		setStartDate(newStartDate)
 		setEndDate(newEndDate)
@@ -136,13 +130,19 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 				>
 					<SearchForm
 						initialQuery={query}
-						onFormSubmit={handleFormSubmit}
+						onFormSubmit={(value) => setQuery(value)}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={handleDatesChange}
 						presets={PRESETS}
 						minDate={thirtyDaysAgo}
 						timeMode={timeMode}
+					/>
+					<LogsCount
+						query={query}
+						startDate={startDate}
+						endDate={endDate}
+						presets={PRESETS}
 					/>
 					<LogsHistogram
 						query={query}
@@ -151,18 +151,14 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						onDatesChange={handleDatesChange}
 						onLevelChange={handleLevelChange}
 					/>
-					<LogsCount
-						query={query}
-						startDate={startDate}
-						endDate={endDate}
-						presets={PRESETS}
-					/>
 
 					<Box
+						borderTop="dividerWeak"
 						height="screen"
+						pt="4"
 						px="12"
 						pb="12"
-						overflowY="scroll"
+						overflowY="auto"
 						onScroll={(e) =>
 							fetchMoreWhenScrolled(e.target as HTMLDivElement)
 						}

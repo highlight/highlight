@@ -1,7 +1,8 @@
+import { Button } from '@components/Button'
+import { LinkButton } from '@components/LinkButton'
 import { LogEdge } from '@graph/schemas'
 import {
 	Box,
-	ButtonLink,
 	IconSolidChevronDoubleDown,
 	IconSolidChevronDoubleUp,
 	IconSolidClipboard,
@@ -29,8 +30,7 @@ import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
-import { generatePath, Link } from 'react-router-dom'
+import { generatePath } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import * as styles from './LogDetails.css'
@@ -50,7 +50,6 @@ export const getLogURL = (row: Row<LogEdge>) => {
 
 export const LogDetails = ({ row, queryTerms }: Props) => {
 	const { projectId } = useProjectId()
-	const navigate = useNavigate()
 	const [allExpanded, setAllExpanded] = useState(false)
 	const { traceID, spanID, secureSessionID, logAttributes, message, level } =
 		row.original.node
@@ -134,28 +133,22 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 				</Box>
 			)}
 
-			<Box
-				display="flex"
-				alignItems="center"
-				justifyContent="space-between"
-				flexDirection="row"
-				gap="16"
-				mt="8"
-				mb="4"
-			>
+			<Box display="flex" alignItems="center" flexDirection="row" mt="8">
 				<Box
 					display="flex"
 					alignItems="center"
 					flexDirection="row"
-					gap="16"
+					gap="4"
 				>
 					{expandable && (
-						<ButtonLink
+						<Button
 							kind="secondary"
+							emphasis="low"
 							onClick={(e) => {
 								e.stopPropagation()
 								setAllExpanded(!allExpanded)
 							}}
+							trackingId="logs-row_toggle-expand-all"
 						>
 							<Box
 								alignItems="center"
@@ -175,11 +168,12 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 									</>
 								)}
 							</Box>
-						</ButtonLink>
+						</Button>
 					)}
 
-					<ButtonLink
+					<Button
 						kind="secondary"
+						emphasis="low"
 						onClick={(e) => {
 							e.stopPropagation()
 							navigator.clipboard.writeText(
@@ -187,6 +181,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 							)
 							antdMessage.success('Copied logs!')
 						}}
+						trackingId="logs-row_copy-json"
 					>
 						<Box
 							display="flex"
@@ -197,16 +192,18 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 							<IconSolidClipboard />
 							Copy JSON
 						</Box>
-					</ButtonLink>
+					</Button>
 
-					<ButtonLink
+					<Button
 						kind="secondary"
+						emphasis="low"
 						onClick={(e) => {
 							const url = getLogURL(row)
 							e.stopPropagation()
 							navigator.clipboard.writeText(url)
 							antdMessage.success('Copied link!')
 						}}
+						trackingId="logs-row_copy-link"
 					>
 						<Box
 							display="flex"
@@ -217,36 +214,24 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 							<IconSolidLink />
 							Copy link
 						</Box>
-					</ButtonLink>
+					</Button>
+				</Box>
 
-					{row.original.node.secureSessionID ||
-					row.original.error_object ? (
-						<Box
-							border="divider"
-							style={{ width: 1, height: 14 }}
-						/>
-					) : null}
-
-					{row.original.node.secureSessionID ? (
-						<Link
-							className={styles.buttonLink}
-							to={`/${projectId}/sessions/${row.original.node.secureSessionID}`}
-						>
-							<Box
-								display="flex"
-								alignItems="center"
-								flexDirection="row"
-								gap="4"
-							>
-								<IconSolidPlayCircle />
-								Related Session
-							</Box>
-						</Link>
-					) : null}
+				<Box
+					display="flex"
+					alignItems="center"
+					flexDirection="row"
+					gap="4"
+					borderLeft="secondary"
+					ml="4"
+					pl="4"
+				>
 					{row.original.error_object && (
-						<Link
-							className={styles.buttonLink}
-							to={`/${projectId}/errors/${row.original.error_object?.error_group_secure_id}/instances/${row.original.error_object?.id}`}
+						<LinkButton
+							kind="secondary"
+							emphasis="low"
+							to={`/errors/logs/${row.original.cursor}`}
+							trackingId="logs-related_error_link"
 						>
 							<Box
 								display="flex"
@@ -257,7 +242,26 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 								<IconSolidLightningBolt />
 								Related Error
 							</Box>
-						</Link>
+						</LinkButton>
+					)}
+
+					{secureSessionID && (
+						<LinkButton
+							kind="secondary"
+							emphasis="low"
+							to={`/${projectId}/sessions/${secureSessionID}`}
+							trackingId="logs-related_session_link"
+						>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidPlayCircle />
+								Related Session
+							</Box>
+						</LinkButton>
 					)}
 				</Box>
 			</Box>
@@ -358,7 +362,7 @@ const LogValue: React.FC<{
 				onClick={(e: any) => e.stopPropagation()}
 			>
 				<Box
-					backgroundColor={matchesQuery ? 'informative' : undefined}
+					backgroundColor={matchesQuery ? 'caution' : undefined}
 					borderRadius="4"
 					p="6"
 				>

@@ -99,6 +99,7 @@ const SearchForm = ({
 				/>
 				<Box display="flex" pr="8" py="6">
 					<PreviousDateRangePicker
+						emphasis="low"
 						selectedDates={selectedDates}
 						onDatesChange={handleDatesChange}
 						presets={presets}
@@ -262,6 +263,7 @@ const Search: React.FC<{
 							e.stopPropagation()
 							state.setValue('')
 						}}
+						style={{ cursor: 'pointer' }}
 					/>
 				) : null}
 			</Box>
