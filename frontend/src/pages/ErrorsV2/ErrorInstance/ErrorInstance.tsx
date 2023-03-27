@@ -350,7 +350,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								if (logCursor) {
 									navigate(
 										`/${projectId}/logs/${logCursor}?${params}`,
-										{},
 									)
 								} else {
 									navigate(`/${projectId}/logs?${params}`)

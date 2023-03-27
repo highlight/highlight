@@ -68,7 +68,11 @@ const SearchForm = ({
 		},
 	})
 
-	formState.useSubmit(() => onFormSubmit(formState.values.query))
+	formState.useSubmit(() => {
+		if (formState.submitting) {
+			onFormSubmit(formState.values.query)
+		}
+	})
 
 	const handleDatesChange = (dates: Date[]) => {
 		setSelectedDates(dates)
