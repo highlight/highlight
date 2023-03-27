@@ -1,0 +1,733 @@
+.pricingTable {
+  width: 100%;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 200px repeat(4, 150px);
+  grid-auto-rows: min-content;
+  row-gap: var(--size-small);
+  column-gap: 50px;
+
+  & > span {
+    border-bottom: 1px solid rgb(49, 48, 53);
+    height: var(--size-large);
+  }
+
+  span {
+    font-size: 14px;
+  }
+
+  .checkmark {
+    filter: invert(1);
+  }
+}
+.mobileTiers {
+  display: none;
+}
+
+.anchorHead {
+  max-width: 840px;
+}
+.tierWrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 158px;
+}
+
+.moneySign {
+  margin-right: 4px !important;
+  display: flex;
+}
+
+.pricingButton {
+  padding: var(--size-xSmall) var(--size-medium);
+  border: 1px solid var(--brand-accent-light);
+  background-color: transparent;
+  color: var(--brand-accent-light);
+  text-align: center;
+
+  &:hover {
+    border-color: var(--color-secondary-300);
+    background-color: var(--color-secondary-300);
+    color: var(--color-primary-background);
+  }
+}
+
+.timeIndicator {
+  display: flex;
+  flex-direction: column;
+  vertical-align: text-bottom;
+  height: 100%;
+}
+
+.price {
+  display: inline-block;
+  margin-right: 4px !important;
+}
+
+.desktopPrice {
+  display: flex;
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.tierHeader {
+  align-items: center;
+  column-gap: 8px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.discountPill {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 100px;
+  color: var(--color-white);
+  display: flex;
+  font-size: 16px;
+  height: 34px;
+  justify-content: center;
+  min-width: 60px;
+  opacity: 0;
+  padding: 5px;
+  transition: opacity 0.2s ease;
+}
+
+.discountPillVisible {
+  opacity: 100% !important;
+}
+
+.desktopSessionCredits {
+  display: inline-block;
+  margin-bottom: 24px;
+  white-space: nowrap;
+}
+
+.desktopSessionCreditsEnterprise {
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+.mostPopular {
+  -webkit-border-top-left-radius: 6px;
+  -webkit-border-top-right-radius: 6px;
+  -moz-border-radius-topleft: 6px;
+  -moz-border-radius-topright: 6px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+
+  border: var(--color-selected-light) solid 1px;
+  width: 218px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-selected-light);
+  margin-top: -40px;
+}
+
+.configColumn {
+  width: 269px;
+  padding-right: 20px;
+  display: flex;
+  flex-direction: column;
+
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.featureName {
+  margin-bottom: 14px !important;
+}
+
+.featureSet {
+  display: flex;
+  margin-top: 53px;
+  flex-direction: column;
+}
+
+.featureKey {
+  color: var(--copy-on-dark);
+}
+
+.featureKeys {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.billingCopy {
+  margin-bottom: 10px;
+}
+
+.billingWidget {
+  display: flex;
+  flex-direction: column;
+}
+.billingWidgetButtons {
+  display: flex;
+}
+
+.billingButton {
+  height: 40px;
+  width: 107px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: transparent !important;
+  color: var(--color-white);
+  border: var(--color-white) solid 1px;
+
+  &:hover {
+    background-color: var(--brand-accent);
+    color: inherit;
+  }
+}
+
+.rightButton {
+  -webkit-border-top-left-radius: 0px !important;
+  -webkit-border-bottom-left-radius: 0px !important;
+  -moz-border-radius-topleft: 0px !important;
+  -moz-border-radius-bottomleft: 0px !important;
+  border-top-left-radius: 0px !important;
+  border-bottom-left-radius: 0px !important;
+}
+
+.leftButton {
+  -webkit-border-top-right-radius: 0px;
+  -webkit-border-bottom-right-radius: 0px;
+  -moz-border-radius-topright: 0px;
+  -moz-border-radius-bottomright: 0px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+// &:hover {
+//   border-color: var(--color-secondary-300) !important;
+//   background-color: var(--color-secondary-300) !important;
+//   color: var(--color-primary-background) !important;
+// }
+
+.selected {
+  background-color: var(--color-white) !important;
+  color: var(--color-primary-background) !important;
+}
+
+// .signUpButton {
+//   padding: var(--size-xSmall) var(--size-medium) !important;
+//   margin-left: var(--size-large) !important;
+//   border: 1px solid var(--brand-accent-light) !important;
+//   background-color: transparent !important;
+//   color: var(--brand-accent-light) !important;
+// }
+
+.tierColumn {
+  border-top: var(--divider-on-dark) 1px solid;
+  border-right: var(--divider-on-dark) 1px solid;
+  border-left: var(--divider-on-dark) 1px solid;
+  border-bottom: var(--divider-on-dark) 1px solid;
+  -webkit-border-top-left-radius: 6px;
+  -webkit-border-top-right-radius: 6px;
+  -moz-border-radius-topleft: 6px;
+  -moz-border-radius-topright: 6px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  -webkit-border-bottom-left-radius: 6px;
+  -webkit-border-bottom-right-radius: 6px;
+  -moz-border-radius-bottomleft: 6px;
+  -moz-border-radius-bottomright: 6px;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  width: 218px;
+}
+
+.desktopTopTier {
+  display: flex;
+  flex-direction: column;
+}
+
+.mostPopularTierColumn {
+  -webkit-border-top-left-radius: 0px;
+  -webkit-border-top-right-radius: 0px;
+  -moz-border-radius-topleft: 0px;
+  -moz-border-radius-topright: 0px;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+}
+
+.desktopTierSection {
+  height: 260px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px 20px 0px 20px;
+}
+
+.mobileFeatureDivider {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--divider-on-dark);
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.featureDivider {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--divider-on-dark);
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.circleButton {
+  cursor: pointer;
+  border: 0;
+  border-radius: 100px;
+  border: var(--color-secondary-200) 1px solid;
+  background-color: transparent;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  justify-content: center;
+  font-size: 8px;
+  transition-duration: 0.2s;
+  transition-property: transform;
+  margin-left: var(--size-small);
+}
+
+.expanded {
+  transform: rotate(180deg);
+  background-color: var(--color-secondary-200);
+}
+
+.faqRowClickable {
+  cursor: pointer;
+}
+
+.faqDivider {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--divider-on-dark);
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.featureKeyDivider {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--divider-on-dark);
+  margin-top: 9px;
+  margin-bottom: 9px;
+}
+
+.desktopFeaturesSection {
+  padding: 0px 20px 24px 20px;
+  text-align: center;
+  margin-top: 73px;
+}
+
+.mobileFeaturesSection {
+  margin-top: 32px;
+}
+
+.sectionSubtitle {
+  margin-bottom: var(--size-xLarge);
+  color: var(--color-selected-light);
+  text-transform: uppercase;
+  margin-bottom: var(--size-large);
+}
+
+.yellowText {
+  color: var(--color-selected-light);
+}
+
+.pricingTitle {
+  max-width: 660px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin: auto;
+  padding: 0 var(--size-xxLarge);
+}
+
+@media screen and (max-width: 800px) {
+  .pricingTitle {
+    padding: 0;
+  }
+}
+
+.mobileNotSelectedPlan {
+  opacity: 60%;
+}
+
+.mobileBillingWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 32px 0px 32px;
+  margin-bottom: 95px;
+}
+
+@media screen and (max-width: 400px) {
+  .mobileBillingWrapper {
+    padding: 0px 20px 0px 20px;
+  }
+}
+
+.mostPopularTierColumnMobile {
+  -webkit-border-top-left-radius: 0px !important;
+  -webkit-border-top-right-radius: 0px !important;
+  -moz-border-radius-topleft: 0px !important;
+  -moz-border-radius-topright: 0px !important;
+  border-top-left-radius: 0px !important;
+  border-top-right-radius: 0px !important;
+  border-top: 0 !important;
+}
+
+.mobileFeaturesWrapper {
+  padding: 32px;
+}
+
+@media screen and (max-width: 400px) {
+  .mobileFeaturesWrapper {
+    padding: 20px;
+  }
+}
+
+.mobileFeatureRow {
+  display: flex;
+  flex-direction: column;
+}
+
+.mostPopularMobile {
+  -webkit-border-top-left-radius: 6px;
+  -webkit-border-top-right-radius: 6px;
+  -moz-border-radius-topleft: 6px;
+  -moz-border-radius-topright: 6px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  min-width: 100%;
+
+  text-transform: uppercase;
+  border: var(--color-selected-light) solid 1px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-selected-light);
+  margin-top: -40px;
+}
+
+.mobileFeatureHeader {
+  margin-bottom: 14px;
+}
+
+.mobileTierCarousel {
+  padding: 0px;
+  display: flex;
+  gap: 16px;
+}
+
+.mobileFeatureInner {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.mobileFeatureName {
+  color: var(--copy-on-dark);
+}
+
+.carousel-div {
+  margin-right: 10px;
+}
+
+.billingCycleText {
+  margin: 0;
+}
+
+.mobileCarousel {
+  display: flex;
+  flex-direction: row;
+}
+
+.mobileSessionCredits {
+  margin-bottom: 22px;
+}
+
+.mobileTier {
+  border: var(--color-white) 1px solid;
+  border-radius: 6px;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px;
+}
+
+.mobileTierTop {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobilePricingButton {
+  width: 100%;
+}
+
+.mobileTierSectionWrapper {
+  padding: 10px;
+  position: relative;
+  transition: opacity 0.3s;
+}
+
+.mobileTierDots {
+  padding: 0px 32px 0px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.mobileTierDot {
+  margin: 4px;
+  height: 12px;
+  width: 12px;
+  padding: 0;
+  border-radius: 100px;
+  background-color: transparent;
+  border: var(--color-selected-light) 1px solid;
+}
+
+.dotSelected {
+  background-color: var(--color-selected-light);
+}
+
+.mobileTierWrapper {
+  padding: 0px;
+  gap: 0px !important;
+  grid-gap: 0px !important;
+  overflow: hidden;
+}
+
+@media screen and (max-width: 400px) {
+  .mobileBillingWrapper {
+    flex-direction: column;
+  }
+  .billingCycleText {
+    margin-bottom: 14px;
+  }
+}
+
+.customerSection {
+  margin-bottom: 158px;
+}
+
+.titleSection {
+  margin-bottom: 50px;
+}
+
+.question {
+  margin-left: 16px;
+}
+
+.questionDescription {
+  margin-bottom: 16px;
+}
+
+.collapseInner {
+  margin-bottom: 16px;
+  margin-top: 28px;
+}
+
+.faqSection {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 160px;
+}
+
+.faqRow {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.faqLeftContent {
+  display: flex;
+}
+
+.anchorFeaturePricing {
+  max-width: 1200px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin: auto;
+  padding: 0;
+}
+
+.anchorFeature {
+  max-width: 1200px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin: auto;
+  padding: 0 var(--size-xxLarge);
+
+  .sectionSubtitle {
+    margin-bottom: var(--size-xLarge);
+  }
+
+  .buttonContainer {
+    margin: var(--size-xxxLarge) 0 calc(22 * var(--space-unit));
+  }
+
+  h1,
+  h2 {
+    margin-bottom: calc(10 * var(--space-unit)) !important;
+  }
+
+  .anchorHead {
+    max-width: 840px;
+  }
+
+  .anchorTitle {
+    max-width: 740px;
+  }
+
+  .anchorImage {
+    position: relative;
+    width: 100%;
+    height: 40vw;
+    max-height: 720px;
+
+    img {
+      border-radius: var(--border-radius);
+      overflow: hidden;
+    }
+  }
+
+  .secondaryAnchor {
+    h2 {
+      margin: calc(18 * var(--space-unit)) 0 !important;
+    }
+  }
+}
+
+.mobileTierCard {
+  padding: var(--size-large);
+  width: 100%;
+  background-color: #161616;
+  border-radius: var(--border-radius);
+  margin: var(--size-small) auto;
+
+  & > div {
+    width: 100%;
+  }
+}
+
+.tableCard {
+  max-width: 1050px;
+  padding: var(--size-xLarge) 25px;
+  width: 100%;
+  background-color: #161616;
+  border-radius: var(--border-radius);
+  margin: auto;
+}
+
+.tierInfo {
+  display: flex;
+  flex-shrink: initial;
+  flex-basis: initial;
+  flex-direction: column;
+  -webkit-box-flex: 1;
+  flex-grow: 1;
+
+  .tierName {
+    font-size: var(--size-large);
+  }
+
+  .tierPrice {
+    display: flex;
+    flex-shrink: initial;
+    flex-basis: initial;
+    flex-direction: row;
+    -webkit-box-flex: 1;
+    flex-grow: 1;
+    align-items: center;
+    margin: var(--size-small) 0;
+
+    .priceNum {
+      display: flex;
+      line-height: 32px;
+      font-size: 24px;
+      letter-spacing: -0.01em;
+      color: rgb(247, 248, 248);
+    }
+
+    .priceDuration {
+      margin-left: var(--size-small);
+      white-space: nowrap;
+    }
+  }
+
+  .startTrial {
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    font-size: 14px;
+    width: 100%;
+    padding: 0;
+    margin-bottom: var(--size-small);
+    max-width: 300px;
+  }
+
+  .pricingBreakdown {
+    max-width: 300px;
+    display: flex;
+    flex-shrink: initial;
+    flex-basis: initial;
+    flex-direction: row;
+    -webkit-box-flex: 1;
+    flex-grow: 1;
+    margin-bottom: var(--size-xxSmall);
+  }
+}
+
+.tableBody {
+  font-style: normal;
+  line-height: normal;
+  font-weight: normal;
+  color: var(--text-gray);
+  font-size: 14px;
+}
+
+@media screen and (max-width: 1000px) {
+  .tableCard {
+    display: none;
+  }
+
+  .mobileTiers {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 800px;
+    width: 100%;
+    margin: auto;
+  }
+}

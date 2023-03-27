@@ -1,0 +1,63 @@
+.copyHeader {
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 44px;
+}
+
+.copy1 {
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 36px;
+}
+
+.copy2 {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 34px;
+}
+
+.copy3 {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 26px;
+}
+
+.copy4 {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+}
+
+.onDark {
+  color: var(--copy-on-dark);
+}
+
+.emphasis,
+.emphasis a {
+  font-weight: 600;
+}
+
+.outline {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0.75px;
+  text-transform: uppercase;
+}
+
+@media screen and (max-width: 600px) {
+  .copyHeader {
+    font-size: 24px;
+    line-height: 36px;
+  }
+
+  .copy1 {
+    font-size: 18px;
+    line-height: 34px;
+  }
+
+  .copy2 {
+    font-size: 16px;
+    line-height: 30px;
+  }
+}

@@ -1,0 +1,454 @@
+/* stylelint-disable */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* https://redpixelthemes.com/blog/tailwindcss-hide-scrollbar/ */
+/* For Webkit-based browsers (Chrome, Safari and Opera) */
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* For IE, Edge and Firefox */
+.scrollbar-hidden {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.DocSearch-Button {
+  background-color: #0d0225 !important;
+  border: 1px solid var(--divider-on-dark) !important;
+  transition: all 0.1s ease-in-out !important;
+}
+.DocSearch-Button:hover {
+  border: 1px solid var(--copy-on-dark) !important;
+  box-shadow: none !important;
+  border: 1px solid var(--copy-on-light) !important;
+  color: var(--copy-on-light) !important;
+}
+.DocSearch-Button-Key {
+  background: none !important;
+  outline: none !important;
+  padding: 0px !important;
+  box-shadow: none !important;
+  border: 1px solid var(--divider-on-dark) !important;
+}
+
+.DocSearch-Button .DocSearch-Search-Icon {
+  color: var(--copy-on-light) !important;
+}
+
+:root {
+  --color-purple-100: #ede9fe;
+  --color-purple-200: #ddd6fe;
+  --color-purple-300: #c4b5fd;
+  --color-purple-400: #a78bfa;
+  --color-purple-500: #8b5cf6;
+  --color-purple-600: #7c3aed;
+  --color-purple-700: #6d28d9;
+  --color-purple-800: #5b21b6;
+  --color-purple-900: #4c1d95;
+  --color-purple: #5629c6;
+  --color-purple-rgb: 86, 41, 198;
+  --color-purple-800: #302c3a;
+  --color-purple-black: #1d0a26;
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-300: #93c5fd;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3396e2;
+  --color-blue-600: #2563eb;
+  --color-blue-700: #1d4ed8;
+  --color-blue-800: #1e40af;
+  --color-blue-900: #1e3a8a;
+  --color-green-100: #d1fae5;
+  --color-green-200: #a7f3d0;
+  --color-green-300: #6ee7b7;
+  --color-green-400: #34d399;
+  --color-green-500: #10b981;
+  --color-green-600: #059669;
+  --color-green-700: #047857;
+  --color-green-800: #065f46;
+  --color-green-900: #064e3b;
+  --color-yellow-100: #fef3c7;
+  --color-yellow-200: #fde68a;
+  --color-yellow-300: #fcd34d;
+  --color-yellow-400: #fbbf24;
+  --color-yellow-500: #f59e0b;
+  --color-yellow-600: #d97706;
+  --color-yellow-700: #b45309;
+  --color-yellow-800: #92400e;
+  --color-yellow-900: #78350f;
+  --color-orange-300: rgba(242, 106, 76, 0.37);
+  --color-orange-400: #ffb038;
+  --color-orange-500: #c67e29;
+  --color-brown: #835e00;
+  --color-red: #ff0000;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-300: #fca5a5;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+  --color-red-900: #7f1d1d;
+  --color-gray-100: #efefef7d;
+  --color-gray-200: #f2f2f2;
+  --color-gray-300: #eaeaea;
+  --color-gray-400: #c4c4c4;
+  --color-gray-500: #828282;
+  --color-gray-600: #7e7e7e;
+  --color-gray-700: #8a8f98;
+  --color-gray-800: #2d2f36;
+  --color-black: #111;
+  --color-white: #fff;
+
+  // Editor Color
+  --color-editor-background: #fafafa;
+  --color-editor-foreground-text: #383a42;
+  --color-editor-secondary-text: #4078f2;
+
+  --copy-on-dark: #dfdfdf;
+  --darker-copy-on-dark: #9d97aa;
+  --copy-on-light: #645d74;
+  --divider-on-dark: var(--color-purple-800);
+
+  --color-primary-background: var(--color-primary-500);
+  --color-primary-inverted-background: #333;
+  --color-secondary-background: #f9f9f9;
+  --color-background-overlay: rgba(0, 0, 0, 0.8);
+  --text-primary-inverted: #000;
+  --text-primary: var(--color-white);
+  --color-link: var(--color-purple);
+  --color-pseudo-black: #1d0a26;
+
+  --brand-accent: var(--color-secondary-300);
+  --brand-accent-light: var(--color-secondary-200);
+  --text-gray: #a9a9a9;
+  --text-blue: var(--color-blue-500);
+
+  --color-selected-light: #ebff5e;
+  --color-selected-dark: #8dc31a;
+  --color-secondary-100: #b9f2fe;
+  --color-secondary-200: #72e4fc;
+  --color-secondary-300: #23b6e2;
+  --color-secondary-400: #0b75aa;
+  --color-primary-100: #b19cff;
+  --color-primary-200: #6c37f4;
+  --color-primary-300: #5420d1;
+  --color-primary-400: #120532;
+  --color-primary-500: #0d0225;
+  --color-copy-on-dark: #dfdfdf;
+  --color-darker-copy-on-dark: #9d97aa;
+  --color-copy-on-light: #645d74;
+  --color-divider-on-dark: #30294e;
+  --color-divider-on-purple: rgba(255, 255, 255, 0.32);
+
+  // Logo
+  --logo-gradient-start-color: var(--color-purple);
+  --logo-gradient-end-color: #321873;
+
+  --space-unit: 4px;
+  --size-4xLarge: calc(18 * var(--space-unit));
+  --size-xxxLarge: calc(14 * var(--space-unit));
+  --size-xxLarge: calc(11 * var(--space-unit));
+  --size-xLarge: calc(8 * var(--space-unit));
+  --size-large: calc(6 * var(--space-unit));
+  --size-medium: calc(4 * var(--space-unit));
+  --size-small: calc(3 * var(--space-unit));
+  --size-xSmall: calc(2 * var(--space-unit));
+  --size-xxSmall: calc(1 * var(--space-unit));
+
+  --size-icon: 18px;
+
+  --max-width: 1200px;
+
+  --box-shadow: 0px 0.9px 1.4px rgba(0, 0, 0, 0.012), 0px 2.2px 3.6px rgba(0, 0, 0, 0.018),
+    0px 4.4px 7.4px rgba(0, 0, 0, 0.022), 0px 9.1px 15.3px rgba(0, 0, 0, 0.028), 0px 25px 42px rgba(0, 0, 0, 0.04);
+
+  --box-shadow-2: 0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%);
+  --box-shadow-3: 0 2.8px 2.2px rgba(0, 0, 0, 0.02), 0 6.7px 5.3px rgba(0, 0, 0, 0.028),
+    0 12.5px 10px rgba(0, 0, 0, 0.035), 0 22.3px 17.9px rgba(0, 0, 0, 0.042), 0 41.8px 33.4px rgba(0, 0, 0, 0.05),
+    0 100px 80px rgba(0, 0, 0, 0.07);
+
+  --header-font-family: 'Poppins', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --body-font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  --monospace-font-family: 'Roboto Mono', monospace;
+
+  --button-border-radius: var(--size-xSmall);
+  --border-radius: var(--size-xSmall);
+
+  --button-vertical-padding: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-primary-background);
+  font-family: var(--body-font-family);
+  color: var(--color-white);
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  font-family: var(--header-font-family) !important;
+  line-height: 110% !important;
+  margin: 0 !important;
+  color: var(--text-primary);
+}
+
+h1 {
+  font-size: 70px;
+  line-height: 80px !important;
+  letter-spacing: -1.5px;
+}
+
+h2 {
+  font-size: 58px;
+  line-height: 76px !important;
+  letter-spacing: -0.5px;
+}
+
+h3 {
+  font-size: var(--size-xxLarge);
+  line-height: 54px !important;
+  letter-spacing: -0.25px;
+}
+
+h4 {
+  font-size: 36px;
+  line-height: 48px !important;
+  font-weight: 600 !important;
+}
+
+h5 {
+  font-size: 26px;
+  line-height: 40px !important;
+  font-weight: 600 !important;
+}
+
+h6 {
+  font-size: 22px;
+  line-height: 34px !important;
+  font-weight: 600 !important;
+}
+
+p {
+  font-weight: 300;
+  line-height: initial !important;
+  margin: var(--size-small) 0 !important;
+}
+
+li,
+p,
+label {
+  color: var(--text-primary);
+}
+
+main {
+  width: 100vw;
+}
+
+code {
+  font-family: 'IBM Plex Mono', 'Courier', 'monospace' !important;
+  font-weight: 400;
+}
+
+a {
+  color: var(--brand-accent-light);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--brand-accent);
+  }
+}
+
+select {
+  text-indent: 50px hanging;
+}
+
+select:focus {
+  outline: none;
+}
+
+.embla {
+  position: relative;
+}
+
+.embla__viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+.embla__viewport.is-draggable {
+  cursor: move;
+  cursor: grab;
+}
+
+.embla__viewport.is-dragging {
+  cursor: grabbing;
+}
+
+.embla__container {
+  display: flex;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -khtml-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.embla__slide {
+  position: relative;
+  min-width: 80%;
+  padding-left: 10px;
+}
+
+.embla__slide__inner {
+  position: relative;
+  overflow: hidden;
+  height: 190px;
+}
+
+.embla__slide__img {
+  position: absolute;
+  display: block;
+  top: 50%;
+  left: 50%;
+  width: auto;
+  min-height: 100%;
+  min-width: 100%;
+  max-width: none;
+  transform: translate(-50%, -50%);
+}
+
+.embla__button {
+  outline: 0;
+  cursor: pointer;
+  background-color: transparent;
+  touch-action: manipulation;
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  width: 30px;
+  height: 30px;
+  justify-content: center;
+  align-items: center;
+  fill: #1bcacd;
+  padding: 0;
+}
+
+.embla__button:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.embla__button__svg {
+  width: 100%;
+  height: 100%;
+}
+
+.embla__button--prev {
+  left: 27px;
+}
+
+.embla__button--next {
+  right: 27px;
+}
+
+// .slick-slider {
+//   display: flex !important;
+//   flex-direction: column;
+// }
+
+// .slick-dots {
+//   bottom: 0px !important;
+//   padding: 0px !important;
+//   margin: 0px !important;
+//   margin-top: 24px !important;
+//   position: relative !important;
+// }
+
+// .slick-list {
+//   margin-bottom: 10px;
+// }
+
+// .slick-dots li button:before {
+//   height: 12px !important;
+//   opacity: 1 !important;
+//   width: 12px !important;
+//   border-radius: 100px;
+//   border: #ebff5e 1px solid;
+//   color: transparent !important;
+// }
+
+// .slick-initialized .slick-slide {
+//   display: flex !important;
+//   align-items: center !important;
+//   justify-content: center !important;
+// }
+
+// .slick-dots li.slick-active button:before {
+//   background-color: #ebff5e;
+// }
+
+// .slick-dots button:before {
+// }
+// // .slick-dots li.slick-active button:before {
+// //   background-color: #ebff5e;
+// //   height: ;
+// // }
+
+@media screen and (max-width: 600px) {
+  h1 {
+    font-size: 40px;
+    line-height: 48px !important;
+    letter-spacing: 0;
+  }
+
+  h2 {
+    font-size: var(--size-xLarge);
+    line-height: 40px !important;
+    letter-spacing: 0;
+  }
+
+  h3 {
+    font-size: var(--size-large);
+    line-height: 40px !important;
+    letter-spacing: 0;
+  }
+
+  h4 {
+    font-size: 22px !important;
+    line-height: 36px !important;
+    letter-spacing: 0;
+  }
+
+  h5 {
+    font-size: 18px;
+    line-height: 34px !important;
+    font-weight: 600 !important;
+  }
+
+  h6 {
+    font-size: 16px;
+    line-height: 30px !important;
+    font-weight: 600 !important;
+  }
+}
+
+.ReactCollapse--collapse {
+  transition: height 500ms;
+}

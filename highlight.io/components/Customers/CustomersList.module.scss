@@ -1,0 +1,167 @@
+.caseListLayout {
+  margin: auto;
+  margin-top: 48px;
+  margin-bottom: 280px;
+  max-width: 1228px;
+  padding: 0 32px;
+
+  h2 {
+    text-align: center;
+  }
+}
+
+.caseListTitle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+
+  h1 {
+    max-width: 768px;
+    text-align: center;
+    margin-bottom: 24px !important;
+  }
+}
+
+.caseList {
+  display: flex;
+  flex-direction: column;
+  margin-top: 128px;
+  margin-bottom: 160px;
+  width: 100%;
+  gap: 56px;
+}
+
+.limeAccent {
+  color: var(--color-selected-light) !important;
+}
+
+.caseCard {
+  border-radius: 6px;
+  border: 1px var(--color-divider-on-dark) solid;
+  height: 400px;
+  width: 100%;
+  overflow: hidden;
+
+  display: flex;
+
+  .thumbnail {
+    position: relative;
+    height: 100%;
+    width: 488px;
+  }
+
+  .caseCardQuote {
+    margin: 24px;
+    display: flex;
+    flex-flow: column;
+    gap: 12px;
+    blockquote {
+      position: relative;
+      margin: 0;
+      h4 {
+        display: inline-block;
+        line-height: 0 !important;
+        width: 0;
+      }
+
+      .leftQuote {
+        position: absolute;
+        left: -24px;
+        top: 16px;
+      }
+
+      .rightQuote {
+        position: absolute;
+        padding-left: 8px;
+        bottom: 12px;
+      }
+    }
+  }
+
+  .caseDetails {
+    display: flex;
+    flex-flow: column;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 32ps;
+
+    margin: 40px;
+    flex: 1;
+  }
+
+  .companyCaseLogo {
+    position: relative;
+    width: 100%;
+    height: 35px;
+    min-height: 35px;
+  }
+
+  .cardReadCaseButton {
+    display: inline-block;
+    border-radius: 6px;
+    border: var(--color-secondary-200) 1px solid;
+    padding: 9px 24px;
+    background-color: var(--color-primary-500) !important;
+    color: var(--color-secondary-200);
+
+    &:hover {
+      color: var(--color-primary-500) !important;
+      background-color: var(--color-secondary-200) !important;
+    }
+  }
+}
+
+@media screen and (max-width: 1232px) {
+  .caseListLayout {
+    max-width: 711px;
+    padding: 0 32px;
+  }
+
+  .caseListTitle {
+    h1 {
+      max-width: 572px;
+    }
+  }
+
+  .caseCard {
+    flex-direction: column;
+    height: fit-content;
+    .thumbnail {
+      height: 400px;
+      width: 100%;
+    }
+  }
+}
+
+.allCustomersGrid {
+  margin-top: 80px;
+  display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  place-content: center;
+
+  gap: 64px;
+
+  .allCustomersLogo {
+    position: relative;
+    width: 180px;
+    height: 40px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .caseListLayout {
+    padding: 0 20px;
+  }
+
+  .caseList {
+    gap: 40px;
+  }
+
+  .caseCard {
+    .thumbnail {
+      height: 240px;
+    }
+  }
+}

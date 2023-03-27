@@ -1,0 +1,30 @@
+.paginate {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-large);
+  padding: var(--size-small) 0;
+
+  div {
+    height: var(--size-xLarge);
+    min-width: var(--size-xLarge);
+    padding: var(--size-small);
+    border-radius: var(--size-xLarge);
+  }
+
+  .pageNumber {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pageNumber:hover {
+    cursor: pointer;
+    background-color: var(--color-gray-800);
+  }
+
+  .currentPage {
+    background-color: var(--color-gray-800);
+  }
+}
