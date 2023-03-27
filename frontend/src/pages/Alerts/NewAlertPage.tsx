@@ -173,7 +173,7 @@ const getNewAlert = (type: ALERT_NAMES) => {
 					ThresholdWindow: 30,
 				},
 				configuration: ALERT_CONFIGURATIONS['ERROR_ALERT'],
-			}
+			} as const
 		case snakeCaseString(ALERT_NAMES.TRACK_PROPERTIES_ALERT):
 			return {
 				alert: {
@@ -183,7 +183,7 @@ const getNewAlert = (type: ALERT_NAMES) => {
 					Type: ALERT_TYPE.TrackProperties,
 				},
 				configuration: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'],
-			}
+			} as const
 		case snakeCaseString(ALERT_NAMES.SESSION_FEEDBACK_ALERT):
 			return {
 				alert: {
@@ -194,7 +194,7 @@ const getNewAlert = (type: ALERT_NAMES) => {
 					Type: ALERT_TYPE.SessionFeedback,
 				},
 				configuration: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'],
-			}
+			} as const
 		case snakeCaseString(ALERT_NAMES.NEW_SESSION_ALERT):
 			return {
 				alert: {
@@ -205,7 +205,7 @@ const getNewAlert = (type: ALERT_NAMES) => {
 					Type: ALERT_TYPE.NewSession,
 				},
 				configuration: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'],
-			}
+			} as const
 		case snakeCaseString(ALERT_NAMES.NEW_USER_ALERT):
 			return {
 				alert: {
@@ -216,7 +216,7 @@ const getNewAlert = (type: ALERT_NAMES) => {
 					Type: ALERT_TYPE.FirstTimeUser,
 				},
 				configuration: ALERT_CONFIGURATIONS['NEW_USER_ALERT'],
-			}
+			} as const
 		case snakeCaseString(ALERT_NAMES.USER_PROPERTIES_ALERT):
 			return {
 				alert: {
@@ -228,7 +228,7 @@ const getNewAlert = (type: ALERT_NAMES) => {
 					UserProperties: [],
 				},
 				configuration: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'],
-			}
+			} as const
 		case snakeCaseString(ALERT_NAMES.RAGE_CLICK_ALERT):
 			return {
 				alert: {
@@ -239,6 +239,6 @@ const getNewAlert = (type: ALERT_NAMES) => {
 					ThresholdWindow: 30,
 				},
 				configuration: ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'],
-			}
+			} as const
 	}
 }

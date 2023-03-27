@@ -684,6 +684,9 @@ export type CreateErrorAlertMutationVariables = Types.Exact<{
 	discord_channels:
 		| Array<Types.DiscordChannelInput>
 		| Types.DiscordChannelInput
+	webhook_destinations:
+		| Array<Types.WebhookDestinationInput>
+		| Types.WebhookDestinationInput
 	emails:
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -740,6 +743,9 @@ export type CreateMetricMonitorMutationVariables = Types.Exact<{
 	discord_channels:
 		| Array<Types.DiscordChannelInput>
 		| Types.DiscordChannelInput
+	webhook_destinations:
+		| Array<Types.WebhookDestinationInput>
+		| Types.WebhookDestinationInput
 	emails:
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -791,6 +797,9 @@ export type UpdateMetricMonitorMutationVariables = Types.Exact<{
 	discord_channels:
 		| Array<Types.DiscordChannelInput>
 		| Types.DiscordChannelInput
+	webhook_destinations:
+		| Array<Types.WebhookDestinationInput>
+		| Types.WebhookDestinationInput
 	emails?: Types.Maybe<
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -888,6 +897,9 @@ export type UpdateErrorAlertMutationVariables = Types.Exact<{
 	discord_channels:
 		| Array<Types.DiscordChannelInput>
 		| Types.DiscordChannelInput
+	webhook_destinations:
+		| Array<Types.WebhookDestinationInput>
+		| Types.WebhookDestinationInput
 	emails?: Types.Maybe<
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -3652,6 +3664,12 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 							__typename?: 'DiscordChannel'
 						} & DiscordChannelFragmentFragment
 					>
+					WebhookDestinations: Array<
+						{ __typename?: 'WebhookDestination' } & Pick<
+							Types.WebhookDestination,
+							'url' | 'authorization'
+						>
+					>
 				}
 		>
 	>
@@ -3715,6 +3733,12 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 						{ __typename?: 'DiscordChannel' } & Pick<
 							Types.DiscordChannel,
 							'id' | 'name'
+						>
+					>
+					webhook_destinations: Array<
+						{ __typename?: 'WebhookDestination' } & Pick<
+							Types.WebhookDestination,
+							'url' | 'authorization'
 						>
 					>
 					filters?: Types.Maybe<

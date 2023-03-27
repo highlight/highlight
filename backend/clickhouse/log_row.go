@@ -72,9 +72,9 @@ func (l *LogRow) Cursor() string {
 
 type LogRowOption func(*LogRow)
 
-func WithLogAttributes(resourceAttributes, eventAttributes map[string]any, isFrontendLog bool) LogRowOption {
+func WithLogAttributes(resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) LogRowOption {
 	return func(h *LogRow) {
-		h.LogAttributes = getAttributesMap(resourceAttributes, eventAttributes, isFrontendLog)
+		h.LogAttributes = GetAttributesMap(resourceAttributes, spanAttributes, eventAttributes, isFrontendLog)
 	}
 }
 
@@ -115,9 +115,9 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 	return c
 }
 
-func getAttributesMap(resourceAttributes, eventAttributes map[string]any, isFrontendLog bool) map[string]string {
+func GetAttributesMap(resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) map[string]string {
 	attributesMap := make(map[string]string)
-	for _, m := range []map[string]any{resourceAttributes, eventAttributes} {
+	for _, m := range []map[string]any{resourceAttributes, spanAttributes, eventAttributes} {
 		for k, v := range m {
 			shouldSkip := false
 

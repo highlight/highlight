@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
 
@@ -16,7 +17,7 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 		log.WithContext(ctx).WithFields(log.Fields{
 			"error": e,
 			"path":  graphql.GetPath(ctx),
-		}).Errorf("%s graphql request failed", service)
+		}).Warnf("%s graphql request failed", service)
 
 		var gqlerr *gqlerror.Error
 		switch t := e.(type) {

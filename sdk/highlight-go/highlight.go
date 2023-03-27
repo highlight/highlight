@@ -227,6 +227,10 @@ func Stop() {
 	interruptChan <- true
 }
 
+func IsRunning() bool {
+	return state == started
+}
+
 // SetFlushInterval allows you to override the amount of time in which the
 // Highlight client will collect errors before sending them to our backend.
 // - newFlushInterval is an integer representing seconds
@@ -277,22 +281,15 @@ func InterceptRequestWithContext(ctx context.Context, r *http.Request) context.C
 }
 
 func MarkBackendSetup(ctx context.Context) {
-	if lastBackendSetupTimestamp.IsZero() {
+	if client != nil && lastBackendSetupTimestamp.IsZero() {
 		currentTime := time.Now()
 		if currentTime.Sub(lastBackendSetupTimestamp).Minutes() > backendSetupCooldown {
 			lastBackendSetupTimestamp = currentTime
 			var mutation struct {
-				MarkBackendSetup string `graphql:"markBackendSetup(session_secure_id: $session_secure_id)"`
+				MarkBackendSetup string `graphql:"markBackendSetup(project_id: $project_id)"`
 			}
-			sessionSecureID := ctx.Value(ContextKeys.SessionSecureID)
-			variables := map[string]interface{}{
-				"session_secure_id": graphql.String(fmt.Sprintf("%v", sessionSecureID)),
-			}
-
-			err := client.Mutate(ctx, &mutation, variables)
-			if err != nil {
+			if err := client.Mutate(ctx, &mutation, map[string]interface{}{"project_id": fmt.Sprintf("%v", projectID)}); err != nil {
 				logger.Errorf("[highlight-go] %v", errors.Wrap(err, "error marking backend setup"))
-				return
 			}
 		}
 	}
