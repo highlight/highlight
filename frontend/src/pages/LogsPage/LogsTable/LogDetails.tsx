@@ -29,6 +29,7 @@ import {
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
+import { omitBy } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { generatePath } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
@@ -57,6 +58,11 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 	const expandable = Object.values(logAttributes).some(
 		(v) => typeof v === 'object',
 	)
+	const attributesShownWhenVisible = {
+		trace_id: traceID,
+		span_id: spanID,
+		secure_session_id: secureSessionID,
+	}
 
 	if (!expanded) {
 		if (allExpanded) {
@@ -105,32 +111,17 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 				/>
 			</Box>
 
-			{traceID && (
-				<Box>
-					<LogValue
-						label="trace_id"
-						value={traceID}
-						queryTerms={queryTerms}
-					/>
-				</Box>
-			)}
-			{spanID && (
-				<Box>
-					<LogValue
-						label="span_id"
-						value={spanID}
-						queryTerms={queryTerms}
-					/>
-				</Box>
-			)}
-			{secureSessionID && (
-				<Box>
-					<LogValue
-						label="secure_session_id"
-						value={secureSessionID}
-						queryTerms={queryTerms}
-					/>
-				</Box>
+			{Object.entries(attributesShownWhenVisible).map(
+				([key, value]) =>
+					value && (
+						<Box key={key}>
+							<LogValue
+								label={key}
+								value={value}
+								queryTerms={queryTerms}
+							/>
+						</Box>
+					),
 			)}
 
 			<Box display="flex" alignItems="center" flexDirection="row" mt="8">
@@ -176,9 +167,21 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 						emphasis="low"
 						onClick={(e) => {
 							e.stopPropagation()
-							navigator.clipboard.writeText(
-								JSON.stringify(row.original),
+
+							const json = omitBy(
+								{ message, level, ...logAttributes },
+								(v) => !Boolean(v),
 							)
+
+							Object.entries(attributesShownWhenVisible).forEach(
+								([key, value]) => {
+									if (value) {
+										json[key] = value
+									}
+								},
+							)
+
+							navigator.clipboard.writeText(JSON.stringify(json))
 							antdMessage.success('Copied logs!')
 						}}
 						trackingId="logs-row_copy-json"
