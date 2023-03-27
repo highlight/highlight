@@ -1,6 +1,6 @@
 import { Button } from '@components/Button'
 import { LinkButton } from '@components/LinkButton'
-import { LogEdge, LogLevel } from '@graph/schemas'
+import { LogEdge } from '@graph/schemas'
 import {
 	Box,
 	IconSolidChevronDoubleDown,
@@ -226,7 +226,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 					ml="4"
 					pl="4"
 				>
-					{row.original.node.level === LogLevel.Error && (
+					{row.original.error_object && (
 						<LinkButton
 							kind="secondary"
 							emphasis="low"
