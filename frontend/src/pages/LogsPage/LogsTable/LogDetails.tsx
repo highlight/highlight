@@ -58,7 +58,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 	const expandable = Object.values(logAttributes).some(
 		(v) => typeof v === 'object',
 	)
-	const attributesShownWhenVisible = {
+	const attributesShownWhenPresent = {
 		trace_id: traceID,
 		span_id: spanID,
 		secure_session_id: secureSessionID,
@@ -111,7 +111,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 				/>
 			</Box>
 
-			{Object.entries(attributesShownWhenVisible).map(
+			{Object.entries(attributesShownWhenPresent).map(
 				([key, value]) =>
 					value && (
 						<Box key={key}>
@@ -173,7 +173,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 								(v) => !Boolean(v),
 							)
 
-							Object.entries(attributesShownWhenVisible).forEach(
+							Object.entries(attributesShownWhenPresent).forEach(
 								([key, value]) => {
 									if (value) {
 										json[key] = value
