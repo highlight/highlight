@@ -51,8 +51,16 @@ export const getLogURL = (row: Row<LogEdge>) => {
 export const LogDetails = ({ row, queryTerms }: Props) => {
 	const { projectId } = useProjectId()
 	const [allExpanded, setAllExpanded] = useState(false)
-	const { traceID, spanID, secureSessionID, logAttributes, message, level } =
-		row.original.node
+	const {
+		traceID,
+		spanID,
+		secureSessionID,
+		logAttributes,
+		message,
+		level,
+		source,
+		serviceName,
+	} = row.original.node
 	const expanded = row.getIsExpanded()
 	const expandable = Object.values(logAttributes).some(
 		(v) => typeof v === 'object',
@@ -128,6 +136,24 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 					<LogValue
 						label="secure_session_id"
 						value={secureSessionID}
+						queryTerms={queryTerms}
+					/>
+				</Box>
+			)}
+			{source && (
+				<Box>
+					<LogValue
+						label="source"
+						value={source}
+						queryTerms={queryTerms}
+					/>
+				</Box>
+			)}
+			{serviceName && (
+				<Box>
+					<LogValue
+						label="service_name"
+						value={serviceName}
 						queryTerms={queryTerms}
 					/>
 				</Box>

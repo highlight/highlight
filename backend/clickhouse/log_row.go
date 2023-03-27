@@ -40,6 +40,7 @@ type LogRow struct {
 	TraceFlags     uint32
 	SeverityText   string
 	SeverityNumber int32
+	Source         string
 	ServiceName    string
 	Body           string
 	LogAttributes  map[string]string
@@ -83,6 +84,15 @@ func WithSeverityText(severityText string) LogRowOption {
 	return func(h *LogRow) {
 		h.SeverityText = logLevel.String()
 		h.SeverityNumber = getSeverityNumber(logLevel)
+	}
+}
+
+func WithSource(source string) LogRowOption {
+	return func(h *LogRow) {
+		if source == highlight.SourceAttributeFrontend {
+			source = "frontend"
+		}
+		h.Source = source
 	}
 }
 

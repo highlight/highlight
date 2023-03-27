@@ -500,6 +500,8 @@ type ComplexityRoot struct {
 		LogAttributes   func(childComplexity int) int
 		Message         func(childComplexity int) int
 		SecureSessionID func(childComplexity int) int
+		ServiceName     func(childComplexity int) int
+		Source          func(childComplexity int) int
 		SpanID          func(childComplexity int) int
 		Timestamp       func(childComplexity int) int
 		TraceID         func(childComplexity int) int
@@ -3429,6 +3431,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Log.SecureSessionID(childComplexity), true
+
+	case "Log.serviceName":
+		if e.complexity.Log.ServiceName == nil {
+			break
+		}
+
+		return e.complexity.Log.ServiceName(childComplexity), true
+
+	case "Log.source":
+		if e.complexity.Log.Source == nil {
+			break
+		}
+
+		return e.complexity.Log.Source(childComplexity), true
 
 	case "Log.spanID":
 		if e.complexity.Log.SpanID == nil {
@@ -8331,6 +8347,8 @@ type Log {
 	traceID: String
 	spanID: String
 	secureSessionID: String
+	source: String
+	serviceName: String
 }
 
 type LogEdge {
@@ -8358,6 +8376,8 @@ enum ReservedLogKey {
 	secure_session_id
 	span_id
 	trace_id
+	source
+	service_name
 }
 
 enum LogKeyType {
@@ -27678,6 +27698,88 @@ func (ec *executionContext) fieldContext_Log_secureSessionID(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Log_source(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Log_source(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Source, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Log_source(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Log",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Log_serviceName(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Log_serviceName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Log_serviceName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Log",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _LogEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *model.LogEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_LogEdge_cursor(ctx, field)
 	if err != nil {
@@ -27775,6 +27877,10 @@ func (ec *executionContext) fieldContext_LogEdge_node(ctx context.Context, field
 				return ec.fieldContext_Log_spanID(ctx, field)
 			case "secureSessionID":
 				return ec.fieldContext_Log_secureSessionID(ctx, field)
+			case "source":
+				return ec.fieldContext_Log_source(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_Log_serviceName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Log", field.Name)
 		},
@@ -59781,6 +59887,14 @@ func (ec *executionContext) _Log(ctx context.Context, sel ast.SelectionSet, obj 
 		case "secureSessionID":
 
 			out.Values[i] = ec._Log_secureSessionID(ctx, field, obj)
+
+		case "source":
+
+			out.Values[i] = ec._Log_source(ctx, field, obj)
+
+		case "serviceName":
+
+			out.Values[i] = ec._Log_serviceName(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

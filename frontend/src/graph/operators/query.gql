@@ -1905,6 +1905,8 @@ query GetLogs(
 				traceID
 				spanID
 				secureSessionID
+				source
+				serviceName
 			}
 		}
 		pageInfo {

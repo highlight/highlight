@@ -666,6 +666,8 @@ export type Log = {
 	logAttributes: Scalars['Map']
 	message: Scalars['String']
 	secureSessionID?: Maybe<Scalars['String']>
+	serviceName?: Maybe<Scalars['String']>
+	source?: Maybe<Scalars['String']>
 	spanID?: Maybe<Scalars['String']>
 	timestamp: Scalars['Timestamp']
 	traceID?: Maybe<Scalars['String']>
@@ -2108,6 +2110,8 @@ export enum ReservedLogKey {
 	/** Keep this in alpha order */
 	Level = 'level',
 	SecureSessionId = 'secure_session_id',
+	ServiceName = 'service_name',
+	Source = 'source',
 	SpanId = 'span_id',
 	TraceId = 'trace_id',
 }
