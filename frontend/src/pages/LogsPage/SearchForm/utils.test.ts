@@ -2,6 +2,7 @@ import {
 	BODY_KEY,
 	buildLogsQueryForServer,
 	parseLogsQuery,
+	quoteQueryValue,
 	stringifyLogsQuery,
 	validateLogsQuery,
 } from './utils'
@@ -197,5 +198,20 @@ describe('validateLogsQuery', () => {
 		const params = [...complexQueryParams]
 		params[0].value = ''
 		expect(validateLogsQuery(params)).toBeFalsy()
+	})
+})
+
+// write somes tests for quoteQueryValue
+describe('quoteQueryValue', () => {
+	it('quotes strings with spaces', () => {
+		expect(quoteQueryValue('a test query')).toEqual('"a test query"')
+	})
+
+	it('handles double quoted strings', () => {
+		expect(quoteQueryValue('"a test query"')).toEqual('"a test query"')
+	})
+
+	it('handles single quoted strings', () => {
+		expect(quoteQueryValue("'a test query'")).toEqual("'a test query'")
 	})
 })

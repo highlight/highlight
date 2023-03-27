@@ -140,3 +140,11 @@ export const getLogsURLForSession = (projectId: string, session: Session) => {
 	)
 	return `/${projectId}/logs?${stringify(encodedQuery)}`
 }
+
+export const quoteQueryValue = (value: string) => {
+	if (value.startsWith('"') || value.startsWith("'")) {
+		return value
+	}
+
+	return `"${value}"`
+}

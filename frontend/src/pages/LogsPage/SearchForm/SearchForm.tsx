@@ -22,6 +22,7 @@ import {
 	BODY_KEY,
 	LogsSearchParam,
 	parseLogsQuery,
+	quoteQueryValue,
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
 import { useParams } from '@util/react-router/useParams'
@@ -211,8 +212,7 @@ const Search: React.FC<{
 
 		// If string, it's a value not a key
 		if (isValueSelect) {
-			queryTerms[activeTermIndex].value =
-				key.indexOf(' ') > -1 ? `"${key}"` : key
+			queryTerms[activeTermIndex].value = quoteQueryValue(key)
 		} else {
 			queryTerms[activeTermIndex].key = key.name
 			queryTerms[activeTermIndex].value = ''
