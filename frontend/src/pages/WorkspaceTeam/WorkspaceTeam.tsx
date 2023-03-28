@@ -55,18 +55,9 @@ const WorkspaceTeam = () => {
 		update(cache, { data }) {
 			cache.modify({
 				fields: {
-					workspace_admins(existingAdmins, { readField }) {
-						if (data?.deleteAdminFromWorkspace !== undefined) {
-							message.success('Removed member')
-							return existingAdmins.filter(
-								(admin: any) =>
-									data.deleteAdminFromWorkspace !==
-									readField('id', admin),
-							)
-						}
-						message.success('Failed to remove member')
-						return existingAdmins
-					},
+					workspace_admins(_existingAdmins, { DELETE }) {
+						return DELETE
+					}
 				},
 			})
 		},
