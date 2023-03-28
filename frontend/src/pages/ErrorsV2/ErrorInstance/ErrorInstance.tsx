@@ -68,6 +68,41 @@ const METADATA_LABELS: { [key: string]: string } = {
 	id: 'ID',
 } as const
 
+const getLogsLink = (errorObject: ErrorObject): string => {
+	const queryParams: LogsSearchParam[] = []
+	let offsetStart = 1
+	if (errorObject.session?.secure_id) {
+		queryParams.push({
+			key: ReservedLogKey.SecureSessionId,
+			operator: DEFAULT_LOGS_OPERATOR,
+			value: errorObject.session?.secure_id,
+			offsetStart: offsetStart++,
+		})
+	}
+	if (errorObject.trace_id) {
+		queryParams.push({
+			key: ReservedLogKey.TraceId,
+			operator: DEFAULT_LOGS_OPERATOR,
+			value: errorObject.trace_id,
+			offsetStart: offsetStart++,
+		})
+	}
+	const query = stringifyLogsQuery(queryParams)
+	const logCursor = errorObject.log_cursor
+	const params = createSearchParams({
+		query,
+		start_date: moment(errorObject.timestamp)
+			.add(-5, 'minutes')
+			.toISOString(),
+		end_date: moment(errorObject.timestamp).add(5, 'minutes').toISOString(),
+	})
+	if (logCursor) {
+		return `/${errorObject.project_id}/logs/${logCursor}?${params}`
+	} else {
+		return `/${errorObject.project_id}/logs?${params}`
+	}
+}
+
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { error_object_id, error_secure_id } = useParams<{
 		error_secure_id: string
@@ -310,58 +345,23 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						>
 							<KeyboardShortcut label="Next" shortcut="]" />
 						</Tooltip>
-						<Button
+						<LinkButton
 							kind="primary"
 							emphasis="high"
+							to={getLogsLink(errorObject)}
 							disabled={!isLoggedIn || !errorObject.session}
-							onClick={() => {
-								if (!isLoggedIn) {
-									return
-								}
-
-								const queryParams: LogsSearchParam[] = []
-								let offsetStart = 1
-								if (errorObject.session?.secure_id) {
-									queryParams.push({
-										key: ReservedLogKey.SecureSessionId,
-										operator: DEFAULT_LOGS_OPERATOR,
-										value: errorObject.session?.secure_id,
-										offsetStart: offsetStart++,
-									})
-								}
-								if (errorObject.trace_id) {
-									queryParams.push({
-										key: ReservedLogKey.TraceId,
-										operator: DEFAULT_LOGS_OPERATOR,
-										value: errorObject.trace_id,
-										offsetStart: offsetStart++,
-									})
-								}
-								const query = stringifyLogsQuery(queryParams)
-								const logCursor = errorObject.log_cursor
-								const params = createSearchParams({
-									query,
-									start_date: moment(errorObject.timestamp)
-										.add(-5, 'minutes')
-										.toISOString(),
-									end_date: moment(errorObject.timestamp)
-										.add(5, 'minutes')
-										.toISOString(),
-								})
-								if (logCursor) {
-									navigate(
-										`/${projectId}/logs/${logCursor}?${params}`,
-										{},
-									)
-								} else {
-									navigate(`/${projectId}/logs?${params}`)
-								}
-							}}
-							iconLeft={<IconSolidViewList />}
-							trackingId="errorInstanceShowLogs"
+							trackingId="logs-related_session_link"
 						>
-							Show logs
-						</Button>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidViewList />
+								Show logs
+							</Box>
+						</LinkButton>
 						<Button
 							kind="primary"
 							emphasis="high"
