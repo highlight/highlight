@@ -2,8 +2,12 @@ import { GraphQLClient, gql } from 'graphql-request'
 import { withHighlight } from '../../highlight.config'
 import { H } from '@highlight-run/next'
 import { iProduct, PRODUCTS } from '../../components/Products/products'
-import { getGithubDocsPaths, processDocPath } from './docs/github'
+import { getGithubDocsPaths } from './docs/github'
 import { FEATURES, iFeature } from '../../components/Features/features'
+
+export const config = {
+	excludeFiles: 'public/**/*',
+}
 
 async function handler(_: any, res: any) {
 	res.statusCode = 200
