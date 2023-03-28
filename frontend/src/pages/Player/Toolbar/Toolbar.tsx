@@ -28,7 +28,7 @@ export const TimelineAnnotationColors: {
 }
 
 export function getAnnotationColor(
-	eventTypeKey: (typeof EventsForTimeline)[number],
+	eventTypeKey: typeof EventsForTimeline[number],
 ) {
 	return TimelineAnnotationColors[eventTypeKey]
 }

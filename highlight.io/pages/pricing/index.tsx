@@ -209,10 +209,10 @@ const Faqs: { question: string; answer: string; icon: string }[] = [
 ]
 
 const billingPeriodOptions = ['Monthly', 'Annual'] as const
-type BillingPeriod = (typeof billingPeriodOptions)[number]
+type BillingPeriod = typeof billingPeriodOptions[number]
 
 const retentionOptions = ['3 months', '6 months', '1 year', '2 years'] as const
-type Retention = (typeof retentionOptions)[number]
+type Retention = typeof retentionOptions[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'3 months': 1,
 	'6 months': 1.5,
@@ -221,7 +221,7 @@ const retentionMultipliers: Record<Retention, number> = {
 } as const
 
 const tierOptions = ['Free', 'Basic', 'Essentials', 'Startup'] as const
-type TierName = (typeof tierOptions)[number]
+type TierName = typeof tierOptions[number]
 
 type PricingTier = {
 	basePrice: number

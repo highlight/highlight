@@ -67,7 +67,7 @@ export const ATTRIBUTES = [
 	},
 ] as const
 
-export type Attribute = (typeof ATTRIBUTES)[number]
+export type Attribute = typeof ATTRIBUTES[number]
 
 interface CommandBarState {
 	currentAttribute: Attribute
