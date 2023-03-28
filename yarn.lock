@@ -7684,7 +7684,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/next@^2.2.3, @highlight-run/next@workspace:*, @highlight-run/next@workspace:sdk/highlight-next":
+"@highlight-run/next@workspace:*, @highlight-run/next@workspace:sdk/highlight-next":
   version: 0.0.0-use.local
   resolution: "@highlight-run/next@workspace:sdk/highlight-next"
   dependencies:
@@ -28197,7 +28197,7 @@ __metadata:
     "@graphcms/rich-text-react-renderer": ^0.6.1
     "@headlessui/react": ^1.7.4
     "@heroicons/react": ^2.0.13
-    "@highlight-run/next": ^2.2.3
+    "@highlight-run/next": "workspace:*"
     "@radix-ui/react-slider": ^1.1.0
     "@supabase/supabase-js": ^2.7.1
     "@svgr/webpack": ^6.5.1

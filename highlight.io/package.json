@@ -17,7 +17,7 @@
 		"@graphcms/rich-text-react-renderer": "^0.6.1",
 		"@headlessui/react": "^1.7.4",
 		"@heroicons/react": "^2.0.13",
-		"@highlight-run/next": "^2.2.3",
+		"@highlight-run/next": "workspace:*",
 		"@radix-ui/react-slider": "^1.1.0",
 		"@supabase/supabase-js": "^2.7.1",
 		"@types/js-cookie": "^3.0.2",
