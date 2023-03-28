@@ -63,8 +63,7 @@ export const useSetupBreadcrumbs = () => {
 	const { project_id, area, language, framework } =
 		match?.params || ({} as any)
 
-	// Ignoring JS in client right now because it's the only option. Remove this
-	// when we add more client types (iOS, Android, etc.).
+	// Ignoring languages that only have a single entry.
 	const ignoreLanguage =
 		(area === 'client' && language === 'js') ||
 		(area === 'backend-logging' && language === 'http-otlp') ||

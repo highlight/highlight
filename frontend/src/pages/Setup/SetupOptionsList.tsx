@@ -28,7 +28,6 @@ export const SetupOptionsList: React.FC<Props> = ({
 	integrationData,
 }) => {
 	const location = useLocation()
-	const clientMatch = useMatch('/:project_id/setup/client')
 	const areaMatch = useMatch('/:project_id/setup/:area')
 	const languageMatch = useMatch('/:project_id/setup/:area/:language')
 	const match = areaMatch || languageMatch
@@ -38,10 +37,8 @@ export const SetupOptionsList: React.FC<Props> = ({
 		: (docs[area as keyof typeof docs] as any)
 	const optionKeys = getOptionKeys(docsSection)
 
-	// Redirect if there is only one option. Also has a temporary redirect for
-	// clientMatch until the extra docs keys are removed from the top level of the
-	// `client` key.
-	if (optionKeys.length === 1 || clientMatch) {
+	// Redirect if there is only one option.
+	if (optionKeys.length === 1) {
 		return (
 			<Navigate
 				to={optionKeys[0]}
