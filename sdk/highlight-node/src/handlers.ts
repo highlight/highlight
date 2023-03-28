@@ -33,10 +33,8 @@ function processErrorImpl(
 		H._debug('initialized H')
 	}
 	H.consumeEvent(secureSessionId)
-	if (error instanceof Error) {
-		H.consumeError(error, secureSessionId, requestId)
-		H._debug('consumed error', error)
-	}
+	H.consumeError(error, secureSessionId, requestId)
+	H._debug('consumed error', error)
 }
 
 /**

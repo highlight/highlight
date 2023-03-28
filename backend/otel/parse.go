@@ -16,6 +16,10 @@ func structureStackTrace(stackTrace string) ([]*model3.ErrorTrace, error) {
 	var errMsg string
 	var frames []*model3.ErrorTrace
 	var frame *model3.ErrorTrace
+	var jsonStr string
+	if err := json.Unmarshal([]byte(stackTrace), &jsonStr); err == nil {
+		stackTrace = jsonStr
+	}
 	lines := strings.Split(stackTrace, "\n")
 	for idx, line := range lines {
 		if idx == 0 {
