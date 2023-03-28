@@ -66,7 +66,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 		(v) => typeof v === 'object',
 	)
 	const reservedLogAttributes: {
-		[key in ReservedLogKey]: Maybe<string> | undefined
+		[key in ReservedLogKey]: Maybe<string> | string | undefined
 	} = {
 		level,
 		message,
