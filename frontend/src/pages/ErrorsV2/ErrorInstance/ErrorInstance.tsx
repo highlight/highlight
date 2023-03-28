@@ -344,18 +344,23 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						>
 							<KeyboardShortcut label="Next" shortcut="]" />
 						</Tooltip>
-						<Button
+						<LinkButton
 							kind="primary"
 							emphasis="high"
+							to={getLogsLink(errorObject)}
 							disabled={!isLoggedIn || !errorObject.session}
-							onClick={() => {
-								navigate(getLogsLink(errorObject))
-							}}
-							iconLeft={<IconSolidViewList />}
-							trackingId="errorInstanceShowLogs"
+							trackingId="logs-related_session_link"
 						>
-							Show logs
-						</Button>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidViewList />
+								Show logs
+							</Box>
+						</LinkButton>
 						<Button
 							kind="primary"
 							emphasis="high"
