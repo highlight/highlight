@@ -31,7 +31,7 @@
 		"graphql": "^16.6.0",
 		"graphql-request": "^5.1.0",
 		"gray-matter": "^4.0.3",
-		"highlight.run": "^5.4.1",
+		"highlight.run": "workspace:*",
 		"js-cookie": "^3.0.1",
 		"js-yaml": "^4.1.0",
 		"lodash.debounce": "^4.0.8",

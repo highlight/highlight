@@ -28227,7 +28227,7 @@ __metadata:
     graphql: ^16.6.0
     graphql-request: ^5.1.0
     gray-matter: ^4.0.3
-    highlight.run: ^5.4.1
+    highlight.run: "workspace:*"
     husky: ^8.0.3
     js-cookie: ^3.0.1
     js-yaml: ^4.1.0
@@ -28287,7 +28287,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highlight.run@^5.4.1, highlight.run@workspace:*, highlight.run@workspace:sdk/firstload":
+"highlight.run@workspace:*, highlight.run@workspace:sdk/firstload":
   version: 0.0.0-use.local
   resolution: "highlight.run@workspace:sdk/firstload"
   dependencies:
