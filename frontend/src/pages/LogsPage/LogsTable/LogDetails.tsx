@@ -73,6 +73,8 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 		trace_id: traceID,
 		span_id: spanID,
 		secure_session_id: secureSessionID,
+		source,
+		service_name: serviceName,
 	}
 
 	if (!expanded) {
@@ -121,24 +123,6 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 							/>
 						</Box>
 					),
-			)}
-			{source && (
-				<Box>
-					<LogValue
-						label="source"
-						value={source}
-						queryTerms={queryTerms}
-					/>
-				</Box>
-			)}
-			{serviceName && (
-				<Box>
-					<LogValue
-						label="service_name"
-						value={serviceName}
-						queryTerms={queryTerms}
-					/>
-				</Box>
 			)}
 
 			<Box display="flex" alignItems="center" flexDirection="row" mt="8">
