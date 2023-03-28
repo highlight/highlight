@@ -4,17 +4,17 @@ import HighlightLogoWhiteFull from '../../../public/images/logo-and-text-on-purp
 import styles from './HighlightLogo.module.scss'
 
 export const HighlightLogo = () => {
-  return (
-    <div className={styles.logoDiv}>
-      <Image src={HighlightLogoFull} alt="" />
-    </div>
-  )
+	return (
+		<div className={styles.logoDiv}>
+			<Image src={HighlightLogoFull} alt="" />
+		</div>
+	)
 }
 
 export const HighlightLogoWhite = () => {
-  return (
-    <div className={styles.logoDiv}>
-      <Image src={HighlightLogoWhiteFull} alt="" />
-    </div>
-  )
+	return (
+		<div className={styles.logoDiv}>
+			<Image src={HighlightLogoWhiteFull} alt="" />
+		</div>
+	)
 }

@@ -18,11 +18,11 @@ import { FormState } from 'ariakit/form'
 import moment from 'moment'
 import { useNavigate } from 'react-router-dom'
 
-export const isErrorAttribute = (attribute: typeof ATTRIBUTES[number]) => {
+export const isErrorAttribute = (attribute: (typeof ATTRIBUTES)[number]) => {
 	return [ERROR_TYPE, ERROR_FIELD_TYPE].includes(attribute.type)
 }
 
-export const isSessionAttribute = (attribute: typeof ATTRIBUTES[number]) => {
+export const isSessionAttribute = (attribute: (typeof ATTRIBUTES)[number]) => {
 	return ['user', SESSION_TYPE].includes(attribute.type)
 }
 

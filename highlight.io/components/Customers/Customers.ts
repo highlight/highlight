@@ -18,34 +18,34 @@ import Mage from '../../public/images/companies/mage.png'
 import Avatar from '../../public/images/john.jpg'
 
 export const CUSTOMER_REVIEWS: CustomerReview[] = [
-  {
-    author: 'Peter from Basedash',
-    logo: Basedash,
-    body: 'OMG I love Highlight!',
-    avatar: Avatar,
-  },
-  {
-    author: 'Charlie from Cabal',
-    logo: Cabal,
-    body: 'OMG I love Highlight more!',
-    avatar: Avatar,
-  },
-  {
-    author: 'Mark from Mage',
-    logo: Mage,
-    body: 'OMG I love Highlight more and more! This is a longer review. ',
-    avatar: Avatar,
-  },
-  {
-    author: 'Patrick from Pipe',
-    logo: Pipe,
-    body: 'OMG I love Highlight!',
-    avatar: Avatar,
-  },
-  {
-    author: 'Irene from Impira',
-    logo: Impira,
-    body: 'OMG I love Highlight!',
-    avatar: Avatar,
-  },
+	{
+		author: 'Peter from Basedash',
+		logo: Basedash,
+		body: 'OMG I love Highlight!',
+		avatar: Avatar,
+	},
+	{
+		author: 'Charlie from Cabal',
+		logo: Cabal,
+		body: 'OMG I love Highlight more!',
+		avatar: Avatar,
+	},
+	{
+		author: 'Mark from Mage',
+		logo: Mage,
+		body: 'OMG I love Highlight more and more! This is a longer review. ',
+		avatar: Avatar,
+	},
+	{
+		author: 'Patrick from Pipe',
+		logo: Pipe,
+		body: 'OMG I love Highlight!',
+		avatar: Avatar,
+	},
+	{
+		author: 'Irene from Impira',
+		logo: Impira,
+		body: 'OMG I love Highlight!',
+		avatar: Avatar,
+	},
 ]

@@ -1,23 +1,27 @@
 import { siteUrl } from '../../../utils/urls'
 import { QuickStartStep } from '../QuickstartContent'
 
-export const previousInstallSnippet: (slug: string) => QuickStartStep = (slug) => ({
-  title: 'Set up your frontend highlight.io integration.',
-  content: `First, make sure you've followed the [frontend getting started](${siteUrl(
-    '/docs/getting-started/overview',
-  )}) guide.`,
+export const previousInstallSnippet: (slug: string) => QuickStartStep = (
+	slug,
+) => ({
+	title: 'Set up your frontend highlight.io integration.',
+	content: `First, make sure you've followed the [frontend getting started](${siteUrl(
+		'/docs/getting-started/overview',
+	)}) guide.`,
 })
 
 export const verifyLogs: QuickStartStep = {
-  title: 'Verify your backend logs are being recorded.',
-  content: 'Visit the [highlight logs portal](http://app.highlight.io/logs) and check that backend logs are coming in.',
+	title: 'Verify your backend logs are being recorded.',
+	content:
+		'Visit the [highlight logs portal](http://app.highlight.io/logs) and check that backend logs are coming in.',
 }
 
 export const curlExample: QuickStartStep = {
-  title: 'Use curl to test how logs look in Highlight.',
-  content: 'Get started quickly with logs transmitted over the OTLP HTTP protocol.',
-  code: {
-    text: `curl -X POST https://otel.highlight.io:4318/v1/logs \\
+	title: 'Use curl to test how logs look in Highlight.',
+	content:
+		'Get started quickly with logs transmitted over the OTLP HTTP protocol.',
+	code: {
+		text: `curl -X POST https://otel.highlight.io:4318/v1/logs \\
 -H 'Content-Type: application/json' \\
 -d '{
       "resourceLogs": [
@@ -60,6 +64,6 @@ export const curlExample: QuickStartStep = {
         }
       ]
     }'`,
-    language: 'bash',
-  },
+		language: 'bash',
+	},
 }

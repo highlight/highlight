@@ -1,27 +1,27 @@
 .logoDiv {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  margin-left: -4px;
-  position: relative;
-  height: 32px;
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	margin-left: -4px;
+	position: relative;
+	height: 32px;
 
-  span {
-    height: 100%;
-  }
+	span {
+		height: 100%;
+	}
 }
 
 .logoText {
-  color: var(--color-white);
-  font-family: var(--header-font-family);
-  font-size: var(--size-large);
-  font-weight: 500;
-  user-select: none;
+	color: var(--color-white);
+	font-family: var(--header-font-family);
+	font-size: var(--size-large);
+	font-weight: 500;
+	user-select: none;
 }
 
 .logo {
-  fill: var(--color-primary-background);
-  height: 28px;
-  margin: var(--size-xSmall);
-  width: 28px;
+	fill: var(--color-primary-background);
+	height: 28px;
+	margin: var(--size-xSmall);
+	width: 28px;
 }

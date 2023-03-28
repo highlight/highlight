@@ -1,134 +1,134 @@
 .highlightedBadge {
-  display: inline-block;
-  color: var(--color-primary-500);
-  background-color: var(--color-selected-light);
-  padding: 2px var(--size-small);
-  margin-bottom: var(--size-large);
-  border-radius: 100px;
+	display: inline-block;
+	color: var(--color-primary-500);
+	background-color: var(--color-selected-light);
+	padding: 2px var(--size-small);
+	margin-bottom: var(--size-large);
+	border-radius: 100px;
 }
 
 .subtleBadge {
-  display: inline-block;
-  color: white;
-  background-color: rgba(13, 2, 37, 0.47);
-  padding: 2px var(--size-small);
-  margin-bottom: var(--size-large);
-  border-radius: 100px;
+	display: inline-block;
+	color: white;
+	background-color: rgba(13, 2, 37, 0.47);
+	padding: 2px var(--size-small);
+	margin-bottom: var(--size-large);
+	border-radius: 100px;
 }
 
 .anchorFeature {
-  max-width: 1200px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  margin: auto;
-  margin-top: 64px;
+	max-width: 1200px;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	margin: auto;
+	margin-top: 64px;
 
-  h1,
-  h2 {
-    margin-bottom: calc(10 * var(--space-unit)) !important;
-  }
+	h1,
+	h2 {
+		margin-bottom: calc(10 * var(--space-unit)) !important;
+	}
 }
 
 .buttonContainer {
-  margin-top: var(--size-xxxLarge);
-  margin-bottom: calc(13 * var(--space-unit));
+	margin-top: var(--size-xxxLarge);
+	margin-bottom: calc(13 * var(--space-unit));
 }
 
 .featureBox {
-  display: flex;
-  border: 1px solid var(--color-divider-on-dark);
-  border-radius: 16px;
-  max-width: 450px;
-  padding: var(--size-small);
+	display: flex;
+	border: 1px solid var(--color-divider-on-dark);
+	border-radius: 16px;
+	max-width: 450px;
+	padding: var(--size-small);
 }
 
 .featureBoxIcon {
-  color: var(--darker-copy-on-dark);
-  padding: var(--size-small);
-  border: 1px solid var(--color-divider-on-dark);
-  border-radius: 6px;
-  height: 40px;
+	color: var(--darker-copy-on-dark);
+	padding: var(--size-small);
+	border: 1px solid var(--color-divider-on-dark);
+	border-radius: 6px;
+	height: 40px;
 }
 
 .featureBoxText {
-  display: flex;
-  flex-direction: column;
-  margin-left: 17px;
+	display: flex;
+	flex-direction: column;
+	margin-left: 17px;
 }
 
 .snippet {
-  background: var(--color-primary-500);
-  border-radius: 20px;
-  overflow: hidden;
-  width: 100%;
+	background: var(--color-primary-500);
+	border-radius: 20px;
+	overflow: hidden;
+	width: 100%;
 }
 
 .divider {
-  display: none;
-  height: 1px;
-  padding-left: var(--size-xSmall);
-  padding-right: var(--size-xSmall);
-  background-color: var(--color-divider-on-dark);
+	display: none;
+	height: 1px;
+	padding-left: var(--size-xSmall);
+	padding-right: var(--size-xSmall);
+	background-color: var(--color-divider-on-dark);
 }
 
 .hollowButton {
-  display: flex;
-  justify-content: center;
-  text-align: center;
-  border: 1px solid var(--brand-accent-light) !important;
-  background-color: transparent !important;
-  color: var(--brand-accent-light) !important;
-  border-radius: var(--size-xSmall);
+	display: flex;
+	justify-content: center;
+	text-align: center;
+	border: 1px solid var(--brand-accent-light) !important;
+	background-color: transparent !important;
+	color: var(--brand-accent-light) !important;
+	border-radius: var(--size-xSmall);
 
-  &:hover {
-    // border-color: var(--color-secondary-300) !important;
-    background-color: var(--color-secondary-300) !important;
-    color: var(--color-primary-background) !important;
-  }
+	&:hover {
+		// border-color: var(--color-secondary-300) !important;
+		background-color: var(--color-secondary-300) !important;
+		color: var(--color-primary-background) !important;
+	}
 }
 
 .docsButton {
-  padding: var(--size-xSmall) var(--size-large);
+	padding: var(--size-xSmall) var(--size-large);
 }
 
 .infoContainer {
-  width: 100%;
-  max-width: calc(var(--max-width) + (var(--size-large) * 2));
-  margin: 0 auto;
-  margin-bottom: var(--size-xxxLarge);
-  padding: 50px var(--size-medium);
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  position: relative;
-  gap: 96px;
-  margin-top: var(--size-xxxLarge);
+	width: 100%;
+	max-width: calc(var(--max-width) + (var(--size-large) * 2));
+	margin: 0 auto;
+	margin-bottom: var(--size-xxxLarge);
+	padding: 50px var(--size-medium);
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	position: relative;
+	gap: 96px;
+	margin-top: var(--size-xxxLarge);
 }
 
 @media screen and (max-width: 600px) {
-  .infoTitle {
-    line-height: 32px !important;
-  }
+	.infoTitle {
+		line-height: 32px !important;
+	}
 }
 
 @media screen and (max-width: 720px) {
-  .anchorFeature {
-    margin-top: 120px;
-  }
+	.anchorFeature {
+		margin-top: 120px;
+	}
 
-  .featureBox {
-    padding: var(--size-large);
-  }
+	.featureBox {
+		padding: var(--size-large);
+	}
 
-  .divider {
-    display: flex;
-  }
+	.divider {
+		display: flex;
+	}
 
-  .infoContainer {
-    margin-bottom: 0px;
-  }
+	.infoContainer {
+		margin-bottom: 0px;
+	}
 }

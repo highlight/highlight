@@ -1,201 +1,201 @@
 .customerCard {
-  border-radius: var(--border-radius);
-  background-color: #161616;
-  padding: var(--size-medium) var(--size-large);
+	border-radius: var(--border-radius);
+	background-color: #161616;
+	padding: var(--size-medium) var(--size-large);
 }
 
 .companyDiv {
-  padding: var(--size-medium);
-  margin: auto;
-  max-width: 200px;
+	padding: var(--size-medium);
+	margin: auto;
+	max-width: 200px;
 }
 
 .companyLogo {
-  filter: invert(1);
-  height: 100px;
+	filter: invert(1);
+	height: 100px;
 }
 
 .avatar {
-  display: flex;
-  align-items: center;
-  border-radius: 50px;
-  overflow: hidden;
+	display: flex;
+	align-items: center;
+	border-radius: 50px;
+	overflow: hidden;
 }
 
 .authorDiv {
-  display: flex;
-  align-items: center;
-  gap: var(--size-small);
+	display: flex;
+	align-items: center;
+	gap: var(--size-small);
 
-  p {
-    color: var(--text-gray);
-  }
+	p {
+		color: var(--text-gray);
+	}
 }
 
 .reviewGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  padding: 0 var(--size-large);
-  grid-gap: var(--size-large);
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	padding: 0 var(--size-large);
+	grid-gap: var(--size-large);
 }
 
 @media screen and (max-width: 600px) {
-  .reviewGrid {
-    padding: 0;
-    grid-template-columns: repeat(1, 1fr);
-  }
+	.reviewGrid {
+		padding: 0;
+		grid-template-columns: repeat(1, 1fr);
+	}
 }
 
 .detailsLayout {
-  display: flex;
-  align-items: flex-start;
-  width: fit-content;
-  max-width: 1200px;
-  margin: 122px 32px 240px 280px;
-  gap: 118px;
+	display: flex;
+	align-items: flex-start;
+	width: fit-content;
+	max-width: 1200px;
+	margin: 122px 32px 240px 280px;
+	gap: 118px;
 }
 
 .caseTitle {
-  display: flex;
-  flex-flow: column;
-  gap: 16px;
+	display: flex;
+	flex-flow: column;
+	gap: 16px;
 }
 
 .caseBackLink {
-  position: absolute;
-  width: max-content;
-  left: 42px;
+	position: absolute;
+	width: max-content;
+	left: 42px;
 
-  a {
-    display: flex;
-    align-items: center;
-    font-size: 18px;
-    gap: var(--size-xSmall);
-  }
+	a {
+		display: flex;
+		align-items: center;
+		font-size: 18px;
+		gap: var(--size-xSmall);
+	}
 }
 
 .casePageLinks {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-  margin-top: 80px;
+	display: flex;
+	width: 100%;
+	justify-content: space-between;
+	margin-top: 80px;
 
-  .casePageLink {
-    display: flex;
-    flex-direction: column;
-    width: 187px;
-    gap: 16px;
-  }
+	.casePageLink {
+		display: flex;
+		flex-direction: column;
+		width: 187px;
+		gap: 16px;
+	}
 }
 
 .caseContent {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  flex: 1;
-  padding: 0 0;
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	flex: 1;
+	padding: 0 0;
 
-  p {
-    color: var(--copy-on-dark);
-    font-weight: 400;
-    font-size: 18px;
-    line-height: 34px !important;
-    margin: 0 !important;
-  }
+	p {
+		color: var(--copy-on-dark);
+		font-weight: 400;
+		font-size: 18px;
+		line-height: 34px !important;
+		margin: 0 !important;
+	}
 
-  h1 {
-    font-size: 58px !important;
-    line-height: 76px !important;
-  }
+	h1 {
+		font-size: 58px !important;
+		line-height: 76px !important;
+	}
 
-  h2 {
-    font-size: 26px !important;
-    line-height: 40px !important;
-    margin-top: 48px !important;
-  }
+	h2 {
+		font-size: 26px !important;
+		line-height: 40px !important;
+		margin-top: 48px !important;
+	}
 }
 
 @media screen and (max-width: 1512px) {
-  .caseBackLink {
-    display: none;
-  }
+	.caseBackLink {
+		display: none;
+	}
 
-  .caseContent {
-    h1 {
-      text-align: center;
-    }
-  }
+	.caseContent {
+		h1 {
+			text-align: center;
+		}
+	}
 
-  .caseCustomerDetails {
-    display: none;
-  }
+	.caseCustomerDetails {
+		display: none;
+	}
 
-  .caseContent {
-    max-width: 680px;
-    padding: 0 32px;
-  }
+	.caseContent {
+		max-width: 680px;
+		padding: 0 32px;
+	}
 
-  .detailsLayout {
-    margin-top: 72px;
-    margin-left: auto;
-    margin-right: auto;
-  }
+	.detailsLayout {
+		margin-top: 72px;
+		margin-left: auto;
+		margin-right: auto;
+	}
 
-  .caseTitle {
-    text-align: center;
-  }
+	.caseTitle {
+		text-align: center;
+	}
 }
 
 @media screen and (max-width: 600px) {
-  .caseContent {
-    padding: 0 16px;
-  }
+	.caseContent {
+		padding: 0 16px;
+	}
 
-  .detailsLayout {
-    margin-top: 64px;
-  }
+	.detailsLayout {
+		margin-top: 64px;
+	}
 
-  .casePageLinks {
-    flex-flow: column;
-  }
+	.casePageLinks {
+		flex-flow: column;
+	}
 }
 
 .caseOverline {
-  text-transform: uppercase;
-  font-weight: 600;
-  font-size: 16px;
-  letter-spacing: 0.75px;
-  color: #ebff5e;
+	text-transform: uppercase;
+	font-weight: 600;
+	font-size: 16px;
+	letter-spacing: 0.75px;
+	color: #ebff5e;
 }
 
 .caseCustomerDetails {
-  width: 389px;
-  border-radius: 6px;
-  border: 1px var(--color-divider-on-dark) solid;
-  top: 148px;
-  position: sticky;
+	width: 389px;
+	border-radius: 6px;
+	border: 1px var(--color-divider-on-dark) solid;
+	top: 148px;
+	position: sticky;
 
-  .caseDetailsLogo {
-    width: 100%;
-    position: relative;
-    height: 32px;
-    margin: 24px;
-  }
+	.caseDetailsLogo {
+		width: 100%;
+		position: relative;
+		height: 32px;
+		margin: 24px;
+	}
 
-  .caseDetailsBody {
-    display: flex;
-    flex-flow: column;
-    border-top: 1px var(--color-divider-on-dark) solid;
-    padding: 24px;
-    gap: 16px;
+	.caseDetailsBody {
+		display: flex;
+		flex-flow: column;
+		border-top: 1px var(--color-divider-on-dark) solid;
+		padding: 24px;
+		gap: 16px;
 
-    .caseDetailsBlock {
-      display: flex;
-      flex-flow: column;
-      gap: 4px;
-      .caseDetailsSecitonText {
-        color: var(--copy-on-dark);
-      }
-    }
-  }
+		.caseDetailsBlock {
+			display: flex;
+			flex-flow: column;
+			gap: 4px;
+			.caseDetailsSecitonText {
+				color: var(--copy-on-dark);
+			}
+		}
+	}
 }

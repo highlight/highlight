@@ -1,32 +1,32 @@
 .commentDiv {
-  text-align: left;
+	text-align: left;
 }
 
 .sectionImage {
-  text-align: center;
-  margin: 0 auto 100px auto;
+	text-align: center;
+	margin: 0 auto 100px auto;
 
-  img {
-    object-fit: cover;
-  }
+	img {
+		object-fit: cover;
+	}
 }
 
 .video {
-  box-sizing: border-box;
-  max-width: 1000px;
-  margin: 0 auto var(--size-xxLarge) auto;
-  width: 100%;
-  padding: 0 var(--size-xxLarge);
-  position: relative;
+	box-sizing: border-box;
+	max-width: 1000px;
+	margin: 0 auto var(--size-xxLarge) auto;
+	width: 100%;
+	padding: 0 var(--size-xxLarge);
+	position: relative;
 
-  video {
-    width: 100%;
-    border-radius: var(--size-xSmall);
-  }
+	video {
+		width: 100%;
+		border-radius: var(--size-xSmall);
+	}
 }
 
 @media screen and (max-width: 600px) {
-  .video {
-    padding: 0;
-  }
+	.video {
+		padding: 0;
+	}
 }

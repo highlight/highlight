@@ -1,14 +1,14 @@
 // from https://gist.github.com/pandauxstudio/d91860cbdfc2d12526ce04f8c4eb829b
 @mixin hide-scrollbar {
-  // There is a CSS rule that can hide scrollbars in IE 10+.
-  -ms-overflow-style: none;
+	// There is a CSS rule that can hide scrollbars in IE 10+.
+	-ms-overflow-style: none;
 
-  // There used to be a CSS rule that could hide scrollbars in Firefox, but it has since been deprecated.
-  scrollbar-width: none;
+	// There used to be a CSS rule that could hide scrollbars in Firefox, but it has since been deprecated.
+	scrollbar-width: none;
 
-  // https://blogs.msdn.microsoft.com/kurlak/2013/11/03/hiding-vertical-scrollbars-with-pure-css-in-chrome-ie-6-firefox-opera-and-safari/
-  // There is a CSS rule that can hide scrollbars in Webkit-based browsers (Chrome and Safari).
-  &::-webkit-scrollbar {
-    display: none !important;
-  }
+	// https://blogs.msdn.microsoft.com/kurlak/2013/11/03/hiding-vertical-scrollbars-with-pure-css-in-chrome-ie-6-firefox-opera-and-safari/
+	// There is a CSS rule that can hide scrollbars in Webkit-based browsers (Chrome and Safari).
+	&::-webkit-scrollbar {
+		display: none !important;
+	}
 }

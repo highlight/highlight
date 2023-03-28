@@ -4,17 +4,18 @@ import { frontendInstallSnippet } from '../shared-snippets'
 import { jsGetSnippet, manualError, verifyError } from './shared-snippets'
 
 export const JSNestContent: QuickStartContent = {
-  title: 'Nest.js',
-  subtitle: 'Learn how to set up highlight.io in Nest.js.',
-  logoUrl: siteUrl('/images/quickstart/nest.svg'),
-  entries: [
-    frontendInstallSnippet,
-    jsGetSnippet(['nest']),
-    {
-      title: 'Add the @highlight-run/nest app middleware.',
-      content: 'Use the `HighlightErrorFilter` middleware to capture backend errors.',
-      code: {
-        text: `import { HttpAdapterHost, NestFactory } from '@nestjs/core'
+	title: 'Nest.js',
+	subtitle: 'Learn how to set up highlight.io in Nest.js.',
+	logoUrl: siteUrl('/images/quickstart/nest.svg'),
+	entries: [
+		frontendInstallSnippet,
+		jsGetSnippet(['nest']),
+		{
+			title: 'Add the @highlight-run/nest app middleware.',
+			content:
+				'Use the `HighlightErrorFilter` middleware to capture backend errors.',
+			code: {
+				text: `import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { HighlightErrorFilter } from '@highlight-run/nest'
 
@@ -28,13 +29,13 @@ async function bootstrap() {
 }
 bootstrap()
 `,
-        language: 'js',
-      },
-    },
-    manualError,
-    verifyError(
-      'Nest.js',
-      `import { Injectable } from '@nestjs/common'
+				language: 'js',
+			},
+		},
+		manualError,
+		verifyError(
+			'Nest.js',
+			`import { Injectable } from '@nestjs/common'
 
 @Injectable()
 export class AppService {
@@ -49,12 +50,12 @@ export class AppService {
   }
 }
 `,
-    ),
-    {
-      title: 'Set up logging.',
-      content: `Start sending logs to Highlight! Follow the [logging setup guide](${siteUrl(
-        '/docs/getting-started/backend-logging/js/nestjs',
-      )}) to get started.`,
-    },
-  ],
+		),
+		{
+			title: 'Set up logging.',
+			content: `Start sending logs to Highlight! Follow the [logging setup guide](${siteUrl(
+				'/docs/getting-started/backend-logging/js/nestjs',
+			)}) to get started.`,
+		},
+	],
 }

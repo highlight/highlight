@@ -1,44 +1,44 @@
 .customerQuote {
-  position: relative;
-  border-left: 2px solid;
-  padding-left: 38px;
-  padding-top: var(--size-xSmall);
-  padding-bottom: var(--size-xSmall);
+	position: relative;
+	border-left: 2px solid;
+	padding-left: 38px;
+	padding-top: var(--size-xSmall);
+	padding-bottom: var(--size-xSmall);
 
-  .quoteAuthor {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin-top: 20px;
-    gap: 8px;
-  }
+	.quoteAuthor {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		margin-top: 20px;
+		gap: 8px;
+	}
 
-  blockquote {
-    position: relative;
-    margin: 0;
-  }
+	blockquote {
+		position: relative;
+		margin: 0;
+	}
 
-  span.quote {
-    display: inline-block;
-    position: absolute;
-    font-size: 36px;
-    font-weight: 600;
-    line-height: 0;
-    width: 0;
+	span.quote {
+		display: inline-block;
+		position: absolute;
+		font-size: 36px;
+		font-weight: 600;
+		line-height: 0;
+		width: 0;
 
-    &.leftQuote {
-      left: -24px;
-      top: 16px;
-    }
+		&.leftQuote {
+			left: -24px;
+			top: 16px;
+		}
 
-    &.rightQuote {
-      padding-left: 8px;
-      bottom: 12px;
-    }
-  }
+		&.rightQuote {
+			padding-left: 8px;
+			bottom: 12px;
+		}
+	}
 
-  img.avatar {
-    overflow: hidden;
-    border-radius: 1000px;
-  }
+	img.avatar {
+		overflow: hidden;
+		border-radius: 1000px;
+	}
 }

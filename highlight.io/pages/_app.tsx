@@ -20,51 +20,56 @@ import { setAttributionData } from '../utils/attribution'
 Router.events.on('routeChangeStart', nProgress.start)
 Router.events.on('routeChangeError', nProgress.done)
 Router.events.on('routeChangeComplete', () => {
-  if (window.rudderanalytics) {
-    window.rudderanalytics?.page()
-  }
+	if (window.rudderanalytics) {
+		window.rudderanalytics?.page()
+	}
 
-  nProgress.done()
+	nProgress.done()
 })
 
 H.init('4d7k1xeo', {
-  networkRecording: {
-    enabled: true,
-    recordHeadersAndBody: true,
-  },
-  tracingOrigins: true,
+	networkRecording: {
+		enabled: true,
+		recordHeadersAndBody: true,
+	},
+	tracingOrigins: true,
 })
 
 function MyApp({ Component, pageProps }: AppProps) {
-  useEffect(() => {
-    const initialize = async () => {
-      setAttributionData()
+	useEffect(() => {
+		const initialize = async () => {
+			setAttributionData()
 
-      await rudderInitialize()
-      window.rudderanalytics?.page()
-      window.rudderanalytics?.identify()
-    }
+			await rudderInitialize()
+			window.rudderanalytics?.page()
+			window.rudderanalytics?.identify()
+		}
 
-    initialize()
-  }, [])
+		initialize()
+	}, [])
 
-  return (
-    <SSRProvider>
-      <Head>
-        <title>highlight.io: The open source monitoring platform.</title>
+	return (
+		<SSRProvider>
+			<Head>
+				<title>
+					highlight.io: The open source monitoring platform.
+				</title>
 
-        <link rel="preconnect" href="https://fonts.googleapis.com"></link>
+				<link
+					rel="preconnect"
+					href="https://fonts.googleapis.com"
+				></link>
 
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <Meta
-        title="highlight.io: The open source monitoring platform."
-        description="highlight.io is the open source monitoring platform that gives you the visibility you need."
-        absoluteImageUrl={`https://${process.env.NEXT_PUBLIC_VERCEL_URL}${MetaImage.src}`}
-      />
-      <Component {...pageProps} />
-    </SSRProvider>
-  )
+				<link rel="icon" href="/favicon.ico" />
+			</Head>
+			<Meta
+				title="highlight.io: The open source monitoring platform."
+				description="highlight.io is the open source monitoring platform that gives you the visibility you need."
+				absoluteImageUrl={`https://${process.env.NEXT_PUBLIC_VERCEL_URL}${MetaImage.src}`}
+			/>
+			<Component {...pageProps} />
+		</SSRProvider>
+	)
 }
 
 export default MyApp

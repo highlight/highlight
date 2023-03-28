@@ -1,53 +1,53 @@
 .genericButton {
-  padding: var(--button-vertical-padding) var(--size-large);
-  color: var(--text-primary);
-  font-weight: 500;
-  font-size: 16px;
-  border-radius: var(--size-xxSmall);
-  display: block;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
+	padding: var(--button-vertical-padding) var(--size-large);
+	color: var(--text-primary);
+	font-weight: 500;
+	font-size: 16px;
+	border-radius: var(--size-xxSmall);
+	display: block;
+	text-decoration: none;
+	transition: all 0.2s ease;
+	box-sizing: border-box;
 }
 
 .genericButton:hover {
-  cursor: pointer;
+	cursor: pointer;
 }
 
 .primaryButton {
-  background-color: var(--brand-accent-light);
-  color: var(--text-primary-inverted);
-  border-radius: var(--size-xSmall);
+	background-color: var(--brand-accent-light);
+	color: var(--text-primary-inverted);
+	border-radius: var(--size-xSmall);
 
-  &:hover {
-    background-color: var(--brand-accent);
-    color: var(--text-primary-inverted);
-  }
+	&:hover {
+		background-color: var(--brand-accent);
+		color: var(--text-primary-inverted);
+	}
 }
 
 .secondaryButton {
-  background-color: none;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0;
-  color: var(--brand-accent-light);
+	background-color: none;
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	padding: 0;
+	color: var(--brand-accent-light);
 
-  .arrow {
-    color: var(--brand-accent-light);
-    transition: all 0.3s ease;
-    margin-left: 10px;
-    margin-right: 6px;
-    font-size: var(--size-large);
-  }
+	.arrow {
+		color: var(--brand-accent-light);
+		transition: all 0.3s ease;
+		margin-left: 10px;
+		margin-right: 6px;
+		font-size: var(--size-large);
+	}
 
-  &:hover {
-    color: var(--color-secondary-300);
+	&:hover {
+		color: var(--color-secondary-300);
 
-    .arrow {
-      color: var(--color-secondary-300);
-      margin-left: var(--size-medium);
-      margin-right: 0;
-    }
-  }
+		.arrow {
+			color: var(--color-secondary-300);
+			margin-left: var(--size-medium);
+			margin-right: 0;
+		}
+	}
 }

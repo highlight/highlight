@@ -1,77 +1,88 @@
 @font-face {
-  font-display: swap;
-  font-family: 'Poppins';
-  font-style: normal;
-  font-weight: 600;
-  src: local('Poppins SemiBold'), local('PoppinsSemiBold'), url('./font/Poppins-SemiBold.ttf') format('ttf');
+	font-display: swap;
+	font-family: 'Poppins';
+	font-style: normal;
+	font-weight: 600;
+	src: local('Poppins SemiBold'), local('PoppinsSemiBold'),
+		url('./font/Poppins-SemiBold.ttf') format('ttf');
 }
 
 @font-face {
-  font-display: swap;
-  font-family: 'Poppins';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Poppins Regular'), local('PoppinsRegular'), url('./font/Poppins-Regular.ttf') format('ttf');
+	font-display: swap;
+	font-family: 'Poppins';
+	font-style: normal;
+	font-weight: 400;
+	src: local('Poppins Regular'), local('PoppinsRegular'),
+		url('./font/Poppins-Regular.ttf') format('ttf');
 }
 
 @font-face {
-  font-display: swap;
-  font-family: 'Poppins';
-  font-style: normal;
-  font-weight: 100;
-  src: local('Poppins Thin'), local('PoppinsThin'), url('./font/Poppins-Thin.ttf') format('ttf');
+	font-display: swap;
+	font-family: 'Poppins';
+	font-style: normal;
+	font-weight: 100;
+	src: local('Poppins Thin'), local('PoppinsThin'),
+		url('./font/Poppins-Thin.ttf') format('ttf');
 }
 
 @font-face {
-  font-display: swap;
-  font-family: 'Poppins';
-  font-style: normal;
-  font-weight: 800;
-  src: local('Poppins Black'), local('PoppinsBlack'), url('./font/Poppins-Black.ttf') format('ttf');
+	font-display: swap;
+	font-family: 'Poppins';
+	font-style: normal;
+	font-weight: 800;
+	src: local('Poppins Black'), local('PoppinsBlack'),
+		url('./font/Poppins-Black.ttf') format('ttf');
 }
 
 @font-face {
-  font-display: swap;
-  font-family: 'Poppins';
-  font-style: normal;
-  font-weight: 700;
-  src: local('Poppins Bold'), local('PoppinsBold'), url('./font/Poppins-Bold.ttf') format('ttf');
+	font-display: swap;
+	font-family: 'Poppins';
+	font-style: normal;
+	font-weight: 700;
+	src: local('Poppins Bold'), local('PoppinsBold'),
+		url('./font/Poppins-Bold.ttf') format('ttf');
 }
 
 @font-face {
-  font-display: swap;
-  font-family: 'Poppins';
-  font-style: normal;
-  font-weight: 500;
-  src: local('Poppins Medium'), local('PoppinsMedium'), url('./font/Poppins-Medium.ttf') format('ttf');
+	font-display: swap;
+	font-family: 'Poppins';
+	font-style: normal;
+	font-weight: 500;
+	src: local('Poppins Medium'), local('PoppinsMedium'),
+		url('./font/Poppins-Medium.ttf') format('ttf');
 }
 
 @font-face {
-  font-display: swap;
-  font-family: 'Poppins';
-  font-style: normal;
-  font-weight: 200;
-  src: local('Poppins ExtraLight'), local('PoppinsExtraLight'), url('./font/Poppins-ExtraLight.ttf') format('ttf');
+	font-display: swap;
+	font-family: 'Poppins';
+	font-style: normal;
+	font-weight: 200;
+	src: local('Poppins ExtraLight'), local('PoppinsExtraLight'),
+		url('./font/Poppins-ExtraLight.ttf') format('ttf');
 }
 
 @font-face {
-  font-display: swap;
-  font-family: 'Poppins';
-  font-style: normal;
-  font-weight: 300;
-  src: local('Poppins Light'), local('PoppinsLight'), url('./font/Poppins-Light.ttf') format('ttf');
+	font-display: swap;
+	font-family: 'Poppins';
+	font-style: normal;
+	font-weight: 300;
+	src: local('Poppins Light'), local('PoppinsLight'),
+		url('./font/Poppins-Light.ttf') format('ttf');
 }
 
 @font-face {
-  font-display: swap;
-  font-family: 'IBM Plex Mono';
-  font-style: normal;
-  font-weight: 400;
-  src: local('IBMPlexMono Regular'), local('IBMPlexMonoRegular'), url('./font/IBMPlexMono-Regular.ttf') format('ttf');
+	font-display: swap;
+	font-family: 'IBM Plex Mono';
+	font-style: normal;
+	font-weight: 400;
+	src: local('IBMPlexMono Regular'), local('IBMPlexMonoRegular'),
+		url('./font/IBMPlexMono-Regular.ttf') format('ttf');
 }
 
 @font-face {
-  font-weight: 1 999;
-  font-family: 'Fira Code';
-  src: local('FiraCode'), url('./font/FiraCode-VariableFont_wght.ttf') format('truetype-variations');
+	font-weight: 1 999;
+	font-family: 'Fira Code';
+	src: local('FiraCode'),
+		url('./font/FiraCode-VariableFont_wght.ttf')
+			format('truetype-variations');
 }

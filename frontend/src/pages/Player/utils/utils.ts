@@ -43,7 +43,7 @@ export const getGraphQLResolverName = (
 ): null | string => {
 	if (
 		!REQUEST_INITIATOR_TYPES.includes(
-			resource.initiatorType as typeof REQUEST_INITIATOR_TYPES[number],
+			resource.initiatorType as (typeof REQUEST_INITIATOR_TYPES)[number],
 		)
 	) {
 		return null
