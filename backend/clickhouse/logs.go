@@ -403,10 +403,28 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 }
 
 func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*sqlbuilder.SelectBuilder, error) {
+	filters := makeFilters(params.Query)
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select(selectStr).
-		From(LogsTable).
-		Where(sb.Equal("ProjectId", projectID))
+	sb.Select(selectStr).From(LogsTable)
+
+	// Clickhouse requires that PREWHERE clauses occur before WHERE clauses
+	// sql-builder doesn't support PREWHERE natively so we use `SQL` which sets a marker
+	// of where to place the raw SQL later when it is being built.
+	// In this case, we are placing the marker after the `FROM` clause
+	preWheres := []string{}
+	for _, body := range filters.body {
+		if strings.Contains(body, "%") {
+			sb.Where("Body ILIKE" + sb.Var(body))
+		} else {
+			preWheres = append(preWheres, "hasTokenCaseInsensitive(Body, "+sb.Var(body)+")")
+		}
+	}
+
+	if len(preWheres) > 0 {
+		sb.SQL("PREWHERE " + strings.Join(preWheres, " AND "))
+	}
+
+	sb.Where(sb.Equal("ProjectId", projectID))
 
 	if pagination.After != nil && len(*pagination.After) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.After)
