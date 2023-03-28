@@ -45,7 +45,6 @@
 				"REACT_APP_PUBLIC_GRAPH_URI",
 				"REACT_APP_STRIPE_API_PK",
 				"REACT_APP_VERCEL_INTEGRATION_NAME",
-
 				"CLICKUP_CLIENT_ID",
 				"DD_CLIENT_TOKEN",
 				"DISCORD_CLIENT_ID",
@@ -64,6 +63,9 @@
 			"inputs": ["**/*.ts*"]
 		},
 		"nextjs#lint": {
+			"dependsOn": ["^build"]
+		},
+		"highlight.io#lint": {
 			"dependsOn": ["^build"]
 		},
 		"test": {

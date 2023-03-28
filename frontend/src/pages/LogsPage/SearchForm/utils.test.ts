@@ -1,6 +1,8 @@
 import {
 	BODY_KEY,
+	buildLogsQueryForServer,
 	parseLogsQuery,
+	quoteQueryValue,
 	stringifyLogsQuery,
 	validateLogsQuery,
 } from './utils'
@@ -10,13 +12,13 @@ const complexQueryParams = [
 	{
 		key: 'name',
 		operator: '=',
-		value: 'Eric Thomas',
+		value: '"Eric Thomas"',
 		offsetStart: 0,
 	},
 	{
 		key: 'workspace',
 		operator: '=',
-		value: 'Chilly McWilly',
+		value: "'Chilly McWilly'",
 		offsetStart: 19,
 	},
 	{
@@ -70,7 +72,7 @@ describe('parseLogsQuery', () => {
 			{
 				key: 'name',
 				operator: '=',
-				value: 'Eric Thomas',
+				value: '"Eric Thomas"',
 				offsetStart: 27,
 			},
 		])
@@ -82,7 +84,7 @@ describe('parseLogsQuery', () => {
 			{
 				key: 'name',
 				operator: '=',
-				value: 'Eric Thomas',
+				value: '"Eric Thomas"',
 				offsetStart: 0,
 			},
 			{
@@ -90,6 +92,43 @@ describe('parseLogsQuery', () => {
 				operator: '=',
 				value: '',
 				offsetStart: 19,
+			},
+		])
+	})
+
+	it('handles separators in quotes', () => {
+		const query =
+			'"Error updating filter group: Filtering out noisy error" user:"Chilly: McWilly"'
+		expect(parseLogsQuery(query)).toEqual([
+			{
+				key: BODY_KEY,
+				operator: '=',
+				value: '"Error updating filter group: Filtering out noisy error"',
+				offsetStart: 0,
+			},
+			{
+				key: 'user',
+				offsetStart: 57,
+				operator: '=',
+				value: '"Chilly: McWilly"',
+			},
+		])
+	})
+
+	it('handles nested quotes', () => {
+		const query = `'test: "ing' user:'Chilly "McWilly"'`
+		expect(parseLogsQuery(query)).toEqual([
+			{
+				key: BODY_KEY,
+				operator: '=',
+				value: `'test: "ing'`,
+				offsetStart: 0,
+			},
+			{
+				key: 'user',
+				operator: '=',
+				value: `'Chilly "McWilly"'`,
+				offsetStart: 13,
 			},
 		])
 	})
@@ -111,8 +150,42 @@ describe('stringifyLogsQuery', () => {
 
 	it('parses complex params to a query string', () => {
 		expect(stringifyLogsQuery(complexQueryParams)).toEqual(
-			`${complexQueryString}`.replaceAll(`'`, `"`),
+			complexQueryString,
 		)
+	})
+
+	it('includes quotes for the body query', () => {
+		expect(
+			stringifyLogsQuery([
+				{
+					key: BODY_KEY,
+					operator: '=',
+					value: '"Error updating filter group: Filtering out noisy error"',
+					offsetStart: 0,
+				},
+			]),
+		).toEqual('"Error updating filter group: Filtering out noisy error"')
+	})
+})
+
+describe('buildLogsQueryForServer', () => {
+	it('handles quoted strings correctly', () => {
+		expect(
+			buildLogsQueryForServer([
+				{
+					key: BODY_KEY,
+					operator: '=',
+					value: `"test: \"ing"`,
+					offsetStart: 0,
+				},
+				{
+					key: 'user',
+					operator: '=',
+					value: `'Chilly "McWilly"'`,
+					offsetStart: 10,
+				},
+			]),
+		).toEqual(`"test: \"ing" user:"Chilly \"McWilly\""`)
 	})
 })
 
@@ -125,5 +198,19 @@ describe('validateLogsQuery', () => {
 		const params = [...complexQueryParams]
 		params[0].value = ''
 		expect(validateLogsQuery(params)).toBeFalsy()
+	})
+})
+
+describe('quoteQueryValue', () => {
+	it('quotes strings with spaces', () => {
+		expect(quoteQueryValue('a test query')).toEqual('"a test query"')
+	})
+
+	it('handles double quoted strings', () => {
+		expect(quoteQueryValue('"a test query"')).toEqual('"a test query"')
+	})
+
+	it('handles single quoted strings', () => {
+		expect(quoteQueryValue("'a test query'")).toEqual("'a test query'")
 	})
 })

@@ -2,6 +2,10 @@ import { useGetLogsErrorObjectsQuery, useGetLogsLazyQuery } from '@graph/hooks'
 import { LogEdge, PageInfo } from '@graph/schemas'
 import * as Types from '@graph/schemas'
 import { FORMAT } from '@pages/LogsPage/constants'
+import {
+	buildLogsQueryForServer,
+	parseLogsQuery,
+} from '@pages/LogsPage/SearchForm/utils'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -41,13 +45,15 @@ export const useGetLogs = ({
 	})
 	const [loadingAfter, setLoadingAfter] = useState(false)
 	const [loadingBefore, setLoadingBefore] = useState(false)
+	const queryTerms = parseLogsQuery(query)
+	const serverQuery = buildLogsQueryForServer(queryTerms)
 
 	const [getLogs, { data, loading, error, fetchMore }] = useGetLogsLazyQuery({
 		variables: {
 			project_id: project_id!,
 			at: logCursor,
 			params: {
-				query,
+				query: serverQuery,
 				date_range: {
 					start_date: moment(startDate).format(FORMAT),
 					end_date: moment(endDate).format(FORMAT),
