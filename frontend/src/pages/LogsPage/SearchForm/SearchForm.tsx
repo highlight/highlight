@@ -58,7 +58,7 @@ const SearchForm = ({
 	const { projectId } = useProjectId()
 	const formState = useFormState({ defaultValues: { query: initialQuery } })
 
-	const { data: keysData } = useGetLogsKeysQuery({
+	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
 		variables: {
 			project_id: projectId,
 			date_range: {
@@ -95,9 +95,10 @@ const SearchForm = ({
 			>
 				<Search
 					initialQuery={initialQuery}
-					keys={keysData?.logs_keys}
 					startDate={startDate}
 					endDate={endDate}
+					keys={keysData?.logs_keys}
+					keysLoading={keysLoading}
 				/>
 				<Box display="flex" pr="8" py="6">
 					<PreviousDateRangePicker
@@ -118,10 +119,11 @@ export { SearchForm }
 
 const Search: React.FC<{
 	initialQuery: string
-	keys?: GetLogsKeysQuery['logs_keys']
 	startDate: Date
 	endDate: Date
-}> = ({ initialQuery, keys, startDate, endDate }) => {
+	keys?: GetLogsKeysQuery['logs_keys']
+	keysLoading: boolean
+}> = ({ initialQuery, keys, keysLoading, startDate, endDate }) => {
 	const formState = useForm()
 	const { query } = formState.values
 	const { project_id } = useParams()
@@ -138,7 +140,7 @@ const Search: React.FC<{
 	const showValues =
 		activeTerm.key !== BODY_KEY ||
 		!!keys?.find((k) => k.name === activeTerm.key)
-	const loading = keys?.length === 0 || (showValues && valuesLoading)
+	const loading = keysLoading || (showValues && valuesLoading)
 	const showTermSelect = !!activeTerm.value.length
 
 	const visibleItems = showValues
