@@ -1,1 +1,1 @@
-Looking to contribute to highlight.io? Get started [here](https://github.com/highlight/highlight/blob/main/docs-content/general/4_company/open-source/contributing/1_getting-started.md)
+Looking to contribute to highlight.io? Get started [here](https://github.com/highlight/highlight/blob/main/docs-content/general/4_company/open-source/contributing/1_getting-started.md).
