@@ -37,7 +37,7 @@
 		"lodash.debounce": "^4.0.8",
 		"markdown-to-jsx": "^7.1.8",
 		"match-sorter": "^6.3.1",
-		"next": "^13.0.4",
+		"next": "^13.2.4",
 		"next-axiom": "^0.16.0",
 		"next-mdx-remote": "^4.3.0",
 		"nextjs-cors": "latest",
