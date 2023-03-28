@@ -80,6 +80,7 @@ export const SetupDocs: React.FC<Props> = ({
 											projectVerboseId,
 										)}
 										className={clsx(styles.codeBlock)}
+										customStyle={{}} // removes unwanted bottom padding
 									/>
 								)}
 							</Section>
@@ -104,24 +105,30 @@ export const Section: React.FC<React.PropsWithChildren<SectionProps>> = ({
 	const [open, setOpen] = React.useState(!!defaultOpen)
 
 	return (
-		<Box border="secondary" borderRadius="8" p="16" boxShadow="small">
-			<Stack justify="space-between" direction="row" align="center">
+		<Box
+			border="secondary"
+			borderRadius="8"
+			px="16"
+			pt="24"
+			pb={open ? '16' : '24'}
+			boxShadow="small"
+		>
+			<Box position="relative" pr="40">
 				<Heading level="h4">{title}</Heading>
-				<Box flexShrink={0}>
-					<ButtonIcon
-						kind="secondary"
-						emphasis="low"
-						onClick={() => setOpen(!open)}
-						icon={
-							open ? (
-								<IconSolidCheveronDown />
-							) : (
-								<IconSolidCheveronUp />
-							)
-						}
-					/>
-				</Box>
-			</Stack>
+				<ButtonIcon
+					className={styles.sectionToggle}
+					kind="secondary"
+					emphasis="low"
+					onClick={() => setOpen(!open)}
+					icon={
+						open ? (
+							<IconSolidCheveronDown />
+						) : (
+							<IconSolidCheveronUp />
+						)
+					}
+				/>
+			</Box>
 
 			{open && <Box mt="24">{children}</Box>}
 		</Box>

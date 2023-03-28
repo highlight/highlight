@@ -1,6 +1,12 @@
 import { vars } from '@highlight-run/ui'
 import { globalStyle, style } from '@vanilla-extract/css'
 
+export const sectionToggle = style({
+	position: 'absolute',
+	right: 0,
+	top: -6,
+})
+
 export const codeBlock = style({
 	backgroundColor: vars.theme.static.surface.raised,
 	border: vars.border.dividerWeak,

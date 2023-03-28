@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import { useGetProjectQuery } from '@graph/hooks'
 import {
 	Badge,
@@ -17,7 +16,6 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
-import SetupPage from '@pages/Setup/SetupPage'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
 import { useClientIntegrated, useServerIntegrated } from '@util/integrated'
@@ -54,11 +52,11 @@ export type Guide = {
 type DocsKey = 'client' | 'backend' | 'backend-logging'
 export type DocsSection = {
 	title: string
-	description: string
+	subtitle: string
 } & {
 	[key: string]: {
 		title: string
-		description: string
+		subtitle: string
 	} & {
 		[key: string]: Guide
 	}
@@ -85,7 +83,6 @@ const SetupRouter = () => {
 			? clientIntegrationData
 			: undefined
 	const { projectId } = useProjectId()
-	const { isHighlightAdmin } = useAuthContext()
 	const [docs, setDocs] = useState<Guides>()
 	const { data } = useGetProjectQuery({ variables: { id: projectId! } })
 	const projectVerboseId = data?.project?.verbose_id
@@ -115,21 +112,6 @@ const SetupRouter = () => {
 	const copyProjectId = () => {
 		window.navigator.clipboard.writeText(projectVerboseId!)
 		message.success('Project ID copied to your clipboard!')
-	}
-
-	if (!isHighlightAdmin) {
-		return (
-			<Routes>
-				<Route
-					path="*"
-					element={<SetupPage integrated={!!clientIntegrationData} />}
-				/>
-				<Route
-					path=":step"
-					element={<SetupPage integrated={!!clientIntegrationData} />}
-				/>
-			</Routes>
-		)
 	}
 
 	return (

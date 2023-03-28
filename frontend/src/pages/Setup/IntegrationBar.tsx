@@ -27,8 +27,8 @@ type Props = React.PropsWithChildren & {
 
 const AREA_TITLE_MAP = {
 	client: 'UX monitoring',
-	backend: 'Server monitoring',
-	'backend-logging': 'Server logging',
+	backend: 'Backend monitoring',
+	'backend-logging': 'Backend logging',
 }
 
 export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {

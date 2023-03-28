@@ -91,21 +91,11 @@ export enum QuickStartType {
 	RubyRails = 'rails',
 }
 
-export const quickStartContent: {
-	other: {
-		[key: string]: QuickStartContent
-	}
-} & {
-	[key: string]: {
-		title: string
-		subtitle: string
-	} & {
-		[key: string]: QuickStartContent
-	}
-} = {
+export const quickStartContent = {
 	client: {
 		title: 'Client SDKs',
 		subtitle: 'Select a client SDK to get started.',
+		logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 		js: {
 			title: 'Select your client framework',
 			subtitle:
@@ -118,15 +108,6 @@ export const quickStartContent: {
 			[QuickStartType.Gatsby]: GatsbyContent,
 			[QuickStartType.Other]: OtherContext,
 		},
-		// Returning this as part of the base object so we don't break the old docs.
-		// We can remove this once the app-side changes are deployed.
-		[QuickStartType.React]: ReactContent,
-		[QuickStartType.Angular]: AngularContent,
-		[QuickStartType.Next]: NextContent,
-		[QuickStartType.Vue]: VueContent,
-		[QuickStartType.Gatsby]: GatsbyContent,
-		[QuickStartType.SvelteKit]: SvelteKitContent,
-		[QuickStartType.Other]: OtherContext,
 	},
 	backend: {
 		title: 'Select your backend language',
