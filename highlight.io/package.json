@@ -11,6 +11,9 @@
 		"start": "next start",
 		"styles": "yarn typed-scss-modules ./ --watch --ignore '**/node_modules'"
 	},
+	"installConfig": {
+		"hoistingLimits": "workspaces"
+	},
 	"dependencies": {
 		"@docsearch/css": "3",
 		"@docsearch/js": "3",
