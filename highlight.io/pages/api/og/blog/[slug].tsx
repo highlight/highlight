@@ -7,7 +7,7 @@ import { GraphQLRequest } from '../../../../utils/graphql'
 import styles from '../../../../components/Products/Products.module.scss'
 
 export const config = {
-	runtime: 'experimental-edge',
+	runtime: 'edge',
 }
 
 const QUERY = gql`
