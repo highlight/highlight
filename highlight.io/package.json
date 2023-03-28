@@ -7,7 +7,6 @@
 		"dev": "run-p next-dev styles",
 		"next-dev": "next dev",
 		"lint": "next lint",
-		"preinstall": "git submodule update --init --recursive",
 		"prepare": "husky install",
 		"start": "next start",
 		"styles": "yarn typed-scss-modules ./ --watch --ignore '**/node_modules'"
