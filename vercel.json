@@ -1,0 +1,7 @@
+{
+	"functions": {
+		"highlight.io/pages/api/**/*": {
+			"excludeFiles": "**/public/**"
+		}
+	}
+}
