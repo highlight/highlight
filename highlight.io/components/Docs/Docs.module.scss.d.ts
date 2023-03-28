@@ -53,7 +53,6 @@ export const sdkCenterSection: string
 export const sdkDocSection: string
 export const sdkLeftColumn: string
 export const sdkPageTitle: string
-export const sdkRender: string
 export const sdkRightColumn: string
 export const sdkSocialItem: string
 export const searchContainer: string
