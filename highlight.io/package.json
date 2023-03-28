@@ -11,9 +11,6 @@
 		"start": "next start",
 		"styles": "yarn typed-scss-modules ./ --watch --ignore '**/node_modules'"
 	},
-	"installConfig": {
-		"hoistingLimits": "workspaces"
-	},
 	"dependencies": {
 		"@docsearch/css": "3",
 		"@docsearch/js": "3",
@@ -23,7 +20,6 @@
 		"@highlight-run/next": "workspace:*",
 		"@radix-ui/react-slider": "^1.1.0",
 		"@supabase/supabase-js": "^2.7.1",
-		"@types/js-cookie": "^3.0.2",
 		"@vercel/og": "^0.0.27",
 		"antd": "^4.24.7",
 		"classnames": "^2.3.1",
@@ -73,6 +69,7 @@
 	},
 	"devDependencies": {
 		"@svgr/webpack": "^6.5.1",
+		"@types/js-cookie": "^3.0.2",
 		"@types/js-yaml": "^4.0.5",
 		"@types/lodash.debounce": "^4.0.7",
 		"@types/node": "18.11.18",
