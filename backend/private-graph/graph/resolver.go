@@ -510,8 +510,8 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	return nil, e.New("admin doesn't exist in project")
 }
 
-func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, errorGroupID int, errorGroupCreated time.Time) (*time.Time, *time.Time, error) {
-	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, time.Since(errorGroupCreated))
+func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.ErrorGroup) (*time.Time, *time.Time, error) {
+	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(eg.ProjectID), timeseries.Errors), timeseries.Errors, time.Since(eg.CreatedAt))
 	var filter string
 	if measurement == timeseries.Error.AggName {
 		filter = `|> filter(fn: (r) => r._value > 0)`
@@ -526,18 +526,90 @@ func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, 
 
       union(tables:[query() |> first(), query() |> last()])
         |> sort(columns: ["ErrorGroupID", "_field", "_time"])
-	`, bucket, measurement, errorGroupID, filter)
+	`, bucket, measurement, eg.ID, filter)
 	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupOccurrences")
-	span.SetTag("projectID", projectID)
-	span.SetTag("errorGroupID", errorGroupID)
+	span.SetTag("projectID", eg.ProjectID)
+	span.SetTag("errorGroupID", eg.ID)
 	results, err := r.TDB.Query(ctx, query)
 	if err != nil {
-		return nil, nil, e.Wrap(err, "failed to perform tdb query for error group occurrences")
+		log.WithContext(ctx).WithError(err).Error("failed to perform tdb query for error group occurrences")
 	}
 	if len(results) < 2 {
-		return nil, nil, nil
+		return &eg.CreatedAt, &eg.UpdatedAt, nil
 	}
 	return &results[0].Time, &results[1].Time, nil
+}
+
+func (r *Resolver) GetErrorFrequenciesOpensearch(errorGroups []*model.ErrorGroup, lookbackPeriod int) (map[int][]int64, map[int][]*modelInputs.ErrorDistributionItem, error) {
+	endDate := time.Now().UTC()
+	startDate := endDate.AddDate(0, 0, -1*lookbackPeriod)
+	startDateFormatted := startDate.Format("2006-01-02")
+
+	aggQuery :=
+		fmt.Sprintf(`{"bool": {
+			"must": [
+				{
+					"terms": {
+					"routing.keyword" : [%s]
+				}},
+				{
+					"range": {
+					"timestamp": {
+						"gte": "%s"
+					}
+				}}
+			]
+		}}`,
+			strings.Join(lo.Map(errorGroups, func(e *model.ErrorGroup, i int) string { return strconv.Itoa(e.ID) }), ","),
+			startDateFormatted)
+	aggOptions := opensearch.SearchOptions{
+		MaxResults: pointy.Int(0),
+		Aggregation: &opensearch.TermsAggregation{
+			Field: "routing.keyword",
+			SubAggregation: &opensearch.DateHistogramAggregation{
+				Field:            "timestamp",
+				CalendarInterval: "day",
+				SortOrder:        "desc",
+				Format:           "yyyy-MM-dd",
+				TimeZone:         "UTC",
+			},
+		},
+	}
+
+	var ignored []struct{}
+	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, -1, aggQuery, aggOptions, &ignored)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	errFreqs := map[int][]int64{}
+	errMetrics := map[int][]*modelInputs.ErrorDistributionItem{}
+	for _, ar1 := range aggResults {
+		errorGroupId, err := strconv.Atoi(ar1.Key)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		freqMap := map[string]int64{}
+		for _, ar2 := range ar1.SubAggregationResults {
+			freqMap[ar2.Key] = ar2.DocCount
+		}
+
+		var freqs []int64
+		for curDate := startDate; !curDate.After(endDate); curDate = curDate.AddDate(0, 0, 1) {
+			curDateFormatted := curDate.Format("2006-01-02")
+			freq, ok := freqMap[curDateFormatted]
+			if !ok {
+				freq = 0
+			}
+			freqs = append(freqs, freq)
+			errMetrics[errorGroupId] = append(errMetrics[errorGroupId], &modelInputs.ErrorDistributionItem{ErrorGroupID: errorGroupId, Date: curDate.Truncate(24 * time.Hour), Name: "count", Value: freq})
+		}
+
+		errFreqs[errorGroupId] = freqs
+	}
+
+	return errFreqs, errMetrics, nil
 }
 
 func (r *Resolver) GetErrorGroupFrequenciesUnsampled(ctx context.Context, projectID int, errorGroupID int) ([]*modelInputs.ErrorDistributionItem, error) {
@@ -557,7 +629,7 @@ func (r *Resolver) GetErrorGroupFrequenciesUnsampled(ctx context.Context, projec
 				"count", "environmentCount", "identifierCount", "sessionCount",
 			} {
 				response = append(response, &modelInputs.ErrorDistributionItem{
-					ErrorGroupID: strconv.Itoa(errorGroupID),
+					ErrorGroupID: errorGroupID,
 					Date:         r.Time,
 					Name:         k,
 					Value:        r.Values[k].(int64),
@@ -607,8 +679,9 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 			if r.Values["ErrorGroupID"] != nil {
 				id = r.Values["ErrorGroupID"].(string)
 			}
+			idInt, _ := strconv.Atoi(id)
 			response = append(response, &modelInputs.ErrorDistributionItem{
-				ErrorGroupID: id,
+				ErrorGroupID: idInt,
 				Date:         r.Time,
 				Name:         field.(string),
 				Value:        value,
@@ -618,7 +691,7 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 	return response, nil
 }
 
-func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
+func (r *Resolver) SetErrorFrequencies(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
 	params := modelInputs.ErrorGroupFrequenciesParamsInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
 			StartDate: time.Now().Add(time.Duration(-24*lookbackPeriod) * time.Hour),
@@ -626,19 +699,50 @@ func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int,
 		},
 		ResolutionMinutes: 24 * 60,
 	}
-	var errorGroupMap = make(map[string]*model.ErrorGroup)
-	var errorGroupIDs []int
+	var errorGroupMap = make(map[int]*model.ErrorGroup)
 	for _, errorGroup := range errorGroups {
-		errorGroup.ErrorMetrics = []*struct {
-			ErrorGroupID int
-			Date         time.Time
-			Name         string
-			Value        int64
-		}{}
-		errorGroupMap[strconv.Itoa(errorGroup.ID)] = errorGroup
-		errorGroupIDs = append(errorGroupIDs, errorGroup.ID)
+		errorGroup.ErrorMetrics = []*modelInputs.ErrorDistributionItem{}
+		errorGroupMap[errorGroup.ID] = errorGroup
 	}
-	results, err := r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, "")
+	oldErrorGroups := make(map[int]*model.ErrorGroup)
+	var err error
+	var results []*modelInputs.ErrorDistributionItem
+	for _, eg := range errorGroups {
+		if time.Since(eg.CreatedAt) <= time.Hour {
+			results, err = r.GetErrorGroupFrequenciesUnsampled(ctx, eg.ProjectID, eg.ID)
+			if err != nil {
+				log.WithContext(ctx).Error(err)
+			}
+			endDate := time.Now().UTC().AddDate(0, 0, -1)
+			startDate := endDate.AddDate(0, 0, -1*(lookbackPeriod-1))
+			for curDate := startDate; !curDate.After(endDate); curDate = curDate.AddDate(0, 0, 1) {
+				eg.ErrorFrequency = append(eg.ErrorFrequency, 0)
+				eg.ErrorMetrics = append(eg.ErrorMetrics, &modelInputs.ErrorDistributionItem{ErrorGroupID: eg.ID, Date: curDate.Truncate(24 * time.Hour), Name: "count", Value: 0})
+			}
+			for _, r := range results {
+				if r.Name == "count" {
+					eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
+				}
+				eg.ErrorMetrics = append(eg.ErrorMetrics, &modelInputs.ErrorDistributionItem{ErrorGroupID: eg.ID, Date: r.Date, Name: r.Name, Value: r.Value})
+			}
+			// fallback to using opensearch for the frequency query
+			if len(results) == 0 {
+				errFreqs, errMetrics, err := r.GetErrorFrequenciesOpensearch([]*model.ErrorGroup{eg}, lookbackPeriod)
+				if err != nil {
+					log.WithContext(ctx).Error(err)
+				} else {
+					eg.ErrorFrequency = errFreqs[eg.ID]
+					eg.ErrorMetrics = errMetrics[eg.ID]
+				}
+			}
+		} else {
+			oldErrorGroups[eg.ID] = eg
+		}
+	}
+
+	results, err = r.GetErrorGroupFrequencies(ctx, projectID, lo.Map(lo.Values(oldErrorGroups), func(eg *model.ErrorGroup, i int) int {
+		return eg.ID
+	}), params, "")
 	if err != nil {
 		return err
 	}
@@ -647,87 +751,21 @@ func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int,
 		if r.Name == "count" {
 			eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
 		}
-		eg.ErrorMetrics = append(eg.ErrorMetrics, &struct {
-			ErrorGroupID int
-			Date         time.Time
-			Name         string
-			Value        int64
-		}{ErrorGroupID: eg.ID, Date: r.Date, Name: r.Name, Value: r.Value})
+		eg.ErrorMetrics = append(eg.ErrorMetrics, &modelInputs.ErrorDistributionItem{ErrorGroupID: eg.ID, Date: r.Date, Name: r.Name, Value: r.Value})
 	}
-	return nil
-}
-
-func (r *Resolver) SetErrorFrequencies(errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
-	endDate := time.Now().UTC()
-	startDate := endDate.AddDate(0, 0, -1*lookbackPeriod)
-	startDateFormatted := startDate.Format("2006-01-02")
-
-	aggQuery :=
-		fmt.Sprintf(`{"bool": {
-			"must": [
-				{
-					"terms": {
-					"routing.keyword" : [%s]
-				}},
-				{
-					"range": {
-					"timestamp": {
-						"gte": "%s"
-					}
-				}}
-			]
-		}}`,
-			strings.Join(lo.Map(errorGroups, func(e *model.ErrorGroup, i int) string { return strconv.Itoa(e.ID) }), ","),
-			startDateFormatted)
-	aggOptions := opensearch.SearchOptions{
-		MaxResults: pointy.Int(0),
-		Aggregation: &opensearch.TermsAggregation{
-			Field: "routing.keyword",
-			SubAggregation: &opensearch.DateHistogramAggregation{
-				Field:            "timestamp",
-				CalendarInterval: "day",
-				SortOrder:        "desc",
-				Format:           "yyyy-MM-dd",
-				TimeZone:         "UTC",
-			},
-		},
-	}
-
-	ignored := []struct{}{}
-	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, -1, aggQuery, aggOptions, &ignored)
-	if err != nil {
-		return err
-	}
-
-	errFreqs := map[int][]int64{}
-	for _, ar1 := range aggResults {
-		freqMap := map[string]int64{}
-		for _, ar2 := range ar1.SubAggregationResults {
-			freqMap[ar2.Key] = ar2.DocCount
-		}
-
-		freqs := []int64{}
-		for curDate := startDate; !curDate.After(endDate); curDate = curDate.AddDate(0, 0, 1) {
-			curDateFormatted := curDate.Format("2006-01-02")
-			freq, ok := freqMap[curDateFormatted]
-			if !ok {
-				freq = 0
-			}
-			freqs = append(freqs, freq)
-		}
-
-		errorGroupId, err := strconv.Atoi(ar1.Key)
+	// fallback to using opensearch for the frequency query
+	if len(results) == 0 {
+		errFreqs, errMetrics, err := r.GetErrorFrequenciesOpensearch(lo.Values(oldErrorGroups), lookbackPeriod)
 		if err != nil {
-			return err
+			log.WithContext(ctx).Error(err)
+		} else {
+			for egID, freqs := range errFreqs {
+				eg := oldErrorGroups[egID]
+				eg.ErrorFrequency = freqs
+				eg.ErrorMetrics = errMetrics[egID]
+			}
 		}
-
-		errFreqs[errorGroupId] = freqs
 	}
-
-	for _, eg := range errorGroups {
-		eg.ErrorFrequency = errFreqs[eg.ID]
-	}
-
 	return nil
 }
 
@@ -842,10 +880,10 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 		return eg, false, e.Wrap(err, "error validating admin in project")
 	}
 
-	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID, eg.CreatedAt); err != nil {
+	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg); err != nil {
 		return nil, false, e.Wrap(err, "error querying error group occurrences")
 	}
-	if err := r.SetErrorFrequenciesInflux(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+	if err := r.SetErrorFrequencies(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
 		return nil, false, e.Wrap(err, "error querying error group frequencies")
 	}
 

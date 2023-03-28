@@ -224,7 +224,7 @@ type EnhancedUserDetailsResult struct {
 }
 
 type ErrorDistributionItem struct {
-	ErrorGroupID string    `json:"error_group_id"`
+	ErrorGroupID int       `json:"error_group_id"`
 	Date         time.Time `json:"date"`
 	Name         string    `json:"name"`
 	Value        int64     `json:"value"`
@@ -360,6 +360,8 @@ type Log struct {
 	TraceID         *string                `json:"traceID"`
 	SpanID          *string                `json:"spanID"`
 	SecureSessionID *string                `json:"secureSessionID"`
+	Source          *string                `json:"source"`
+	ServiceName     *string                `json:"serviceName"`
 }
 
 type LogEdge struct {
@@ -1208,6 +1210,8 @@ const (
 	ReservedLogKeySecureSessionID ReservedLogKey = "secure_session_id"
 	ReservedLogKeySpanID          ReservedLogKey = "span_id"
 	ReservedLogKeyTraceID         ReservedLogKey = "trace_id"
+	ReservedLogKeySource          ReservedLogKey = "source"
+	ReservedLogKeyServiceName     ReservedLogKey = "service_name"
 )
 
 var AllReservedLogKey = []ReservedLogKey{
@@ -1215,11 +1219,13 @@ var AllReservedLogKey = []ReservedLogKey{
 	ReservedLogKeySecureSessionID,
 	ReservedLogKeySpanID,
 	ReservedLogKeyTraceID,
+	ReservedLogKeySource,
+	ReservedLogKeyServiceName,
 }
 
 func (e ReservedLogKey) IsValid() bool {
 	switch e {
-	case ReservedLogKeyLevel, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID:
+	case ReservedLogKeyLevel, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName:
 		return true
 	}
 	return false

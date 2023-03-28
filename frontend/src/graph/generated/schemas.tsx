@@ -370,7 +370,7 @@ export type ErrorComment = {
 export type ErrorDistributionItem = {
 	__typename?: 'ErrorDistributionItem'
 	date: Scalars['Timestamp']
-	error_group_id: Scalars['String']
+	error_group_id: Scalars['ID']
 	name: Scalars['String']
 	value: Scalars['Int64']
 }
@@ -666,6 +666,8 @@ export type Log = {
 	logAttributes: Scalars['Map']
 	message: Scalars['String']
 	secureSessionID?: Maybe<Scalars['String']>
+	serviceName?: Maybe<Scalars['String']>
+	source?: Maybe<Scalars['String']>
 	spanID?: Maybe<Scalars['String']>
 	timestamp: Scalars['Timestamp']
 	traceID?: Maybe<Scalars['String']>
@@ -2109,6 +2111,8 @@ export enum ReservedLogKey {
 	Level = 'level',
 	Message = 'message',
 	SecureSessionId = 'secure_session_id',
+	ServiceName = 'service_name',
+	Source = 'source',
 	SpanId = 'span_id',
 	TraceId = 'trace_id',
 }

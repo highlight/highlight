@@ -66,7 +66,7 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 	}
 }
 
-func getLogRow(ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source string) *clickhouse.LogRow {
+func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source string) *clickhouse.LogRow {
 	return clickhouse.NewLogRow(
 		clickhouse.LogRowPrimaryAttrs{
 			Timestamp:       ts,
@@ -74,11 +74,12 @@ func getLogRow(ts time.Time, lvl, projectID, sessionID, traceID, spanID string, 
 			SpanId:          spanID,
 			SecureSessionId: sessionID,
 		},
-		clickhouse.WithBody(excMessage),
+		clickhouse.WithBody(ctx, excMessage),
+		clickhouse.WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, source == highlight.SourceAttributeFrontend),
 		clickhouse.WithProjectIDString(projectID),
 		clickhouse.WithServiceName(cast(resourceAttributes[string(semconv.ServiceNameKey)], "")),
-		clickhouse.WithLogAttributes(resourceAttributes, spanAttributes, eventAttributes, source == highlight.SourceAttributeFrontend),
 		clickhouse.WithSeverityText(lvl),
+		clickhouse.WithSource(source),
 	)
 }
 
@@ -94,7 +95,7 @@ func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, re
 		stackTrace = ""
 	}
 	stackTrace = formatStructureStackTrace(ctx, stackTrace)
-	payloadBytes, _ := json.Marshal(clickhouse.GetAttributesMap(resourceAttributes, spanAttributes, eventAttributes, false))
+	payloadBytes, _ := json.Marshal(clickhouse.GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, false))
 	err := &model.BackendErrorObjectInput{
 		SessionSecureID: &sessionID,
 		RequestID:       &requestID,
@@ -179,14 +180,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						ts := event.Timestamp().AsTime()
 
 						var logCursor *string
-						logRow := getLogRow(ts, "ERROR", projectID, sessionID, traceID, spanID, excMessage, resourceAttributes, spanAttributes, eventAttributes, source)
+						logRow := getLogRow(ctx, ts, "ERROR", projectID, sessionID, traceID, spanID, excMessage, resourceAttributes, spanAttributes, eventAttributes, source)
 						projectLogs[projectID] = append(projectLogs[projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
 
 						isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, source, excMessage, resourceAttributes, spanAttributes, eventAttributes)
 						if backendError == nil {
-							data, _ := req.MarshalJSON()
-							log.WithContext(ctx).WithField("BackendErrorEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span error got no session and no project")
+							log.WithContext(ctx).WithField("BackendErrorEvent", event).Errorf("otel span error got no session and no project")
 						} else {
 							if isProjectError {
 								projectErrors[projectID] = append(projectErrors[projectID], backendError)
@@ -206,7 +206,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						}
 
 						var logCursor *string
-						logRow := getLogRow(ts, logSev, projectID, sessionID, traceID, spanID, logMessage, resourceAttributes, spanAttributes, eventAttributes, source)
+						logRow := getLogRow(ctx, ts, logSev, projectID, sessionID, traceID, spanID, logMessage, resourceAttributes, spanAttributes, eventAttributes, source)
 						projectLogs[projectID] = append(projectLogs[projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
 
@@ -370,7 +370,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					ProjectId:       uint32(projectIDInt),
 					SecureSessionId: sessionID,
 				},
-					clickhouse.WithLogAttributes(resourceAttributes, scopeAttributes, logAttributes, false),
+					clickhouse.WithLogAttributes(ctx, resourceAttributes, scopeAttributes, logAttributes, false),
 					clickhouse.WithSeverityText(logRecord.SeverityText()),
 				)
 

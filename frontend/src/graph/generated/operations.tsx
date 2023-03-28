@@ -4011,6 +4011,8 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 						| 'traceID'
 						| 'spanID'
 						| 'secureSessionID'
+						| 'source'
+						| 'serviceName'
 					>
 				}
 		>

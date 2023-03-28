@@ -76,7 +76,7 @@ type Guides = {
 	}
 }
 
-const IGNORED_KEYS = ['title', 'subtitle']
+const IGNORED_KEYS = ['title', 'subtitle', 'logoUrl']
 
 const SetupPage = ({ integrated }: { integrated: boolean }) => {
 	const navigate = useNavigate()

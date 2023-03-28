@@ -11603,6 +11603,8 @@ export const GetLogsDocument = gql`
 					traceID
 					spanID
 					secureSessionID
+					source
+					serviceName
 				}
 			}
 			pageInfo {
