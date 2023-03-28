@@ -44,7 +44,7 @@ export const timingBar = style({
 	height: '60%',
 })
 
-const gridTemplateColumns = '80px 80px 1fr 120px 160px'
+const gridTemplateColumns = '80px 80px 1fr 120px 140px 20px'
 const gridGap = 6
 
 export const networkHeader = style({

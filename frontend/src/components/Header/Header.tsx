@@ -43,8 +43,8 @@ import SvgXIcon from '@icons/XIcon'
 import { useBillingHook } from '@pages/Billing/Billing'
 import { getTrialEndDateMessage } from '@pages/Billing/utils/utils'
 import useLocalStorage from '@rehooks/local-storage'
-import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
-import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
@@ -69,7 +69,7 @@ export const Header = () => {
 		project_id: string
 	}>()
 	const { projectId: projectIdRemapped } = useProjectId()
-	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
+	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
@@ -91,20 +91,14 @@ export const Header = () => {
 			icon: IconSolidLightningBolt,
 		},
 		{
+			key: 'logs',
+			icon: IconSolidViewList,
+		},
+		{
 			key: 'alerts',
 			icon: IconSolidSpeakerphone,
 		},
 	]
-	if (
-		isHighlightAdmin ||
-		projectIdRemapped === '759' ||
-		projectIdRemapped === '1434'
-	) {
-		pages.splice(2, 0, {
-			key: 'logs',
-			icon: IconSolidViewList,
-		})
-	}
 
 	const inProjectOrWorkspace =
 		isLoggedIn && (projectIdRemapped || workspaceId)

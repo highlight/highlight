@@ -209,8 +209,9 @@ func validateOrigin(_ *http.Request, origin string) bool {
 		isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
 		// Is this an AWS Amplify environment?
 		isAWSEnv := strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")
+		isReflamePreview := origin == "https://highlight-test-lewisl.reflame.dev"
 
-		if origin == frontendURL || origin == "https://app.highlight.run" || origin == "https://app.highlight.io" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv {
+		if origin == frontendURL || origin == "https://app.highlight.run" || origin == "https://app.highlight.io" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv || isReflamePreview {
 			return true
 		}
 	} else if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
@@ -224,26 +225,22 @@ var defaultPort = "8082"
 func main() {
 	ctx := context.TODO()
 
-	// initialize logger
-	log.SetReportCaller(true)
 	// setup highlight
 	H.SetProjectID("1jdkoe52")
-	if util.IsDevOrTestEnv() && !util.IsInDocker() {
+	if util.IsDevOrTestEnv() {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql client address...")
 		H.SetGraphqlClientAddress("https://localhost:8082/public")
-		H.SetOTLPEndpoint("http://collector:4318")
+		if util.IsInDocker() {
+			H.SetOTLPEndpoint("http://collector:4318")
+		}
 	}
 	H.Start()
 	defer H.Stop()
 	H.SetDebugMode(log.StandardLogger())
+
 	// setup highlight logrus hook
-	log.AddHook(hlog.NewHook(hlog.WithLevels(
-		log.PanicLevel,
-		log.FatalLevel,
-		log.ErrorLevel,
-		log.WarnLevel,
-		log.InfoLevel,
-	)))
+	hlog.Init()
+	log.WithContext(ctx).WithField("hello", "world").Info("welcome to highlight.io")
 
 	switch os.Getenv("DEPLOYMENT_KEY") {
 	case "HIGHLIGHT_ONPREM_BETA":
@@ -319,7 +316,7 @@ func main() {
 		}
 	}
 
-	opensearchClient, err := opensearch.NewOpensearchClient()
+	opensearchClient, err := opensearch.NewOpensearchClient(db)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating opensearch client: %v", err)
 	}

@@ -26,7 +26,9 @@ import (
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
+	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 	"github.com/highlight-run/highlight/backend/apolloio"
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
 	highlightErrors "github.com/highlight-run/highlight/backend/errors"
@@ -44,6 +46,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
+	highlight "github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
@@ -54,6 +57,7 @@ import (
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
+	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -80,6 +84,11 @@ func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.Er
 // DiscordChannelsToNotify is the resolver for the DiscordChannelsToNotify field.
 func (r *errorAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*model.DiscordChannel, error) {
 	return obj.DiscordChannelsToNotify, nil
+}
+
+// WebhookDestinations is the resolver for the WebhookDestinations field.
+func (r *errorAlertResolver) WebhookDestinations(ctx context.Context, obj *model.ErrorAlert) ([]*model.WebhookDestination, error) {
+	return obj.WebhookDestinations, nil
 }
 
 // EmailsToNotify is the resolver for the EmailsToNotify field.
@@ -216,20 +225,6 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 	}
 }
 
-// ErrorMetrics is the resolver for the error_metrics field.
-func (r *errorGroupResolver) ErrorMetrics(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorDistributionItem, error) {
-	if time.Since(obj.CreatedAt) <= time.Hour {
-		return r.GetErrorGroupFrequenciesUnsampled(ctx, obj.ProjectID, obj.ID)
-	}
-	return r.GetErrorGroupFrequencies(ctx, obj.ProjectID, []int{obj.ID}, modelInputs.ErrorGroupFrequenciesParamsInput{
-		DateRange: &modelInputs.DateRangeRequiredInput{
-			StartDate: time.Now().Add(-24 * 30 * time.Hour),
-			EndDate:   time.Now(),
-		},
-		ResolutionMinutes: 24 * 60,
-	}, "")
-}
-
 // ErrorGroupSecureID is the resolver for the error_group_secure_id field.
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
 	if obj != nil {
@@ -304,6 +299,11 @@ func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model
 // DiscordChannelsToNotify is the resolver for the discord_channels_to_notify field.
 func (r *metricMonitorResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*model.DiscordChannel, error) {
 	return obj.DiscordChannelsToNotify, nil
+}
+
+// WebhookDestinations is the resolver for the webhook_destinations field.
+func (r *metricMonitorResolver) WebhookDestinations(ctx context.Context, obj *model.MetricMonitor) ([]*model.WebhookDestination, error) {
+	return obj.WebhookDestinations, nil
 }
 
 // EmailsToNotify is the resolver for the emails_to_notify field.
@@ -404,7 +404,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.Phone = pointy.String("")
 	admin.AboutYouDetailsFilled = &model.T
 
-	if !util.IsDevEnv() {
+	if util.IsHubspotEnabled() {
 		hubspotContactId, err := r.HubspotApi.CreateContactForAdmin(
 			ctx,
 			admin.ID,
@@ -494,7 +494,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 		return nil, e.Wrap(err, "error creating workspace")
 	}
 
-	if !util.IsDevEnv() {
+	if util.IsHubspotEnabled() {
 		// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
 		if _, err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name, r.DB); err != nil {
 			log.WithContext(ctx).Error(err, "error creating hubspot company")
@@ -628,7 +628,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfErrorGroupsViewed: &totalErrorGroupCountAsInt}).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error updating error group count for admin in postgres"))
 		}
-		if !util.IsDevEnv() {
+		if util.IsHubspotEnabled() {
 			if err := r.HubspotApi.UpdateContactProperty(ctx, admin.ID, []hubspot.Property{{
 				Name:     "number_of_highlight_error_groups_viewed",
 				Property: "number_of_highlight_error_groups_viewed",
@@ -723,7 +723,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: &totalSessionCountAsInt}).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error updating session count for admin in postgres"))
 		}
-		if !util.IsDevEnv() {
+		if util.IsHubspotEnabled() {
 			if err := r.HubspotApi.UpdateContactProperty(ctx, admin.ID, []hubspot.Property{{
 				Name:     "number_of_highlight_sessions_viewed",
 				Property: "number_of_highlight_sessions_viewed",
@@ -2430,7 +2430,7 @@ func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID in
 }
 
 // CreateMetricMonitor is the resolver for the createMetricMonitor field.
-func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, emails []*string, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
+func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2471,6 +2471,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 		Filters:           mmFilters,
 		AlertIntegrations: model.AlertIntegrations{
 			DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
+			WebhookDestinations:     webhook.GQLInputToGo(webhookDestinations),
 		},
 	}
 
@@ -2485,7 +2486,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 }
 
 // UpdateMetricMonitor is the resolver for the updateMetricMonitor field.
-func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, emails []*string, disabled *bool, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
+func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, disabled *bool, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2529,6 +2530,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 
 	metricMonitor.AlertIntegrations = model.AlertIntegrations{
 		DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
+		WebhookDestinations:     webhook.GQLInputToGo(webhookDestinations),
 	}
 
 	if emails != nil {
@@ -2571,7 +2573,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateErrorAlert is the resolver for the createErrorAlert field.
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2617,6 +2619,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 		RegexGroups: &regexGroupsString,
 		AlertIntegrations: model.AlertIntegrations{
 			DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
+			WebhookDestinations:     webhook.GQLInputToGo(webhookDestinations),
 		},
 	}
 
@@ -2631,7 +2634,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 }
 
 // UpdateErrorAlert is the resolver for the updateErrorAlert field.
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2699,6 +2702,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 
 	projectAlert.AlertIntegrations = model.AlertIntegrations{
 		DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
+		WebhookDestinations:     webhook.GQLInputToGo(webhookDestinations),
 	}
 
 	if err := r.DB.Model(&model.ErrorAlert{
@@ -3164,9 +3168,6 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 		}
 		if err := r.DB.Model(&dashboard).Association("Metrics").Append(&dashboardMetric); err != nil {
 			return -1, e.Wrap(err, "error updating fields")
-		}
-		if err := r.AutoCreateMetricMonitor(ctx, &dashboardMetric); err != nil {
-			log.WithContext(ctx).Errorf("failed to auto create metric monitor: %s", err)
 		}
 	}
 
@@ -3878,7 +3879,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 	errorFrequencyInfluxSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("resolver.errorFrequencyInflux"), tracer.Tag("project_id", projectID))
 
-	err = r.SetErrorFrequenciesInflux(ctx, projectID, asErrorGroups, ErrorGroupLookbackDays)
+	err = r.SetErrorFrequencies(ctx, projectID, asErrorGroups, ErrorGroupLookbackDays)
 	errorFrequencyInfluxSpan.Finish()
 
 	if err != nil {
@@ -3948,6 +3949,15 @@ func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorOb
 	errorObject := &model.ErrorObject{}
 	if err := r.DB.Where(&model.ErrorObject{Model: model.Model{ID: id}}).First(&errorObject).Error; err != nil {
 		return nil, e.Wrap(err, "error reading error object")
+	}
+	return errorObject, nil
+}
+
+// ErrorObjectForLog is the resolver for the error_object_for_log field.
+func (r *queryResolver) ErrorObjectForLog(ctx context.Context, logCursor string) (*model.ErrorObject, error) {
+	errorObject := &model.ErrorObject{}
+	if err := r.DB.Order("log_cursor").Model(&errorObject).Where(&model.ErrorObject{LogCursor: pointy.String(logCursor)}).Limit(1).Find(&errorObject).Error; err != nil || errorObject.ID == 0 {
+		return nil, e.Wrapf(err, "no error found for log cursor %s", logCursor)
 	}
 	return errorObject, nil
 }
@@ -4664,7 +4674,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 		return dists, nil
 	}
 
-	if err := r.SetErrorFrequencies([]*model.ErrorGroup{errGroup}, dateOffset); err != nil {
+	if err := r.SetErrorFrequencies(ctx, projectID, []*model.ErrorGroup{errGroup}, dateOffset); err != nil {
 		return nil, e.Wrap(err, "error setting error frequencies")
 	}
 	return errGroup.ErrorFrequency, nil
@@ -6993,13 +7003,17 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 }
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string) (*modelInputs.LogsPayload, error) {
+func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string) (*modelInputs.LogsConnection, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 
-	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params, after)
+	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params, clickhouse.Pagination{
+		After:  after,
+		Before: before,
+		At:     at,
+	})
 }
 
 // LogsTotalCount is the resolver for the logs_total_count field.
@@ -7023,13 +7037,13 @@ func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params
 }
 
 // LogsKeys is the resolver for the logs_keys field.
-func (r *queryResolver) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
+func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.LogKey, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 
-	return r.ClickhouseClient.LogsKeys(ctx, project.ID)
+	return r.ClickhouseClient.LogsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate)
 }
 
 // LogsKeyValues is the resolver for the logs_key_values field.
@@ -7040,6 +7054,24 @@ func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyNam
 	}
 
 	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
+}
+
+// LogsErrorObjects is the resolver for the logs_error_objects field.
+func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model.ErrorObject, error) {
+	ddS, _ := tracer.StartSpanFromContext(ctx, "resolver.LogsErrorObjects",
+		tracer.ResourceName("DB.Query"), tracer.Tag("NumLogCursors", len(logCursors)))
+	s, ctx := highlight.StartTrace(ctx, "LogsErrorObjects.DB.Query", attribute.Int("NumLogCursors", len(logCursors)))
+
+	var errorObjects []*model.ErrorObject
+	if err := r.DB.Model(&model.ErrorObject{}).Where("log_cursor IN ?", logCursors).Scan(&errorObjects).Error; err != nil {
+		s.RecordError(err)
+		highlight.EndTrace(s)
+		ddS.Finish(tracer.WithError(err))
+		return nil, e.Wrap(err, "failed to find errors for log cursors")
+	}
+	highlight.EndTrace(s)
+	ddS.Finish()
+	return errorObjects, nil
 }
 
 // Params is the resolver for the params field.

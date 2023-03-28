@@ -11,6 +11,10 @@ var (
 	IN_DOCKER      = os.Getenv("IN_DOCKER")
 )
 
+func IsHubspotEnabled() bool {
+	return !IsDevEnv()
+}
+
 func IsDevEnv() bool {
 	return env == DEV_ENV
 }

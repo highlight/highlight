@@ -12,10 +12,11 @@ import {
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
-import type {
+import {
 	ErrorInstance as ErrorInstanceType,
 	ErrorObject,
 	Maybe,
+	ReservedLogKey,
 } from '@graph/schemas'
 import {
 	Box,
@@ -23,15 +24,22 @@ import {
 	Heading,
 	IconSolidExternalLink,
 	IconSolidPlay,
+	IconSolidViewList,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import {
+	DEFAULT_LOGS_OPERATOR,
+	LogsSearchParam,
+	stringifyLogsQuery,
+} from '@pages/LogsPage/SearchForm/utils'
+import {
 	RightPanelView,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import {
@@ -47,7 +55,7 @@ import { buildQueryURLString } from '@util/url/params'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useNavigate } from 'react-router-dom'
+import { createSearchParams, useNavigate } from 'react-router-dom'
 
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
@@ -185,6 +193,15 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								kind="primary"
 								emphasis="high"
 								disabled={true}
+								iconLeft={<IconSolidViewList />}
+								trackingId="errorInstanceShowLogs"
+							>
+								Show logs
+							</Button>
+							<Button
+								kind="primary"
+								emphasis="high"
+								disabled={true}
 								iconLeft={<IconSolidPlay />}
 								trackingId="errorInstanceShowSession"
 							>
@@ -302,9 +319,61 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									return
 								}
 
+								const queryParams: LogsSearchParam[] = []
+								let offsetStart = 1
+								if (errorObject.session?.secure_id) {
+									queryParams.push({
+										key: ReservedLogKey.SecureSessionId,
+										operator: DEFAULT_LOGS_OPERATOR,
+										value: errorObject.session?.secure_id,
+										offsetStart: offsetStart++,
+									})
+								}
+								if (errorObject.trace_id) {
+									queryParams.push({
+										key: ReservedLogKey.TraceId,
+										operator: DEFAULT_LOGS_OPERATOR,
+										value: errorObject.trace_id,
+										offsetStart: offsetStart++,
+									})
+								}
+								const query = stringifyLogsQuery(queryParams)
+								const logCursor = errorObject.log_cursor
+								const params = createSearchParams({
+									query,
+									start_date: moment(errorObject.timestamp)
+										.add(-5, 'minutes')
+										.toISOString(),
+									end_date: moment(errorObject.timestamp)
+										.add(5, 'minutes')
+										.toISOString(),
+								})
+								if (logCursor) {
+									navigate(
+										`/${projectId}/logs/${logCursor}?${params}`,
+										{},
+									)
+								} else {
+									navigate(`/${projectId}/logs?${params}`)
+								}
+							}}
+							iconLeft={<IconSolidViewList />}
+							trackingId="errorInstanceShowLogs"
+						>
+							Show logs
+						</Button>
+						<Button
+							kind="primary"
+							emphasis="high"
+							disabled={!isLoggedIn || !errorObject.session}
+							onClick={() => {
+								if (!isLoggedIn) {
+									return
+								}
+
 								navigate(
 									`/${projectId}/sessions/${errorObject.session?.secure_id}` +
-										`?tsAbs=${errorObject.timestamp}`,
+										`?${PlayerSearchParameters.tsAbs}=${errorObject.timestamp}`,
 								)
 								setShowLeftPanel(false)
 								setShowRightPanel(true)
@@ -391,7 +460,7 @@ const Metadata: React.FC<{
 		{ key: 'browser', label: errorObject?.browser },
 		{ key: 'os', label: errorObject?.os },
 		{ key: 'url', label: errorObject?.url },
-		{ key: 'created_at', label: errorObject?.created_at },
+		{ key: 'timestamp', label: errorObject?.timestamp },
 		{
 			key: 'Custom Properties',
 			label: customProperties ? (
@@ -411,9 +480,9 @@ const Metadata: React.FC<{
 			<Box>
 				{metadata.map((meta) => {
 					const value =
-						meta.key === 'created_at'
+						meta.key === 'timestamp'
 							? moment(meta.label as string).format(
-									'M/D/YY h:mm:s.SSS A',
+									'M/D/YY h:mm:ss.SSS A',
 							  )
 							: meta.label
 					return (

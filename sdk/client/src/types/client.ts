@@ -114,12 +114,12 @@ type DefaultIntegrationOptions = {
 
 export declare interface MixpanelIntegrationOptions
 	extends DefaultIntegrationOptions {
-	projectToken: string
+	projectToken?: string
 }
 
 export declare interface AmplitudeIntegrationOptions
 	extends DefaultIntegrationOptions {
-	apiKey: string
+	apiKey?: string
 }
 
 export declare interface IntercomIntegrationOptions

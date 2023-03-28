@@ -347,6 +347,7 @@ export type ErrorAlert = {
 	RegexGroups: Array<Maybe<Scalars['String']>>
 	ThresholdWindow?: Maybe<Scalars['Int']>
 	Type: Scalars['String']
+	WebhookDestinations: Array<WebhookDestination>
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	updated_at: Scalars['Timestamp']
@@ -369,7 +370,7 @@ export type ErrorComment = {
 export type ErrorDistributionItem = {
 	__typename?: 'ErrorDistributionItem'
 	date: Scalars['Timestamp']
-	error_group_id: Scalars['String']
+	error_group_id: Scalars['ID']
 	name: Scalars['String']
 	value: Scalars['Int64']
 }
@@ -459,6 +460,7 @@ export type ErrorObject = {
 	event: Array<Maybe<Scalars['String']>>
 	id: Scalars['ID']
 	lineNumber?: Maybe<Scalars['Int']>
+	log_cursor?: Maybe<Scalars['String']>
 	os?: Maybe<Scalars['String']>
 	payload?: Maybe<Scalars['String']>
 	project_id: Scalars['Int']
@@ -466,9 +468,11 @@ export type ErrorObject = {
 	session?: Maybe<Session>
 	session_id?: Maybe<Scalars['Int']>
 	source?: Maybe<Scalars['String']>
+	span_id?: Maybe<Scalars['String']>
 	stack_trace: Scalars['String']
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
 	timestamp: Scalars['Timestamp']
+	trace_id?: Maybe<Scalars['String']>
 	type: Scalars['String']
 	url: Scalars['String']
 }
@@ -658,10 +662,12 @@ export type LinearTeam = {
 
 export type Log = {
 	__typename?: 'Log'
-	body: Scalars['String']
+	level: LogLevel
 	logAttributes: Scalars['Map']
+	message: Scalars['String']
 	secureSessionID?: Maybe<Scalars['String']>
-	severityText: SeverityText
+	serviceName?: Maybe<Scalars['String']>
+	source?: Maybe<Scalars['String']>
 	spanID?: Maybe<Scalars['String']>
 	timestamp: Scalars['Timestamp']
 	traceID?: Maybe<Scalars['String']>
@@ -683,6 +689,21 @@ export enum LogKeyType {
 	String = 'String',
 }
 
+export enum LogLevel {
+	Debug = 'debug',
+	Error = 'error',
+	Fatal = 'fatal',
+	Info = 'info',
+	Trace = 'trace',
+	Warn = 'warn',
+}
+
+export type LogsConnection = {
+	__typename?: 'LogsConnection'
+	edges: Array<LogEdge>
+	pageInfo: PageInfo
+}
+
 export type LogsHistogram = {
 	__typename?: 'LogsHistogram'
 	buckets: Array<LogsHistogramBucket>
@@ -698,18 +719,12 @@ export type LogsHistogramBucket = {
 export type LogsHistogramBucketCount = {
 	__typename?: 'LogsHistogramBucketCount'
 	count: Scalars['UInt64']
-	severityText: SeverityText
+	level: LogLevel
 }
 
 export type LogsParamsInput = {
 	date_range: DateRangeRequiredInput
 	query: Scalars['String']
-}
-
-export type LogsPayload = {
-	__typename?: 'LogsPayload'
-	edges: Array<LogEdge>
-	pageInfo: PageInfo
 }
 
 export type Metric = {
@@ -746,6 +761,7 @@ export type MetricMonitor = {
 	threshold: Scalars['Float']
 	units?: Maybe<Scalars['String']>
 	updated_at: Scalars['Timestamp']
+	webhook_destinations: Array<WebhookDestination>
 }
 
 export type MetricPreview = {
@@ -897,6 +913,7 @@ export type MutationCreateErrorAlertArgs = {
 	regex_groups: Array<InputMaybe<Scalars['String']>>
 	slack_channels: Array<InputMaybe<SanitizedSlackChannelInput>>
 	threshold_window: Scalars['Int']
+	webhook_destinations: Array<WebhookDestinationInput>
 }
 
 export type MutationCreateErrorCommentArgs = {
@@ -957,6 +974,7 @@ export type MutationCreateMetricMonitorArgs = {
 	slack_channels: Array<InputMaybe<SanitizedSlackChannelInput>>
 	threshold: Scalars['Float']
 	units?: InputMaybe<Scalars['String']>
+	webhook_destinations: Array<WebhookDestinationInput>
 }
 
 export type MutationCreateOrUpdateStripeSubscriptionArgs = {
@@ -1235,6 +1253,7 @@ export type MutationUpdateErrorAlertArgs = {
 	regex_groups?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
 	slack_channels?: InputMaybe<Array<InputMaybe<SanitizedSlackChannelInput>>>
 	threshold_window?: InputMaybe<Scalars['Int']>
+	webhook_destinations: Array<WebhookDestinationInput>
 }
 
 export type MutationUpdateErrorAlertIsDisabledArgs = {
@@ -1274,6 +1293,7 @@ export type MutationUpdateMetricMonitorArgs = {
 	slack_channels?: InputMaybe<Array<InputMaybe<SanitizedSlackChannelInput>>>
 	threshold?: InputMaybe<Scalars['Float']>
 	units?: InputMaybe<Scalars['String']>
+	webhook_destinations: Array<WebhookDestinationInput>
 }
 
 export type MutationUpdateMetricMonitorIsDisabledArgs = {
@@ -1361,6 +1381,8 @@ export type PageInfo = {
 	__typename?: 'PageInfo'
 	endCursor: Scalars['String']
 	hasNextPage: Scalars['Boolean']
+	hasPreviousPage: Scalars['Boolean']
+	startCursor: Scalars['String']
 }
 
 export type Plan = {
@@ -1436,6 +1458,7 @@ export type Query = {
 	error_instance?: Maybe<ErrorInstance>
 	error_issue: Array<Maybe<ExternalAttachment>>
 	error_object?: Maybe<ErrorObject>
+	error_object_for_log?: Maybe<ErrorObject>
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram: ErrorsHistogram
@@ -1460,7 +1483,8 @@ export type Query = {
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
-	logs: LogsPayload
+	logs: LogsConnection
+	logs_error_objects: Array<ErrorObject>
 	logs_histogram: LogsHistogram
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<LogKey>
@@ -1683,6 +1707,10 @@ export type QueryError_ObjectArgs = {
 	id: Scalars['ID']
 }
 
+export type QueryError_Object_For_LogArgs = {
+	log_cursor: Scalars['String']
+}
+
 export type QueryError_SegmentsArgs = {
 	project_id: Scalars['ID']
 }
@@ -1792,8 +1820,14 @@ export type QueryLiveUsersCountArgs = {
 
 export type QueryLogsArgs = {
 	after?: InputMaybe<Scalars['String']>
+	at?: InputMaybe<Scalars['String']>
+	before?: InputMaybe<Scalars['String']>
 	params: LogsParamsInput
 	project_id: Scalars['ID']
+}
+
+export type QueryLogs_Error_ObjectsArgs = {
+	log_cursors: Array<Scalars['String']>
 }
 
 export type QueryLogs_HistogramArgs = {
@@ -1808,6 +1842,7 @@ export type QueryLogs_Key_ValuesArgs = {
 }
 
 export type QueryLogs_KeysArgs = {
+	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
 }
 
@@ -2075,6 +2110,8 @@ export enum ReservedLogKey {
 	/** Keep this in alpha order */
 	Level = 'level',
 	SecureSessionId = 'secure_session_id',
+	ServiceName = 'service_name',
+	Source = 'source',
 	SpanId = 'span_id',
 	TraceId = 'trace_id',
 }
@@ -2253,6 +2290,7 @@ export type SessionAlertInput = {
 	track_properties: Array<TrackPropertyInput>
 	type: SessionAlertType
 	user_properties: Array<UserPropertyInput>
+	webhook_destinations: Array<WebhookDestinationInput>
 }
 
 export enum SessionAlertType {
@@ -2337,15 +2375,6 @@ export type SessionsHistogram = {
 	sessions_with_errors: Array<Scalars['Int64']>
 	sessions_without_errors: Array<Scalars['Int64']>
 	total_sessions: Array<Scalars['Int64']>
-}
-
-export enum SeverityText {
-	Debug = 'DEBUG',
-	Error = 'ERROR',
-	Fatal = 'FATAL',
-	Info = 'INFO',
-	Trace = 'TRACE',
-	Warn = 'WARN',
 }
 
 export type SlackSyncResponse = {
@@ -2499,6 +2528,17 @@ export type VercelProjectMappingInput = {
 	new_project_name?: InputMaybe<Scalars['String']>
 	project_id?: InputMaybe<Scalars['ID']>
 	vercel_project_id: Scalars['String']
+}
+
+export type WebhookDestination = {
+	__typename?: 'WebhookDestination'
+	authorization?: Maybe<Scalars['String']>
+	url: Scalars['String']
+}
+
+export type WebhookDestinationInput = {
+	authorization?: InputMaybe<Scalars['String']>
+	url: Scalars['String']
 }
 
 export type Workspace = {

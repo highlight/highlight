@@ -2574,6 +2574,7 @@ export const CreateErrorAlertDocument = gql`
 		$threshold_window: Int!
 		$slack_channels: [SanitizedSlackChannelInput]!
 		$discord_channels: [DiscordChannelInput!]!
+		$webhook_destinations: [WebhookDestinationInput!]!
 		$emails: [String]!
 		$environments: [String]!
 		$regex_groups: [String]!
@@ -2585,6 +2586,7 @@ export const CreateErrorAlertDocument = gql`
 			name: $name
 			slack_channels: $slack_channels
 			discord_channels: $discord_channels
+			webhook_destinations: $webhook_destinations
 			emails: $emails
 			environments: $environments
 			threshold_window: $threshold_window
@@ -2632,6 +2634,7 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
  *      discord_channels: // value for 'discord_channels'
+ *      webhook_destinations: // value for 'webhook_destinations'
  *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
@@ -2671,6 +2674,7 @@ export const CreateMetricMonitorDocument = gql`
 		$metric_to_monitor: String!
 		$slack_channels: [SanitizedSlackChannelInput]!
 		$discord_channels: [DiscordChannelInput!]!
+		$webhook_destinations: [WebhookDestinationInput!]!
 		$emails: [String]!
 	) {
 		createMetricMonitor(
@@ -2684,6 +2688,7 @@ export const CreateMetricMonitorDocument = gql`
 			metric_to_monitor: $metric_to_monitor
 			slack_channels: $slack_channels
 			discord_channels: $discord_channels
+			webhook_destinations: $webhook_destinations
 			emails: $emails
 		) {
 			id
@@ -2731,6 +2736,7 @@ export type CreateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
  *      discord_channels: // value for 'discord_channels'
+ *      webhook_destinations: // value for 'webhook_destinations'
  *      emails: // value for 'emails'
  *   },
  * });
@@ -2768,6 +2774,7 @@ export const UpdateMetricMonitorDocument = gql`
 		$metric_to_monitor: String
 		$slack_channels: [SanitizedSlackChannelInput]
 		$discord_channels: [DiscordChannelInput!]!
+		$webhook_destinations: [WebhookDestinationInput!]!
 		$emails: [String]
 		$disabled: Boolean
 	) {
@@ -2783,6 +2790,7 @@ export const UpdateMetricMonitorDocument = gql`
 			metric_to_monitor: $metric_to_monitor
 			slack_channels: $slack_channels
 			discord_channels: $discord_channels
+			webhook_destinations: $webhook_destinations
 			emails: $emails
 			disabled: $disabled
 		) {
@@ -2832,6 +2840,7 @@ export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
  *      discord_channels: // value for 'discord_channels'
+ *      webhook_destinations: // value for 'webhook_destinations'
  *      emails: // value for 'emails'
  *      disabled: // value for 'disabled'
  *   },
@@ -3032,6 +3041,7 @@ export const UpdateErrorAlertDocument = gql`
 		$threshold_window: Int
 		$slack_channels: [SanitizedSlackChannelInput]
 		$discord_channels: [DiscordChannelInput!]!
+		$webhook_destinations: [WebhookDestinationInput!]!
 		$emails: [String]
 		$environments: [String]
 		$regex_groups: [String]
@@ -3045,6 +3055,7 @@ export const UpdateErrorAlertDocument = gql`
 			count_threshold: $count_threshold
 			slack_channels: $slack_channels
 			discord_channels: $discord_channels
+			webhook_destinations: $webhook_destinations
 			emails: $emails
 			environments: $environments
 			threshold_window: $threshold_window
@@ -3097,6 +3108,7 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
  *      discord_channels: // value for 'discord_channels'
+ *      webhook_destinations: // value for 'webhook_destinations'
  *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
@@ -7738,6 +7750,64 @@ export type GetErrorGroupQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupQuery,
 	Types.GetErrorGroupQueryVariables
 >
+export const GetErrorObjectForLogDocument = gql`
+	query GetErrorObjectForLog($log_cursor: String!) {
+		error_object_for_log(log_cursor: $log_cursor) {
+			id
+			error_group_secure_id
+			project_id
+		}
+	}
+`
+
+/**
+ * __useGetErrorObjectForLogQuery__
+ *
+ * To run a query within a React component, call `useGetErrorObjectForLogQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorObjectForLogQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorObjectForLogQuery({
+ *   variables: {
+ *      log_cursor: // value for 'log_cursor'
+ *   },
+ * });
+ */
+export function useGetErrorObjectForLogQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorObjectForLogQuery,
+		Types.GetErrorObjectForLogQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorObjectForLogQuery,
+		Types.GetErrorObjectForLogQueryVariables
+	>(GetErrorObjectForLogDocument, baseOptions)
+}
+export function useGetErrorObjectForLogLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorObjectForLogQuery,
+		Types.GetErrorObjectForLogQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorObjectForLogQuery,
+		Types.GetErrorObjectForLogQueryVariables
+	>(GetErrorObjectForLogDocument, baseOptions)
+}
+export type GetErrorObjectForLogQueryHookResult = ReturnType<
+	typeof useGetErrorObjectForLogQuery
+>
+export type GetErrorObjectForLogLazyQueryHookResult = ReturnType<
+	typeof useGetErrorObjectForLogLazyQuery
+>
+export type GetErrorObjectForLogQueryResult = Apollo.QueryResult<
+	Types.GetErrorObjectForLogQuery,
+	Types.GetErrorObjectForLogQueryVariables
+>
 export const GetErrorObjectDocument = gql`
 	query GetErrorObject($id: ID!) {
 		error_object(id: $id) {
@@ -7844,6 +7914,9 @@ export const GetErrorInstanceDocument = gql`
 				created_at
 				project_id
 				session_id
+				trace_id
+				span_id
+				log_cursor
 				session {
 					identifier
 					fingerprint
@@ -10487,6 +10560,10 @@ export const GetAlertsPagePayloadDocument = gql`
 			DiscordChannelsToNotify {
 				...DiscordChannelFragment
 			}
+			WebhookDestinations {
+				url
+				authorization
+			}
 			EmailsToNotify
 			ExcludedEnvironments
 			updated_at
@@ -10530,6 +10607,10 @@ export const GetAlertsPagePayloadDocument = gql`
 			discord_channels_to_notify {
 				id
 				name
+			}
+			webhook_destinations {
+				url
+				authorization
 			}
 			emails_to_notify
 			aggregator
@@ -11498,22 +11579,38 @@ export type GetEmailOptOutsQueryResult = Apollo.QueryResult<
 	Types.GetEmailOptOutsQueryVariables
 >
 export const GetLogsDocument = gql`
-	query GetLogs($project_id: ID!, $params: LogsParamsInput!, $after: String) {
-		logs(project_id: $project_id, params: $params, after: $after) {
+	query GetLogs(
+		$project_id: ID!
+		$params: LogsParamsInput!
+		$after: String
+		$before: String
+		$at: String
+	) {
+		logs(
+			project_id: $project_id
+			params: $params
+			after: $after
+			before: $before
+			at: $at
+		) {
 			edges {
 				cursor
 				node {
 					timestamp
-					severityText
-					body
+					level
+					message
 					logAttributes
 					traceID
 					spanID
 					secureSessionID
+					source
+					serviceName
 				}
 			}
 			pageInfo {
 				hasNextPage
+				hasPreviousPage
+				startCursor
 				endCursor
 			}
 		}
@@ -11535,6 +11632,8 @@ export const GetLogsDocument = gql`
  *      project_id: // value for 'project_id'
  *      params: // value for 'params'
  *      after: // value for 'after'
+ *      before: // value for 'before'
+ *      at: // value for 'at'
  *   },
  * });
  */
@@ -11621,9 +11720,73 @@ export type GetLogsTotalCountQueryResult = Apollo.QueryResult<
 	Types.GetLogsTotalCountQuery,
 	Types.GetLogsTotalCountQueryVariables
 >
+export const GetLogsHistogramDocument = gql`
+	query GetLogsHistogram($project_id: ID!, $params: LogsParamsInput!) {
+		logs_histogram(project_id: $project_id, params: $params) {
+			totalCount
+			buckets {
+				bucketId
+				counts {
+					count
+					level
+				}
+			}
+		}
+	}
+`
+
+/**
+ * __useGetLogsHistogramQuery__
+ *
+ * To run a query within a React component, call `useGetLogsHistogramQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogsHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogsHistogramQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *   },
+ * });
+ */
+export function useGetLogsHistogramQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLogsHistogramQuery,
+		Types.GetLogsHistogramQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetLogsHistogramQuery,
+		Types.GetLogsHistogramQueryVariables
+	>(GetLogsHistogramDocument, baseOptions)
+}
+export function useGetLogsHistogramLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLogsHistogramQuery,
+		Types.GetLogsHistogramQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetLogsHistogramQuery,
+		Types.GetLogsHistogramQueryVariables
+	>(GetLogsHistogramDocument, baseOptions)
+}
+export type GetLogsHistogramQueryHookResult = ReturnType<
+	typeof useGetLogsHistogramQuery
+>
+export type GetLogsHistogramLazyQueryHookResult = ReturnType<
+	typeof useGetLogsHistogramLazyQuery
+>
+export type GetLogsHistogramQueryResult = Apollo.QueryResult<
+	Types.GetLogsHistogramQuery,
+	Types.GetLogsHistogramQueryVariables
+>
 export const GetLogsKeysDocument = gql`
-	query GetLogsKeys($project_id: ID!) {
-		logs_keys(project_id: $project_id) {
+	query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
+		logs_keys(project_id: $project_id, date_range: $date_range) {
 			name
 			type
 		}
@@ -11643,6 +11806,7 @@ export const GetLogsKeysDocument = gql`
  * const { data, loading, error } = useGetLogsKeysQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
+ *      date_range: // value for 'date_range'
  *   },
  * });
  */
@@ -11739,4 +11903,62 @@ export type GetLogsKeyValuesLazyQueryHookResult = ReturnType<
 export type GetLogsKeyValuesQueryResult = Apollo.QueryResult<
 	Types.GetLogsKeyValuesQuery,
 	Types.GetLogsKeyValuesQueryVariables
+>
+export const GetLogsErrorObjectsDocument = gql`
+	query GetLogsErrorObjects($log_cursors: [String!]!) {
+		logs_error_objects(log_cursors: $log_cursors) {
+			log_cursor
+			error_group_secure_id
+			id
+		}
+	}
+`
+
+/**
+ * __useGetLogsErrorObjectsQuery__
+ *
+ * To run a query within a React component, call `useGetLogsErrorObjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogsErrorObjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogsErrorObjectsQuery({
+ *   variables: {
+ *      log_cursors: // value for 'log_cursors'
+ *   },
+ * });
+ */
+export function useGetLogsErrorObjectsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLogsErrorObjectsQuery,
+		Types.GetLogsErrorObjectsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetLogsErrorObjectsQuery,
+		Types.GetLogsErrorObjectsQueryVariables
+	>(GetLogsErrorObjectsDocument, baseOptions)
+}
+export function useGetLogsErrorObjectsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLogsErrorObjectsQuery,
+		Types.GetLogsErrorObjectsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetLogsErrorObjectsQuery,
+		Types.GetLogsErrorObjectsQueryVariables
+	>(GetLogsErrorObjectsDocument, baseOptions)
+}
+export type GetLogsErrorObjectsQueryHookResult = ReturnType<
+	typeof useGetLogsErrorObjectsQuery
+>
+export type GetLogsErrorObjectsLazyQueryHookResult = ReturnType<
+	typeof useGetLogsErrorObjectsLazyQuery
+>
+export type GetLogsErrorObjectsQueryResult = Apollo.QueryResult<
+	Types.GetLogsErrorObjectsQuery,
+	Types.GetLogsErrorObjectsQueryVariables
 >

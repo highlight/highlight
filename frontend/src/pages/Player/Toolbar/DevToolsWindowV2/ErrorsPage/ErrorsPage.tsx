@@ -1,7 +1,7 @@
 import LoadingBox from '@components/LoadingBox'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { ErrorObject } from '@graph/schemas'
-import { Box, Tag, Text } from '@highlight-run/ui'
+import { Box, IconSolidArrowCircleRight, Tag, Text } from '@highlight-run/ui'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -33,7 +33,7 @@ const ErrorsPage = ({
 }) => {
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const location = useLocation()
-	const { errors, state, session, sessionMetadata, isPlayerReady } =
+	const { errors, state, session, sessionMetadata, isPlayerReady, setTime } =
 		useReplayerContext()
 
 	const { setActiveError, setRightPanelView } = usePlayerUIContext()
@@ -99,11 +99,14 @@ const ErrorsPage = ({
 						<ErrorRow
 							key={error.error_group_secure_id}
 							error={error}
-							setSelectedError={() => {
-								setShowRightPanel(true)
+							onClickHandler={() => {
 								setActiveError(error)
+								setShowRightPanel(true)
 								setRightPanelView(RightPanelView.Error)
 							}}
+							setActiveError={setActiveError}
+							setTime={setTime}
+							startTime={sessionMetadata.startTime}
 							searchQuery={filter}
 							current={index === lastActiveErrorIndex}
 						/>
@@ -121,13 +124,26 @@ export enum ErrorCardState {
 }
 interface Props {
 	error: ErrorObject
-	setSelectedError: () => void
+	onClickHandler: () => void
+	setActiveError: React.Dispatch<
+		React.SetStateAction<ErrorObject | undefined>
+	>
+	setTime: (time: number) => void
+	startTime: number
 	searchQuery: string
 	current?: boolean
 }
 
 const ErrorRow = React.memo(
-	({ error, setSelectedError, searchQuery, current }: Props) => {
+	({
+		error,
+		onClickHandler,
+		setActiveError,
+		setTime,
+		startTime,
+		searchQuery,
+		current,
+	}: Props) => {
 		const body = useMemo(
 			() => parseOptionalJSON(getErrorBody(error.event)),
 			[error.event],
@@ -136,13 +152,18 @@ const ErrorRow = React.memo(
 			const data = parseOptionalJSON(error.payload || '')
 			return data === 'null' ? '' : data
 		}, [error.payload])
+
+		const timestamp = useMemo(() => {
+			return new Date(error.timestamp).getTime() - startTime
+		}, [error.timestamp, startTime])
+
 		return (
 			<Box
 				key={error.id}
 				className={styles.errorRowVariants({
 					current,
 				})}
-				onClick={setSelectedError}
+				onClick={onClickHandler}
 			>
 				<Box>
 					<TextHighlighter
@@ -178,6 +199,21 @@ const ErrorRow = React.memo(
 				<Box display="flex" align="center" justifyContent="flex-end">
 					<Tag kind="secondary" lines="1">
 						{error.type}
+					</Tag>
+				</Box>
+				<Box display="flex" align="center" justifyContent="flex-end">
+					<Tag
+						shape="basic"
+						emphasis="low"
+						kind="secondary"
+						size="medium"
+						onClick={(event) => {
+							setTime(timestamp)
+							event.stopPropagation() /* Prevents opening of right panel by parent row's onClick handler */
+							setActiveError(error)
+						}}
+					>
+						<IconSolidArrowCircleRight />
 					</Tag>
 				</Box>
 			</Box>

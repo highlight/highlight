@@ -14,10 +14,15 @@ import {
 	useUpdateSessionAlertMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { DiscordChannel, SessionAlertType } from '@graph/schemas'
+import {
+	DiscordChannel,
+	SessionAlertType,
+	WebhookDestination,
+} from '@graph/schemas'
+import alertConfigurationCardStyles from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard.module.scss'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
-import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { Divider, Form, message } from 'antd'
 import clsx from 'clsx'
@@ -86,6 +91,9 @@ export const AlertConfigurationCard = ({
 	const [emailsToNotify, setEmailsToNotify] = useState<string[]>(
 		alert?.EmailsToNotify || [],
 	)
+	const [webhooks, setWebhooks] = useState<WebhookDestination[]>(
+		alert?.WebhookDestinations || [],
+	)
 	const [selectedDiscordChannels, setSelectedDiscordChannels] = useState<
 		DiscordChannel[]
 	>(alert?.DiscordChannelsToNotify || [])
@@ -108,6 +116,7 @@ export const AlertConfigurationCard = ({
 			environments: [],
 			slack_channels: [],
 			discord_channels: [],
+			webhook_destinations: [],
 			threshold_window: 30,
 			name: 'Error',
 			regex_groups: [],
@@ -157,7 +166,8 @@ export const AlertConfigurationCard = ({
 				})),
 			name: form.getFieldValue('name'),
 			discord_channels: selectedDiscordChannels,
-		}
+			webhook_destinations: webhooks,
+		} as const
 		const requestBody = {
 			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 		}
@@ -590,6 +600,12 @@ export const AlertConfigurationCard = ({
 		setFormTouched(true)
 	}
 
+	const onWebhooksChange = (webhooks: WebhookDestination[]) => {
+		form.setFieldsValue({ webhooks })
+		setWebhooks(webhooks)
+		setFormTouched(true)
+	}
+
 	const onUserPropertiesChange = (_value: any, options: any) => {
 		const userProperties = options.map(
 			({ value: valueAndName }: { key: string; value: string }) => {
@@ -750,7 +766,7 @@ export const AlertConfigurationCard = ({
 						)}
 
 						<section>
-							<h3>Channels to Notify</h3>
+							<h3>Slack Channels to Notify</h3>
 							<p>
 								Pick Slack channels or people to message when an
 								alert is created.
@@ -895,6 +911,31 @@ export const AlertConfigurationCard = ({
 									/>
 								)}
 							</Form.Item>
+						</section>
+
+						<section>
+							<h3>Webhooks to Notify</h3>
+							<p>
+								Add webhook destinations for this alert, sent as
+								JSON over HTTP. See the{' '}
+								<Link to="https://www.highlight.io/docs/general/product-features/general-features/alerts/webhooks">
+									docs
+								</Link>{' '}
+								for more info.
+							</p>
+							<Select
+								className={
+									alertConfigurationCardStyles.channelSelect
+								}
+								value={webhooks.map((wh) => wh.url)}
+								mode="tags"
+								placeholder="Select webhook web addresses to send the alert to."
+								onChange={(whs: string[]) =>
+									onWebhooksChange(
+										whs.map((wh) => ({ url: wh })),
+									)
+								}
+							/>
 						</section>
 
 						<section>

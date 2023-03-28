@@ -1,139 +1,110 @@
-import { useGetLogsQuery, useGetLogsTotalCountQuery } from '@graph/hooks'
-import { Box, Preset, Stack, Text } from '@highlight-run/ui'
+import { LogLevel } from '@graph/schemas'
+import { Box } from '@highlight-run/ui'
+import {
+	fifteenMinutesAgo,
+	now,
+	PRESETS,
+	thirtyDaysAgo,
+	TIME_MODE,
+} from '@pages/LogsPage/constants'
+import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
+import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
-import { formatNumber } from '@util/numbers'
+import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
-import moment from 'moment'
 import React, { useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import {
 	DateTimeParam,
+	QueryParamConfig,
 	StringParam,
 	useQueryParam,
 	withDefault,
 } from 'use-query-params'
 
-export const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
-const now = moment()
-const fifteenMinutesAgo = now.clone().subtract(15, 'minutes').toDate()
-const thirtyDaysAgo = now.clone().subtract(30, 'days').toDate()
-const PRESETS: Preset[] = [
-	{
-		startDate: fifteenMinutesAgo,
-		label: 'Last 15 minutes',
-	},
-	{
-		startDate: now.clone().subtract(60, 'minutes').toDate(),
-		label: 'Last 60 minutes',
-	},
-	{
-		startDate: now.clone().subtract(4, 'hours').toDate(),
-		label: 'Last 4 hours',
-	},
-	{
-		startDate: now.clone().subtract(24, 'hours').toDate(),
-		label: 'Last 24 hours',
-	},
-	{
-		startDate: now.clone().subtract(7, 'days').toDate(),
-		label: 'Last 7 days',
-	},
-	{
-		startDate: thirtyDaysAgo,
-		label: 'Last 30 days',
-	},
-]
-
-const QueryParam = withDefault(StringParam, '')
-const StartDateParam = withDefault(DateTimeParam, fifteenMinutesAgo)
+export const QueryParam = withDefault(StringParam, '')
+const FixedRangeStartDateParam = withDefault(DateTimeParam, fifteenMinutesAgo)
+const PermalinkStartDateParam = withDefault(DateTimeParam, thirtyDaysAgo)
 const EndDateParam = withDefault(DateTimeParam, now.toDate())
 
 const LogsPage = () => {
+	const { log_cursor } = useParams<{
+		log_cursor: string
+	}>()
+
+	const timeMode = log_cursor !== undefined ? 'permalink' : 'fixed-range'
+	const startDateDefault =
+		timeMode === 'permalink'
+			? PermalinkStartDateParam
+			: FixedRangeStartDateParam
+
+	return (
+		<LogsPageInner
+			logCursor={log_cursor}
+			timeMode={timeMode}
+			startDateDefault={startDateDefault}
+		/>
+	)
+}
+
+type Props = {
+	timeMode: TIME_MODE
+	logCursor: string | undefined
+	startDateDefault: QueryParamConfig<Date | null | undefined, Date>
+}
+
+const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const [startDate, setStartDate] = useQueryParam(
 		'start_date',
-		StartDateParam,
+		startDateDefault,
 	)
 
 	const tableContainerRef = useRef<HTMLDivElement>(null)
 
 	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
 
-	const { data, loading, fetchMore } = useGetLogsQuery({
-		variables: {
-			project_id: project_id!,
-			params: {
-				query,
-				date_range: {
-					start_date: moment(startDate).format(FORMAT),
-					end_date: moment(endDate).format(FORMAT),
-				},
-			},
-		},
-		skip: !project_id,
-		fetchPolicy: 'cache-and-network',
-		// Required for loading to get set properly when using fetchMore.
-		notifyOnNetworkStatusChange: true,
+	const {
+		logEdges,
+		loading,
+		loadingAfter,
+		fetchMoreForward,
+		fetchMoreBackward,
+	} = useGetLogs({
+		query,
+		project_id,
+		logCursor,
+		startDate,
+		endDate,
 	})
-
-	const { data: totalCount, loading: logCountLoading } =
-		useGetLogsTotalCountQuery({
-			variables: {
-				project_id: project_id!,
-				params: {
-					query,
-					date_range: {
-						start_date: moment(startDate).format(FORMAT),
-						end_date: moment(endDate).format(FORMAT),
-					},
-				},
-			},
-			skip: !project_id,
-		})
-
-	const handleFormSubmit = (value: string) => {
-		setQuery(value)
-	}
 
 	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
 		setStartDate(newStartDate)
 		setEndDate(newEndDate)
 	}
 
-	const fetchMoreOnBottomReached = React.useCallback(
+	const handleLevelChange = (level: LogLevel) => {
+		setQuery(`level:${String(level).toLowerCase()}`)
+	}
+
+	const fetchMoreWhenScrolled = React.useCallback(
 		(containerRefElement?: HTMLDivElement | null) => {
 			if (containerRefElement) {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
 				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
 				if (scrollHeight - scrollTop - clientHeight < 100) {
-					const pageInfo = data?.logs.pageInfo
-
-					if (pageInfo && pageInfo.hasNextPage) {
-						fetchMore({
-							variables: {
-								project_id: project_id!,
-								params: {
-									query,
-									date_range: {
-										start_date:
-											moment(startDate).format(FORMAT),
-										end_date:
-											moment(endDate).format(FORMAT),
-									},
-								},
-								after: pageInfo.endCursor,
-							},
-						})
-					}
+					fetchMoreForward()
+				} else if (scrollTop === 0) {
+					fetchMoreBackward()
 				}
 			}
 		},
-		[data?.logs.pageInfo, endDate, fetchMore, project_id, query, startDate],
+		[fetchMoreForward, fetchMoreBackward],
 	)
 
 	return (
@@ -151,7 +122,6 @@ const LogsPage = () => {
 				<Box
 					background="white"
 					borderRadius="6"
-					gap="4"
 					flexDirection="column"
 					display="flex"
 					flexGrow={1}
@@ -160,47 +130,47 @@ const LogsPage = () => {
 				>
 					<SearchForm
 						initialQuery={query}
-						onFormSubmit={handleFormSubmit}
+						onFormSubmit={(value) => setQuery(value)}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={handleDatesChange}
 						presets={PRESETS}
 						minDate={thirtyDaysAgo}
+						timeMode={timeMode}
 					/>
-					<Stack direction="row" gap="2" px="12" py="8">
-						{logCountLoading ? (
-							<Text size="xSmall" color="weak">
-								Loading...
-							</Text>
-						) : (
-							totalCount && (
-								<>
-									<Text size="xSmall" color="weak">
-										{formatNumber(
-											totalCount.logs_total_count,
-										)}{' '}
-										logs
-									</Text>
-								</>
-							)
-						)}
-					</Stack>
+					<LogsCount
+						query={query}
+						startDate={startDate}
+						endDate={endDate}
+						presets={PRESETS}
+					/>
+					<LogsHistogram
+						query={query}
+						startDate={startDate}
+						endDate={endDate}
+						onDatesChange={handleDatesChange}
+						onLevelChange={handleLevelChange}
+					/>
 
 					<Box
+						borderTop="dividerWeak"
 						height="screen"
+						pt="4"
 						px="12"
 						pb="12"
-						overflowY="scroll"
+						overflowY="auto"
 						onScroll={(e) =>
-							fetchMoreOnBottomReached(e.target as HTMLDivElement)
+							fetchMoreWhenScrolled(e.target as HTMLDivElement)
 						}
 						ref={tableContainerRef}
 					>
 						<LogsTable
-							data={data}
+							logEdges={logEdges}
 							loading={loading}
+							loadingAfter={loadingAfter}
 							query={query}
 							tableContainerRef={tableContainerRef}
+							selectedCursor={logCursor}
 						/>
 					</Box>
 				</Box>

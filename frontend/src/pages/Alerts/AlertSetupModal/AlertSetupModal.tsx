@@ -12,7 +12,7 @@ import { ALERT_CONFIGURATIONS, ALERT_NAMES } from '@pages/Alerts/Alerts'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils'
 import useLocalStorage from '@rehooks/local-storage'
-import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import { Divider } from 'antd'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -269,7 +269,7 @@ const AlertSetupModal = () => {
 			title: 'Select Channels',
 			content: (
 				<>
-					<h3>Channels to Notify</h3>
+					<h3>Slack Channels to Notify</h3>
 					<p className={styles.stepDescription}>
 						Pick Slack channels or people to message when an alert
 						is created.

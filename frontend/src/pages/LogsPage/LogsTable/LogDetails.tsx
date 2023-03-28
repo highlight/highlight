@@ -1,31 +1,66 @@
+import { Button } from '@components/Button'
+import { LinkButton } from '@components/LinkButton'
 import { LogEdge } from '@graph/schemas'
 import {
 	Box,
-	ButtonLink,
 	IconSolidChevronDoubleDown,
 	IconSolidChevronDoubleUp,
 	IconSolidClipboard,
+	IconSolidClipboardCopy,
+	IconSolidFilter,
+	IconSolidLightningBolt,
+	IconSolidLink,
+	IconSolidPlayCircle,
 	Stack,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
+import { QueryParam } from '@pages/LogsPage/LogsPage'
 import {
 	IconCollapsed,
 	IconExpanded,
 } from '@pages/LogsPage/LogsTable/LogsTable'
+import {
+	DEFAULT_LOGS_OPERATOR,
+	LogsSearchParam,
+	stringifyLogsQuery,
+} from '@pages/LogsPage/SearchForm/utils'
+import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import { Row } from '@tanstack/react-table'
-import { message } from 'antd'
+import { message as antdMessage } from 'antd'
 import React, { useEffect, useState } from 'react'
+import { generatePath } from 'react-router-dom'
+import { useQueryParam } from 'use-query-params'
 
 import * as styles from './LogDetails.css'
 
 type Props = {
-	row: Row<LogEdge>
+	row: Row<LogEdgeWithError>
+	queryTerms: LogsSearchParam[]
 }
 
-export const LogDetails = ({ row }: Props) => {
+export const getLogURL = (row: Row<LogEdge>) => {
+	const currentUrl = new URL(window.location.href)
+	const path = generatePath('/logs/:log_cursor', {
+		log_cursor: row.original.cursor,
+	})
+	return currentUrl.origin + path
+}
+
+export const LogDetails = ({ row, queryTerms }: Props) => {
+	const { projectId } = useProjectId()
 	const [allExpanded, setAllExpanded] = useState(false)
-	const { traceID, spanID, secureSessionID, logAttributes } =
-		row.original.node
+	const {
+		traceID,
+		spanID,
+		secureSessionID,
+		logAttributes,
+		message,
+		level,
+		source,
+		serviceName,
+	} = row.original.node
 	const expanded = row.getIsExpanded()
 	const expandable = Object.values(logAttributes).some(
 		(v) => typeof v === 'object',
@@ -52,22 +87,48 @@ export const LogDetails = ({ row }: Props) => {
 								allExpanded={allExpanded}
 								attribute={value}
 								label={key}
+								queryTerms={queryTerms}
+								queryBaseKeys={[key]}
 							/>
 						) : (
-							<LogValue label={key} value={value} />
+							<LogValue
+								label={key}
+								value={value}
+								queryTerms={queryTerms}
+							/>
 						)}
 					</Box>
 				)
 			})}
 
+			<Box>
+				<LogValue label="level" value={level} queryTerms={queryTerms} />
+			</Box>
+
+			<Box>
+				<LogValue
+					label="message"
+					value={message}
+					queryTerms={queryTerms}
+				/>
+			</Box>
+
 			{traceID && (
 				<Box>
-					<LogValue label="trace_id" value={traceID} />
+					<LogValue
+						label="trace_id"
+						value={traceID}
+						queryTerms={queryTerms}
+					/>
 				</Box>
 			)}
 			{spanID && (
 				<Box>
-					<LogValue label="span_id" value={spanID} />
+					<LogValue
+						label="span_id"
+						value={spanID}
+						queryTerms={queryTerms}
+					/>
 				</Box>
 			)}
 			{secureSessionID && (
@@ -75,65 +136,160 @@ export const LogDetails = ({ row }: Props) => {
 					<LogValue
 						label="secure_session_id"
 						value={secureSessionID}
+						queryTerms={queryTerms}
+					/>
+				</Box>
+			)}
+			{source && (
+				<Box>
+					<LogValue
+						label="source"
+						value={source}
+						queryTerms={queryTerms}
+					/>
+				</Box>
+			)}
+			{serviceName && (
+				<Box>
+					<LogValue
+						label="service_name"
+						value={serviceName}
+						queryTerms={queryTerms}
 					/>
 				</Box>
 			)}
 
-			<Box
-				display="flex"
-				alignItems="center"
-				flexDirection="row"
-				gap="16"
-				my="10"
-			>
-				{expandable && (
-					<ButtonLink
+			<Box display="flex" alignItems="center" flexDirection="row" mt="8">
+				<Box
+					display="flex"
+					alignItems="center"
+					flexDirection="row"
+					gap="4"
+				>
+					{expandable && (
+						<Button
+							kind="secondary"
+							emphasis="low"
+							onClick={(e) => {
+								e.stopPropagation()
+								setAllExpanded(!allExpanded)
+							}}
+							trackingId="logs-row_toggle-expand-all"
+						>
+							<Box
+								alignItems="center"
+								display="flex"
+								flexDirection="row"
+								gap="4"
+							>
+								{allExpanded ? (
+									<>
+										<IconSolidChevronDoubleUp /> Collapse
+										all
+									</>
+								) : (
+									<>
+										<IconSolidChevronDoubleDown />
+										Expand all
+									</>
+								)}
+							</Box>
+						</Button>
+					)}
+
+					<Button
 						kind="secondary"
+						emphasis="low"
 						onClick={(e) => {
 							e.stopPropagation()
-							setAllExpanded(!allExpanded)
+							navigator.clipboard.writeText(
+								JSON.stringify(row.original),
+							)
+							antdMessage.success('Copied logs!')
 						}}
+						trackingId="logs-row_copy-json"
 					>
 						<Box
-							alignItems="center"
 							display="flex"
+							alignItems="center"
 							flexDirection="row"
 							gap="4"
 						>
-							{allExpanded ? (
-								<>
-									<IconSolidChevronDoubleUp /> Collapse all
-								</>
-							) : (
-								<>
-									<IconSolidChevronDoubleDown />
-									Expand all
-								</>
-							)}
+							<IconSolidClipboard />
+							Copy JSON
 						</Box>
-					</ButtonLink>
-				)}
+					</Button>
 
-				<ButtonLink
-					kind="secondary"
-					onClick={(e) => {
-						e.stopPropagation()
-						navigator.clipboard.writeText(
-							JSON.stringify(row.original),
-						)
-						message.success('Copied logs!')
-					}}
-				>
-					<Box
-						display="flex"
-						alignItems="center"
-						flexDirection="row"
-						gap="4"
+					<Button
+						kind="secondary"
+						emphasis="low"
+						onClick={(e) => {
+							const url = getLogURL(row)
+							e.stopPropagation()
+							navigator.clipboard.writeText(url)
+							antdMessage.success('Copied link!')
+						}}
+						trackingId="logs-row_copy-link"
 					>
-						<IconSolidClipboard />
-						Copy
-					</Box>
-				</ButtonLink>
+						<Box
+							display="flex"
+							alignItems="center"
+							flexDirection="row"
+							gap="4"
+						>
+							<IconSolidLink />
+							Copy link
+						</Box>
+					</Button>
+				</Box>
+
+				<Box
+					display="flex"
+					alignItems="center"
+					flexDirection="row"
+					gap="4"
+					borderLeft="secondary"
+					ml="4"
+					pl="4"
+				>
+					{row.original.error_object && (
+						<LinkButton
+							kind="secondary"
+							emphasis="low"
+							to={`/errors/logs/${row.original.cursor}`}
+							trackingId="logs-related_error_link"
+						>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidLightningBolt />
+								Related Error
+							</Box>
+						</LinkButton>
+					)}
+
+					{secureSessionID && (
+						<LinkButton
+							kind="secondary"
+							emphasis="low"
+							to={`/${projectId}/sessions/${secureSessionID}`}
+							trackingId="logs-related_session_link"
+						>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidPlayCircle />
+								Related Session
+							</Box>
+						</LinkButton>
+					)}
+				</Box>
 			</Box>
 		</Stack>
 	)
@@ -143,7 +299,9 @@ const LogDetailsObject: React.FC<{
 	allExpanded: boolean
 	attribute: string | object
 	label: string
-}> = ({ allExpanded, attribute, label }) => {
+	queryBaseKeys: string[]
+	queryTerms: LogsSearchParam[]
+}> = ({ allExpanded, attribute, label, queryBaseKeys, queryTerms }) => {
 	const [open, setOpen] = useState(false)
 
 	let stringIsJson = false
@@ -170,7 +328,7 @@ const LogDetailsObject: React.FC<{
 		>
 			<LogAttributeLine>
 				{open ? <IconExpanded /> : <IconCollapsed />}
-				<Box>
+				<Box py="6">
 					<Text color="weak" family="monospace" weight="bold">
 						{label}
 					</Text>
@@ -184,40 +342,137 @@ const LogDetailsObject: React.FC<{
 						allExpanded={allExpanded}
 						attribute={attribute[key as keyof typeof attribute]}
 						label={key}
+						queryTerms={queryTerms}
+						queryBaseKeys={[...queryBaseKeys, key]}
 					/>
 				))}
 		</Box>
 	) : (
 		<Box cssClass={styles.line}>
-			<LogValue label={label} value={attribute} />
+			<LogValue
+				label={label}
+				value={attribute}
+				queryBaseKeys={queryBaseKeys}
+				queryTerms={queryTerms}
+			/>
 		</Box>
 	)
 }
 
-const LogValue: React.FC<{ label: string; value: string }> = ({
-	label,
-	value,
-}) => (
-	<LogAttributeLine>
-		<Box flexShrink={0}>
-			<Text family="monospace" weight="bold">
-				"{label}":
-			</Text>
-		</Box>
-		<Text family="monospace" weight="bold" color="caution" break="word">
-			{value}
-		</Text>
-	</LogAttributeLine>
-)
+const LogValue: React.FC<{
+	label: string
+	value: string
+	queryTerms: LogsSearchParam[]
+	queryBaseKeys?: string[]
+}> = ({ label, queryBaseKeys = [], queryTerms, value }) => {
+	const [_, setQuery] = useQueryParam('query', QueryParam)
+	const queryKey = queryBaseKeys.join('.') || label
+	const matchesQuery = queryTerms?.some((t) => t.key === queryKey)
+
+	return (
+		<LogAttributeLine>
+			<Box
+				flexShrink={0}
+				py="6"
+				onClick={(e: any) => e.stopPropagation()}
+			>
+				<Text family="monospace" weight="bold">
+					"{label}":
+				</Text>
+			</Box>
+			<Box
+				display="flex"
+				flexDirection="row"
+				alignItems="center"
+				gap="8"
+				onClick={(e: any) => e.stopPropagation()}
+			>
+				<Box
+					backgroundColor={matchesQuery ? 'caution' : undefined}
+					borderRadius="4"
+					p="6"
+				>
+					<Text
+						family="monospace"
+						weight="bold"
+						color="caution"
+						break="word"
+					>
+						{value}
+					</Text>
+				</Box>
+				<Box cssClass={styles.attributeActions}>
+					<Box>
+						<Tooltip
+							trigger={
+								<IconSolidFilter
+									className={styles.attributeAction}
+									size="12"
+									onClick={() => {
+										if (!queryTerms) {
+											return
+										}
+
+										const index = queryTerms.findIndex(
+											(term) => term.key === queryKey,
+										)
+
+										index !== -1
+											? (queryTerms[index].value = value)
+											: queryTerms.push({
+													key: queryKey,
+													value,
+													operator:
+														DEFAULT_LOGS_OPERATOR,
+													offsetStart: 0, // not actually used
+											  })
+
+										setQuery(stringifyLogsQuery(queryTerms))
+									}}
+								/>
+							}
+						>
+							<Box p="4">
+								<Text size="small">Apply as filter</Text>
+							</Box>
+						</Tooltip>
+					</Box>
+					<Box>
+						<Tooltip
+							trigger={
+								<IconSolidClipboardCopy
+									className={styles.attributeAction}
+									size="12"
+									onClick={() => {
+										navigator.clipboard.writeText(
+											JSON.stringify(value),
+										)
+										antdMessage.success(
+											'Value copied to your clipboard',
+										)
+									}}
+								/>
+							}
+						>
+							<Box p="4">
+								<Text size="small">Copy to your clipboard</Text>
+							</Box>
+						</Tooltip>
+					</Box>
+				</Box>
+			</Box>
+		</LogAttributeLine>
+	)
+}
 
 const LogAttributeLine: React.FC<React.PropsWithChildren> = ({ children }) => {
 	return (
 		<Box
+			cssClass={styles.logAttributeLine}
 			display="flex"
 			alignItems="center"
 			flexDirection="row"
-			gap="10"
-			py="6"
+			gap="4"
 			flexShrink={0}
 		>
 			{children}

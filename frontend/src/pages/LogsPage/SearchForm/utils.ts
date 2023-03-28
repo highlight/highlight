@@ -1,3 +1,8 @@
+import { ReservedLogKey, Session } from '@graph/schemas'
+import moment from 'moment'
+import { stringify } from 'query-string'
+import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
+
 export type LogsSearchParam = {
 	key: string
 	operator: string
@@ -6,7 +11,7 @@ export type LogsSearchParam = {
 }
 
 const SEPARATOR = ':'
-const DEFAULT_OPERATOR = '='
+export const DEFAULT_LOGS_OPERATOR = '='
 export const BODY_KEY = 'body'
 
 // Inspired by search-query-parser:
@@ -19,7 +24,7 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 		return [
 			{
 				key: BODY_KEY,
-				operator: DEFAULT_OPERATOR,
+				operator: DEFAULT_LOGS_OPERATOR,
 				value: query,
 				offsetStart: 0,
 			},
@@ -37,7 +42,7 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 
 			terms.push({
 				key,
-				operator: DEFAULT_OPERATOR,
+				operator: DEFAULT_LOGS_OPERATOR,
 				value: value?.replace(/^\"|\"$|^\'|\'$/g, ''), // strip quotes
 				offsetStart: match.index,
 			})
@@ -54,7 +59,7 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 
 				terms.push({
 					key: BODY_KEY,
-					operator: DEFAULT_OPERATOR,
+					operator: DEFAULT_LOGS_OPERATOR,
 					value: isEmptyString ? '' : term,
 					offsetStart: isEmptyString ? match.index + 1 : match.index,
 				})
@@ -83,4 +88,33 @@ export const stringifyLogsQuery = (params: LogsSearchParam[]) => {
 
 export const validateLogsQuery = (params: LogsSearchParam[]): boolean => {
 	return !params.some((param) => !param.value)
+}
+
+export const getLogsURLForSession = (projectId: string, session: Session) => {
+	const queryParams: LogsSearchParam[] = []
+	queryParams.push({
+		key: ReservedLogKey.SecureSessionId,
+		operator: DEFAULT_LOGS_OPERATOR,
+		value: session.secure_id,
+		offsetStart: 0,
+	})
+
+	const sessionStartDate = new Date(session.created_at)
+
+	// Four hours is the max length of a session (see https://github.com/highlight/highlight/pull/4653#discussion_r1145569643)
+	const sessionEndDate = moment(sessionStartDate).add(4, 'hours').toDate()
+
+	const encodedQuery = encodeQueryParams(
+		{
+			query: StringParam,
+			start_date: DateTimeParam,
+			end_date: DateTimeParam,
+		},
+		{
+			query: stringifyLogsQuery(queryParams),
+			start_date: sessionStartDate,
+			end_date: sessionEndDate,
+		},
+	)
+	return `/${projectId}/logs?${stringify(encodedQuery)}`
 }

@@ -1126,14 +1126,16 @@ func (w *Worker) Start(ctx context.Context) {
 					}
 
 					if excluded != nil && *excluded {
-						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "session has reached the max retry count and will be excluded"))
+						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Warn(e.Wrap(err, "session has reached the max retry count and will be excluded"))
 						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
+						span.Finish()
+					} else {
+						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error processing main session"))
+						span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					}
 
-					log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error processing main session"))
-					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
 				}
 				hlog.Incr("sessionsProcessed", nil, 1)
@@ -1252,7 +1254,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		log.WithContext(ctx).Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
 	}
 
-	if !util.IsDevOrTestEnv() {
+	if util.IsHubspotEnabled() {
 		for _, c := range counts {
 			// See HIG-2743
 			// Skip updating session count for demo workspace because we exclude it from Hubspot

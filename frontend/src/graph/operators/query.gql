@@ -1044,6 +1044,14 @@ query GetErrorGroup($secure_id: String!) {
 	}
 }
 
+query GetErrorObjectForLog($log_cursor: String!) {
+	error_object_for_log(log_cursor: $log_cursor) {
+		id
+		error_group_secure_id
+		project_id
+	}
+}
+
 query GetErrorObject($id: ID!) {
 	error_object(id: $id) {
 		id
@@ -1096,6 +1104,9 @@ query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
 			created_at
 			project_id
 			session_id
+			trace_id
+			span_id
+			log_cursor
 			session {
 				identifier
 				fingerprint
@@ -1649,6 +1660,10 @@ query GetAlertsPagePayload($project_id: ID!) {
 		DiscordChannelsToNotify {
 			...DiscordChannelFragment
 		}
+		WebhookDestinations {
+			url
+			authorization
+		}
 		EmailsToNotify
 		ExcludedEnvironments
 		updated_at
@@ -1692,6 +1707,10 @@ query GetAlertsPagePayload($project_id: ID!) {
 		discord_channels_to_notify {
 			id
 			name
+		}
+		webhook_destinations {
+			url
+			authorization
 		}
 		emails_to_notify
 		aggregator
@@ -1862,22 +1881,38 @@ query GetEmailOptOuts($token: String, $admin_id: ID) {
 	email_opt_outs(token: $token, admin_id: $admin_id)
 }
 
-query GetLogs($project_id: ID!, $params: LogsParamsInput!, $after: String) {
-	logs(project_id: $project_id, params: $params, after: $after) {
+query GetLogs(
+	$project_id: ID!
+	$params: LogsParamsInput!
+	$after: String
+	$before: String
+	$at: String
+) {
+	logs(
+		project_id: $project_id
+		params: $params
+		after: $after
+		before: $before
+		at: $at
+	) {
 		edges {
 			cursor
 			node {
 				timestamp
-				severityText
-				body
+				level
+				message
 				logAttributes
 				traceID
 				spanID
 				secureSessionID
+				source
+				serviceName
 			}
 		}
 		pageInfo {
 			hasNextPage
+			hasPreviousPage
+			startCursor
 			endCursor
 		}
 	}
@@ -1887,8 +1922,21 @@ query GetLogsTotalCount($project_id: ID!, $params: LogsParamsInput!) {
 	logs_total_count(project_id: $project_id, params: $params)
 }
 
-query GetLogsKeys($project_id: ID!) {
-	logs_keys(project_id: $project_id) {
+query GetLogsHistogram($project_id: ID!, $params: LogsParamsInput!) {
+	logs_histogram(project_id: $project_id, params: $params) {
+		totalCount
+		buckets {
+			bucketId
+			counts {
+				count
+				level
+			}
+		}
+	}
+}
+
+query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
+	logs_keys(project_id: $project_id, date_range: $date_range) {
 		name
 		type
 	}
@@ -1904,4 +1952,12 @@ query GetLogsKeyValues(
 		key_name: $key_name
 		date_range: $date_range
 	)
+}
+
+query GetLogsErrorObjects($log_cursors: [String!]!) {
+	logs_error_objects(log_cursors: $log_cursors) {
+		log_cursor
+		error_group_secure_id
+		id
+	}
 }

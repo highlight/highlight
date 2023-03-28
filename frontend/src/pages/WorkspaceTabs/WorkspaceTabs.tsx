@@ -3,6 +3,7 @@ import Tabs from '@components/Tabs/Tabs'
 import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings'
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'
 import analytics from '@util/analytics'
+import { useParams } from '@util/react-router/useParams'
 import React, { Suspense, useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import { useLocation, useMatch, useNavigate } from 'react-router-dom'
@@ -35,9 +36,11 @@ const getTitle = (tab: WorkspaceSettingsTab): string => {
 export const WorkspaceTabs = () => {
 	const location = useLocation()
 	const navigate = useNavigate()
+	const { workspace_id: workspaceId } = useParams<{ workspace_id: string }>()
 
+	// Using useMatch instead of pulling from useParams because :page_id isn't
+	// defined in a route anywhere, it's only used by the tabs.
 	const workspaceMatch = useMatch('/w/:workspace_id/:page_id')
-	const workspaceId = workspaceMatch?.params.workspace_id
 	const pageId = workspaceMatch?.params.page_id as WorkspaceSettingsTab
 
 	useEffect(() => {

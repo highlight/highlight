@@ -32,7 +32,7 @@ class H(object):
         self,
         project_id: str,
         integrations: typing.List[Integration] = None,
-        record_logs: bool = False,
+        record_logs: bool = True,
         otlp_endpoint: str = "",
     ):
         """
@@ -45,7 +45,7 @@ class H(object):
 
         :param project_id: a string that corresponds to the verbose id of your project from app.highlight.io/setup
         :param integrations: a list of Integrations that allow connecting with your framework, like Flask or Django.
-        :param record_logs: set True if you would like python logging to be recorded as part of the session.
+        :param record_logs: defaults to True. set False if you want to disable python logging recording.
         :param otlp_endpoint: set to a custom otlp destination
         :return: a configured H instance
         """
