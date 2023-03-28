@@ -1,7 +1,7 @@
 {
 	"functions": {
-		"**/api/**/*": {
-			"excludeFiles": "**/public/**/*"
+		"highlight.io/pages/api/**/*": {
+			"excludeFiles": "highlight.io/public/**/*"
 		}
 	}
 }
