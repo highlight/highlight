@@ -51,6 +51,7 @@ jobs:
               run: yarn test:all
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
+                  GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
 
             - name: Configure AWS credentials
               if: github.repository == 'highlight/highlight' && steps.filter.outputs.npm-changed == 'true'
