@@ -48,7 +48,7 @@ export const useGetLogs = ({
 	const queryTerms = parseLogsQuery(query)
 	const serverQuery = buildLogsQueryForServer(queryTerms)
 
-	const [getLogs, { data, loading, error, fetchMore }] = useGetLogsLazyQuery({
+	const [getLogs, { data, loading, error, refetch, fetchMore }] = useGetLogsLazyQuery({
 		variables: {
 			project_id: project_id!,
 			at: logCursor,
@@ -150,5 +150,6 @@ export const useGetLogs = ({
 		error,
 		fetchMoreForward,
 		fetchMoreBackward,
+		refetch,
 	}
 }
