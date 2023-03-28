@@ -201,7 +201,6 @@ describe('validateLogsQuery', () => {
 	})
 })
 
-// write somes tests for quoteQueryValue
 describe('quoteQueryValue', () => {
 	it('quotes strings with spaces', () => {
 		expect(quoteQueryValue('a test query')).toEqual('"a test query"')
