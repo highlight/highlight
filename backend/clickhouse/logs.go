@@ -473,14 +473,6 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 
 	}
 
-	for _, body := range filters.body {
-		if strings.Contains(body, "%") {
-			sb.Where("Body ILIKE" + sb.Var(body))
-		} else {
-			sb.Where("hasTokenCaseInsensitive(Body, " + sb.Var(body) + ")")
-		}
-	}
-
 	if filters.level != "" {
 		if strings.Contains(filters.level, "%") {
 			sb.Where(sb.Like("SeverityText", filters.level))
