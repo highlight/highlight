@@ -224,7 +224,7 @@ type EnhancedUserDetailsResult struct {
 }
 
 type ErrorDistributionItem struct {
-	ErrorGroupID string    `json:"error_group_id"`
+	ErrorGroupID int       `json:"error_group_id"`
 	Date         time.Time `json:"date"`
 	Name         string    `json:"name"`
 	Value        int64     `json:"value"`
@@ -360,6 +360,8 @@ type Log struct {
 	TraceID         *string                `json:"traceID"`
 	SpanID          *string                `json:"spanID"`
 	SecureSessionID *string                `json:"secureSessionID"`
+	Source          *string                `json:"source"`
+	ServiceName     *string                `json:"serviceName"`
 }
 
 type LogEdge struct {
@@ -511,19 +513,20 @@ type SearchParamsInput struct {
 }
 
 type SessionAlertInput struct {
-	ProjectID       int                           `json:"project_id"`
-	Name            string                        `json:"name"`
-	CountThreshold  int                           `json:"count_threshold"`
-	ThresholdWindow int                           `json:"threshold_window"`
-	SlackChannels   []*SanitizedSlackChannelInput `json:"slack_channels"`
-	DiscordChannels []*DiscordChannelInput        `json:"discord_channels"`
-	Emails          []string                      `json:"emails"`
-	Environments    []string                      `json:"environments"`
-	Disabled        bool                          `json:"disabled"`
-	Type            SessionAlertType              `json:"type"`
-	UserProperties  []*UserPropertyInput          `json:"user_properties"`
-	ExcludeRules    []string                      `json:"exclude_rules"`
-	TrackProperties []*TrackPropertyInput         `json:"track_properties"`
+	ProjectID           int                           `json:"project_id"`
+	Name                string                        `json:"name"`
+	CountThreshold      int                           `json:"count_threshold"`
+	ThresholdWindow     int                           `json:"threshold_window"`
+	SlackChannels       []*SanitizedSlackChannelInput `json:"slack_channels"`
+	DiscordChannels     []*DiscordChannelInput        `json:"discord_channels"`
+	WebhookDestinations []*WebhookDestinationInput    `json:"webhook_destinations"`
+	Emails              []string                      `json:"emails"`
+	Environments        []string                      `json:"environments"`
+	Disabled            bool                          `json:"disabled"`
+	Type                SessionAlertType              `json:"type"`
+	UserProperties      []*UserPropertyInput          `json:"user_properties"`
+	ExcludeRules        []string                      `json:"exclude_rules"`
+	TrackProperties     []*TrackPropertyInput         `json:"track_properties"`
 }
 
 type SessionCommentTagInput struct {
@@ -613,6 +616,11 @@ type VercelProjectMappingInput struct {
 	VercelProjectID string  `json:"vercel_project_id"`
 	NewProjectName  *string `json:"new_project_name"`
 	ProjectID       *int    `json:"project_id"`
+}
+
+type WebhookDestinationInput struct {
+	URL           string  `json:"url"`
+	Authorization *string `json:"authorization"`
 }
 
 type WorkspaceForInviteLink struct {
@@ -1202,6 +1210,8 @@ const (
 	ReservedLogKeySecureSessionID ReservedLogKey = "secure_session_id"
 	ReservedLogKeySpanID          ReservedLogKey = "span_id"
 	ReservedLogKeyTraceID         ReservedLogKey = "trace_id"
+	ReservedLogKeySource          ReservedLogKey = "source"
+	ReservedLogKeyServiceName     ReservedLogKey = "service_name"
 )
 
 var AllReservedLogKey = []ReservedLogKey{
@@ -1209,11 +1219,13 @@ var AllReservedLogKey = []ReservedLogKey{
 	ReservedLogKeySecureSessionID,
 	ReservedLogKeySpanID,
 	ReservedLogKeyTraceID,
+	ReservedLogKeySource,
+	ReservedLogKeyServiceName,
 }
 
 func (e ReservedLogKey) IsValid() bool {
 	switch e {
-	case ReservedLogKeyLevel, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID:
+	case ReservedLogKeyLevel, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName:
 		return true
 	}
 	return false

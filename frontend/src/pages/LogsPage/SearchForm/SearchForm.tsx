@@ -68,7 +68,9 @@ const SearchForm = ({
 		},
 	})
 
-	formState.useSubmit(() => onFormSubmit(formState.values.query))
+	formState.useSubmit(() => {
+		onFormSubmit(formState.values.query)
+	})
 
 	const handleDatesChange = (dates: Date[]) => {
 		setSelectedDates(dates)
@@ -99,6 +101,7 @@ const SearchForm = ({
 				/>
 				<Box display="flex" pr="8" py="6">
 					<PreviousDateRangePicker
+						emphasis="low"
 						selectedDates={selectedDates}
 						onDatesChange={handleDatesChange}
 						presets={presets}
@@ -191,14 +194,6 @@ const Search: React.FC<{
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [state.value])
 
-	useEffect(() => {
-		// removes the dirty state from URL when the query is empty
-		if (!query) {
-			submitQuery('')
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [query])
-
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
 	) => {
@@ -262,6 +257,7 @@ const Search: React.FC<{
 							e.stopPropagation()
 							state.setValue('')
 						}}
+						style={{ cursor: 'pointer' }}
 					/>
 				) : null}
 			</Box>

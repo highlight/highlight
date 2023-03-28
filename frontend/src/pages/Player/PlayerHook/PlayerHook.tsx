@@ -191,9 +191,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 		fetchEventChunkURL,
 	})
 
-	const { setPlayerTimestamp } = useSetPlayerTimestampFromSearchParam(
-		(t) => seek(t),
-		state.replayer,
+	const { setPlayerTimestamp } = useSetPlayerTimestampFromSearchParam((t) =>
+		seek(t),
 	)
 
 	const resetPlayer = useCallback(() => {
@@ -890,11 +889,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		if (state.replayerState <= ReplayerState.Loading) {
 			pause(0).then()
 		}
-		setPlayerTimestamp(
-			state.sessionMetadata.totalTime,
-			state.sessionMetadata.startTime,
-			state.errors,
-		)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		sessionPayload,
@@ -902,6 +896,15 @@ export const usePlayer = (): ReplayerContextInterface => {
 		timelineIndicatorEvents,
 		chunkEventsSet,
 	])
+
+	useEffect(() => {
+		setPlayerTimestamp(
+			state.sessionMetadata.totalTime,
+			state.sessionMetadata.startTime,
+			state.errors,
+		)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [state.sessionMetadata])
 
 	useEffect(() => {
 		if (state.replayer) {

@@ -41,7 +41,7 @@ import SessionQueryBuilder, {
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
-import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
+import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import clsx from 'clsx'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { styledVerticalScrollbar } from 'style/common.css'
@@ -79,10 +79,10 @@ export const SessionsHistogram: React.FC<SessionsHistogramProps> = React.memo(
 						Intl.DateTimeFormat().resolvedOptions().timeZone ??
 						'UTC',
 					bounds: {
-						start_date: roundDateToMinute(
+						start_date: roundFeedDate(
 							backendSearchQuery?.startDate.toISOString() ?? null,
 						).format(),
-						end_date: roundDateToMinute(
+						end_date: roundFeedDate(
 							backendSearchQuery?.endDate.toISOString() ?? null,
 						).format(),
 					},
