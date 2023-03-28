@@ -1,3 +1,4 @@
+import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets'
 import { customGoError, goGetSnippet, initializeGoSdk, setUpLogging, verifyGoErrors } from './shared-snippets'
@@ -5,6 +6,7 @@ import { customGoError, goGetSnippet, initializeGoSdk, setUpLogging, verifyGoErr
 export const GoFiberContent: QuickStartContent = {
   title: 'Go Fiber',
   subtitle: 'Learn how to set up highlight.io on your Go Fiber backend.',
+  logoUrl: siteUrl('/images/quickstart/fiber.svg'),
   entries: [
     frontendInstallSnippet,
     goGetSnippet,

@@ -1,3 +1,4 @@
+import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets'
 import { addIntegrationContent, jsGetSnippet, setupLogging, verifyError } from './shared-snippets'
@@ -5,9 +6,10 @@ import { addIntegrationContent, jsGetSnippet, setupLogging, verifyError } from '
 export const JSCloudflareContent: QuickStartContent = {
   title: 'Cloudflare Workers',
   subtitle: 'Learn how to set up highlight.io in Cloudflare Workers.',
+  logoUrl: siteUrl('/images/quickstart/cloudflare.svg'),
   entries: [
     frontendInstallSnippet,
-    jsGetSnippet('cloudflare'),
+    jsGetSnippet(['cloudflare']),
     {
       title: `Add the Cloudflare Worker Highlight integration.`,
       content:

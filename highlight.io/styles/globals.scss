@@ -203,7 +203,7 @@ h6 {
   font-weight: 600;
   font-family: var(--header-font-family) !important;
   line-height: 110% !important;
-  margin: 0 !important;
+  margin: 24px 0px 0px 0px !important;
   color: var(--text-primary);
 }
 
@@ -367,49 +367,6 @@ select:focus {
 .embla__button--next {
   right: 27px;
 }
-
-// .slick-slider {
-//   display: flex !important;
-//   flex-direction: column;
-// }
-
-// .slick-dots {
-//   bottom: 0px !important;
-//   padding: 0px !important;
-//   margin: 0px !important;
-//   margin-top: 24px !important;
-//   position: relative !important;
-// }
-
-// .slick-list {
-//   margin-bottom: 10px;
-// }
-
-// .slick-dots li button:before {
-//   height: 12px !important;
-//   opacity: 1 !important;
-//   width: 12px !important;
-//   border-radius: 100px;
-//   border: #ebff5e 1px solid;
-//   color: transparent !important;
-// }
-
-// .slick-initialized .slick-slide {
-//   display: flex !important;
-//   align-items: center !important;
-//   justify-content: center !important;
-// }
-
-// .slick-dots li.slick-active button:before {
-//   background-color: #ebff5e;
-// }
-
-// .slick-dots button:before {
-// }
-// // .slick-dots li.slick-active button:before {
-// //   background-color: #ebff5e;
-// //   height: ;
-// // }
 
 @media screen and (max-width: 600px) {
   h1 {

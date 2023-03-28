@@ -1,9 +1,11 @@
+import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { downloadSnippet, setupFrontendSnippet, setupLogging } from './shared-snippets'
 
 export const PythonOtherContext: QuickStartContent = {
   title: 'Python',
   subtitle: 'Learn how to set up highlight.io in your Python app.',
+  logoUrl: siteUrl('/images/quickstart/python.svg'),
   entries: [
     setupFrontendSnippet,
     downloadSnippet(),

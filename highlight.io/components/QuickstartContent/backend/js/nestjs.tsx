@@ -6,9 +6,10 @@ import { jsGetSnippet, manualError, verifyError } from './shared-snippets'
 export const JSNestContent: QuickStartContent = {
   title: 'Nest.js',
   subtitle: 'Learn how to set up highlight.io in Nest.js.',
+  logoUrl: siteUrl('/images/quickstart/nest.svg'),
   entries: [
     frontendInstallSnippet,
-    jsGetSnippet('nest'),
+    jsGetSnippet(['nest']),
     {
       title: 'Add the @highlight-run/nest app middleware.',
       content: 'Use the `HighlightErrorFilter` middleware to capture backend errors.',

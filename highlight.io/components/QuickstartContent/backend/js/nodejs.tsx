@@ -1,3 +1,4 @@
+import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets'
 import { initializeNodeSDK, jsGetSnippet, manualError, setupLogging, verifyError } from './shared-snippets'
@@ -5,9 +6,10 @@ import { initializeNodeSDK, jsGetSnippet, manualError, setupLogging, verifyError
 export const JSNodeContent: QuickStartContent = {
   title: 'Node.js',
   subtitle: 'Learn how to set up highlight.io in Node.js.',
+  logoUrl: siteUrl('/images/quickstart/node.svg'),
   entries: [
     frontendInstallSnippet,
-    jsGetSnippet('node'),
+    jsGetSnippet(['node']),
     initializeNodeSDK('node'),
     manualError,
     verifyError(
@@ -19,7 +21,7 @@ export const JSNodeContent: QuickStartContent = {
 
 const main = () => {
   try {
-    throw new Error('example error!') 
+    throw new Error('example error!')
   } catch (e) {
     onError(e)
   }

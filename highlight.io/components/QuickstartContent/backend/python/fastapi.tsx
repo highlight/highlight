@@ -1,9 +1,11 @@
+import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { downloadSnippet, setupFrontendSnippet, setupLogging } from './shared-snippets'
 
 export const PythonFastAPIContext: QuickStartContent = {
   title: 'Python FastAPI',
   subtitle: 'Learn how to set up highlight.io on your Python FastAPI backend API.',
+  logoUrl: siteUrl('/images/quickstart/fastapi.svg'),
   entries: [
     setupFrontendSnippet,
     downloadSnippet('FastAPI'),

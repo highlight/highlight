@@ -1,3 +1,4 @@
+import { siteUrl } from '../../utils/urls'
 import { GoChiContent } from './backend/go/chi'
 import { GoFiberContent } from './backend/go/fiber'
 import { GoGinContent } from './backend/go/gin'
@@ -32,10 +33,15 @@ import { JSOtherLogContent } from './logging/js/other'
 import { PythonOtherLogContent } from './logging/python/other'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
+import { RubyOtherContent } from './backend/ruby/other'
+import { RubyRailsContent } from './backend/ruby/rails'
+import { RubyOtherLogContent } from './logging/ruby/other'
+import { RubyRailsLogContent } from './logging/ruby/rails'
 
 export type QuickStartContent = {
   title: string
   subtitle: string
+  logoUrl?: string
   entries: Array<QuickStartStep>
 }
 
@@ -81,6 +87,8 @@ export enum QuickStartType {
   JSNestjs = 'nestjs',
   JStRPC = 'trpc',
   HTTPOTLP = 'http-otlp',
+  RubyOther = 'other',
+  RubyRails = 'rails',
 }
 
 export const quickStartContent = {
@@ -91,6 +99,7 @@ export const quickStartContent = {
       title: 'Select your client framework',
       subtitle:
         'Select a client SDK to install session replay, error monitoring, and logging for your frontend application.',
+      logoUrl: siteUrl('/images/quickstart/javascript.svg'),
       [QuickStartType.React]: ReactContent,
       [QuickStartType.Angular]: AngularContent,
       [QuickStartType.Next]: NextContent,
@@ -115,6 +124,7 @@ export const quickStartContent = {
     python: {
       title: 'Python',
       subtitle: 'Select your Python framework to install error monitoring for your application.',
+      logoUrl: siteUrl('/images/quickstart/python.svg'),
       [QuickStartType.PythonFlask]: PythonFlaskContext,
       [QuickStartType.PythonDjango]: PythonDjangoContext,
       [QuickStartType.PythonFastAPI]: PythonFastAPIContext,
@@ -126,6 +136,7 @@ export const quickStartContent = {
     go: {
       title: 'Go',
       subtitle: 'Select your Go framework to install error monitoring for your application.',
+      logoUrl: siteUrl('/images/quickstart/go.svg'),
       [QuickStartType.GoGqlgen]: GoGqlgenContent,
       [QuickStartType.GoFiber]: GoFiberContent,
       [QuickStartType.GoChi]: GoChiContent,
@@ -135,6 +146,7 @@ export const quickStartContent = {
     js: {
       title: 'JavaScript',
       subtitle: 'Select your JavaScript framework to install error monitoring for your application.',
+      logoUrl: siteUrl('/images/quickstart/javascript.svg'),
       [QuickStartType.JSApollo]: JSApolloContent,
       [QuickStartType.JSCloudflare]: JSCloudflareContent,
       [QuickStartType.JSExpress]: JSExpressContent,
@@ -143,6 +155,10 @@ export const quickStartContent = {
       [QuickStartType.JSNestjs]: JSNestContent,
       [QuickStartType.JStRPC]: JStRPCContent,
     },
+    ruby: {
+      [QuickStartType.RubyRails]: RubyRailsContent,
+      [QuickStartType.RubyOther]: RubyOtherContent,
+    },
   },
   'backend-logging': {
     title: 'Select your language',
@@ -150,17 +166,20 @@ export const quickStartContent = {
     python: {
       title: 'Python',
       subtitle: 'Select your Python framework to install logging in your application.',
+      logoUrl: siteUrl('/images/quickstart/python.svg'),
       [QuickStartType.PythonOther]: PythonOtherLogContent,
     },
     go: {
       title: 'Go',
       subtitle: 'Select your Go framework to install logging in your application.',
+      logoUrl: siteUrl('/images/quickstart/go.svg'),
       [QuickStartType.GoLogrus]: GoLogrusContent,
       [QuickStartType.GoOther]: GoOtherLogContent,
     },
     js: {
       title: 'JavaScript',
       subtitle: 'Select your JavaScript framework to install logging in your application.',
+      logoUrl: siteUrl('/images/quickstart/javascript.svg'),
       [QuickStartType.JSNodejs]: JSOtherLogContent,
       [QuickStartType.JSNestjs]: JSNestLogContent,
     },
@@ -168,6 +187,10 @@ export const quickStartContent = {
       title: 'HTTP/OTLP',
       subtitle: 'Get started with logging in your application via HTTP or OTLP.',
       [QuickStartType.HTTPOTLP]: HTTPContent,
+    },
+    ruby: {
+      [QuickStartType.RubyRails]: RubyRailsLogContent,
+      [QuickStartType.RubyOther]: RubyOtherLogContent,
     },
   },
   other: {

@@ -1,3 +1,4 @@
+import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets'
 import { customGoError, goGetSnippet, initializeGoSdk, setUpLogging, verifyCustomError } from './shared-snippets'
@@ -5,6 +6,7 @@ import { customGoError, goGetSnippet, initializeGoSdk, setUpLogging, verifyCusto
 export const GoChiContent: QuickStartContent = {
   title: 'Go Chi',
   subtitle: 'Learn how to set up highlight.io on your Go chi backend.',
+  logoUrl: siteUrl('/images/quickstart/chi.svg'),
   entries: [
     frontendInstallSnippet,
     goGetSnippet,

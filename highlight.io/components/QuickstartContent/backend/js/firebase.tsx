@@ -1,3 +1,4 @@
+import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets'
 import { addIntegrationContent, initializeNodeSDK, jsGetSnippet, setupLogging, verifyError } from './shared-snippets'
@@ -5,9 +6,10 @@ import { addIntegrationContent, initializeNodeSDK, jsGetSnippet, setupLogging, v
 export const JSFirebaseContent: QuickStartContent = {
   title: 'Firebase',
   subtitle: 'Learn how to set up highlight.io in Firebase Cloud Functions.',
+  logoUrl: siteUrl('/images/quickstart/firebase.svg'),
   entries: [
     frontendInstallSnippet,
-    jsGetSnippet('node'),
+    jsGetSnippet(['node']),
     initializeNodeSDK('node'),
     {
       title: `Add the Firebase Highlight integration.`,

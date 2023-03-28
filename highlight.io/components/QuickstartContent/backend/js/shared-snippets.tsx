@@ -1,21 +1,27 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartStep } from '../../QuickstartContent'
 
-export const jsGetSnippet: (slug: string) => QuickStartStep = (slug) => ({
-  title: 'Install the Highlight JS SDK.',
-  content: `Install the [@highlight-run/${slug}](https://www.npmjs.com/package/@highlight-run/${slug}) package with your package manager.`,
-  code: {
-    text: `# with yarn
-yarn add @highlight-run/${slug}
+export const jsGetSnippet: (slugs: string[]) => QuickStartStep = (slugs) => {
+  const packages = slugs.map((slug) => `@highlight-run/${slug}`).join(' ')
+  const linkedPackages = slugs
+    .map((slug) => `[@highlight-run/${slug}](https://www.npmjs.com/package/@highlight-run/${slug})`)
+    .join(', ')
+  return {
+    title: 'Install the Highlight JS SDK.',
+    content: `Install ${linkedPackages} with your package manager.`,
+    code: {
+      text: `# with yarn
+yarn add ${packages}
 
 # with pnpm
-pnpm add @highlight-run/${slug}
+pnpm add ${packages}
 
 # with npm
-npm install @highlight-run/${slug}`,
-    language: 'bash',
-  },
-})
+npm install ${packages}`,
+      language: 'bash',
+    },
+  }
+}
 
 export const initializeNodeSDK: (slug: string) => QuickStartStep = (slug) => ({
   title: 'Initialize the Highlight JS SDK.',

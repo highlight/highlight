@@ -1,9 +1,11 @@
+import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
 
 export const JSNestLogContent: QuickStartContent = {
   title: 'Nest.js',
   subtitle: 'Learn how to set up highlight.io log ingestion in Nest.js.',
+  logoUrl: siteUrl('/images/quickstart/nestjs.svg'),
   entries: [
     previousInstallSnippet('nestjs'),
     {

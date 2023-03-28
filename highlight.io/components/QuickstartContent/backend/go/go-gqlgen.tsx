@@ -1,3 +1,4 @@
+import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets'
 import { customGoError, goGetSnippet, initializeGoSdk, setUpLogging, verifyGoErrors } from './shared-snippets'
@@ -5,6 +6,7 @@ import { customGoError, goGetSnippet, initializeGoSdk, setUpLogging, verifyGoErr
 export const GoGqlgenContent: QuickStartContent = {
   title: 'Go Gqlgen',
   subtitle: 'Learn how to set up highlight.io on your Go gqlgen backend.',
+  logoUrl: siteUrl('/images/quickstart/gqlgen.svg'),
   entries: [
     frontendInstallSnippet,
     goGetSnippet,

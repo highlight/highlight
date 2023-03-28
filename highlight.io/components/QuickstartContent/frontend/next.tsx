@@ -1,3 +1,4 @@
+import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 import {
   configureSourcemapsCI,
@@ -19,12 +20,13 @@ ReactDOM.render(
 export const NextContent: QuickStartContent = {
   title: 'Next.js',
   subtitle: 'Learn how to set up highlight.io with your Next (frontend) application.',
+  logoUrl: siteUrl('/images/quickstart/nextjs.svg'),
   entries: [
     {
       title: 'Install the npm package & SDK.',
       content: 'Install the npm package `highlight.run` in your terminal.',
       code: {
-        text: `# with npm 
+        text: `# with npm
 npm install highlight.run @highlight-run/react
 
 # with yarn
