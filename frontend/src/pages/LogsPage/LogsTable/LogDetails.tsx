@@ -1,6 +1,6 @@
 import { Button } from '@components/Button'
 import { LinkButton } from '@components/LinkButton'
-import { LogEdge, Maybe, ReservedLogKey } from '@graph/schemas'
+import { LogEdge, LogLevel, Maybe, ReservedLogKey } from '@graph/schemas'
 import {
 	Box,
 	IconSolidChevronDoubleDown,
@@ -66,7 +66,10 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 		(v) => typeof v === 'object',
 	)
 	const reservedLogAttributes: {
-		[key in ReservedLogKey]: Maybe<string> | string | undefined
+		level: LogLevel
+		message: string
+	} & {
+		[key in ReservedLogKey]: Maybe<string> | undefined
 	} = {
 		level,
 		message,
