@@ -5,7 +5,7 @@ dist
 esm
 out
 build
-.next
+**/.next
 
 apollo.config.js
 .yalc
@@ -45,3 +45,4 @@ cypress/videos/
 
 __pycache__
 
+.turbo
