@@ -7433,22 +7433,3 @@ type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *errorGroupResolver) ErrorMetrics(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorDistributionItem, error) {
-	if time.Since(obj.CreatedAt) <= time.Hour {
-		return r.GetErrorGroupFrequenciesUnsampled(ctx, obj.ProjectID, obj.ID)
-	}
-	return r.GetErrorGroupFrequencies(ctx, obj.ProjectID, []int{obj.ID}, modelInputs.ErrorGroupFrequenciesParamsInput{
-		DateRange: &modelInputs.DateRangeRequiredInput{
-			StartDate: time.Now().Add(-24 * 30 * time.Hour),
-			EndDate:   time.Now(),
-		},
-		ResolutionMinutes: 24 * 60,
-	}, "")
-}
