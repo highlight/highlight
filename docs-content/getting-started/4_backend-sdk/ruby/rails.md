@@ -5,4 +5,4 @@ slug: rails
 quickstart: true
 ---
 
-<QuickStart content={quickStartContent["server"]["ruby"]["rails"]}/>
+<QuickStart content={quickStartContent["backend"]["ruby"]["rails"]}/>

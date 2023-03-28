@@ -5,4 +5,4 @@ slug: other
 quickstart: true
 ---
 
-<QuickStart content={quickStartContent["server"]["ruby"]["other"]}/>
+<QuickStart content={quickStartContent["backend"]["ruby"]["other"]}/>
