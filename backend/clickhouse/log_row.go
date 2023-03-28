@@ -99,8 +99,14 @@ func WithSource(source string) LogRowOption {
 	}
 }
 
-func WithBody(body string) LogRowOption {
+func WithBody(ctx context.Context, body string) LogRowOption {
 	return func(h *LogRow) {
+		if len(body) > LogAttributeValueLengthLimit {
+			log.WithContext(ctx).
+				WithField("ValueLength", len(body)).
+				Warnf("log body value is too long %d", len(body))
+			body = body[:LogAttributeValueLengthLimit] + "..."
+		}
 		h.Body = body
 	}
 }

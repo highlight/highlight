@@ -52,3 +52,13 @@ func TestNewLogRowWithLongField(t *testing.T) {
 	lr := NewLogRow(LogRowPrimaryAttrs{}, WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, false))
 	assert.Equal(t, 2048+3, len(lr.LogAttributes["foo"]))
 }
+
+func TestNewLogRowWithLongBody(t *testing.T) {
+	ctx := context.TODO()
+	var body string
+	for i := 0; i < 2<<16; i++ {
+		body += "a"
+	}
+	lr := NewLogRow(LogRowPrimaryAttrs{}, WithBody(ctx, body))
+	assert.Equal(t, 2048+3, len(lr.Body))
+}
