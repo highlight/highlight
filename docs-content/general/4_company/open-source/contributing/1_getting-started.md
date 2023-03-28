@@ -14,7 +14,10 @@ It's best to start with issues marked as ["good first issue"](https://github.com
 Check out our development deployment guide to get started:
 
 <DocsCardGroup>
-    <DocsCard title="Dev Deployment Guide." href="../../../../getting-started/self-host/dev-deployment-guide.md">
+    <DocsCard title="Local Development Guide." href="../../../../getting-started/self-host/dev-deployment-guide.md">
         {"Running a docker version of highlight.io for development."}
+    </DocsCard>
+    <DocsCard title="GitHub Codespaces Guide" href="./code-spaces.md">
+        {"Running highlight.io in a codespaces environment."}
     </DocsCard>
 </DocsCardGroup>
