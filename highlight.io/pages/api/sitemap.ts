@@ -1,9 +1,9 @@
 import { GraphQLClient, gql } from 'graphql-request'
 import { withHighlight } from '../../highlight.config'
 import { H } from '@highlight-run/next'
-import { iProduct, PRODUCTS } from '../../components/Products/products'
+// import { iProduct, PRODUCTS } from '../../components/Products/products'
 import { getGithubDocsPaths } from './docs/github'
-import { FEATURES, iFeature } from '../../components/Features/features'
+// import { FEATURES, iFeature } from '../../components/Features/features'
 
 export const config = {
 	excludeFiles: 'public/**/*',
@@ -68,12 +68,12 @@ async function handler(_: any, res: any) {
 	const docsPages = Array.from(docs.keys()).map(
 		(d) => `docs/${d.split('docs-content/').pop()}`,
 	)
-	const productPages = Object.values(PRODUCTS).map(
-		(product: iProduct) => `for/${product.slug}`,
-	)
-	const featurePages = Object.values(FEATURES).map(
-		(feature: iFeature) => `${feature.slug}`,
-	)
+	// const productPages = Object.values(PRODUCTS).map(
+	// 	(product: iProduct) => `for/${product.slug}`,
+	// )
+	// const featurePages = Object.values(FEATURES).map(
+	// 	(feature: iFeature) => `${feature.slug}`,
+	// )
 
 	const staticPagePaths = process.env.staticPages?.split(', ') || []
 	const staticPages = staticPagePaths.map((path) => {
@@ -86,8 +86,8 @@ async function handler(_: any, res: any) {
 		...customerPages,
 		...changelogPages,
 		...docsPages,
-		...productPages,
-		...featurePages,
+		// ...productPages,
+		// ...featurePages,
 	]
 
 	const addPage = (page: string) => {
