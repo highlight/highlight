@@ -960,7 +960,7 @@ type DailyErrorCount {
 }
 
 type ErrorDistributionItem {
-	error_group_id: String!
+	error_group_id: ID!
 	date: Timestamp!
 	name: String!
 	value: Int64!

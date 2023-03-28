@@ -225,20 +225,6 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 	}
 }
 
-// ErrorMetrics is the resolver for the error_metrics field.
-func (r *errorGroupResolver) ErrorMetrics(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorDistributionItem, error) {
-	if time.Since(obj.CreatedAt) <= time.Hour {
-		return r.GetErrorGroupFrequenciesUnsampled(ctx, obj.ProjectID, obj.ID)
-	}
-	return r.GetErrorGroupFrequencies(ctx, obj.ProjectID, []int{obj.ID}, modelInputs.ErrorGroupFrequenciesParamsInput{
-		DateRange: &modelInputs.DateRangeRequiredInput{
-			StartDate: time.Now().Add(-24 * 30 * time.Hour),
-			EndDate:   time.Now(),
-		},
-		ResolutionMinutes: 24 * 60,
-	}, "")
-}
-
 // ErrorGroupSecureID is the resolver for the error_group_secure_id field.
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
 	if obj != nil {
@@ -3893,7 +3879,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 	errorFrequencyInfluxSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("resolver.errorFrequencyInflux"), tracer.Tag("project_id", projectID))
 
-	err = r.SetErrorFrequenciesInflux(ctx, projectID, asErrorGroups, ErrorGroupLookbackDays)
+	err = r.SetErrorFrequencies(ctx, projectID, asErrorGroups, ErrorGroupLookbackDays)
 	errorFrequencyInfluxSpan.Finish()
 
 	if err != nil {
@@ -4688,7 +4674,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 		return dists, nil
 	}
 
-	if err := r.SetErrorFrequencies([]*model.ErrorGroup{errGroup}, dateOffset); err != nil {
+	if err := r.SetErrorFrequencies(ctx, projectID, []*model.ErrorGroup{errGroup}, dateOffset); err != nil {
 		return nil, e.Wrap(err, "error setting error frequencies")
 	}
 	return errGroup.ErrorFrequency, nil

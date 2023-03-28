@@ -1165,8 +1165,6 @@ type ErrorGroupResolver interface {
 	MetadataLog(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorMetadata, error)
 
 	State(ctx context.Context, obj *model1.ErrorGroup) (model.ErrorState, error)
-
-	ErrorMetrics(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorDistributionItem, error)
 }
 type ErrorObjectResolver interface {
 	ErrorGroupSecureID(ctx context.Context, obj *model1.ErrorObject) (string, error)
@@ -8796,7 +8794,7 @@ type DailyErrorCount {
 }
 
 type ErrorDistributionItem {
-	error_group_id: String!
+	error_group_id: ID!
 	date: Timestamp!
 	name: String!
 	value: Int64!
@@ -21146,9 +21144,9 @@ func (ec *executionContext) _ErrorDistributionItem_error_group_id(ctx context.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ErrorDistributionItem_error_group_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -21158,7 +21156,7 @@ func (ec *executionContext) fieldContext_ErrorDistributionItem_error_group_id(ct
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -22184,7 +22182,7 @@ func (ec *executionContext) _ErrorGroup_error_metrics(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ErrorGroup().ErrorMetrics(rctx, obj)
+		return obj.ErrorMetrics, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22205,8 +22203,8 @@ func (ec *executionContext) fieldContext_ErrorGroup_error_metrics(ctx context.Co
 	fc = &graphql.FieldContext{
 		Object:     "ErrorGroup",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "error_group_id":
@@ -58641,25 +58639,12 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "error_metrics":
-			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ErrorGroup_error_metrics(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
+			out.Values[i] = ec._ErrorGroup_error_metrics(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
 			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "is_public":
 
 			out.Values[i] = ec._ErrorGroup_is_public(ctx, field, obj)

@@ -370,7 +370,7 @@ export type ErrorComment = {
 export type ErrorDistributionItem = {
 	__typename?: 'ErrorDistributionItem'
 	date: Scalars['Timestamp']
-	error_group_id: Scalars['String']
+	error_group_id: Scalars['ID']
 	name: Scalars['String']
 	value: Scalars['Int64']
 }

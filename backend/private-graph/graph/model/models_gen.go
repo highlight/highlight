@@ -224,7 +224,7 @@ type EnhancedUserDetailsResult struct {
 }
 
 type ErrorDistributionItem struct {
-	ErrorGroupID string    `json:"error_group_id"`
+	ErrorGroupID int       `json:"error_group_id"`
 	Date         time.Time `json:"date"`
 	Name         string    `json:"name"`
 	Value        int64     `json:"value"`
