@@ -140,7 +140,7 @@ const Search: React.FC<{
 	const showValues =
 		activeTerm.key !== BODY_KEY ||
 		!!keys?.find((k) => k.name === activeTerm.key)
-	const loading = keysLoading || (showValues && valuesLoading)
+	const loading = showValues ? valuesLoading : keysLoading
 	const showTermSelect = !!activeTerm.value.length
 
 	const visibleItems = showValues
