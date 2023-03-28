@@ -473,8 +473,6 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 
 	}
 
-	filters := makeFilters(params.Query)
-
 	for _, body := range filters.body {
 		if strings.Contains(body, "%") {
 			sb.Where("Body ILIKE" + sb.Var(body))
