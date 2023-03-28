@@ -91,6 +91,7 @@ export type HighlightClassOptions = {
 	backendUrl?: string
 	tracingOrigins?: boolean | (string | RegExp)[]
 	disableNetworkRecording?: boolean
+	reportConsoleErrors?: boolean
 	networkRecording?: boolean | NetworkRecordingOptions
 	disableBackgroundRecording?: boolean
 	disableConsoleRecording?: boolean

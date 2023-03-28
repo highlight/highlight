@@ -139,3 +139,10 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Patch Changes
 
 - Ensure integrations are not initialized when `disabled: true`.
+
+## 5.4.2
+
+### Patch Changes
+
+- Adds an opt-out `reportConsoleErrors` boolean setting to `H.init` that allows disabling reporting console logs as errors.
+- Ensures `console.error(...)` calls are reported as part of highlight frontend sessions in all cases.
