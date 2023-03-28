@@ -40,7 +40,7 @@ import {
 	removeOrderingPrefix,
 } from '../api/docs/github'
 
-const DOCS_CONTENT_PATH = path.join(process.cwd(), 'docs-content')
+const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
 const DOCS_GITUB_LINK = `https://github.com/highlight/highlight/blob/main/docs-content/`
 export interface DocPath {
 	// e.g. '[tips, sessions-search-deep-linking.md]'

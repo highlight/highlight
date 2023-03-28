@@ -5,7 +5,7 @@ dist
 esm
 out
 build
-.next
+**/.next
 
 apollo.config.js
 .yalc
