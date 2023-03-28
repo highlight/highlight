@@ -1,5 +1,5 @@
 import { GraphQLClient, gql } from 'graphql-request'
-import { withHighlight } from '../../highlight.config'
+// import { withHighlight } from '../../highlight.config'
 import { H } from '@highlight-run/next'
 // import { iProduct, PRODUCTS } from '../../components/Products/products'
 import { getGithubDocsPaths } from './docs/github'
@@ -105,4 +105,4 @@ ${pages.map(addPage).join('\n')}
 	res.end(xml)
 }
 
-export default withHighlight(handler)
+export default handler
