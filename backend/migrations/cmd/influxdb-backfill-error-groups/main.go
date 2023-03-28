@@ -47,7 +47,7 @@ func main() {
 		go func(projectID int) {
 			errorGroups := &[]*model.ErrorGroup{}
 			inner := func(tx *gorm.DB, batch int) error {
-				err = pri.SetErrorFrequencies(*errorGroups, LookbackDays)
+				err = pri.SetErrorFrequencies(ctx, projectID, *errorGroups, LookbackDays)
 				if err != nil {
 					return err
 				}
