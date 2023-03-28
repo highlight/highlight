@@ -28314,9 +28314,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highlight-landing@workspace:highlight.io":
+"highlight-words-core@npm:^1.2.0":
+  version: 1.2.2
+  resolution: "highlight-words-core@npm:1.2.2"
+  checksum: 737758a8a572c82919552b031df300016164b7d0db6a819d24bc6c7ca2279d3cd6d03497728930d6402423c7a3fc2f42c628a9b01b025c704a0b56a635377511
+  languageName: node
+  linkType: hard
+
+"highlight.io@workspace:highlight.io":
   version: 0.0.0-use.local
-  resolution: "highlight-landing@workspace:highlight.io"
+  resolution: "highlight.io@workspace:highlight.io"
   dependencies:
     "@docsearch/css": 3
     "@docsearch/js": 3
@@ -28397,13 +28404,6 @@ __metadata:
     uuidv4: ^6.2.13
   languageName: unknown
   linkType: soft
-
-"highlight-words-core@npm:^1.2.0":
-  version: 1.2.2
-  resolution: "highlight-words-core@npm:1.2.2"
-  checksum: 737758a8a572c82919552b031df300016164b7d0db6a819d24bc6c7ca2279d3cd6d03497728930d6402423c7a3fc2f42c628a9b01b025c704a0b56a635377511
-  languageName: node
-  linkType: hard
 
 "highlight.js@npm:^10.4.1, highlight.js@npm:~10.7.0":
   version: 10.7.3
