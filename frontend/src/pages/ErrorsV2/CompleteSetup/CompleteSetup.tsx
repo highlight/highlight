@@ -7,10 +7,13 @@ import {
 	Text,
 	vars,
 } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 import React from 'react'
 const { DEMO_ERROR_URL } = import.meta.env
 
 export const CompleteSetup = () => {
+	const { projectId } = useProjectId()
+
 	return (
 		<Box margin="auto" style={{ maxWidth: 300 }}>
 			<Callout
@@ -43,7 +46,7 @@ export const CompleteSetup = () => {
 					</Text>
 					<Stack gap="6" direction="row">
 						<LinkButton
-							to="/setup"
+							to={`/${projectId}/setup`}
 							trackingId="finish-setup-errors"
 						>
 							Finish setup
