@@ -41,7 +41,7 @@ import {
 } from '../api/docs/github'
 
 const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
-const DOCS_GITUB_LINK = `https://github.com/highlight/highlight/blob/main/docs-content/`
+const DOCS_GITUB_LINK = `https://github.com/highlight/highlight/blob/main/docs-content`
 export interface DocPath {
 	// e.g. '[tips, sessions-search-deep-linking.md]'
 	array_path: string[]
@@ -939,6 +939,7 @@ const DocPage = ({
 								).map((breadcrumb, i) =>
 									i === 0 ? (
 										<Link
+											key={i}
 											href={breadcrumb.path}
 											legacyBehavior
 										>
