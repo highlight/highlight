@@ -65,6 +65,9 @@
 		"nextjs#lint": {
 			"dependsOn": ["^build"]
 		},
+		"highlight.io#lint": {
+			"dependsOn": ["^build"]
+		},
 		"test": {
 			"dependsOn": ["lint", "prepublish", "enforce-size"],
 			"outputs": [],
