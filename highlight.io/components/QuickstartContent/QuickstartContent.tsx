@@ -91,7 +91,18 @@ export enum QuickStartType {
 	RubyRails = 'rails',
 }
 
-export const quickStartContent = {
+export const quickStartContent: {
+	other: {
+		[key: string]: QuickStartContent
+	}
+} & {
+	[key: string]: {
+		title: string
+		subtitle: string
+	} & {
+		[key: string]: QuickStartContent
+	}
+} = {
 	client: {
 		title: 'Client SDKs',
 		subtitle: 'Select a client SDK to get started.',
@@ -159,6 +170,10 @@ export const quickStartContent = {
 			[QuickStartType.JStRPC]: JStRPCContent,
 		},
 		ruby: {
+			title: 'Ruby',
+			subtitle:
+				'Select your Ruby framework to install error monitoring for your application.',
+			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
 			[QuickStartType.RubyRails]: RubyRailsContent,
 			[QuickStartType.RubyOther]: RubyOtherContent,
 		},
@@ -197,6 +212,10 @@ export const quickStartContent = {
 			[QuickStartType.HTTPOTLP]: HTTPContent,
 		},
 		ruby: {
+			title: 'Ruby',
+			subtitle:
+				'Select your Ruby framework to install logging in your application.',
+			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
 			[QuickStartType.RubyRails]: RubyRailsLogContent,
 			[QuickStartType.RubyOther]: RubyOtherLogContent,
 		},
