@@ -19,6 +19,7 @@ export const DocSection = ({ content }: { content: string }) => {
 				createElement(type, props, children) {
 					return createElement(
 						type,
+						// @ts-ignore
 						{ ...props, className: CLASSNAME_MAP[props.className] },
 						children,
 					)
