@@ -62,9 +62,10 @@ import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInput
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
 import { gqlSanitize } from '@util/gql'
+import { client } from '@util/graph'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
-import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
+import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import { QueryBuilderStateParam } from '@util/url/params'
 import { Checkbox, message } from 'antd'
 import clsx, { ClassValue } from 'clsx'
@@ -336,7 +337,7 @@ export const getAbsoluteStartTime = (value?: string): string | null => {
 		// value is a relative duration such as '7 days', subtract it from current time
 		const amount = parseInt(value.split(' ')[0])
 		const unit = value.split(' ')[1].toLowerCase()
-		return roundDateToMinute(
+		return roundFeedDate(
 			moment()
 				.subtract(amount, unit as unitOfTime.DurationConstructor)
 				.toISOString(),
@@ -348,7 +349,7 @@ export const getAbsoluteEndTime = (value?: string): string | null => {
 	if (!value) return null
 	if (!isAbsoluteTimeRange(value)) {
 		// value is a relative duration such as '7 days', use current time as end of range
-		return roundDateToMinute(moment().toISOString()).toISOString()
+		return roundFeedDate(moment().toISOString()).toISOString()
 	}
 	return value!.split('_')[1]
 }
@@ -1830,10 +1831,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const updateSerializedQuery = useCallback(
 		(isAnd: boolean, rules: RuleProps[]) => {
-			const startDate = roundDateToMinute(
+			const startDate = roundFeedDate(
 				getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
 			)
-			const endDate = roundDateToMinute(
+			const endDate = roundFeedDate(
 				getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
 			)
 			const searchQuery = parseGroup(isAnd, rules)
@@ -2345,6 +2346,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 									setBackendSearchQuery(
 										serializedQuery.current,
 									)
+									client.refetchQueries({
+										include: [
+											namedOperations.Query.GetErrorGroup,
+											namedOperations.Query
+												.GetErrorInstance,
+										],
+									})
 								}}
 							/>
 						)}

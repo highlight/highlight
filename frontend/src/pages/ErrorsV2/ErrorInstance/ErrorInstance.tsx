@@ -39,6 +39,7 @@ import {
 	RightPanelView,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import {
@@ -372,7 +373,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 								navigate(
 									`/${projectId}/sessions/${errorObject.session?.secure_id}` +
-										`?tsAbs=${errorObject.timestamp}`,
+										`?${PlayerSearchParameters.tsAbs}=${errorObject.timestamp}`,
 								)
 								setShowLeftPanel(false)
 								setShowRightPanel(true)
