@@ -1,6 +1,14 @@
 import { Button } from '@components/Button'
 import Select from '@components/Select/Select'
-import { useGetLogsKeysQuery } from '@graph/hooks'
+import {
+	useCreateLogAlertMutation,
+	useDeleteLogAlertMutation,
+	useGetLogAlertQuery,
+	useGetLogsKeysQuery,
+	useUpdateLogAlertIsDisabledMutation,
+	useUpdateLogAlertMutation,
+} from '@graph/hooks'
+import { DiscordChannel, SanitizedSlackChannel } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -30,12 +38,14 @@ import {
 import { LOG_TIME_PRESETS, now, thirtyDaysAgo } from '@pages/LogsPage/constants'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { Search } from '@pages/LogsPage/SearchForm/SearchForm'
-import { useEffect, useMemo, useState } from 'react'
+import { message } from 'antd'
+import { capitalize } from 'lodash'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
 import * as styles from './styles.css'
 
-export const LogMonitorPage = () => {
+export const LogAlertPage = () => {
 	const [selectedDates, setSelectedDates] = useState([
 		LOG_TIME_PRESETS[0].startDate,
 		now.toDate(),
@@ -44,6 +54,13 @@ export const LogMonitorPage = () => {
 	const [startDate, setStartDate] = useState(LOG_TIME_PRESETS[0].startDate)
 	const [endDate, setEndDate] = useState(now.toDate())
 
+	const { alert_id } = useParams<{
+		alert_id: string
+	}>()
+
+	const isCreate = alert_id === undefined
+	const createStr = isCreate ? 'create' : 'update'
+
 	useEffect(() => {
 		if (selectedDates.length === 2) {
 			setStartDate(selectedDates[0])
@@ -51,11 +68,12 @@ export const LogMonitorPage = () => {
 		}
 	}, [selectedDates])
 
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
-
-	const navigate = useNavigate()
+	const { data, loading, error } = useGetLogAlertQuery({
+		variables: {
+			id: alert_id || 'never',
+		},
+		skip: !alert_id,
+	})
 
 	const form = useFormState<LogMonitorForm>({
 		defaultValues: {
@@ -71,46 +89,162 @@ export const LogMonitorPage = () => {
 		},
 	})
 
-	const query = form.getValue(form.names.query)
-	const belowThreshold = form.getValue(form.names.belowThreshold)
-	const threshold = form.getValue(form.names.threshold)
+	useEffect(() => {
+		if (data) {
+			form.setValues({
+				query: data?.log_alert.query,
+				name: data?.log_alert.Name,
+				belowThreshold: data?.log_alert.BelowThreshold,
+				excludedEnvironments: data?.log_alert.ExcludedEnvironments,
+				slackChannels: data?.log_alert.ChannelsToNotify,
+				discordChannels: data?.log_alert.DiscordChannelsToNotify,
+				emails: data?.log_alert.EmailsToNotify,
+				threshold: data?.log_alert.CountThreshold,
+				frequency: data?.log_alert.ThresholdWindow,
+			})
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [data])
 
-	const header = useMemo(() => {
-		return (
-			<Box
-				display="flex"
-				justifyContent="space-between"
-				alignItems="center"
-				borderBottom="dividerWeak"
-				px="8"
-				py="6"
-				cssClass={styles.header}
-			>
-				<Text userSelect="none">Create monitoring alert</Text>
-				<Box display="flex" alignItems="center" gap="4">
-					<Button
-						kind="secondary"
-						size="small"
-						emphasis="low"
-						trackingId="closeLogMonitoringAlert"
-						onClick={() => {
-							navigate(`/${project_id}/alerts`)
-						}}
-					>
-						Cancel
-					</Button>
-					<Button
-						kind="primary"
-						size="small"
-						emphasis="high"
-						trackingId="saveLogMonitoringAlert"
-					>
-						Create alert
-					</Button>
-				</Box>
+	console.log('rendered!')
+
+	const [createLogAlertMutation] = useCreateLogAlertMutation()
+	const [updateLogAlertMutation] = useUpdateLogAlertMutation()
+	const [deleteLogAlertMutation] = useDeleteLogAlertMutation()
+	const [updateLogAlertIsDisabledMutation] =
+		useUpdateLogAlertIsDisabledMutation()
+
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
+
+	const navigate = useNavigate()
+
+	const query = form.values.query
+	const belowThreshold = form.values.belowThreshold
+	const threshold = form.values.threshold
+
+	const header = (
+		<Box
+			display="flex"
+			justifyContent="space-between"
+			alignItems="center"
+			borderBottom="dividerWeak"
+			px="8"
+			py="6"
+			cssClass={styles.header}
+		>
+			<Text userSelect="none">
+				{capitalize(createStr)} monitoring alert
+			</Text>
+			<Box display="flex" alignItems="center" gap="4">
+				<Button
+					kind="secondary"
+					size="small"
+					emphasis="low"
+					trackingId="closeLogMonitoringAlert"
+					onClick={() => {
+						navigate(`/${project_id}/alerts`)
+					}}
+				>
+					Cancel
+				</Button>
+				<Button
+					kind="primary"
+					size="small"
+					emphasis="high"
+					trackingId="saveLogMonitoringAlert"
+					onClick={() => {
+						if (isCreate) {
+							createLogAlertMutation({
+								variables: {
+									input: {
+										count_threshold: form.getValue(
+											form.names.threshold,
+										),
+										below_threshold: form.getValue(
+											form.names.belowThreshold,
+										),
+										disabled: false,
+										discord_channels: form.getValue(
+											form.names.discordChannels,
+										),
+										emails: form.getValue(
+											form.names.emails,
+										),
+										environments: form.getValue(
+											form.names.excludedEnvironments,
+										),
+										name: form.getValue(form.names.name),
+										project_id: project_id || '0',
+										slack_channels: form.getValue(
+											form.names.slackChannels,
+										),
+										threshold_window: form.getValue(
+											form.names.frequency,
+										),
+										query: form.getValue(form.names.query),
+									},
+								},
+							})
+								.then(() => {
+									message.success(`Log alert ${createStr}d!`)
+									navigate(`/${project_id}/alerts`)
+								})
+								.catch(() => {
+									message.error(
+										`Failed to ${createStr} log alert!`,
+									)
+								})
+						} else {
+							updateLogAlertMutation({
+								variables: {
+									id: alert_id,
+									input: {
+										count_threshold: form.getValue(
+											form.names.threshold,
+										),
+										below_threshold: form.getValue(
+											form.names.belowThreshold,
+										),
+										disabled: false,
+										discord_channels: form.getValue(
+											form.names.discordChannels,
+										),
+										emails: form.getValue(
+											form.names.emails,
+										),
+										environments: form.getValue(
+											form.names.excludedEnvironments,
+										),
+										name: form.getValue(form.names.name),
+										project_id: project_id || '0',
+										slack_channels: form.getValue(
+											form.names.slackChannels,
+										),
+										threshold_window: form.getValue(
+											form.names.frequency,
+										),
+										query: form.getValue(form.names.query),
+									},
+								},
+							})
+								.then(() => {
+									message.success(`Log alert ${createStr}d!`)
+								})
+								.catch(() => {
+									message.error(
+										`Failed to ${createStr} log alert!`,
+									)
+								})
+						}
+					}}
+				>
+					{capitalize(createStr)} alert
+				</Button>
 			</Box>
-		)
-	}, [])
+		</Box>
+	)
 
 	return (
 		<Box width="full" background="raised" px="8" pb="8">
@@ -363,6 +497,7 @@ const LogAlertForm = ({
 								values,
 							)
 						}
+						value={form.values.excludedEnvironments}
 						notFoundContent={<p>No environment suggestions</p>}
 						className={styles.selectContainer}
 						mode="multiple"
@@ -389,6 +524,7 @@ const LogAlertForm = ({
 						onChange={(values) =>
 							form.setValue(form.names.slackChannels, values)
 						}
+						value={form.values.slackChannels}
 						notFoundContent={<p>No channel suggestions</p>}
 						className={styles.selectContainer}
 						mode="multiple"
@@ -406,6 +542,7 @@ const LogAlertForm = ({
 						onChange={(values) =>
 							form.setValue(form.names.discordChannels, values)
 						}
+						value={form.values.discordChannels}
 						notFoundContent={<p>No channel suggestions</p>}
 						className={styles.selectContainer}
 						mode="multiple"
@@ -423,6 +560,7 @@ const LogAlertForm = ({
 						onChange={(values) =>
 							form.setValue(form.names.emails, values)
 						}
+						value={form.values.emails}
 						notFoundContent={<p>No email suggestions</p>}
 						className={styles.selectContainer}
 						mode="multiple"
@@ -481,9 +619,9 @@ interface LogMonitorForm {
 	threshold: number | undefined
 	frequency: number
 	excludedEnvironments: string[]
-	slackChannels: string[]
-	discordChannels: string[]
+	slackChannels: SanitizedSlackChannel[]
+	discordChannels: DiscordChannel[]
 	emails: string[]
 }
 
-export default LogMonitorPage
+export default LogAlertPage

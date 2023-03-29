@@ -50,6 +50,10 @@ func BillingQuotaExceededKey(projectId int) string {
 	return fmt.Sprintf("billing-quota-exceeded-%d", projectId)
 }
 
+func LastLogTimestampKey(projectId int) string {
+	return fmt.Sprintf("last-log-timestamp-%d", projectId)
+}
+
 func NewClient() *Client {
 	if util.IsDevOrTestEnv() {
 		return &Client{
@@ -302,6 +306,26 @@ func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, p
 	return nil
 }
 
+func (r *Client) setString(ctx context.Context, key string, value string, exp time.Duration) error {
+	cmd := r.redisClient.Set(ctx, key, value, exp)
+	if cmd.Err() != nil {
+		return errors.Wrap(cmd.Err(), "error setting string from Redis")
+	}
+	return nil
+}
+
+func (r *Client) getString(ctx context.Context, key string) (string, error) {
+	val, err := r.redisClient.Get(ctx, key).Result()
+
+	// return empty for non-existent keys
+	if err == redis.Nil {
+		return "", nil
+	} else if err != nil {
+		return "", errors.Wrap(err, "error getting string from Redis")
+	}
+	return val, nil
+}
+
 func (r *Client) setFlag(ctx context.Context, key string, value bool, exp time.Duration) error {
 	cmd := r.redisClient.Set(ctx, key, value, exp)
 	if cmd.Err() != nil {
@@ -336,4 +360,21 @@ func (r *Client) IsBillingQuotaExceeded(ctx context.Context, projectId int) (boo
 
 func (r *Client) SetBillingQuotaExceeded(ctx context.Context, projectId int) error {
 	return r.setFlag(ctx, BillingQuotaExceededKey(projectId), true, 5*time.Minute)
+}
+
+func (r *Client) GetLastLogTimestamp(ctx context.Context, projectId int) (time.Time, error) {
+	str, err := r.getString(ctx, LastLogTimestampKey(projectId))
+	if err != nil {
+		return time.Time{}, err
+	}
+	// If no key set, assume time.Now()
+	if str == "" {
+		return time.Now(), nil
+	}
+	return time.Parse(time.RFC3339, str)
+}
+
+func (r *Client) SetLastLogTimestamp(ctx context.Context, projectId int, timestamp time.Time) error {
+	str := timestamp.Format(time.RFC3339)
+	return r.setString(ctx, LastLogTimestampKey(projectId), str, 0)
 }

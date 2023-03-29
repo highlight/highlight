@@ -1,0 +1,153 @@
+package log_alerts
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/highlight-run/highlight/backend/alerts"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/timeseries"
+	"github.com/openlyinc/pointy"
+
+	"github.com/pkg/errors"
+	"github.com/sendgrid/sendgrid-go"
+
+	"github.com/highlight-run/go-resthooks"
+	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/zapier"
+	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+)
+
+const (
+	sigFigs = 4
+)
+
+func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client) {
+	log.WithContext(ctx).Info("Starting to watch Log Alerts")
+
+	for range time.Tick(time.Second * 15) {
+		go func() {
+			alerts := getLogAlerts(ctx, DB) // frequency
+			processLogAlerts(ctx, DB, TDB, MailClient, alerts, rh, redis)
+		}()
+	}
+}
+
+func getLogAlerts(ctx context.Context, DB *gorm.DB) []*model.LogAlert {
+	var alerts []*model.LogAlert
+	if err := DB.Model(&model.LogAlert{}).Where("disabled = ?", false).Find(&alerts).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.WithContext(ctx).Error("Error querying for log alerts")
+		}
+	}
+
+	return alerts
+}
+
+func processLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, logAlerts []*model.LogAlert, rh *resthooks.Resthook, redis *redis.Client) {
+	log.WithContext(ctx).Info("Number of Log Alerts to Process: ", len(logAlerts))
+	for _, alert := range logAlerts {
+		lastLog, err := redis.GetLastLogTimestamp(ctx, alert.ProjectID)
+		if err != nil {
+			log.WithContext(ctx).Error("error retrieving last log timestamp", err)
+			continue
+		}
+		end := lastLog.Add(-time.Minute)
+		start := end.Add(-time.Minute)
+
+		// query clickhouse for the count here
+		var count int
+
+		alertCondition := count >= alert.CountThreshold
+		if alert.BelowThreshold {
+			alertCondition = count <= alert.CountThreshold
+		}
+
+		if alertCondition {
+			var project model.Project
+			if err := DB.Model(&model.Project{}).Where("id = ?", alert.ProjectID).First(&project).Error; err != nil {
+				log.WithContext(ctx).Error("error querying project for processMetricMonitor", err)
+				return
+			}
+			var workspace model.Workspace
+			if err := DB.Where(&model.Workspace{Model: model.Model{ID: project.WorkspaceID}}).First(&workspace).Error; err != nil {
+				log.WithContext(ctx).Error("error querying workspace for processMetricMonitor", err)
+				return
+			}
+
+			valueRepr := strconv.FormatFloat(value, 'g', sigFigs, 64)
+			thresholdRepr := strconv.FormatFloat(metricMonitor.Threshold, 'g', sigFigs, 64)
+			diffRepr := strconv.FormatFloat(value-metricMonitor.Threshold, 'g', sigFigs, 64)
+
+			aboveStr := "above"
+			if alert.BelowThreshold {
+				aboveStr = "below"
+			}
+
+			hookPayload := zapier.HookPayload{
+				MetricValue:     pointy.Float64(float64(count)),
+				MetricThreshold: pointy.Float64(float64(alert.CountThreshold)),
+			}
+			if err := rh.Notify(project.ID, fmt.Sprintf("LogAlert_%d", alert.ID), hookPayload); err != nil {
+				log.WithContext(ctx).Error("error notifying zapier", err)
+			}
+
+			message := fmt.Sprintf(
+				"🚨 *%s* fired!\nLog count for *%s* is currently %s the threshold.\n"+
+					"_Count_: %d | _Threshold_: %d",
+				alert.Name,
+				alert.Query,
+				aboveStr,
+				diffRepr,
+				count,
+				alert.CountThreshold,
+			)
+
+			fmt.Println(message)
+
+			if err := alert.SendSlackAlert(ctx, &model.SendLogAlertForMetricMonitorInput{Message: message, Workspace: &workspace}); err != nil {
+				log.WithContext(ctx).Error("error sending slack alert for metric monitor", err)
+			}
+
+			if err = alerts.SendLogAlert(alerts.LogAlertEvent{
+				LogAlert:  alert,
+				Workspace: &workspace,
+				Count:     count,
+			}); err != nil {
+				log.WithContext(ctx).Error(err)
+			}
+
+			emailsToNotify, err := model.GetEmailsToNotify(alert.EmailsToNotify)
+			if err != nil {
+				log.WithContext(ctx).Error(err)
+			}
+
+			frontendURL := os.Getenv("FRONTEND_URI")
+			alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, alert.ProjectID, alert.ID)
+
+			for _, email := range emailsToNotify {
+				message = fmt.Sprintf(
+					"<b>%s</b> fired! Log count for query <b>%s</b> is currently %s the threshold.<br>"+
+						"<em>Count</em>: %d | <em>Threshold: %d"+
+						"<br><br>"+
+						"<a href=\"%s\">View Alert</a>",
+					alert.Name,
+					alert.Query,
+					aboveStr,
+					count,
+					alert.CountThreshold,
+					alertUrl,
+				)
+				// ZANETODO: check nil
+				if err := Email.SendAlertEmail(ctx, MailClient, *email, message, "Log Alert", *alert.Name); err != nil {
+					log.WithContext(ctx).Error(err)
+				}
+			}
+		}
+	}
+}

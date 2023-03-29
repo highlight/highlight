@@ -50,7 +50,7 @@ export enum ALERT_NAMES {
 	NEW_SESSION_ALERT = 'New Sessions',
 	RAGE_CLICK_ALERT = 'Rage Clicks',
 	METRIC_MONITOR = 'Metric Monitor',
-	LOGS_ALERT = 'Logs',
+	LOG_ALERT = 'Logs',
 }
 
 interface AlertConfiguration {
@@ -152,8 +152,8 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 		icon: <SvgMonitorIcon />,
 		supportsExcludeRules: true,
 	},
-	LOGS_ALERT: {
-		name: ALERT_NAMES['LOGS_ALERT'],
+	LOG_ALERT: {
+		name: ALERT_NAMES['LOG_ALERT'],
 		canControlThreshold: true,
 		type: ALERT_TYPE.Logs,
 		description: 'Get alerted when queried logs exceed a threshold.',
@@ -249,8 +249,10 @@ const TABLE_COLUMNS = [
 		render: (_: any, record: any) => (
 			<Link
 				to={
-					record.type === 'Metric Monitor'
+					record.type === ALERT_NAMES['METRIC_MONITOR']
 						? `monitor/${record.id}`
+						: record.type === ALERT_NAMES['LOG_ALERT']
+						? `logs/${record.id}`
 						: `${record.id}`
 				}
 				className={styles.configureButton}
@@ -300,6 +302,7 @@ function AlertsPageLoaded({
 			alertsPayload?.user_properties_alerts,
 			alertsPayload?.new_session_alerts,
 			alertsPayload?.rage_click_alerts,
+			alertsPayload?.log_alerts,
 		].flatMap((alerts) => alerts?.flatMap((alert) => alert?.DailyFrequency))
 
 		return Math.max(...compact(values), 5)
@@ -407,6 +410,17 @@ function AlertsPageLoaded({
 				allAdmins: alertsPayload?.admins || [],
 			}))
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
+		...(alertsPayload?.log_alerts || [])
+			.map((logAlert) => ({
+				...logAlert,
+				configuration: ALERT_CONFIGURATIONS['LOG_ALERT'],
+				type: ALERT_CONFIGURATIONS['LOG_ALERT'].name,
+				Name: logAlert?.Name || ALERT_CONFIGURATIONS['LOG_ALERT'].name,
+				key: logAlert?.id,
+				frequency: maxNum,
+				allAdmins: alertsPayload?.admins || [],
+			}))
+			.sort((a, b) => a.Name.localeCompare(b.Name)),
 	]
 
 	return (
@@ -452,9 +466,18 @@ function AlertsPageLoaded({
 						}
 						onRow={(record) => ({
 							onClick: () => {
-								if (record.type === 'Metric Monitor') {
+								if (
+									record.type ===
+									ALERT_NAMES['METRIC_MONITOR']
+								) {
 									navigate(
 										`/${project_id}/alerts/monitor/${record.id}`,
+									)
+								} else if (
+									record.type === ALERT_NAMES['LOG_ALERT']
+								) {
+									navigate(
+										`/${project_id}/alerts/logs/${record.id}`,
 									)
 								} else {
 									navigate(

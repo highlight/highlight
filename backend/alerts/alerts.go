@@ -404,6 +404,44 @@ func SendMetricMonitorAlert(event MetricMonitorAlertEvent) error {
 	return nil
 }
 
+type LogAlertEvent struct {
+	LogAlert  *model.LogAlert
+	Workspace *model.Workspace
+	Count     int
+}
+
+func SendLogAlert(event LogAlertEvent) error {
+	payload := integrations.LogAlertPayload{
+		Name:           *event.LogAlert.Name, // ZANETODO: check null
+		Query:          event.LogAlert.Query,
+		Count:          event.Count,
+		Threshold:      event.LogAlert.CountThreshold,
+		BelowThreshold: event.LogAlert.BelowThreshold,
+		AlertURL:       getLogAlertURL(event.LogAlert),
+	}
+
+	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+		return nil
+	}
+
+	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
+	if err != nil {
+		return err
+	}
+
+	channels := event.LogAlert.DiscordChannelsToNotify
+
+	for _, channel := range channels {
+		err = bot.SendLogAlert(channel.ID, payload)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func isWorkspaceIntegratedWithDiscord(workspace model.Workspace) bool {
 	return workspace.DiscordGuildId != nil
 }

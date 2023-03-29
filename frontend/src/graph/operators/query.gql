@@ -1623,6 +1623,31 @@ query GetIdentifierSuggestions($project_id: ID!, $query: String!) {
 	identifier_suggestion(project_id: $project_id, query: $query)
 }
 
+query GetLogAlert($id: ID!) {
+	log_alert(id: $id) {
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		DiscordChannelsToNotify {
+			...DiscordChannelFragment
+		}
+		CountThreshold
+		DailyFrequency
+		disabled
+		EmailsToNotify
+		ExcludedEnvironments
+		id
+		LastAdminToEditID
+		Name
+		updated_at
+		BelowThreshold
+		ThresholdWindow
+		Type
+		query
+	}
+}
+
 query GetLogAlertsPagePayload($project_id: ID!) {
 	is_integrated_with_slack: is_integrated_with(
 		integration_type: Slack
@@ -1760,7 +1785,6 @@ query GetAlertsPagePayload($project_id: ID!) {
 		disabled
 		EmailsToNotify
 		ExcludedEnvironments
-		ExcludeRules
 		id
 		LastAdminToEditID
 		Name

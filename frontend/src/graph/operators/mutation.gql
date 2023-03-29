@@ -806,6 +806,38 @@ mutation DeleteSessionAlert($project_id: ID!, $session_alert_id: ID!) {
 	}
 }
 
+mutation UpdateLogAlert($id: ID!, $input: LogAlertInput!) {
+	updateLogAlert(id: $id, input: $input) {
+		id
+	}
+}
+
+mutation CreateLogAlert($input: LogAlertInput!) {
+	createLogAlert(input: $input) {
+		id
+	}
+}
+
+mutation DeleteLogAlert($project_id: ID!, $id: ID!) {
+	deleteLogAlert(project_id: $project_id, id: $id) {
+		id
+	}
+}
+
+mutation UpdateLogAlertIsDisabled(
+	$id: ID!
+	$project_id: ID!
+	$disabled: Boolean!
+) {
+	updateLogAlertIsDisabled(
+		id: $id
+		project_id: $project_id
+		disabled: $disabled
+	) {
+		id
+	}
+}
+
 mutation UpdateSessionAlertIsDisabled(
 	$id: ID!
 	$project_id: ID!

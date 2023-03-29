@@ -2,18 +2,20 @@ import { getSlackUrl } from '@components/Header/components/ConnectHighlightWithS
 import { useGetLogAlertsPagePayloadQuery } from '@graph/hooks'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import { LogAlertsContextProvider } from '@pages/Alerts/LogAlert/context'
-import LogMonitorPage from '@pages/Alerts/LogAlert/LogAlertPage'
+import LogAlertPage from '@pages/Alerts/LogAlert/LogAlertPage'
 import analytics from '@util/analytics'
 import { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 
 const LogAlertsRouter = () => {
 	const { projectId } = useNumericProjectId()
+
 	const { data, loading } = useGetLogAlertsPagePayloadQuery({
 		variables: { project_id: projectId! },
 		skip: !projectId,
 	})
+
 	const slackUrl = getSlackUrl(projectId!)
 
 	useEffect(() => analytics.page(), [])
@@ -30,11 +32,8 @@ const LogAlertsRouter = () => {
 				<title>Log Alerts</title>
 			</Helmet>
 			<Routes>
-				<Route path="new" element={<LogMonitorPage />} />
-				<Route
-					path="*"
-					element={<Navigate to={`/${projectId}/alerts`} replace />}
-				/>
+				<Route path="new" element={<LogAlertPage />} />
+				<Route path=":alert_id" element={<LogAlertPage />} />
 			</Routes>
 		</LogAlertsContextProvider>
 	)

@@ -958,6 +958,50 @@ export type DeleteSessionAlertMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type UpdateLogAlertMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+	input: Types.LogAlertInput
+}>
+
+export type UpdateLogAlertMutation = { __typename?: 'Mutation' } & {
+	updateLogAlert?: Types.Maybe<
+		{ __typename?: 'LogAlert' } & Pick<Types.LogAlert, 'id'>
+	>
+}
+
+export type CreateLogAlertMutationVariables = Types.Exact<{
+	input: Types.LogAlertInput
+}>
+
+export type CreateLogAlertMutation = { __typename?: 'Mutation' } & {
+	createLogAlert?: Types.Maybe<
+		{ __typename?: 'LogAlert' } & Pick<Types.LogAlert, 'id'>
+	>
+}
+
+export type DeleteLogAlertMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	id: Types.Scalars['ID']
+}>
+
+export type DeleteLogAlertMutation = { __typename?: 'Mutation' } & {
+	deleteLogAlert?: Types.Maybe<
+		{ __typename?: 'LogAlert' } & Pick<Types.LogAlert, 'id'>
+	>
+}
+
+export type UpdateLogAlertIsDisabledMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+	project_id: Types.Scalars['ID']
+	disabled: Types.Scalars['Boolean']
+}>
+
+export type UpdateLogAlertIsDisabledMutation = { __typename?: 'Mutation' } & {
+	updateLogAlertIsDisabled?: Types.Maybe<
+		{ __typename?: 'LogAlert' } & Pick<Types.LogAlert, 'id'>
+	>
+}
+
 export type UpdateSessionAlertIsDisabledMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 	project_id: Types.Scalars['ID']
@@ -3589,6 +3633,41 @@ export type GetIdentifierSuggestionsQuery = { __typename?: 'Query' } & Pick<
 	'identifier_suggestion'
 >
 
+export type GetLogAlertQueryVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+}>
+
+export type GetLogAlertQuery = { __typename?: 'Query' } & {
+	log_alert: { __typename?: 'LogAlert' } & Pick<
+		Types.LogAlert,
+		| 'CountThreshold'
+		| 'DailyFrequency'
+		| 'disabled'
+		| 'EmailsToNotify'
+		| 'ExcludedEnvironments'
+		| 'id'
+		| 'LastAdminToEditID'
+		| 'Name'
+		| 'updated_at'
+		| 'BelowThreshold'
+		| 'ThresholdWindow'
+		| 'Type'
+		| 'query'
+	> & {
+			ChannelsToNotify: Array<
+				{ __typename?: 'SanitizedSlackChannel' } & Pick<
+					Types.SanitizedSlackChannel,
+					'webhook_channel' | 'webhook_channel_id'
+				>
+			>
+			DiscordChannelsToNotify: Array<
+				{
+					__typename?: 'DiscordChannel'
+				} & DiscordChannelFragmentFragment
+			>
+		}
+}
+
 export type GetLogAlertsPagePayloadQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -3771,7 +3850,6 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				| 'disabled'
 				| 'EmailsToNotify'
 				| 'ExcludedEnvironments'
-				| 'ExcludeRules'
 				| 'id'
 				| 'LastAdminToEditID'
 				| 'Name'
@@ -3781,11 +3859,9 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				| 'query'
 			> & {
 					ChannelsToNotify: Array<
-						Types.Maybe<
-							{ __typename?: 'SanitizedSlackChannel' } & Pick<
-								Types.SanitizedSlackChannel,
-								'webhook_channel' | 'webhook_channel_id'
-							>
+						{ __typename?: 'SanitizedSlackChannel' } & Pick<
+							Types.SanitizedSlackChannel,
+							'webhook_channel' | 'webhook_channel_id'
 						>
 					>
 					DiscordChannelsToNotify: Array<
@@ -4222,6 +4298,7 @@ export const namedOperations = {
 		GenerateNewZapierAccessTokenJwt:
 			'GenerateNewZapierAccessTokenJwt' as const,
 		GetIdentifierSuggestions: 'GetIdentifierSuggestions' as const,
+		GetLogAlert: 'GetLogAlert' as const,
 		GetLogAlertsPagePayload: 'GetLogAlertsPagePayload' as const,
 		GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
 		GetMetricMonitors: 'GetMetricMonitors' as const,
@@ -4297,6 +4374,10 @@ export const namedOperations = {
 		UpdateErrorAlert: 'UpdateErrorAlert' as const,
 		DeleteErrorAlert: 'DeleteErrorAlert' as const,
 		DeleteSessionAlert: 'DeleteSessionAlert' as const,
+		UpdateLogAlert: 'UpdateLogAlert' as const,
+		CreateLogAlert: 'CreateLogAlert' as const,
+		DeleteLogAlert: 'DeleteLogAlert' as const,
+		UpdateLogAlertIsDisabled: 'UpdateLogAlertIsDisabled' as const,
 		UpdateSessionAlertIsDisabled: 'UpdateSessionAlertIsDisabled' as const,
 		UpdateMetricMonitorIsDisabled: 'UpdateMetricMonitorIsDisabled' as const,
 		UpdateErrorAlertIsDisabled: 'UpdateErrorAlertIsDisabled' as const,

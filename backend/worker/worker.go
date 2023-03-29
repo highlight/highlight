@@ -29,6 +29,7 @@ import (
 	highlightErrors "github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
+	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
 	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
@@ -1215,6 +1216,10 @@ func (w *Worker) InitializeOpenSearchIndex(ctx context.Context) {
 
 func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
 	metric_monitor.WatchMetricMonitors(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH)
+}
+
+func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
+	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis)
 }
 
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {

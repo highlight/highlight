@@ -672,16 +672,16 @@ export type Log = {
 
 export type LogAlert = {
 	__typename?: 'LogAlert'
-	ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>
+	BelowThreshold: Scalars['Boolean']
+	ChannelsToNotify: Array<SanitizedSlackChannel>
 	CountThreshold: Scalars['Int']
 	DailyFrequency: Array<Maybe<Scalars['Int64']>>
 	DiscordChannelsToNotify: Array<DiscordChannel>
-	EmailsToNotify: Array<Maybe<Scalars['String']>>
-	ExcludeRules: Array<Maybe<Scalars['String']>>
-	ExcludedEnvironments: Array<Maybe<Scalars['String']>>
+	EmailsToNotify: Array<Scalars['String']>
+	ExcludedEnvironments: Array<Scalars['String']>
 	LastAdminToEditID?: Maybe<Scalars['ID']>
-	Name?: Maybe<Scalars['String']>
-	ThresholdWindow?: Maybe<Scalars['Int']>
+	Name: Scalars['String']
+	ThresholdWindow: Scalars['Int']
 	Type: Scalars['String']
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
@@ -690,17 +690,17 @@ export type LogAlert = {
 }
 
 export type LogAlertInput = {
+	below_threshold: Scalars['Boolean']
 	count_threshold: Scalars['Int']
 	disabled: Scalars['Boolean']
 	discord_channels: Array<DiscordChannelInput>
 	emails: Array<Scalars['String']>
 	environments: Array<Scalars['String']>
-	exclude_rules: Array<Scalars['String']>
 	name: Scalars['String']
 	project_id: Scalars['ID']
+	query: Scalars['String']
 	slack_channels: Array<SanitizedSlackChannelInput>
 	threshold_window: Scalars['Int']
-	type: SessionAlertType
 }
 
 export type LogEdge = {
@@ -895,6 +895,7 @@ export type Mutation = {
 	updateErrorGroupState?: Maybe<ErrorGroup>
 	updateIntegrationProjectMappings: Scalars['Boolean']
 	updateLogAlert?: Maybe<LogAlert>
+	updateLogAlertIsDisabled?: Maybe<LogAlert>
 	updateMetricMonitor?: Maybe<MetricMonitor>
 	updateMetricMonitorIsDisabled?: Maybe<MetricMonitor>
 	updateSessionAlert?: Maybe<SessionAlert>
@@ -1088,8 +1089,8 @@ export type MutationDeleteErrorSegmentArgs = {
 }
 
 export type MutationDeleteLogAlertArgs = {
+	id: Scalars['ID']
 	project_id: Scalars['ID']
-	session_alert_id: Scalars['ID']
 }
 
 export type MutationDeleteMetricMonitorArgs = {
@@ -1322,6 +1323,12 @@ export type MutationUpdateLogAlertArgs = {
 	input: LogAlertInput
 }
 
+export type MutationUpdateLogAlertIsDisabledArgs = {
+	disabled: Scalars['Boolean']
+	id: Scalars['ID']
+	project_id: Scalars['ID']
+}
+
 export type MutationUpdateMetricMonitorArgs = {
 	aggregator?: InputMaybe<MetricAggregator>
 	disabled?: InputMaybe<Scalars['Boolean']>
@@ -1525,6 +1532,7 @@ export type Query = {
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
+	log_alert: LogAlert
 	log_alerts: Array<Maybe<LogAlert>>
 	logs: LogsConnection
 	logs_histogram: LogsHistogram
@@ -1858,6 +1866,10 @@ export type QueryLinear_TeamsArgs = {
 
 export type QueryLiveUsersCountArgs = {
 	project_id: Scalars['ID']
+}
+
+export type QueryLog_AlertArgs = {
+	id: Scalars['ID']
 }
 
 export type QueryLog_AlertsArgs = {

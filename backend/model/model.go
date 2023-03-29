@@ -1901,8 +1901,8 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 type LogAlert struct {
 	Model
 	Alert
-	Query        string
-	TriggerBelow bool
+	Query          string
+	BelowThreshold bool
 	AlertIntegrations
 }
 
@@ -1982,6 +1982,29 @@ func (obj *Alert) GetEmailsToNotify() ([]*string, error) {
 	emailsToNotify, err := GetEmailsToNotify(obj.EmailsToNotify)
 
 	return emailsToNotify, err
+}
+
+func (obj *Alert) GetDailyFrequency(db *gorm.DB, id int) ([]*int64, error) {
+	var dailyAlerts []*int64
+	if err := db.Raw(`
+		SELECT COUNT(e.id)
+		FROM (
+			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
+			FROM generate_series(0, 6, 1)
+			AS offs
+		) d LEFT OUTER JOIN
+		alert_events e
+		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
+			AND e.type=?
+			AND e.alert_id=?
+			AND e.project_id=?
+		GROUP BY d.date
+		ORDER BY d.date;
+	`, obj.Type, id, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying daily alert frequency")
+	}
+
+	return dailyAlerts, nil
 }
 
 func GetEmailsToNotify(emails *string) ([]*string, error) {
@@ -2341,6 +2364,71 @@ func (obj *MetricMonitor) SendSlackAlert(ctx context.Context, input *SendSlackAl
 	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
 			message := fmt.Sprintf("%s\n<%s|View Monitor>", input.Message, alertUrl)
+			slackChannelId := *channel.WebhookChannelID
+			slackChannelName := *channel.WebhookChannel
+
+			// The Highlight Slack bot needs to join the channel before it can send a message.
+			// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
+			if slackClient != nil {
+				if strings.Contains(slackChannelName, "#") {
+					_, _, _, err := slackClient.JoinConversation(slackChannelId)
+					if err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+					}
+				}
+				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
+					slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
+					slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
+				)
+				if err != nil {
+					log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
+						Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
+				}
+
+			} else {
+				log.WithContext(ctx).Printf("Slack Bot Client was not defined for sending welcome message")
+			}
+		}
+	}
+
+	return nil
+}
+
+type SendLogAlertForMetricMonitorInput struct {
+	Message   string
+	Workspace *Workspace
+}
+
+func (obj *LogAlert) SendSlackAlert(ctx context.Context, input *SendLogAlertForMetricMonitorInput) error {
+	if obj == nil {
+		return e.New("log alert needs to be defined.")
+	}
+	if input.Workspace == nil {
+		return e.New("workspace needs to be defined.")
+	}
+
+	channels, err := obj.GetChannelsToNotify()
+	if err != nil {
+		return e.Wrap(err, "error getting channels to send Slack log alert")
+	}
+	if len(channels) <= 0 {
+		return nil
+	}
+
+	var slackClient *slack.Client
+	if input.Workspace.SlackAccessToken != nil {
+		slackClient = slack.New(*input.Workspace.SlackAccessToken)
+	}
+
+	frontendURL := os.Getenv("FRONTEND_URI")
+	alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, obj.ProjectID, obj.ID)
+
+	log.WithContext(ctx).Info("Sending Slack Alert for Log Alert")
+
+	// send message
+	for _, channel := range channels {
+		if channel.WebhookChannel != nil {
+			message := fmt.Sprintf("%s\n<%s|View Alert>", input.Message, alertUrl)
 			slackChannelId := *channel.WebhookChannelID
 			slackChannelName := *channel.WebhookChannel
 
