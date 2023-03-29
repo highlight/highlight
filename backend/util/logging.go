@@ -35,7 +35,7 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 func GraphQLRecoverFunc() func(ctx context.Context, err interface{}) error {
 	return func(ctx context.Context, err interface{}) error {
 		err2 := errors.Errorf("panic {error: %+v}", err)
-		highlight.RecordError(ctx, err2, attribute.String("Source", "GraphQLRecoverFunc"))
+		highlight.RecordError(ctx, err2, attribute.String(highlight.SourceAttribute, "GraphQLRecoverFunc"))
 		return err2
 	}
 }

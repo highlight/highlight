@@ -37,7 +37,7 @@ func Middleware() fiber.Handler {
 		highlight.MarkBackendSetup(hCtx)
 		highlight.RecordSpanError(
 			span, err,
-			attribute.String("Source", "GoFiberMiddleware"),
+			attribute.String(highlight.SourceAttribute, "GoFiberMiddleware"),
 			attribute.String(string(semconv.HTTPURLKey), c.BaseURL()),
 			attribute.String(string(semconv.HTTPRouteKey), c.Path()),
 			attribute.String(string(semconv.HTTPMethodKey), c.Method()),
