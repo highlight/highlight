@@ -13,6 +13,8 @@ import log from './log'
 const CLEANUP_CHECK_MS = 1000
 const CLEANUP_DELAY_MS = 10000
 const CLEANUP_THRESHOLD_MB = 4000
+export const INDEXEDDB_ENABLED_LOCAL_STORAGE_PREFIX =
+	'highlight-indexeddb-enabled-'
 
 const getLocalStorage = function (): Storage | undefined {
 	try {
@@ -22,17 +24,22 @@ const getLocalStorage = function (): Storage | undefined {
 	}
 }
 
-const isEnabledInDev = function () {
+const isEnabledIn = function (env: string, defaultEnabled: boolean) {
 	const storage = getLocalStorage()
 	if (!storage) {
 		return true
 	}
-	if (storage.getItem('highlight-indexeddb-dev-enabled') === null) {
-		storage.setItem('highlight-indexeddb-dev-enabled', 'false')
+	const key = `${INDEXEDDB_ENABLED_LOCAL_STORAGE_PREFIX}${env}`
+	if (storage.getItem(key) === null) {
+		storage.setItem(key, defaultEnabled ? 'true' : 'false')
 	}
-	return storage.getItem('highlight-indexeddb-dev-enabled') === 'true'
+	return storage.getItem(key) === 'true'
 }
-export const indexeddbEnabled = !import.meta.env.DEV || isEnabledInDev()
+
+export const indexeddbEnabled = isEnabledIn(
+	import.meta.env.DEV ? 'dev' : 'prod',
+	!import.meta.env.DEV,
+)
 
 export class DB extends Dexie {
 	apollo!: Table<{
