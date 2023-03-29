@@ -131,22 +131,22 @@ export class IndexedDBLink extends ApolloLink {
 		this.httpLink = httpLink
 	}
 
-	static isCached({}: { operation: Operation }) {
-		return indexeddbEnabled
-	}
+	static isCached({ operation }: { operation: Operation }) {
+		if (
+			operation.query.definitions.find(
+				(d) =>
+					d.kind === 'OperationDefinition' &&
+					d.operation === 'mutation',
+			)
+		) {
+			return false
+		}
 
-	/* determines whether an operation should be stored in the cache.
-	 * */
-	static shouldCache({
-		operation,
-	}: {
-		operation: Operation
-		result: FetchResult<Record<string, any>>
-	}): boolean {
 		if (operation.operationName === 'GetAdmin') {
 			return false
 		}
-		return true
+
+		return indexeddbEnabled
 	}
 
 	static async has(operationName: string, variables: any) {
@@ -184,15 +184,13 @@ export class IndexedDBLink extends ApolloLink {
 					// noinspection TypeScriptValidateJSTypes
 					req.subscribe((result) => {
 						observer.next(result)
-						if (IndexedDBLink.shouldCache({ operation, result })) {
-							indexeddbCache.setItem(
-								{
-									operation: operation.operationName,
-									variables: operation.variables,
-								},
-								result,
-							)
-						}
+						indexeddbCache.setItem(
+							{
+								operation: operation.operationName,
+								variables: operation.variables,
+							},
+							result,
+						)
 						observer.complete()
 					})
 				})
