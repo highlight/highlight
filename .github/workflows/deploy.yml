@@ -179,7 +179,7 @@ jobs:
         runs-on: buildjet-2vcpu-ubuntu-2204-arm
         steps:
             - name: Check out the repo
-              uses: actions/checkout@v2
+              uses: actions/checkout@v3
 
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v1
@@ -285,7 +285,7 @@ jobs:
               uses: aws-actions/amazon-ecr-login@v1
 
             - name: Check out the repo
-              uses: actions/checkout@v2
+              uses: actions/checkout@v3
             - uses: dorny/paths-filter@v2
               id: filter
               with:
