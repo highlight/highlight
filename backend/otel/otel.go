@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	"io"
 	"net/http"
 	"time"
@@ -413,6 +414,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 
 func (o *Handler) Listen(r *chi.Mux) {
 	r.Route("/otel/v1", func(r chi.Router) {
+		r.Use(highlightChi.Middleware)
 		r.HandleFunc("/traces", o.HandleTrace)
 		r.HandleFunc("/logs", o.HandleLog)
 	})

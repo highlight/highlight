@@ -2,6 +2,8 @@ package gin
 
 import (
 	"github.com/highlight/highlight/sdk/highlight-go/middleware"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -25,6 +27,23 @@ func Middleware() gin.HandlerFunc {
 		}
 		c.Set(string(highlight.ContextKeys.SessionSecureID), ids[0])
 		c.Set(string(highlight.ContextKeys.RequestID), ids[1])
-		highlight.MarkBackendSetup(c)
+
+		span, hCtx := highlight.StartTrace(c, "highlight/gin")
+		defer highlight.EndTrace(span)
+
+		c.Next()
+
+		highlight.MarkBackendSetup(hCtx)
+		span.SetAttributes(
+			attribute.String(highlight.SourceAttribute, "GoChiMiddleware"),
+			attribute.String(string(semconv.HTTPURLKey), r.URL.String()),
+			attribute.String(string(semconv.HTTPRouteKey), r.URL.RequestURI()),
+			attribute.String(string(semconv.HTTPMethodKey), r.Method),
+			attribute.String(string(semconv.HTTPClientIPKey), middleware.GetIPAddress(r)),
+			attribute.Int(string(semconv.HTTPStatusCodeKey), r.Response.StatusCode),
+		)
+		if len(c.Errors) > 0 {
+			highlight.RecordSpanError(span, c.Errors[0])
+		}
 	}
 }

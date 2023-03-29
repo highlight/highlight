@@ -28,7 +28,7 @@ func Middleware() fiber.Handler {
 			ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, ids[1])
 		}
 
-		span, hCtx := highlight.StartTrace(ctx, c.OriginalURL())
+		span, hCtx := highlight.StartTrace(ctx, "highlight/fiber")
 		defer highlight.EndTrace(span)
 
 		c.SetUserContext(hCtx)
@@ -38,7 +38,7 @@ func Middleware() fiber.Handler {
 		highlight.RecordSpanError(
 			span, err,
 			attribute.String(highlight.SourceAttribute, "GoFiberMiddleware"),
-			attribute.String(string(semconv.HTTPURLKey), c.BaseURL()),
+			attribute.String(string(semconv.HTTPURLKey), c.OriginalURL()),
 			attribute.String(string(semconv.HTTPRouteKey), c.Path()),
 			attribute.String(string(semconv.HTTPMethodKey), c.Method()),
 			attribute.String(string(semconv.HTTPClientIPKey), c.IP()),

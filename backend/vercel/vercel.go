@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi"
 	model2 "github.com/highlight-run/highlight/backend/model"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -298,6 +299,7 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 
 func Listen(r *chi.Mux) {
 	r.Route("/vercel/v1", func(r chi.Router) {
+		r.Use(highlightChi.Middleware)
 		r.HandleFunc("/logs", HandleLog)
 	})
 }
