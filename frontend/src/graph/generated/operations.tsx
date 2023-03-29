@@ -1010,20 +1010,6 @@ export type UpdateErrorAlertIsDisabledMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type CreateDefaultAlertsMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	alert_types: Array<Types.Scalars['String']> | Types.Scalars['String']
-	slack_channels:
-		| Array<Types.SanitizedSlackChannelInput>
-		| Types.SanitizedSlackChannelInput
-	emails: Array<Types.Scalars['String']> | Types.Scalars['String']
-}>
-
-export type CreateDefaultAlertsMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'createDefaultAlerts'
->
-
 export type CreateSessionAlertMutationVariables = Types.Exact<{
 	input: Types.SessionAlertInput
 }>
@@ -4296,7 +4282,6 @@ export const namedOperations = {
 		UpdateSessionAlertIsDisabled: 'UpdateSessionAlertIsDisabled' as const,
 		UpdateMetricMonitorIsDisabled: 'UpdateMetricMonitorIsDisabled' as const,
 		UpdateErrorAlertIsDisabled: 'UpdateErrorAlertIsDisabled' as const,
-		CreateDefaultAlerts: 'CreateDefaultAlerts' as const,
 		CreateSessionAlert: 'CreateSessionAlert' as const,
 		UpdateSessionAlert: 'UpdateSessionAlert' as const,
 		UpdateSessionIsPublic: 'UpdateSessionIsPublic' as const,

@@ -812,7 +812,6 @@ export type Mutation = {
 	addIntegrationToWorkspace: Scalars['Boolean']
 	changeAdminRole: Scalars['Boolean']
 	createAdmin: Admin
-	createDefaultAlerts?: Maybe<Scalars['Boolean']>
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
 	createErrorSegment?: Maybe<ErrorSegment>
@@ -900,13 +899,6 @@ export type MutationChangeAdminRoleArgs = {
 	admin_id: Scalars['ID']
 	new_role: Scalars['String']
 	workspace_id: Scalars['ID']
-}
-
-export type MutationCreateDefaultAlertsArgs = {
-	alert_types: Array<Scalars['String']>
-	emails: Array<InputMaybe<Scalars['String']>>
-	project_id: Scalars['ID']
-	slack_channels: Array<SanitizedSlackChannelInput>
 }
 
 export type MutationCreateErrorAlertArgs = {

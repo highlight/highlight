@@ -1707,12 +1707,6 @@ type Mutation {
 		workspace_id: ID!
 	): Boolean!
 	syncSlackIntegration(project_id: ID!): SlackSyncResponse!
-	createDefaultAlerts(
-		project_id: ID!
-		alert_types: [String!]!
-		slack_channels: [SanitizedSlackChannelInput!]!
-		emails: [String]!
-	): Boolean
 	createMetricMonitor(
 		project_id: ID!
 		name: String!
