@@ -46,3 +46,4 @@ cypress/videos/
 __pycache__
 
 .turbo
+.vercel
