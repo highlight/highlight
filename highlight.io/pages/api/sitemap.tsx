@@ -1,21 +1,11 @@
-import { GraphQLClient, gql } from 'graphql-request'
-// import { withHighlight } from '../../highlight.config'
+import { gql, GraphQLClient } from 'graphql-request'
 import { H } from '@highlight-run/next'
-// import { iProduct, PRODUCTS } from '../../components/Products/products'
+import { iProduct, PRODUCTS } from '../../components/Products/products'
 import { getGithubDocsPaths } from './docs/github'
-// import { FEATURES, iFeature } from '../../components/Features/features'
+import { FEATURES, iFeature } from '../../components/Features/features'
+import { NextApiRequest, NextApiResponse } from 'next'
 
-export const config = {
-	excludeFiles: 'public/**/*',
-}
-
-async function handler(_: any, res: any) {
-	res.statusCode = 200
-	res.setHeader('Content-Type', 'text/xml')
-
-	// Instructing the Vercel edge to cache the file
-	res.setHeader('Cache-control', 'stale-while-revalidate, s-maxage=3600')
-
+async function generateXML(): Promise<string> {
 	const graphcms = new GraphQLClient(
 		'https://api-us-west-2.graphcms.com/v2/cl2tzedef0o3p01yz7c7eetq8/master',
 		{
@@ -68,12 +58,12 @@ async function handler(_: any, res: any) {
 	const docsPages = Array.from(docs.keys()).map(
 		(d) => `docs/${d.split('docs-content/').pop()}`,
 	)
-	// const productPages = Object.values(PRODUCTS).map(
-	// 	(product: iProduct) => `for/${product.slug}`,
-	// )
-	// const featurePages = Object.values(FEATURES).map(
-	// 	(feature: iFeature) => `${feature.slug}`,
-	// )
+	const productPages = Object.values(PRODUCTS).map(
+		(product: iProduct) => `for/${product.slug}`,
+	)
+	const featurePages = Object.values(FEATURES).map(
+		(feature: iFeature) => `${feature.slug}`,
+	)
 
 	const staticPagePaths = process.env.staticPages?.split(', ') || []
 	const staticPages = staticPagePaths.map((path) => {
@@ -86,8 +76,8 @@ async function handler(_: any, res: any) {
 		...customerPages,
 		...changelogPages,
 		...docsPages,
-		// ...productPages,
-		// ...featurePages,
+		...productPages,
+		...featurePages,
 	]
 
 	const addPage = (page: string) => {
@@ -97,12 +87,18 @@ async function handler(_: any, res: any) {
     </url>`
 	}
 
-	const xml = `<?xml version="1.0" encoding="UTF-8"?>
+	return `<?xml version="1.0" encoding="UTF-8"?>
   <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${pages.map(addPage).join('\n')}
   </urlset>`
-
-	res.end(xml)
 }
 
-export default handler
+export default async function handler(
+	req: NextApiRequest,
+	res: NextApiResponse,
+) {
+	res.setHeader('Content-Type', 'text/xml')
+	// Instructing the Vercel edge to cache the file
+	res.setHeader('Cache-control', 'stale-while-revalidate, s-maxage=3600')
+	res.status(200).end(await generateXML())
+}

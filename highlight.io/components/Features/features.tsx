@@ -1,9 +1,9 @@
-import errorMonitoringHero from '../../public/images/features/errorMonitoringHero.png'
-import loggingHero from '../../public/images/features/loggingHero.png'
-import sessionReplayHero from '../../public/images/features/sessionReplayHero.png'
-import loggingscreenshot from '../../public/images/loggingscreenshot.png'
-import monitoringscreenshot from '../../public/images/monitoringscreenshot.png'
-import sessionscreenshot from '../../public/images/sessionscreenshot.png'
+export const errorMonitoringHeroKey = '/images/features/errorMonitoringHero.png'
+export const loggingHeroKey = '/images/features/loggingHero.png'
+export const sessionReplayHeroKey = '/images/features/sessionReplayHero.png'
+export const loggingscreenshotKey = '/images/loggingscreenshot.png'
+export const monitoringscreenshotKey = '/images/monitoringscreenshot.png'
+export const sessionscreenshotKey = '/images/sessionscreenshot.png'
 
 const sessionReplay2 = '/images/features/sessionReplay2.png'
 const sessionReplay3 = '/images/landingInfoRow1.png'
@@ -12,8 +12,6 @@ const errorMonitoring1 = '/images/features/errorMonitoring1.png'
 const errorMonitoring2 = '/images/features/errorMonitoring2.png'
 const logging1 = '/images/features/logging1.png'
 const logging2 = '/images/features/logging2.png'
-
-import { StaticImageData } from 'next/image'
 
 type InfoRow = {
 	header: string
@@ -32,8 +30,8 @@ export interface iFeature {
 	header: string
 	subheader: string
 	docsLink: string
-	slantedImage: StaticImageData
-	regularImage: StaticImageData //For mobile and 2xl screens
+	slantedImage: string
+	regularImage: string //For mobile and 2xl screens
 	header2Selection: number //GetStaticProps prevents you from passing in a component, so we pass in a number and use a switch statement to render the correct component
 	subheader2: string
 	infoRows?: InfoRow[]
@@ -69,8 +67,8 @@ export const FEATURES: { [k: string]: iFeature } = {
 		subheader:
 			'The only tool you need to monitor your frontend. Pixel-perfect video replay & comprehensive javascript monitoring.',
 		docsLink: '/docs/general/product-features/session-replay/overview',
-		slantedImage: sessionReplayHero,
-		regularImage: sessionscreenshot,
+		slantedImage: sessionReplayHeroKey,
+		regularImage: sessionscreenshotKey,
 		header2Selection: 0,
 		subheader2:
 			'Reproduce hard-to-crack issues and understand how your product is used.',
@@ -129,8 +127,8 @@ export const FEATURES: { [k: string]: iFeature } = {
 		header: 'Error monitoring for today’s developer.',
 		subheader: 'Error and exception monitoring built for modern web apps.',
 		docsLink: '/docs/general/product-features/error-monitoring/overview',
-		slantedImage: errorMonitoringHero,
-		regularImage: monitoringscreenshot,
+		slantedImage: errorMonitoringHeroKey,
+		regularImage: monitoringscreenshotKey,
 		header2Selection: 1,
 		subheader2:
 			'Reproduce hard-to-crack bugs with error monitoring across your stack.',
@@ -190,8 +188,8 @@ export const FEATURES: { [k: string]: iFeature } = {
 		subheader:
 			'Search for and query the logs across your full-stack web app.',
 		docsLink: '/docs/general/product-features/error-monitoring/overview',
-		slantedImage: loggingHero,
-		regularImage: loggingscreenshot,
+		slantedImage: loggingHeroKey,
+		regularImage: loggingscreenshotKey,
 		header2Selection: 2,
 		subheader2:
 			'All the tools you need to search, analyze and set alerts for your web app’s logs.',
