@@ -15,15 +15,37 @@ import { GetStaticPaths, GetStaticProps } from 'next'
 import homeStyles from '../components/Home/Home.module.scss'
 import LandingInfoRow from '../components/Home/LandingInfoRow'
 import { MdKeyboardReturn } from 'react-icons/md'
-import { iFeature, FEATURES } from '../components/Features/features'
+import {
+	iFeature,
+	FEATURES,
+	errorMonitoringHeroKey,
+	loggingHeroKey,
+	sessionReplayHeroKey,
+	loggingscreenshotKey,
+	monitoringscreenshotKey,
+	sessionscreenshotKey,
+} from '../components/Features/features'
+
 import sessionReplayHero from '../public/images/features/sessionReplayHero.png'
 import errorMonitoringHero from '../public/images/features/errorMonitoringHero.png'
 import loggingHero from '../public/images/features/loggingHero.png'
+import loggingscreenshot from '../public/images/loggingscreenshot.png'
+import monitoringscreenshot from '../public/images/monitoringscreenshot.png'
+import sessionscreenshot from '../public/images/sessionscreenshot.png'
 
 import {
 	AnimateFeatureHeroRight,
 	AnimateFeatureHeroXL,
 } from '../components/Animate'
+
+const IMAGE_MAP = {
+	[errorMonitoringHeroKey]: errorMonitoringHero,
+	[loggingHeroKey]: loggingHero,
+	[sessionReplayHeroKey]: sessionReplayHero,
+	[loggingscreenshotKey]: loggingscreenshot,
+	[monitoringscreenshotKey]: monitoringscreenshot,
+	[sessionscreenshotKey]: sessionscreenshot,
+} as const
 
 const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 	const [imageLoaded, setImageLoaded] = useState(false)
@@ -109,7 +131,7 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 						<AnimateFeatureHeroRight loaded={imageLoaded}>
 							<Image
 								className={`hidden lg:flex ultra:hidden right-0 object-contain top-0`}
-								src={feature.slantedImage}
+								src={IMAGE_MAP[feature.slantedImage]}
 								alt="Feature Spotlight"
 								onLoadingComplete={() => setImageLoaded(true)}
 							/>
@@ -117,14 +139,14 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 						<AnimateFeatureHeroXL loaded={imageLoaded}>
 							<Image
 								className={`hidden ultra:flex`}
-								src={feature.regularImage}
+								src={IMAGE_MAP[feature.regularImage]}
 								alt="Feature Spotlight"
 								onLoadingComplete={() => setImageLoaded(true)}
 							/>
 						</AnimateFeatureHeroXL>
 						<Image
 							className={`lg:hidden right-0 object-contain bottom-0 md:w-[500px]`}
-							src={feature.regularImage}
+							src={IMAGE_MAP[feature.regularImage]}
 							alt="Feature Spotlight"
 							onLoadingComplete={() => setImageLoaded(true)}
 						/>
