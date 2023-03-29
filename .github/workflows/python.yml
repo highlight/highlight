@@ -44,7 +44,3 @@ jobs:
               env:
                   PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
                   PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-
-            - name: Run Stoat Action
-              uses: stoat-dev/stoat-action@v0
-              if: always()

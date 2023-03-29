@@ -95,6 +95,11 @@ export declare type HighlightOptions = {
 	 */
 	disableConsoleRecording?: boolean
 	/**
+	 * Specifies whether Highlight will report `console.error` invocations as Highlight Errors.
+	 * @default true
+	 */
+	reportConsoleErrors?: boolean
+	/**
 	 * Specifies which console methods to record.
 	 * The value here will be ignored if `disabledConsoleRecording` is `true`.
 	 * @default All console methods.

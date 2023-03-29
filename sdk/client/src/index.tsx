@@ -94,6 +94,7 @@ export type HighlightClassOptions = {
 	networkRecording?: boolean | NetworkRecordingOptions
 	disableBackgroundRecording?: boolean
 	disableConsoleRecording?: boolean
+	reportConsoleErrors?: boolean
 	consoleMethodsToRecord?: ConsoleMethods[]
 	enableSegmentIntegration?: boolean
 	enableStrictPrivacy?: boolean

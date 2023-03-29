@@ -71,9 +71,11 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	const {
 		logEdges,
 		loading,
+		error,
 		loadingAfter,
 		fetchMoreForward,
 		fetchMoreBackward,
+		refetch,
 	} = useGetLogs({
 		query,
 		project_id,
@@ -167,6 +169,8 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						<LogsTable
 							logEdges={logEdges}
 							loading={loading}
+							error={error}
+							refetch={refetch}
 							loadingAfter={loadingAfter}
 							query={query}
 							tableContainerRef={tableContainerRef}

@@ -20,6 +20,8 @@ import { GraphQLRequest } from '../../utils/graphql'
 
 const ITEMS_PER_PAGE = 25
 
+// noop
+
 export const getStaticProps: GetStaticProps = async () => {
 	const QUERY = gql`
 		query GetChangelogs {
