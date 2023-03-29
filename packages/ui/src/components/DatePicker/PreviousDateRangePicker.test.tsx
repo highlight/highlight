@@ -33,6 +33,6 @@ describe('getLabel', () => {
 	it('handles when the preset does not match', async () => {
 		const selectedDates = [subtractDays(now, 2), now]
 		const label = getLabel({ selectedDates, presets })
-		expect(label).toEqual('Sun Feb 12 2023 - Tue Feb 14 2023')
+		expect(label).toEqual('Feb 12, 2023, 09:30 PM - Feb 14, 2023, 09:30 PM')
 	})
 })
