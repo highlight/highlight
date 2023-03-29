@@ -1,3 +1,4 @@
+import LoadingBox from '@components/LoadingBox'
 import { useGetProjectQuery } from '@graph/hooks'
 import {
 	Badge,
@@ -107,7 +108,9 @@ const SetupRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	if (!docs || !projectVerboseId) return null
+	if (!docs || !projectVerboseId) {
+		return <LoadingBox />
+	}
 
 	const copyProjectId = () => {
 		window.navigator.clipboard.writeText(projectVerboseId!)

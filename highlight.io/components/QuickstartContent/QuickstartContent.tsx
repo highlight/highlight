@@ -18,6 +18,8 @@ import { PythonFastAPIContext } from './backend/python/fastapi'
 import { PythonFlaskContext } from './backend/python/flask'
 import { PythonGCPContext } from './backend/python/gcp'
 import { PythonOtherContext } from './backend/python/other'
+import { RubyOtherContent } from './backend/ruby/other'
+import { RubyRailsContent } from './backend/ruby/rails'
 import { AngularContent } from './frontend/angular'
 import { GatsbyContent } from './frontend/gatsby'
 import { NextContent } from './frontend/next'
@@ -31,12 +33,10 @@ import { HTTPContent } from './logging/http'
 import { JSNestLogContent } from './logging/js/nestjs'
 import { JSOtherLogContent } from './logging/js/other'
 import { PythonOtherLogContent } from './logging/python/other'
-import { DevDeploymentContent } from './self-host/dev-deploy'
-import { SelfHostContent } from './self-host/self-host'
-import { RubyOtherContent } from './backend/ruby/other'
-import { RubyRailsContent } from './backend/ruby/rails'
 import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
+import { DevDeploymentContent } from './self-host/dev-deploy'
+import { SelfHostContent } from './self-host/self-host'
 
 export type QuickStartContent = {
 	title: string
@@ -105,6 +105,7 @@ export const quickStartContent = {
 			[QuickStartType.Angular]: AngularContent,
 			[QuickStartType.Next]: NextContent,
 			[QuickStartType.Vue]: VueContent,
+			[QuickStartType.SvelteKit]: SvelteKitContent,
 			[QuickStartType.Gatsby]: GatsbyContent,
 			[QuickStartType.Other]: OtherContext,
 		},
