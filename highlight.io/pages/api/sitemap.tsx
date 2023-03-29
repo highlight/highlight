@@ -1,5 +1,4 @@
 import { gql, GraphQLClient } from 'graphql-request'
-import { H } from '@highlight-run/next'
 // import { getGithubDocsPaths } from './docs/github'
 // import { PRODUCTS, iProduct } from '../../components/Products/products'
 // import { FEATURES, iFeature } from '../../components/Features/features'
@@ -39,13 +38,6 @@ async function generateXML(): Promise<string> {
 	      }
 	    `),
 		// await getGithubDocsPaths(),
-	])
-	H.metrics([
-		{
-			name: 'sitemap-gql-latency-ms',
-			value: global.performance.now() - start,
-			tags: [{ name: 'site', value: process.env.WEBSITE_URL || '' }],
-		},
 	])
 
 	const blogPages = posts.map((post: any) => `blog/${post.slug}`)
