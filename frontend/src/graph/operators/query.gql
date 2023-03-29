@@ -1377,17 +1377,19 @@ query IsBackendIntegrated($project_id: ID!) {
 	isBackendIntegrated(project_id: $project_id)
 }
 
-query GetClientIntegrationData($project_id: ID!) {
-	clientIntegrationData(project_id: $project_id) {
-		id
-		secure_id
+query GetClientIntegration($project_id: ID!) {
+	clientIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		resourceSecureId
 	}
 }
 
-query GetServerIntegrationData($project_id: ID!) {
-	serverIntegrationData(project_id: $project_id) {
-		id
-		secure_id
+query GetServerIntegration($project_id: ID!) {
+	serverIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		resourceSecureId
 	}
 }
 

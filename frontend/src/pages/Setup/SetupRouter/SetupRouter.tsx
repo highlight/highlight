@@ -73,15 +73,15 @@ export type Guides = {
 
 const SetupRouter = () => {
 	const { toggleShowBanner } = useGlobalContext()
-	const { data: serverIntegrationData } = useServerIntegrated()
-	const { data: clientIntegrationData } = useClientIntegrated()
+	const { data: serverIntegration } = useServerIntegrated()
+	const { data: clientIntegration } = useClientIntegrated()
 	const areaMatch = useMatch('/:project_id/setup/:area/*')
 	const area = areaMatch?.params.area || 'client'
 	const integrationData =
 		area === 'backend'
-			? serverIntegrationData
+			? serverIntegration
 			: area === 'client'
-			? clientIntegrationData
+			? clientIntegration
 			: undefined
 	const { projectId } = useProjectId()
 	const [docs, setDocs] = useState<Guides>()
@@ -156,7 +156,9 @@ const SetupRouter = () => {
 						}
 					>
 						<Stack direction="row" align="center" gap="4">
-							{clientIntegrationData && <IconSolidCheckCircle />}
+							{clientIntegration?.firstSessionSecureId && (
+								<IconSolidCheckCircle />
+							)}
 							<Text>UX monitoring</Text>
 						</Stack>
 					</NavLink>
@@ -169,7 +171,9 @@ const SetupRouter = () => {
 						}
 					>
 						<Stack direction="row" align="center" gap="4">
-							{serverIntegrationData && <IconSolidCheckCircle />}
+							{serverIntegration?.firstErrorGroupSecureId && (
+								<IconSolidCheckCircle />
+							)}
 							<Text>Backend error monitoring</Text>
 						</Stack>
 					</NavLink>

@@ -1,8 +1,5 @@
 import { LinkButton } from '@components/LinkButton'
-import {
-	GetClientIntegrationDataQuery,
-	GetServerIntegrationDataQuery,
-} from '@graph/operations'
+import { IntegrationStatus } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -20,9 +17,7 @@ import React from 'react'
 import * as styles from './IntegrationBar.css'
 
 type Props = React.PropsWithChildren & {
-	integrationData:
-		| GetClientIntegrationDataQuery['clientIntegrationData']
-		| GetServerIntegrationDataQuery['serverIntegrationData']
+	integrationData?: IntegrationStatus
 }
 
 const AREA_TITLE_MAP = {
@@ -34,10 +29,10 @@ const AREA_TITLE_MAP = {
 export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const { area } = useParams<{ area: string }>()
 	const { projectId } = useProjectId()
-	const path = `/${projectId}/${snakeCase(integrationData?.__typename)}/${
-		integrationData?.secure_id
+	const path = `/${projectId}/${snakeCase(integrationData?.resourceType)}/${
+		integrationData?.resourceSecureId
 	}`
-	const integrated = !!integrationData
+	const integrated = integrationData?.integrated
 
 	return (
 		<Box

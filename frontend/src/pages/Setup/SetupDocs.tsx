@@ -1,7 +1,4 @@
-import {
-	GetClientIntegrationDataQuery,
-	GetServerIntegrationDataQuery,
-} from '@graph/operations'
+import { IntegrationStatus } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
@@ -32,9 +29,7 @@ export type OptionListItem = {
 type Props = {
 	docs: Guides
 	projectVerboseId: string
-	integrationData:
-		| GetClientIntegrationDataQuery['clientIntegrationData']
-		| GetServerIntegrationDataQuery['serverIntegrationData']
+	integrationData?: IntegrationStatus
 }
 
 export const SetupDocs: React.FC<Props> = ({

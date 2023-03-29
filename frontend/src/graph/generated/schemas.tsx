@@ -621,6 +621,13 @@ export type IntegrationProjectMappingInput = {
 	project_id: Scalars['ID']
 }
 
+export type IntegrationStatus = {
+	__typename?: 'IntegrationStatus'
+	integrated: Scalars['Boolean']
+	resourceSecureId?: Maybe<Scalars['String']>
+	resourceType: Scalars['String']
+}
+
 export enum IntegrationType {
 	ClickUp = 'ClickUp',
 	Discord = 'Discord',
@@ -1435,7 +1442,7 @@ export type Query = {
 	clickup_folders: Array<ClickUpFolder>
 	clickup_project_mappings: Array<ClickUpProjectMapping>
 	clickup_teams: Array<ClickUpTeam>
-	clientIntegrationData?: Maybe<Session>
+	clientIntegration: IntegrationStatus
 	customer_portal_url: Scalars['String']
 	dailyErrorFrequency: Array<Scalars['Int64']>
 	dailyErrorsCount: Array<Maybe<DailyErrorCount>>
@@ -1485,7 +1492,7 @@ export type Query = {
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	logs: LogsConnection
-	logsIntegrationData?: Maybe<LogsConnection>
+	logsIntegration?: Maybe<LogsConnection>
 	logs_error_objects: Array<ErrorObject>
 	logs_histogram: LogsHistogram
 	logs_key_values: Array<Scalars['String']>
@@ -1514,7 +1521,7 @@ export type Query = {
 	referrers: Array<Maybe<ReferrerTablePayload>>
 	resources?: Maybe<Array<Maybe<Scalars['Any']>>>
 	segments?: Maybe<Array<Maybe<Segment>>>
-	serverIntegrationData?: Maybe<ErrorGroup>
+	serverIntegration: IntegrationStatus
 	session?: Maybe<Session>
 	session_comment_tags_for_project: Array<SessionCommentTag>
 	session_comments: Array<Maybe<SessionComment>>
@@ -1602,7 +1609,7 @@ export type QueryClickup_TeamsArgs = {
 	workspace_id: Scalars['ID']
 }
 
-export type QueryClientIntegrationDataArgs = {
+export type QueryClientIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -1833,7 +1840,7 @@ export type QueryLogsArgs = {
 	project_id: Scalars['ID']
 }
 
-export type QueryLogsIntegrationDataArgs = {
+export type QueryLogsIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -1966,7 +1973,7 @@ export type QuerySegmentsArgs = {
 	project_id: Scalars['ID']
 }
 
-export type QueryServerIntegrationDataArgs = {
+export type QueryServerIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 

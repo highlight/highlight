@@ -3241,26 +3241,25 @@ export type IsBackendIntegratedQuery = { __typename?: 'Query' } & Pick<
 	'isBackendIntegrated'
 >
 
-export type GetClientIntegrationDataQueryVariables = Types.Exact<{
+export type GetClientIntegrationQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
 
-export type GetClientIntegrationDataQuery = { __typename?: 'Query' } & {
-	clientIntegrationData?: Types.Maybe<
-		{ __typename?: 'Session' } & Pick<Types.Session, 'id' | 'secure_id'>
+export type GetClientIntegrationQuery = { __typename?: 'Query' } & {
+	clientIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'resourceSecureId'
 	>
 }
 
-export type GetServerIntegrationDataQueryVariables = Types.Exact<{
+export type GetServerIntegrationQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
 
-export type GetServerIntegrationDataQuery = { __typename?: 'Query' } & {
-	serverIntegrationData?: Types.Maybe<
-		{ __typename?: 'ErrorGroup' } & Pick<
-			Types.ErrorGroup,
-			'id' | 'secure_id'
-		>
+export type GetServerIntegrationQuery = { __typename?: 'Query' } & {
+	serverIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'resourceSecureId'
 	>
 }
 
@@ -4186,8 +4185,8 @@ export const namedOperations = {
 		GetErrorSegments: 'GetErrorSegments' as const,
 		IsIntegrated: 'IsIntegrated' as const,
 		IsBackendIntegrated: 'IsBackendIntegrated' as const,
-		GetClientIntegrationData: 'GetClientIntegrationData' as const,
-		GetServerIntegrationData: 'GetServerIntegrationData' as const,
+		GetClientIntegration: 'GetClientIntegration' as const,
+		GetServerIntegration: 'GetServerIntegration' as const,
 		GetKeyPerformanceIndicators: 'GetKeyPerformanceIndicators' as const,
 		GetReferrersCount: 'GetReferrersCount' as const,
 		GetNewUsersCount: 'GetNewUsersCount' as const,

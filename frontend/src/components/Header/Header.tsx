@@ -74,10 +74,12 @@ export const Header = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
-	const { data: clientIntegrationData } = useClientIntegrated()
-	const { data: serverIntegrationData } = useServerIntegrated()
-	const fullyIntegrated = !!clientIntegrationData && !!serverIntegrationData
-	const integrated = !!clientIntegrationData || !!serverIntegrationData
+	const { data: clientIntegration } = useClientIntegrated()
+	const { data: serverIntegration } = useServerIntegrated()
+	const fullyIntegrated =
+		!!clientIntegration?.integrated && !!serverIntegration?.integrated
+	const integrated =
+		!!clientIntegration?.integrated || !!serverIntegration?.integrated
 
 	const { pathname, state } = useLocation()
 	const goBackPath = state?.previousPath ?? `/${project_id}/sessions`

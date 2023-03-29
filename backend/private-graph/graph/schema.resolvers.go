@@ -4533,44 +4533,58 @@ func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) 
 	return &model.F, nil
 }
 
-// ClientIntegrationData is the resolver for the ClientIntegrationData field.
-func (r *queryResolver) ClientIntegrationData(ctx context.Context, projectID int) (*model.Session, error) {
+// ClientIntegration is the resolver for the clientIntegration field.
+func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
+	integration := &modelInputs.IntegrationStatus{
+		Integrated:       false,
+		ResourceType:     "Session",
+		ResourceSecureID: nil,
+	}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, nil
+		return integration, nil
 	}
 
 	firstSession := model.Session{}
 	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).First(&firstSession).Error
 	if e.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
+		return integration, nil
 	}
 	if err != nil {
-		return nil, e.Wrap(err, "error querying session for project")
+		return integration, e.Wrap(err, "error querying session for project")
 	}
+	integration.Integrated = true
+	integration.ResourceSecureID = &firstSession.SecureID
 
-	return &firstSession, nil
+	return integration, nil
 }
 
-// ServerIntegrationData is the resolver for the ServerIntegrationData field.
-func (r *queryResolver) ServerIntegrationData(ctx context.Context, projectID int) (*model.ErrorGroup, error) {
+// ServerIntegration is the resolver for the serverIntegration field.
+func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
+	integration := &modelInputs.IntegrationStatus{
+		Integrated:       false,
+		ResourceType:     "ErrorGroup",
+		ResourceSecureID: nil,
+	}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, nil
+		return integration, nil
 	}
 
 	firstErrorGroup := model.ErrorGroup{}
 	err := r.DB.Model(&model.ErrorGroup{}).Where("project_id = ?", projectID).First(&firstErrorGroup).Error
 	if e.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
+		return integration, nil
 	}
 	if err != nil {
-		return nil, e.Wrap(err, "error querying error group for project")
+		return integration, e.Wrap(err, "error querying error group for project")
 	}
+	integration.Integrated = true
+	integration.ResourceSecureID = &firstErrorGroup.SecureID
 
-	return &firstErrorGroup, nil
+	return integration, nil
 }
 
-// LogsIntegrationData is the resolver for the LogsIntegrationData field.
-func (r *queryResolver) LogsIntegrationData(ctx context.Context, projectID int) (*modelInputs.LogsConnection, error) {
+// LogsIntegration is the resolver for the logsIntegration field.
+func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*modelInputs.LogsConnection, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -4579,10 +4593,8 @@ func (r *queryResolver) LogsIntegrationData(ctx context.Context, projectID int) 
 	params := &modelInputs.LogsParamsInput{Query: ""}
 	pagination := &clickhouse.Pagination{}
 
-	fmt.Printf("::: project.ID: %+v\n", project.ID)
-	fmt.Printf("::: params: %+v\n", params)
-	fmt.Printf("::: pagination: %+v\n", pagination)
-
+	// TODO: Figure out the actual integration data we want to return here.
+	// Possibly just setup events.
 	return r.ClickhouseClient.ReadLogs(ctx, project.ID, *params, *pagination)
 }
 

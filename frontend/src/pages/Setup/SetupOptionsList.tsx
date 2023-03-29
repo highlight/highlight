@@ -1,8 +1,6 @@
 import { LinkButton } from '@components/LinkButton'
-import {
-	GetClientIntegrationDataQuery,
-	GetServerIntegrationDataQuery,
-} from '@graph/operations'
+import { GetServerIntegrationQuery } from '@graph/operations'
+import { IntegrationStatus } from '@graph/schemas'
 import { Box, Stack, Text } from '@highlight-run/ui'
 import { Header } from '@pages/Setup/Header'
 import { IntegrationBar } from '@pages/Setup/IntegrationBar'
@@ -18,9 +16,7 @@ export type OptionListItem = {
 
 type Props = {
 	docs: Guides
-	integrationData?:
-		| GetClientIntegrationDataQuery['clientIntegrationData']
-		| GetServerIntegrationDataQuery['serverIntegrationData']
+	integrationData?: IntegrationStatus
 }
 
 export const SetupOptionsList: React.FC<Props> = ({

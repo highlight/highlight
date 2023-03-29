@@ -1,7 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import {
-	useGetClientIntegrationDataLazyQuery,
-	useGetServerIntegrationDataLazyQuery,
+	useGetClientIntegrationLazyQuery,
+	useGetServerIntegrationLazyQuery,
 	useIsBackendIntegratedLazyQuery,
 	useIsIntegratedLazyQuery,
 } from '@graph/hooks'
@@ -151,7 +151,7 @@ export const useBackendIntegrated = (): {
 export const useClientIntegrated = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { projectId } = useNumericProjectId()
-	const [query, { data, loading }] = useGetClientIntegrationDataLazyQuery({
+	const [query, { data, loading }] = useGetClientIntegrationLazyQuery({
 		variables: { project_id: projectId! },
 		fetchPolicy: 'cache-and-network',
 	})
@@ -160,36 +160,34 @@ export const useClientIntegrated = () => {
 		false,
 	)
 	const [integrated, setIntegrated] = useState<boolean | undefined>(undefined)
-	const integratedRaw = !!data?.clientIntegrationData
+	const integratedRaw = data?.clientIntegration
 
 	useEffect(() => {
 		if (!isLoggedIn) return
-		if (!localStorageIntegrated) {
+		if (localStorageIntegrated) {
+			setIntegrated(localStorageIntegrated)
+		} else {
 			query()
 			const timer = setInterval(() => {
-				if (!integrated) {
-					query()
-				} else {
+				if (integrated) {
 					clearInterval(timer)
+				} else {
+					query()
 				}
 			}, 5000)
 			return () => {
 				clearInterval(timer)
 			}
-		} else {
-			setIntegrated(localStorageIntegrated)
 		}
 	}, [integrated, localStorageIntegrated, query, isLoggedIn])
 
 	useEffect(() => {
 		if (integratedRaw !== undefined) {
-			setIntegrated(integratedRaw?.valueOf())
-			setLocalStorageIntegrated(integratedRaw?.valueOf() || false)
-			if (
-				localStorageIntegrated === false &&
-				integratedRaw?.valueOf() === true
-			) {
-				analytics.track('IntegratedClient', { id: projectId })
+			setIntegrated(!!integratedRaw?.integrated)
+			setLocalStorageIntegrated(!!integratedRaw?.integrated)
+
+			if (localStorageIntegrated === false && integratedRaw?.integrated) {
+				analytics.track('integrated-client', { id: projectId })
 			}
 		}
 	}, [
@@ -200,7 +198,7 @@ export const useClientIntegrated = () => {
 	])
 
 	return {
-		data: data?.clientIntegrationData,
+		data: data?.clientIntegration,
 		loading,
 	}
 }
@@ -208,7 +206,7 @@ export const useClientIntegrated = () => {
 export const useServerIntegrated = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { projectId } = useNumericProjectId()
-	const [query, { data, loading }] = useGetServerIntegrationDataLazyQuery({
+	const [query, { data, loading }] = useGetServerIntegrationLazyQuery({
 		variables: { project_id: projectId! },
 		fetchPolicy: 'cache-and-network',
 	})
@@ -217,36 +215,34 @@ export const useServerIntegrated = () => {
 		false,
 	)
 	const [integrated, setIntegrated] = useState<boolean | undefined>(undefined)
-	const integratedRaw = !!data?.serverIntegrationData
+	const integratedRaw = data?.serverIntegration
 
 	useEffect(() => {
 		if (!isLoggedIn) return
-		if (!localStorageIntegrated) {
+		if (localStorageIntegrated) {
+			setIntegrated(localStorageIntegrated)
+		} else {
 			query()
 			const timer = setInterval(() => {
-				if (!integrated) {
-					query()
-				} else {
+				if (integrated) {
 					clearInterval(timer)
+				} else {
+					query()
 				}
 			}, 5000)
 			return () => {
 				clearInterval(timer)
 			}
-		} else {
-			setIntegrated(localStorageIntegrated)
 		}
 	}, [integrated, localStorageIntegrated, query, isLoggedIn])
 
 	useEffect(() => {
 		if (integratedRaw !== undefined) {
-			setIntegrated(integratedRaw?.valueOf())
-			setLocalStorageIntegrated(integratedRaw?.valueOf() || false)
-			if (
-				localStorageIntegrated === false &&
-				integratedRaw?.valueOf() === true
-			) {
-				analytics.track('IntegratedClient', { id: projectId })
+			setIntegrated(!!integratedRaw?.integrated)
+			setLocalStorageIntegrated(!!integratedRaw?.integrated)
+
+			if (localStorageIntegrated === false && integratedRaw?.integrated) {
+				analytics.track('integrated-slient', { id: projectId })
 			}
 		}
 	}, [
@@ -257,7 +253,7 @@ export const useServerIntegrated = () => {
 	])
 
 	return {
-		data: data?.serverIntegrationData,
+		data: data?.serverIntegration,
 		loading,
 	}
 }
