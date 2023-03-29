@@ -1,17 +1,10 @@
-import { GraphQLClient, gql } from 'graphql-request'
-import { withHighlight } from '../../highlight.config'
-import { H } from '@highlight-run/next'
-import { iProduct, PRODUCTS } from '../../components/Products/products'
-import { getGithubDocsPaths, processDocPath } from './docs/github'
+import { gql, GraphQLClient } from 'graphql-request'
+import { getGithubDocsPaths } from './docs/github'
+import { PRODUCTS, iProduct } from '../../components/Products/products'
 import { FEATURES, iFeature } from '../../components/Features/features'
+import { NextApiRequest, NextApiResponse } from 'next'
 
-async function handler(_: any, res: any) {
-	res.statusCode = 200
-	res.setHeader('Content-Type', 'text/xml')
-
-	// Instructing the Vercel edge to cache the file
-	res.setHeader('Cache-control', 'stale-while-revalidate, s-maxage=3600')
-
+async function generateXML(): Promise<string> {
 	const graphcms = new GraphQLClient(
 		'https://api-us-west-2.graphcms.com/v2/cl2tzedef0o3p01yz7c7eetq8/master',
 		{
@@ -24,34 +17,27 @@ async function handler(_: any, res: any) {
 	const start = global.performance.now()
 	const [{ posts }, { customers }, { changelogs }, docs] = await Promise.all([
 		await graphcms.request(gql`
-      query GetPosts() {
-        posts(orderBy: publishedAt_DESC) {
-          slug
-        }
-      }
-    `),
+	      query GetPosts() {
+	        posts(orderBy: publishedAt_DESC) {
+	          slug
+	        }
+	      }
+	    `),
 		await graphcms.request(gql`
-      query GetCustomers() {
-        customers() {
-          slug
-        }
-      }
-    `),
+	      query GetCustomers() {
+	        customers() {
+	          slug
+	        }
+	      }
+	    `),
 		await graphcms.request(gql`
-      query GetChangelogs() {
-        changelogs() {
-          slug
-        }
-      }
-    `),
+	      query GetChangelogs() {
+	        changelogs() {
+	          slug
+	        }
+	      }
+	    `),
 		await getGithubDocsPaths(),
-	])
-	H.metrics([
-		{
-			name: 'sitemap-gql-latency-ms',
-			value: global.performance.now() - start,
-			tags: [{ name: 'site', value: process.env.WEBSITE_URL || '' }],
-		},
 	])
 
 	const blogPages = posts.map((post: any) => `blog/${post.slug}`)
@@ -88,17 +74,23 @@ async function handler(_: any, res: any) {
 
 	const addPage = (page: string) => {
 		return `    <url>
-      <loc>${`${process.env.WEBSITE_URL}/${page}`}</loc>
-      <changefreq>hourly</changefreq>
-    </url>`
+	      <loc>${`${process.env.WEBSITE_URL}/${page}`}</loc>
+	      <changefreq>hourly</changefreq>
+	    </url>`
 	}
 
-	const xml = `<?xml version="1.0" encoding="UTF-8"?>
-  <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${pages.map(addPage).join('\n')}
-  </urlset>`
-
-	res.end(xml)
+	return `<?xml version="1.0" encoding="UTF-8"?>
+	  <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+	${pages.map(addPage).join('\n')}
+	  </urlset>`
 }
 
-export default withHighlight(handler)
+export default async function handler(
+	req: NextApiRequest,
+	res: NextApiResponse,
+) {
+	res.setHeader('Content-Type', 'text/xml')
+	// Instructing the Vercel edge to cache the file
+	res.setHeader('Cache-control', 'stale-while-revalidate, s-maxage=3600')
+	res.status(200).end(await generateXML())
+}

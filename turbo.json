@@ -31,7 +31,7 @@
 		},
 		"build": {
 			"dependsOn": ["codegen", "typegen", "^prepublish", "^build"],
-			"outputs": ["build/**", "dist/**", "esm/**"],
+			"outputs": ["build/**", "dist/**", "esm/**", ".next/**"],
 			"env": [
 				"REACT_APP_AUTH_MODE",
 				"REACT_APP_COMMIT_SHA",
