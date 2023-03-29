@@ -16,9 +16,7 @@ jobs:
             - uses: actions/checkout@v2
               with:
                   submodules: true
-            - name: Install Vercel CLI
-              run: npm install --global vercel@latest
             - name: Pull Vercel Environment Information
-              run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+              run: yarn dlx vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
             - name: Deploy Project Artifacts to Vercel
-              run: vercel --token=${{ secrets.VERCEL_TOKEN }}
+              run: yarn dlx vercel --token=${{ secrets.VERCEL_TOKEN }}
