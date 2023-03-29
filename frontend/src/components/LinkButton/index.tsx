@@ -20,6 +20,7 @@ type Props = React.PropsWithChildren &
 		| 'trackingProperties'
 	> & {
 		to: LinkProps['to']
+		state?: LinkProps['state']
 		target?: LinkProps['target']
 	}
 
@@ -27,6 +28,7 @@ export const LinkButton: React.FC<Props> = ({
 	children,
 	disabled,
 	to,
+	state,
 	kind,
 	size,
 	emphasis,
@@ -41,6 +43,7 @@ export const LinkButton: React.FC<Props> = ({
 	return (
 		<Component
 			to={to}
+			state={state}
 			target={target}
 			className={clsx(
 				styles.base,

@@ -51,11 +51,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 						element={<ProjectSettings />}
 					/>
 					<Route path="alerts/*" element={<AlertsRouter />} />
-
-					<Route
-						path="setup/*"
-						element={<SetupRouter integrated={integrated} />}
-					/>
+					<Route path="setup/*" element={<SetupRouter />} />
 
 					<Route
 						path="integrations/*"

@@ -332,6 +332,12 @@ type IntegrationProjectMappingInput struct {
 	ExternalID string `json:"external_id"`
 }
 
+type IntegrationStatus struct {
+	Integrated       bool    `json:"integrated"`
+	ResourceType     string  `json:"resourceType"`
+	ResourceSecureID *string `json:"resourceSecureId"`
+}
+
 type Invoice struct {
 	AmountDue    *int64     `json:"amountDue"`
 	AmountPaid   *int64     `json:"amountPaid"`

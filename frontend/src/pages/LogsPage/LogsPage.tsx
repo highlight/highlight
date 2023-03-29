@@ -128,7 +128,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 					display="flex"
 					flexGrow={1}
 					border="dividerWeak"
-					shadow="small"
+					shadow="medium"
 				>
 					<SearchForm
 						initialQuery={query}

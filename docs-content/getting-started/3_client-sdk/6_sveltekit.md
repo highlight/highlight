@@ -5,4 +5,4 @@ slug: svelte-kit
 quickstart: true
 ---
 
-<QuickStart content={quickStartContent["client"]["svelte-kit"]}/>
+<QuickStart content={quickStartContent["client"]["js"]["svelte-kit"]}/>

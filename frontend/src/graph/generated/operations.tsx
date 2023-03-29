@@ -3241,6 +3241,28 @@ export type IsBackendIntegratedQuery = { __typename?: 'Query' } & Pick<
 	'isBackendIntegrated'
 >
 
+export type GetClientIntegrationQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetClientIntegrationQuery = { __typename?: 'Query' } & {
+	clientIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'resourceSecureId'
+	>
+}
+
+export type GetServerIntegrationQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetServerIntegrationQuery = { __typename?: 'Query' } & {
+	serverIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'resourceSecureId'
+	>
+}
+
 export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	lookBackPeriod: Types.Scalars['Int']
@@ -4163,6 +4185,8 @@ export const namedOperations = {
 		GetErrorSegments: 'GetErrorSegments' as const,
 		IsIntegrated: 'IsIntegrated' as const,
 		IsBackendIntegrated: 'IsBackendIntegrated' as const,
+		GetClientIntegration: 'GetClientIntegration' as const,
+		GetServerIntegration: 'GetServerIntegration' as const,
 		GetKeyPerformanceIndicators: 'GetKeyPerformanceIndicators' as const,
 		GetReferrersCount: 'GetReferrersCount' as const,
 		GetNewUsersCount: 'GetNewUsersCount' as const,

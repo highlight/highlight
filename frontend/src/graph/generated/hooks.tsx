@@ -9053,6 +9053,122 @@ export type IsBackendIntegratedQueryResult = Apollo.QueryResult<
 	Types.IsBackendIntegratedQuery,
 	Types.IsBackendIntegratedQueryVariables
 >
+export const GetClientIntegrationDocument = gql`
+	query GetClientIntegration($project_id: ID!) {
+		clientIntegration(project_id: $project_id) {
+			integrated
+			resourceType
+			resourceSecureId
+		}
+	}
+`
+
+/**
+ * __useGetClientIntegrationQuery__
+ *
+ * To run a query within a React component, call `useGetClientIntegrationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetClientIntegrationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetClientIntegrationQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetClientIntegrationQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetClientIntegrationQuery,
+		Types.GetClientIntegrationQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetClientIntegrationQuery,
+		Types.GetClientIntegrationQueryVariables
+	>(GetClientIntegrationDocument, baseOptions)
+}
+export function useGetClientIntegrationLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetClientIntegrationQuery,
+		Types.GetClientIntegrationQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetClientIntegrationQuery,
+		Types.GetClientIntegrationQueryVariables
+	>(GetClientIntegrationDocument, baseOptions)
+}
+export type GetClientIntegrationQueryHookResult = ReturnType<
+	typeof useGetClientIntegrationQuery
+>
+export type GetClientIntegrationLazyQueryHookResult = ReturnType<
+	typeof useGetClientIntegrationLazyQuery
+>
+export type GetClientIntegrationQueryResult = Apollo.QueryResult<
+	Types.GetClientIntegrationQuery,
+	Types.GetClientIntegrationQueryVariables
+>
+export const GetServerIntegrationDocument = gql`
+	query GetServerIntegration($project_id: ID!) {
+		serverIntegration(project_id: $project_id) {
+			integrated
+			resourceType
+			resourceSecureId
+		}
+	}
+`
+
+/**
+ * __useGetServerIntegrationQuery__
+ *
+ * To run a query within a React component, call `useGetServerIntegrationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetServerIntegrationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetServerIntegrationQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetServerIntegrationQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetServerIntegrationQuery,
+		Types.GetServerIntegrationQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetServerIntegrationQuery,
+		Types.GetServerIntegrationQueryVariables
+	>(GetServerIntegrationDocument, baseOptions)
+}
+export function useGetServerIntegrationLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetServerIntegrationQuery,
+		Types.GetServerIntegrationQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetServerIntegrationQuery,
+		Types.GetServerIntegrationQueryVariables
+	>(GetServerIntegrationDocument, baseOptions)
+}
+export type GetServerIntegrationQueryHookResult = ReturnType<
+	typeof useGetServerIntegrationQuery
+>
+export type GetServerIntegrationLazyQueryHookResult = ReturnType<
+	typeof useGetServerIntegrationLazyQuery
+>
+export type GetServerIntegrationQueryResult = Apollo.QueryResult<
+	Types.GetServerIntegrationQuery,
+	Types.GetServerIntegrationQueryVariables
+>
 export const GetKeyPerformanceIndicatorsDocument = gql`
 	query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
 		unprocessedSessionsCount(project_id: $project_id)
