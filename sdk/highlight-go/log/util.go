@@ -126,7 +126,7 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
 	span, _ := highlight.StartTrace(
 		ctx, "highlight-ctx",
-		attribute.String("Source", "SubmitVercelLogs"),
+		attribute.String(highlight.SourceAttribute, "SubmitVercelLogs"),
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 	)
 	defer highlight.EndTrace(span)

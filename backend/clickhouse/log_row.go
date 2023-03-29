@@ -16,6 +16,8 @@ import (
 )
 
 const LogAttributeValueLengthLimit = 2 << 10
+const LogRowSourceValueFrontend = "frontend"
+const LogRowSourceValueBackend = "backend"
 
 func ProjectToInt(projectID string) (int, error) {
 	i, err := strconv.ParseInt(projectID, 10, 32)
@@ -93,9 +95,10 @@ func WithSeverityText(severityText string) LogRowOption {
 func WithSource(source string) LogRowOption {
 	return func(h *LogRow) {
 		if source == highlight.SourceAttributeFrontend {
-			source = "frontend"
+			h.Source = LogRowSourceValueFrontend
+		} else {
+			h.Source = LogRowSourceValueBackend
 		}
-		h.Source = source
 	}
 }
 

@@ -2,6 +2,7 @@ package clickhouse
 
 import (
 	"context"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -61,4 +62,13 @@ func TestNewLogRowWithLongBody(t *testing.T) {
 	}
 	lr := NewLogRow(LogRowPrimaryAttrs{}, WithBody(ctx, body))
 	assert.Equal(t, 2048+3, len(lr.Body))
+}
+
+func TestNewLogRowWithSource(t *testing.T) {
+	lr := NewLogRow(LogRowPrimaryAttrs{}, WithSource(highlight.SourceAttributeFrontend))
+	assert.Equal(t, LogRowSourceValueFrontend, lr.Source)
+	assert.Equal(t, "frontend", LogRowSourceValueFrontend)
+	lr = NewLogRow(LogRowPrimaryAttrs{}, WithSource("InterceptField"))
+	assert.Equal(t, LogRowSourceValueBackend, lr.Source)
+	assert.Equal(t, "backend", LogRowSourceValueBackend)
 }
