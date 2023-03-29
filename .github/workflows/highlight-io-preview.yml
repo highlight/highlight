@@ -8,6 +8,7 @@ on:
             - 'highlight.io/**'
             - 'docs-content/**'
             - '.github/workflows/landing-preview.yml'
+            - 'yarn.lock'
         branches-ignore:
             - main
 jobs:
