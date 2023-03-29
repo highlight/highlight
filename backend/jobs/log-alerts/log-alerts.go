@@ -24,19 +24,22 @@ import (
 	"gorm.io/gorm"
 )
 
-const (
-	sigFigs = 4
-)
-
 func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
 	log.WithContext(ctx).Info("Starting to watch Log Alerts")
 
-	for range time.Tick(time.Second * 15) {
+	alerts := getLogAlerts(ctx, DB) // frequency
+	go func() {
+		for range time.Tick(time.Minute) {
+			alerts = getLogAlerts(ctx, DB) // frequency
+		}
+	}()
+
+	for range time.Tick(15 * time.Second) {
 		go func() {
-			alerts := getLogAlerts(ctx, DB) // frequency
 			processLogAlerts(ctx, DB, TDB, MailClient, alerts, rh, redis, ccClient)
 		}()
 	}
+
 }
 
 func getLogAlerts(ctx context.Context, DB *gorm.DB) []*model.LogAlert {
@@ -53,6 +56,9 @@ func getLogAlerts(ctx context.Context, DB *gorm.DB) []*model.LogAlert {
 func processLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, logAlerts []*model.LogAlert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
 	log.WithContext(ctx).Info("Number of Log Alerts to Process: ", len(logAlerts))
 	for _, alert := range logAlerts {
+		// should this alert be triggered within the last 15 seconds?
+		alert.Frequency
+
 		lastLog, err := redis.GetLastLogTimestamp(ctx, alert.ProjectID)
 		if err != nil {
 			log.WithContext(ctx).Error("error retrieving last log timestamp", err)
