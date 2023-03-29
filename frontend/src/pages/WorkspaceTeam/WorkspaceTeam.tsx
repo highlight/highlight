@@ -14,9 +14,9 @@ import {
 	useGetWorkspaceAdminsQuery,
 	useSendAdminWorkspaceInviteMutation,
 } from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
 import { AdminRole } from '@graph/schemas'
 import SvgTrashIcon from '@icons/TrashIcon'
-import { namedOperations } from '@graph/operations'
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
 import {
