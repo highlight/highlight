@@ -7,7 +7,7 @@ on:
         paths:
             - 'highlight.io/**'
             - 'docs-content/**'
-            - '.github/workflows/landing-preview.yml'
+            - '.github/workflows/highlight-io-preview.yml'
             - 'yarn.lock'
         branches-ignore:
             - main
