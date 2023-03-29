@@ -560,14 +560,7 @@ func makeFilters(query string) filters {
 
 		if len(parts) == 1 && len(parts[0]) > 0 {
 			body := parts[0]
-
-			if strings.Contains(body, "*") {
-				body = strings.ReplaceAll(body, "*", "%")
-				filters.body = append(filters.body, body)
-			} else {
-				splitBody := strings.FieldsFunc(body, isSeparator)
-				filters.body = append(filters.body, splitBody...)
-			}
+			filters.body = append(filters.body, getBodyFilters(body)...)
 		} else if len(parts) == 2 {
 			key, value := parts[0], parts[1]
 
@@ -586,6 +579,8 @@ func makeFilters(query string) filters {
 				filters.source = wildcardValue
 			case modelInputs.ReservedLogKeyServiceName.String():
 				filters.service_name = wildcardValue
+			case modelInputs.ReservedLogKeyMessage.String():
+				filters.body = append(filters.body, getBodyFilters(wildcardValue)...)
 			default:
 				filters.attributes[key] = wildcardValue
 			}
@@ -593,6 +588,14 @@ func makeFilters(query string) filters {
 	}
 
 	return filters
+}
+
+func getBodyFilters(body string) []string {
+	if strings.Contains(body, "*") {
+		return []string{strings.ReplaceAll(body, "*", "%")}
+	} else {
+		return strings.FieldsFunc(body, isSeparator)
+	}
 }
 
 func isSeparator(r rune) bool {

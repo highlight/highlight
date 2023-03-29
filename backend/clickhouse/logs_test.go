@@ -931,6 +931,47 @@ func TestReadLogsWithSourceFilter(t *testing.T) {
 	assert.Len(t, payload.Edges, 0)
 }
 
+func TestReadLogsWithMessageFilter(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+	rows := []*LogRow{
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			Body: "body",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			Body: "[1680104639306] Web worker sent payloadID 408 size 24.\nTotal since snapshot: 2.0MB",
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	// payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	// 	DateRange: makeDateWithinRange(now),
+	// 	Query:     "message:body",
+	// }, Pagination{})
+	// assert.NoError(t, err)
+	// assert.Len(t, payload.Edges, 1)
+	// assert.Equal(t, "body", payload.Edges[0].Node.Message)
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "message:\"[1680123737277] Web worker sent payloadID 86 size 291.\n                Total since snapshot: 2.5MB\"",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+}
+
 func TestLogsKeys(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)

@@ -1207,25 +1207,27 @@ type ReservedLogKey string
 const (
 	// Keep this in alpha order
 	ReservedLogKeyLevel           ReservedLogKey = "level"
+	ReservedLogKeyMessage         ReservedLogKey = "message"
 	ReservedLogKeySecureSessionID ReservedLogKey = "secure_session_id"
-	ReservedLogKeySpanID          ReservedLogKey = "span_id"
-	ReservedLogKeyTraceID         ReservedLogKey = "trace_id"
-	ReservedLogKeySource          ReservedLogKey = "source"
 	ReservedLogKeyServiceName     ReservedLogKey = "service_name"
+	ReservedLogKeySpanID          ReservedLogKey = "span_id"
+	ReservedLogKeySource          ReservedLogKey = "source"
+	ReservedLogKeyTraceID         ReservedLogKey = "trace_id"
 )
 
 var AllReservedLogKey = []ReservedLogKey{
 	ReservedLogKeyLevel,
+	ReservedLogKeyMessage,
 	ReservedLogKeySecureSessionID,
-	ReservedLogKeySpanID,
-	ReservedLogKeyTraceID,
-	ReservedLogKeySource,
 	ReservedLogKeyServiceName,
+	ReservedLogKeySpanID,
+	ReservedLogKeySource,
+	ReservedLogKeyTraceID,
 }
 
 func (e ReservedLogKey) IsValid() bool {
 	switch e {
-	case ReservedLogKeyLevel, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName:
+	case ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeyServiceName, ReservedLogKeySpanID, ReservedLogKeySource, ReservedLogKeyTraceID:
 		return true
 	}
 	return false
