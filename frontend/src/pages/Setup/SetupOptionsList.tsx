@@ -1,5 +1,4 @@
 import { LinkButton } from '@components/LinkButton'
-import { GetServerIntegrationQuery } from '@graph/operations'
 import { IntegrationStatus } from '@graph/schemas'
 import { Box, Stack, Text } from '@highlight-run/ui'
 import { Header } from '@pages/Setup/Header'
