@@ -554,6 +554,10 @@ func makeFilters(query string) filters {
 	for _, q := range queries {
 		parts := strings.Split(q, ":")
 
+		if len(parts) > 2 {
+			parts = append([]string{parts[0]}, strings.Join(parts[1:], ":"))
+		}
+
 		if len(parts) == 1 && len(parts[0]) > 0 {
 			body := parts[0]
 

@@ -557,6 +557,13 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
+		Query:     "\"body with space\"", // direct match
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
 		Query:     "*od*", // wildcard match
 	}, Pagination{})
 	assert.NoError(t, err)
@@ -602,6 +609,17 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 				"user_id":      "1",
 			},
 		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			LogAttributes: map[string]string{
+				"service":      "nested:value",
+				"workspace_id": "1",
+				"user_id":      "1",
+			},
+		},
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -622,6 +640,13 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
+		Query:     " service:\"image processor\"",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
 		Query:     "service:*mage*",
 	}, Pagination{})
 	assert.NoError(t, err)
@@ -630,6 +655,13 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "service:image* workspace_id:1 user_id:1",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "service:\"nested:value\"",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)

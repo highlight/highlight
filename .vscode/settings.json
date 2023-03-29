@@ -71,7 +71,8 @@
 		"backend/go.sum": true,
 		"backend/event-parse/sample-events/*.json": true,
 		"**/*.scss.d.ts": true,
-		// "frontend/src/graph/generated/*": true,
+		"frontend/src/graph/generated/*": true,
+		"frontend/build/assets/*": true,
 		"backend/payload/*": true,
 		"**/yarn-error.log": true
 	},
@@ -87,5 +88,5 @@
 	},
 	"[markdown]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
-	}
+	},
 }
