@@ -94,8 +94,7 @@ const SetupRouter = () => {
 	useEffect(() => analytics.page(), [])
 
 	useEffect(() => {
-		// fetch(`https://www.highlight.io/api/quickstart`)
-		fetch(`http://localhost:3001/api/quickstart`)
+		fetch(`https://www.highlight.io/api/quickstart`)
 			.then((res) => res.json())
 			.then((docs) => setDocs(docs))
 			.catch((e) => {
