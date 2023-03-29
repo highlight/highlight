@@ -24,6 +24,7 @@ import {
 import {
 	DEFAULT_LOGS_OPERATOR,
 	LogsSearchParam,
+	quoteQueryValue,
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
@@ -398,7 +399,9 @@ const LogValue: React.FC<{
 											? (queryTerms[index].value = value)
 											: queryTerms.push({
 													key: queryKey,
-													value,
+													value: quoteQueryValue(
+														value,
+													),
 													operator:
 														DEFAULT_LOGS_OPERATOR,
 													offsetStart: 0, // not actually used
