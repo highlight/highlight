@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/alerts"
+	"github.com/highlight-run/highlight/backend/clickhouse"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/openlyinc/pointy"
@@ -27,13 +28,13 @@ const (
 	sigFigs = 4
 )
 
-func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client) {
+func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
 	log.WithContext(ctx).Info("Starting to watch Log Alerts")
 
 	for range time.Tick(time.Second * 15) {
 		go func() {
 			alerts := getLogAlerts(ctx, DB) // frequency
-			processLogAlerts(ctx, DB, TDB, MailClient, alerts, rh, redis)
+			processLogAlerts(ctx, DB, TDB, MailClient, alerts, rh, redis, ccClient)
 		}()
 	}
 }
@@ -49,7 +50,7 @@ func getLogAlerts(ctx context.Context, DB *gorm.DB) []*model.LogAlert {
 	return alerts
 }
 
-func processLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, logAlerts []*model.LogAlert, rh *resthooks.Resthook, redis *redis.Client) {
+func processLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, logAlerts []*model.LogAlert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
 	log.WithContext(ctx).Info("Number of Log Alerts to Process: ", len(logAlerts))
 	for _, alert := range logAlerts {
 		lastLog, err := redis.GetLastLogTimestamp(ctx, alert.ProjectID)
@@ -60,8 +61,15 @@ func processLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailC
 		end := lastLog.Add(-time.Minute)
 		start := end.Add(-time.Minute)
 
-		// query clickhouse for the count here
-		var count int
+		count64, err := ccClient.ReadLogsTotalCount(ctx, alert.ProjectID, modelInputs.LogsParamsInput{Query: alert.Query, DateRange: &modelInputs.DateRangeRequiredInput{
+			StartDate: start,
+			EndDate:   end,
+		}})
+		if err != nil {
+			log.WithContext(ctx).Error("error querying clickhouse for log count", err)
+			continue
+		}
+		count := int(count64) // ZANETODO: this ok?
 
 		alertCondition := count >= alert.CountThreshold
 		if alert.BelowThreshold {
@@ -72,17 +80,13 @@ func processLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailC
 			var project model.Project
 			if err := DB.Model(&model.Project{}).Where("id = ?", alert.ProjectID).First(&project).Error; err != nil {
 				log.WithContext(ctx).Error("error querying project for processMetricMonitor", err)
-				return
+				continue
 			}
 			var workspace model.Workspace
 			if err := DB.Where(&model.Workspace{Model: model.Model{ID: project.WorkspaceID}}).First(&workspace).Error; err != nil {
 				log.WithContext(ctx).Error("error querying workspace for processMetricMonitor", err)
-				return
+				continue
 			}
-
-			valueRepr := strconv.FormatFloat(value, 'g', sigFigs, 64)
-			thresholdRepr := strconv.FormatFloat(metricMonitor.Threshold, 'g', sigFigs, 64)
-			diffRepr := strconv.FormatFloat(value-metricMonitor.Threshold, 'g', sigFigs, 64)
 
 			aboveStr := "above"
 			if alert.BelowThreshold {
@@ -100,10 +104,9 @@ func processLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailC
 			message := fmt.Sprintf(
 				"🚨 *%s* fired!\nLog count for *%s* is currently %s the threshold.\n"+
 					"_Count_: %d | _Threshold_: %d",
-				alert.Name,
+				*alert.Name, // ZANETODO: nil?
 				alert.Query,
 				aboveStr,
-				diffRepr,
 				count,
 				alert.CountThreshold,
 			)
@@ -136,7 +139,7 @@ func processLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailC
 						"<em>Count</em>: %d | <em>Threshold: %d"+
 						"<br><br>"+
 						"<a href=\"%s\">View Alert</a>",
-					alert.Name,
+					*alert.Name, // ZANETODO: nil?
 					alert.Query,
 					aboveStr,
 					count,

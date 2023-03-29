@@ -1219,7 +1219,7 @@ func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
 }
 
 func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
-	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis)
+	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient)
 }
 
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
