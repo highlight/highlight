@@ -24,22 +24,27 @@ const getLocalStorage = function (): Storage | undefined {
 	}
 }
 
-const isEnabledIn = function (env: string, defaultEnabled: boolean) {
+export const isIndexedDBEnabled = function () {
+	const defaultEnabled = import.meta.env.MODE !== 'development'
 	const storage = getLocalStorage()
 	if (!storage) {
-		return true
+		return defaultEnabled
 	}
-	const key = `${INDEXEDDB_ENABLED_LOCAL_STORAGE_PREFIX}${env}`
+	const key = `${INDEXEDDB_ENABLED_LOCAL_STORAGE_PREFIX}${
+		import.meta.env.MODE
+	}`
 	if (storage.getItem(key) === null) {
 		storage.setItem(key, defaultEnabled ? 'true' : 'false')
 	}
 	return storage.getItem(key) === 'true'
 }
 
-export const indexeddbEnabled = isEnabledIn(
-	import.meta.env.DEV ? 'dev' : 'prod',
-	!import.meta.env.DEV,
-)
+export const setIndexedDBEnabled = function (value: boolean) {
+	localStorage.setItem(
+		`${INDEXEDDB_ENABLED_LOCAL_STORAGE_PREFIX}${import.meta.env.MODE}`,
+		value ? 'true' : 'false',
+	)
+}
 
 export class DB extends Dexie {
 	apollo!: Table<{
@@ -153,7 +158,7 @@ export class IndexedDBLink extends ApolloLink {
 			return false
 		}
 
-		return indexeddbEnabled
+		return isIndexedDBEnabled()
 	}
 
 	static async has(operationName: string, variables: any) {
@@ -214,7 +219,7 @@ export const indexedDBString = async function* ({
 	operation: string
 	fn: () => Promise<string>
 }) {
-	if (!indexeddbEnabled) {
+	if (!isIndexedDBEnabled()) {
 		yield await fn()
 		return
 	}
@@ -253,7 +258,7 @@ export const indexedDBWrap = async function* ({
 	operation: string
 	fn: () => Promise<Response>
 }) {
-	if (!indexeddbEnabled) {
+	if (!isIndexedDBEnabled()) {
 		yield await fn()
 		return
 	}
@@ -352,6 +357,6 @@ const cleanup = async () => {
 		setTimeout(cleanup, CLEANUP_CHECK_MS)
 	}
 }
-if (indexeddbEnabled) {
+if (isIndexedDBEnabled()) {
 	setTimeout(cleanup, CLEANUP_CHECK_MS)
 }
