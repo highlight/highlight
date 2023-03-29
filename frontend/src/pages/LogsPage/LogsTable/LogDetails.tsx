@@ -1,6 +1,6 @@
 import { Button } from '@components/Button'
 import { LinkButton } from '@components/LinkButton'
-import { LogEdge } from '@graph/schemas'
+import { LogEdge, LogLevel, Maybe, ReservedLogKey } from '@graph/schemas'
 import {
 	Box,
 	IconSolidChevronDoubleDown,
@@ -66,6 +66,20 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 	const expandable = Object.values(logAttributes).some(
 		(v) => typeof v === 'object',
 	)
+	const reservedLogAttributes: {
+		level: LogLevel
+		message: string
+	} & {
+		[key in ReservedLogKey]: Maybe<string> | undefined
+	} = {
+		level,
+		message,
+		trace_id: traceID,
+		span_id: spanID,
+		secure_session_id: secureSessionID,
+		source,
+		service_name: serviceName,
+	}
 
 	if (!expanded) {
 		if (allExpanded) {
@@ -102,62 +116,17 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 				)
 			})}
 
-			<Box>
-				<LogValue label="level" value={level} queryTerms={queryTerms} />
-			</Box>
-
-			<Box>
-				<LogValue
-					label="message"
-					value={message}
-					queryTerms={queryTerms}
-				/>
-			</Box>
-
-			{traceID && (
-				<Box>
-					<LogValue
-						label="trace_id"
-						value={traceID}
-						queryTerms={queryTerms}
-					/>
-				</Box>
-			)}
-			{spanID && (
-				<Box>
-					<LogValue
-						label="span_id"
-						value={spanID}
-						queryTerms={queryTerms}
-					/>
-				</Box>
-			)}
-			{secureSessionID && (
-				<Box>
-					<LogValue
-						label="secure_session_id"
-						value={secureSessionID}
-						queryTerms={queryTerms}
-					/>
-				</Box>
-			)}
-			{source && (
-				<Box>
-					<LogValue
-						label="source"
-						value={source}
-						queryTerms={queryTerms}
-					/>
-				</Box>
-			)}
-			{serviceName && (
-				<Box>
-					<LogValue
-						label="service_name"
-						value={serviceName}
-						queryTerms={queryTerms}
-					/>
-				</Box>
+			{Object.entries(reservedLogAttributes).map(
+				([key, value]) =>
+					value && (
+						<Box key={key}>
+							<LogValue
+								label={key}
+								value={value}
+								queryTerms={queryTerms}
+							/>
+						</Box>
+					),
 			)}
 
 			<Box display="flex" alignItems="center" flexDirection="row" mt="8">
@@ -203,9 +172,17 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 						emphasis="low"
 						onClick={(e) => {
 							e.stopPropagation()
-							navigator.clipboard.writeText(
-								JSON.stringify(row.original),
+
+							const json = { ...logAttributes }
+							Object.entries(reservedLogAttributes).forEach(
+								([key, value]) => {
+									if (value) {
+										json[key] = value
+									}
+								},
 							)
+
+							navigator.clipboard.writeText(JSON.stringify(json))
 							antdMessage.success('Copied logs!')
 						}}
 						trackingId="logs-row_copy-json"

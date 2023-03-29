@@ -959,6 +959,10 @@ func TestLogsKeys(t *testing.T) {
 			Type: modelInputs.LogKeyTypeString,
 		},
 		{
+			Name: "message",
+			Type: modelInputs.LogKeyTypeString,
+		},
+		{
 			Name: "secure_session_id",
 			Type: modelInputs.LogKeyTypeString,
 		},

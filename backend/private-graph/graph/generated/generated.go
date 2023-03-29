@@ -8371,6 +8371,7 @@ enum ReservedLogKey {
 	Keep this in alpha order
 	"""
 	level
+	message
 	secure_session_id
 	span_id
 	trace_id
