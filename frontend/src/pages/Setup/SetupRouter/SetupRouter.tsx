@@ -155,7 +155,7 @@ const SetupRouter = () => {
 						}
 					>
 						<Stack direction="row" align="center" gap="4">
-							{clientIntegration?.firstSessionSecureId && (
+							{clientIntegration?.integrated && (
 								<IconSolidCheckCircle />
 							)}
 							<Text>UX monitoring</Text>
@@ -170,7 +170,7 @@ const SetupRouter = () => {
 						}
 					>
 						<Stack direction="row" align="center" gap="4">
-							{serverIntegration?.firstErrorGroupSecureId && (
+							{serverIntegration?.integrated && (
 								<IconSolidCheckCircle />
 							)}
 							<Text>Backend error monitoring</Text>
