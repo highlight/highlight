@@ -1,9 +1,12 @@
-name: Vercel Preview Deployment
+name: Vercel Production Deployment
 env:
     VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 on:
     push:
+        paths:
+            - 'highlight.io/**'
+            - 'docs-content/**'
         branches:
             - main
 jobs:

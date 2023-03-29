@@ -4,6 +4,9 @@ env:
     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 on:
     push:
+        paths:
+            - 'highlight.io/**'
+            - 'docs-content/**'
         branches-ignore:
             - main
 jobs:
