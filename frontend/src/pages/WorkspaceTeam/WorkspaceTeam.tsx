@@ -16,6 +16,7 @@ import {
 } from '@graph/hooks'
 import { AdminRole } from '@graph/schemas'
 import SvgTrashIcon from '@icons/TrashIcon'
+import { namedOperations } from '@graph/operations'
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
 import {
@@ -55,9 +56,14 @@ const WorkspaceTeam = () => {
 		update(cache, { data }) {
 			cache.modify({
 				fields: {
-					workspace_admins(_existingAdmins, { DELETE }) {
-						return DELETE
-					}
+					workspace_admins(existingAdmins, { DELETE }) {
+						if (data?.deleteAdminFromWorkspace !== undefined) {
+							message.success('Removed member')
+							return DELETE
+						}
+						message.success('Failed to remove member')
+						return existingAdmins
+					},
 				},
 			})
 		},
@@ -262,6 +268,10 @@ const WorkspaceTeam = () => {
 										admin_id: wa.admin!.id,
 										workspace_id: workspace_id!,
 									},
+									refetchQueries: [
+										namedOperations.Query
+											.GetWorkspaceAdmins,
+									],
 								})
 							},
 							onUpdateRoleHandler: (new_role: string) => {
