@@ -1,0 +1,42 @@
+.section {
+	width: 100%;
+	max-width: calc(var(--max-width) + (var(--size-large) * 2));
+	margin: 0 auto;
+	padding: 50px var(--size-large);
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: stretch;
+	position: relative;
+	gap: var(--size-xxLarge);
+}
+
+.gridSection {
+	display: grid;
+	grid-template-columns: repeat(12, [col-start] 1fr);
+	gap: var(--size-medium);
+}
+
+.noYTopPadding {
+	padding-top: 0;
+}
+.noYBottomPadding {
+	padding-bottom: 0;
+}
+
+@media screen and (max-width: 800px) {
+	.section {
+		flex-direction: column;
+	}
+
+	.noYTopPadding {
+		padding-top: 0;
+	}
+	.noYBottomPadding {
+		padding-bottom: 0;
+	}
+
+	.sectionReverseMobile {
+		flex-direction: column-reverse !important;
+	}
+}

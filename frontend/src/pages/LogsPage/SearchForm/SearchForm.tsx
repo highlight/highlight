@@ -22,6 +22,7 @@ import {
 	BODY_KEY,
 	LogsSearchParam,
 	parseLogsQuery,
+	quoteQueryValue,
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
 import { useParams } from '@util/react-router/useParams'
@@ -129,7 +130,11 @@ const Search: React.FC<{
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const inputRef = useRef<HTMLInputElement | null>(null)
-	const state = useComboboxState({ gutter: 10, sameWidth: true })
+	const state = useComboboxState({
+		gutter: 10,
+		sameWidth: true,
+		defaultValue: initialQuery ?? '',
+	})
 	const [getLogsKeyValues, { data, loading: valuesLoading }] =
 		useGetLogsKeyValuesLazyQuery()
 
@@ -203,7 +208,7 @@ const Search: React.FC<{
 
 		// If string, it's a value not a key
 		if (isValueSelect) {
-			queryTerms[activeTermIndex].value = key
+			queryTerms[activeTermIndex].value = quoteQueryValue(key)
 		} else {
 			queryTerms[activeTermIndex].key = key.name
 			queryTerms[activeTermIndex].value = ''

@@ -205,25 +205,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							continue
 						}
 
-						var logCursor *string
-						logRow := getLogRow(ctx, ts, logSev, projectID, sessionID, traceID, spanID, logMessage, resourceAttributes, spanAttributes, eventAttributes, source)
+						logRow := getLogRow(
+							ctx, ts, logSev, projectID, sessionID, traceID, spanID,
+							logMessage, resourceAttributes, spanAttributes, eventAttributes, source,
+						)
 						projectLogs[projectID] = append(projectLogs[projectID], logRow)
-						logCursor = pointy.String(logRow.Cursor())
-
-						// create a backend error for this error log, if this is a backend log
-						if logRow.SeverityNumber <= int32(log.ErrorLevel) && source != highlight.SourceAttributeFrontend {
-							isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, source, logMessage, resourceAttributes, spanAttributes, eventAttributes)
-							if backendError == nil {
-								data, _ := req.MarshalJSON()
-								log.WithContext(ctx).WithField("BackendErrorEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span error got no session and no project")
-							} else {
-								if isProjectError {
-									projectErrors[projectID] = append(projectErrors[projectID], backendError)
-								} else {
-									traceErrors[sessionID] = append(traceErrors[sessionID], backendError)
-								}
-							}
-						}
 					}
 				}
 			}
