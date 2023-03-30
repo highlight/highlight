@@ -3423,66 +3423,6 @@ export type UpdateErrorAlertIsDisabledMutationOptions =
 		Types.UpdateErrorAlertIsDisabledMutation,
 		Types.UpdateErrorAlertIsDisabledMutationVariables
 	>
-export const CreateDefaultAlertsDocument = gql`
-	mutation CreateDefaultAlerts(
-		$project_id: ID!
-		$alert_types: [String!]!
-		$slack_channels: [SanitizedSlackChannelInput!]!
-		$emails: [String!]!
-	) {
-		createDefaultAlerts(
-			project_id: $project_id
-			alert_types: $alert_types
-			slack_channels: $slack_channels
-			emails: $emails
-		)
-	}
-`
-export type CreateDefaultAlertsMutationFn = Apollo.MutationFunction<
-	Types.CreateDefaultAlertsMutation,
-	Types.CreateDefaultAlertsMutationVariables
->
-
-/**
- * __useCreateDefaultAlertsMutation__
- *
- * To run a mutation, you first call `useCreateDefaultAlertsMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateDefaultAlertsMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createDefaultAlertsMutation, { data, loading, error }] = useCreateDefaultAlertsMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      alert_types: // value for 'alert_types'
- *      slack_channels: // value for 'slack_channels'
- *      emails: // value for 'emails'
- *   },
- * });
- */
-export function useCreateDefaultAlertsMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.CreateDefaultAlertsMutation,
-		Types.CreateDefaultAlertsMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.CreateDefaultAlertsMutation,
-		Types.CreateDefaultAlertsMutationVariables
-	>(CreateDefaultAlertsDocument, baseOptions)
-}
-export type CreateDefaultAlertsMutationHookResult = ReturnType<
-	typeof useCreateDefaultAlertsMutation
->
-export type CreateDefaultAlertsMutationResult =
-	Apollo.MutationResult<Types.CreateDefaultAlertsMutation>
-export type CreateDefaultAlertsMutationOptions = Apollo.BaseMutationOptions<
-	Types.CreateDefaultAlertsMutation,
-	Types.CreateDefaultAlertsMutationVariables
->
 export const CreateSessionAlertDocument = gql`
 	mutation CreateSessionAlert($input: SessionAlertInput!) {
 		createSessionAlert(input: $input) {

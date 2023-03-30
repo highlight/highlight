@@ -20,7 +20,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
@@ -59,8 +58,6 @@ import (
 	stripe "github.com/stripe/stripe-go/v72"
 	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -2368,65 +2365,6 @@ func (r *mutationResolver) SyncSlackIntegration(ctx context.Context, projectID i
 	response.NewChannelsAddedCount = newChannelsCount
 
 	return &response, nil
-}
-
-// CreateDefaultAlerts is the resolver for the createDefaultAlerts field.
-func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string) (*bool, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	admin, _ := r.getCurrentAdmin(ctx)
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
-	}
-
-	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
-	if err != nil {
-		return nil, err
-	}
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
-	}
-
-	caser := cases.Title(language.AmericanEnglish)
-	var sessionAlerts []*model.SessionAlert
-	for _, alertType := range alertTypes {
-		name := caser.String(strings.ToLower(strings.Replace(alertType, "_", " ", -1)))
-		alertType := alertType
-		newAlert := model.Alert{
-			ProjectID:         projectID,
-			CountThreshold:    1,
-			ThresholdWindow:   util.MakeIntPointer(30),
-			Type:              &alertType,
-			ChannelsToNotify:  channelsString,
-			EmailsToNotify:    emailsString,
-			Name:              &name,
-			LastAdminToEditID: admin.ID,
-		}
-		if alertType == model.AlertType.ERROR {
-			errorAlert := &model.ErrorAlert{Alert: newAlert}
-			if err := r.DB.Create(errorAlert).Error; err != nil {
-				return nil, e.Wrap(err, "error creating a new error alert")
-			}
-			if err := errorAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-				graphql.AddError(ctx, e.Wrap(err, "error sending slack welcome message for default error alert"))
-			}
-		} else {
-			sessionAlerts = append(sessionAlerts, &model.SessionAlert{Alert: newAlert})
-		}
-	}
-
-	if err := r.DB.Create(sessionAlerts).Error; err != nil {
-		return nil, e.Wrap(err, "error creating new session alerts")
-	}
-	for _, projectAlert := range sessionAlerts {
-		if err := projectAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &projectAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-			graphql.AddError(ctx, e.Wrap(err, "error sending slack welcome message for default session alert"))
-		}
-	}
-
-	return &model.T, nil
 }
 
 // CreateMetricMonitor is the resolver for the createMetricMonitor field.
