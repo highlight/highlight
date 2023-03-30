@@ -7,7 +7,7 @@ updatedAt: 2023-01-24T02:07:22.000Z
 
 ## Getting Started
 
-The documentation rendered on https://highlight.io/docs is rendered from the [docs-content](https://github.com/highlight/highlight/tree/83c412a0f3f28a13d6781593935dcee2f0e77403/docs-content) directory. The code for rendering the landing page resides in [highlight.io](https://github.com/highlight/highlight/tree/83c412a0f3f28a13d6781593935dcee2f0e77403/highlight.io) directory.
+The documentation rendered on https://highlight.io/docs is rendered from the [docs-content](https://github.com/highlight/highlight/tree/main/docs-content) directory. The code for rendering the landing page resides in [highlight.io](https://github.com/highlight/highlight/tree/main/highlight.io) directory.
 
 To run the app locally, install dependencies and call `yarn dev` as follows:
 

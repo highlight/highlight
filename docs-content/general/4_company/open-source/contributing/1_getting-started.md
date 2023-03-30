@@ -1,23 +1,55 @@
 ---
-title: Getting started
+title: Overview
+heading: Contributing Overview
 slug: getting-started
 createdAt: 2023-01-24T20:28:14.000Z
 updatedAt: 2023-01-24T02:07:22.000Z
 ---
 
-## Best first issues to take on
-
-It's best to start with issues marked as ["good first issue"](https://github.com/highlight/highlight/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22). We mark these issues based on how well-defined and testable they are. If you're interested in a larger project, adding support for new programming languages via a new SDK would always greatly appreciated. If there is a feature you're missing in Highlight, reach out on our [discussions](https://github.com/highlight/highlight/discussions) or on our [discord](https://highlight.io/community) to get a conversation started about the best implementation.
-
 ## How do I spin up highlight.io locally?
-
-Check out our development deployment guide to get started:
 
 <DocsCardGroup>
     <DocsCard title="Local Development Guide." href="../../../../getting-started/self-host/dev-deployment-guide.md">
         {"Running a docker version of highlight.io for development."}
     </DocsCard>
-    <DocsCard title="GitHub Codespaces Guide" href="./code-spaces.md">
-        {"Running highlight.io in a codespaces environment."}
+    <DocsCard title="GitHub Code Spaces Guide" href="./code-spaces.md">
+        {"Running highlight.io in a Code Spaces environment."}
+    </DocsCard>
+</DocsCardGroup>
+
+## What is the app architecture?
+
+<DocsCardGroup>
+    <DocsCard title="App Architecture" href="./architecture">
+        {"Overall architecture guide."}
+    </DocsCard>
+    <DocsCard title="SDK Design" href="./adding-an-sdk">
+        {"Adding an SDK."}
+    </DocsCard>
+</DocsCardGroup>
+
+
+## How do I develop in ...?
+
+<DocsCardGroup>
+    <DocsCard title="Frontend" href="./frontend">
+        {"Frontend React.js development for app.highlight.io."}
+    </DocsCard>
+    <DocsCard title="Backend" href="./backend">
+        {"Backend GraphQL development for app.highlight.io."}
+    </DocsCard>
+    <DocsCard title="Landing Site" href="./landing-site">
+        {"Frontend Next.js development for highlight.io landing site."}
+    </DocsCard>
+</DocsCardGroup>
+
+## What are development best practices?
+
+<DocsCardGroup>
+    <DocsCard title="Starter Tickets" href="./best-first-issue">
+        {"Best first issue to start with."}
+    </DocsCard>
+    <DocsCard title="Code Style" href="./code-style">
+        {"Defining our code styles."}
     </DocsCard>
 </DocsCardGroup>
