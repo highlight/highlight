@@ -1325,7 +1325,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 			ProjectID: projectID,
 			Type:      model.MarkBackendSetupTypeSession,
 		}
-		if err := r.DB.Model(&model.SetupEvent{}).Create(&setupEvent).Error; err != nil {
+		if err := r.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&setupEvent).Error; err != nil {
 			return nil, e.Wrap(err, "error creating setup event")
 		}
 	}
@@ -1509,7 +1509,7 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 		}
 	}
 
-	// Update projects.backend_setup
+	// Update Hubspot company and projects.backend_setup
 	var backendSetupCount int64
 	if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
 		return e.Wrap(err, "error querying backend_setup flag")
@@ -1534,7 +1534,7 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 		}
 	}
 
-	// Create setup_event record
+	// Create setup_events record
 	var setupEventsCount int64
 	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, setupType).Count(&setupEventsCount).Error; err != nil {
 		return e.Wrap(err, "error querying setup events")
