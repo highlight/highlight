@@ -268,12 +268,17 @@ func FillProducts(stripeClient *client.API, subscriptions []*stripe.Subscription
 }
 
 // Returns the Stripe Prices for the associated tier and interval
-func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (map[ProductType]*stripe.Price, error) {
-	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval, unlimitedMembers, retentionPeriod)
+func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool, retentionPeriod *backend.RetentionPeriod) (map[ProductType]*stripe.Price, error) {
+	// Default to the `RetentionPeriodThreeMonths` prices for customers grandfathered into 6 month retention
+	rp := backend.RetentionPeriodThreeMonths
+	if retentionPeriod != nil {
+		rp = *retentionPeriod
+	}
+	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval, unlimitedMembers, rp)
 
-	sessionsLookupKey := GetOverageKey(ProductTypeSessions, retentionPeriod)
+	sessionsLookupKey := GetOverageKey(ProductTypeSessions, rp)
 	membersLookupKey := string(ProductTypeMembers)
-	errorsLookupKey := GetOverageKey(ProductTypeErrors, retentionPeriod)
+	errorsLookupKey := GetOverageKey(ProductTypeErrors, rp)
 
 	priceListParams := stripe.PriceListParams{}
 	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey}
@@ -421,11 +426,7 @@ func reportUsage(ctx context.Context, DB *gorm.DB, stripeClient *client.API, mai
 		}
 	}
 
-	retentionPeriod := backend.RetentionPeriodSixMonths
-	if workspace.RetentionPeriod != nil {
-		retentionPeriod = *workspace.RetentionPeriod
-	}
-	prices, err := GetStripePrices(stripeClient, *productTier, interval, workspace.UnlimitedMembers, retentionPeriod)
+	prices, err := GetStripePrices(stripeClient, *productTier, interval, workspace.UnlimitedMembers, workspace.RetentionPeriod)
 	if err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to get Stripe prices")
 	}
