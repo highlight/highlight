@@ -19,7 +19,7 @@ import {
 	GetWebVitalsDocument,
 } from '@graph/hooks'
 import { ErrorInstance, OpenSearchCalendarInterval } from '@graph/schemas'
-import { indexeddbEnabled, indexedDBFetch, IndexedDBLink } from '@util/db'
+import { indexedDBFetch, IndexedDBLink, isIndexedDBEnabled } from '@util/db'
 import { client } from '@util/graph'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
@@ -49,7 +49,10 @@ export const usePreloadSessions = function ({
 
 	useEffect(() => {
 		;(async () => {
-			if (!indexeddbEnabled || preloadedPages.current.has(pageToLoad)) {
+			if (
+				!isIndexedDBEnabled() ||
+				preloadedPages.current.has(pageToLoad)
+			) {
 				return false
 			}
 			if (!backendSearchQuery?.searchQuery) {
@@ -125,7 +128,10 @@ export const usePreloadErrors = function ({
 
 	useEffect(() => {
 		;(async () => {
-			if (!indexeddbEnabled || preloadedPages.current.has(pageToLoad)) {
+			if (
+				!isIndexedDBEnabled() ||
+				preloadedPages.current.has(pageToLoad)
+			) {
 				return false
 			}
 			if (!backendSearchQuery?.searchQuery) {
