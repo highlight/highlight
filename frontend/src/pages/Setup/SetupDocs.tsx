@@ -10,13 +10,13 @@ import {
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import { Header } from '@pages/Setup/Header'
 import { IntegrationBar } from '@pages/Setup/IntegrationBar'
-import { Guide, Guides } from '@pages/Setup/SetupRouter/SetupRouter'
 import analytics from '@util/analytics'
 import clsx from 'clsx'
 import * as React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useMatch } from 'react-router-dom'
 
+import { quickStartContent } from '../../../../highlight.io/components/QuickStartContent/QuickstartContent'
 import * as styles from './SetupDocs.css'
 
 export type OptionListItem = {
@@ -27,19 +27,18 @@ export type OptionListItem = {
 }
 
 type Props = {
-	docs: Guides
 	projectVerboseId: string
 	integrationData?: IntegrationStatus
 }
 
 export const SetupDocs: React.FC<Props> = ({
-	docs,
 	integrationData,
 	projectVerboseId,
 }) => {
 	const match = useMatch('/:project_id/setup/:area/:language/:framework')
 	const { area, framework, language } = match!.params
-	const guide = (docs as any)[area!][language!][framework!] as Guide
+	// TODO: Types
+	const guide = (quickStartContent as any)[area!][language!][framework!]
 
 	return (
 		<Box>
