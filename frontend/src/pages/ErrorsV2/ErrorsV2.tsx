@@ -180,7 +180,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 						display="flex"
 						flexDirection="column"
 						height="full"
-						shadow="small"
+						shadow="medium"
 					>
 						{isLoggedIn && (
 							<Box

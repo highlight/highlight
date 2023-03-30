@@ -11,6 +11,7 @@ import (
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
+	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
@@ -280,7 +281,13 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 
 	// Validate that we received exactly 1 response for each lookup key
 	if len(prices) != 4 {
-		return nil, e.Errorf("expected 4 prices, received %d", len(prices))
+		searchedKeys := lo.Map(priceListParams.LookupKeys, func(key *string, _ int) string {
+			return *key
+		})
+		foundKeys := lo.Map(prices, func(price *stripe.Price, _ int) string {
+			return price.LookupKey
+		})
+		return nil, e.Errorf("expected 4 prices, received %d; searched %#v, found %#v", len(prices), searchedKeys, foundKeys)
 	}
 
 	priceMap := map[ProductType]*stripe.Price{}

@@ -120,8 +120,9 @@ export class Highlight {
 		span.addEvent(
 			'log',
 			{
+				// pass stack so that error creation on our end can show a structured stacktrace for errors
+				['exception.stacktrace']: JSON.stringify(stack),
 				['highlight.project_id']: this._projectID,
-				['code.stack']: JSON.stringify(stack),
 				['log.severity']: level,
 				['log.message']: msg,
 				...(secureSessionId

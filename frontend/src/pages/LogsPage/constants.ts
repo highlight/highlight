@@ -1,9 +1,5 @@
 import { LogLevel } from '@graph/schemas'
 import { Preset } from '@highlight-run/ui'
-import {
-	backgroundColors,
-	textColors,
-} from '@highlight-run/ui/src/css/sprinkles.css'
 import moment from 'moment'
 
 export const FORMAT = 'YYYY-MM-DDTHH:mm:ss.000000000Z'
@@ -38,26 +34,16 @@ export const PRESETS: Preset[] = [
 	},
 ]
 
-export const BACKGROUND_COLOR_MAPPING: {
-	[key in LogLevel]: keyof typeof backgroundColors
+export const COLOR_MAPPING: {
+	[key in LogLevel]: string
 } = {
-	[LogLevel.Warn]: 'contentCaution',
-	[LogLevel.Debug]: 'contentStrong',
-	[LogLevel.Info]: 'contentInformative',
-	[LogLevel.Error]: 'contentBad',
-	[LogLevel.Fatal]: 'contentBad',
-	[LogLevel.Trace]: 'contentStrong',
-}
-
-export const TEXT_COLOR_MAPPING: {
-	[key in LogLevel]: keyof typeof textColors
-} = {
-	[LogLevel.Warn]: 'caution',
-	[LogLevel.Debug]: 'strong',
-	[LogLevel.Info]: 'informative',
-	[LogLevel.Error]: 'bad',
-	[LogLevel.Fatal]: 'bad',
-	[LogLevel.Trace]: 'strong',
+	// Custom colors from Figma.
+	[LogLevel.Warn]: '#FFB224',
+	[LogLevel.Debug]: '#6F6E77',
+	[LogLevel.Info]: '#744ED4',
+	[LogLevel.Error]: '#E5484D',
+	[LogLevel.Fatal]: '#CD2B31',
+	[LogLevel.Trace]: '#1a1523',
 }
 
 export type TIME_MODE = 'fixed-range' | 'permalink'

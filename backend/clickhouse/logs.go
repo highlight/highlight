@@ -16,7 +16,7 @@ import (
 	e "github.com/pkg/errors"
 )
 
-const LogsTable = "logs_new"
+const LogsTable = "logs"
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
 	if len(logRows) == 0 {
@@ -40,7 +40,7 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 	return batch.Send()
 }
 
-const LogsLimit int = 100
+const LogsLimit int = 50
 const KeyValuesLimit int = 50
 
 const OrderBackward = "Timestamp ASC, UUID ASC"
@@ -57,7 +57,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
-	selectStr := "Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId"
+	selectStr := "Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId, Source, ServiceName"
 
 	if pagination.At != nil && len(*pagination.At) > 1 {
 		// Create a "window" around the cursor
@@ -127,6 +127,8 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 			TraceId         string
 			SpanId          string
 			SecureSessionId string
+			Source          string
+			ServiceName     string
 		}
 		if err := rows.ScanStruct(&result); err != nil {
 			return nil, err
@@ -142,6 +144,8 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 				TraceID:         &result.TraceId,
 				SpanID:          &result.SpanId,
 				SecureSessionID: &result.SecureSessionId,
+				Source:          &result.Source,
+				ServiceName:     &result.ServiceName,
 			},
 		})
 	}
@@ -350,6 +354,18 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.NotEqual("trace_id", "")).
 			Limit(KeyValuesLimit)
+	case modelInputs.ReservedLogKeySource.String():
+		sb.Select("DISTINCT Source source").
+			From(LogsTable).
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.NotEqual("source", "")).
+			Limit(KeyValuesLimit)
+	case modelInputs.ReservedLogKeyServiceName.String():
+		sb.Select("DISTINCT ServiceName service_name").
+			From(LogsTable).
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.NotEqual("service_name", "")).
+			Limit(KeyValuesLimit)
 	default:
 		sb.Select("DISTINCT LogAttributes [" + sb.Var(keyName) + "] as value").
 			From(LogsTable).
@@ -387,10 +403,28 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 }
 
 func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*sqlbuilder.SelectBuilder, error) {
+	filters := makeFilters(params.Query)
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select(selectStr).
-		From(LogsTable).
-		Where(sb.Equal("ProjectId", projectID))
+	sb.Select(selectStr).From(LogsTable)
+
+	// Clickhouse requires that PREWHERE clauses occur before WHERE clauses
+	// sql-builder doesn't support PREWHERE natively so we use `SQL` which sets a marker
+	// of where to place the raw SQL later when it is being built.
+	// In this case, we are placing the marker after the `FROM` clause
+	preWheres := []string{}
+	for _, body := range filters.body {
+		if strings.Contains(body, "%") {
+			sb.Where("Body ILIKE" + sb.Var(body))
+		} else {
+			preWheres = append(preWheres, "hasTokenCaseInsensitive(Body, "+sb.Var(body)+")")
+		}
+	}
+
+	if len(preWheres) > 0 {
+		sb.SQL("PREWHERE " + strings.Join(preWheres, " AND "))
+	}
+
+	sb.Where(sb.Equal("ProjectId", projectID))
 
 	if pagination.After != nil && len(*pagination.After) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.After)
@@ -439,17 +473,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 
 	}
 
-	filters := makeFilters(params.Query)
-
-	for _, body := range filters.body {
-		if strings.Contains(body, "%") {
-			sb.Where("Body ILIKE" + sb.Var(body))
-		} else {
-			sb.Where("hasTokenCaseInsensitive(Body, " + sb.Var(body) + ")")
-		}
-	}
-
-	if len(filters.level) > 0 {
+	if filters.level != "" {
 		if strings.Contains(filters.level, "%") {
 			sb.Where(sb.Like("SeverityText", filters.level))
 		} else {
@@ -457,7 +481,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 		}
 	}
 
-	if len(filters.secure_session_id) > 0 {
+	if filters.secure_session_id != "" {
 		if strings.Contains(filters.secure_session_id, "%") {
 			sb.Where(sb.Like("SecureSessionId", filters.secure_session_id))
 		} else {
@@ -465,7 +489,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 		}
 	}
 
-	if len(filters.span_id) > 0 {
+	if filters.span_id != "" {
 		if strings.Contains(filters.span_id, "%") {
 			sb.Where(sb.Like("SpanId", filters.span_id))
 		} else {
@@ -473,11 +497,27 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 		}
 	}
 
-	if len(filters.trace_id) > 0 {
+	if filters.trace_id != "" {
 		if strings.Contains(filters.trace_id, "%") {
 			sb.Where(sb.Like("TraceId", filters.trace_id))
 		} else {
 			sb.Where(sb.Equal("TraceId", filters.trace_id))
+		}
+	}
+
+	if filters.source != "" {
+		if strings.Contains(filters.source, "%") {
+			sb.Where(sb.Like("Source", filters.source))
+		} else {
+			sb.Where(sb.Equal("Source", filters.source))
+		}
+	}
+
+	if filters.service_name != "" {
+		if strings.Contains(filters.service_name, "%") {
+			sb.Where(sb.Like("ServiceName", filters.service_name))
+		} else {
+			sb.Where(sb.Equal("ServiceName", filters.service_name))
 		}
 	}
 
@@ -499,6 +539,8 @@ type filters struct {
 	trace_id          string
 	span_id           string
 	secure_session_id string
+	source            string
+	service_name      string
 	attributes        map[string]string
 }
 
@@ -536,6 +578,10 @@ func makeFilters(query string) filters {
 				filters.span_id = wildcardValue
 			case modelInputs.ReservedLogKeyTraceID.String():
 				filters.trace_id = wildcardValue
+			case modelInputs.ReservedLogKeySource.String():
+				filters.source = wildcardValue
+			case modelInputs.ReservedLogKeyServiceName.String():
+				filters.service_name = wildcardValue
 			default:
 				filters.attributes[key] = wildcardValue
 			}

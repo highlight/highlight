@@ -95,6 +95,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 				switch lastMsg.Type {
 				case kafkaqueue.PushLogs:
 					logRows = append(logRows, lastMsg.PushLogs.LogRows...)
+					received += len(lastMsg.PushLogs.LogRows)
 				case kafkaqueue.MarkBackendSetup:
 					if lastMsg.MarkBackendSetup.ProjectID != 0 {
 						setupProjectIDs[lastMsg.MarkBackendSetup.ProjectID] = true
@@ -103,8 +104,8 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 					} else {
 						log.WithContext(ctx).Errorf("invalid MarkBackendSetup message %+v", lastMsg.MarkBackendSetup)
 					}
+					received += 1
 				}
-				received += 1
 				if received >= BatchFlushSize {
 					return
 				}

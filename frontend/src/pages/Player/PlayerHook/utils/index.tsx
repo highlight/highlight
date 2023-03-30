@@ -4,6 +4,7 @@ import { playerMetaData, SessionInterval } from '@highlight-run/rrweb-types'
 import { clamp } from '@util/numbers'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
+import moment from 'moment'
 import { useCallback, useState } from 'react'
 import { useLocation } from 'react-router'
 import { NavigateFunction } from 'react-router-dom'
@@ -150,7 +151,6 @@ export enum PlayerSearchParameters {
  */
 export const useSetPlayerTimestampFromSearchParam = (
 	setTime: (newTime: number) => void,
-	replayer?: Replayer,
 ) => {
 	const location = useLocation()
 	const searchParams = new URLSearchParams(location.search)
@@ -183,25 +183,24 @@ export const useSetPlayerTimestampFromSearchParam = (
 					timestampMilliseconds <= sessionDurationMilliseconds
 				) {
 					setTime(timestampMilliseconds)
-					replayer?.pause(timestampMilliseconds)
 				}
 				setHasSearchParam(true)
-			} else if (searchParamsObject.get(PlayerSearchParameters.tsAbs)) {
-				const absoluteTimestampMilliseconds = parseFloat(
+			} else if (
+				sessionStartTimeMilliseconds &&
+				searchParamsObject.get(PlayerSearchParameters.tsAbs)
+			) {
+				const startTimestamp = moment(sessionStartTimeMilliseconds)
+				const absoluteTimestamp = moment(
 					searchParamsObject.get(
 						PlayerSearchParameters.tsAbs,
 					) as string,
 				)
-				const relativeTimestampMilliseconds =
-					absoluteTimestampMilliseconds - sessionStartTimeMilliseconds
+				const relativeTimestampMilliseconds = absoluteTimestamp.diff(
+					startTimestamp,
+					'milliseconds',
+				)
 
-				if (
-					relativeTimestampMilliseconds > 0 ||
-					relativeTimestampMilliseconds <= sessionDurationMilliseconds
-				) {
-					setTime(relativeTimestampMilliseconds)
-					replayer?.pause(relativeTimestampMilliseconds)
-				}
+				setTime(relativeTimestampMilliseconds)
 				setHasSearchParam(true)
 			} else if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
 				const errorId = searchParamsObject.get(
@@ -219,7 +218,6 @@ export const useSetPlayerTimestampFromSearchParam = (
 						// If requestId is defined, time will be set based on the network request instead
 						if (!error.request_id) {
 							setTime(sessionTime)
-							replayer?.pause(sessionTime)
 							message.success(
 								`Changed player time to where error was thrown at ${MillisToMinutesAndSeconds(
 									sessionTime,
@@ -245,7 +243,6 @@ export const useSetPlayerTimestampFromSearchParam = (
 		},
 		[
 			location.search,
-			replayer,
 			selectedTimelineAnnotationTypes,
 			setSelectedTimelineAnnotationTypes,
 			setTime,

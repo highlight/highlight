@@ -1377,6 +1377,22 @@ query IsBackendIntegrated($project_id: ID!) {
 	isBackendIntegrated(project_id: $project_id)
 }
 
+query GetClientIntegration($project_id: ID!) {
+	clientIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		resourceSecureId
+	}
+}
+
+query GetServerIntegration($project_id: ID!) {
+	serverIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		resourceSecureId
+	}
+}
+
 query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
 	unprocessedSessionsCount(project_id: $project_id)
 	liveUsersCount(project_id: $project_id)
@@ -1660,6 +1676,10 @@ query GetAlertsPagePayload($project_id: ID!) {
 		DiscordChannelsToNotify {
 			...DiscordChannelFragment
 		}
+		WebhookDestinations {
+			url
+			authorization
+		}
 		EmailsToNotify
 		ExcludedEnvironments
 		updated_at
@@ -1703,6 +1723,10 @@ query GetAlertsPagePayload($project_id: ID!) {
 		discord_channels_to_notify {
 			id
 			name
+		}
+		webhook_destinations {
+			url
+			authorization
 		}
 		emails_to_notify
 		aggregator
@@ -1897,6 +1921,8 @@ query GetLogs(
 				traceID
 				spanID
 				secureSessionID
+				source
+				serviceName
 			}
 		}
 		pageInfo {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go/middleware"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"strings"
@@ -17,6 +18,7 @@ import (
 // r.Use(highlightfiber.Middleware())
 
 func Middleware() fiber.Handler {
+	middleware.CheckStatus()
 	return func(c *fiber.Ctx) error {
 		ctx := c.UserContext()
 		highlightReqDetails := c.Request().Header.Peek("X-Highlight-Request")
@@ -35,7 +37,7 @@ func Middleware() fiber.Handler {
 		highlight.MarkBackendSetup(hCtx)
 		highlight.RecordSpanError(
 			span, err,
-			attribute.String("Source", "GoFiberMiddleware"),
+			attribute.String(highlight.SourceAttribute, "GoFiberMiddleware"),
 			attribute.String(string(semconv.HTTPURLKey), c.BaseURL()),
 			attribute.String(string(semconv.HTTPRouteKey), c.Path()),
 			attribute.String(string(semconv.HTTPMethodKey), c.Method()),

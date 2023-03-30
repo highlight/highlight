@@ -67,7 +67,7 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 	}
 }
 
-func getLogRow(ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, eventAttributes map[string]any, source string) *clickhouse.LogRow {
+func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source string) *clickhouse.LogRow {
 	return clickhouse.NewLogRow(
 		clickhouse.LogRowPrimaryAttrs{
 			Timestamp:       ts,
@@ -75,15 +75,16 @@ func getLogRow(ts time.Time, lvl, projectID, sessionID, traceID, spanID string, 
 			SpanId:          spanID,
 			SecureSessionId: sessionID,
 		},
-		clickhouse.WithBody(excMessage),
+		clickhouse.WithBody(ctx, excMessage),
+		clickhouse.WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, source == highlight.SourceAttributeFrontend),
 		clickhouse.WithProjectIDString(projectID),
 		clickhouse.WithServiceName(cast(resourceAttributes[string(semconv.ServiceNameKey)], "")),
-		clickhouse.WithLogAttributes(resourceAttributes, eventAttributes, source == highlight.SourceAttributeFrontend),
 		clickhouse.WithSeverityText(lvl),
+		clickhouse.WithSource(source),
 	)
 }
 
-func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, requestID, traceID, spanID string, logCursor *string, source, excMessage, tag string, resourceAttributes, eventAttributes map[string]any) (bool, *model.BackendErrorObjectInput) {
+func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, requestID, traceID, spanID string, logCursor *string, source, excMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any) (bool, *model.BackendErrorObjectInput) {
 	excType := cast(eventAttributes[string(semconv.ExceptionTypeKey)], source)
 	errorUrl := cast(eventAttributes[highlight.ErrorURLAttribute], source)
 	stackTrace := cast(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
@@ -95,6 +96,7 @@ func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, re
 		stackTrace = ""
 	}
 	stackTrace = formatStructureStackTrace(ctx, stackTrace)
+	payloadBytes, _ := json.Marshal(clickhouse.GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, false))
 	err := &model.BackendErrorObjectInput{
 		SessionSecureID: &sessionID,
 		RequestID:       &requestID,
@@ -106,7 +108,7 @@ func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, re
 		Source:          cast(resourceAttributes[string(semconv.HostNameKey)], ""),
 		StackTrace:      stackTrace,
 		Timestamp:       ts,
-		Payload:         pointy.String(tag),
+		Payload:         pointy.String(string(payloadBytes)),
 		URL:             errorUrl,
 	}
 	if sessionID != "" {
@@ -166,11 +168,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
 				spanAttributes := span.Attributes().AsRaw()
-				tagsBytes, err := json.Marshal(spanAttributes)
-				if err != nil {
-					log.WithContext(ctx).Errorf("failed to format error attributes %s", tagsBytes)
-					continue
-				}
 				setHighlightAttributes(spanAttributes, &projectID, &sessionID, &requestID, &source)
 				events := span.Events()
 				for l := 0; l < events.Len(); l++ {
@@ -184,14 +181,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						ts := event.Timestamp().AsTime()
 
 						var logCursor *string
-						logRow := getLogRow(ts, "ERROR", projectID, sessionID, traceID, spanID, excMessage, resourceAttributes, eventAttributes, source)
+						logRow := getLogRow(ctx, ts, "ERROR", projectID, sessionID, traceID, spanID, excMessage, resourceAttributes, spanAttributes, eventAttributes, source)
 						projectLogs[projectID] = append(projectLogs[projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
 
-						isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, source, excMessage, string(tagsBytes), resourceAttributes, eventAttributes)
+						isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, source, excMessage, resourceAttributes, spanAttributes, eventAttributes)
 						if backendError == nil {
-							data, _ := req.MarshalJSON()
-							log.WithContext(ctx).WithField("BackendErrorEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span error got no session and no project")
+							log.WithContext(ctx).WithField("BackendErrorEvent", event).Errorf("otel span error got no session and no project")
 						} else {
 							if isProjectError {
 								projectErrors[projectID] = append(projectErrors[projectID], backendError)
@@ -210,25 +206,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							continue
 						}
 
-						var logCursor *string
-						logRow := getLogRow(ts, logSev, projectID, sessionID, traceID, spanID, logMessage, resourceAttributes, eventAttributes, source)
+						logRow := getLogRow(
+							ctx, ts, logSev, projectID, sessionID, traceID, spanID,
+							logMessage, resourceAttributes, spanAttributes, eventAttributes, source,
+						)
 						projectLogs[projectID] = append(projectLogs[projectID], logRow)
-						logCursor = pointy.String(logRow.Cursor())
-
-						// create a backend error for this error log, if this is a backend log
-						if logRow.SeverityNumber <= int32(log.ErrorLevel) && source != highlight.SourceAttributeFrontend {
-							isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, source, logMessage, string(tagsBytes), resourceAttributes, eventAttributes)
-							if backendError == nil {
-								data, _ := req.MarshalJSON()
-								log.WithContext(ctx).WithField("BackendErrorEvent", event).WithField("LogRow", *logRow).WithField("RequestJSON", string(data)).Errorf("otel span error got no session and no project")
-							} else {
-								if isProjectError {
-									projectErrors[projectID] = append(projectErrors[projectID], backendError)
-								} else {
-									traceErrors[sessionID] = append(traceErrors[sessionID], backendError)
-								}
-							}
-						}
 					}
 				}
 			}
@@ -358,7 +340,9 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source)
 		scopeLogs := resourceLogs.At(i).ScopeLogs()
 		for j := 0; j < scopeLogs.Len(); j++ {
-			logRecords := scopeLogs.At(j).LogRecords()
+			scopeLogs := scopeLogs.At(j)
+			scopeAttributes := scopeLogs.Scope().Attributes().AsRaw()
+			logRecords := scopeLogs.LogRecords()
 			for k := 0; k < logRecords.Len(); k++ {
 				logRecord := logRecords.At(k)
 				logAttributes := logRecord.Attributes().AsRaw()
@@ -375,7 +359,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					ProjectId:       uint32(projectIDInt),
 					SecureSessionId: sessionID,
 				},
-					clickhouse.WithLogAttributes(resourceAttributes, logAttributes, false),
+					clickhouse.WithLogAttributes(ctx, resourceAttributes, scopeAttributes, logAttributes, false),
 					clickhouse.WithSeverityText(logRecord.SeverityText()),
 				)
 

@@ -49,7 +49,7 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	end := graphql.Now()
 	RecordSpanError(
 		span, err,
-		attribute.String("Source", "InterceptField"),
+		attribute.String(SourceAttribute, "InterceptField"),
 		semconv.GraphqlOperationNameKey.String(name),
 	)
 	EndTrace(span)

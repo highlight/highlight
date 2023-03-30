@@ -684,6 +684,9 @@ export type CreateErrorAlertMutationVariables = Types.Exact<{
 	discord_channels:
 		| Array<Types.DiscordChannelInput>
 		| Types.DiscordChannelInput
+	webhook_destinations:
+		| Array<Types.WebhookDestinationInput>
+		| Types.WebhookDestinationInput
 	emails:
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -740,6 +743,9 @@ export type CreateMetricMonitorMutationVariables = Types.Exact<{
 	discord_channels:
 		| Array<Types.DiscordChannelInput>
 		| Types.DiscordChannelInput
+	webhook_destinations:
+		| Array<Types.WebhookDestinationInput>
+		| Types.WebhookDestinationInput
 	emails:
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -791,6 +797,9 @@ export type UpdateMetricMonitorMutationVariables = Types.Exact<{
 	discord_channels:
 		| Array<Types.DiscordChannelInput>
 		| Types.DiscordChannelInput
+	webhook_destinations:
+		| Array<Types.WebhookDestinationInput>
+		| Types.WebhookDestinationInput
 	emails?: Types.Maybe<
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -888,6 +897,9 @@ export type UpdateErrorAlertMutationVariables = Types.Exact<{
 	discord_channels:
 		| Array<Types.DiscordChannelInput>
 		| Types.DiscordChannelInput
+	webhook_destinations:
+		| Array<Types.WebhookDestinationInput>
+		| Types.WebhookDestinationInput
 	emails?: Types.Maybe<
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -997,20 +1009,6 @@ export type UpdateErrorAlertIsDisabledMutation = { __typename?: 'Mutation' } & {
 		{ __typename?: 'ErrorAlert' } & Pick<Types.ErrorAlert, 'id'>
 	>
 }
-
-export type CreateDefaultAlertsMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	alert_types: Array<Types.Scalars['String']> | Types.Scalars['String']
-	slack_channels:
-		| Array<Types.SanitizedSlackChannelInput>
-		| Types.SanitizedSlackChannelInput
-	emails: Array<Types.Scalars['String']> | Types.Scalars['String']
-}>
-
-export type CreateDefaultAlertsMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'createDefaultAlerts'
->
 
 export type CreateSessionAlertMutationVariables = Types.Exact<{
 	input: Types.SessionAlertInput
@@ -3229,6 +3227,28 @@ export type IsBackendIntegratedQuery = { __typename?: 'Query' } & Pick<
 	'isBackendIntegrated'
 >
 
+export type GetClientIntegrationQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetClientIntegrationQuery = { __typename?: 'Query' } & {
+	clientIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'resourceSecureId'
+	>
+}
+
+export type GetServerIntegrationQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetServerIntegrationQuery = { __typename?: 'Query' } & {
+	serverIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'resourceSecureId'
+	>
+}
+
 export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	lookBackPeriod: Types.Scalars['Int']
@@ -3652,6 +3672,12 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 							__typename?: 'DiscordChannel'
 						} & DiscordChannelFragmentFragment
 					>
+					WebhookDestinations: Array<
+						{ __typename?: 'WebhookDestination' } & Pick<
+							Types.WebhookDestination,
+							'url' | 'authorization'
+						>
+					>
 				}
 		>
 	>
@@ -3715,6 +3741,12 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 						{ __typename?: 'DiscordChannel' } & Pick<
 							Types.DiscordChannel,
 							'id' | 'name'
+						>
+					>
+					webhook_destinations: Array<
+						{ __typename?: 'WebhookDestination' } & Pick<
+							Types.WebhookDestination,
+							'url' | 'authorization'
 						>
 					>
 					filters?: Types.Maybe<
@@ -3987,6 +4019,8 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 						| 'traceID'
 						| 'spanID'
 						| 'secureSessionID'
+						| 'source'
+						| 'serviceName'
 					>
 				}
 		>
@@ -4137,6 +4171,8 @@ export const namedOperations = {
 		GetErrorSegments: 'GetErrorSegments' as const,
 		IsIntegrated: 'IsIntegrated' as const,
 		IsBackendIntegrated: 'IsBackendIntegrated' as const,
+		GetClientIntegration: 'GetClientIntegration' as const,
+		GetServerIntegration: 'GetServerIntegration' as const,
 		GetKeyPerformanceIndicators: 'GetKeyPerformanceIndicators' as const,
 		GetReferrersCount: 'GetReferrersCount' as const,
 		GetNewUsersCount: 'GetNewUsersCount' as const,
@@ -4246,7 +4282,6 @@ export const namedOperations = {
 		UpdateSessionAlertIsDisabled: 'UpdateSessionAlertIsDisabled' as const,
 		UpdateMetricMonitorIsDisabled: 'UpdateMetricMonitorIsDisabled' as const,
 		UpdateErrorAlertIsDisabled: 'UpdateErrorAlertIsDisabled' as const,
-		CreateDefaultAlerts: 'CreateDefaultAlerts' as const,
 		CreateSessionAlert: 'CreateSessionAlert' as const,
 		UpdateSessionAlert: 'UpdateSessionAlert' as const,
 		UpdateSessionIsPublic: 'UpdateSessionIsPublic' as const,

@@ -1,6 +1,7 @@
 package chi
 
 import (
+	"github.com/highlight/highlight/sdk/highlight-go/middleware"
 	"net/http"
 
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -13,6 +14,7 @@ import (
 // ...
 // r.Use(highlightchi.Middleware)
 func Middleware(next http.Handler) http.Handler {
+	middleware.CheckStatus()
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := highlight.InterceptRequest(r)
 		r = r.WithContext(ctx)

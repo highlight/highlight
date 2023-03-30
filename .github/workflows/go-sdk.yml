@@ -22,10 +22,6 @@ jobs:
                   gofmt-path: './sdk/highlight-go'
                   gofmt-flags: '-l -d'
 
-            - name: Run Stoat Action
-              uses: stoat-dev/stoat-action@v0
-              if: always()
-
     lint:
         name: lint go files
         runs-on: ubuntu-latest
@@ -38,10 +34,6 @@ jobs:
                   working-directory: sdk/highlight-go
                   version: latest
 
-            - name: Run Stoat Action
-              uses: stoat-dev/stoat-action@v0
-              if: always()
-
     build:
         name: build binary
         runs-on: ubuntu-latest
@@ -49,10 +41,6 @@ jobs:
             - uses: actions/checkout@v3
             - name: Build binary
               run: cd sdk/highlight-go && go build .
-
-            - name: Run Stoat Action
-              uses: stoat-dev/stoat-action@v0
-              if: always()
 
     test-and-cov:
         name: run tests and generate code coverage profile
@@ -67,7 +55,3 @@ jobs:
                   go-version: '1.19'
             - name: Run tests
               run: cd sdk/highlight-go && go test -race -covermode=atomic -coverprofile=coverage.out --v
-
-            - name: Run Stoat Action
-              uses: stoat-dev/stoat-action@v0
-              if: always()
