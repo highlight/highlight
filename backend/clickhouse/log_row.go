@@ -1,6 +1,10 @@
 package clickhouse
 
 import (
+	"context"
+	"fmt"
+	model2 "github.com/highlight-run/highlight/backend/model"
+	e "github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"time"
@@ -10,6 +14,22 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	log "github.com/sirupsen/logrus"
 )
+
+const LogAttributeValueLengthLimit = 2 << 10
+const LogRowSourceValueFrontend = "frontend"
+const LogRowSourceValueBackend = "backend"
+
+func ProjectToInt(projectID string) (int, error) {
+	i, err := strconv.ParseInt(projectID, 10, 32)
+	if err == nil {
+		return int(i), nil
+	}
+	i2, err := model2.FromVerboseID(projectID)
+	if err == nil {
+		return i2, nil
+	}
+	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
+}
 
 type LogRowPrimaryAttrs struct {
 	Timestamp       time.Time
@@ -25,6 +45,7 @@ type LogRow struct {
 	TraceFlags     uint32
 	SeverityText   string
 	SeverityNumber int32
+	Source         string
 	ServiceName    string
 	Body           string
 	LogAttributes  map[string]string
@@ -57,9 +78,9 @@ func (l *LogRow) Cursor() string {
 
 type LogRowOption func(*LogRow)
 
-func WithLogAttributes(resourceAttributes, eventAttributes map[string]any) LogRowOption {
+func WithLogAttributes(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) LogRowOption {
 	return func(h *LogRow) {
-		h.LogAttributes = getAttributesMap(resourceAttributes, eventAttributes)
+		h.LogAttributes = GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, isFrontendLog)
 	}
 }
 
@@ -71,41 +92,78 @@ func WithSeverityText(severityText string) LogRowOption {
 	}
 }
 
-func cast[T string | int64 | float64](v interface{}, fallback T) T {
-	c, ok := v.(T)
-	if !ok {
-		return fallback
+func WithSource(source string) LogRowOption {
+	return func(h *LogRow) {
+		if source == highlight.SourceAttributeFrontend {
+			h.Source = LogRowSourceValueFrontend
+		} else {
+			h.Source = LogRowSourceValueBackend
+		}
 	}
-	return c
 }
 
-func getAttributesMap(resourceAttributes, eventAttributes map[string]any) map[string]string {
-	attributesMap := make(map[string]string)
-	for _, m := range []map[string]any{resourceAttributes, eventAttributes} {
-		for k, v := range m {
-			shouldSkip := false
+func WithBody(ctx context.Context, body string) LogRowOption {
+	return func(h *LogRow) {
+		if len(body) > LogAttributeValueLengthLimit {
+			log.WithContext(ctx).
+				WithField("ValueLength", len(body)).
+				Warnf("log body value is too long %d", len(body))
+			body = body[:LogAttributeValueLengthLimit] + "..."
+		}
+		h.Body = body
+	}
+}
 
-			for _, attr := range highlight.InternalAttributes {
-				if k == attr {
+func WithServiceName(serviceName string) LogRowOption {
+	return func(h *LogRow) {
+		h.ServiceName = serviceName
+	}
+}
+
+func WithProjectIDString(projectID string) LogRowOption {
+	projectIDInt, err := ProjectToInt(projectID)
+	return func(h *LogRow) {
+		if err == nil {
+			h.ProjectId = uint32(projectIDInt)
+		}
+	}
+}
+
+func GetAttributesMap(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) map[string]string {
+	attributesMap := make(map[string]string)
+	for mIdx, m := range []map[string]any{resourceAttributes, spanAttributes, eventAttributes} {
+		for k, v := range m {
+			prefixes := highlight.InternalAttributePrefixes
+			if isFrontendLog {
+				prefixes = append(prefixes, highlight.BackendOnlyAttributePrefixes...)
+			}
+
+			shouldSkip := false
+			for _, prefix := range prefixes {
+				if strings.HasPrefix(k, prefix) {
 					shouldSkip = true
 					break
 				}
 			}
-
 			if shouldSkip {
 				continue
 			}
 
-			vStr := cast(v, "")
-			if vStr != "" {
+			if vStr, ok := v.(string); ok {
+				if len(vStr) > LogAttributeValueLengthLimit {
+					log.WithContext(ctx).
+						WithField("AttributeMapIdx", mIdx).
+						WithField("Key", k).
+						WithField("ValueLength", len(vStr)).
+						Warnf("attribute value for %s is too long %d", k, len(vStr))
+					vStr = vStr[:LogAttributeValueLengthLimit] + "..."
+				}
 				attributesMap[k] = vStr
 			}
-			vInt := cast[int64](v, 0)
-			if vInt != 0 {
+			if vInt, ok := v.(int64); ok {
 				attributesMap[k] = strconv.FormatInt(vInt, 10)
 			}
-			vFlt := cast(v, 0.)
-			if vFlt > 0. {
+			if vFlt, ok := v.(float64); ok {
 				attributesMap[k] = strconv.FormatFloat(vFlt, 'f', -1, 64)
 			}
 		}
@@ -115,35 +173,20 @@ func getAttributesMap(resourceAttributes, eventAttributes map[string]any) map[st
 
 func makeLogLevel(severityText string) modelInputs.LogLevel {
 	switch strings.ToLower(severityText) {
+	case "console.error":
+		return modelInputs.LogLevelError
+	case "window.onerror":
+		return modelInputs.LogLevelError
 	case "trace":
-		{
-			return modelInputs.LogLevelTrace
-
-		}
+		return modelInputs.LogLevelTrace
 	case "debug":
-		{
-			return modelInputs.LogLevelDebug
-
-		}
-	case "info":
-		{
-			return modelInputs.LogLevelInfo
-
-		}
+		return modelInputs.LogLevelDebug
 	case "warn":
-		{
-			return modelInputs.LogLevelWarn
-		}
+		return modelInputs.LogLevelWarn
 	case "error":
-		{
-			return modelInputs.LogLevelError
-		}
-
+		return modelInputs.LogLevelError
 	case "fatal":
-		{
-			return modelInputs.LogLevelFatal
-		}
-
+		return modelInputs.LogLevelFatal
 	default:
 		return modelInputs.LogLevelInfo
 	}
@@ -152,34 +195,17 @@ func makeLogLevel(severityText string) modelInputs.LogLevel {
 func getSeverityNumber(logLevel modelInputs.LogLevel) int32 {
 	switch logLevel {
 	case modelInputs.LogLevelTrace:
-		{
-			return int32(log.TraceLevel)
-
-		}
+		return int32(log.TraceLevel)
 	case modelInputs.LogLevelDebug:
-		{
-			return int32(log.DebugLevel)
-
-		}
+		return int32(log.DebugLevel)
 	case modelInputs.LogLevelInfo:
-		{
-			return int32(log.InfoLevel)
-
-		}
+		return int32(log.InfoLevel)
 	case modelInputs.LogLevelWarn:
-		{
-			return int32(log.WarnLevel)
-		}
+		return int32(log.WarnLevel)
 	case modelInputs.LogLevelError:
-		{
-			return int32(log.ErrorLevel)
-		}
-
+		return int32(log.ErrorLevel)
 	case modelInputs.LogLevelFatal:
-		{
-			return int32(log.FatalLevel)
-		}
-
+		return int32(log.FatalLevel)
 	default:
 		return int32(log.InfoLevel)
 	}

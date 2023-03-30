@@ -35,7 +35,7 @@ const LogEvent = "log"
 const LogSeverityAttribute = "log.severity"
 const LogMessageAttribute = "log.message"
 
-var InternalAttributes = []string{
+var InternalAttributePrefixes = []string{
 	DeprecatedProjectIDAttribute,
 	DeprecatedSessionIDAttribute,
 	DeprecatedRequestIDAttribute,
@@ -46,6 +46,17 @@ var InternalAttributes = []string{
 	SourceAttribute,
 	LogMessageAttribute,
 	LogSeverityAttribute,
+	// exception should be parsed as structured and not included as part of log attributes
+	"exception.message",
+	"exception.stacktrace",
+}
+
+var BackendOnlyAttributePrefixes = []string{
+	"container.",
+	"host.",
+	"os.",
+	"process.",
+	"exception.",
 }
 
 type OTLP struct {

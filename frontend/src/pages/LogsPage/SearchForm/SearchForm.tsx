@@ -22,6 +22,7 @@ import {
 	BODY_KEY,
 	LogsSearchParam,
 	parseLogsQuery,
+	quoteQueryValue,
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
 import { useParams } from '@util/react-router/useParams'
@@ -58,13 +59,19 @@ const SearchForm = ({
 	const { projectId } = useProjectId()
 	const formState = useFormState({ defaultValues: { query: initialQuery } })
 
-	const { data: keysData } = useGetLogsKeysQuery({
+	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
 		variables: {
 			project_id: projectId,
+			date_range: {
+				start_date: moment(startDate).format(FORMAT),
+				end_date: moment(endDate).format(FORMAT),
+			},
 		},
 	})
 
-	formState.useSubmit(() => onFormSubmit(formState.values.query))
+	formState.useSubmit(() => {
+		onFormSubmit(formState.values.query)
+	})
 
 	const handleDatesChange = (dates: Date[]) => {
 		setSelectedDates(dates)
@@ -89,12 +96,14 @@ const SearchForm = ({
 			>
 				<Search
 					initialQuery={initialQuery}
-					keys={keysData?.logs_keys}
 					startDate={startDate}
 					endDate={endDate}
+					keys={keysData?.logs_keys}
+					keysLoading={keysLoading}
 				/>
 				<Box display="flex" pr="8" py="6">
 					<PreviousDateRangePicker
+						emphasis="low"
 						selectedDates={selectedDates}
 						onDatesChange={handleDatesChange}
 						presets={presets}
@@ -111,16 +120,21 @@ export { SearchForm }
 
 const Search: React.FC<{
 	initialQuery: string
-	keys?: GetLogsKeysQuery['logs_keys']
 	startDate: Date
 	endDate: Date
-}> = ({ initialQuery, keys, startDate, endDate }) => {
+	keys?: GetLogsKeysQuery['logs_keys']
+	keysLoading: boolean
+}> = ({ initialQuery, keys, keysLoading, startDate, endDate }) => {
 	const formState = useForm()
 	const { query } = formState.values
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const inputRef = useRef<HTMLInputElement | null>(null)
-	const state = useComboboxState({ gutter: 10, sameWidth: true })
+	const state = useComboboxState({
+		gutter: 10,
+		sameWidth: true,
+		defaultValue: initialQuery ?? '',
+	})
 	const [getLogsKeyValues, { data, loading: valuesLoading }] =
 		useGetLogsKeyValuesLazyQuery()
 
@@ -131,7 +145,7 @@ const Search: React.FC<{
 	const showValues =
 		activeTerm.key !== BODY_KEY ||
 		!!keys?.find((k) => k.name === activeTerm.key)
-	const loading = keys?.length === 0 || (showValues && valuesLoading)
+	const loading = showValues ? valuesLoading : keysLoading
 	const showTermSelect = !!activeTerm.value.length
 
 	const visibleItems = showValues
@@ -187,14 +201,6 @@ const Search: React.FC<{
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [state.value])
 
-	useEffect(() => {
-		// removes the dirty state from URL when the query is empty
-		if (!query) {
-			submitQuery('')
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [query])
-
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
 	) => {
@@ -202,7 +208,7 @@ const Search: React.FC<{
 
 		// If string, it's a value not a key
 		if (isValueSelect) {
-			queryTerms[activeTermIndex].value = key
+			queryTerms[activeTermIndex].value = quoteQueryValue(key)
 		} else {
 			queryTerms[activeTermIndex].key = key.name
 			queryTerms[activeTermIndex].value = ''
@@ -258,6 +264,7 @@ const Search: React.FC<{
 							e.stopPropagation()
 							state.setValue('')
 						}}
+						style={{ cursor: 'pointer' }}
 					/>
 				) : null}
 			</Box>

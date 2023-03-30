@@ -19,11 +19,11 @@ import {
 	GetWebVitalsDocument,
 } from '@graph/hooks'
 import { ErrorInstance, OpenSearchCalendarInterval } from '@graph/schemas'
-import { indexeddbEnabled, indexedDBFetch, IndexedDBLink } from '@util/db'
+import { indexedDBFetch, IndexedDBLink, isIndexedDBEnabled } from '@util/db'
 import { client } from '@util/graph'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
-import { roundDateToMinute } from '@util/time'
+import { roundFeedDate } from '@util/time'
 import { H } from 'highlight.run'
 import moment from 'moment'
 import { useEffect, useRef } from 'react'
@@ -40,7 +40,7 @@ export const usePreloadSessions = function ({
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const endDate = useRef<moment.Moment>(roundDateToMinute(null))
+	const endDate = useRef<moment.Moment>(roundFeedDate(null))
 	const preloadedPages = useRef<Set<number>>(new Set<number>())
 
 	// only load the first page
@@ -49,7 +49,10 @@ export const usePreloadSessions = function ({
 
 	useEffect(() => {
 		;(async () => {
-			if (!indexeddbEnabled || preloadedPages.current.has(pageToLoad)) {
+			if (
+				!isIndexedDBEnabled() ||
+				preloadedPages.current.has(pageToLoad)
+			) {
 				return false
 			}
 			if (!backendSearchQuery?.searchQuery) {
@@ -116,7 +119,7 @@ export const usePreloadErrors = function ({
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const endDate = useRef<moment.Moment>(roundDateToMinute(null))
+	const endDate = useRef<moment.Moment>(roundFeedDate(null))
 	const preloadedPages = useRef<Set<number>>(new Set<number>())
 
 	// only load the first page
@@ -125,7 +128,10 @@ export const usePreloadErrors = function ({
 
 	useEffect(() => {
 		;(async () => {
-			if (!indexeddbEnabled || preloadedPages.current.has(pageToLoad)) {
+			if (
+				!isIndexedDBEnabled() ||
+				preloadedPages.current.has(pageToLoad)
+			) {
 				return false
 			}
 			if (!backendSearchQuery?.searchQuery) {

@@ -1,3 +1,4 @@
+import LoadingBox from '@components/LoadingBox'
 import { useGetLogsTotalCountQuery } from '@graph/hooks'
 import { Box, Preset, Stack, Text } from '@highlight-run/ui'
 import { useNumericProjectId } from '@hooks/useProjectId'
@@ -55,9 +56,7 @@ const LogsCount = ({
 			cssClass={styles.container}
 		>
 			{logCountLoading ? (
-				<Text size="xSmall" color="weak">
-					Loading...
-				</Text>
+				<LoadingBox justifyContent="flex-start" />
 			) : (
 				totalCount && (
 					<>

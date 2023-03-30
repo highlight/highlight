@@ -12,6 +12,7 @@
 		"scss/at-import-partial-extension-blacklist": null,
 		"selector-class-pattern": null,
 		"selector-max-id": null,
-		"selector-no-qualifying-type": null
+		"selector-no-qualifying-type": null,
+		"ignoreFiles": ["**/*.ts", "**/*.tsx"]
 	}
 }

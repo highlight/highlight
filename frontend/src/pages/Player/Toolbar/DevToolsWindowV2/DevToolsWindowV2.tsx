@@ -4,11 +4,14 @@ import {
 	Form,
 	IconSolidSearch,
 	IconSolidSwitchHorizontal,
+	IconSolidViewList,
 	MenuButton,
 	Tabs,
 	useFormState,
 } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 import { useWindowSize } from '@hooks/useWindowSize'
+import { getLogsURLForSession } from '@pages/LogsPage/SearchForm/utils'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
@@ -28,6 +31,7 @@ import { ICountPerRequestType } from '@pages/Player/Toolbar/DevToolsWindowV2/uti
 import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
 import React, { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { styledVerticalScrollbar } from 'style/common.css'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
@@ -39,8 +43,9 @@ const DevToolsWindowV2: React.FC<
 		width: number
 	}
 > = (props) => {
+	const { projectId } = useProjectId()
 	const { isPlayerFullscreen } = usePlayerUIContext()
-	const { time } = useReplayerContext()
+	const { time, session } = useReplayerContext()
 	const { selectedDevToolsTab, setSelectedDevToolsTab } =
 		usePlayerConfiguration()
 	const [requestType, setRequestType] = React.useState<RequestType>(
@@ -90,7 +95,6 @@ const DevToolsWindowV2: React.FC<
 		})
 
 		return count
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [parsedResources])
 
 	if (!showDevTools || isPlayerFullscreen) {
@@ -258,6 +262,32 @@ const DevToolsWindowV2: React.FC<
 												)
 											}}
 										/>
+									) : null}
+
+									{selectedDevToolsTab === Tab.Console &&
+									session ? (
+										<Link
+											to={getLogsURLForSession(
+												projectId,
+												session,
+											)}
+											style={{ display: 'flex' }}
+										>
+											<Button
+												size="xSmall"
+												kind="secondary"
+												trackingId="relatedLogs"
+												cssClass={styles.autoScroll}
+												iconLeft={
+													<IconSolidViewList
+														width={12}
+														height={12}
+													/>
+												}
+											>
+												Related logs
+											</Button>
+										</Link>
 									) : null}
 
 									<Button

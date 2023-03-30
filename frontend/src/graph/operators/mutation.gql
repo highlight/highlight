@@ -585,6 +585,7 @@ mutation CreateErrorAlert(
 	$threshold_window: Int!
 	$slack_channels: [SanitizedSlackChannelInput]!
 	$discord_channels: [DiscordChannelInput!]!
+	$webhook_destinations: [WebhookDestinationInput!]!
 	$emails: [String]!
 	$environments: [String]!
 	$regex_groups: [String]!
@@ -596,6 +597,7 @@ mutation CreateErrorAlert(
 		name: $name
 		slack_channels: $slack_channels
 		discord_channels: $discord_channels
+		webhook_destinations: $webhook_destinations
 		emails: $emails
 		environments: $environments
 		threshold_window: $threshold_window
@@ -630,6 +632,7 @@ mutation CreateMetricMonitor(
 	$metric_to_monitor: String!
 	$slack_channels: [SanitizedSlackChannelInput]!
 	$discord_channels: [DiscordChannelInput!]!
+	$webhook_destinations: [WebhookDestinationInput!]!
 	$emails: [String]!
 ) {
 	createMetricMonitor(
@@ -643,6 +646,7 @@ mutation CreateMetricMonitor(
 		metric_to_monitor: $metric_to_monitor
 		slack_channels: $slack_channels
 		discord_channels: $discord_channels
+		webhook_destinations: $webhook_destinations
 		emails: $emails
 	) {
 		id
@@ -674,6 +678,7 @@ mutation UpdateMetricMonitor(
 	$metric_to_monitor: String
 	$slack_channels: [SanitizedSlackChannelInput]
 	$discord_channels: [DiscordChannelInput!]!
+	$webhook_destinations: [WebhookDestinationInput!]!
 	$emails: [String]
 	$disabled: Boolean
 ) {
@@ -689,6 +694,7 @@ mutation UpdateMetricMonitor(
 		metric_to_monitor: $metric_to_monitor
 		slack_channels: $slack_channels
 		discord_channels: $discord_channels
+		webhook_destinations: $webhook_destinations
 		emails: $emails
 		disabled: $disabled
 	) {
@@ -751,6 +757,7 @@ mutation UpdateErrorAlert(
 	$threshold_window: Int
 	$slack_channels: [SanitizedSlackChannelInput]
 	$discord_channels: [DiscordChannelInput!]!
+	$webhook_destinations: [WebhookDestinationInput!]!
 	$emails: [String]
 	$environments: [String]
 	$regex_groups: [String]
@@ -764,6 +771,7 @@ mutation UpdateErrorAlert(
 		count_threshold: $count_threshold
 		slack_channels: $slack_channels
 		discord_channels: $discord_channels
+		webhook_destinations: $webhook_destinations
 		emails: $emails
 		environments: $environments
 		threshold_window: $threshold_window
@@ -847,19 +855,6 @@ mutation UpdateErrorAlertIsDisabled(
 	}
 }
 
-mutation CreateDefaultAlerts(
-	$project_id: ID!
-	$alert_types: [String!]!
-	$slack_channels: [SanitizedSlackChannelInput!]!
-	$emails: [String!]!
-) {
-	createDefaultAlerts(
-		project_id: $project_id
-		alert_types: $alert_types
-		slack_channels: $slack_channels
-		emails: $emails
-	)
-}
 mutation CreateSessionAlert($input: SessionAlertInput!) {
 	createSessionAlert(input: $input) {
 		id

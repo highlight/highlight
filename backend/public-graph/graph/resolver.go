@@ -151,6 +151,8 @@ const ERROR_EVENT_MAX_LENGTH = 10000
 
 const SESSION_FIELD_MAX_LENGTH = 2000
 
+var ErrNoisyError = e.New("Filtering out noisy error")
+
 // metrics that should be stored in postgres for session lookup
 var MetricCategoriesForDB = map[string]bool{"Device": true, "WebVital": true}
 
@@ -784,8 +786,19 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 
 	if projectID == 1 {
-		if errorObj.Event == `input: initializeSession BillingQuotaExceeded` || errorObj.Event == `BillingQuotaExceeded` || errorObj.Event == `panic {error: missing operation context}` || errorObj.Event == `input: could not get json request body: unable to get Request Body unexpected EOF` || errorObj.Event == `no metrics provided` || errorObj.Event == `input: pushMetrics no metrics provided` {
-			return nil, e.New("Filtering out noisy Highlight error")
+		if errorObj.Event == `input: initializeSession BillingQuotaExceeded` ||
+			errorObj.Event == `BillingQuotaExceeded` ||
+			errorObj.Event == `panic {error: missing operation context}` ||
+			errorObj.Event == `input: could not get json request body: unable to get Request Body unexpected EOF` ||
+			errorObj.Event == `no metrics provided` ||
+			errorObj.Event == `input: pushMetrics no metrics provided` ||
+			errorObj.Event == `Error updating error group: Filtering out noisy error` ||
+			errorObj.Event == `Error updating error group: Filtering out noisy Highlight error` ||
+			errorObj.Event == `error processing main session: error scanning session payload: error fetching events from Redis: error processing event chunk: The payload has an IncrementalSnapshot before the first FullSnapshot` ||
+			errorObj.Event == `session has reached the max retry count and will be excluded: error scanning session payload: error fetching events from Redis: error processing event chunk: The payload has an IncrementalSnapshot before the first FullSnapshot` ||
+			errorObj.Event == `invalid metrics payload []` ||
+			errorObj.Event == `public-graph graphql request failed` {
+			return nil, ErrNoisyError
 		}
 	}
 	if projectID == 356 {
@@ -793,31 +806,31 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			errorObj.Event == `"ReferenceError: Can't find variable: widgetContainerAttribute"` ||
 			errorObj.Event == `"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'."` ||
 			errorObj.Event == `["\"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'.\""]` {
-			return nil, e.New("Filtering out noisy Gorilla Mind error")
+			return nil, ErrNoisyError
 		}
 	}
 	if projectID == 765 {
 		if errorObj.Event == `"Uncaught Error: PollingBlockTracker - encountered an error while attempting to update latest block:\nundefined"` ||
 			errorObj.Event == `["\"Uncaught Error: PollingBlockTracker - encountered an error while attempting to update latest block:\\nundefined\""]` {
-			return nil, e.New("Filtering out noisy MintParty error")
+			return nil, ErrNoisyError
 		}
 	}
 	if projectID == 898 {
 		if errorObj.Event == `["\"LaunchDarklyFlagFetchError: Error fetching flag settings: 414\""]` ||
 			errorObj.Event == `["\"[LaunchDarkly] Error fetching flag settings: 414\""]` {
-			return nil, e.New("Filtering out noisy Superpowered error")
+			return nil, ErrNoisyError
 		}
 	}
 	if projectID == 1703 {
 		if errorObj.Event == `["\"Uncaught TypeError: Cannot read properties of null (reading 'play')\""]` ||
 			errorObj.Event == `"Uncaught TypeError: Cannot read properties of null (reading 'play')"` {
-			return nil, e.New("Filtering out noisy error")
+			return nil, ErrNoisyError
 		}
 	}
 	if projectID == 3322 {
 		if errorObj.Event == `["\"Failed to fetch feature flags from PostHog.\""]` ||
 			errorObj.Event == `["\"Bad HTTP status: 0 \""]` {
-			return nil, e.New("Filtering out noisy error")
+			return nil, ErrNoisyError
 		}
 	}
 
@@ -2392,7 +2405,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, v.StackTrace, nil, extractErrorFields(session, errorToInsert), projectID)
 		if err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))
+			if e.Is(err, ErrNoisyError) {
+				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
+			} else {
+				log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))
+			}
 			continue
 		}
 
@@ -2877,7 +2894,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, "", v.StackTrace, extractErrorFields(sessionObj, errorToInsert), projectID)
 			if err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))
+				if e.Is(err, ErrNoisyError) {
+					log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
+				} else {
+					log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))
+				}
 				continue
 			}
 

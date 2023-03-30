@@ -1,0 +1,38 @@
+.banner {
+	width: 100%;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--size-xSmall);
+	padding: 0 var(--size-xxLarge);
+	background: #6c37f4;
+	transform-origin: top center;
+	border-bottom: 1px solid var(--accents-2);
+	transition: transform 0.2s ease, height 0.3s ease;
+	color: var(--text-primary);
+	z-index: 200;
+	line-height: 18px;
+	font-weight: 400;
+	font-size: 16px;
+	text-align: center;
+	position: sticky;
+
+	a {
+		text-decoration: none;
+		color: var(--text-primary);
+	}
+}
+
+@media screen and (max-width: 920px) {
+	.banner {
+		flex-direction: column;
+		height: auto;
+	}
+}
+
+@media screen and (max-width: 1200px) {
+	.banner {
+		display: none;
+	}
+}

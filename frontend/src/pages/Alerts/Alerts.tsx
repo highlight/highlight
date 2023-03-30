@@ -17,7 +17,6 @@ import SvgTargetIcon from '@icons/TargetIcon'
 import SvgUserPlusIcon from '@icons/UserPlusIcon'
 import { AlertEnableSwitch } from '@pages/Alerts/AlertEnableSwitch/AlertEnableSwitch'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
-import AlertSetupModal from '@pages/Alerts/AlertSetupModal/AlertSetupModal'
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy'
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils'
 import { useParams } from '@util/react-router/useParams'
@@ -400,7 +399,6 @@ function AlertsPageLoaded({
 
 	return (
 		<>
-			<AlertSetupModal />
 			<div className={styles.subTitleContainer}>
 				<p>Manage the alerts for your project.</p>
 				{alertsAsTableRows.length > 0 && (

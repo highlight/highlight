@@ -9,3 +9,4 @@ rrweb
 rrweb/packages/rrweb-snapshot/test
 rrweb/packages/rrweb/test
 scripts/venv
+**/.next

@@ -68,7 +68,7 @@ const backendSetupCooldown = 15
 
 // message channels should be large to avoid blocking request processing
 // in case of a surge of metrics or errors.
-const messageBufferSize = 1 << 16
+const messageBufferSize = 1 << 20
 const metricCategory = "BACKEND"
 
 var (
@@ -227,6 +227,10 @@ func Stop() {
 	interruptChan <- true
 }
 
+func IsRunning() bool {
+	return state == started
+}
+
 // SetFlushInterval allows you to override the amount of time in which the
 // Highlight client will collect errors before sending them to our backend.
 // - newFlushInterval is an integer representing seconds
@@ -277,22 +281,15 @@ func InterceptRequestWithContext(ctx context.Context, r *http.Request) context.C
 }
 
 func MarkBackendSetup(ctx context.Context) {
-	if lastBackendSetupTimestamp.IsZero() {
+	if client != nil && lastBackendSetupTimestamp.IsZero() {
 		currentTime := time.Now()
 		if currentTime.Sub(lastBackendSetupTimestamp).Minutes() > backendSetupCooldown {
 			lastBackendSetupTimestamp = currentTime
 			var mutation struct {
-				MarkBackendSetup string `graphql:"markBackendSetup(session_secure_id: $session_secure_id)"`
+				MarkBackendSetup string `graphql:"markBackendSetup(project_id: $project_id)"`
 			}
-			sessionSecureID := ctx.Value(ContextKeys.SessionSecureID)
-			variables := map[string]interface{}{
-				"session_secure_id": graphql.String(fmt.Sprintf("%v", sessionSecureID)),
-			}
-
-			err := client.Mutate(ctx, &mutation, variables)
-			if err != nil {
+			if err := client.Mutate(ctx, &mutation, map[string]interface{}{"project_id": fmt.Sprintf("%v", projectID)}); err != nil {
 				logger.Errorf("[highlight-go] %v", errors.Wrap(err, "error marking backend setup"))
-				return
 			}
 		}
 	}
@@ -306,7 +303,6 @@ func MarkBackendSetup(ctx context.Context) {
 func RecordMetric(ctx context.Context, name string, value float64) {
 	sessionSecureID, requestID, err := validateRequest(ctx)
 	if err != nil {
-		logger.Errorf("[highlight-go] %v", err)
 		return
 	}
 	// track invocation of this function to ensure shutdown waits
@@ -326,7 +322,7 @@ func RecordMetric(ctx context.Context, name string, value float64) {
 	select {
 	case metricChan <- metric:
 	default:
-		logger.Errorf("[highlight-go] metric channel full. discarding value for %s", sessionSecureID)
+		// do nothing if the channel is full, as this is not a correctable error by the SDK user
 	}
 }
 

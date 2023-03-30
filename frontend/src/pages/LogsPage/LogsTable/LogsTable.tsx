@@ -1,19 +1,25 @@
-import { CircularSpinner } from '@components/Loading/Loading'
+import { ApolloError } from '@apollo/client'
+import { Button } from '@components/Button'
+import { Link } from '@components/Link'
+import LoadingBox from '@components/LoadingBox'
 import { LogLevel as LogLevelType } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
 import {
 	Box,
+	Callout,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	Stack,
 	Text,
 } from '@highlight-run/ui'
+import { FullScreenContainer } from '@pages/LogsPage/LogsTable/FullScreenContainer'
 import { LogDetails } from '@pages/LogsPage/LogsTable/LogDetails'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
 import { parseLogsQuery } from '@pages/LogsPage/SearchForm/utils'
+import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import {
 	ColumnDef,
 	ExpandedState,
@@ -30,41 +36,73 @@ import * as styles from './LogsTable.css'
 
 type Props = {
 	loading: boolean
-	loadingAfter: boolean
-	logEdges: LogEdge[]
-	query: string
-	tableContainerRef: React.RefObject<HTMLDivElement>
-	selectedCursor: string | undefined
-}
+	error: ApolloError | undefined
+	refetch: () => void
+} & LogsTableInnerProps
 
 export const LogsTable = (props: Props) => {
 	if (props.loading) {
 		return (
-			<Box
-				display="flex"
-				flexGrow={1}
-				alignItems="center"
-				justifyContent="center"
-			>
-				<CircularSpinner />
-			</Box>
+			<FullScreenContainer>
+				<LoadingBox />
+			</FullScreenContainer>
+		)
+	}
+
+	if (props.error) {
+		return (
+			<FullScreenContainer>
+				<Box style={{ minWidth: 300 }}>
+					<Callout title="Failed to load logs" kind="error">
+						<Box mb="6">
+							<Text color="moderate">
+								{props.error.message.toString()}
+							</Text>
+						</Box>
+						<Stack direction="row">
+							<Button
+								kind="secondary"
+								trackingId="logs-error-reload"
+								onClick={() => props.refetch()}
+							>
+								Reload query
+							</Button>
+							<Box
+								display="flex"
+								alignItems="center"
+								justifyContent="center"
+							>
+								<Link
+									to="https://highlight.io/community"
+									target="_blank"
+								>
+									Help
+								</Link>
+							</Box>
+						</Stack>
+					</Callout>
+				</Box>
+			</FullScreenContainer>
 		)
 	}
 
 	if (props.logEdges.length === 0) {
 		return (
-			<Box
-				display="flex"
-				flexGrow={1}
-				alignItems="center"
-				justifyContent="center"
-			>
+			<FullScreenContainer>
 				<NoLogsFound />
-			</Box>
+			</FullScreenContainer>
 		)
 	}
 
 	return <LogsTableInner {...props} />
+}
+
+type LogsTableInnerProps = {
+	loadingAfter: boolean
+	logEdges: LogEdgeWithError[]
+	query: string
+	tableContainerRef: React.RefObject<HTMLDivElement>
+	selectedCursor: string | undefined
 }
 
 const LogsTableInner = ({
@@ -73,7 +111,7 @@ const LogsTableInner = ({
 	query,
 	tableContainerRef,
 	selectedCursor,
-}: Props) => {
+}: LogsTableInnerProps) => {
 	const queryTerms = parseLogsQuery(query)
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
@@ -228,7 +266,7 @@ const LogsTableInner = ({
 					justifyContent="center"
 					padding="12"
 					position="fixed"
-					shadow="small"
+					shadow="medium"
 					borderRadius="6"
 					textAlign="center"
 					style={{

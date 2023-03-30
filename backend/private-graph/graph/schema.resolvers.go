@@ -20,12 +20,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
+	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
@@ -45,6 +45,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
+	highlight "github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
@@ -55,9 +56,8 @@ import (
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
+	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -81,6 +81,11 @@ func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.Er
 // DiscordChannelsToNotify is the resolver for the DiscordChannelsToNotify field.
 func (r *errorAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*model.DiscordChannel, error) {
 	return obj.DiscordChannelsToNotify, nil
+}
+
+// WebhookDestinations is the resolver for the WebhookDestinations field.
+func (r *errorAlertResolver) WebhookDestinations(ctx context.Context, obj *model.ErrorAlert) ([]*model.WebhookDestination, error) {
+	return obj.WebhookDestinations, nil
 }
 
 // EmailsToNotify is the resolver for the EmailsToNotify field.
@@ -217,20 +222,6 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 	}
 }
 
-// ErrorMetrics is the resolver for the error_metrics field.
-func (r *errorGroupResolver) ErrorMetrics(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorDistributionItem, error) {
-	if time.Since(obj.CreatedAt) <= time.Hour {
-		return r.GetErrorGroupFrequenciesUnsampled(ctx, obj.ProjectID, obj.ID)
-	}
-	return r.GetErrorGroupFrequencies(ctx, obj.ProjectID, []int{obj.ID}, modelInputs.ErrorGroupFrequenciesParamsInput{
-		DateRange: &modelInputs.DateRangeRequiredInput{
-			StartDate: time.Now().Add(-24 * 30 * time.Hour),
-			EndDate:   time.Now(),
-		},
-		ResolutionMinutes: 24 * 60,
-	}, "")
-}
-
 // ErrorGroupSecureID is the resolver for the error_group_secure_id field.
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
 	if obj != nil {
@@ -305,6 +296,11 @@ func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model
 // DiscordChannelsToNotify is the resolver for the discord_channels_to_notify field.
 func (r *metricMonitorResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*model.DiscordChannel, error) {
 	return obj.DiscordChannelsToNotify, nil
+}
+
+// WebhookDestinations is the resolver for the webhook_destinations field.
+func (r *metricMonitorResolver) WebhookDestinations(ctx context.Context, obj *model.MetricMonitor) ([]*model.WebhookDestination, error) {
+	return obj.WebhookDestinations, nil
 }
 
 // EmailsToNotify is the resolver for the emails_to_notify field.
@@ -2371,67 +2367,8 @@ func (r *mutationResolver) SyncSlackIntegration(ctx context.Context, projectID i
 	return &response, nil
 }
 
-// CreateDefaultAlerts is the resolver for the createDefaultAlerts field.
-func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string) (*bool, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	admin, _ := r.getCurrentAdmin(ctx)
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
-	}
-
-	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
-	if err != nil {
-		return nil, err
-	}
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
-	}
-
-	caser := cases.Title(language.AmericanEnglish)
-	var sessionAlerts []*model.SessionAlert
-	for _, alertType := range alertTypes {
-		name := caser.String(strings.ToLower(strings.Replace(alertType, "_", " ", -1)))
-		alertType := alertType
-		newAlert := model.Alert{
-			ProjectID:         projectID,
-			CountThreshold:    1,
-			ThresholdWindow:   util.MakeIntPointer(30),
-			Type:              &alertType,
-			ChannelsToNotify:  channelsString,
-			EmailsToNotify:    emailsString,
-			Name:              &name,
-			LastAdminToEditID: admin.ID,
-		}
-		if alertType == model.AlertType.ERROR {
-			errorAlert := &model.ErrorAlert{Alert: newAlert}
-			if err := r.DB.Create(errorAlert).Error; err != nil {
-				return nil, e.Wrap(err, "error creating a new error alert")
-			}
-			if err := errorAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-				graphql.AddError(ctx, e.Wrap(err, "error sending slack welcome message for default error alert"))
-			}
-		} else {
-			sessionAlerts = append(sessionAlerts, &model.SessionAlert{Alert: newAlert})
-		}
-	}
-
-	if err := r.DB.Create(sessionAlerts).Error; err != nil {
-		return nil, e.Wrap(err, "error creating new session alerts")
-	}
-	for _, projectAlert := range sessionAlerts {
-		if err := projectAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &projectAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-			graphql.AddError(ctx, e.Wrap(err, "error sending slack welcome message for default session alert"))
-		}
-	}
-
-	return &model.T, nil
-}
-
 // CreateMetricMonitor is the resolver for the createMetricMonitor field.
-func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, emails []*string, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
+func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2472,6 +2409,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 		Filters:           mmFilters,
 		AlertIntegrations: model.AlertIntegrations{
 			DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
+			WebhookDestinations:     webhook.GQLInputToGo(webhookDestinations),
 		},
 	}
 
@@ -2486,7 +2424,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 }
 
 // UpdateMetricMonitor is the resolver for the updateMetricMonitor field.
-func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, emails []*string, disabled *bool, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
+func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, disabled *bool, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2530,6 +2468,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 
 	metricMonitor.AlertIntegrations = model.AlertIntegrations{
 		DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
+		WebhookDestinations:     webhook.GQLInputToGo(webhookDestinations),
 	}
 
 	if emails != nil {
@@ -2572,7 +2511,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateErrorAlert is the resolver for the createErrorAlert field.
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2618,6 +2557,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 		RegexGroups: &regexGroupsString,
 		AlertIntegrations: model.AlertIntegrations{
 			DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
+			WebhookDestinations:     webhook.GQLInputToGo(webhookDestinations),
 		},
 	}
 
@@ -2632,7 +2572,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 }
 
 // UpdateErrorAlert is the resolver for the updateErrorAlert field.
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2700,6 +2640,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 
 	projectAlert.AlertIntegrations = model.AlertIntegrations{
 		DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
+		WebhookDestinations:     webhook.GQLInputToGo(webhookDestinations),
 	}
 
 	if err := r.DB.Model(&model.ErrorAlert{
@@ -3165,9 +3106,6 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 		}
 		if err := r.DB.Model(&dashboard).Association("Metrics").Append(&dashboardMetric); err != nil {
 			return -1, e.Wrap(err, "error updating fields")
-		}
-		if err := r.AutoCreateMetricMonitor(ctx, &dashboardMetric); err != nil {
-			log.WithContext(ctx).Errorf("failed to auto create metric monitor: %s", err)
 		}
 	}
 
@@ -3879,7 +3817,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 	errorFrequencyInfluxSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("resolver.errorFrequencyInflux"), tracer.Tag("project_id", projectID))
 
-	err = r.SetErrorFrequenciesInflux(ctx, projectID, asErrorGroups, ErrorGroupLookbackDays)
+	err = r.SetErrorFrequencies(ctx, projectID, asErrorGroups, ErrorGroupLookbackDays)
 	errorFrequencyInfluxSpan.Finish()
 
 	if err != nil {
@@ -4533,6 +4471,71 @@ func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) 
 	return &model.F, nil
 }
 
+// ClientIntegration is the resolver for the clientIntegration field.
+func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
+	integration := &modelInputs.IntegrationStatus{
+		Integrated:       false,
+		ResourceType:     "Session",
+		ResourceSecureID: nil,
+	}
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return integration, nil
+	}
+
+	firstSession := model.Session{}
+	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).First(&firstSession).Error
+	if e.Is(err, gorm.ErrRecordNotFound) {
+		return integration, nil
+	}
+	if err != nil {
+		return integration, e.Wrap(err, "error querying session for project")
+	}
+	integration.Integrated = true
+	integration.ResourceSecureID = &firstSession.SecureID
+
+	return integration, nil
+}
+
+// ServerIntegration is the resolver for the serverIntegration field.
+func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
+	integration := &modelInputs.IntegrationStatus{
+		Integrated:       false,
+		ResourceType:     "ErrorGroup",
+		ResourceSecureID: nil,
+	}
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return integration, nil
+	}
+
+	firstErrorGroup := model.ErrorGroup{}
+	err := r.DB.Model(&model.ErrorGroup{}).Where("project_id = ?", projectID).First(&firstErrorGroup).Error
+	if e.Is(err, gorm.ErrRecordNotFound) {
+		return integration, nil
+	}
+	if err != nil {
+		return integration, e.Wrap(err, "error querying error group for project")
+	}
+	integration.Integrated = true
+	integration.ResourceSecureID = &firstErrorGroup.SecureID
+
+	return integration, nil
+}
+
+// LogsIntegration is the resolver for the logsIntegration field.
+func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*modelInputs.LogsConnection, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	params := &modelInputs.LogsParamsInput{Query: ""}
+	pagination := &clickhouse.Pagination{}
+
+	// TODO: Figure out the actual integration data we want to return here.
+	// Possibly just setup events.
+	return r.ClickhouseClient.ReadLogs(ctx, project.ID, *params, *pagination)
+}
+
 // UnprocessedSessionsCount is the resolver for the unprocessedSessionsCount field.
 func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
@@ -4674,7 +4677,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 		return dists, nil
 	}
 
-	if err := r.SetErrorFrequencies([]*model.ErrorGroup{errGroup}, dateOffset); err != nil {
+	if err := r.SetErrorFrequencies(ctx, projectID, []*model.ErrorGroup{errGroup}, dateOffset); err != nil {
 		return nil, e.Wrap(err, "error setting error frequencies")
 	}
 	return errGroup.ErrorFrequency, nil
@@ -7037,13 +7040,13 @@ func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params
 }
 
 // LogsKeys is the resolver for the logs_keys field.
-func (r *queryResolver) LogsKeys(ctx context.Context, projectID int) ([]*modelInputs.LogKey, error) {
+func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.LogKey, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 
-	return r.ClickhouseClient.LogsKeys(ctx, project.ID)
+	return r.ClickhouseClient.LogsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate)
 }
 
 // LogsKeyValues is the resolver for the logs_key_values field.
@@ -7054,6 +7057,24 @@ func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyNam
 	}
 
 	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
+}
+
+// LogsErrorObjects is the resolver for the logs_error_objects field.
+func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model.ErrorObject, error) {
+	ddS, _ := tracer.StartSpanFromContext(ctx, "resolver.LogsErrorObjects",
+		tracer.ResourceName("DB.Query"), tracer.Tag("NumLogCursors", len(logCursors)))
+	s, ctx := highlight.StartTrace(ctx, "LogsErrorObjects.DB.Query", attribute.Int("NumLogCursors", len(logCursors)))
+
+	var errorObjects []*model.ErrorObject
+	if err := r.DB.Model(&model.ErrorObject{}).Where("log_cursor IN ?", logCursors).Scan(&errorObjects).Error; err != nil {
+		s.RecordError(err)
+		highlight.EndTrace(s)
+		ddS.Finish(tracer.WithError(err))
+		return nil, e.Wrap(err, "failed to find errors for log cursors")
+	}
+	highlight.EndTrace(s)
+	ddS.Finish()
+	return errorObjects, nil
 }
 
 // Params is the resolver for the params field.

@@ -28,7 +28,8 @@ func setupTest(tb testing.TB) (*Client, func(tb testing.TB)) {
 	client, _ := NewClient(TestDatabase)
 
 	return client, func(tb testing.TB) {
-		client.conn.Exec(context.Background(), "TRUNCATE TABLE logs") //nolint:errcheck
+		err := client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", LogsTable))
+		assert.NoError(tb, err)
 	}
 }
 
@@ -281,7 +282,7 @@ func TestReadLogsHasNextPage(t *testing.T) {
 	}, Pagination{})
 	assert.NoError(t, err)
 
-	assert.Len(t, payload.Edges, 100)
+	assert.Len(t, payload.Edges, 50)
 	assert.False(t, payload.PageInfo.HasNextPage)
 
 	// Add more more row to have 101 rows
@@ -309,6 +310,7 @@ func TestReadLogsAfterCursor(t *testing.T) {
 
 	now := time.Now()
 	oneSecondAgo := now.Add(-time.Second * 1)
+	oneDayAgo := now.Add(-time.Hour * 24)
 
 	rows := []*LogRow{
 		{
@@ -316,6 +318,7 @@ func TestReadLogsAfterCursor(t *testing.T) {
 				Timestamp: now,
 				ProjectId: 1,
 			},
+			Body: "Body 1",
 			UUID: "c051edc8-3749-4e44-8f48-0ea90f3fc3d9",
 		},
 		{
@@ -323,6 +326,7 @@ func TestReadLogsAfterCursor(t *testing.T) {
 				Timestamp: oneSecondAgo,
 				ProjectId: 1,
 			},
+			Body: "Body 2",
 			UUID: "a0d9abd6-7cbf-47de-b211-d16bb0935e04",
 		},
 		{
@@ -330,35 +334,39 @@ func TestReadLogsAfterCursor(t *testing.T) {
 				Timestamp: oneSecondAgo,
 				ProjectId: 1,
 			},
+			Body: "Body 3",
 			UUID: "b6e255ee-049e-4563-bbfe-c33503cde94c",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: oneDayAgo,
+				ProjectId: 1,
+			},
+			Body: "Body 4",
 		},
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	originalConnection, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{})
 	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 3)
+	assert.Len(t, originalConnection.Edges, 3)
 
-	firstCursor := encodeCursor(now, "c051edc8-3749-4e44-8f48-0ea90f3fc3d9")
-	secondCursor := encodeCursor(oneSecondAgo, "b6e255ee-049e-4563-bbfe-c33503cde94c")
-	thirdCursor := encodeCursor(oneSecondAgo, "a0d9abd6-7cbf-47de-b211-d16bb0935e04")
+	assert.Equal(t, originalConnection.Edges[0].Node.Message, "Body 1")
+	assert.Equal(t, originalConnection.Edges[1].Node.Message, "Body 3")
+	assert.Equal(t, originalConnection.Edges[2].Node.Message, "Body 2")
 
-	assert.Equal(t, payload.Edges[0].Cursor, firstCursor)
-	assert.Equal(t, payload.Edges[1].Cursor, secondCursor)
-	assert.Equal(t, payload.Edges[2].Cursor, thirdCursor)
-
-	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	connection, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{
-		After: &secondCursor,
+		After: &originalConnection.Edges[1].Cursor,
 	})
 	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 1)
+	assert.Len(t, connection.Edges, 1)
 
-	assert.Equal(t, payload.Edges[0].Cursor, thirdCursor)
+	assert.Equal(t, connection.Edges[0].Cursor, originalConnection.Edges[2].Cursor)
 }
 
 func TestReadLogsBeforeCursor(t *testing.T) {
@@ -368,13 +376,22 @@ func TestReadLogsBeforeCursor(t *testing.T) {
 
 	now := time.Now()
 	oneSecondAgo := now.Add(-time.Second * 1)
+	oneDayFromNow := now.Add(time.Hour * 24)
 
 	rows := []*LogRow{
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: oneDayFromNow,
+				ProjectId: 1,
+			},
+			Body: "Body 0",
+		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				Timestamp: now,
 				ProjectId: 1,
 			},
+			Body: "Body 1",
 			UUID: "c051edc8-3749-4e44-8f48-0ea90f3fc3d9",
 		},
 		{
@@ -382,6 +399,7 @@ func TestReadLogsBeforeCursor(t *testing.T) {
 				Timestamp: oneSecondAgo,
 				ProjectId: 1,
 			},
+			Body: "Body 2",
 			UUID: "a0d9abd6-7cbf-47de-b211-d16bb0935e04",
 		},
 		{
@@ -389,35 +407,32 @@ func TestReadLogsBeforeCursor(t *testing.T) {
 				Timestamp: oneSecondAgo,
 				ProjectId: 1,
 			},
+			Body: "Body 3",
 			UUID: "b6e255ee-049e-4563-bbfe-c33503cde94c",
 		},
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	originalConnection, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{})
 	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 3)
+	assert.Len(t, originalConnection.Edges, 3)
 
-	firstCursor := encodeCursor(now, "c051edc8-3749-4e44-8f48-0ea90f3fc3d9")
-	secondCursor := encodeCursor(oneSecondAgo, "b6e255ee-049e-4563-bbfe-c33503cde94c")
-	thirdCursor := encodeCursor(oneSecondAgo, "a0d9abd6-7cbf-47de-b211-d16bb0935e04")
+	assert.Equal(t, originalConnection.Edges[0].Node.Message, "Body 1")
+	assert.Equal(t, originalConnection.Edges[1].Node.Message, "Body 3")
+	assert.Equal(t, originalConnection.Edges[2].Node.Message, "Body 2")
 
-	assert.Equal(t, payload.Edges[0].Cursor, firstCursor)
-	assert.Equal(t, payload.Edges[1].Cursor, secondCursor)
-	assert.Equal(t, payload.Edges[2].Cursor, thirdCursor)
-
-	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	connection, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{
-		Before: &secondCursor,
+		Before: &originalConnection.Edges[1].Cursor,
 	})
 	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 1)
+	assert.Len(t, connection.Edges, 1)
 
-	assert.Equal(t, payload.Edges[0].Cursor, firstCursor)
+	assert.Equal(t, connection.Edges[0].Cursor, originalConnection.Edges[0].Cursor)
 }
 
 func TestReadLogsAtCursor(t *testing.T) {
@@ -429,9 +444,9 @@ func TestReadLogsAtCursor(t *testing.T) {
 
 	rows := []*LogRow{}
 
-	// LogsLimit+3 = 103
+	// LogsLimit+3 = 53
 	// 1 log not visible on the previous page
-	// 101 logs visible (50 before + 50 after + permalinked log)
+	// 51 logs visible (25 before + 25 after + permalinked log)
 	// 1 log not visible on the next page
 	for i := 1; i <= LogsLimit+3; i++ {
 		rows = append(rows, &LogRow{
@@ -450,10 +465,10 @@ func TestReadLogsAtCursor(t *testing.T) {
 	}, Pagination{})
 	assert.NoError(t, err)
 
-	assert.Len(t, originalConnection.Edges, 100)
+	assert.Len(t, originalConnection.Edges, 50)
 
 	// Permalink the log in the middle ensuring there is a previous and next page
-	permalink := originalConnection.Edges[51]
+	permalink := originalConnection.Edges[26]
 	connection, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{
@@ -461,14 +476,14 @@ func TestReadLogsAtCursor(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	assert.Len(t, connection.Edges, 101) // 50 before + 50 after + the permalinked log
-	assert.Equal(t, connection.Edges[50], permalink)
+	assert.Len(t, connection.Edges, 51) // 25 before + 25 after + the permalinked log
+	assert.Equal(t, connection.Edges[25], permalink)
 	assert.True(t, connection.PageInfo.HasPreviousPage)
 	assert.True(t, connection.PageInfo.HasNextPage)
 	assertCursorsOutput(t, connection.Edges, permalink.Cursor)
 
 	// Permalink the log before the middle ensuring there is not a previous page but has a next page
-	permalink = originalConnection.Edges[50]
+	permalink = originalConnection.Edges[25]
 	connection, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{
@@ -481,7 +496,7 @@ func TestReadLogsAtCursor(t *testing.T) {
 	assertCursorsOutput(t, connection.Edges, permalink.Cursor)
 
 	// Permalink the log after the middle ensuring there is a previous page but no next page
-	permalink = originalConnection.Edges[52]
+	permalink = originalConnection.Edges[27]
 	connection, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{
@@ -824,31 +839,108 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 	assert.Len(t, payload.Edges, 0)
 }
 
+func TestReadLogsWithSourceFilter(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+	rows := []*LogRow{
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			Source:      "backend",
+			ServiceName: "bar",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			LogAttributes: map[string]string{
+				"source": "frontend",
+			},
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "service_name:bar source:backend",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "backend", *payload.Edges[0].Node.Source)
+	assert.Equal(t, "bar", *payload.Edges[0].Node.ServiceName)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "source:*ack*",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "backend", *payload.Edges[0].Node.Source)
+	assert.Equal(t, "bar", *payload.Edges[0].Node.ServiceName)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "source:frontend",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 0)
+}
+
 func TestLogsKeys(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)
 	defer teardown(t)
 
+	now := time.Now()
+
 	rows := []*LogRow{
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"user_id": "1", "workspace_id": "2"},
 		},
 		{
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: time.Now(),
+				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "3"},
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			Source:      "frontend",
+			ServiceName: "foo-service",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now.Add(-time.Second * 1), // out of range, should not be included
+				ProjectId: 1,
+			},
+			LogAttributes: map[string]string{"workspace_id": "5"},
 		},
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	keys, err := client.LogsKeys(ctx, 1)
+	keys, err := client.LogsKeys(ctx, 1, now, now)
 	assert.NoError(t, err)
 
 	expected := []*modelInputs.LogKey{
@@ -867,6 +959,10 @@ func TestLogsKeys(t *testing.T) {
 			Type: modelInputs.LogKeyTypeString,
 		},
 		{
+			Name: "message",
+			Type: modelInputs.LogKeyTypeString,
+		},
+		{
 			Name: "secure_session_id",
 			Type: modelInputs.LogKeyTypeString,
 		},
@@ -876,6 +972,14 @@ func TestLogsKeys(t *testing.T) {
 		},
 		{
 			Name: "trace_id",
+			Type: modelInputs.LogKeyTypeString,
+		},
+		{
+			Name: "source",
+			Type: modelInputs.LogKeyTypeString,
+		},
+		{
+			Name: "service_name",
 			Type: modelInputs.LogKeyTypeString,
 		},
 	}

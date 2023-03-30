@@ -262,7 +262,7 @@ const StackSectionError: React.FC<
 			border="secondary"
 			cursor="default"
 			overflow="scroll"
-			boxShadow="small"
+			boxShadow="medium"
 			style={{ maxWidth: '450px' }}
 		>
 			<Box p="8">
