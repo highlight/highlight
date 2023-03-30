@@ -162,19 +162,19 @@ export const roadmapFetcher = async (): Promise<{
 		let issue: Issue = {
 			title: content.title,
 			number: content.number,
-			labels: content.labels.nodes.map(
-				(label: { name: string }) => label.name,
-			),
+			labels: content.labels.nodes
+				.filter((label) => label)
+				.map((label?: { name: string }) => label.name),
 			link: content.url,
 			linkText: 'Vote on GitHub',
 			issueReactions: issueReactions,
 		}
 
-		if (issues[i].fieldValueByName.name == 'Under Consideration') {
+		if (issues[i].fieldValueByName?.name === 'Under Consideration') {
 			column1.push(issue)
-		} else if (issues[i].fieldValueByName.name == 'In Progress') {
+		} else if (issues[i].fieldValueByName?.name === 'In Progress') {
 			column2.push(issue)
-		} else if (issues[i].fieldValueByName.name == 'Done') {
+		} else if (issues[i].fieldValueByName?.name === 'Done') {
 			issue.linkText = 'Read the Changelog'
 			issue.link = '/docs/general/changelog/overview'
 			column3.push(issue)
