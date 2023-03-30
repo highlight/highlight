@@ -165,6 +165,7 @@ export const useClientIntegrated = () => {
 	useEffect(() => {
 		if (!isLoggedIn) return
 		if (localStorageIntegrated) {
+			query()
 			setIntegrated(localStorageIntegrated)
 		} else {
 			query()
@@ -220,6 +221,7 @@ export const useServerIntegrated = () => {
 	useEffect(() => {
 		if (!isLoggedIn) return
 		if (localStorageIntegrated) {
+			query()
 			setIntegrated(localStorageIntegrated)
 		} else {
 			query()
