@@ -22,8 +22,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 			}
 		}
 	`
-	// @ts-ignore
-	const { changelogs } = await GraphQLRequest(QUERY)
+	const { changelogs } = await GraphQLRequest<{ changelogs: any[] }>(QUERY)
 
 	return {
 		paths: changelogs.map((p: { slug: string }) => ({
@@ -45,10 +44,9 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			}
 		}
 	`
-	const data = await GraphQLRequest(QUERY, { slug: slug })
+	const data = await GraphQLRequest<{ changelog: any }>(QUERY, { slug: slug })
 
 	// Handle event slugs which don't exist in our CMS
-	// @ts-ignore
 	if (!data.changelog) {
 		return {
 			notFound: true,
@@ -57,7 +55,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
 	return {
 		props: {
-			// @ts-ignore
 			changelog: data.changelog,
 		},
 		revalidate: 60 * 60, // Cache response for 1 hour (60 seconds * 60 minutes)

@@ -104,8 +104,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 			}
 		}
 	`
-	// @ts-ignore
-	const { posts } = await GraphQLRequest(QUERY)
+	const { posts } = await GraphQLRequest<{ posts: Post[] }>(QUERY)
 
 	return {
 		paths: posts.map((p: { slug: string }) => ({
@@ -184,12 +183,10 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
           }
       }
   `
-	const data = await GraphQLRequest(QUERY, { slug: slug })
-	// @ts-ignore
-	const { posts } = await GraphQLRequest(POSTS_QUERY)
+	const data = await GraphQLRequest<{ post?: Post }>(QUERY, { slug: slug })
+	const { posts } = await GraphQLRequest<{ posts: Post[] }>(POSTS_QUERY)
 
 	// Handle event slugs which don't exist in our CMS
-	// @ts-ignore
 	if (!data.post) {
 		return {
 			notFound: true,
@@ -210,7 +207,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
 	const postSections: PostSection[] = []
 	let currentBlock: ElementNode[] = []
-	// @ts-ignore
 	for (const r of data.post.richcontent.raw.children) {
 		let specialType: SectionType | undefined = undefined
 		for (const child of r.children) {
@@ -241,10 +237,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		})
 	}
 
-	// @ts-ignore
 	if (!data.post.author?.profilePhoto?.url) {
 		throw new Error(
-			// @ts-ignore
 			`missing required profile image for blog '${data.post.slug}', author: ${data.post.author?.profilePhoto?.url}.`,
 		)
 	}
@@ -252,7 +246,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 	return {
 		props: {
 			suggestedPosts,
-			// @ts-ignore
 			post: data.post,
 			postSections,
 		},
