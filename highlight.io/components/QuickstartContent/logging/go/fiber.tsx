@@ -3,14 +3,14 @@ import { QuickStartContent } from '../../QuickstartContent'
 import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
 import { logrusExample } from './shared-snippets'
 
-export const GoOtherLogContent: QuickStartContent = {
+export const GoFiberLogContent: QuickStartContent = {
 	title: 'Go (Other)',
-	subtitle: 'Learn how to set up highlight.io Go log ingestion with logrus.',
+	subtitle: 'Learn how to set up highlight.io Go log ingestion with fiber.',
 	logoUrl: siteUrl('/images/quickstart/go.svg'),
 	entries: [
 		previousInstallSnippet('go'),
 		...logrusExample(
-			'ctx',
+			'c.UserContext()',
 			`package main
 
 import (
@@ -31,13 +31,18 @@ func main() {
   // if you don't want to get stdout / stderr output, add the following uncommented
   // hlog.DisableOutput()
 
-  // if in a request, provide context to associate logs with frontend sessions
-  ctx := context.TODO()
-  // send logs
-  logrus.WithContext(ctx).WithField("hello", "world").Info("welcome to highlight.io")
-  // send logs with a string message severity
-  lvl, _ := logrus.ParseLevel("warn")
-  logrus.WithContext(ctx).Log(lvl, "whoa there")
+  app := fiber.New()
+  app.Use(logger.New())
+  // setup go fiber to use the highlight middleware for header parsing
+  app.Use(highlightFiber.Middleware())
+
+  app.Get("/", func(c *fiber.Ctx) error {
+  	// in handlers, use logrus with the UserContext to associate logs with the frontend session.
+	logrus.WithContext(c.UserContext()).Infof("hello from highlight.io")
+	return c.SendString("Hello, World!")
+  })
+
+  logrus.Fatal(app.Listen(":3456"))
 }`,
 		),
 		verifyLogs,
