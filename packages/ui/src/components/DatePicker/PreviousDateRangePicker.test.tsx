@@ -39,6 +39,6 @@ describe('getLabel', () => {
 	it('includes the year when the the range spans to the next year', async () => {
 		const selectedDates = [subtractDays(now, 60), now]
 		const label = getLabel({ selectedDates, presets })
-		expect(label).toEqual('Feb 12, 2023, 09:30 PM - Feb 14, 2022, 09:30 PM')
+		expect(label).toEqual('Dec 16, 2022, 09:30 PM - Feb 14, 2023, 09:30 PM')
 	})
 })
