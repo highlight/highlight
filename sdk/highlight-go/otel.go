@@ -44,6 +44,7 @@ var InternalAttributePrefixes = []string{
 	ProjectIDAttribute,
 	SessionIDAttribute,
 	RequestIDAttribute,
+	SourceAttribute,
 	LogMessageAttribute,
 	LogSeverityAttribute,
 	// exception should be parsed as structured and not included as part of log attributes
