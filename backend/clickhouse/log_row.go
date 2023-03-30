@@ -78,7 +78,7 @@ func (l *LogRow) Cursor() string {
 }
 
 func (l *LogRow) IsBackend() bool {
-	return l.LogAttributes[highlight.SourceAttribute] != highlight.SourceAttributeFrontend
+	return l.Source != highlight.SourceAttributeFrontend
 }
 
 type LogRowOption func(*LogRow)
