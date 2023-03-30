@@ -184,6 +184,7 @@ var Models = []interface{}{
 	&EmailOptOut{},
 	&BillingEmailHistory{},
 	&Retryable{},
+	&SetupEvent{},
 }
 
 func init() {
@@ -325,7 +326,8 @@ type Project struct {
 	BackendDomains pq.StringArray `gorm:"type:text[]"`
 
 	// BackendSetup will be true if this is the session where HighlightBackend is run for the first time
-	BackendSetup *bool `json:"backend_setup"`
+	BackendSetup *bool         `json:"backend_setup"`
+	SetupEvent   []*SetupEvent `gorm:"foreignKey:ProjectID"`
 
 	// Maximum time window considered for a rage click event
 	RageClickWindowSeconds int `gorm:"default:5"`
@@ -333,6 +335,23 @@ type Project struct {
 	RageClickRadiusPixels int `gorm:"default:8"`
 	// Minimum count of clicks in a rage click event
 	RageClickCount int `gorm:"default:5"`
+}
+
+type MarkBackendSetupType = string
+
+const (
+	// Generic is temporary and can be removed once all messages are processed.
+	MarkBackendSetupTypeGeneric MarkBackendSetupType = "generic"
+	MarkBackendSetupTypeSession MarkBackendSetupType = "session"
+	MarkBackendSetupTypeError   MarkBackendSetupType = "error"
+	MarkBackendSetupTypeLogs    MarkBackendSetupType = "logs"
+)
+
+type SetupEvent struct {
+	ID        int                  `gorm:"primary_key;type:serial" json:"id" deep:"-"`
+	CreatedAt time.Time            `json:"created_at" deep:"-"`
+	ProjectID int                  `gorm:"uniqueIndex:idx_project_id_type"`
+	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
 }
 
 type HasSecret interface {
