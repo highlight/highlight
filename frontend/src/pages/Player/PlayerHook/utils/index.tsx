@@ -275,6 +275,7 @@ const CustomEventsForTimeline = [
 	'Identify',
 	'Web Vitals',
 	'Referrer',
+	'RageClicks',
 	'TabHidden',
 ] as const
 const CustomEventsForTimelineSet = new Set(CustomEventsForTimeline)
