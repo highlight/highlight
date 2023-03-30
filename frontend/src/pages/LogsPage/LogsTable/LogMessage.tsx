@@ -1,4 +1,5 @@
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
+import { ReservedLogKey } from '@graph/schemas'
 import { Text } from '@highlight-run/ui'
 import { BODY_KEY, LogsSearchParam } from '@pages/LogsPage/SearchForm/utils'
 import React from 'react'
@@ -11,7 +12,13 @@ type Props = {
 
 const LogMessage = ({ message, expanded, queryTerms }: Props) => {
 	const searchWords =
-		queryTerms.find((qt) => qt.key === BODY_KEY)?.value.split(' ') || []
+		queryTerms
+			.find(
+				(qt) =>
+					qt.key === BODY_KEY || qt.key === ReservedLogKey.Message,
+			)
+			?.value.replaceAll('"', '')
+			.split(' ') || []
 
 	return (
 		<Text
