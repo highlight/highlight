@@ -564,6 +564,11 @@ func makeFilters(query string) filters {
 		} else if len(parts) == 2 {
 			key, value := parts[0], parts[1]
 
+			// Strips quotes from beginning and end if present
+			if value[0:1] == `"` && value[len(value)-1:] == `"` {
+				value = value[1 : len(value)-1]
+			}
+
 			wildcardValue := strings.ReplaceAll(value, "*", "%")
 
 			switch key {
@@ -613,15 +618,11 @@ func splitQuery(query string) []string {
 		if c == '"' {
 			inquote = !inquote
 		} else if c == ' ' && !inquote {
-			result = append(result, unquoteAndTrim(query[i:j]))
+			result = append(result, query[i:j])
 			i = j + 1
 		}
 	}
-	return append(result, unquoteAndTrim(query[i:]))
-}
-
-func unquoteAndTrim(s string) string {
-	return strings.ReplaceAll(strings.Trim(s, " "), `"`, "")
+	return append(result, query[i:])
 }
 
 func expandJSON(logAttributes map[string]string) map[string]interface{} {
