@@ -4652,8 +4652,8 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dat
 	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
 	endDateUTC := time.Date(dateRange.EndDate.UTC().Year(), dateRange.EndDate.UTC().Month(), dateRange.EndDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
 
-	if err := r.DB.Where("project_id = ?", projectID).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailyErrors).Error; err != nil {
-		return nil, e.Wrap(err, "error reading from daily errors")
+	if err := r.DB.Raw("SELECT * FROM daily_error_counts_view WHERE date BETWEEN ? AND ? AND project_id = ?", startDateUTC, endDateUTC, projectID).Find(&dailyErrors).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from daily sessions")
 	}
 
 	return dailyErrors, nil
