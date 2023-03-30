@@ -116,13 +116,20 @@ const options = {
 	body: JSON.stringify({ query }),
 }
 
-export const roadmapFetcher = async () => {
-	const response = await fetch('https://api.github.com/graphql', options)
-	const { data } = await response.json()
+export const roadmapFetcher = async (): Promise<{
+	column1: Issue[]
+	column2: Issue[]
+	column3: Issue[]
+}> => {
 	let column1: Issue[] = []
 	let column2: Issue[] = []
 	let column3: Issue[] = []
+	if (!token) {
+		return { column1, column2, column3 }
+	}
 
+	const response = await fetch('https://api.github.com/graphql', options)
+	const { data } = await response.json()
 	if (!data) {
 		return { column1, column2, column3 }
 	}
@@ -155,19 +162,19 @@ export const roadmapFetcher = async () => {
 		let issue: Issue = {
 			title: content.title,
 			number: content.number,
-			labels: content.labels.nodes.map(
-				(label: { name: string }) => label.name,
-			),
+			labels: content.labels.nodes
+				.filter((label) => label)
+				.map((label?: { name: string }) => label.name),
 			link: content.url,
 			linkText: 'Vote on GitHub',
 			issueReactions: issueReactions,
 		}
 
-		if (issues[i].fieldValueByName.name == 'Under Consideration') {
+		if (issues[i].fieldValueByName?.name === 'Under Consideration') {
 			column1.push(issue)
-		} else if (issues[i].fieldValueByName.name == 'In Progress') {
+		} else if (issues[i].fieldValueByName?.name === 'In Progress') {
 			column2.push(issue)
-		} else if (issues[i].fieldValueByName.name == 'Done') {
+		} else if (issues[i].fieldValueByName?.name === 'Done') {
 			issue.linkText = 'Read the Changelog'
 			issue.link = '/docs/general/changelog/overview'
 			column3.push(issue)

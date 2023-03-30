@@ -10,7 +10,10 @@ Setup log ingestion in any golang environment. If there's a Go Framework that's 
 
 <DocsCardGroup>
     <DocsCard title="Go Logrus" href="../go/logrus">
-        {"Get started with Go Chi"}
+        {"Get started with Go Logrus"}
+    </DocsCard>
+    <DocsCard title="Go Fiber" href="../go/fiber">
+        {"Get started with Go Fiber"}
     </DocsCard>
     <DocsCard title="Golang App" href="../go/other">
         {"Get started with any Go App"}

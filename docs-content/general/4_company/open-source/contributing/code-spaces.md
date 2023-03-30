@@ -1,6 +1,6 @@
 ---
-title: Getting started
-slug: getting-started
+title: GitHub Code Spaces
+slug: code-spaces
 createdAt: 2023-01-24T20:28:14.000Z
 updatedAt: 2023-01-24T02:07:22.000Z
 ---

@@ -27,7 +27,7 @@ import { OtherContext } from './frontend/other'
 import { ReactContent } from './frontend/react'
 import { SvelteKitContent } from './frontend/sveltekit'
 import { VueContent } from './frontend/vue'
-import { GoLogrusContent } from './logging/go/logrus'
+import { GoFiberLogContent } from './logging/go/fiber'
 import { GoOtherLogContent } from './logging/go/other'
 import { HTTPContent } from './logging/http'
 import { JSNestLogContent } from './logging/js/nestjs'
@@ -176,8 +176,9 @@ export const quickStartContent = {
 			subtitle:
 				'Select your Go framework to install logging in your application.',
 			logoUrl: siteUrl('/images/quickstart/go.svg'),
-			[QuickStartType.GoLogrus]: GoLogrusContent,
+			[QuickStartType.GoLogrus]: GoOtherLogContent,
 			[QuickStartType.GoOther]: GoOtherLogContent,
+			[QuickStartType.GoFiber]: GoFiberLogContent,
 		},
 		js: {
 			title: 'JavaScript',

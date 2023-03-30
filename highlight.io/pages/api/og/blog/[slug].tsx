@@ -40,10 +40,8 @@ export default async function handler(req: NextRequest) {
 	const slug = new URLPattern({ pathname: '/api/og/blog/:slug' }).exec(
 		req.url,
 	)?.pathname.groups.slug
-	// @ts-ignore
-	const post = (await GraphQLRequest(QUERY, { slug }, false)).post as
-		| Post
-		| undefined
+	const post = (await GraphQLRequest<{ post?: Post }>(QUERY, { slug }, false))
+		.post as Post | undefined
 
 	return new ImageResponse(
 		(

@@ -9,14 +9,25 @@ const graphcms = new GraphQLClient(
 		fetch,
 	},
 )
-export const GraphQLRequest = async (
+export const GraphQLRequest = async <T extends any>(
 	doc: string,
 	variables?: Variables,
 	delay: boolean = true,
-) => {
+): Promise<T> => {
+	if (!process.env.GRAPHCMS_TOKEN) {
+		console.warn(
+			'GRAPHCMS_TOKEN is missing. hygraph content will not be statically built.',
+		)
+		return {
+			changelogs: [],
+			customers: [],
+			posts: [],
+			tags: [],
+		} as T
+	}
 	if (process.env.NODE_ENV !== 'development' && delay) {
 		// delay hygraph requests during prerendering to avoid too many concurrent requests
 		await new Promise((r) => setTimeout(r, Math.random() * 5000))
 	}
-	return await graphcms.request(doc, variables)
+	return await graphcms.request<T>(doc, variables)
 }
