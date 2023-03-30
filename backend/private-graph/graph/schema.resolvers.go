@@ -2946,6 +2946,7 @@ func (r *mutationResolver) UpdateLogAlert(ctx context.Context, id int, input mod
 	if err != nil {
 		return nil, e.Wrap(err, "failed to build log alert")
 	}
+	alert.ID = id
 
 	if err := r.DB.Model(&model.LogAlert{Model: model.Model{ID: id}}).
 		Where("project_id = ?", input.ProjectID).

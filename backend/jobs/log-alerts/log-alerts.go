@@ -3,6 +3,7 @@ package log_alerts
 import (
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"time"
 
@@ -24,21 +25,36 @@ import (
 	"gorm.io/gorm"
 )
 
+// <option value={15}>15 seconds</option>
+// <option value={60}>1 minute</option>
+// <option value={300}>5 minutes</option>
+// <option value={900}>15 minutes</option>
+// <option value={1800}>30 minutes</option>
+
+var AlertFrequencies = []int{15, 60, 300, 900, math.MaxInt}
+
 func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
 	log.WithContext(ctx).Info("Starting to watch Log Alerts")
 
-	alerts := getLogAlerts(ctx, DB) // frequency
-	go func() {
-		for range time.Tick(time.Minute) {
-			alerts = getLogAlerts(ctx, DB) // frequency
-		}
-	}()
+	// alerts := getLogAlerts(ctx, DB) // frequency
+	// go func() {
+	// 	// Every minute, check for new alerts and bucket by frequency
+	// 	for range time.Tick(time.Minute) {
+	// 		alerts = getLogAlerts(ctx, DB) // frequency
+	// 		for _, alert := range alerts {
+	// 			for _, freq := range AlertFrequencies {
+	// 				if
+	// 			}
+	// 		}
 
-	for range time.Tick(15 * time.Second) {
-		go func() {
-			processLogAlerts(ctx, DB, TDB, MailClient, alerts, rh, redis, ccClient)
-		}()
-	}
+	// 	}
+	// }()
+
+	// for range time.Tick(15 * time.Second) {
+	// 	go func() {
+	// 		processLogAlerts(ctx, DB, TDB, MailClient, alerts, rh, redis, ccClient)
+	// 	}()
+	// }
 
 }
 
@@ -56,8 +72,11 @@ func getLogAlerts(ctx context.Context, DB *gorm.DB) []*model.LogAlert {
 func processLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, logAlerts []*model.LogAlert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
 	log.WithContext(ctx).Info("Number of Log Alerts to Process: ", len(logAlerts))
 	for _, alert := range logAlerts {
-		// should this alert be triggered within the last 15 seconds?
-		alert.Frequency
+		// should this alert be triggered since within the last 15 seconds?
+		// alert.Frequency
+		// Get timestamp
+		// Bucket timestamp into 15 second periods
+		// If period is divisible by
 
 		lastLog, err := redis.GetLastLogTimestamp(ctx, alert.ProjectID)
 		if err != nil {
