@@ -3,6 +3,8 @@ package middleware
 import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"net/http"
 	"strings"
 )
@@ -31,4 +33,21 @@ func GetIPAddress(r *http.Request) string {
 		IPAddress = r.RemoteAddr
 	}
 	return IPAddress
+}
+
+func GetRequestAttributes(r *http.Request) []attribute.KeyValue {
+	attrs := []attribute.KeyValue{
+		attribute.String(string(semconv.HTTPMethodKey), r.Method),
+		attribute.String(string(semconv.HTTPClientIPKey), GetIPAddress(r)),
+	}
+	if r.URL != nil {
+		attrs = append(attrs,
+			attribute.String(string(semconv.HTTPURLKey), r.URL.String()),
+			attribute.String(string(semconv.HTTPRouteKey), r.URL.RequestURI()),
+		)
+	}
+	if r.Response != nil {
+		attrs = append(attrs, attribute.Int(string(semconv.HTTPStatusCodeKey), r.Response.StatusCode))
+	}
+	return attrs
 }

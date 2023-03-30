@@ -99,6 +99,9 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 }
 
 func (t Tracer) logTrace(ctx context.Context, fc *graphql.FieldContext, res interface{}, err error) {
+	if !t.requestFieldLogging {
+		return
+	}
 	lg := logrus.WithContext(ctx).
 		WithField(string(semconv.GraphqlOperationTypeKey), fc.Field.Definition.Type.String()).
 		WithField(string(semconv.GraphqlOperationNameKey), fmt.Sprintf("operation.field.%s", fc.Field.Name)).
