@@ -42,6 +42,16 @@ const isCustomSelected = ({
 	return !foundPreset
 }
 
+function toDateTimeString(date: Date) {
+	return date.toLocaleDateString('en-us', {
+		year: 'numeric',
+		month: 'short',
+		day: 'numeric',
+		hour: '2-digit',
+		minute: '2-digit',
+	})
+}
+
 export const getLabel = ({
 	selectedDates,
 	presets,
@@ -58,7 +68,9 @@ export const getLabel = ({
 	}
 
 	if (selectedDates.length == 2) {
-		return `${selectedDates[0].toDateString()} - ${selectedDates[1].toDateString()}`
+		return `${toDateTimeString(selectedDates[0])} - ${toDateTimeString(
+			selectedDates[1],
+		)}`
 	}
 
 	return ''
