@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
@@ -14,14 +15,22 @@ type GraphqlTracer interface {
 	graphql.HandlerExtension
 	graphql.ResponseInterceptor
 	graphql.FieldInterceptor
+	WithRequestFieldLogging(enabled bool) GraphqlTracer
 }
 
 type Tracer struct {
-	graphName string
+	graphName           string
+	requestFieldLogging bool
 }
 
 func NewGraphqlTracer(graphName string) GraphqlTracer {
 	return Tracer{graphName: graphName}
+}
+
+// WithRequestFieldLogging configures the tracer to log each graphql operation.
+func (t Tracer) WithRequestFieldLogging(enabled bool) GraphqlTracer {
+	t.requestFieldLogging = enabled
+	return t
 }
 
 func (t Tracer) ExtensionName() string {
@@ -52,6 +61,7 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 		attribute.String(SourceAttribute, "InterceptField"),
 		semconv.GraphqlOperationNameKey.String(name),
 	)
+	t.logTrace(ctx, fc, res, err)
 	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
@@ -86,4 +96,19 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 		RecordMetric(ctx, name+".errorsCount", float64(len(resp.Errors)))
 	}
 	return resp
+}
+
+func (t Tracer) logTrace(ctx context.Context, fc *graphql.FieldContext, res interface{}, err error) {
+	lg := logrus.WithContext(ctx).
+		WithField(string(semconv.GraphqlOperationTypeKey), fc.Field.Definition.Type.String()).
+		WithField(string(semconv.GraphqlOperationNameKey), fmt.Sprintf("operation.field.%s", fc.Field.Name)).
+		WithField(string(semconv.GraphqlDocumentKey), fc.Field.Name).
+		WithField("result", res).
+		WithField("graphql.graph", t.graphName)
+
+	if err != nil {
+		lg.WithError(err).Errorf("graphql field failed %+v: %+v", res, err)
+	} else {
+		lg.Infof("graphql field ok %+v", res)
+	}
 }
