@@ -116,13 +116,20 @@ const options = {
 	body: JSON.stringify({ query }),
 }
 
-export const roadmapFetcher = async () => {
-	const response = await fetch('https://api.github.com/graphql', options)
-	const { data } = await response.json()
+export const roadmapFetcher = async (): Promise<{
+	column1: Issue[]
+	column2: Issue[]
+	column3: Issue[]
+}> => {
 	let column1: Issue[] = []
 	let column2: Issue[] = []
 	let column3: Issue[] = []
+	if (!token) {
+		return { column1, column2, column3 }
+	}
 
+	const response = await fetch('https://api.github.com/graphql', options)
+	const { data } = await response.json()
 	if (!data) {
 		return { column1, column2, column3 }
 	}
