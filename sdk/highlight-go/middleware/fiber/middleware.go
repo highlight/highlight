@@ -1,7 +1,6 @@
 package fiber
 
 import (
-	"context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/highlight/highlight/sdk/highlight-go/middleware"
@@ -20,12 +19,12 @@ import (
 func Middleware() fiber.Handler {
 	middleware.CheckStatus()
 	return func(c *fiber.Ctx) error {
-		ctx := c.UserContext()
+		ctx := c.Context()
 		highlightReqDetails := c.Request().Header.Peek("X-Highlight-Request")
 		ids := strings.Split(string(highlightReqDetails), "/")
 		if len(ids) >= 2 {
-			ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, ids[0])
-			ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, ids[1])
+			ctx.SetUserValue(highlight.ContextKeys.SessionSecureID, ids[0])
+			ctx.SetUserValue(highlight.ContextKeys.RequestID, ids[1])
 		}
 
 		span, hCtx := highlight.StartTrace(ctx, "highlight/fiber")

@@ -10,7 +10,7 @@ export const GoFiberLogContent: QuickStartContent = {
 	entries: [
 		previousInstallSnippet('go'),
 		...logrusExample(
-			'c.UserContext()',
+			'c.Context()',
 			`package main
 
 import (
@@ -38,7 +38,7 @@ func main() {
 
   app.Get("/", func(c *fiber.Ctx) error {
   	// in handlers, use logrus with the UserContext to associate logs with the frontend session.
-	logrus.WithContext(c.UserContext()).Infof("hello from highlight.io")
+	logrus.WithContext(c.Context()).Infof("hello from highlight.io")
 	return c.SendString("Hello, World!")
   })
 
