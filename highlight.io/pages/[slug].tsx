@@ -1,7 +1,9 @@
 import classNames from 'classnames'
-import { useState } from 'react'
-import Link from 'next/link'
+import { GetStaticPaths, GetStaticProps } from 'next'
 import Image from 'next/image'
+import Link from 'next/link'
+import { useState } from 'react'
+import { MdKeyboardReturn } from 'react-icons/md'
 import { PrimaryButton } from '../components/common/Buttons/PrimaryButton'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import { OSSCallToAction } from '../components/common/CallToAction/OSSCallToAction'
@@ -9,26 +11,24 @@ import Footer from '../components/common/Footer/Footer'
 import Navbar from '../components/common/Navbar/Navbar'
 import { Section } from '../components/common/Section/Section'
 import { Typography } from '../components/common/Typography/Typography'
-import { CompaniesReel } from '../components/Home/CompaniesReel/CompaniesReel'
-import { CustomerReviewTrack } from '../components/Home/CustomerReviewTrack'
-import { GetStaticPaths, GetStaticProps } from 'next'
-import homeStyles from '../components/Home/Home.module.scss'
-import LandingInfoRow from '../components/Home/LandingInfoRow'
-import { MdKeyboardReturn } from 'react-icons/md'
 import {
-	iFeature,
-	FEATURES,
 	errorMonitoringHeroKey,
+	FEATURES,
+	iFeature,
 	loggingHeroKey,
-	sessionReplayHeroKey,
 	loggingscreenshotKey,
 	monitoringscreenshotKey,
+	sessionReplayHeroKey,
 	sessionscreenshotKey,
 } from '../components/Features/features'
+import { CompaniesReel } from '../components/Home/CompaniesReel/CompaniesReel'
+import { CustomerReviewTrack } from '../components/Home/CustomerReviewTrack'
+import homeStyles from '../components/Home/Home.module.scss'
+import LandingInfoRow from '../components/Home/LandingInfoRow'
 
-import sessionReplayHero from '../public/images/features/sessionReplayHero.png'
 import errorMonitoringHero from '../public/images/features/errorMonitoringHero.png'
 import loggingHero from '../public/images/features/loggingHero.png'
+import sessionReplayHero from '../public/images/features/sessionReplayHero.png'
 import loggingscreenshot from '../public/images/loggingscreenshot.png'
 import monitoringscreenshot from '../public/images/monitoringscreenshot.png'
 import sessionscreenshot from '../public/images/sessionscreenshot.png'

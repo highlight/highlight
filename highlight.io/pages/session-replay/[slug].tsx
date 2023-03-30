@@ -138,7 +138,7 @@ const CompetitorComparisonPage = ({
 							</h2>
 							<div className="px-8 max-w-[1000px] mx-auto mt-6 text-center">
 								<Typography
-									type="copy2"
+									type="copy1"
 									className="text-copy-on-dark text-center"
 								>
 									{competitor.subHeader2}
