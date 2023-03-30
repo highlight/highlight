@@ -956,17 +956,17 @@ func TestReadLogsWithMessageFilter(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	// payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
-	// 	DateRange: makeDateWithinRange(now),
-	// 	Query:     "message:body",
-	// }, Pagination{})
-	// assert.NoError(t, err)
-	// assert.Len(t, payload.Edges, 1)
-	// assert.Equal(t, "body", payload.Edges[0].Node.Message)
-
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "message:\"[1680123737277] Web worker sent payloadID 86 size 291.\n                Total since snapshot: 2.5MB\"",
+		Query:     "message:body",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "body", payload.Edges[0].Node.Message)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "message:\"[1680104639306] Web worker sent payloadID 408 size 24.\nTotal since snapshot: 2.0MB",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
