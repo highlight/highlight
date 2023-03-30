@@ -31,14 +31,13 @@
 		},
 		"build": {
 			"dependsOn": ["codegen", "typegen", "^prepublish", "^build"],
-			"outputs": ["build/**", "dist/**", "esm/**", ".next/**"],
+			"outputs": ["build/**", "dist/**", "esm/**"],
 			"env": [
 				"CLICKUP_CLIENT_ID",
 				"DD_CLIENT_TOKEN",
 				"DEMO_ERROR_URL",
 				"DEMO_SESSION_URL",
 				"DISCORD_CLIENT_ID",
-				"GRAPHCMS_TOKEN",
 				"HEIGHT_CLIENT_ID",
 				"LINEAR_CLIENT_ID",
 				"REACT_APP_AUTH_MODE",
@@ -55,6 +54,12 @@
 				"REACT_APP_VERCEL_INTEGRATION_NAME",
 				"SLACK_CLIENT_ID"
 			]
+		},
+		"highlight.io#build": {
+			"dependsOn": ["^build"],
+			"inputs": ["../docs-content/**", "./**"],
+			"outputs": [".next/**"],
+			"env": ["GRAPHCMS_TOKEN"]
 		},
 		"enforce-size": {
 			"dependsOn": ["build"]
