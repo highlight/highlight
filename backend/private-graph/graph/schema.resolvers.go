@@ -133,7 +133,13 @@ func (r *errorGroupResolver) StructuredStackTrace(ctx context.Context, obj *mode
 		stackTraceString = *obj.MappedStackTrace
 	}
 
-	return r.UnmarshalStackTrace(stackTraceString)
+	var project model.Project
+	filterChromeExtension := false
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: obj.ProjectID}}).First(&project).Error; err == nil {
+		filterChromeExtension = *project.FilterChromeExtension
+	}
+
+	return r.UnmarshalStackTrace(stackTraceString, filterChromeExtension)
 }
 
 // MetadataLog is the resolver for the metadata_log field.
@@ -231,7 +237,13 @@ func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *mod
 		stackTraceString = *obj.MappedStackTrace
 	}
 
-	return r.UnmarshalStackTrace(stackTraceString)
+	var project model.Project
+	filterChromeExtension := false
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: obj.ProjectID}}).First(&project).Error; err == nil {
+		filterChromeExtension = *project.FilterChromeExtension
+	}
+
+	return r.UnmarshalStackTrace(stackTraceString, filterChromeExtension)
 }
 
 // Session is the resolver for the session field.
@@ -544,7 +556,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 }
 
 // EditProject is the resolver for the editProject field.
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -564,11 +576,12 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 	}
 
 	updates := &model.Project{
-		Name:           name,
-		BillingEmail:   billingEmail,
-		ExcludedUsers:  excludedUsers,
-		ErrorJsonPaths: errorJSONPaths,
-		BackendDomains: backendDomains,
+		Name:                  name,
+		BillingEmail:          billingEmail,
+		ExcludedUsers:         excludedUsers,
+		ErrorJsonPaths:        errorJSONPaths,
+		BackendDomains:        backendDomains,
+		FilterChromeExtension: filterChromeExtension,
 	}
 
 	if rageClickWindowSeconds != nil {

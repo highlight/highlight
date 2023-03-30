@@ -1151,6 +1151,7 @@ export type MutationEditProjectArgs = {
 	billing_email?: InputMaybe<Scalars['String']>
 	error_json_paths?: InputMaybe<Scalars['StringArray']>
 	excluded_users?: InputMaybe<Scalars['StringArray']>
+	filter_chrome_extension?: InputMaybe<Scalars['Boolean']>
 	id: Scalars['ID']
 	name?: InputMaybe<Scalars['String']>
 	rage_click_count?: InputMaybe<Scalars['Int']>
@@ -1477,6 +1478,7 @@ export type Project = {
 	billing_email?: Maybe<Scalars['String']>
 	error_json_paths?: Maybe<Scalars['StringArray']>
 	excluded_users?: Maybe<Scalars['StringArray']>
+	filter_chrome_extension?: Maybe<Scalars['Boolean']>
 	id: Scalars['ID']
 	name: Scalars['String']
 	rage_click_count?: Maybe<Scalars['Int']>

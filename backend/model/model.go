@@ -338,6 +338,8 @@ type Project struct {
 	RageClickRadiusPixels int `gorm:"default:8"`
 	// Minimum count of clicks in a rage click event
 	RageClickCount int `gorm:"default:5"`
+
+	FilterChromeExtension *bool `gorm:"default:true"`
 }
 
 type MarkBackendSetupType = string
