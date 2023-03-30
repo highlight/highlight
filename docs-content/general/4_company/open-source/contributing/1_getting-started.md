@@ -41,6 +41,9 @@ updatedAt: 2023-01-24T02:07:22.000Z
     <DocsCard title="Landing Site" href="./landing-site">
         {"Frontend Next.js development for highlight.io landing site."}
     </DocsCard>
+    <DocsCard title="Docs" href="./docs">
+        {"Frontend Next.js development for highlight.io/docs"}
+    </DocsCard>
 </DocsCardGroup>
 
 ## What are development best practices?
