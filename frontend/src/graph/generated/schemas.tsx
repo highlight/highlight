@@ -680,6 +680,11 @@ export type Log = {
 	traceID?: Maybe<Scalars['String']>
 }
 
+export enum LogDirection {
+	Asc = 'ASC',
+	Desc = 'DESC',
+}
+
 export type LogEdge = {
 	__typename?: 'LogEdge'
 	cursor: Scalars['String']
@@ -1828,6 +1833,7 @@ export type QueryLogsArgs = {
 	after?: InputMaybe<Scalars['String']>
 	at?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
+	direction?: InputMaybe<LogDirection>
 	params: LogsParamsInput
 	project_id: Scalars['ID']
 }
