@@ -96,9 +96,9 @@ const DevToolsWindowV2: React.FC<
 			const requestType =
 				request.initiatorType as keyof ICountPerRequestType
 
+			count['All'] += 1
 			/* Only count request types defined in ICountPerRequestType, e.g. skip 'beacon' */
 			if (count.hasOwnProperty(request.initiatorType)) {
-				count['All'] += 1
 				count[requestType] += 1
 			}
 		})
@@ -118,37 +118,51 @@ const DevToolsWindowV2: React.FC<
 			Unknown: 0,
 		}
 
-		parsedResources.forEach((request) => {
-			const status: number | undefined =
-				request?.requestResponsePairs?.response?.status
+		parsedResources
+			.filter(
+				(r) =>
+					requestType === RequestType.All ||
+					requestType === r.initiatorType,
+			)
+			.forEach((request) => {
+				const status: number | undefined =
+					request?.requestResponsePairs?.response?.status
 
-			if (status) {
 				count['All'] += 1
-				switch (true) {
-					case status >= 100 && status < 200:
-						count['1XX'] += 1
-						break
-					case status >= 200 && status < 300:
-						count['2XX'] += 1
-						break
-					case status >= 300 && status < 400:
-						count['3XX'] += 1
-						break
-					case status >= 400 && status < 500:
-						count['4XX'] += 1
-						break
-					case status >= 500 && status < 600:
-						count['5XX'] += 1
-						break
-					default:
+				if (status) {
+					switch (true) {
+						case status >= 100 && status < 200:
+							count['1XX'] += 1
+							break
+						case status >= 200 && status < 300:
+							count['2XX'] += 1
+							break
+						case status >= 300 && status < 400:
+							count['3XX'] += 1
+							break
+						case status >= 400 && status < 500:
+							count['4XX'] += 1
+							break
+						case status >= 500 && status < 600:
+							count['5XX'] += 1
+							break
+						default:
+							count['Unknown'] += 1
+							break
+					}
+				} else {
+					// this is a network request with no status code
+					// if fetch, consider unknown. otherwise assume it is 2xx
+					if (request.initiatorType === RequestType.Fetch) {
 						count['Unknown'] += 1
-						break
+					} else {
+						count['2XX'] += 1
+					}
 				}
-			}
-		})
+			})
 
 		return count
-	}, [parsedResources])
+	}, [parsedResources, requestType])
 
 	if (!showDevTools || isPlayerFullscreen) {
 		return null

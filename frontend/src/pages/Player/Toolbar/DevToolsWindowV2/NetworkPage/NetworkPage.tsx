@@ -119,8 +119,18 @@ export const NetworkPage = ({
 						if (requestStatus[0] === statusString[0]) {
 							return true
 						}
+					} else {
+						if (
+							[RequestType.Fetch, RequestType.XHR].includes(
+								request.initiatorType as RequestType,
+							)
+						) {
+							return requestStatus === RequestStatus.Unknown
+						} else {
+							// this is a network request with no status code, so we assume 2xx
+							return requestStatus === RequestStatus['2XX']
+						}
 					}
-					return false
 				})
 				.map((event) => ({
 					...event,
