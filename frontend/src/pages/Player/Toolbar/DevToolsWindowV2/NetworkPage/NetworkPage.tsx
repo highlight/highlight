@@ -538,7 +538,7 @@ export const UnknownRequestStatusCode = ({
 				)
 			}
 		>
-			???
+			Unknown
 		</Tooltip>
 	)
 }

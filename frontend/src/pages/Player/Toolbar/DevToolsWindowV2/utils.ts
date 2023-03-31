@@ -155,17 +155,11 @@ export enum RequestStatus {
 	'3XX' = '3XX',
 	'4XX' = '4XX',
 	'5XX' = '5XX',
-	'???' = '???',
+	'Unknown' = 'Unknown',
 }
 
-export interface ICountPerRequestStatus {
-	All: number
-	'1XX': number
-	'2XX': number
-	'3XX': number
-	'4XX': number
-	'5XX': number
-	'???': number
+export type ICountPerRequestStatus = {
+	[key in RequestStatus]: number
 }
 
 export const getNetworkResourcesDisplayName = (value: string): string => {

@@ -115,7 +115,7 @@ const DevToolsWindowV2: React.FC<
 			'3XX': 0,
 			'4XX': 0,
 			'5XX': 0,
-			'???': 0,
+			Unknown: 0,
 		}
 
 		parsedResources.forEach((request) => {
@@ -141,14 +141,13 @@ const DevToolsWindowV2: React.FC<
 						count['5XX'] += 1
 						break
 					default:
-						count['???'] += 1
+						count['Unknown'] += 1
 						break
 				}
 			}
 		})
 
 		return count
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [parsedResources])
 
 	if (!showDevTools || isPlayerFullscreen) {
