@@ -112,8 +112,8 @@ func (t Tracer) logTrace(ctx context.Context, res interface{}, err error) {
 		WithField("graphql.graph", t.graphName)
 
 	if err != nil {
-		lg.WithError(err).Errorf("graphql field error %+v: %+v", res, err)
+		lg.WithError(err).Errorf("graphql field error")
 	} else {
-		lg.Debug("graphql field ok")
+		lg.Info("graphql field ok")
 	}
 }

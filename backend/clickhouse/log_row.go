@@ -15,7 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const LogAttributeValueLengthLimit = 2 << 10
+const LogAttributeValueLengthLimit = 2 << 12
 const LogRowSourceValueFrontend = "frontend"
 const LogRowSourceValueBackend = "backend"
 
