@@ -16,9 +16,9 @@
 		"isolatedModules": true,
 		"jsx": "preserve",
 		"declaration": true,
-		"declarationDir": ".next/dist",
+		"declarationDir": "dist",
 		"emitDeclarationOnly": true,
-		"noEmit": false
+		"noEmit": true
 	},
 	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
 	"exclude": ["node_modules"]
