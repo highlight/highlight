@@ -3,14 +3,13 @@ import { IntegrationStatus } from '@graph/schemas'
 import { Box, Stack, Text } from '@highlight-run/ui'
 import { Header } from '@pages/Setup/Header'
 import { IntegrationBar } from '@pages/Setup/IntegrationBar'
-import * as React from 'react'
-import { Navigate, useLocation, useMatch } from 'react-router-dom'
-
 import {
 	QuickStartContent,
 	quickStartContent,
 	QuickStartOptions,
-} from '../../../../highlight.io/components/QuickStartContent/QuickstartContent'
+} from 'highlight.io/components/QuickStartContent/QuickstartContent'
+import * as React from 'react'
+import { Navigate, useLocation, useMatch } from 'react-router-dom'
 
 export type OptionListItem = {
 	name: string
