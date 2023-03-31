@@ -32,6 +32,8 @@ update-opensearch:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=update-opensearch)
 start-metric-monitor-watch:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=metric-monitors)
+start-log-alerts-watch:
+		(go build; doppler run -- ./backend -runtime=worker -worker-handler=log-alerts)
 backfill-stack-frames:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=backfill-stack-frames)
 refresh-materialized-views:

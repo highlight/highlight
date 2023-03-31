@@ -367,14 +367,35 @@ func (r *Client) GetLastLogTimestamp(ctx context.Context, projectId int) (time.T
 	if err != nil {
 		return time.Time{}, err
 	}
-	// If no key set, assume time.Now()
+	// If no key set, return default values
 	if str == "" {
-		return time.Now(), nil
+		return time.Time{}, nil
 	}
 	return time.Parse(time.RFC3339, str)
 }
 
 func (r *Client) SetLastLogTimestamp(ctx context.Context, projectId int, timestamp time.Time) error {
 	str := timestamp.Format(time.RFC3339)
-	return r.setString(ctx, LastLogTimestampKey(projectId), str, 0)
+
+	var setIfGreater = redis.NewScript(`
+		local key = KEYS[1]
+		local newTs = ARGV[1]
+
+		local prevTs = redis.call("GET", key) or ""
+
+		if newTs > prevTs then
+			redis.call("SET", key, newTs)
+		end
+
+		return
+	`)
+
+	keys := []string{LastLogTimestampKey(projectId)}
+	values := []interface{}{str}
+	cmd := setIfGreater.Run(ctx, r.redisClient, keys, values...)
+
+	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
+		return errors.Wrap(err, "error setting last log timestamp")
+	}
+	return nil
 }

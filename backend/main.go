@@ -620,6 +620,7 @@ func main() {
 			} else {
 				log.Fatal(http.ListenAndServe(":"+port, r))
 			}
+			// w.StartLogAlertWatcher(ctx)
 		}
 	} else {
 		if util.IsDevEnv() {

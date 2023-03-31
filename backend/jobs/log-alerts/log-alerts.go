@@ -3,7 +3,6 @@ package log_alerts
 import (
 	"context"
 	"fmt"
-	"math"
 	"os"
 	"time"
 
@@ -31,31 +30,48 @@ import (
 // <option value={900}>15 minutes</option>
 // <option value={1800}>30 minutes</option>
 
-var AlertFrequencies = []int{15, 60, 300, 900, math.MaxInt}
+var AlertFrequencies = []int{15, 60, 300, 900, 1800}
 
 func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
 	log.WithContext(ctx).Info("Starting to watch Log Alerts")
 
 	// alerts := getLogAlerts(ctx, DB) // frequency
-	// go func() {
-	// 	// Every minute, check for new alerts and bucket by frequency
-	// 	for range time.Tick(time.Minute) {
-	// 		alerts = getLogAlerts(ctx, DB) // frequency
-	// 		for _, alert := range alerts {
-	// 			for _, freq := range AlertFrequencies {
-	// 				if
-	// 			}
-	// 		}
+	alertsByFrequency := map[int][]*model.LogAlert{}
+	go func() {
+		// Every minute, check for new alerts and bucket by frequency
+		for range time.Tick(time.Minute) {
+			bucketed := map[int][]*model.LogAlert{}
+			for _, freq := range AlertFrequencies {
+				bucketed[freq] = []*model.LogAlert{}
+			}
 
-	// 	}
-	// }()
+			alerts := getLogAlerts(ctx, DB) // frequency
+			for _, alert := range alerts {
+				for _, freq := range AlertFrequencies {
+					if freq >= alert.Frequency {
+						bucketed[freq] = append(bucketed[freq], alert)
+					}
+				}
+			}
 
-	// for range time.Tick(15 * time.Second) {
-	// 	go func() {
-	// 		processLogAlerts(ctx, DB, TDB, MailClient, alerts, rh, redis, ccClient)
-	// 	}()
-	// }
+			alertsByFrequency = bucketed
+		}
+	}()
 
+	for _, freq := range AlertFrequencies {
+		f := freq
+		go func() {
+			for range time.Tick(time.Duration(f) * time.Second) {
+				log.WithContext(ctx).Infof("tick %d", f)
+				alerts := alertsByFrequency[f]
+				if len(alerts) > 0 {
+					go func() {
+						processLogAlerts(ctx, DB, TDB, MailClient, alerts, rh, redis, ccClient)
+					}()
+				}
+			}
+		}()
+	}
 }
 
 func getLogAlerts(ctx context.Context, DB *gorm.DB) []*model.LogAlert {
@@ -72,18 +88,16 @@ func getLogAlerts(ctx context.Context, DB *gorm.DB) []*model.LogAlert {
 func processLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, logAlerts []*model.LogAlert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
 	log.WithContext(ctx).Info("Number of Log Alerts to Process: ", len(logAlerts))
 	for _, alert := range logAlerts {
-		// should this alert be triggered since within the last 15 seconds?
-		// alert.Frequency
-		// Get timestamp
-		// Bucket timestamp into 15 second periods
-		// If period is divisible by
-
-		lastLog, err := redis.GetLastLogTimestamp(ctx, alert.ProjectID)
+		lastTs, err := redis.GetLastLogTimestamp(ctx, alert.ProjectID)
 		if err != nil {
 			log.WithContext(ctx).Error("error retrieving last log timestamp", err)
 			continue
 		}
-		end := lastLog.Add(-time.Minute)
+		// If there's no log timestamp set, assume time.Now()
+		if lastTs.IsZero() {
+			lastTs = time.Now()
+		}
+		end := lastTs.Add(-time.Minute)
 		start := end.Add(-time.Minute)
 
 		count64, err := ccClient.ReadLogsTotalCount(ctx, alert.ProjectID, modelInputs.LogsParamsInput{Query: alert.Query, DateRange: &modelInputs.DateRangeRequiredInput{

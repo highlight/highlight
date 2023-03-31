@@ -1353,6 +1353,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 		return w.UpdateOpenSearchIndex
 	case "metric-monitors":
 		return w.StartMetricMonitorWatcher
+	case "log-alerts":
+		return w.StartLogAlertWatcher
 	case "backfill-stack-frames":
 		return w.BackfillStackFrames
 	case "refresh-materialized-views":
