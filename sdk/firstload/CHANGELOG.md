@@ -146,3 +146,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 
 - Adds an opt-out `reportConsoleErrors` boolean setting to `H.init` that allows disabling reporting console logs as errors.
 - Ensures `console.error(...)` calls are reported as part of highlight frontend sessions in all cases.
+
+## 5.5.0
+
+### Minor Changes
+
+- Switches `reportConsoleErrors` to be disabled by default. With the setting disabled, `console.error(...)` calls will only be reported as error logs.
