@@ -33,7 +33,7 @@ func Middleware() gin.HandlerFunc {
 		c.Next()
 
 		highlight.MarkBackendSetup(hCtx)
-		span.SetAttributes(attribute.String(highlight.SourceAttribute, "GoChiMiddleware"))
+		span.SetAttributes(attribute.String(highlight.SourceAttribute, "GoGinMiddleware"))
 		span.SetAttributes(middleware.GetRequestAttributes(c.Request)...)
 		if len(c.Errors) > 0 {
 			highlight.RecordSpanError(span, c.Errors[0])

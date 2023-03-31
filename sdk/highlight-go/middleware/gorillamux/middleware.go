@@ -26,7 +26,7 @@ func Middleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 
 		highlight.MarkBackendSetup(hCtx)
-		span.SetAttributes(attribute.String(highlight.SourceAttribute, "GoChiMiddleware"))
+		span.SetAttributes(attribute.String(highlight.SourceAttribute, "GoGorillaMuxMiddleware"))
 		span.SetAttributes(middleware.GetRequestAttributes(r)...)
 	}
 	return http.HandlerFunc(fn)

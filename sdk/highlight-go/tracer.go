@@ -61,7 +61,7 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 		attribute.String(SourceAttribute, "InterceptField"),
 		semconv.GraphqlOperationNameKey.String(name),
 	)
-	t.logTrace(ctx, res, err)
+	t.log(ctx, res, err)
 	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
@@ -98,7 +98,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	return resp
 }
 
-func (t Tracer) logTrace(ctx context.Context, res interface{}, err error) {
+func (t Tracer) log(ctx context.Context, res interface{}, err error) {
 	if !t.requestFieldLogging {
 		return
 	}
