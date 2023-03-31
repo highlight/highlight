@@ -18,7 +18,7 @@
 		"declaration": true,
 		"declarationDir": "dist",
 		"emitDeclarationOnly": true,
-		"noEmit": true
+		"noEmit": false
 	},
 	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
 	"exclude": ["node_modules"]
