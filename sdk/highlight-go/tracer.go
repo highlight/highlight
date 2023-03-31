@@ -61,7 +61,6 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 		attribute.String(SourceAttribute, "InterceptField"),
 		semconv.GraphqlOperationNameKey.String(name),
 	)
-	t.log(ctx, span, err)
 	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
@@ -89,6 +88,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	start := graphql.Now()
 	resp := next(ctx)
 	end := graphql.Now()
+	t.log(ctx, span, resp.Errors)
 	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
@@ -102,20 +102,21 @@ func (t Tracer) log(ctx context.Context, span trace.Span, err error) {
 	if !t.requestFieldLogging {
 		return
 	}
-	fc := graphql.GetFieldContext(ctx)
 	oc := graphql.GetOperationContext(ctx)
 	lvl := "trace"
 	if err != nil {
 		lvl = "error"
 	}
 	attrs := []attribute.KeyValue{
-		semconv.GraphqlOperationTypeKey.String(fc.Object),
-		semconv.GraphqlOperationNameKey.String(oc.Operation.Name),
-		semconv.GraphqlDocumentKey.String(fc.Field.Name),
-		attribute.Bool("ok", err == nil),
+		semconv.GraphqlOperationTypeKey.String(string(oc.Operation.Operation)),
+		semconv.GraphqlOperationNameKey.String(oc.OperationName),
+		semconv.GraphqlDocumentKey.String(oc.RawQuery),
 		attribute.String("graphql.graph", t.graphName),
 		attribute.String(LogMessageAttribute, fmt.Sprintf("graphql.operation.%s", oc.Operation.Name)),
 		attribute.String(LogSeverityAttribute, lvl),
+	}
+	if err != nil {
+		attrs = append(attrs, attribute.String("graphql.error", err.Error()))
 	}
 	span.AddEvent(LogEvent, trace.WithAttributes(attrs...))
 	if err != nil {
