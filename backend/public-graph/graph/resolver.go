@@ -2346,9 +2346,14 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	for _, errorObject := range errorObjects {
 
 		// Filter out by project.ErrorFilters, aka regexp filters
+		var err error
 		matchedRegexp := false
 		for _, errorFilter := range project.ErrorFilters {
-			matchedRegexp, _ = regexp.MatchString(errorFilter, errorObject.Event)
+			matchedRegexp, err = regexp.MatchString(errorFilter, errorObject.Event)
+			if err != nil {
+				log.WithContext(ctx).WithField("regex", errorFilter).WithError(err).Error("invalid regex: failed to parse backend error filter")
+				continue
+			}
 
 			if matchedRegexp {
 				break
@@ -2908,6 +2913,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			matchedRegexp := false
 			for _, errorFilter := range project.ErrorFilters {
 				matchedRegexp, err = regexp.MatchString(errorFilter, v.Event)
+				if err != nil {
+					log.WithContext(ctx).WithField("regex", errorFilter).WithError(err).Error("invalid regex: failed to parse error filter")
+					continue
+				}
 
 				if matchedRegexp {
 					return nil
