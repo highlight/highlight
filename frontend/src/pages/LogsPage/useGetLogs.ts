@@ -60,6 +60,7 @@ export const useGetLogs = ({
 						end_date: moment(endDate).format(FORMAT),
 					},
 				},
+				direction: Types.LogDirection.Asc,
 			},
 			fetchPolicy: 'cache-and-network',
 		})
