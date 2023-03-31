@@ -14,7 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const BATCH_SIZE = 1
+const BATCH_SIZE = 2
 
 func (w *Worker) indexItem(ctx context.Context, index opensearch.Index, item interface{}) {
 	val := reflect.ValueOf(item).Elem()
@@ -64,7 +64,7 @@ func (w *Worker) IndexSessions(ctx context.Context, isUpdate bool) {
 				and r.created_at <= ?)`, opensearch.GetIndex(opensearch.IndexSessions)), start)
 	}
 
-	if err := query.Debug().Preload("Fields").
+	if err := query.Preload("Fields").
 		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
 		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
 	}

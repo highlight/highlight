@@ -1048,6 +1048,7 @@ query GetErrorObjectForLog($log_cursor: String!) {
 	error_object_for_log(log_cursor: $log_cursor) {
 		id
 		error_group_secure_id
+		project_id
 	}
 }
 
@@ -1374,6 +1375,22 @@ query IsIntegrated($project_id: ID!) {
 
 query IsBackendIntegrated($project_id: ID!) {
 	isBackendIntegrated(project_id: $project_id)
+}
+
+query GetClientIntegration($project_id: ID!) {
+	clientIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		resourceSecureId
+	}
+}
+
+query GetServerIntegration($project_id: ID!) {
+	serverIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		resourceSecureId
+	}
 }
 
 query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
@@ -1714,6 +1731,10 @@ query GetAlertsPagePayload($project_id: ID!) {
 		DiscordChannelsToNotify {
 			...DiscordChannelFragment
 		}
+		WebhookDestinations {
+			url
+			authorization
+		}
 		EmailsToNotify
 		ExcludedEnvironments
 		updated_at
@@ -1757,6 +1778,10 @@ query GetAlertsPagePayload($project_id: ID!) {
 		discord_channels_to_notify {
 			id
 			name
+		}
+		webhook_destinations {
+			url
+			authorization
 		}
 		emails_to_notify
 		aggregator
@@ -1972,6 +1997,8 @@ query GetLogs(
 				traceID
 				spanID
 				secureSessionID
+				source
+				serviceName
 			}
 		}
 		pageInfo {
@@ -2000,8 +2027,8 @@ query GetLogsHistogram($project_id: ID!, $params: LogsParamsInput!) {
 	}
 }
 
-query GetLogsKeys($project_id: ID!) {
-	logs_keys(project_id: $project_id) {
+query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
+	logs_keys(project_id: $project_id, date_range: $date_range) {
 		name
 		type
 	}
@@ -2017,4 +2044,12 @@ query GetLogsKeyValues(
 		key_name: $key_name
 		date_range: $date_range
 	)
+}
+
+query GetLogsErrorObjects($log_cursors: [String!]!) {
+	logs_error_objects(log_cursors: $log_cursors) {
+		log_cursor
+		error_group_secure_id
+		id
+	}
 }

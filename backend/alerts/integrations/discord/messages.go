@@ -26,9 +26,13 @@ func (bot *Bot) SendErrorAlert(channelId string, payload integrations.ErrorAlert
 		})
 	}
 
+	errorTitle := payload.ErrorTitle
+	if len(errorTitle) > 50 {
+		errorTitle = errorTitle[:50] + "..."
+	}
 	fields = append(fields, &discordgo.MessageEmbedField{
 		Name:   "Error",
-		Value:  payload.ErrorTitle,
+		Value:  errorTitle,
 		Inline: true,
 	})
 

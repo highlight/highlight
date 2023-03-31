@@ -120,7 +120,11 @@ type Mutation {
 		errors: [BackendErrorObjectInput]!
 	): Any
 	pushMetrics(metrics: [MetricInput]!): Int!
-	markBackendSetup(project_id: String, session_secure_id: String): Any
+	markBackendSetup(
+		project_id: String
+		session_secure_id: String
+		type: String
+	): Any
 	addSessionFeedback(
 		session_secure_id: String!
 		user_name: String

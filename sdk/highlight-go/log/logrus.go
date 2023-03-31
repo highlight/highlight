@@ -3,11 +3,13 @@ package hlog
 import (
 	"context"
 	"fmt"
+	"runtime"
+	"strings"
+
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
-	"strings"
 
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
@@ -76,15 +78,36 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 		}
 	}
 
+	hasError := false
 	for k, v := range entry.Data {
 		if k == "error" {
+			hasError = true
 			if err, ok := v.(highlight.ErrorWithStack); ok {
 				highlight.RecordSpanErrorWithStack(span, err)
 			} else if err, ok := v.(error); ok {
-				span.RecordError(err)
+				span.RecordError(err, trace.WithStackTrace(true))
 			}
 		} else {
 			attrs = append(attrs, attribute.String(k, fmt.Sprintf("%+v", v)))
+		}
+	}
+
+	if !hasError {
+		// build the caller stack trace based on the current stack trace and the logrus caller
+		stackTrace := make([]byte, 2048)
+		n := runtime.Stack(stackTrace, false)
+		lines := strings.Split(string(stackTrace[0:n]), "\n")
+		if len(lines) > 1 {
+			var truncLines = []string{lines[0]}
+			var truncIdx = len(lines) - 1
+			for idx, line := range lines {
+				if strings.HasPrefix(line, entry.Caller.Function) {
+					truncIdx = idx
+					break
+				}
+			}
+			truncLines = append(truncLines, lines[truncIdx:]...)
+			attrs = append(attrs, semconv.ExceptionStacktraceKey.String(strings.Join(truncLines, "\n")))
 		}
 	}
 

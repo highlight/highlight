@@ -2,6 +2,7 @@ package hlog
 
 import (
 	"context"
+	"fmt"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -57,15 +58,13 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 		return nil
 	}
 
-	span, _ := highlight.StartTrace(
-		ctx, "highlight-ctx",
-		attribute.String(highlight.SourceAttribute, highlight.SourceAttributeFrontend),
-		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
-		attribute.String(highlight.SessionIDAttribute, sessionSecureID),
-	)
-	defer highlight.EndTrace(span)
-
 	for _, row := range logRows {
+		span, _ := highlight.StartTrace(
+			ctx, "highlight-ctx",
+			attribute.String(highlight.SourceAttribute, highlight.SourceAttributeFrontend),
+			attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
+			attribute.String(highlight.SessionIDAttribute, sessionSecureID),
+		)
 		message := strings.Join(row.Value, " ")
 		attrs := []attribute.KeyValue{
 			LogSeverityKey.String(row.Type),
@@ -103,12 +102,22 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 			if cn != 0 {
 				attrs = append(attrs, semconv.CodeColumnKey.Int(cn))
 			}
+			stackTrace := message
+			for _, t := range row.Trace {
+				if t.Source != "" {
+					stackTrace += "\n" + t.Source
+				} else {
+					stackTrace += fmt.Sprintf("\n\tat %s (%s:%+v:%+v)", t.FunctionName, t.FileName, t.LineNumber, t.ColumnNumber)
+				}
+			}
+			attrs = append(attrs, semconv.ExceptionStacktraceKey.String(stackTrace))
 		}
 
 		span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(row.Time)))
 		if row.Type == "error" {
 			span.SetStatus(codes.Error, message)
 		}
+		highlight.EndTrace(span)
 	}
 
 	return nil
@@ -117,7 +126,7 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
 	span, _ := highlight.StartTrace(
 		ctx, "highlight-ctx",
-		attribute.String("Source", "SubmitVercelLogs"),
+		attribute.String(highlight.SourceAttribute, "SubmitVercelLogs"),
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 	)
 	defer highlight.EndTrace(span)

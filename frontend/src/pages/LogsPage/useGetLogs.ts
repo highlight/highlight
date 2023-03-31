@@ -1,8 +1,20 @@
-import { useGetLogsLazyQuery } from '@graph/hooks'
-import { PageInfo } from '@graph/schemas'
+import { useGetLogsErrorObjectsQuery, useGetLogsLazyQuery } from '@graph/hooks'
+import { LogEdge, PageInfo } from '@graph/schemas'
+import * as Types from '@graph/schemas'
 import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
+import {
+	buildLogsQueryForServer,
+	parseLogsQuery,
+} from '@pages/LogsPage/SearchForm/utils'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
+
+export type LogEdgeWithError = LogEdge & {
+	error_object?: Pick<
+		Types.ErrorObject,
+		'log_cursor' | 'error_group_secure_id' | 'id'
+	>
+}
 
 export const useGetLogs = ({
 	query,
@@ -33,20 +45,28 @@ export const useGetLogs = ({
 	})
 	const [loadingAfter, setLoadingAfter] = useState(false)
 	const [loadingBefore, setLoadingBefore] = useState(false)
+	const queryTerms = parseLogsQuery(query)
+	const serverQuery = buildLogsQueryForServer(queryTerms)
 
-	const [getLogs, { data, loading, error, fetchMore }] = useGetLogsLazyQuery({
-		variables: {
-			project_id: project_id!,
-			at: logCursor,
-			params: {
-				query,
-				date_range: {
-					start_date: moment(startDate).format(LOG_TIME_FORMAT),
-					end_date: moment(endDate).format(LOG_TIME_FORMAT),
+	const [getLogs, { data, loading, error, refetch, fetchMore }] =
+		useGetLogsLazyQuery({
+			variables: {
+				project_id: project_id!,
+				at: logCursor,
+				params: {
+					query: serverQuery,
+					date_range: {
+						start_date: moment(startDate).format(LOG_TIME_FORMAT),
+						end_date: moment(endDate).format(LOG_TIME_FORMAT),
+					},
 				},
 			},
-		},
-		fetchPolicy: 'cache-and-network',
+			fetchPolicy: 'cache-and-network',
+		})
+
+	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({
+		variables: { log_cursors: data?.logs.edges.map((e) => e.cursor) || [] },
+		skip: !data?.logs.edges.length,
 	})
 
 	useEffect(() => {
@@ -114,13 +134,23 @@ export const useGetLogs = ({
 			})
 	}, [fetchMore, windowInfo])
 
+	const logEdgesWithError: LogEdgeWithError[] = (data?.logs.edges || []).map(
+		(e) => ({
+			...e,
+			error_object: (logErrorObjects?.logs_error_objects || []).find(
+				(leo) => leo.log_cursor === e.cursor,
+			),
+		}),
+	)
+
 	return {
-		logEdges: data?.logs.edges || [],
+		logEdges: logEdgesWithError,
 		loading,
 		loadingAfter,
 		loadingBefore,
 		error,
 		fetchMoreForward,
 		fetchMoreBackward,
+		refetch,
 	}
 }

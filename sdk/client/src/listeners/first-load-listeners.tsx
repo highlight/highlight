@@ -19,6 +19,7 @@ import publicGraphURI from 'consts:publicGraphURI'
 // codebase. When constructed in firstload, it will match the codebase at the time the npm package was published.
 export class FirstLoadListeners {
 	disableConsoleRecording: boolean
+	reportConsoleErrors: boolean
 	consoleMethodsToRecord: ConsoleMethods[]
 	listeners: (() => void)[]
 	errors: ErrorMessage[]
@@ -40,6 +41,7 @@ export class FirstLoadListeners {
 	constructor(options: HighlightClassOptions) {
 		this.options = options
 		this.disableConsoleRecording = !!options.disableConsoleRecording
+		this.reportConsoleErrors = options.reportConsoleErrors ?? true
 		this.consoleMethodsToRecord = options.consoleMethodsToRecord || [
 			...ALL_CONSOLE_METHODS,
 		]
@@ -60,6 +62,7 @@ export class FirstLoadListeners {
 				ConsoleListener(
 					(c: ConsoleMessage) => {
 						if (
+							this.reportConsoleErrors &&
 							(c.type === 'Error' || c.type === 'error') &&
 							c.value &&
 							c.trace
@@ -89,9 +92,8 @@ export class FirstLoadListeners {
 								stackTrace: c.trace,
 								timestamp: new Date().toISOString(),
 							})
-						} else {
-							highlightThis.messages.push(c)
 						}
+						highlightThis.messages.push(c)
 					},
 					{
 						level: this.consoleMethodsToRecord,

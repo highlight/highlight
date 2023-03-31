@@ -99,6 +99,7 @@
 		"lint:fix": "eslint ./src --fix",
 		"sourcemaps": "npx --yes @highlight-run/sourcemap-uploader upload --apiKey \"${HIGHLIGHT_API_KEY}\" --appVersion \"${APP_VERSION}\" --path ./build",
 		"test": "TZ=UTC vitest --run",
+		"test:watch": "TZ=UTC vitest",
 		"types:check": "tsc -noEmit",
 		"analyze": "source-map-explorer 'build/static/js/*.js'",
 		"svg": "svgr --typescript ./src/static --out-dir ./src/static --icon && yarn lint:es",

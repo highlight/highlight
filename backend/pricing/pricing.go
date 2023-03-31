@@ -11,6 +11,7 @@ import (
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
+	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
@@ -70,7 +71,7 @@ func GetWorkspaceErrorsMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 	var meter int64
 	if err := DB.Raw(`
 			SELECT COALESCE(SUM(count), 0) as currentPeriodErrorsCount
-			FROM daily_error_counts
+			FROM daily_error_counts_view
 			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=? AND free_tier = false)
 			AND date >= (
 				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
@@ -267,12 +268,17 @@ func FillProducts(stripeClient *client.API, subscriptions []*stripe.Subscription
 }
 
 // Returns the Stripe Prices for the associated tier and interval
-func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (map[ProductType]*stripe.Price, error) {
-	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval, unlimitedMembers, retentionPeriod)
+func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool, retentionPeriod *backend.RetentionPeriod) (map[ProductType]*stripe.Price, error) {
+	// Default to the `RetentionPeriodThreeMonths` prices for customers grandfathered into 6 month retention
+	rp := backend.RetentionPeriodThreeMonths
+	if retentionPeriod != nil {
+		rp = *retentionPeriod
+	}
+	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval, unlimitedMembers, rp)
 
-	sessionsLookupKey := GetOverageKey(ProductTypeSessions, retentionPeriod)
+	sessionsLookupKey := GetOverageKey(ProductTypeSessions, rp)
 	membersLookupKey := string(ProductTypeMembers)
-	errorsLookupKey := GetOverageKey(ProductTypeErrors, retentionPeriod)
+	errorsLookupKey := GetOverageKey(ProductTypeErrors, rp)
 
 	priceListParams := stripe.PriceListParams{}
 	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey}
@@ -280,7 +286,13 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 
 	// Validate that we received exactly 1 response for each lookup key
 	if len(prices) != 4 {
-		return nil, e.Errorf("expected 4 prices, received %d", len(prices))
+		searchedKeys := lo.Map(priceListParams.LookupKeys, func(key *string, _ int) string {
+			return *key
+		})
+		foundKeys := lo.Map(prices, func(price *stripe.Price, _ int) string {
+			return price.LookupKey
+		})
+		return nil, e.Errorf("expected 4 prices, received %d; searched %#v, found %#v", len(prices), searchedKeys, foundKeys)
 	}
 
 	priceMap := map[ProductType]*stripe.Price{}
@@ -414,11 +426,7 @@ func reportUsage(ctx context.Context, DB *gorm.DB, stripeClient *client.API, mai
 		}
 	}
 
-	retentionPeriod := backend.RetentionPeriodSixMonths
-	if workspace.RetentionPeriod != nil {
-		retentionPeriod = *workspace.RetentionPeriod
-	}
-	prices, err := GetStripePrices(stripeClient, *productTier, interval, workspace.UnlimitedMembers, retentionPeriod)
+	prices, err := GetStripePrices(stripeClient, *productTier, interval, workspace.UnlimitedMembers, workspace.RetentionPeriod)
 	if err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to get Stripe prices")
 	}

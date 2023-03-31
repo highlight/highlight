@@ -32,9 +32,8 @@ export const vars = {
 		touchable: 'transform 0.2s cubic-bezier(0.02, 1.505, 0.745, 1.235)',
 	},
 	shadows: {
-		small: '0px 2px 8px -2px rgba(59, 59, 59, 0.08);',
-		medium: '0px 6px 12px -2px rgba(59, 59, 59, 0.12)',
-		large: '0 2px 4px 0px rgba(28,28,28,.1), 0 12px 12px -4px rgba(28,28,28,.1), 0 20px 20px -12px rgba(28,28,28,.2)',
+		small: '0 2px 8px -2px rgba(59, 59, 59, 0.08)',
+		medium: '0 6px 12px -2px rgba(59, 59, 59, 0.12)',
 	},
 	overflow: ['auto', 'hidden', 'visible', 'scroll'],
 	zIndex: {

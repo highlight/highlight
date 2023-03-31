@@ -71,9 +71,11 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	const {
 		logEdges,
 		loading,
+		error,
 		loadingAfter,
 		fetchMoreForward,
 		fetchMoreBackward,
+		refetch,
 	} = useGetLogs({
 		query,
 		project_id,
@@ -81,12 +83,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		startDate,
 		endDate,
 	})
-
-	const handleFormSubmit = (value: string) => {
-		if (!!value) {
-			setQuery(value)
-		}
-	}
 
 	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
 		setStartDate(newStartDate)
@@ -132,11 +128,11 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 					display="flex"
 					flexGrow={1}
 					border="dividerWeak"
-					shadow="small"
+					shadow="medium"
 				>
 					<SearchForm
 						initialQuery={query}
-						onFormSubmit={handleFormSubmit}
+						onFormSubmit={(value) => setQuery(value)}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={handleDatesChange}
@@ -156,16 +152,14 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						endDate={endDate}
 						onDatesChange={handleDatesChange}
 						onLevelChange={handleLevelChange}
-						mx="12"
-						py="2"
-						borderBottom="dividerWeak"
 					/>
 					<Box
+						borderTop="dividerWeak"
 						height="screen"
+						pt="4"
 						px="12"
 						pb="12"
-						pt="2"
-						overflowY="scroll"
+						overflowY="auto"
 						onScroll={(e) =>
 							fetchMoreWhenScrolled(e.target as HTMLDivElement)
 						}
@@ -174,6 +168,8 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						<LogsTable
 							logEdges={logEdges}
 							loading={loading}
+							error={error}
+							refetch={refetch}
 							loadingAfter={loadingAfter}
 							query={query}
 							tableContainerRef={tableContainerRef}

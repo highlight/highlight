@@ -171,7 +171,7 @@ const BillingPage = () => {
 	} = useBillingHook({ workspace_id: workspaceId })
 
 	const [createOrUpdateStripeSubscription, { data }] =
-		useCreateOrUpdateStripeSubscriptionMutation()
+		useCreateOrUpdateStripeSubscriptionMutation({ fetchPolicy: 'no-cache' })
 
 	const [updateBillingDetails] = useUpdateBillingDetailsMutation()
 

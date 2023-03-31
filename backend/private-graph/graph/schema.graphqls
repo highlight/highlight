@@ -129,11 +129,6 @@ type Plan {
 	errorsLimit: Int!
 }
 
-type DiscordChannel {
-	id: String!
-	name: String!
-}
-
 enum PlanType {
 	Free
 	Lite
@@ -516,6 +511,8 @@ type Log {
 	traceID: String
 	spanID: String
 	secureSessionID: String
+	source: String
+	serviceName: String
 }
 
 type LogEdge {
@@ -540,9 +537,12 @@ enum ReservedLogKey {
 	Keep this in alpha order
 	"""
 	level
+	message
 	secure_session_id
 	span_id
 	trace_id
+	source
+	service_name
 }
 
 enum LogKeyType {
@@ -755,6 +755,7 @@ input SessionAlertInput {
 	threshold_window: Int!
 	slack_channels: [SanitizedSlackChannelInput!]!
 	discord_channels: [DiscordChannelInput!]!
+	webhook_destinations: [WebhookDestinationInput!]!
 	emails: [String!]!
 	environments: [String!]!
 	disabled: Boolean!
@@ -974,7 +975,7 @@ type DailyErrorCount {
 }
 
 type ErrorDistributionItem {
-	error_group_id: String!
+	error_group_id: ID!
 	date: Timestamp!
 	name: String!
 	value: Int64!
@@ -1009,9 +1010,24 @@ input SanitizedSlackChannelInput {
 	webhook_channel_id: String
 }
 
+type DiscordChannel {
+	id: String!
+	name: String!
+}
+
 input DiscordChannelInput {
 	name: String!
 	id: String!
+}
+
+type WebhookDestination {
+	url: String!
+	authorization: String
+}
+
+input WebhookDestinationInput {
+	url: String!
+	authorization: String
 }
 
 type ErrorAlert {
@@ -1020,6 +1036,7 @@ type ErrorAlert {
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
 	DiscordChannelsToNotify: [DiscordChannel!]!
+	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
 	CountThreshold: Int!
@@ -1140,6 +1157,12 @@ type CategoryHistogramPayload {
 	buckets: [CategoryHistogramBucket!]!
 }
 
+type IntegrationStatus {
+	integrated: Boolean!
+	resourceType: String!
+	resourceSecureId: String
+}
+
 enum DashboardChartType {
 	Timeline
 	TimelineBar
@@ -1228,6 +1251,7 @@ type MetricMonitor {
 	name: String!
 	channels_to_notify: [SanitizedSlackChannel]!
 	discord_channels_to_notify: [DiscordChannel!]!
+	webhook_destinations: [WebhookDestination!]!
 	emails_to_notify: [String]!
 	aggregator: MetricAggregator!
 	period_minutes: Int
@@ -1341,6 +1365,9 @@ type Query {
 	workspace_admins_by_project_id(project_id: ID!): [WorkspaceAdminRole!]!
 	isIntegrated(project_id: ID!): Boolean
 	isBackendIntegrated(project_id: ID!): Boolean
+	clientIntegration(project_id: ID!): IntegrationStatus!
+	serverIntegration(project_id: ID!): IntegrationStatus!
+	logsIntegration(project_id: ID!): LogsConnection
 	unprocessedSessionsCount(project_id: ID!): Int64
 	liveUsersCount(project_id: ID!): Int64
 	adminHasCreatedComment(admin_id: ID!): Boolean
@@ -1522,12 +1549,13 @@ type Query {
 	): LogsConnection!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
-	logs_keys(project_id: ID!): [LogKey!]!
+	logs_keys(project_id: ID!, date_range: DateRangeRequiredInput!): [LogKey!]!
 	logs_key_values(
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
 	): [String!]!
+	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
 }
 
 type Mutation {
@@ -1713,12 +1741,6 @@ type Mutation {
 		workspace_id: ID!
 	): Boolean!
 	syncSlackIntegration(project_id: ID!): SlackSyncResponse!
-	createDefaultAlerts(
-		project_id: ID!
-		alert_types: [String!]!
-		slack_channels: [SanitizedSlackChannelInput!]!
-		emails: [String]!
-	): Boolean
 	createMetricMonitor(
 		project_id: ID!
 		name: String!
@@ -1729,6 +1751,7 @@ type Mutation {
 		metric_to_monitor: String!
 		slack_channels: [SanitizedSlackChannelInput]!
 		discord_channels: [DiscordChannelInput!]!
+		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]!
 		filters: [MetricTagFilterInput!]
 	): MetricMonitor
@@ -1743,6 +1766,7 @@ type Mutation {
 		metric_to_monitor: String
 		slack_channels: [SanitizedSlackChannelInput]
 		discord_channels: [DiscordChannelInput!]!
+		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]
 		disabled: Boolean
 		filters: [MetricTagFilterInput!]
@@ -1754,6 +1778,7 @@ type Mutation {
 		threshold_window: Int!
 		slack_channels: [SanitizedSlackChannelInput]!
 		discord_channels: [DiscordChannelInput!]!
+		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]!
 		environments: [String]!
 		regex_groups: [String]!
@@ -1767,6 +1792,7 @@ type Mutation {
 		threshold_window: Int
 		slack_channels: [SanitizedSlackChannelInput]
 		discord_channels: [DiscordChannelInput!]!
+		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]
 		environments: [String]
 		regex_groups: [String]

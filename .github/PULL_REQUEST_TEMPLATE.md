@@ -1,7 +1,7 @@
 ## Summary
 
 <!--
- Ideally, there is an attached Linear ticket that will describe the "why".
+ Ideally, there is an attached GitHub issue that will describe the "why".
 
  If relevant, use this section to call out any additional information you'd like to _highlight_ to the reviewer.
 -->

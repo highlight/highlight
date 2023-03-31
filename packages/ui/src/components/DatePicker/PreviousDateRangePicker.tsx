@@ -42,6 +42,20 @@ const isCustomSelected = ({
 	return !foundPreset
 }
 
+function toDateTimeString(date: Date, showYear: boolean) {
+	const options: Intl.DateTimeFormatOptions = {
+		month: 'short',
+		day: 'numeric',
+		hour: '2-digit',
+		minute: '2-digit',
+	}
+
+	if (showYear) {
+		options.year = 'numeric'
+	}
+	return date.toLocaleDateString('en-us', options)
+}
+
 export const getLabel = ({
 	selectedDates,
 	presets,
@@ -58,7 +72,13 @@ export const getLabel = ({
 	}
 
 	if (selectedDates.length == 2) {
-		return `${selectedDates[0].toDateString()} - ${selectedDates[1].toDateString()}`
+		const showYear =
+			selectedDates[1].getFullYear() > selectedDates[0].getFullYear()
+
+		return `${toDateTimeString(
+			selectedDates[0],
+			showYear,
+		)} - ${toDateTimeString(selectedDates[1], showYear)}`
 	}
 
 	return ''

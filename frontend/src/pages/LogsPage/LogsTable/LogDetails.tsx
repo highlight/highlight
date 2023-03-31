@@ -1,7 +1,8 @@
-import { LogEdge, LogLevel } from '@graph/schemas'
+import { Button } from '@components/Button'
+import { LinkButton } from '@components/LinkButton'
+import { LogEdge, LogLevel, Maybe, ReservedLogKey } from '@graph/schemas'
 import {
 	Box,
-	ButtonLink,
 	IconSolidChevronDoubleDown,
 	IconSolidChevronDoubleUp,
 	IconSolidClipboard,
@@ -9,11 +10,12 @@ import {
 	IconSolidFilter,
 	IconSolidLightningBolt,
 	IconSolidLink,
+	IconSolidPlayCircle,
 	Stack,
-	Tag,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 import { QueryParam } from '@pages/LogsPage/LogsPage'
 import {
 	IconCollapsed,
@@ -22,19 +24,20 @@ import {
 import {
 	DEFAULT_LOGS_OPERATOR,
 	LogsSearchParam,
+	quoteQueryValue,
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
+import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
 import { generatePath } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import * as styles from './LogDetails.css'
 
 type Props = {
-	row: Row<LogEdge>
+	row: Row<LogEdgeWithError>
 	queryTerms: LogsSearchParam[]
 }
 
@@ -47,14 +50,36 @@ export const getLogURL = (row: Row<LogEdge>) => {
 }
 
 export const LogDetails = ({ row, queryTerms }: Props) => {
-	const navigate = useNavigate()
+	const { projectId } = useProjectId()
 	const [allExpanded, setAllExpanded] = useState(false)
-	const { traceID, spanID, secureSessionID, logAttributes, message, level } =
-		row.original.node
+	const {
+		traceID,
+		spanID,
+		secureSessionID,
+		logAttributes,
+		message,
+		level,
+		source,
+		serviceName,
+	} = row.original.node
 	const expanded = row.getIsExpanded()
 	const expandable = Object.values(logAttributes).some(
 		(v) => typeof v === 'object',
 	)
+	const reservedLogAttributes: {
+		level: LogLevel
+		message: string
+	} & {
+		[key in ReservedLogKey]: Maybe<string> | undefined
+	} = {
+		level,
+		message,
+		trace_id: traceID,
+		span_id: spanID,
+		secure_session_id: secureSessionID,
+		source,
+		service_name: serviceName,
+	}
 
 	if (!expanded) {
 		if (allExpanded) {
@@ -91,67 +116,35 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 				)
 			})}
 
-			<Box>
-				<LogValue label="level" value={level} queryTerms={queryTerms} />
-			</Box>
-
-			<Box>
-				<LogValue
-					label="message"
-					value={message}
-					queryTerms={queryTerms}
-				/>
-			</Box>
-
-			{traceID && (
-				<Box>
-					<LogValue
-						label="trace_id"
-						value={traceID}
-						queryTerms={queryTerms}
-					/>
-				</Box>
-			)}
-			{spanID && (
-				<Box>
-					<LogValue
-						label="span_id"
-						value={spanID}
-						queryTerms={queryTerms}
-					/>
-				</Box>
-			)}
-			{secureSessionID && (
-				<Box>
-					<LogValue
-						label="secure_session_id"
-						value={secureSessionID}
-						queryTerms={queryTerms}
-					/>
-				</Box>
+			{Object.entries(reservedLogAttributes).map(
+				([key, value]) =>
+					value && (
+						<Box key={key}>
+							<LogValue
+								label={key}
+								value={value}
+								queryTerms={queryTerms}
+							/>
+						</Box>
+					),
 			)}
 
-			<Box
-				display="flex"
-				alignItems="center"
-				justifyContent="space-between"
-				flexDirection="row"
-				gap="16"
-				mt="8"
-			>
+			<Box display="flex" alignItems="center" flexDirection="row" mt="8">
 				<Box
 					display="flex"
 					alignItems="center"
 					flexDirection="row"
-					gap="16"
+					gap="4"
 				>
 					{expandable && (
-						<ButtonLink
+						<Button
 							kind="secondary"
+							emphasis="low"
 							onClick={(e) => {
 								e.stopPropagation()
 								setAllExpanded(!allExpanded)
 							}}
+							trackingId="logs-row_toggle-expand-all"
 						>
 							<Box
 								alignItems="center"
@@ -171,18 +164,28 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 									</>
 								)}
 							</Box>
-						</ButtonLink>
+						</Button>
 					)}
 
-					<ButtonLink
+					<Button
 						kind="secondary"
+						emphasis="low"
 						onClick={(e) => {
 							e.stopPropagation()
-							navigator.clipboard.writeText(
-								JSON.stringify(row.original),
+
+							const json = { ...logAttributes }
+							Object.entries(reservedLogAttributes).forEach(
+								([key, value]) => {
+									if (value) {
+										json[key] = value
+									}
+								},
 							)
+
+							navigator.clipboard.writeText(JSON.stringify(json))
 							antdMessage.success('Copied logs!')
 						}}
+						trackingId="logs-row_copy-json"
 					>
 						<Box
 							display="flex"
@@ -193,16 +196,18 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 							<IconSolidClipboard />
 							Copy JSON
 						</Box>
-					</ButtonLink>
+					</Button>
 
-					<ButtonLink
+					<Button
 						kind="secondary"
+						emphasis="low"
 						onClick={(e) => {
 							const url = getLogURL(row)
 							e.stopPropagation()
 							navigator.clipboard.writeText(url)
 							antdMessage.success('Copied link!')
 						}}
+						trackingId="logs-row_copy-link"
 					>
 						<Box
 							display="flex"
@@ -213,24 +218,24 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 							<IconSolidLink />
 							Copy link
 						</Box>
-					</ButtonLink>
+					</Button>
 				</Box>
 
 				<Box
 					display="flex"
 					alignItems="center"
 					flexDirection="row"
-					gap="16"
+					gap="4"
+					borderLeft="secondary"
+					ml="4"
+					pl="4"
 				>
-					{row.original.node.level === LogLevel.Error && (
-						<Tag
-							shape="basic"
+					{row.original.error_object && (
+						<LinkButton
 							kind="secondary"
-							emphasis="medium"
-							onClick={(e) => {
-								e.stopPropagation()
-								navigate(`/errors/logs/${row.original.cursor}`)
-							}}
+							emphasis="low"
+							to={`/errors/logs/${row.original.cursor}`}
+							trackingId="logs-related_error_link"
 						>
 							<Box
 								display="flex"
@@ -241,7 +246,26 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 								<IconSolidLightningBolt />
 								Related Error
 							</Box>
-						</Tag>
+						</LinkButton>
+					)}
+
+					{secureSessionID && (
+						<LinkButton
+							kind="secondary"
+							emphasis="low"
+							to={`/${projectId}/sessions/${secureSessionID}`}
+							trackingId="logs-related_session_link"
+						>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidPlayCircle />
+								Related Session
+							</Box>
+						</LinkButton>
 					)}
 				</Box>
 			</Box>
@@ -342,7 +366,7 @@ const LogValue: React.FC<{
 				onClick={(e: any) => e.stopPropagation()}
 			>
 				<Box
-					backgroundColor={matchesQuery ? 'informative' : undefined}
+					backgroundColor={matchesQuery ? 'caution' : undefined}
 					borderRadius="4"
 					p="6"
 				>
@@ -375,7 +399,9 @@ const LogValue: React.FC<{
 											? (queryTerms[index].value = value)
 											: queryTerms.push({
 													key: queryKey,
-													value,
+													value: quoteQueryValue(
+														value,
+													),
 													operator:
 														DEFAULT_LOGS_OPERATOR,
 													offsetStart: 0, // not actually used

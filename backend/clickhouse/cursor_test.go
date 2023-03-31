@@ -2,6 +2,7 @@ package clickhouse
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -58,7 +59,7 @@ func TestGetConnectionAfter(t *testing.T) {
 	})
 
 	assert.Equal(t, &modelInputs.LogsConnection{
-		Edges: manyEdges[:100],
+		Edges: manyEdges[:LogsLimit],
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     true,
 			HasPreviousPage: true,
@@ -116,7 +117,7 @@ func TestGetConnectionBefore(t *testing.T) {
 	})
 
 	assert.Equal(t, &modelInputs.LogsConnection{
-		Edges: manyEdges[1:100],
+		Edges: manyEdges[1:LogsLimit],
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     true,
 			HasPreviousPage: true,
@@ -178,7 +179,8 @@ func TestClickhouseDecode(t *testing.T) {
 	assert.NoError(t, err)
 
 	defer func() {
-		client.conn.Exec(ctx, "TRUNCATE TABLE logs") //nolint:errcheck
+		err := client.conn.Exec(ctx, fmt.Sprintf("TRUNCATE TABLE %s", LogsTable))
+		assert.NoError(t, err)
 	}()
 
 	now := time.Now()

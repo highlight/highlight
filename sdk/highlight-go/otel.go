@@ -3,6 +3,10 @@ package highlight
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"reflect"
+	"strings"
+
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -12,9 +16,6 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
-	"net/url"
-	"reflect"
-	"strings"
 )
 
 const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
@@ -35,7 +36,7 @@ const LogEvent = "log"
 const LogSeverityAttribute = "log.severity"
 const LogMessageAttribute = "log.message"
 
-var InternalAttributes = []string{
+var InternalAttributePrefixes = []string{
 	DeprecatedProjectIDAttribute,
 	DeprecatedSessionIDAttribute,
 	DeprecatedRequestIDAttribute,
@@ -46,6 +47,17 @@ var InternalAttributes = []string{
 	SourceAttribute,
 	LogMessageAttribute,
 	LogSeverityAttribute,
+	// exception should be parsed as structured and not included as part of log attributes
+	"exception.message",
+	"exception.stacktrace",
+}
+
+var BackendOnlyAttributePrefixes = []string{
+	"container.",
+	"host.",
+	"os.",
+	"process.",
+	"exception.",
 }
 
 type OTLP struct {

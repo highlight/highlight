@@ -3,7 +3,6 @@ import AlertsRouter from '@pages/Alerts/AlertsRouter'
 import LogAlertsRouter from '@pages/Alerts/LogAlert/LogAlertRouter'
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import ErrorLogCursorRedirect from '@pages/ErrorsV2/ErrorLogCursor/ErrorLogCursorRedirect'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
 import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
 import LogsPage from '@pages/LogsPage/LogsPage'
@@ -41,11 +40,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
 			/>
 
 			<Route
-				path="errors/logs/:cursor_id"
-				element={<ErrorLogCursorRedirect />}
-			/>
-
-			<Route
 				path="errors/:error_secure_id?/:error_tab_key?/:error_object_id?"
 				element={<ErrorsV2 integrated={integrated} />}
 			/>
@@ -60,10 +54,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 					<Route path="alerts/*" element={<AlertsRouter />} />
 					<Route path="alerts/logs/*" element={<LogAlertsRouter />} />
 
-					<Route
-						path="setup/*"
-						element={<SetupRouter integrated={integrated} />}
-					/>
+					<Route path="setup/*" element={<SetupRouter />} />
 
 					<Route
 						path="integrations/*"

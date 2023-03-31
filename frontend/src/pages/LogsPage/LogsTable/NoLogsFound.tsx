@@ -1,3 +1,4 @@
+import { LinkButton } from '@components/LinkButton'
 import { Box, Callout, Text } from '@highlight-run/ui'
 import React from 'react'
 
@@ -10,12 +11,20 @@ const NoLogsFound = () => {
 					flexDirection="column"
 					gap="16"
 					alignItems="flex-start"
-					mb="6"
 				>
 					<Text color="moderate">
 						Try using a more generic search query or removing
 						filters.
 					</Text>
+
+					<LinkButton
+						trackingId="logs-empty-state_specification-docs"
+						kind="secondary"
+						to="https://highlight.io/docs/general/product-features/logging/log-search"
+						target="_blank"
+					>
+						Log search specification
+					</LinkButton>
 				</Box>
 			</Callout>
 		</Box>

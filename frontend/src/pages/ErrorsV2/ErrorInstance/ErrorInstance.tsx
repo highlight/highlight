@@ -12,10 +12,11 @@ import {
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
-import type {
+import {
 	ErrorInstance as ErrorInstanceType,
 	ErrorObject,
 	Maybe,
+	ReservedLogKey,
 } from '@graph/schemas'
 import {
 	Box,
@@ -38,6 +39,7 @@ import {
 	RightPanelView,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import {
@@ -53,7 +55,7 @@ import { buildQueryURLString } from '@util/url/params'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useNavigate } from 'react-router-dom'
+import { createSearchParams, useNavigate } from 'react-router-dom'
 
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
@@ -65,6 +67,41 @@ const METADATA_LABELS: { [key: string]: string } = {
 	url: 'URL',
 	id: 'ID',
 } as const
+
+const getLogsLink = (errorObject: ErrorObject): string => {
+	const queryParams: LogsSearchParam[] = []
+	let offsetStart = 1
+	if (errorObject.session?.secure_id) {
+		queryParams.push({
+			key: ReservedLogKey.SecureSessionId,
+			operator: DEFAULT_LOGS_OPERATOR,
+			value: errorObject.session?.secure_id,
+			offsetStart: offsetStart++,
+		})
+	}
+	if (errorObject.trace_id) {
+		queryParams.push({
+			key: ReservedLogKey.TraceId,
+			operator: DEFAULT_LOGS_OPERATOR,
+			value: errorObject.trace_id,
+			offsetStart: offsetStart++,
+		})
+	}
+	const query = stringifyLogsQuery(queryParams)
+	const logCursor = errorObject.log_cursor
+	const params = createSearchParams({
+		query,
+		start_date: moment(errorObject.timestamp)
+			.add(-5, 'minutes')
+			.toISOString(),
+		end_date: moment(errorObject.timestamp).add(5, 'minutes').toISOString(),
+	})
+	if (logCursor) {
+		return `/${errorObject.project_id}/logs/${logCursor}?${params}`
+	} else {
+		return `/${errorObject.project_id}/logs?${params}`
+	}
+}
 
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { error_object_id, error_secure_id } = useParams<{
@@ -308,6 +345,23 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						>
 							<KeyboardShortcut label="Next" shortcut="]" />
 						</Tooltip>
+						<LinkButton
+							kind="primary"
+							emphasis="high"
+							to={getLogsLink(errorObject)}
+							disabled={!isLoggedIn || !errorObject.session}
+							trackingId="logs-related_session_link"
+						>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidViewList />
+								Show logs
+							</Box>
+						</LinkButton>
 						<Button
 							kind="primary"
 							emphasis="high"
@@ -371,7 +425,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 								navigate(
 									`/${projectId}/sessions/${errorObject.session?.secure_id}` +
-										`?tsAbs=${errorObject.timestamp}`,
+										`?${PlayerSearchParameters.tsAbs}=${errorObject.timestamp}`,
 								)
 								setShowLeftPanel(false)
 								setShowRightPanel(true)

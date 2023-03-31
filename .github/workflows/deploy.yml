@@ -26,10 +26,6 @@ jobs:
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
-            - name: Run Stoat Action
-              uses: stoat-dev/stoat-action@v0
-              if: always()
-
     deploy-session-delete-lambdas:
         needs: migrate-database
         runs-on: ubuntu-latest
@@ -116,10 +112,6 @@ jobs:
                   function_name: sendEmail
                   zip_file: backend/sendEmail.zip
 
-            - name: Run Stoat Action
-              uses: stoat-dev/stoat-action@v0
-              if: always()
-
     deploy-digest-lambdas:
         needs: migrate-database
         runs-on: ubuntu-latest
@@ -181,10 +173,6 @@ jobs:
                   aws_region: us-east-2
                   function_name: sendDigestEmails
                   zip_file: backend/sendDigestEmails.zip
-
-            - name: Run Stoat Action
-              uses: stoat-dev/stoat-action@v0
-              if: always()
 
     deploy_backend:
         needs: migrate-database
@@ -283,10 +271,6 @@ jobs:
                   service: public-worker-service
                   cluster: highlight-production-cluster
 
-            - name: Run Stoat Action
-              uses: stoat-dev/stoat-action@v0
-              if: always()
-
     deploy_opentelemetry_collector:
         runs-on: buildjet-2vcpu-ubuntu-2204-arm
         steps:
@@ -336,7 +320,3 @@ jobs:
                   task-definition: ${{ steps.image-opentelemetry-collector.outputs.task-definition }}
                   service: opentelemetry-collector-service
                   cluster: highlight-production-cluster
-
-            - name: Run Stoat Action
-              uses: stoat-dev/stoat-action@v0
-              if: always()
