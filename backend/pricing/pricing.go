@@ -71,7 +71,7 @@ func GetWorkspaceErrorsMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 	var meter int64
 	if err := DB.Raw(`
 			SELECT COALESCE(SUM(count), 0) as currentPeriodErrorsCount
-			FROM daily_error_counts_view
+			FROM daily_error_counts
 			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=? AND free_tier = false)
 			AND date >= (
 				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
