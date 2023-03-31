@@ -1318,6 +1318,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 			WHERE excluded <> true
 			AND (active_length >= 1000 OR (active_length is null and length >= 1000))
 			AND processed = true
+			AND created_at > now() - interval '3 months'
 			GROUP BY 1, 2;
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating daily_session_counts_view")
@@ -1340,6 +1341,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		CREATE MATERIALIZED VIEW IF NOT EXISTS daily_error_counts_view AS
 			SELECT project_id, DATE_TRUNC('day', created_at, 'UTC') as date, COUNT(*) as count
 			FROM error_objects
+			WHERE created_at > now() - interval '3 months'
 			GROUP BY 1, 2;
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating daily_error_counts_view")
