@@ -8,6 +8,7 @@
 		"next-dev": "next dev",
 		"lint": "next lint",
 		"prepare": "husky install",
+		"prepublish": "npm run build",
 		"start": "next start",
 		"styles": "yarn typed-scss-modules ./ --watch --ignore '**/node_modules'",
 		"typegen": "tsc"
