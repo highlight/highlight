@@ -6,9 +6,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type GraphqlTracer interface {
@@ -61,7 +61,7 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 		attribute.String(SourceAttribute, "InterceptField"),
 		semconv.GraphqlOperationNameKey.String(name),
 	)
-	t.log(ctx, res, err)
+	t.log(ctx, span, err)
 	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
@@ -98,22 +98,21 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	return resp
 }
 
-func (t Tracer) log(ctx context.Context, res interface{}, err error) {
+func (t Tracer) log(ctx context.Context, span trace.Span, err error) {
 	if !t.requestFieldLogging {
 		return
 	}
 	fc := graphql.GetFieldContext(ctx)
 	oc := graphql.GetOperationContext(ctx)
-	lg := logrus.WithContext(ctx).
-		WithField(string(semconv.GraphqlOperationTypeKey), oc.OperationName).
-		WithField(string(semconv.GraphqlOperationNameKey), oc.Operation.Name).
-		WithField(string(semconv.GraphqlDocumentKey), fc.Field.Name).
-		WithField("result", res).
-		WithField("graphql.graph", t.graphName)
-
+	attrs := []attribute.KeyValue{
+		semconv.GraphqlOperationTypeKey.String(fc.Object),
+		semconv.GraphqlOperationNameKey.String(oc.Operation.Name),
+		semconv.GraphqlDocumentKey.String(fc.Field.Name),
+		attribute.Bool("ok", err == nil),
+		attribute.String("graphql.graph", t.graphName),
+	}
+	span.AddEvent(LogEvent, trace.WithAttributes(attrs...))
 	if err != nil {
-		lg.WithError(err).Errorf("graphql field error")
-	} else {
-		lg.Info("graphql field ok")
+		RecordSpanError(span, err, attrs...)
 	}
 }
