@@ -3,6 +3,10 @@ title: Changelog 17 (03/31)
 slug: changelog-17
 ---
 
+## New setup page just dropped!
+https://app.highlight.io/setup
+
+
 ## Ability to turn off session caching for high-memory playback.
 
 https://github.com/highlight/highlight/pull/4758
