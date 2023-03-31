@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
@@ -98,13 +99,14 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	return resp
 }
 
-func (t Tracer) log(ctx context.Context, span trace.Span, err error) {
+func (t Tracer) log(ctx context.Context, span trace.Span, errs gqlerror.List) {
 	if !t.requestFieldLogging {
 		return
 	}
 	oc := graphql.GetOperationContext(ctx)
+	err := errs.Error()
 	lvl := "trace"
-	if err != nil {
+	if err != "" {
 		lvl = "error"
 	}
 	attrs := []attribute.KeyValue{
@@ -115,11 +117,11 @@ func (t Tracer) log(ctx context.Context, span trace.Span, err error) {
 		attribute.String(LogMessageAttribute, fmt.Sprintf("graphql.operation.%s", oc.Operation.Name)),
 		attribute.String(LogSeverityAttribute, lvl),
 	}
-	if err != nil {
-		attrs = append(attrs, attribute.String("graphql.error", err.Error()))
+	if err != "" {
+		attrs = append(attrs, attribute.String("graphql.error", err))
 	}
 	span.AddEvent(LogEvent, trace.WithAttributes(attrs...))
-	if err != nil {
-		RecordSpanError(span, err, attrs...)
+	if err != "" {
+		RecordSpanError(span, errs, attrs...)
 	}
 }
