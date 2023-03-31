@@ -7006,7 +7006,7 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 }
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string, direction *modelInputs.LogDirection) (*modelInputs.LogsConnection, error) {
+func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string) (*modelInputs.LogsConnection, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -7016,7 +7016,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 		After:  after,
 		Before: before,
 		At:     at,
-	}, direction)
+	})
 }
 
 // LogsTotalCount is the resolver for the logs_total_count field.

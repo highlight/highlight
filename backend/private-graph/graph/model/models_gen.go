@@ -403,6 +403,7 @@ type LogsHistogramBucketCount struct {
 type LogsParamsInput struct {
 	Query     string                  `json:"query"`
 	DateRange *DateRangeRequiredInput `json:"date_range"`
+	Direction LogDirection            `json:"direction"`
 }
 
 type MetricPreview struct {

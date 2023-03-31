@@ -652,6 +652,7 @@ input ErrorGroupFrequenciesParamsInput {
 input LogsParamsInput {
 	query: String!
 	date_range: DateRangeRequiredInput!
+	direction: LogDirection!
 }
 
 enum MetricTagFilterOp {
@@ -1517,7 +1518,6 @@ type Query {
 		after: String
 		before: String
 		at: String
-		direction: LogDirection
 	): LogsConnection!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!

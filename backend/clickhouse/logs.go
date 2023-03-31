@@ -56,7 +56,7 @@ type Pagination struct {
 	CountOnly bool
 }
 
-func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, pagination Pagination, direction *modelInputs.LogDirection) (*modelInputs.LogsConnection, error) {
+func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*modelInputs.LogsConnection, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
@@ -64,7 +64,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 
 	orderForward := OrderForwardNatural
 	orderBackward := OrderBackwardNatural
-	if *direction == modelInputs.LogDirectionAsc {
+	if params.Direction == modelInputs.LogDirectionAsc {
 		orderForward = OrderForwardInverted
 		orderBackward = OrderBackwardInverted
 	}

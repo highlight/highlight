@@ -759,7 +759,7 @@ type ComplexityRoot struct {
 		JoinableWorkspaces           func(childComplexity int) int
 		LinearTeams                  func(childComplexity int, projectID int) int
 		LiveUsersCount               func(childComplexity int, projectID int) int
-		Logs                         func(childComplexity int, projectID int, params model.LogsParamsInput, after *string, before *string, at *string, direction *model.LogDirection) int
+		Logs                         func(childComplexity int, projectID int, params model.LogsParamsInput, after *string, before *string, at *string) int
 		LogsErrorObjects             func(childComplexity int, logCursors []string) int
 		LogsHistogram                func(childComplexity int, projectID int, params model.LogsParamsInput) int
 		LogsIntegration              func(childComplexity int, projectID int) int
@@ -1386,7 +1386,7 @@ type QueryResolver interface {
 	SourcemapVersions(ctx context.Context, projectID int) ([]string, error)
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
-	Logs(ctx context.Context, projectID int, params model.LogsParamsInput, after *string, before *string, at *string, direction *model.LogDirection) (*model.LogsConnection, error)
+	Logs(ctx context.Context, projectID int, params model.LogsParamsInput, after *string, before *string, at *string) (*model.LogsConnection, error)
 	LogsTotalCount(ctx context.Context, projectID int, params model.LogsParamsInput) (uint64, error)
 	LogsHistogram(ctx context.Context, projectID int, params model.LogsParamsInput) (*model.LogsHistogram, error)
 	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput) ([]*model.LogKey, error)
@@ -5504,7 +5504,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Logs(childComplexity, args["project_id"].(int), args["params"].(model.LogsParamsInput), args["after"].(*string), args["before"].(*string), args["at"].(*string), args["direction"].(*model.LogDirection)), true
+		return e.complexity.Query.Logs(childComplexity, args["project_id"].(int), args["params"].(model.LogsParamsInput), args["after"].(*string), args["before"].(*string), args["at"].(*string)), true
 
 	case "Query.logs_error_objects":
 		if e.complexity.Query.LogsErrorObjects == nil {
@@ -8541,6 +8541,7 @@ input ErrorGroupFrequenciesParamsInput {
 input LogsParamsInput {
 	query: String!
 	date_range: DateRangeRequiredInput!
+	direction: LogDirection!
 }
 
 enum MetricTagFilterOp {
@@ -9406,7 +9407,6 @@ type Query {
 		after: String
 		before: String
 		at: String
-		direction: LogDirection
 	): LogsConnection!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
@@ -13704,15 +13704,6 @@ func (ec *executionContext) field_Query_logs_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["at"] = arg4
-	var arg5 *model.LogDirection
-	if tmp, ok := rawArgs["direction"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
-		arg5, err = ec.unmarshalOLogDirection2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogDirection(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["direction"] = arg5
 	return args, nil
 }
 
@@ -43480,7 +43471,7 @@ func (ec *executionContext) _Query_logs(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Logs(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.LogsParamsInput), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["at"].(*string), fc.Args["direction"].(*model.LogDirection))
+		return ec.resolvers.Query().Logs(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.LogsParamsInput), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["at"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -56502,7 +56493,7 @@ func (ec *executionContext) unmarshalInputLogsParamsInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"query", "date_range"}
+	fieldsInOrder := [...]string{"query", "date_range", "direction"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -56522,6 +56513,14 @@ func (ec *executionContext) unmarshalInputLogsParamsInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
 			it.DateRange, err = ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "direction":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			it.Direction, err = ec.unmarshalNLogDirection2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogDirection(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -68824,6 +68823,16 @@ func (ec *executionContext) marshalNLog2ᚖgithubᚗcomᚋhighlightᚑrunᚋhigh
 	return ec._Log(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNLogDirection2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogDirection(ctx context.Context, v interface{}) (model.LogDirection, error) {
+	var res model.LogDirection
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNLogDirection2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogDirection(ctx context.Context, sel ast.SelectionSet, v model.LogDirection) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNLogEdge2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.LogEdge) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -71896,22 +71905,6 @@ func (ec *executionContext) marshalOLinearTeam2ᚕᚖgithubᚗcomᚋhighlightᚑ
 	}
 
 	return ret
-}
-
-func (ec *executionContext) unmarshalOLogDirection2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogDirection(ctx context.Context, v interface{}) (*model.LogDirection, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(model.LogDirection)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOLogDirection2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogDirection(ctx context.Context, sel ast.SelectionSet, v *model.LogDirection) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) marshalOLogsConnection2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsConnection(ctx context.Context, sel ast.SelectionSet, v *model.LogsConnection) graphql.Marshaler {
