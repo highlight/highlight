@@ -28,7 +28,8 @@
 			"@graph/*": ["./graph/generated/*"],
 			"@authentication/*": ["./authentication/*"],
 			"@context/*": ["./context/*"],
-			"@lottie/*": ["./lottie/*"]
+			"@lottie/*": ["./lottie/*"],
+			"@highlight.io/*": ["../highlight.io/*"]
 		}
 	},
 	"exclude": ["**/node_modules/**", "**/build/**"],
