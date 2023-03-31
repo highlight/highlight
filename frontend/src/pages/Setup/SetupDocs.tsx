@@ -12,10 +12,7 @@ import { Header } from '@pages/Setup/Header'
 import { IntegrationBar } from '@pages/Setup/IntegrationBar'
 import analytics from '@util/analytics'
 import clsx from 'clsx'
-import {
-	QuickStartContent,
-	quickStartContent,
-} from 'highlight.io/components/QuickStartContent/QuickstartContent'
+import { QuickStartContent, quickStartContent } from 'highlight.io'
 import * as React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useMatch } from 'react-router-dom'

@@ -2,6 +2,8 @@
 	"name": "highlight.io",
 	"version": "0.1.0",
 	"private": true,
+	"main": "./index.ts",
+	"types": "./index.ts",
 	"scripts": {
 		"build": "next build",
 		"dev": "run-p next-dev styles",
@@ -9,8 +11,7 @@
 		"lint": "next lint",
 		"prepare": "husky install",
 		"start": "next start",
-		"styles": "yarn typed-scss-modules ./ --watch --ignore '**/node_modules'",
-		"typegen": "tsc"
+		"styles": "yarn typed-scss-modules ./ --watch --ignore '**/node_modules'"
 	},
 	"dependencies": {
 		"@docsearch/css": "3",

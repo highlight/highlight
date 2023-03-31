@@ -15,11 +15,9 @@
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"jsx": "preserve",
-		"declaration": true,
-		"declarationDir": "dist",
-		"emitDeclarationOnly": true,
-		"noEmit": false
+		"composite": true,
+		"noEmit": true
 	},
 	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-	"exclude": ["node_modules"]
+	"exclude": ["node_modules", "dist", ".next"]
 }

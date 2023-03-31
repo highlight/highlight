@@ -7,7 +7,7 @@ import {
 	QuickStartContent,
 	quickStartContent,
 	QuickStartOptions,
-} from 'highlight.io/components/QuickStartContent/QuickstartContent'
+} from 'highlight.io'
 import * as React from 'react'
 import { Navigate, useLocation, useMatch } from 'react-router-dom'
 
