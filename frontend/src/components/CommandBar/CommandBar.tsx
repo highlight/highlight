@@ -150,7 +150,12 @@ const SearchBar = () => {
 					width="full"
 				>
 					<IconSolidSearch size={16} className={styles.searchIcon} />
-					<Box display="flex" gap="6" width="full">
+					<Box
+						display="flex"
+						gap="6"
+						width="full"
+						alignItems="center"
+					>
 						<Form.Input
 							name={form.names.search}
 							placeholder="Search..."

@@ -522,11 +522,14 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 	}
 
 	for key, value := range filters.attributes {
-		column := fmt.Sprintf("LogAttributes['%s']", key)
 		if strings.Contains(value, "%") {
-			sb.Where(sb.Like(column, value))
+			sb.Where(
+				sb.Var(sqlbuilder.Buildf("LogAttributes[%s] LIKE %s", key, value)),
+			)
 		} else {
-			sb.Where(sb.Equal(column, value))
+			sb.Where(
+				sb.Var(sqlbuilder.Buildf("LogAttributes[%s] = %s", key, value)),
+			)
 		}
 	}
 

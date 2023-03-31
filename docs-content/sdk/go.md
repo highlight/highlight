@@ -156,3 +156,23 @@ Use this if you are using the raw http server package and need to setup the High
     </code>
   </div>
 </section>
+
+<section className="section">
+  <div className="left">
+    <h3>H.NewGraphqlTracer()</h3> 
+    <p>An http middleware for tracing graphql servers.</p>
+    <h6>Configuration</h6>
+    <aside className="parameter">
+      <h5>H.NewGraphqlTracer().WithRequestFieldLogging()</h5>
+      <p>Emits highlight logs with details of each graphql operation.</p>
+    </aside>
+  </div>
+  <div className="right">
+    <code>
+        // InterceptField traces each graphql field response
+        func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (interface{}, error) { ... }
+        // InterceptResponse encapsulates the entire graphql request
+        func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response { ... }
+    </code>
+  </div>
+</section>

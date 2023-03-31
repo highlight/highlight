@@ -24,7 +24,7 @@ func main() {
 	app.Use(highlightFiber.Middleware())
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		logrus.WithContext(c.UserContext()).Infof("hello from highlight.io")
+		logrus.WithContext(c.Context()).Infof("hello from highlight.io")
 		if rand.Float64() < 0.2 {
 			return e.New("random error from go fiber!")
 		}
