@@ -52,11 +52,12 @@ export const LogsTable = (props: Props) => {
 	if (props.error) {
 		return (
 			<FullScreenContainer>
-				<Box style={{ minWidth: 300 }}>
+				<Box m="auto" style={{ maxWidth: 300 }}>
 					<Callout title="Failed to load logs" kind="error">
 						<Box mb="6">
 							<Text color="moderate">
-								{props.error.message.toString()}
+								There was an error loading your logs. Reach out
+								to us if this might be a bug.
 							</Text>
 						</Box>
 						<Stack direction="row">
