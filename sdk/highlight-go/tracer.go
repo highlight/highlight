@@ -61,7 +61,7 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 		attribute.String(SourceAttribute, "InterceptField"),
 		semconv.GraphqlOperationNameKey.String(name),
 	)
-	t.logTrace(ctx, fc, res, err)
+	t.logTrace(ctx, res, err)
 	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
@@ -98,20 +98,22 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	return resp
 }
 
-func (t Tracer) logTrace(ctx context.Context, fc *graphql.FieldContext, res interface{}, err error) {
+func (t Tracer) logTrace(ctx context.Context, res interface{}, err error) {
 	if !t.requestFieldLogging {
 		return
 	}
+	fc := graphql.GetFieldContext(ctx)
+	oc := graphql.GetOperationContext(ctx)
 	lg := logrus.WithContext(ctx).
-		WithField(string(semconv.GraphqlOperationTypeKey), fc.Field.Definition.Type.String()).
-		WithField(string(semconv.GraphqlOperationNameKey), fmt.Sprintf("operation.field.%s", fc.Field.Name)).
+		WithField(string(semconv.GraphqlOperationTypeKey), oc.OperationName).
+		WithField(string(semconv.GraphqlOperationNameKey), oc.Operation.Name).
 		WithField(string(semconv.GraphqlDocumentKey), fc.Field.Name).
 		WithField("result", res).
 		WithField("graphql.graph", t.graphName)
 
 	if err != nil {
-		lg.WithError(err).Errorf("graphql field failed %+v: %+v", res, err)
+		lg.WithError(err).Errorf("graphql field error %+v: %+v", res, err)
 	} else {
-		lg.Infof("graphql field ok %+v", res)
+		lg.Debug("graphql field ok")
 	}
 }
