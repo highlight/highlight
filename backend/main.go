@@ -461,7 +461,7 @@ func main() {
 			})
 
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
-			privateServer.Use(H.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging(true))
+			privateServer.Use(H.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
 			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			privateServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/",

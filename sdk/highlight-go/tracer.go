@@ -15,7 +15,7 @@ type GraphqlTracer interface {
 	graphql.HandlerExtension
 	graphql.ResponseInterceptor
 	graphql.FieldInterceptor
-	WithRequestFieldLogging(enabled bool) GraphqlTracer
+	WithRequestFieldLogging() GraphqlTracer
 }
 
 type Tracer struct {
@@ -28,8 +28,8 @@ func NewGraphqlTracer(graphName string) GraphqlTracer {
 }
 
 // WithRequestFieldLogging configures the tracer to log each graphql operation.
-func (t Tracer) WithRequestFieldLogging(enabled bool) GraphqlTracer {
-	t.requestFieldLogging = enabled
+func (t Tracer) WithRequestFieldLogging() GraphqlTracer {
+	t.requestFieldLogging = true
 	return t
 }
 
@@ -104,12 +104,18 @@ func (t Tracer) log(ctx context.Context, span trace.Span, err error) {
 	}
 	fc := graphql.GetFieldContext(ctx)
 	oc := graphql.GetOperationContext(ctx)
+	lvl := "trace"
+	if err != nil {
+		lvl = "error"
+	}
 	attrs := []attribute.KeyValue{
 		semconv.GraphqlOperationTypeKey.String(fc.Object),
 		semconv.GraphqlOperationNameKey.String(oc.Operation.Name),
 		semconv.GraphqlDocumentKey.String(fc.Field.Name),
 		attribute.Bool("ok", err == nil),
 		attribute.String("graphql.graph", t.graphName),
+		attribute.String(LogMessageAttribute, fmt.Sprintf("graphql.operation.%s", oc.Operation.Name)),
+		attribute.String(LogSeverityAttribute, lvl),
 	}
 	span.AddEvent(LogEvent, trace.WithAttributes(attrs...))
 	if err != nil {
