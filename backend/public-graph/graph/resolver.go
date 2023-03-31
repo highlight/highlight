@@ -2283,38 +2283,11 @@ func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorOb
 	return errorFields
 }
 
-func (r *Resolver) updateErrorsCount(ctx context.Context, errorsByProject map[int]int64, errorsBySession map[string]int64, errors int, errorType string) {
+func (r *Resolver) updateErrorsCount(ctx context.Context, errorsBySession map[string]int64, errors int, errorType string) {
 	dailyErrorCountSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.updateDailyErrorCounts"))
 	dailyErrorCountSpan.SetTag("numberOfErrors", errors)
-	dailyErrorCountSpan.SetTag("numberOfProjects", len(errorsByProject))
 	dailyErrorCountSpan.SetTag("numberOfSessions", len(errorsBySession))
 	defer dailyErrorCountSpan.Finish()
-
-	// For each project, increment daily error count by the current error count
-	n := time.Now()
-	currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-
-	dailyErrorCounts := make([]*model.DailyErrorCount, 0)
-	for projectId, count := range errorsByProject {
-		errorCount := model.DailyErrorCount{
-			ProjectID: projectId,
-			Date:      &currentDate,
-			Count:     count,
-			ErrorType: errorType,
-		}
-		dailyErrorCounts = append(dailyErrorCounts, &errorCount)
-	}
-
-	// Upsert error counts into daily_error_counts
-	if err := r.DB.Table(model.DAILY_ERROR_COUNTS_TBL).Clauses(clause.OnConflict{
-		OnConstraint: model.DAILY_ERROR_COUNTS_UNIQ,
-		DoUpdates:    clause.Assignments(map[string]interface{}{"count": gorm.Expr("daily_error_counts.count + excluded.count")}),
-	}).Create(&dailyErrorCounts).Error; err != nil {
-		wrapped := e.Wrap(err, "error updating daily error count")
-		dailyErrorCountSpan.Finish(tracer.WithError(wrapped))
-		log.WithContext(ctx).Error(wrapped)
-		return
-	}
 
 	for sessionSecureId, count := range errorsBySession {
 		if err := r.PushMetricsImpl(context.Background(), sessionSecureId, []*publicModel.MetricInput{
@@ -2388,16 +2361,14 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	}
 
 	// Count the number of errors for each project
-	errorsByProject := make(map[int]int64)
 	errorsBySession := make(map[string]int64)
 	for _, err := range errorObjects {
 		if err.SessionSecureID != nil {
 			errorsBySession[*err.SessionSecureID] += 1
 		}
-		errorsByProject[projectID] += 1
 	}
 
-	r.updateErrorsCount(ctx, errorsByProject, errorsBySession, len(errorObjects), model.ErrorType.BACKEND)
+	r.updateErrorsCount(ctx, errorsBySession, len(errorObjects), model.ErrorType.BACKEND)
 
 	// put errors in db
 	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
@@ -2884,7 +2855,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		// increment daily error table
 		numErrors := int64(len(errors))
 		if numErrors > 0 {
-			r.updateErrorsCount(ctx, map[int]int64{projectID: numErrors}, map[string]int64{sessionSecureID: numErrors}, len(errors), model.ErrorType.FRONTEND)
+			r.updateErrorsCount(ctx, map[string]int64{sessionSecureID: numErrors}, len(errors), model.ErrorType.FRONTEND)
 		}
 
 		// put errors in db
