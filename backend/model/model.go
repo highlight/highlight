@@ -763,8 +763,6 @@ type DailySessionCount struct {
 
 const (
 	SESSIONS_TBL                    = "sessions"
-	DAILY_ERROR_COUNTS_TBL          = "daily_error_counts"
-	DAILY_ERROR_COUNTS_UNIQ         = "date_project_id_error_type_uniq"
 	METRIC_GROUPS_NAME_SESSION_UNIQ = "metric_groups_name_session_uniq"
 	DASHBOARD_METRIC_FILTERS_UNIQ   = "dashboard_metric_filters_uniq"
 )
@@ -1315,23 +1313,6 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error migrating db")
 	}
 
-	// Add unique constraint to daily_error_counts
-	if err := DB.Exec(`
-		DO $$
-			BEGIN
-				BEGIN
-					ALTER TABLE daily_error_counts
-					ADD CONSTRAINT date_project_id_error_type_uniq
-						UNIQUE (date, project_id, error_type);
-				EXCEPTION
-					WHEN duplicate_table
-					THEN RAISE NOTICE 'daily_error_counts.date_project_id_error_type_uniq already exists';
-				END;
-			END $$;
-	`).Error; err != nil {
-		return false, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
-	}
-
 	// Drop the null constraint on error_fingerprints.error_group_id
 	// This is necessary for replacing the error_groups.fingerprints association through GORM
 	// (not sure if this is a GORM bug or due to our GORM / Postgres version)
@@ -1356,6 +1337,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 			WHERE excluded <> true
 			AND (active_length >= 1000 OR (active_length is null and length >= 1000))
 			AND processed = true
+			AND created_at > now() - interval '3 months'
 			GROUP BY 1, 2;
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating daily_session_counts_view")
@@ -1372,6 +1354,29 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		END $$;
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
+	}
+
+	if err := DB.Exec(`
+		CREATE MATERIALIZED VIEW IF NOT EXISTS daily_error_counts_view AS
+			SELECT project_id, DATE_TRUNC('day', created_at, 'UTC') as date, COUNT(*) as count
+			FROM error_objects
+			WHERE created_at > now() - interval '3 months'
+			GROUP BY 1, 2;
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error creating daily_error_counts_view")
+	}
+
+	if err := DB.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS
+				(select * from pg_indexes where indexname = 'idx_daily_error_counts_view_project_id_date')
+			THEN
+				CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_error_counts_view_project_id_date ON daily_error_counts_view (project_id, date);
+			END IF;
+		END $$;
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error creating idx_daily_error_counts_view_project_id_date")
 	}
 
 	// Create unique conditional index for billing email history
