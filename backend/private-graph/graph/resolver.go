@@ -1473,16 +1473,23 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error retrieving workspace for customer %s", stripeCustomerID)
 	}
 
+	updates := map[string]interface{}{
+		"PlanTier":           string(tier),
+		"UnlimitedMembers":   unlimitedMembers,
+		"BillingPeriodStart": billingPeriodStart,
+		"BillingPeriodEnd":   billingPeriodEnd,
+		"NextInvoiceDate":    nextInvoiceDate,
+	}
+
+	// Only update retention period if already set
+	// This preserves `nil` values for customers grandfathered into 6 month retention
+	if workspace.RetentionPeriod != nil {
+		updates["RetentionPeriod"] = retentionPeriod
+	}
+
 	if err := r.DB.Model(&model.Workspace{}).
 		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
-		Updates(map[string]interface{}{
-			"PlanTier":           string(tier),
-			"UnlimitedMembers":   unlimitedMembers,
-			"BillingPeriodStart": billingPeriodStart,
-			"BillingPeriodEnd":   billingPeriodEnd,
-			"NextInvoiceDate":    nextInvoiceDate,
-			"RetentionPeriod":    retentionPeriod,
-		}).Error; err != nil {
+		Updates(updates).Error; err != nil {
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
 	}
 
