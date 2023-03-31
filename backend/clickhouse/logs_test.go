@@ -1149,3 +1149,37 @@ func TestExpandJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestBadInput(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+
+	testcases := []string{"\"asdf': asdf\""}
+
+	for _, userInput := range testcases {
+		_, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+			DateRange: makeDateWithinRange(now),
+			Query:     userInput,
+		}, Pagination{})
+		assert.NoError(t, err)
+	}
+}
+
+func FuzzReadLogs(f *testing.F) {
+	ctx := context.Background()
+	client, teardown := setupTest(f)
+	defer teardown(f)
+
+	now := time.Now()
+
+	f.Fuzz(func(t *testing.T, userInput string) {
+		_, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+			DateRange: makeDateWithinRange(now),
+			Query:     userInput,
+		}, Pagination{})
+		assert.NoError(t, err)
+	})
+}
