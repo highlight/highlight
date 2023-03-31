@@ -9,8 +9,7 @@
 		"lint": "next lint",
 		"prepare": "husky install",
 		"start": "next start",
-		"styles": "yarn typed-scss-modules ./ --watch --ignore '**/node_modules'",
-		"typegen": "tsc"
+		"styles": "yarn typed-scss-modules ./ --watch --ignore '**/node_modules'"
 	},
 	"dependencies": {
 		"@docsearch/css": "3",
