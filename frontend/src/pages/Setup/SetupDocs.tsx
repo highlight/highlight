@@ -16,7 +16,10 @@ import * as React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useMatch } from 'react-router-dom'
 
-import { quickStartContent } from '../../../../highlight.io/components/QuickStartContent/QuickstartContent'
+import {
+	QuickStartContent,
+	quickStartContent,
+} from '../../../../highlight.io/components/QuickStartContent/QuickstartContent'
 import * as styles from './SetupDocs.css'
 
 export type OptionListItem = {
@@ -37,8 +40,9 @@ export const SetupDocs: React.FC<Props> = ({
 }) => {
 	const match = useMatch('/:project_id/setup/:area/:language/:framework')
 	const { area, framework, language } = match!.params
-	// TODO: Types
-	const guide = (quickStartContent as any)[area!][language!][framework!]
+	const guide = (quickStartContent as any)[area!][language!][
+		framework!
+	] as QuickStartContent
 
 	return (
 		<Box>

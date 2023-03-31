@@ -6,7 +6,11 @@ import { IntegrationBar } from '@pages/Setup/IntegrationBar'
 import * as React from 'react'
 import { Navigate, useLocation, useMatch } from 'react-router-dom'
 
-import { quickStartContent } from '../../../../highlight.io/components/QuickStartContent/QuickstartContent'
+import {
+	QuickStartContent,
+	quickStartContent,
+	QuickStartOptions,
+} from '../../../../highlight.io/components/QuickStartContent/QuickstartContent'
 
 export type OptionListItem = {
 	name: string
@@ -25,8 +29,8 @@ export const SetupOptionsList: React.FC<Props> = ({ integrationData }) => {
 	const match = areaMatch || languageMatch
 	const { area, language } = (match?.params as any) ?? {}
 	const docsSection = language
-		? (quickStartContent as any)[area][language]
-		: (quickStartContent as any)[area]
+		? ((quickStartContent as any)[area][language] as QuickStartOptions)
+		: ((quickStartContent as any)[area] as QuickStartOptions)
 	const optionKeys = getOptionKeys(docsSection)
 
 	// Redirect if there is only one option.
@@ -41,9 +45,7 @@ export const SetupOptionsList: React.FC<Props> = ({ integrationData }) => {
 	}
 
 	const options = optionKeys.map((optionKey) => {
-		const optionDocs = docsSection[
-			optionKey as keyof typeof docsSection
-		] as any
+		const optionDocs = docsSection[optionKey]
 		const optionKeys = getOptionKeys(optionDocs)
 		const onlyOneOption = optionKeys.length === 1
 
@@ -123,7 +125,7 @@ export const SetupOptionsList: React.FC<Props> = ({ integrationData }) => {
 }
 
 const IGNORED_KEYS = ['title', 'subtitle', 'logoUrl', 'entries']
-const getOptionKeys = (docsSection: any) => {
+const getOptionKeys = (docsSection: QuickStartContent | QuickStartOptions) => {
 	const optionKeys = Object.keys(docsSection || {}).filter(
 		(k) => IGNORED_KEYS.indexOf(k) === -1,
 	)
