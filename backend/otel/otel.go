@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
+	model2 "github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -228,6 +229,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				Type: kafkaqueue.MarkBackendSetup,
 				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 					SessionSecureID: pointy.String(sessionID),
+					Type:            model2.MarkBackendSetupTypeError,
 				},
 			}, sessionID)
 			if err != nil {
@@ -263,6 +265,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					Type: kafkaqueue.MarkBackendSetup,
 					MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 						ProjectID: projectIDInt,
+						Type:      model2.MarkBackendSetupTypeError,
 					},
 				}, uuid.New().String())
 				if err != nil {
@@ -286,7 +289,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := o.submitProjectLogs(ctx, projectLogs, false); err != nil {
+	if err := o.submitProjectLogs(ctx, projectLogs); err != nil {
 		log.WithContext(ctx).Error(err, "failed to submit otel project logs")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
@@ -375,7 +378,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := o.submitProjectLogs(ctx, projectLogs, true); err != nil {
+	if err := o.submitProjectLogs(ctx, projectLogs); err != nil {
 		log.WithContext(ctx).Error(err, "failed to submit otel project logs")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
@@ -384,14 +387,22 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow, backend bool) error {
+func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow) error {
 	for projectID, logRows := range projectLogs {
-		if projectIDInt, err := clickhouse.ProjectToInt(projectID); backend && err == nil {
-			// otel logs only come from python sdk
+		var hasBackendLogs bool
+		for _, logRow := range logRows {
+			if logRow.IsBackend() {
+				hasBackendLogs = true
+				break
+			}
+		}
+
+		if projectIDInt, err := clickhouse.ProjectToInt(projectID); hasBackendLogs && err == nil {
 			err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
 				Type: kafkaqueue.MarkBackendSetup,
 				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 					ProjectID: projectIDInt,
+					Type:      model2.MarkBackendSetupTypeLogs,
 				},
 			}, uuid.New().String())
 			if err != nil {

@@ -1316,6 +1316,20 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		return nil, e.New("failed to find duplicate session: " + input.SessionSecureID)
 	}
 
+	var setupEventsCount int64
+	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeSession).Count(&setupEventsCount).Error; err != nil {
+		return nil, e.Wrap(err, "error querying setup events")
+	}
+	if setupEventsCount < 1 {
+		setupEvent := &model.SetupEvent{
+			ProjectID: projectID,
+			Type:      model.MarkBackendSetupTypeSession,
+		}
+		if err := r.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&setupEvent).Error; err != nil {
+			return nil, e.Wrap(err, "error creating setup event")
+		}
+	}
+
 	log.WithContext(ctx).WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
 
@@ -1474,7 +1488,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	return session, nil
 }
 
-func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *string, sessionSecureID *string, projectID int) error {
+func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *string, sessionSecureID *string, projectID int, setupType model.MarkBackendSetupType) error {
 	if projectID == 0 {
 		if projectVerboseID != nil {
 			var err error
@@ -1494,6 +1508,8 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 			projectID = session.ProjectID
 		}
 	}
+
+	// Update Hubspot company and projects.backend_setup
 	var backendSetupCount int64
 	if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
 		return e.Wrap(err, "error querying backend_setup flag")
@@ -1515,6 +1531,21 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 		}
 		if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
 			return e.Wrap(err, "error updating backend_setup flag")
+		}
+	}
+
+	// Create setup_events record
+	var setupEventsCount int64
+	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, setupType).Count(&setupEventsCount).Error; err != nil {
+		return e.Wrap(err, "error querying setup events")
+	}
+	if setupEventsCount < 1 {
+		setupEvent := &model.SetupEvent{
+			ProjectID: projectID,
+			Type:      setupType,
+		}
+		if err := r.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&setupEvent).Error; err != nil {
+			return e.Wrap(err, "error creating setup event")
 		}
 	}
 	return nil
