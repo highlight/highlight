@@ -1,0 +1,130 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>io.highlight</groupId>
+	<artifactId>highlight</artifactId>
+	<version>${revision}</version>
+	<packaging>pom</packaging>
+
+	<name>Highlight Java SDK</name>
+	<url>https://github.com/highlight/highlight</url>
+	<description>highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a cohesive, modern and fully-featured monitoring solution, something we wished WE had. And it's all open source :)</description>
+	<inceptionYear>2023</inceptionYear>
+
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/highlight/highlight/issues</url>
+	</issueManagement>
+
+	<properties>
+		<revision>1.0.0-b0</revision>
+
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
+
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<dependency.opentelemetry.version>1.24.0</dependency.opentelemetry.version>
+		<dependency.opentelemetry-alpha.version>1.24.0-alpha</dependency.opentelemetry-alpha.version>
+
+		<plugin.compile.version>3.10.1</plugin.compile.version>
+		<plugin.shade.version>3.4.1</plugin.shade.version>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>oss.sonatype.org-snapshot</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</repository>
+	</repositories>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.opentelemetry</groupId>
+				<artifactId>opentelemetry-bom</artifactId>
+				<version>${dependency.opentelemetry.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.opentelemetry</groupId>
+				<artifactId>opentelemetry-sdk-logs</artifactId>
+				<version>${dependency.opentelemetry-alpha.version}</version> <!-- waiting for final release -->
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.opentelemetry</groupId>
+				<artifactId>opentelemetry-exporter-otlp-logs</artifactId>
+				<version>${dependency.opentelemetry-alpha.version}</version> <!-- waiting for final release -->
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.opentelemetry</groupId>
+				<artifactId>opentelemetry-semconv</artifactId>
+				<version>${dependency.opentelemetry-alpha.version}</version> <!-- waiting for final release -->
+			</dependency>
+			<dependency>
+				<groupId>com.graphql-java</groupId>
+				<artifactId>graphql-java</artifactId>
+				<version>20.0</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.graphql-java</groupId>
+				<artifactId>graphql-java-extended-scalars</artifactId>
+				<version>20.0</version>
+				<scope>provided</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${plugin.compile.version}</version>
+				<configuration>
+					<release>17</release>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>${plugin.shade.version}</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<minimizeJar>true</minimizeJar>
+					<filters>
+						<filter>
+							<artifact>highlight:*</artifact>
+							<includes>
+								<include>*</include>
+							</includes>
+						</filter>
+					</filters>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<modules>
+		<module>highlight-sdk</module>
+		<module>highlight-log</module>
+		<module>highlight-common</module>
+	</modules>
+</project>
