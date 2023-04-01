@@ -18,6 +18,8 @@ export type Competitor = {
 	header: string
 	subheader: string
 	subHeader2: string
+	competitorInfo: string
+	highlightInfo: string
 	logo?: StaticImageData
 	sections: ComparisonTableSection[]
 }
@@ -31,6 +33,10 @@ export const COMPETITORS: { [k: string]: Competitor } = {
 			'Pixel-perfect video replay of your frontend web application. Step into the shoes of your users.',
 		subHeader2:
 			'An Open Source, Fullstack Alternative to Logrocket. Get Started for free in minutes.',
+		competitorInfo:
+			'LogRocket is a popular frontend error monitoring and session replay tool. It is a great tool for frontend developers, but it does not offer a fullstack solution.',
+		highlightInfo:
+			'Highlight is an open source, fullstack alternative to LogRocket. It is a great tool for frontend developers, and it DOES offer a fullstack solution.',
 		sections: [
 			{
 				title: 'General',

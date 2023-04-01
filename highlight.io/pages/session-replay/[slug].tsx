@@ -147,6 +147,32 @@ const CompetitorComparisonPage = ({
 						</div>
 						<CompetitorTable competitor={competitor} />
 					</Section>
+					<Section>
+						<div className="">
+							<div className="flex flex-col gap-6 mb-16">
+								<h3 className="text-left">
+									What is {competitor.name}?
+								</h3>
+								<Typography
+									type="copy1"
+									className="text-copy-on-dark text-left"
+								>
+									{competitor.competitorInfo}
+								</Typography>
+							</div>
+							<div className="flex flex-col gap-6">
+								<h3 className="text-left">
+									How is highlight.io different?
+								</h3>
+								<Typography
+									type="copy1"
+									className="text-copy-on-dark"
+								>
+									{competitor.highlightInfo}
+								</Typography>
+							</div>
+						</div>
+					</Section>
 				</div>
 
 				<OSSCallToAction />
