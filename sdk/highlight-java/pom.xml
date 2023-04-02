@@ -26,9 +26,11 @@
 
 		<dependency.opentelemetry.version>1.24.0</dependency.opentelemetry.version>
 		<dependency.opentelemetry-alpha.version>1.24.0-alpha</dependency.opentelemetry-alpha.version>
+		<dependency.junit.version>5.9.2</dependency.junit.version>
 
 		<plugin.compile.version>3.10.1</plugin.compile.version>
 		<plugin.shade.version>3.4.1</plugin.shade.version>
+		<plugin.surefire.version>3.0.0</plugin.surefire.version>
 	</properties>
 
 	<repositories>
@@ -65,16 +67,10 @@
 				<version>${dependency.opentelemetry-alpha.version}</version> <!-- waiting for final release -->
 			</dependency>
 			<dependency>
-				<groupId>com.graphql-java</groupId>
-				<artifactId>graphql-java</artifactId>
-				<version>20.0</version>
-				<scope>provided</scope>
-			</dependency>
-			<dependency>
-				<groupId>com.graphql-java</groupId>
-				<artifactId>graphql-java-extended-scalars</artifactId>
-				<version>20.0</version>
-				<scope>provided</scope>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter</artifactId>
+				<version>${dependency.junit.version}</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -87,6 +83,11 @@
 			</resource>
 		</resources>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${plugin.surefire.version}</version>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
