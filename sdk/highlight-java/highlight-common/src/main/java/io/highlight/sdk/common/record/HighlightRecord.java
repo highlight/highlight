@@ -98,6 +98,10 @@ public class HighlightRecord {
 			return this;
 		}
 
+		public Builder userSession(String sessionId) {
+			return this.userSession(() -> sessionId);
+		}
+
 		public Builder requestId(String requestId) {
 			this.requestId = requestId;
 			return this;
