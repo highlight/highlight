@@ -14,6 +14,9 @@ jobs:
     build:
         name: Run Tests
         runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./sdk/highlight-java
         steps:
             - name: Checkout Code
               uses: actions/checkout@v3
@@ -31,26 +34,23 @@ jobs:
 
             - name: Build
               run: |
-                  cd /sdk/highlight-java
                   mvn clean package --batch-mode -DskipTests -Drevision=$BUILD_VERSION
-                  mv  highlight-sdk/targat/highlight-sdk-*.jar ./
-                  mv  highlight-log-*/targat/highlight-log-*.jar ./
+                  mv ./sdk/highlight-java/highlight-sdk/targat/highlight-sdk-*.jar ./sdk/highlight-java
+                  mv ./sdk/highlight-java/highlight-log-*/targat/highlight-log-*.jar ./sdk/highlight-java
 
             - name: Publish build artifacts
               uses: actions/upload-artifact@v3
               with:
                   name: highlight-java-sdk
-                  path: /sdk/highlight-java/highlight-sdk-*.jar
+                  path: ./sdk/highlight-java/highlight-sdk-*.jar
 
             - name: Test
-              run: |
-                  cd /sdk/highlight-java
-                  mvn clean test --batch-mode -Dmaven.test.failure.ignore=true -Drevision=$BUILD_VERSION
+              run: mvn clean test --batch-mode -Dmaven.test.failure.ignore=true -Drevision=$BUILD_VERSION
 
             - name: Publish test report
               uses: mikepenz/action-junit-report@v3
               if: always()
               with:
                   name: junit-test-results
-                  path: '/sdk/highlight-java/**/target/surefire-reports/*.xml'
+                  path: './sdk/highlight-java/**/target/surefire-reports/*.xml'
                   retention-days: 1
