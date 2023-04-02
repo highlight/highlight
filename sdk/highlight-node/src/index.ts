@@ -1,6 +1,4 @@
 export { H, HIGHLIGHT_REQUEST_HEADER } from './sdk'
 export { Highlight } from './client'
 export { NodeOptions } from './types'
-export { ApolloServerHighlightPlugin } from './apollo'
-export { ApolloServerV3HighlightPlugin } from './apolloV3'
 export * as Handlers from './handlers'

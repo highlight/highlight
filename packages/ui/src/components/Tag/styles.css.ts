@@ -18,6 +18,7 @@ export const iconVariants = recipe({
 		border: 'none',
 		display: 'inline-flex',
 		justifyContent: 'center',
+		flexShrink: 0,
 	},
 
 	variants: {
@@ -41,6 +42,7 @@ export const variants = recipe({
 			display: 'inline-flex',
 			px: '4',
 			py: '2',
+			flexShrink: 0,
 		}),
 		{
 			lineHeight: '1em',
@@ -210,7 +212,8 @@ export const variants = recipe({
 				emphasis: 'medium',
 			},
 			style: {
-				backgroundColor: vars.theme.static.surface.default,
+				backgroundColor:
+					vars.theme.interactive.overlay.secondary.pressed,
 				border: vars.border.secondary,
 				boxShadow: 'none',
 				color: vars.theme.interactive.fill.secondary.content.text,

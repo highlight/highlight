@@ -3,6 +3,10 @@ package highlight
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"reflect"
+	"strings"
+
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -12,18 +16,49 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
-	"net/url"
-	"reflect"
-	"strings"
 )
 
 const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
-const SourceAttribute = "Source"
+
+const ErrorURLAttribute = "URL"
 const SourceAttributeFrontend = "SubmitFrontendConsoleMessages"
-const ProjectIDAttribute = "highlight_project_id"
-const SessionIDAttribute = "highlight_session_id"
-const RequestIDAttribute = "highlight_trace_id"
-const ErrorURLKey = "URL"
+
+const DeprecatedProjectIDAttribute = "highlight_project_id"
+const DeprecatedSessionIDAttribute = "highlight_session_id"
+const DeprecatedRequestIDAttribute = "highlight_trace_id"
+const DeprecatedSourceAttribute = "Source"
+const ProjectIDAttribute = "highlight.project_id"
+const SessionIDAttribute = "highlight.session_id"
+const RequestIDAttribute = "highlight.trace_id"
+const SourceAttribute = "highlight.source"
+
+const LogEvent = "log"
+const LogSeverityAttribute = "log.severity"
+const LogMessageAttribute = "log.message"
+
+var InternalAttributePrefixes = []string{
+	DeprecatedProjectIDAttribute,
+	DeprecatedSessionIDAttribute,
+	DeprecatedRequestIDAttribute,
+	DeprecatedSourceAttribute,
+	ProjectIDAttribute,
+	SessionIDAttribute,
+	RequestIDAttribute,
+	SourceAttribute,
+	LogMessageAttribute,
+	LogSeverityAttribute,
+	// exception should be parsed as structured and not included as part of log attributes
+	"exception.message",
+	"exception.stacktrace",
+}
+
+var BackendOnlyAttributePrefixes = []string{
+	"container.",
+	"host.",
+	"os.",
+	"process.",
+	"exception.",
+}
 
 type OTLP struct {
 	tracerProvider *sdktrace.TracerProvider
@@ -101,20 +136,6 @@ func EndTrace(span trace.Span) {
 	span.End(trace.WithStackTrace(true))
 }
 
-func RecordSpanError(span trace.Span, err error, tags ...attribute.KeyValue) {
-	if urlErr, ok := err.(*url.Error); ok {
-		span.SetAttributes(attribute.String("Op", urlErr.Op))
-		span.SetAttributes(attribute.String(ErrorURLKey, urlErr.URL))
-	}
-	span.SetAttributes(tags...)
-	// if this is an error with true stacktrace, then create the event directly since otel doesn't support saving a custom stacktrace
-	if stackErr, ok := err.(ErrorWithStack); ok {
-		RecordSpanErrorWithStack(span, stackErr)
-	} else {
-		span.RecordError(err, trace.WithStackTrace(true))
-	}
-}
-
 // RecordError processes `err` to be recorded as a part of the session or network request.
 // Highlight session and trace are inferred from the context.
 // If no sessionID is set, then the error is associated with the project without a session context.
@@ -123,6 +144,20 @@ func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) con
 	defer EndTrace(span)
 	RecordSpanError(span, err)
 	return ctx
+}
+
+func RecordSpanError(span trace.Span, err error, tags ...attribute.KeyValue) {
+	if urlErr, ok := err.(*url.Error); ok {
+		span.SetAttributes(attribute.String("Op", urlErr.Op))
+		span.SetAttributes(attribute.String(ErrorURLAttribute, urlErr.URL))
+	}
+	span.SetAttributes(tags...)
+	// if this is an error with true stacktrace, then create the event directly since otel doesn't support saving a custom stacktrace
+	if stackErr, ok := err.(ErrorWithStack); ok {
+		RecordSpanErrorWithStack(span, stackErr)
+	} else {
+		span.RecordError(err, trace.WithStackTrace(true))
+	}
 }
 
 func RecordSpanErrorWithStack(span trace.Span, err ErrorWithStack) {

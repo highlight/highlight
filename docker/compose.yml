@@ -47,10 +47,12 @@ x-backend-env: &backend-env
         - PSQL_PASSWORD
         - PSQL_PORT
         - PSQL_USER
+        - PRIVATE_GRAPH_URI
         - PUBLIC_GRAPH_URI
         - REDIS_ADDRESS
         - REDIS_EVENTS_STAGING_ENDPOINT
         - SESSION_FILE_PATH_PREFIX
+        - TZ
 
 services:
     zookeeper:
@@ -174,8 +176,7 @@ services:
             - go
             - run
             - ./migrations/main.go
-        <<: *depends-infra
-        <<: *backend-env
+        <<: [*depends-infra, *backend-env]
 
     backend-setup-elasticsearch:
         image: public.ecr.aws/k9o6n7l8/highlight
@@ -188,8 +189,7 @@ services:
             - -worker-handler=init-opensearch
         volumes:
             - highlight-data:/highlight-data
-        <<: *depends-infra
-        <<: *backend-env
+        <<: [*depends-infra, *backend-env]
 
     backend:
         container_name: backend
@@ -226,6 +226,7 @@ services:
             retries: 5
         ports:
             - 3000:3000
+            - 6006:6006
             - 8080:8080
         build:
             context: ..

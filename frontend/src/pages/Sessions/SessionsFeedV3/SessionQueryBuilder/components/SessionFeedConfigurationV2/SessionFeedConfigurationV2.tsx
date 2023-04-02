@@ -3,22 +3,23 @@ import Switch from '@components/Switch/Switch'
 import { Box, IconSolidDotsHorizontal, Menu, Text } from '@highlight-run/ui'
 import { useWindowEvent } from '@hooks/useWindowEvent'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import DeleteSessionsModal from '@pages/Sessions/SessionsFeedV2/components/DeleteSessionsModal/DeleteSessionsModal'
 import {
 	formatCount,
 	formatDatetime,
 	getSortOrderDisplayName,
-} from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration'
+} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfiguration/SessionFeedConfiguration'
 import {
 	countFormats,
 	dateTimeFormats,
 	sortOrders,
-} from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
-import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration'
+} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/context/SessionFeedConfigurationContext'
+import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/hooks/useSessionFeedConfiguration'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { isInsideElement } from '@util/dom'
 import React, { useRef, useState } from 'react'
+
+import DeleteSessionsModal from '../DeleteSessionsModal/DeleteSessionsModal'
 
 export const DropdownMenu = function ({
 	sessionCount,
@@ -83,11 +84,12 @@ export const DropdownMenu = function ({
 						alignItems="center"
 						justifyContent="space-between"
 						style={{ height: 28 }}
+						width="full"
 					>
 						<Text
 							size="small"
 							weight="medium"
-							color="secondaryText"
+							color="secondaryContentText"
 						>
 							Autoplay Sessions
 						</Text>
@@ -108,11 +110,12 @@ export const DropdownMenu = function ({
 						alignItems="center"
 						justifyContent="space-between"
 						style={{ height: 28 }}
+						width="full"
 					>
 						<Text
 							size="small"
 							weight="medium"
-							color="secondaryText"
+							color="secondaryContentText"
 						>
 							Details
 						</Text>
@@ -128,11 +131,12 @@ export const DropdownMenu = function ({
 						alignItems="center"
 						justifyContent="space-between"
 						gap="16"
+						width="full"
 					>
 						<Text
 							size="small"
 							weight="medium"
-							color="secondaryText"
+							color="secondaryContentText"
 						>
 							Order
 						</Text>
@@ -171,11 +175,12 @@ export const DropdownMenu = function ({
 						alignItems="center"
 						justifyContent="space-between"
 						gap="16"
+						width="full"
 					>
 						<Text
 							size="small"
 							weight="medium"
-							color="secondaryText"
+							color="secondaryContentText"
 						>
 							Datetime Format
 						</Text>
@@ -218,11 +223,12 @@ export const DropdownMenu = function ({
 						alignItems="center"
 						justifyContent="space-between"
 						gap="16"
+						width="full"
 					>
 						<Text
 							size="small"
 							weight="medium"
-							color="secondaryText"
+							color="secondaryContentText"
 						>
 							Count Format
 						</Text>
@@ -263,6 +269,7 @@ export const DropdownMenu = function ({
 					alignItems="center"
 					justifyContent="flex-end"
 					px="8"
+					width="full"
 				>
 					<Button
 						kind="danger"

@@ -1,6 +1,8 @@
 package gorillamux
 
 import (
+	"github.com/highlight/highlight/sdk/highlight-go/middleware"
+	"go.opentelemetry.io/otel/attribute"
 	"net/http"
 
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -13,11 +15,19 @@ import (
 // ...
 // r.Use(highlightgorilla.Middleware)
 func Middleware(next http.Handler) http.Handler {
+	middleware.CheckStatus()
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := highlight.InterceptRequest(r)
 		r = r.WithContext(ctx)
-		highlight.MarkBackendSetup(r.Context())
+
+		span, hCtx := highlight.StartTrace(ctx, "highlight/gorillamux")
+		defer highlight.EndTrace(span)
+
 		next.ServeHTTP(w, r)
+
+		highlight.MarkBackendSetup(hCtx)
+		span.SetAttributes(attribute.String(highlight.SourceAttribute, "GoGorillaMuxMiddleware"))
+		span.SetAttributes(middleware.GetRequestAttributes(r)...)
 	}
 	return http.HandlerFunc(fn)
 }

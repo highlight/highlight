@@ -1,10 +1,11 @@
 import 'antd/dist/antd.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
+import '@highlight-run/react/dist/index.css'
 import '@fontsource/poppins'
 import './index.scss'
 import './style/tailwind.css'
 
-import { ApolloError, ApolloProvider, QueryLazyOptions } from '@apollo/client'
+import { ApolloError, ApolloProvider } from '@apollo/client'
 import {
 	AuthContextProvider,
 	AuthRole,
@@ -20,6 +21,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import {
+	useCreateAdminMutation,
 	useGetAdminLazyQuery,
 	useGetAdminRoleByProjectLazyQuery,
 	useGetAdminRoleLazyQuery,
@@ -27,11 +29,12 @@ import {
 } from '@graph/hooks'
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
-import { SignUp } from '@pages/Auth/SignUp'
-import { AuthAdminRouter } from '@pages/Login/Login'
 import useLocalStorage from '@rehooks/local-storage'
+import { AppRouter } from '@routers/AppRouter/AppRouter'
+import * as Sentry from '@sentry/react'
+import { BrowserTracing } from '@sentry/tracing'
 import analytics from '@util/analytics'
-import { setAttributionData } from '@util/attribution'
+import { getAttributionData, setAttributionData } from '@util/attribution'
 import { auth } from '@util/auth'
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils'
 import { showHiringMessage } from '@util/console/hiringMessage'
@@ -41,16 +44,17 @@ import { showIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
 import React, { useEffect, useState } from 'react'
-import ReactDOM from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
-import { createRoot } from 'react-dom/client'
 
 analytics.initialize()
-const dev = import.meta.env.DEV
+const dev =
+	import.meta.env.DEV ||
+	import.meta.env.REACT_APP_FRONTEND_URI?.indexOf('localhost') !== -1
 const options: HighlightOptions = {
 	debug: { clientInteractions: true, domRecording: true },
 	manualStart: true,
@@ -69,7 +73,8 @@ const options: HighlightOptions = {
 			'session-contents-compressed',
 		],
 	},
-	tracingOrigins: ['highlight.run', 'localhost'],
+	reportConsoleErrors: false,
+	tracingOrigins: ['highlight.run', 'localhost', 'localhost:8082'],
 	integrations: {
 		amplitude: {
 			apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
@@ -91,7 +96,7 @@ const options: HighlightOptions = {
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {
 	options.scriptUrl = 'http://localhost:8080/dist/index.js'
-	options.backendUrl = 'https://localhost:8082/public'
+	options.backendUrl = import.meta.env.REACT_APP_PUBLIC_GRAPH_URI
 
 	options.integrations = undefined
 
@@ -113,9 +118,18 @@ if (dev) {
 	options.environment = 'Pull Request Preview'
 }
 H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
+analytics.track('attribution', getAttributionData())
 if (!isOnPrem) {
 	H.start()
 	showIntercom({ hideMessage: true })
+
+	if (!dev) {
+		Sentry.init({
+			dsn: 'https://e8052ada7c10490b823e0f939c519903@o4504696930631680.ingest.sentry.io/4504697059934208',
+			integrations: [new BrowserTracing()],
+			tracesSampleRate: 1.0,
+		})
+	}
 }
 
 showHiringMessage()
@@ -165,8 +179,9 @@ const App = () => {
 }
 
 const AuthenticationRoleRouter = () => {
-	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
-	const projectId = /^\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
+	const location = useLocation()
+	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(location.pathname)?.pop()
+	const projectId = /^\/(\d+)\/.*$/.exec(location.pathname)?.pop()
 
 	const [
 		getAdminWorkspaceRoleQuery,
@@ -199,27 +214,9 @@ const AuthenticationRoleRouter = () => {
 	] = useGetAdminLazyQuery()
 
 	let getAdminQuery:
-			| ((
-					workspace_id:
-						| QueryLazyOptions<
-								Partial<{
-									workspace_id: string
-									project_id: string
-								}>
-						  >
-						| undefined,
-			  ) => void)
-			| ((
-					project_id:
-						| QueryLazyOptions<
-								Partial<{
-									workspace_id: string
-									project_id: string
-								}>
-						  >
-						| undefined,
-			  ) => void)
-			| (() => void),
+			| typeof getAdminWorkspaceRoleQuery
+			| typeof getAdminProjectRoleQuery
+			| typeof getAdminSimpleQuery,
 		adminError: ApolloError | undefined,
 		adminData: Admin | undefined | null,
 		adminRole: string | undefined,
@@ -277,25 +274,35 @@ const AuthenticationRoleRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [adminData, authRole, projectId])
 
+	const [createAdminMutation, { called: createAdminCalled }] =
+		useCreateAdminMutation()
+
 	useEffect(() => {
-		const variables: Partial<{ workspace_id: string; project_id: string }> =
-			{}
-		if (workspaceId) {
-			variables.workspace_id = workspaceId
-		} else if (projectId) {
-			variables.project_id = projectId
-		}
 		const unsubscribeFirebase = auth.onAuthStateChanged(
-			(user) => {
+			async (user) => {
 				setUser(user)
 
+				const variables: any = {}
+				if (workspaceId) {
+					variables.workspace_id = workspaceId
+				} else if (projectId) {
+					variables.project_id = projectId
+				}
+
 				if (user) {
-					if (!called) {
-						getAdminQuery({
-							variables,
-						})
-					} else {
-						refetch!()
+					try {
+						// Try to create an admin if it's a new account. This can't be
+						// handled on the sign up form because this callback is triggered
+						// before the admin is created.
+						if (!user.emailVerified && !createAdminCalled) {
+							await createAdminMutation()
+						}
+					} finally {
+						if (!called) {
+							getAdminQuery({ variables })
+						} else {
+							refetch!()
+						}
 					}
 				} else {
 					setAuthRole(AuthRole.UNAUTHENTICATED)
@@ -310,9 +317,10 @@ const AuthenticationRoleRouter = () => {
 		return () => {
 			unsubscribeFirebase()
 		}
-		// we want to run this on url changes to recalculate the workspace_id and project_id
+
+		// Don't rerun this more than necessary. Rerun if the project / workspace context changes.
 		// eslint-disable-next-line
-	}, [getAdminQuery, adminData, called, refetch, workspaceId, projectId])
+	}, [getAdminQuery])
 
 	useEffect(() => {
 		// Check user exists here as well because adminData isn't cleared correctly
@@ -348,17 +356,18 @@ const AuthenticationRoleRouter = () => {
 		true,
 	)
 
+	const loggedIn = isLoggedIn(authRole)
+
 	return (
 		<AuthContextProvider
 			value={{
 				role: authRole,
-				admin: isLoggedIn(authRole)
-					? adminData ?? undefined
-					: undefined,
+				admin: loggedIn ? adminData ?? undefined : undefined,
 				workspaceRole: adminRole || undefined,
 				isAuthLoading: isAuthLoading(authRole),
-				isLoggedIn: isLoggedIn(authRole),
+				isLoggedIn: loggedIn,
 				isHighlightAdmin: isHighlightAdmin(authRole) && enableStaffView,
+				refetchAdmin: refetch,
 			}}
 		>
 			<Helmet>
@@ -375,8 +384,7 @@ const AuthenticationRoleRouter = () => {
 				/>
 			) : (
 				<Routes>
-					<Route path="sign_up" element={<SignUp />} />
-					<Route path="/*" element={<AuthAdminRouter />} />
+					<Route path="/*" element={<AppRouter />} />
 				</Routes>
 			)}
 		</AuthContextProvider>

@@ -47,7 +47,6 @@ import SessionShortcutListener from './listeners/session-shortcut/session-shortc
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener'
 import { initializeFeedbackWidget } from './ui/feedback-widget/feedback-widget'
 import { getPerformanceMethods } from './utils/performance/performance'
-import FingerprintJS, { Agent } from '@highlight-run/fingerprintjs'
 import {
 	PerformanceListener,
 	PerformancePayload,
@@ -95,6 +94,7 @@ export type HighlightClassOptions = {
 	networkRecording?: boolean | NetworkRecordingOptions
 	disableBackgroundRecording?: boolean
 	disableConsoleRecording?: boolean
+	reportConsoleErrors?: boolean
 	consoleMethodsToRecord?: ConsoleMethods[]
 	enableSegmentIntegration?: boolean
 	enableStrictPrivacy?: boolean
@@ -104,6 +104,7 @@ export type HighlightClassOptions = {
 	inlineImages?: boolean
 	inlineStylesheet?: boolean
 	isCrossOriginIframe?: boolean
+	recordCrossOriginIframe?: boolean
 	firstloadVersion?: string
 	environment?: 'development' | 'production' | 'staging' | string
 	appVersion?: string
@@ -169,7 +170,6 @@ export class Highlight {
 	manualStopped!: boolean
 	state!: 'NotRecording' | 'Recording'
 	logger!: Logger
-	fingerprintjs!: Promise<Agent>
 	enableSegmentIntegration!: boolean
 	enableStrictPrivacy!: boolean
 	enableCanvasRecording!: boolean
@@ -211,20 +211,6 @@ export class Highlight {
 		options: HighlightClassOptions,
 		firstLoadListeners?: FirstLoadListeners,
 	) {
-		// setup fingerprintjs as early as possible for it to run background tasks
-		// exclude sources that are slow and may block DOM rendering
-		this.fingerprintjs = FingerprintJS.load({
-			excludeSources: [
-				'fonts', // slow with lots of fonts
-				'domBlockers', // causes reflow, slow
-				'fontPreferences', // slow
-				'audio', //slow
-				'screenFrame', // causes reflow, slow
-				'timezone', // slow
-				'plugins', // very slow
-				'canvas', // slow
-			],
-		})
 		if (!options.sessionSecureID) {
 			// Firstload versions before 3.0.1 did not have this property
 			options.sessionSecureID = GenerateSecureID()
@@ -332,7 +318,7 @@ export class Highlight {
 	_initMembers(options: HighlightClassOptions) {
 		this.sessionShortcut = false
 		this._recordingStartTime = 0
-		this._isOnLocalHost = false
+		this._isOnLocalHost = window.location.hostname === 'localhost'
 
 		this.ready = false
 		this.state = 'NotRecording'
@@ -343,10 +329,8 @@ export class Highlight {
 		this.enablePerformanceRecording =
 			options.enablePerformanceRecording ?? true
 		// default to inlining stylesheets/images locally to help with recording accuracy
-		this.inlineImages =
-			options.inlineImages ?? window.location.hostname === 'localhost'
-		this.inlineStylesheet =
-			options.inlineStylesheet ?? window.location.hostname === 'localhost'
+		this.inlineImages = options.inlineImages ?? this._isOnLocalHost
+		this.inlineStylesheet = options.inlineStylesheet ?? this._isOnLocalHost
 		this.samplingStrategy = {
 			canvas: 5,
 			canvasQuality: 'low',
@@ -386,7 +370,6 @@ export class Highlight {
 		}
 		this.isRunningOnHighlight =
 			this.organizationID === '1' || this.organizationID === '1jdkoe52'
-		this._isOnLocalHost = window.location.hostname === 'localhost'
 		this.firstloadVersion = options.firstloadVersion || 'unknown'
 		this.sessionShortcut = options.sessionShortcut || false
 		this.feedbackWidgetOptions = {
@@ -572,8 +555,6 @@ export class Highlight {
 					this.options.networkRecording?.recordHeadersAndBody || false
 			}
 
-			const client = await this.fingerprintjs
-			const fingerprint = await client.get()
 			let destinationDomains: string[] = []
 			if (
 				typeof this.options.networkRecording === 'object' &&
@@ -591,7 +572,7 @@ export class Highlight {
 					firstloadVersion: this.firstloadVersion,
 					clientConfig: JSON.stringify(this._optionsInternal),
 					environment: this.environment,
-					id: fingerprint.visitorId,
+					id: clientID,
 					appVersion: this.appVersion,
 					session_secure_id: this.sessionData.sessionSecureID,
 					client_id: clientID,
@@ -689,7 +670,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
 					emit,
-					recordCrossOriginIframes: true,
+					recordCrossOriginIframes:
+						this.options.recordCrossOriginIframe,
 					enableStrictPrivacy: this.enableStrictPrivacy,
 					maskAllInputs: this.enableStrictPrivacy,
 					recordCanvas: this.enableCanvasRecording,
@@ -704,7 +686,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						},
 					},
 					keepIframeSrcFn: (_src) => {
-						return !this.options.isCrossOriginIframe
+						return !this.options.recordCrossOriginIframe
 					},
 					inlineImages: this.inlineImages,
 					inlineStylesheet: this.inlineStylesheet,

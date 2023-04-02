@@ -1,3 +1,4 @@
+import { keepsLines } from '@highlight-run/ui'
 import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
@@ -15,8 +16,8 @@ export const errorRowVariants = recipe({
 		borderRadius: 6,
 		color: colors.n11,
 		display: 'grid',
-		gridTemplateColumns: '3fr 1fr auto 100px',
-		gap: 32,
+		gridTemplateColumns: '3fr 1fr auto 100px 20px',
+		gap: 8,
 		marginBottom: 1,
 		padding: 8,
 		selectors: {
@@ -45,4 +46,8 @@ export const errorBody = style({
 	alignItems: 'center',
 	display: 'flex',
 	wordWrap: 'break-word',
+})
+
+export const singleLine = style({
+	...keepsLines(1),
 })

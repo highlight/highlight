@@ -1,9 +1,10 @@
 package chi
 
 import (
-	"net/http"
-
 	"github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go/middleware"
+	"go.opentelemetry.io/otel/attribute"
+	"net/http"
 )
 
 // Middleware is a chi compatible middleware
@@ -13,11 +14,19 @@ import (
 // ...
 // r.Use(highlightchi.Middleware)
 func Middleware(next http.Handler) http.Handler {
+	middleware.CheckStatus()
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := highlight.InterceptRequest(r)
 		r = r.WithContext(ctx)
-		highlight.MarkBackendSetup(r.Context())
+
+		span, hCtx := highlight.StartTrace(ctx, "highlight/chi")
+		defer highlight.EndTrace(span)
+
 		next.ServeHTTP(w, r)
+
+		highlight.MarkBackendSetup(hCtx)
+		span.SetAttributes(attribute.String(highlight.SourceAttribute, "GoChiMiddleware"))
+		span.SetAttributes(middleware.GetRequestAttributes(r)...)
 	}
 	return http.HandlerFunc(fn)
 }

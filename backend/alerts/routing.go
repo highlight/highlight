@@ -7,32 +7,32 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 )
 
-func getErrorURL(errorAlert *model.ErrorAlert, errorGroup *model.ErrorGroup) string {
+func getErrorURL(errorAlert *model.ErrorAlert, errorGroup *model.ErrorGroup, errorObject *model.ErrorObject) string {
 	projectId := errorAlert.ProjectID
 	frontendURL := os.Getenv("FRONTEND_URI")
 
-	return fmt.Sprintf("%s/%d/errors/%s", frontendURL, projectId, errorGroup.SecureID)
+	return fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, projectId, errorGroup.SecureID, errorObject.ID)
 }
 
-func getErrorResolveURL(errorAlert *model.ErrorAlert, errorGroup *model.ErrorGroup) string {
+func getErrorResolveURL(errorAlert *model.ErrorAlert, errorGroup *model.ErrorGroup, errorObject *model.ErrorObject) string {
 	projectId := errorAlert.ProjectID
 	frontendURL := os.Getenv("FRONTEND_URI")
 
-	return fmt.Sprintf("%s/%d/errors/%s?action=resolved", frontendURL, projectId, errorGroup.SecureID)
+	return fmt.Sprintf("%s/%d/errors/%s/instances/%d?action=resolved", frontendURL, projectId, errorGroup.SecureID, errorObject.ID)
 }
 
-func getErrorIgnoreURL(errorAlert *model.ErrorAlert, errorGroup *model.ErrorGroup) string {
+func getErrorIgnoreURL(errorAlert *model.ErrorAlert, errorGroup *model.ErrorGroup, errorObject *model.ErrorObject) string {
 	projectId := errorAlert.ProjectID
 	frontendURL := os.Getenv("FRONTEND_URI")
 
-	return fmt.Sprintf("%s/%d/errors/%s?action=ignored", frontendURL, projectId, errorGroup.SecureID)
+	return fmt.Sprintf("%s/%d/errors/%s/instances/%d?action=ignored", frontendURL, projectId, errorGroup.SecureID, errorObject.ID)
 }
 
-func getErrorSnoozeURL(errorAlert *model.ErrorAlert, errorGroup *model.ErrorGroup) string {
+func getErrorSnoozeURL(errorAlert *model.ErrorAlert, errorGroup *model.ErrorGroup, errorObject *model.ErrorObject) string {
 	projectId := errorAlert.ProjectID
 	frontendURL := os.Getenv("FRONTEND_URI")
 
-	return fmt.Sprintf("%s/%d/errors/%s?action=snooze", frontendURL, projectId, errorGroup.SecureID)
+	return fmt.Sprintf("%s/%d/errors/%s/instances/%d?action=snooze", frontendURL, projectId, errorGroup.SecureID, errorObject.ID)
 }
 
 func getSessionURL(projectID int, session *model.Session) string {

@@ -2,6 +2,7 @@ import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { createStyleObject } from '@capsizecss/core'
 import plexoFontMetrics from '@capsizecss/metrics/iBMPlexMono'
 import { globalStyle } from '@vanilla-extract/css'
+import { themeVars } from '../../css/theme.css'
 
 // Generated at https://seek-oss.github.io/capsize/.
 export const steradianFontMetrics = {
@@ -171,5 +172,6 @@ export type Variants = RecipeVariants<typeof variants>
 // Not the right place for this, but needs to be defined somewhere for the
 // global styles to be injected.
 globalStyle('body', {
+	color: themeVars.static.content.default,
 	...typographyStyles.family.body,
 })

@@ -12,9 +12,10 @@ import {
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
-import { ApplicationContextProvider } from '@routers/OrgRouter/context/ApplicationContext'
-import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
+import { ApplicationContextProvider } from '@routers/ProjectRouter/context/ApplicationContext'
+import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
+import { useDialogState } from 'ariakit/dialog'
 import { H } from 'highlight.run'
 import { useEffect } from 'react'
 import { StringParam, useQueryParams } from 'use-query-params'
@@ -174,6 +175,8 @@ export const EmailOptOutPage = () => {
 		token: StringParam,
 	})
 
+	const commandBarDialog = useDialogState()
+
 	return (
 		<ApplicationContextProvider
 			value={{
@@ -189,6 +192,7 @@ export const EmailOptOutPage = () => {
 					toggleShowKeyboardShortcutsGuide: () => {},
 					showBanner: false,
 					toggleShowBanner: () => {},
+					commandBarDialog,
 				}}
 			>
 				<div>

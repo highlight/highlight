@@ -26,6 +26,8 @@ init-opensearch:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=init-opensearch)
 init-opensearch-sessions:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=init-opensearch-sessions)
+report-stripe-usage:
+		(go build; doppler run -- ./backend -runtime=worker -worker-handler=report-stripe-usage)
 update-opensearch:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=update-opensearch)
 start-metric-monitor-watch:

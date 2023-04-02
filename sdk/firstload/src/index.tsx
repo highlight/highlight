@@ -100,6 +100,7 @@ export const H: HighlightPublicInterface = {
 				networkRecording: options?.networkRecording,
 				disableBackgroundRecording: options?.disableBackgroundRecording,
 				disableConsoleRecording: options?.disableConsoleRecording,
+				reportConsoleErrors: options?.reportConsoleErrors,
 				consoleMethodsToRecord: options?.consoleMethodsToRecord,
 				enableSegmentIntegration: options?.enableSegmentIntegration,
 				enableStrictPrivacy: options?.enableStrictPrivacy,
@@ -108,6 +109,7 @@ export const H: HighlightPublicInterface = {
 				samplingStrategy: options?.samplingStrategy,
 				inlineImages: options?.inlineImages,
 				inlineStylesheet: options?.inlineStylesheet,
+				recordCrossOriginIframe: options?.recordCrossOriginIframe,
 				isCrossOriginIframe: options?.isCrossOriginIframe,
 				firstloadVersion: packageJson['version'],
 				environment: options?.environment || 'production',
@@ -145,11 +147,17 @@ export const H: HighlightPublicInterface = {
 				}
 			})
 
-			if (options?.integrations?.mixpanel?.projectToken) {
+			if (
+				!options?.integrations?.mixpanel?.disabled &&
+				options?.integrations?.mixpanel?.projectToken
+			) {
 				setupMixpanelIntegration(options.integrations.mixpanel)
 			}
 
-			if (options?.integrations?.amplitude?.apiKey) {
+			if (
+				!options?.integrations?.amplitude?.disabled &&
+				options?.integrations?.amplitude?.apiKey
+			) {
 				setupAmplitudeIntegration(options.integrations.amplitude)
 			}
 		} catch (e) {
@@ -223,10 +231,6 @@ export const H: HighlightPublicInterface = {
 						...metadata,
 						highlightSessionURL: highlightUrl,
 					})
-				} else {
-					console.warn(
-						"Mixpanel not loaded, but Highlight is configured to use it. This is usually caused by Mixpanel being blocked by the user's browser.",
-					)
 				}
 			}
 

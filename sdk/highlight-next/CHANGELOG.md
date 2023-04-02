@@ -17,3 +17,15 @@
 
 -   require project id for H.init
 -   support for errors without associated sessions/requests
+
+## 2.1.2
+
+### Patch Changes
+
+-   Adds support for Next.js `generateBuildId` config parameter, which will set Highlight `appVersion` if none is provided.
+
+## 2.2.0
+
+### Minor Changes
+
+-   Adds ability to record `console` methods.

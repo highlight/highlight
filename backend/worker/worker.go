@@ -56,8 +56,8 @@ const MAX_RETRIES = 5
 // cancel events_objects reads after 5 minutes
 const EVENTS_READ_TIMEOUT = 300000
 
-// cancel refreshing materialized views after 15 minutes
-const REFRESH_MATERIALIZED_VIEW_TIMEOUT = 15 * 60 * 1000
+// cancel refreshing materialized views after 30 minutes
+const REFRESH_MATERIALIZED_VIEW_TIMEOUT = 30 * 60 * 1000
 
 type Worker struct {
 	Resolver       *mgraph.Resolver
@@ -399,7 +399,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.MarkBackendSetup == nil {
 			break
 		}
-		if err := w.PublicResolver.MarkBackendSetupImpl(ctx, task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SessionSecureID, task.MarkBackendSetup.ProjectID); err != nil {
+		if err := w.PublicResolver.MarkBackendSetupImpl(ctx, task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SessionSecureID, task.MarkBackendSetup.ProjectID, task.MarkBackendSetup.Type); err != nil {
 			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process MarkBackendSetup task"))
 			return err
 		}
@@ -1037,7 +1037,7 @@ func (w *Worker) Start(ctx context.Context) {
 								SELECT ID FROM (
 									SELECT id
 									FROM sessions
-									WHERE (processed = false) 
+									WHERE (processed = false)
 										AND (excluded = false)
 										AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
 										AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))
@@ -1126,14 +1126,16 @@ func (w *Worker) Start(ctx context.Context) {
 					}
 
 					if excluded != nil && *excluded {
-						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "session has reached the max retry count and will be excluded"))
+						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Warn(e.Wrap(err, "session has reached the max retry count and will be excluded"))
 						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
+						span.Finish()
+					} else {
+						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error processing main session"))
+						span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					}
 
-					log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error processing main session"))
-					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
 				}
 				hlog.Incr("sessionsProcessed", nil, 1)
@@ -1236,6 +1238,20 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		log.WithContext(ctx).Fatal(e.Wrap(err, "Error refreshing daily_session_counts_view"))
 	}
 
+	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
+		err := tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", REFRESH_MATERIALIZED_VIEW_TIMEOUT)).Error
+		if err != nil {
+			return err
+		}
+
+		return tx.Exec(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY daily_error_counts_view;
+		`).Error
+
+	}); err != nil {
+		log.WithContext(ctx).Fatal(e.Wrap(err, "Error refreshing daily_error_counts_view"))
+	}
+
 	type AggregateSessionCount struct {
 		WorkspaceID  int   `json:"workspace_id"`
 		SessionCount int64 `json:"session_count"`
@@ -1247,12 +1263,12 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		SELECT p.workspace_id, sum(dsc.count) as session_count, sum(dec.count) as error_count
 		FROM projects p
 				 INNER JOIN daily_session_counts_view dsc on p.id = dsc.project_id
-				 INNER JOIN daily_error_counts dec on p.id = dec.project_id
+				 INNER JOIN daily_error_counts_view dec on p.id = dec.project_id
 		GROUP BY p.workspace_id`).Scan(&counts).Error; err != nil {
 		log.WithContext(ctx).Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
 	}
 
-	if !util.IsDevOrTestEnv() {
+	if util.IsHubspotEnabled() {
 		for _, c := range counts {
 			// See HIG-2743
 			// Skip updating session count for demo workspace because we exclude it from Hubspot
@@ -1268,7 +1284,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 				Name:     "highlight_error_count",
 				Property: "highlight_error_count",
 				Value:    c.ErrorCount,
-			}}); err != nil {
+			}}, w.Resolver.DB); err != nil {
 				log.WithContext(ctx).WithFields(log.Fields{
 					"workspace_id":  c.WorkspaceID,
 					"session_count": c.SessionCount,
@@ -1588,7 +1604,7 @@ func reportProcessSessionCount(ctx context.Context, db *gorm.DB, lookbackPeriod,
 		if err := db.Raw(`
 			SELECT COUNT(*)
 			FROM sessions
-			WHERE (processed = false) 
+			WHERE (processed = false)
 				AND (excluded = false)
 				AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
 				AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))

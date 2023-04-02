@@ -16,7 +16,7 @@ import {
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
-import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
+import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { CompleteSetup } from '@pages/ErrorsV2/CompleteSetup/CompleteSetup'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
@@ -25,6 +25,7 @@ import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
+import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
@@ -86,7 +87,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 
 	useEffect(() => {
 		if (!isLoggedIn && !data?.error_group?.is_public && !loading) {
-			navigate('/login', { replace: true })
+			navigate(SIGN_IN_ROUTE, { replace: true })
 		}
 	}, [data?.error_group?.is_public, isLoggedIn, loading, navigate])
 
@@ -179,7 +180,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 						display="flex"
 						flexDirection="column"
 						height="full"
-						shadow="small"
+						shadow="medium"
 					>
 						{isLoggedIn && (
 							<Box

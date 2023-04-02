@@ -183,6 +183,8 @@ var Models = []interface{}{
 	&IntegrationWorkspaceMapping{},
 	&EmailOptOut{},
 	&BillingEmailHistory{},
+	&Retryable{},
+	&SetupEvent{},
 }
 
 func init() {
@@ -258,6 +260,8 @@ type Workspace struct {
 	NextInvoiceDate             *time.Time
 	MonthlySessionLimit         *int
 	MonthlyMembersLimit         *int
+	MonthlyErrorsLimit          *int
+	RetentionPeriod             *modelInputs.RetentionPeriod
 	TrialEndDate                *time.Time `json:"trial_end_date"`
 	AllowMeterOverage           bool       `gorm:"default:true"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
@@ -322,7 +326,8 @@ type Project struct {
 	BackendDomains pq.StringArray `gorm:"type:text[]"`
 
 	// BackendSetup will be true if this is the session where HighlightBackend is run for the first time
-	BackendSetup *bool `json:"backend_setup"`
+	BackendSetup *bool         `json:"backend_setup"`
+	SetupEvent   []*SetupEvent `gorm:"foreignKey:ProjectID"`
 
 	// Maximum time window considered for a rage click event
 	RageClickWindowSeconds int `gorm:"default:5"`
@@ -330,6 +335,23 @@ type Project struct {
 	RageClickRadiusPixels int `gorm:"default:8"`
 	// Minimum count of clicks in a rage click event
 	RageClickCount int `gorm:"default:5"`
+}
+
+type MarkBackendSetupType = string
+
+const (
+	// Generic is temporary and can be removed once all messages are processed.
+	MarkBackendSetupTypeGeneric MarkBackendSetupType = "generic"
+	MarkBackendSetupTypeSession MarkBackendSetupType = "session"
+	MarkBackendSetupTypeError   MarkBackendSetupType = "error"
+	MarkBackendSetupTypeLogs    MarkBackendSetupType = "logs"
+)
+
+type SetupEvent struct {
+	ID        int                  `gorm:"primary_key;type:serial" json:"id" deep:"-"`
+	CreatedAt time.Time            `json:"created_at" deep:"-"`
+	ProjectID int                  `gorm:"uniqueIndex:idx_project_id_type"`
+	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
 }
 
 type HasSecret interface {
@@ -741,8 +763,6 @@ type DailySessionCount struct {
 
 const (
 	SESSIONS_TBL                    = "sessions"
-	DAILY_ERROR_COUNTS_TBL          = "daily_error_counts"
-	DAILY_ERROR_COUNTS_UNIQ         = "date_project_id_error_type_uniq"
 	METRIC_GROUPS_NAME_SESSION_UNIQ = "metric_groups_name_session_uniq"
 	DASHBOARD_METRIC_FILTERS_UNIQ   = "dashboard_metric_filters_uniq"
 )
@@ -898,7 +918,8 @@ type ErrorObject struct {
 	SessionID        *int
 	TraceID          *string
 	SpanID           *string
-	ErrorGroupID     int `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
+	LogCursor        *string `gorm:"index:idx_error_object_log_cursor,option:CONCURRENTLY"`
+	ErrorGroupID     int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
 	Event            string
 	Type             string
 	URL              string
@@ -934,16 +955,11 @@ type ErrorGroup struct {
 	Fingerprints     []*ErrorFingerprint
 	FieldGroup       *string
 	Environments     string
-	IsPublic         bool    `gorm:"default:false"`
-	ErrorFrequency   []int64 `gorm:"-"`
-	ErrorMetrics     []*struct {
-		ErrorGroupID int
-		Date         time.Time
-		Name         string
-		Value        int64
-	} `gorm:"-"`
-	FirstOccurrence *time.Time `gorm:"-"`
-	LastOccurrence  *time.Time `gorm:"-"`
+	IsPublic         bool                                 `gorm:"default:false"`
+	ErrorFrequency   []int64                              `gorm:"-"`
+	ErrorMetrics     []*modelInputs.ErrorDistributionItem `gorm:"-"`
+	FirstOccurrence  *time.Time                           `gorm:"-"`
+	LastOccurrence   *time.Time                           `gorm:"-"`
 
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
@@ -1187,6 +1203,21 @@ type BillingEmailHistory struct {
 	Type        Email.EmailType
 }
 
+type RetryableType string
+
+const (
+	RetryableOpensearchError RetryableType = "OPENSEARCH_ERROR"
+)
+
+type Retryable struct {
+	Model
+	Type        RetryableType
+	PayloadType string
+	PayloadID   string
+	Payload     JSONB `sql:"type:jsonb"`
+	Error       string
+}
+
 func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {
 	var (
 		host     = os.Getenv("PSQL_HOST")
@@ -1282,23 +1313,6 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error migrating db")
 	}
 
-	// Add unique constraint to daily_error_counts
-	if err := DB.Exec(`
-		DO $$
-			BEGIN
-				BEGIN
-					ALTER TABLE daily_error_counts
-					ADD CONSTRAINT date_project_id_error_type_uniq
-						UNIQUE (date, project_id, error_type);
-				EXCEPTION
-					WHEN duplicate_table
-					THEN RAISE NOTICE 'daily_error_counts.date_project_id_error_type_uniq already exists';
-				END;
-			END $$;
-	`).Error; err != nil {
-		return false, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
-	}
-
 	// Drop the null constraint on error_fingerprints.error_group_id
 	// This is necessary for replacing the error_groups.fingerprints association through GORM
 	// (not sure if this is a GORM bug or due to our GORM / Postgres version)
@@ -1323,6 +1337,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 			WHERE excluded <> true
 			AND (active_length >= 1000 OR (active_length is null and length >= 1000))
 			AND processed = true
+			AND created_at > now() - interval '3 months'
 			GROUP BY 1, 2;
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating daily_session_counts_view")
@@ -1339,6 +1354,29 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		END $$;
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
+	}
+
+	if err := DB.Exec(`
+		CREATE MATERIALIZED VIEW IF NOT EXISTS daily_error_counts_view AS
+			SELECT project_id, DATE_TRUNC('day', created_at, 'UTC') as date, COUNT(*) as count
+			FROM error_objects
+			WHERE created_at > now() - interval '3 months'
+			GROUP BY 1, 2;
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error creating daily_error_counts_view")
+	}
+
+	if err := DB.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS
+				(select * from pg_indexes where indexname = 'idx_daily_error_counts_view_project_id_date')
+			THEN
+				CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_error_counts_view_project_id_date ON daily_error_counts_view (project_id, date);
+			END IF;
+		END $$;
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error creating idx_daily_error_counts_view_project_id_date")
 	}
 
 	// Create unique conditional index for billing email history
@@ -1712,7 +1750,7 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 	}
 
 	frontendURL := os.Getenv("FRONTEND_URI")
-	errorURL := fmt.Sprintf("%s/%d/errors/%s", frontendURL, obj.ProjectID, input.Group.SecureID)
+	errorURL := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
 
 	for _, email := range emailsToNotify {
@@ -2314,6 +2352,8 @@ type SendSlackAlertInput struct {
 	UserObject JSONB
 	// Group is a required parameter for Error alerts
 	Group *ErrorGroup
+	// ErrorObject is a required parameter for Error alerts
+	ErrorObject *ErrorObject
 	// URL is an optional parameter for Error alerts
 	URL *string
 	// ErrorsCount is a required parameter for Error alerts
@@ -2442,7 +2482,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		if len(input.Group.Event) > 50 {
 			shortEvent = input.Group.Event[:50] + "..."
 		}
-		errorLink := fmt.Sprintf("%s/%d/errors/%s", frontendURL, obj.ProjectID, input.Group.SecureID)
+		errorLink := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 		// construct Slack message
 		previewText = fmt.Sprintf("Highlight: Error Alert: %s", shortEvent)
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/|View Thread>", *input.ErrorsCount, shortEvent, errorLink), false, false)

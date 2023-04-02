@@ -30,19 +30,18 @@ import {
 	Session,
 } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
-import { TIME_RANGE_FIELD } from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
-import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
-import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration'
 import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/SessionFeedCard'
 import {
 	QueryBuilderState,
 	updateQueriedTimeRange,
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
-import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
-import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import SessionQueryBuilder, {
+	TIME_RANGE_FIELD,
+} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
+import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
-import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
+import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import clsx from 'clsx'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { styledVerticalScrollbar } from 'style/common.css'
@@ -54,6 +53,8 @@ import {
 	useSearchContext,
 } from '../SearchContext/SearchContext'
 import * as style from './SessionFeedV3.css'
+import { SessionFeedConfigurationContextProvider } from './SessionQueryBuilder/context/SessionFeedConfigurationContext'
+import { useSessionFeedConfiguration } from './SessionQueryBuilder/hooks/useSessionFeedConfiguration'
 
 interface SessionsHistogramProps {
 	projectHasManySessions: boolean
@@ -78,10 +79,10 @@ export const SessionsHistogram: React.FC<SessionsHistogramProps> = React.memo(
 						Intl.DateTimeFormat().resolvedOptions().timeZone ??
 						'UTC',
 					bounds: {
-						start_date: roundDateToMinute(
+						start_date: roundFeedDate(
 							backendSearchQuery?.startDate.toISOString() ?? null,
 						).format(),
-						end_date: roundDateToMinute(
+						end_date: roundFeedDate(
 							backendSearchQuery?.endDate.toISOString() ?? null,
 						).format(),
 					},
@@ -233,7 +234,6 @@ export const SessionFeedV3 = React.memo(() => {
 		if (!searchParams.query) {
 			setSearchParams({
 				...searchParams,
-				show_live_sessions: true,
 			})
 		} else {
 			// Replace any 'custom_processed' values with ['true', 'false']

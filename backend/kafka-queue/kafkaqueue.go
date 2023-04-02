@@ -5,11 +5,12 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/samber/lo"
-	"github.com/segmentio/kafka-go/sasl"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/samber/lo"
+	"github.com/segmentio/kafka-go/sasl"
 
 	"github.com/DmitriyVTitov/size"
 	"github.com/highlight-run/highlight/backend/hlog"

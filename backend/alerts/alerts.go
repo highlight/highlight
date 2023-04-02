@@ -1,6 +1,8 @@
 package alerts
 
 import (
+	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
+	"golang.org/x/sync/errgroup"
 	"net/url"
 	"strings"
 
@@ -12,51 +14,59 @@ import (
 )
 
 type SendErrorAlertEvent struct {
-	Session    *model.Session
-	ErrorAlert *model.ErrorAlert
-	ErrorGroup *model.ErrorGroup
-	Workspace  *model.Workspace
-	ErrorCount int64
-	VisitedURL string
+	Session     *model.Session
+	ErrorAlert  *model.ErrorAlert
+	ErrorGroup  *model.ErrorGroup
+	ErrorObject *model.ErrorObject
+	Workspace   *model.Workspace
+	ErrorCount  int64
+	VisitedURL  string
 }
 
 func SendErrorAlert(event SendErrorAlertEvent) error {
-	errorTitle := event.ErrorGroup.Event
-	if len(event.ErrorGroup.Event) > 50 {
-		errorTitle = event.ErrorGroup.Event[:50] + "..."
-	}
-
 	errorAlertPayload := integrations.ErrorAlertPayload{
 		ErrorCount:      event.ErrorCount,
-		ErrorTitle:      errorTitle,
+		ErrorTitle:      event.ErrorGroup.Event,
 		UserIdentifier:  event.Session.Identifier,
-		ErrorURL:        getErrorURL(event.ErrorAlert, event.ErrorGroup),
-		ErrorResolveURL: getErrorResolveURL(event.ErrorAlert, event.ErrorGroup),
-		ErrorIgnoreURL:  getErrorIgnoreURL(event.ErrorAlert, event.ErrorGroup),
-		ErrorSnoozeURL:  getErrorSnoozeURL(event.ErrorAlert, event.ErrorGroup),
+		ErrorURL:        getErrorURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),
+		ErrorResolveURL: getErrorResolveURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),
+		ErrorIgnoreURL:  getErrorIgnoreURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),
+		ErrorSnoozeURL:  getErrorSnoozeURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),
 		SessionURL:      getSessionURL(event.ErrorAlert.ProjectID, event.Session),
 		VisitedURL:      event.VisitedURL,
 	}
 
-	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+	var g errgroup.Group
+	g.Go(func() error {
+		for _, wh := range event.ErrorAlert.WebhookDestinations {
+			if err := webhook.SendErrorAlert(wh, &errorAlertPayload); err != nil {
+				return err
+			}
+		}
 		return nil
-	}
+	})
 
-	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-	if err != nil {
-		return err
-	}
+	g.Go(func() error {
+		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+			return nil
+		}
 
-	channels := event.ErrorAlert.DiscordChannelsToNotify
-	for _, channel := range channels {
-		err = bot.SendErrorAlert(channel.ID, errorAlertPayload)
-
+		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 		if err != nil {
 			return err
 		}
-	}
 
-	return nil
+		for _, channel := range event.ErrorAlert.DiscordChannelsToNotify {
+			err = bot.SendErrorAlert(channel.ID, errorAlertPayload)
+
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return g.Wait()
 }
 
 func getUserPropertiesAndAvatar(sessionUserProperties map[string]string) (map[string]string, *string) {
@@ -110,25 +120,38 @@ func SendNewUserAlert(event SendNewUserAlertEvent) error {
 		AvatarURL:      avatarUrl,
 	}
 
-	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+	var g errgroup.Group
+	g.Go(func() error {
+		for _, wh := range event.SessionAlert.WebhookDestinations {
+			if err := webhook.SendNewUserAlert(wh, &payload); err != nil {
+				return err
+			}
+		}
 		return nil
-	}
+	})
 
-	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-	if err != nil {
-		return err
-	}
+	g.Go(func() error {
+		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+			return nil
+		}
 
-	channels := event.SessionAlert.DiscordChannelsToNotify
-	for _, channel := range channels {
-		err = bot.SendNewUserAlert(channel.ID, payload)
-
+		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 		if err != nil {
 			return err
 		}
-	}
 
-	return nil
+		channels := event.SessionAlert.DiscordChannelsToNotify
+		for _, channel := range channels {
+			err = bot.SendNewUserAlert(channel.ID, payload)
+
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return g.Wait()
 }
 
 type SendNewSessionAlertEvent struct {
@@ -160,26 +183,39 @@ func SendNewSessionAlert(event SendNewSessionAlertEvent) error {
 		VisitedURL:     event.VisitedURL,
 	}
 
-	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+	var g errgroup.Group
+	g.Go(func() error {
+		for _, wh := range event.SessionAlert.WebhookDestinations {
+			if err := webhook.SendNewSessionAlert(wh, &payload); err != nil {
+				return err
+			}
+		}
 		return nil
-	}
+	})
 
-	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-	if err != nil {
-		return err
-	}
+	g.Go(func() error {
+		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+			return nil
+		}
 
-	channels := event.SessionAlert.DiscordChannelsToNotify
-
-	for _, channel := range channels {
-		err = bot.SendNewSessionAlert(channel.ID, payload)
-
+		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 		if err != nil {
 			return err
 		}
-	}
 
-	return nil
+		channels := event.SessionAlert.DiscordChannelsToNotify
+
+		for _, channel := range channels {
+			err = bot.SendNewSessionAlert(channel.ID, payload)
+
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return g.Wait()
 }
 
 type TrackPropertiesAlertEvent struct {
@@ -192,8 +228,8 @@ type TrackPropertiesAlertEvent struct {
 
 func SendTrackPropertiesAlert(event TrackPropertiesAlertEvent) error {
 	// format matched properties
-	mappedMatchedProperties := []integrations.Property{}
-	mappedRelatedProperties := []integrations.Property{}
+	var mappedMatchedProperties []integrations.Property
+	var mappedRelatedProperties []integrations.Property
 
 	for _, field := range event.MatchedFields {
 		mappedMatchedProperties = append(mappedMatchedProperties, integrations.Property{
@@ -214,26 +250,39 @@ func SendTrackPropertiesAlert(event TrackPropertiesAlertEvent) error {
 		RelatedProperties: mappedRelatedProperties,
 	}
 
-	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+	var g errgroup.Group
+	g.Go(func() error {
+		for _, wh := range event.SessionAlert.WebhookDestinations {
+			if err := webhook.SendTrackPropertiesAlert(wh, &payload); err != nil {
+				return err
+			}
+		}
 		return nil
-	}
+	})
 
-	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-	if err != nil {
-		return err
-	}
+	g.Go(func() error {
+		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+			return nil
+		}
 
-	channels := event.SessionAlert.DiscordChannelsToNotify
-
-	for _, channel := range channels {
-		err = bot.SendTrackPropertiesAlert(channel.ID, payload)
-
+		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 		if err != nil {
 			return err
 		}
-	}
 
-	return nil
+		channels := event.SessionAlert.DiscordChannelsToNotify
+
+		for _, channel := range channels {
+			err = bot.SendTrackPropertiesAlert(channel.ID, payload)
+
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return g.Wait()
 }
 
 type UserPropertiesAlertEvent struct {
@@ -244,7 +293,7 @@ type UserPropertiesAlertEvent struct {
 }
 
 func SendUserPropertiesAlert(event UserPropertiesAlertEvent) error {
-	mappedProperties := []integrations.Property{}
+	var mappedProperties []integrations.Property
 
 	for _, field := range event.MatchedFields {
 		mappedProperties = append(mappedProperties, integrations.Property{
@@ -259,26 +308,39 @@ func SendUserPropertiesAlert(event UserPropertiesAlertEvent) error {
 		MatchedProperties: mappedProperties,
 	}
 
-	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+	var g errgroup.Group
+	g.Go(func() error {
+		for _, wh := range event.SessionAlert.WebhookDestinations {
+			if err := webhook.SendUserPropertiesAlert(wh, &payload); err != nil {
+				return err
+			}
+		}
 		return nil
-	}
+	})
 
-	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-	if err != nil {
-		return err
-	}
+	g.Go(func() error {
+		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+			return nil
+		}
 
-	channels := event.SessionAlert.DiscordChannelsToNotify
-
-	for _, channel := range channels {
-		err = bot.SendUserPropertiesAlert(channel.ID, payload)
-
+		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 		if err != nil {
 			return err
 		}
-	}
 
-	return nil
+		channels := event.SessionAlert.DiscordChannelsToNotify
+
+		for _, channel := range channels {
+			err = bot.SendUserPropertiesAlert(channel.ID, payload)
+
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return g.Wait()
 }
 
 type SessionFeedbackAlertEvent struct {
@@ -304,26 +366,39 @@ func SendSessionFeedbackAlert(event SessionFeedbackAlertEvent) error {
 		CommentText:       event.SessionComment.Text,
 	}
 
-	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+	var g errgroup.Group
+	g.Go(func() error {
+		for _, wh := range event.SessionAlert.WebhookDestinations {
+			if err := webhook.SendSessionFeedbackAlert(wh, &payload); err != nil {
+				return err
+			}
+		}
 		return nil
-	}
+	})
 
-	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-	if err != nil {
-		return err
-	}
+	g.Go(func() error {
+		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+			return nil
+		}
 
-	channels := event.SessionAlert.DiscordChannelsToNotify
-
-	for _, channel := range channels {
-		err = bot.SendSessionFeedbackAlert(channel.ID, payload)
-
+		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 		if err != nil {
 			return err
 		}
-	}
 
-	return nil
+		channels := event.SessionAlert.DiscordChannelsToNotify
+
+		for _, channel := range channels {
+			err = bot.SendSessionFeedbackAlert(channel.ID, payload)
+
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return g.Wait()
 }
 
 type RageClicksAlertEvent struct {
@@ -340,26 +415,39 @@ func SendRageClicksAlert(event RageClicksAlertEvent) error {
 		UserIdentifier:  event.Session.Identifier,
 	}
 
-	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+	var g errgroup.Group
+	g.Go(func() error {
+		for _, wh := range event.SessionAlert.WebhookDestinations {
+			if err := webhook.SendRageClicksAlert(wh, &payload); err != nil {
+				return err
+			}
+		}
 		return nil
-	}
+	})
 
-	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-	if err != nil {
-		return err
-	}
+	g.Go(func() error {
+		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+			return nil
+		}
 
-	channels := event.SessionAlert.DiscordChannelsToNotify
-
-	for _, channel := range channels {
-		err = bot.SendRageClicksAlert(channel.ID, payload)
-
+		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 		if err != nil {
 			return err
 		}
-	}
 
-	return nil
+		channels := event.SessionAlert.DiscordChannelsToNotify
+
+		for _, channel := range channels {
+			err = bot.SendRageClicksAlert(channel.ID, payload)
+
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return g.Wait()
 }
 
 type MetricMonitorAlertEvent struct {
@@ -381,26 +469,39 @@ func SendMetricMonitorAlert(event MetricMonitorAlertEvent) error {
 		Threshold:       event.Value,
 	}
 
-	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+	var g errgroup.Group
+	g.Go(func() error {
+		for _, wh := range event.MetricMonitor.WebhookDestinations {
+			if err := webhook.SendMetricMonitorAlert(wh, &payload); err != nil {
+				return err
+			}
+		}
 		return nil
-	}
+	})
 
-	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-	if err != nil {
-		return err
-	}
+	g.Go(func() error {
+		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+			return nil
+		}
 
-	channels := event.MetricMonitor.DiscordChannelsToNotify
-
-	for _, channel := range channels {
-		err = bot.SendMetricMonitorAlert(channel.ID, payload)
-
+		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 		if err != nil {
 			return err
 		}
-	}
 
-	return nil
+		channels := event.MetricMonitor.DiscordChannelsToNotify
+
+		for _, channel := range channels {
+			err = bot.SendMetricMonitorAlert(channel.ID, payload)
+
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return g.Wait()
 }
 
 func isWorkspaceIntegratedWithDiscord(workspace model.Workspace) bool {

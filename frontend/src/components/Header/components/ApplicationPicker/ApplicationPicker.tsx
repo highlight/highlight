@@ -8,7 +8,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import SvgArrowRightIcon from '@icons/ArrowRightIcon'
 import SvgBriefcase2Icon from '@icons/Briefcase2Icon'
 import SvgSwitch2Icon from '@icons/Switch2Icon'
-import { useApplicationContext } from '@routers/OrgRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import {
 	DEMO_PROJECT_NAME,
 	DEMO_WORKSPACE_NAME,

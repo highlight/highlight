@@ -4,6 +4,7 @@ import { Avatar } from '@components/Avatar/Avatar'
 import { Button } from '@components/Button'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
 import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
+import { LinkButton } from '@components/LinkButton'
 import LoadingBox from '@components/LoadingBox'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
@@ -11,33 +12,41 @@ import {
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
-import type {
+import {
 	ErrorInstance as ErrorInstanceType,
 	ErrorObject,
 	Maybe,
+	ReservedLogKey,
 } from '@graph/schemas'
 import {
 	Box,
+	Callout,
 	Heading,
 	IconSolidExternalLink,
 	IconSolidPlay,
+	IconSolidViewList,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import {
+	DEFAULT_LOGS_OPERATOR,
+	LogsSearchParam,
+	stringifyLogsQuery,
+} from '@pages/LogsPage/SearchForm/utils'
+import {
 	RightPanelView,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import {
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
 	getUserProperties,
-} from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
+} from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import analytics from '@util/analytics'
 import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
@@ -46,7 +55,7 @@ import { buildQueryURLString } from '@util/url/params'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useNavigate } from 'react-router-dom'
+import { createSearchParams, useNavigate } from 'react-router-dom'
 
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
@@ -58,6 +67,41 @@ const METADATA_LABELS: { [key: string]: string } = {
 	url: 'URL',
 	id: 'ID',
 } as const
+
+const getLogsLink = (errorObject: ErrorObject): string => {
+	const queryParams: LogsSearchParam[] = []
+	let offsetStart = 1
+	if (errorObject.session?.secure_id) {
+		queryParams.push({
+			key: ReservedLogKey.SecureSessionId,
+			operator: DEFAULT_LOGS_OPERATOR,
+			value: errorObject.session?.secure_id,
+			offsetStart: offsetStart++,
+		})
+	}
+	if (errorObject.trace_id) {
+		queryParams.push({
+			key: ReservedLogKey.TraceId,
+			operator: DEFAULT_LOGS_OPERATOR,
+			value: errorObject.trace_id,
+			offsetStart: offsetStart++,
+		})
+	}
+	const query = stringifyLogsQuery(queryParams)
+	const logCursor = errorObject.log_cursor
+	const params = createSearchParams({
+		query,
+		start_date: moment(errorObject.timestamp)
+			.add(-5, 'minutes')
+			.toISOString(),
+		end_date: moment(errorObject.timestamp).add(5, 'minutes').toISOString(),
+	})
+	if (logCursor) {
+		return `/${errorObject.project_id}/logs/${logCursor}?${params}`
+	} else {
+		return `/${errorObject.project_id}/logs?${params}`
+	}
+}
 
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { error_object_id, error_secure_id } = useParams<{
@@ -184,6 +228,15 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								kind="primary"
 								emphasis="high"
 								disabled={true}
+								iconLeft={<IconSolidViewList />}
+								trackingId="errorInstanceShowLogs"
+							>
+								Show logs
+							</Button>
+							<Button
+								kind="primary"
+								emphasis="high"
+								disabled={true}
 								iconLeft={<IconSolidPlay />}
 								trackingId="errorInstanceShowSession"
 							>
@@ -292,10 +345,27 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						>
 							<KeyboardShortcut label="Next" shortcut="]" />
 						</Tooltip>
+						<LinkButton
+							kind="primary"
+							emphasis="high"
+							to={getLogsLink(errorObject)}
+							disabled={!isLoggedIn || !errorObject.session}
+							trackingId="logs-related_session_link"
+						>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidViewList />
+								Show logs
+							</Box>
+						</LinkButton>
 						<Button
 							kind="primary"
 							emphasis="high"
-							disabled={!isLoggedIn}
+							disabled={!isLoggedIn || !errorObject.session}
 							onClick={() => {
 								if (!isLoggedIn) {
 									return
@@ -303,7 +373,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 								navigate(
 									`/${projectId}/sessions/${errorObject.session?.secure_id}` +
-										`?tsAbs=${errorObject.timestamp}`,
+										`?${PlayerSearchParameters.tsAbs}=${errorObject.timestamp}`,
 								)
 								setShowLeftPanel(false)
 								setShowRightPanel(true)
@@ -390,7 +460,7 @@ const Metadata: React.FC<{
 		{ key: 'browser', label: errorObject?.browser },
 		{ key: 'os', label: errorObject?.os },
 		{ key: 'url', label: errorObject?.url },
-		{ key: 'created_at', label: errorObject?.created_at },
+		{ key: 'timestamp', label: errorObject?.timestamp },
 		{
 			key: 'Custom Properties',
 			label: customProperties ? (
@@ -410,9 +480,9 @@ const Metadata: React.FC<{
 			<Box>
 				{metadata.map((meta) => {
 					const value =
-						meta.key === 'created_at'
+						meta.key === 'timestamp'
 							? moment(meta.label as string).format(
-									'M/D/YY h:mm:s.SSS A',
+									'M/D/YY h:mm:ss.SSS A',
 							  )
 							: meta.label
 					return (
@@ -470,11 +540,46 @@ const User: React.FC<{
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
-	const { setSearchParams } = useSearchContext()
 	const [truncated, setTruncated] = useState(true)
 
 	if (!errorObject?.session) {
-		return null
+		return (
+			<Box width="full">
+				<Box pb="20" mt="12">
+					<Text weight="bold" size="large">
+						User details
+					</Text>
+				</Box>
+				<Callout title="We didn't find a session for this error">
+					<Box>
+						<Text size="small" weight="medium" color="moderate">
+							We weren't able to match this error to a session.
+							This error was either thrown in isolation or you
+							aren't mapping errors to sessions.
+						</Text>
+					</Box>
+					<Box display="flex">
+						<LinkButton
+							kind="secondary"
+							to="/setup/backend"
+							trackingId="error-mapping-setup"
+							target="_blank"
+						>
+							Backend SDK setup
+						</LinkButton>
+						<LinkButton
+							kind="secondary"
+							to="https://www.highlight.io/docs/getting-started/frontend-backend-mapping"
+							trackingId="error-mapping-docs"
+							emphasis="low"
+							target="_blank"
+						>
+							Learn more
+						</LinkButton>
+					</Box>
+				</Callout>
+			</Box>
+		)
 	}
 
 	const { session } = errorObject

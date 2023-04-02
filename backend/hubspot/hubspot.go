@@ -2,7 +2,9 @@ package hubspot
 
 import (
 	"context"
+	"math"
 	"strings"
+	"time"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/goware/emailproviders"
@@ -14,15 +16,26 @@ import (
 	"gorm.io/gorm"
 )
 
-type HubspotApi struct {
-	hubspotClient hubspot.Client
-	db            *gorm.DB
+const RETRIES = 5
+
+func retry[T *int](fn func() (T, error)) (ret T, err error) {
+	for i := 0; i < RETRIES; i++ {
+		ret, err = fn()
+		if err == nil {
+			return
+		}
+		time.Sleep(16 * time.Millisecond * time.Duration(math.Pow(2, float64(i))))
+	}
+	return
 }
 
-func NewHubspotAPI(client hubspot.Client, db *gorm.DB) *HubspotApi {
+type HubspotApi struct {
+	hubspotClient hubspot.Client
+}
+
+func NewHubspotAPI(client hubspot.Client) *HubspotApi {
 	h := &HubspotApi{}
 	h.hubspotClient = client
-	h.db = db
 	return h
 }
 
@@ -37,11 +50,8 @@ type CustomContactsResponse struct {
 	ProfileURL   string `json:"profile-url"`
 }
 
-func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
+func (h *HubspotApi) createContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	var hubspotContactId int
-	if emailproviders.Exists(email) {
-		email = ""
-	}
 	if resp, err := h.hubspotClient.Contacts().Create(hubspot.ContactsRequest{
 		Properties: []hubspot.Property{
 			{
@@ -75,9 +85,9 @@ func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, ema
 				Value:    phone,
 			},
 			{
-				Property: "referral",
-				Name:     "referral",
-				Value:    phone,
+				Property: "referral_url",
+				Name:     "referral_url",
+				Value:    referral,
 			},
 		},
 	}); err != nil {
@@ -93,26 +103,29 @@ func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, ema
 		hubspotContactId = resp.Vid
 	}
 	log.WithContext(ctx).Infof("succesfully created a hubspot contact with id: %v", hubspotContactId)
-	if err := h.db.Model(&model.Admin{Model: model.Model{ID: adminID}}).
-		Updates(&model.Admin{HubspotContactID: &hubspotContactId}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating workspace HubspotContactID")
-	}
+
 	return &hubspotContactId, nil
 }
 
-func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error {
+func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
+	return retry(func() (*int, error) {
+		return h.createContactForAdmin(ctx, adminID, email, userDefinedRole, userDefinedPersona, first, last, phone, referral)
+	})
+}
+
+func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int, db *gorm.DB) error {
 	admin := &model.Admin{}
-	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
+	if err := db.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
 		return e.Wrap(err, "error retrieving admin details")
 	}
 	workspace := &model.Workspace{}
-	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
+	if err := db.Model(&model.Workspace{}).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
 		return e.Wrap(err, "error retrieving workspace details")
 	}
 	if workspace.HubspotCompanyID == nil {
-		return e.New("hubspot company id is empy")
+		return e.New("hubspot company id is empty")
 	} else if admin.HubspotContactID == nil {
-		return e.New("hubspot contact id is empy")
+		return e.New("hubspot contact id is empty")
 	}
 	if err := h.hubspotClient.CRMAssociations().Create(hubspot.CRMAssociationsRequest{
 		DefinitionID: hubspot.CRMAssociationCompanyToContact,
@@ -135,7 +148,7 @@ func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminI
 	return nil
 }
 
-func (h *HubspotApi) CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) (companyID *int, err error) {
+func (h *HubspotApi) CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string, db *gorm.DB) (companyID *int, err error) {
 	// Don't create for Demo account
 	if workspaceID == 0 {
 		return
@@ -167,16 +180,16 @@ func (h *HubspotApi) CreateCompanyForWorkspace(ctx context.Context, workspaceID 
 		return nil, e.Wrap(err, "error creating company in hubspot")
 	}
 	log.WithContext(ctx).Infof("succesfully created a hubspot company with id: %v", resp.CompanyID)
-	if err := h.db.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).
+	if err := db.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).
 		Updates(&model.Workspace{HubspotCompanyID: &resp.CompanyID}).Error; err != nil {
 		return &resp.CompanyID, e.Wrap(err, "error updating workspace HubspotCompanyID")
 	}
 	return &resp.CompanyID, nil
 }
 
-func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error {
+func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property, db *gorm.DB) error {
 	admin := &model.Admin{}
-	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
+	if err := db.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
 		return e.Wrap(err, "error retrieving admin details")
 	}
 	hubspotContactID := admin.HubspotContactID
@@ -205,9 +218,9 @@ func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, pro
 	return nil
 }
 
-func (h *HubspotApi) UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
+func (h *HubspotApi) UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property, db *gorm.DB) error {
 	workspace := &model.Workspace{}
-	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
+	if err := db.Model(&model.Workspace{}).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
 		return e.Wrap(err, "error retrieving workspace details")
 	}
 	hubspotWorkspaceID := workspace.HubspotCompanyID
@@ -216,6 +229,7 @@ func (h *HubspotApi) UpdateCompanyProperty(ctx context.Context, workspaceID int,
 			ctx,
 			workspaceID,
 			"", ptr.ToString(workspace.Name),
+			db,
 		)
 		if err != nil {
 			return e.Wrap(err, "error creating work when trying to update contact property")

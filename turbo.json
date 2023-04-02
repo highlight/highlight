@@ -33,31 +33,49 @@
 			"dependsOn": ["codegen", "typegen", "^prepublish", "^build"],
 			"outputs": ["build/**", "dist/**", "esm/**"],
 			"env": [
-				"REACT_APP_AUTH_MODE",
-				"REACT_APP_COMMIT_SHA",
-				"REACT_APP_FIREBASE_CONFIG_OBJECT",
-				"REACT_APP_FRONT_INTEGRATION_CLIENT_ID",
-				"REACT_APP_FRONTEND_ORG",
-				"REACT_APP_ONPREM",
-				"REACT_APP_PRIVATE_GRAPH_URI",
-				"REACT_APP_STRIPE_API_PK",
-				"REACT_APP_VERCEL_INTEGRATION_NAME",
-
 				"CLICKUP_CLIENT_ID",
 				"DD_CLIENT_TOKEN",
+				"DEMO_ERROR_URL",
+				"DEMO_SESSION_URL",
 				"DISCORD_CLIENT_ID",
 				"HEIGHT_CLIENT_ID",
 				"LINEAR_CLIENT_ID",
-				"SLACK_CLIENT_ID",
-				"DEMO_SESSION_URL",
-				"DEMO_ERROR_URL"
+				"REACT_APP_AUTH_MODE",
+				"REACT_APP_COMMIT_SHA",
+				"REACT_APP_DEMO_SESSION",
+				"REACT_APP_FIREBASE_CONFIG_OBJECT",
+				"REACT_APP_FRONTEND_ORG",
+				"REACT_APP_FRONTEND_URI",
+				"REACT_APP_FRONT_INTEGRATION_CLIENT_ID",
+				"REACT_APP_ONPREM",
+				"REACT_APP_PRIVATE_GRAPH_URI",
+				"REACT_APP_PUBLIC_GRAPH_URI",
+				"REACT_APP_STRIPE_API_PK",
+				"REACT_APP_VERCEL_INTEGRATION_NAME",
+				"SLACK_CLIENT_ID"
 			]
+		},
+		"highlight.io#build": {
+			"dependsOn": ["^build"],
+			"inputs": ["../docs-content/**", "./**"],
+			"outputs": [".next/**"],
+			"env": ["GRAPHCMS_TOKEN"]
 		},
 		"enforce-size": {
 			"dependsOn": ["build"]
 		},
+		"lint": {
+			"outputs": [],
+			"inputs": ["**/*.ts*"]
+		},
+		"nextjs#lint": {
+			"dependsOn": ["^build"]
+		},
+		"highlight.io#lint": {
+			"dependsOn": ["^build"]
+		},
 		"test": {
-			"dependsOn": ["prepublish", "enforce-size"],
+			"dependsOn": ["lint", "prepublish", "enforce-size"],
 			"outputs": [],
 			"inputs": [
 				"src/**/*.tsx",

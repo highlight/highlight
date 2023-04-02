@@ -8,9 +8,13 @@ import {
 import Dexie, { Table } from 'dexie'
 import moment from 'moment'
 
+import log from './log'
+
 const CLEANUP_CHECK_MS = 1000
 const CLEANUP_DELAY_MS = 10000
 const CLEANUP_THRESHOLD_MB = 4000
+export const INDEXEDDB_ENABLED_LOCAL_STORAGE_PREFIX =
+	'highlight-indexeddb-enabled-'
 
 const getLocalStorage = function (): Storage | undefined {
 	try {
@@ -20,17 +24,27 @@ const getLocalStorage = function (): Storage | undefined {
 	}
 }
 
-const isEnabledInDev = function () {
+export const isIndexedDBEnabled = function () {
+	const defaultEnabled = import.meta.env.MODE !== 'development'
 	const storage = getLocalStorage()
 	if (!storage) {
-		return true
+		return defaultEnabled
 	}
-	if (storage.getItem('highlight-indexeddb-dev-enabled') === null) {
-		storage.setItem('highlight-indexeddb-dev-enabled', 'false')
+	const key = `${INDEXEDDB_ENABLED_LOCAL_STORAGE_PREFIX}${
+		import.meta.env.MODE
+	}`
+	if (storage.getItem(key) === null) {
+		storage.setItem(key, defaultEnabled ? 'true' : 'false')
 	}
-	return storage.getItem('highlight-indexeddb-dev-enabled') === 'true'
+	return storage.getItem(key) === 'true'
 }
-export const indexeddbEnabled = !import.meta.env.DEV || isEnabledInDev()
+
+export const setIndexedDBEnabled = function (value: boolean) {
+	localStorage.setItem(
+		`${INDEXEDDB_ENABLED_LOCAL_STORAGE_PREFIX}${import.meta.env.MODE}`,
+		value ? 'true' : 'false',
+	)
+}
 
 export class DB extends Dexie {
 	apollo!: Table<{
@@ -77,6 +91,7 @@ export const db = new DB()
 
 export class IndexedDBCache {
 	static expiryMS: { [op: string]: number } = {
+		FetchEventChunkURL: moment.duration(15, 'minutes').asMilliseconds(),
 		GetEventChunkURL: moment.duration(15, 'minutes').asMilliseconds(),
 		GetSession: moment.duration(15, 'minutes').asMilliseconds(),
 	}
@@ -128,17 +143,22 @@ export class IndexedDBLink extends ApolloLink {
 		this.httpLink = httpLink
 	}
 
-	static isCached({}: { operation: Operation }) {
-		return indexeddbEnabled
-	}
+	static isCached({ operation }: { operation: Operation }) {
+		if (
+			operation.query.definitions.find(
+				(d) =>
+					d.kind === 'OperationDefinition' &&
+					d.operation === 'mutation',
+			)
+		) {
+			return false
+		}
 
-	/* determines whether an operation should be stored in the cache.
-	 * */
-	static shouldCache({}: {
-		operation: Operation
-		result: FetchResult<Record<string, any>>
-	}): boolean {
-		return true
+		if (operation.operationName === 'GetAdmin') {
+			return false
+		}
+
+		return isIndexedDBEnabled()
 	}
 
 	static async has(operationName: string, variables: any) {
@@ -157,28 +177,32 @@ export class IndexedDBLink extends ApolloLink {
 		}
 
 		return new Observable((observer) => {
+			const req = this.httpLink.request(operation, forward)!
 			indexeddbCache
 				.getItem({
 					operation: operation.operationName,
 					variables: operation.variables,
 				})
 				.then((result) => {
-					const req = this.httpLink.request(operation, forward)!
 					if (result?.data) {
+						log('db.ts', 'IndexedDBLink cache hit', {
+							operation,
+							data: result?.data,
+						})
 						observer.next(result)
+					} else {
+						log('db.ts', 'IndexedDBLink cache miss', { operation })
 					}
 					// noinspection TypeScriptValidateJSTypes
 					req.subscribe((result) => {
 						observer.next(result)
-						if (IndexedDBLink.shouldCache({ operation, result })) {
-							indexeddbCache.setItem(
-								{
-									operation: operation.operationName,
-									variables: operation.variables,
-								},
-								result,
-							)
-						}
+						indexeddbCache.setItem(
+							{
+								operation: operation.operationName,
+								variables: operation.variables,
+							},
+							result,
+						)
 						observer.complete()
 					})
 				})
@@ -188,18 +212,32 @@ export class IndexedDBLink extends ApolloLink {
 
 export const indexedDBString = async function* ({
 	key,
+	operation,
 	fn,
 }: {
 	key: string
+	operation: string
 	fn: () => Promise<string>
 }) {
-	if (!indexeddbEnabled) {
+	if (!isIndexedDBEnabled()) {
 		yield await fn()
 		return
 	}
 	const cached = await db.map.where('key').equals(key).first()
 	if (cached) {
-		yield cached.value
+		if (
+			IndexedDBCache.expiryMS[operation] &&
+			moment().diff(moment(cached.created)) >=
+				IndexedDBCache.expiryMS[operation]
+		) {
+			log('db.ts', 'indexedDBString cache expired', { key, cached })
+			db.apollo.delete(cached.key)
+		} else {
+			log('db.ts', 'indexedDBString cache hit', { key, cached })
+			yield cached.value
+		}
+	} else {
+		log('db.ts', 'indexedDBString cache miss', { key })
 	}
 	const response = await fn()
 	await db.map.put({
@@ -213,21 +251,35 @@ export const indexedDBString = async function* ({
 
 export const indexedDBWrap = async function* ({
 	key,
+	operation,
 	fn,
 }: {
 	key: string
+	operation: string
 	fn: () => Promise<Response>
 }) {
-	if (!indexeddbEnabled) {
+	if (!isIndexedDBEnabled()) {
 		yield await fn()
 		return
 	}
 	const cached = await db.fetch.where('key').equals(key).first()
 	if (cached) {
-		yield new Response(cached.blob, {
-			...cached.options,
-			status: cached.options.status || 200,
-		})
+		if (
+			IndexedDBCache.expiryMS[operation] &&
+			moment().diff(moment(cached.created)) >=
+				IndexedDBCache.expiryMS[operation]
+		) {
+			log('db.ts', 'indexedDBWrap cache expired', { key, cached })
+			db.apollo.delete(cached.key)
+		} else {
+			log('db.ts', 'indexedDBWrap cache hit', { key, cached })
+			yield new Response(cached.blob, {
+				...cached.options,
+				status: cached.options.status || 200,
+			})
+		}
+	} else {
+		log('db.ts', 'indexedDBWrap cache miss', { key })
 	}
 	const response = await fn()
 	const ret = response.clone()
@@ -255,6 +307,7 @@ export const indexedDBFetch = async function* (
 ) {
 	yield* indexedDBWrap({
 		key: JSON.stringify({ input, init }),
+		operation: 'fetch',
 		fn: async () => await fetch(input, init),
 	})
 }
@@ -304,6 +357,6 @@ const cleanup = async () => {
 		setTimeout(cleanup, CLEANUP_CHECK_MS)
 	}
 }
-if (indexeddbEnabled) {
+if (isIndexedDBEnabled()) {
 	setTimeout(cleanup, CLEANUP_CHECK_MS)
 }

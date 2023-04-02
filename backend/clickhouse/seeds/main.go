@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
@@ -10,36 +11,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func makeRandTime() time.Time {
-	now := time.Now()
-
-	randomTimes := [3]time.Time{
-		now.Add(-time.Hour * 72),
-		now.Add(-time.Hour * 144),
-		now,
-	}
-
-	return randomTimes[rand.Intn(len(randomTimes))]
-}
-
-func makeRandProjectId() uint32 {
-	projectIDs := make([]uint32, 0)
-	projectIDs = append(projectIDs, 1, 2, 3, 4, 5)
-	return projectIDs[rand.Intn(len(projectIDs))]
-}
-
-var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-func makeRandomBody() string {
-	b := make([]rune, 30)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-	return string(b)
-}
-
 func makeRandLogAttributes() map[string]string {
-	randomKeys := [20]string{
+	randomKeys := [21]string{
 		"key1",
 		"key2",
 		"key3",
@@ -60,6 +33,7 @@ func makeRandLogAttributes() map[string]string {
 		"key18",
 		"key19",
 		"key20",
+		"deeply.nested.log.value",
 	}
 
 	randomVals := [20]string{
@@ -108,6 +82,49 @@ func makeRandLogAttributes() map[string]string {
 	return logAttributes
 }
 
+func makeRandomSeverityText() string {
+	severities := [6]string{
+		"trace",
+		"debug",
+		"info",
+		"warn",
+		"error",
+		"fatal",
+	}
+
+	return severities[rand.Intn(len(severities))]
+}
+
+func makeRandomTraceID() string {
+	spanIDs := [6]string{
+		"",
+		"trace_1",
+		"trace_2",
+		"trace_3",
+	}
+	return spanIDs[rand.Intn(len(spanIDs))]
+}
+
+func makeRandomSpanID() string {
+	spanIDs := [6]string{
+		"",
+		"span_1",
+		"span_2",
+		"span_3",
+	}
+	return spanIDs[rand.Intn(len(spanIDs))]
+}
+
+func makeRandomSecureSessionID() string {
+	secureSessionIDs := [6]string{
+		"",
+		"secure_session_id_1",
+		"secure_session_id_2",
+		"secure_session_id_3",
+	}
+	return secureSessionIDs[rand.Intn(len(secureSessionIDs))]
+}
+
 // Run via
 // `doppler run -- go run backend/clickhouse/seeds/main.go“
 func main() {
@@ -118,18 +135,22 @@ func main() {
 		log.WithContext(ctx).Fatal("could not connect to clickhouse db")
 	}
 
-	logRows := []*clickhouse.LogRow{}
+	now := time.Now()
 
-	for i := 1; i < 100; i++ {
-		for j := 1; j < 100; j++ {
-			logRows = append(logRows, &clickhouse.LogRow{
-				Timestamp:     makeRandTime(),
-				ProjectId:     makeRandProjectId(),
-				Body:          makeRandomBody(),
-				LogAttributes: makeRandLogAttributes(),
-			})
-		}
-
+	for i := 1; i < 10000; i++ {
+		logRows := []*clickhouse.LogRow{}
+		logRows = append(logRows, &clickhouse.LogRow{
+			LogRowPrimaryAttrs: clickhouse.LogRowPrimaryAttrs{
+				Timestamp:       now.Add(-time.Duration(i) * time.Second),
+				ProjectId:       1,
+				TraceId:         makeRandomTraceID(),
+				SpanId:          makeRandomSpanID(),
+				SecureSessionId: makeRandomSecureSessionID(),
+			},
+			Body:          fmt.Sprintf("Body %d", i),
+			LogAttributes: makeRandLogAttributes(),
+			SeverityText:  makeRandomSeverityText(),
+		})
 		err = client.BatchWriteLogRows(context.Background(), logRows)
 
 		if err != nil {

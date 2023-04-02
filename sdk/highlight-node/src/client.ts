@@ -8,17 +8,15 @@ import {
 import { GraphQLClient } from 'graphql-request'
 import { NodeOptions } from './types.js'
 import log from './log'
-
-import * as opentelemetry from '@opentelemetry/sdk-node'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import { trace, Tracer } from '@opentelemetry/api'
+import { hookConsole } from './hooks'
 import {
-	diag,
-	DiagConsoleLogger,
-	DiagLogLevel,
-	trace,
-	Tracer,
-} from '@opentelemetry/api'
+	BatchSpanProcessor,
+	SpanProcessor,
+} from '@opentelemetry/sdk-trace-base'
+import { NodeSDK } from '@opentelemetry/sdk-node'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -32,28 +30,35 @@ export class Highlight {
 	lastBackendSetupEvent: number = 0
 	_projectID: string
 	_debug: boolean
-	private otel: opentelemetry.NodeSDK
+	private otel: NodeSDK
 	private tracer: Tracer
+	private processor: SpanProcessor
 
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
 		this._projectID = options.projectID
 		this._backendUrl = options.backendUrl || 'https://pub.highlight.run'
+		if (!options.disableConsoleRecording) {
+			hookConsole(options.consoleMethodsToRecord, (c) => {
+				this.log(c.date, c.message, c.level, c.stack)
+			})
+		}
 		const client = new GraphQLClient(this._backendUrl, {
 			headers: {},
 		})
 		this._graphqlSdk = getSdk(client)
 
-		if (options.debug) {
-			diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG)
-		}
-
 		this.tracer = trace.getTracer('highlight-node')
+
 		const exporter = new OTLPTraceExporter({
 			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
 		})
 
-		this.otel = new opentelemetry.NodeSDK({
+		this.processor = new BatchSpanProcessor(exporter, {})
+		this.otel = new NodeSDK({
+			autoDetectResources: true,
+			defaultAttributes: { 'highlight.project_id': this._projectID },
+			spanProcessor: this.processor,
 			traceExporter: exporter,
 			instrumentations: [getNodeAutoInstrumentations()],
 		})
@@ -101,6 +106,41 @@ export class Highlight {
 		})
 	}
 
+	log(
+		date: Date,
+		msg: string,
+		level: string,
+		stack: object,
+		secureSessionId?: string,
+		requestId?: string,
+	) {
+		if (!this.tracer) return
+		const span = this.tracer.startSpan('highlight-ctx')
+		// log specific events from https://github.com/highlight/highlight/blob/19ea44c616c432ef977c73c888c6dfa7d6bc82f3/sdk/highlight-go/otel.go#L34-L36
+		span.addEvent(
+			'log',
+			{
+				// pass stack so that error creation on our end can show a structured stacktrace for errors
+				['exception.stacktrace']: JSON.stringify(stack),
+				['highlight.project_id']: this._projectID,
+				['log.severity']: level,
+				['log.message']: msg,
+				...(secureSessionId
+					? {
+							['highlight.session_id']: secureSessionId,
+					  }
+					: {}),
+				...(requestId
+					? {
+							['highlight.trace_id']: requestId,
+					  }
+					: {}),
+			},
+			date,
+		)
+		span.end()
+	}
+
 	consumeCustomError(
 		error: Error,
 		secureSessionId: string | undefined,
@@ -113,13 +153,18 @@ export class Highlight {
 			spanCreated = true
 		}
 		span.recordException(error)
-		span.setAttributes({
-			highlight_project_id: this._projectID,
-			highlight_session_id: secureSessionId,
-			highlight_trace_id: requestId,
-		})
+		span.setAttributes({ ['highlight.project_id']: this._projectID })
+		if (secureSessionId) {
+			span.setAttributes({ ['highlight.session_id']: secureSessionId })
+		}
+		if (requestId) {
+			span.setAttributes({ ['highlight.trace_id']: requestId })
+		}
 		if (spanCreated) {
+			this._log('created error span', span)
 			span.end()
+		} else {
+			this._log('updated current span with error', span)
 		}
 	}
 
@@ -157,6 +202,6 @@ export class Highlight {
 	}
 
 	async flush() {
-		await Promise.all([this.flushMetrics()])
+		await Promise.all([this.flushMetrics(), this.processor.forceFlush()])
 	}
 }

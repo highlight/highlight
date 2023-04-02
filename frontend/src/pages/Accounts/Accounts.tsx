@@ -11,7 +11,7 @@ import {
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import { Table } from 'antd'
-import { dinero, down, toUnit } from 'dinero.js'
+import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React, { useEffect } from 'react'
 // @ts-expect-error
@@ -146,13 +146,7 @@ const COLUMNS = [
 				amount: value,
 				currency: USD,
 			})
-			return (
-				'$' +
-				toUnit(baseAmount, {
-					digits: 2,
-					round: down,
-				})
-			)
+			return '$' + toDecimal(baseAmount)
 		},
 		sorter: (a: { paid_prev: any }, b: { paid_prev: any }) =>
 			(a.paid_prev ?? 0) - (b.paid_prev ?? 0),
@@ -174,13 +168,7 @@ const COLUMNS = [
 				amount: value,
 				currency: USD,
 			})
-			return (
-				'$' +
-				toUnit(baseAmount, {
-					digits: 2,
-					round: down,
-				})
-			)
+			return '$' + toDecimal(baseAmount)
 		},
 		sorter: (a: { paid_prev_prev: any }, b: { paid_prev_prev: any }) =>
 			(a.paid_prev_prev ?? 0) - (b.paid_prev_prev ?? 0),

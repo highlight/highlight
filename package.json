@@ -6,15 +6,19 @@
 	"author": "Highlight",
 	"license": "MIT",
 	"dependencies": {
-		"concurrently": "^6.5.1"
+		"concurrently": "^6.5.1",
+		"react-markdown": "^8.0.5"
 	},
 	"workspaces": [
 		"e2e/*",
 		"packages/*",
+		"highlight.io",
 		"frontend",
 		"sdk/client",
 		"sdk/firstload",
+		"sdk/highlight-apollo",
 		"sdk/highlight-cloudflare",
+		"sdk/highlight-nest",
 		"sdk/highlight-next",
 		"sdk/highlight-node",
 		"sdk/highlight-react",
@@ -27,13 +31,13 @@
 		"build:all": "yarn turbo run prepublish build",
 		"build:backend": "cd backend && go build",
 		"build:frontend": "yarn turbo run build --filter frontend...",
-		"build:sdk": "yarn turbo run build --filter @highlight-run/cloudflare --filter @highlight-run/react --filter @highlight-run/next...",
+		"build:sdk": "yarn turbo run build --filter @highlight-run/cloudflare --filter @highlight-run/react --filter @highlight-run/apollo... --filter @highlight-run/next... --filter @highlight-run/nest...",
 		"cy:run": "cypress run",
 		"cy:run:chrome": "cypress run --headed --browser chrome",
 		"dev": "run-p --print-label --race 'dev:*'",
 		"dev:backend": "cd backend && make start",
 		"dev:components": "yarn turbo run dev --filter @highlight-run/component-preview...",
-		"dev:frontend": "doppler run -- yarn turbo run dev --filter frontend...",
+		"dev:frontend": "doppler run -- yarn turbo run dev --filter frontend... --filter=!@highlight-run/rrweb...",
 		"dev:ui": "yarn turbo run dev --filter @highlight-run/ui...",
 		"dev:redis": "redis-server",
 		"docker:frontend": "yarn turbo run dev --filter frontend...",
@@ -43,13 +47,17 @@
 		"frontend:start": "yarn dev:frontend",
 		"g": "yarn generate",
 		"generate": "hygen",
+		"lint": "yarn run turbo lint --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs",
 		"prepare": "husky install && patch-package",
+		"preinstall": "git submodule update --init --recursive || true",
 		"prepublish": "yarn workspace scripts prepublish:client",
+		"private-gen": "cd backend && make private-gen",
+		"public-gen": "cd backend && make public-gen",
 		"publish:all": "run-p --print-label publish:client publish:turbo publish:render",
 		"publish:client": "yarn workspace scripts publish:client",
 		"publish:render": "yarn workspace render publish",
 		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish",
-		"test:all": "yarn turbo run test --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrweb-snapshot",
+		"test:all": "yarn turbo run test --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs",
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},
 	"devDependencies": {
@@ -61,7 +69,7 @@
 		"patch-package": "^6.4.7",
 		"prettier": "^2.7.1",
 		"pretty-quick": "^3.1.3",
-		"turbo": "^1.7.2"
+		"turbo": "^1.8.6"
 	},
 	"packageManager": "yarn@3.4.1",
 	"resolutions": {

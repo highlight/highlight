@@ -56,8 +56,6 @@
 }
 
 .progressContainer {
-	margin-top: var(--size-small);
-
 	:global(.ant-progress-inner) {
 		height: var(--size-medium);
 	}

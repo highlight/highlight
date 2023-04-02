@@ -28,7 +28,7 @@ const ErrorBodyText = ({ errorGroup }: Props) => {
 		<Box display="flex" flexDirection="column" gap="8">
 			<Box
 				py="8"
-				cssClass={[style.errorBodyContainer]}
+				cssClass={style.errorBodyContainer}
 				overflowY="scroll"
 				overflowX="auto"
 			>

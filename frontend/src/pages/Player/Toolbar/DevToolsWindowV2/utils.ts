@@ -100,6 +100,13 @@ export const getHighlightRequestId = (resource?: NetworkResource) => {
 	return resource?.requestResponsePairs?.request?.id
 }
 
+export enum Tab {
+	Errors = 'Errors',
+	Console = 'Console',
+	Network = 'Network',
+	Events = 'Events',
+}
+
 export enum LogLevel {
 	All = 'All',
 	Info = 'Info',
@@ -117,40 +124,49 @@ export const LogLevelVariants = {
 } as const
 
 export enum RequestType {
+	/* [displayName]: requestName */
 	All = 'All',
-	Link = 'Link',
-	Script = 'Script',
-	Other = 'Other',
-	XHR = 'XHR',
-	CSS = 'CSS',
-	iFrame = 'iFrame',
-	Fetch = 'Fetch',
-	Img = 'Img',
+	CSS = 'css',
+	Fetch = 'fetch',
+	iFrame = 'iframe' /* didn't find a request to verify that 'iframe' is what is actually received */,
+	Img = 'img',
+	Link = 'link',
+	Other = 'other',
+	Script = 'script',
+	XHR = 'xmlhttprequest',
 }
 
-export enum Tab {
-	Errors = 'Errors',
-	Console = 'Console',
-	Network = 'Network',
-	Events = 'Events',
+export interface ICountPerRequestType {
+	All: number
+	css: number
+	fetch: number
+	iframe: number
+	img: number
+	link: number
+	other: number
+	script: number
+	xmlhttprequest: number
 }
 
-const DISPLAY_NAMES: { [key: string]: string } = {
-	iframe: 'iFrame',
-	other: 'Other',
-	css: 'CSS',
-	xmlhttprequest: 'XHR',
-	script: 'Script',
-	link: 'Link',
-	fetch: 'Fetch',
-} as const
+export enum RequestStatus {
+	All = 'All',
+	'1XX' = '1XX',
+	'2XX' = '2XX',
+	'3XX' = '3XX',
+	'4XX' = '4XX',
+	'5XX' = '5XX',
+	'Unknown' = 'Unknown',
+}
+
+export type ICountPerRequestStatus = {
+	[key in RequestStatus]: number
+}
 
 export const getNetworkResourcesDisplayName = (value: string): string => {
-	switch (true) {
-		case value in DISPLAY_NAMES: {
-			return DISPLAY_NAMES[value]
+	for (const [displayName, requestName] of Object.entries(RequestType)) {
+		if (value === requestName) {
+			return displayName
 		}
-		default:
-			return value?.charAt(0).toUpperCase() + value?.slice(1)
 	}
+	return value?.charAt(0).toUpperCase() + value?.slice(1)
 }

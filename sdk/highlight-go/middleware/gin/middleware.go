@@ -1,6 +1,8 @@
 package gin
 
 import (
+	"github.com/highlight/highlight/sdk/highlight-go/middleware"
+	"go.opentelemetry.io/otel/attribute"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +17,7 @@ import (
 // ...
 // r.Use(highlightgin.Middleware())
 func Middleware() gin.HandlerFunc {
+	middleware.CheckStatus()
 	return func(c *gin.Context) {
 		highlightReqDetails := c.GetHeader("X-Highlight-Request")
 		ids := strings.Split(highlightReqDetails, "/")
@@ -23,6 +26,17 @@ func Middleware() gin.HandlerFunc {
 		}
 		c.Set(string(highlight.ContextKeys.SessionSecureID), ids[0])
 		c.Set(string(highlight.ContextKeys.RequestID), ids[1])
-		highlight.MarkBackendSetup(c)
+
+		span, hCtx := highlight.StartTrace(c, "highlight/gin")
+		defer highlight.EndTrace(span)
+
+		c.Next()
+
+		highlight.MarkBackendSetup(hCtx)
+		span.SetAttributes(attribute.String(highlight.SourceAttribute, "GoGinMiddleware"))
+		span.SetAttributes(middleware.GetRequestAttributes(c.Request)...)
+		if len(c.Errors) > 0 {
+			highlight.RecordSpanError(span, c.Errors[0])
+		}
 	}
 }

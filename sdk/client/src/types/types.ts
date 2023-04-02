@@ -95,6 +95,11 @@ export declare type HighlightOptions = {
 	 */
 	disableConsoleRecording?: boolean
 	/**
+	 * Specifies whether Highlight will report `console.error` invocations as Highlight Errors.
+	 * @default true
+	 */
+	reportConsoleErrors?: boolean
+	/**
 	 * Specifies which console methods to record.
 	 * The value here will be ignored if `disabledConsoleRecording` is `true`.
 	 * @default All console methods.
@@ -152,6 +157,12 @@ export declare type HighlightOptions = {
 	 * @default false
 	 */
 	inlineStylesheet?: boolean
+	/**
+	 * Enables recording of cross-origin iframes. Should be set in both the parent window and
+	 * in the cross-origin iframe.
+	 * @default false
+	 */
+	recordCrossOriginIframe?: boolean
 	/**
 	 * Specifies that the current app is a cross origin iframe in an app where Highlight is also enabled.
 	 * This flag should only be set in the iframe, not in the parent application hosting the iframe.

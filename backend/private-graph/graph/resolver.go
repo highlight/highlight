@@ -17,9 +17,6 @@ import (
 
 	"gorm.io/gorm/clause"
 
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-
 	"github.com/go-chi/chi"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/samber/lo"
@@ -140,6 +137,77 @@ func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) 
 	})
 }
 
+func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
+	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.admin"))
+
+	admin := &model.Admin{UID: pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))}
+	tx := r.DB.Where(admin).
+		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "uid"}}, DoNothing: true}).
+		Create(&admin).
+		Attrs(&admin)
+	if tx.Error != nil {
+		spanError := e.Wrap(tx.Error, "error retrieving user from db")
+		adminSpan.Finish(tracer.WithError(spanError))
+		return nil, spanError
+	}
+	if tx.RowsAffected != 0 {
+		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
+			tracer.Tag("admin_uid", *admin.UID))
+		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
+		if err != nil {
+			spanError := e.Wrap(err, "error retrieving user from firebase api")
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			adminSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
+			UID:                   admin.UID,
+			Name:                  &firebaseUser.DisplayName,
+			Email:                 &firebaseUser.Email,
+			PhotoURL:              &firebaseUser.PhotoURL,
+			EmailVerified:         &firebaseUser.EmailVerified,
+			Phone:                 &firebaseUser.PhoneNumber,
+			AboutYouDetailsFilled: &model.F,
+		}).Error; err != nil {
+			spanError := e.Wrap(err, "error creating new admin")
+			adminSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		firebaseSpan.Finish()
+	}
+	if err := r.DB.Where(&model.Admin{UID: admin.UID}).First(&admin).Error; err != nil {
+		spanError := e.Wrap(err, "error fetching admin")
+		adminSpan.Finish(tracer.WithError(spanError))
+		return nil, spanError
+	}
+	if admin.PhotoURL == nil || admin.Name == nil {
+		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
+			tracer.Tag("admin_uid", *admin.UID))
+		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
+		if err != nil {
+			spanError := e.Wrap(err, "error retrieving user from firebase api")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
+			PhotoURL: &firebaseUser.PhotoURL,
+			Name:     &firebaseUser.DisplayName,
+			Phone:    &firebaseUser.PhoneNumber,
+		}).Error; err != nil {
+			spanError := e.Wrap(err, "error updating org fields")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		admin.PhotoURL = &firebaseUser.PhotoURL
+		admin.Name = &firebaseUser.DisplayName
+		admin.Phone = &firebaseUser.PhoneNumber
+		firebaseSpan.Finish()
+	}
+	return admin, nil
+}
+
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
 	return r.Query().Admin(ctx)
 }
@@ -160,10 +228,10 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 
 type HubspotApiInterface interface {
 	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (*int, error)
-	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) (*int, error)
-	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error
-	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error
-	UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error
+	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string, db *gorm.DB) (*int, error)
+	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int, db *gorm.DB) error
+	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property, db *gorm.DB) error
+	UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property, db *gorm.DB) error
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -224,7 +292,8 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	email := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.Email))
 	// Allow access to engineering@highlight.run or any verified @highlight.run / @runhighlight.com email.
 	_, isAdmin := lo.Find(HighlightAdminEmailDomains, func(domain string) bool { return strings.Contains(email, domain) })
-	return isAdmin || uid == WhitelistedUID
+	isDockerDefaultAccount := util.IsInDocker() && email == "demo@example.com"
+	return isAdmin || uid == WhitelistedUID || isDockerDefaultAccount
 }
 
 func (r *Resolver) isDemoProject(project_id int) bool {
@@ -441,8 +510,8 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	return nil, e.New("admin doesn't exist in project")
 }
 
-func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, errorGroupID int, errorGroupCreated time.Time) (*time.Time, *time.Time, error) {
-	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, time.Since(errorGroupCreated))
+func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.ErrorGroup) (*time.Time, *time.Time, error) {
+	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(eg.ProjectID), timeseries.Errors), timeseries.Errors, time.Since(eg.CreatedAt))
 	var filter string
 	if measurement == timeseries.Error.AggName {
 		filter = `|> filter(fn: (r) => r._value > 0)`
@@ -457,18 +526,90 @@ func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, 
 
       union(tables:[query() |> first(), query() |> last()])
         |> sort(columns: ["ErrorGroupID", "_field", "_time"])
-	`, bucket, measurement, errorGroupID, filter)
+	`, bucket, measurement, eg.ID, filter)
 	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupOccurrences")
-	span.SetTag("projectID", projectID)
-	span.SetTag("errorGroupID", errorGroupID)
+	span.SetTag("projectID", eg.ProjectID)
+	span.SetTag("errorGroupID", eg.ID)
 	results, err := r.TDB.Query(ctx, query)
 	if err != nil {
-		return nil, nil, e.Wrap(err, "failed to perform tdb query for error group occurrences")
+		log.WithContext(ctx).WithError(err).Error("failed to perform tdb query for error group occurrences")
 	}
 	if len(results) < 2 {
-		return nil, nil, nil
+		return &eg.CreatedAt, &eg.UpdatedAt, nil
 	}
 	return &results[0].Time, &results[1].Time, nil
+}
+
+func (r *Resolver) GetErrorFrequenciesOpensearch(errorGroups []*model.ErrorGroup, lookbackPeriod int) (map[int][]int64, map[int][]*modelInputs.ErrorDistributionItem, error) {
+	endDate := time.Now().UTC()
+	startDate := endDate.AddDate(0, 0, -1*lookbackPeriod)
+	startDateFormatted := startDate.Format("2006-01-02")
+
+	aggQuery :=
+		fmt.Sprintf(`{"bool": {
+			"must": [
+				{
+					"terms": {
+					"routing.keyword" : [%s]
+				}},
+				{
+					"range": {
+					"timestamp": {
+						"gte": "%s"
+					}
+				}}
+			]
+		}}`,
+			strings.Join(lo.Map(errorGroups, func(e *model.ErrorGroup, i int) string { return strconv.Itoa(e.ID) }), ","),
+			startDateFormatted)
+	aggOptions := opensearch.SearchOptions{
+		MaxResults: pointy.Int(0),
+		Aggregation: &opensearch.TermsAggregation{
+			Field: "routing.keyword",
+			SubAggregation: &opensearch.DateHistogramAggregation{
+				Field:            "timestamp",
+				CalendarInterval: "day",
+				SortOrder:        "desc",
+				Format:           "yyyy-MM-dd",
+				TimeZone:         "UTC",
+			},
+		},
+	}
+
+	var ignored []struct{}
+	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, -1, aggQuery, aggOptions, &ignored)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	errFreqs := map[int][]int64{}
+	errMetrics := map[int][]*modelInputs.ErrorDistributionItem{}
+	for _, ar1 := range aggResults {
+		errorGroupId, err := strconv.Atoi(ar1.Key)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		freqMap := map[string]int64{}
+		for _, ar2 := range ar1.SubAggregationResults {
+			freqMap[ar2.Key] = ar2.DocCount
+		}
+
+		var freqs []int64
+		for curDate := startDate; !curDate.After(endDate); curDate = curDate.AddDate(0, 0, 1) {
+			curDateFormatted := curDate.Format("2006-01-02")
+			freq, ok := freqMap[curDateFormatted]
+			if !ok {
+				freq = 0
+			}
+			freqs = append(freqs, freq)
+			errMetrics[errorGroupId] = append(errMetrics[errorGroupId], &modelInputs.ErrorDistributionItem{ErrorGroupID: errorGroupId, Date: curDate.Truncate(24 * time.Hour), Name: "count", Value: freq})
+		}
+
+		errFreqs[errorGroupId] = freqs
+	}
+
+	return errFreqs, errMetrics, nil
 }
 
 func (r *Resolver) GetErrorGroupFrequenciesUnsampled(ctx context.Context, projectID int, errorGroupID int) ([]*modelInputs.ErrorDistributionItem, error) {
@@ -488,7 +629,7 @@ func (r *Resolver) GetErrorGroupFrequenciesUnsampled(ctx context.Context, projec
 				"count", "environmentCount", "identifierCount", "sessionCount",
 			} {
 				response = append(response, &modelInputs.ErrorDistributionItem{
-					ErrorGroupID: strconv.Itoa(errorGroupID),
+					ErrorGroupID: errorGroupID,
 					Date:         r.Time,
 					Name:         k,
 					Value:        r.Values[k].(int64),
@@ -538,8 +679,9 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 			if r.Values["ErrorGroupID"] != nil {
 				id = r.Values["ErrorGroupID"].(string)
 			}
+			idInt, _ := strconv.Atoi(id)
 			response = append(response, &modelInputs.ErrorDistributionItem{
-				ErrorGroupID: id,
+				ErrorGroupID: idInt,
 				Date:         r.Time,
 				Name:         field.(string),
 				Value:        value,
@@ -549,7 +691,7 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 	return response, nil
 }
 
-func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
+func (r *Resolver) SetErrorFrequencies(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
 	params := modelInputs.ErrorGroupFrequenciesParamsInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
 			StartDate: time.Now().Add(time.Duration(-24*lookbackPeriod) * time.Hour),
@@ -557,19 +699,50 @@ func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int,
 		},
 		ResolutionMinutes: 24 * 60,
 	}
-	var errorGroupMap = make(map[string]*model.ErrorGroup)
-	var errorGroupIDs []int
+	var errorGroupMap = make(map[int]*model.ErrorGroup)
 	for _, errorGroup := range errorGroups {
-		errorGroup.ErrorMetrics = []*struct {
-			ErrorGroupID int
-			Date         time.Time
-			Name         string
-			Value        int64
-		}{}
-		errorGroupMap[strconv.Itoa(errorGroup.ID)] = errorGroup
-		errorGroupIDs = append(errorGroupIDs, errorGroup.ID)
+		errorGroup.ErrorMetrics = []*modelInputs.ErrorDistributionItem{}
+		errorGroupMap[errorGroup.ID] = errorGroup
 	}
-	results, err := r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, "")
+	oldErrorGroups := make(map[int]*model.ErrorGroup)
+	var err error
+	var results []*modelInputs.ErrorDistributionItem
+	for _, eg := range errorGroups {
+		if time.Since(eg.CreatedAt) <= time.Hour {
+			results, err = r.GetErrorGroupFrequenciesUnsampled(ctx, eg.ProjectID, eg.ID)
+			if err != nil {
+				log.WithContext(ctx).Error(err)
+			}
+			endDate := time.Now().UTC().AddDate(0, 0, -1)
+			startDate := endDate.AddDate(0, 0, -1*(lookbackPeriod-1))
+			for curDate := startDate; !curDate.After(endDate); curDate = curDate.AddDate(0, 0, 1) {
+				eg.ErrorFrequency = append(eg.ErrorFrequency, 0)
+				eg.ErrorMetrics = append(eg.ErrorMetrics, &modelInputs.ErrorDistributionItem{ErrorGroupID: eg.ID, Date: curDate.Truncate(24 * time.Hour), Name: "count", Value: 0})
+			}
+			for _, r := range results {
+				if r.Name == "count" {
+					eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
+				}
+				eg.ErrorMetrics = append(eg.ErrorMetrics, &modelInputs.ErrorDistributionItem{ErrorGroupID: eg.ID, Date: r.Date, Name: r.Name, Value: r.Value})
+			}
+			// fallback to using opensearch for the frequency query
+			if len(results) == 0 {
+				errFreqs, errMetrics, err := r.GetErrorFrequenciesOpensearch([]*model.ErrorGroup{eg}, lookbackPeriod)
+				if err != nil {
+					log.WithContext(ctx).Error(err)
+				} else {
+					eg.ErrorFrequency = errFreqs[eg.ID]
+					eg.ErrorMetrics = errMetrics[eg.ID]
+				}
+			}
+		} else {
+			oldErrorGroups[eg.ID] = eg
+		}
+	}
+
+	results, err = r.GetErrorGroupFrequencies(ctx, projectID, lo.Map(lo.Values(oldErrorGroups), func(eg *model.ErrorGroup, i int) int {
+		return eg.ID
+	}), params, "")
 	if err != nil {
 		return err
 	}
@@ -578,87 +751,21 @@ func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int,
 		if r.Name == "count" {
 			eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
 		}
-		eg.ErrorMetrics = append(eg.ErrorMetrics, &struct {
-			ErrorGroupID int
-			Date         time.Time
-			Name         string
-			Value        int64
-		}{ErrorGroupID: eg.ID, Date: r.Date, Name: r.Name, Value: r.Value})
+		eg.ErrorMetrics = append(eg.ErrorMetrics, &modelInputs.ErrorDistributionItem{ErrorGroupID: eg.ID, Date: r.Date, Name: r.Name, Value: r.Value})
 	}
-	return nil
-}
-
-func (r *Resolver) SetErrorFrequencies(errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
-	endDate := time.Now().UTC()
-	startDate := endDate.AddDate(0, 0, -1*lookbackPeriod)
-	startDateFormatted := startDate.Format("2006-01-02")
-
-	aggQuery :=
-		fmt.Sprintf(`{"bool": {
-			"must": [
-				{
-					"terms": {
-					"routing.keyword" : [%s]
-				}},
-				{
-					"range": {
-					"timestamp": {
-						"gte": "%s"
-					}
-				}}
-			]
-		}}`,
-			strings.Join(lo.Map(errorGroups, func(e *model.ErrorGroup, i int) string { return strconv.Itoa(e.ID) }), ","),
-			startDateFormatted)
-	aggOptions := opensearch.SearchOptions{
-		MaxResults: pointy.Int(0),
-		Aggregation: &opensearch.TermsAggregation{
-			Field: "routing.keyword",
-			SubAggregation: &opensearch.DateHistogramAggregation{
-				Field:            "timestamp",
-				CalendarInterval: "day",
-				SortOrder:        "desc",
-				Format:           "yyyy-MM-dd",
-				TimeZone:         "UTC",
-			},
-		},
-	}
-
-	ignored := []struct{}{}
-	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, -1, aggQuery, aggOptions, &ignored)
-	if err != nil {
-		return err
-	}
-
-	errFreqs := map[int][]int64{}
-	for _, ar1 := range aggResults {
-		freqMap := map[string]int64{}
-		for _, ar2 := range ar1.SubAggregationResults {
-			freqMap[ar2.Key] = ar2.DocCount
-		}
-
-		freqs := []int64{}
-		for curDate := startDate; !curDate.After(endDate); curDate = curDate.AddDate(0, 0, 1) {
-			curDateFormatted := curDate.Format("2006-01-02")
-			freq, ok := freqMap[curDateFormatted]
-			if !ok {
-				freq = 0
-			}
-			freqs = append(freqs, freq)
-		}
-
-		errorGroupId, err := strconv.Atoi(ar1.Key)
+	// fallback to using opensearch for the frequency query
+	if len(results) == 0 {
+		errFreqs, errMetrics, err := r.GetErrorFrequenciesOpensearch(lo.Values(oldErrorGroups), lookbackPeriod)
 		if err != nil {
-			return err
+			log.WithContext(ctx).Error(err)
+		} else {
+			for egID, freqs := range errFreqs {
+				eg := oldErrorGroups[egID]
+				eg.ErrorFrequency = freqs
+				eg.ErrorMetrics = errMetrics[egID]
+			}
 		}
-
-		errFreqs[errorGroupId] = freqs
 	}
-
-	for _, eg := range errorGroups {
-		eg.ErrorFrequency = errFreqs[eg.ID]
-	}
-
 	return nil
 }
 
@@ -773,10 +880,10 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 		return eg, false, e.Wrap(err, "error validating admin in project")
 	}
 
-	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID, eg.CreatedAt); err != nil {
+	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg); err != nil {
 		return nil, false, e.Wrap(err, "error querying error group occurrences")
 	}
-	if err := r.SetErrorFrequenciesInflux(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+	if err := r.SetErrorFrequencies(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
 		return nil, false, e.Wrap(err, "error querying error group frequencies")
 	}
 
@@ -1332,6 +1439,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 
 	// Default to free tier
 	tier := modelInputs.PlanTypeFree
+	retentionPeriod := modelInputs.RetentionPeriodSixMonths
 	unlimitedMembers := false
 	var billingPeriodStart *time.Time
 	var billingPeriodEnd *time.Time
@@ -1341,9 +1449,10 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 	// and set the workspace's tier if the Stripe product has one
 	for _, subscription := range subscriptions {
 		for _, subscriptionItem := range subscription.Items.Data {
-			if _, productTier, productUnlimitedMembers, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
+			if _, productTier, productUnlimitedMembers, _, priceRetentionPeriod := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
 				tier = *productTier
 				unlimitedMembers = productUnlimitedMembers
+				retentionPeriod = priceRetentionPeriod
 				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
 				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
 				nextInvoiceTimestamp := time.Unix(subscription.NextPendingInvoiceItemInvoice, 0)
@@ -1364,15 +1473,23 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error retrieving workspace for customer %s", stripeCustomerID)
 	}
 
+	updates := map[string]interface{}{
+		"PlanTier":           string(tier),
+		"UnlimitedMembers":   unlimitedMembers,
+		"BillingPeriodStart": billingPeriodStart,
+		"BillingPeriodEnd":   billingPeriodEnd,
+		"NextInvoiceDate":    nextInvoiceDate,
+	}
+
+	// Only update retention period if already set
+	// This preserves `nil` values for customers grandfathered into 6 month retention
+	if workspace.RetentionPeriod != nil {
+		updates["RetentionPeriod"] = retentionPeriod
+	}
+
 	if err := r.DB.Model(&model.Workspace{}).
 		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
-		Updates(map[string]interface{}{
-			"PlanTier":           string(tier),
-			"UnlimitedMembers":   unlimitedMembers,
-			"BillingPeriodStart": billingPeriodStart,
-			"BillingPeriodEnd":   billingPeriodEnd,
-			"NextInvoiceDate":    nextInvoiceDate,
-		}).Error; err != nil {
+		Updates(updates).Error; err != nil {
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
 	}
 
@@ -2814,125 +2931,6 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 	return &existingChannels, newChannelsCount, nil
 }
 
-func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.DashboardMetric) error {
-	// avoid creating invalid metric monitors
-	if metric.Name == "" {
-		return nil
-	}
-
-	var projectID int
-	if err := r.DB.Raw(`
-		SELECT d.project_id
-		FROM dashboard_metrics dm
-				 INNER JOIN dashboards d on dm.dashboard_id = d.id
-		WHERE dm.id = ?
-	`, metric.ID).First(&projectID).Error; err != nil {
-		return e.Wrap(err, "failed to retrieve metrics to create alert")
-	}
-
-	var monitors int64
-	if err := r.DB.Model(&model.MetricMonitor{}).Where(&model.MetricMonitor{
-		ProjectID:       projectID,
-		MetricToMonitor: metric.Name,
-	}).Count(&monitors).Error; err != nil {
-		return e.Wrap(err, "failed to count existing monitors")
-	}
-	if monitors > 0 {
-		return nil
-	}
-
-	var slackChannels []*modelInputs.SanitizedSlackChannel
-	if err := r.DB.Raw(`
-			SELECT DISTINCT ON (s.webhook_channel_id, s.webhook_channel) * FROM (
-				SELECT json_array_elements(cast(mm.channels_to_notify AS json)) -> 'webhook_channel' #>>'{}'    as webhook_channel,
-					   json_array_elements(cast(mm.channels_to_notify AS json)) -> 'webhook_channel_id' #>>'{}' as webhook_channel_id
-				FROM metric_monitors mm
-				WHERE mm.project_id = ?
-				  and mm.channels_to_notify is not null
-			) s
-		`, projectID).Scan(&slackChannels).Error; err != nil {
-		return e.Wrap(err, "failed to retrieve slack channels to create alert")
-	}
-	var channelsString *string
-	if len(slackChannels) > 0 {
-		channelsBytes, err := json.Marshal(slackChannels)
-		if err != nil {
-			return e.Wrap(err, "error parsing slack channels")
-		}
-		cs := string(channelsBytes)
-		channelsString = &cs
-	}
-
-	var emails []*string
-	if err := r.DB.Raw(`
-			SELECT DISTINCT ON (s.email) * FROM (
-				SELECT json_array_elements(cast(mm.emails_to_notify as json)) #>>'{}' as email
-				FROM metric_monitors mm
-				WHERE mm.project_id = ? and mm.emails_to_notify is not null
-			) s
-		`, projectID).Scan(&emails).Error; err != nil {
-		return e.Wrap(err, "failed to retrieve emails to create alert")
-	}
-	if len(emails) < 1 {
-		if err := r.DB.Raw(`
-			SELECT a.email
-			FROM project_admins pa
-			INNER JOIN admins a on pa.admin_id = a.id
-			WHERE pa.project_id = ?
-			GROUP BY pa.project_id, a.email
-		`, projectID).Scan(&emails).Error; err != nil {
-			return e.Wrap(err, "failed to retrieve emails to create alert")
-		}
-	}
-	var emailsString *string
-	if len(emails) > 0 {
-		var err error
-		emailsString, err = r.MarshalAlertEmails(emails)
-		if err != nil {
-			return e.Wrap(err, "failed to marshall emails for auto created metric monitor")
-		}
-	}
-
-	// calculate a reasonable threshold using p90
-	end := time.Now()
-	start := time.Now().Add(-24 * time.Hour)
-	// different than the metric monitor aggregator because we want to get a high value
-	// that won't trigger with the monitor aggregator of p50
-	agg := modelInputs.MetricAggregatorP95
-	points, err := GetMetricTimeline(ctx, r.TDB, projectID, metric.Name, modelInputs.DashboardParamsInput{
-		DateRange: &modelInputs.DateRangeInput{
-			StartDate: &start,
-			EndDate:   &end,
-		},
-		ResolutionMinutes: pointy.Int(60),
-		Units:             metric.Units,
-		Aggregator:        &agg,
-	})
-	if err != nil {
-		return e.Wrap(err, "failed to retrieve recent metric data for threshold calculation")
-	}
-	threshold := 1.
-	if len(points) > 0 {
-		threshold = points[len(points)-1].Value
-	}
-	caser := cases.Title(language.AmericanEnglish)
-	name := caser.String(strings.ToLower(metric.Name))
-	newMetricMonitor := &model.MetricMonitor{
-		ProjectID:        projectID,
-		Name:             fmt.Sprintf("%s Default Monitor", name),
-		Aggregator:       modelInputs.MetricAggregatorP50,
-		Threshold:        threshold,
-		MetricToMonitor:  metric.Name,
-		ChannelsToNotify: channelsString,
-		EmailsToNotify:   emailsString,
-		Disabled:         pointy.Bool(true),
-	}
-	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
-		return e.Wrap(err, "failed to auto create metric monitor")
-	}
-	return nil
-}
-
 func GetAggregateFluxStatement(ctx context.Context, aggregator modelInputs.MetricAggregator, resMins int) string {
 	fn := "mean"
 	quantile := 0.
@@ -3119,11 +3117,84 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 	return
 }
 
-func FormatSessionsQuery(query string) string {
+func (r *Resolver) GetProjectRetentionDate(ctx context.Context, projectId int) (time.Time, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectId)
+	if err != nil {
+		return time.Time{}, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return GetRetentionDate(workspace.RetentionPeriod), nil
+}
+
+func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time {
+	retentionPeriod := modelInputs.RetentionPeriodSixMonths
+	if retentionPeriodPtr != nil {
+		retentionPeriod = *retentionPeriodPtr
+	}
+	switch retentionPeriod {
+	case modelInputs.RetentionPeriodThreeMonths:
+		return time.Now().AddDate(0, -3, 0)
+	case modelInputs.RetentionPeriodSixMonths:
+		return time.Now().AddDate(0, -6, 0)
+	case modelInputs.RetentionPeriodTwelveMonths:
+		return time.Now().AddDate(-1, 0, 0)
+	case modelInputs.RetentionPeriodTwoYears:
+		return time.Now().AddDate(-2, 0, 0)
+	}
+	return time.Now()
+}
+
+func FormatErrorInstancesQuery(query string, retentionDate time.Time) string {
 	return fmt.Sprintf(`
 	{
 		"bool": {
 		   "must": [
+			  {
+				"range": {
+					"timestamp": {
+					   "gt": "%s"
+					}
+				 }
+			  },
+			  %s
+		   ]
+		}
+	 }`, retentionDate.Format(time.RFC3339), query)
+}
+
+func FormatErrorGroupsQuery(query string, retentionDate time.Time) string {
+	return fmt.Sprintf(`
+	{
+		"bool": {
+		   "must": [
+			  {
+				"range": {
+					"updated_at": {
+					   "gt": "%s"
+					}
+				 }
+			  },
+			  %s
+		   ]
+		}
+	 }`, retentionDate.Format(time.RFC3339), query)
+}
+
+func FormatSessionsQuery(query string, retentionDate time.Time) string {
+	return fmt.Sprintf(`
+	{
+		"bool": {
+		   "must": [
+			  {
+				"range": {
+					"created_at": {
+					   "gt": "%s"
+					}
+				 }
+			  },
 			  {
 				 "bool": {
 					"must_not": [
@@ -3174,7 +3245,7 @@ func FormatSessionsQuery(query string) string {
 			  %s
 		   ]
 		}
-	 }`, query)
+	 }`, retentionDate.Format(time.RFC3339), query)
 }
 
 func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptions, field string, subAggregation *opensearch.TermsAggregation) *opensearch.DateHistogramAggregation {

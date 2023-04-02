@@ -24,12 +24,12 @@ export const Calendar: FC<CalendarProps> = ({
 	const { days, month, year } = calendar
 
 	return (
-		<Box backgroundColor="white" border={'primary'} padding={'10'}>
+		<Box backgroundColor="white" p="10">
 			<Stack direction="row" align="center">
 				{prevButton}
 
 				<Box flexGrow={1}>
-					<Text align="center">
+					<Text userSelect="none" align="center">
 						{month} {year}
 					</Text>
 				</Box>
@@ -38,7 +38,7 @@ export const Calendar: FC<CalendarProps> = ({
 
 			<div className={styles.weekDays}>
 				{weekDays.map((d) => (
-					<Text align="center" key={d}>
+					<Text align="center" key={d} userSelect="none">
 						{d}
 					</Text>
 				))}
@@ -46,7 +46,9 @@ export const Calendar: FC<CalendarProps> = ({
 			<main className={styles.days}>
 				{days.map((d) => (
 					<Day day={d} key={d.$date.toString()}>
-						<Text align="center">{d.day}</Text>
+						<Text userSelect="none" align="center">
+							{d.day}
+						</Text>
 					</Day>
 				))}
 			</main>

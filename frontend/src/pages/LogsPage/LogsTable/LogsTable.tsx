@@ -1,132 +1,243 @@
+import { ApolloError } from '@apollo/client'
+import { Button } from '@components/Button'
+import { Link } from '@components/Link'
 import LoadingBox from '@components/LoadingBox'
-import { GetLogsQuery } from '@graph/operations'
-import { LogLine } from '@graph/schemas'
-import { Box, Stack } from '@highlight-run/ui'
-import SvgChevronDownIcon from '@icons/ChevronDownIcon'
-import SvgChevronRightIcon from '@icons/ChevronRightIcon'
-import { LogBody } from '@pages/LogsPage/LogsTable/LogBody'
-import { LogSeverityText } from '@pages/LogsPage/LogsTable/LogSeverityText'
+import { LogLevel as LogLevelType } from '@graph/schemas'
+import { LogEdge } from '@graph/schemas'
+import {
+	Box,
+	Callout,
+	IconSolidCheveronDown,
+	IconSolidCheveronRight,
+	Stack,
+	Text,
+} from '@highlight-run/ui'
+import { FullScreenContainer } from '@pages/LogsPage/LogsTable/FullScreenContainer'
+import { LogDetails } from '@pages/LogsPage/LogsTable/LogDetails'
+import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
+import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
+import { parseLogsQuery } from '@pages/LogsPage/SearchForm/utils'
+import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import {
 	ColumnDef,
 	ExpandedState,
 	flexRender,
 	getCoreRowModel,
 	getExpandedRowModel,
-	Row,
 	useReactTable,
 } from '@tanstack/react-table'
-import React, { Fragment, useState } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
+import clsx from 'clsx'
+import React, { Fragment, useEffect, useState } from 'react'
+
+import * as styles from './LogsTable.css'
 
 type Props = {
 	loading: boolean
-	data: GetLogsQuery | undefined
+	error: ApolloError | undefined
+	refetch: () => void
+} & LogsTableInnerProps
+
+export const LogsTable = (props: Props) => {
+	if (props.loading) {
+		return (
+			<FullScreenContainer>
+				<LoadingBox />
+			</FullScreenContainer>
+		)
+	}
+
+	if (props.error) {
+		return (
+			<FullScreenContainer>
+				<Box m="auto" style={{ maxWidth: 300 }}>
+					<Callout title="Failed to load logs" kind="error">
+						<Box mb="6">
+							<Text color="moderate">
+								There was an error loading your logs. Reach out
+								to us if this might be a bug.
+							</Text>
+						</Box>
+						<Stack direction="row">
+							<Button
+								kind="secondary"
+								trackingId="logs-error-reload"
+								onClick={() => props.refetch()}
+							>
+								Reload query
+							</Button>
+							<Box
+								display="flex"
+								alignItems="center"
+								justifyContent="center"
+							>
+								<Link
+									to="https://highlight.io/community"
+									target="_blank"
+								>
+									Help
+								</Link>
+							</Box>
+						</Stack>
+					</Callout>
+				</Box>
+			</FullScreenContainer>
+		)
+	}
+
+	if (props.logEdges.length === 0) {
+		return (
+			<FullScreenContainer>
+				<NoLogsFound />
+			</FullScreenContainer>
+		)
+	}
+
+	return <LogsTableInner {...props} />
+}
+
+type LogsTableInnerProps = {
+	loadingAfter: boolean
+	logEdges: LogEdgeWithError[]
 	query: string
+	tableContainerRef: React.RefObject<HTMLDivElement>
+	selectedCursor: string | undefined
 }
 
-const renderSubComponent = ({ row }: { row: Row<LogLine> }) => {
-	return (
-		<pre style={{ fontSize: '10px' }}>
-			<code>{JSON.stringify(row.original, null, 2)}</code>
-		</pre>
-	)
-}
-
-const LogsTable = ({ data, loading, query }: Props) => {
+const LogsTableInner = ({
+	logEdges,
+	loadingAfter,
+	query,
+	tableContainerRef,
+	selectedCursor,
+}: LogsTableInnerProps) => {
+	const queryTerms = parseLogsQuery(query)
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
-	const columns = React.useMemo<ColumnDef<LogLine>[]>(
+	const columns = React.useMemo<ColumnDef<LogEdge>[]>(
 		() => [
 			{
-				accessorKey: 'timestamp',
+				accessorKey: 'node.timestamp',
 				cell: ({ row, getValue }) => (
-					<>
+					<Box
+						flexShrink={0}
+						flexDirection="row"
+						display="flex"
+						alignItems="flex-start"
+						gap="6"
+					>
 						{row.getCanExpand() && (
-							<div
-								{...{
-									onClick: row.getToggleExpandedHandler(),
-									style: { cursor: 'pointer' },
-								}}
+							<Box
+								display="flex"
+								alignItems="flex-start"
+								cssClass={styles.expandIcon}
 							>
 								{row.getIsExpanded() ? (
-									<SvgChevronDownIcon />
+									<IconExpanded />
 								) : (
-									<SvgChevronRightIcon />
+									<IconCollapsed />
 								)}
-							</div>
+							</Box>
 						)}
 						<LogTimestamp timestamp={getValue() as string} />
-					</>
+					</Box>
 				),
 			},
 			{
-				accessorKey: 'severityText',
+				accessorKey: 'node.level',
 				cell: ({ getValue }) => (
-					<LogSeverityText severityText={getValue() as string} />
+					<LogLevel level={getValue() as LogLevelType} />
 				),
 			},
 			{
-				accessorKey: 'body',
-				cell: ({ getValue }) => (
-					<LogBody query={query} body={getValue() as string} />
+				accessorKey: 'node.message',
+				cell: ({ row, getValue }) => (
+					<LogMessage
+						queryTerms={queryTerms}
+						message={getValue() as string}
+						expanded={row.getIsExpanded()}
+					/>
 				),
 			},
 		],
+		// Only want to update when the query string matches.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[query],
 	)
 
-	let logs: LogLine[] = []
-
-	if (data?.logs) {
-		logs = data.logs
-	}
-
 	const table = useReactTable({
-		data: logs,
+		data: logEdges,
 		columns,
 		state: {
 			expanded,
 		},
 		onExpandedChange: setExpanded,
-		getRowCanExpand: (row) => row.original.logAttributes,
+		getRowCanExpand: (row) => row.original.node.logAttributes,
 		getCoreRowModel: getCoreRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
 		debugTable: true,
 	})
 
-	if (loading) {
-		return (
-			<Box
-				display="flex"
-				flexGrow={1}
-				alignItems="center"
-				justifyContent="center"
-			>
-				<LoadingBox />
-			</Box>
-		)
-	}
+	const { rows } = table.getRowModel()
 
-	if (logs.length === 0) {
-		return (
-			<Box
-				display="flex"
-				flexGrow={1}
-				alignItems="center"
-				justifyContent="center"
-			>
-				<NoLogsFound />
-			</Box>
+	const rowVirtualizer = useVirtualizer({
+		count: rows.length,
+		estimateSize: () => 26,
+		getScrollElement: () => tableContainerRef.current,
+		overscan: 10,
+	})
+	const totalSize = rowVirtualizer.getTotalSize()
+	const virtualRows = rowVirtualizer.getVirtualItems()
+	const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start || 0 : 0
+	const paddingBottom =
+		virtualRows.length > 0
+			? totalSize - (virtualRows[virtualRows.length - 1]?.end || 0)
+			: 0
+
+	useEffect(() => {
+		// Collapse all rows when search changes
+		table.toggleAllRowsExpanded(false)
+	}, [logEdges, table])
+
+	useEffect(() => {
+		const foundRow = rows.find(
+			(row) => row.original.cursor === selectedCursor,
 		)
-	}
+
+		if (foundRow) {
+			rowVirtualizer.scrollToIndex(foundRow.index, {
+				align: 'start',
+				behavior: 'smooth',
+			})
+			foundRow.toggleExpanded(true)
+		}
+
+		// Only run when the component mounts
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	return (
-		<>
-			{table.getRowModel().rows.map((row) => {
+		<div style={{ height: `${totalSize}px`, position: 'relative' }}>
+			{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
+
+			{virtualRows.map((virtualRow) => {
+				const row = rows[virtualRow.index]
+
 				return (
-					<Fragment key={row.id}>
-						<Stack direction="row" align="center">
+					<Box
+						cssClass={clsx(styles.row, {
+							[styles.rowExpanded]: row.getIsExpanded(),
+						})}
+						key={virtualRow.key}
+						data-index={virtualRow.index}
+						cursor="pointer"
+						onClick={row.getToggleExpandedHandler()}
+						mb="2"
+						ref={rowVirtualizer.measureElement}
+					>
+						<Stack direction="row" align="flex-start">
 							{row.getVisibleCells().map((cell) => {
 								return (
 									<Fragment key={cell.id}>
@@ -139,16 +250,44 @@ const LogsTable = ({ data, loading, query }: Props) => {
 							})}
 						</Stack>
 
-						{row.getIsExpanded() && (
-							<Stack>
-								<Box>{renderSubComponent({ row })}</Box>
-							</Stack>
-						)}
-					</Fragment>
+						<LogDetails row={row} queryTerms={queryTerms} />
+					</Box>
 				)
 			})}
-		</>
+
+			{paddingBottom > 0 && <Box style={{ height: paddingBottom }} />}
+
+			{loadingAfter && (
+				<Box
+					backgroundColor="white"
+					border="dividerWeak"
+					display="flex"
+					flexGrow={1}
+					alignItems="center"
+					justifyContent="center"
+					padding="12"
+					position="fixed"
+					shadow="medium"
+					borderRadius="6"
+					textAlign="center"
+					style={{
+						bottom: 20,
+						left: 'calc(50% - 150px)',
+						width: 300,
+						zIndex: 10,
+					}}
+				>
+					<Text color="weak">Loading...</Text>
+				</Box>
+			)}
+		</div>
 	)
 }
 
-export { LogsTable }
+export const IconExpanded: React.FC = () => (
+	<IconSolidCheveronDown color="#6F6E77" size="16" />
+)
+
+export const IconCollapsed: React.FC = () => (
+	<IconSolidCheveronRight color="#6F6E77" size="16" />
+)

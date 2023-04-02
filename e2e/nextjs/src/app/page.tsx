@@ -1,22 +1,8 @@
 import Image from 'next/image'
 import { Inter } from '@next/font/google'
-import { H } from 'highlight.run'
 import styles from './page.module.css'
 import HelloButton from '@/components/HelloButton'
-
-H.init('1jdkoe52', {
-	debug: {
-		clientInteractions: true,
-		domRecording: true,
-	},
-	networkRecording: {
-		enabled: true,
-		recordHeadersAndBody: true,
-	},
-	tracingOrigins: true,
-	scriptUrl: 'http://localhost:8080/dist/index.js',
-	backendUrl: 'https://localhost:8082/public',
-})
+import ConsoleButtons from '@/components/ConsoleButtons'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -68,6 +54,7 @@ export default function Home() {
 			</div>
 
 			<HelloButton />
+			<ConsoleButtons />
 
 			<div className={styles.grid}>
 				<a

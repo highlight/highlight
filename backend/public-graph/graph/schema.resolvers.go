@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/DmitriyVTitov/size"
+	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
@@ -136,7 +137,7 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, projectID *st
 		if secureID != nil {
 			partitionKey = *secureID
 		} else if projectID != nil {
-			partitionKey = *projectID
+			partitionKey = uuid.New().String()
 		}
 		err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
@@ -159,18 +160,27 @@ func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customMod
 }
 
 // MarkBackendSetup is the resolver for the markBackendSetup field.
-func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string) (interface{}, error) {
+func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string, typeArg *string) (interface{}, error) {
 	var partitionKey string
 	if sessionSecureID != nil {
 		partitionKey = *sessionSecureID
 	} else if projectID != nil {
-		partitionKey = *projectID
+		partitionKey = uuid.New().String()
 	}
+
+	var setupType string
+	if typeArg != nil {
+		setupType = *typeArg
+	} else {
+		setupType = model.MarkBackendSetupTypeGeneric
+	}
+
 	err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
 		Type: kafkaqueue.MarkBackendSetup,
 		MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 			ProjectVerboseID: projectID,
 			SessionSecureID:  sessionSecureID,
+			Type:             setupType,
 		}}, partitionKey)
 	return nil, err
 }

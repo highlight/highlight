@@ -2,6 +2,7 @@ package alerts
 
 import (
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 
 	"github.com/pkg/errors"
 
@@ -100,6 +101,7 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 		ExcludeRules:    excludeRulesString,
 		AlertIntegrations: model.AlertIntegrations{
 			DiscordChannelsToNotify: discord.GQLInputToGo(input.DiscordChannels),
+			WebhookDestinations:     webhook.GQLInputToGo(input.WebhookDestinations),
 		},
 	}, nil
 }

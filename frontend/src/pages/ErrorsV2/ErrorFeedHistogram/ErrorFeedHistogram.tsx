@@ -2,12 +2,13 @@ import { Series } from '@components/Histogram/Histogram'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { useGetErrorsHistogramQuery } from '@graph/hooks'
 import { DateHistogramBucketSize } from '@graph/schemas'
-import { TIME_RANGE_FIELD } from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import { updateQueriedTimeRange } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
+import { updateQueriedTimeRange } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { useParams } from '@util/react-router/useParams'
-import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
+import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import React, { useCallback } from 'react'
+
+import { TIME_RANGE_FIELD } from '../ErrorQueryBuilder/ErrorQueryBuilder'
 
 const ErrorFeedHistogram = React.memo(() => {
 	const { project_id } = useParams<{ project_id: string }>()
@@ -23,10 +24,10 @@ const ErrorFeedHistogram = React.memo(() => {
 				time_zone:
 					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
 				bounds: {
-					start_date: roundDateToMinute(
+					start_date: roundFeedDate(
 						backendSearchQuery?.startDate.toISOString() ?? null,
 					).format(),
-					end_date: roundDateToMinute(
+					end_date: roundFeedDate(
 						backendSearchQuery?.endDate.toISOString() ?? null,
 					).format(),
 				},
