@@ -1,8 +1,5 @@
 name: 'Java SDK code checks'
 
-permissions:
-  checks: write
-
 on:
     push:
         branches: ['main']
