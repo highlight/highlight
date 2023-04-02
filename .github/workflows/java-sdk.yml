@@ -35,14 +35,14 @@ jobs:
             - name: Build
               run: |
                   mvn clean package --batch-mode -DskipTests -Drevision=$BUILD_VERSION
-                  mv ./sdk/highlight-java/highlight-sdk/targat/highlight-sdk-*.jar ./sdk/highlight-java
-                  mv ./sdk/highlight-java/highlight-log-*/targat/highlight-log-*.jar ./sdk/highlight-java
+                  mv ./highlight-sdk/targat/highlight-sdk-*.jar ./
+                  mv ./highlight-log-*/targat/highlight-log-*.jar ./
 
             - name: Publish build artifacts
               uses: actions/upload-artifact@v3
               with:
                   name: highlight-java-sdk
-                  path: ./sdk/highlight-java/highlight-sdk-*.jar
+                  path: ./highlight-sdk-*.jar
 
             - name: Test
               run: mvn clean test --batch-mode -Dmaven.test.failure.ignore=true -Drevision=$BUILD_VERSION
@@ -52,5 +52,5 @@ jobs:
               if: always()
               with:
                   name: junit-test-results
-                  path: './sdk/highlight-java/**/target/surefire-reports/*.xml'
+                  path: './**/target/surefire-reports/TEST-*.xml'
                   retention-days: 1
