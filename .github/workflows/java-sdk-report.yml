@@ -1,10 +1,11 @@
 name: 'Java SDK code report'
 
 on:
-    workflow_dispatch:
     workflow_run:
         workflows: ['Java SDK code checks']
-        types: [completed]
+        types:
+            - completed
+    workflow_dispatch:
 
 permissions:
     checks: write
