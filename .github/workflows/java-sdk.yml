@@ -15,7 +15,7 @@ permissions:
 
 jobs:
     setup:
-        name: Build
+        name: Setup
         runs-on: ubuntu-latest
         defaults:
             run:
@@ -43,20 +43,6 @@ jobs:
             run:
                 working-directory: ./sdk/highlight-java
         steps:
-            - name: Checkout Code
-              uses: actions/checkout@v3
-              with:
-                  fetch-depth: 0
-
-            - name: Set BUILD_VERSION
-              run: echo "BUILD_VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))-b$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
-
-            - name: Set up JDK 17
-              uses: actions/setup-java@v3
-              with:
-                  distribution: 'temurin'
-                  java-version: 17
-
             - name: Build
               run: |
                   mvn clean package --batch-mode -DskipTests -Drevision=$BUILD_VERSION
@@ -76,20 +62,6 @@ jobs:
             run:
                 working-directory: ./sdk/highlight-java
         steps:
-            - name: Checkout Code
-              uses: actions/checkout@v3
-              with:
-                  fetch-depth: 0
-
-            - name: Set BUILD_VERSION
-              run: echo "BUILD_VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))-b$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
-
-            - name: Set up JDK 17
-              uses: actions/setup-java@v3
-              with:
-                  distribution: 'temurin'
-                  java-version: 17
-
             - name: Test
               run: mvn clean test --batch-mode -Dmaven.test.failure.ignore=true -Drevision=$BUILD_VERSION
 
