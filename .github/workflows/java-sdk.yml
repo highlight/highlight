@@ -36,7 +36,6 @@ jobs:
               run: |
                   mvn clean package --batch-mode -DskipTests -Drevision=$BUILD_VERSION
                   mv ./highlight-sdk/target/highlight-sdk-*.jar ./
-                  mv ./highlight-log-*/target/highlight-log-*.jar ./
 
             - name: Publish build artifacts
               uses: actions/upload-artifact@v3
