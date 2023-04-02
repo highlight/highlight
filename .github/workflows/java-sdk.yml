@@ -12,7 +12,7 @@ on:
 
 jobs:
     build:
-        name: Run Tests
+        name: Build and run tests
         runs-on: ubuntu-latest
         defaults:
             run:
@@ -41,15 +41,15 @@ jobs:
               uses: actions/upload-artifact@v3
               with:
                   name: highlight-java-sdk
-                  path: ./highlight-sdk-*.jar
+                  path: ./sdk/highlight-java/highlight-sdk-*.jar
 
             - name: Test
               run: mvn clean test --batch-mode -Dmaven.test.failure.ignore=true -Drevision=$BUILD_VERSION
 
-            - name: Publish test report
-              uses: mikepenz/action-junit-report@v3
+            - name: Upload Test Report
+              uses: actions/upload-artifact@v3
               if: always()
               with:
                   name: junit-test-results
-                  path: './**/target/surefire-reports/TEST-*.xml'
+                  path: '**/target/surefire-reports/TEST-*.xml'
                   retention-days: 1
