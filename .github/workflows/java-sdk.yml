@@ -19,45 +19,45 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Code
-                uses: actions/checkout@v1
+              uses: actions/checkout@v1
             - name: Set BUILD_VERSION
-                run: echo "BUILD_VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))-b$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
+              run: echo "BUILD_VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))-b$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
             - name: Build and Run Tests
-                run: mvn clean test --batch-mode -Drevision=$BUILD_VERSION
+              run: mvn clean test --batch-mode -Drevision=$BUILD_VERSION
             - name: Publish Test Report
-                uses: mikepenz/action-junit-report@v3
-                if: always()
-                with:
-                    name: junit-test-results
-                    path: '**/build/test-results/test/TEST-*.xml'
-                    retention-days: 1
+              uses: mikepenz/action-junit-report@v3
+              if: always()
+              with:
+                  name: junit-test-results
+                  path: '**/build/test-results/test/TEST-*.xml'
+                  retention-days: 1
  
     build:
         name: build sdk
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-                uses: actions/checkout@v3
-                with:
-                    fetch-depth: 0
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
             - name: Set BUILD_VERSION
-                run: echo "BUILD_VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))-b$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
+              run: echo "BUILD_VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))-b$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
             - name: Set up JDK 17
-                uses: actions/setup-java@v3
-                with:
-                    distribution: 'temurin'
-                    java-version: 17
+              uses: actions/setup-java@v3
+              with:
+                  distribution: 'temurin'
+                  java-version: 17
             - name: Build
-                run: |
-                    cd /sdk/highlight-java
-                    mvn clean package --batch-mode -Drevision=$BUILD_VERSION
-                    mv  highlight-sdk/targat/highlight-sdk-*.jar ./
-                    mv  highlight-log-*/targat/highlight-log-*.jar ./
+              run: |
+                  cd /sdk/highlight-java
+                  mvn clean package --batch-mode -Drevision=$BUILD_VERSION
+                  mv  highlight-sdk/targat/highlight-sdk-*.jar ./
+                  mv  highlight-log-*/targat/highlight-log-*.jar ./
             - name: Upload artifacts
-                uses: actions/upload-artifact@v3
-                with:
-                    name: highlight-java-sdk
-                    path: /sdk/highlight-java/highlight-sdk-*.jar
+              uses: actions/upload-artifact@v3
+              with:
+                  name: highlight-java-sdk
+                  path: /sdk/highlight-java/highlight-sdk-*.jar
 
 ---
 name: report
@@ -74,13 +74,13 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Download Test Report
-                uses: dawidd6/action-download-artifact@v2
-                with:
-                    name: junit-test-results
-                    workflow: ${{ github.event.workflow.id }}
-                    run_id: ${{ github.event.workflow_run.id }}
+              uses: dawidd6/action-download-artifact@v2
+              with:
+                  name: junit-test-results
+                  workflow: ${{ github.event.workflow.id }}
+                  run_id: ${{ github.event.workflow_run.id }}
             - name: Publish Test Report
-                uses: mikepenz/action-junit-report@v3
-                with:
-                    commit: ${{github.event.workflow_run.head_sha}}
-                    report_paths: '**/build/test-results/test/TEST-*.xml'
+              uses: mikepenz/action-junit-report@v3
+              with:
+                  commit: ${{github.event.workflow_run.head_sha}}
+                  report_paths: '**/build/test-results/test/TEST-*.xml'
