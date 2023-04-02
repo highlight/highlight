@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * 
  * @author dbs-leipzig
- * @see https://github.com/dbs-leipzig/gradoop/blob/develop/gradoop-common/src/main/java/org/gradoop/common/model/impl/id/GradoopId.java
+ * @see <a href="https://github.com/dbs-leipzig/gradoop/blob/develop/gradoop-common/src/main/java/org/gradoop/common/model/impl/id/GradoopId.java">GradoopId</a>
  */
 public class SessionId implements Comparable<SessionId> {
 

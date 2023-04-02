@@ -78,7 +78,7 @@ jobs:
     test:
         name: Test
         runs-on: ubuntu-latest
-        needs: setup
+        needs: [setup, build]
         if: ${{ (inputs.action == null || inputs.action == '' || inputs.action == 'none') || inputs.action == 'test' }}
         defaults:
             run:
