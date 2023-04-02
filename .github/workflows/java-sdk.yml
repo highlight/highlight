@@ -2,16 +2,17 @@ name: 'Java SDK code checks'
 
 on:
     workflow_dispatch:
-        action:
-            description: 'Action'
-            required: true
-            default: 'none'
-            type: choice
-            options:
-                - none
-                - build
-                - test
-                - deploy
+        inputs:
+            action:
+                description: 'Action'
+                required: true
+                default: 'none'
+                type: choice
+                options:
+                    - none
+                    - build
+                    - test
+                    - deploy
     push:
         branches: ['main']
     pull_request:
