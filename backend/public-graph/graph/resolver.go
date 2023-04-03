@@ -1509,28 +1509,30 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 		}
 	}
 
-	// Update Hubspot company and projects.backend_setup
-	var backendSetupCount int64
-	if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
-		return e.Wrap(err, "error querying backend_setup flag")
-	}
-	if backendSetupCount < 1 {
-		if util.IsHubspotEnabled() {
-			project, err := r.getProject(projectID)
-			if err != nil {
-				log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
-			} else {
-				if err := r.HubspotApi.UpdateCompanyProperty(ctx, project.WorkspaceID, []hubspot.Property{{
-					Name:     "backend_setup",
-					Property: "backend_setup",
-					Value:    true,
-				}}, r.DB); err != nil {
-					log.WithContext(ctx).Errorf("failed to update hubspot")
+	if setupType == model.MarkBackendSetupTypeLogs || setupType == model.MarkBackendSetupTypeError {
+		// Update Hubspot company and projects.backend_setup
+		var backendSetupCount int64
+		if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
+			return e.Wrap(err, "error querying backend_setup flag")
+		}
+		if backendSetupCount < 1 {
+			if util.IsHubspotEnabled() {
+				project, err := r.getProject(projectID)
+				if err != nil {
+					log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
+				} else {
+					if err := r.HubspotApi.UpdateCompanyProperty(ctx, project.WorkspaceID, []hubspot.Property{{
+						Name:     "backend_setup",
+						Property: "backend_setup",
+						Value:    true,
+					}}, r.DB); err != nil {
+						log.WithContext(ctx).Errorf("failed to update hubspot")
+					}
 				}
 			}
-		}
-		if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
-			return e.Wrap(err, "error updating backend_setup flag")
+			if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
+				return e.Wrap(err, "error updating backend_setup flag")
+			}
 		}
 	}
 
@@ -1548,6 +1550,7 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 			return e.Wrap(err, "error creating setup event")
 		}
 	}
+
 	return nil
 }
 

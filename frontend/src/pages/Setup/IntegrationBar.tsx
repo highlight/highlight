@@ -29,10 +29,20 @@ const AREA_TITLE_MAP = {
 export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const { area } = useParams<{ area: string }>()
 	const { projectId } = useProjectId()
-	const path = `/${projectId}/${snakeCase(integrationData?.resourceType)}/${
+	const path = `/${projectId}/${snakeCase(integrationData?.resourceType)}${
 		integrationData?.resourceSecureId
+			? `/${integrationData.resourceSecureId}`
+			: ''
 	}`
 	const integrated = integrationData?.integrated
+	const ctaText =
+		area === 'backend'
+			? 'View first error'
+			: area === 'client'
+			? 'View first session'
+			: area === 'backend-logging'
+			? 'View logs'
+			: undefined
 
 	return (
 		<Box
@@ -81,7 +91,7 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 					justifyContent="flex-end"
 					flexBasis={0}
 				>
-					{path && (
+					{path && ctaText && (
 						<LinkButton
 							to={path}
 							trackingId={`setup-resource-${
@@ -97,13 +107,7 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 								gap="4"
 								alignItems="center"
 							>
-								<Text>
-									{area === 'backend'
-										? 'View first error'
-										: area === 'client'
-										? 'View first session'
-										: 'View logs'}
-								</Text>
+								<Text>{ctaText}</Text>
 								<IconSolidExternalLink />
 							</Box>
 						</LinkButton>

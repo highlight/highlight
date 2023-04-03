@@ -1382,6 +1382,7 @@ query GetClientIntegration($project_id: ID!) {
 		integrated
 		resourceType
 		resourceSecureId
+		createdAt
 	}
 }
 
@@ -1390,6 +1391,16 @@ query GetServerIntegration($project_id: ID!) {
 		integrated
 		resourceType
 		resourceSecureId
+		createdAt
+	}
+}
+
+query GetLogsIntegration($project_id: ID!) {
+	logsIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		resourceSecureId
+		createdAt
 	}
 }
 
