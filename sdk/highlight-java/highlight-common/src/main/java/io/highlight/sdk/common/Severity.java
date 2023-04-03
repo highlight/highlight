@@ -1,7 +1,21 @@
 package io.highlight.sdk.common;
 
+/**
+ * 
+ * <p>
+ * Represents the severity of a log message, along with its text and priority.
+ * The severity can be one of TRACE, DEBUG, INFO, WARN, ERROR, or FATAL, and
+ * each severity level can have an associated identifier and priority level.
+ * </p>
+ * 
+ * See: <a href=
+ * "https://opentelemetry.io/docs/reference/specification/logs/data-model/#severity-fields">severity-fields</a>
+ */
 public record Severity(String text, int id, Priority priority) {
 
+	/**
+	 * ID values for the different severity levels.
+	 */
 	private static final int TRACE_ID = 1;
 	private static final int DEBUG_ID = 5;
 	private static final int INFO_ID = 9;
@@ -9,6 +23,9 @@ public record Severity(String text, int id, Priority priority) {
 	private static final int ERROR_ID = 17;
 	private static final int FATAL_ID = 21;
 
+	/**
+	 * Predefined instances of Severity for each severity level.
+	 */
 	public static final Severity TRACE = Severity.trace(Priority.LOW);
 	public static final Severity DEBUG = Severity.debug(Priority.LOW);
 	public static final Severity INFO = Severity.info(Priority.LOW);
@@ -105,7 +122,8 @@ public record Severity(String text, int id, Priority priority) {
 	}
 
 	/**
-	 * See: https://opentelemetry.io/docs/reference/specification/logs/data-model/#displaying-severity
+	 * See: <a href=
+	 * "https://opentelemetry.io/docs/reference/specification/logs/data-model/#displaying-severity">displaying-severity</a>
 	 */
 	public String shortName() {
 		StringBuilder stringBuilder = new StringBuilder();
@@ -130,14 +148,23 @@ public record Severity(String text, int id, Priority priority) {
 		return io.opentelemetry.api.logs.Severity.values()[this.id];
 	}
 
+	/**
+	 * Represents the priority of a log message. The priority can be one of LOW,
+	 * NORMAL, MEDIUM, or HIGH, and each priority level have an associated numeric
+	 * difference value that is added to the severity ID when calculating the
+	 * overall priority of a log message.
+	 */
 	public static enum Priority {
-		LOW(0),
-		NORMAL(1),
-		MEDIUM(2),
-		HIGH(3);
+		LOW(0), NORMAL(1), MEDIUM(2), HIGH(3);
 
 		final int difference;
 
+		/**
+		 * Constructs a new instance of Priority with the specified numeric difference
+		 * value.
+		 * 
+		 * @param difference the numeric difference value for this priority level
+		 */
 		private Priority(int difference) {
 			this.difference = difference;
 		}
