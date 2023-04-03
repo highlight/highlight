@@ -74,7 +74,7 @@ jobs:
                   path: cypress/videos
 
             - name: Push images on build
-              if: github.repository == 'highlight/highlight' && github.ref == 'refs/heads/main'
+              #              if: github.repository == 'highlight/highlight' && github.ref == 'refs/heads/main'
               run: |
                   cd docker;
                   docker compose push;
