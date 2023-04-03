@@ -29,6 +29,12 @@ jobs:
                   node-version: 16
                   cache: 'yarn'
 
+            - name: Login to Docker Hub
+              uses: docker/login-action@v2
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
             - name: Start docker containers & run cypress
               run: |
                   yarn;
@@ -45,7 +51,9 @@ jobs:
 
             - name: Dump docker logs on failure
               if: failure()
-              run: docker compose logs
+              run: |
+                  cd docker;
+                  docker compose logs;
 
             - name: Save videos
               uses: actions/upload-artifact@v2
