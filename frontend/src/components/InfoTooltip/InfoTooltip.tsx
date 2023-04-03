@@ -1,6 +1,6 @@
 import { Box, IconSolidInformationCircle, vars } from '@highlight-run/ui'
 import { Tooltip } from 'antd'
-import { TooltipPropsWithTitle } from 'antd/lib/tooltip'
+import { TooltipPropsWithTitle } from 'antd/es/tooltip'
 import clsx from 'clsx'
 import React from 'react'
 

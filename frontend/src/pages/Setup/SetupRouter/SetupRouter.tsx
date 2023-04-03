@@ -22,8 +22,7 @@ import analytics from '@util/analytics'
 import { useClientIntegrated, useServerIntegrated } from '@util/integrated'
 import { message } from 'antd'
 import clsx from 'clsx'
-import { H } from 'highlight.run'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import {
 	Link,
 	Navigate,
@@ -35,41 +34,6 @@ import {
 } from 'react-router-dom'
 
 import * as styles from './SetupRouter.css'
-
-export type Guide = {
-	title: string
-	subtitle: string
-	logoUrl: string
-	entries: Array<{
-		title: string
-		content: string
-		code?: {
-			text: string
-			language: string
-		}
-	}>
-}
-
-type DocsKey = 'client' | 'backend' | 'backend-logging'
-export type DocsSection = {
-	title: string
-	subtitle: string
-} & {
-	[key: string]: {
-		title: string
-		subtitle: string
-	} & {
-		[key: string]: Guide
-	}
-}
-
-export type Guides = {
-	[key in DocsKey]: DocsSection
-} & {
-	other: {
-		[key: string]: Guide
-	}
-}
 
 const SetupRouter = () => {
 	const { toggleShowBanner } = useGlobalContext()
@@ -84,7 +48,6 @@ const SetupRouter = () => {
 			? clientIntegration
 			: undefined
 	const { projectId } = useProjectId()
-	const [docs, setDocs] = useState<Guides>()
 	const { data } = useGetProjectQuery({ variables: { id: projectId! } })
 	const projectVerboseId = data?.project?.verbose_id
 	const location = useLocation()
@@ -93,21 +56,7 @@ const SetupRouter = () => {
 
 	useEffect(() => analytics.page(), [])
 
-	useEffect(() => {
-		fetch(`https://www.highlight.io/api/quickstart`)
-			.then((res) => res.json())
-			.then((docs) => setDocs(docs))
-			.catch((e) => {
-				H.consumeError(e, 'Error loading docs')
-
-				message.error(
-					'Error loading the documentation. Please reload the page...',
-				)
-			})
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-
-	if (!docs || !projectVerboseId) {
+	if (!projectVerboseId) {
 		return <LoadingBox />
 	}
 
@@ -249,7 +198,6 @@ const SetupRouter = () => {
 							path=":area/:language?"
 							element={
 								<SetupOptionsList
-									docs={docs}
 									integrationData={integrationData}
 								/>
 							}
@@ -258,7 +206,6 @@ const SetupRouter = () => {
 							path=":area/:language/:framework"
 							element={
 								<SetupDocs
-									docs={docs}
 									projectVerboseId={projectVerboseId}
 									integrationData={integrationData}
 								/>

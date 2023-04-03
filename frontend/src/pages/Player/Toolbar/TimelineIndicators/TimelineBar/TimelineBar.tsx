@@ -10,7 +10,7 @@ import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import { serializeErrorIdentifier } from '@util/error'
 import { clamp } from '@util/numbers'
-import { TooltipPlacement } from 'antd/lib/tooltip'
+import { TooltipPlacement } from 'antd/es/tooltip'
 import clsx from 'clsx'
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 

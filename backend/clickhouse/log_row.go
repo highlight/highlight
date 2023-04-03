@@ -3,11 +3,12 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	model2 "github.com/highlight-run/highlight/backend/model"
-	e "github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"time"
+
+	model2 "github.com/highlight-run/highlight/backend/model"
+	e "github.com/pkg/errors"
 
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -74,6 +75,10 @@ func NewLogRow(attrs LogRowPrimaryAttrs, opts ...LogRowOption) *LogRow {
 
 func (l *LogRow) Cursor() string {
 	return encodeCursor(l.Timestamp, l.UUID)
+}
+
+func (l *LogRow) IsBackend() bool {
+	return l.Source != highlight.SourceAttributeFrontend
 }
 
 type LogRowOption func(*LogRow)

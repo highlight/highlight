@@ -7,7 +7,11 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui'
-import { RequestType, Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import {
+	RequestStatus,
+	RequestType,
+	Tab,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { showIntercom } from '@util/window'
 import React from 'react'
 
@@ -15,9 +19,15 @@ interface Props {
 	kind: Tab
 	filter?: string
 	requestType?: RequestType
+	requestStatus?: RequestStatus
 }
 
-export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
+export const EmptyDevToolsCallout = ({
+	kind,
+	filter,
+	requestType,
+	requestStatus,
+}: Props) => {
 	const { admin } = useAuthContext()
 
 	return (
@@ -59,10 +69,14 @@ export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
 						<Text color="n11">
 							{`No ${
 								requestType !== RequestType.All
-									? requestType.toLocaleLowerCase()
+									? requestType
 									: ''
 							} network resources${
 								filter !== '' ? ` matching '${filter}'` : ''
+							}${
+								requestStatus !== RequestStatus.All
+									? ' with status ' + requestStatus
+									: ''
 							}.`}
 						</Text>
 						<Text color="n11">

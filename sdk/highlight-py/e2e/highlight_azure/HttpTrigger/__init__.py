@@ -1,5 +1,6 @@
 import logging
 import random
+import time
 from datetime import datetime
 
 import azure.functions as func
@@ -19,6 +20,17 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         {"customer": req.headers.get("customer") or "unknown"},
     )
 
+    for idx in range(int(1000 + random.random() * 10000)):
+        logging.info(
+            "Python Azure emitting log" + f"{idx} idx",
+            {
+                "customer": req.headers.get("customer") or "unknown",
+                "idx": idx,
+                "float": 1.2345,
+                "duration": datetime.now() - start,
+            },
+        )
+
     if random.random() < 0.2:
         raise ValueError("oh no!")
 
@@ -30,6 +42,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             pass
         else:
             name = req_body.get("name")
+
+    time.sleep(5)
 
     logging.info(
         "Python Azure got name",
@@ -47,6 +61,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         )
     else:
         return func.HttpResponse(
-            "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
+            "This HTTP triggered function executed successfully. "
+            "Pass a name in the query string or in the request body for a personalized response.",
             status_code=200,
         )

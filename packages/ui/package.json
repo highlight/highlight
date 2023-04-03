@@ -12,7 +12,7 @@
 		"icons:generate": "npx ts-node-esm ./scripts/generate-icons.ts",
 		"g": "hygen",
 		"lint": "eslint ./src",
-		"test": "vitest --run",
+		"test": "TZ=UTC vitest --run",
 		"tokens:generate": "npx ts-node-esm ./scripts/generate-tokens.ts"
 	},
 	"dependencies": {

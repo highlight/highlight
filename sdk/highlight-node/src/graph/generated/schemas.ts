@@ -118,6 +118,7 @@ export type MutationInitializeSessionArgs = {
 export type MutationMarkBackendSetupArgs = {
 	project_id?: InputMaybe<Scalars['String']>
 	session_secure_id?: InputMaybe<Scalars['String']>
+	type?: InputMaybe<Scalars['String']>
 }
 
 export type MutationPushBackendPayloadArgs = {

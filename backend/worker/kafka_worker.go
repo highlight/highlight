@@ -12,6 +12,7 @@ import (
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -130,13 +131,13 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	span.SetTag("NumProjectRows", len(setupProjectIDs))
 	span.SetTag("NumSessionRows", len(setupSessionIDs))
 	for projectID := range setupProjectIDs {
-		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctxT, nil, nil, projectID)
+		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctxT, nil, nil, projectID, model.MarkBackendSetupTypeGeneric)
 		if err != nil {
 			log.WithContext(ctxT).WithError(err).Errorf("failed to batch mark backend setup for project %d", projectID)
 		}
 	}
 	for sessionID := range setupSessionIDs {
-		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctxT, nil, pointy.String(sessionID), 0)
+		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctxT, nil, pointy.String(sessionID), 0, model.MarkBackendSetupTypeGeneric)
 		if err != nil {
 			log.WithContext(ctxT).WithError(err).Errorf("failed to batch mark backend setup for session %s", sessionID)
 		}

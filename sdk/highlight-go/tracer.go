@@ -6,22 +6,32 @@ import (
 	"context"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type GraphqlTracer interface {
 	graphql.HandlerExtension
 	graphql.ResponseInterceptor
 	graphql.FieldInterceptor
+	WithRequestFieldLogging() GraphqlTracer
 }
 
 type Tracer struct {
-	graphName string
+	graphName           string
+	requestFieldLogging bool
 }
 
 func NewGraphqlTracer(graphName string) GraphqlTracer {
 	return Tracer{graphName: graphName}
+}
+
+// WithRequestFieldLogging configures the tracer to log each graphql operation.
+func (t Tracer) WithRequestFieldLogging() GraphqlTracer {
+	t.requestFieldLogging = true
+	return t
 }
 
 func (t Tracer) ExtensionName() string {
@@ -79,6 +89,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	start := graphql.Now()
 	resp := next(ctx)
 	end := graphql.Now()
+	t.log(ctx, span, resp.Errors)
 	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
@@ -86,4 +97,31 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 		RecordMetric(ctx, name+".errorsCount", float64(len(resp.Errors)))
 	}
 	return resp
+}
+
+func (t Tracer) log(ctx context.Context, span trace.Span, errs gqlerror.List) {
+	if !t.requestFieldLogging {
+		return
+	}
+	oc := graphql.GetOperationContext(ctx)
+	err := errs.Error()
+	lvl := "trace"
+	if err != "" {
+		lvl = "error"
+	}
+	attrs := []attribute.KeyValue{
+		semconv.GraphqlOperationTypeKey.String(string(oc.Operation.Operation)),
+		semconv.GraphqlOperationNameKey.String(oc.OperationName),
+		semconv.GraphqlDocumentKey.String(oc.RawQuery),
+		attribute.String("graphql.graph", t.graphName),
+		attribute.String(LogMessageAttribute, fmt.Sprintf("graphql.operation.%s", oc.Operation.Name)),
+		attribute.String(LogSeverityAttribute, lvl),
+	}
+	if err != "" {
+		attrs = append(attrs, attribute.String("graphql.error", err))
+	}
+	span.AddEvent(LogEvent, trace.WithAttributes(attrs...))
+	if err != "" {
+		RecordSpanError(span, errs, attrs...)
+	}
 }
