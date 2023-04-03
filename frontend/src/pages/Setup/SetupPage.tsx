@@ -25,7 +25,6 @@ import LeadAlignLayout from '../../components/layout/LeadAlignLayout'
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 import { ReactComponent as CheckIcon } from '../../static/verify-check-icon.svg'
 import { CodeBlock } from './CodeBlock/CodeBlock'
-import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector'
 import styles from './SetupPage.module.scss'
 
 interface SetupStep {
@@ -334,12 +333,6 @@ const ClientSetup = ({
 					title={
 						<span className={styles.sectionTitleWithIcon}>
 							Verify Installation
-							{integrated && (
-								<IntegrationDetector
-									verbose={false}
-									integrated={integrated}
-								/>
-							)}
 						</span>
 					}
 					id="highlightIntegration"
@@ -350,10 +343,6 @@ const ClientSetup = ({
 						detect installation.
 					</p>
 					<div className={styles.integrationContainer}>
-						<IntegrationDetector
-							integrated={integrated}
-							verbose={true}
-						/>
 						{integrated && (
 							<ButtonLink
 								to={`/${project_id}/sessions`}
@@ -492,7 +481,7 @@ const Framework: React.FC<{
 	integrated: boolean
 	language: string
 	projectData: GetProjectQuery | undefined
-}> = ({ docs, integrated, language, projectData }) => {
+}> = ({ docs, language, projectData }) => {
 	const frameworkKeys = Object.keys(docs[language])
 	const [framework, setFramework] = useLocalStorage<string>(
 		`selectedSetupFramework-${projectData?.project?.id}`,
@@ -583,12 +572,6 @@ const Framework: React.FC<{
 					title={
 						<span className={styles.sectionTitleWithIcon}>
 							Verify Backend Installation
-							{integrated && (
-								<IntegrationDetector
-									verbose={false}
-									integrated={integrated}
-								/>
-							)}
 						</span>
 					}
 					id="highlightIntegration"
@@ -598,12 +581,7 @@ const Framework: React.FC<{
 						Highlight on your backend. It should take less than a
 						minute for us to detect installation.
 					</p>
-					<div className={styles.integrationContainer}>
-						<IntegrationDetector
-							integrated={integrated}
-							verbose={true}
-						/>
-					</div>
+					<div className={styles.integrationContainer}></div>
 				</Section>
 				<Section
 					title={
@@ -685,7 +663,6 @@ const Framework: React.FC<{
 const MoreSetup = ({
 	project_id,
 	projectData,
-	integrated,
 }: {
 	project_id: string
 	projectData: GetProjectQuery | undefined
@@ -704,12 +681,8 @@ const MoreSetup = ({
 					title={
 						<span className={styles.sectionTitleWithIcon}>
 							Enable Slack Alerts
-							{projectData?.workspace?.slack_webhook_channel ? (
-								<IntegrationDetector
-									verbose={false}
-									integrated={integrated}
-								/>
-							) : (
+							{projectData?.workspace
+								?.slack_webhook_channel ? null : (
 								<SvgSlackLogo height="15" width="15" />
 							)}
 						</span>

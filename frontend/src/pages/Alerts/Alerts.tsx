@@ -49,7 +49,7 @@ export enum ALERT_NAMES {
 	NEW_SESSION_ALERT = 'New Sessions',
 	RAGE_CLICK_ALERT = 'Rage Clicks',
 	METRIC_MONITOR = 'Metric Monitor',
-	LOG_ALERT = 'Logs',
+	LOG_ALERT = 'Log Monitor',
 }
 
 interface AlertConfiguration {

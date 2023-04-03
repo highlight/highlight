@@ -2,10 +2,8 @@ import { Button } from '@components/Button'
 import Select from '@components/Select/Select'
 import {
 	useCreateLogAlertMutation,
-	useDeleteLogAlertMutation,
 	useGetLogAlertQuery,
 	useGetLogsKeysQuery,
-	useUpdateLogAlertIsDisabledMutation,
 	useUpdateLogAlertMutation,
 } from '@graph/hooks'
 import { DiscordChannel, SanitizedSlackChannel } from '@graph/schemas'
@@ -35,11 +33,17 @@ import {
 	dedupeEnvironments,
 	EnvironmentSuggestion,
 } from '@pages/Alerts/utils/AlertsUtils'
-import { LOG_TIME_PRESETS, now, thirtyDaysAgo } from '@pages/LogsPage/constants'
+import {
+	LOG_TIME_FORMAT,
+	LOG_TIME_PRESETS,
+	now,
+	thirtyDaysAgo,
+} from '@pages/LogsPage/constants'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { Search } from '@pages/LogsPage/SearchForm/SearchForm'
 import { message } from 'antd'
 import { capitalize } from 'lodash'
+import moment from 'moment'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
@@ -68,7 +72,7 @@ export const LogAlertPage = () => {
 		}
 	}, [selectedDates])
 
-	const { data, loading, error } = useGetLogAlertQuery({
+	const { data } = useGetLogAlertQuery({
 		variables: {
 			id: alert_id || 'never',
 		},
@@ -106,13 +110,11 @@ export const LogAlertPage = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data])
 
-	console.log('rendered!')
-
 	const [createLogAlertMutation] = useCreateLogAlertMutation()
 	const [updateLogAlertMutation] = useUpdateLogAlertMutation()
-	const [deleteLogAlertMutation] = useDeleteLogAlertMutation()
-	const [updateLogAlertIsDisabledMutation] =
-		useUpdateLogAlertIsDisabledMutation()
+	// const [deleteLogAlertMutation] = useDeleteLogAlertMutation() // ZANETODO
+	// const [updateLogAlertIsDisabledMutation] =
+	// 	useUpdateLogAlertIsDisabledMutation()
 
 	const { project_id } = useParams<{
 		project_id: string
@@ -121,8 +123,8 @@ export const LogAlertPage = () => {
 	const navigate = useNavigate()
 
 	const query = form.values.query
-	const belowThreshold = form.values.belowThreshold
-	const threshold = form.values.threshold
+	// const belowThreshold = form.values.belowThreshold
+	// const threshold = form.values.threshold
 
 	const header = (
 		<Box
@@ -135,7 +137,7 @@ export const LogAlertPage = () => {
 			cssClass={styles.header}
 		>
 			<Text userSelect="none">
-				{capitalize(createStr)} monitoring alert
+				{capitalize(createStr)} log monitoring alert
 			</Text>
 			<Box display="flex" alignItems="center" gap="4">
 				<Button
@@ -321,9 +323,9 @@ export const LogAlertPage = () => {
 								setSelectedDates([startDate, endDate])
 							}}
 							onLevelChange={() => {}}
-							outline
-							threshold={threshold}
-							belowThreshold={belowThreshold}
+							// outline // ZANETODO
+							// threshold={threshold}
+							// belowThreshold={belowThreshold}
 						/>
 					</Box>
 					<Form state={form} resetOnSubmit={false}>
@@ -343,9 +345,13 @@ const LogAlertForm = ({
 	endDate: Date
 }) => {
 	const { projectId } = useProjectId()
-	const { data: keysData } = useGetLogsKeysQuery({
+	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
 		variables: {
 			project_id: projectId,
+			date_range: {
+				start_date: moment(startDate).format(LOG_TIME_FORMAT),
+				end_date: moment(endDate).format(LOG_TIME_FORMAT),
+			},
 		},
 	})
 	const form = useForm() as FormState<LogMonitorForm>
@@ -404,6 +410,7 @@ const LogAlertForm = ({
 							endDate={endDate}
 							hideIcon
 							className={styles.combobox}
+							keysLoading={keysLoading}
 						/>
 					</Box>
 				</Form.NamedSection>
@@ -487,11 +494,12 @@ const LogAlertForm = ({
 					label="Excluded environments"
 					name={form.names.excludedEnvironments}
 				>
+					{/* @ts-ignore */}
 					<Select
 						aria-label="Excluded environments list"
 						placeholder="Select excluded environments"
 						options={environments}
-						onChange={(values) =>
+						onChange={(values: any): any =>
 							form.setValue(
 								form.names.excludedEnvironments,
 								values,
@@ -517,11 +525,12 @@ const LogAlertForm = ({
 					label="Slack channels to notify"
 					name={form.names.slackChannels}
 				>
+					{/* @ts-ignore */}
 					<Select
 						aria-label="Slack channels to notify"
 						placeholder="Select Slack channels"
 						options={slackChannels}
-						onChange={(values) =>
+						onChange={(values: any): any =>
 							form.setValue(form.names.slackChannels, values)
 						}
 						value={form.values.slackChannels}
@@ -535,11 +544,12 @@ const LogAlertForm = ({
 					label="Discord channels to notify"
 					name={form.names.discordChannels}
 				>
+					{/* @ts-ignore */}
 					<Select
 						aria-label="Discord channels to notify"
 						placeholder="Select Discord channels"
 						options={discordChannels}
-						onChange={(values) =>
+						onChange={(values: any): any =>
 							form.setValue(form.names.discordChannels, values)
 						}
 						value={form.values.discordChannels}
@@ -553,11 +563,12 @@ const LogAlertForm = ({
 					label="Emails to notify"
 					name={form.names.emails}
 				>
+					{/* @ts-ignore */}
 					<Select
 						aria-label="Emails to notify"
 						placeholder="Pick emails"
 						options={emails}
-						onChange={(values) =>
+						onChange={(values: any): any =>
 							form.setValue(form.names.emails, values)
 						}
 						value={form.values.emails}
