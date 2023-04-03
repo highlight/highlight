@@ -43,7 +43,7 @@ jobs:
 
             - name: Set BUILD_VERSION
               id: version
-              run: echo "version=$(git describe --tags $(git rev-list --tags --max-count=1))-b$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
+              run: echo "version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f2)-b$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
 
     build:
         name: Build
