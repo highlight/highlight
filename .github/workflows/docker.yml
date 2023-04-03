@@ -3,6 +3,9 @@ name: Docker
 on:
     push:
         branches: ['main']
+    # TODO: Remove
+    pull_request:
+        types: [opened, synchronize]
     workflow_dispatch:
     merge_group:
 
