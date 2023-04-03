@@ -53,13 +53,13 @@ export const useGetLogs = ({
 			variables: {
 				project_id: project_id!,
 				at: logCursor,
+				direction: Types.LogDirection.Asc,
 				params: {
 					query: serverQuery,
 					date_range: {
 						start_date: moment(startDate).format(FORMAT),
 						end_date: moment(endDate).format(FORMAT),
 					},
-					direction: Types.LogDirection.Asc,
 				},
 			},
 			fetchPolicy: 'cache-and-network',

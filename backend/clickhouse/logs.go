@@ -53,6 +53,7 @@ type Pagination struct {
 	After     *string
 	Before    *string
 	At        *string
+	Direction modelInputs.LogDirection
 	CountOnly bool
 }
 
@@ -64,7 +65,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 
 	orderForward := OrderForwardNatural
 	orderBackward := OrderBackwardNatural
-	if params.Direction == modelInputs.LogDirectionAsc {
+	if pagination.Direction == modelInputs.LogDirectionAsc {
 		orderForward = OrderForwardInverted
 		orderBackward = OrderBackwardInverted
 	}
