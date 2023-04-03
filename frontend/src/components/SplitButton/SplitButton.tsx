@@ -1,6 +1,6 @@
 import SvgDotsHorizontalIcon from '@icons/DotsHorizontalIcon'
 import analytics from '@util/analytics'
-import Dropdown, { DropdownButtonProps } from 'antd/lib/dropdown'
+import Dropdown, { DropdownButtonProps } from 'antd/es/dropdown'
 import React from 'react'
 
 import styles from './SplitButton.module.scss'
