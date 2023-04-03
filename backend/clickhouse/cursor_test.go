@@ -186,8 +186,8 @@ func TestClickhouseDecode(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 		},

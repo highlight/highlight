@@ -140,8 +140,8 @@ func main() {
 	for i := 1; i < 10000; i++ {
 		logRows := []*clickhouse.LogRow{}
 		logRows = append(logRows, &clickhouse.LogRow{
+			Timestamp: now.Add(-time.Duration(i) * time.Second),
 			LogRowPrimaryAttrs: clickhouse.LogRowPrimaryAttrs{
-				Timestamp:       now.Add(-time.Duration(i) * time.Second),
 				ProjectId:       1,
 				TraceId:         makeRandomTraceID(),
 				SpanId:          makeRandomSpanID(),

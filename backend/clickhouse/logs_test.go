@@ -65,8 +65,8 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 		},
@@ -141,8 +141,8 @@ func TestReadLogsTotalCount(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 		},
@@ -165,43 +165,43 @@ func TestReadLogsHistogram(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
+			Timestamp: now.Add(-time.Hour - time.Minute*29),
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Hour - time.Minute*29),
 				ProjectId: 1,
 			},
 			SeverityText: modelInputs.LogLevelDebug.String(),
 		},
 		{
+			Timestamp: now.Add(-time.Hour - time.Minute*30),
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Hour - time.Minute*30),
 				ProjectId: 1,
 			},
 			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
+			Timestamp: now.Add(-time.Hour * 2),
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Hour * 2),
 				ProjectId: 1,
 			},
 			SeverityText: modelInputs.LogLevelError.String(),
 		},
 		{
+			Timestamp: now.Add(-time.Hour*2 - time.Minute*30),
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Hour*2 - time.Minute*30),
 				ProjectId: 1,
 			},
 			SeverityText: modelInputs.LogLevelError.String(),
 		},
 		{
+			Timestamp: now.Add(-time.Hour * 3),
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Hour * 3),
 				ProjectId: 1,
 			},
 			SeverityText: modelInputs.LogLevelError.String(),
@@ -307,8 +307,8 @@ func TestReadLogsHasNextPage(t *testing.T) {
 
 	for i := 1; i <= LogsLimit; i++ { // 100 is a hardcoded limit
 		rows = append(rows, &LogRow{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 		})
@@ -326,8 +326,8 @@ func TestReadLogsHasNextPage(t *testing.T) {
 	// Add more more row to have 101 rows
 	assert.NoError(t, client.BatchWriteLogRows(ctx, []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 		},
@@ -352,32 +352,32 @@ func TestReadLogsAfterCursor(t *testing.T) {
 
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			Body: "Body 1",
 			UUID: "c051edc8-3749-4e44-8f48-0ea90f3fc3d9",
 		},
 		{
+			Timestamp: oneSecondAgo,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: oneSecondAgo,
 				ProjectId: 1,
 			},
 			Body: "Body 2",
 			UUID: "a0d9abd6-7cbf-47de-b211-d16bb0935e04",
 		},
 		{
+			Timestamp: oneSecondAgo,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: oneSecondAgo,
 				ProjectId: 1,
 			},
 			Body: "Body 3",
 			UUID: "b6e255ee-049e-4563-bbfe-c33503cde94c",
 		},
 		{
+			Timestamp: oneDayAgo,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: oneDayAgo,
 				ProjectId: 1,
 			},
 			Body: "Body 4",
@@ -418,31 +418,31 @@ func TestReadLogsBeforeCursor(t *testing.T) {
 
 	rows := []*LogRow{
 		{
+			Timestamp: oneDayFromNow,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: oneDayFromNow,
 				ProjectId: 1,
 			},
 			Body: "Body 0",
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			Body: "Body 1",
 			UUID: "c051edc8-3749-4e44-8f48-0ea90f3fc3d9",
 		},
 		{
+			Timestamp: oneSecondAgo,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: oneSecondAgo,
 				ProjectId: 1,
 			},
 			Body: "Body 2",
 			UUID: "a0d9abd6-7cbf-47de-b211-d16bb0935e04",
 		},
 		{
+			Timestamp: oneSecondAgo,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: oneSecondAgo,
 				ProjectId: 1,
 			},
 			Body: "Body 3",
@@ -488,8 +488,8 @@ func TestReadLogsAtCursor(t *testing.T) {
 	// 1 log not visible on the next page
 	for i := 1; i <= LogsLimit+3; i++ {
 		rows = append(rows, &LogRow{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 		})
@@ -555,22 +555,22 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			Body: "body with space",
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			Body: "STRIPE_INTEGRATION_ERROR cannot report usage - customer has no subscriptions",
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			Body: "STRIPE-INTEGRATION-ERROR cannot report usage - customer has no subscriptions",
@@ -630,8 +630,8 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{
@@ -681,15 +681,15 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{
@@ -732,15 +732,15 @@ func TestReadLogsWithSessionIdFilter(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp:       now,
 				ProjectId:       1,
 				SecureSessionId: "match",
 			},
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{
@@ -783,15 +783,15 @@ func TestReadLogsWithSpanIdFilter(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 				SpanId:    "match",
 			},
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{
@@ -834,15 +834,15 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 				TraceId:   "match",
 			},
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{
@@ -885,22 +885,22 @@ func TestReadLogsWithSourceFilter(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			Source:      "backend",
 			ServiceName: "bar",
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{
@@ -946,30 +946,30 @@ func TestLogsKeys(t *testing.T) {
 
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"user_id": "1", "workspace_id": "2"},
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			Source:      "frontend",
 			ServiceName: "foo-service",
 		},
 		{
+			Timestamp: now.Add(-time.Second * 1), // out of range, should not be included
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Second * 1), // out of range, should not be included
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "5"},
@@ -1033,57 +1033,57 @@ func TestLogKeyValues(t *testing.T) {
 
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "2"},
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "2"},
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "3"},
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "4"},
 		},
 		{
+			Timestamp: now.Add(-time.Second * 1), // out of range, should not be included
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Second * 1), // out of range, should not be included
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "5"},
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"unrelated_key": "value"},
@@ -1113,29 +1113,29 @@ func TestLogKeyValuesLevel(t *testing.T) {
 
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			SeverityText: modelInputs.LogLevelWarn.String(),
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			SeverityText: modelInputs.LogLevelInfo.String(),
 		},
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"level": modelInputs.LogLevelFatal.String()}, // should be skipped in the output
