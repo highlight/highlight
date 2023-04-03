@@ -9,7 +9,7 @@ const graphcms = new GraphQLClient(
 		fetch,
 	},
 )
-export const GraphQLRequest = async <T extends any>(
+export const GraphCMSRequest = async <T extends any>(
 	doc: string,
 	variables?: Variables,
 	delay: boolean = true,

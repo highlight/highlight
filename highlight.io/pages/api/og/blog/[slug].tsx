@@ -3,7 +3,7 @@ import { NextRequest, URLPattern } from 'next/server'
 import { gql } from 'graphql-request'
 import { Post } from '../../../../components/Blog/BlogPost/BlogPost'
 import { font, backdrop, fontLight } from '../util'
-import { GraphQLRequest } from '../../../../utils/graphql'
+import { GraphCMSRequest } from '../../../../utils/graphql'
 import styles from '../../../../components/Products/Products.module.scss'
 
 export const config = {
@@ -40,8 +40,9 @@ export default async function handler(req: NextRequest) {
 	const slug = new URLPattern({ pathname: '/api/og/blog/:slug' }).exec(
 		req.url,
 	)?.pathname.groups.slug
-	const post = (await GraphQLRequest<{ post?: Post }>(QUERY, { slug }, false))
-		.post as Post | undefined
+	const post = (
+		await GraphCMSRequest<{ post?: Post }>(QUERY, { slug }, false)
+	).post as Post | undefined
 
 	return new ImageResponse(
 		(

@@ -16,7 +16,7 @@ import {
 } from '../../components/Changelog/ChangelogEntry/ChangelogEntry'
 import { GetStaticProps } from 'next/types'
 import { Meta } from '../../components/common/Head/Meta'
-import { GraphQLRequest } from '../../utils/graphql'
+import { GraphCMSRequest } from '../../utils/graphql'
 
 const ITEMS_PER_PAGE = 25
 
@@ -34,7 +34,7 @@ export const getStaticProps: GetStaticProps = async () => {
 		}
 	`
 
-	const { changelogs } = await GraphQLRequest<{ changelogs: any[] }>(QUERY)
+	const { changelogs } = await GraphCMSRequest<{ changelogs: any[] }>(QUERY)
 
 	return {
 		props: {

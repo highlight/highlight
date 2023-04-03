@@ -9,7 +9,7 @@ import { Typography } from '../../components/common/Typography/Typography'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
 import { gql } from 'graphql-request'
 import { Author } from '../../components/Blog/BlogPost/BlogPost'
-import { GraphQLRequest } from '../../utils/graphql'
+import { GraphCMSRequest } from '../../utils/graphql'
 
 interface Customer {
 	slug: string
@@ -58,7 +58,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       }
   `
 
-	const data = await GraphQLRequest<{ customers: Customer[] }>(QUERY)
+	const data = await GraphCMSRequest<{ customers: Customer[] }>(QUERY)
 
 	return {
 		props: {

@@ -17,7 +17,7 @@ import {
 	Tag,
 	TagTab,
 } from '../../components/Blog/Tag'
-import { GraphQLRequest } from '../../utils/graphql'
+import { GraphCMSRequest } from '../../utils/graphql'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { matchSorter } from 'match-sorter'
@@ -60,7 +60,7 @@ export async function loadPostsFromHygraph(tag?: string) {
       }
   `
 
-	const { posts } = await GraphQLRequest<{ posts: Post[] }>(QUERY, {
+	const { posts } = await GraphCMSRequest<{ posts: Post[] }>(QUERY, {
 		tag: tag ? [tag] : [],
 	})
 
@@ -80,7 +80,7 @@ export async function loadTagsFromHygraph() {
     }
   `
 
-	return (await GraphQLRequest<{ tags: Tag[] }>(tagsQuery)).tags
+	return (await GraphCMSRequest<{ tags: Tag[] }>(tagsQuery)).tags
 }
 
 export const getStaticProps: GetStaticProps = async () => {

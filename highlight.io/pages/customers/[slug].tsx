@@ -11,7 +11,7 @@ import { FooterCallToAction } from '../../components/common/CallToAction/FooterC
 import Footer from '../../components/common/Footer/Footer'
 import Navbar from '../../components/common/Navbar/Navbar'
 import ReturnIcon from '../../public/images/ReturnIcon'
-import { GraphQLRequest } from '../../utils/graphql'
+import { GraphCMSRequest } from '../../utils/graphql'
 
 interface Customer {
 	id: string
@@ -52,7 +52,9 @@ export const getStaticPaths: GetStaticPaths = async () => {
 			}
 		}
 	`
-	const { customers } = await GraphQLRequest<{ customers: Customer[] }>(QUERY)
+	const { customers } = await GraphCMSRequest<{ customers: Customer[] }>(
+		QUERY,
+	)
 
 	return {
 		paths: customers.map((p: { slug: string }) => ({
@@ -117,7 +119,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		}
 	`
 
-	const data = await GraphQLRequest<{ customer: Customer }>(QUERY, {
+	const data = await GraphCMSRequest<{ customer: Customer }>(QUERY, {
 		slug: slug,
 	})
 
@@ -146,7 +148,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		}
 	`
 
-	const pageData = await GraphQLRequest<{
+	const pageData = await GraphCMSRequest<{
 		previousCase: Case[]
 		nextCase: Case[]
 	}>(PAGES_QUERY, {

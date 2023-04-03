@@ -22,7 +22,7 @@ import { BlogCallToAction } from '../../components/common/CallToAction/BlogCallT
 import { Meta } from '../../components/common/Head/Meta'
 import { Typography } from '../../components/common/Typography/Typography'
 import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
-import { GraphQLRequest } from '../../utils/graphql'
+import { GraphCMSRequest } from '../../utils/graphql'
 
 const NUM_SUGGESTED_POSTS = 3
 
@@ -104,10 +104,10 @@ export const getStaticPaths: GetStaticPaths = async () => {
 			}
 		}
 	`
-	const { posts } = await GraphQLRequest<{ posts: Post[] }>(QUERY)
+	const { posts } = await GraphCMSRequest<{ posts: Post[] }>(QUERY)
 
 	return {
-		paths: posts.map((p: { slug: string }) => ({
+		paths: posts.map((p: Post) => ({
 			params: { slug: p.slug },
 		})),
 		fallback: 'blocking',
@@ -183,8 +183,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
           }
       }
   `
-	const data = await GraphQLRequest<{ post?: Post }>(QUERY, { slug: slug })
-	const { posts } = await GraphQLRequest<{ posts: Post[] }>(POSTS_QUERY)
+	const data = await GraphCMSRequest<{ post?: Post }>(QUERY, { slug: slug })
+	const { posts } = await GraphCMSRequest<{ posts: Post[] }>(POSTS_QUERY)
 
 	// Handle event slugs which don't exist in our CMS
 	if (!data.post) {

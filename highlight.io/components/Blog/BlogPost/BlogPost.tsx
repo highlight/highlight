@@ -40,6 +40,7 @@ export interface Post {
 	tags_relations: Tag[]
 	readingTime?: number
 	author?: Author
+	fs?: boolean
 }
 
 export const BlogPost = ({

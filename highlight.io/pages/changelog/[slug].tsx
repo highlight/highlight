@@ -12,7 +12,7 @@ import { GetStaticPaths, GetStaticProps } from 'next/types'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import ReactMarkdown from 'react-markdown'
 import { Meta } from '../../components/common/Head/Meta'
-import { GraphQLRequest } from '../../utils/graphql'
+import { GraphCMSRequest } from '../../utils/graphql'
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	const QUERY = gql`
@@ -22,7 +22,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 			}
 		}
 	`
-	const { changelogs } = await GraphQLRequest<{ changelogs: any[] }>(QUERY)
+	const { changelogs } = await GraphCMSRequest<{ changelogs: any[] }>(QUERY)
 
 	return {
 		paths: changelogs.map((p: { slug: string }) => ({
@@ -44,7 +44,9 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			}
 		}
 	`
-	const data = await GraphQLRequest<{ changelog: any }>(QUERY, { slug: slug })
+	const data = await GraphCMSRequest<{ changelog: any }>(QUERY, {
+		slug: slug,
+	})
 
 	// Handle event slugs which don't exist in our CMS
 	if (!data.changelog) {
