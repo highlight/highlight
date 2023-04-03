@@ -236,18 +236,18 @@ services:
         build:
             context: ..
             dockerfile: docker/frontend.Dockerfile
-            args:
-                - ENVIRONMENT
-                - RENDER_PREVIEW
-                - REACT_APP_AUTH_MODE=simple
-                - REACT_APP_DEMO_SESSION
-                - REACT_APP_FIREBASE_CONFIG_OBJECT
-                - REACT_APP_FRONTEND_ORG
-                - REACT_APP_FRONTEND_URI
-                - REACT_APP_ONPREM
-                - REACT_APP_PRIVATE_GRAPH_URI
-                - REACT_APP_PUBLIC_GRAPH_URI
-                - TZ
+        environment:
+            - ENVIRONMENT
+            - RENDER_PREVIEW
+            - REACT_APP_AUTH_MODE=simple
+            - REACT_APP_DEMO_SESSION
+            - REACT_APP_FIREBASE_CONFIG_OBJECT
+            - REACT_APP_FRONTEND_ORG
+            - REACT_APP_FRONTEND_URI
+            - REACT_APP_ONPREM
+            - REACT_APP_PRIVATE_GRAPH_URI
+            - REACT_APP_PUBLIC_GRAPH_URI
+            - TZ
         volumes:
             - ../backend/private-graph:/build/backend/private-graph
             - ../backend/public-graph:/build/backend/public-graph
