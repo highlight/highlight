@@ -1,3 +1,4 @@
+import { useGetErrorObjectQuery } from '@graph/hooks'
 import { ErrorObject, Session, SessionComment } from '@graph/schemas'
 import { EventType, Replayer } from '@highlight-run/rrweb'
 import { playerMetaData, SessionInterval } from '@highlight-run/rrweb-types'
@@ -143,6 +144,23 @@ export enum PlayerSearchParameters {
 	commentId = 'commentId',
 	/** Whether to mark the comment thread as muted.*/
 	muted = 'muted',
+}
+
+export const usePlayerLinkErrorInstance = () => {
+	const location = useLocation()
+	const searchParams = new URLSearchParams(location.search)
+	const errorInstanceID = searchParams.get(PlayerSearchParameters.errorId)
+
+	const { data: errorObject } = useGetErrorObjectQuery({
+		variables: {
+			id: errorInstanceID!,
+		},
+		skip: !errorInstanceID,
+	})
+
+	return {
+		errorObject: errorObject?.error_object,
+	}
 }
 
 /**
