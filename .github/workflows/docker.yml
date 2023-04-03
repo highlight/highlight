@@ -77,4 +77,4 @@ jobs:
               #              if: github.repository == 'highlight/highlight' && github.ref == 'refs/heads/main'
               run: |
                   cd docker;
-                  docker compose push;
+                  docker compose push backend frontend;
