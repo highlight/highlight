@@ -286,6 +286,8 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 }
 
 func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.LogKey, error) {
+	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("LogsKeys"))
+
 	type keyCount struct {
 		Key   string
 		Total uint64
@@ -311,7 +313,15 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 
 	sql, args := sb.Build()
 
+	recentSQL, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	if err != nil {
+		span.Finish(tracer.WithError(err))
+		return nil, err
+	}
+	span.SetTag("RecentSQL", recentSQL)
+
 	if err := client.conn.Select(ctx, &recentKeyCounts, sql, args...); err != nil {
+		span.Finish(tracer.WithError(err))
 		return nil, err
 	}
 
@@ -334,7 +344,15 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 
 	sql, args = mv.Build()
 
+	olderSQL, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	if err != nil {
+		span.Finish(tracer.WithError(err))
+		return nil, err
+	}
+	span.SetTag("OlderSQL", olderSQL)
+
 	if err := client.conn.Select(ctx, &olderKeyCounts, sql, args...); err != nil {
+		span.Finish(tracer.WithError(err))
 		return nil, err
 	}
 
@@ -365,6 +383,7 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 		})
 	}
 
+	span.Finish()
 	return keys, nil
 
 }
