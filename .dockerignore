@@ -2,3 +2,4 @@
 .yarn/cache
 build
 **/node_modules
+**/.next

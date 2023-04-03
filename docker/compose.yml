@@ -17,6 +17,13 @@ x-depends-infra: &depends-infra
         collector:
             condition: service_started
 
+x-backend-volumes: &backend-volumes
+    volumes:
+        - highlight-data:/highlight-data
+        - ../backend:/build/backend
+        - ../e2e/go:/build/e2e/go
+        - ../sdk/highlight-go:/build/sdk/highlight-go
+
 x-backend-env: &backend-env
     environment:
         - CLICKHOUSE_ADDRESS
@@ -124,7 +131,7 @@ services:
         environment:
             discovery.type: single-node
             xpack.security.enabled: false
-            ES_JAVA_OPTS: '-Xms1024m -Xmx1024m'
+            ES_JAVA_OPTS: '-Xms256m -Xmx256m'
         volumes:
             - elasticsearch-data:/usr/share/elasticsearch/data
         healthcheck:
@@ -176,7 +183,7 @@ services:
             - go
             - run
             - ./migrations/main.go
-        <<: [*depends-infra, *backend-env]
+        <<: [*depends-infra, *backend-env, *backend-volumes]
 
     backend-setup-elasticsearch:
         image: public.ecr.aws/k9o6n7l8/highlight
@@ -184,12 +191,12 @@ services:
             context: ..
             dockerfile: docker/backend.Dockerfile
         command:
-            - /bin/backend
+            - go
+            - run
+            - main.go
             - -runtime=worker
             - -worker-handler=init-opensearch
-        volumes:
-            - highlight-data:/highlight-data
-        <<: [*depends-infra, *backend-env]
+        <<: [*depends-infra, *backend-env, *backend-volumes]
 
     backend:
         container_name: backend
@@ -201,19 +208,17 @@ services:
             timeout: 5s
             retries: 5
         ports:
+            - 2345:2345
             - 8082:8082
         build:
             context: ..
             dockerfile: docker/backend.Dockerfile
-            target: backend
-        volumes:
-            - highlight-data:/highlight-data
         depends_on:
             backend-setup-db:
                 condition: service_completed_successfully
             backend-setup-elasticsearch:
                 condition: service_completed_successfully
-        <<: *backend-env
+        <<: [*backend-env, *backend-volumes]
 
     frontend:
         container_name: frontend
@@ -231,8 +236,9 @@ services:
         build:
             context: ..
             dockerfile: docker/frontend.Dockerfile
-            target: frontend
             args:
+                - ENVIRONMENT
+                - RENDER_PREVIEW
                 - REACT_APP_AUTH_MODE=simple
                 - REACT_APP_DEMO_SESSION
                 - REACT_APP_FIREBASE_CONFIG_OBJECT
@@ -241,6 +247,23 @@ services:
                 - REACT_APP_ONPREM
                 - REACT_APP_PRIVATE_GRAPH_URI
                 - REACT_APP_PUBLIC_GRAPH_URI
+                - TZ
+        volumes:
+            - ../backend/private-graph:/build/backend/private-graph
+            - ../backend/public-graph:/build/backend/public-graph
+            - ../docs-content:/build/docs-content
+            - ../frontend/src:/build/frontend/src
+            - ../highlight.io/components:/build/highlight.io/components
+            - ../highlight.io/pages:/build/highlight.io/pages
+            - ../packages/component-preview/src:/build/packages/component-preview/src
+            - ../packages/ui/src:/build/packages/ui/src
+            - ../sdk/client/src:/build/sdk/client/src
+            - ../sdk/firstload/src:/build/sdk/firstload/src
+            - ../sdk/highlight-apollo/src:/build/sdk/highlight-apollo/src
+            - ../sdk/highlight-nest/src:/build/sdk/highlight-nest/src
+            - ../sdk/highlight-next/src:/build/sdk/highlight-next/src
+            - ../sdk/highlight-node/src:/build/sdk/highlight-node/src
+            - ../sourcemap-uploader/src:/build/sourcemap-uploader/src
 
 volumes:
     highlight-data:

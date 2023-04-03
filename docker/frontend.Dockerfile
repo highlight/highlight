@@ -2,7 +2,6 @@ FROM node:lts-bullseye as frontend-base
 RUN apt update && apt install -y \
   build-essential \
   chromium \
-  nginx \
   && apt clean
 
 WORKDIR /build
@@ -32,7 +31,6 @@ COPY ../sdk/highlight-react/package.json ./sdk/highlight-react/package.json
 COPY ../highlight.io/package.json ./highlight.io/package.json
 COPY ../frontend/package.json ./frontend/package.json
 RUN yarn
-
 COPY .npmignore .prettierrc .prettierignore graphql.config.js tsconfig.json turbo.json ./
 COPY ../backend/localhostssl/server.crt ./backend/localhostssl/server.crt
 COPY ../backend/localhostssl/server.key ./backend/localhostssl/server.key
@@ -51,27 +49,6 @@ COPY ../scripts ./scripts
 COPY ../sdk ./sdk
 COPY ../sourcemap-uploader ./sourcemap-uploader
 
-FROM frontend-base as frontend-dev
+FROM frontend-base as frontend
 ENV NODE_OPTIONS=--openssl-legacy-provider
 CMD ["yarn", "docker:frontend"]
-
-FROM frontend-base as frontend
-
-# These three 'args' need to be here because they're injected at build time
-# all other env variables are provided in environment.yml.
-ARG NODE_OPTIONS="--max-old-space-size=16384"
-ARG REACT_APP_AUTH_MODE
-ARG REACT_APP_COMMIT_SHA
-ARG REACT_APP_DEMO_SESSION
-ARG REACT_APP_FIREBASE_CONFIG_OBJECT
-ARG REACT_APP_FRONTEND_ORG
-ARG REACT_APP_FRONTEND_URI
-ARG REACT_APP_ONPREM
-ARG REACT_APP_PRIVATE_GRAPH_URI
-ARG REACT_APP_PUBLIC_GRAPH_URI
-ARG TURBO_TEAM
-RUN yarn build:frontend
-
-COPY ../docker/nginx.conf /etc/nginx/sites-enabled/default
-
-CMD ["nginx", "-g", "daemon off;"]
