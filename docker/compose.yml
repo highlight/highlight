@@ -175,7 +175,7 @@ services:
             - ./otel-collector.yaml:/etc/otel-collector-config.yaml
 
     backend-setup-db:
-        image: public.ecr.aws/k9o6n7l8/highlight
+        image: public.ecr.aws/highlight-io/highlight
         build:
             context: ..
             dockerfile: docker/backend.Dockerfile
@@ -186,7 +186,7 @@ services:
         <<: [*depends-infra, *backend-env, *backend-volumes]
 
     backend-setup-elasticsearch:
-        image: public.ecr.aws/k9o6n7l8/highlight
+        image: public.ecr.aws/highlight-io/highlight
         build:
             context: ..
             dockerfile: docker/backend.Dockerfile
@@ -200,7 +200,7 @@ services:
 
     backend:
         container_name: backend
-        image: public.ecr.aws/k9o6n7l8/highlight
+        image: public.ecr.aws/highlight-io/highlight
         healthcheck:
             test: ['CMD', 'curl', '-f', '-k', 'https://localhost:8082/health']
             start_period: 180s
@@ -222,7 +222,7 @@ services:
 
     frontend:
         container_name: frontend
-        image: public.ecr.aws/k9o6n7l8/highlight-frontend
+        image: public.ecr.aws/highlight-io/highlight-frontend
         healthcheck:
             test: ['CMD', 'curl', '-f', '-k', 'https://localhost:3000/']
             start_period: 180s
