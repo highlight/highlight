@@ -198,6 +198,8 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		projectID,
 		params,
 		Pagination{},
+		OrderBackwardNatural,
+		OrderForwardNatural,
 	)
 
 	if err != nil {
