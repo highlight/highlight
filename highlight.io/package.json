@@ -7,10 +7,10 @@
 	"scripts": {
 		"build": "next build",
 		"dev": "run-p next-dev styles",
-		"next-dev": "next dev",
+		"next-dev": "next dev -p 4000",
 		"lint": "next lint",
 		"prepare": "husky install",
-		"start": "next start",
+		"start": "next start -p 4000",
 		"styles": "yarn typed-scss-modules ./ --watch --ignore '**/node_modules'"
 	},
 	"dependencies": {

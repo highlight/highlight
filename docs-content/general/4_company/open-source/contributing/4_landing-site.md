@@ -15,6 +15,7 @@ To run the app locally, install dependencies and call `yarn dev` as follows:
 yarn install;
 cd highlight.io;
 yarn dev;
+open http://localhost:4000/
 ```
 
 Changes to `docs-content` may require refreshing the browser.
