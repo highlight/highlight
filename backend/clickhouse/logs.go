@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 	"unicode"
@@ -285,60 +286,74 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 }
 
 func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.LogKey, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-
-	startOfCurrentHour := time.Now().UTC().Truncate(1 * time.Hour)
-	if endDate.UTC().After(startOfCurrentHour) {
-		// If we're fetching keys within the last hour, we fallback to using the `logs` table
-		// because the materialized view hasn't populated yet.
-		sb.Select("arrayJoin(LogAttributes.keys) as Key, count() as Total").
-			From(LogsTable).
-			Where(sb.Equal("ProjectId", projectID)).
-			Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(endDate.Unix()))).
-			Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(startDate.Unix()))).
-			GroupBy("Key").
-			OrderBy("Total DESC")
-
-	} else {
-		endHour := endDate.Truncate(1 * time.Hour)
-		startHour := startDate.Add(1 * time.Hour).Truncate(1 * time.Hour)
-		sb.Select("Key, sum(Count) as Total").
-			From(LogsKeysMV).
-			Where(sb.Equal("ProjectId", projectID)).
-			Where(sb.LessEqualThan("toUInt64(toDateTime(Hour))", uint64(startHour.Unix()))).
-			Where(sb.GreaterEqualThan("toUInt64(toDateTime(Hour))", uint64(endHour.Unix()))).
-			GroupBy("Key").
-			OrderBy("Total DESC")
+	type keyCount struct {
+		Key   string
+		Total uint64
 	}
+
+	startOfCurrentHour := time.Now().Truncate(1 * time.Hour)
+
+	var recentKeyCounts []keyCount // Tracks key counts within the last hour (before the MV has refreshed)
+	var olderKeyCounts []keyCount  // Tracks key counts beyond the last hour (using the MV)
+
+	mappedKeyCount := make(map[string]uint64) // For usage of merging the previous results together
+
+	// If we're fetching keys within the last hour, we fallback to using the `logs` table
+	// because the materialized view hasn't populated yet.
+	sb := sqlbuilder.NewSelectBuilder().From(LogsTable)
+	sb.Select("arrayJoin(LogAttributes.keys) as Key, count() as Total").
+		From(LogsTable).
+		Where(sb.Equal("ProjectId", projectID)).
+		Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(startDate.Unix()))).
+		Where(sb.GreaterThan("toUInt64(toDateTime(Timestamp))", uint64(startOfCurrentHour.Unix()))).
+		GroupBy("Key").
+		OrderBy("Total DESC")
 
 	sql, args := sb.Build()
 
-	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("LogsKeys"))
-	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
-	if err != nil {
-		span.Finish(tracer.WithError(err))
+	if err := client.conn.Select(ctx, &recentKeyCounts, sql, args...); err != nil {
 		return nil, err
 	}
-	span.SetTag("Query", query)
 
-	rows, err := client.conn.Query(ctx, sql, args...)
+	for _, keyCount := range recentKeyCounts {
+		mappedKeyCount[keyCount.Key] += keyCount.Total
+	}
 
-	if err != nil {
+	mv := sqlbuilder.NewSelectBuilder().From(LogsKeysMV)
+	mv.Select("Key, sum(Count) as Total").
+		From(LogsKeysMV).
+		Where(mv.Equal("ProjectId", projectID)).
+		Where(mv.LessThan("toUInt64(toDateTime(Hour))", uint64(startOfCurrentHour.Unix()))).
+
+		// Use the start hour of the end date to ensure we capture the previous MV run
+		// Note: this may result in extra counts the tradeoff is worth it to ensure we don't
+		// have to query the logs table for older time frames.
+		Where(mv.GreaterEqualThan("toUInt64(toDateTime(Hour))", uint64(endDate.Truncate(1*time.Hour).Unix()))).
+		GroupBy("Key").
+		OrderBy("Total DESC")
+
+	sql, args = mv.Build()
+
+	if err := client.conn.Select(ctx, &olderKeyCounts, sql, args...); err != nil {
 		return nil, err
 	}
+
+	for _, keyCount := range olderKeyCounts {
+		mappedKeyCount[keyCount.Key] += keyCount.Total
+	}
+
+	var sortedKeyCounts []keyCount
+	for k, v := range mappedKeyCount {
+		sortedKeyCounts = append(sortedKeyCounts, keyCount{k, v})
+	}
+	sort.Slice(sortedKeyCounts, func(i, j int) bool {
+		return sortedKeyCounts[i].Total > sortedKeyCounts[j].Total
+	})
 
 	keys := []*modelInputs.LogKey{}
-	for rows.Next() {
-		var (
-			Key   string
-			Total uint64
-		)
-		if err := rows.Scan(&Key, &Total); err != nil {
-			return nil, err
-		}
-
+	for _, keyCount := range sortedKeyCounts {
 		keys = append(keys, &modelInputs.LogKey{
-			Name: Key,
+			Name: keyCount.Key,
 			Type: modelInputs.LogKeyTypeString, // For now, assume everything is a string
 		})
 	}
@@ -350,10 +365,7 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 		})
 	}
 
-	rows.Close()
-
-	span.Finish(tracer.WithError(rows.Err()))
-	return keys, rows.Err()
+	return keys, nil
 
 }
 

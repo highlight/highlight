@@ -1043,7 +1043,6 @@ func TestLogsKeys(t *testing.T) {
 
 	keys, err := client.LogsKeys(ctx, 1, now, now)
 	assert.NoError(t, err)
-
 	expected := append([]*modelInputs.LogKey{
 		{
 			Name: "current_key",
@@ -1054,7 +1053,6 @@ func TestLogsKeys(t *testing.T) {
 
 	keys, err = client.LogsKeys(ctx, 1, now, twoHoursAgo)
 	assert.NoError(t, err)
-
 	expected = append([]*modelInputs.LogKey{
 		{
 			Name: "old_key",
@@ -1062,6 +1060,16 @@ func TestLogsKeys(t *testing.T) {
 		},
 		{
 			Name: "current_key",
+			Type: modelInputs.LogKeyTypeString,
+		},
+	}, alwaysPresentKeys...)
+	assert.Equal(t, expected, keys)
+
+	keys, err = client.LogsKeys(ctx, 1, twoHoursAgo, twoHoursAgo)
+	assert.NoError(t, err)
+	expected = append([]*modelInputs.LogKey{
+		{
+			Name: "old_key",
 			Type: modelInputs.LogKeyTypeString,
 		},
 	}, alwaysPresentKeys...)
