@@ -44,6 +44,7 @@ COPY ../packages ./packages
 COPY ../render ./render
 COPY ../sourcemap-uploader ./sourcemap-uploader
 COPY ../sdk ./sdk
+COPY ../docs-content ./docs-content
 COPY ../highlight.io ./highlight.io
 COPY ../frontend ./frontend
 COPY ../backend/public-graph ./backend/public-graph

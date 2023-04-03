@@ -28,7 +28,10 @@ services:
             - ../packages/ui/src:/build/packages/ui/src
             - ../packages/component-preview/src:/build/packages/component-preview/src
             - ../sdk/client/src:/build/sdk/client/src
+            - ../sdk/docs-content:/build/docs-content
             - ../sdk/firstload/src:/build/sdk/firstload/src
+            - ../sdk/highlight.io/components:/build/highlight.io/components
+            - ../sdk/highlight.io/pages:/build/highlight.io/pages
             - ../sdk/highlight-apollo/src:/build/sdk/highlight-apollo/src
             - ../sdk/highlight-nest/src:/build/sdk/highlight-nest/src
             - ../sdk/highlight-next/src:/build/sdk/highlight-next/src
