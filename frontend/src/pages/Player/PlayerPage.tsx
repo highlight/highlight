@@ -22,7 +22,10 @@ import PlayerCommentCanvas, {
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
 import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook'
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerState'
-import { usePlayerLinkErrorInstance } from '@pages/Player/PlayerHook/utils'
+import {
+	useLinkErrorInstance,
+	useLinkLogCursor,
+} from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import PlayerPageProductTour from '@pages/Player/PlayerPageProductTour/PlayerPageProductTour'
 import {
@@ -124,7 +127,7 @@ const PlayerPage = ({ integrated }: Props) => {
 	} = usePlayerConfiguration()
 	const { setRightPanelView, setActiveError } = usePlayerUIContext()
 
-	const { errorObject } = usePlayerLinkErrorInstance()
+	const { errorObject } = useLinkErrorInstance()
 	useEffect(() => {
 		if (errorObject) {
 			setShowLeftPanel(false)
@@ -144,6 +147,13 @@ const PlayerPage = ({ integrated }: Props) => {
 		setShowLeftPanel,
 		setShowRightPanel,
 	])
+
+	const { logCursor } = useLinkLogCursor()
+	useEffect(() => {
+		if (logCursor) {
+			setShowLeftPanel(false)
+		}
+	}, [logCursor, setShowLeftPanel])
 
 	const toolbarContext = useToolbarItems()
 

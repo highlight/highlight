@@ -26,7 +26,10 @@ import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCa
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
-import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
+import {
+	PlayerSearchParameters,
+	useLinkLogCursor,
+} from '@pages/Player/PlayerHook/utils'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
@@ -84,6 +87,13 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 
 	const navigate = useNavigate()
 	const location = useLocation()
+
+	const { logCursor } = useLinkLogCursor()
+	useEffect(() => {
+		if (logCursor) {
+			setShowLeftPanel(false)
+		}
+	}, [logCursor, setShowLeftPanel])
 
 	useEffect(() => {
 		if (!isLoggedIn && !data?.error_group?.is_public && !loading) {

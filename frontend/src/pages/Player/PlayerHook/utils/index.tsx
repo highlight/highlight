@@ -140,13 +140,15 @@ export enum PlayerSearchParameters {
 	tsAbs = 'tsAbs',
 	/** The error ID for an error in the current session. The player's time will be set to the lookback period before the error's timestamp. */
 	errorId = 'errorId',
+	/** The Log Cursor where a link was coming from. **/
+	log = 'log',
 	/** The comment ID for a comment in the current session. The player's time will be set to the comments's timestamp. */
 	commentId = 'commentId',
 	/** Whether to mark the comment thread as muted.*/
 	muted = 'muted',
 }
 
-export const usePlayerLinkErrorInstance = () => {
+export const useLinkErrorInstance = () => {
 	const location = useLocation()
 	const searchParams = new URLSearchParams(location.search)
 	const errorInstanceID = searchParams.get(PlayerSearchParameters.errorId)
@@ -160,6 +162,15 @@ export const usePlayerLinkErrorInstance = () => {
 
 	return {
 		errorObject: errorObject?.error_object,
+	}
+}
+
+export const useLinkLogCursor = () => {
+	const location = useLocation()
+	const searchParams = new URLSearchParams(location.search)
+	const logCursor = searchParams.get(PlayerSearchParameters.log)
+	return {
+		logCursor,
 	}
 }
 
