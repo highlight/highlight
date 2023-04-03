@@ -95,6 +95,44 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 	assert.Len(t, payload.Edges, 1)
 }
 
+func TestReadLogsAscending(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+	oneSecondAgo := now.Add(-time.Second * 1)
+	rows := []*LogRow{
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
+				ProjectId: 1,
+			},
+			Body: "Body 1",
+		},
+		{
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: oneSecondAgo,
+				ProjectId: 1,
+			},
+			Body: "Body 2",
+		},
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+	}, Pagination{
+		Direction: modelInputs.LogDirectionAsc,
+	})
+	assert.NoError(t, err)
+
+	assert.Len(t, payload.Edges, 2)
+	assert.Equal(t, payload.Edges[0].Node.Message, "Body 2")
+	assert.Equal(t, payload.Edges[1].Node.Message, "Body 1")
+}
+
 func TestReadLogsTotalCount(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)
