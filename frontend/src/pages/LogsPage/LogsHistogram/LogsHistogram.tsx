@@ -1,5 +1,6 @@
 import { useGetLogsHistogramQuery } from '@graph/hooks'
 import { LogLevel as Level } from '@graph/schemas'
+import * as Types from '@graph/schemas'
 import { Box, Popover, Text } from '@highlight-run/ui'
 import { COLOR_MAPPING, FORMAT } from '@pages/LogsPage/constants'
 import { isSignificantDateRange } from '@pages/LogsPage/utils'
@@ -46,6 +47,7 @@ const LogsHistogram = ({
 					start_date: moment(startDate).format(FORMAT),
 					end_date: moment(endDate).format(FORMAT),
 				},
+				direction: Types.LogDirection.Desc,
 			},
 		},
 		skip: !project_id,
