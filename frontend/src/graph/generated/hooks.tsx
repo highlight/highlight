@@ -11641,7 +11641,7 @@ export const GetLogsDocument = gql`
 		$after: String
 		$before: String
 		$at: String
-		$direction: LogDirection
+		$direction: LogDirection!
 	) {
 		logs(
 			project_id: $project_id
