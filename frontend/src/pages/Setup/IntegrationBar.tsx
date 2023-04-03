@@ -20,14 +20,22 @@ type Props = React.PropsWithChildren & {
 	integrationData?: IntegrationStatus
 }
 
-const AREA_TITLE_MAP = {
+type Area = 'client' | 'backend' | 'backend-logging'
+
+const AREA_TITLE_MAP: { [key in Area]: string } = {
 	client: 'UX monitoring',
 	backend: 'Backend monitoring',
 	'backend-logging': 'Backend logging',
 }
 
+const CTA_TITLE_MAP: { [key in Area]: string } = {
+	client: 'View first session',
+	backend: 'View first error',
+	'backend-logging': 'View logs',
+}
+
 export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
-	const { area } = useParams<{ area: string }>()
+	const { area } = useParams<{ area: Area }>()
 	const { projectId } = useProjectId()
 	const path = `/${projectId}/${snakeCase(integrationData?.resourceType)}${
 		integrationData?.resourceSecureId
@@ -35,14 +43,7 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 			: ''
 	}`
 	const integrated = integrationData?.integrated
-	const ctaText =
-		area === 'backend'
-			? 'View first error'
-			: area === 'client'
-			? 'View first session'
-			: area === 'backend-logging'
-			? 'View logs'
-			: undefined
+	const ctaText = CTA_TITLE_MAP[area!]
 
 	return (
 		<Box
@@ -66,9 +67,7 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 				</Box>
 				<Stack gap="2" direction="row" align="center">
 					<Badge
-						label={
-							AREA_TITLE_MAP[area as keyof typeof AREA_TITLE_MAP]
-						}
+						label={AREA_TITLE_MAP[area!]}
 						variant={integrated ? 'purple' : 'gray'}
 					/>
 					<Badge
