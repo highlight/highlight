@@ -29,6 +29,7 @@ COPY ../sdk/highlight-nest/package.json ./sdk/highlight-nest/package.json
 COPY ../sdk/highlight-next/package.json ./sdk/highlight-next/package.json
 COPY ../sdk/highlight-node/package.json ./sdk/highlight-node/package.json
 COPY ../sdk/highlight-react/package.json ./sdk/highlight-react/package.json
+COPY ../highlight.io/package.json ./highlight.io/package.json
 COPY ../frontend/package.json ./frontend/package.json
 RUN yarn
 
@@ -43,6 +44,7 @@ COPY ../packages ./packages
 COPY ../render ./render
 COPY ../sourcemap-uploader ./sourcemap-uploader
 COPY ../sdk ./sdk
+COPY ../highlight.io ./highlight.io
 COPY ../frontend ./frontend
 COPY ../backend/public-graph ./backend/public-graph
 COPY ../backend/private-graph ./backend/private-graph
