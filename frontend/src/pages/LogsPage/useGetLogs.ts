@@ -59,8 +59,8 @@ export const useGetLogs = ({
 						start_date: moment(startDate).format(FORMAT),
 						end_date: moment(endDate).format(FORMAT),
 					},
+					direction: Types.LogDirection.Asc,
 				},
-				direction: Types.LogDirection.Asc,
 			},
 			fetchPolicy: 'cache-and-network',
 		})

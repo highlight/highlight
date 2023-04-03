@@ -736,6 +736,7 @@ export type LogsHistogramBucketCount = {
 
 export type LogsParamsInput = {
 	date_range: DateRangeRequiredInput
+	direction: LogDirection
 	query: Scalars['String']
 }
 
@@ -1833,7 +1834,6 @@ export type QueryLogsArgs = {
 	after?: InputMaybe<Scalars['String']>
 	at?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
-	direction?: InputMaybe<LogDirection>
 	params: LogsParamsInput
 	project_id: Scalars['ID']
 }
