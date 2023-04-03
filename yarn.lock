@@ -16682,12 +16682,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sparticuz/chromium@npm:^109":
-  version: 109.0.6
-  resolution: "@sparticuz/chromium@npm:109.0.6"
+"@sparticuz/chromium@npm:^112.0.2":
+  version: 112.0.2
+  resolution: "@sparticuz/chromium@npm:112.0.2"
   dependencies:
+    follow-redirects: ^1.15.2
     tar-fs: ^2.1.1
-  checksum: fe7ad15cac07916d9efba2aed10c626a0ab99fa645e12d3a4a7af04c8bd28ee26d183d9461a85b27de61b878dfb5b5abdcc94330bb0de15731e24cb110a79ff3
+  checksum: 227d7965941a390409077d83bb7a8bac11e5d5744e3477677a930d415460971ea1211045a1e253c06bcf3378eb9e3e63b0d45bc5422ec0e39f540616928f5748
   languageName: node
   linkType: hard
 
@@ -31765,7 +31766,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.14.8":
+"follow-redirects@npm:^1.14.8, follow-redirects@npm:^1.15.2":
   version: 1.15.2
   resolution: "follow-redirects@npm:1.15.2"
   peerDependenciesMeta:
@@ -44108,7 +44109,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"puppeteer-core@npm:^19.7.5":
+"puppeteer-core@npm:^19.8.1":
   version: 19.11.1
   resolution: "puppeteer-core@npm:19.11.1"
   dependencies:
@@ -47028,13 +47029,13 @@ __metadata:
   dependencies:
     "@aws-sdk/client-s3": ^3.294.0
     "@highlight-run/rrweb": "workspace:*"
-    "@sparticuz/chromium": ^109
+    "@sparticuz/chromium": ^112.0.2
     "@types/aws-lambda": ^8.10.114
     "@types/find": ^0.2.1
     "@types/fs-extra": ^11.0.1
     "@types/node": ^18.15.3
     esbuild: ^0.17.12
-    puppeteer-core: ^19.7.5
+    puppeteer-core: ^19.8.1
     typescript: ^5.0.2
   languageName: unknown
   linkType: soft

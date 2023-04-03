@@ -14,9 +14,9 @@
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.294.0",
 		"@highlight-run/rrweb": "workspace:*",
-		"@sparticuz/chromium": "^109",
+		"@sparticuz/chromium": "^112.0.2",
 		"esbuild": "^0.17.12",
-		"puppeteer-core": "^19.7.5"
+		"puppeteer-core": "^19.8.1"
 	},
 	"devDependencies": {
 		"@types/aws-lambda": "^8.10.114",
