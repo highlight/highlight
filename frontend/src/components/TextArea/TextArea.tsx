@@ -1,5 +1,5 @@
 import { Input as AntDesignInput } from 'antd'
-import { TextAreaProps } from 'antd/lib/input'
+import { TextAreaProps } from 'antd/es/input'
 import clsx from 'clsx'
 import React from 'react'
 

@@ -25,8 +25,16 @@ services:
             service: frontend
 
         volumes:
-            - ../packages/ui/src:/build/packages/ui/src
+            - ../backend/private-graph:/build/backend/private-graph
+            - ../backend/public-graph:/build/backend/public-graph
+            - ../docs-content:/build/docs-content
+            - ../frontend/src:/build/frontend/src
+            - ../highlight.io/components:/build/highlight.io/components
+            - ../highlight.io/pages:/build/highlight.io/pages
             - ../packages/component-preview/src:/build/packages/component-preview/src
+            - ../packages/ui/src:/build/packages/ui/src
+            - ../render/src:/build/render/src
+            - ../scripts/src:/build/scripts/src
             - ../sdk/client/src:/build/sdk/client/src
             - ../sdk/firstload/src:/build/sdk/firstload/src
             - ../sdk/highlight-apollo/src:/build/sdk/highlight-apollo/src
@@ -34,9 +42,6 @@ services:
             - ../sdk/highlight-next/src:/build/sdk/highlight-next/src
             - ../sdk/highlight-node/src:/build/sdk/highlight-node/src
             - ../sourcemap-uploader/src:/build/sourcemap-uploader/src
-            - ../frontend/src:/build/frontend/src
-            - ../backend/public-graph:/build/backend/public-graph
-            - ../backend/private-graph:/build/backend/private-graph
         build:
             context: ..
             dockerfile: docker/frontend.Dockerfile

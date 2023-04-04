@@ -14,13 +14,14 @@ import {
 	getHighlightRequestId,
 	getNetworkResourcesDisplayName,
 	NetworkResource,
+	RequestStatus,
 	RequestType,
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
-import { MillisToMinutesAndSeconds } from '@util/time'
+import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -37,11 +38,13 @@ export const NetworkPage = ({
 	autoScroll,
 	filter,
 	requestType,
+	requestStatus,
 }: {
 	time: number
 	autoScroll: boolean
 	filter: string
 	requestType: RequestType
+	requestStatus: RequestStatus
 }) => {
 	const {
 		state,
@@ -102,6 +105,33 @@ export const NetworkPage = ({
 						requestType === RequestType.All ||
 						requestType === request.initiatorType,
 				)
+				.filter((request) => {
+					/* No filter for RequestStatus.All */
+					if (requestStatus === RequestStatus.All) {
+						return true
+					}
+					/* Filter on RequestStatus */
+					const status =
+						request?.requestResponsePairs?.response?.status
+					if (status) {
+						const statusString = status.toString()
+						/* '1', '2', '3', '4', '5', '?' */
+						if (requestStatus[0] === statusString[0]) {
+							return true
+						}
+					} else {
+						if (
+							[RequestType.Fetch, RequestType.XHR].includes(
+								request.initiatorType as RequestType,
+							)
+						) {
+							return requestStatus === RequestStatus.Unknown
+						} else {
+							// this is a network request with no status code, so we assume 2xx
+							return requestStatus === RequestStatus['2XX']
+						}
+					}
+				})
 				.map((event) => ({
 					...event,
 					timestamp: event.startTime + startTime,
@@ -120,7 +150,7 @@ export const NetworkPage = ({
 		}
 
 		return current
-	}, [parsedResources, filter, requestType, startTime])
+	}, [parsedResources, filter, requestType, requestStatus, startTime])
 
 	const currentResourceIdx = useMemo(() => {
 		return findLastActiveEventIndex(
@@ -209,6 +239,7 @@ export const NetworkPage = ({
 	}, [autoScroll, currentResourceIdx, scrollFunction, state, time])
 
 	// Sets up a keydown listener to allow the user to quickly view network requests details in the resource panel by using the up/down arrow key.
+	/* Note - this event collides with the "CMD + up" and "CMD + down" command for controlling player speed */
 	useEffect(() => {
 		const listener = (e: KeyboardEvent) => {
 			let direction: undefined | number = undefined
@@ -261,6 +292,7 @@ export const NetworkPage = ({
 						<Text color="n11">Type</Text>
 						<Text color="n11">Name</Text>
 						<Text color="n11">Time</Text>
+						<Text color="n11">Latency</Text>
 						<Text color="n11">Waterfall</Text>
 					</Box>
 					<Box className={styles.networkBox}>
@@ -335,6 +367,7 @@ export const NetworkPage = ({
 						kind={Tab.Network}
 						filter={filter}
 						requestType={requestType}
+						requestStatus={requestStatus}
 					/>
 				)
 			)}
@@ -408,6 +441,7 @@ const ResourceRow = ({
 					weight={showingDetails ? 'bold' : 'medium'}
 					lines="1"
 				>
+					{/* NOTE - Showing '200' for all requests that aren't 'xmlhttprequest' or 'fetch' */}
 					{resource.initiatorType === 'xmlhttprequest' ||
 					resource.initiatorType === 'fetch'
 						? resource.requestResponsePairs?.response.status ?? (
@@ -445,6 +479,9 @@ const ResourceRow = ({
 								relativeTime: resource.startTime,
 						  })
 						: MillisToMinutesAndSeconds(resource.startTime)}
+				</Text>
+				<Text size="small" weight={showingDetails ? 'bold' : 'medium'}>
+					{formatTime(resource.responseEnd - resource.startTime)}
 				</Text>
 				<Box className={styles.timingBarWrapper}>
 					<Box
@@ -511,7 +548,7 @@ export const UnknownRequestStatusCode = ({
 				)
 			}
 		>
-			???
+			Unknown
 		</Tooltip>
 	)
 }

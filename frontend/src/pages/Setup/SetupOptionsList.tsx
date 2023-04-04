@@ -3,7 +3,11 @@ import { IntegrationStatus } from '@graph/schemas'
 import { Box, Stack, Text } from '@highlight-run/ui'
 import { Header } from '@pages/Setup/Header'
 import { IntegrationBar } from '@pages/Setup/IntegrationBar'
-import { Guides } from '@pages/Setup/SetupRouter/SetupRouter'
+import {
+	QuickStartContent,
+	quickStartContent,
+	QuickStartOptions,
+} from 'highlight.io'
 import * as React from 'react'
 import { Navigate, useLocation, useMatch } from 'react-router-dom'
 
@@ -14,22 +18,18 @@ export type OptionListItem = {
 }
 
 type Props = {
-	docs: Guides
 	integrationData?: IntegrationStatus
 }
 
-export const SetupOptionsList: React.FC<Props> = ({
-	docs,
-	integrationData,
-}) => {
+export const SetupOptionsList: React.FC<Props> = ({ integrationData }) => {
 	const location = useLocation()
 	const areaMatch = useMatch('/:project_id/setup/:area')
 	const languageMatch = useMatch('/:project_id/setup/:area/:language')
 	const match = areaMatch || languageMatch
 	const { area, language } = (match?.params as any) ?? {}
 	const docsSection = language
-		? (docs[area as keyof typeof docs][language] as any)
-		: (docs[area as keyof typeof docs] as any)
+		? ((quickStartContent as any)[area][language] as QuickStartOptions)
+		: ((quickStartContent as any)[area] as QuickStartOptions)
 	const optionKeys = getOptionKeys(docsSection)
 
 	// Redirect if there is only one option.
@@ -44,9 +44,7 @@ export const SetupOptionsList: React.FC<Props> = ({
 	}
 
 	const options = optionKeys.map((optionKey) => {
-		const optionDocs = docsSection[
-			optionKey as keyof typeof docsSection
-		] as any
+		const optionDocs = docsSection[optionKey]
 		const optionKeys = getOptionKeys(optionDocs)
 		const onlyOneOption = optionKeys.length === 1
 
@@ -126,7 +124,7 @@ export const SetupOptionsList: React.FC<Props> = ({
 }
 
 const IGNORED_KEYS = ['title', 'subtitle', 'logoUrl', 'entries']
-const getOptionKeys = (docsSection: any) => {
+const getOptionKeys = (docsSection: QuickStartContent | QuickStartOptions) => {
 	const optionKeys = Object.keys(docsSection || {}).filter(
 		(k) => IGNORED_KEYS.indexOf(k) === -1,
 	)

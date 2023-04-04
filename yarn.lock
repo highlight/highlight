@@ -10993,6 +10993,7 @@ __metadata:
     framer-motion: ^6.3.15
     graphql: ^15.5.0
     happy-dom: ^6.0.4
+    highlight.io: "workspace:*"
     highlight.run: "workspace:*"
     intro.js: ^4.1.0
     intro.js-react: ^0.6.0
@@ -34310,7 +34311,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highlight.io@workspace:highlight.io":
+"highlight.io@workspace:*, highlight.io@workspace:highlight.io":
   version: 0.0.0-use.local
   resolution: "highlight.io@workspace:highlight.io"
   dependencies:

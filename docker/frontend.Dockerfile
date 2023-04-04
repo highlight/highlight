@@ -29,23 +29,27 @@ COPY ../sdk/highlight-nest/package.json ./sdk/highlight-nest/package.json
 COPY ../sdk/highlight-next/package.json ./sdk/highlight-next/package.json
 COPY ../sdk/highlight-node/package.json ./sdk/highlight-node/package.json
 COPY ../sdk/highlight-react/package.json ./sdk/highlight-react/package.json
+COPY ../highlight.io/package.json ./highlight.io/package.json
 COPY ../frontend/package.json ./frontend/package.json
 RUN yarn
 
 COPY .npmignore .prettierrc .prettierignore graphql.config.js tsconfig.json turbo.json ./
-COPY ../backend/localhostssl/server.pem /etc/ssl/certs/ssl-cert.pem
-COPY ../backend/localhostssl/server.key /etc/ssl/private/ssl-cert.key
 COPY ../backend/localhostssl/server.crt ./backend/localhostssl/server.crt
 COPY ../backend/localhostssl/server.key ./backend/localhostssl/server.key
-COPY ../scripts ./scripts
-COPY ../rrweb ./rrweb
+COPY ../backend/localhostssl/server.key /etc/ssl/private/ssl-cert.key
+COPY ../backend/localhostssl/server.pem /etc/ssl/certs/ssl-cert.pem
+
+COPY ../backend/private-graph ./backend/private-graph
+COPY ../backend/public-graph ./backend/public-graph
+COPY ../docs-content ./docs-content
+COPY ../frontend ./frontend
+COPY ../highlight.io ./highlight.io
 COPY ../packages ./packages
 COPY ../render ./render
-COPY ../sourcemap-uploader ./sourcemap-uploader
+COPY ../rrweb ./rrweb
+COPY ../scripts ./scripts
 COPY ../sdk ./sdk
-COPY ../frontend ./frontend
-COPY ../backend/public-graph ./backend/public-graph
-COPY ../backend/private-graph ./backend/private-graph
+COPY ../sourcemap-uploader ./sourcemap-uploader
 
 FROM frontend-base as frontend-dev
 ENV NODE_OPTIONS=--openssl-legacy-provider

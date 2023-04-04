@@ -176,8 +176,7 @@ services:
             - go
             - run
             - ./migrations/main.go
-        <<: *depends-infra
-        <<: *backend-env
+        <<: [*depends-infra, *backend-env]
 
     backend-setup-elasticsearch:
         image: public.ecr.aws/k9o6n7l8/highlight
@@ -190,8 +189,7 @@ services:
             - -worker-handler=init-opensearch
         volumes:
             - highlight-data:/highlight-data
-        <<: *depends-infra
-        <<: *backend-env
+        <<: [*depends-infra, *backend-env]
 
     backend:
         container_name: backend
