@@ -302,6 +302,11 @@ enum LogLevel {
 	fatal
 }
 
+enum LogDirection {
+	ASC
+	DESC
+}
+
 type Project {
 	id: ID!
 	verbose_id: String!
@@ -1512,6 +1517,7 @@ type Query {
 		after: String
 		before: String
 		at: String
+		direction: LogDirection!
 	): LogsConnection!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!

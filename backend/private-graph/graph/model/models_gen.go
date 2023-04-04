@@ -820,6 +820,47 @@ func (e IntegrationType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type LogDirection string
+
+const (
+	LogDirectionAsc  LogDirection = "ASC"
+	LogDirectionDesc LogDirection = "DESC"
+)
+
+var AllLogDirection = []LogDirection{
+	LogDirectionAsc,
+	LogDirectionDesc,
+}
+
+func (e LogDirection) IsValid() bool {
+	switch e {
+	case LogDirectionAsc, LogDirectionDesc:
+		return true
+	}
+	return false
+}
+
+func (e LogDirection) String() string {
+	return string(e)
+}
+
+func (e *LogDirection) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LogDirection(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LogDirection", str)
+	}
+	return nil
+}
+
+func (e LogDirection) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type LogKeyType string
 
 const (
