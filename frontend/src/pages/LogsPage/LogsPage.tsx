@@ -7,6 +7,7 @@ import {
 	thirtyDaysAgo,
 	TIME_MODE,
 } from '@pages/LogsPage/constants'
+import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
@@ -166,6 +167,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						}
 						ref={tableContainerRef}
 					>
+						<IntegrationCta />
 						<LogsTable
 							logEdges={logEdges}
 							loading={loading}

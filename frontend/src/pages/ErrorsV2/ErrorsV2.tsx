@@ -22,6 +22,7 @@ import { CompleteSetup } from '@pages/ErrorsV2/CompleteSetup/CompleteSetup'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
 import ErrorTabContent from '@pages/ErrorsV2/ErrorTabContent/ErrorTabContent'
 import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
+import { IntegrationCta } from '@pages/ErrorsV2/IntegrationCta'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
@@ -246,25 +247,28 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 										{loading ? (
 											<LoadingBox />
 										) : (
-											<Box pt="16" pb="32">
-												<ErrorTitle
-													errorGroup={
-														data?.error_group
-													}
-												/>
+											<>
+												<IntegrationCta />
+												<Box pt="16" pb="32">
+													<ErrorTitle
+														errorGroup={
+															data?.error_group
+														}
+													/>
 
-												<ErrorBody
-													errorGroup={
-														data?.error_group
-													}
-												/>
+													<ErrorBody
+														errorGroup={
+															data?.error_group
+														}
+													/>
 
-												<ErrorTabContent
-													errorGroup={
-														data?.error_group
-													}
-												/>
-											</Box>
+													<ErrorTabContent
+														errorGroup={
+															data?.error_group
+														}
+													/>
+												</Box>
+											</>
 										)}
 									</Container>
 								</div>
