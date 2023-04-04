@@ -299,6 +299,7 @@ const TimelineIndicatorsBarGraph = ({
 		sessionComments,
 		sessionErrors,
 		start,
+		rageClicks,
 	])
 
 	const bucketSize = pickBucketSize(
