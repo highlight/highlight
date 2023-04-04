@@ -231,7 +231,7 @@ func main() {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql client address...")
 		H.SetGraphqlClientAddress("https://localhost:8082/public")
 		if util.IsInDocker() {
-			H.SetOTLPEndpoint("http://collector:4318")
+			H.SetOTLPEndpoint("http://localhost:4318")
 		}
 	}
 	H.Start()
