@@ -43,8 +43,8 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 const LogsLimit int = 50
 const KeyValuesLimit int = 50
 
-const OrderBackward = "toUnixTimestamp(Timestamp) ASC, UUID ASC"
-const OrderForward = "toUnixTimestamp(Timestamp) DESC, UUID DESC"
+const OrderBackward = "Timestamp ASC, UUID ASC"
+const OrderForward = "Timestamp DESC, UUID DESC"
 
 type Pagination struct {
 	After     *string

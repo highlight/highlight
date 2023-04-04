@@ -24,12 +24,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// <option value={15}>15 seconds</option>
-// <option value={60}>1 minute</option>
-// <option value={300}>5 minutes</option>
-// <option value={900}>15 minutes</option>
-// <option value={1800}>30 minutes</option>
-
 var AlertFrequencies = []int{15, 60, 300, 900, 1800}
 
 func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
