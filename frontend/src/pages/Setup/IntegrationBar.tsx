@@ -11,7 +11,7 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { useParams } from '@util/react-router/useParams'
-import { snakeCase } from 'lodash'
+import moment from 'moment'
 import React from 'react'
 
 import * as styles from './IntegrationBar.css'
@@ -34,14 +34,16 @@ const CTA_TITLE_MAP: { [key in Area]: string } = {
 	'backend-logging': 'View logs',
 }
 
+const CTA_PATH_MAP: { [key in Area]: string } = {
+	client: 'sessions',
+	backend: 'errors',
+	'backend-logging': 'logs',
+}
+
 export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const { area } = useParams<{ area: Area }>()
 	const { projectId } = useProjectId()
-	const path = `/${projectId}/${snakeCase(integrationData?.resourceType)}${
-		integrationData?.resourceSecureId
-			? `/${integrationData.resourceSecureId}`
-			: ''
-	}`
+	const path = buildResourcePath(area!, projectId, integrationData)
 	const integrated = integrationData?.integrated
 	const ctaText = CTA_TITLE_MAP[area!]
 
@@ -115,4 +117,25 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 			</Box>
 		</Box>
 	)
+}
+
+const buildResourcePath = (
+	area: Area,
+	projectId: string,
+	integrationData?: IntegrationStatus,
+) => {
+	let path = `/${projectId}/${CTA_PATH_MAP[area!]}`
+
+	if (integrationData?.resourceSecureId) {
+		path = `${path}/${integrationData.resourceSecureId}`
+	} else if (area === 'backend-logging') {
+		const logDate = moment(integrationData?.createdAt)
+		// Show logs with a 2 minute buffer of when the setup event was created.
+		const startDate = moment(logDate).subtract(2, 'minutes')
+		const endDate = moment(logDate).add(2, 'minutes')
+
+		path = `${path}?start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`
+	}
+
+	return path
 }
