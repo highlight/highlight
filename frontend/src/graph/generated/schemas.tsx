@@ -713,6 +713,11 @@ export type LogAlertInput = {
 	threshold_window: Scalars['Int']
 }
 
+export enum LogDirection {
+	Asc = 'ASC',
+	Desc = 'DESC',
+}
+
 export type LogEdge = {
 	__typename?: 'LogEdge'
 	cursor: Scalars['String']
@@ -1895,6 +1900,7 @@ export type QueryLogsArgs = {
 	after?: InputMaybe<Scalars['String']>
 	at?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
+	direction: LogDirection
 	params: LogsParamsInput
 	project_id: Scalars['ID']
 }
