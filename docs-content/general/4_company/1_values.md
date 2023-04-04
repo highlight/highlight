@@ -7,7 +7,7 @@ updatedAt: 2022-04-15T02:07:22.000Z
 
 Our mission is to support developers (like you) to ship with confidence. We do this by giving you the tools you need to **uncover, resolve, and prevent** issues in your web app.
 
-With everything we build, we maintain an unwavering promise to use open source technologies so that you don't have a dependency on our hosted offerings. 
+With everything we build, we maintain an unwavering promise to use open source technologies so that you and your team don't have a dependency on our hosted offerings. 
 
 ## We build in public.
 
