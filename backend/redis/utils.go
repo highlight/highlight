@@ -306,14 +306,6 @@ func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, p
 	return nil
 }
 
-func (r *Client) setString(ctx context.Context, key string, value string, exp time.Duration) error {
-	cmd := r.redisClient.Set(ctx, key, value, exp)
-	if cmd.Err() != nil {
-		return errors.Wrap(cmd.Err(), "error setting string from Redis")
-	}
-	return nil
-}
-
 func (r *Client) getString(ctx context.Context, key string) (string, error) {
 	val, err := r.redisClient.Get(ctx, key).Result()
 
