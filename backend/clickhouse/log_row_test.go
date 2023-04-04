@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -71,4 +72,11 @@ func TestNewLogRowWithSource(t *testing.T) {
 	lr = NewLogRow(LogRowPrimaryAttrs{}, WithSource("InterceptField"))
 	assert.Equal(t, LogRowSourceValueBackend, lr.Source)
 	assert.Equal(t, "backend", LogRowSourceValueBackend)
+}
+
+func TestNewLogRowWithTimestamp(t *testing.T) {
+	ts := time.Now()
+	lr := NewLogRow(LogRowPrimaryAttrs{}, WithTimestamp(ts))
+	// log row should be created with second precision, per clickhouse precision
+	assert.Equal(t, ts.Truncate(time.Second), lr.Timestamp)
 }
