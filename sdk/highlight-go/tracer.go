@@ -110,12 +110,20 @@ func (t Tracer) log(ctx context.Context, span trace.Span, errs gqlerror.List) {
 		lvl = "error"
 	}
 	attrs := []attribute.KeyValue{
-		semconv.GraphqlOperationTypeKey.String(string(oc.Operation.Operation)),
-		semconv.GraphqlOperationNameKey.String(oc.OperationName),
-		semconv.GraphqlDocumentKey.String(oc.RawQuery),
 		attribute.String("graphql.graph", t.graphName),
-		attribute.String(LogMessageAttribute, fmt.Sprintf("graphql.operation.%s", oc.Operation.Name)),
 		attribute.String(LogSeverityAttribute, lvl),
+	}
+	if oc != nil {
+		attrs = append(attrs,
+			semconv.GraphqlOperationNameKey.String(oc.OperationName),
+			semconv.GraphqlDocumentKey.String(oc.RawQuery),
+		)
+		if oc.Operation != nil {
+			attrs = append(attrs,
+				attribute.String(LogMessageAttribute, fmt.Sprintf("graphql.operation.%s", oc.Operation.Name)),
+				semconv.GraphqlOperationTypeKey.String(string(oc.Operation.Operation)),
+			)
+		}
 	}
 	if err != "" {
 		attrs = append(attrs, attribute.String("graphql.error", err))
