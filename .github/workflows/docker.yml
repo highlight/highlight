@@ -8,7 +8,8 @@ on:
     merge_group:
 
 jobs:
-    e2e-client:
+    e2e-frontend-backend-client:
+        name: E2E Client / Frontend / Backend
         timeout-minutes: 30
         runs-on: buildjet-4vcpu-ubuntu-2204
 
