@@ -35,8 +35,7 @@ var AlertFrequencies = []int{15, 60, 300, 900, 1800}
 func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
 	log.WithContext(ctx).Info("Starting to watch Log Alerts")
 
-	// alerts := getLogAlerts(ctx, DB) // frequency
-	alertsByFrequency := map[int][]*model.LogAlert{}
+	alertsByFrequency := &map[int][]*model.LogAlert{}
 	go func() {
 		// Every minute, check for new alerts and bucket by frequency
 		for range time.Tick(time.Minute) {
@@ -45,7 +44,7 @@ func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCli
 				bucketed[freq] = []*model.LogAlert{}
 			}
 
-			alerts := getLogAlerts(ctx, DB) // frequency
+			alerts := getLogAlerts(ctx, DB)
 			for _, alert := range alerts {
 				for _, freq := range AlertFrequencies {
 					if freq >= alert.Frequency {
@@ -54,7 +53,7 @@ func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCli
 				}
 			}
 
-			alertsByFrequency = bucketed
+			alertsByFrequency = &bucketed
 		}
 	}()
 
@@ -62,8 +61,7 @@ func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCli
 		f := freq
 		go func() {
 			for range time.Tick(time.Duration(f) * time.Second) {
-				log.WithContext(ctx).Infof("tick %d", f)
-				alerts := alertsByFrequency[f]
+				alerts := (*alertsByFrequency)[f]
 				if len(alerts) > 0 {
 					go func() {
 						processLogAlerts(ctx, DB, TDB, MailClient, alerts, rh, redis, ccClient)
@@ -108,7 +106,7 @@ func processLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailC
 			log.WithContext(ctx).Error("error querying clickhouse for log count", err)
 			continue
 		}
-		count := int(count64) // ZANETODO: this ok?
+		count := int(count64)
 
 		alertCondition := count >= alert.CountThreshold
 		if alert.BelowThreshold {
@@ -140,11 +138,15 @@ func processLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailC
 				log.WithContext(ctx).Error("error notifying zapier", err)
 			}
 
+			queryStr := ""
+			if alert.Query != "" {
+				queryStr = fmt.Sprintf(`for query *%s* `, alert.Query)
+			}
 			message := fmt.Sprintf(
-				"🚨 *%s* fired!\nLog count for *%s* is currently %s the threshold.\n"+
+				"🚨 *%s* fired!\nLog count %sis currently %s the threshold.\n"+
 					"_Count_: %d | _Threshold_: %d",
-				*alert.Name, // ZANETODO: nil?
-				alert.Query,
+				*alert.Name,
+				queryStr,
 				aboveStr,
 				count,
 				alert.CountThreshold,
@@ -173,19 +175,22 @@ func processLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailC
 			alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, alert.ProjectID, alert.ID)
 
 			for _, email := range emailsToNotify {
+				queryStr := ""
+				if alert.Query != "" {
+					queryStr = fmt.Sprintf(`for query <b>%s</b> `, alert.Query)
+				}
 				message = fmt.Sprintf(
-					"<b>%s</b> fired! Log count for query <b>%s</b> is currently %s the threshold.<br>"+
+					"<b>%s</b> fired! Log count %sis currently %s the threshold.<br>"+
 						"<em>Count</em>: %d | <em>Threshold: %d"+
 						"<br><br>"+
 						"<a href=\"%s\">View Alert</a>",
-					*alert.Name, // ZANETODO: nil?
-					alert.Query,
+					*alert.Name,
+					queryStr,
 					aboveStr,
 					count,
 					alert.CountThreshold,
 					alertUrl,
 				)
-				// ZANETODO: check nil
 				if err := Email.SendAlertEmail(ctx, MailClient, *email, message, "Log Alert", *alert.Name); err != nil {
 					log.WithContext(ctx).Error(err)
 				}

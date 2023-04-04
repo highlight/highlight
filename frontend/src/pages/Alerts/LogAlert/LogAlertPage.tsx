@@ -2,6 +2,7 @@ import { Button } from '@components/Button'
 import Select from '@components/Select/Select'
 import {
 	useCreateLogAlertMutation,
+	useDeleteLogAlertMutation,
 	useGetLogAlertQuery,
 	useGetLogsKeysQuery,
 	useUpdateLogAlertMutation,
@@ -112,9 +113,7 @@ export const LogAlertPage = () => {
 
 	const [createLogAlertMutation] = useCreateLogAlertMutation()
 	const [updateLogAlertMutation] = useUpdateLogAlertMutation()
-	// const [deleteLogAlertMutation] = useDeleteLogAlertMutation() // ZANETODO
-	// const [updateLogAlertIsDisabledMutation] =
-	// 	useUpdateLogAlertIsDisabledMutation()
+	const [deleteLogAlertMutation] = useDeleteLogAlertMutation()
 
 	const { project_id } = useParams<{
 		project_id: string
@@ -123,8 +122,9 @@ export const LogAlertPage = () => {
 	const navigate = useNavigate()
 
 	const query = form.values.query
-	// const belowThreshold = form.values.belowThreshold
-	// const threshold = form.values.threshold
+	const belowThreshold = form.values.belowThreshold
+	const threshold = form.values.threshold
+	const frequency = form.values.frequency
 
 	const header = (
 		<Box
@@ -151,6 +151,31 @@ export const LogAlertPage = () => {
 				>
 					Cancel
 				</Button>
+				{!isCreate && (
+					<Button
+						kind="danger"
+						size="small"
+						emphasis="low"
+						trackingId="deleteLogMonitoringAlert"
+						onClick={() => {
+							deleteLogAlertMutation({
+								variables: {
+									project_id: project_id ?? '',
+									id: alert_id,
+								},
+							})
+								.then(() => {
+									message.success(`Log alert deleted!`)
+									navigate(`/${project_id}/alerts`)
+								})
+								.catch(() => {
+									message.error(`Failed to delete log alert!`)
+								})
+						}}
+					>
+						Delete Alert
+					</Button>
+				)}
 				<Button
 					kind="primary"
 					size="small"
@@ -292,6 +317,9 @@ export const LogAlertPage = () => {
 									shape="basic"
 									emphasis="high"
 									iconLeft={<IconSolidSpeakerphone />}
+									onClick={() => {
+										navigate(`/${project_id}/alerts`)
+									}}
 								>
 									Alerts
 								</Tag>
@@ -323,9 +351,10 @@ export const LogAlertPage = () => {
 								setSelectedDates([startDate, endDate])
 							}}
 							onLevelChange={() => {}}
-							// outline // ZANETODO
-							// threshold={threshold}
-							// belowThreshold={belowThreshold}
+							outline
+							threshold={threshold}
+							belowThreshold={belowThreshold}
+							frequencySeconds={frequency}
 						/>
 					</Box>
 					<Form state={form} resetOnSubmit={false}>

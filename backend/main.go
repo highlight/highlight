@@ -334,8 +334,7 @@ func main() {
 		log.WithContext(ctx).Fatalf("error creating clickhouse client: %v", err)
 	}
 
-	// ZANETODO: uncomment!
-	// clickhouse.RunMigrations(ctx, clickhouse.PrimaryDatabase)
+	clickhouse.RunMigrations(ctx, clickhouse.PrimaryDatabase)
 
 	oauthSrv, err := oauth.CreateServer(ctx, db)
 	if err != nil {
@@ -620,7 +619,6 @@ func main() {
 			} else {
 				log.Fatal(http.ListenAndServe(":"+port, r))
 			}
-			// w.StartLogAlertWatcher(ctx)
 		}
 	} else {
 		if util.IsDevEnv() {

@@ -1,10 +1,11 @@
 package alerts
 
 import (
-	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
-	"golang.org/x/sync/errgroup"
 	"net/url"
 	"strings"
+
+	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
@@ -512,7 +513,7 @@ type LogAlertEvent struct {
 
 func SendLogAlert(event LogAlertEvent) error {
 	payload := integrations.LogAlertPayload{
-		Name:           *event.LogAlert.Name, // ZANETODO: check null
+		Name:           *event.LogAlert.Name,
 		Query:          event.LogAlert.Query,
 		Count:          event.Count,
 		Threshold:      event.LogAlert.CountThreshold,
