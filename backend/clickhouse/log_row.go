@@ -84,6 +84,8 @@ type LogRowOption func(*LogRow)
 
 func WithTimestamp(ts time.Time) LogRowOption {
 	return func(h *LogRow) {
+		// ensure timestamp is written at second precision,
+		// since clickhouse schema will truncate to second precision anyways.
 		h.Timestamp = ts.Truncate(time.Second)
 	}
 }

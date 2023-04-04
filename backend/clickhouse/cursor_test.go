@@ -168,7 +168,8 @@ func TestEncodeDecode(t *testing.T) {
 	timestamp, uuid, err := decodeCursor(cursor)
 	assert.NoError(t, err)
 
-	assert.Equal(t, timestamp.UnixNano(), now.UnixNano())
+	// decoded timestamp should have second precision
+	assert.Equal(t, timestamp.UnixNano(), now.Unix()*10e8)
 	assert.Equal(t, "uuid", uuid)
 }
 

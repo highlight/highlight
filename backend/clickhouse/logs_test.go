@@ -93,6 +93,7 @@ func TestReadLogsWithTimeQuery(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, now.Truncate(time.Second).UTC(), payload.Edges[0].Node.Timestamp.UTC())
 }
 
 func TestReadLogsAscending(t *testing.T) {
