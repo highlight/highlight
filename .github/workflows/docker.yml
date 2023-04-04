@@ -49,9 +49,8 @@ jobs:
                   export NODE_EXTRA_CA_CERTS="$(PWD)/../backend/localhostssl/server.crt";
 
                   cd docker;
-                  docker pull public.ecr.aws/highlight-io/highlight;
-                  docker pull public.ecr.aws/highlight-io/highlight-frontend;
-                  docker compose build --pull;
+                  docker compose pull;
+                  docker compose build;
 
                   docker compose up -d --build --remove-orphans;
                   echo 'Docker compose started; waiting for services to come online';
