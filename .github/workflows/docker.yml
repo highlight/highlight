@@ -46,14 +46,12 @@ jobs:
 
             - name: Start docker containers & run cypress
               run: |
-                  yarn;
-                  cd docker;
                   export NODE_EXTRA_CA_CERTS="$(PWD)/../backend/localhostssl/server.crt";
 
+                  cd docker;
                   docker pull public.ecr.aws/highlight-io/highlight;
                   docker pull public.ecr.aws/highlight-io/highlight-frontend;
-                  docker compose pull;
-                  docker compose build;
+                  docker compose build --pull;
 
                   docker compose up -d --build --remove-orphans;
                   echo 'Docker compose started; waiting for services to come online';
@@ -61,7 +59,7 @@ jobs:
                   npx -y wait-on -l -s 3 https://localhost:3000/index.html http://localhost:8080/dist/index.js https://localhost:8082/health;
                   docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql';
 
-                  yarn cy:run;
+                  yarn dlx cypress run;
 
             - name: Dump docker logs on failure
               if: failure()
@@ -77,7 +75,7 @@ jobs:
                   path: cypress/videos
 
             - name: Push images on build
-              #              if: github.repository == 'highlight/highlight' && github.ref == 'refs/heads/main'
+              if: github.repository == 'highlight/highlight' && github.ref == 'refs/heads/main'
               run: |
                   cd docker;
                   docker compose push backend frontend;
