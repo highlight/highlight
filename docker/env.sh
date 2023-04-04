@@ -1,5 +1,7 @@
 #!/bin/bash -ex
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 # setup env
 $(cat .env | grep -vE '^#' | sed -e 's/^/export /')
 export CLICKHOUSE_ADDRESS=localhost:9000
@@ -20,4 +22,4 @@ mkdir -p ${OBJECT_STORAGE_FS}
 export PATH=${PATH}:$(go env GOPATH)/bin
 
 # setup ca cert for cypress testing
-export NODE_EXTRA_CA_CERTS="$(PWD)/../backend/localhostssl/server.crt";
+export NODE_EXTRA_CA_CERTS="${SCRIPT_DIR}/../backend/localhostssl/server.crt";

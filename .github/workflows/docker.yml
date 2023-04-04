@@ -5,12 +5,10 @@ on:
         branches: ['main']
     pull_request:
         types: [opened, synchronize]
-    workflow_dispatch:
     merge_group:
 
 jobs:
-    build:
-        name: Start app.highlight & ensure client sends data
+    e2e-client:
         timeout-minutes: 30
         runs-on: buildjet-4vcpu-ubuntu-2204
 
