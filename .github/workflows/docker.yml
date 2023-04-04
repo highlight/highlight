@@ -12,7 +12,7 @@ jobs:
     build:
         name: Build Docker Images
         timeout-minutes: 30
-        runs-on: buildjet-4vcpu-ubuntu-2204
+        runs-on: buildjet-2vcpu-ubuntu-2204
 
         steps:
             - name: Use HTTPS for checkout
