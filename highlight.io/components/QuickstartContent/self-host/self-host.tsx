@@ -1,5 +1,5 @@
 import { QuickStartContent } from '../QuickstartContent'
-import { dependencies } from './shared-snippets'
+import { clone, dashboard, dependencies, start } from './shared-snippets'
 
 export const SelfHostContent: QuickStartContent = {
 	title: 'Self-hosted (Hobby) Deployment',
@@ -7,38 +7,9 @@ export const SelfHostContent: QuickStartContent = {
 		'Learn how to set up the self-hosted hobby deployment of highlight.io.',
 	entries: [
 		dependencies,
-		{
-			title: 'Clone the repository.',
-			content:
-				'Clone the [highlight.io](https://github.com/highlight/highlight) repository and make sure to checkout the submodules with the `--recurse-submodules` flag.',
-			code: {
-				text: `git clone --recurse-submodules https://github.com/highlight/highlight`,
-				language: 'bash',
-			},
-		},
-		{
-			title: 'Enter the `highlight/docker` directory.',
-			content:
-				'Navigate into the `highlight/docker` directory of the repo.',
-			code: {
-				text: `cd highlight/docker`,
-				language: 'bash',
-			},
-		},
-		{
-			title: 'Start the docker compose containers.',
-			content:
-				'In the `highlight/docker` directory, run `./run.sh` to start the docker containers.',
-			code: {
-				text: `./run.sh`,
-				language: 'bash',
-			},
-		},
-		{
-			title: 'Visit the dashboard.',
-			content:
-				'Visit https://localhost:3000 to view the dashboard; there are no login credentials required.',
-		},
+		clone,
+		start,
+		dashboard,
 		{
 			title: 'Setup the snippet.',
 			content:
