@@ -50,6 +50,8 @@ jobs:
                   cd docker;
                   export NODE_EXTRA_CA_CERTS="$(PWD)/../backend/localhostssl/server.crt";
 
+                  docker pull public.ecr.aws/highlight-io/highlight;
+                  docker pull public.ecr.aws/highlight-io/highlight-frontend;
                   docker compose pull;
                   docker compose build;
 
