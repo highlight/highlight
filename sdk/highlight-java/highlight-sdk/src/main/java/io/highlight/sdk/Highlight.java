@@ -58,14 +58,6 @@ public class Highlight {
 		Highlight.highlight.capture(record);
 	}
 
-//	public static void captureMetric() {
-//		Objects.requireNonNull(Highlight.highlight, "Highlight instance is not initialized");
-//	}
-//
-//	public static void flush() {
-//		Objects.requireNonNull(Highlight.highlight, "Highlight instance is not initialized");
-//	}
-
 	private final HighlightOptions options;
 
 	private final HighlightOpenTelemetry openTelemetry;
