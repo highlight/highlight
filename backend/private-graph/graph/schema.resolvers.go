@@ -268,6 +268,11 @@ func (r *logAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj *mod
 	return obj.DiscordChannelsToNotify, nil
 }
 
+// WebhookDestinations is the resolver for the WebhookDestinations field.
+func (r *logAlertResolver) WebhookDestinations(ctx context.Context, obj *model.LogAlert) ([]*model.WebhookDestination, error) {
+	return obj.WebhookDestinations, nil
+}
+
 // EmailsToNotify is the resolver for the EmailsToNotify field.
 func (r *logAlertResolver) EmailsToNotify(ctx context.Context, obj *model.LogAlert) ([]string, error) {
 	emails, err := obj.GetEmailsToNotify()

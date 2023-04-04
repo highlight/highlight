@@ -3685,6 +3685,12 @@ export type GetLogAlertQuery = { __typename?: 'Query' } & {
 					__typename?: 'DiscordChannel'
 				} & DiscordChannelFragmentFragment
 			>
+			WebhookDestinations: Array<
+				{ __typename?: 'WebhookDestination' } & Pick<
+					Types.WebhookDestination,
+					'url' | 'authorization'
+				>
+			>
 		}
 }
 

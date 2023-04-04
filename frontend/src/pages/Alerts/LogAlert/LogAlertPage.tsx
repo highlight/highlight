@@ -73,7 +73,7 @@ export const LogAlertPage = () => {
 		}
 	}, [selectedDates])
 
-	const { data } = useGetLogAlertQuery({
+	const { data, loading } = useGetLogAlertQuery({
 		variables: {
 			id: alert_id || 'never',
 		},
@@ -88,6 +88,7 @@ export const LogAlertPage = () => {
 			excludedEnvironments: [],
 			slackChannels: [],
 			discordChannels: [],
+			webhookDestinations: [],
 			emails: [],
 			threshold: undefined,
 			frequency: 15,
@@ -95,7 +96,7 @@ export const LogAlertPage = () => {
 	})
 
 	useEffect(() => {
-		if (data) {
+		if (!loading && data) {
 			form.setValues({
 				query: data?.log_alert.query,
 				name: data?.log_alert.Name,
@@ -103,13 +104,16 @@ export const LogAlertPage = () => {
 				excludedEnvironments: data?.log_alert.ExcludedEnvironments,
 				slackChannels: data?.log_alert.ChannelsToNotify,
 				discordChannels: data?.log_alert.DiscordChannelsToNotify,
+				webhookDestinations: data?.log_alert.WebhookDestinations.map(
+					(d) => d.url,
+				),
 				emails: data?.log_alert.EmailsToNotify,
 				threshold: data?.log_alert.CountThreshold,
 				frequency: data?.log_alert.ThresholdWindow,
 			})
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [data])
+	}, [data, loading])
 
 	const [createLogAlertMutation] = useCreateLogAlertMutation()
 	const [updateLogAlertMutation] = useUpdateLogAlertMutation()
@@ -182,36 +186,49 @@ export const LogAlertPage = () => {
 					emphasis="high"
 					trackingId="saveLogMonitoringAlert"
 					onClick={() => {
+						const input = {
+							count_threshold: form.getValue(
+								form.names.threshold,
+							),
+							below_threshold: form.getValue(
+								form.names.belowThreshold,
+							),
+							disabled: false,
+							discord_channels: form.getValue(
+								form.names.discordChannels,
+							),
+							emails: form.getValue(form.names.emails),
+							environments: form.getValue(
+								form.names.excludedEnvironments,
+							),
+							name: form.getValue(form.names.name),
+							project_id: project_id || '0',
+							slack_channels: form.getValue(
+								form.names.slackChannels,
+							),
+							webhook_destinations: form
+								.getValue(form.names.webhookDestinations)
+								.map((d: string) => ({ url: d })),
+							threshold_window: form.getValue(
+								form.names.frequency,
+							),
+							query: form.getValue(form.names.query),
+						}
+
+						if (!input.name) {
+							message.error(`Missing name!`)
+							return
+						}
+
+						if (!input.count_threshold) {
+							message.error(`Missing alert threshold!`)
+							return
+						}
+
 						if (isCreate) {
 							createLogAlertMutation({
 								variables: {
-									input: {
-										count_threshold: form.getValue(
-											form.names.threshold,
-										),
-										below_threshold: form.getValue(
-											form.names.belowThreshold,
-										),
-										disabled: false,
-										discord_channels: form.getValue(
-											form.names.discordChannels,
-										),
-										emails: form.getValue(
-											form.names.emails,
-										),
-										environments: form.getValue(
-											form.names.excludedEnvironments,
-										),
-										name: form.getValue(form.names.name),
-										project_id: project_id || '0',
-										slack_channels: form.getValue(
-											form.names.slackChannels,
-										),
-										threshold_window: form.getValue(
-											form.names.frequency,
-										),
-										query: form.getValue(form.names.query),
-									},
+									input,
 								},
 							})
 								.then(() => {
@@ -227,33 +244,7 @@ export const LogAlertPage = () => {
 							updateLogAlertMutation({
 								variables: {
 									id: alert_id,
-									input: {
-										count_threshold: form.getValue(
-											form.names.threshold,
-										),
-										below_threshold: form.getValue(
-											form.names.belowThreshold,
-										),
-										disabled: false,
-										discord_channels: form.getValue(
-											form.names.discordChannels,
-										),
-										emails: form.getValue(
-											form.names.emails,
-										),
-										environments: form.getValue(
-											form.names.excludedEnvironments,
-										),
-										name: form.getValue(form.names.name),
-										project_id: project_id || '0',
-										slack_channels: form.getValue(
-											form.names.slackChannels,
-										),
-										threshold_window: form.getValue(
-											form.names.frequency,
-										),
-										query: form.getValue(form.names.query),
-									},
+									input,
 								},
 							})
 								.then(() => {
@@ -523,7 +514,6 @@ const LogAlertForm = ({
 					label="Excluded environments"
 					name={form.names.excludedEnvironments}
 				>
-					{/* @ts-ignore */}
 					<Select
 						aria-label="Excluded environments list"
 						placeholder="Select excluded environments"
@@ -554,7 +544,6 @@ const LogAlertForm = ({
 					label="Slack channels to notify"
 					name={form.names.slackChannels}
 				>
-					{/* @ts-ignore */}
 					<Select
 						aria-label="Slack channels to notify"
 						placeholder="Select Slack channels"
@@ -573,7 +562,6 @@ const LogAlertForm = ({
 					label="Discord channels to notify"
 					name={form.names.discordChannels}
 				>
-					{/* @ts-ignore */}
 					<Select
 						aria-label="Discord channels to notify"
 						placeholder="Select Discord channels"
@@ -592,10 +580,9 @@ const LogAlertForm = ({
 					label="Emails to notify"
 					name={form.names.emails}
 				>
-					{/* @ts-ignore */}
 					<Select
 						aria-label="Emails to notify"
-						placeholder="Pick emails"
+						placeholder="Select emails"
 						options={emails}
 						onChange={(values: any): any =>
 							form.setValue(form.names.emails, values)
@@ -604,6 +591,26 @@ const LogAlertForm = ({
 						notFoundContent={<p>No email suggestions</p>}
 						className={styles.selectContainer}
 						mode="multiple"
+					/>
+				</Form.NamedSection>
+
+				<Form.NamedSection
+					label="Webhooks to notify"
+					name={form.names.emails}
+				>
+					<Select
+						aria-label="Webhooks to notify"
+						placeholder="Enter webhook addresses"
+						onChange={(values: any): any =>
+							form.setValue(
+								form.names.webhookDestinations,
+								values,
+							)
+						}
+						value={form.values.webhookDestinations}
+						notFoundContent={null}
+						className={styles.selectContainer}
+						mode="tags"
 					/>
 				</Form.NamedSection>
 			</Stack>
@@ -662,6 +669,7 @@ interface LogMonitorForm {
 	slackChannels: SanitizedSlackChannel[]
 	discordChannels: DiscordChannel[]
 	emails: string[]
+	webhookDestinations: string[]
 }
 
 export default LogAlertPage

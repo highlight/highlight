@@ -833,12 +833,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			return nil, ErrNoisyError
 		}
 	}
-	if projectID == 3322 {
-		if errorObj.Event == `["\"Failed to fetch feature flags from PostHog.\""]` ||
-			errorObj.Event == `["\"Bad HTTP status: 0 \""]` {
-			return nil, e.New("Filtering out noisy error")
-		}
-	}
 
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
 		errorObj.Event = strings.Repeat(errorObj.Event[:ERROR_EVENT_MAX_LENGTH], 1)

@@ -2,6 +2,7 @@ package alerts
 
 import (
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
+	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/openlyinc/pointy"
@@ -41,6 +42,7 @@ func BuildLogAlert(project *model.Project, workspace *model.Workspace, admin *mo
 		Query:          input.Query,
 		AlertIntegrations: model.AlertIntegrations{
 			DiscordChannelsToNotify: discord.GQLInputToGo(input.DiscordChannels),
+			WebhookDestinations:     webhook.GQLInputToGo(input.WebhookDestinations),
 		},
 	}, nil
 }

@@ -693,6 +693,7 @@ export type LogAlert = {
 	Name: Scalars['String']
 	ThresholdWindow: Scalars['Int']
 	Type: Scalars['String']
+	WebhookDestinations: Array<WebhookDestination>
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	query: Scalars['String']
@@ -711,6 +712,7 @@ export type LogAlertInput = {
 	query: Scalars['String']
 	slack_channels: Array<SanitizedSlackChannelInput>
 	threshold_window: Scalars['Int']
+	webhook_destinations: Array<WebhookDestinationInput>
 }
 
 export enum LogDirection {

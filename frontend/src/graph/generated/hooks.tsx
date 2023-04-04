@@ -10798,6 +10798,10 @@ export const GetLogAlertDocument = gql`
 			DiscordChannelsToNotify {
 				...DiscordChannelFragment
 			}
+			WebhookDestinations {
+				url
+				authorization
+			}
 			CountThreshold
 			DailyFrequency
 			disabled
