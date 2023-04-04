@@ -105,15 +105,15 @@ func TestReadLogsAscending(t *testing.T) {
 	oneSecondAgo := now.Add(-time.Second * 1)
 	rows := []*LogRow{
 		{
+			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
 			Body: "Body 1",
 		},
 		{
+			Timestamp: oneSecondAgo,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: oneSecondAgo,
 				ProjectId: 1,
 			},
 			Body: "Body 2",
