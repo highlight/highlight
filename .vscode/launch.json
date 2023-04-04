@@ -10,7 +10,7 @@
 			"request": "attach",
 			"debugAdapter": "dlv-dap",
 			"mode": "remote",
-			"port": 2345,
+			"port": 2345
 		},
 		{
 			"name": "Debug (remote)",
