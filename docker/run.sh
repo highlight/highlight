@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
 source env.sh
-./run-infra.sh
+./start-infra.sh
 
 ./run-frontend.sh &
 ./run-backend.sh &
