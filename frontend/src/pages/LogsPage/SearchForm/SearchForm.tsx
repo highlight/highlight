@@ -136,7 +136,6 @@ export const Search: React.FC<{
 	keysLoading,
 }) => {
 	const formState = useForm()
-	const { query } = formState.values
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const inputRef = useRef<HTMLInputElement | null>(null)
