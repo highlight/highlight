@@ -40,9 +40,9 @@ export const DevDeploymentContent: QuickStartContent = {
 		{
 			title: 'Start the docker compose containers.',
 			content:
-				'In the `highlight/docker` directory, run `docker compose up --build -d` to start the docker containers.',
+				'In the `highlight/docker` directory, run `./run.sh` to start the docker containers.',
 			code: {
-				text: `docker compose up --build -d`,
+				text: `./run.sh`,
 				language: 'bash',
 			},
 		},
@@ -59,10 +59,10 @@ export const DevDeploymentContent: QuickStartContent = {
 		{
 			title: 'Troubleshoot the deployment.',
 			content:
-				"Having issues? Here's some things ot try. First run the `docker ps` command and ensure that all containers are in a 'healthy' state. As a second step, run `docker compose logs -f backend frontend` to see the logs for the backend and frontend containers. If this doesn't help w/ troubleshooting, please [reach out](https://highlight.io/community).",
+				"Having issues? Here's some things ot try. First run the `docker ps` command and ensure that all containers are in a 'healthy' state. As a second step, run `docker compose logs` to see the logs for the infra containers. If this doesn't help w/ troubleshooting, please [reach out](https://highlight.io/community).",
 			code: {
 				text: `docker ps
-docker compose logs -f backend frontend`,
+docker compose logs`,
 				language: 'bash',
 			},
 		},

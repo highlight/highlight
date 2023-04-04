@@ -125,7 +125,7 @@ const features: Feature[] = [
 		code: [
 			`git clone --recurse-submodules https://github.com/highlight/highlight;`,
 			`cd docker;`,
-			`docker compose up -d --build;`,
+			`./run.sh;`,
 		],
 		link: '/docs/general/company/open-source/self-host-hobby',
 	},

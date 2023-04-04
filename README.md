@@ -49,7 +49,7 @@ Deploy a hobby instance in one line on Linux with Docker (recommended 16 CPU cor
 ```bash
 git clone --recurse-submodules https://github.com/highlight/highlight
 # or `git submodule update --init --recursive` on git < 2.13
-cd docker && docker compose up -d --build
+cd docker && ./run.sh
 ```
 
 After a brief frontend load time, the app should be accessible at https://localhost:3000
