@@ -1,69 +1,16 @@
 import { siteUrl } from '../../../utils/urls'
 import { QuickStartStep } from '../QuickstartContent'
 
-export const previousInstallSnippet: (slug: string) => QuickStartStep = (
-	slug,
-) => ({
-	title: 'Set up your frontend highlight.io integration.',
-	content: `First, make sure you've followed the [frontend getting started](${siteUrl(
-		'/docs/getting-started/overview',
-	)}) guide.`,
-})
-
-export const verifyLogs: QuickStartStep = {
-	title: 'Verify your backend logs are being recorded.',
+export const dependencies: QuickStartStep = {
+	title: 'Prerequisites',
 	content:
-		'Visit the [highlight logs portal](http://app.highlight.io/logs) and check that backend logs are coming in.',
-}
-
-export const curlExample: QuickStartStep = {
-	title: 'Use curl to test how logs look in Highlight.',
-	content:
-		'Get started quickly with logs transmitted over the OTLP HTTP protocol.',
+		'Before we get started, you should have the latest version of [docker](https://docs.docker.com/engine/install/) (19.03.0+) and [git](https://git-scm.com/downloads) (2.13+) installed. For a local deploy, we suggest [configuring docker](https://docs.docker.com/desktop/settings/mac/#resources) to use at least 16GB of memory, 4 CPUs, and 50 GB of disk space. ' +
+		'Ensure you have installed Golang 1.19 and Node.js 16.',
 	code: {
-		text: `curl -X POST https://otel.highlight.io:4318/v1/logs \\
--H 'Content-Type: application/json' \\
--d '{
-      "resourceLogs": [
-        {
-          "resource": {
-            "attributes": []
-          },
-          "scopeLogs": [
-            {
-              "scope": {},
-              "logRecords": [
-                {
-                  "timeUnixNano": "'$(date +%s000000000)'",
-                  "severityNumber": 9,
-                  "severityText": "Info",
-                  "name": "logA",
-                  "body": {
-                    "stringValue": "Hello, world! This is sent from a curl command."
-                  },
-                  "attributes": [
-                    {
-                      "key": "highlight.project_id",
-                      "value": {
-                        "stringValue": "YOUR_PROJECT_ID"
-                      }
-                    },
-                    {
-                      "key": "foo",
-                      "value": {
-                        "stringValue": "bar"
-                      }
-                    }
-                  ],
-                  "traceId": "08040201000000000000000000000000",
-                  "spanId": "0102040800000000"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }'`,
 		language: 'bash',
+		text: `$ go version
+go version go1.19.3 darwin/arm64
+$ node --version
+v16.15.0`,
 	},
 }
