@@ -15,3 +15,6 @@ export REACT_APP_AUTH_MODE=simple
 export REDIS_EVENTS_STAGING_ENDPOINT=localhost:6379
 
 mkdir -p ${OBJECT_STORAGE_FS}
+
+# setup path to include go installed binaries
+export PATH=${PATH}:$(go env GOPATH)/bin
