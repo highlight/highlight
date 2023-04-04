@@ -521,6 +521,12 @@ func SendLogAlert(event LogAlertEvent) error {
 		AlertURL:       getLogAlertURL(event.LogAlert),
 	}
 
+	for _, wh := range event.LogAlert.WebhookDestinations {
+		if err := webhook.SendLogAlert(wh, &payload); err != nil {
+			return err
+		}
+	}
+
 	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
 		return nil
 	}
