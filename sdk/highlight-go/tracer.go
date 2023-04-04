@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
@@ -131,5 +132,17 @@ func (t Tracer) log(ctx context.Context, span trace.Span, errs gqlerror.List) {
 	span.AddEvent(LogEvent, trace.WithAttributes(attrs...))
 	if err != "" {
 		RecordSpanError(span, errs, attrs...)
+	}
+}
+
+func GraphQLRecoverFunc() graphql.RecoverFunc {
+	return func(ctx context.Context, err interface{}) error {
+		var ok bool
+		var e error
+		if e, ok = err.(error); !ok {
+			e = errors.Errorf("panic {error: %+v}", err)
+		}
+		RecordError(ctx, e, attribute.String(SourceAttribute, "GraphQLRecoverFunc"))
+		return e
 	}
 }
