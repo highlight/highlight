@@ -27,7 +27,7 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 				(section: ComparisonTableSection, i) => (
 					<div
 						key={`${section.title}` + `${i}`}
-						className="w-full mb-8"
+						className="w-full mb-8 max-w-[880px] mx-auto"
 					>
 						<div className="flex justify-between mb-2 items-end">
 							<Typography
@@ -73,7 +73,7 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 							>
 								<Typography
 									type="copy2"
-									className="text-copy-on-dark"
+									className="text-copy-on-dark whitespace-nowrap w-[175px] sm:w-full overflow-x-scroll"
 								>
 									{row.feature}
 								</Typography>

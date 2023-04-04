@@ -61,11 +61,13 @@ const CompetitorComparisonPage = ({
 				</Link>
 			</div>
 			<main>
-				<div className="flex flex-col xl:flex-row justify-between w-screen px-8 mx-auto lg:px-4 lg:py-28 max-w-[1200px] 2xl:max-w-[1400px]">
+				<div className="flex flex-col xl:flex-row  justify-between w-screen px-8 mx-auto lg:px-4 lg:py-28 max-w-[1200px] 2xl:max-w-[1400px]">
 					<div className="lg:w-[60%] flex justify-center mt-10">
 						<div className="flex flex-col max-w-4xl gap-8 text-center lg:text-left">
 							<h2 className="text-white">
-								The Open Source {competitor.name} alternative.
+								The Open Source{' '}
+								<br className="hidden 2xl:flex" />
+								{competitor.name} alternative
 							</h2>
 
 							<Typography
@@ -126,9 +128,9 @@ const CompetitorComparisonPage = ({
 						/>
 					</div>
 				</div>
-				<div className="w-full mx-auto max-w-screen-2xl mt-24 lg:mt-36">
-					<Section className="flex flex-col gap-20">
-						<div className="mx-auto max-w-[1100px]">
+				<div className="w-full mx-auto max-w-[1200px] mt-24 lg:mt-36">
+					<div className="flex flex-col gap-20">
+						<div className="mx-auto max-w-[1200px]">
 							<h2 className="self-center text-center">
 								How does{' '}
 								<span className="text-color-selected-light">
@@ -146,13 +148,13 @@ const CompetitorComparisonPage = ({
 							</div>
 						</div>
 						<CompetitorTable competitor={competitor} />
-					</Section>
-					<Section>
-						<div className="">
-							<div className="flex flex-col gap-6 mb-16">
-								<h3 className="text-left">
+					</div>
+					<div className="max-w-[880px] mx-auto mt-8">
+						<div>
+							<div className="flex flex-col gap-3 md:gap-6 mb-16">
+								<h4 className="text-left">
 									What is {competitor.name}?
-								</h3>
+								</h4>
 								<Typography
 									type="copy1"
 									className="text-copy-on-dark text-left"
@@ -160,10 +162,10 @@ const CompetitorComparisonPage = ({
 									{competitor.competitorInfo}
 								</Typography>
 							</div>
-							<div className="flex flex-col gap-6">
-								<h3 className="text-left">
+							<div className="flex flex-col gap-3 md:gap-6">
+								<h4 className="text-left">
 									How is highlight.io different?
-								</h3>
+								</h4>
 								<Typography
 									type="copy1"
 									className="text-copy-on-dark"
@@ -172,7 +174,7 @@ const CompetitorComparisonPage = ({
 								</Typography>
 							</div>
 						</div>
-					</Section>
+					</div>
 				</div>
 
 				<OSSCallToAction />
