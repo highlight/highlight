@@ -2,7 +2,6 @@ package util
 
 import (
 	"context"
-
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
 
@@ -34,8 +33,12 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 
 func GraphQLRecoverFunc() func(ctx context.Context, err interface{}) error {
 	return func(ctx context.Context, err interface{}) error {
-		err2 := errors.Errorf("panic {error: %+v}", err)
-		highlight.RecordError(ctx, err2, attribute.String(highlight.SourceAttribute, "GraphQLRecoverFunc"))
-		return err2
+		var ok bool
+		var e error
+		if e, ok = err.(error); !ok {
+			e = errors.Errorf("panic {error: %+v}", err)
+		}
+		highlight.RecordError(ctx, e, attribute.String(highlight.SourceAttribute, "GraphQLRecoverFunc"))
+		return e
 	}
 }
