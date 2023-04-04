@@ -18,3 +18,6 @@ mkdir -p ${OBJECT_STORAGE_FS}
 
 # setup path to include go installed binaries
 export PATH=${PATH}:$(go env GOPATH)/bin
+
+# setup ca cert for cypress testing
+export NODE_EXTRA_CA_CERTS="$(PWD)/../backend/localhostssl/server.crt";

@@ -1,4 +1,4 @@
-name: Docker
+name: End-to-end
 
 on:
     push:
@@ -10,9 +10,9 @@ on:
 
 jobs:
     build:
-        name: Build Docker Images
+        name: Start app.highlight & ensure client sends data
         timeout-minutes: 30
-        runs-on: buildjet-2vcpu-ubuntu-2204
+        runs-on: buildjet-4vcpu-ubuntu-2204
 
         steps:
             - name: Use HTTPS for checkout
@@ -58,8 +58,7 @@ jobs:
                   yarn dlx wait-on -l -s 3 https://localhost:3000/index.html http://localhost:8080/dist/index.js https://localhost:8082/health;
                   popd;
 
-                  export NODE_EXTRA_CA_CERTS="$(PWD)/../backend/localhostssl/server.crt";
-                  yarn dlx cypress run;
+                  yarn cy:run;
 
             - name: Dump docker logs on failure
               if: failure()
