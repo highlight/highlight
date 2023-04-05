@@ -1,16 +1,20 @@
 import { NetworkRecordingOptions } from '../../types/client'
 import { FetchListener } from './utils/fetch-listener'
-import { RequestResponsePair } from './utils/models'
+import { RequestResponsePair, WebSocketEvent } from './utils/models'
 import { sanitizeRequest, sanitizeResponse } from './utils/network-sanitizer'
+import { WebSocketListener } from './utils/ws-listener'
 import { XHRListener } from './utils/xhr-listener'
 
 export type NetworkListenerCallback = (
 	requestResponsePair: RequestResponsePair,
 ) => void
 
+export type WebSocketListenerCallback = (event: WebSocketEvent) => void
+
 type NetworkListenerArguments = {
 	xhrCallback: NetworkListenerCallback
 	fetchCallback: NetworkListenerCallback
+	wsCallback: WebSocketListenerCallback
 	headersToRedact: string[]
 	backendUrl: string
 	tracingOrigins: boolean | (string | RegExp)[]
@@ -21,6 +25,7 @@ type NetworkListenerArguments = {
 export const NetworkListener = ({
 	xhrCallback,
 	fetchCallback,
+	wsCallback,
 	headersToRedact,
 	backendUrl,
 	tracingOrigins,
@@ -61,10 +66,14 @@ export const NetworkListener = ({
 		sessionSecureID,
 		bodyKeysToRecord,
 	)
+	const removeWebSocketListener = WebSocketListener((event) => {
+		wsCallback(event)
+	})
 
 	return () => {
 		removeXHRListener()
 		removeFetchListener()
+		removeWebSocketListener()
 	}
 }
 

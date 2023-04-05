@@ -7,8 +7,11 @@ import { ERRORS_TO_IGNORE, ERROR_PATTERNS_TO_IGNORE } from '../constants/errors'
 import { HighlightClassOptions } from '../index'
 import stringify from 'json-stringify-safe'
 import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer'
-import { RequestResponsePair } from './network-listener/utils/models'
 import { NetworkListener } from './network-listener/network-listener'
+import {
+	RequestResponsePair,
+	WebSocketEvent,
+} from './network-listener/utils/models'
 import {
 	matchPerformanceTimingsWithRequestResponsePair,
 	shouldNetworkRequestBeRecorded,
@@ -32,6 +35,7 @@ export class FirstLoadListeners {
 	enableRecordingNetworkContents!: boolean
 	xhrNetworkContents!: RequestResponsePair[]
 	fetchNetworkContents!: RequestResponsePair[]
+	wsNetworkContents!: WebSocketEvent[]
 	tracingOrigins!: boolean | (string | RegExp)[]
 	networkHeadersToRedact!: string[]
 	networkBodyKeysToRecord: string[] | undefined
@@ -129,6 +133,7 @@ export class FirstLoadListeners {
 
 		sThis.xhrNetworkContents = []
 		sThis.fetchNetworkContents = []
+		sThis.wsNetworkContents = []
 		sThis.networkHeadersToRedact = []
 		sThis.urlBlocklist = []
 		sThis.tracingOrigins = options.tracingOrigins || []
@@ -202,6 +207,9 @@ export class FirstLoadListeners {
 					fetchCallback: (requestResponsePair) => {
 						sThis.fetchNetworkContents.push(requestResponsePair)
 					},
+					wsCallback(event) {
+						sThis.wsNetworkContents.push(event)
+					},
 					headersToRedact: sThis.networkHeadersToRedact,
 					backendUrl: sThis._backendUrl,
 					tracingOrigins: sThis.tracingOrigins,
@@ -258,6 +266,14 @@ export class FirstLoadListeners {
 					sThis.fetchNetworkContents,
 					'fetch',
 				)
+				// TODO: Add websocket events to resources.
+				// Prior to this, it may be best to refactor the existing logic
+				// above to be less tied to PerformanceResourceTiming, since we
+				// only care about a subset of fields.
+				console.log(
+					'Intercepted WebSocket events',
+					sThis.wsNetworkContents,
+				)
 			}
 		}
 		return resources
@@ -267,6 +283,7 @@ export class FirstLoadListeners {
 		if (!sThis.disableNetworkRecording) {
 			sThis.xhrNetworkContents = []
 			sThis.fetchNetworkContents = []
+			sThis.wsNetworkContents = []
 			performance.clearResourceTimings()
 		}
 	}

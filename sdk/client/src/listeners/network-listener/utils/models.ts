@@ -24,3 +24,15 @@ export interface RequestResponsePair {
 	/** Whether this URL matched a `urlToBlock` so the contents should not be recorded. */
 	urlBlocked: boolean
 }
+
+export interface WebSocketEvent {
+	socketId: string
+	type: 'create' | 'error' | 'open' | 'close' | 'sent' | 'received'
+	size: number
+	/**
+	 * Only set if the data is a string (i.e. not Blob or ByteBuffer).
+	 *
+	 * In the case of an "create" event, this will be the URL.
+	 */
+	strData?: string
+}
