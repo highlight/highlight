@@ -265,7 +265,7 @@ export const LogAlertPage = () => {
 	)
 
 	return (
-		<Box width="full" background="raised" px="8" pb="8">
+		<Box width="full" background="raised" p="8">
 			<Box
 				border="dividerWeak"
 				borderRadius="6"

@@ -1,14 +1,12 @@
-import LoadingBox from '@components/LoadingBox'
 import { useGetLogsHistogramQuery } from '@graph/hooks'
 import { LogLevel as Level } from '@graph/schemas'
 import { Box, BoxProps, Popover, Text } from '@highlight-run/ui'
 import { COLOR_MAPPING, LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
-import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { formatDate, isSignificantDateRange } from '@pages/LogsPage/utils'
 import { clamp, formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import { useMemo, useRef, useState } from 'react'
+import { memo, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import * as styles from './LogsHistogram.css'
@@ -16,16 +14,17 @@ import * as styles from './LogsHistogram.css'
 type LogCount = {
 	level: string
 	count: number
-	height: number
 }
 interface HistogramBucket {
 	startDate: Date
 	endDate: Date
-	width: number
 	counts?: LogCount[]
 }
 
-type LogsHistogramProps = Omit<LogsHistogramChartProps, 'buckets'> & {
+type LogsHistogramProps = Omit<
+	LogsHistogramChartProps,
+	'buckets' | 'showLoadingState' | 'totalCount' | 'maxBucketCount'
+> & {
 	query: string
 	outline?: boolean
 	threshold?: number
@@ -37,6 +36,9 @@ interface LogsHistogramChartProps {
 	startDate: Date
 	endDate: Date
 	buckets: HistogramBucket[]
+	showLoadingState: boolean
+	totalCount: number
+	maxBucketCount: number
 	onDatesChange?: (startDate: Date, endDate: Date) => void
 	onLevelChange?: (level: Level) => void
 }
@@ -202,6 +204,9 @@ const LogsHistogram = ({
 			1 - (2 * styles.OUTLINE_PADDING) / styles.OUTLINE_HISTOGRAM_HEIGHT,
 		) * 100
 
+	const showLoadingState =
+		loading || (!outline && (!data?.logs_histogram || !maxBucketCount))
+
 	if (!loading && !maxBucketCount && !outline) {
 		return null
 	}
@@ -226,11 +231,9 @@ const LogsHistogram = ({
 				width="full"
 				height="full"
 			>
-				{loading ? (
-					<LoadingBox />
-				) : !!maxBucketCount ? (
+				{showLoadingState || !!maxBucketCount ? (
 					<>
-						{outline && thresholdAreaHeight ? (
+						{outline && threshold && thresholdAreaHeight ? (
 							<Box
 								position="absolute"
 								display="inline-flex"
@@ -250,8 +253,11 @@ const LogsHistogram = ({
 							buckets={buckets}
 							startDate={startDate}
 							endDate={endDate}
+							showLoadingState={showLoadingState}
 							onDatesChange={onDatesChange}
 							onLevelChange={onLevelChange}
+							totalCount={buckets.length}
+							maxBucketCount={maxBucketCount}
 						/>
 					</>
 				) : (
@@ -278,6 +284,9 @@ const LogsHistogramChart = ({
 	endDate,
 	onDatesChange,
 	onLevelChange,
+	showLoadingState,
+	totalCount,
+	maxBucketCount,
 }: LogsHistogramChartProps) => {
 	const [dragStart, setDragStart] = useState<number | undefined>()
 	const [dragEnd, setDragEnd] = useState<number | undefined>()
@@ -294,6 +303,8 @@ const LogsHistogramChart = ({
 				<LogBucketBar
 					key={idx}
 					bucket={bucket}
+					width={`${100 / totalCount}%`}
+					maxBucketCount={maxBucketCount}
 					onDatesChange={onDatesChange}
 					onLevelChange={onLevelChange}
 					isDragging={
@@ -302,7 +313,15 @@ const LogsHistogramChart = ({
 				/>
 			)
 		})
-	}, [buckets, dragLeft, dragRight, onDatesChange, onLevelChange])
+	}, [
+		buckets,
+		dragLeft,
+		dragRight,
+		maxBucketCount,
+		onDatesChange,
+		onLevelChange,
+		totalCount,
+	])
 
 	const containerRef = useRef<HTMLDivElement>(null)
 
@@ -313,9 +332,11 @@ const LogsHistogramChart = ({
 			height="full"
 			width="full"
 			position="relative"
+			px="12"
+			py="4"
 			ref={containerRef}
 			onMouseDown={(e: any) => {
-				if (!e || !containerRef.current) {
+				if (!e || !containerRef.current || showLoadingState) {
 					return
 				}
 				const rect = containerRef.current.getBoundingClientRect()
@@ -323,7 +344,7 @@ const LogsHistogramChart = ({
 				setDragStart(pos)
 			}}
 			onMouseMove={(e: any) => {
-				if (!e || !containerRef.current) {
+				if (!e || !containerRef.current || showLoadingState) {
 					return
 				}
 				if (dragStart !== undefined) {
@@ -354,7 +375,7 @@ const LogsHistogramChart = ({
 				setDragEnd(undefined)
 			}}
 		>
-			{content}
+			{showLoadingState ? <LoadingState /> : content}
 			{dragLeft !== undefined && dragRight !== undefined && (
 				<Box
 					position="absolute"
@@ -372,14 +393,20 @@ const LogsHistogramChart = ({
 
 const LogBucketBar = ({
 	bucket,
+	maxBucketCount,
+	width,
 	onDatesChange,
 	onLevelChange,
 	isDragging,
+	loading,
 }: {
 	bucket?: HistogramBucket
+	maxBucketCount: number
+	width: string | number
 	onDatesChange?: (startDate: Date, endDate: Date) => void
 	onLevelChange?: (level: Level) => void
 	isDragging?: boolean
+	loading?: boolean
 }) => {
 	const [open, setOpen] = useState(false)
 	useHotkeys('esc', () => {
@@ -394,11 +421,11 @@ const LogBucketBar = ({
 				justifyContent="flex-end"
 				height="full"
 				width="full"
-				p="1"
-				gap="1"
-				cssClass={{ [styles.hover]: !isDragging }}
+				p="2"
+				gap="2"
+				cssClass={{ [styles.hover]: !loading && !isDragging }}
 				style={{
-					width: `${bucket?.width}%`,
+					width: width,
 					height: '100%',
 				}}
 			>
@@ -408,9 +435,13 @@ const LogBucketBar = ({
 						<Box
 							key={bar.level}
 							style={{
-								height: `${bar.height}%`,
-								backgroundColor:
-									COLOR_MAPPING[bar.level as Level],
+								backgroundColor: loading
+									? '#F3F3F4'
+									: COLOR_MAPPING[bar.level as Level],
+								height: `${Math.max(
+									(bar.count / maxBucketCount) * 100,
+									2,
+								)}%`,
 							}}
 							width="full"
 							borderRadius="2"
@@ -419,9 +450,13 @@ const LogBucketBar = ({
 				})}
 			</Popover.BoxTrigger>
 		)
-	}, [bucket?.counts, bucket?.width, isDragging])
+	}, [bucket?.counts, width, isDragging, loading, maxBucketCount])
 
 	const content = useMemo(() => {
+		if (loading) {
+			return null
+		}
+
 		const bucketCount = bucket?.counts?.reduce(
 			(acc, curr) => acc + curr.count,
 			0,
@@ -475,9 +510,18 @@ const LogBucketBar = ({
 										width: 8,
 									}}
 								/>
-								<LogLevel level={bar.level as Level} />
-								<Box ml="auto" color="weak">
-									<Text size="small" weight="medium">
+								<Text
+									color="secondaryContentText"
+									transform="capitalize"
+								>
+									{bar.level}
+								</Text>
+								<Box ml="auto">
+									<Text
+										color="secondaryContentText"
+										size="small"
+										weight="medium"
+									>
 										{bar.count}
 									</Text>
 								</Box>
@@ -491,17 +535,77 @@ const LogBucketBar = ({
 		bucket?.counts,
 		bucket?.endDate,
 		bucket?.startDate,
+		loading,
 		onDatesChange,
 		onLevelChange,
 		open,
 	])
 
 	return (
-		<Popover placement="bottom-start" open={open} setOpen={setOpen}>
+		<Popover
+			placement="bottom-start"
+			open={open}
+			setOpen={setOpen}
+			gutter={6}
+		>
 			{trigger}
 			{content}
 		</Popover>
 	)
 }
+
+const LoadingState = memo(() => {
+	const loadingData: HistogramBucket[] = []
+	const now = new Date()
+	const maxBucketCount = 150
+
+	for (let i = 50; i > 0; i--) {
+		const isEmpty = Math.round(Math.random() * 100) % 10 === 0
+		const multiplier = Math.random() * maxBucketCount
+		const startDate = new Date(now)
+		startDate.setMinutes(now.getMinutes() - i)
+		const endDate = new Date(now)
+		endDate.setMinutes(now.getMinutes() - (i + 1))
+
+		loadingData.push({
+			startDate,
+			endDate,
+			counts: [
+				{
+					level: 'info',
+					count: isEmpty ? 0 : Math.random() * multiplier,
+				},
+				{
+					level: 'warn',
+					count: isEmpty ? 0 : Math.random() * multiplier,
+				},
+				{
+					level: 'error',
+					count: isEmpty ? 0 : Math.random() * multiplier,
+				},
+				{
+					level: 'fatal',
+					count: isEmpty ? 0 : Math.random() * multiplier,
+				},
+			],
+		})
+	}
+
+	return (
+		<>
+			{loadingData.map((bucket, index) => {
+				return (
+					<LogBucketBar
+						key={index}
+						bucket={bucket}
+						loading
+						maxBucketCount={maxBucketCount}
+						width={`${100 / 50}%`}
+					/>
+				)
+			})}
+		</>
+	)
+})
 
 export default LogsHistogram
