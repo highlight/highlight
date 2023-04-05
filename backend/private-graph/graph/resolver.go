@@ -2033,6 +2033,10 @@ func (r *Resolver) RemoveSlackFromWorkspace(workspace *model.Workspace, projectI
 			return e.Wrap(err, "error removing slack channels from created MetricMonitor's")
 		}
 
+		if err := tx.Where(&model.LogAlert{Alert: projectAlert}).Updates(model.LogAlert{Alert: clearedChannelsAlert}).Error; err != nil {
+			return e.Wrap(err, "error removing slack channels from created LogAlert's")
+		}
+
 		// no errors updating DB
 		return nil
 	}); err != nil {

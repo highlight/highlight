@@ -2,8 +2,8 @@ import { LogLevel } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
 import {
 	fifteenMinutesAgo,
+	LOG_TIME_PRESETS,
 	now,
-	PRESETS,
 	thirtyDaysAgo,
 	TIME_MODE,
 } from '@pages/LogsPage/constants'
@@ -137,7 +137,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={handleDatesChange}
-						presets={PRESETS}
+						presets={LOG_TIME_PRESETS}
 						minDate={thirtyDaysAgo}
 						timeMode={timeMode}
 					/>
@@ -145,7 +145,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						query={query}
 						startDate={startDate}
 						endDate={endDate}
-						presets={PRESETS}
+						presets={LOG_TIME_PRESETS}
 					/>
 					<LogsHistogram
 						query={query}
@@ -154,7 +154,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						onDatesChange={handleDatesChange}
 						onLevelChange={handleLevelChange}
 					/>
-
 					<Box
 						borderTop="dividerWeak"
 						height="screen"

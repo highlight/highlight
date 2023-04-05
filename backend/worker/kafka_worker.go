@@ -133,6 +133,19 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	}
 	span.Finish(tracer.WithError(err))
 
+	timestampByProject := map[uint32]time.Time{}
+	for _, row := range logRows {
+		if row.Timestamp.After(timestampByProject[row.ProjectId]) {
+			timestampByProject[row.ProjectId] = row.Timestamp
+		}
+	}
+	for projectId, timestamp := range timestampByProject {
+		err := k.Worker.Resolver.Redis.SetLastLogTimestamp(ctx, int(projectId), timestamp)
+		if err != nil {
+			log.WithContext(ctxT).WithError(err).Errorf("failed to set last log timestamp for project %d", projectId)
+		}
+	}
+
 	span, ctxT = tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.markBackend"))
 	span.SetTag("NumProjectRows", len(setupProjectIDs))
 	span.SetTag("NumSessionRows", len(setupSessionIDs))
