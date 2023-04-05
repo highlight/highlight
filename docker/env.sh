@@ -23,3 +23,12 @@ export PATH=${PATH}:$(go env GOPATH)/bin
 
 # setup ca cert for cypress testing
 export NODE_EXTRA_CA_CERTS="${SCRIPT_DIR}/../backend/localhostssl/server.crt";
+
+for port in 9092 5432 8123 9000 9200 8086 4317 4318
+do
+    if lsof -i tcp:$port | grep -v COMMAND | grep LISTEN | grep -v doc; then
+      echo Port $port is already taken! Please ensure nothing is listening on that port.
+      lsof -i tcp:$port
+      exit 1
+    fi
+done
