@@ -1,7 +1,6 @@
 import LoadingBox from '@components/LoadingBox'
 import { useGetProjectQuery } from '@graph/hooks'
 import {
-	Badge,
 	Box,
 	ButtonIcon,
 	IconSolidCheckCircle,
@@ -19,7 +18,11 @@ import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
-import { useClientIntegrated, useServerIntegrated } from '@util/integrated'
+import {
+	useClientIntegrated,
+	useLogsIntegrated,
+	useServerIntegrated,
+} from '@util/integrated'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
@@ -35,10 +38,11 @@ import {
 
 import * as styles from './SetupRouter.css'
 
-const SetupRouter = () => {
+export const SetupRouter = () => {
 	const { toggleShowBanner } = useGlobalContext()
 	const { data: serverIntegration } = useServerIntegrated()
 	const { data: clientIntegration } = useClientIntegrated()
+	const { data: logsIntegration } = useLogsIntegrated()
 	const areaMatch = useMatch('/:project_id/setup/:area/*')
 	const area = areaMatch?.params.area || 'client'
 	const integrationData =
@@ -46,6 +50,8 @@ const SetupRouter = () => {
 			? serverIntegration
 			: area === 'client'
 			? clientIntegration
+			: area === 'backend-logging'
+			? logsIntegration
 			: undefined
 	const { projectId } = useProjectId()
 	const { data } = useGetProjectQuery({ variables: { id: projectId! } })
@@ -125,21 +131,21 @@ const SetupRouter = () => {
 							<Text>Backend error monitoring</Text>
 						</Stack>
 					</NavLink>
-					<Box
-						className={clsx(
-							styles.menuItem,
-							styles.menuItemDisabled,
-						)}
+					<NavLink
+						to="backend-logging"
+						className={({ isActive }) =>
+							clsx(styles.menuItem, {
+								[styles.menuItemActive]: isActive,
+							})
+						}
 					>
-						<Stack
-							direction="row"
-							justify="space-between"
-							align="center"
-						>
+						<Stack direction="row" align="center" gap="4">
+							{logsIntegration?.integrated && (
+								<IconSolidCheckCircle />
+							)}
 							<Text>Logging</Text>
-							<Badge label="Soon" variant="outlineGray" />
 						</Stack>
-					</Box>
+					</NavLink>
 				</Stack>
 
 				<Stack gap="0">
@@ -229,5 +235,3 @@ const SetupRouter = () => {
 		</Box>
 	)
 }
-
-export default SetupRouter

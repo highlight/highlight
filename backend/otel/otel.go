@@ -72,11 +72,11 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source string) *clickhouse.LogRow {
 	return clickhouse.NewLogRow(
 		clickhouse.LogRowPrimaryAttrs{
-			Timestamp:       ts,
 			TraceId:         traceID,
 			SpanId:          spanID,
 			SecureSessionId: sessionID,
 		},
+		clickhouse.WithTimestamp(ts),
 		clickhouse.WithBody(ctx, excMessage),
 		clickhouse.WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, source == highlight.SourceAttributeFrontend),
 		clickhouse.WithProjectIDString(projectID),
@@ -338,7 +338,6 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		var projectID, sessionID, requestID, source string
 		resource := resourceLogs.At(i).Resource()
 		resourceAttributes := resource.Attributes().AsRaw()
-		serviceName := cast(resource.Attributes().AsRaw()[string(semconv.ServiceNameKey)], "")
 		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source)
 		scopeLogs := resourceLogs.At(i).ScopeLogs()
 		for j := 0; j < scopeLogs.Len(); j++ {
@@ -349,24 +348,13 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				logRecord := logRecords.At(k)
 				logAttributes := logRecord.Attributes().AsRaw()
 				setHighlightAttributes(logAttributes, &projectID, &sessionID, &requestID, &source)
-				projectIDInt, err := clickhouse.ProjectToInt(projectID)
-				if err != nil {
-					log.WithContext(ctx).WithField("ProjectID", projectID).WithField("LogMessage", logRecord.Body().AsRaw()).Errorf("otel log got invalid project id")
+
+				logRow := getLogRow(ctx, logRecord.Timestamp().AsTime(), logRecord.SeverityText(), projectID, sessionID, logRecord.TraceID().String(), logRecord.SpanID().String(), logRecord.Body().Str(), resourceAttributes, scopeAttributes, logAttributes, source)
+				if logRow == nil {
+					log.WithContext(ctx).WithField("ProjectID", projectID).WithField("LogMessage", logRecord.Body().AsRaw()).Errorf("otel log got invalid log record")
 					continue
 				}
-				logRow := clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
-					Timestamp:       logRecord.Timestamp().AsTime(),
-					TraceId:         logRecord.TraceID().String(),
-					SpanId:          logRecord.SpanID().String(),
-					ProjectId:       uint32(projectIDInt),
-					SecureSessionId: sessionID,
-				},
-					clickhouse.WithLogAttributes(ctx, resourceAttributes, scopeAttributes, logAttributes, false),
-					clickhouse.WithSeverityText(logRecord.SeverityText()),
-				)
 
-				logRow.ServiceName = serviceName
-				logRow.Body = logRecord.Body().Str()
 				if projectID != "" {
 					if _, ok := projectLogs[projectID]; !ok {
 						projectLogs[projectID] = []*clickhouse.LogRow{}

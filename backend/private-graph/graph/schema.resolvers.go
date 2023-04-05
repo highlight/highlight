@@ -4605,6 +4605,7 @@ func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*
 	}
 	integration.Integrated = true
 	integration.ResourceSecureID = &firstSession.SecureID
+	integration.CreatedAt = &firstSession.CreatedAt
 
 	return integration, nil
 }
@@ -4630,23 +4631,36 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 	}
 	integration.Integrated = true
 	integration.ResourceSecureID = &firstErrorGroup.SecureID
+	integration.CreatedAt = &firstErrorGroup.CreatedAt
 
 	return integration, nil
 }
 
 // LogsIntegration is the resolver for the logsIntegration field.
-func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*modelInputs.LogsConnection, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
+	integration := &modelInputs.IntegrationStatus{
+		Integrated:       true,
+		ResourceType:     "Log",
+		ResourceSecureID: nil,
+	}
+	_, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 
-	params := &modelInputs.LogsParamsInput{Query: ""}
-	pagination := &clickhouse.Pagination{}
+	setupEvent := model.SetupEvent{}
+	err = r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeLogs).First(&setupEvent).Error
+	if err != nil {
+		if e.Is(err, gorm.ErrRecordNotFound) {
+			integration.Integrated = false
+		} else {
+			return nil, e.Wrap(err, "error querying setup event")
+		}
+	} else {
+		integration.CreatedAt = &setupEvent.CreatedAt
+	}
 
-	// TODO: Figure out the actual integration data we want to return here.
-	// Possibly just setup events.
-	return r.ClickhouseClient.ReadLogs(ctx, project.ID, *params, *pagination)
+	return integration, nil
 }
 
 // UnprocessedSessionsCount is the resolver for the unprocessedSessionsCount field.

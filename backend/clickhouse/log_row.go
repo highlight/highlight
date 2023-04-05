@@ -33,7 +33,6 @@ func ProjectToInt(projectID string) (int, error) {
 }
 
 type LogRowPrimaryAttrs struct {
-	Timestamp       time.Time
 	ProjectId       uint32
 	TraceId         string
 	SpanId          string
@@ -42,6 +41,7 @@ type LogRowPrimaryAttrs struct {
 
 type LogRow struct {
 	LogRowPrimaryAttrs
+	Timestamp      time.Time
 	UUID           string
 	TraceFlags     uint32
 	SeverityText   string
@@ -55,7 +55,6 @@ type LogRow struct {
 func NewLogRow(attrs LogRowPrimaryAttrs, opts ...LogRowOption) *LogRow {
 	logRow := &LogRow{
 		LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-			Timestamp:       attrs.Timestamp,
 			TraceId:         attrs.TraceId,
 			SpanId:          attrs.SpanId,
 			ProjectId:       attrs.ProjectId,
@@ -82,6 +81,14 @@ func (l *LogRow) IsBackend() bool {
 }
 
 type LogRowOption func(*LogRow)
+
+func WithTimestamp(ts time.Time) LogRowOption {
+	return func(h *LogRow) {
+		// ensure timestamp is written at second precision,
+		// since clickhouse schema will truncate to second precision anyways.
+		h.Timestamp = ts.Truncate(time.Second)
+	}
+}
 
 func WithLogAttributes(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) LogRowOption {
 	return func(h *LogRow) {

@@ -623,6 +623,7 @@ export type IntegrationProjectMappingInput = {
 
 export type IntegrationStatus = {
 	__typename?: 'IntegrationStatus'
+	createdAt?: Maybe<Scalars['Timestamp']>
 	integrated: Scalars['Boolean']
 	resourceSecureId?: Maybe<Scalars['String']>
 	resourceType: Scalars['String']
@@ -1550,7 +1551,7 @@ export type Query = {
 	log_alert: LogAlert
 	log_alerts: Array<Maybe<LogAlert>>
 	logs: LogsConnection
-	logsIntegration?: Maybe<LogsConnection>
+	logsIntegration: IntegrationStatus
 	logs_error_objects: Array<ErrorObject>
 	logs_histogram: LogsHistogram
 	logs_key_values: Array<Scalars['String']>

@@ -13,12 +13,19 @@ import { useWindowSize } from '@hooks/useWindowSize'
 import { CompleteSetup } from '@pages/Player/components/CompleteSetup/CompleteSetup'
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard'
 import UnauthorizedViewingForm from '@pages/Player/components/UnauthorizedViewingForm/UnauthorizedViewingForm'
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import {
+	RightPanelView,
+	usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext'
 import PlayerCommentCanvas, {
 	Coordinates2D,
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
 import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook'
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerState'
+import {
+	useLinkErrorInstance,
+	useLinkLogCursor,
+} from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import PlayerPageProductTour from '@pages/Player/PlayerPageProductTour/PlayerPageProductTour'
 import {
@@ -32,6 +39,7 @@ import {
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
 import SessionLevelBarV2 from '@pages/Player/SessionLevelBar/SessionLevelBarV2'
 import { DevTools } from '@pages/Player/Toolbar/DevTools'
+import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
@@ -111,9 +119,41 @@ const PlayerPage = ({ integrated }: Props) => {
 
 	const {
 		setShowLeftPanel,
+		setShowRightPanel,
+		setSelectedDevToolsTab,
+		setShowDevTools,
 		showLeftPanel: showLeftPanelPreference,
 		showRightPanel,
 	} = usePlayerConfiguration()
+	const { setRightPanelView, setActiveError } = usePlayerUIContext()
+
+	const { errorObject } = useLinkErrorInstance()
+	useEffect(() => {
+		if (errorObject) {
+			setShowLeftPanel(false)
+			setShowRightPanel(true)
+			setShowDevTools(true)
+			setSelectedDevToolsTab(Tab.Errors)
+			setActiveError({ ...errorObject, session })
+			setRightPanelView(RightPanelView.Error)
+		}
+	}, [
+		errorObject,
+		session,
+		setActiveError,
+		setRightPanelView,
+		setSelectedDevToolsTab,
+		setShowDevTools,
+		setShowLeftPanel,
+		setShowRightPanel,
+	])
+
+	const { logCursor } = useLinkLogCursor()
+	useEffect(() => {
+		if (logCursor) {
+			setShowLeftPanel(false)
+		}
+	}, [logCursor, setShowLeftPanel])
 
 	const toolbarContext = useToolbarItems()
 

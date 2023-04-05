@@ -35,13 +35,7 @@ import {
 	LogsSearchParam,
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
-import {
-	RightPanelView,
-	usePlayerUIContext,
-} from '@pages/Player/context/PlayerUIContext'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import {
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
@@ -101,6 +95,14 @@ const getLogsLink = (errorObject: ErrorObject): string => {
 	} else {
 		return `/${errorObject.project_id}/logs?${params}`
 	}
+}
+
+const getSessionLink = (errorObject: ErrorObject): string => {
+	const params = createSearchParams({
+		tsAbs: errorObject.timestamp,
+		[PlayerSearchParameters.errorId]: errorObject.id,
+	})
+	return `/${errorObject.project_id}/sessions/${errorObject.session?.secure_id}?${params}`
 }
 
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
@@ -164,15 +166,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		() => goToErrorInstance(errorInstance?.previous_id, 'previous'),
 		[errorInstance?.previous_id],
 	)
-
-	const {
-		setShowLeftPanel,
-		setShowRightPanel,
-		setShowDevTools,
-		setSelectedDevToolsTab,
-	} = usePlayerConfiguration()
-
-	const { setActiveError, setRightPanelView } = usePlayerUIContext()
 
 	const goToErrorInstance = (
 		errorInstanceId: Maybe<string> | undefined,
@@ -350,7 +343,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 							emphasis="high"
 							to={getLogsLink(errorObject)}
 							disabled={!isLoggedIn || !errorObject.session}
-							trackingId="logs-related_session_link"
+							trackingId="error-related_logs_link"
 						>
 							<Box
 								display="flex"
@@ -362,85 +355,23 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								Show logs
 							</Box>
 						</LinkButton>
-						<Button
+						<LinkButton
 							kind="primary"
 							emphasis="high"
+							to={getSessionLink(errorObject)}
 							disabled={!isLoggedIn || !errorObject.session}
-							onClick={() => {
-								if (!isLoggedIn) {
-									return
-								}
-
-								const queryParams: LogsSearchParam[] = []
-								let offsetStart = 1
-								if (errorObject.source) {
-									queryParams.push({
-										key: 'host.name',
-										operator: DEFAULT_LOGS_OPERATOR,
-										value: errorObject.source,
-										offsetStart: offsetStart++,
-									})
-								}
-								if (errorObject.session?.secure_id) {
-									queryParams.push({
-										key: 'secure_session_id',
-										operator: DEFAULT_LOGS_OPERATOR,
-										value: errorObject.session?.secure_id,
-										offsetStart: offsetStart++,
-									})
-								}
-								if (errorObject.trace_id) {
-									queryParams.push({
-										key: 'trace_id',
-										operator: DEFAULT_LOGS_OPERATOR,
-										value: errorObject.trace_id,
-										offsetStart: offsetStart++,
-									})
-								}
-								const query = stringifyLogsQuery(queryParams)
-								const logCursor = errorObject.log_cursor
-								if (logCursor) {
-									navigate(
-										`/${projectId}/logs/${logCursor}?query=${query}`,
-									)
-								} else {
-									navigate(
-										`/${projectId}/logs?query=${query}`,
-									)
-								}
-							}}
-							iconLeft={<IconSolidViewList />}
-							trackingId="errorInstanceShowLogs"
+							trackingId="error-related_session_link"
 						>
-							Show logs
-						</Button>
-						<Button
-							kind="primary"
-							emphasis="high"
-							disabled={!isLoggedIn || !errorObject.session}
-							onClick={() => {
-								if (!isLoggedIn) {
-									return
-								}
-
-								navigate(
-									`/${projectId}/sessions/${errorObject.session?.secure_id}` +
-										`?${PlayerSearchParameters.tsAbs}=${errorObject.timestamp}`,
-								)
-								setShowLeftPanel(false)
-								setShowRightPanel(true)
-								setShowDevTools(true)
-								setSelectedDevToolsTab(Tab.Errors)
-								setActiveError(
-									errorInstance?.error_object as ErrorObject,
-								)
-								setRightPanelView(RightPanelView.Error)
-							}}
-							iconLeft={<IconSolidPlay />}
-							trackingId="errorInstanceShowSession"
-						>
-							Show session
-						</Button>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidPlay />
+								Show session
+							</Box>
+						</LinkButton>
 					</Box>
 				</Box>
 			</Box>

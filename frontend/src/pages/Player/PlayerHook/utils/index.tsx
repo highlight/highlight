@@ -1,3 +1,4 @@
+import { useGetErrorObjectQuery } from '@graph/hooks'
 import { ErrorObject, Session, SessionComment } from '@graph/schemas'
 import { EventType, Replayer } from '@highlight-run/rrweb'
 import { playerMetaData, SessionInterval } from '@highlight-run/rrweb-types'
@@ -139,10 +140,38 @@ export enum PlayerSearchParameters {
 	tsAbs = 'tsAbs',
 	/** The error ID for an error in the current session. The player's time will be set to the lookback period before the error's timestamp. */
 	errorId = 'errorId',
+	/** The Log Cursor where a link was coming from. **/
+	log = 'log',
 	/** The comment ID for a comment in the current session. The player's time will be set to the comments's timestamp. */
 	commentId = 'commentId',
 	/** Whether to mark the comment thread as muted.*/
 	muted = 'muted',
+}
+
+export const useLinkErrorInstance = () => {
+	const location = useLocation()
+	const searchParams = new URLSearchParams(location.search)
+	const errorInstanceID = searchParams.get(PlayerSearchParameters.errorId)
+
+	const { data: errorObject } = useGetErrorObjectQuery({
+		variables: {
+			id: errorInstanceID!,
+		},
+		skip: !errorInstanceID,
+	})
+
+	return {
+		errorObject: errorObject?.error_object,
+	}
+}
+
+export const useLinkLogCursor = () => {
+	const location = useLocation()
+	const searchParams = new URLSearchParams(location.search)
+	const logCursor = searchParams.get(PlayerSearchParameters.log)
+	return {
+		logCursor,
+	}
 }
 
 /**
