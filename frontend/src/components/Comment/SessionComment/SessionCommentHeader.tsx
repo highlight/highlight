@@ -5,6 +5,7 @@ import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
 import { useDeleteSessionCommentMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { IntegrationType, SessionCommentType } from '@graph/schemas'
+import SvgBallotBoxIcon from '@icons/BallotBoxIcon'
 import SvgClipboardIcon from '@icons/ClipboardIcon'
 import SvgCopyIcon from '@icons/CopyIcon'
 import SvgFileText2Icon from '@icons/FileText2Icon'
@@ -198,7 +199,22 @@ const SessionCommentHeader = ({
 		</Menu>
 	)
 
-	const shareMenu = <Menu>{session && createIssueMenuItems}</Menu>
+	const shareMenu = (
+		<Menu>
+			{session && createIssueMenuItems}
+			<MenuItem
+				icon={<SvgBallotBoxIcon />}
+				onClick={() => {
+					window.open(
+						'https://github.com/orgs/highlight/projects/11',
+						'_blank',
+					)
+				}}
+			>
+				Suggest an Integration
+			</MenuItem>
+		</Menu>
+	)
 
 	return (
 		<CommentHeader
