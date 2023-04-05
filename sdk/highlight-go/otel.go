@@ -21,7 +21,6 @@ import (
 const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
 
 const ErrorURLAttribute = "URL"
-const SourceAttributeFrontend = "SubmitFrontendConsoleMessages"
 
 const DeprecatedProjectIDAttribute = "highlight_project_id"
 const DeprecatedSessionIDAttribute = "highlight_session_id"

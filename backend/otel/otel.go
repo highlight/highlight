@@ -5,16 +5,18 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
-	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	"io"
 	"net/http"
 	"time"
+
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	model2 "github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -39,26 +41,22 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 	return c
 }
 
-func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID, source *string) {
+func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID *string, source *modelInputs.LogSource) {
 	ptrs := map[string]*string{
 		highlight.DeprecatedProjectIDAttribute: projectID,
 		highlight.DeprecatedSessionIDAttribute: sessionID,
 		highlight.DeprecatedRequestIDAttribute: requestID,
-		highlight.DeprecatedSourceAttribute:    source,
 		highlight.ProjectIDAttribute:           projectID,
 		highlight.SessionIDAttribute:           sessionID,
 		highlight.RequestIDAttribute:           requestID,
-		highlight.SourceAttribute:              source,
 	}
 	for _, k := range []string{
 		highlight.DeprecatedProjectIDAttribute,
 		highlight.DeprecatedSessionIDAttribute,
 		highlight.DeprecatedRequestIDAttribute,
-		highlight.DeprecatedSourceAttribute,
 		highlight.ProjectIDAttribute,
 		highlight.SessionIDAttribute,
 		highlight.RequestIDAttribute,
-		highlight.SourceAttribute,
 	} {
 		if p, ok := attrs[k]; ok {
 			if v, _ := p.(string); v != "" {
@@ -66,9 +64,24 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 			}
 		}
 	}
+
+	for _, k := range []string{
+		highlight.DeprecatedSourceAttribute,
+		highlight.SourceAttribute,
+	} {
+		if p, ok := attrs[k]; ok {
+			if v, _ := p.(string); v != "" {
+				if v == modelInputs.LogSourceFrontend.String() {
+					*source = modelInputs.LogSourceFrontend
+				} else {
+					*source = modelInputs.LogSourceBackend
+				}
+			}
+		}
+	}
 }
 
-func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source string) *clickhouse.LogRow {
+func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source modelInputs.LogSource) *clickhouse.LogRow {
 	return clickhouse.NewLogRow(
 		clickhouse.LogRowPrimaryAttrs{
 			TraceId:         traceID,
@@ -77,7 +90,7 @@ func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, tra
 		},
 		clickhouse.WithTimestamp(ts),
 		clickhouse.WithBody(ctx, excMessage),
-		clickhouse.WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, source == highlight.SourceAttributeFrontend),
+		clickhouse.WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, source == modelInputs.LogSourceFrontend),
 		clickhouse.WithProjectIDString(projectID),
 		clickhouse.WithServiceName(cast(resourceAttributes[string(semconv.ServiceNameKey)], "")),
 		clickhouse.WithSeverityText(lvl),
@@ -85,9 +98,9 @@ func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, tra
 	)
 }
 
-func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, requestID, traceID, spanID string, logCursor *string, source, excMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any) (bool, *model.BackendErrorObjectInput) {
-	excType := cast(eventAttributes[string(semconv.ExceptionTypeKey)], source)
-	errorUrl := cast(eventAttributes[highlight.ErrorURLAttribute], source)
+func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, requestID, traceID, spanID string, logCursor *string, excMessage string, source modelInputs.LogSource, resourceAttributes, spanAttributes, eventAttributes map[string]any) (bool, *model.BackendErrorObjectInput) {
+	excType := cast(eventAttributes[string(semconv.ExceptionTypeKey)], source.String())
+	errorUrl := cast(eventAttributes[highlight.ErrorURLAttribute], source.String())
 	stackTrace := cast(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
 	if excType == "" && excMessage == "" {
 		log.WithContext(ctx).WithField("EventAttributes", eventAttributes).Error("otel received exception with no type and no message")
@@ -159,7 +172,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 	spans := req.Traces().ResourceSpans()
 	for i := 0; i < spans.Len(); i++ {
-		var projectID, sessionID, requestID, source string
+		var projectID, sessionID, requestID string
+		var source modelInputs.LogSource
 		resource := spans.At(i).Resource()
 		resourceAttributes := resource.Attributes().AsRaw()
 		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source)
@@ -186,7 +200,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						projectLogs[projectID] = append(projectLogs[projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
 
-						isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, source, excMessage, resourceAttributes, spanAttributes, eventAttributes)
+						isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, excMessage, source, resourceAttributes, spanAttributes, eventAttributes)
 						if backendError == nil {
 							log.WithContext(ctx).WithField("BackendErrorEvent", event).Errorf("otel span error got no session and no project")
 						} else {
@@ -221,7 +235,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	for sessionID, errors := range traceErrors {
 		var backendError = false
 		for _, err := range errors {
-			if err.Type != highlight.SourceAttributeFrontend {
+			if err.Type == modelInputs.LogSourceBackend.String() {
 				backendError = true
 			}
 		}
@@ -256,7 +270,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	for projectID, errors := range projectErrors {
 		var backendError = false
 		for _, err := range errors {
-			if err.Type != highlight.SourceAttributeFrontend {
+			if err.Type == modelInputs.LogSourceBackend.String() {
 				backendError = true
 			}
 		}
@@ -334,7 +348,8 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 	resourceLogs := req.Logs().ResourceLogs()
 	for i := 0; i < resourceLogs.Len(); i++ {
-		var projectID, sessionID, requestID, source string
+		var projectID, sessionID, requestID string
+		var source modelInputs.LogSource
 		resource := resourceLogs.At(i).Resource()
 		resourceAttributes := resource.Attributes().AsRaw()
 		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source)
@@ -380,7 +395,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 	for projectID, logRows := range projectLogs {
 		var hasBackendLogs bool
 		for _, logRow := range logRows {
-			if logRow.IsBackend() {
+			if logRow.Source == modelInputs.LogSourceBackend {
 				hasBackendLogs = true
 				break
 			}

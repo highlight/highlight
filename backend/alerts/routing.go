@@ -50,3 +50,8 @@ func getMonitorURL(metricMonitor *model.MetricMonitor) string {
 	frontendURL := os.Getenv("FRONTEND_URI")
 	return fmt.Sprintf("%s/%d/alerts/monitors/%d", frontendURL, metricMonitor.ProjectID, metricMonitor.ID)
 }
+
+func getLogAlertURL(alert *model.LogAlert) string {
+	frontendURL := os.Getenv("FRONTEND_URI")
+	return fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, alert.ProjectID, alert.ID)
+}

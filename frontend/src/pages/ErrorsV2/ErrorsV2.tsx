@@ -176,7 +176,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 				<title>Errors</title>
 			</Helmet>
 
-			<div className={styles.container}>
+			<Box cssClass={styles.container} borderTop="dividerWeak">
 				<SearchPanel />
 
 				<div
@@ -301,7 +301,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 						)}
 					</Box>
 				</div>
-			</div>
+			</Box>
 		</>
 	)
 }

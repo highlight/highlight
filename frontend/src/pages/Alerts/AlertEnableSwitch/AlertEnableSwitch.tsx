@@ -2,6 +2,7 @@ import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Switch from '@components/Switch/Switch'
 import {
 	useUpdateErrorAlertIsDisabledMutation,
+	useUpdateLogAlertIsDisabledMutation,
 	useUpdateMetricMonitorIsDisabledMutation,
 	useUpdateSessionAlertIsDisabledMutation,
 } from '@graph/hooks'
@@ -24,6 +25,7 @@ export const AlertEnableSwitch: React.FC<
 	const [updateErrorAlertIsDisabled] = useUpdateErrorAlertIsDisabledMutation()
 	const [updateMetricMonitorIsDisabled] =
 		useUpdateMetricMonitorIsDisabledMutation()
+	const [updateLogAlertIsDisabled] = useUpdateLogAlertIsDisabledMutation()
 
 	const onChange = async () => {
 		setLoading(true)
@@ -64,6 +66,16 @@ export const AlertEnableSwitch: React.FC<
 				break
 			case ALERT_TYPE.MetricMonitor:
 				await updateMetricMonitorIsDisabled({
+					...requestBody,
+					variables: {
+						id: record.id,
+						project_id: project_id!,
+						disabled: isDisabled,
+					},
+				})
+				break
+			case ALERT_TYPE.Logs:
+				await updateLogAlertIsDisabled({
 					...requestBody,
 					variables: {
 						id: record.id,

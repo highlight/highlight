@@ -3243,6 +3243,215 @@ export type DeleteSessionAlertMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteSessionAlertMutation,
 	Types.DeleteSessionAlertMutationVariables
 >
+export const UpdateLogAlertDocument = gql`
+	mutation UpdateLogAlert($id: ID!, $input: LogAlertInput!) {
+		updateLogAlert(id: $id, input: $input) {
+			id
+		}
+	}
+`
+export type UpdateLogAlertMutationFn = Apollo.MutationFunction<
+	Types.UpdateLogAlertMutation,
+	Types.UpdateLogAlertMutationVariables
+>
+
+/**
+ * __useUpdateLogAlertMutation__
+ *
+ * To run a mutation, you first call `useUpdateLogAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateLogAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateLogAlertMutation, { data, loading, error }] = useUpdateLogAlertMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateLogAlertMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpdateLogAlertMutation,
+		Types.UpdateLogAlertMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpdateLogAlertMutation,
+		Types.UpdateLogAlertMutationVariables
+	>(UpdateLogAlertDocument, baseOptions)
+}
+export type UpdateLogAlertMutationHookResult = ReturnType<
+	typeof useUpdateLogAlertMutation
+>
+export type UpdateLogAlertMutationResult =
+	Apollo.MutationResult<Types.UpdateLogAlertMutation>
+export type UpdateLogAlertMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpdateLogAlertMutation,
+	Types.UpdateLogAlertMutationVariables
+>
+export const CreateLogAlertDocument = gql`
+	mutation CreateLogAlert($input: LogAlertInput!) {
+		createLogAlert(input: $input) {
+			id
+		}
+	}
+`
+export type CreateLogAlertMutationFn = Apollo.MutationFunction<
+	Types.CreateLogAlertMutation,
+	Types.CreateLogAlertMutationVariables
+>
+
+/**
+ * __useCreateLogAlertMutation__
+ *
+ * To run a mutation, you first call `useCreateLogAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateLogAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createLogAlertMutation, { data, loading, error }] = useCreateLogAlertMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateLogAlertMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.CreateLogAlertMutation,
+		Types.CreateLogAlertMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.CreateLogAlertMutation,
+		Types.CreateLogAlertMutationVariables
+	>(CreateLogAlertDocument, baseOptions)
+}
+export type CreateLogAlertMutationHookResult = ReturnType<
+	typeof useCreateLogAlertMutation
+>
+export type CreateLogAlertMutationResult =
+	Apollo.MutationResult<Types.CreateLogAlertMutation>
+export type CreateLogAlertMutationOptions = Apollo.BaseMutationOptions<
+	Types.CreateLogAlertMutation,
+	Types.CreateLogAlertMutationVariables
+>
+export const DeleteLogAlertDocument = gql`
+	mutation DeleteLogAlert($project_id: ID!, $id: ID!) {
+		deleteLogAlert(project_id: $project_id, id: $id) {
+			id
+		}
+	}
+`
+export type DeleteLogAlertMutationFn = Apollo.MutationFunction<
+	Types.DeleteLogAlertMutation,
+	Types.DeleteLogAlertMutationVariables
+>
+
+/**
+ * __useDeleteLogAlertMutation__
+ *
+ * To run a mutation, you first call `useDeleteLogAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteLogAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteLogAlertMutation, { data, loading, error }] = useDeleteLogAlertMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteLogAlertMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.DeleteLogAlertMutation,
+		Types.DeleteLogAlertMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.DeleteLogAlertMutation,
+		Types.DeleteLogAlertMutationVariables
+	>(DeleteLogAlertDocument, baseOptions)
+}
+export type DeleteLogAlertMutationHookResult = ReturnType<
+	typeof useDeleteLogAlertMutation
+>
+export type DeleteLogAlertMutationResult =
+	Apollo.MutationResult<Types.DeleteLogAlertMutation>
+export type DeleteLogAlertMutationOptions = Apollo.BaseMutationOptions<
+	Types.DeleteLogAlertMutation,
+	Types.DeleteLogAlertMutationVariables
+>
+export const UpdateLogAlertIsDisabledDocument = gql`
+	mutation UpdateLogAlertIsDisabled(
+		$id: ID!
+		$project_id: ID!
+		$disabled: Boolean!
+	) {
+		updateLogAlertIsDisabled(
+			id: $id
+			project_id: $project_id
+			disabled: $disabled
+		) {
+			id
+		}
+	}
+`
+export type UpdateLogAlertIsDisabledMutationFn = Apollo.MutationFunction<
+	Types.UpdateLogAlertIsDisabledMutation,
+	Types.UpdateLogAlertIsDisabledMutationVariables
+>
+
+/**
+ * __useUpdateLogAlertIsDisabledMutation__
+ *
+ * To run a mutation, you first call `useUpdateLogAlertIsDisabledMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateLogAlertIsDisabledMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateLogAlertIsDisabledMutation, { data, loading, error }] = useUpdateLogAlertIsDisabledMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      project_id: // value for 'project_id'
+ *      disabled: // value for 'disabled'
+ *   },
+ * });
+ */
+export function useUpdateLogAlertIsDisabledMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpdateLogAlertIsDisabledMutation,
+		Types.UpdateLogAlertIsDisabledMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpdateLogAlertIsDisabledMutation,
+		Types.UpdateLogAlertIsDisabledMutationVariables
+	>(UpdateLogAlertIsDisabledDocument, baseOptions)
+}
+export type UpdateLogAlertIsDisabledMutationHookResult = ReturnType<
+	typeof useUpdateLogAlertIsDisabledMutation
+>
+export type UpdateLogAlertIsDisabledMutationResult =
+	Apollo.MutationResult<Types.UpdateLogAlertIsDisabledMutation>
+export type UpdateLogAlertIsDisabledMutationOptions =
+	Apollo.BaseMutationOptions<
+		Types.UpdateLogAlertIsDisabledMutation,
+		Types.UpdateLogAlertIsDisabledMutationVariables
+	>
 export const UpdateSessionAlertIsDisabledDocument = gql`
 	mutation UpdateSessionAlertIsDisabled(
 		$id: ID!
@@ -10640,6 +10849,165 @@ export type GetIdentifierSuggestionsQueryResult = Apollo.QueryResult<
 	Types.GetIdentifierSuggestionsQuery,
 	Types.GetIdentifierSuggestionsQueryVariables
 >
+export const GetLogAlertDocument = gql`
+	query GetLogAlert($id: ID!) {
+		log_alert(id: $id) {
+			ChannelsToNotify {
+				webhook_channel
+				webhook_channel_id
+			}
+			DiscordChannelsToNotify {
+				...DiscordChannelFragment
+			}
+			WebhookDestinations {
+				url
+				authorization
+			}
+			CountThreshold
+			DailyFrequency
+			disabled
+			EmailsToNotify
+			ExcludedEnvironments
+			id
+			LastAdminToEditID
+			Name
+			updated_at
+			BelowThreshold
+			ThresholdWindow
+			Type
+			query
+		}
+	}
+	${DiscordChannelFragmentFragmentDoc}
+`
+
+/**
+ * __useGetLogAlertQuery__
+ *
+ * To run a query within a React component, call `useGetLogAlertQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogAlertQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogAlertQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetLogAlertQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLogAlertQuery,
+		Types.GetLogAlertQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetLogAlertQuery,
+		Types.GetLogAlertQueryVariables
+	>(GetLogAlertDocument, baseOptions)
+}
+export function useGetLogAlertLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLogAlertQuery,
+		Types.GetLogAlertQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetLogAlertQuery,
+		Types.GetLogAlertQueryVariables
+	>(GetLogAlertDocument, baseOptions)
+}
+export type GetLogAlertQueryHookResult = ReturnType<typeof useGetLogAlertQuery>
+export type GetLogAlertLazyQueryHookResult = ReturnType<
+	typeof useGetLogAlertLazyQuery
+>
+export type GetLogAlertQueryResult = Apollo.QueryResult<
+	Types.GetLogAlertQuery,
+	Types.GetLogAlertQueryVariables
+>
+export const GetLogAlertsPagePayloadDocument = gql`
+	query GetLogAlertsPagePayload($project_id: ID!) {
+		is_integrated_with_slack: is_integrated_with(
+			integration_type: Slack
+			project_id: $project_id
+		)
+		is_integrated_with_discord: is_integrated_with(
+			integration_type: Discord
+			project_id: $project_id
+		)
+		slack_channel_suggestion(project_id: $project_id) {
+			webhook_channel
+			webhook_channel_id
+		}
+		discord_channel_suggestions(project_id: $project_id) {
+			...DiscordChannelFragment
+		}
+		admins: workspace_admins_by_project_id(project_id: $project_id) {
+			admin {
+				id
+				name
+				email
+				photo_url
+			}
+		}
+		environment_suggestion(project_id: $project_id) {
+			name
+			value
+		}
+	}
+	${DiscordChannelFragmentFragmentDoc}
+`
+
+/**
+ * __useGetLogAlertsPagePayloadQuery__
+ *
+ * To run a query within a React component, call `useGetLogAlertsPagePayloadQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogAlertsPagePayloadQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogAlertsPagePayloadQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetLogAlertsPagePayloadQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLogAlertsPagePayloadQuery,
+		Types.GetLogAlertsPagePayloadQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetLogAlertsPagePayloadQuery,
+		Types.GetLogAlertsPagePayloadQueryVariables
+	>(GetLogAlertsPagePayloadDocument, baseOptions)
+}
+export function useGetLogAlertsPagePayloadLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLogAlertsPagePayloadQuery,
+		Types.GetLogAlertsPagePayloadQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetLogAlertsPagePayloadQuery,
+		Types.GetLogAlertsPagePayloadQueryVariables
+	>(GetLogAlertsPagePayloadDocument, baseOptions)
+}
+export type GetLogAlertsPagePayloadQueryHookResult = ReturnType<
+	typeof useGetLogAlertsPagePayloadQuery
+>
+export type GetLogAlertsPagePayloadLazyQueryHookResult = ReturnType<
+	typeof useGetLogAlertsPagePayloadLazyQuery
+>
+export type GetLogAlertsPagePayloadQueryResult = Apollo.QueryResult<
+	Types.GetLogAlertsPagePayloadQuery,
+	Types.GetLogAlertsPagePayloadQueryVariables
+>
 export const GetAlertsPagePayloadDocument = gql`
 	query GetAlertsPagePayload($project_id: ID!) {
 		is_integrated_with_slack: is_integrated_with(
@@ -10742,6 +11110,27 @@ export const GetAlertsPagePayloadDocument = gql`
 			}
 			units
 			disabled
+		}
+		log_alerts(project_id: $project_id) {
+			ChannelsToNotify {
+				webhook_channel
+				webhook_channel_id
+			}
+			DiscordChannelsToNotify {
+				...DiscordChannelFragment
+			}
+			CountThreshold
+			DailyFrequency
+			disabled
+			EmailsToNotify
+			ExcludedEnvironments
+			id
+			LastAdminToEditID
+			Name
+			updated_at
+			ThresholdWindow
+			Type
+			query
 		}
 	}
 	${DiscordChannelFragmentFragmentDoc}

@@ -11,6 +11,7 @@ export const container = style({
 	containerType: 'inline-size',
 	overflowY: 'scroll',
 	width: '100%',
+	height: '100%',
 })
 
 export const content = style({

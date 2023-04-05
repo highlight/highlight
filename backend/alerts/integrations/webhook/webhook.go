@@ -3,11 +3,12 @@ package webhook
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
 	"github.com/highlight-run/highlight/backend/model"
 	e "github.com/pkg/errors"
-	"net/http"
 )
 
 type ErrorAlertWebhook struct {
@@ -133,6 +134,20 @@ func SendMetricMonitorAlert(destination *model.WebhookDestination, payload *inte
 	}{
 		Event:                     model.AlertType.NEW_USER,
 		MetricMonitorAlertPayload: payload,
+	})
+	if err != nil {
+		return err
+	}
+	return sendWebhookData(destination, body)
+}
+
+func SendLogAlert(destination *model.WebhookDestination, payload *integrations.LogAlertPayload) error {
+	body, err := json.Marshal(&struct {
+		Event string
+		*integrations.LogAlertPayload
+	}{
+		Event:           model.AlertType.LOG,
+		LogAlertPayload: payload,
 	})
 	if err != nil {
 		return err

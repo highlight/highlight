@@ -67,6 +67,15 @@ type MetricMonitorAlertPayload struct {
 	MonitorURL      string
 }
 
+type LogAlertPayload struct {
+	Name           string
+	Query          string
+	Count          int
+	Threshold      int
+	BelowThreshold bool
+	AlertURL       string
+}
+
 type BaseAlertIntegration interface {
 	GetChannels() ([]*discordgo.Channel, error)
 	SendErrorAlert(channelId string, payload ErrorAlertPayload) error
@@ -77,4 +86,5 @@ type BaseAlertIntegration interface {
 	SendSessionFeedbackAlert(channelId string, payload SessionFeedbackAlertPayload) error
 	SendRageClicksAlert(channelId string, payload RageClicksAlertPayload) error
 	SendMetricMonitorAlert(channelId string, payload MetricMonitorAlertPayload) error
+	SendLogAlert(channelId string, payload MetricMonitorAlertPayload) error
 }

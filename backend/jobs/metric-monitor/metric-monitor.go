@@ -132,7 +132,7 @@ func processMetricMonitors(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, 
 				unitsStr,
 			)
 
-			fmt.Println(message)
+			log.WithContext(ctx).Info(message)
 
 			if err := metricMonitor.SendSlackAlert(ctx, &model.SendSlackAlertForMetricMonitorInput{Message: message, Workspace: &workspace}); err != nil {
 				log.WithContext(ctx).Error("error sending slack alert for metric monitor", err)
