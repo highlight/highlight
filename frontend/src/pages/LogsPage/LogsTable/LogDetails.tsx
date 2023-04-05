@@ -440,7 +440,7 @@ const LogValue: React.FC<{
 									size="12"
 									onClick={() => {
 										navigator.clipboard.writeText(
-											JSON.stringify(value),
+											quoteQueryValue(value),
 										)
 										antdMessage.success(
 											'Value copied to your clipboard',
