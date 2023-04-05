@@ -68,10 +68,10 @@ func TestNewLogRowWithLongBody(t *testing.T) {
 
 func TestNewLogRowWithSource(t *testing.T) {
 	lr := NewLogRow(LogRowPrimaryAttrs{}, WithSource(modelInputs.LogSourceFrontend))
-	assert.Equal(t, modelInputs.LogSourceFrontend.String(), lr.Source)
+	assert.Equal(t, modelInputs.LogSourceFrontend, lr.Source)
 
-	lr = NewLogRow(LogRowPrimaryAttrs{}, WithSource("InterceptField"))
-	assert.Equal(t, modelInputs.LogSourceBackend.String(), lr.Source)
+	lr = NewLogRow(LogRowPrimaryAttrs{}, WithSource(modelInputs.LogSourceBackend))
+	assert.Equal(t, modelInputs.LogSourceBackend, lr.Source)
 }
 
 func TestNewLogRowWithTimestamp(t *testing.T) {
