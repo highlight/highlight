@@ -57,6 +57,33 @@ func assertCursorsOutput(t *testing.T, edges []*modelInputs.LogEdge, expectedCur
 	}
 }
 
+func TestBatchWriteLogRows(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+
+	logRow := NewLogRow(
+		LogRowPrimaryAttrs{},
+		WithSource(modelInputs.LogSourceFrontend),
+		WithProjectIDString("1"),
+		WithTimestamp(now),
+	)
+	rows := []*LogRow{
+		logRow,
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, modelInputs.LogSourceFrontend.String(), *payload.Edges[0].Node.Source)
+}
+
 func TestReadLogsWithTimeQuery(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)

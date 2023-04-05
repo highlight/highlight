@@ -950,6 +950,47 @@ func (e LogLevel) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type LogSource string
+
+const (
+	LogSourceFrontend LogSource = "frontend"
+	LogSourceBackend  LogSource = "backend"
+)
+
+var AllLogSource = []LogSource{
+	LogSourceFrontend,
+	LogSourceBackend,
+}
+
+func (e LogSource) IsValid() bool {
+	switch e {
+	case LogSourceFrontend, LogSourceBackend:
+		return true
+	}
+	return false
+}
+
+func (e LogSource) String() string {
+	return string(e)
+}
+
+func (e *LogSource) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LogSource(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LogSource", str)
+	}
+	return nil
+}
+
+func (e LogSource) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type MetricAggregator string
 
 const (
