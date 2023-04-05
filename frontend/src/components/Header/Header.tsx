@@ -353,7 +353,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated, integrated }) => {
 							width="full"
 						>
 							{!!projectIdRemapped &&
-								!!fullyIntegrated &&
+								!fullyIntegrated &&
 								!isSetup && (
 									<LinkButton
 										to={`/${project_id}/setup`}
