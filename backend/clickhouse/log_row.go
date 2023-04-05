@@ -44,7 +44,7 @@ type LogRow struct {
 	TraceFlags     uint32
 	SeverityText   string
 	SeverityNumber int32
-	Source         string
+	Source         modelInputs.LogSource
 	ServiceName    string
 	Body           string
 	LogAttributes  map[string]string
@@ -100,7 +100,7 @@ func WithSeverityText(severityText string) LogRowOption {
 
 func WithSource(source modelInputs.LogSource) LogRowOption {
 	return func(l *LogRow) {
-		l.Source = source.String()
+		l.Source = source
 	}
 }
 
