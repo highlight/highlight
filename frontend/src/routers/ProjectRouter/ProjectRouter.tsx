@@ -24,7 +24,11 @@ import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalCont
 import WithErrorSearchContext from '@routers/ProjectRouter/WithErrorSearchContext'
 import WithSessionSearchContext from '@routers/ProjectRouter/WithSessionSearchContext'
 import { auth } from '@util/auth'
-import { useClientIntegrated, useServerIntegrated } from '@util/integrated'
+import {
+	useClientIntegrated,
+	useLogsIntegrated,
+	useServerIntegrated,
+} from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useDialogState } from 'ariakit/dialog'
 import clsx from 'clsx'
@@ -54,11 +58,16 @@ export const ProjectRouter = () => {
 		useClientIntegrated()
 	const { data: serverIntegration, loading: serverLoading } =
 		useServerIntegrated()
+	const { data: logsIntegration, loading: logsLoading } = useLogsIntegrated()
 	const fullyIntegrated =
-		!!clientIntegration?.integrated && !!serverIntegration?.integrated
+		!!clientIntegration?.integrated &&
+		!!serverIntegration?.integrated &&
+		!!logsIntegration?.integrated
 	const integrated =
-		!!clientIntegration?.integrated || !!serverIntegration?.integrated
-	const integrationLoading = clientLoading || serverLoading
+		!!clientIntegration?.integrated ||
+		!!serverIntegration?.integrated ||
+		!!logsIntegration?.integrated
+	const integrationLoading = clientLoading || serverLoading || logsLoading
 
 	useEffect(() => {
 		const uri =
@@ -247,7 +256,15 @@ export const ProjectRouter = () => {
 													/>
 												) : (
 													<ApplicationRouter
-														integrated={integrated}
+														clientIntegration={
+															clientIntegration
+														}
+														serverIntegration={
+															serverIntegration
+														}
+														logsIntegration={
+															logsIntegration
+														}
 													/>
 												)}
 											</div>
