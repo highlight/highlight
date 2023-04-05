@@ -85,14 +85,12 @@ export class HighlightInterceptor
 		@Inject(Symbol('HighlightModuleOptions'))
 		readonly opts: NodeOptions,
 	) {
-		console.log('vadim constructor')
 		if (!NodeH.isInitialized()) {
 			NodeH.init(opts)
 		}
 	}
 
 	async onApplicationShutdown(signal?: string) {
-		console.log('vadim shutdown')
 		await NodeH.flush()
 	}
 
@@ -101,7 +99,6 @@ export class HighlightInterceptor
 		const request = ctx.getRequest()
 		const highlightCtx = NodeH.parseHeaders(request.headers)
 
-		console.log('vadim intercept')
 		return next.handle().pipe(
 			catchError((err) => {
 				NodeH.consumeError(
