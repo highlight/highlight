@@ -11082,10 +11082,12 @@ __metadata:
     class-validator: ^0.14.0
     eslint: ^8.36.0
     reflect-metadata: ^0.1.13
+    rxjs: ^7.8.0
     tsup: ^6.6.3
     typescript: ^4.9.5
   peerDependencies:
     "@nestjs/core": ">=8"
+    rxjs: ">=7"
   languageName: unknown
   linkType: soft
 
@@ -49195,7 +49197,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:^7.2.0":
+"rxjs@npm:^7.2.0, rxjs@npm:^7.8.0":
   version: 7.8.0
   resolution: "rxjs@npm:7.8.0"
   dependencies:
