@@ -395,7 +395,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 	for projectID, logRows := range projectLogs {
 		var hasBackendLogs bool
 		for _, logRow := range logRows {
-			if logRow.Source == modelInputs.LogSourceBackend.String() {
+			if logRow.Source == modelInputs.LogSourceBackend
 				hasBackendLogs = true
 				break
 			}
