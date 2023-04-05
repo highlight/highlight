@@ -102,9 +102,9 @@ func WithSeverityText(severityText string) LogRowOption {
 	}
 }
 
-func WithSource(source string) LogRowOption {
+func WithSource(sourceAttribute string) LogRowOption {
 	return func(l *LogRow) {
-		if source == highlight.SourceAttributeFrontend {
+		if sourceAttribute == highlight.SourceAttributeFrontend {
 			l.Source = modelInputs.LogSourceFrontend.String()
 		} else {
 			l.Source = modelInputs.LogSourceBackend.String()
