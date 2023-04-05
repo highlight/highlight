@@ -118,7 +118,7 @@ func TestCalculateSessionLength(t *testing.T) {
 }
 
 func TestGetActiveDuration(t *testing.T) {
-	zeroTime := time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
+	zeroTime := time.Time{}
 	beginningOfTime := time.Unix(0, 1000000).UTC()
 	tables := map[string]struct {
 		events             []model.EventsObject
@@ -156,6 +156,7 @@ func TestGetActiveDuration(t *testing.T) {
 					"events": [{
 						"_sid": 1,
 						"data": {"source": 5},
+						"timestamp": 1,
 						"type": 2
 					}]
 				}
@@ -194,6 +195,7 @@ func TestGetActiveDuration(t *testing.T) {
 					"events": [{
 						"_sid": 1,
 						"data": {"source": 5},
+						"timestamp": 1,
 						"type": 2
 					}]
 				}
@@ -231,6 +233,7 @@ func TestGetActiveDuration(t *testing.T) {
 					"events": [{
 						"_sid": 1,
 						"data": {"source": 5},
+						"timestamp": 1,
 						"type": 2
 					}]
 				}
@@ -298,6 +301,7 @@ func TestGetActiveDuration(t *testing.T) {
 					"events": [{
 						"_sid": 1,
 						"data": {"source": 5},
+						"timestamp": 1,
 						"type": 2
 					}]
 				}
@@ -696,7 +700,7 @@ func TestGetActiveDuration(t *testing.T) {
 			if diff := deep.Equal(tt.wantActiveDuration, a.ActiveDuration); diff != nil {
 				t.Errorf("[active duration not equal to expected]: %v", diff)
 			}
-			if diff := deep.Equal(tt.expectedFirstTS, a.FirstEventTimestamp); diff != nil {
+			if diff := deep.Equal(tt.expectedFirstTS, a.FirstFullSnapshotTimestamp); diff != nil {
 				t.Errorf("[expected first timestamp not equal to actual]: %v", diff)
 			}
 			for _, iii := range a.RageClickSets {
