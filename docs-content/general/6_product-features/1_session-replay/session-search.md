@@ -33,6 +33,6 @@ When using Highlight, you might be interested in querying for sessions where a u
 
 - `clickTextContent `is the HTML Element's target's `textContent` property. Only the first 2000 characters are sent.
 
-You can then use the session filters to search for text in the two fields. An example of what the `clickSelector` filter lookgs like is below:
+You can then use the session filters to search for text in the two fields. An example of what the `clickSelector` filter looks like is below:
 
 ![](/images/click-selector.png)
