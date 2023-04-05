@@ -3,7 +3,7 @@ import { borders } from '@highlight-run/ui/src/css/borders'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
 
-export const REGULAR_HISTOGRAM_HEIGHT = '3.86rem' // computed as 52px in Chrome
+export const REGULAR_HISTOGRAM_HEIGHT = '4.16rem' // computed as 52px in Chrome
 export const OUTLINE_HISTOGRAM_HEIGHT = 120
 export const OUTLINE_PADDING = 2
 
