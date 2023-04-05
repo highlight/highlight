@@ -92,16 +92,6 @@ services:
             timeout: 5s
             retries: 5
 
-    setup-influxdb:
-        image: influxdb:latest
-        command:
-            - bash
-            - -c
-            - 'influx setup --host http://influxdb:8086 --skip-verify --bucket dev-bucket --org dev-org --username dev --password devdevdevdev --retention 0 --token not-a-secure-token --force'
-        depends_on:
-            influxdb:
-                condition: service_healthy
-
     collector:
         ports:
             - 4317:4317
