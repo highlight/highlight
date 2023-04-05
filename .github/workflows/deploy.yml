@@ -1,7 +1,5 @@
 name: Deploy to AWS
 on:
-    pull_request:
-        types: [opened, synchronize]
     push:
         branches:
             - 'main'
