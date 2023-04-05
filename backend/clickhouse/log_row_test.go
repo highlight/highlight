@@ -2,9 +2,11 @@ package clickhouse
 
 import (
 	"context"
-	"github.com/highlight/highlight/sdk/highlight-go"
 	"testing"
 	"time"
+
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight/highlight/sdk/highlight-go"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -67,11 +69,18 @@ func TestNewLogRowWithLongBody(t *testing.T) {
 
 func TestNewLogRowWithSource(t *testing.T) {
 	lr := NewLogRow(LogRowPrimaryAttrs{}, WithSource(highlight.SourceAttributeFrontend))
-	assert.Equal(t, LogRowSourceValueFrontend, lr.Source)
-	assert.Equal(t, "frontend", LogRowSourceValueFrontend)
+	assert.Equal(t, modelInputs.LogSourceFrontend.String(), lr.Source)
+
 	lr = NewLogRow(LogRowPrimaryAttrs{}, WithSource("InterceptField"))
-	assert.Equal(t, LogRowSourceValueBackend, lr.Source)
-	assert.Equal(t, "backend", LogRowSourceValueBackend)
+	assert.Equal(t, modelInputs.LogSourceBackend.String(), lr.Source)
+}
+
+func TestIsBackend(t *testing.T) {
+	lr := NewLogRow(LogRowPrimaryAttrs{}, WithSource(highlight.SourceAttributeFrontend))
+	assert.False(t, lr.IsBackend())
+
+	lr = NewLogRow(LogRowPrimaryAttrs{}, WithSource("InterceptField"))
+	assert.True(t, lr.IsBackend())
 }
 
 func TestNewLogRowWithTimestamp(t *testing.T) {

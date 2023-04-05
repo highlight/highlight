@@ -711,6 +711,11 @@ export enum LogLevel {
 	Warn = 'warn',
 }
 
+export enum LogSource {
+	Backend = 'backend',
+	Frontend = 'frontend',
+}
+
 export type LogsConnection = {
 	__typename?: 'LogsConnection'
 	edges: Array<LogEdge>

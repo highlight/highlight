@@ -8447,6 +8447,11 @@ enum ReservedLogKey {
 	service_name
 }
 
+enum LogSource {
+	frontend
+	backend
+}
+
 enum LogKeyType {
 	String
 }
