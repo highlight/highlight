@@ -270,10 +270,6 @@ export class FirstLoadListeners {
 				// Prior to this, it may be best to refactor the existing logic
 				// above to be less tied to PerformanceResourceTiming, since we
 				// only care about a subset of fields.
-				console.log(
-					'Intercepted WebSocket events',
-					sThis.wsNetworkContents,
-				)
 			}
 		}
 		return resources
