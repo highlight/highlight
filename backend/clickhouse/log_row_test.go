@@ -6,7 +6,6 @@ import (
 	"time"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight/highlight/sdk/highlight-go"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -68,19 +67,11 @@ func TestNewLogRowWithLongBody(t *testing.T) {
 }
 
 func TestNewLogRowWithSource(t *testing.T) {
-	lr := NewLogRow(LogRowPrimaryAttrs{}, WithSource(highlight.SourceAttributeFrontend))
+	lr := NewLogRow(LogRowPrimaryAttrs{}, WithSource(modelInputs.LogSourceFrontend))
 	assert.Equal(t, modelInputs.LogSourceFrontend.String(), lr.Source)
 
 	lr = NewLogRow(LogRowPrimaryAttrs{}, WithSource("InterceptField"))
 	assert.Equal(t, modelInputs.LogSourceBackend.String(), lr.Source)
-}
-
-func TestIsBackend(t *testing.T) {
-	lr := NewLogRow(LogRowPrimaryAttrs{}, WithSource(highlight.SourceAttributeFrontend))
-	assert.False(t, lr.IsBackend())
-
-	lr = NewLogRow(LogRowPrimaryAttrs{}, WithSource("InterceptField"))
-	assert.True(t, lr.IsBackend())
 }
 
 func TestNewLogRowWithTimestamp(t *testing.T) {

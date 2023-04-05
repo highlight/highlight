@@ -74,10 +74,6 @@ func (l *LogRow) Cursor() string {
 	return encodeCursor(l.Timestamp, l.UUID)
 }
 
-func (l *LogRow) IsBackend() bool {
-	return l.Source == modelInputs.LogSourceBackend.String()
-}
-
 type LogRowOption func(*LogRow)
 
 func WithTimestamp(ts time.Time) LogRowOption {
@@ -102,13 +98,9 @@ func WithSeverityText(severityText string) LogRowOption {
 	}
 }
 
-func WithSource(sourceAttribute string) LogRowOption {
+func WithSource(source modelInputs.LogSource) LogRowOption {
 	return func(l *LogRow) {
-		if sourceAttribute == highlight.SourceAttributeFrontend {
-			l.Source = modelInputs.LogSourceFrontend.String()
-		} else {
-			l.Source = modelInputs.LogSourceBackend.String()
-		}
+		l.Source = source.String()
 	}
 }
 
