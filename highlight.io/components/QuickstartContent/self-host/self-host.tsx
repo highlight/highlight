@@ -1,5 +1,11 @@
 import { QuickStartContent } from '../QuickstartContent'
-import { clone, dashboard, dependencies, start } from './shared-snippets'
+import {
+	clone,
+	dashboard,
+	dependencies,
+	start,
+	troubleshoot,
+} from './shared-snippets'
 
 export const SelfHostContent: QuickStartContent = {
 	title: 'Self-hosted (Hobby) Deployment',
@@ -24,15 +30,6 @@ H.init('<YOUR_PROJECT_ID>', {
 				language: 'javascript',
 			},
 		},
-		{
-			title: 'Troubleshoot the deployment.',
-			content:
-				"Having issues? Here's some things ot try. First run the `docker ps` command and ensure that all containers are in a 'healthy' state. As a second step, run `docker compose logs` to see the logs for the infra containers. If this doesn't help w/ troubleshooting, please [reach out](https://highlight.io/community).",
-			code: {
-				text: `docker ps
-docker compose logs`,
-				language: 'bash',
-			},
-		},
+		troubleshoot,
 	],
 }

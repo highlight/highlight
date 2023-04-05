@@ -44,3 +44,20 @@ export const dashboard: QuickStartStep = {
 	content:
 		'Visit https://localhost:3000 to view the dashboard and go through the login flow; there are no login credentials required.',
 }
+
+export const troubleshoot: QuickStartStep = {
+	title: 'Troubleshoot the deployment.',
+	content:
+		"Having issues? Here's some things ot try. First run the `docker ps` command and ensure that all containers are in a 'healthy' state. " +
+		'As a second step, run `docker compose logs` to see the logs for the infra containers. ' +
+		'Looking at the logs, if any containers are not healthy, use the follow commands to start from scratch. ' +
+		"If this doesn't help w/ troubleshooting, please [reach out](https://highlight.io/community).",
+	code: {
+		text: `docker ps
+docker compose logs
+# delete everything in the docker compose stack
+docker compose down --remove-orphans --volumes --rmi local
+`,
+		language: 'bash',
+	},
+}
