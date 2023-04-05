@@ -11,8 +11,13 @@ else
 fi
 pushd ../backend
 # migrate postgres schema
-go run ./migrations/main.go
+go run ./migrations/main.go > /tmp/highlightSetup.log 2>&1
 # setup opensearch indices
-go run main.go -runtime=worker -worker-handler=init-opensearch
+go run main.go -runtime=worker -worker-handler=init-opensearch >> /tmp/highlightSetup.log 2>&1
+if grep -i 'level=error' /tmp/highlightSetup.log; then
+  echo 'Failed to migrate highlight infrastructure.'
+  cat /tmp/highlightSetup.log
+  exit 1
+fi
 popd
 echo 'Highlight infrastructure started'
