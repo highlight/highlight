@@ -1134,6 +1134,7 @@ type IntegrationStatus {
 	integrated: Boolean!
 	resourceType: String!
 	resourceSecureId: String
+	createdAt: Timestamp
 }
 
 enum DashboardChartType {
@@ -1340,7 +1341,7 @@ type Query {
 	isBackendIntegrated(project_id: ID!): Boolean
 	clientIntegration(project_id: ID!): IntegrationStatus!
 	serverIntegration(project_id: ID!): IntegrationStatus!
-	logsIntegration(project_id: ID!): LogsConnection
+	logsIntegration(project_id: ID!): IntegrationStatus!
 	unprocessedSessionsCount(project_id: ID!): Int64
 	liveUsersCount(project_id: ID!): Int64
 	adminHasCreatedComment(admin_id: ID!): Boolean

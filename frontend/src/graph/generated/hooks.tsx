@@ -8999,6 +8999,7 @@ export const GetClientIntegrationDocument = gql`
 			integrated
 			resourceType
 			resourceSecureId
+			createdAt
 		}
 	}
 `
@@ -9057,6 +9058,7 @@ export const GetServerIntegrationDocument = gql`
 			integrated
 			resourceType
 			resourceSecureId
+			createdAt
 		}
 	}
 `
@@ -9108,6 +9110,65 @@ export type GetServerIntegrationLazyQueryHookResult = ReturnType<
 export type GetServerIntegrationQueryResult = Apollo.QueryResult<
 	Types.GetServerIntegrationQuery,
 	Types.GetServerIntegrationQueryVariables
+>
+export const GetLogsIntegrationDocument = gql`
+	query GetLogsIntegration($project_id: ID!) {
+		logsIntegration(project_id: $project_id) {
+			integrated
+			resourceType
+			resourceSecureId
+			createdAt
+		}
+	}
+`
+
+/**
+ * __useGetLogsIntegrationQuery__
+ *
+ * To run a query within a React component, call `useGetLogsIntegrationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogsIntegrationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogsIntegrationQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetLogsIntegrationQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLogsIntegrationQuery,
+		Types.GetLogsIntegrationQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetLogsIntegrationQuery,
+		Types.GetLogsIntegrationQueryVariables
+	>(GetLogsIntegrationDocument, baseOptions)
+}
+export function useGetLogsIntegrationLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLogsIntegrationQuery,
+		Types.GetLogsIntegrationQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetLogsIntegrationQuery,
+		Types.GetLogsIntegrationQueryVariables
+	>(GetLogsIntegrationDocument, baseOptions)
+}
+export type GetLogsIntegrationQueryHookResult = ReturnType<
+	typeof useGetLogsIntegrationQuery
+>
+export type GetLogsIntegrationLazyQueryHookResult = ReturnType<
+	typeof useGetLogsIntegrationLazyQuery
+>
+export type GetLogsIntegrationQueryResult = Apollo.QueryResult<
+	Types.GetLogsIntegrationQuery,
+	Types.GetLogsIntegrationQueryVariables
 >
 export const GetKeyPerformanceIndicatorsDocument = gql`
 	query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {

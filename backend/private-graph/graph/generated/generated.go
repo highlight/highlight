@@ -476,6 +476,7 @@ type ComplexityRoot struct {
 	}
 
 	IntegrationStatus struct {
+		CreatedAt        func(childComplexity int) int
 		Integrated       func(childComplexity int) int
 		ResourceSecureID func(childComplexity int) int
 		ResourceType     func(childComplexity int) int
@@ -1299,7 +1300,7 @@ type QueryResolver interface {
 	IsBackendIntegrated(ctx context.Context, projectID int) (*bool, error)
 	ClientIntegration(ctx context.Context, projectID int) (*model.IntegrationStatus, error)
 	ServerIntegration(ctx context.Context, projectID int) (*model.IntegrationStatus, error)
-	LogsIntegration(ctx context.Context, projectID int) (*model.LogsConnection, error)
+	LogsIntegration(ctx context.Context, projectID int) (*model.IntegrationStatus, error)
 	UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error)
 	LiveUsersCount(ctx context.Context, projectID int) (*int64, error)
 	AdminHasCreatedComment(ctx context.Context, adminID int) (*bool, error)
@@ -3334,6 +3335,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.IntegrationProjectMapping.ProjectID(childComplexity), true
+
+	case "IntegrationStatus.createdAt":
+		if e.complexity.IntegrationStatus.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.IntegrationStatus.CreatedAt(childComplexity), true
 
 	case "IntegrationStatus.integrated":
 		if e.complexity.IntegrationStatus.Integrated == nil {
@@ -9023,6 +9031,7 @@ type IntegrationStatus {
 	integrated: Boolean!
 	resourceType: String!
 	resourceSecureId: String
+	createdAt: Timestamp
 }
 
 enum DashboardChartType {
@@ -9229,7 +9238,7 @@ type Query {
 	isBackendIntegrated(project_id: ID!): Boolean
 	clientIntegration(project_id: ID!): IntegrationStatus!
 	serverIntegration(project_id: ID!): IntegrationStatus!
-	logsIntegration(project_id: ID!): LogsConnection
+	logsIntegration(project_id: ID!): IntegrationStatus!
 	unprocessedSessionsCount(project_id: ID!): Int64
 	liveUsersCount(project_id: ID!): Int64
 	adminHasCreatedComment(admin_id: ID!): Boolean
@@ -27143,6 +27152,47 @@ func (ec *executionContext) fieldContext_IntegrationStatus_resourceSecureId(ctx 
 	return fc, nil
 }
 
+func (ec *executionContext) _IntegrationStatus_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.IntegrationStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IntegrationStatus_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IntegrationStatus_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IntegrationStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Invoice_amountDue(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Invoice_amountDue(ctx, field)
 	if err != nil {
@@ -37789,6 +37839,8 @@ func (ec *executionContext) fieldContext_Query_clientIntegration(ctx context.Con
 				return ec.fieldContext_IntegrationStatus_resourceType(ctx, field)
 			case "resourceSecureId":
 				return ec.fieldContext_IntegrationStatus_resourceSecureId(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_IntegrationStatus_createdAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type IntegrationStatus", field.Name)
 		},
@@ -37851,6 +37903,8 @@ func (ec *executionContext) fieldContext_Query_serverIntegration(ctx context.Con
 				return ec.fieldContext_IntegrationStatus_resourceType(ctx, field)
 			case "resourceSecureId":
 				return ec.fieldContext_IntegrationStatus_resourceSecureId(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_IntegrationStatus_createdAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type IntegrationStatus", field.Name)
 		},
@@ -37889,11 +37943,14 @@ func (ec *executionContext) _Query_logsIntegration(ctx context.Context, field gr
 		ec.Error(ctx, err)
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.LogsConnection)
+	res := resTmp.(*model.IntegrationStatus)
 	fc.Result = res
-	return ec.marshalOLogsConnection2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsConnection(ctx, field.Selections, res)
+	return ec.marshalNIntegrationStatus2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_logsIntegration(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -37904,12 +37961,16 @@ func (ec *executionContext) fieldContext_Query_logsIntegration(ctx context.Conte
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "edges":
-				return ec.fieldContext_LogsConnection_edges(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_LogsConnection_pageInfo(ctx, field)
+			case "integrated":
+				return ec.fieldContext_IntegrationStatus_integrated(ctx, field)
+			case "resourceType":
+				return ec.fieldContext_IntegrationStatus_resourceType(ctx, field)
+			case "resourceSecureId":
+				return ec.fieldContext_IntegrationStatus_resourceSecureId(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_IntegrationStatus_createdAt(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type LogsConnection", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type IntegrationStatus", field.Name)
 		},
 	}
 	defer func() {
@@ -60071,6 +60132,10 @@ func (ec *executionContext) _IntegrationStatus(ctx context.Context, sel ast.Sele
 
 			out.Values[i] = ec._IntegrationStatus_resourceSecureId(ctx, field, obj)
 
+		case "createdAt":
+
+			out.Values[i] = ec._IntegrationStatus_createdAt(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -71906,13 +71971,6 @@ func (ec *executionContext) marshalOLinearTeam2ᚕᚖgithubᚗcomᚋhighlightᚑ
 	}
 
 	return ret
-}
-
-func (ec *executionContext) marshalOLogsConnection2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsConnection(ctx context.Context, sel ast.SelectionSet, v *model.LogsConnection) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._LogsConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx context.Context, v interface{}) (*model.MetricAggregator, error) {

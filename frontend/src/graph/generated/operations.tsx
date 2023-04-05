@@ -3234,7 +3234,7 @@ export type GetClientIntegrationQueryVariables = Types.Exact<{
 export type GetClientIntegrationQuery = { __typename?: 'Query' } & {
 	clientIntegration: { __typename?: 'IntegrationStatus' } & Pick<
 		Types.IntegrationStatus,
-		'integrated' | 'resourceType' | 'resourceSecureId'
+		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
 	>
 }
 
@@ -3245,7 +3245,18 @@ export type GetServerIntegrationQueryVariables = Types.Exact<{
 export type GetServerIntegrationQuery = { __typename?: 'Query' } & {
 	serverIntegration: { __typename?: 'IntegrationStatus' } & Pick<
 		Types.IntegrationStatus,
-		'integrated' | 'resourceType' | 'resourceSecureId'
+		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
+	>
+}
+
+export type GetLogsIntegrationQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetLogsIntegrationQuery = { __typename?: 'Query' } & {
+	logsIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
 	>
 }
 
@@ -4174,6 +4185,7 @@ export const namedOperations = {
 		IsBackendIntegrated: 'IsBackendIntegrated' as const,
 		GetClientIntegration: 'GetClientIntegration' as const,
 		GetServerIntegration: 'GetServerIntegration' as const,
+		GetLogsIntegration: 'GetLogsIntegration' as const,
 		GetKeyPerformanceIndicators: 'GetKeyPerformanceIndicators' as const,
 		GetReferrersCount: 'GetReferrersCount' as const,
 		GetNewUsersCount: 'GetNewUsersCount' as const,

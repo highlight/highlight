@@ -333,9 +333,10 @@ type IntegrationProjectMappingInput struct {
 }
 
 type IntegrationStatus struct {
-	Integrated       bool    `json:"integrated"`
-	ResourceType     string  `json:"resourceType"`
-	ResourceSecureID *string `json:"resourceSecureId"`
+	Integrated       bool       `json:"integrated"`
+	ResourceType     string     `json:"resourceType"`
+	ResourceSecureID *string    `json:"resourceSecureId"`
+	CreatedAt        *time.Time `json:"createdAt"`
 }
 
 type Invoice struct {
