@@ -3,7 +3,7 @@ import yaml from 'js-yaml'
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { serialize } from 'next-mdx-remote/serialize'
 import { GetStaticPaths, GetStaticProps } from 'next/types'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Collapse } from 'react-collapse'
 import styles from '../../components/Docs/Docs.module.scss'
 import ChevronDown from '../../public/images/ChevronDownIcon'
@@ -817,6 +817,7 @@ const DocPage = ({
 	const blogBody = useRef<HTMLDivElement>(null)
 	const router = useRouter()
 	const [open, setOpen] = useState(false)
+	const closeMenu = useCallback(() => setOpen(false), [])
 
 	const isQuickstart = metadata && 'quickstart' in metadata
 
@@ -920,7 +921,7 @@ const DocPage = ({
 										docPaths={docOptions}
 										openParent={false}
 										openTopLevel={false}
-										onNavigate={() => setOpen(false)}
+										onNavigate={closeMenu}
 									/>
 								))
 							)}
