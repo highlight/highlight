@@ -156,7 +156,6 @@ const Search: React.FC<{
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
 
 	const showResults = loading || visibleItems.length > 0 || showTermSelect
-
 	const isDirty = state.value !== ''
 
 	const submitQuery = (query: string) => {
@@ -198,6 +197,15 @@ const Search: React.FC<{
 		// links combobox and form states;
 		// necessary to update the URL when the query changes
 		formState.setValue('query', state.value)
+
+		// Clear the selected item if the combobox is empty. Need to flush execution
+		// queue before clearing the active item.
+		if (state.value === '') {
+			setTimeout(() => {
+				state.setActiveId(null)
+				state.setMoves(0)
+			}, 0)
+		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [state.value])
 
@@ -253,6 +261,13 @@ const Search: React.FC<{
 					onBlur={() => {
 						submitQuery(state.value)
 						inputRef?.current?.blur()
+					}}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter' && state.value === '') {
+							e.preventDefault()
+							submitQuery(state.value)
+							state.setOpen(false)
+						}
 					}}
 				/>
 
