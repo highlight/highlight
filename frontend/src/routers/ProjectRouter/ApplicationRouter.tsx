@@ -66,7 +66,16 @@ const ApplicationRouter: React.FC<IntegrationProps> = ({
 						element={<ProjectSettings />}
 					/>
 					<Route path="alerts/*" element={<AlertsRouter />} />
-					<Route path="setup/*" element={<SetupRouter />} />
+					<Route
+						path="setup/*"
+						element={
+							<SetupRouter
+								clientIntegration={clientIntegration}
+								serverIntegration={serverIntegration}
+								logsIntegration={logsIntegration}
+							/>
+						}
+					/>
 
 					<Route
 						path="integrations/*"
