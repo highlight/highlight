@@ -5,9 +5,15 @@ createdAt: 2022-05-06T23:05:46.000Z
 updatedAt: 2022-09-12T16:18:46.000Z
 ---
 
-# Searching by Identifier
+In [highlight.io](https://highlight.io), you can search for a session by any of the data you send us (via the SDK) throughout a session. The data you send us can be in the form of:
 
-In [highlight.io](https://highlight.io), you can search for a session by any of the data you send us (via the SDK) throughout a session. The data you send us can be in the form of [track](../../../getting-started/3_client-sdk/7_replay-configuration/tracking-events.md) or [identify](../../../getting-started/3_client-sdk/7_replay-configuration/identifying-sessions.md) calls.
+- [track](../../../getting-started/3_client-sdk/7_replay-configuration/tracking-events.md) calls
+
+- [identify](../../../getting-started/3_client-sdk/7_replay-configuration/identifying-sessions.md) calls
+
+- click data
+
+We cover how search/instrumentation for each type of these queries works below.
 
 ## Track Searching
 For track calls, you can search for sessions based on the properties that have a type of `track`. This looks like the following:
