@@ -3,6 +3,7 @@ package timeseries
 import (
 	"context"
 	"fmt"
+	http2 "github.com/influxdata/influxdb-client-go/v2/api/http"
 	"os"
 	"sort"
 	"strings"
@@ -133,21 +134,32 @@ func (i *InfluxDB) GetBucket(projectID string, measurement Measurement) string {
 }
 
 func (i *InfluxDB) createWriteAPI(ctx context.Context, bucket string, measurement Measurement) api.WriteAPI {
+	var err error
 	config := Configs[measurement]
 	b := i.GetBucket(bucket, measurement)
 	// ignore bucket already exists error
-	_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
+	_, err = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
 		// short data expiry for granular data since we will only store downsampled data long term
 		EverySeconds: int64(config.DownsampleThreshold.Seconds()),
 		Type:         domain.RetentionRuleTypeExpire,
 	})
+	if httpErr, ok := err.(*http2.Error); ok {
+		if httpErr.Code != "conflict" {
+			log.WithContext(ctx).WithError(httpErr).WithField("bucket", b).WithField("measurement", measurement).Error("failed to create main bucket")
+		}
+	}
 	// create a downsample bucket. ignore bucket already exists error
 	downsampleB := b + config.DownsampleBucketSuffix
-	_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, downsampleB, domain.RetentionRule{
+	_, err = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, downsampleB, domain.RetentionRule{
 		// long term data expiry for downsampled data
 		EverySeconds: int64(config.DownsampleRetention.Seconds()),
 		Type:         domain.RetentionRuleTypeExpire,
 	})
+	if httpErr, ok := err.(*http2.Error); ok {
+		if httpErr.Code != "conflict" {
+			log.WithContext(ctx).WithError(httpErr).WithField("bucket", downsampleB).Error("failed to create downsampled bucket")
+		}
+	}
 	taskName := fmt.Sprintf("task-%s", downsampleB)
 	if config.Version > 1 {
 		taskName = fmt.Sprintf("%s-v%d", taskName, config.Version)
@@ -177,7 +189,7 @@ func (i *InfluxDB) createWriteAPI(ctx context.Context, bucket string, measuremen
 		for _, t := range tasks[1:] {
 			_ = i.Client.TasksAPI().DeleteTaskWithID(context.Background(), t.Id)
 		}
-	} else {
+	} else if len(tasks) < 1 {
 		log.WithContext(ctx).Errorf("influx.go expected a task to be created for %s:%s but none was found", downsampleB, taskName)
 	}
 	for version := 1; version < config.Version; version++ {

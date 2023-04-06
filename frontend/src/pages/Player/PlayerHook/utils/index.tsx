@@ -301,6 +301,7 @@ const CustomEventsForTimeline = [
 	'Identify',
 	'Web Vitals',
 	'Referrer',
+	'RageClicks',
 	'TabHidden',
 ] as const
 const CustomEventsForTimelineSet = new Set(CustomEventsForTimeline)
@@ -728,4 +729,5 @@ export const EventTypeDescriptions: EventTypeWithDescription = {
 		'These are custom calls to Highlight identify method to add identity metadata for a session.',
 	Viewport: 'The size of the browser changed.',
 	TabHidden: 'The user switched away from the current tab.',
+	RageClicks: 'The user clicked on the same element multiple times in a row.',
 } as const

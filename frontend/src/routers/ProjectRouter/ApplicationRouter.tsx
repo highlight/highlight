@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import AlertsRouter from '@pages/Alerts/AlertsRouter'
+import LogAlertsRouter from '@pages/Alerts/LogAlert/LogAlertRouter'
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
@@ -9,6 +10,11 @@ import PlayerPage from '@pages/Player/PlayerPage'
 import ProjectSettings from '@pages/ProjectSettings/ProjectSettings'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { SetupRouter } from '@pages/Setup/SetupRouter/SetupRouter'
+import {
+	useClientIntegrated,
+	useLogsIntegrated,
+	useServerIntegrated,
+} from '@util/integrated'
 import { usePreloadErrors, usePreloadSessions } from '@util/preload'
 import React, { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
@@ -16,11 +22,17 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
 
-interface Props {
-	integrated: boolean
+export type IntegrationProps = {
+	clientIntegration?: ReturnType<typeof useClientIntegrated>['data']
+	serverIntegration?: ReturnType<typeof useServerIntegrated>['data']
+	logsIntegration?: ReturnType<typeof useLogsIntegrated>['data']
 }
 
-const ApplicationRouter = ({ integrated }: Props) => {
+const ApplicationRouter: React.FC<IntegrationProps> = ({
+	clientIntegration,
+	serverIntegration,
+	logsIntegration,
+}) => {
 	const { page, backendSearchQuery } = useSearchContext()
 	const { page: errorPage, backendSearchQuery: errorBackendSearchQuery } =
 		useErrorSearchContext()
@@ -30,6 +42,10 @@ const ApplicationRouter = ({ integrated }: Props) => {
 		backendSearchQuery: errorBackendSearchQuery,
 	})
 	const { isLoggedIn } = useAuthContext()
+	const integrated =
+		!!clientIntegration?.integrated ||
+		!!serverIntegration?.integrated ||
+		!!logsIntegration?.integrated
 
 	return (
 		<Routes>
@@ -51,7 +67,18 @@ const ApplicationRouter = ({ integrated }: Props) => {
 						element={<ProjectSettings />}
 					/>
 					<Route path="alerts/*" element={<AlertsRouter />} />
-					<Route path="setup/*" element={<SetupRouter />} />
+					<Route path="alerts/logs/*" element={<LogAlertsRouter />} />
+
+					<Route
+						path="setup/*"
+						element={
+							<SetupRouter
+								clientIntegration={clientIntegration}
+								serverIntegration={serverIntegration}
+								logsIntegration={logsIntegration}
+							/>
+						}
+					/>
 
 					<Route
 						path="integrations/*"

@@ -371,6 +371,21 @@ type Log struct {
 	ServiceName     *string                `json:"serviceName"`
 }
 
+type LogAlertInput struct {
+	ProjectID           int                           `json:"project_id"`
+	Name                string                        `json:"name"`
+	CountThreshold      int                           `json:"count_threshold"`
+	BelowThreshold      bool                          `json:"below_threshold"`
+	ThresholdWindow     int                           `json:"threshold_window"`
+	SlackChannels       []*SanitizedSlackChannelInput `json:"slack_channels"`
+	DiscordChannels     []*DiscordChannelInput        `json:"discord_channels"`
+	WebhookDestinations []*WebhookDestinationInput    `json:"webhook_destinations"`
+	Emails              []string                      `json:"emails"`
+	Environments        []string                      `json:"environments"`
+	Disabled            bool                          `json:"disabled"`
+	Query               string                        `json:"query"`
+}
+
 type LogEdge struct {
 	Cursor string `json:"cursor"`
 	Node   *Log   `json:"node"`
@@ -947,6 +962,47 @@ func (e *LogLevel) UnmarshalGQL(v interface{}) error {
 }
 
 func (e LogLevel) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type LogSource string
+
+const (
+	LogSourceFrontend LogSource = "frontend"
+	LogSourceBackend  LogSource = "backend"
+)
+
+var AllLogSource = []LogSource{
+	LogSourceFrontend,
+	LogSourceBackend,
+}
+
+func (e LogSource) IsValid() bool {
+	switch e {
+	case LogSourceFrontend, LogSourceBackend:
+		return true
+	}
+	return false
+}
+
+func (e LogSource) String() string {
+	return string(e)
+}
+
+func (e *LogSource) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LogSource(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LogSource", str)
+	}
+	return nil
+}
+
+func (e LogSource) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -646,7 +646,10 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 	for _, errorGroupID := range errorGroupIDs {
 		errorGroupFilters = append(errorGroupFilters, fmt.Sprintf(`r.ErrorGroupID == "%d"`, errorGroupID))
 	}
-	errorGroupFilter := fmt.Sprintf(`|> filter(fn: (r) => %s)`, strings.Join(errorGroupFilters, " or "))
+	var errorGroupFilter string
+	if len(errorGroupFilters) > 0 {
+		errorGroupFilter = fmt.Sprintf(`|> filter(fn: (r) => %s)`, strings.Join(errorGroupFilters, " or "))
+	}
 	extraFilter := ""
 	if metric != "" {
 		extraFilter = fmt.Sprintf(`|> filter(fn: (r) => r._field == "%s")`, metric)
@@ -2031,6 +2034,10 @@ func (r *Resolver) RemoveSlackFromWorkspace(workspace *model.Workspace, projectI
 		// set existing metric monitors to have empty slack channels to notify
 		if err := tx.Where(&model.MetricMonitor{ProjectID: projectID}).Updates(model.MetricMonitor{ChannelsToNotify: &empty}).Error; err != nil {
 			return e.Wrap(err, "error removing slack channels from created MetricMonitor's")
+		}
+
+		if err := tx.Where(&model.LogAlert{Alert: projectAlert}).Updates(model.LogAlert{Alert: clearedChannelsAlert}).Error; err != nil {
+			return e.Wrap(err, "error removing slack channels from created LogAlert's")
 		}
 
 		// no errors updating DB

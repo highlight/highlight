@@ -23,9 +23,7 @@ table (i.e. projects), or `show * from sessions` to look at data (i.e. rows in t
 Per the [Makefile](https://github.com/highlight/highlight/blob/main/backend/Makefile), `cd backend; make private-gen` for changes to [private schema.graphqls](https://github.com/highlight/highlight/blob/main/backend/private-graph/graph/schema.graphqls) and `cd backend; make public-gen` for changes to [public schema.graphqls](https://github.com/highlight/highlight/blob/main/backend/public-graph/graph/schema.graphqls#L4). The commands can also be executed inside docker:
 
 ```bash
-cd docker;
-docker compose exec backend bash;
+cd backend;
 make private-gen;
 make public-gen;
-exit;
 ```

@@ -91,7 +91,7 @@ const responsiveProperties = defineProperties({
 			fixed: '0 0 auto',
 		},
 		flexBasis: [0, 1],
-		flexDirection: ['row', 'column'],
+		flexDirection: ['row', 'column', 'column-reverse'],
 		flexGrow: [0, 1],
 		flexShrink: [0],
 		flexWrap: ['wrap', 'nowrap'],

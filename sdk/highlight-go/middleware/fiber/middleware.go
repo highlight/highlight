@@ -1,12 +1,13 @@
 package fiber
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/highlight/highlight/sdk/highlight-go/middleware"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"strings"
 )
 
 // Middleware is a fiber compatible middleware

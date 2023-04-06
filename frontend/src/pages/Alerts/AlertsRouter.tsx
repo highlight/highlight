@@ -108,6 +108,15 @@ const AlertsRouter = () => {
 							/>
 						}
 					/>
+					<Route
+						path="new/logs"
+						element={
+							<Navigate
+								to={`/${projectId}/alerts/logs/new`}
+								replace
+							/>
+						}
+					/>
 					<Route path="new/:type" element={<NewAlertPage />} />
 					<Route path=":id" element={<EditAlertsPage />} />
 				</Routes>
