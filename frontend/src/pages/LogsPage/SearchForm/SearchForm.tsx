@@ -211,12 +211,15 @@ const Search: React.FC<{
 
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
+		noQuotes?: boolean,
 	) => {
 		const isValueSelect = typeof key === 'string'
 
 		// If string, it's a value not a key
 		if (isValueSelect) {
-			queryTerms[activeTermIndex].value = quoteQueryValue(key)
+			queryTerms[activeTermIndex].value = noQuotes
+				? key
+				: quoteQueryValue(key)
 		} else {
 			queryTerms[activeTermIndex].key = key.name
 			queryTerms[activeTermIndex].value = ''
@@ -300,7 +303,10 @@ const Search: React.FC<{
 									<Combobox.Item
 										className={styles.comboboxItem}
 										onClick={() =>
-											handleItemSelect(activeTerm.value)
+											handleItemSelect(
+												activeTerm.value,
+												true,
+											)
 										}
 										state={state}
 									>

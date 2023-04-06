@@ -30,3 +30,11 @@ export const expandIcon = style({
 		},
 	},
 })
+
+export const textHighlight = style({
+	backgroundColor: vars.theme.static.surface.sentiment.caution,
+	borderRadius: 4,
+	color: 'inherit !important', // override styles from the highlighter component
+	display: 'inline-block',
+	padding: '0 4px',
+})

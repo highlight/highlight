@@ -227,9 +227,19 @@ const LogsTableInner = ({
 
 			{virtualRows.map((virtualRow) => {
 				const row = rows[virtualRow.index]
+				const log = row.original.node
 				const matchedAttributes = findMatchingLogAttributes(
 					queryTerms,
-					row.original.node.logAttributes,
+					{
+						...log.logAttributes,
+						level: log.level,
+						message: log.message,
+						secure_session_id: log.secureSessionID,
+						service_name: log.serviceName,
+						source: log.source,
+						span_id: log.spanID,
+						trace_id: log.traceID,
+					},
 				)
 
 				return (
@@ -324,7 +334,7 @@ export const IconCollapsed: React.FC = () => (
 
 export const findMatchingLogAttributes = (
 	queryTerms: LogsSearchParam[],
-	logAttributes: any,
+	logAttributes: object | string,
 	matchingAttributes: any = {},
 	attributeKeyBase: string[] = [],
 ): { [key: string]: { match: string; value: string } } => {
@@ -353,9 +363,8 @@ export const findMatchingLogAttributes = (
 				const queryKey = term.key
 				const queryValue = term.value
 
-				if (queryKey === key) {
-					matchingAttribute = key
-				} else if (
+				if (
+					queryKey === key ||
 					queryValue === value ||
 					value.indexOf(queryValue) !== -1
 				) {

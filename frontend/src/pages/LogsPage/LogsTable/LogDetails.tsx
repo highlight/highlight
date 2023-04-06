@@ -147,6 +147,7 @@ export const LogDetails: React.FC<Props> = ({
 								value={value}
 								queryKey={key}
 								queryTerms={queryTerms}
+								queryMatch={matchedAttributes[key]?.match}
 							/>
 						</Box>
 					),
