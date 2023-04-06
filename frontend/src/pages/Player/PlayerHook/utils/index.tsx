@@ -7,7 +7,7 @@ import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import moment from 'moment'
 import { useCallback, useState } from 'react'
-import { useLocation } from 'react-router'
+import { useLocation } from 'react-router-dom'
 import { NavigateFunction } from 'react-router-dom'
 
 import { HighlightEvent } from '../../HighlightEvent'

@@ -16,7 +16,7 @@ import React, { FunctionComponent, useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
 import ReactMarkdown from 'react-markdown'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 
 import ButtonLink from '../../components/Button/ButtonLink/ButtonLink'
 import Collapsible from '../../components/Collapsible/Collapsible'
