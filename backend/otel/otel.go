@@ -91,7 +91,6 @@ func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, tra
 		clickhouse.WithSecureSessionID(sessionID),
 		clickhouse.WithBody(ctx, excMessage),
 		clickhouse.WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, source == modelInputs.LogSourceFrontend),
-		clickhouse.WithProjectIDString(projectID),
 		clickhouse.WithServiceName(cast(resourceAttributes[string(semconv.ServiceNameKey)], "")),
 		clickhouse.WithSeverityText(lvl),
 		clickhouse.WithSource(source),
