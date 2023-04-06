@@ -81,8 +81,12 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 	}
 }
 
-func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source modelInputs.LogSource) *clickhouse.LogRow {
-	projectIDInt, _ := clickhouse.ProjectToInt(projectID)
+func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source modelInputs.LogSource) (*clickhouse.LogRow, error) {
+	projectIDInt, err := clickhouse.ProjectToInt(projectID)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return clickhouse.NewLogRow(
 		ts, uint32(projectIDInt),
@@ -94,7 +98,7 @@ func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, tra
 		clickhouse.WithServiceName(cast(resourceAttributes[string(semconv.ServiceNameKey)], "")),
 		clickhouse.WithSeverityText(lvl),
 		clickhouse.WithSource(source),
-	)
+	), nil
 }
 
 func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, requestID, traceID, spanID string, logCursor *string, excMessage string, source modelInputs.LogSource, resourceAttributes, spanAttributes, eventAttributes map[string]any) (bool, *model.BackendErrorObjectInput) {
@@ -195,7 +199,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						ts := event.Timestamp().AsTime()
 
 						var logCursor *string
-						logRow := getLogRow(ctx, ts, "ERROR", projectID, sessionID, traceID, spanID, excMessage, resourceAttributes, spanAttributes, eventAttributes, source)
+						logRow, err := getLogRow(ctx, ts, "ERROR", projectID, sessionID, traceID, spanID, excMessage, resourceAttributes, spanAttributes, eventAttributes, source)
+
+						if err != nil {
+							log.WithContext(ctx).Error("failed to create log row", err)
+							continue
+						}
+
 						projectLogs[projectID] = append(projectLogs[projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
 
@@ -220,10 +230,16 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							continue
 						}
 
-						logRow := getLogRow(
+						logRow, err := getLogRow(
 							ctx, ts, logSev, projectID, sessionID, traceID, spanID,
 							logMessage, resourceAttributes, spanAttributes, eventAttributes, source,
 						)
+
+						if err != nil {
+							log.WithContext(ctx).Error("failed to create log row", err)
+							continue
+						}
+
 						projectLogs[projectID] = append(projectLogs[projectID], logRow)
 					}
 				}
@@ -362,8 +378,9 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				logAttributes := logRecord.Attributes().AsRaw()
 				setHighlightAttributes(logAttributes, &projectID, &sessionID, &requestID, &source)
 
-				logRow := getLogRow(ctx, logRecord.Timestamp().AsTime(), logRecord.SeverityText(), projectID, sessionID, logRecord.TraceID().String(), logRecord.SpanID().String(), logRecord.Body().Str(), resourceAttributes, scopeAttributes, logAttributes, source)
-				if logRow == nil {
+				logRow, err := getLogRow(ctx, logRecord.Timestamp().AsTime(), logRecord.SeverityText(), projectID, sessionID, logRecord.TraceID().String(), logRecord.SpanID().String(), logRecord.Body().Str(), resourceAttributes, scopeAttributes, logAttributes, source)
+
+				if err != nil {
 					log.WithContext(ctx).WithField("ProjectID", projectID).WithField("LogMessage", logRecord.Body().AsRaw()).Errorf("otel log got invalid log record")
 					continue
 				}
