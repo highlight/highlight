@@ -30,36 +30,30 @@ func ProjectToInt(projectID string) (int, error) {
 	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
 }
 
-type LogRowPrimaryAttrs struct {
+type LogRow struct {
+	Timestamp       time.Time
 	ProjectId       uint32
 	TraceId         string
 	SpanId          string
 	SecureSessionId string
+	UUID            string
+	TraceFlags      uint32
+	SeverityText    string
+	SeverityNumber  int32
+	Source          modelInputs.LogSource
+	ServiceName     string
+	Body            string
+	LogAttributes   map[string]string
 }
 
-type LogRow struct {
-	LogRowPrimaryAttrs
-	Timestamp      time.Time
-	UUID           string
-	TraceFlags     uint32
-	SeverityText   string
-	SeverityNumber int32
-	Source         modelInputs.LogSource
-	ServiceName    string
-	Body           string
-	LogAttributes  map[string]string
-}
-
-func NewLogRow(attrs LogRowPrimaryAttrs, opts ...LogRowOption) *LogRow {
+func NewLogRow(timestamp time.Time, projectID uint32, opts ...LogRowOption) *LogRow {
 	logRow := &LogRow{
-		LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-			TraceId:         attrs.TraceId,
-			SpanId:          attrs.SpanId,
-			ProjectId:       attrs.ProjectId,
-			SecureSessionId: attrs.SecureSessionId,
-		},
+		// ensure timestamp is written at second precision,
+		// since clickhouse schema will truncate to second precision anyways.
+		Timestamp:      timestamp.Truncate(time.Second),
+		ProjectId:      projectID,
 		UUID:           uuid.New().String(),
-		SeverityText:   "INFO",
+		SeverityText:   makeLogLevel("INFO").String(),
 		SeverityNumber: int32(log.InfoLevel),
 	}
 
@@ -76,11 +70,21 @@ func (l *LogRow) Cursor() string {
 
 type LogRowOption func(*LogRow)
 
-func WithTimestamp(ts time.Time) LogRowOption {
-	return func(h *LogRow) {
-		// ensure timestamp is written at second precision,
-		// since clickhouse schema will truncate to second precision anyways.
-		h.Timestamp = ts.Truncate(time.Second)
+func WithTraceID(traceID string) LogRowOption {
+	return func(l *LogRow) {
+		l.TraceId = traceID
+	}
+}
+
+func WithSpanID(spanID string) LogRowOption {
+	return func(l *LogRow) {
+		l.SpanId = spanID
+	}
+}
+
+func WithSecureSessionID(secureSessionID string) LogRowOption {
+	return func(l *LogRow) {
+		l.SecureSessionId = secureSessionID
 	}
 }
 
@@ -92,9 +96,9 @@ func WithLogAttributes(ctx context.Context, resourceAttributes, spanAttributes, 
 
 func WithSeverityText(severityText string) LogRowOption {
 	logLevel := makeLogLevel(severityText)
-	return func(h *LogRow) {
-		h.SeverityText = logLevel.String()
-		h.SeverityNumber = getSeverityNumber(logLevel)
+	return func(l *LogRow) {
+		l.SeverityText = logLevel.String()
+		l.SeverityNumber = getSeverityNumber(logLevel)
 	}
 }
 
@@ -119,15 +123,6 @@ func WithBody(ctx context.Context, body string) LogRowOption {
 func WithServiceName(serviceName string) LogRowOption {
 	return func(l *LogRow) {
 		l.ServiceName = serviceName
-	}
-}
-
-func WithProjectIDString(projectID string) LogRowOption {
-	projectIDInt, err := ProjectToInt(projectID)
-	return func(l *LogRow) {
-		if err == nil {
-			l.ProjectId = uint32(projectIDInt)
-		}
 	}
 }
 

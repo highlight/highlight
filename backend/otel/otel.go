@@ -82,13 +82,13 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 }
 
 func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source modelInputs.LogSource) *clickhouse.LogRow {
+	projectIDInt, _ := clickhouse.ProjectToInt(projectID)
+
 	return clickhouse.NewLogRow(
-		clickhouse.LogRowPrimaryAttrs{
-			TraceId:         traceID,
-			SpanId:          spanID,
-			SecureSessionId: sessionID,
-		},
-		clickhouse.WithTimestamp(ts),
+		ts, uint32(projectIDInt),
+		clickhouse.WithTraceID(traceID),
+		clickhouse.WithSpanID(spanID),
+		clickhouse.WithSecureSessionID(sessionID),
 		clickhouse.WithBody(ctx, excMessage),
 		clickhouse.WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, source == modelInputs.LogSourceFrontend),
 		clickhouse.WithProjectIDString(projectID),
