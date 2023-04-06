@@ -1,4 +1,4 @@
-import 'firebase/auth'
+import 'firebase/compat/auth'
 
 import { useAuthContext } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
