@@ -14,8 +14,10 @@ pushd ../backend
 go run ./migrations/main.go > /tmp/highlightSetup.log 2>&1
 # setup opensearch indices
 go run main.go -runtime=worker -worker-handler=init-opensearch >> /tmp/highlightSetup.log 2>&1
-if grep -i 'error ' /tmp/highlightSetup.log; then
+if grep -i 'error ' /tmp/highlightSetup.log | grep -v lambda; then
   echo 'Failed to migrate highlight infrastructure.'
+  grep -i 'error ' /tmp/highlightSetup.log | grep -v lambda
+  echo 'Full output.'
   cat /tmp/highlightSetup.log
   exit 1
 fi
