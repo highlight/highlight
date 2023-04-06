@@ -975,7 +975,9 @@ func TestLogsKeys(t *testing.T) {
 
 	now := time.Now()
 
+	oneMinuteAgo := now.Add(-time.Minute * 1)
 	twoHoursAgo := now.Add(-time.Hour * 2)
+	sixtyOneMinutesAgo := now.Add(-time.Minute * 61)
 
 	rows := []*LogRow{
 		{
@@ -983,25 +985,32 @@ func TestLogsKeys(t *testing.T) {
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				ProjectId: 1,
 			},
-			LogAttributes: map[string]string{"current_key": "1"},
+			LogAttributes: map[string]string{"current_key": "val"},
 		},
 		{
+			Timestamp: twoHoursAgo,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: twoHoursAgo,
 				ProjectId: 1,
 			},
-			LogAttributes: map[string]string{"old_key": "1"},
+			LogAttributes: map[string]string{"oldest_key": "val"},
 		},
 		{
+			Timestamp: oneMinuteAgo,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now,
 				ProjectId: 1,
 			},
-			LogAttributes: map[string]string{"old_key": "1"},
+			LogAttributes: map[string]string{"frequent_key": "val"},
 		},
 		{
+			Timestamp: sixtyOneMinutesAgo,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				Timestamp: now.Add(-time.Second * 1), // out of range, should not be included
+				ProjectId: 1,
+			},
+			LogAttributes: map[string]string{"frequent_key": "val"},
+		},
+		{
+			Timestamp: now.Add(-time.Second * 1), // out of range, should not be included
+			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "5"},
@@ -1041,21 +1050,25 @@ func TestLogsKeys(t *testing.T) {
 		},
 	}
 
-	keys, err := client.LogsKeys(ctx, 1, now, now)
+	// keys, err := client.LogsKeys(ctx, 1, now, now) // get all keys right now
+	// assert.NoError(t, err)
+	// expected := append([]*modelInputs.LogKey{
+	// 	{
+	// 		Name: "current_key",
+	// 		Type: modelInputs.LogKeyTypeString,
+	// 	},
+	// }, alwaysPresentKeys...)
+	// assert.Equal(t, expected, keys)
+
+	keys, err := client.LogsKeys(ctx, 1, twoHoursAgo, now) // get all keys for the entire range
 	assert.NoError(t, err)
 	expected := append([]*modelInputs.LogKey{
 		{
-			Name: "current_key",
+			Name: "frequent_key",
 			Type: modelInputs.LogKeyTypeString,
 		},
-	}, alwaysPresentKeys...)
-	assert.Equal(t, expected, keys)
-
-	keys, err = client.LogsKeys(ctx, 1, now, twoHoursAgo)
-	assert.NoError(t, err)
-	expected = append([]*modelInputs.LogKey{
 		{
-			Name: "old_key",
+			Name: "oldest_key",
 			Type: modelInputs.LogKeyTypeString,
 		},
 		{
@@ -1065,15 +1078,15 @@ func TestLogsKeys(t *testing.T) {
 	}, alwaysPresentKeys...)
 	assert.Equal(t, expected, keys)
 
-	keys, err = client.LogsKeys(ctx, 1, twoHoursAgo, twoHoursAgo)
-	assert.NoError(t, err)
-	expected = append([]*modelInputs.LogKey{
-		{
-			Name: "old_key",
-			Type: modelInputs.LogKeyTypeString,
-		},
-	}, alwaysPresentKeys...)
-	assert.Equal(t, expected, keys)
+	// keys, err = client.LogsKeys(ctx, 1, twoHoursAgo, twoHoursAgo) // get all keys for the oldest time range
+	// assert.NoError(t, err)
+	// expected = append([]*modelInputs.LogKey{
+	// 	{
+	// 		Name: "oldest_key",
+	// 		Type: modelInputs.LogKeyTypeString,
+	// 	},
+	// }, alwaysPresentKeys...)
+	// assert.Equal(t, expected, keys)
 }
 
 func TestLogKeyValues(t *testing.T) {

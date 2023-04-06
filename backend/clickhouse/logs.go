@@ -285,7 +285,20 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	return histogram, err
 }
 
+/**
+ * Fetching the keys involves an aggregation and hence we optimize the data fetching to pull from an hourly materialized view (MV) when possible
+ * and using the raw logs table for anything that isn't possible to fetch from the MV. The results are then merged together.
+ *
+ * Example:
+ * now = 4:45PM
+ * Time range = "Last 4 hours" (12:45PM - 4:45PM) where startDate = 12:45PM and endDate = 4:45PM
+ *
+ * 4:00PM -> 4:45PM - fetch from raw logs table
+ * 1:00 -> 4:00PM - fetch from MV
+ * 12:45 -> 1:00PM - fetch from raw logs table
+ */
 func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.LogKey, error) {
+
 	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("LogsKeys"))
 
 	type keyCount struct {
@@ -293,21 +306,33 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 		Total uint64
 	}
 
-	startOfCurrentHour := time.Now().Truncate(1 * time.Hour)
+	mvEndHour := endDate.Truncate(time.Hour)                        // get the floor of endDate
+	mvStartHour := startDate.Add(1 * time.Hour).Truncate(time.Hour) // gets the ceiling of startDate
 
-	var recentKeyCounts []keyCount // Tracks key counts within the last hour (before the MV has refreshed)
-	var olderKeyCounts []keyCount  // Tracks key counts beyond the last hour (using the MV)
+	fmt.Println(mvStartHour.Format("01-02-2006 15:04:05"))
+	fmt.Println(mvEndHour.Format("01-02-2006 15:04:05"))
+
+	var rawKeyCounts []keyCount
+	var mvKeyCounts []keyCount
 
 	mappedKeyCount := make(map[string]uint64) // For usage of merging the previous results together
 
-	// If we're fetching keys within the last hour, we fallback to using the `logs` table
-	// because the materialized view hasn't populated yet.
 	sb := sqlbuilder.NewSelectBuilder().From(LogsTable)
 	sb.Select("arrayJoin(LogAttributes.keys) as Key, count() as Total").
 		From(LogsTable).
 		Where(sb.Equal("ProjectId", projectID)).
-		Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(startDate.Unix()))).
-		Where(sb.GreaterThan("toUInt64(toDateTime(Timestamp))", uint64(startOfCurrentHour.Unix()))).
+		Where(
+			sb.Or(
+				sb.And(
+					sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(endDate.Unix())),
+					sb.GreaterThan("toUInt64(toDateTime(Timestamp))", uint64(mvEndHour.Unix())),
+				),
+				sb.And(
+					sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(startDate.Unix())),
+					sb.LessThan("toUInt64(toDateTime(Timestamp))", uint64(mvStartHour.Unix())),
+				),
+			),
+		).
 		GroupBy("Key").
 		OrderBy("Total DESC")
 
@@ -320,12 +345,12 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 	}
 	span.SetTag("RecentSQL", recentSQL)
 
-	if err := client.conn.Select(ctx, &recentKeyCounts, sql, args...); err != nil {
+	if err := client.conn.Select(ctx, &rawKeyCounts, sql, args...); err != nil {
 		span.Finish(tracer.WithError(err))
 		return nil, err
 	}
 
-	for _, keyCount := range recentKeyCounts {
+	for _, keyCount := range rawKeyCounts {
 		mappedKeyCount[keyCount.Key] += keyCount.Total
 	}
 
@@ -333,12 +358,8 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 	mv.Select("Key, sum(Count) as Total").
 		From(LogsKeysMV).
 		Where(mv.Equal("ProjectId", projectID)).
-		Where(mv.LessThan("toUInt64(toDateTime(Hour))", uint64(startOfCurrentHour.Unix()))).
-
-		// Use the start hour of the end date to ensure we capture the previous MV run
-		// Note: this may result in extra counts the tradeoff is worth it to ensure we don't
-		// have to query the logs table for older time frames.
-		Where(mv.GreaterEqualThan("toUInt64(toDateTime(Hour))", uint64(endDate.Truncate(1*time.Hour).Unix()))).
+		Where(mv.LessEqualThan("toUInt64(toDateTime(Hour))", uint64(mvEndHour.Unix()))).
+		Where(mv.GreaterEqualThan("toUInt64(toDateTime(Hour))", uint64(mvStartHour.Unix()))).
 		GroupBy("Key").
 		OrderBy("Total DESC")
 
@@ -351,12 +372,12 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 	}
 	span.SetTag("OlderSQL", olderSQL)
 
-	if err := client.conn.Select(ctx, &olderKeyCounts, sql, args...); err != nil {
+	if err := client.conn.Select(ctx, &mvKeyCounts, sql, args...); err != nil {
 		span.Finish(tracer.WithError(err))
 		return nil, err
 	}
 
-	for _, keyCount := range olderKeyCounts {
+	for _, keyCount := range mvKeyCounts {
 		mappedKeyCount[keyCount.Key] += keyCount.Total
 	}
 
