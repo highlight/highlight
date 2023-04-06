@@ -60,10 +60,13 @@ jobs:
 
                   yarn cy:run;
 
-            - name: Dump docker logs on failure
+            - name: Dump setup logs on failure
+              if: failure()
+              run: cat /tmp/highlight.log
+
+            - name: Dump docker container logs on failure
               if: failure()
               run: |
-                  cat /tmp/highlight.log;
                   cd docker;
                   docker compose logs;
 
