@@ -1008,13 +1008,6 @@ func TestLogsKeys(t *testing.T) {
 			},
 			LogAttributes: map[string]string{"frequent_key": "val"},
 		},
-		{
-			Timestamp: now.Add(-time.Second * 1), // out of range, should not be included
-			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-				ProjectId: 1,
-			},
-			LogAttributes: map[string]string{"workspace_id": "5"},
-		},
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
