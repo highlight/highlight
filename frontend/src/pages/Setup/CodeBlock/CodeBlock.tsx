@@ -4,10 +4,8 @@ import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 import CopyToClipboard from 'react-copy-to-clipboard'
-import {
-	Prism as SyntaxHighlighter,
-	SyntaxHighlighterProps,
-} from 'react-syntax-highlighter'
+import { type SyntaxHighlighterProps } from 'react-syntax-highlighter'
+import SyntaxHighlighter from 'react-syntax-highlighter/dist/esm/prism'
 import {
 	atomDark as darkTheme,
 	coy as lightTheme,
