@@ -4596,7 +4596,7 @@ func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*
 	}
 
 	firstSession := model.Session{}
-	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).First(&firstSession).Error
+	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Limit(1).Find(&firstSession).Error
 	if e.Is(err, gorm.ErrRecordNotFound) {
 		return integration, nil
 	}
@@ -4622,7 +4622,7 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 	}
 
 	firstErrorGroup := model.ErrorGroup{}
-	err := r.DB.Model(&model.ErrorGroup{}).Where("project_id = ?", projectID).First(&firstErrorGroup).Error
+	err := r.DB.Model(&model.ErrorGroup{}).Where("project_id = ?", projectID).Limit(1).Find(&firstErrorGroup).Error
 	if e.Is(err, gorm.ErrRecordNotFound) {
 		return integration, nil
 	}
@@ -4649,7 +4649,7 @@ func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*mo
 	}
 
 	setupEvent := model.SetupEvent{}
-	err = r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeLogs).First(&setupEvent).Error
+	err = r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeLogs).Limit(1).Find(&setupEvent).Error
 	if err != nil {
 		if e.Is(err, gorm.ErrRecordNotFound) {
 			integration.Integrated = false
