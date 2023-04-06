@@ -38,6 +38,14 @@ import { RubyRailsLogContent } from './logging/ruby/rails'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
 
+export type QuickStartOptions = {
+	title: string
+	subtitle: string
+	logoUrl: string
+} & {
+	[key: string]: QuickStartContent
+}
+
 export type QuickStartContent = {
 	title: string
 	subtitle: string

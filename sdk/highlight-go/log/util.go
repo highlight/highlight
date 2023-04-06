@@ -3,14 +3,16 @@ package hlog
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type VercelProxy struct {
@@ -61,7 +63,7 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 	for _, row := range logRows {
 		span, _ := highlight.StartTrace(
 			ctx, "highlight-ctx",
-			attribute.String(highlight.SourceAttribute, highlight.SourceAttributeFrontend),
+			attribute.String(highlight.SourceAttribute, modelInputs.LogSourceFrontend.String()),
 			attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 			attribute.String(highlight.SessionIDAttribute, sessionSecureID),
 		)

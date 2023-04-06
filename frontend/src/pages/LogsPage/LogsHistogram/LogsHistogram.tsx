@@ -1,8 +1,9 @@
 import { useGetLogsHistogramQuery } from '@graph/hooks'
 import { LogLevel as Level } from '@graph/schemas'
-import { Box, Popover, Text } from '@highlight-run/ui'
-import { COLOR_MAPPING, FORMAT } from '@pages/LogsPage/constants'
-import { isSignificantDateRange } from '@pages/LogsPage/utils'
+import { Box, BoxProps, Popover, Text } from '@highlight-run/ui'
+import { COLOR_MAPPING, LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
+import { formatDate, isSignificantDateRange } from '@pages/LogsPage/utils'
+import { clamp, formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import { memo, useMemo, useRef, useState } from 'react'
@@ -20,19 +21,40 @@ interface HistogramBucket {
 	counts?: LogCount[]
 }
 
+type LogsHistogramProps = Omit<
+	LogsHistogramChartProps,
+	'buckets' | 'showLoadingState' | 'totalCount' | 'maxBucketCount'
+> & {
+	query: string
+	outline?: boolean
+	threshold?: number
+	belowThreshold?: boolean
+	frequencySeconds?: number
+} & BoxProps
+
+interface LogsHistogramChartProps {
+	startDate: Date
+	endDate: Date
+	buckets: HistogramBucket[]
+	showLoadingState: boolean
+	totalCount: number
+	maxBucketCount: number
+	onDatesChange?: (startDate: Date, endDate: Date) => void
+	onLevelChange?: (level: Level) => void
+}
+
 const LogsHistogram = ({
+	outline,
 	query,
 	startDate,
 	endDate,
 	onDatesChange,
 	onLevelChange,
-}: {
-	query: string
-	startDate: Date
-	endDate: Date
-	onDatesChange?: (startDate: Date, endDate: Date) => void
-	onLevelChange?: (level: Level) => void
-}) => {
+	threshold,
+	belowThreshold,
+	frequencySeconds,
+	...props
+}: LogsHistogramProps) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -43,22 +65,13 @@ const LogsHistogram = ({
 			params: {
 				query,
 				date_range: {
-					start_date: moment(startDate).format(FORMAT),
-					end_date: moment(endDate).format(FORMAT),
+					start_date: moment(startDate).format(LOG_TIME_FORMAT),
+					end_date: moment(endDate).format(LOG_TIME_FORMAT),
 				},
 			},
 		},
 		skip: !project_id,
 	})
-
-	const [dragStart, setDragStart] = useState<number | undefined>()
-	const [dragEnd, setDragEnd] = useState<number | undefined>()
-	let dragLeft: number | undefined
-	let dragRight: number | undefined
-	if (dragStart !== undefined && dragEnd !== undefined) {
-		dragLeft = Math.min(dragStart, dragEnd)
-		dragRight = Math.max(dragStart, dragEnd)
-	}
 
 	const maxBucketCount = useMemo(() => {
 		if (!data?.logs_histogram) {
@@ -80,11 +93,9 @@ const LogsHistogram = ({
 		return maxBucketCount
 	}, [data?.logs_histogram])
 
-	const showLoadingState = loading || !data?.logs_histogram || !maxBucketCount
-
-	const content = useMemo(() => {
-		if (showLoadingState) {
-			return <LoadingState />
+	const buckets = useMemo(() => {
+		if (!data?.logs_histogram) {
+			return []
 		}
 
 		const { totalCount, buckets } = data.logs_histogram
@@ -93,11 +104,22 @@ const LogsHistogram = ({
 
 		buckets.forEach((bucket) => {
 			const { bucketId, counts } = bucket
-			bucketData.set(Number(bucketId), counts)
+			const bucketTotal = counts.reduce(
+				(acc, count) => acc + count.count,
+				0,
+			)
+			bucketData.set(
+				Number(bucketId),
+				counts.map((count) => ({
+					...count,
+					height: Math.max((bucketTotal / maxBucketCount) * 100, 2),
+				})),
+			)
 		})
 
 		const bucketStep =
 			(endDate.getTime() - startDate.getTime()) / totalCount
+
 		return [...Array(totalCount)].map((_, bucketId) => {
 			const counts = bucketData.get(bucketId)
 			const bucket = {
@@ -107,12 +129,179 @@ const LogsHistogram = ({
 				endDate: new Date(
 					startDate.getTime() + (bucketId + 1) * bucketStep,
 				),
+				width: 100 / totalCount,
 				counts,
 			} as HistogramBucket
+			return bucket
+		})
+	}, [data?.logs_histogram, endDate, maxBucketCount, startDate])
 
+	const tickValues = useMemo(() => {
+		// return the axis with 5 ticks based on maxBucketCount
+		const count = 5
+		return [
+			...new Set(
+				[...Array(count + 1)].map((_, idx) => {
+					const tick = Math.ceil(maxBucketCount / count) * idx
+					return tick
+				}),
+			),
+		]
+	}, [maxBucketCount])
+
+	const axis = useMemo(() => {
+		if (!outline) {
+			return null
+		}
+
+		const ticks = (tickValues.length > 1 ? tickValues : []).map((tick) => {
+			return (
+				<Text
+					key={tick}
+					color="weak"
+					size="xxSmall"
+					weight="regular"
+					userSelect="none"
+				>
+					{formatNumber(tick)}
+				</Text>
+			)
+		})
+		return (
+			<Box
+				position="relative"
+				height="full"
+				display="flex"
+				flexDirection="column-reverse"
+				justifyContent="space-between"
+				alignItems="flex-start"
+				p="2"
+				style={{
+					width: formatNumber(maxBucketCount).length * 8,
+				}}
+			>
+				{loading ? null : ticks}
+			</Box>
+		)
+	}, [loading, maxBucketCount, outline, tickValues])
+
+	const maxValue = tickValues[tickValues.length - 1] ?? 0
+	const referenceValue = belowThreshold ? 0 : maxValue
+	const timeSeconds = (endDate.getTime() - startDate.getTime()) / 1000
+	const adjThreshold =
+		((threshold ?? 0) * timeSeconds) /
+		(frequencySeconds ?? timeSeconds) /
+		buckets.length
+	const clampedThreshold = clamp(
+		Math.abs(adjThreshold ?? referenceValue),
+		0,
+		maxValue,
+	)
+	const thresholdAreaHeight =
+		clamp(
+			Math.abs(referenceValue - clampedThreshold) / maxValue,
+			0,
+			1 - (2 * styles.OUTLINE_PADDING) / styles.OUTLINE_HISTOGRAM_HEIGHT,
+		) * 100
+
+	const showLoadingState =
+		loading || (!outline && (!data?.logs_histogram || !maxBucketCount))
+
+	if (!loading && !maxBucketCount && !outline) {
+		return null
+	}
+
+	return (
+		<Box
+			display="flex"
+			alignItems="center"
+			gap="4"
+			{...props}
+			style={{
+				height: outline
+					? styles.OUTLINE_HISTOGRAM_HEIGHT
+					: styles.REGULAR_HISTOGRAM_HEIGHT,
+			}}
+		>
+			<Box
+				p={outline ? `${styles.OUTLINE_PADDING}` : undefined}
+				border={outline ? 'dividerWeak' : undefined}
+				position="relative"
+				borderRadius="4"
+				width="full"
+				height="full"
+			>
+				{showLoadingState || !!maxBucketCount ? (
+					<>
+						{outline && threshold && thresholdAreaHeight ? (
+							<Box
+								position="absolute"
+								display="inline-flex"
+								backgroundColor="contentBad"
+								borderRadius="3"
+								cssClass={styles.thresholdArea}
+								style={{
+									height: `${thresholdAreaHeight}%`,
+									left: 2,
+									right: 2,
+									top: belowThreshold ? undefined : 2,
+									bottom: belowThreshold ? 2 : undefined,
+								}}
+							/>
+						) : null}
+						<LogsHistogramChart
+							buckets={buckets}
+							startDate={startDate}
+							endDate={endDate}
+							showLoadingState={showLoadingState}
+							onDatesChange={onDatesChange}
+							onLevelChange={onLevelChange}
+							totalCount={buckets.length}
+							maxBucketCount={maxBucketCount}
+						/>
+					</>
+				) : (
+					<Box
+						width="full"
+						height="full"
+						display="flex"
+						alignItems="center"
+						justifyContent="center"
+					>
+						No logs from {formatDate(startDate)} to{' '}
+						{formatDate(endDate)}.
+					</Box>
+				)}
+			</Box>
+			{axis}
+		</Box>
+	)
+}
+
+const LogsHistogramChart = ({
+	buckets,
+	startDate,
+	endDate,
+	onDatesChange,
+	onLevelChange,
+	showLoadingState,
+	totalCount,
+	maxBucketCount,
+}: LogsHistogramChartProps) => {
+	const [dragStart, setDragStart] = useState<number | undefined>()
+	const [dragEnd, setDragEnd] = useState<number | undefined>()
+	let dragLeft: number | undefined
+	let dragRight: number | undefined
+	if (dragStart !== undefined && dragEnd !== undefined) {
+		dragLeft = Math.min(dragStart, dragEnd)
+		dragRight = Math.max(dragStart, dragEnd)
+	}
+
+	const content = useMemo(() => {
+		return buckets.map((bucket, idx) => {
 			return (
 				<LogBucketBar
-					key={bucketId}
+					key={idx}
 					bucket={bucket}
 					width={`${100 / totalCount}%`}
 					maxBucketCount={maxBucketCount}
@@ -125,15 +314,13 @@ const LogsHistogram = ({
 			)
 		})
 	}, [
-		data?.logs_histogram,
+		buckets,
 		dragLeft,
 		dragRight,
-		endDate,
 		maxBucketCount,
 		onDatesChange,
 		onLevelChange,
-		showLoadingState,
-		startDate,
+		totalCount,
 	])
 
 	const containerRef = useRef<HTMLDivElement>(null)
@@ -142,12 +329,11 @@ const LogsHistogram = ({
 		<Box
 			display="flex"
 			alignItems="flex-end"
-			cssClass={styles.histogramContainer}
+			height="full"
 			width="full"
-			px="12"
-			pb="4"
-			mt="4"
 			position="relative"
+			px="12"
+			py="4"
 			ref={containerRef}
 			onMouseDown={(e: any) => {
 				if (!e || !containerRef.current || showLoadingState) {
@@ -189,7 +375,7 @@ const LogsHistogram = ({
 				setDragEnd(undefined)
 			}}
 		>
-			{content}
+			{showLoadingState ? <LoadingState /> : content}
 			{dragLeft !== undefined && dragRight !== undefined && (
 				<Box
 					position="absolute"
@@ -239,7 +425,7 @@ const LogBucketBar = ({
 				gap="2"
 				cssClass={{ [styles.hover]: !loading && !isDragging }}
 				style={{
-					width,
+					width: width,
 					height: '100%',
 				}}
 			>
@@ -264,7 +450,7 @@ const LogBucketBar = ({
 				})}
 			</Popover.BoxTrigger>
 		)
-	}, [bucket?.counts, isDragging, loading, maxBucketCount, width])
+	}, [bucket?.counts, width, isDragging, loading, maxBucketCount])
 
 	const content = useMemo(() => {
 		if (loading) {
@@ -412,9 +598,9 @@ const LoadingState = memo(() => {
 					<LogBucketBar
 						key={index}
 						bucket={bucket}
-						width={`${100 / 50}%`}
-						maxBucketCount={maxBucketCount}
 						loading
+						maxBucketCount={maxBucketCount}
+						width={`${100 / 50}%`}
 					/>
 				)
 			})}

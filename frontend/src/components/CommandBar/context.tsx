@@ -1,6 +1,6 @@
 import { last30Days } from '@components/CommandBar/constants'
 import { nextAttribute, useAttributeSearch } from '@components/CommandBar/utils'
-import { useFormState } from '@highlight-run/ui'
+import { FormState, useFormState } from '@highlight-run/ui'
 import {
 	ERROR_FIELD_TYPE,
 	ERROR_TYPE,
@@ -9,7 +9,6 @@ import { SESSION_TYPE } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { createContext } from '@util/context/context'
 import { validateEmail } from '@util/string'
-import { FormState } from 'ariakit/form'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'

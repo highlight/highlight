@@ -1,4 +1,4 @@
-import Checkbox, { CheckboxChangeEvent } from 'antd/lib/checkbox'
+import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
 import clsx from 'clsx'
 import React, { useState } from 'react'
 

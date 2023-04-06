@@ -32,6 +32,7 @@
 		"firebase": "^8.10.1",
 		"framer-motion": "^6.3.15",
 		"graphql": "^15.5.0",
+		"highlight.io": "workspace:*",
 		"highlight.run": "workspace:*",
 		"intro.js": "^4.1.0",
 		"intro.js-react": "^0.6.0",

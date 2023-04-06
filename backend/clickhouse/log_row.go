@@ -17,8 +17,6 @@ import (
 )
 
 const LogAttributeValueLengthLimit = 2 << 10
-const LogRowSourceValueFrontend = "frontend"
-const LogRowSourceValueBackend = "backend"
 
 func ProjectToInt(projectID string) (int, error) {
 	i, err := strconv.ParseInt(projectID, 10, 32)
@@ -33,7 +31,6 @@ func ProjectToInt(projectID string) (int, error) {
 }
 
 type LogRowPrimaryAttrs struct {
-	Timestamp       time.Time
 	ProjectId       uint32
 	TraceId         string
 	SpanId          string
@@ -42,11 +39,12 @@ type LogRowPrimaryAttrs struct {
 
 type LogRow struct {
 	LogRowPrimaryAttrs
+	Timestamp      time.Time
 	UUID           string
 	TraceFlags     uint32
 	SeverityText   string
 	SeverityNumber int32
-	Source         string
+	Source         modelInputs.LogSource
 	ServiceName    string
 	Body           string
 	LogAttributes  map[string]string
@@ -55,7 +53,6 @@ type LogRow struct {
 func NewLogRow(attrs LogRowPrimaryAttrs, opts ...LogRowOption) *LogRow {
 	logRow := &LogRow{
 		LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-			Timestamp:       attrs.Timestamp,
 			TraceId:         attrs.TraceId,
 			SpanId:          attrs.SpanId,
 			ProjectId:       attrs.ProjectId,
@@ -77,15 +74,19 @@ func (l *LogRow) Cursor() string {
 	return encodeCursor(l.Timestamp, l.UUID)
 }
 
-func (l *LogRow) IsBackend() bool {
-	return l.Source != highlight.SourceAttributeFrontend
-}
-
 type LogRowOption func(*LogRow)
 
-func WithLogAttributes(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) LogRowOption {
+func WithTimestamp(ts time.Time) LogRowOption {
 	return func(h *LogRow) {
-		h.LogAttributes = GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, isFrontendLog)
+		// ensure timestamp is written at second precision,
+		// since clickhouse schema will truncate to second precision anyways.
+		h.Timestamp = ts.Truncate(time.Second)
+	}
+}
+
+func WithLogAttributes(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) LogRowOption {
+	return func(l *LogRow) {
+		l.LogAttributes = GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, isFrontendLog)
 	}
 }
 
@@ -97,39 +98,35 @@ func WithSeverityText(severityText string) LogRowOption {
 	}
 }
 
-func WithSource(source string) LogRowOption {
-	return func(h *LogRow) {
-		if source == highlight.SourceAttributeFrontend {
-			h.Source = LogRowSourceValueFrontend
-		} else {
-			h.Source = LogRowSourceValueBackend
-		}
+func WithSource(source modelInputs.LogSource) LogRowOption {
+	return func(l *LogRow) {
+		l.Source = source
 	}
 }
 
 func WithBody(ctx context.Context, body string) LogRowOption {
-	return func(h *LogRow) {
+	return func(l *LogRow) {
 		if len(body) > LogAttributeValueLengthLimit {
 			log.WithContext(ctx).
 				WithField("ValueLength", len(body)).
 				Warnf("log body value is too long %d", len(body))
 			body = body[:LogAttributeValueLengthLimit] + "..."
 		}
-		h.Body = body
+		l.Body = body
 	}
 }
 
 func WithServiceName(serviceName string) LogRowOption {
-	return func(h *LogRow) {
-		h.ServiceName = serviceName
+	return func(l *LogRow) {
+		l.ServiceName = serviceName
 	}
 }
 
 func WithProjectIDString(projectID string) LogRowOption {
 	projectIDInt, err := ProjectToInt(projectID)
-	return func(h *LogRow) {
+	return func(l *LogRow) {
 		if err == nil {
-			h.ProjectId = uint32(projectIDInt)
+			l.ProjectId = uint32(projectIDInt)
 		}
 	}
 }

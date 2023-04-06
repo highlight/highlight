@@ -28,10 +28,11 @@ import {
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { generatePath } from 'react-router-dom'
+import { createSearchParams, generatePath } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import * as styles from './LogDetails.css'
@@ -47,6 +48,20 @@ export const getLogURL = (row: Row<LogEdge>) => {
 		log_cursor: row.original.cursor,
 	})
 	return currentUrl.origin + path
+}
+
+const getSessionLink = (projectId: string, log: LogEdgeWithError): string => {
+	const params = createSearchParams({
+		[PlayerSearchParameters.log]: log.cursor,
+	})
+	return `/${projectId}/sessions/${log.node.secureSessionID}?${params}`
+}
+
+const getErrorLink = (projectId: string, log: LogEdgeWithError): string => {
+	const params = createSearchParams({
+		[PlayerSearchParameters.log]: log.cursor,
+	})
+	return `/errors/${log.error_object?.error_group_secure_id}/instances/${log.error_object?.id}?${params}`
 }
 
 export const LogDetails = ({ row, queryTerms }: Props) => {
@@ -234,7 +249,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 						<LinkButton
 							kind="secondary"
 							emphasis="low"
-							to={`/errors/logs/${row.original.cursor}`}
+							to={getErrorLink(projectId, row.original)}
 							trackingId="logs-related_error_link"
 						>
 							<Box
@@ -253,7 +268,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 						<LinkButton
 							kind="secondary"
 							emphasis="low"
-							to={`/${projectId}/sessions/${secureSessionID}`}
+							to={getSessionLink(projectId, row.original)}
 							trackingId="logs-related_session_link"
 						>
 							<Box

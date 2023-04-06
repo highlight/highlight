@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import AlertsRouter from '@pages/Alerts/AlertsRouter'
+import LogAlertsRouter from '@pages/Alerts/LogAlert/LogAlertRouter'
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
@@ -8,7 +9,7 @@ import LogsPage from '@pages/LogsPage/LogsPage'
 import PlayerPage from '@pages/Player/PlayerPage'
 import ProjectSettings from '@pages/ProjectSettings/ProjectSettings'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import SetupRouter from '@pages/Setup/SetupRouter/SetupRouter'
+import { SetupRouter } from '@pages/Setup/SetupRouter/SetupRouter'
 import { usePreloadErrors, usePreloadSessions } from '@util/preload'
 import React, { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
@@ -51,6 +52,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
 						element={<ProjectSettings />}
 					/>
 					<Route path="alerts/*" element={<AlertsRouter />} />
+					<Route path="alerts/logs/*" element={<LogAlertsRouter />} />
+
 					<Route path="setup/*" element={<SetupRouter />} />
 
 					<Route

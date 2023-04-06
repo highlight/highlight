@@ -105,26 +105,7 @@ func (r *errorAlertResolver) RegexGroups(ctx context.Context, obj *model.ErrorAl
 
 // DailyFrequency is the resolver for the DailyFrequency field.
 func (r *errorAlertResolver) DailyFrequency(ctx context.Context, obj *model.ErrorAlert) ([]*int64, error) {
-	var dailyAlerts []*int64
-	if err := r.DB.Raw(`
-		SELECT COUNT(e.id)
-		FROM (
-			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
-			FROM generate_series(0, 6, 1)
-			AS offs
-		) d LEFT OUTER JOIN
-		alert_events e
-		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
-			AND e.type=?
-			AND e.alert_id=?
-			AND e.project_id=?
-		GROUP BY d.date
-		ORDER BY d.date;
-	`, obj.Type, obj.ID, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
-		return nil, e.Wrap(err, "error querying daily alert frequency")
-	}
-
-	return dailyAlerts, nil
+	return obj.GetDailyFrequency(r.DB, obj.ID)
 }
 
 // Author is the resolver for the author field.
@@ -275,6 +256,48 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 		return nil, e.Wrapf(err, "error unmarshaling segment params")
 	}
 	return params, nil
+}
+
+// ChannelsToNotify is the resolver for the ChannelsToNotify field.
+func (r *logAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.LogAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
+	return obj.GetChannelsToNotify()
+}
+
+// DiscordChannelsToNotify is the resolver for the DiscordChannelsToNotify field.
+func (r *logAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.LogAlert) ([]*model.DiscordChannel, error) {
+	return obj.DiscordChannelsToNotify, nil
+}
+
+// WebhookDestinations is the resolver for the WebhookDestinations field.
+func (r *logAlertResolver) WebhookDestinations(ctx context.Context, obj *model.LogAlert) ([]*model.WebhookDestination, error) {
+	return obj.WebhookDestinations, nil
+}
+
+// EmailsToNotify is the resolver for the EmailsToNotify field.
+func (r *logAlertResolver) EmailsToNotify(ctx context.Context, obj *model.LogAlert) ([]string, error) {
+	emails, err := obj.GetEmailsToNotify()
+	if err != nil {
+		return nil, err
+	}
+	return lo.Map(emails, func(email *string, idx int) string {
+		return *email
+	}), nil
+}
+
+// ExcludedEnvironments is the resolver for the ExcludedEnvironments field.
+func (r *logAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.LogAlert) ([]string, error) {
+	envs, err := obj.GetExcludedEnvironments()
+	if err != nil {
+		return nil, err
+	}
+	return lo.Map(envs, func(env *string, idx int) string {
+		return *env
+	}), nil
+}
+
+// DailyFrequency is the resolver for the DailyFrequency field.
+func (r *logAlertResolver) DailyFrequency(ctx context.Context, obj *model.LogAlert) ([]*int64, error) {
+	return obj.GetDailyFrequency(r.DB, obj.ID)
 }
 
 // ChannelsToNotify is the resolver for the channels_to_notify field.
@@ -2856,6 +2879,96 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 	return projectAlert, nil
 }
 
+// UpdateLogAlert is the resolver for the updateLogAlert field.
+func (r *mutationResolver) UpdateLogAlert(ctx context.Context, id int, input modelInputs.LogAlertInput) (*model.LogAlert, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, input.ProjectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	alert, err := alerts.BuildLogAlert(project, workspace, admin, input)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to build log alert")
+	}
+	alert.ID = id
+
+	if err := r.DB.Model(&model.LogAlert{Model: model.Model{ID: id}}).
+		Where("project_id = ?", input.ProjectID).
+		Save(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating log alert")
+	}
+
+	return alert, nil
+}
+
+// CreateLogAlert is the resolver for the createLogAlert field.
+func (r *mutationResolver) CreateLogAlert(ctx context.Context, input modelInputs.LogAlertInput) (*model.LogAlert, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, input.ProjectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	alert, err := alerts.BuildLogAlert(project, workspace, admin, input)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to build log alert")
+	}
+
+	if err := r.DB.Create(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error creating a new log alert")
+	}
+
+	return alert, nil
+}
+
+// DeleteLogAlert is the resolver for the deleteLogAlert field.
+func (r *mutationResolver) DeleteLogAlert(ctx context.Context, projectID int, id int) (*model.LogAlert, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	alert := &model.LogAlert{}
+	if err := r.DB.Model(&model.LogAlert{Model: model.Model{ID: id}}).
+		Where("project_id = ?", projectID).
+		Find(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "this log alert does not exist in this project.")
+	}
+
+	if err := r.DB.Delete(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error trying to delete log alert")
+	}
+
+	return alert, nil
+}
+
+// UpdateLogAlertIsDisabled is the resolver for the updateLogAlertIsDisabled field.
+func (r *mutationResolver) UpdateLogAlertIsDisabled(ctx context.Context, id int, projectID int, disabled bool) (*model.LogAlert, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	alert := &model.LogAlert{
+		Alert: model.Alert{
+			Disabled: &disabled,
+		},
+	}
+
+	if err := r.DB.Model(&model.LogAlert{
+		Model: model.Model{
+			ID: id,
+		},
+	}).Where("project_id = ?", projectID).Updates(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields for new session alert")
+	}
+
+	return alert, err
+}
+
 // UpdateSessionIsPublic is the resolver for the updateSessionIsPublic field.
 func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSecureID string, isPublic bool) (*model.Session, error) {
 	session, err := r.canAdminModifySession(ctx, sessionSecureID)
@@ -4492,6 +4605,7 @@ func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*
 	}
 	integration.Integrated = true
 	integration.ResourceSecureID = &firstSession.SecureID
+	integration.CreatedAt = &firstSession.CreatedAt
 
 	return integration, nil
 }
@@ -4517,23 +4631,36 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 	}
 	integration.Integrated = true
 	integration.ResourceSecureID = &firstErrorGroup.SecureID
+	integration.CreatedAt = &firstErrorGroup.CreatedAt
 
 	return integration, nil
 }
 
 // LogsIntegration is the resolver for the logsIntegration field.
-func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*modelInputs.LogsConnection, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
+	integration := &modelInputs.IntegrationStatus{
+		Integrated:       true,
+		ResourceType:     "Log",
+		ResourceSecureID: nil,
+	}
+	_, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 
-	params := &modelInputs.LogsParamsInput{Query: ""}
-	pagination := &clickhouse.Pagination{}
+	setupEvent := model.SetupEvent{}
+	err = r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeLogs).First(&setupEvent).Error
+	if err != nil {
+		if e.Is(err, gorm.ErrRecordNotFound) {
+			integration.Integrated = false
+		} else {
+			return nil, e.Wrap(err, "error querying setup event")
+		}
+	} else {
+		integration.CreatedAt = &setupEvent.CreatedAt
+	}
 
-	// TODO: Figure out the actual integration data we want to return here.
-	// Possibly just setup events.
-	return r.ClickhouseClient.ReadLogs(ctx, project.ID, *params, *pagination)
+	return integration, nil
 }
 
 // UnprocessedSessionsCount is the resolver for the unprocessedSessionsCount field.
@@ -5628,6 +5755,32 @@ func (r *queryResolver) RageClickAlerts(ctx context.Context, projectID int) ([]*
 		return nil, e.Wrap(err, "error querying rage click alert")
 	}
 	return alerts, nil
+}
+
+// LogAlerts is the resolver for the log_alerts field.
+func (r *queryResolver) LogAlerts(ctx context.Context, projectID int) ([]*model.LogAlert, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error validating admin in project")
+	}
+	var alerts []*model.LogAlert
+	if err := r.DB.Model(&model.LogAlert{}).Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying log alerts")
+	}
+	return alerts, nil
+}
+
+// LogAlert is the resolver for the log_alert field.
+func (r *queryResolver) LogAlert(ctx context.Context, id int) (*model.LogAlert, error) {
+	var alert *model.LogAlert
+	if err := r.DB.Model(&model.LogAlert{}).Where("id = ?", id).Find(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying log alert")
+	}
+	_, err := r.isAdminInProjectOrDemoProject(ctx, alert.ProjectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error validating admin in project")
+	}
+	return alert, nil
 }
 
 // ProjectSuggestion is the resolver for the projectSuggestion field.
@@ -7006,16 +7159,17 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 }
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string) (*modelInputs.LogsConnection, error) {
+func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string, direction modelInputs.LogDirection) (*modelInputs.LogsConnection, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 
 	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params, clickhouse.Pagination{
-		After:  after,
-		Before: before,
-		At:     at,
+		After:     after,
+		Before:    before,
+		At:        at,
+		Direction: direction,
 	})
 }
 
@@ -7207,26 +7361,7 @@ func (r *sessionAlertResolver) ExcludeRules(ctx context.Context, obj *model.Sess
 
 // DailyFrequency is the resolver for the DailyFrequency field.
 func (r *sessionAlertResolver) DailyFrequency(ctx context.Context, obj *model.SessionAlert) ([]*int64, error) {
-	var dailyAlerts []*int64
-	if err := r.DB.Raw(`
-		SELECT COUNT(e.id)
-		FROM (
-			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
-			FROM generate_series(0, 6, 1)
-			AS offs
-		) d LEFT OUTER JOIN
-		alert_events e
-		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
-			AND e.type=?
-			AND e.alert_id=?
-			AND e.project_id=?
-		GROUP BY d.date
-		ORDER BY d.date;
-	`, obj.Type, obj.ID, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
-		return nil, e.Wrap(err, "error querying daily alert frequency")
-	}
-
-	return dailyAlerts, nil
+	return obj.GetDailyFrequency(r.DB, obj.ID)
 }
 
 // Author is the resolver for the author field.
@@ -7390,6 +7525,9 @@ func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorOb
 // ErrorSegment returns generated.ErrorSegmentResolver implementation.
 func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &errorSegmentResolver{r} }
 
+// LogAlert returns generated.LogAlertResolver implementation.
+func (r *Resolver) LogAlert() generated.LogAlertResolver { return &logAlertResolver{r} }
+
 // MetricMonitor returns generated.MetricMonitorResolver implementation.
 func (r *Resolver) MetricMonitor() generated.MetricMonitorResolver { return &metricMonitorResolver{r} }
 
@@ -7427,6 +7565,7 @@ type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
+type logAlertResolver struct{ *Resolver }
 type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

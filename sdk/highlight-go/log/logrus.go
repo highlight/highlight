@@ -3,12 +3,13 @@ package hlog
 import (
 	"context"
 	"fmt"
+	"runtime"
+	"strings"
+
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
-	"runtime"
-	"strings"
 
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"

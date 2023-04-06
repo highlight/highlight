@@ -1,7 +1,6 @@
 import LoadingBox from '@components/LoadingBox'
 import { useGetProjectQuery } from '@graph/hooks'
 import {
-	Badge,
 	Box,
 	ButtonIcon,
 	IconSolidCheckCircle,
@@ -19,11 +18,14 @@ import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
-import { useClientIntegrated, useServerIntegrated } from '@util/integrated'
+import {
+	useClientIntegrated,
+	useLogsIntegrated,
+	useServerIntegrated,
+} from '@util/integrated'
 import { message } from 'antd'
 import clsx from 'clsx'
-import { H } from 'highlight.run'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import {
 	Link,
 	Navigate,
@@ -36,45 +38,11 @@ import {
 
 import * as styles from './SetupRouter.css'
 
-export type Guide = {
-	title: string
-	subtitle: string
-	logoUrl: string
-	entries: Array<{
-		title: string
-		content: string
-		code?: {
-			text: string
-			language: string
-		}
-	}>
-}
-
-type DocsKey = 'client' | 'backend' | 'backend-logging'
-export type DocsSection = {
-	title: string
-	subtitle: string
-} & {
-	[key: string]: {
-		title: string
-		subtitle: string
-	} & {
-		[key: string]: Guide
-	}
-}
-
-export type Guides = {
-	[key in DocsKey]: DocsSection
-} & {
-	other: {
-		[key: string]: Guide
-	}
-}
-
-const SetupRouter = () => {
+export const SetupRouter = () => {
 	const { toggleShowBanner } = useGlobalContext()
 	const { data: serverIntegration } = useServerIntegrated()
 	const { data: clientIntegration } = useClientIntegrated()
+	const { data: logsIntegration } = useLogsIntegrated()
 	const areaMatch = useMatch('/:project_id/setup/:area/*')
 	const area = areaMatch?.params.area || 'client'
 	const integrationData =
@@ -82,9 +50,10 @@ const SetupRouter = () => {
 			? serverIntegration
 			: area === 'client'
 			? clientIntegration
+			: area === 'backend-logging'
+			? logsIntegration
 			: undefined
 	const { projectId } = useProjectId()
-	const [docs, setDocs] = useState<Guides>()
 	const { data } = useGetProjectQuery({ variables: { id: projectId! } })
 	const projectVerboseId = data?.project?.verbose_id
 	const location = useLocation()
@@ -93,21 +62,7 @@ const SetupRouter = () => {
 
 	useEffect(() => analytics.page(), [])
 
-	useEffect(() => {
-		fetch(`https://www.highlight.io/api/quickstart`)
-			.then((res) => res.json())
-			.then((docs) => setDocs(docs))
-			.catch((e) => {
-				H.consumeError(e, 'Error loading docs')
-
-				message.error(
-					'Error loading the documentation. Please reload the page...',
-				)
-			})
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-
-	if (!docs || !projectVerboseId) {
+	if (!projectVerboseId) {
 		return <LoadingBox />
 	}
 
@@ -176,21 +131,21 @@ const SetupRouter = () => {
 							<Text>Backend error monitoring</Text>
 						</Stack>
 					</NavLink>
-					<Box
-						className={clsx(
-							styles.menuItem,
-							styles.menuItemDisabled,
-						)}
+					<NavLink
+						to="backend-logging"
+						className={({ isActive }) =>
+							clsx(styles.menuItem, {
+								[styles.menuItemActive]: isActive,
+							})
+						}
 					>
-						<Stack
-							direction="row"
-							justify="space-between"
-							align="center"
-						>
+						<Stack direction="row" align="center" gap="4">
+							{logsIntegration?.integrated && (
+								<IconSolidCheckCircle />
+							)}
 							<Text>Logging</Text>
-							<Badge label="Soon" variant="outlineGray" />
 						</Stack>
-					</Box>
+					</NavLink>
 				</Stack>
 
 				<Stack gap="0">
@@ -249,7 +204,6 @@ const SetupRouter = () => {
 							path=":area/:language?"
 							element={
 								<SetupOptionsList
-									docs={docs}
 									integrationData={integrationData}
 								/>
 							}
@@ -258,7 +212,6 @@ const SetupRouter = () => {
 							path=":area/:language/:framework"
 							element={
 								<SetupDocs
-									docs={docs}
 									projectVerboseId={projectVerboseId}
 									integrationData={integrationData}
 								/>
@@ -282,5 +235,3 @@ const SetupRouter = () => {
 		</Box>
 	)
 }
-
-export default SetupRouter

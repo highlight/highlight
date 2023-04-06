@@ -2,8 +2,10 @@ package clickhouse
 
 import (
 	"context"
-	"github.com/highlight/highlight/sdk/highlight-go"
 	"testing"
+	"time"
+
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -65,10 +67,16 @@ func TestNewLogRowWithLongBody(t *testing.T) {
 }
 
 func TestNewLogRowWithSource(t *testing.T) {
-	lr := NewLogRow(LogRowPrimaryAttrs{}, WithSource(highlight.SourceAttributeFrontend))
-	assert.Equal(t, LogRowSourceValueFrontend, lr.Source)
-	assert.Equal(t, "frontend", LogRowSourceValueFrontend)
-	lr = NewLogRow(LogRowPrimaryAttrs{}, WithSource("InterceptField"))
-	assert.Equal(t, LogRowSourceValueBackend, lr.Source)
-	assert.Equal(t, "backend", LogRowSourceValueBackend)
+	lr := NewLogRow(LogRowPrimaryAttrs{}, WithSource(modelInputs.LogSourceFrontend))
+	assert.Equal(t, modelInputs.LogSourceFrontend, lr.Source)
+
+	lr = NewLogRow(LogRowPrimaryAttrs{}, WithSource(modelInputs.LogSourceBackend))
+	assert.Equal(t, modelInputs.LogSourceBackend, lr.Source)
+}
+
+func TestNewLogRowWithTimestamp(t *testing.T) {
+	ts := time.Now()
+	lr := NewLogRow(LogRowPrimaryAttrs{}, WithTimestamp(ts))
+	// log row should be created with second precision, per clickhouse precision
+	assert.Equal(t, ts.Truncate(time.Second), lr.Timestamp)
 }

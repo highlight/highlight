@@ -305,6 +305,9 @@ export const getEventRenderDetails = (
 			case 'TabHidden':
 				details.displayValue = payload ? 'Tab Hidden' : 'Tab Visible'
 				break
+			case 'RageClicks':
+				details.displayValue = `Total clicks: ${payload}`
+				break
 			default:
 				details.displayValue = payload
 				break

@@ -84,7 +84,7 @@ export const roundFeedDate = function (date: string | null) {
 	// nearest 15 seconds
 	const factor = 15
 	const m = moment(date || undefined)
-	return moment(m.format('MM/DD/YYYY HH:mm')).add(
+	return moment(m.startOf('minute')).add(
 		Math.round(m.seconds() / factor) * factor,
 		'seconds',
 	)
