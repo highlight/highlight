@@ -24,11 +24,7 @@ import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalCont
 import WithErrorSearchContext from '@routers/ProjectRouter/WithErrorSearchContext'
 import WithSessionSearchContext from '@routers/ProjectRouter/WithSessionSearchContext'
 import { auth } from '@util/auth'
-import {
-	useClientIntegrated,
-	useLogsIntegrated,
-	useServerIntegrated,
-} from '@util/integrated'
+import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useDialogState } from 'ariakit/dialog'
 import clsx from 'clsx'
@@ -47,6 +43,7 @@ export const ProjectRouter = () => {
 	const [showBanner, toggleShowBanner] = useToggle(false)
 
 	const { projectId } = useNumericProjectId()
+
 	const { setLoadingState } = useAppLoadingContext()
 
 	const { data, loading, error } = useGetProjectDropdownOptionsQuery({
@@ -54,20 +51,7 @@ export const ProjectRouter = () => {
 		skip: !isLoggedIn || !projectId, // Higher level routers decide when guests are allowed to hit this router
 	})
 
-	const { data: clientIntegration, loading: clientLoading } =
-		useClientIntegrated()
-	const { data: serverIntegration, loading: serverLoading } =
-		useServerIntegrated()
-	const { data: logsIntegration, loading: logsLoading } = useLogsIntegrated()
-	const fullyIntegrated =
-		!!clientIntegration?.integrated &&
-		!!serverIntegration?.integrated &&
-		!!logsIntegration?.integrated
-	const integrated =
-		!!clientIntegration?.integrated ||
-		!!serverIntegration?.integrated ||
-		!!logsIntegration?.integrated
-	const integrationLoading = clientLoading || serverLoading || logsLoading
+	const { integrated, loading: integratedLoading } = useIntegrated()
 
 	useEffect(() => {
 		const uri =
@@ -125,7 +109,7 @@ export const ProjectRouter = () => {
 		if (!error) {
 			setLoadingState((previousLoadingState) => {
 				if (previousLoadingState !== AppLoadingState.EXTENDED_LOADING) {
-					return loading || integrationLoading
+					return loading || integratedLoading
 						? AppLoadingState.LOADING
 						: AppLoadingState.LOADED
 				}
@@ -135,7 +119,7 @@ export const ProjectRouter = () => {
 		} else {
 			setLoadingState(AppLoadingState.LOADED)
 		}
-	}, [error, integrationLoading, loading, setLoadingState])
+	}, [error, integratedLoading, loading, setLoadingState])
 
 	// if the user can join this workspace, give them that option via the ErrorState
 	const joinableWorkspace = data?.joinable_workspaces
@@ -183,7 +167,7 @@ export const ProjectRouter = () => {
 
 	const commandBarDialog = useDialogState()
 
-	if (loading || integrationLoading) {
+	if (loading || integratedLoading) {
 		return null
 	}
 
@@ -217,12 +201,7 @@ export const ProjectRouter = () => {
 									path=":project_id/*"
 									element={
 										<>
-											<Header
-												integrated={integrated}
-												fullyIntegrated={
-													fullyIntegrated
-												}
-											/>
+											<Header />
 											<KeyboardShortcutsEducation />
 											<div
 												className={clsx(
@@ -256,15 +235,7 @@ export const ProjectRouter = () => {
 													/>
 												) : (
 													<ApplicationRouter
-														clientIntegration={
-															clientIntegration
-														}
-														serverIntegration={
-															serverIntegration
-														}
-														logsIntegration={
-															logsIntegration
-														}
+														integrated={integrated}
 													/>
 												)}
 											</div>

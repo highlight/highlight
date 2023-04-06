@@ -51,6 +51,7 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { client } from '@util/graph'
+import { useClientIntegrated, useServerIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
@@ -65,12 +66,7 @@ import { useSessionStorage } from 'react-use'
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.scss'
 
-type Props = {
-	fullyIntegrated?: boolean
-	integrated?: boolean
-}
-
-export const Header: React.FC<Props> = ({ fullyIntegrated, integrated }) => {
+export const Header = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -78,6 +74,12 @@ export const Header: React.FC<Props> = ({ fullyIntegrated, integrated }) => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
+	const { data: clientIntegration } = useClientIntegrated()
+	const { data: serverIntegration } = useServerIntegrated()
+	const fullyIntegrated =
+		!!clientIntegration?.integrated && !!serverIntegration?.integrated
+	const integrated =
+		!!clientIntegration?.integrated || !!serverIntegration?.integrated
 
 	const { pathname, state } = useLocation()
 	const goBackPath = state?.previousPath ?? `/${project_id}/sessions`
@@ -116,9 +118,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated, integrated }) => {
 			<CommandBar />
 			<CommandBarV1 />
 			<Box background="n2" borderBottom="secondary">
-				{!!project_id &&
-					!isSetup &&
-					getBanner(project_id, !!integrated)}
+				{!!project_id && !isSetup && getBanner(project_id, integrated)}
 				<Box
 					display="flex"
 					alignItems="center"
@@ -352,27 +352,23 @@ export const Header: React.FC<Props> = ({ fullyIntegrated, integrated }) => {
 							style={{ zIndex: 20000 }}
 							width="full"
 						>
-							{!!projectIdRemapped &&
-								!fullyIntegrated &&
-								!isSetup && (
-									<LinkButton
-										to={`/${project_id}/setup`}
-										state={{
-											previousPath: location.pathname,
-										}}
-										trackingId="header_setup-cta"
-										emphasis="low"
+							{!!fullyIntegrated && !isSetup && (
+								<LinkButton
+									to={`/${project_id}/setup`}
+									state={{ previousPath: location.pathname }}
+									trackingId="header_setup-cta"
+									emphasis="low"
+								>
+									<Stack
+										direction="row"
+										align="center"
+										gap="4"
 									>
-										<Stack
-											direction="row"
-											align="center"
-											gap="4"
-										>
-											<Text>Finish setup </Text>
-											<IconSolidArrowSmRight />
-										</Stack>
-									</LinkButton>
-								)}
+										<Text>Finish setup </Text>
+										<IconSolidArrowSmRight />
+									</Stack>
+								</LinkButton>
+							)}
 							{!!project_id && !isSetup && (
 								<Button
 									trackingId="quickSearchClicked"
