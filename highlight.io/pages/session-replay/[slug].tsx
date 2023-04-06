@@ -128,7 +128,7 @@ const CompetitorComparisonPage = ({
 						/>
 					</div>
 				</div>
-				<div className="w-full mx-auto max-w-[1200px] mt-24 lg:mt-36">
+				<div className="w-full mx-auto max-w-[1200px] mt-24 lg:mt-36 px-8">
 					<div className="flex flex-col gap-20">
 						<div className="mx-auto max-w-[1200px]">
 							<h2 className="self-center text-center">
