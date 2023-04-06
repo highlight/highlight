@@ -2,9 +2,9 @@ import { Button } from '@components/Button'
 import {
 	Box,
 	Form,
+	IconSolidLogs,
 	IconSolidSearch,
 	IconSolidSwitchHorizontal,
-	IconSolidViewList,
 	MenuButton,
 	Tabs,
 	useFormState,
@@ -371,7 +371,7 @@ const DevToolsWindowV2: React.FC<
 												trackingId="relatedLogs"
 												cssClass={styles.autoScroll}
 												iconLeft={
-													<IconSolidViewList
+													<IconSolidLogs
 														width={12}
 														height={12}
 													/>

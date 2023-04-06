@@ -23,8 +23,8 @@ import {
 	Callout,
 	Heading,
 	IconSolidExternalLink,
+	IconSolidLogs,
 	IconSolidPlay,
-	IconSolidViewList,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
@@ -221,7 +221,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								kind="primary"
 								emphasis="high"
 								disabled={true}
-								iconLeft={<IconSolidViewList />}
+								iconLeft={<IconSolidLogs />}
 								trackingId="errorInstanceShowLogs"
 							>
 								Show logs
@@ -351,7 +351,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								flexDirection="row"
 								gap="4"
 							>
-								<IconSolidViewList />
+								<IconSolidLogs />
 								Show logs
 							</Box>
 						</LinkButton>
