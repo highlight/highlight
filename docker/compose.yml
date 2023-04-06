@@ -68,8 +68,7 @@ services:
             - 9600:9600
         environment:
             discovery.type: single-node
-            bootstrap.memory_lock: true
-            ES_JAVA_OPTS: '-Xms128m -Xmx512m'
+            ES_JAVA_OPTS: '-Xms128m -Xmx128m'
             DISABLE_INSTALL_DEMO_CONFIG: true
             DISABLE_SECURITY_PLUGIN: true
         volumes:
