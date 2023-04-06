@@ -17,6 +17,7 @@ import (
 )
 
 const LogsTable = "logs"
+const LogsKeysMV = "log_keys_hourly_mv"
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
 	if len(logRows) == 0 {
@@ -285,13 +286,30 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 
 func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.LogKey, error) {
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("arrayJoin(LogAttributes.keys) as key, count() as cnt").
-		From(LogsTable).
-		Where(sb.Equal("ProjectId", projectID)).
-		GroupBy("key").
-		OrderBy("cnt DESC").
-		Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(endDate.Unix()))).
-		Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(startDate.Unix())))
+
+	startOfCurrentHour := time.Now().UTC().Truncate(1 * time.Hour)
+	if endDate.UTC().After(startOfCurrentHour) {
+		// If we're fetching keys within the last hour, we fallback to using the `logs` table
+		// because the materialized view hasn't populated yet.
+		sb.Select("arrayJoin(LogAttributes.keys) as Key, count() as Total").
+			From(LogsTable).
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(endDate.Unix()))).
+			Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(startDate.Unix()))).
+			GroupBy("Key").
+			OrderBy("Total DESC")
+
+	} else {
+		endHour := endDate.Truncate(1 * time.Hour)
+		startHour := startDate.Add(1 * time.Hour).Truncate(1 * time.Hour)
+		sb.Select("Key, sum(Count) as Total").
+			From(LogsKeysMV).
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.LessEqualThan("toUInt64(toDateTime(Hour))", uint64(startHour.Unix()))).
+			Where(sb.GreaterEqualThan("toUInt64(toDateTime(Hour))", uint64(endHour.Unix()))).
+			GroupBy("Key").
+			OrderBy("Total DESC")
+	}
 
 	sql, args := sb.Build()
 
@@ -313,9 +331,9 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 	for rows.Next() {
 		var (
 			Key   string
-			Count uint64
+			Total uint64
 		)
-		if err := rows.Scan(&Key, &Count); err != nil {
+		if err := rows.Scan(&Key, &Total); err != nil {
 			return nil, err
 		}
 

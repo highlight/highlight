@@ -30,6 +30,9 @@ func setupTest(tb testing.TB) (*Client, func(tb testing.TB)) {
 	return client, func(tb testing.TB) {
 		err := client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", LogsTable))
 		assert.NoError(tb, err)
+
+		err = client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", LogsKeysMV))
+		assert.NoError(tb, err)
 	}
 }
 
@@ -972,32 +975,33 @@ func TestLogsKeys(t *testing.T) {
 
 	now := time.Now()
 
+	twoHoursAgo := now.Add(-time.Hour * 2)
+
 	rows := []*LogRow{
 		{
 			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
 				ProjectId: 1,
 			},
-			LogAttributes: map[string]string{"user_id": "1", "workspace_id": "2"},
+			LogAttributes: map[string]string{"current_key": "1"},
 		},
 		{
-			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: twoHoursAgo,
 				ProjectId: 1,
 			},
-			LogAttributes: map[string]string{"workspace_id": "3"},
+			LogAttributes: map[string]string{"old_key": "1"},
 		},
 		{
-			Timestamp: now,
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now,
 				ProjectId: 1,
 			},
-			Source:      "frontend",
-			ServiceName: "foo-service",
+			LogAttributes: map[string]string{"old_key": "1"},
 		},
 		{
-			Timestamp: now.Add(-time.Second * 1), // out of range, should not be included
 			LogRowPrimaryAttrs: LogRowPrimaryAttrs{
+				Timestamp: now.Add(-time.Second * 1), // out of range, should not be included
 				ProjectId: 1,
 			},
 			LogAttributes: map[string]string{"workspace_id": "5"},
@@ -1006,20 +1010,7 @@ func TestLogsKeys(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	keys, err := client.LogsKeys(ctx, 1, now, now)
-	assert.NoError(t, err)
-
-	expected := []*modelInputs.LogKey{
-		{
-			Name: "workspace_id", // workspace_id has more hits so it should be ranked higher
-			Type: modelInputs.LogKeyTypeString,
-		},
-		{
-			Name: "user_id",
-			Type: modelInputs.LogKeyTypeString,
-		},
-
-		// Non-custom keys ranked lower
+	alwaysPresentKeys := []*modelInputs.LogKey{
 		{
 			Name: "level",
 			Type: modelInputs.LogKeyTypeString,
@@ -1049,6 +1040,31 @@ func TestLogsKeys(t *testing.T) {
 			Type: modelInputs.LogKeyTypeString,
 		},
 	}
+
+	keys, err := client.LogsKeys(ctx, 1, now, now)
+	assert.NoError(t, err)
+
+	expected := append([]*modelInputs.LogKey{
+		{
+			Name: "current_key",
+			Type: modelInputs.LogKeyTypeString,
+		},
+	}, alwaysPresentKeys...)
+	assert.Equal(t, expected, keys)
+
+	keys, err = client.LogsKeys(ctx, 1, now, twoHoursAgo)
+	assert.NoError(t, err)
+
+	expected = append([]*modelInputs.LogKey{
+		{
+			Name: "old_key",
+			Type: modelInputs.LogKeyTypeString,
+		},
+		{
+			Name: "current_key",
+			Type: modelInputs.LogKeyTypeString,
+		},
+	}, alwaysPresentKeys...)
 	assert.Equal(t, expected, keys)
 }
 
