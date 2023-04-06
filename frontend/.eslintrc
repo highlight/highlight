@@ -38,7 +38,10 @@
 		"@typescript-eslint/no-explicit-any": "off",
 		"@typescript-eslint/no-unused-vars": [
 			"error",
-			{ "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+			{
+				"argsIgnorePattern": "^_",
+				"varsIgnorePattern": "^_"
+			}
 		],
 		"unused-imports/no-unused-imports-ts": "error",
 		"@typescript-eslint/no-non-null-assertion": "off",
@@ -103,6 +106,10 @@
 						"name": "antd",
 						"importNames": ["InputNumber"],
 						"message": "Please use InputNumber from /src/components/InputNumber instead."
+					},
+					{
+						"name": "react-router",
+						"message": "Please use `react-router-dom` instead."
 					},
 					{
 						"name": "react-router-dom",
