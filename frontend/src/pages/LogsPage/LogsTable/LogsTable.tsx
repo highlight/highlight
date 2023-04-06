@@ -267,24 +267,25 @@ const LogsTableInner = ({
 							})}
 						</Stack>
 
-						{Object.entries(matchedAttributes).length > 0 && (
-							<Box mt="10" ml="20">
-								{Object.entries(matchedAttributes).map(
-									([key, { match, value }]) => {
-										return (
-											<LogValue
-												key={key}
-												label={key}
-												value={value}
-												queryKey={key}
-												queryMatch={match}
-												queryTerms={queryTerms}
-											/>
-										)
-									},
-								)}
-							</Box>
-						)}
+						{!row.getIsExpanded() &&
+							Object.entries(matchedAttributes).length > 0 && (
+								<Box mt="10" ml="20">
+									{Object.entries(matchedAttributes).map(
+										([key, { match, value }]) => {
+											return (
+												<LogValue
+													key={key}
+													label={key}
+													value={value}
+													queryKey={key}
+													queryMatch={match}
+													queryTerms={queryTerms}
+												/>
+											)
+										},
+									)}
+								</Box>
+							)}
 
 						<LogDetails
 							matchedAttributes={matchedAttributes}
