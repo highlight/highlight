@@ -408,22 +408,26 @@ export const LogValue: React.FC<{
 						color="caution"
 						break="word"
 					>
-						{stringParts.map((part, index) => (
-							<React.Fragment key={index}>
-								{index > 0 && (
-									<Box
-										as="span"
-										display="inline-block"
-										backgroundColor="caution"
-										px="4"
-										borderRadius="4"
-									>
-										{queryMatch}
-									</Box>
-								)}
-								<Box as="span">{part}</Box>
-							</React.Fragment>
-						))}
+						{queryMatch ? (
+							stringParts.map((part, index) => (
+								<React.Fragment key={index}>
+									{!!part && <Box as="span">{part}</Box>}
+									{index < stringParts.length - 1 && (
+										<Box
+											as="span"
+											display="inline-block"
+											backgroundColor="caution"
+											px="4"
+											borderRadius="4"
+										>
+											{queryMatch}
+										</Box>
+									)}
+								</React.Fragment>
+							))
+						) : (
+							<>{value ? value : '""'}</>
+						)}
 					</Text>
 				</Box>
 				<Box cssClass={styles.attributeActions}>
