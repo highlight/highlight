@@ -278,6 +278,7 @@ const Search: React.FC<{
 							e.preventDefault()
 							e.stopPropagation()
 							state.setValue('')
+							submitQuery('')
 						}}
 						style={{ cursor: 'pointer' }}
 					/>
