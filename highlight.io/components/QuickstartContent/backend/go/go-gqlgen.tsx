@@ -34,6 +34,8 @@ func main() {
   // call with WithRequestFieldLogging() to emit highlight logs for each graphql operation
   // useful for tracing which graphql operations are called as part of which frontend sessions
   server.Use(H.NewGraphqlTracer("your-backend-service-name").WithRequestFieldLogging())
+  // capture panics emitted by graphql handlers in highlight
+  server.SetRecoverFunc(H.GraphQLRecoverFunc())
   // ...
 }`,
 				language: 'go',
