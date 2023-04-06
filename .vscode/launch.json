@@ -5,7 +5,15 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Attach to Process",
+			"name": "Debug (local)",
+			"type": "go",
+			"request": "attach",
+			"debugAdapter": "dlv-dap",
+			"mode": "remote",
+			"port": 2345
+		},
+		{
+			"name": "Debug (remote)",
 			"type": "go",
 			"request": "attach",
 			"debugAdapter": "dlv-dap",

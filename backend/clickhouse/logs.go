@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 	"unicode"
@@ -17,6 +18,7 @@ import (
 )
 
 const LogsTable = "logs"
+const LogsKeysMV = "log_keys_hourly_mv"
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
 	if len(logRows) == 0 {
@@ -283,44 +285,114 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	return histogram, err
 }
 
+/**
+ * Fetching the keys involves an aggregation and hence we optimize the data fetching to pull from an hourly materialized view (MV) when possible
+ * and using the raw logs table for anything that isn't possible to fetch from the MV. The results are then merged together.
+ *
+ * Example:
+ * now = 4:45PM
+ * Time range = "Last 4 hours" (12:45PM - 4:45PM) where startDate = 12:45PM and endDate = 4:45PM
+ *
+ * 4:00PM -> 4:45PM - fetch from raw logs table
+ * 1:00 -> 4:00PM - fetch from MV
+ * 12:45 -> 1:00PM - fetch from raw logs table
+ */
 func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.LogKey, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("arrayJoin(LogAttributes.keys) as key, count() as cnt").
+
+	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("LogsKeys"))
+
+	type keyCount struct {
+		Key   string
+		Total uint64
+	}
+
+	mvEndHour := endDate.Truncate(time.Hour)                        // get the floor of endDate
+	mvStartHour := startDate.Add(1 * time.Hour).Truncate(time.Hour) // gets the ceiling of startDate
+
+	fmt.Println(mvStartHour.Format("01-02-2006 15:04:05"))
+	fmt.Println(mvEndHour.Format("01-02-2006 15:04:05"))
+
+	var rawKeyCounts []keyCount
+	var mvKeyCounts []keyCount
+
+	mappedKeyCount := make(map[string]uint64) // For usage of merging the previous results together
+
+	sb := sqlbuilder.NewSelectBuilder().From(LogsTable)
+	sb.Select("arrayJoin(LogAttributes.keys) as Key, count() as Total").
 		From(LogsTable).
 		Where(sb.Equal("ProjectId", projectID)).
-		GroupBy("key").
-		OrderBy("cnt DESC").
-		Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(endDate.Unix()))).
-		Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(startDate.Unix())))
+		Where(
+			sb.Or(
+				sb.And(
+					sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(endDate.Unix())),
+					sb.GreaterThan("toUInt64(toDateTime(Timestamp))", uint64(mvEndHour.Unix())),
+				),
+				sb.And(
+					sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(startDate.Unix())),
+					sb.LessThan("toUInt64(toDateTime(Timestamp))", uint64(mvStartHour.Unix())),
+				),
+			),
+		).
+		GroupBy("Key").
+		OrderBy("Total DESC")
 
 	sql, args := sb.Build()
 
-	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("LogsKeys"))
-	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	recentSQL, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
 	if err != nil {
 		span.Finish(tracer.WithError(err))
 		return nil, err
 	}
-	span.SetTag("Query", query)
+	span.SetTag("RecentSQL", recentSQL)
 
-	rows, err := client.conn.Query(ctx, sql, args...)
-
-	if err != nil {
+	if err := client.conn.Select(ctx, &rawKeyCounts, sql, args...); err != nil {
+		span.Finish(tracer.WithError(err))
 		return nil, err
 	}
 
-	keys := []*modelInputs.LogKey{}
-	for rows.Next() {
-		var (
-			Key   string
-			Count uint64
-		)
-		if err := rows.Scan(&Key, &Count); err != nil {
-			return nil, err
-		}
+	for _, keyCount := range rawKeyCounts {
+		mappedKeyCount[keyCount.Key] += keyCount.Total
+	}
 
+	mv := sqlbuilder.NewSelectBuilder().From(LogsKeysMV)
+	mv.Select("Key, sum(Count) as Total").
+		From(LogsKeysMV).
+		Where(mv.Equal("ProjectId", projectID)).
+		Where(mv.LessEqualThan("toUInt64(toDateTime(Hour))", uint64(mvEndHour.Unix()))).
+		Where(mv.GreaterEqualThan("toUInt64(toDateTime(Hour))", uint64(mvStartHour.Unix()))).
+		GroupBy("Key").
+		OrderBy("Total DESC")
+
+	sql, args = mv.Build()
+
+	olderSQL, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	if err != nil {
+		span.Finish(tracer.WithError(err))
+		return nil, err
+	}
+	span.SetTag("OlderSQL", olderSQL)
+
+	if err := client.conn.Select(ctx, &mvKeyCounts, sql, args...); err != nil {
+		span.Finish(tracer.WithError(err))
+		return nil, err
+	}
+
+	for _, keyCount := range mvKeyCounts {
+		mappedKeyCount[keyCount.Key] += keyCount.Total
+	}
+
+	var sortedKeyCounts []keyCount
+	for k, v := range mappedKeyCount {
+		sortedKeyCounts = append(sortedKeyCounts, keyCount{k, v})
+	}
+	sort.Slice(sortedKeyCounts, func(i, j int) bool {
+		return sortedKeyCounts[i].Total > sortedKeyCounts[j].Total
+	})
+
+	keys := []*modelInputs.LogKey{}
+	for _, keyCount := range sortedKeyCounts {
 		keys = append(keys, &modelInputs.LogKey{
-			Name: Key,
+			Name: keyCount.Key,
 			Type: modelInputs.LogKeyTypeString, // For now, assume everything is a string
 		})
 	}
@@ -332,10 +404,8 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 		})
 	}
 
-	rows.Close()
-
-	span.Finish(tracer.WithError(rows.Err()))
-	return keys, rows.Err()
+	span.Finish()
+	return keys, nil
 
 }
 
