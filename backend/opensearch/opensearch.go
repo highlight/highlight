@@ -737,8 +737,9 @@ func (c *Client) PutMapping(ctx context.Context, index Index, bodyStr string) er
 func (c *Client) PutScript(ctx context.Context, script Script, bodyStr string) error {
 	body := strings.NewReader(bodyStr)
 
+	scriptStr := GetScript(script)
 	putRequest := opensearchapi.PutScriptRequest{
-		ScriptID: GetScript(script),
+		ScriptID: scriptStr,
 		Body:     body,
 	}
 
@@ -747,7 +748,7 @@ func (c *Client) PutScript(ctx context.Context, script Script, bodyStr string) e
 		return e.Wrap(err, "OPENSEARCH_ERROR error upserting script")
 	}
 
-	log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s) [%d] script created", script, createResponse.StatusCode)
+	log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s) [%d] script created", scriptStr, createResponse.StatusCode)
 
 	return nil
 }

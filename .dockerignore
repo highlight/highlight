@@ -1,4 +1,8 @@
+**/.next
+**/.turbo
+**/build
+**/dist
+**/node_modules
 .idea
 .yarn/cache
 build
-**/node_modules

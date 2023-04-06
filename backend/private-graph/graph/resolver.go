@@ -646,7 +646,10 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 	for _, errorGroupID := range errorGroupIDs {
 		errorGroupFilters = append(errorGroupFilters, fmt.Sprintf(`r.ErrorGroupID == "%d"`, errorGroupID))
 	}
-	errorGroupFilter := fmt.Sprintf(`|> filter(fn: (r) => %s)`, strings.Join(errorGroupFilters, " or "))
+	var errorGroupFilter string
+	if len(errorGroupFilters) > 0 {
+		errorGroupFilter = fmt.Sprintf(`|> filter(fn: (r) => %s)`, strings.Join(errorGroupFilters, " or "))
+	}
 	extraFilter := ""
 	if metric != "" {
 		extraFilter = fmt.Sprintf(`|> filter(fn: (r) => r._field == "%s")`, metric)
