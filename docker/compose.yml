@@ -60,19 +60,30 @@ services:
             - clickhouse-data:/var/lib/clickhouse
             - clickhouse-logs:/var/log/clickhouse-server
 
-    elasticsearch:
-        container_name: elasticsearch
-        image: docker.elastic.co/elasticsearch/elasticsearch:7.17.8
+    opensearch:
+        container_name: opensearch
+        image: opensearchproject/opensearch:1.1.0
         ports:
             - 9200:9200
+            - 9600:9600
         environment:
             discovery.type: single-node
-            xpack.security.enabled: false
+            bootstrap.memory_lock: true
             ES_JAVA_OPTS: '-Xms128m -Xmx512m'
+            DISABLE_INSTALL_DEMO_CONFIG: true
+            DISABLE_SECURITY_PLUGIN: true
         volumes:
-            - elasticsearch-data:/usr/share/elasticsearch/data
+            - opensearch-data:/usr/share/opensearch/data
         healthcheck:
-            test: ['CMD', 'curl', '-f', 'http://localhost:9200']
+            test:
+                [
+                    'CMD',
+                    'curl',
+                    '-f',
+                    '-u',
+                    'admin:admin',
+                    'http://localhost:9200',
+                ]
             start_period: 180s
             interval: 5s
             timeout: 5s
@@ -109,5 +120,5 @@ volumes:
     clickhouse-data:
     clickhouse-logs:
     redis-data:
-    elasticsearch-data:
+    opensearch-data:
     influxdb-data:
