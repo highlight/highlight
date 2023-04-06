@@ -81,6 +81,8 @@ export const getTimelineEventDisplayName = (name: string) => {
 	switch (name) {
 		case 'TabHidden':
 			return 'Tab State'
+		case 'RageClicks':
+			return 'Rage Clicks'
 		default:
 			return name
 	}
