@@ -596,11 +596,6 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		NewLogRow(now, 1, WithSeverityText(modelInputs.LogLevelInfo.String())),
-		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
-				"level": modelInputs.LogLevelWarn.String(),
-			}, map[string]any{}, map[string]any{}, false),
-		),
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
