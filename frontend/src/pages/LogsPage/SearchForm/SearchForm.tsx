@@ -55,9 +55,7 @@ const SearchForm = ({
 	timeMode,
 }: Props) => {
 	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
-
 	const formState = useFormState({ defaultValues: { query: initialQuery } })
-
 	const { projectId } = useProjectId()
 	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
 		variables: {
@@ -299,7 +297,6 @@ export const Search: React.FC<{
 
 							state.setValue('')
 							submitQuery('')
-							formState.setValue('query', '')
 						}}
 						style={{ cursor: 'pointer' }}
 					/>
