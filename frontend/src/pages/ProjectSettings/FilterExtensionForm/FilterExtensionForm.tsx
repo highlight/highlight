@@ -93,7 +93,7 @@ export const FilterExtensionForm = () => {
 						})
 							.then(() => {
 								message.success(
-									`${c.label} turns ${
+									`${c.label} turned ${
 										isOptIn ? 'on' : 'off'
 									} successfully`,
 								)
