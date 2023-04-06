@@ -73,7 +73,7 @@ export const FilterExtensionForm = () => {
 	const categories = [
 		{
 			label: 'Chrome extension',
-			info: 'Filter Chrome extension',
+			info: 'Hide Chrome extension stack frames from errors.',
 			checked: filterChromeExtension,
 		},
 	]
