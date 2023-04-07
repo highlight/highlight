@@ -83,11 +83,10 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 		oc = graphql.GetOperationContext(ctx)
 	}
 	opName := "undefined"
-	name := fmt.Sprintf("graphql.operation.%s", opName)
 	if oc != nil {
 		opName = oc.OperationName
-		RecordMetric(ctx, name+".size", float64(len(oc.RawQuery)))
 	}
+	name := fmt.Sprintf("graphql.operation.%s", opName)
 
 	span, ctx := StartTrace(ctx, name)
 	start := graphql.Now()
