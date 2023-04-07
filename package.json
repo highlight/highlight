@@ -10,6 +10,7 @@
 		"react-markdown": "^8.0.5"
 	},
 	"workspaces": [
+		"docs-content",
 		"e2e/*",
 		"packages/*",
 		"highlight.io",
