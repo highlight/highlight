@@ -166,6 +166,59 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	return getLogsConnection(edges, pagination), rows.Err()
 }
 
+// This is a lighter weight version of the previous function for loading the minimal about of data for a session
+func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogEdge, error) {
+	selectStr := "Timestamp, UUID, SeverityText, Body"
+	sb, err := makeSelectBuilder(selectStr, projectID, params, Pagination{}, OrderBackwardInverted, OrderForwardInverted)
+	if err != nil {
+		return nil, err
+	}
+
+	sql, args := sb.Build()
+
+	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("ReadSessionLogs"))
+	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	if err != nil {
+		span.Finish(tracer.WithError(err))
+		return nil, err
+	}
+	span.SetTag("Query", query)
+	span.SetTag("Params", params)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+
+	if err != nil {
+		span.Finish(tracer.WithError(err))
+		return nil, err
+	}
+
+	edges := []*modelInputs.LogEdge{}
+
+	for rows.Next() {
+		var result struct {
+			Timestamp    time.Time
+			UUID         string
+			SeverityText string
+			Body         string
+		}
+		if err := rows.ScanStruct(&result); err != nil {
+			return nil, err
+		}
+
+		edges = append(edges, &modelInputs.LogEdge{
+			Cursor: encodeCursor(result.Timestamp, result.UUID),
+			Node: &modelInputs.Log{
+				Timestamp: result.Timestamp,
+				Level:     makeLogLevel(result.SeverityText),
+				Message:   result.Body,
+			},
+		})
+	}
+	rows.Close()
+	span.Finish(tracer.WithError(rows.Err()))
+	return edges, rows.Err()
+}
+
 func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
 	sb, err := makeSelectBuilder("COUNT(*)", projectID, params, Pagination{CountOnly: true}, OrderBackwardNatural, OrderForwardNatural)
 	if err != nil {

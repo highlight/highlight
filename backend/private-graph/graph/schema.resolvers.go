@@ -7186,6 +7186,16 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 	})
 }
 
+// SessionLogs is the resolver for the sessionLogs field.
+func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogEdge, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.ReadSessionLogs(ctx, project.ID, params)
+}
+
 // LogsTotalCount is the resolver for the logs_total_count field.
 func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
 	project, err := r.isAdminInProject(ctx, projectID)

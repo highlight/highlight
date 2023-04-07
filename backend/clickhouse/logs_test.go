@@ -138,6 +138,41 @@ func TestReadLogsAscending(t *testing.T) {
 	assert.Equal(t, payload.Edges[1].Node.Message, "Body 1")
 }
 
+func TestReadSessionLogs(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+	oneSecondAgo := now.Add(-time.Second * 1)
+	rows := []*LogRow{
+		NewLogRow(now, 1, WithBody(ctx, "Body 1")),
+		NewLogRow(oneSecondAgo, 1,
+			WithBody(ctx, "Body 2"),
+			WithSeverityText(modelInputs.LogLevelInfo.String()),
+			WithLogAttributes(ctx, map[string]any{
+				"service": "foo",
+			}, map[string]any{}, map[string]any{}, false)),
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	edges, err := client.ReadSessionLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+	})
+	assert.NoError(t, err)
+
+	assert.Len(t, edges, 2)
+	assert.Equal(t, edges[0].Node.Message, "Body 2")
+	assert.Equal(t, edges[1].Node.Message, "Body 1")
+
+	assert.Equal(t, edges[0].Node.Level, modelInputs.LogLevelInfo)
+
+	// assert we aren't loading log attributes which is a large column
+	// see: https://github.com/ClickHouse/ClickHouse/issues/7187
+	assert.Empty(t, edges[0].Node.LogAttributes)
+}
+
 func TestReadLogsTotalCount(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)
