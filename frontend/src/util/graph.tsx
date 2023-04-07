@@ -1,4 +1,4 @@
-import 'firebase/auth'
+import 'firebase/compat/auth'
 
 import {
 	ApolloClient,

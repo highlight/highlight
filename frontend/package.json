@@ -29,7 +29,7 @@
 		"dexie-react-hooks": "^1.1.1",
 		"dinero.js": "alpha",
 		"eslint-plugin-simple-import-sort": "^7.0.0",
-		"firebase": "^8.10.1",
+		"firebase": "^9.19.1",
 		"framer-motion": "^6.3.15",
 		"graphql": "^15.5.0",
 		"highlight.io": "workspace:*",
