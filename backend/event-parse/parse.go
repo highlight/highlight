@@ -272,8 +272,6 @@ func escapeNodeScriptTags(ctx context.Context, node map[string]interface{}) {
 			}
 		}
 	}
-
-	return
 }
 
 func escapeNodeWithJSAttrs(ctx context.Context, node map[string]interface{}) {
@@ -300,8 +298,6 @@ func escapeNodeWithJSAttrs(ctx context.Context, node map[string]interface{}) {
 			}
 		}
 	}
-
-	return
 }
 
 // InjectStylesheets injects custom stylesheets into a given snapshot event.

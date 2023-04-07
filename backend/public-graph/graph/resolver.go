@@ -2744,7 +2744,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling incremental event"))
 						}
-						if userEvent, _ := map[parse.EventSource]bool{
+						if userEvent := map[parse.EventSource]bool{
 							parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
 							parse.Input: true, parse.TouchMove: true, parse.Drag: true,
 						}[*mouseInteractionEventData.Source]; userEvent {
