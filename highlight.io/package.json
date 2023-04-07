@@ -26,6 +26,7 @@
 		"antd": "^4.24.7",
 		"classnames": "^2.3.1",
 		"dexie": "^3.2.2",
+		"docs-content": "workspace:*",
 		"embla-carousel-react": "^7.0.5",
 		"framer-motion": "^8.5.2",
 		"fuse.js": "^6.6.2",
