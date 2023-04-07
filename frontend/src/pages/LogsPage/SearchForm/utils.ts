@@ -146,5 +146,9 @@ export const quoteQueryValue = (value: string) => {
 		return value
 	}
 
-	return `"${value}"`
+	if (value.indexOf(' ') > -1) {
+		return `"${value}"`
+	}
+
+	return value
 }

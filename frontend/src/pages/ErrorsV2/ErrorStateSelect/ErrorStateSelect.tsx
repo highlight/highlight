@@ -240,6 +240,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 									direction="row"
 									justify="space-between"
 									align="center"
+									width="full"
 								>
 									<Stack
 										direction="row"

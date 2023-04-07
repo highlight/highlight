@@ -18,6 +18,7 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import { QueryParam } from '@pages/LogsPage/LogsPage'
 import {
+	findMatchingLogAttributes,
 	IconCollapsed,
 	IconExpanded,
 } from '@pages/LogsPage/LogsTable/LogsTable'
@@ -31,7 +32,7 @@ import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
-import React, { useEffect, useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 import { createSearchParams, generatePath } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
@@ -40,6 +41,7 @@ import * as styles from './LogDetails.css'
 type Props = {
 	row: Row<LogEdgeWithError>
 	queryTerms: LogsSearchParam[]
+	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
 }
 
 export const getLogURL = (row: Row<LogEdge>) => {
@@ -64,7 +66,11 @@ const getErrorLink = (projectId: string, log: LogEdgeWithError): string => {
 	return `/errors/${log.error_object?.error_group_secure_id}/instances/${log.error_object?.id}?${params}`
 }
 
-export const LogDetails = ({ row, queryTerms }: Props) => {
+export const LogDetails: React.FC<Props> = ({
+	matchedAttributes,
+	row,
+	queryTerms,
+}) => {
 	const { projectId } = useProjectId()
 	const [allExpanded, setAllExpanded] = useState(false)
 	const {
@@ -106,8 +112,7 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 
 	return (
 		<Stack py="6" paddingBottom="0" gap="1">
-			{Object.keys(logAttributes).map((key, index) => {
-				const value = logAttributes[key as keyof typeof logAttributes]
+			{Object.entries(logAttributes).map(([key, value], index) => {
 				const isObject = typeof value === 'object'
 
 				return (
@@ -115,15 +120,17 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 						{isObject ? (
 							<LogDetailsObject
 								allExpanded={allExpanded}
-								attribute={value}
+								attribute={value as object}
 								label={key}
+								matchedAttributes={matchedAttributes}
 								queryTerms={queryTerms}
 								queryBaseKeys={[key]}
 							/>
 						) : (
 							<LogValue
 								label={key}
-								value={value}
+								value={value as string}
+								queryKey={key}
 								queryTerms={queryTerms}
 							/>
 						)}
@@ -138,7 +145,9 @@ export const LogDetails = ({ row, queryTerms }: Props) => {
 							<LogValue
 								label={key}
 								value={value}
+								queryKey={key}
 								queryTerms={queryTerms}
+								queryMatch={matchedAttributes[key]?.match}
 							/>
 						</Box>
 					),
@@ -294,7 +303,15 @@ const LogDetailsObject: React.FC<{
 	label: string
 	queryBaseKeys: string[]
 	queryTerms: LogsSearchParam[]
-}> = ({ allExpanded, attribute, label, queryBaseKeys, queryTerms }) => {
+	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
+}> = ({
+	allExpanded,
+	attribute,
+	label,
+	matchedAttributes,
+	queryBaseKeys,
+	queryTerms,
+}) => {
 	const [open, setOpen] = useState(false)
 
 	let stringIsJson = false
@@ -306,6 +323,8 @@ const LogDetailsObject: React.FC<{
 	}
 
 	const isObject = typeof attribute === 'object' || stringIsJson
+	const queryKey = queryBaseKeys.join('.') || label
+	const queryMatch = matchedAttributes[queryKey]
 
 	useEffect(() => {
 		setOpen(allExpanded)
@@ -329,12 +348,13 @@ const LogDetailsObject: React.FC<{
 			</LogAttributeLine>
 
 			{open &&
-				Object.keys(attribute).map((key, index) => (
+				Object.entries(attribute).map(([key, value], index) => (
 					<LogDetailsObject
 						key={index}
 						allExpanded={allExpanded}
-						attribute={attribute[key as keyof typeof attribute]}
+						attribute={value}
 						label={key}
+						matchedAttributes={matchedAttributes}
 						queryTerms={queryTerms}
 						queryBaseKeys={[...queryBaseKeys, key]}
 					/>
@@ -345,22 +365,23 @@ const LogDetailsObject: React.FC<{
 			<LogValue
 				label={label}
 				value={attribute}
-				queryBaseKeys={queryBaseKeys}
+				queryKey={queryKey}
 				queryTerms={queryTerms}
+				queryMatch={queryMatch?.match}
 			/>
 		</Box>
 	)
 }
 
-const LogValue: React.FC<{
+export const LogValue: React.FC<{
 	label: string
 	value: string
 	queryTerms: LogsSearchParam[]
-	queryBaseKeys?: string[]
-}> = ({ label, queryBaseKeys = [], queryTerms, value }) => {
+	queryKey: string
+	queryMatch?: string
+}> = ({ label, queryKey, queryTerms, value, queryMatch }) => {
 	const [_, setQuery] = useQueryParam('query', QueryParam)
-	const queryKey = queryBaseKeys.join('.') || label
-	const matchesQuery = queryTerms?.some((t) => t.key === queryKey)
+	const stringParts = queryMatch ? value.split(queryMatch) : [value]
 
 	return (
 		<LogAttributeLine>
@@ -380,18 +401,33 @@ const LogValue: React.FC<{
 				gap="8"
 				onClick={(e: any) => e.stopPropagation()}
 			>
-				<Box
-					backgroundColor={matchesQuery ? 'caution' : undefined}
-					borderRadius="4"
-					p="6"
-				>
+				<Box borderRadius="4" p="6">
 					<Text
 						family="monospace"
 						weight="bold"
 						color="caution"
 						break="word"
 					>
-						{value}
+						{queryMatch ? (
+							stringParts.map((part, index) => (
+								<React.Fragment key={index}>
+									{!!part && <Box as="span">{part}</Box>}
+									{index < stringParts.length - 1 && (
+										<Box
+											as="span"
+											display="inline-block"
+											backgroundColor="caution"
+											px="4"
+											borderRadius="4"
+										>
+											{queryMatch}
+										</Box>
+									)}
+								</React.Fragment>
+							))
+						) : (
+							<>{value ? value : '""'}</>
+						)}
 					</Text>
 				</Box>
 				<Box cssClass={styles.attributeActions}>
@@ -440,7 +476,7 @@ const LogValue: React.FC<{
 									size="12"
 									onClick={() => {
 										navigator.clipboard.writeText(
-											JSON.stringify(value),
+											quoteQueryValue(value),
 										)
 										antdMessage.success(
 											'Value copied to your clipboard',

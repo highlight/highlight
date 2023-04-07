@@ -25,6 +25,7 @@ import {
 	IconSolidDocumentText,
 	IconSolidDotsHorizontal,
 	IconSolidLightningBolt,
+	IconSolidLogs,
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidQuestionMarkCircle,
@@ -33,7 +34,6 @@ import {
 	IconSolidSwitchHorizontal,
 	IconSolidUserCircle,
 	IconSolidViewGridAdd,
-	IconSolidViewList,
 	Menu,
 	Stack,
 	Text,
@@ -102,7 +102,7 @@ export const Header = () => {
 		},
 		{
 			key: 'logs',
-			icon: IconSolidViewList,
+			icon: IconSolidLogs,
 		},
 		{
 			key: 'alerts',

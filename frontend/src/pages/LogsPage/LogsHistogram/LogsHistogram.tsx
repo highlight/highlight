@@ -5,6 +5,7 @@ import { COLOR_MAPPING, LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import { formatDate, isSignificantDateRange } from '@pages/LogsPage/utils'
 import { clamp, formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
+import clsx from 'clsx'
 import moment from 'moment'
 import { memo, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -208,7 +209,14 @@ const LogsHistogram = ({
 		loading || (!outline && (!data?.logs_histogram || !maxBucketCount))
 
 	if (!loading && !maxBucketCount && !outline) {
-		return null
+		return (
+			<Box
+				cssClass={clsx({
+					[styles.regularHeight]: !outline,
+					[styles.outlineHeight]: outline,
+				})}
+			/>
+		)
 	}
 
 	return (
@@ -216,12 +224,11 @@ const LogsHistogram = ({
 			display="flex"
 			alignItems="center"
 			gap="4"
+			cssClass={clsx({
+				[styles.regularHeight]: !outline,
+				[styles.outlineHeight]: outline,
+			})}
 			{...props}
-			style={{
-				height: outline
-					? styles.OUTLINE_HISTOGRAM_HEIGHT
-					: styles.REGULAR_HISTOGRAM_HEIGHT,
-			}}
 		>
 			<Box
 				p={outline ? `${styles.OUTLINE_PADDING}` : undefined}
