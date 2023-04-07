@@ -14,6 +14,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
@@ -54,24 +55,32 @@ func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCli
 		}
 	}()
 
+	var g errgroup.Group
+
 	alertWorkerpool := workerpool.New(maxWorkers)
 	alertWorkerpool.SetPanicHandler(util.Recover)
 	for _, freq := range alertFrequencies {
 		f := freq
-		go func() {
-			for range time.Tick(time.Duration(f) * time.Second) {
-				alerts := (*alertsByFrequency)[f]
-				for _, alert := range alerts {
-					alertWorkerpool.SubmitRecover(
-						func() {
-							err := processLogAlert(ctx, DB, TDB, MailClient, alert, rh, redis, ccClient)
-							if err != nil {
-								log.WithContext(ctx).Error(err)
-							}
-						})
+		g.Go(
+			func() error {
+				for range time.NewTicker(time.Duration(f) * time.Second).C {
+					alerts := (*alertsByFrequency)[f]
+					for _, alert := range alerts {
+						alertWorkerpool.SubmitRecover(
+							func() {
+								err := processLogAlert(ctx, DB, TDB, MailClient, alert, rh, redis, ccClient)
+								if err != nil {
+									log.WithContext(ctx).Error(err)
+								}
+							})
+					}
 				}
-			}
-		}()
+				return nil
+			})
+	}
+
+	if g.Wait() != nil {
+		log.WithContext(ctx).Error(g.Wait())
 	}
 }
 
