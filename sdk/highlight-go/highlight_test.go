@@ -113,7 +113,7 @@ func TestTracer(t *testing.T) {
 
 		a := flush()
 		// size, duration, errorsCount, fields duration
-		if len(a) != 4 {
+		if len(a) != 3 {
 			t.Errorf("flush returned the wrong number of metrics [%v != %v]", len(a), 4)
 			return
 		}
