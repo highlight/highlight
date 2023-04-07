@@ -256,6 +256,20 @@ jobs:
                   task-definition: ${{ steps.image-metric-monitor.outputs.task-definition }}
                   service: metric-monitor
                   cluster: highlight-production-cluster
+            # Edit and deploy log alerts
+            - name: Replace image label for log alerts task
+              id: image-log-alerts
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/log-alerts-task.json
+                  container-name: highlight-backend
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS log alerts service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-log-alerts.outputs.task-definition }}
+                  service: log-alerts-service
+                  cluster: highlight-production-cluster
             # Edit and deploy public worker
             - name: Replace image label for public worker service
               id: image-public-worker
