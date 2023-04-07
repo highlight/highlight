@@ -1,8 +1,10 @@
 package parse
 
 import (
+	"context"
 	"encoding/json"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -121,17 +123,23 @@ func TestInjectStyleSheets(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error reading: %v", err)
 	}
-	var inputMsg json.RawMessage
-	err = json.Unmarshal(inputBytes, &inputMsg)
+
+	snapshot, err := NewSnapshot(inputBytes)
 	if err != nil {
-		t.Fatalf("error unmarshaling: %v", err)
+		t.Fatalf("error parsing: %v", err)
 	}
 
 	// Pass sample set to `injectStylesheets` and convert to interface.
-	gotMsg, err := InjectStylesheets(inputMsg)
+	err = snapshot.InjectStylesheets()
 	if err != nil {
-		t.Fatalf("error unmarshaling: %v", err)
+		t.Fatalf("error injecting: %v", err)
 	}
+
+	gotMsg, err := snapshot.Encode()
+	if err != nil {
+		t.Fatalf("error marshalling: %v", err)
+	}
+
 	var gotInterface interface{}
 	err = json.Unmarshal(gotMsg, &gotInterface)
 	if err != nil {
@@ -152,5 +160,35 @@ func TestInjectStyleSheets(t *testing.T) {
 	// Compare.
 	if diff := pretty.Compare(gotInterface, wantInterface); diff != "" {
 		t.Errorf("(-got +want)\n%s", diff)
+	}
+}
+
+func TestEscapeJavascript(t *testing.T) {
+	inputBytes, err := os.ReadFile("./sample-events/dom-with-scripts.json")
+	if err != nil {
+		t.Fatalf("error reading: %v", err)
+	}
+
+	snapshot, err := NewSnapshot(inputBytes)
+	if err != nil {
+		t.Fatalf("error parsing: %v", err)
+	}
+
+	err = snapshot.EscapeJavascript(context.TODO())
+	if err != nil {
+		t.Fatalf("error escaping: %v", err)
+	}
+
+	processed, err := snapshot.Encode()
+	if err != nil {
+		t.Fatalf("error marshalling: %v", err)
+	}
+
+	str := string(processed)
+	if strings.Contains(str, "attack") {
+		t.Errorf("attack substring not escaped %+v", str)
+	}
+	if strings.Contains(str, "vadweb.us") {
+		t.Errorf("src substring not escaped %+v", str)
 	}
 }

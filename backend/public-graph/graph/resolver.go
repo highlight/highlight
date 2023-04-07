@@ -2697,61 +2697,66 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			var lastUserInteractionTimestamp time.Time
 			hasFullSnapshot := false
 			for _, event := range parsedEvents.Events {
-				stylesheetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-					tracer.ResourceName("go.parseEvents.injectStylesheets"), tracer.Tag("project_id", projectID))
-				if event.Type == parse.FullSnapshot {
-					hasFullSnapshot = true
-					// If we see a snapshot event, attempt to inject CORS stylesheets.
-					d, err := parse.InjectStylesheets(event.Data)
+				if event.Type == parse.FullSnapshot || event.Type == parse.IncrementalSnapshot {
+					snapshot, err := parse.NewSnapshot(event.Data)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling full snapshot"))
+						log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling snapshot"))
 						continue
 					}
-					event.Data = d
-				}
-				stylesheetsSpan.Finish()
 
-				assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-					tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID))
-				// Gated for projectID == 1, replace any static resources with our own, hosted in S3
-				// This gate will be removed in the future
-				if projectID == 1 {
-					var s interface{}
-					err := json.Unmarshal(event.Data, &s)
+					jsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+						tracer.ResourceName("go.parseEvents.EscapeJavascript"), tracer.Tag("project_id", projectID))
+					// escape script tags in any javascript
+					err = snapshot.EscapeJavascript(ctx)
+					jsSpan.Finish(tracer.WithError(err))
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "error unmarshalling event"))
-						continue
+						log.WithContext(ctx).Error(e.Wrap(err, "Error escaping snapshot javascript"))
 					}
-					err = parse.ReplaceAssets(ctx, projectID, s.(map[string]interface{}), r.StorageClient, r.DB)
-					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
-						continue
-					}
-					event.Data, err = json.Marshal(s)
-					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "error remarshalling event"))
-						continue
-					}
-				}
-				assetsSpan.Finish()
 
-				incrementalEventSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-					tracer.ResourceName("go.parseEvents.incrementalEvent"), tracer.Tag("project_id", projectID))
-				if event.Type == parse.IncrementalSnapshot {
-					mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
-					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling incremental event"))
+					// Gated for projectID == 1, replace any static resources with our own, hosted in S3
+					// This gate will be removed in the future
+					if projectID == 1 {
+						assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID))
+						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB)
+						assetsSpan.Finish()
+						if err != nil {
+							log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
+						}
+					}
+
+					if event.Type == parse.FullSnapshot {
+						hasFullSnapshot = true
+						stylesheetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+							tracer.ResourceName("go.parseEvents.InjectStylesheets"), tracer.Tag("project_id", projectID))
+						// If we see a snapshot event, attempt to inject CORS stylesheets.
+						err := snapshot.InjectStylesheets()
+						stylesheetsSpan.Finish(tracer.WithError(err))
+						if err != nil {
+							log.WithContext(ctx).Error(e.Wrap(err, "Error injecting snapshot stylesheets"))
+						}
+					}
+					if event.Type == parse.IncrementalSnapshot {
+						incrementalEventSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+							tracer.ResourceName("go.parseEvents.incrementalEvent"), tracer.Tag("project_id", projectID))
+						mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
+						incrementalEventSpan.Finish(tracer.WithError(err))
+						if err != nil {
+							log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling incremental event"))
+						}
+						if userEvent, _ := map[parse.EventSource]bool{
+							parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
+							parse.Input: true, parse.TouchMove: true, parse.Drag: true,
+						}[*mouseInteractionEventData.Source]; userEvent {
+							lastUserInteractionTimestamp = event.Timestamp.Round(time.Millisecond)
+						}
+					}
+
+					if event.Data, err = snapshot.Encode(); err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "Error encoding snapshot"))
 						continue
 					}
-					if _, ok := map[parse.EventSource]bool{
-						parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
-						parse.Input: true, parse.TouchMove: true, parse.Drag: true,
-					}[*mouseInteractionEventData.Source]; !ok {
-						continue
-					}
-					lastUserInteractionTimestamp = event.Timestamp.Round(time.Millisecond)
 				}
-				incrementalEventSpan.Finish()
 			}
 
 			remarshalSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",

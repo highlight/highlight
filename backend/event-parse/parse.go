@@ -70,6 +70,23 @@ const (
 	TouchCancel
 )
 
+const (
+	ScriptPlaceholder = "SCRIPT_PLACEHOLDER"
+)
+
+var DisallowedScriptAttributes = []string{
+	"src",
+	"srcset",
+}
+
+var DisallowedTagPrefixes = []string{
+	"onload",
+	"onclick",
+	"onmouse",
+	"onkey",
+	"src",
+}
+
 var ResourcesBasePath = os.Getenv("RESOURCES_BASE_PATH")
 var PrivateGraphBasePath = os.Getenv("REACT_APP_PRIVATE_GRAPH_URI")
 
@@ -160,30 +177,148 @@ func EventsFromString(eventsString string) (*ReplayEvents, error) {
 	return events, nil
 }
 
-// InjectStylesheets injects custom stylesheets into a given snapshot event.
-func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
-	var s interface{}
-	err := json.Unmarshal(inputData, &s)
+type Snapshot struct {
+	data map[string]interface{}
+}
+
+func NewSnapshot(inputData json.RawMessage) (*Snapshot, error) {
+	s := &Snapshot{}
+	if err := s.decode(inputData); err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
+func (s *Snapshot) decode(inputData json.RawMessage) error {
+	err := json.Unmarshal(inputData, &s.data)
 	if err != nil {
-		return nil, errors.Wrap(err, "error unmarshaling")
+		return errors.Wrap(err, "error unmarshaling")
 	}
-	n, ok := s.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("error converting to obj")
+	return nil
+}
+
+func (s *Snapshot) Encode() (json.RawMessage, error) {
+	b, err := json.Marshal(s.data)
+	if err != nil {
+		return nil, errors.Wrap(err, "error marshaling back to json")
 	}
-	node, ok := n["node"].(map[string]interface{})
+	return b, nil
+}
+
+// EscapeJavascript adds a guardrail to prevent javascript from being stored in the recording.
+func (s *Snapshot) EscapeJavascript(ctx context.Context) error {
+	return escapeJavascript(ctx, s.data)
+}
+
+func escapeJavascript(ctx context.Context, root map[string]interface{}) error {
+	escapeNodeScriptTags(ctx, root)
+	escapeNodeWithJSAttrs(ctx, root)
+
+	for _, v := range root {
+		switch typedVal := v.(type) {
+		case []interface{}:
+			for _, item := range typedVal {
+				switch typedItem := item.(type) {
+				case map[string]interface{}:
+					if err := escapeJavascript(ctx, typedItem); err != nil {
+						return err
+					}
+				}
+			}
+		case map[string]interface{}:
+			if err := escapeJavascript(ctx, typedVal); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func escapeNodeScriptTags(ctx context.Context, node map[string]interface{}) {
+	// Return if this node doesn't have a tagName or attributes
+	tagName, tagNameOk := node["tagName"].(string)
+	if !tagNameOk || tagName != "script" {
+		return
+	}
+
+	var childNodes []interface{}
+	for _, c := range node["childNodes"].([]interface{}) {
+		if child, ok := c.(map[string]interface{}); ok {
+			if txt, txtOk := child["textContent"]; txtOk {
+				if txt == ScriptPlaceholder {
+					childNodes = append(childNodes, c)
+				} else {
+					log.WithContext(ctx).
+						WithField("node", node).
+						WithField("TextContent", txt).
+						Warnf("potential js attack, dropping script tag in session events")
+				}
+			}
+		}
+	}
+	node["childNodes"] = childNodes
+
+	if a, attributesOk := node["attributes"].(map[string]interface{}); attributesOk {
+		for _, badAttr := range DisallowedScriptAttributes {
+			if src, srcOk := a[badAttr]; srcOk {
+				log.WithContext(ctx).
+					WithField("node", node).
+					WithField("src", src).
+					WithField("tagName", tagName).
+					WithField("disallowedScriptAttribute", badAttr).
+					Warnf("potential js attack, dropping disallowed attribute on session events script tag")
+				delete(a, badAttr)
+			}
+		}
+	}
+
+	return
+}
+
+func escapeNodeWithJSAttrs(ctx context.Context, node map[string]interface{}) {
+	id, idOk := node["id"].(float64)
+	tagName, tagNameOk := node["tagName"].(string)
+
+	if !idOk && !tagNameOk {
+		return
+	}
+
+	if a, attributesOk := node["attributes"].(map[string]interface{}); attributesOk {
+		for key, value := range a {
+			for _, badPrefix := range DisallowedTagPrefixes {
+				if strings.HasPrefix(key, badPrefix) {
+					log.WithContext(ctx).
+						WithField("node", node).
+						WithField("id", id).
+						WithField("tagName", tagName).
+						WithField("disallowedTagAttribute", key).
+						WithField("value", value).
+						Warnf("potential js attack, dropping disallowed attribute on session events tag")
+					delete(a, key)
+				}
+			}
+		}
+	}
+
+	return
+}
+
+// InjectStylesheets injects custom stylesheets into a given snapshot event.
+func (s *Snapshot) InjectStylesheets() error {
+	node, ok := s.data["node"].(map[string]interface{})
 	if !ok {
-		return nil, errors.New("error converting to node")
+		return errors.New("error converting to node")
 	}
 	childNodes, ok := node["childNodes"].([]interface{})
 	if !ok {
-		return nil, errors.New("error converting to childNodes")
+		return errors.New("error converting to childNodes")
 	}
 	var htmlNode map[string]interface{}
 	for _, c := range childNodes {
 		subNode, ok := c.(map[string]interface{})
 		if !ok {
-			return nil, errors.New("error converting to childNodes")
+			return errors.New("error converting to childNodes")
 		}
 		tagName, ok := subNode["tagName"].(string)
 		if !ok || tagName != "html" {
@@ -194,13 +329,13 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 	}
 	htmlChildNodes, ok := htmlNode["childNodes"].([]interface{})
 	if !ok {
-		return nil, errors.New("error converting to childNodes")
+		return errors.New("error converting to childNodes")
 	}
 	var headNode map[string]interface{}
 	for _, c := range htmlChildNodes {
 		subNode, ok := c.(map[string]interface{})
 		if !ok {
-			return nil, errors.New("error converting to childNodes")
+			return errors.New("error converting to childNodes")
 		}
 		tagName, ok := subNode["tagName"].(string)
 		if !ok || tagName != "head" {
@@ -211,7 +346,7 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 	}
 	headChildNodes, ok := headNode["childNodes"].([]interface{})
 	if !ok {
-		return nil, errors.New("error converting to childNodes")
+		return errors.New("error converting to childNodes")
 	}
 	for _, c := range headChildNodes {
 		subNode, ok := c.(map[string]interface{})
@@ -249,15 +384,11 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 		// content w/.
 		attrs["_cssText"] = string(data)
 	}
-	b, err := json.Marshal(s)
-	if err != nil {
-		return nil, errors.Wrap(err, "error marshaling back to json")
-	}
-	return json.RawMessage(b), nil
+	return nil
 }
 
 // The tag types which can reference static assets in the src attribute
-var srcTagNames map[string]bool = map[string]bool{
+var srcTagNames = map[string]bool{
 	"audio":  true,
 	"embed":  true,
 	"img":    true,
@@ -432,13 +563,13 @@ lexerLoop:
 	return
 }
 
-func ReplaceAssets(ctx context.Context, projectId int, root map[string]interface{}, s storage.Client, db *gorm.DB) error {
-	urls := getAssetUrlsFromTree(ctx, projectId, root, map[string]string{})
-	replacements, err := getOrCreateUrls(ctx, projectId, urls, s, db)
+func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, db *gorm.DB) error {
+	urls := getAssetUrlsFromTree(ctx, projectId, s.data, map[string]string{})
+	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, db)
 	if err != nil {
 		return errors.Wrap(err, "error creating replacement urls")
 	}
-	getAssetUrlsFromTree(ctx, projectId, root, replacements)
+	getAssetUrlsFromTree(ctx, projectId, s.data, replacements)
 	return nil
 }
 
