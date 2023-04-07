@@ -91,7 +91,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	}
 
 	const handleLevelChange = (level: LogLevel) => {
-		setQuery(`${query} level:${String(level).toLowerCase()}`)
+		setQuery(`${query} level:${level}`)
 	}
 
 	const fetchMoreWhenScrolled = React.useCallback(
