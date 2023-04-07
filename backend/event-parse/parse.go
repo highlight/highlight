@@ -74,17 +74,12 @@ const (
 	ScriptPlaceholder = "SCRIPT_PLACEHOLDER"
 )
 
-var DisallowedScriptAttributes = []string{
-	"src",
-	"srcset",
-}
-
 var DisallowedTagPrefixes = []string{
-	"onload",
+	"onchange",
 	"onclick",
-	"onmouse",
 	"onkey",
-	"src",
+	"onload",
+	"onmouse",
 }
 
 var ResourcesBasePath = os.Getenv("RESOURCES_BASE_PATH")
@@ -258,20 +253,6 @@ func escapeNodeScriptTags(ctx context.Context, node map[string]interface{}) {
 		}
 	}
 	node["childNodes"] = childNodes
-
-	if a, attributesOk := node["attributes"].(map[string]interface{}); attributesOk {
-		for _, badAttr := range DisallowedScriptAttributes {
-			if src, srcOk := a[badAttr]; srcOk {
-				log.WithContext(ctx).
-					WithField("node", node).
-					WithField("src", src).
-					WithField("tagName", tagName).
-					WithField("disallowedScriptAttribute", badAttr).
-					Warnf("potential js attack, dropping disallowed attribute on session events script tag")
-				delete(a, badAttr)
-			}
-		}
-	}
 }
 
 func escapeNodeWithJSAttrs(ctx context.Context, node map[string]interface{}) {

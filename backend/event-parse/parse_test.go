@@ -188,7 +188,4 @@ func TestEscapeJavascript(t *testing.T) {
 	if strings.Contains(str, "attack") {
 		t.Errorf("attack substring not escaped %+v", str)
 	}
-	if strings.Contains(str, "vadweb.us") {
-		t.Errorf("src substring not escaped %+v", str)
-	}
 }
