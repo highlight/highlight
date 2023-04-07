@@ -12,7 +12,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import React from 'react'
 import { useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useLocation } from 'react-router'
+import { useLocation } from 'react-router-dom'
 
 import styles from './KeyboardShortcutsEducation.module.scss'
 

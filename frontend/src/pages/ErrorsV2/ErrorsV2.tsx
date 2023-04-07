@@ -38,7 +38,7 @@ import clsx from 'clsx'
 import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
 
 import * as styles from './styles.css'

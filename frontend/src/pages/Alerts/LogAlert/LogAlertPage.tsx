@@ -42,11 +42,12 @@ import {
 } from '@pages/LogsPage/constants'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { Search } from '@pages/LogsPage/SearchForm/SearchForm'
+import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { capitalize } from 'lodash'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 
 import * as styles from './styles.css'
 
