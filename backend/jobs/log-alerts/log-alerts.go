@@ -79,8 +79,9 @@ func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCli
 			})
 	}
 
-	if g.Wait() != nil {
-		log.WithContext(ctx).Error(g.Wait())
+	err := g.Wait()
+	if err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 }
 
