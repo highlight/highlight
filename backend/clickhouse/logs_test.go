@@ -146,13 +146,16 @@ func TestReadSessionLogs(t *testing.T) {
 	now := time.Now()
 	oneSecondAgo := now.Add(-time.Second * 1)
 	rows := []*LogRow{
-		NewLogRow(now, 1, WithBody(ctx, "Body 1")),
 		NewLogRow(oneSecondAgo, 1,
-			WithBody(ctx, "Body 2"),
+			WithBody(ctx, "Body"),
 			WithSeverityText(modelInputs.LogLevelInfo.String()),
 			WithLogAttributes(ctx, map[string]any{
 				"service": "foo",
 			}, map[string]any{}, map[string]any{}, false)),
+	}
+
+	for i := 1; i <= LogsLimit; i++ {
+		rows = append(rows, NewLogRow(now, 1))
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -162,10 +165,8 @@ func TestReadSessionLogs(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	assert.Len(t, edges, 2)
-	assert.Equal(t, edges[0].Node.Message, "Body 2")
-	assert.Equal(t, edges[1].Node.Message, "Body 1")
-
+	assert.Len(t, edges, LogsLimit+1)
+	assert.Equal(t, edges[0].Node.Message, "Body")
 	assert.Equal(t, edges[0].Node.Level, modelInputs.LogLevelInfo)
 
 	// assert we aren't loading log attributes which is a large column
@@ -305,7 +306,7 @@ func TestReadLogsHasNextPage(t *testing.T) {
 	now := time.Now()
 	var rows []*LogRow
 
-	for i := 1; i <= LogsLimit; i++ { // 100 is a hardcoded limit
+	for i := 1; i <= LogsLimit; i++ {
 		rows = append(rows, NewLogRow(now, 1))
 	}
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
