@@ -26,7 +26,7 @@ import { Typography } from '../../components/common/Typography/Typography'
 import { Callout } from '../../components/Docs/Callout/Callout'
 import { DocSection } from '../../components/Docs/DocLayout/DocLayout'
 import DocSelect from '../../components/Docs/DocSelect/DocSelect'
-import { generateIdString } from '../../components/Docs/DocsTypographyRenderer/DocsTypographyRenderer'
+import { generateIdFromProps } from '../../components/Docs/DocsTypographyRenderer/DocsTypographyRenderer'
 import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
 import { useMediaQuery } from '../../components/MediaQuery/MediaQuery'
 import {
@@ -120,7 +120,9 @@ const useIntersectionObserver = (setActiveId: (s: string) => void) => {
 			rootMargin: ' -5% 0px -90% 0px',
 		})
 
-		const headingElements = Array.from(document.querySelectorAll('h4, h5'))
+		const headingElements = Array.from(
+			document.querySelectorAll('h4, h5, h6'),
+		)
 		headingElements.forEach((element) => observer.observe(element))
 
 		return () => observer.disconnect()
@@ -545,19 +547,20 @@ const PageRightBar = ({
 	title: string
 	relativePath: string
 }) => {
-	const { nestedHeadings } = useHeadingsData('h5')
+	const { nestedHeadings } = useHeadingsData('h5,h6')
 	const router = useRouter()
 	const [activeId, setActiveId] = useState<string>()
 	useIntersectionObserver(setActiveId)
 
-	useEffect(() => {
-		const selectedId = router.asPath.split('#')
-		if (selectedId.length > 1) {
-			document.querySelector(`#${selectedId[1]}`)?.scrollIntoView({
-				behavior: 'smooth',
-			})
-		}
-	}, [router.asPath])
+	// @fabio, this is the problem child. I'm not sure why this is causing the page to scroll to the top on load.
+	// useEffect(() => {
+	// 	const selectedId = router.asPath.split('#')
+	// 	if (selectedId.length > 1) {
+	// 		document.querySelector(`#${selectedId[1]}`)?.scrollIntoView({
+	// 			behavior: 'smooth',
+	// 		})
+	// 	}
+	// }, [router.asPath])
 
 	return (
 		<div className={styles.rightBarWrap}>
@@ -831,12 +834,12 @@ const DocPage = ({
 		if (redirect) router.push(redirect)
 	}, [redirect, router])
 
-	useEffect(() => {
-		const storedScrollPosition = sessionStorage.getItem('scrollPosition')
-		if (storedScrollPosition) {
-			window.scrollTo(0, parseInt(storedScrollPosition))
-		}
-	}, [router])
+	// useEffect(() => {
+	// 	const storedScrollPosition = sessionStorage.getItem('scrollPosition')
+	// 	if (storedScrollPosition) {
+	// 		window.scrollTo(0, parseInt(storedScrollPosition))
+	// 	}
+	// }, [router])
 
 	const currentToc = toc?.children.find(
 		(c) => c.tocSlug === relPath?.split('/').filter((r) => r)[0],
@@ -995,32 +998,39 @@ const DocPage = ({
 													<h4 {...props} />
 												),
 												h2: (props) => {
-													if (
-														props.children &&
-														typeof props.children ===
-															'string'
-													) {
-														const id =
-															generateIdString(
-																props.children as string,
-															)
-														return (
-															<Link
-																href={`#${id}`}
-																className="flex items-baseline gap-2 my-6 transition-all group"
-															>
-																<h5
-																	id={id}
-																	{...props}
-																/>
-															</Link>
+													const id =
+														generateIdFromProps(
+															props.children as string,
 														)
-													}
-													return <></>
+													return (
+														<Link
+															href={`#${id}`}
+															className="flex items-baseline gap-2 my-6 transition-all group"
+														>
+															<h5
+																id={id}
+																{...props}
+															/>
+														</Link>
+													)
 												},
-												h3: (props) => (
-													<h6 {...props} />
-												),
+												h3: (props) => {
+													const id =
+														generateIdFromProps(
+															props.children,
+														)
+													return (
+														<Link
+															href={`#${id}`}
+															className="flex items-baseline gap-2 my-6 transition-all group"
+														>
+															<h6
+																id={id}
+																{...props}
+															/>
+														</Link>
+													)
+												},
 												h4: (props) => (
 													<h6 {...props} />
 												),
