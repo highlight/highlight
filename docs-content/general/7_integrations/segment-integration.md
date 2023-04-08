@@ -5,17 +5,7 @@ createdAt: 2021-10-18T22:03:24.000Z
 updatedAt: 2022-06-13T15:44:38.000Z
 ---
 
-> If you have an existing codebase calling
->
-> [Segment's](https://segment.com/docs/connections/spec/)
->
-> `identify()`
->
-> and
->
-> `track()`
->
-> methods, then you won't have to call Highlight's. Highlight will automatically forward data sent to Segment to your Highlight sessions.
+If you have an existing codebase calling [Segment's](https://segment.com/docs/connections/spec/) `identify()` and `track()` methods, then you won't have to call Highlight's. Highlight will automatically forward data sent to Segment to your Highlight sessions.
 
 ```hint
 We are currently working with Segment on an official integration where you can enable, configure, and send data to Highlight. If you'd like to use this, then [upvote this feature request](https://highlight.canny.io/feature-requests/p/official-segment-integration).
