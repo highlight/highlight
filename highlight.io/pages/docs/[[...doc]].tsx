@@ -1007,7 +1007,7 @@ const DocPage = ({
 														return (
 															<Link
 																href={`#${id}`}
-																className="inline-flex items-baseline gap-2 my-6 transition-all group"
+																className="flex items-baseline gap-2 my-6 transition-all group"
 															>
 																<h5
 																	id={id}
