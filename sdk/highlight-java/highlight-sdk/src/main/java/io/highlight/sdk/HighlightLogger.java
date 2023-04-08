@@ -18,7 +18,7 @@ public class HighlightLogger {
 		this.projectId = options.projectId();
 
 		HighlightOpenTelemetry openTelemetry = highlight.getOpenTelemetry();
-		this.logger = openTelemetry.getLogger("highlight-node");
+		this.logger = openTelemetry.getLogger("highlight-java");
 	}
 
 	public void process(HighlightLogRecord record) {
