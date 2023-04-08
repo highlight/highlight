@@ -80,7 +80,7 @@ public class Highlight {
 			// TODO Throw errors when try to log after shutdown
 
 			long finishedTime = System.currentTimeMillis() - startTime;
-			System.out.println("Highlight was successfully shutted down in " + finishedTime + "ms.");
+			System.out.println("Highlight was successfully shut down in " + finishedTime + "ms.");
 		}));
 
 		System.out.println("Highlight was initialized.");
