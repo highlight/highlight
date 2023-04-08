@@ -13,7 +13,7 @@ import {
 
 import styles from './CodeBlock.module.scss'
 
-type Props = SyntaxHighlighterProps & {
+type Props = Omit<SyntaxHighlighterProps, 'children'> & {
 	text: string
 	onCopy?: () => void
 	hideCopy?: boolean
