@@ -42,7 +42,7 @@ const (
 )
 
 func GetEnvAuthMode() AuthMode {
-	if strings.ToLower(os.Getenv("REACT_APP_AUTH_MODE")) == strings.ToLower(Simple) {
+	if strings.EqualFold(os.Getenv("REACT_APP_AUTH_MODE"), Simple) {
 		return Simple
 	}
 	return Firebase
