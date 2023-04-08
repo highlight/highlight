@@ -8,7 +8,7 @@ slug: changelog-17
 We just launched a new setup page that makes it easier to get started with highlight.io. Check it out at https://app.highlight.io/setup.
 
 ## Ability to turn off session caching for high-memory playback.
-For customers that run a very memory-intensive stack (using canvas recording, or even with lots of changes happening in the dom), the local session player can occosianally slow down the browser tab. We've added a new option to the highlight.io config to turn off session caching. 
+For customers that run a very memory-intensive stack (using canvas recording, or even with lots of changes happening in the dom), the local session player can occosianally slow down the browser tab. We've added a new option to the highlight.io config to turn off session caching. See docs [here](../6_product-features/1_session-replay/player-session-caching.md)
 
 [PR Link](https://github.com/highlight/highlight/pull/4758)
 
