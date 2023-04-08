@@ -38,7 +38,7 @@ const ProjectSettings = () => {
 						tabs={[
 							{
 								key: 'recording',
-								title: 'Recording',
+								title: 'Session Replay',
 								panelContent: (
 									<>
 										<ExcludedUsersForm />
@@ -49,7 +49,7 @@ const ProjectSettings = () => {
 							},
 							{
 								key: 'errors',
-								title: 'Errors',
+								title: 'Error Monitoring',
 								panelContent: (
 									<>
 										<ErrorSettingsForm />
