@@ -383,7 +383,7 @@ h5:hover .headingCopyIcon {
 	display: flex;
 	flex-direction: column;
 	list-style-type: none;
-	width: 100%;
+	width: calc(100% - 16px);
 	z-index: 10;
 	padding: var(--size-xSmall);
 
