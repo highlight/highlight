@@ -26,3 +26,7 @@ Its now easier to contribute to our docs and landing page now that they both liv
 Interested in contributing to highlight.io? Its now easier than ever to get started with our new codespaces setup. Check out our contributing guide for more info.
 
 [PR Link](https://github.com/highlight/highlight/pull/4669)
+
+## Lots of logging updates!
+Launch coming soon...
+
