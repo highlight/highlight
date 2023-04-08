@@ -5,7 +5,7 @@ slug: changelog-17
 
 ![](/images/setup.png)
 ## New setup page just dropped!
-We just launched a new setup page that makes it easier to get started with highlight.io. Check it out at https://app.highlight.io/setup.
+We just launched a new setup page that makes it easier to get started with highlight.io. Check it out at [https://app.highlight.io/setup](https://app.highlight.io/setup).
 
 ## Ability to turn off session caching for high-memory playback.
 For customers that run a very memory-intensive stack (using canvas recording, or even with lots of changes happening in the dom), the local session player can occosianally slow down the browser tab. We've added a new option to the highlight.io config to turn off session caching. See docs [here](../6_product-features/1_session-replay/player-session-caching.md)
@@ -23,7 +23,7 @@ Its now easier to contribute to our docs and landing page now that they both liv
 [PR Link](https://github.com/highlight/highlight/pull/4703)
 
 ## Support for codespaces for contributors.
-Interested in contributing to highlight.io? Its now easier than ever to get started with our new codespaces setup. Check out our contributing guide for more info.
+Interested in contributing to highlight.io? Its now easier than ever to get started with our new codespaces setup. Check out our [contributing guide](../4_company/open-source/contributing/1_getting-started.md) for more info.
 
 [PR Link](https://github.com/highlight/highlight/pull/4669)
 
