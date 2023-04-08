@@ -59,7 +59,7 @@ const Footer = () => {
 							</li>
 							<li>
 								<Link href="/error-monitoring">
-									Session Replay
+									Error Monitoring
 								</Link>
 							</li>
 							<li>
