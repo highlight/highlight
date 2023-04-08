@@ -19,6 +19,9 @@ Error monitoring in [highlight.io](https://highlight.io) is different than most 
 ## Features.
 
 <DocsCardGroup>
+    <DocsCard title="Manually Reporting Errors."  href="./manually-send-errors.md">
+        {"Manually report errors that are not caught by the SDK."}
+    </DocsCard>
     <DocsCard title="Grouping Errors."  href="./grouping-errors.md">
         {"Logic for grouping errors to mitigate repetition."}
     </DocsCard>
