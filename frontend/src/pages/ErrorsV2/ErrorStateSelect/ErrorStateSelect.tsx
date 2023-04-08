@@ -240,6 +240,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 									direction="row"
 									justify="space-between"
 									align="center"
+									width="full"
 								>
 									<Stack
 										direction="row"
@@ -281,10 +282,13 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 								>
 									<Stack
 										direction="row"
-										justify="space-between"
+										gap="0"
+										flex="stretch"
 									>
-										<Box color="n11">{option.title}</Box>
-										<Box color="n9">
+										<Box color="n11" flex="stretch">
+											{option.title}
+										</Box>
+										<Box color="n9" flex="stretch">
 											{option.time.format(DATE_FORMAT)}
 										</Box>
 									</Stack>

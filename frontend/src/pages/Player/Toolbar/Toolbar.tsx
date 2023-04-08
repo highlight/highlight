@@ -25,6 +25,7 @@ export const TimelineAnnotationColors: {
 	'Web Vitals': '--color-red-600',
 	Referrer: '--color-yellow-800',
 	TabHidden: '--color-gray-800',
+	RageClicks: '--color-red-900',
 }
 
 export function getAnnotationColor(

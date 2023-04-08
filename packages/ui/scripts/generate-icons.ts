@@ -23,7 +23,7 @@ const VALID_COLORS = ['currentColor', 'none']
 const COLOR_ATTRS = ['stroke', 'fill']
 const KEEPS_ORIGINAL_COLORS = ['Linear', 'ClickUp', 'Height', 'Slack']
 
-const updateColors = ($el) => {
+const updateColors = ($el: any) => {
 	COLOR_ATTRS.forEach((attr) => {
 		const color = $el.attr(attr)
 

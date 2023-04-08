@@ -6,22 +6,33 @@ import (
 	"context"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/pkg/errors"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type GraphqlTracer interface {
 	graphql.HandlerExtension
 	graphql.ResponseInterceptor
 	graphql.FieldInterceptor
+	WithRequestFieldLogging() GraphqlTracer
 }
 
 type Tracer struct {
-	graphName string
+	graphName           string
+	requestFieldLogging bool
 }
 
 func NewGraphqlTracer(graphName string) GraphqlTracer {
 	return Tracer{graphName: graphName}
+}
+
+// WithRequestFieldLogging configures the tracer to log each graphql operation.
+func (t Tracer) WithRequestFieldLogging() GraphqlTracer {
+	t.requestFieldLogging = true
+	return t
 }
 
 func (t Tracer) ExtensionName() string {
@@ -49,7 +60,7 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	end := graphql.Now()
 	RecordSpanError(
 		span, err,
-		attribute.String("Source", "InterceptField"),
+		attribute.String(SourceAttribute, "InterceptField"),
 		semconv.GraphqlOperationNameKey.String(name),
 	)
 	EndTrace(span)
@@ -79,6 +90,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	start := graphql.Now()
 	resp := next(ctx)
 	end := graphql.Now()
+	t.log(ctx, span, resp.Errors)
 	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
@@ -86,4 +98,51 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 		RecordMetric(ctx, name+".errorsCount", float64(len(resp.Errors)))
 	}
 	return resp
+}
+
+func (t Tracer) log(ctx context.Context, span trace.Span, errs gqlerror.List) {
+	if !t.requestFieldLogging {
+		return
+	}
+	oc := graphql.GetOperationContext(ctx)
+	err := errs.Error()
+	lvl := "trace"
+	if err != "" {
+		lvl = "error"
+	}
+	attrs := []attribute.KeyValue{
+		attribute.String("graphql.graph", t.graphName),
+		attribute.String(LogSeverityAttribute, lvl),
+	}
+	if oc != nil {
+		attrs = append(attrs,
+			semconv.GraphqlOperationNameKey.String(oc.OperationName),
+			semconv.GraphqlDocumentKey.String(oc.RawQuery),
+		)
+		if oc.Operation != nil {
+			attrs = append(attrs,
+				attribute.String(LogMessageAttribute, fmt.Sprintf("graphql.operation.%s", oc.Operation.Name)),
+				semconv.GraphqlOperationTypeKey.String(string(oc.Operation.Operation)),
+			)
+		}
+	}
+	if err != "" {
+		attrs = append(attrs, attribute.String("graphql.error", err))
+	}
+	span.AddEvent(LogEvent, trace.WithAttributes(attrs...))
+	if err != "" {
+		RecordSpanError(span, errs, attrs...)
+	}
+}
+
+func GraphQLRecoverFunc() graphql.RecoverFunc {
+	return func(ctx context.Context, err interface{}) error {
+		var ok bool
+		var e error
+		if e, ok = err.(error); !ok {
+			e = errors.Errorf("panic {error: %+v}", err)
+		}
+		RecordError(ctx, e, attribute.String(SourceAttribute, "GraphQLRecoverFunc"))
+		return e
+	}
 }

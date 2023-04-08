@@ -44,7 +44,17 @@ log.info({
 We can search for it via:
 
 - `user_id:42` matches every log where `user_id` is `42`
-- `level:info` matches every log with level `info`
+- `level:info` matches every log where `level` is `info`
+
+#### AND vs OR
+
+When multiple attributes are included, they work as an `AND` operator:
+
+- `user_id:42 level:info` - matches every log where `user_id` is `42` _and_ `level` is `info`
+
+When the same attribute is included twice in a search, it works as an `OR` operator:
+
+- `user_id:42 level:info level:warn` - matches every log where `user_id` is `42` _and_ (`level` is `info` _or_ `level` is `warn`)
 
 ### Wildcard search
 

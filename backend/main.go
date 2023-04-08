@@ -228,11 +228,9 @@ func main() {
 	// setup highlight
 	H.SetProjectID("1jdkoe52")
 	if util.IsDevOrTestEnv() {
-		log.WithContext(ctx).Info("overwriting highlight-go graphql client address...")
+		log.WithContext(ctx).Info("overwriting highlight-go graphql / otlp client address...")
 		H.SetGraphqlClientAddress("https://localhost:8082/public")
-		if util.IsInDocker() {
-			H.SetOTLPEndpoint("http://collector:4318")
-		}
+		H.SetOTLPEndpoint("http://localhost:4318")
 	}
 	H.Start()
 	defer H.Stop()
@@ -461,9 +459,9 @@ func main() {
 			})
 
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
-			privateServer.Use(H.NewGraphqlTracer(string(util.PrivateGraph)))
+			privateServer.Use(H.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
 			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
-			privateServer.SetRecoverFunc(util.GraphQLRecoverFunc())
+			privateServer.SetRecoverFunc(H.GraphQLRecoverFunc())
 			r.Handle("/",
 				privateServer,
 			)
@@ -507,7 +505,7 @@ func main() {
 			publicServer.Use(util.NewTracer(util.PublicGraph))
 			publicServer.Use(H.NewGraphqlTracer(string(util.PublicGraph)))
 			publicServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
-			publicServer.SetRecoverFunc(util.GraphQLRecoverFunc())
+			publicServer.SetRecoverFunc(H.GraphQLRecoverFunc())
 			r.Handle("/",
 				publicServer,
 			)

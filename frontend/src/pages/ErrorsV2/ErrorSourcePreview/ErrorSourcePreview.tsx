@@ -1,7 +1,7 @@
 import { Maybe } from '@graph/schemas'
 import { StackSectionProps } from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import React from 'react'
-import SyntaxHighlighter from 'react-syntax-highlighter'
+import SyntaxHighlighter from 'react-syntax-highlighter/dist/esm/light'
 
 type ErrorSourcePreviewProps = {
 	lineContent: StackSectionProps['lineContent']

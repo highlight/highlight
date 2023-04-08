@@ -28,7 +28,7 @@ import { Divider, Form, message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import { Link, useLocation } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
 

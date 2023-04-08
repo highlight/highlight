@@ -1,4 +1,4 @@
-import React, { forwardRef, useRef } from 'react'
+import React, { forwardRef, ReactNode, useRef } from 'react'
 
 import {
 	Form as AriaKitForm,
@@ -31,25 +31,26 @@ type FormComponent = React.FC<Props> & {
 	NamedSection: typeof NamedSection
 }
 
-export const Label = ({
-	label,
-	name,
-}: {
+interface LabelProps {
 	label: string
 	name: AriaKitFormInputProps['name']
-}) => {
+	tag?: ReactNode
+}
+
+export const Label = ({ label, name, tag }: LabelProps) => {
 	return (
-		<Box display="flex" alignItems="center" style={{ height: 16 }}>
+		<Box display="flex" alignItems="center" gap="6" style={{ height: 16 }}>
 			<AriaKitFormLabel name={name}>
 				<Text
 					userSelect="none"
 					size="xSmall"
-					weight="bold"
+					weight="medium"
 					color="weak"
 				>
 					{label}
 				</Text>
 			</AriaKitFormLabel>
+			{tag}
 		</Box>
 	)
 }
@@ -58,17 +59,19 @@ type HasLabel = {
 	name: AriaKitFormInputProps['name']
 	label?: string
 	optional?: boolean
+	tag?: ReactNode
 }
 export const NamedSection = ({
 	children,
 	label,
 	name,
+	tag,
 	optional = false,
 }: React.PropsWithChildren<HasLabel>) => {
 	return (
 		<Box display="flex" flexDirection="column" width="full" gap="4">
 			<Box display="flex" flexDirection="row" gap="6">
-				{label && <Label label={label} name={name} />}
+				{label && <Label label={label} name={name} tag={tag} />}
 				{optional && (
 					<Badge shape="basic" size="small" label="Optional" />
 				)}
@@ -186,5 +189,5 @@ Form.Submit = Submit
 Form.Field = Field
 Form.NamedSection = NamedSection
 
-export type FormState = AriaKitFormState<any>
+export declare type FormState<T> = AriaKitFormState<T>
 export const useFormState = useAriaKitFormState

@@ -156,3 +156,38 @@ Use this if you are using the raw http server package and need to setup the High
     </code>
   </div>
 </section>
+
+<section className="section">
+  <div className="left">
+    <h3>H.NewGraphqlTracer()</h3> 
+    <p>An http middleware for tracing graphql servers.</p>
+    <h6>Configuration</h6>
+    <aside className="parameter">
+      <h5>H.NewGraphqlTracer().WithRequestFieldLogging()</h5>
+      <p>Emits highlight logs with details of each graphql operation.</p>
+    </aside>
+  </div>
+  <div className="right">
+    <code>
+        import ghandler "github.com/99designs/gqlgen/graphql/handler"
+        privateServer := ghandler.New(privategen.NewExecutableSchema(...)
+        server.Use(H.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
+    </code>
+  </div>
+</section>
+
+
+<section className="section">
+  <div className="left">
+    <h3>H.GraphQLRecoverFunc()</h3> 
+    <p>A gqlgen recover function to capture panics.</p>
+    <h6>Configuration</h6>
+  </div>
+  <div className="right">
+    <code>
+        import ghandler "github.com/99designs/gqlgen/graphql/handler"
+        privateServer := ghandler.New(privategen.NewExecutableSchema(...)
+        server.SetRecoverFunc(H.GraphQLRecoverFunc())
+    </code>
+  </div>
+</section>

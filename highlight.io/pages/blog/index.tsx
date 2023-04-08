@@ -60,9 +60,9 @@ export async function loadPostsFromHygraph(tag?: string) {
       }
   `
 
-	const { posts } = (await GraphQLRequest(QUERY, {
+	const { posts } = await GraphQLRequest<{ posts: Post[] }>(QUERY, {
 		tag: tag ? [tag] : [],
-	})) as { posts: Post[] }
+	})
 
 	return posts.filter((p) =>
 		tag ? p.tags_relations.some((t) => t.slug === tag) : true,
@@ -80,8 +80,7 @@ export async function loadTagsFromHygraph() {
     }
   `
 
-	// @ts-ignore
-	return (await GraphQLRequest(tagsQuery)).tags as Tag[]
+	return (await GraphQLRequest<{ tags: Tag[] }>(tagsQuery)).tags
 }
 
 export const getStaticProps: GetStaticProps = async () => {

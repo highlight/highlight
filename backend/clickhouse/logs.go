@@ -43,13 +43,17 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 const LogsLimit int = 50
 const KeyValuesLimit int = 50
 
-const OrderBackward = "Timestamp ASC, UUID ASC"
-const OrderForward = "Timestamp DESC, UUID DESC"
+const OrderBackwardNatural = "Timestamp ASC, UUID ASC"
+const OrderForwardNatural = "Timestamp DESC, UUID DESC"
+
+const OrderBackwardInverted = "Timestamp DESC, UUID DESC"
+const OrderForwardInverted = "Timestamp ASC, UUID ASC"
 
 type Pagination struct {
 	After     *string
 	Before    *string
 	At        *string
+	Direction modelInputs.LogDirection
 	CountOnly bool
 }
 
@@ -59,12 +63,19 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	var args []interface{}
 	selectStr := "Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId, Source, ServiceName"
 
+	orderForward := OrderForwardNatural
+	orderBackward := OrderBackwardNatural
+	if pagination.Direction == modelInputs.LogDirectionAsc {
+		orderForward = OrderForwardInverted
+		orderBackward = OrderBackwardInverted
+	}
+
 	if pagination.At != nil && len(*pagination.At) > 1 {
 		// Create a "window" around the cursor
 		// https://stackoverflow.com/a/71738696
 		beforeSb, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
 			Before: pagination.At,
-		})
+		}, orderBackward, orderForward)
 		if err != nil {
 			return nil, err
 		}
@@ -72,29 +83,29 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 
 		atSb, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
 			At: pagination.At,
-		})
+		}, orderBackward, orderForward)
 		if err != nil {
 			return nil, err
 		}
 
 		afterSb, err := makeSelectBuilder(selectStr, projectID, params, Pagination{
 			After: pagination.At,
-		})
+		}, orderBackward, orderForward)
 		if err != nil {
 			return nil, err
 		}
 		afterSb.Limit(LogsLimit/2 + 1)
 
 		ub := sqlbuilder.UnionAll(beforeSb, atSb, afterSb)
-		sb.Select(selectStr).From(sb.BuilderAs(ub, "logs_window")).OrderBy(OrderForward)
+		sb.Select(selectStr).From(sb.BuilderAs(ub, "logs_window")).OrderBy(orderForward)
 	} else {
-		fromSb, err := makeSelectBuilder(selectStr, projectID, params, pagination)
+		fromSb, err := makeSelectBuilder(selectStr, projectID, params, pagination, orderBackward, orderForward)
 		if err != nil {
 			return nil, err
 		}
 
 		fromSb.Limit(LogsLimit + 1)
-		sb.Select(selectStr).From(sb.BuilderAs(fromSb, "logs_window")).OrderBy(OrderForward)
+		sb.Select(selectStr).From(sb.BuilderAs(fromSb, "logs_window")).OrderBy(orderForward)
 	}
 
 	sql, args := sb.Build()
@@ -155,8 +166,61 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	return getLogsConnection(edges, pagination), rows.Err()
 }
 
+// This is a lighter weight version of the previous function for loading the minimal about of data for a session
+func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogEdge, error) {
+	selectStr := "Timestamp, UUID, SeverityText, Body"
+	sb, err := makeSelectBuilder(selectStr, projectID, params, Pagination{}, OrderBackwardInverted, OrderForwardInverted)
+	if err != nil {
+		return nil, err
+	}
+
+	sql, args := sb.Build()
+
+	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("ReadSessionLogs"))
+	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	if err != nil {
+		span.Finish(tracer.WithError(err))
+		return nil, err
+	}
+	span.SetTag("Query", query)
+	span.SetTag("Params", params)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+
+	if err != nil {
+		span.Finish(tracer.WithError(err))
+		return nil, err
+	}
+
+	edges := []*modelInputs.LogEdge{}
+
+	for rows.Next() {
+		var result struct {
+			Timestamp    time.Time
+			UUID         string
+			SeverityText string
+			Body         string
+		}
+		if err := rows.ScanStruct(&result); err != nil {
+			return nil, err
+		}
+
+		edges = append(edges, &modelInputs.LogEdge{
+			Cursor: encodeCursor(result.Timestamp, result.UUID),
+			Node: &modelInputs.Log{
+				Timestamp: result.Timestamp,
+				Level:     makeLogLevel(result.SeverityText),
+				Message:   result.Body,
+			},
+		})
+	}
+	rows.Close()
+	span.Finish(tracer.WithError(rows.Err()))
+	return edges, rows.Err()
+}
+
 func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
-	sb, err := makeSelectBuilder("COUNT(*)", projectID, params, Pagination{CountOnly: true})
+	sb, err := makeSelectBuilder("COUNT(*)", projectID, params, Pagination{CountOnly: true}, OrderBackwardNatural, OrderForwardNatural)
 	if err != nil {
 		return 0, err
 	}
@@ -188,6 +252,8 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		projectID,
 		params,
 		Pagination{},
+		OrderBackwardNatural,
+		OrderForwardNatural,
 	)
 
 	if err != nil {
@@ -402,7 +468,7 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 	return values, rows.Err()
 }
 
-func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*sqlbuilder.SelectBuilder, error) {
+func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsParamsInput, pagination Pagination, orderBackward string, orderForward string) (*sqlbuilder.SelectBuilder, error) {
 	filters := makeFilters(params.Query)
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select(selectStr).From(LogsTable)
@@ -440,7 +506,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 					sb.LessThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix())),
 					sb.LessThan("UUID", uuid),
 				),
-			).OrderBy(OrderForward)
+			).OrderBy(orderForward)
 	} else if pagination.At != nil && len(*pagination.At) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.At)
 		if err != nil {
@@ -462,72 +528,35 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 					sb.GreaterThan("UUID", uuid),
 				),
 			).
-			OrderBy(OrderBackward)
+			OrderBy(orderBackward)
 	} else {
 		sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.EndDate.Unix()))).
 			Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.StartDate.Unix())))
 
 		if !pagination.CountOnly { // count queries can't be ordered because we don't include Timestamp in the select
-			sb.OrderBy(OrderForward)
-		}
-
-	}
-
-	if filters.level != "" {
-		if strings.Contains(filters.level, "%") {
-			sb.Where(sb.Like("SeverityText", filters.level))
-		} else {
-			sb.Where(sb.Equal("SeverityText", filters.level))
+			sb.OrderBy(orderForward)
 		}
 	}
 
-	if filters.secure_session_id != "" {
-		if strings.Contains(filters.secure_session_id, "%") {
-			sb.Where(sb.Like("SecureSessionId", filters.secure_session_id))
-		} else {
-			sb.Where(sb.Equal("SecureSessionId", filters.secure_session_id))
+	makeFilterConditions(sb, filters.level, "SeverityText")
+	makeFilterConditions(sb, filters.secure_session_id, "SecureSessionId")
+	makeFilterConditions(sb, filters.span_id, "SpanId")
+	makeFilterConditions(sb, filters.trace_id, "TraceId")
+	makeFilterConditions(sb, filters.source, "Source")
+	makeFilterConditions(sb, filters.service_name, "ServiceName")
+
+	conditions := []string{}
+	for key, values := range filters.attributes {
+		for _, value := range values {
+			if strings.Contains(value, "%") {
+				conditions = append(conditions, sb.Var(sqlbuilder.Buildf("LogAttributes[%s] LIKE %s", key, value)))
+			} else {
+				conditions = append(conditions, sb.Var(sqlbuilder.Buildf("LogAttributes[%s] = %s", key, value)))
+			}
 		}
 	}
-
-	if filters.span_id != "" {
-		if strings.Contains(filters.span_id, "%") {
-			sb.Where(sb.Like("SpanId", filters.span_id))
-		} else {
-			sb.Where(sb.Equal("SpanId", filters.span_id))
-		}
-	}
-
-	if filters.trace_id != "" {
-		if strings.Contains(filters.trace_id, "%") {
-			sb.Where(sb.Like("TraceId", filters.trace_id))
-		} else {
-			sb.Where(sb.Equal("TraceId", filters.trace_id))
-		}
-	}
-
-	if filters.source != "" {
-		if strings.Contains(filters.source, "%") {
-			sb.Where(sb.Like("Source", filters.source))
-		} else {
-			sb.Where(sb.Equal("Source", filters.source))
-		}
-	}
-
-	if filters.service_name != "" {
-		if strings.Contains(filters.service_name, "%") {
-			sb.Where(sb.Like("ServiceName", filters.service_name))
-		} else {
-			sb.Where(sb.Equal("ServiceName", filters.service_name))
-		}
-	}
-
-	for key, value := range filters.attributes {
-		column := fmt.Sprintf("LogAttributes['%s']", key)
-		if strings.Contains(value, "%") {
-			sb.Where(sb.Like(column, value))
-		} else {
-			sb.Where(sb.Equal(column, value))
-		}
+	if len(conditions) > 0 {
+		sb.Where(sb.Or(conditions...))
 	}
 
 	return sb, nil
@@ -535,18 +564,18 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 
 type filters struct {
 	body              []string
-	level             string
-	trace_id          string
-	span_id           string
-	secure_session_id string
-	source            string
-	service_name      string
-	attributes        map[string]string
+	level             []string
+	trace_id          []string
+	span_id           []string
+	secure_session_id []string
+	source            []string
+	service_name      []string
+	attributes        map[string][]string
 }
 
 func makeFilters(query string) filters {
 	filters := filters{
-		attributes: make(map[string]string),
+		attributes: make(map[string][]string),
 	}
 
 	queries := splitQuery(query)
@@ -571,19 +600,19 @@ func makeFilters(query string) filters {
 
 			switch key {
 			case modelInputs.ReservedLogKeyLevel.String():
-				filters.level = wildcardValue
+				filters.level = append(filters.level, wildcardValue)
 			case modelInputs.ReservedLogKeySecureSessionID.String():
-				filters.secure_session_id = wildcardValue
+				filters.secure_session_id = append(filters.secure_session_id, wildcardValue)
 			case modelInputs.ReservedLogKeySpanID.String():
-				filters.span_id = wildcardValue
+				filters.span_id = append(filters.span_id, wildcardValue)
 			case modelInputs.ReservedLogKeyTraceID.String():
-				filters.trace_id = wildcardValue
+				filters.trace_id = append(filters.trace_id, wildcardValue)
 			case modelInputs.ReservedLogKeySource.String():
-				filters.source = wildcardValue
+				filters.source = append(filters.source, wildcardValue)
 			case modelInputs.ReservedLogKeyServiceName.String():
-				filters.service_name = wildcardValue
+				filters.service_name = append(filters.service_name, wildcardValue)
 			default:
-				filters.attributes[key] = wildcardValue
+				filters.attributes[key] = append(filters.attributes[key], wildcardValue)
 			}
 		}
 	}
@@ -593,6 +622,21 @@ func makeFilters(query string) filters {
 
 func isSeparator(r rune) bool {
 	return !unicode.IsLetter(r) && !unicode.IsDigit(r)
+}
+
+func makeFilterConditions(sb *sqlbuilder.SelectBuilder, filters []string, column string) {
+	conditions := []string{}
+	for _, filter := range filters {
+		if strings.Contains(filter, "%") {
+			conditions = append(conditions, sb.Like(column, filter))
+		} else {
+			conditions = append(conditions, sb.Equal(column, filter))
+		}
+	}
+
+	if len(conditions) > 0 {
+		sb.Where(sb.Or(conditions...))
+	}
 }
 
 // Splits the query by spaces _unless_ it is quoted

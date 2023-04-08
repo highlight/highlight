@@ -18,6 +18,8 @@ import { PythonFastAPIContext } from './backend/python/fastapi'
 import { PythonFlaskContext } from './backend/python/flask'
 import { PythonGCPContext } from './backend/python/gcp'
 import { PythonOtherContext } from './backend/python/other'
+import { RubyOtherContent } from './backend/ruby/other'
+import { RubyRailsContent } from './backend/ruby/rails'
 import { AngularContent } from './frontend/angular'
 import { GatsbyContent } from './frontend/gatsby'
 import { NextContent } from './frontend/next'
@@ -25,18 +27,24 @@ import { OtherContext } from './frontend/other'
 import { ReactContent } from './frontend/react'
 import { SvelteKitContent } from './frontend/sveltekit'
 import { VueContent } from './frontend/vue'
-import { GoLogrusContent } from './logging/go/logrus'
+import { GoFiberLogContent } from './logging/go/fiber'
 import { GoOtherLogContent } from './logging/go/other'
 import { HTTPContent } from './logging/http'
 import { JSNestLogContent } from './logging/js/nestjs'
 import { JSOtherLogContent } from './logging/js/other'
 import { PythonOtherLogContent } from './logging/python/other'
-import { DevDeploymentContent } from './self-host/dev-deploy'
-import { SelfHostContent } from './self-host/self-host'
-import { RubyOtherContent } from './backend/ruby/other'
-import { RubyRailsContent } from './backend/ruby/rails'
 import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
+import { DevDeploymentContent } from './self-host/dev-deploy'
+import { SelfHostContent } from './self-host/self-host'
+
+export type QuickStartOptions = {
+	title: string
+	subtitle: string
+	logoUrl: string
+} & {
+	[key: string]: QuickStartContent
+}
 
 export type QuickStartContent = {
 	title: string
@@ -95,6 +103,7 @@ export const quickStartContent = {
 	client: {
 		title: 'Client SDKs',
 		subtitle: 'Select a client SDK to get started.',
+		logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 		js: {
 			title: 'Select your client framework',
 			subtitle:
@@ -104,18 +113,10 @@ export const quickStartContent = {
 			[QuickStartType.Angular]: AngularContent,
 			[QuickStartType.Next]: NextContent,
 			[QuickStartType.Vue]: VueContent,
+			[QuickStartType.SvelteKit]: SvelteKitContent,
 			[QuickStartType.Gatsby]: GatsbyContent,
 			[QuickStartType.Other]: OtherContext,
 		},
-		// Returning this as part of the base object so we don't break the old docs.
-		// We can remove this once the app-side changes are deployed.
-		[QuickStartType.React]: ReactContent,
-		[QuickStartType.Angular]: AngularContent,
-		[QuickStartType.Next]: NextContent,
-		[QuickStartType.Vue]: VueContent,
-		[QuickStartType.Gatsby]: GatsbyContent,
-		[QuickStartType.SvelteKit]: SvelteKitContent,
-		[QuickStartType.Other]: OtherContext,
 	},
 	backend: {
 		title: 'Select your backend language',
@@ -159,6 +160,10 @@ export const quickStartContent = {
 			[QuickStartType.JStRPC]: JStRPCContent,
 		},
 		ruby: {
+			title: 'Ruby',
+			subtitle:
+				'Select your Ruby framework to install error monitoring for your application.',
+			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
 			[QuickStartType.RubyRails]: RubyRailsContent,
 			[QuickStartType.RubyOther]: RubyOtherContent,
 		},
@@ -179,8 +184,9 @@ export const quickStartContent = {
 			subtitle:
 				'Select your Go framework to install logging in your application.',
 			logoUrl: siteUrl('/images/quickstart/go.svg'),
-			[QuickStartType.GoLogrus]: GoLogrusContent,
+			[QuickStartType.GoLogrus]: GoOtherLogContent,
 			[QuickStartType.GoOther]: GoOtherLogContent,
+			[QuickStartType.GoFiber]: GoFiberLogContent,
 		},
 		js: {
 			title: 'JavaScript',
@@ -197,6 +203,10 @@ export const quickStartContent = {
 			[QuickStartType.HTTPOTLP]: HTTPContent,
 		},
 		ruby: {
+			title: 'Ruby',
+			subtitle:
+				'Select your Ruby framework to install logging in your application.',
+			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
 			[QuickStartType.RubyRails]: RubyRailsLogContent,
 			[QuickStartType.RubyOther]: RubyOtherLogContent,
 		},

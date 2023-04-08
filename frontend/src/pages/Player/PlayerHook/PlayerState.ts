@@ -838,7 +838,7 @@ const processSessionMetadata = (
 			sessionIndex: number
 		})[] = []
 
-		sessionIntervals.forEach((interval, sessionIndex) => {
+		s.sessionIntervals.forEach((interval, sessionIndex) => {
 			interval.sessionEvents.forEach((event) => {
 				if (
 					event.type === EventType.Custom &&

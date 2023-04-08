@@ -3,11 +3,12 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	model2 "github.com/highlight-run/highlight/backend/model"
-	e "github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"time"
+
+	model2 "github.com/highlight-run/highlight/backend/model"
+	e "github.com/pkg/errors"
 
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -29,37 +30,30 @@ func ProjectToInt(projectID string) (int, error) {
 	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
 }
 
-type LogRowPrimaryAttrs struct {
+type LogRow struct {
 	Timestamp       time.Time
 	ProjectId       uint32
 	TraceId         string
 	SpanId          string
 	SecureSessionId string
+	UUID            string
+	TraceFlags      uint32
+	SeverityText    string
+	SeverityNumber  int32
+	Source          modelInputs.LogSource
+	ServiceName     string
+	Body            string
+	LogAttributes   map[string]string
 }
 
-type LogRow struct {
-	LogRowPrimaryAttrs
-	UUID           string
-	TraceFlags     uint32
-	SeverityText   string
-	SeverityNumber int32
-	Source         string
-	ServiceName    string
-	Body           string
-	LogAttributes  map[string]string
-}
-
-func NewLogRow(attrs LogRowPrimaryAttrs, opts ...LogRowOption) *LogRow {
+func NewLogRow(timestamp time.Time, projectID uint32, opts ...LogRowOption) *LogRow {
 	logRow := &LogRow{
-		LogRowPrimaryAttrs: LogRowPrimaryAttrs{
-			Timestamp:       attrs.Timestamp,
-			TraceId:         attrs.TraceId,
-			SpanId:          attrs.SpanId,
-			ProjectId:       attrs.ProjectId,
-			SecureSessionId: attrs.SecureSessionId,
-		},
+		// ensure timestamp is written at second precision,
+		// since clickhouse schema will truncate to second precision anyways.
+		Timestamp:      timestamp.Truncate(time.Second),
+		ProjectId:      projectID,
 		UUID:           uuid.New().String(),
-		SeverityText:   "INFO",
+		SeverityText:   makeLogLevel("INFO").String(),
 		SeverityNumber: int32(log.InfoLevel),
 	}
 
@@ -76,53 +70,59 @@ func (l *LogRow) Cursor() string {
 
 type LogRowOption func(*LogRow)
 
+func WithTraceID(traceID string) LogRowOption {
+	return func(l *LogRow) {
+		l.TraceId = traceID
+	}
+}
+
+func WithSpanID(spanID string) LogRowOption {
+	return func(l *LogRow) {
+		l.SpanId = spanID
+	}
+}
+
+func WithSecureSessionID(secureSessionID string) LogRowOption {
+	return func(l *LogRow) {
+		l.SecureSessionId = secureSessionID
+	}
+}
+
 func WithLogAttributes(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) LogRowOption {
-	return func(h *LogRow) {
-		h.LogAttributes = GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, isFrontendLog)
+	return func(l *LogRow) {
+		l.LogAttributes = GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, isFrontendLog)
 	}
 }
 
 func WithSeverityText(severityText string) LogRowOption {
 	logLevel := makeLogLevel(severityText)
-	return func(h *LogRow) {
-		h.SeverityText = logLevel.String()
-		h.SeverityNumber = getSeverityNumber(logLevel)
+	return func(l *LogRow) {
+		l.SeverityText = logLevel.String()
+		l.SeverityNumber = getSeverityNumber(logLevel)
 	}
 }
 
-func WithSource(source string) LogRowOption {
-	return func(h *LogRow) {
-		if source == highlight.SourceAttributeFrontend {
-			source = "frontend"
-		}
-		h.Source = source
+func WithSource(source modelInputs.LogSource) LogRowOption {
+	return func(l *LogRow) {
+		l.Source = source
 	}
 }
 
 func WithBody(ctx context.Context, body string) LogRowOption {
-	return func(h *LogRow) {
+	return func(l *LogRow) {
 		if len(body) > LogAttributeValueLengthLimit {
 			log.WithContext(ctx).
 				WithField("ValueLength", len(body)).
 				Warnf("log body value is too long %d", len(body))
 			body = body[:LogAttributeValueLengthLimit] + "..."
 		}
-		h.Body = body
+		l.Body = body
 	}
 }
 
 func WithServiceName(serviceName string) LogRowOption {
-	return func(h *LogRow) {
-		h.ServiceName = serviceName
-	}
-}
-
-func WithProjectIDString(projectID string) LogRowOption {
-	projectIDInt, err := ProjectToInt(projectID)
-	return func(h *LogRow) {
-		if err == nil {
-			h.ProjectId = uint32(projectIDInt)
-		}
+	return func(l *LogRow) {
+		l.ServiceName = serviceName
 	}
 }
 

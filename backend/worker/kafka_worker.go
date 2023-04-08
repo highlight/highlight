@@ -12,6 +12,7 @@ import (
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -82,8 +83,8 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	defer s.Finish()
 
 	var logRows []*clickhouse.LogRow
-	setupProjectIDs := make(map[int]bool)
-	setupSessionIDs := make(map[string]bool)
+	setupProjectIDs := make(map[int]map[model.MarkBackendSetupType]bool)
+	setupSessionIDs := make(map[string]map[model.MarkBackendSetupType]bool)
 
 	var received int
 	var lastMsg *kafkaqueue.Message
@@ -97,9 +98,15 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 					received += len(lastMsg.PushLogs.LogRows)
 				case kafkaqueue.MarkBackendSetup:
 					if lastMsg.MarkBackendSetup.ProjectID != 0 {
-						setupProjectIDs[lastMsg.MarkBackendSetup.ProjectID] = true
+						if _, ok := setupProjectIDs[lastMsg.MarkBackendSetup.ProjectID]; !ok {
+							setupProjectIDs[lastMsg.MarkBackendSetup.ProjectID] = make(map[model.MarkBackendSetupType]bool)
+						}
+						setupProjectIDs[lastMsg.MarkBackendSetup.ProjectID][lastMsg.MarkBackendSetup.Type] = true
 					} else if lastMsg.MarkBackendSetup.SessionSecureID != nil {
-						setupSessionIDs[*lastMsg.MarkBackendSetup.SessionSecureID] = true
+						if _, ok := setupSessionIDs[*lastMsg.MarkBackendSetup.SessionSecureID]; !ok {
+							setupSessionIDs[*lastMsg.MarkBackendSetup.SessionSecureID] = make(map[model.MarkBackendSetupType]bool)
+						}
+						setupSessionIDs[*lastMsg.MarkBackendSetup.SessionSecureID][lastMsg.MarkBackendSetup.Type] = true
 					} else {
 						log.WithContext(ctx).Errorf("invalid MarkBackendSetup message %+v", lastMsg.MarkBackendSetup)
 					}
@@ -126,19 +133,36 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	}
 	span.Finish(tracer.WithError(err))
 
+	timestampByProject := map[uint32]time.Time{}
+	for _, row := range logRows {
+		if row.Timestamp.After(timestampByProject[row.ProjectId]) {
+			timestampByProject[row.ProjectId] = row.Timestamp
+		}
+	}
+	for projectId, timestamp := range timestampByProject {
+		err := k.Worker.Resolver.Redis.SetLastLogTimestamp(ctx, int(projectId), timestamp)
+		if err != nil {
+			log.WithContext(ctxT).WithError(err).Errorf("failed to set last log timestamp for project %d", projectId)
+		}
+	}
+
 	span, ctxT = tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.markBackend"))
 	span.SetTag("NumProjectRows", len(setupProjectIDs))
 	span.SetTag("NumSessionRows", len(setupSessionIDs))
-	for projectID := range setupProjectIDs {
-		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctxT, nil, nil, projectID)
-		if err != nil {
-			log.WithContext(ctxT).WithError(err).Errorf("failed to batch mark backend setup for project %d", projectID)
+	for projectID, types := range setupProjectIDs {
+		for t := range types {
+			err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctxT, nil, nil, projectID, t)
+			if err != nil {
+				log.WithContext(ctxT).WithError(err).Errorf("failed to batch mark backend setup for project %d", projectID)
+			}
 		}
 	}
-	for sessionID := range setupSessionIDs {
-		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctxT, nil, pointy.String(sessionID), 0)
-		if err != nil {
-			log.WithContext(ctxT).WithError(err).Errorf("failed to batch mark backend setup for session %s", sessionID)
+	for sessionID, types := range setupSessionIDs {
+		for t := range types {
+			err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctxT, nil, pointy.String(sessionID), 0, t)
+			if err != nil {
+				log.WithContext(ctxT).WithError(err).Errorf("failed to batch mark backend setup for session %s", sessionID)
+			}
 		}
 	}
 	span.Finish()

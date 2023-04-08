@@ -34,8 +34,7 @@ export const getStaticProps: GetStaticProps = async () => {
 		}
 	`
 
-	// @ts-ignore
-	const { changelogs } = await GraphQLRequest(QUERY)
+	const { changelogs } = await GraphQLRequest<{ changelogs: any[] }>(QUERY)
 
 	return {
 		props: {

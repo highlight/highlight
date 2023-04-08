@@ -1,19 +1,27 @@
+import { ApolloError } from '@apollo/client'
+import { Button } from '@components/Button'
+import { Link } from '@components/Link'
 import LoadingBox from '@components/LoadingBox'
 import { LogLevel as LogLevelType } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
 import {
 	Box,
+	Callout,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	Stack,
 	Text,
 } from '@highlight-run/ui'
-import { LogDetails } from '@pages/LogsPage/LogsTable/LogDetails'
+import { FullScreenContainer } from '@pages/LogsPage/LogsTable/FullScreenContainer'
+import { LogDetails, LogValue } from '@pages/LogsPage/LogsTable/LogDetails'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
-import { parseLogsQuery } from '@pages/LogsPage/SearchForm/utils'
+import {
+	LogsSearchParam,
+	parseLogsQuery,
+} from '@pages/LogsPage/SearchForm/utils'
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import {
 	ColumnDef,
@@ -31,43 +39,74 @@ import * as styles from './LogsTable.css'
 
 type Props = {
 	loading: boolean
-	loadingAfter: boolean
-	logEdges: LogEdgeWithError[]
-	query: string
-	tableContainerRef: React.RefObject<HTMLDivElement>
-	selectedCursor: string | undefined
-}
+	error: ApolloError | undefined
+	refetch: () => void
+} & LogsTableInnerProps
 
 export const LogsTable = (props: Props) => {
 	if (props.loading) {
 		return (
-			<Box
-				display="flex"
-				flexGrow={1}
-				alignItems="center"
-				justifyContent="center"
-				height="full"
-			>
+			<FullScreenContainer>
 				<LoadingBox />
-			</Box>
+			</FullScreenContainer>
+		)
+	}
+
+	if (props.error) {
+		return (
+			<FullScreenContainer>
+				<Box m="auto" style={{ maxWidth: 300 }}>
+					<Callout title="Failed to load logs" kind="error">
+						<Box mb="6">
+							<Text color="moderate">
+								There was an error loading your logs. Reach out
+								to us if this might be a bug.
+							</Text>
+						</Box>
+						<Stack direction="row">
+							<Button
+								kind="secondary"
+								trackingId="logs-error-reload"
+								onClick={() => props.refetch()}
+							>
+								Reload query
+							</Button>
+							<Box
+								display="flex"
+								alignItems="center"
+								justifyContent="center"
+							>
+								<Link
+									to="https://highlight.io/community"
+									target="_blank"
+								>
+									Help
+								</Link>
+							</Box>
+						</Stack>
+					</Callout>
+				</Box>
+			</FullScreenContainer>
 		)
 	}
 
 	if (props.logEdges.length === 0) {
 		return (
-			<Box
-				display="flex"
-				flexGrow={1}
-				alignItems="center"
-				justifyContent="center"
-				height="full"
-			>
+			<FullScreenContainer>
 				<NoLogsFound />
-			</Box>
+			</FullScreenContainer>
 		)
 	}
 
 	return <LogsTableInner {...props} />
+}
+
+type LogsTableInnerProps = {
+	loadingAfter: boolean
+	logEdges: LogEdgeWithError[]
+	query: string
+	tableContainerRef: React.RefObject<HTMLDivElement>
+	selectedCursor: string | undefined
 }
 
 const LogsTableInner = ({
@@ -76,7 +115,7 @@ const LogsTableInner = ({
 	query,
 	tableContainerRef,
 	selectedCursor,
-}: Props) => {
+}: LogsTableInnerProps) => {
 	const queryTerms = parseLogsQuery(query)
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
@@ -188,6 +227,20 @@ const LogsTableInner = ({
 
 			{virtualRows.map((virtualRow) => {
 				const row = rows[virtualRow.index]
+				const log = row.original.node
+				const matchedAttributes = findMatchingLogAttributes(
+					queryTerms,
+					{
+						...log.logAttributes,
+						level: log.level,
+						message: log.message,
+						secure_session_id: log.secureSessionID,
+						service_name: log.serviceName,
+						source: log.source,
+						span_id: log.spanID,
+						trace_id: log.traceID,
+					},
+				)
 
 				return (
 					<Box
@@ -214,7 +267,31 @@ const LogsTableInner = ({
 							})}
 						</Stack>
 
-						<LogDetails row={row} queryTerms={queryTerms} />
+						{!row.getIsExpanded() &&
+							Object.entries(matchedAttributes).length > 0 && (
+								<Box mt="10" ml="20">
+									{Object.entries(matchedAttributes).map(
+										([key, { match, value }]) => {
+											return (
+												<LogValue
+													key={key}
+													label={key}
+													value={value}
+													queryKey={key}
+													queryMatch={match}
+													queryTerms={queryTerms}
+												/>
+											)
+										},
+									)}
+								</Box>
+							)}
+
+						<LogDetails
+							matchedAttributes={matchedAttributes}
+							row={row}
+							queryTerms={queryTerms}
+						/>
 					</Box>
 				)
 			})}
@@ -231,7 +308,7 @@ const LogsTableInner = ({
 					justifyContent="center"
 					padding="12"
 					position="fixed"
-					shadow="small"
+					shadow="medium"
 					borderRadius="6"
 					textAlign="center"
 					style={{
@@ -255,3 +332,55 @@ export const IconExpanded: React.FC = () => (
 export const IconCollapsed: React.FC = () => (
 	<IconSolidCheveronRight color="#6F6E77" size="16" />
 )
+
+export const findMatchingLogAttributes = (
+	queryTerms: LogsSearchParam[],
+	logAttributes: object | string,
+	matchingAttributes: any = {},
+	attributeKeyBase: string[] = [],
+): { [key: string]: { match: string; value: string } } => {
+	if (!queryTerms?.length || !logAttributes) {
+		return {}
+	}
+
+	const bodyQueryValue = queryTerms.find((term) => term.key === 'body')?.value
+
+	Object.entries(logAttributes).forEach(([key, value]) => {
+		const isString = typeof value === 'string'
+
+		if (!isString) {
+			findMatchingLogAttributes(queryTerms, value, matchingAttributes, [
+				...attributeKeyBase,
+				key,
+			])
+			return
+		}
+
+		let matchingAttribute: string | undefined = undefined
+		if (bodyQueryValue && value.indexOf(bodyQueryValue) !== -1) {
+			matchingAttribute = bodyQueryValue
+		} else {
+			queryTerms.some((term) => {
+				const queryKey = term.key
+				const queryValue = term.value
+
+				if (
+					queryKey === key ||
+					queryValue === value ||
+					value.indexOf(queryValue) !== -1
+				) {
+					matchingAttribute = queryValue
+				}
+			})
+		}
+
+		if (!!matchingAttribute) {
+			matchingAttributes[[...attributeKeyBase, key].join('.')] = {
+				match: matchingAttribute,
+				value,
+			}
+		}
+	})
+
+	return matchingAttributes
+}

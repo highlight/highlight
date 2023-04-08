@@ -1,9 +1,11 @@
 package kafka_queue
 
 import (
-	"github.com/highlight-run/highlight/backend/clickhouse"
 	"math"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/clickhouse"
+	"github.com/highlight-run/highlight/backend/model"
 
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/segmentio/kafka-go"
@@ -87,6 +89,7 @@ type MarkBackendSetupArgs struct {
 	ProjectVerboseID *string
 	SessionSecureID  *string
 	ProjectID        int
+	Type             model.MarkBackendSetupType
 }
 
 type AddSessionFeedbackArgs struct {

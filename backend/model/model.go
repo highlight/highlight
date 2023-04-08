@@ -67,6 +67,7 @@ var AlertType = struct {
 	SESSION_FEEDBACK string
 	RAGE_CLICK       string
 	NEW_SESSION      string
+	LOG              string
 }{
 	ERROR:            "ERROR_ALERT",
 	NEW_USER:         "NEW_USER_ALERT",
@@ -75,6 +76,7 @@ var AlertType = struct {
 	SESSION_FEEDBACK: "SESSION_FEEDBACK_ALERT",
 	RAGE_CLICK:       "RAGE_CLICK_ALERT",
 	NEW_SESSION:      "NEW_SESSION_ALERT",
+	LOG:              "LOG",
 }
 
 var AdminRole = struct {
@@ -157,6 +159,7 @@ var Models = []interface{}{
 	&CommentSlackThread{},
 	&ErrorAlert{},
 	&SessionAlert{},
+	&LogAlert{},
 	&Project{},
 	&RageClickEvent{},
 	&Workspace{},
@@ -184,6 +187,7 @@ var Models = []interface{}{
 	&EmailOptOut{},
 	&BillingEmailHistory{},
 	&Retryable{},
+	&SetupEvent{},
 }
 
 func init() {
@@ -325,7 +329,8 @@ type Project struct {
 	BackendDomains pq.StringArray `gorm:"type:text[]"`
 
 	// BackendSetup will be true if this is the session where HighlightBackend is run for the first time
-	BackendSetup *bool `json:"backend_setup"`
+	BackendSetup *bool         `json:"backend_setup"`
+	SetupEvent   []*SetupEvent `gorm:"foreignKey:ProjectID"`
 
 	// Maximum time window considered for a rage click event
 	RageClickWindowSeconds int `gorm:"default:5"`
@@ -333,6 +338,25 @@ type Project struct {
 	RageClickRadiusPixels int `gorm:"default:8"`
 	// Minimum count of clicks in a rage click event
 	RageClickCount int `gorm:"default:5"`
+
+	FilterChromeExtension *bool `gorm:"default:true"`
+}
+
+type MarkBackendSetupType = string
+
+const (
+	// Generic is temporary and can be removed once all messages are processed.
+	MarkBackendSetupTypeGeneric MarkBackendSetupType = "generic"
+	MarkBackendSetupTypeSession MarkBackendSetupType = "session"
+	MarkBackendSetupTypeError   MarkBackendSetupType = "error"
+	MarkBackendSetupTypeLogs    MarkBackendSetupType = "logs"
+)
+
+type SetupEvent struct {
+	ID        int                  `gorm:"primary_key;type:serial" json:"id" deep:"-"`
+	CreatedAt time.Time            `json:"created_at" deep:"-"`
+	ProjectID int                  `gorm:"uniqueIndex:idx_project_id_type"`
+	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
 }
 
 type HasSecret interface {
@@ -744,8 +768,6 @@ type DailySessionCount struct {
 
 const (
 	SESSIONS_TBL                    = "sessions"
-	DAILY_ERROR_COUNTS_TBL          = "daily_error_counts"
-	DAILY_ERROR_COUNTS_UNIQ         = "date_project_id_error_type_uniq"
 	METRIC_GROUPS_NAME_SESSION_UNIQ = "metric_groups_name_session_uniq"
 	DASHBOARD_METRIC_FILTERS_UNIQ   = "dashboard_metric_filters_uniq"
 )
@@ -1296,23 +1318,6 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error migrating db")
 	}
 
-	// Add unique constraint to daily_error_counts
-	if err := DB.Exec(`
-		DO $$
-			BEGIN
-				BEGIN
-					ALTER TABLE daily_error_counts
-					ADD CONSTRAINT date_project_id_error_type_uniq
-						UNIQUE (date, project_id, error_type);
-				EXCEPTION
-					WHEN duplicate_table
-					THEN RAISE NOTICE 'daily_error_counts.date_project_id_error_type_uniq already exists';
-				END;
-			END $$;
-	`).Error; err != nil {
-		return false, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
-	}
-
 	// Drop the null constraint on error_fingerprints.error_group_id
 	// This is necessary for replacing the error_groups.fingerprints association through GORM
 	// (not sure if this is a GORM bug or due to our GORM / Postgres version)
@@ -1337,6 +1342,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 			WHERE excluded <> true
 			AND (active_length >= 1000 OR (active_length is null and length >= 1000))
 			AND processed = true
+			AND created_at > now() - interval '3 months'
 			GROUP BY 1, 2;
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating daily_session_counts_view")
@@ -1353,6 +1359,29 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		END $$;
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
+	}
+
+	if err := DB.Exec(`
+		CREATE MATERIALIZED VIEW IF NOT EXISTS daily_error_counts_view AS
+			SELECT project_id, DATE_TRUNC('day', created_at, 'UTC') as date, COUNT(*) as count
+			FROM error_objects
+			WHERE created_at > now() - interval '3 months'
+			GROUP BY 1, 2;
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error creating daily_error_counts_view")
+	}
+
+	if err := DB.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS
+				(select * from pg_indexes where indexname = 'idx_daily_error_counts_view_project_id_date')
+			THEN
+				CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_error_counts_view_project_id_date ON daily_error_counts_view (project_id, date);
+			END IF;
+		END $$;
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error creating idx_daily_error_counts_view_project_id_date")
 	}
 
 	// Create unique conditional index for billing email history
@@ -1890,6 +1919,52 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 	}
 }
 
+type LogAlert struct {
+	Model
+	Alert
+	Query          string
+	BelowThreshold bool
+	AlertIntegrations
+}
+
+func (obj *LogAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
+	if err := obj.sendSlackAlert(ctx, db, obj.ID, input); err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+
+	emailsToNotify, err := GetEmailsToNotify(obj.EmailsToNotify)
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+
+	frontendURL := os.Getenv("FRONTEND_URI")
+	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
+	alertType := ""
+	message := ""
+	subjectLine := ""
+	identifier := input.UserIdentifier
+	if val, ok := input.UserObject["email"].(string); ok && len(val) > 0 {
+		identifier = val
+	}
+	if val, ok := input.UserObject["highlightDisplayName"].(string); ok && len(val) > 0 {
+		identifier = val
+	}
+	if identifier == "" {
+		identifier = "Someone"
+	}
+
+	alertType = "Log Alert"
+	message = fmt.Sprintf("<b>%s</b> logs .<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
+	subjectLine = fmt.Sprintf("%s just started a new session", identifier)
+
+	for _, email := range emailsToNotify {
+		if err := Email.SendAlertEmail(ctx, mailClient, *email, message, alertType, subjectLine); err != nil {
+			log.WithContext(ctx).Error(err)
+
+		}
+	}
+}
+
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
 	if obj == nil {
 		return nil, e.New("empty session alert object for excluded environments")
@@ -1928,6 +2003,29 @@ func (obj *Alert) GetEmailsToNotify() ([]*string, error) {
 	emailsToNotify, err := GetEmailsToNotify(obj.EmailsToNotify)
 
 	return emailsToNotify, err
+}
+
+func (obj *Alert) GetDailyFrequency(db *gorm.DB, id int) ([]*int64, error) {
+	var dailyAlerts []*int64
+	if err := db.Raw(`
+		SELECT COUNT(e.id)
+		FROM (
+			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
+			FROM generate_series(0, 6, 1)
+			AS offs
+		) d LEFT OUTER JOIN
+		alert_events e
+		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
+			AND e.type=?
+			AND e.alert_id=?
+			AND e.project_id=?
+		GROUP BY d.date
+		ORDER BY d.date;
+	`, obj.Type, id, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying daily alert frequency")
+	}
+
+	return dailyAlerts, nil
 }
 
 func GetEmailsToNotify(emails *string) ([]*string, error) {
@@ -2287,6 +2385,71 @@ func (obj *MetricMonitor) SendSlackAlert(ctx context.Context, input *SendSlackAl
 	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
 			message := fmt.Sprintf("%s\n<%s|View Monitor>", input.Message, alertUrl)
+			slackChannelId := *channel.WebhookChannelID
+			slackChannelName := *channel.WebhookChannel
+
+			// The Highlight Slack bot needs to join the channel before it can send a message.
+			// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
+			if slackClient != nil {
+				if strings.Contains(slackChannelName, "#") {
+					_, _, _, err := slackClient.JoinConversation(slackChannelId)
+					if err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+					}
+				}
+				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
+					slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
+					slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
+				)
+				if err != nil {
+					log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
+						Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
+				}
+
+			} else {
+				log.WithContext(ctx).Printf("Slack Bot Client was not defined for sending welcome message")
+			}
+		}
+	}
+
+	return nil
+}
+
+type SendLogAlertForMetricMonitorInput struct {
+	Message   string
+	Workspace *Workspace
+}
+
+func (obj *LogAlert) SendSlackAlert(ctx context.Context, input *SendLogAlertForMetricMonitorInput) error {
+	if obj == nil {
+		return e.New("log alert needs to be defined.")
+	}
+	if input.Workspace == nil {
+		return e.New("workspace needs to be defined.")
+	}
+
+	channels, err := obj.GetChannelsToNotify()
+	if err != nil {
+		return e.Wrap(err, "error getting channels to send Slack log alert")
+	}
+	if len(channels) <= 0 {
+		return nil
+	}
+
+	var slackClient *slack.Client
+	if input.Workspace.SlackAccessToken != nil {
+		slackClient = slack.New(*input.Workspace.SlackAccessToken)
+	}
+
+	frontendURL := os.Getenv("FRONTEND_URI")
+	alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, obj.ProjectID, obj.ID)
+
+	log.WithContext(ctx).Info("Sending Slack Alert for Log Alert")
+
+	// send message
+	for _, channel := range channels {
+		if channel.WebhookChannel != nil {
+			message := fmt.Sprintf("%s\n<%s|View Alert>", input.Message, alertUrl)
 			slackChannelId := *channel.WebhookChannelID
 			slackChannelName := *channel.WebhookChannel
 

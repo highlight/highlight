@@ -10,6 +10,7 @@
 		"react-markdown": "^8.0.5"
 	},
 	"workspaces": [
+		"docs-content",
 		"e2e/*",
 		"packages/*",
 		"highlight.io",
@@ -40,7 +41,7 @@
 		"dev:frontend": "doppler run -- yarn turbo run dev --filter frontend... --filter=!@highlight-run/rrweb...",
 		"dev:ui": "yarn turbo run dev --filter @highlight-run/ui...",
 		"dev:redis": "redis-server",
-		"docker:frontend": "yarn turbo run dev --filter frontend...",
+		"docker:frontend": "yarn turbo run dev --filter frontend --filter highlight.run --filter @highlight-run/client",
 		"enforce-size": "yarn turbo run enforce-size --filter frontend...",
 		"format-check": "prettier --check --ignore-unknown .",
 		"format:all": "prettier --write --ignore-unknown .",

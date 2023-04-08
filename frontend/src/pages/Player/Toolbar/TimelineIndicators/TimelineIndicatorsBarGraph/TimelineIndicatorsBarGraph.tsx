@@ -1,5 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
-import { customEvent } from '@highlight-run/rrweb-types'
+import { customEvent, EventType } from '@highlight-run/rrweb-types'
 import { Box, Text } from '@highlight-run/ui'
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useWindowEvent } from '@hooks/useWindowEvent'
@@ -87,6 +87,7 @@ const TimelineIndicatorsBarGraph = ({
 		canViewSession,
 		state: replayerState,
 		isPlayerReady,
+		rageClicks,
 	} = useReplayerContext()
 	const showHistogram = shouldShowHistogram && !isPlayerFullscreen
 
@@ -276,6 +277,17 @@ const TimelineIndicatorsBarGraph = ({
 						eventType: 'Errors',
 					} as SessionEvent),
 			),
+			...(rageClicks.map((rageClick) => ({
+				relativeIntervalPercentage: rageClick.startPercentage,
+				timestamp: toTS(rageClick.startPercentage),
+				eventType: 'RageClicks',
+				identifier: `RageClicks-${rageClick.startTimestamp}`,
+				data: {
+					payload: rageClick.totalClicks,
+					tag: 'RageClicks',
+				},
+				type: EventType.Custom,
+			})) as SessionEvent[]),
 		]
 
 		combined.sort((a, b) => a.timestamp - b.timestamp)
@@ -287,6 +299,7 @@ const TimelineIndicatorsBarGraph = ({
 		sessionComments,
 		sessionErrors,
 		start,
+		rageClicks,
 	])
 
 	const bucketSize = pickBucketSize(

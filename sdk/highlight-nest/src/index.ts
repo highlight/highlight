@@ -1,59 +1,16 @@
 import { H as NodeH, NodeOptions } from '@highlight-run/node'
+import type { OnApplicationShutdown } from '@nestjs/common'
 import {
+	BadGatewayException,
+	CallHandler,
 	ConsoleLogger,
-	Catch,
+	ExecutionContext,
 	Inject,
 	Injectable,
-	HttpException,
-	HttpStatus,
+	NestInterceptor,
 } from '@nestjs/common'
-import type {
-	ArgumentsHost,
-	ExceptionFilter,
-	HttpAdapterHost,
-	OnApplicationShutdown,
-} from '@nestjs/common'
-
-@Catch()
-export class HighlightErrorFilter
-	implements ExceptionFilter, OnApplicationShutdown
-{
-	constructor(
-		private readonly httpAdapterHost: HttpAdapterHost,
-		@Inject(Symbol('HighlightModuleOptions'))
-		readonly opts: NodeOptions,
-	) {
-		if (!NodeH.isInitialized()) {
-			NodeH.init(opts)
-		}
-	}
-
-	catch(exception: Error, host: ArgumentsHost): void {
-		const { httpAdapter } = this.httpAdapterHost
-
-		const ctx = host.switchToHttp()
-		const hCtx = NodeH.parseHeaders(ctx.getRequest().headers)
-
-		NodeH.consumeError(exception, hCtx?.secureSessionId, hCtx?.requestId)
-
-		const httpStatus =
-			exception instanceof HttpException
-				? exception.getStatus()
-				: HttpStatus.INTERNAL_SERVER_ERROR
-
-		const responseBody = {
-			statusCode: httpStatus,
-			timestamp: new Date().toISOString(),
-			path: httpAdapter.getRequestUrl(ctx.getRequest()),
-		}
-
-		httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus)
-	}
-
-	async onApplicationShutdown(signal?: string) {
-		await NodeH.flush()
-	}
-}
+import { Observable, throwError } from 'rxjs'
+import { catchError } from 'rxjs/operators'
 
 @Injectable()
 export class HighlightLogger
@@ -120,15 +77,50 @@ export class HighlightLogger
 	}
 }
 
+@Injectable()
+export class HighlightInterceptor
+	implements NestInterceptor, OnApplicationShutdown
+{
+	constructor(
+		@Inject(Symbol('HighlightModuleOptions'))
+		readonly opts: NodeOptions,
+	) {
+		if (!NodeH.isInitialized()) {
+			NodeH.init(opts)
+		}
+	}
+
+	async onApplicationShutdown(signal?: string) {
+		await NodeH.flush()
+	}
+
+	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+		const ctx = context.switchToHttp()
+		const request = ctx.getRequest()
+		const highlightCtx = NodeH.parseHeaders(request.headers)
+
+		return next.handle().pipe(
+			catchError((err) => {
+				NodeH.consumeError(
+					err,
+					highlightCtx?.secureSessionId,
+					highlightCtx?.requestId,
+				)
+				return throwError(() => err)
+			}),
+		)
+	}
+}
+
 export class HighlightModule {
 	public static forRoot(options: NodeOptions) {
 		if (!NodeH.isInitialized()) {
 			NodeH.init(options)
 		}
 		return {
-			exports: [HighlightLogger, HighlightErrorFilter],
+			exports: [HighlightLogger, HighlightInterceptor],
 			module: HighlightModule,
-			providers: [HighlightLogger, HighlightErrorFilter],
+			providers: [HighlightLogger, HighlightInterceptor],
 		}
 	}
 	public static async forRootAsync(options: NodeOptions) {
@@ -136,9 +128,9 @@ export class HighlightModule {
 			NodeH.init(options)
 		}
 		return {
-			exports: [HighlightLogger, HighlightErrorFilter],
+			exports: [HighlightLogger, HighlightInterceptor],
 			module: HighlightModule,
-			providers: [HighlightLogger, HighlightErrorFilter],
+			providers: [HighlightLogger, HighlightInterceptor],
 		}
 	}
 }

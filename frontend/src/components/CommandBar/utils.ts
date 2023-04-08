@@ -3,6 +3,7 @@ import {
 	ATTRIBUTES,
 	CommandBarSearch,
 } from '@components/CommandBar/context'
+import { FormState } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import {
 	ERROR_FIELD_TYPE,
@@ -14,7 +15,6 @@ import {
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { BuilderParams, buildQueryURLString } from '@util/url/params'
-import { FormState } from 'ariakit/form'
 import moment from 'moment'
 import { useNavigate } from 'react-router-dom'
 

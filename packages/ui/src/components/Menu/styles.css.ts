@@ -70,6 +70,7 @@ export const menuHeading = style({
 	display: 'flex',
 	height: 16,
 	justifyContent: 'space-between',
+	margin: 0,
 	paddingRight: vars.space[8],
 	paddingLeft: vars.space[8],
 	width: '100%',

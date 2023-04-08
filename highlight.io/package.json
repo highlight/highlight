@@ -2,13 +2,15 @@
 	"name": "highlight.io",
 	"version": "0.1.0",
 	"private": true,
+	"main": "./index.ts",
+	"types": "./index.ts",
 	"scripts": {
 		"build": "next build",
 		"dev": "run-p next-dev styles",
-		"next-dev": "next dev",
+		"next-dev": "next dev -p 4000",
 		"lint": "next lint",
 		"prepare": "husky install",
-		"start": "next start",
+		"start": "next start -p 4000",
 		"styles": "yarn typed-scss-modules ./ --watch --ignore '**/node_modules'"
 	},
 	"dependencies": {
@@ -24,6 +26,7 @@
 		"antd": "^4.24.7",
 		"classnames": "^2.3.1",
 		"dexie": "^3.2.2",
+		"docs-content": "workspace:*",
 		"embla-carousel-react": "^7.0.5",
 		"framer-motion": "^8.5.2",
 		"fuse.js": "^6.6.2",

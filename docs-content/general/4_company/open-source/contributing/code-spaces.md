@@ -1,6 +1,6 @@
 ---
-title: Getting started
-slug: getting-started
+title: GitHub Code Spaces
+slug: code-spaces
 createdAt: 2023-01-24T20:28:14.000Z
 updatedAt: 2023-01-24T02:07:22.000Z
 ---
@@ -13,8 +13,7 @@ updatedAt: 2023-01-24T02:07:22.000Z
 * If docker is not running (try `docker ps`), run a full rebuild: press `CMD + Shift + P`, select `Codespaces: Full Rebuild Container`
 ```bash
 # from highlight/
-yarn
 cd docker
-COMPOSE_FILE=compose.yml:compose.dev.yml docker compose up --build -d
+./run.sh
 # View `https://localhost:3000`
 ```

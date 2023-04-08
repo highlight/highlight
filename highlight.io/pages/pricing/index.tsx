@@ -259,15 +259,13 @@ const PlanTable = () => {
 					title="Billing Period"
 					options={billingPeriodOptions}
 					value={billingPeriod}
-					// @ts-ignore
-					onChange={setBillingPeriod}
+					onChange={(v: BillingPeriod) => setBillingPeriod(v)}
 				/>
 				<RadioOptions
 					title="Retention"
 					options={retentionOptions}
 					value={retention}
-					// @ts-ignore
-					onChange={setRetention}
+					onChange={(v: Retention) => setRetention(v)}
 				/>
 			</div>
 			<div className="grid items-stretch w-full grid-cols-1 sm:grid-cols-2 min-[1190px]:grid-flow-col gap-7">
@@ -399,22 +397,19 @@ const PriceCalculator = () => {
 					title="Billing Period"
 					options={billingPeriodOptions}
 					value={billingPeriod}
-					// @ts-ignore
-					onChange={setBillingPeriod}
+					onChange={(v: BillingPeriod) => setBillingPeriod(v)}
 				/>
 				<RadioOptions
 					title="Pricing Tier"
 					options={tierOptions}
 					value={tierName}
-					// @ts-ignore
-					onChange={setTierName}
+					onChange={(v: TierName) => setTierName(v)}
 				/>
 				<RadioOptions
 					title="Retention"
 					options={retentionOptions}
 					value={retention}
-					// @ts-ignore
-					onChange={setRetention}
+					onChange={(v: Retention) => setRetention(v)}
 				/>
 			</div>
 			<div className="flex flex-col items-end w-full max-w-[1100px]">

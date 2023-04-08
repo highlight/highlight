@@ -72,7 +72,7 @@ jobs:
                   aws lambda update-function-configuration --function-name sendEmail \
                     --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
             - name: Deploy getSessionIdsByQuery
-              uses: appleboy/lambda-action@master
+              uses: appleboy/lambda-action@v0.1.9
               with:
                   aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -80,7 +80,7 @@ jobs:
                   function_name: getSessionIdsByQuery
                   zip_file: backend/getSessionIdsByQuery.zip
             - name: Deploy deleteSessionBatchFromPostgres
-              uses: appleboy/lambda-action@master
+              uses: appleboy/lambda-action@v0.1.9
               with:
                   aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -88,7 +88,7 @@ jobs:
                   function_name: deleteSessionBatchFromPostgres
                   zip_file: backend/deleteSessionBatchFromPostgres.zip
             - name: Deploy deleteSessionBatchFromOpenSearch
-              uses: appleboy/lambda-action@master
+              uses: appleboy/lambda-action@v0.1.9
               with:
                   aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -96,7 +96,7 @@ jobs:
                   function_name: deleteSessionBatchFromOpenSearch
                   zip_file: backend/deleteSessionBatchFromOpenSearch.zip
             - name: Deploy deleteSessionBatchFromS3
-              uses: appleboy/lambda-action@master
+              uses: appleboy/lambda-action@v0.1.9
               with:
                   aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -104,7 +104,7 @@ jobs:
                   function_name: deleteSessionBatchFromS3
                   zip_file: backend/deleteSessionBatchFromS3.zip
             - name: Deploy sendEmail
-              uses: appleboy/lambda-action@master
+              uses: appleboy/lambda-action@v0.1.9
               with:
                   aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -150,7 +150,7 @@ jobs:
                   aws lambda update-function-configuration --function-name sendDigestEmails \
                     --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
             - name: Deploy getProjectIds
-              uses: appleboy/lambda-action@master
+              uses: appleboy/lambda-action@v0.1.9
               with:
                   aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -158,7 +158,7 @@ jobs:
                   function_name: getProjectIds
                   zip_file: backend/getProjectIds.zip
             - name: Deploy getDigestData
-              uses: appleboy/lambda-action@master
+              uses: appleboy/lambda-action@v0.1.9
               with:
                   aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -166,7 +166,7 @@ jobs:
                   function_name: getDigestData
                   zip_file: backend/getDigestData.zip
             - name: Deploy sendDigestEmails
-              uses: appleboy/lambda-action@master
+              uses: appleboy/lambda-action@v0.1.9
               with:
                   aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -255,6 +255,20 @@ jobs:
               with:
                   task-definition: ${{ steps.image-metric-monitor.outputs.task-definition }}
                   service: metric-monitor
+                  cluster: highlight-production-cluster
+            # Edit and deploy log alerts
+            - name: Replace image label for log alerts task
+              id: image-log-alerts
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/log-alerts-task.json
+                  container-name: highlight-backend
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS log alerts service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-log-alerts.outputs.task-definition }}
+                  service: log-alerts-service
                   cluster: highlight-production-cluster
             # Edit and deploy public worker
             - name: Replace image label for public worker service

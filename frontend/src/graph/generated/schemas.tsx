@@ -621,6 +621,14 @@ export type IntegrationProjectMappingInput = {
 	project_id: Scalars['ID']
 }
 
+export type IntegrationStatus = {
+	__typename?: 'IntegrationStatus'
+	createdAt?: Maybe<Scalars['Timestamp']>
+	integrated: Scalars['Boolean']
+	resourceSecureId?: Maybe<Scalars['String']>
+	resourceType: Scalars['String']
+}
+
 export enum IntegrationType {
 	ClickUp = 'ClickUp',
 	Discord = 'Discord',
@@ -673,6 +681,46 @@ export type Log = {
 	traceID?: Maybe<Scalars['String']>
 }
 
+export type LogAlert = {
+	__typename?: 'LogAlert'
+	BelowThreshold: Scalars['Boolean']
+	ChannelsToNotify: Array<SanitizedSlackChannel>
+	CountThreshold: Scalars['Int']
+	DailyFrequency: Array<Maybe<Scalars['Int64']>>
+	DiscordChannelsToNotify: Array<DiscordChannel>
+	EmailsToNotify: Array<Scalars['String']>
+	ExcludedEnvironments: Array<Scalars['String']>
+	LastAdminToEditID?: Maybe<Scalars['ID']>
+	Name: Scalars['String']
+	ThresholdWindow: Scalars['Int']
+	Type: Scalars['String']
+	WebhookDestinations: Array<WebhookDestination>
+	disabled: Scalars['Boolean']
+	id: Scalars['ID']
+	query: Scalars['String']
+	updated_at: Scalars['Timestamp']
+}
+
+export type LogAlertInput = {
+	below_threshold: Scalars['Boolean']
+	count_threshold: Scalars['Int']
+	disabled: Scalars['Boolean']
+	discord_channels: Array<DiscordChannelInput>
+	emails: Array<Scalars['String']>
+	environments: Array<Scalars['String']>
+	name: Scalars['String']
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	slack_channels: Array<SanitizedSlackChannelInput>
+	threshold_window: Scalars['Int']
+	webhook_destinations: Array<WebhookDestinationInput>
+}
+
+export enum LogDirection {
+	Asc = 'ASC',
+	Desc = 'DESC',
+}
+
 export type LogEdge = {
 	__typename?: 'LogEdge'
 	cursor: Scalars['String']
@@ -696,6 +744,11 @@ export enum LogLevel {
 	Info = 'info',
 	Trace = 'trace',
 	Warn = 'warn',
+}
+
+export enum LogSource {
+	Backend = 'backend',
+	Frontend = 'frontend',
 }
 
 export type LogsConnection = {
@@ -805,12 +858,12 @@ export type Mutation = {
 	addIntegrationToWorkspace: Scalars['Boolean']
 	changeAdminRole: Scalars['Boolean']
 	createAdmin: Admin
-	createDefaultAlerts?: Maybe<Scalars['Boolean']>
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
 	createErrorSegment?: Maybe<ErrorSegment>
 	createIssueForErrorComment?: Maybe<ErrorComment>
 	createIssueForSessionComment?: Maybe<SessionComment>
+	createLogAlert?: Maybe<LogAlert>
 	createMetricMonitor?: Maybe<MetricMonitor>
 	createOrUpdateStripeSubscription?: Maybe<Scalars['String']>
 	createProject?: Maybe<Project>
@@ -824,6 +877,7 @@ export type Mutation = {
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
 	deleteErrorSegment?: Maybe<Scalars['Boolean']>
+	deleteLogAlert?: Maybe<LogAlert>
 	deleteMetricMonitor?: Maybe<MetricMonitor>
 	deleteProject?: Maybe<Scalars['Boolean']>
 	deleteSegment?: Maybe<Scalars['Boolean']>
@@ -863,6 +917,8 @@ export type Mutation = {
 	updateErrorGroupIsPublic?: Maybe<ErrorGroup>
 	updateErrorGroupState?: Maybe<ErrorGroup>
 	updateIntegrationProjectMappings: Scalars['Boolean']
+	updateLogAlert?: Maybe<LogAlert>
+	updateLogAlertIsDisabled?: Maybe<LogAlert>
 	updateMetricMonitor?: Maybe<MetricMonitor>
 	updateMetricMonitorIsDisabled?: Maybe<MetricMonitor>
 	updateSessionAlert?: Maybe<SessionAlert>
@@ -893,13 +949,6 @@ export type MutationChangeAdminRoleArgs = {
 	admin_id: Scalars['ID']
 	new_role: Scalars['String']
 	workspace_id: Scalars['ID']
-}
-
-export type MutationCreateDefaultAlertsArgs = {
-	alert_types: Array<Scalars['String']>
-	emails: Array<InputMaybe<Scalars['String']>>
-	project_id: Scalars['ID']
-	slack_channels: Array<SanitizedSlackChannelInput>
 }
 
 export type MutationCreateErrorAlertArgs = {
@@ -960,6 +1009,10 @@ export type MutationCreateIssueForSessionCommentArgs = {
 	session_url: Scalars['String']
 	text_for_attachment: Scalars['String']
 	time: Scalars['Float']
+}
+
+export type MutationCreateLogAlertArgs = {
+	input: LogAlertInput
 }
 
 export type MutationCreateMetricMonitorArgs = {
@@ -1053,6 +1106,11 @@ export type MutationDeleteErrorSegmentArgs = {
 	segment_id: Scalars['ID']
 }
 
+export type MutationDeleteLogAlertArgs = {
+	id: Scalars['ID']
+	project_id: Scalars['ID']
+}
+
 export type MutationDeleteMetricMonitorArgs = {
 	metric_monitor_id: Scalars['ID']
 	project_id: Scalars['ID']
@@ -1093,6 +1151,7 @@ export type MutationEditProjectArgs = {
 	billing_email?: InputMaybe<Scalars['String']>
 	error_json_paths?: InputMaybe<Scalars['StringArray']>
 	excluded_users?: InputMaybe<Scalars['StringArray']>
+	filter_chrome_extension?: InputMaybe<Scalars['Boolean']>
 	id: Scalars['ID']
 	name?: InputMaybe<Scalars['String']>
 	rage_click_count?: InputMaybe<Scalars['Int']>
@@ -1279,6 +1338,17 @@ export type MutationUpdateIntegrationProjectMappingsArgs = {
 	workspace_id: Scalars['ID']
 }
 
+export type MutationUpdateLogAlertArgs = {
+	id: Scalars['ID']
+	input: LogAlertInput
+}
+
+export type MutationUpdateLogAlertIsDisabledArgs = {
+	disabled: Scalars['Boolean']
+	id: Scalars['ID']
+	project_id: Scalars['ID']
+}
+
 export type MutationUpdateMetricMonitorArgs = {
 	aggregator?: InputMaybe<MetricAggregator>
 	disabled?: InputMaybe<Scalars['Boolean']>
@@ -1408,6 +1478,7 @@ export type Project = {
 	billing_email?: Maybe<Scalars['String']>
 	error_json_paths?: Maybe<Scalars['StringArray']>
 	excluded_users?: Maybe<Scalars['StringArray']>
+	filter_chrome_extension?: Maybe<Scalars['Boolean']>
 	id: Scalars['ID']
 	name: Scalars['String']
 	rage_click_count?: Maybe<Scalars['Int']>
@@ -1435,6 +1506,7 @@ export type Query = {
 	clickup_folders: Array<ClickUpFolder>
 	clickup_project_mappings: Array<ClickUpProjectMapping>
 	clickup_teams: Array<ClickUpTeam>
+	clientIntegration: IntegrationStatus
 	customer_portal_url: Scalars['String']
 	dailyErrorFrequency: Array<Scalars['Int64']>
 	dailyErrorsCount: Array<Maybe<DailyErrorCount>>
@@ -1483,7 +1555,10 @@ export type Query = {
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
+	log_alert: LogAlert
+	log_alerts: Array<Maybe<LogAlert>>
 	logs: LogsConnection
+	logsIntegration: IntegrationStatus
 	logs_error_objects: Array<ErrorObject>
 	logs_histogram: LogsHistogram
 	logs_key_values: Array<Scalars['String']>
@@ -1512,7 +1587,9 @@ export type Query = {
 	referrers: Array<Maybe<ReferrerTablePayload>>
 	resources?: Maybe<Array<Maybe<Scalars['Any']>>>
 	segments?: Maybe<Array<Maybe<Segment>>>
+	serverIntegration: IntegrationStatus
 	session?: Maybe<Session>
+	sessionLogs: Array<LogEdge>
 	session_comment_tags_for_project: Array<SessionCommentTag>
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
@@ -1597,6 +1674,10 @@ export type QueryClickup_Project_MappingsArgs = {
 
 export type QueryClickup_TeamsArgs = {
 	workspace_id: Scalars['ID']
+}
+
+export type QueryClientIntegrationArgs = {
+	project_id: Scalars['ID']
 }
 
 export type QueryCustomer_Portal_UrlArgs = {
@@ -1818,11 +1899,24 @@ export type QueryLiveUsersCountArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryLog_AlertArgs = {
+	id: Scalars['ID']
+}
+
+export type QueryLog_AlertsArgs = {
+	project_id: Scalars['ID']
+}
+
 export type QueryLogsArgs = {
 	after?: InputMaybe<Scalars['String']>
 	at?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
+	direction: LogDirection
 	params: LogsParamsInput
+	project_id: Scalars['ID']
+}
+
+export type QueryLogsIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -1955,8 +2049,17 @@ export type QuerySegmentsArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryServerIntegrationArgs = {
+	project_id: Scalars['ID']
+}
+
 export type QuerySessionArgs = {
 	secure_id: Scalars['String']
+}
+
+export type QuerySessionLogsArgs = {
+	params: LogsParamsInput
+	project_id: Scalars['ID']
 }
 
 export type QuerySession_Comment_Tags_For_ProjectArgs = {
@@ -2109,6 +2212,7 @@ export type ReferrerTablePayload = {
 export enum ReservedLogKey {
 	/** Keep this in alpha order */
 	Level = 'level',
+	Message = 'message',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
 	Source = 'source',

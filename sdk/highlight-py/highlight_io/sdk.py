@@ -4,6 +4,7 @@ import typing
 
 from opentelemetry import trace, _logs
 from opentelemetry._logs.severity import std_to_otel
+from opentelemetry.exporter.otlp.proto.http import Compression
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
@@ -59,14 +60,28 @@ class H(object):
 
         self._trace_provider = TracerProvider()
         self._trace_provider.add_span_processor(
-            BatchSpanProcessor(OTLPSpanExporter(f"{self._otlp_endpoint}/v1/traces"))
+            BatchSpanProcessor(
+                OTLPSpanExporter(
+                    f"{self._otlp_endpoint}/v1/traces", compression=Compression.Gzip
+                ),
+                schedule_delay_millis=1000,
+                max_export_batch_size=64,
+                export_timeout_millis=5000,
+            )
         )
         trace.set_tracer_provider(self._trace_provider)
         self.tracer = trace.get_tracer(__name__)
 
         self._log_provider = LoggerProvider()
         self._log_provider.add_log_record_processor(
-            BatchLogRecordProcessor(OTLPLogExporter(f"{self._otlp_endpoint}/v1/logs"))
+            BatchLogRecordProcessor(
+                OTLPLogExporter(
+                    f"{self._otlp_endpoint}/v1/logs", compression=Compression.Gzip
+                ),
+                schedule_delay_millis=1000,
+                max_export_batch_size=64,
+                export_timeout_millis=5000,
+            )
         )
         _logs.set_logger_provider(self._log_provider)
         self.log = self._log_provider.get_logger(__name__)
