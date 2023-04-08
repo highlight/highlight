@@ -52,6 +52,19 @@ const Footer = () => {
 							<li>
 								<Link href="/#customers">Customers</Link>
 							</li>
+							<li>
+								<Link href="/session-replay">
+									Session Replay
+								</Link>
+							</li>
+							<li>
+								<Link href="/error-monitoring">
+									Session Replay
+								</Link>
+							</li>
+							<li>
+								<Link href="/logging">Logging</Link>
+							</li>
 						</ul>
 					</Typography>
 				</div>
