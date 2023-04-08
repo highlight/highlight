@@ -138,6 +138,42 @@ func TestReadLogsAscending(t *testing.T) {
 	assert.Equal(t, payload.Edges[1].Node.Message, "Body 1")
 }
 
+func TestReadSessionLogs(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+	oneSecondAgo := now.Add(-time.Second * 1)
+	rows := []*LogRow{
+		NewLogRow(oneSecondAgo, 1,
+			WithBody(ctx, "Body"),
+			WithSeverityText(modelInputs.LogLevelInfo.String()),
+			WithLogAttributes(ctx, map[string]any{
+				"service": "foo",
+			}, map[string]any{}, map[string]any{}, false)),
+	}
+
+	for i := 1; i <= LogsLimit; i++ {
+		rows = append(rows, NewLogRow(now, 1))
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	edges, err := client.ReadSessionLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+	})
+	assert.NoError(t, err)
+
+	assert.Len(t, edges, LogsLimit+1)
+	assert.Equal(t, edges[0].Node.Message, "Body")
+	assert.Equal(t, edges[0].Node.Level, modelInputs.LogLevelInfo)
+
+	// assert we aren't loading log attributes which is a large column
+	// see: https://github.com/ClickHouse/ClickHouse/issues/7187
+	assert.Empty(t, edges[0].Node.LogAttributes)
+}
+
 func TestReadLogsTotalCount(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)
@@ -270,7 +306,7 @@ func TestReadLogsHasNextPage(t *testing.T) {
 	now := time.Now()
 	var rows []*LogRow
 
-	for i := 1; i <= LogsLimit; i++ { // 100 is a hardcoded limit
+	for i := 1; i <= LogsLimit; i++ {
 		rows = append(rows, NewLogRow(now, 1))
 	}
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))

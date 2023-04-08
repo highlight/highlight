@@ -4196,6 +4196,22 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 	}
 }
 
+export type GetSessionLogsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.LogsParamsInput
+}>
+
+export type GetSessionLogsQuery = { __typename?: 'Query' } & {
+	sessionLogs: Array<
+		{ __typename?: 'LogEdge' } & Pick<Types.LogEdge, 'cursor'> & {
+				node: { __typename?: 'Log' } & Pick<
+					Types.Log,
+					'timestamp' | 'level' | 'message'
+				>
+			}
+	>
+}
+
 export type GetLogsTotalCountQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.LogsParamsInput
@@ -4388,6 +4404,7 @@ export const namedOperations = {
 		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
+		GetSessionLogs: 'GetSessionLogs' as const,
 		GetLogsTotalCount: 'GetLogsTotalCount' as const,
 		GetLogsHistogram: 'GetLogsHistogram' as const,
 		GetLogsKeys: 'GetLogsKeys' as const,

@@ -28189,6 +28189,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"docs-content@workspace:*, docs-content@workspace:docs-content":
+  version: 0.0.0-use.local
+  resolution: "docs-content@workspace:docs-content"
+  languageName: unknown
+  linkType: soft
+
 "doctrine@npm:^2.1.0":
   version: 2.1.0
   resolution: "doctrine@npm:2.1.0"
@@ -34461,6 +34467,7 @@ __metadata:
     autoprefixer: ^10.4.13
     classnames: ^2.3.1
     dexie: ^3.2.2
+    docs-content: "workspace:*"
     embla-carousel-react: ^7.0.5
     eslint: 8.28.0
     eslint-config-next: ^13.1.6
