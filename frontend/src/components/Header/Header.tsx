@@ -20,6 +20,7 @@ import {
 	IconSolidAtSymbol,
 	IconSolidChartBar,
 	IconSolidChartPie,
+	IconSolidChat,
 	IconSolidCog,
 	IconSolidDesktopComputer,
 	IconSolidDocumentText,
@@ -28,7 +29,6 @@ import {
 	IconSolidLogs,
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
-	IconSolidQuestionMarkCircle,
 	IconSolidSearch,
 	IconSolidSpeakerphone,
 	IconSolidSwitchHorizontal,
@@ -555,7 +555,7 @@ export const Header = () => {
 													alignItems="center"
 													gap="4"
 												>
-													<IconSolidQuestionMarkCircle
+													<IconSolidChat
 														size={14}
 														color={
 															vars.theme
@@ -564,7 +564,7 @@ export const Header = () => {
 																.content.text
 														}
 													/>
-													Feedback
+													Chat / Support
 												</Box>
 											</Menu.Item>
 											<a

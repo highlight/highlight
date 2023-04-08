@@ -53,4 +53,4 @@ const FeedbackButton = () => {
 
 export default FeedbackButton
 
-const FEEDBACK_URL = 'https://feedback.highlight.run/feature-requests'
+const FEEDBACK_URL = 'https://highlight.io/community'

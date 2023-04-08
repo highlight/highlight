@@ -143,7 +143,7 @@ const KeyboardShortcutsEducation = () => {
 									Shortcuts{' '}
 									<ButtonLink
 										anchor
-										href="https://feedback.highlight.run/feature-requests"
+										href="https://highlight.io/community"
 										trackingId="SuggestKeyboardShortcut"
 										className={styles.suggestionButton}
 									>
@@ -190,7 +190,7 @@ const KeyboardShortcutsEducation = () => {
 										</p>
 										<ButtonLink
 											anchor
-											href="https://feedback.highlight.run/feature-requests"
+											href="https://highlight.io/community"
 											trackingId="SuggestKeyboardShortcutFromSearch"
 											className={clsx(
 												styles.suggestionButton,
