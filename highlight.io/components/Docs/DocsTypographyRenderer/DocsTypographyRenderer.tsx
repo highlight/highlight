@@ -1,12 +1,12 @@
-import styles from '../Docs.module.scss'
+import classNames from 'classnames'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { createElement } from 'react'
+import { BiLink } from 'react-icons/bi'
 import { HeroVideo } from '../../Home/HeroVideo/HeroVideo'
 import { Callout } from '../Callout/Callout'
+import styles from '../Docs.module.scss'
 import { HighlightCodeBlock } from '../HighlightCodeBlock/HighlightCodeBlock'
-import Link from 'next/link'
-import { BiLink } from 'react-icons/bi'
-import { createElement } from 'react'
-import classNames from 'classnames'
 
 const getIdFromHTMLHeaderProps = (props: any) => {
 	return props?.children
@@ -38,6 +38,7 @@ export const generateIdString = (str: string) => {
 		.trim()
 		.split(' ')
 		.join('-')
+		.toLowerCase()
 }
 
 const copyHeadingIcon = (index: number) => {
