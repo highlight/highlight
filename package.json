@@ -35,7 +35,7 @@
 		"build:sdk": "yarn turbo run build --filter @highlight-run/cloudflare --filter @highlight-run/react --filter @highlight-run/apollo... --filter @highlight-run/next... --filter @highlight-run/nest...",
 		"cy:run": "cypress run",
 		"cy:run:chrome": "cypress run --headed --browser chrome",
-		"deep-clean": "find . -d -name node_modules -exec rm -r \"{}\" \\; && find . -name tsconfig.tsbuildinfo -delete && find . -d -name dist -exec rm -r \"{}\" \\; && find . -d -name build -exec rm -r \"{}\" \\; && find . -d -name lib -exec rm -r \"{}\" \\; && find . -d -name es -exec rm -r \"{}\" \\; && find . -d -name types -exec rm -r \"{}\" \\;",
+		"deep-clean": "find . -d -name node_modules -exec rm -r \"{}\" \\; && find . -name tsconfig.tsbuildinfo -delete && find . -d -name dist -exec rm -r \"{}\" \\; && find . -d -name build -exec rm -r \"{}\" \\; && find . -d -name es -exec rm -r \"{}\" \\;",
 		"dev": "run-p --print-label --race 'dev:*'",
 		"dev:backend": "cd backend && make start",
 		"dev:components": "yarn turbo run dev --filter @highlight-run/component-preview...",
