@@ -2344,39 +2344,10 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	// Filter out empty errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
-
-		// Filter out by project.ErrorFilters, aka regexp filters
-		var err error
-		matchedRegexp := false
-		for _, errorFilter := range project.ErrorFilters {
-			matchedRegexp, err = regexp.MatchString(errorFilter, errorObject.Event)
-			if err != nil {
-				log.WithContext(ctx).WithField("regex", errorFilter).WithError(err).Error("invalid regex: failed to parse backend error filter")
-				continue
-			}
-
-			if matchedRegexp {
-				break
-			}
+		if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event) {
+			continue
 		}
-
-		if errorObject.Event == "[{}]" {
-			var objString string
-			objBytes, err := json.Marshal(errorObject)
-			if err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error marshalling error object when filtering"))
-				objString = ""
-			} else {
-				objString = string(objBytes)
-			}
-			log.WithContext(ctx).WithFields(log.Fields{
-				"project_id":        projectID,
-				"session_secure_id": errorObject.SessionSecureID,
-				"error_object":      objString,
-			}).Warn("caught empty error, continuing...")
-		} else if !matchedRegexp {
-			filteredErrors = append(filteredErrors, errorObject)
-		}
+		filteredErrors = append(filteredErrors, errorObject)
 	}
 	errorObjects = filteredErrors
 
@@ -2909,18 +2880,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				continue
 			}
 
-			// Filter out by project.ErrorFilters, aka regexp filters
-			matchedRegexp := false
-			for _, errorFilter := range project.ErrorFilters {
-				matchedRegexp, err = regexp.MatchString(errorFilter, v.Event)
-				if err != nil {
-					log.WithContext(ctx).WithField("regex", errorFilter).WithError(err).Error("invalid regex: failed to parse error filter")
-					continue
-				}
-
-				if matchedRegexp {
-					return nil
-				}
+			if r.isExcludedError(ctx, project.ErrorFilters, v.Event) {
+				continue
 			}
 
 			traceString := string(traceBytes)
@@ -3069,6 +3030,28 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 	return nil
+}
+
+func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, errorEvent string) bool {
+	if errorEvent == "[{}]" {
+		return true
+	}
+
+	// Filter out by project.ErrorFilters, aka regexp filters
+	var err error
+	matchedRegexp := false
+	for _, errorFilter := range errorFilters {
+		matchedRegexp, err = regexp.MatchString(errorFilter, errorEvent)
+		if err != nil {
+			log.WithContext(ctx).WithField("regex", errorFilter).WithError(err).Error("invalid regex: failed to parse backend error filter")
+			continue
+		}
+
+		if matchedRegexp {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {

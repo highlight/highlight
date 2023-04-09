@@ -579,7 +579,7 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 		Name:                  name,
 		BillingEmail:          billingEmail,
 		ExcludedUsers:         excludedUsers,
-		ErrorFilters:  	 	   errorFilters,
+		ErrorFilters:          errorFilters,
 		ErrorJsonPaths:        errorJSONPaths,
 		BackendDomains:        backendDomains,
 		FilterChromeExtension: filterChromeExtension,

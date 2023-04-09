@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/workerpool"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"strconv"
 	"testing"
@@ -226,4 +227,12 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestResolver_isExcludedError(t *testing.T) {
+	r := &Resolver{}
+	assert.False(t, r.isExcludedError(context.Background(), []string{}, ""))
+	assert.True(t, r.isExcludedError(context.Background(), []string{}, "[{}]"))
+	assert.True(t, r.isExcludedError(context.Background(), []string{".*a+.*"}, "foo bar baz"))
+	assert.False(t, r.isExcludedError(context.Background(), []string{"("}, "foo bar baz"))
 }

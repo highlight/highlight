@@ -315,7 +315,7 @@ type Project {
 	secret: String
 	workspace_id: ID!
 	excluded_users: StringArray
-	error_filters: StringArray
+	error_filters: StringArray!
 	error_json_paths: StringArray
 	rage_click_window_seconds: Int
 	rage_click_radius_pixels: Int
