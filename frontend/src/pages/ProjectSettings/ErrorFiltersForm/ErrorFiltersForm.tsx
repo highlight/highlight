@@ -1,27 +1,36 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
-import { CircularSpinner, LoadingBar } from '@components/Loading/Loading'
+import { LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
 import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { useParams } from '@util/react-router/useParams'
+import { useProjectId } from '@hooks/useProjectId'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
+import { Text } from 'recharts'
 
 import commonStyles from '../../../Common.module.scss'
 import Button from '../../../components/Button/Button/Button'
 import styles from './ErrorFiltersForm.module.scss'
 
+const isValidRegex = function (p: string) {
+	try {
+		new RegExp(p)
+	} catch (e: any) {
+		message.error(`Pattern \`${p}\` is not valid regex.`)
+		return false
+	}
+	return true
+}
+
 export const ErrorFiltersForm = () => {
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
+	const { projectId } = useProjectId()
 	const [errorFilters, setErrorFilters] = useState<string[]>([])
 	const { data, loading } = useGetProjectQuery({
 		variables: {
-			id: project_id!,
+			id: projectId!,
 		},
-		skip: !project_id,
+		skip: !projectId,
 	})
 
 	const [editProject, { loading: editProjectLoading }] =
@@ -34,12 +43,19 @@ export const ErrorFiltersForm = () => {
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
-		if (!project_id) {
+		if (!projectId) {
 			return
 		}
+		if (errorFilters.filter(isValidRegex).length < errorFilters.length) {
+			message.error(
+				`Please correct invalid regex patterns before saving.`,
+			)
+			return
+		}
+
 		editProject({
 			variables: {
-				id: project_id!,
+				id: projectId!,
 				error_filters: errorFilters,
 			},
 		}).then(() => {
@@ -48,31 +64,37 @@ export const ErrorFiltersForm = () => {
 	}
 
 	useEffect(() => {
-		if (!loading) {
-			setErrorFilters(data?.project?.error_filters || [])
-		}
-	}, [data?.project?.error_filters, loading])
+		setErrorFilters(data?.project?.error_filters ?? [])
+	}, [data?.project?.error_filters])
 
 	if (loading) {
 		return <LoadingBar />
 	}
 
 	return (
-		<FieldsBox id="errors">
+		<FieldsBox id="filters">
 			<h3>Error Filters</h3>
 
-			<form onSubmit={onSubmit} key={project_id}>
-				<p>Enter REGEXP patterns to filter out errors.</p>
+			<form onSubmit={onSubmit}>
+				<p>Enter regular expression patterns to filter out errors.</p>
 				<div className={styles.inputAndButtonRow}>
 					<Select
+						className={styles.input}
 						mode="tags"
 						placeholder="TypeError: Failed to fetch"
-						defaultValue={data?.project?.error_filters || undefined}
-						onChange={(paths: string[]) => {
-							setErrorFilters(paths)
+						defaultValue={data?.project?.error_filters}
+						notFoundContent={
+							<Text>
+								Provide a regex pattern to filter out errors.
+							</Text>
+						}
+						onChange={(patterns: string[]) => {
+							patterns.filter(isValidRegex)
+							setErrorFilters(patterns)
 						}}
 					/>
 					<Button
+						loading={editProjectLoading}
 						trackingId="UpdateErrorFilters"
 						htmlType="submit"
 						type="primary"
@@ -81,16 +103,7 @@ export const ErrorFiltersForm = () => {
 							styles.saveButton,
 						)}
 					>
-						{editProjectLoading ? (
-							<CircularSpinner
-								style={{
-									fontSize: 18,
-									color: 'var(--text-primary-inverted)',
-								}}
-							/>
-						) : (
-							'Save'
-						)}
+						Save
 					</Button>
 				</div>
 			</form>

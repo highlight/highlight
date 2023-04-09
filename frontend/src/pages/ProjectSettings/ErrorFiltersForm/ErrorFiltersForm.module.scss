@@ -1,8 +1,12 @@
 .inputAndButtonRow {
 	align-items: center;
-	display: grid;
-	grid-template-columns: 1fr 80px;
+	display: flex;
+	justify-content: space-between;
 	margin-top: 5px;
+}
+
+.input {
+	width: 100%;
 }
 
 .saveButton {
