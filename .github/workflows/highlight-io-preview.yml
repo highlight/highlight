@@ -18,6 +18,8 @@ jobs:
             - uses: actions/checkout@v2
               with:
                   submodules: true
+            - name: Check for Broken Links
+              run: yarn dlx broken-link-checker https://highlight.io -ro
             - name: Pull Vercel Environment Information
               run: yarn dlx vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
             - name: Deploy Project Artifacts to Vercel
