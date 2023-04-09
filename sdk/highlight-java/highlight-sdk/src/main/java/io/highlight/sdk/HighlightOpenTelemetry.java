@@ -4,17 +4,15 @@ import java.util.Arrays;
 
 import io.highlight.sdk.common.HighlightAttributes;
 import io.highlight.sdk.common.HighlightOptions;
+import io.highlight.sdk.common.HighlightVersion;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.trace.TracerProvider;
-import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
-import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
 import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporter;
-import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.logs.LogRecordProcessor;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
@@ -32,19 +30,31 @@ public class HighlightOpenTelemetry implements OpenTelemetry {
 	private final SdkTracerProvider tracerProvider;
 	private final SdkLoggerProvider loggerProvider;
 
-	private final ContextPropagators propagator;
-
 	HighlightOpenTelemetry(Highlight highlight) {
 		HighlightOptions options = highlight.getOptions();
 
 		AttributesBuilder attributesBuilder = Attributes.builder()
 				.put(HighlightAttributes.HIGHLIGHT_PROJECT_ID, options.projectId())
-				.put(ResourceAttributes.TELEMETRY_SDK_LANGUAGE, "java") // TODO compile with maven
-				.put(ResourceAttributes.TELEMETRY_SDK_NAME, "highlight") // TODO compile with maven
-				.put(ResourceAttributes.TELEMETRY_SDK_VERSION, "1.0.0") // TODO compile with maven
 				.put(ResourceAttributes.DEPLOYMENT_ENVIRONMENT, options.enviroment())
-				.put(ResourceAttributes.SERVICE_VERSION, options.version())
-				.putAll(options.defaultAttributes());
+				.put(ResourceAttributes.SERVICE_INSTANCE_ID, SessionId.get().toString())
+				.put(ResourceAttributes.SERVICE_VERSION, options.version());
+
+		if (options.metric()) {
+			attributesBuilder
+				.put(ResourceAttributes.TELEMETRY_SDK_NAME, HighlightVersion.getSdkName())
+				.put(ResourceAttributes.TELEMETRY_SDK_VERSION, HighlightVersion.getSdkVersion())
+				.put(ResourceAttributes.TELEMETRY_SDK_LANGUAGE, HighlightVersion.getSdkLanguage())
+
+				.put(HighlightAttributes.TELEMETRY_JAVA_VENDOR, HighlightVersion.getJavaVendor())
+				.put(HighlightAttributes.TELEMETRY_JAVA_VERSION, HighlightVersion.getJavaVersion())
+				.put(HighlightAttributes.TELEMETRY_JAVA_VERSION_DATE, HighlightVersion.getJavaVersionDate())
+
+				.put(ResourceAttributes.OS_NAME, HighlightVersion.getOsName())
+				.put(ResourceAttributes.OS_VERSION, HighlightVersion.getOsVersion())
+				.put(ResourceAttributes.OS_TYPE, HighlightVersion.getOsArch());
+		}
+
+		attributesBuilder.putAll(options.defaultAttributes());
 
 		Resource resource = Resource.create(attributesBuilder.build());
 
@@ -74,13 +84,6 @@ public class HighlightOpenTelemetry implements OpenTelemetry {
 				.addLogRecordProcessor(logProcessor)
 				.setResource(resource)
 				.build();
-
-		// Propagator
-		TextMapPropagator textMapPropagator = TextMapPropagator.composite(
-				B3Propagator.injectingMultiHeaders(),
-                W3CTraceContextPropagator.getInstance());
-
-		this.propagator = ContextPropagators.create(textMapPropagator);
 	}
 
 	public Logger getLogger(String instrumentationScopeName) {
@@ -98,7 +101,7 @@ public class HighlightOpenTelemetry implements OpenTelemetry {
 
 	@Override
 	public ContextPropagators getPropagators() {
-		return this.propagator;
+		return ContextPropagators.noop();
 	}
 
 	public CompletableResultCode shutdown() {

@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 
-public record HighlightOptions(String projectId, String backendUrl, String enviroment, String version, Attributes defaultAttributes) {
+public record HighlightOptions(String projectId, String backendUrl, String enviroment, String version, boolean metric, Attributes defaultAttributes) {
 
 	public static Builder builder(String projectId) {
 		return new Builder(projectId);
@@ -22,6 +22,8 @@ public record HighlightOptions(String projectId, String backendUrl, String envir
 
 		private String environment = null;
 		private String version = null;
+
+		private boolean metric = true;
 
 		private AttributesBuilder defaultAttributes = Attributes.builder();
 
@@ -44,6 +46,11 @@ public record HighlightOptions(String projectId, String backendUrl, String envir
 			return this;
 		}
 
+		public Builder metric(boolean enabled) {
+			this.metric = enabled;
+			return this;
+		}
+
 		public Builder attributes(Consumer<AttributesBuilder> handle) {
 			handle.accept(this.defaultAttributes);
 			return this;
@@ -59,7 +66,7 @@ public record HighlightOptions(String projectId, String backendUrl, String envir
 				this.version = DEFAULT_VERSION;
 			}
 			
-			return new HighlightOptions(this.projectId, this.backendUrl, this.environment, this.version, this.defaultAttributes.build());
+			return new HighlightOptions(this.projectId, this.backendUrl, this.environment, this.version, this.metric, this.defaultAttributes.build());
 		}
 	}
 }

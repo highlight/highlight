@@ -20,7 +20,7 @@ public class HighlightTracer {
 		this.projectId = options.projectId();
 
 		HighlightOpenTelemetry openTelemetry = highlight.getOpenTelemetry();
-		this.tracer = openTelemetry.getTracer("highlight-node");
+		this.tracer = openTelemetry.getTracer("highlight-java");
 	}
 
 	public void process(HighlightErrorRecord record) {

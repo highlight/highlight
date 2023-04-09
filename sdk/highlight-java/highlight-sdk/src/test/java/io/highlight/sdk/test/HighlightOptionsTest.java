@@ -14,7 +14,7 @@ public class HighlightOptionsTest {
 
 	private static final String PROJECT_ID = "projectId";
 	private static final String PROJECT_ENVIRONMENT = "production";
-	private static final String PROJECT_VERSION = "12.42.12-b605";
+	private static final String PROJECT_VERSION = "04.27.20-b605";
 
 	private static final AttributeKey<String> ATTRIBUTE_JUNIT_TEST = AttributeKey.stringKey("junit.test.2");
 	private static final String ATTRIBUTE_JUNIT_TEST_VALUE = "test2";

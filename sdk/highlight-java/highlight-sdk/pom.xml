@@ -49,11 +49,6 @@
 		</dependency>
 		<dependency>
 			<groupId>io.opentelemetry</groupId>
-			<artifactId>opentelemetry-extension-trace-propagators</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.opentelemetry</groupId>
 			<artifactId>opentelemetry-semconv</artifactId>
 			<scope>compile</scope>
 		</dependency>
