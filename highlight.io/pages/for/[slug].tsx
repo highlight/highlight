@@ -91,7 +91,6 @@ const Products = ({ product }: { product: iProduct }) => {
 
 	useEffect(() => {
 		const reviewsElement = reviewsRef.current
-		console.log('test')
 
 		const observer = new IntersectionObserver(
 			([entry]) => {
