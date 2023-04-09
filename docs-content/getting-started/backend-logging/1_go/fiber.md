@@ -1,6 +1,6 @@
 ---
 title: fiber
-headline: Logging in go:fiber
+heading: Logging in Go / Fiber
 quickstart: true
 ---
 
