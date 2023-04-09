@@ -97,9 +97,9 @@ const Products = ({ product }: { product: iProduct }) => {
 				setScrollReviews(entry.isIntersecting)
 			},
 			{
-				root: null,
+				root: document.body,
 				rootMargin: '250px 0px',
-				threshold: 0,
+				threshold: 0.0001,
 			},
 		)
 
