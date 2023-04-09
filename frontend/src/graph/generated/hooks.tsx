@@ -7137,6 +7137,7 @@ export const GetProjectDropdownOptionsDocument = gql`
 			billing_email
 			secret
 			workspace_id
+			error_filters
 		}
 		workspace: workspace_for_project(project_id: $project_id) {
 			id

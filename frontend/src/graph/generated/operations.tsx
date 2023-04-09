@@ -2394,6 +2394,7 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
 			| 'billing_email'
 			| 'secret'
 			| 'workspace_id'
+			| 'error_filters'
 		>
 	>
 	workspace?: Types.Maybe<
