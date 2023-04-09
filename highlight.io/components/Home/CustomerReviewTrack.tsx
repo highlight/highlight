@@ -38,7 +38,6 @@ export const CustomerReviewTrack = () => {
 				setScrollReviews(entry.isIntersecting)
 			},
 			{
-				root: document.body,
 				rootMargin: '250px 0px',
 				threshold: 0.00001,
 			},

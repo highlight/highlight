@@ -127,7 +127,6 @@ const Home: NextPage = () => {
 				setScrollReviews(entry.isIntersecting)
 			},
 			{
-				root: document.body,
 				rootMargin: '250px 0px',
 				threshold: 0.0001,
 			},
