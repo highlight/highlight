@@ -65,7 +65,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 		slug: 'session-replay',
 		header: 'Session Replay & UX Monitoring.',
 		subheader:
-			'The only tool you need to monitor your frontend. Pixel-perfect video replay & comprehensive javascript monitoring.',
+			'Monitor your frontend with pixel-perfect video replay & comprehensive javascript monitoring.',
 		docsLink: '/docs/general/product-features/session-replay/overview',
 		slantedImage: sessionReplayHeroKey,
 		regularImage: sessionscreenshotKey,
@@ -125,7 +125,8 @@ export const FEATURES: { [k: string]: iFeature } = {
 	'error-monitoring': {
 		slug: 'error-monitoring',
 		header: 'Error monitoring for today’s developer.',
-		subheader: 'Error and exception monitoring built for modern web apps.',
+		subheader:
+			'Error and exception monitoring built for modern web apps. Get started in seconds.',
 		docsLink: '/docs/general/product-features/error-monitoring/overview',
 		slantedImage: errorMonitoringHeroKey,
 		regularImage: monitoringscreenshotKey,
@@ -186,8 +187,8 @@ export const FEATURES: { [k: string]: iFeature } = {
 		slug: 'logging',
 		header: 'Logging for modern web applications.',
 		subheader:
-			'Search for and query the logs across your full-stack web app.',
-		docsLink: '/docs/general/product-features/error-monitoring/overview',
+			'Search for and query the logs across your full-stack web app. Get started in seconds.',
+		docsLink: '/docs/general/product-features/logging/overview',
 		slantedImage: loggingHeroKey,
 		regularImage: loggingscreenshotKey,
 		header2Selection: 2,
