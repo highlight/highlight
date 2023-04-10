@@ -63,6 +63,8 @@ import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
+import * as env from '@/env'
+
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.scss'
 
@@ -849,8 +851,7 @@ const OnPremiseBanner = () => {
 			}}
 		>
 			<div className={clsx(styles.trialTimeText)}>
-				Running Highlight On-premise{' '}
-				{`v${import.meta.env.REACT_APP_COMMIT_SHA}`}
+				Running Highlight On-premise {`v${env.REACT_APP_COMMIT_SHA}`}
 			</div>
 		</div>
 	)

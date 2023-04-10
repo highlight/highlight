@@ -29,6 +29,14 @@
 			"dependsOn": ["^prepublish", "^build"],
 			"cache": false
 		},
+		"reflame": {
+			"dependsOn": [],
+			"cache": false
+		},
+		"reflame-build": {
+			"dependsOn": [],
+			"cache": false
+		},
 		"build": {
 			"dependsOn": ["codegen", "typegen", "^prepublish", "^build"],
 			"outputs": ["build/**", "dist/**", "esm/**"],

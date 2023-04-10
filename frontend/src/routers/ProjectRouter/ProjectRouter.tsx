@@ -32,6 +32,8 @@ import React, { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
+import * as env from '@/env'
+
 import commonStyles from '../../Common.module.scss'
 import ApplicationRouter from './ApplicationRouter'
 import { ApplicationContextProvider } from './context/ApplicationContext'
@@ -55,8 +57,9 @@ export const ProjectRouter = () => {
 
 	useEffect(() => {
 		const uri =
-			import.meta.env.REACT_APP_PRIVATE_GRAPH_URI ??
+			env.REACT_APP_PRIVATE_GRAPH_URI ??
 			window.location.origin + '/private'
+
 		let intervalId: NodeJS.Timeout
 
 		auth.currentUser?.getIdToken().then((t) => {

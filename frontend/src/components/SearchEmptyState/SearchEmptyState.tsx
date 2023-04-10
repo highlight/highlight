@@ -3,13 +3,10 @@ import clsx from 'clsx'
 import React, { ReactNode } from 'react'
 
 import { ReactComponent as EmptyState } from '../../static/empty-state.svg'
-import {
-	emptyStateSection,
-	emptyStateWrapper,
-	emptySubTitle,
-	emptyTitle,
-} from './SearchEmptyState.module.scss'
 import styles from './SearchEmptyState.module.scss'
+
+const { emptyStateSection, emptyStateWrapper, emptySubTitle, emptyTitle } =
+	styles
 
 interface Props {
 	item: string

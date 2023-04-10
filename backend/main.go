@@ -209,7 +209,7 @@ func validateOrigin(_ *http.Request, origin string) bool {
 		isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
 		// Is this an AWS Amplify environment?
 		isAWSEnv := strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")
-		isReflamePreview := origin == "https://highlight-test-lewisl.reflame.dev"
+		isReflamePreview := origin == "https://highlight-test-lewisl.reflame.dev" || strings.HasSuffix(origin, ".highlight.io")
 
 		if origin == frontendURL || origin == "https://app.highlight.run" || origin == "https://app.highlight.io" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv || isReflamePreview {
 			return true

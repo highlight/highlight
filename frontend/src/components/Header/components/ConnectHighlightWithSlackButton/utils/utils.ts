@@ -5,13 +5,15 @@ import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
 
+import * as env from '@/env'
+
 import {
 	useAddIntegrationToProjectMutation,
 	useGetWorkspaceIsIntegratedWithSlackQuery,
 	useRemoveIntegrationFromProjectMutation,
 } from '../../../../../graph/generated/hooks'
 
-const SLACK_CLIENT_ID = import.meta.env.SLACK_CLIENT_ID
+const SLACK_CLIENT_ID = env.SLACK_CLIENT_ID
 
 export const useSlackBot = () => {
 	const { project_id } = useParams<{ project_id: string }>()

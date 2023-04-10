@@ -1,1 +1,2 @@
-export const isOnPrem = import.meta.env.REACT_APP_ONPREM === 'true'
+import * as env from '@/env'
+export const isOnPrem = env.REACT_APP_ONPREM === 'true'

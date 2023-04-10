@@ -2,9 +2,11 @@ import { Admin } from '@graph/schemas'
 import { INTERCOM_APP_ID } from '@util/constants/constants'
 import { H } from 'highlight.run'
 
+import * as env from '@/env'
+
 export function GetBaseURL(): string {
 	return (
-		import.meta.env.REACT_APP_FRONTEND_URI ||
+		env.REACT_APP_FRONTEND_URI ||
 		window.location.protocol + '//' + window.location.host
 	)
 }

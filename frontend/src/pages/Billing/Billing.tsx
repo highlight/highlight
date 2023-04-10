@@ -40,6 +40,8 @@ import Skeleton from 'react-loading-skeleton'
 import { useLocation, useMatch } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
+import * as env from '@/env'
+
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 import styles from './Billing.module.scss'
 import { BILLING_PLANS } from './BillingPlanCard/BillingConfig'
@@ -110,7 +112,7 @@ export const useBillingHook = ({
 }
 
 const getStripePromiseOrNull = () => {
-	const stripe_publishable_key = import.meta.env.REACT_APP_STRIPE_API_PK
+	const stripe_publishable_key = env.REACT_APP_STRIPE_API_PK
 	if (stripe_publishable_key) {
 		return loadStripe(stripe_publishable_key)
 	}

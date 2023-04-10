@@ -2,7 +2,7 @@ import 'intro.js/introjs.css'
 
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
-import { Step, Steps } from 'intro.js-react'
+import { Step, Steps } from 'intro.js-react/src/index.js'
 import React, { useState } from 'react'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 

@@ -1,14 +1,14 @@
 import clsx from 'clsx'
 import React, { useMemo } from 'react'
+// Forked with the contents in this PR: https://github.com/dapi-labs/react-nice-avatar/pull/46
+// TODO: move back once merged
 import ReactNiceAvatar, { genConfig } from 'react-nice-avatar'
 
 import { generateRandomColor } from '../../util/color'
-import {
-	userAvatar,
-	userAvatarBorder,
-	userAvatarText,
-	userAvatarWrapper,
-} from './Avatar.module.scss'
+import styles from './Avatar.module.scss'
+
+const { userAvatar, userAvatarBorder, userAvatarText, userAvatarWrapper } =
+	styles
 
 const BACKGROUND_COLORS = [
 	'--color-purple-300',

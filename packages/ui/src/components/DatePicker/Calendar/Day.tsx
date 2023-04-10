@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box } from '@highlight-run/ui'
+import { Box } from '../../Box/Box'
 import { CalendarDay, useContextDaysPropGetters } from '@rehookify/datepicker'
 import { ReactNode } from 'react'
 

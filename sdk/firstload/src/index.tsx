@@ -1,4 +1,3 @@
-import packageJson from '../package.json'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
 import {
 	AmplitudeAPI,
@@ -22,6 +21,9 @@ import type {
 } from '@highlight-run/client/src/types/types'
 import HighlightSegmentMiddleware from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
+
+// import packageJson from '../package.json' // TODO: figure out how to keep this in sync
+const firstloadVersion = '5.2.5'
 
 initializeFetchListener()
 
@@ -84,7 +86,7 @@ export const H: HighlightPublicInterface = {
 			script = document.createElement('script')
 			var scriptSrc = options?.scriptUrl
 				? options.scriptUrl
-				: `https://static.highlight.io/v${packageJson.version}/index.js`
+				: `https://static.highlight.io/v${firstloadVersion}/index.js`
 			script.setAttribute('src', scriptSrc)
 			script.setAttribute('type', 'text/javascript')
 			document.getElementsByTagName('head')[0].appendChild(script)
@@ -111,11 +113,12 @@ export const H: HighlightPublicInterface = {
 				enableCanvasRecording: options?.enableCanvasRecording,
 				enablePerformanceRecording: options?.enablePerformanceRecording,
 				samplingStrategy: options?.samplingStrategy,
-				inlineImages: options?.inlineImages,
-				inlineStylesheet: options?.inlineStylesheet,
-				recordCrossOriginIframe: options?.recordCrossOriginIframe,
-				isCrossOriginIframe: options?.isCrossOriginIframe,
-				firstloadVersion: packageJson['version'],
+				inlineImages: options?.inlineImages || false,
+				inlineStylesheet: options?.inlineStylesheet || false,
+				recordCrossOriginIframe:
+					options?.recordCrossOriginIframe || false,
+				isCrossOriginIframe: options?.isCrossOriginIframe || false,
+				firstloadVersion: firstloadVersion,
 				environment: options?.environment || 'production',
 				appVersion: options?.version,
 				sessionShortcut: options?.sessionShortcut,

@@ -9,7 +9,9 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import React from 'react'
-const { DEMO_SESSION_URL } = import.meta.env
+
+import * as env from '@/env'
+const DEMO_SESSION_URL = env.DEMO_SESSION_URL
 
 export const CompleteSetup = () => {
 	const { projectId } = useProjectId()

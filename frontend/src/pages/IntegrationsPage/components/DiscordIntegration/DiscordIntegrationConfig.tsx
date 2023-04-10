@@ -11,9 +11,11 @@ import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
 import React, { useEffect } from 'react'
 
+import * as env from '@/env'
+
 import styles from './DiscordIntegrationConfig.module.scss'
 
-const DISCORD_CLIENT_ID = import.meta.env.DISCORD_CLIENT_ID
+const DISCORD_CLIENT_ID = env.DISCORD_CLIENT_ID
 
 const getDiscordOauthUrl = (project_id: string): string => {
 	const redirectURI = `${GetBaseURL()}/callback/discord`

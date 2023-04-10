@@ -19,9 +19,11 @@ import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 
+import * as env from '@/env'
+
 import styles from './ClickUpIntegrationConfig.module.scss'
 
-const CLICKUP_CLIENT_ID = import.meta.env.CLICKUP_CLIENT_ID
+const CLICKUP_CLIENT_ID = env.CLICKUP_CLIENT_ID
 
 const ClickUpIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 	setModalOpen,
