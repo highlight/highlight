@@ -43,7 +43,8 @@ export const ConsolePage = ({
 }) => {
 	const { projectId } = useProjectId()
 	const [selectedCursor, setSelectedCursor] = useState(logCursor)
-	const { session, setTime, isPlayerReady, state } = useReplayerContext()
+	const { session, setTime, isPlayerReady, sessionMetadata, state } =
+		useReplayerContext()
 
 	const params = buildSessionParams({ session, levels, sources })
 
@@ -104,7 +105,11 @@ export const ConsolePage = ({
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	useEffect(() => {
-		if (isPlayerReady && virtuoso.current && messagesToRender) {
+		if (
+			isPlayerReady && // ensure Virtuoso component is actually rendered
+			virtuoso.current &&
+			messagesToRender
+		) {
 			const index = messagesToRender.findIndex(
 				(logEdge) => logEdge.cursor === selectedCursor,
 			)
@@ -113,6 +118,9 @@ export const ConsolePage = ({
 				virtuoso.current.scrollToIndex({
 					index,
 					align: 'center',
+					// Using smooth has performance issues with large lists
+					// See: https://virtuoso.dev/scroll-to-index/
+					// behavior: 'smooth'
 				})
 			}
 		}
@@ -134,6 +142,7 @@ export const ConsolePage = ({
 							key={logEdge.cursor}
 							logEdge={logEdge}
 							current={selectedCursor === logEdge.cursor}
+							startTime={sessionMetadata.startTime}
 							setTime={(time: number) => {
 								setTime(time)
 								setSelectedCursor(logEdge.cursor)
@@ -151,12 +160,18 @@ export const ConsolePage = ({
 const MessageRow = React.memo(function ({
 	logEdge,
 	setTime,
+	startTime,
 	current,
 }: {
 	logEdge: SessionLogEdge
 	setTime: (time: number) => void
+	startTime: number
 	current?: boolean
 }) {
+	const timestamp = useMemo(() => {
+		return new Date(logEdge.node.timestamp).getTime() - startTime
+	}, [logEdge.node.timestamp, startTime])
+
 	return (
 		<Box
 			cssClass={clsx(
@@ -166,14 +181,14 @@ const MessageRow = React.memo(function ({
 				}),
 			)}
 			borderBottom="dividerWeak"
-			mb="2"
+			py="4"
 		>
-			<Stack direction="row">
+			<Stack direction="row" align="center">
 				<Box flexGrow={1}>
 					<Text
 						family="monospace"
 						color="secondaryContentOnEnabled"
-						as="p"
+						break="word"
 					>
 						<Box
 							style={{
@@ -195,7 +210,7 @@ const MessageRow = React.memo(function ({
 						kind="secondary"
 						iconRight={<IconSolidArrowCircleRight />}
 						onClick={() => {
-							setTime(new Date(logEdge.node.timestamp).getDate())
+							setTime(timestamp)
 						}}
 					>
 						Go to
