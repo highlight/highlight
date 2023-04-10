@@ -3,14 +3,13 @@ env:
     VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 on:
-    push:
+    pull_request:
+        types: [opened, synchronize]
         paths:
             - 'highlight.io/**'
             - 'docs-content/**'
             - '.github/workflows/highlight-io-preview.yml'
             - 'yarn.lock'
-        branches-ignore:
-            - main
 jobs:
     Deploy-Preview:
         runs-on: ubuntu-latest
