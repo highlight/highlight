@@ -17,7 +17,7 @@ Interested in deploying highlight.io on your local machine or on a small remote 
 
 ## Pricing
 
-Pricing for our self-hosted enterprise deployment starts at $3k / month. Contact us at jay@highlight.io, or message us [on discord](https://community.highlight.io) to get in touch.
+Pricing for our self-hosted enterprise deployment starts at $3k / month. Contact us at sales@highlight.io, or message us [on discord](https://community.highlight.io) to get in touch.
 
 # Limitations
 
