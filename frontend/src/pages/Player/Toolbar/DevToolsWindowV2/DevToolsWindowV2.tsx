@@ -36,7 +36,8 @@ import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
 import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { styledVerticalScrollbar } from 'style/common.css'
+
+import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import ErrorsPage from './ErrorsPage/ErrorsPage'

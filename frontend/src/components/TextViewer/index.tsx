@@ -11,7 +11,8 @@ import { copyToClipboard } from '@util/string'
 import React from 'react'
 // @ts-ignore
 import { specific } from 'react-files-hooks'
-import { styledHorizontalScrollbar } from 'style/common.css'
+
+import { styledHorizontalScrollbar } from '@/style/common.css'
 
 type Props = {
 	title: React.ReactElement
