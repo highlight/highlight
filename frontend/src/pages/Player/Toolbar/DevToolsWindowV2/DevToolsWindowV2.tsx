@@ -1,4 +1,6 @@
 import { Button } from '@components/Button'
+import { LogSource } from '@graph/schemas'
+import { LogLevel } from '@graph/schemas'
 import {
 	Box,
 	Form,
@@ -7,6 +9,7 @@ import {
 	IconSolidSwitchHorizontal,
 	MenuButton,
 	Tabs,
+	Text,
 	useFormState,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -22,8 +25,6 @@ import {
 	ResizePanel,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/ResizePanel'
 import {
-	LogLevel,
-	LogLevelVariants,
 	RequestStatus,
 	RequestType,
 	Tab,
@@ -43,6 +44,18 @@ import { ConsolePage } from './ConsolePage/ConsolePage'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
 import * as styles from './style.css'
 
+const LogLevelValues = [
+	'All',
+	LogLevel.Trace,
+	LogLevel.Debug,
+	LogLevel.Info,
+	LogLevel.Warn,
+	LogLevel.Error,
+	LogLevel.Fatal,
+] as const
+
+const LogSourceValues = ['All', LogSource.Frontend, LogSource.Backend] as const
+
 const DevToolsWindowV2: React.FC<
 	React.PropsWithChildren & {
 		width: number
@@ -61,7 +74,8 @@ const DevToolsWindowV2: React.FC<
 	)
 
 	const [searchShown, setSearchShown] = React.useState<boolean>(false)
-	const [logLevel, setLogLevel] = React.useState<LogLevel>(LogLevel.All)
+	const [levels, setLevels] = React.useState<LogLevel[]>([])
+	const [sources, setSources] = React.useState<LogSource[]>([])
 	const form = useFormState({
 		defaultValues: {
 			search: '',
@@ -198,7 +212,8 @@ const DevToolsWindowV2: React.FC<
 								page: (
 									<ConsolePage
 										autoScroll={autoScroll}
-										logLevel={logLevel}
+										levels={levels}
+										sources={sources}
 										filter={filter}
 										time={time}
 									/>
@@ -239,27 +254,23 @@ const DevToolsWindowV2: React.FC<
 									align="center"
 								>
 									<Form state={form}>
-										<label>
+										<Box
+											display="flex"
+											justifyContent="space-between"
+											align="center"
+										>
 											<Box
+												cursor="pointer"
 												display="flex"
-												justifyContent="space-between"
 												align="center"
+												onClick={() => {
+													setSearchShown((s) => !s)
+												}}
+												color="weak"
 											>
-												<Box
-													cursor="pointer"
-													display="flex"
-													align="center"
-													onClick={() => {
-														setSearchShown(
-															(s) => !s,
-														)
-													}}
-													color="weak"
-												>
-													<IconSolidSearch
-														size={16}
-													/>
-												</Box>
+												<IconSolidSearch size={16} />
+											</Box>
+											<Box gap="6">
 												<Form.Input
 													name={form.names.search}
 													placeholder="Search"
@@ -281,33 +292,58 @@ const DevToolsWindowV2: React.FC<
 													}}
 												/>
 											</Box>
-										</label>
+										</Box>
 									</Form>
 
 									{selectedDevToolsTab === Tab.Console ? (
-										<MenuButton
-											divider
-											size="medium"
-											options={Object.values(
-												LogLevel,
-											).map((ll) => ({
-												key: ll,
-												render: ll,
-												variants: LogLevelVariants[
-													ll as keyof typeof LogLevelVariants
-												]
-													? {
-															variant:
-																LogLevelVariants[
-																	ll as keyof typeof LogLevelVariants
-																],
-													  }
-													: undefined,
-											}))}
-											onChange={(ll: string) =>
-												setLogLevel(ll as LogLevel)
-											}
-										/>
+										<>
+											<MenuButton
+												divider
+												size="medium"
+												options={LogLevelValues.map(
+													(level) => ({
+														key: level,
+														render: (
+															<Text case="capital">
+																{level}
+															</Text>
+														),
+													}),
+												)}
+												onChange={(level) => {
+													if (level === 'All') {
+														setLevels([])
+													} else {
+														setLevels([
+															level as LogLevel,
+														])
+													}
+												}}
+											/>
+											<MenuButton
+												divider
+												size="medium"
+												options={LogSourceValues.map(
+													(source) => ({
+														key: source,
+														render: (
+															<Text case="capital">
+																{source}
+															</Text>
+														),
+													}),
+												)}
+												onChange={(source) => {
+													if (source === 'All') {
+														setSources([])
+													} else {
+														setSources([
+															source as LogSource,
+														])
+													}
+												}}
+											/>
+										</>
 									) : selectedDevToolsTab === Tab.Network ? (
 										<>
 											<MenuButton
@@ -360,16 +396,18 @@ const DevToolsWindowV2: React.FC<
 									{selectedDevToolsTab === Tab.Console &&
 									session ? (
 										<Link
-											to={getLogsURLForSession(
+											to={getLogsURLForSession({
 												projectId,
 												session,
-											)}
+												levels,
+												sources,
+											})}
 											style={{ display: 'flex' }}
 										>
 											<Button
 												size="xSmall"
 												kind="secondary"
-												trackingId="relatedLogs"
+												trackingId="showInLogViewer"
 												cssClass={styles.autoScroll}
 												iconLeft={
 													<IconSolidLogs
@@ -378,7 +416,7 @@ const DevToolsWindowV2: React.FC<
 													/>
 												}
 											>
-												Related logs
+												Show in Log Viewer
 											</Button>
 										</Link>
 									) : null}

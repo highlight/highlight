@@ -72,6 +72,7 @@
 		"backend/public-graph/graph/generated/*": true,
 		"backend/go.sum": true,
 		"backend/event-parse/sample-events/*.json": true,
+		"frontend/build/assets/*": true,
 		"**/*.scss.d.ts": true,
 		"backend/payload/*": true,
 		"**/yarn-error.log": true
