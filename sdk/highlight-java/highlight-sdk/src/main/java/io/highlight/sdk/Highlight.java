@@ -1,6 +1,5 @@
 package io.highlight.sdk;
 
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -13,10 +12,33 @@ import io.highlight.sdk.common.record.HighlightRecord;
 import io.highlight.sdk.exception.HighlightIllegalStateException;
 import io.highlight.sdk.exception.HighlightInvalidRecordException;
 
+/**
+ * The Highlight class is the main entry point for Highlight. <br>
+ * It provides methods to initialize the library and capture logs and errors.
+ */
 public class Highlight {
 
 	private static Highlight highlight = null;
 
+	/**
+	 * Check if highlight was initialized else throw a
+	 * {@code HighlightIllegalStateException} exception
+	 * 
+	 * @throws HighlightIllegalStateException if Highlight is not initialized
+	 */
+	private static void requireInitialization() {
+		if (!Highlight.isInitialized()) {
+			throw new HighlightIllegalStateException("Highlight instance is not initialized");
+		}
+	}
+
+	/**
+	 * Initializes Highlight with the provided options and the given projectId.
+	 * 
+	 * @param projectId the projectId to use
+	 * @param options   the options to use for initialization
+	 * @throws HighlightIllegalStateException if Highlight is already initialized
+	 */
 	public static void init(String projectId, Consumer<HighlightOptions.Builder> options) {
 		HighlightOptions.Builder builder = HighlightOptions.builder(projectId);
 		options.accept(builder);
@@ -24,6 +46,12 @@ public class Highlight {
 		Highlight.init(builder.build());
 	}
 
+	/**
+	 * Initializes Highlight with the provided options.
+	 * 
+	 * @param options the options to use for initialization
+	 * @throws HighlightIllegalStateException if Highlight is already initialized
+	 */
 	public static void init(HighlightOptions options) {
 		if (Highlight.highlight != null) {
 			throw new HighlightIllegalStateException("Highlight is already initialized");
@@ -32,16 +60,37 @@ public class Highlight {
 		Highlight.highlight = new Highlight(options);
 	}
 
+	/**
+	 * Returns true if Highlight is already initialized.
+	 * 
+	 * @return true if Highlight is already initialized, false otherwise
+	 */
 	public static boolean isInitialized() {
 		return Highlight.highlight != null;
 	}
 
+	/**
+	 * Captures an exception and sends it to Highlight.
+	 * 
+	 * @param throwable the throwable to capture
+	 * @throws HighlightIllegalStateException  if Highlight is not initialized
+	 * @throws HighlightInvalidRecordException if the record is invalid
+	 */
 	public static void captureException(Throwable throwable) {
 		Highlight.captureException(throwable, null, null);
 	}
 
+	/**
+	 * Captures an exception and sends it to Highlight.
+	 * 
+	 * @param throwable the throwable to capture
+	 * @param sessionId the session ID associated with the record
+	 * @param requestId the request ID associated with the record
+	 * @throws HighlightIllegalStateException  if Highlight is not initialized
+	 * @throws HighlightInvalidRecordException if the record is invalid
+	 */
 	public static void captureException(Throwable throwable, String sessionId, String requestId) {
-		Objects.requireNonNull(Highlight.highlight, "Highlight instance is not initialized");
+		Highlight.requireInitialization();
 
 		Highlight.captureRecord(HighlightRecord.error()
 				.throwable(throwable)
@@ -50,14 +99,32 @@ public class Highlight {
 				.build());
 	}
 
+	/**
+	 * Captures a log and sends it to Highlight.
+	 * 
+	 * @param severity the severity of the log
+	 * @param message  the message to log
+	 * @throws HighlightIllegalStateException  if Highlight is not initialized
+	 * @throws HighlightInvalidRecordException if the record is invalid
+	 */
 	public static void captureLog(Severity severity, String message) {
-		Objects.requireNonNull(Highlight.highlight, "Highlight instance is not initialized");
+		Highlight.requireInitialization();
 
 		Highlight.captureLog(severity, message, null, null);
 	}
 
+	/**
+	 * Captures a log and sends it to Highlight.
+	 * 
+	 * @param severity  the severity of the log
+	 * @param message   the message to log
+	 * @param sessionId the session ID associated with the record
+	 * @param requestId the request ID associated with the record
+	 * @throws HighlightIllegalStateException  if Highlight is not initialized
+	 * @throws HighlightInvalidRecordException if the record is invalid
+	 */
 	public static void captureLog(Severity severity, String message, String sessionId, String requestId) {
-		Objects.requireNonNull(Highlight.highlight, "Highlight instance is not initialized");
+		Highlight.requireInitialization();
 
 		Highlight.captureRecord(HighlightRecord.log()
 				.severity(severity)
@@ -67,12 +134,26 @@ public class Highlight {
 				.build());
 	}
 
+	/**
+	 * Captures a record using a record builder and sends it to Highlight.
+	 * 
+	 * @param builder the builder to use for the record
+	 * @throws HighlightIllegalStateException  if Highlight is not initialized
+	 * @throws HighlightInvalidRecordException if the record is invalid
+	 */
 	public static void captureRecord(HighlightRecord.Builder<?> builder) {
 		Highlight.captureRecord(builder.build());
 	}
 
+	/**
+	 * Captures a record and sends it to Highlight.
+	 * 
+	 * @param record the record to capture
+	 * @throws HighlightIllegalStateException  if Highlight is not initialized
+	 * @throws HighlightInvalidRecordException if the record is invalid
+	 */
 	public static void captureRecord(HighlightRecord record) {
-		Objects.requireNonNull(Highlight.highlight, "Highlight instance is not initialized");
+		Highlight.requireInitialization();
 
 		Highlight.highlight.capture(record);
 	}
@@ -127,22 +208,47 @@ public class Highlight {
 		}
 	}
 
+	/**
+	 * Returns the options.
+	 * 
+	 * @return the options
+	 */
 	public HighlightOptions getOptions() {
 		return this.options;
 	}
 
+	/**
+	 * 
+	 * Returns the {@code HighlightOpenTelemetry}
+	 * 
+	 * @return the {@code HighlightOpenTelemetry} instance
+	 */
 	public HighlightOpenTelemetry getOpenTelemetry() {
 		return this.openTelemetry;
 	}
 
+	/**
+	 * 
+	 * Returns the {@code HighlightTracer}
+	 * 
+	 * @return the {@code HighlightTracer} instance
+	 */
 	public HighlightTracer getTracer() {
 		return this.tracer;
 	}
 
+	/**
+	 * Returns the {@code HighlightLogger} instance.
+	 * 
+	 * @return the {@code HighlightLogger} instance
+	 */
 	public HighlightLogger getLogger() {
 		return this.logger;
 	}
 
+	/**
+	 * This class contains the currently highlight states.
+	 */
 	private enum State {
 		INITIALIZE,
 		RUNNING,

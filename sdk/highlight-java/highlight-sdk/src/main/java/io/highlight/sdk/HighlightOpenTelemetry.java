@@ -25,11 +25,22 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 
+/**
+ * Represents an OpenTelemetry instance that is used to create and manage spans
+ * and logs.
+ */
 public class HighlightOpenTelemetry implements OpenTelemetry {
 
 	private final SdkTracerProvider tracerProvider;
 	private final SdkLoggerProvider loggerProvider;
 
+	/**
+	 * Creates a new instance of {@code HighlightOpenTelemetry} with the given
+	 * {@code Highlight} instance.
+	 * 
+	 * @param highlight the {@code Highlight} instance used to configure the
+	 *                  OpenTelemetry instance
+	 */
 	HighlightOpenTelemetry(Highlight highlight) {
 		HighlightOptions options = highlight.getOptions();
 
@@ -86,24 +97,55 @@ public class HighlightOpenTelemetry implements OpenTelemetry {
 				.build();
 	}
 
+	/**
+	 * Returns a {@code Logger} instance with the given instrumentation scope name.
+	 * 
+	 * @param instrumentationScopeName the name of the instrumentation scope
+	 * @return a {@code Logger} instance
+	 */
 	public Logger getLogger(String instrumentationScopeName) {
 		return this.loggerProvider.get(instrumentationScopeName);
 	}
 
+	/**
+	 * Returns the {@code TracerProvider} instance associated with this
+	 * OpenTelemetry instance.
+	 * 
+	 * @return the {@code TracerProvider} instance
+	 */
 	@Override
 	public TracerProvider getTracerProvider() {
 		return this.tracerProvider;
 	}
 
+	/**
+	 * Returns the {@code SdkLoggerProvider} instance associated with this
+	 * OpenTelemetry instance.
+	 * 
+	 * @return the {@code SdkLoggerProvider} instance
+	 */
 	public SdkLoggerProvider getLoggerProvider() {
 		return this.loggerProvider;
 	}
 
+	/**
+	 * Returns a noop {@code ContextPropagators} instance that is used to propagate
+	 * context between threads and processes.
+	 * 
+	 * @return a {@code ContextPropagators} instance
+	 */
 	@Override
 	public ContextPropagators getPropagators() {
 		return ContextPropagators.noop();
 	}
 
+	/**
+	 * Shuts down this OpenTelemetry instance and releases any resources associated
+	 * with it.
+	 * 
+	 * @return a {@code CompletableResultCode} indicating whether the shutdown was
+	 *         successful
+	 */
 	public CompletableResultCode shutdown() {
 		return CompletableResultCode.ofAll(Arrays.asList(
 				this.tracerProvider.shutdown(),

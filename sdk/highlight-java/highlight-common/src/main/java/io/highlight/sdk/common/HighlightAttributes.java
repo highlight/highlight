@@ -29,9 +29,24 @@ public class HighlightAttributes {
 	 */
 	public static final AttributeKey<String> LOG_SEVERITY = stringKey("log.severity");
 
-	public static final AttributeKey<String> TELEMETRY_JAVA_VENDOR = stringKey("telemetry.java.vendor");
-
+	/**
+	 * The attribute key for the java version.
+	 */
 	public static final AttributeKey<String> TELEMETRY_JAVA_VERSION = stringKey("telemetry.java.version");
 
+	/**
+	 * The attribute key for the java vendor.
+	 */
+	public static final AttributeKey<String> TELEMETRY_JAVA_VENDOR = stringKey("telemetry.java.vendor");
+
+	/**
+	 * The attribute key for the java vendor date.
+	 */
 	public static final AttributeKey<String> TELEMETRY_JAVA_VERSION_DATE = stringKey("telemetry.java.date");
+
+	/**
+	 * Non accessible constructor because this class just providing static fields
+	 */
+	private HighlightAttributes() {
+	}
 }

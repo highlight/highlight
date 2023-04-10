@@ -70,13 +70,6 @@ class SessionId implements Comparable<SessionId> {
 	  }
 
 	  /**
-	   * Required default constructor for instantiation by serialization logic.
-	   */
-	  public SessionId() {
-	    bytes = new byte[ID_SIZE];
-	  }
-
-	  /**
 	   * Creates a ScriptedItemId from a given byte representation
 	   *
 	   * @param bytes the ScriptedItemId represented by the byte array

@@ -22,6 +22,13 @@ public final class HighlightErrorRecord extends HighlightRecord {
 
 	private final Throwable throwable;
 
+	/**
+	 * Constructs a new {@link HighlightErrorRecord} with the specified throwable
+	 * based on {@link HighlightRecord}.
+	 *
+	 * @param record    the record
+	 * @param throwable the throwable of the log record
+	 */
 	private HighlightErrorRecord(HighlightRecord record, Throwable throwable) {
 		super(record);
 		this.throwable = throwable;
