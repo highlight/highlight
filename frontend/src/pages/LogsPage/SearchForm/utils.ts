@@ -1,9 +1,8 @@
-import { LogLevel, LogSource, LogsParamsInput, ReservedLogKey, Session } from '@graph/schemas'
+import { LogLevel, LogSource, ReservedLogKey, Session } from '@graph/schemas'
 import moment from 'moment'
 import { stringify } from 'query-string'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
-import { LOG_TIME_FORMAT } from '@/pages/LogsPage/constants'
 
 export type LogsSearchParam = {
 	key: string
@@ -114,7 +113,7 @@ export const validateLogsQuery = (params: LogsSearchParam[]): boolean => {
 	return !params.some((param) => !param.value)
 }
 
-export const buildSessionParams = ({session, levels, sources}: {session: Session | undefined, levels: LogLevel[], sources: LogSource[]}): LogsParamsInput => {
+export const buildSessionParams = ({session, levels, sources}: {session: Session | undefined, levels: LogLevel[], sources: LogSource[]}) => {
 	const queryParams: LogsSearchParam[] = []
 	let offsetStart = 1
 
@@ -148,12 +147,9 @@ export const buildSessionParams = ({session, levels, sources}: {session: Session
 	return {
 		query: stringifyLogsQuery(queryParams),
 		date_range: {
-			start_date: moment(session?.created_at).format(
-				LOG_TIME_FORMAT,
-			),
+			start_date: moment(session?.created_at),
 			end_date: moment(session?.created_at)
 						.add(4, 'hours')
-						.format(LOG_TIME_FORMAT),
 		}
 	}
 }
@@ -168,7 +164,9 @@ export const getLogsURLForSession = ({projectId, session, levels, sources} : {pr
 			end_date: DateTimeParam,
 		},
 		{
-			...params,
+			query: params.query,
+			start_date: params.date_range.start_date.toDate(),
+			end_date: params.date_range.end_date.toDate(),
 		},
 	)
 	return `/${projectId}/logs?${stringify(encodedQuery)}`

@@ -38,6 +38,7 @@ import clsx from 'clsx'
 import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
+import { useLinkLogCursor } from '@/pages/Player/PlayerHook/utils'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
@@ -62,6 +63,7 @@ const DevToolsWindowV2: React.FC<
 	}
 > = (props) => {
 	const { projectId } = useProjectId()
+	const { logCursor } = useLinkLogCursor()
 	const { isPlayerFullscreen } = usePlayerUIContext()
 	const { time, session } = useReplayerContext()
 	const { selectedDevToolsTab, setSelectedDevToolsTab } =
@@ -212,6 +214,7 @@ const DevToolsWindowV2: React.FC<
 								page: (
 									<ConsolePage
 										autoScroll={autoScroll}
+										logCursor={logCursor}
 										levels={levels}
 										sources={sources}
 										filter={filter}
@@ -402,6 +405,7 @@ const DevToolsWindowV2: React.FC<
 												levels,
 												sources,
 											})}
+											target="_blank"
 											style={{ display: 'flex' }}
 										>
 											<Button

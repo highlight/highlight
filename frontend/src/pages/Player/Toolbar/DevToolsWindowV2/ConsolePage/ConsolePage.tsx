@@ -1,6 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
 import { Log, LogLevel, LogSource } from '@graph/schemas'
-import { playerMetaData } from '@highlight-run/rrweb-types'
 import {
 	Box,
 	IconSolidArrowCircleRight,
@@ -9,14 +8,13 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { COLOR_MAPPING } from '@pages/LogsPage/constants'
+import { COLOR_MAPPING, LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import { buildSessionParams } from '@pages/LogsPage/SearchForm/utils'
 import { ReplayerState } from '@pages/Player/ReplayerContext'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import clsx from 'clsx'
-import _ from 'lodash'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { useGetSessionLogsQuery } from '@/graph/generated/hooks'
@@ -29,6 +27,7 @@ type SessionLog = Pick<Log, 'timestamp' | 'message' | 'level'>
 type SessionLogEdge = { cursor: string; node: SessionLog }
 
 export const ConsolePage = ({
+	logCursor,
 	autoScroll,
 	filter,
 	sources,
@@ -36,19 +35,29 @@ export const ConsolePage = ({
 	time,
 }: {
 	autoScroll: boolean
+	logCursor: string | null
 	filter: string
 	sources: LogSource[]
 	levels: LogLevel[]
 	time: number
 }) => {
 	const { projectId } = useProjectId()
-	const [selectedCursor, setSelectedCursor] = useState('')
-	const { session, setTime, sessionMetadata, isPlayerReady, state } =
-		useReplayerContext()
+	const [selectedCursor, setSelectedCursor] = useState(logCursor)
+	const { session, setTime, isPlayerReady, state } = useReplayerContext()
+
+	const params = buildSessionParams({ session, levels, sources })
 
 	const { data, loading } = useGetSessionLogsQuery({
 		variables: {
-			params: buildSessionParams({ session, levels, sources }),
+			params: {
+				query: params.query,
+				date_range: {
+					start_date:
+						params.date_range.start_date.format(LOG_TIME_FORMAT),
+					end_date:
+						params.date_range.end_date.format(LOG_TIME_FORMAT),
+				},
+			},
 			project_id: projectId,
 		},
 		skip: !session?.created_at,
@@ -56,7 +65,7 @@ export const ConsolePage = ({
 
 	// Logic for scrolling to current entry.
 	useEffect(() => {
-		if (state !== ReplayerState.Playing) {
+		if (state !== ReplayerState.Playing || !autoScroll) {
 			return
 		}
 		if (data?.sessionLogs.length) {
@@ -75,7 +84,7 @@ export const ConsolePage = ({
 			}
 			setSelectedCursor(cursor)
 		}
-	}, [state, time, data?.sessionLogs])
+	}, [state, time, data?.sessionLogs, autoScroll])
 
 	const messagesToRender = useMemo(() => {
 		if (filter !== '') {
@@ -94,31 +103,20 @@ export const ConsolePage = ({
 	}, [filter, data?.sessionLogs])
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const scrollFunction = useCallback(
-		_.debounce((cursor: string) => {
-			if (virtuoso.current) {
-				const index = data?.sessionLogs.findIndex(
-					(logEdge) => logEdge.cursor === cursor,
-				)
-
-				if (index) {
-					virtuoso.current.scrollToIndex({
-						index,
-						align: 'center',
-						behavior: 'smooth',
-					})
-				}
-			}
-		}, 1000 / 60),
-		[],
-	)
-
 	useEffect(() => {
-		if (autoScroll) {
-			scrollFunction(selectedCursor)
+		if (isPlayerReady && virtuoso.current && messagesToRender) {
+			const index = messagesToRender.findIndex(
+				(logEdge) => logEdge.cursor === selectedCursor,
+			)
+
+			if (index) {
+				virtuoso.current.scrollToIndex({
+					index,
+					align: 'center',
+				})
+			}
 		}
-	}, [autoScroll, scrollFunction, selectedCursor])
+	}, [isPlayerReady, messagesToRender, selectedCursor])
 
 	return (
 		<Box className={styles.consoleBox}>
@@ -140,7 +138,6 @@ export const ConsolePage = ({
 								setTime(time)
 								setSelectedCursor(logEdge.cursor)
 							}}
-							sessionMetadata={sessionMetadata}
 						/>
 					)}
 				/>
@@ -155,12 +152,10 @@ const MessageRow = React.memo(function ({
 	logEdge,
 	setTime,
 	current,
-	sessionMetadata,
 }: {
 	logEdge: SessionLogEdge
 	setTime: (time: number) => void
 	current?: boolean
-	sessionMetadata: playerMetaData
 }) {
 	return (
 		<Box
@@ -200,10 +195,7 @@ const MessageRow = React.memo(function ({
 						kind="secondary"
 						iconRight={<IconSolidArrowCircleRight />}
 						onClick={() => {
-							setTime(
-								new Date(logEdge.node.timestamp).getDate() -
-									sessionMetadata.startTime,
-							)
+							setTime(new Date(logEdge.node.timestamp).getDate())
 						}}
 					>
 						Go to
