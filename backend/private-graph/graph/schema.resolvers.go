@@ -133,7 +133,13 @@ func (r *errorGroupResolver) StructuredStackTrace(ctx context.Context, obj *mode
 		stackTraceString = *obj.MappedStackTrace
 	}
 
-	return r.UnmarshalStackTrace(stackTraceString)
+	var project model.Project
+	filterChromeExtension := false
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: obj.ProjectID}}).First(&project).Error; err == nil {
+		filterChromeExtension = *project.FilterChromeExtension
+	}
+
+	return r.UnmarshalStackTrace(stackTraceString, filterChromeExtension)
 }
 
 // MetadataLog is the resolver for the metadata_log field.
@@ -231,7 +237,13 @@ func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *mod
 		stackTraceString = *obj.MappedStackTrace
 	}
 
-	return r.UnmarshalStackTrace(stackTraceString)
+	var project model.Project
+	filterChromeExtension := false
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: obj.ProjectID}}).First(&project).Error; err == nil {
+		filterChromeExtension = *project.FilterChromeExtension
+	}
+
+	return r.UnmarshalStackTrace(stackTraceString, filterChromeExtension)
 }
 
 // Session is the resolver for the session field.
@@ -544,7 +556,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 }
 
 // EditProject is the resolver for the editProject field.
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -564,11 +576,12 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 	}
 
 	updates := &model.Project{
-		Name:           name,
-		BillingEmail:   billingEmail,
-		ExcludedUsers:  excludedUsers,
-		ErrorJsonPaths: errorJSONPaths,
-		BackendDomains: backendDomains,
+		Name:                  name,
+		BillingEmail:          billingEmail,
+		ExcludedUsers:         excludedUsers,
+		ErrorJsonPaths:        errorJSONPaths,
+		BackendDomains:        backendDomains,
+		FilterChromeExtension: filterChromeExtension,
 	}
 
 	if rageClickWindowSeconds != nil {
@@ -4596,7 +4609,7 @@ func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*
 	}
 
 	firstSession := model.Session{}
-	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).First(&firstSession).Error
+	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Limit(1).Find(&firstSession).Error
 	if e.Is(err, gorm.ErrRecordNotFound) {
 		return integration, nil
 	}
@@ -4622,7 +4635,7 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 	}
 
 	firstErrorGroup := model.ErrorGroup{}
-	err := r.DB.Model(&model.ErrorGroup{}).Where("project_id = ?", projectID).First(&firstErrorGroup).Error
+	err := r.DB.Model(&model.ErrorGroup{}).Where("project_id = ?", projectID).Limit(1).Find(&firstErrorGroup).Error
 	if e.Is(err, gorm.ErrRecordNotFound) {
 		return integration, nil
 	}
@@ -4649,7 +4662,7 @@ func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*mo
 	}
 
 	setupEvent := model.SetupEvent{}
-	err = r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeLogs).First(&setupEvent).Error
+	err = r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeLogs).Limit(1).Find(&setupEvent).Error
 	if err != nil {
 		if e.Is(err, gorm.ErrRecordNotFound) {
 			integration.Integrated = false
@@ -7171,6 +7184,16 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 		At:        at,
 		Direction: direction,
 	})
+}
+
+// SessionLogs is the resolver for the sessionLogs field.
+func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogEdge, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.ReadSessionLogs(ctx, project.ID, params)
 }
 
 // LogsTotalCount is the resolver for the logs_total_count field.

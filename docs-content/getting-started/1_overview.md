@@ -10,7 +10,7 @@ Highlight.io allows you to get full-stack visibility into issues across your who
 
 ## For your Frontend
 
-Installing highlight.io in javascript will automatically instrument frontend error collection and session replay. highlight.io supports any framework that uses the [dom](https://www.w3schools.com/js/js_htmldom.asp) under the hood, and we support all modern browsers to date. Take a look at our guides for the following frameworks:
+Installing highlight.io in javascript will automatically instrument frontend error collection and session replay. highlight.io supports any framework that uses modern web browsers (i.e. depends on using the [dom](https://www.w3schools.com/js/js_htmldom.asp)) under the hood, and we support all modern browsers to date. Take a look at our guides for the following frameworks:
 
 <DocsCardGroup>
     <DocsCard title="React" href="./client-sdk/reactjs.md">
@@ -36,22 +36,41 @@ Installing highlight.io in javascript will automatically instrument frontend err
     </DocsCard>
 </DocsCardGroup>
 
-## For your Backend
+## For your Backend: Error Monitoring
 
-Highlight also supports reporting errors from your backend and mapping these to corresponding sessions. This gives you and your team a full picture of your application's state. Support frameworks / tech below:
+Highlight.io also supports reporting errors from your backend and mapping these to corresponding sessions. This gives you and your team a full picture of your application's state. Supported frameworks / languages below:
 
 <DocsCardGroup>
     <DocsCard title="Python" href="./backend-sdk/python/overview">
-        {"Get started in Python"}
+        {"Get started with error monitoring in Python"}
     </DocsCard>
     <DocsCard title="Go" href="./backend-sdk/go/overview">
-        {"Get started in Golang"}
+        {"Get started with error monitoring in Golang"}
     </DocsCard>
     <DocsCard title="JS / TS" href="./backend-sdk/js/overview">
-        {"Get started in Javascript"}
+        {"Get started with error monitoring in Javascript"}
+    </DocsCard>
+    <DocsCard title="Ruby" href="./4_backend-sdk/ruby/1_overview.md">
+        {"Get started with error monitoring in Javascript"}
+    </DocsCard>
+</DocsCardGroup>
+
+## For your Backend: Logging
+
+Highlight.io also supports logging from your backend and mapping these to corresponding errors & sessions. This gives you and your team a full picture of your application's state. Supported frameworks / languages below:
+
+<DocsCardGroup>
+    <DocsCard title="Go" href="./backend-logging/1_go/1_overview.md">
+        {"Get started with logging in Golang"}
+    </DocsCard>
+    <DocsCard title="JS / TS" href="./backend-logging/2_js/1_overview.md">
+        {"Get started with logging in Javascript"}
+    </DocsCard>
+    <DocsCard title="Ruby" href="./backend-logging/4_ruby/1_overview.md">
+        {"Get started with logging in Javascript"}
     </DocsCard>
 </DocsCardGroup>
 
 ### Something missing?
 
-We've written up several guides on getting started with highlight.io in your framework of choice. If there's a guide missing for your framework, feel free to [create an issue](https://github.com/highlight/highlight/issues/new?assignees=&labels=external+bug+%2F+request&template=feature_request.md&title=) or message us on [discord](https://highlight.io/community).
+If there's a guide missing for your framework, feel free to [create an issue](https://github.com/highlight/highlight/issues/new?assignees=&labels=external+bug+%2F+request&template=feature_request.md&title=) or message us on [discord](https://highlight.io/community).

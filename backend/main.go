@@ -363,11 +363,7 @@ func main() {
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
 	}
-	authMode := private.Firebase
-	if util.IsInDocker() {
-		authMode = private.Simple
-	}
-	private.SetupAuthClient(ctx, authMode, oauthSrv, privateResolver.Query().APIKeyToOrgID)
+	private.SetupAuthClient(ctx, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
 	errorLogger := httplog.NewLogger(fmt.Sprintf("%v-service", runtimeParsed), httplog.Options{
@@ -461,7 +457,7 @@ func main() {
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.Use(H.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
 			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
-			privateServer.SetRecoverFunc(util.GraphQLRecoverFunc())
+			privateServer.SetRecoverFunc(H.GraphQLRecoverFunc())
 			r.Handle("/",
 				privateServer,
 			)
@@ -505,7 +501,7 @@ func main() {
 			publicServer.Use(util.NewTracer(util.PublicGraph))
 			publicServer.Use(H.NewGraphqlTracer(string(util.PublicGraph)))
 			publicServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
-			publicServer.SetRecoverFunc(util.GraphQLRecoverFunc())
+			publicServer.SetRecoverFunc(H.GraphQLRecoverFunc())
 			r.Handle("/",
 				publicServer,
 			)

@@ -9,6 +9,7 @@ import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierI
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import { message } from 'antd'
 import React, { useEffect } from 'react'
+import { coy as lightTheme } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 import styles from './ZapierIntegrationConfig.module.scss'
 
@@ -77,6 +78,7 @@ const ZapierIntegrationConfig: React.FC<
 				when prompted, enter the access token from the textbox below.
 			</p>
 			<CodeBlock
+				style={lightTheme}
 				showLineNumbers={false}
 				text={generatedJwtToken || ' '}
 				language="text"

@@ -62,6 +62,8 @@
 	"liveshare.allowGuestDebugControl": true,
 	"liveshare.allowGuestTaskControl": true,
 	"files.exclude": {
+		"**/.turbo/*": true,
+		"**/.next/*": true,
 		"**/*.chunk.js": true,
 		"**/*.js.map": true,
 		"**/*.min.js": true,
@@ -71,7 +73,6 @@
 		"backend/go.sum": true,
 		"backend/event-parse/sample-events/*.json": true,
 		"**/*.scss.d.ts": true,
-		// "frontend/src/graph/generated/*": true,
 		"backend/payload/*": true,
 		"**/yarn-error.log": true
 	},

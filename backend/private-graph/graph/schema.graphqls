@@ -320,6 +320,7 @@ type Project {
 	rage_click_radius_pixels: Int
 	rage_click_count: Int
 	backend_domains: StringArray
+	filter_chrome_extension: Boolean
 }
 
 type Account {
@@ -1561,6 +1562,7 @@ type Query {
 		at: String
 		direction: LogDirection!
 	): LogsConnection!
+	sessionLogs(project_id: ID!, params: LogsParamsInput!): [LogEdge!]!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
 	logs_keys(project_id: ID!, date_range: DateRangeRequiredInput!): [LogKey!]!
@@ -1590,6 +1592,7 @@ type Mutation {
 		rage_click_radius_pixels: Int
 		rage_click_count: Int
 		backend_domains: StringArray
+		filter_chrome_extension: Boolean
 	): Project
 	editWorkspace(id: ID!, name: String): Workspace
 	markErrorGroupAsViewed(

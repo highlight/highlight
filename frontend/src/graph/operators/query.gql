@@ -929,6 +929,7 @@ query GetProject($id: ID!) {
 		billing_email
 		excluded_users
 		error_json_paths
+		filter_chrome_extension
 		rage_click_window_seconds
 		rage_click_radius_pixels
 		rage_click_count
@@ -2023,6 +2024,17 @@ query GetLogs(
 			hasPreviousPage
 			startCursor
 			endCursor
+		}
+	}
+}
+
+query GetSessionLogs($project_id: ID!, $params: LogsParamsInput!) {
+	sessionLogs(project_id: $project_id, params: $params) {
+		cursor
+		node {
+			timestamp
+			level
+			message
 		}
 	}
 }

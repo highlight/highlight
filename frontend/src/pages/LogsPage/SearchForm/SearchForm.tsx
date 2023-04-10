@@ -55,9 +55,7 @@ const SearchForm = ({
 	timeMode,
 }: Props) => {
 	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
-
 	const formState = useFormState({ defaultValues: { query: initialQuery } })
-
 	const { projectId } = useProjectId()
 	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
 		variables: {
@@ -166,7 +164,6 @@ export const Search: React.FC<{
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
 
 	const showResults = loading || visibleItems.length > 0 || showTermSelect
-
 	const isDirty = state.value !== ''
 
 	const submitQuery = (query: string) => {
@@ -208,17 +205,29 @@ export const Search: React.FC<{
 		// links combobox and form states;
 		// necessary to update the URL when the query changes
 		formState.setValue('query', state.value)
+
+		// Clear the selected item if the combobox is empty. Need to flush execution
+		// queue before clearing the active item.
+		if (state.value === '') {
+			setTimeout(() => {
+				state.setActiveId(null)
+				state.setMoves(0)
+			}, 0)
+		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [state.value])
 
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
+		noQuotes?: boolean,
 	) => {
 		const isValueSelect = typeof key === 'string'
 
 		// If string, it's a value not a key
 		if (isValueSelect) {
-			queryTerms[activeTermIndex].value = quoteQueryValue(key)
+			queryTerms[activeTermIndex].value = noQuotes
+				? key
+				: quoteQueryValue(key)
 		} else {
 			queryTerms[activeTermIndex].key = key.name
 			queryTerms[activeTermIndex].value = ''
@@ -270,6 +279,13 @@ export const Search: React.FC<{
 						formState.setValue('query', state.value)
 						inputRef?.current?.blur()
 					}}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter' && state.value === '') {
+							e.preventDefault()
+							submitQuery(state.value)
+							state.setOpen(false)
+						}
+					}}
 				/>
 
 				{isDirty ? (
@@ -280,7 +296,7 @@ export const Search: React.FC<{
 							e.stopPropagation()
 
 							state.setValue('')
-							formState.setValue('query', '')
+							submitQuery('')
 						}}
 						style={{ cursor: 'pointer' }}
 					/>
@@ -301,7 +317,7 @@ export const Search: React.FC<{
 								<Combobox.Item
 									className={styles.comboboxItem}
 									onClick={() =>
-										handleItemSelect(activeTerm.value)
+										handleItemSelect(activeTerm.value, true)
 									}
 									state={state}
 								>

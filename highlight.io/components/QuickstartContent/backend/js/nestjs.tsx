@@ -17,14 +17,12 @@ export const JSNestContent: QuickStartContent = {
 			code: {
 				text: `import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
-import { HighlightErrorFilter } from '@highlight-run/nest'
+import { HighlightInterceptor } from '@highlight-run/nest'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
   const highlightOpts = { projectID: 'YOUR_PROJECT_ID' }
-  app.useGlobalFilters(
-    new HighlightErrorFilter(app.get(HttpAdapterHost), highlightOpts),
-  )
+  app.useGlobalInterceptors(new HighlightInterceptor(highlightOpts))
   await app.listen(3000)
 }
 bootstrap()

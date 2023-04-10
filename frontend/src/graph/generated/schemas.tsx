@@ -1151,6 +1151,7 @@ export type MutationEditProjectArgs = {
 	billing_email?: InputMaybe<Scalars['String']>
 	error_json_paths?: InputMaybe<Scalars['StringArray']>
 	excluded_users?: InputMaybe<Scalars['StringArray']>
+	filter_chrome_extension?: InputMaybe<Scalars['Boolean']>
 	id: Scalars['ID']
 	name?: InputMaybe<Scalars['String']>
 	rage_click_count?: InputMaybe<Scalars['Int']>
@@ -1477,6 +1478,7 @@ export type Project = {
 	billing_email?: Maybe<Scalars['String']>
 	error_json_paths?: Maybe<Scalars['StringArray']>
 	excluded_users?: Maybe<Scalars['StringArray']>
+	filter_chrome_extension?: Maybe<Scalars['Boolean']>
 	id: Scalars['ID']
 	name: Scalars['String']
 	rage_click_count?: Maybe<Scalars['Int']>
@@ -1587,6 +1589,7 @@ export type Query = {
 	segments?: Maybe<Array<Maybe<Segment>>>
 	serverIntegration: IntegrationStatus
 	session?: Maybe<Session>
+	sessionLogs: Array<LogEdge>
 	session_comment_tags_for_project: Array<SessionCommentTag>
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
@@ -2052,6 +2055,11 @@ export type QueryServerIntegrationArgs = {
 
 export type QuerySessionArgs = {
 	secure_id: Scalars['String']
+}
+
+export type QuerySessionLogsArgs = {
+	params: LogsParamsInput
+	project_id: Scalars['ID']
 }
 
 export type QuerySession_Comment_Tags_For_ProjectArgs = {

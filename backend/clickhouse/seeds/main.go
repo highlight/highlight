@@ -139,12 +139,12 @@ func main() {
 
 	for i := 1; i < 10000; i++ {
 		var logRows []*clickhouse.LogRow
-		logRows = append(logRows, clickhouse.NewLogRow(clickhouse.LogRowPrimaryAttrs{
-			ProjectId:       1,
-			TraceId:         makeRandomTraceID(),
-			SpanId:          makeRandomSpanID(),
-			SecureSessionId: makeRandomSecureSessionID(),
-		}, clickhouse.WithTimestamp(now.Add(-time.Duration(i)*time.Second)),
+		ts := now.Add(-time.Duration(i) * time.Second)
+
+		logRows = append(logRows, clickhouse.NewLogRow(ts, 1,
+			clickhouse.WithTraceID(makeRandomTraceID()),
+			clickhouse.WithSpanID(makeRandomSpanID()),
+			clickhouse.WithSecureSessionID(makeRandomSecureSessionID()),
 			clickhouse.WithBody(ctx, fmt.Sprintf("Body %d", i)),
 			clickhouse.WithLogAttributes(ctx, makeRandLogAttributes(), makeRandLogAttributes(), makeRandLogAttributes(), false),
 			clickhouse.WithSeverityText(makeRandomSeverityText()),

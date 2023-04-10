@@ -3,6 +3,8 @@ import { Text } from '@highlight-run/ui'
 import { BODY_KEY, LogsSearchParam } from '@pages/LogsPage/SearchForm/utils'
 import React from 'react'
 
+import * as styles from './LogsTable.css'
+
 type Props = {
 	message: string
 	expanded: boolean
@@ -21,6 +23,7 @@ const LogMessage = ({ message, expanded, queryTerms }: Props) => {
 			break="word"
 		>
 			<TextHighlighter
+				highlightClassName={styles.textHighlight}
 				searchWords={searchWords}
 				textToHighlight={message}
 			/>

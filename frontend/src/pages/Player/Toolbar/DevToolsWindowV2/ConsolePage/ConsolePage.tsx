@@ -3,6 +3,7 @@ import { useGetMessagesQuery } from '@graph/hooks'
 import { ConsoleMessage } from '@highlight-run/client'
 import { playerMetaData } from '@highlight-run/rrweb-types'
 import { Box, Text } from '@highlight-run/ui'
+import { ReplayerState } from '@pages/Player/ReplayerContext'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import { LogLevel, Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { indexedDBFetch } from '@util/db'
@@ -12,7 +13,8 @@ import { H } from 'highlight.run'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
-import { styledVerticalScrollbar } from 'style/common.css'
+
+import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
@@ -34,7 +36,7 @@ export const ConsolePage = ({
 	time: number
 }) => {
 	const [currentMessage, setCurrentMessage] = useState(-1)
-	const { session, setTime, sessionMetadata, isPlayerReady } =
+	const { session, setTime, sessionMetadata, isPlayerReady, state } =
 		useReplayerContext()
 	const [parsedMessages, setParsedMessages] = useState<
 		undefined | Array<ParsedMessage>
@@ -111,6 +113,9 @@ export const ConsolePage = ({
 
 	// Logic for scrolling to current entry.
 	useEffect(() => {
+		if (state !== ReplayerState.Playing) {
+			return
+		}
 		if (parsedMessages?.length) {
 			let msgIndex = 0
 			let msgDiff: number = Number.MAX_VALUE
@@ -125,7 +130,7 @@ export const ConsolePage = ({
 			}
 			setCurrentMessage(msgIndex)
 		}
-	}, [time, parsedMessages])
+	}, [state, time, parsedMessages])
 
 	const messagesToRender = useMemo(() => {
 		const currentMessages = parsedMessages?.filter((m) => {

@@ -40,13 +40,13 @@ export const IntegrationCta: React.FC = () => {
 					<Stack gap="12" direction="column" paddingBottom="6">
 						<Box mt="6">
 							<Text weight="bold" size="medium">
-								Integrate backend
+								Logging for your backend?
 							</Text>
 						</Box>
 
 						<Text>
-							Configure backend logging to see logs from your
-							servers.
+							You're just a few lines away from getting visibility
+							in your backend logs.
 						</Text>
 					</Stack>
 

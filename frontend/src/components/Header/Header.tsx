@@ -20,20 +20,20 @@ import {
 	IconSolidAtSymbol,
 	IconSolidChartBar,
 	IconSolidChartPie,
+	IconSolidChat,
 	IconSolidCog,
 	IconSolidDesktopComputer,
 	IconSolidDocumentText,
 	IconSolidDotsHorizontal,
 	IconSolidLightningBolt,
+	IconSolidLogs,
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
-	IconSolidQuestionMarkCircle,
 	IconSolidSearch,
 	IconSolidSpeakerphone,
 	IconSolidSwitchHorizontal,
 	IconSolidUserCircle,
 	IconSolidViewGridAdd,
-	IconSolidViewList,
 	Menu,
 	Stack,
 	Text,
@@ -102,7 +102,7 @@ export const Header = () => {
 		},
 		{
 			key: 'logs',
-			icon: IconSolidViewList,
+			icon: IconSolidLogs,
 		},
 		{
 			key: 'alerts',
@@ -555,7 +555,7 @@ export const Header = () => {
 													alignItems="center"
 													gap="4"
 												>
-													<IconSolidQuestionMarkCircle
+													<IconSolidChat
 														size={14}
 														color={
 															vars.theme
@@ -564,7 +564,7 @@ export const Header = () => {
 																.content.text
 														}
 													/>
-													Feedback
+													Chat / Support
 												</Box>
 											</Menu.Item>
 											<a

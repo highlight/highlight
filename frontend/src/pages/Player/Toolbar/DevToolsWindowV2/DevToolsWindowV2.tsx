@@ -2,9 +2,9 @@ import { Button } from '@components/Button'
 import {
 	Box,
 	Form,
+	IconSolidLogs,
 	IconSolidSearch,
 	IconSolidSwitchHorizontal,
-	IconSolidViewList,
 	MenuButton,
 	Tabs,
 	useFormState,
@@ -36,7 +36,8 @@ import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
 import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { styledVerticalScrollbar } from 'style/common.css'
+
+import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
@@ -371,7 +372,7 @@ const DevToolsWindowV2: React.FC<
 												trackingId="relatedLogs"
 												cssClass={styles.autoScroll}
 												iconLeft={
-													<IconSolidViewList
+													<IconSolidLogs
 														width={12}
 														height={12}
 													/>

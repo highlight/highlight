@@ -17,7 +17,7 @@ import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { message } from 'antd'
-import firebase from 'firebase/app'
+import firebase from 'firebase/compat/app'
 import React, { useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
