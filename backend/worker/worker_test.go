@@ -709,3 +709,108 @@ func TestGetActiveDuration(t *testing.T) {
 		})
 	}
 }
+
+func TestFullSnapshotProcessed(t *testing.T) {
+	tables := map[string]struct {
+		events []model.EventsObject
+	}{
+		"one meta event": {
+			[]model.EventsObject{{
+				Events: `
+				{
+					"events": [{
+						"_sid": 1,
+						"data": {"test": 5},
+						"timestamp": 1,
+						"type": 4
+					}]
+				}
+				`}},
+		},
+		"no events": {
+			[]model.EventsObject{},
+		},
+		"snapshot before incremental": {
+			[]model.EventsObject{
+				{
+					Events: `
+				{
+					"events": [{
+						"_sid": 1,
+						"data": {"source": 5},
+						"type": 2
+					}]
+				}
+				`},
+				{
+					Events: `
+				{
+					"events": [{
+						"_sid": 2,
+						"data": {"source": 5},
+						"timestamp": 1,
+						"type": 3
+					}]
+				}
+				`},
+			},
+		},
+		"incremental before snapshot": {
+			[]model.EventsObject{
+				{
+					Events: `
+				{
+					"events": [{
+						"_sid": 1,
+						"data": {"source": 5},
+						"timestamp": 1,
+						"type": 3
+					}]
+				}`},
+				{
+					Events: `
+				{
+					"events": [{
+						"_sid": 2,
+						"data": {"source": 5},
+						"type": 2
+					}]
+				}
+				`},
+			},
+		},
+		"incremental alone": {
+			[]model.EventsObject{
+				{
+					Events: `
+				{
+					"events": [{
+						"_sid": 1,
+						"data": {"source": 5},
+						"timestamp": 1,
+						"type": 3
+					}]
+				}`},
+			},
+		},
+	}
+	for name, tt := range tables {
+		t.Run(name, func(t *testing.T) {
+			log.SetOutput(io.Discard)
+			a := MakeEventProcessingAccumulator("fakeSecureID", RageClickSettings{
+				Window: 5 * time.Second,
+				Radius: 8,
+				Count:  5,
+			})
+			for _, event := range tt.events {
+				a = processEventChunk(context.TODO(), a, event)
+				if a.Error != nil {
+					break
+				}
+			}
+			if a.Error != nil {
+				t.Errorf("expected success, actual error: %v", a.Error)
+			}
+		})
+	}
+}
