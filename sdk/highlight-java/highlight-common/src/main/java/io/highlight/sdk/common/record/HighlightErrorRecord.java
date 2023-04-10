@@ -64,6 +64,7 @@ public final class HighlightErrorRecord extends HighlightRecord {
 		 *               for the new builder
 		 */
 		Builder(HighlightErrorRecord record) {
+			super(record);
 			this.throwable = record.getThrowable();
 		}
 

@@ -211,7 +211,7 @@ public sealed class HighlightRecord permits HighlightErrorRecord, HighlightLogRe
 		 * @return this {@link Builder} instance
 		 */
 		public T userSession(String sessionId) {
-			return this.userSession(sessionId != null ? () -> sessionId : null);
+			return this.userSession(sessionId != null && !sessionId.isBlank() ? () -> sessionId : null);
 		}
 
 		/**
@@ -232,18 +232,18 @@ public sealed class HighlightRecord permits HighlightErrorRecord, HighlightLogRe
 		 * @return this {@link Builder} instance
 		 */
 		public T requestId(String requestId) {
-			this.requestId = requestId;
+			this.requestId = requestId != null && !requestId.isBlank() ? requestId : null;
 			return (T) this;
 		}
 
 		/**
 		 * Applies the specified consumer to the attributes builder.
 		 *
-		 * @param handle the consumer to apply to the attributes builder
+		 * @param attributes the consumer to apply to the attributes builder
 		 * @return this {@link Builder} instance
 		 */
-		public T attributes(Consumer<AttributesBuilder> handle) {
-			handle.accept(this.attributesBuilder);
+		public T attributes(Consumer<AttributesBuilder> attributes) {
+			attributes.accept(this.attributesBuilder);
 			return (T) this;
 		}
 

@@ -2,6 +2,7 @@ package io.highlight.sdk.test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +27,7 @@ public class HighlightOptionsTest {
 		this.options = HighlightOptions.builder(PROJECT_ID)
 				.environment(PROJECT_ENVIRONMENT)
 				.version(PROJECT_VERSION)
+				.metric(false)
 				.attributes(attribute -> attribute
 						.put("junit.test.1", true)
 						.put(ATTRIBUTE_JUNIT_TEST, ATTRIBUTE_JUNIT_TEST_VALUE))
@@ -48,6 +50,12 @@ public class HighlightOptionsTest {
 	@DisplayName("Version was correctly set")
 	void testVersion() {
 		assertEquals(PROJECT_VERSION, this.options.version());
+	}
+
+	@Test
+	@DisplayName("Metric was correctly set")
+	void testMetric() {
+		assertFalse(this.options.metric());
 	}
 
 	@Test

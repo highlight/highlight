@@ -6,12 +6,11 @@ package io.highlight.sdk;
 public class HighlightRoute {
 
 	// The default backend URL's.
-	public static final String DEFAULT_OTEL_BACKEND = "https://otel.highlight.io:4318";
-	public static final String DEFAULT_GRAPHQL_BACKEND = "https://pub.highlight.run";
+	private static final String DEFAULT_BACKEND = "https://otel.highlight.io:4318";
 
 	// The default routes for sending.
-	public static final String ROUTE_LOGS = "v1/logs";
-	public static final String ROUTE_TRACES = "v1/traces";
+	private static final String ROUTE_LOGS = "v1/logs";
+	private static final String ROUTE_TRACES = "v1/traces";
 
 	/**
 	 * Builds a route for sending logs to Highlight, based on the provided backend
@@ -22,8 +21,8 @@ public class HighlightRoute {
 	 * @return The route for sending logs to Highlight.
 	 */
 	public static String buildLogRoute(String backend) {
-		if (backend == null) {
-			return DEFAULT_OTEL_BACKEND + "/" + ROUTE_LOGS;
+		if (backend == null || backend.isBlank()) {
+			return DEFAULT_BACKEND + "/" + ROUTE_LOGS;
 		}
 
 		if (backend.endsWith(ROUTE_LOGS)) {
@@ -46,8 +45,8 @@ public class HighlightRoute {
 	 * @return The route for sending traces to Highlight.
 	 */
 	public static String buildTraceRoute(String backend) {
-		if (backend == null) {
-			return DEFAULT_OTEL_BACKEND + "/" + ROUTE_TRACES;
+		if (backend == null || backend.isBlank()) {
+			return DEFAULT_BACKEND + "/" + ROUTE_TRACES;
 		}
 
 		if (backend.endsWith(ROUTE_TRACES)) {
@@ -59,6 +58,10 @@ public class HighlightRoute {
 		}
 
 		return backend + "/" + ROUTE_TRACES;
+	}
+
+	public static String getDefaultBackend() {
+		return DEFAULT_BACKEND;
 	}
 
 	/**
