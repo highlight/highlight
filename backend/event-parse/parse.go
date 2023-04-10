@@ -237,13 +237,11 @@ func escapeNodeScriptTags(ctx context.Context, node map[string]interface{}) {
 		return
 	}
 
-	var childNodes []interface{}
 	for _, c := range node["childNodes"].([]interface{}) {
 		if child, ok := c.(map[string]interface{}); ok {
 			if txt, txtOk := child["textContent"]; txtOk {
-				if txt == ScriptPlaceholder {
-					childNodes = append(childNodes, c)
-				} else {
+				if txt != ScriptPlaceholder {
+					child["textContent"] = ScriptPlaceholder
 					log.WithContext(ctx).
 						WithField("node", node).
 						WithField("TextContent", txt).
@@ -252,7 +250,6 @@ func escapeNodeScriptTags(ctx context.Context, node map[string]interface{}) {
 			}
 		}
 	}
-	node["childNodes"] = childNodes
 }
 
 func escapeNodeWithJSAttrs(ctx context.Context, node map[string]interface{}) {
@@ -274,7 +271,8 @@ func escapeNodeWithJSAttrs(ctx context.Context, node map[string]interface{}) {
 						WithField("disallowedTagAttribute", key).
 						WithField("value", value).
 						Warnf("potential js attack, dropping disallowed attribute on session events tag")
-					delete(a, key)
+					a[key] = ScriptPlaceholder
+					break
 				}
 			}
 		}
