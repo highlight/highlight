@@ -218,7 +218,6 @@ const DevToolsWindowV2: React.FC<
 										levels={levels}
 										sources={sources}
 										filter={filter}
-										time={time}
 									/>
 								),
 							},

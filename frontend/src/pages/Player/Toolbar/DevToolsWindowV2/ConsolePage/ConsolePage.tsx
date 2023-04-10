@@ -32,18 +32,16 @@ export const ConsolePage = ({
 	filter,
 	sources,
 	levels,
-	time,
 }: {
 	autoScroll: boolean
 	logCursor: string | null
 	filter: string
 	sources: LogSource[]
 	levels: LogLevel[]
-	time: number
 }) => {
 	const { projectId } = useProjectId()
 	const [selectedCursor, setSelectedCursor] = useState(logCursor)
-	const { session, setTime, isPlayerReady, sessionMetadata, state } =
+	const { session, setTime, time, isPlayerReady, sessionMetadata, state } =
 		useReplayerContext()
 
 	const params = buildSessionParams({ session, levels, sources })
@@ -64,29 +62,6 @@ export const ConsolePage = ({
 		skip: !session?.created_at,
 	})
 
-	// Logic for scrolling to current entry.
-	useEffect(() => {
-		if (state !== ReplayerState.Playing || !autoScroll) {
-			return
-		}
-		if (data?.sessionLogs.length) {
-			let cursor = ''
-			let msgDiff: number = Number.MAX_VALUE
-			for (let i = 0; i < data.sessionLogs.length; i++) {
-				const currentDiff: number =
-					time -
-					(new Date(data.sessionLogs[i].node.timestamp).getDate() -
-						new Date(data.sessionLogs[0].node.timestamp).getDate())
-				if (currentDiff < 0) break
-				if (currentDiff < msgDiff) {
-					cursor = data.sessionLogs[i].cursor
-					msgDiff = currentDiff
-				}
-			}
-			setSelectedCursor(cursor)
-		}
-	}, [state, time, data?.sessionLogs, autoScroll])
-
 	const messagesToRender = useMemo(() => {
 		if (filter !== '') {
 			return data?.sessionLogs.filter((logEdge) => {
@@ -103,6 +78,29 @@ export const ConsolePage = ({
 		return data?.sessionLogs
 	}, [filter, data?.sessionLogs])
 
+	// Logic for scrolling to current entry.
+	useEffect(() => {
+		if (state !== ReplayerState.Playing || !autoScroll) {
+			return
+		}
+		if (messagesToRender?.length) {
+			let cursor = ''
+			let msgDiff: number = Number.MAX_VALUE
+			for (let i = 0; i < messagesToRender.length; i++) {
+				const currentDiff: number =
+					time -
+					(new Date(messagesToRender[i].node.timestamp).getDate() -
+						new Date(messagesToRender[0].node.timestamp).getDate())
+				if (currentDiff < 0) break
+				if (currentDiff < msgDiff) {
+					cursor = messagesToRender[i].cursor
+					msgDiff = currentDiff
+				}
+			}
+			setSelectedCursor(cursor)
+		}
+	}, [state, time, messagesToRender, autoScroll])
+
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	useEffect(() => {
 		if (
@@ -114,7 +112,7 @@ export const ConsolePage = ({
 				(logEdge) => logEdge.cursor === selectedCursor,
 			)
 
-			if (index) {
+			if (index >= 0) {
 				virtuoso.current.scrollToIndex({
 					index,
 					align: 'center',
@@ -122,9 +120,19 @@ export const ConsolePage = ({
 					// See: https://virtuoso.dev/scroll-to-index/
 					// behavior: 'smooth'
 				})
+				const timestamp =
+					new Date(messagesToRender[index].node.timestamp).getTime() -
+					sessionMetadata.startTime
+				setTime(timestamp)
 			}
 		}
-	}, [isPlayerReady, messagesToRender, selectedCursor])
+	}, [
+		isPlayerReady,
+		messagesToRender,
+		selectedCursor,
+		sessionMetadata.startTime,
+		setTime,
+	])
 
 	return (
 		<Box className={styles.consoleBox}>
@@ -142,9 +150,7 @@ export const ConsolePage = ({
 							key={logEdge.cursor}
 							logEdge={logEdge}
 							current={selectedCursor === logEdge.cursor}
-							startTime={sessionMetadata.startTime}
-							setTime={(time: number) => {
-								setTime(time)
+							onSelect={() => {
 								setSelectedCursor(logEdge.cursor)
 							}}
 						/>
@@ -159,19 +165,13 @@ export const ConsolePage = ({
 
 const MessageRow = React.memo(function ({
 	logEdge,
-	setTime,
-	startTime,
+	onSelect,
 	current,
 }: {
 	logEdge: SessionLogEdge
-	setTime: (time: number) => void
-	startTime: number
+	onSelect: () => void
 	current?: boolean
 }) {
-	const timestamp = useMemo(() => {
-		return new Date(logEdge.node.timestamp).getTime() - startTime
-	}, [logEdge.node.timestamp, startTime])
-
 	return (
 		<Box
 			cssClass={clsx(
@@ -209,9 +209,7 @@ const MessageRow = React.memo(function ({
 						emphasis="low"
 						kind="secondary"
 						iconRight={<IconSolidArrowCircleRight />}
-						onClick={() => {
-							setTime(timestamp)
-						}}
+						onClick={onSelect}
 					>
 						Go to
 					</Tag>
