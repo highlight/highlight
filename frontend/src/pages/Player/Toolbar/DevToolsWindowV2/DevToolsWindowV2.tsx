@@ -77,7 +77,9 @@ const DevToolsWindowV2: React.FC<
 
 	const [searchShown, setSearchShown] = React.useState<boolean>(false)
 	const [levels, setLevels] = React.useState<LogLevel[]>([])
-	const [sources, setSources] = React.useState<LogSource[]>([])
+	const [sources, setSources] = React.useState<LogSource[]>([
+		LogSource.Frontend,
+	])
 	const form = useFormState({
 		defaultValues: {
 			search: '',
@@ -325,6 +327,7 @@ const DevToolsWindowV2: React.FC<
 											<MenuButton
 												divider
 												size="medium"
+												selectedKey={LogSource.Frontend}
 												options={LogSourceValues.map(
 													(source) => ({
 														key: source,
