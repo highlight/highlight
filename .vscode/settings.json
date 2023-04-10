@@ -62,6 +62,7 @@
 	"liveshare.allowGuestDebugControl": true,
 	"liveshare.allowGuestTaskControl": true,
 	"files.exclude": {
+		"**/.turbo/*": true,
 		"**/.next/*": true,
 		"**/*.chunk.js": true,
 		"**/*.js.map": true,
