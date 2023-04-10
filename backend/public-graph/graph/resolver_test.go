@@ -231,8 +231,8 @@ func TestHandleErrorAndGroup(t *testing.T) {
 
 func TestResolver_isExcludedError(t *testing.T) {
 	r := &Resolver{}
-	assert.False(t, r.isExcludedError(context.Background(), []string{}, ""))
-	assert.True(t, r.isExcludedError(context.Background(), []string{}, "[{}]"))
-	assert.True(t, r.isExcludedError(context.Background(), []string{".*a+.*"}, "foo bar baz"))
-	assert.False(t, r.isExcludedError(context.Background(), []string{"("}, "foo bar baz"))
+	assert.False(t, r.isExcludedError(context.Background(), []string{}, "", 1))
+	assert.True(t, r.isExcludedError(context.Background(), []string{}, "[{}]", 2))
+	assert.True(t, r.isExcludedError(context.Background(), []string{".*a+.*"}, "foo bar baz", 3))
+	assert.False(t, r.isExcludedError(context.Background(), []string{"("}, "foo bar baz", 4))
 }
