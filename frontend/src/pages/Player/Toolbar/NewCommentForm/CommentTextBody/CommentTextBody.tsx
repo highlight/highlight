@@ -149,7 +149,7 @@ const CommentTextBody = ({
 			}
 		>
 			<Mention
-				className={mentionsClassNames.mentions__mention}
+				className={mentionsClassNames.mentionsMention}
 				trigger="@"
 				data={suggestions}
 				displayTransform={onDisplayTransformHandler}
