@@ -4,7 +4,7 @@ import { verifyLogs } from '../shared-snippets'
 
 export const HostingVercelLogContent: QuickStartContent = {
 	title: 'Vercel',
-	subtitle: 'Learn how to setup highlight log ingestion on Vercel.',
+	subtitle: 'Learn how to setup Highlight log ingestion on Vercel.',
 	logoUrl: siteUrl('/images/quickstart/vercel.svg'),
 	entries: [
 		{

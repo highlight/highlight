@@ -10,13 +10,6 @@ import (
 	"testing"
 )
 
-type MockHTTP struct {
-}
-
-func (c *MockHTTP) Do(req *http.Request) (*http.Response, error) {
-	return &http.Response{}, nil
-}
-
 func TestCreateLogDrain(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/v2/integrations/log-drains" {
