@@ -25,7 +25,7 @@ import io.opentelemetry.api.common.AttributesBuilder;
  * @see HighlightErrorRecord
  * @see Severity
  */
-public class HighlightRecord {
+public sealed class HighlightRecord permits HighlightErrorRecord, HighlightLogRecord {
 
 	/**
 	 * Returns a builder for creating a new error record.
@@ -138,7 +138,7 @@ public class HighlightRecord {
 	 *         {@code false}
 	 */
 	public boolean hasUserSession() {
-		return this.userSession != null;
+		return this.userSession != null && this.userSession.sessionId() != null;
 	}
 
 	/**
@@ -163,7 +163,8 @@ public class HighlightRecord {
 	/**
 	 * A builder class for creating instances of {@link HighlightRecord}.
 	 */
-	public static class Builder {
+	@SuppressWarnings("unchecked")
+	public static class Builder<T extends Builder<T>> {
 
 		private Instant timeOccured;
 
@@ -198,20 +199,9 @@ public class HighlightRecord {
 		 * @param timeOccured the time the record occurred
 		 * @return this {@link Builder} instance
 		 */
-		public Builder timeOccured(Instant timeOccured) {
+		public T timeOccured(Instant timeOccured) {
 			this.timeOccured = timeOccured;
-			return this;
-		}
-
-		/**
-		 * Sets the user session associated with the record.
-		 *
-		 * @param userSession the user session associated with the record
-		 * @return this {@link Builder} instance
-		 */
-		public Builder userSession(HighlightSessionId userSession) {
-			this.userSession = userSession;
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -220,8 +210,19 @@ public class HighlightRecord {
 		 * @param sessionId the session ID string to use as the user session ID
 		 * @return this {@link Builder} instance
 		 */
-		public Builder userSession(String sessionId) {
-			return this.userSession(() -> sessionId);
+		public T userSession(String sessionId) {
+			return this.userSession(sessionId != null ? () -> sessionId : null);
+		}
+
+		/**
+		 * Sets the user session associated with the record.
+		 *
+		 * @param userSession the user session associated with the record
+		 * @return this {@link Builder} instance
+		 */
+		public T userSession(HighlightSessionId userSession) {
+			this.userSession = userSession;
+			return (T) this;
 		}
 
 		/**
@@ -230,9 +231,9 @@ public class HighlightRecord {
 		 * @param requestId the request ID associated with the record
 		 * @return this {@link Builder} instance
 		 */
-		public Builder requestId(String requestId) {
+		public T requestId(String requestId) {
 			this.requestId = requestId;
-			return this;
+			return (T) this;
 		}
 
 		/**
@@ -241,9 +242,9 @@ public class HighlightRecord {
 		 * @param handle the consumer to apply to the attributes builder
 		 * @return this {@link Builder} instance
 		 */
-		public Builder attributes(Consumer<AttributesBuilder> handle) {
+		public T attributes(Consumer<AttributesBuilder> handle) {
 			handle.accept(this.attributesBuilder);
-			return this;
+			return (T) this;
 		}
 
 		/**

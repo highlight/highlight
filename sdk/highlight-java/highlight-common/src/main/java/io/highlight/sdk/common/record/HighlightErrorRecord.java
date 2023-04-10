@@ -18,7 +18,7 @@ import io.highlight.sdk.common.Severity;
  * @see HighlightLogRecord
  * @see Severity
  */
-public class HighlightErrorRecord extends HighlightRecord {
+public final class HighlightErrorRecord extends HighlightRecord {
 
 	private final Throwable throwable;
 
@@ -39,7 +39,7 @@ public class HighlightErrorRecord extends HighlightRecord {
 	/**
 	 * Builder class for {@link HighlightErrorRecord}.
 	 */
-	public static class Builder extends HighlightRecord.Builder {
+	public static class Builder extends HighlightRecord.Builder<Builder> {
 
 		private Throwable throwable;
 

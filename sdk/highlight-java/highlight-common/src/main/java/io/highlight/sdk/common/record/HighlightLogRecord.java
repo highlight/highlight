@@ -20,7 +20,7 @@ import io.highlight.sdk.common.Severity;
  * @see HighlightErrorRecord
  * @see Severity
  */
-public class HighlightLogRecord extends HighlightRecord {
+public final class HighlightLogRecord extends HighlightRecord {
 
 	private final Severity severity;
 	private final String message;
@@ -60,7 +60,7 @@ public class HighlightLogRecord extends HighlightRecord {
 	/**
 	 * Builder class for {@link HighlightLogRecord}.
 	 */
-	public static class Builder extends HighlightRecord.Builder {
+	public static class Builder extends HighlightRecord.Builder<Builder> {
 
 		private Severity severity;
 		private String message;

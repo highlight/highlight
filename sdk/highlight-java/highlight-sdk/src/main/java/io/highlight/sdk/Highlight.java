@@ -17,12 +17,11 @@ public class Highlight {
 
 	private static Highlight highlight = null;
 
-	public static void init(String projectId, Consumer<HighlightOptions.Builder> handle) {
+	public static void init(String projectId, Consumer<HighlightOptions.Builder> options) {
 		HighlightOptions.Builder builder = HighlightOptions.builder(projectId);
-		handle.accept(builder);
+		options.accept(builder);
 
-		HighlightOptions options = builder.build();
-		Highlight.init(options);
+		Highlight.init(builder.build());
 	}
 
 	public static void init(HighlightOptions options) {
@@ -38,20 +37,38 @@ public class Highlight {
 	}
 
 	public static void captureException(Throwable throwable) {
+		Highlight.captureException(throwable, null, null);
+	}
+
+	public static void captureException(Throwable throwable, String sessionId, String requestId) {
 		Objects.requireNonNull(Highlight.highlight, "Highlight instance is not initialized");
 
 		Highlight.captureRecord(HighlightRecord.error()
 				.throwable(throwable)
+				.requestId(requestId)
+				.userSession(sessionId)
 				.build());
 	}
 
 	public static void captureLog(Severity severity, String message) {
 		Objects.requireNonNull(Highlight.highlight, "Highlight instance is not initialized");
 
+		Highlight.captureLog(severity, message, null, null);
+	}
+
+	public static void captureLog(Severity severity, String message, String sessionId, String requestId) {
+		Objects.requireNonNull(Highlight.highlight, "Highlight instance is not initialized");
+
 		Highlight.captureRecord(HighlightRecord.log()
 				.severity(severity)
 				.message(message)
+				.requestId(requestId)
+				.userSession(sessionId)
 				.build());
+	}
+
+	public static void captureRecord(HighlightRecord.Builder<?> builder) {
+		Highlight.captureRecord(builder.build());
 	}
 
 	public static void captureRecord(HighlightRecord record) {
@@ -126,7 +143,7 @@ public class Highlight {
 		return this.logger;
 	}
 
-	private static enum State {
+	private enum State {
 		INITIALIZE,
 		RUNNING,
 		SHUTDOWN
