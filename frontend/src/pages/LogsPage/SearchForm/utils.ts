@@ -3,7 +3,6 @@ import moment from 'moment'
 import { stringify } from 'query-string'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
-
 export type LogsSearchParam = {
 	key: string
 	operator: string
@@ -113,7 +112,15 @@ export const validateLogsQuery = (params: LogsSearchParam[]): boolean => {
 	return !params.some((param) => !param.value)
 }
 
-export const buildSessionParams = ({session, levels, sources}: {session: Session | undefined, levels: LogLevel[], sources: LogSource[]}) => {
+export const buildSessionParams = ({
+	session,
+	levels,
+	sources,
+}: {
+	session: Session | undefined
+	levels: LogLevel[]
+	sources: LogSource[]
+}) => {
 	const queryParams: LogsSearchParam[] = []
 	let offsetStart = 1
 
@@ -148,15 +155,24 @@ export const buildSessionParams = ({session, levels, sources}: {session: Session
 		query: stringifyLogsQuery(queryParams),
 		date_range: {
 			start_date: moment(session?.created_at),
-			end_date: moment(session?.created_at)
-						.add(4, 'hours')
-		}
+			end_date: moment(session?.created_at).add(4, 'hours'),
+		},
 	}
 }
 
-export const getLogsURLForSession = ({projectId, session, levels, sources} : {projectId: string, session: Session, levels: LogLevel[], sources: LogSource[]}) => {
-	const params = buildSessionParams({session, levels, sources})
-	
+export const getLogsURLForSession = ({
+	projectId,
+	session,
+	levels,
+	sources,
+}: {
+	projectId: string
+	session: Session
+	levels: LogLevel[]
+	sources: LogSource[]
+}) => {
+	const params = buildSessionParams({ session, levels, sources })
+
 	const encodedQuery = encodeQueryParams(
 		{
 			query: StringParam,

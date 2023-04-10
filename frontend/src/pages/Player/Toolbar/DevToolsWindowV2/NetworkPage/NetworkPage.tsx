@@ -508,7 +508,7 @@ const ResourceRow = ({
 					shape="basic"
 					emphasis="low"
 					kind="secondary"
-					iconRight={<IconSolidArrowCircleRight />}
+					size="medium"
 					onClick={(event) => {
 						setTime(resource.startTime)
 						event.stopPropagation() /* Prevents opening of right panel by parent row's onClick handler */
@@ -516,7 +516,7 @@ const ResourceRow = ({
 						setActiveNetworkResource(resource)
 					}}
 				>
-					Go to
+					<IconSolidArrowCircleRight />
 				</Tag>
 			</Box>
 		</Box>
