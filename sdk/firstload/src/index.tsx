@@ -100,6 +100,7 @@ export const H: HighlightPublicInterface = {
 				networkRecording: options?.networkRecording,
 				disableBackgroundRecording: options?.disableBackgroundRecording,
 				disableConsoleRecording: options?.disableConsoleRecording,
+				disableSessionRecording: options?.disableSessionRecording,
 				reportConsoleErrors: options?.reportConsoleErrors,
 				consoleMethodsToRecord: options?.consoleMethodsToRecord,
 				enableSegmentIntegration: options?.enableSegmentIntegration,

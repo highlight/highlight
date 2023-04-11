@@ -152,4 +152,5 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Major Changes
 
 - Switches `reportConsoleErrors` to be disabled by default. With the setting disabled, `console.error(...)` calls will only be reported as error logs.
+- Adds a `disableSessionRecording` setting that allows using the javascript sdk for error/logs recording without capturing session replays.
 - Updates rrweb dependency.
