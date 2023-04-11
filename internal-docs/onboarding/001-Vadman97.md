@@ -33,7 +33,7 @@ Prior to joining Highlight, ensure you have ordered a laptop that will arrive be
 
 Your onboarding buddy will help you through the following tasks over your first week but prioritize getting to know the team and understanding the product over delivering work. 
 
-- [ ] #4933
+- [ ] https://github.com/highlight/highlight/issues/4933
 
 ### Day one
 
@@ -66,8 +66,8 @@ Your onboarding buddy will help you through the following tasks over your first 
 
 Set up pairing with each member of the team on the following tasks:
 
-- [ ] #4764 with [@ccschmitz](https://github.com/ccschmitz)
-- [ ] #4837 with [@mayberryzane](https://github.com/mayberryzane)
+- [ ] https://github.com/highlight/highlight/issues/4764 with [@ccschmitz](https://github.com/ccschmitz)
+- [ ] https://github.com/highlight/highlight/issues/4837 with [@mayberryzane](https://github.com/mayberryzane)
 
 ### End of week two access checklist
 
