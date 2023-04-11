@@ -190,10 +190,9 @@ const MessageRow = React.memo(function ({
 				}),
 			)}
 			borderBottom="dividerWeak"
-			pt="2"
-			pb="2"
+			py="8"
 		>
-			<Stack direction="row" align="center">
+			<Stack direction="row">
 				<Box flexGrow={1}>
 					<Text
 						family="monospace"
