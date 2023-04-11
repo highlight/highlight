@@ -10,9 +10,9 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import React from 'react'
+import { useLocation } from 'react-router-dom'
 
 import * as styles from './IntegrationBar.css'
 
@@ -41,7 +41,8 @@ const CTA_PATH_MAP: { [key in Area]: string } = {
 }
 
 export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
-	const { area } = useParams<{ area: Area }>()
+	const location = useLocation()
+	const area = location.pathname.split('/')[3] as Area
 	const { projectId } = useProjectId()
 	const path = buildResourcePath(area!, projectId, integrationData)
 	const integrated = integrationData?.integrated

@@ -29,6 +29,7 @@ import { SvelteKitContent } from './frontend/sveltekit'
 import { VueContent } from './frontend/vue'
 import { GoFiberLogContent } from './logging/go/fiber'
 import { GoOtherLogContent } from './logging/go/other'
+import { HostingVercelLogContent } from './logging/hosting/vercel'
 import { HTTPContent } from './logging/http'
 import { JSNestLogContent } from './logging/js/nestjs'
 import { JSOtherLogContent } from './logging/js/other'
@@ -37,7 +38,6 @@ import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
-import { HostingVercelLogContent } from './logging/hosting/vercel'
 
 export type QuickStartOptions = {
 	title: string
