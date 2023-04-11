@@ -112,15 +112,6 @@ export const LogAlertPage = () => {
 
 	useEffect(() => {
 		if (!loading && data) {
-			console.log(
-				'test',
-				data?.log_alert.ChannelsToNotify.map((c) => ({
-					...c,
-					displayValue: c.webhook_channel,
-					value: c.webhook_channel_id,
-					id: c.webhook_channel_id,
-				})),
-			)
 			form.setValues({
 				query: data?.log_alert.query,
 				name: data?.log_alert.Name,
@@ -148,7 +139,6 @@ export const LogAlertPage = () => {
 				threshold: data?.log_alert.CountThreshold,
 				frequency: data?.log_alert.ThresholdWindow,
 			})
-			console.log('form.values.slackChannels', form.values.slackChannels)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data, loading])
@@ -475,9 +465,6 @@ const LogAlertForm = ({
 			value: email,
 			id: email,
 		}))
-
-	console.log('form.values.discordChannels', form.values.discordChannels)
-	console.log('form.values.slackChannels', form.values.slackChannels)
 
 	return (
 		<Box cssClass={styles.grid}>
