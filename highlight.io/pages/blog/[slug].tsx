@@ -1,8 +1,11 @@
 import classNames from 'classnames'
 import { gql } from 'graphql-request'
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
+import { serialize } from 'next-mdx-remote/serialize'
 import Image from 'next/legacy/image'
 import { GetStaticPaths, GetStaticProps } from 'next/types'
 import YouTube from 'react-youtube'
+import { loadPostsFromGithub } from '.'
 import styles from '../../components/Blog/Blog.module.scss'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
@@ -35,6 +38,15 @@ interface Content {
 	code?: boolean
 	italic?: boolean
 	bold?: boolean
+}
+
+export async function getGithubPostBySlug(slug: string) {
+	const posts = await loadPostsFromGithub()
+	const post = posts.find((p) => p.slug === slug)
+	if (!post) {
+		throw new Error(`Could not find post with slug ${slug}`)
+	}
+	return post
 }
 
 const getBlogTypographyRenderer = (type: string) => {
@@ -105,9 +117,11 @@ export const getStaticPaths: GetStaticPaths = async () => {
 		}
 	`
 	const { posts } = await GraphQLRequest<{ posts: Post[] }>(QUERY)
+	const githubPosts = await loadPostsFromGithub()
+	let allPosts = [...posts, ...githubPosts]
 
 	return {
-		paths: posts.map((p: { slug: string }) => ({
+		paths: allPosts.map((p: { slug: string }) => ({
 			params: { slug: p.slug },
 		})),
 		fallback: 'blocking',
@@ -183,26 +197,43 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
           }
       }
   `
+
 	const data = await GraphQLRequest<{ post?: Post }>(QUERY, { slug: slug })
 	const { posts } = await GraphQLRequest<{ posts: Post[] }>(POSTS_QUERY)
-
-	// Handle event slugs which don't exist in our CMS
-	if (!data.post) {
-		return {
-			notFound: true,
-		}
-	}
-
-	const otherPosts = posts.filter((post: any) => post.slug !== slug)
+	const githubPosts = await loadPostsFromGithub()
+	let allPosts = [...posts, ...githubPosts]
+	const otherPosts = allPosts.filter((post: any) => post.slug !== slug)
 	const suggestedPosts = []
 	// suggest N random posts that are not the current post
-	for (let i = 0; i < Math.min(NUM_SUGGESTED_POSTS, posts.length - 1); i++) {
+	for (
+		let i = 0;
+		i < Math.min(NUM_SUGGESTED_POSTS, allPosts.length - 1);
+		i++
+	) {
 		suggestedPosts.push(
 			otherPosts.splice(
 				Math.floor(Math.random() * otherPosts.length),
 				1,
 			)[0],
 		)
+	}
+
+	if (!data.post) {
+		const githubPost = await getGithubPostBySlug(slug)
+		if (!githubPost) {
+			return {
+				notFound: true,
+			}
+		}
+		const mdxSource = await serialize(githubPost.richcontent.markdown)
+		return {
+			props: {
+				suggestedPosts,
+				source: mdxSource,
+				post: githubPost,
+			},
+			revalidate: 60 * 60, // Cache response for 1 hour (60 seconds * 60 minutes)
+		}
 	}
 
 	const postSections: PostSection[] = []
@@ -237,11 +268,11 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		})
 	}
 
-	if (!data.post.author?.profilePhoto?.url) {
-		throw new Error(
-			`missing required profile image for blog '${data.post.slug}', author: ${data.post.author?.profilePhoto?.url}.`,
-		)
-	}
+	// if (!data.post.author?.profilePhoto?.url) {
+	// 	throw new Error(
+	// 		`missing required profile image for blog '${data.post.slug}', author: ${data.post.author?.profilePhoto?.url}.`,
+	// 	)
+	// }
 
 	return {
 		props: {
@@ -310,10 +341,15 @@ const PostPage = ({
 	post,
 	postSections,
 	suggestedPosts,
+	source,
 }: {
 	post: Post
 	postSections: PostSection[]
 	suggestedPosts: Post[]
+	source: MDXRemoteSerializeResult<
+		Record<string, unknown>,
+		Record<string, unknown>
+	>
 }) => {
 	const blogBody = useRef<HTMLDivElement>(null)
 	const [endPosition, setEndPosition] = useState(0)
@@ -433,11 +469,14 @@ const PostPage = ({
 							styles.postBody,
 							styles.postBodyTop,
 							styles.blogSection,
+							'text-start',
 						)}
 					>
-						{postSections?.map((p, idx) => (
-							<PostSection key={idx} idx={idx} p={p} />
-						))}
+						{postSections &&
+							postSections?.map((p, idx) => (
+								<PostSection key={idx} idx={idx} p={p} />
+							))}
+						{source && <MDXRemote {...source} />}
 					</div>
 				</Section>
 				<Section>

@@ -1,7 +1,7 @@
-import styles from '../Blog.module.scss'
 import Image from 'next/legacy/image'
 import Link from 'next/link'
 import { Typography } from '../../common/Typography/Typography'
+import styles from '../Blog.module.scss'
 import { Tag } from '../Tag'
 
 export interface Author {
@@ -33,7 +33,7 @@ export interface Post {
 	}
 	richcontent: {
 		markdown: string
-		raw: any
+		raw?: any
 	}
 	featured: boolean
 	tags: Array<string>
