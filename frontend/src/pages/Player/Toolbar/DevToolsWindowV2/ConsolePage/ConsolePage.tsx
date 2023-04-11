@@ -59,7 +59,7 @@ export const ConsolePage = ({
 			},
 			project_id: projectId,
 		},
-		skip: !session?.created_at,
+		skip: !session,
 	})
 
 	const messagesToRender = useMemo(() => {
