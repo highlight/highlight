@@ -5,12 +5,12 @@ Instructions for onboarding buddy:
 * Make appropriate changes to this template given who you are onboarding.
 -->
 
-# Welcome [@github-new-hire-username](https://github.com/github-new-hire-username) 👋
+# Welcome [@Vadman97](https://github.com/Vadman97) 👋
 
-Welcome to Highlight [@github-new-hire-username](https://github.com/github-new-hire-username)! We're thrilled to have you join us.
+Welcome to Highlight [@Vadman97](https://github.com/Vadman97)! We're thrilled to have you join us.
 Recently, our company went [open source](https://news.ycombinator.com/item?id=34897645) and we are [building our work in public](https://www.highlight.io/docs/general/company/values#we-build-in-public).
 
-Your onboarding buddy is [@github-onboarding-buddy-username](https://github.com/github-onboarding-buddy-username) and they'll walk you through your next couple weeks.
+Your onboarding buddy is [@et](https://github.com/et) and they'll walk you through your next couple weeks.
 
 ## Feedback
 
@@ -33,7 +33,7 @@ Prior to joining Highlight, ensure you have ordered a laptop that will arrive be
 
 Your onboarding buddy will help you through the following tasks over your first week but prioritize getting to know the team and understanding the product over delivering work. 
 
-- [ ] #issue_id
+- [ ] #4933
 
 ### Day one
 
@@ -66,8 +66,8 @@ Your onboarding buddy will help you through the following tasks over your first 
 
 Set up pairing with each member of the team on the following tasks:
 
-- [ ] #issue_id with [@github-teammate-username](https://github.com/github-teammate-username)
-- [ ] #issue_id with [@github-teammate-username](https://github.com/github-teammate-username)
+- [ ] #4764 with [@ccschmitz](https://github.com/ccschmitz)
+- [ ] #4837 with [@mayberryzane](https://github.com/mayberryzane)
 
 ### End of week two access checklist
 
