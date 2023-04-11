@@ -663,6 +663,7 @@ const BillingBanner: React.FC = () => {
 		'highlightHideFreePlanBanner',
 		false,
 	)
+	const { currentWorkspace } = useApplicationContext()
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: project_id! },
@@ -746,7 +747,10 @@ const BillingBanner: React.FC = () => {
 				[styles.error]: hasExceededSessionsForMonth,
 			})}
 		>
-			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
+			<div className={styles.trialTimeText}>
+				{bannerMessage} Upgrade{' '}
+				<Link to={`/w/${currentWorkspace?.id}/billing`}>here</Link>.
+			</div>
 			{hasTrial && (
 				<button
 					onClick={() => {
