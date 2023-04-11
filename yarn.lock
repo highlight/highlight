@@ -11387,6 +11387,7 @@ __metadata:
     ts-jest: 27.1.5
     ts-node: ^7.0.1
     tslib: ^1.9.3
+    typescript: ^4.7.3
   languageName: unknown
   linkType: soft
 
@@ -11442,7 +11443,7 @@ __metadata:
     "@rollup/plugin-node-resolve": ^13.1.3
     "@types/chai": ^4.1.6
     "@types/css-font-loading-module": 0.0.7
-    "@types/dom-mediacapture-transform": ^0.1.3
+    "@types/dom-mediacapture-transform": 0.1.5
     "@types/inquirer": ^8.2.1
     "@types/jest": ^27.4.1
     "@types/jest-image-snapshot": ^5.1.0
@@ -11475,6 +11476,7 @@ __metadata:
     ts-jest: 27.1.5
     ts-node: ^10.9.1
     tslib: ^2.3.1
+    typescript: ^4.7.3
   languageName: unknown
   linkType: soft
 
@@ -19188,19 +19190,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/dom-mediacapture-transform@npm:^0.1.3":
-  version: 0.1.4
-  resolution: "@types/dom-mediacapture-transform@npm:0.1.4"
+"@types/dom-mediacapture-transform@npm:0.1.5":
+  version: 0.1.5
+  resolution: "@types/dom-mediacapture-transform@npm:0.1.5"
   dependencies:
     "@types/dom-webcodecs": "*"
-  checksum: 2906623f408e2fcb47000c57a048e945e9d432be5b88133d4932c0dc20732290be42abe34835e8720b85d96b1b3e7a4cd37fb677596acc5f9701ed2faf75471d
+  checksum: 733a7d3d973cd1975be769b36a8e4f787173eab88a103324bbf511c241a476564a9255cc66c9367ba1143af994da8925a799f0b860dea19fb5c767b770103e45
   languageName: node
   linkType: hard
 
 "@types/dom-webcodecs@npm:0.1.4":
-  version: 0.1.4
-  resolution: "@types/dom-webcodecs@npm:0.1.4"
-  checksum: 150813bbee4315620282ef849d0e61c7a5e6ba7d9475307d06effaa900baa124cd6d922e5de498f80f31beb5dc23daa1750f71babcf5cf1159df05ee0d224751
+  version: 0.1.5
+  resolution: "@types/dom-webcodecs@npm:0.1.5"
+  checksum: 181eaa1356ee9f6d3df68e11e9de95a2759c2b4b2a5ba2a49ccebd0dc128126a1f7a3397db2748a03a3e16f4a9317bf82d07e15fc3fb7356b368009f5a72b129
   languageName: node
   linkType: hard
 
@@ -33805,6 +33807,7 @@ __metadata:
     pretty-quick: ^3.1.3
     react-markdown: ^8.0.5
     turbo: ^1.8.8
+    typescript: ^4.7.3
   languageName: unknown
   linkType: soft
 

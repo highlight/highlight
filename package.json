@@ -29,7 +29,7 @@
 		"sourcemap-uploader"
 	],
 	"scripts": {
-		"build:all": "yarn turbo run prepublish build",
+		"build:all": "yarn turbo run build",
 		"build:backend": "cd backend && go build",
 		"build:frontend": "yarn turbo run build --filter frontend...",
 		"build:sdk": "yarn turbo run build --filter @highlight-run/cloudflare --filter @highlight-run/react --filter @highlight-run/apollo... --filter @highlight-run/next... --filter @highlight-run/nest...",
@@ -52,7 +52,7 @@
 		"lint": "yarn run turbo lint --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs",
 		"prepare": "husky install && patch-package",
 		"preinstall": "git submodule update --init --recursive || true",
-		"prepublish": "yarn workspace scripts prepublish:client",
+		"validate": "yarn workspace scripts validate:client",
 		"private-gen": "cd backend && make private-gen",
 		"public-gen": "cd backend && make public-gen",
 		"publish:all": "run-p --print-label publish:client publish:turbo publish:render",
@@ -71,7 +71,8 @@
 		"patch-package": "^6.4.7",
 		"prettier": "^2.7.1",
 		"pretty-quick": "^3.1.3",
-		"turbo": "^1.8.8"
+		"turbo": "^1.8.8",
+		"typescript": "^4.7.3"
 	},
 	"packageManager": "yarn@3.5.0",
 	"resolutions": {
