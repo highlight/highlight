@@ -36,6 +36,8 @@ import {
 	useMatch,
 } from 'react-router-dom'
 
+import { IntegrationBar } from '@/pages/Setup/IntegrationBar'
+
 import * as styles from './SetupRouter.css'
 
 export const SetupRouter = () => {
@@ -196,40 +198,39 @@ export const SetupRouter = () => {
 					borderRadius="6"
 					boxShadow="medium"
 					flexGrow={1}
-					overflowY="scroll"
 					position="relative"
+					overflow="hidden"
 				>
-					<Routes>
-						<Route
-							path=":area/:language?"
-							element={
-								<SetupOptionsList
-									integrationData={integrationData}
-								/>
-							}
-						/>
-						<Route
-							path=":area/:language/:framework"
-							element={
-								<SetupDocs
-									projectVerboseId={projectVerboseId}
-									integrationData={integrationData}
-								/>
-							}
-						/>
+					<IntegrationBar integrationData={integrationData} />
 
-						{/* Redirect to default docs. */}
-						<Route
-							path="*"
-							element={
-								<Navigate
-									to="client/js"
-									replace={true}
-									state={location.state}
-								/>
-							}
-						/>
-					</Routes>
+					<Box overflowY="scroll" height="full">
+						<Routes>
+							<Route
+								path=":area/:language?"
+								element={<SetupOptionsList />}
+							/>
+							<Route
+								path=":area/:language/:framework"
+								element={
+									<SetupDocs
+										projectVerboseId={projectVerboseId}
+									/>
+								}
+							/>
+
+							{/* Redirect to default docs. */}
+							<Route
+								path="*"
+								element={
+									<Navigate
+										to="client/js"
+										replace={true}
+										state={location.state}
+									/>
+								}
+							/>
+						</Routes>
+					</Box>
 				</Box>
 			</Box>
 		</Box>
