@@ -5,7 +5,6 @@ import {
 	Select as AntDesignSelect,
 	SelectProps as AntDesignSelectProps,
 } from 'antd'
-import { BaseOptionType, DefaultOptionType } from 'antd/lib/select'
 import clsx from 'clsx'
 import React from 'react'
 
@@ -21,25 +20,19 @@ export interface OptionType {
 	dropDownIcon?: React.ReactNode
 }
 
-type Props<
-	ValueType,
-	OptType extends BaseOptionType | DefaultOptionType,
-> = AntDesignSelectProps<ValueType, OptType> & {
-	options?: OptType[]
+type Props = Omit<AntDesignSelectProps, 'options'> & {
+	options?: OptionType[]
 	dropdownClassName?: string
 }
 
-const Select = <
-	ValueType = any,
-	OptType extends BaseOptionType | DefaultOptionType = OptionType,
->({
+const Select = ({
 	options,
 	className,
 	dropdownClassName,
 	children,
 	defaultActiveFirstOption = false,
 	...props
-}: Props<ValueType, OptType>) => {
+}: Props) => {
 	return (
 		<AntDesignSelect
 			// @ts-ignore
