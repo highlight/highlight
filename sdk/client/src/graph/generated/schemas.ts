@@ -105,6 +105,7 @@ export type MutationInitializeSessionArgs = {
 	clientConfig: Scalars['String']
 	clientVersion: Scalars['String']
 	client_id: Scalars['String']
+	disable_session_recording?: InputMaybe<Scalars['Boolean']>
 	enable_recording_network_contents: Scalars['Boolean']
 	enable_strict_privacy: Scalars['Boolean']
 	environment: Scalars['String']

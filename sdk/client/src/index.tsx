@@ -580,6 +580,8 @@ export class Highlight {
 					session_secure_id: this.sessionData.sessionSecureID,
 					client_id: clientID,
 					network_recording_domains: destinationDomains,
+					disable_session_recording:
+						this.options.disableSessionRecording,
 				})
 				if (
 					gr.initializeSession.secure_id !==
@@ -1149,10 +1151,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			await this._sendPayload({ isBeacon: false })
 			this.hasPushedData = true
 			this.sessionData.lastPushTime = Date.now()
-			// Listeners are cleared when the user calls stop() manually.
-			if (this.listeners.length === 0) {
-				return
-			}
 		} catch (e) {
 			if (this._isOnLocalHost) {
 				console.error(e)
