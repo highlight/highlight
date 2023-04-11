@@ -8468,7 +8468,7 @@ type Project {
 	secret: String
 	workspace_id: ID!
 	excluded_users: StringArray
-	error_filters: StringArray!
+	error_filters: StringArray
 	error_json_paths: StringArray
 	rage_click_window_seconds: Int
 	rage_click_radius_pixels: Int
@@ -36877,14 +36877,11 @@ func (ec *executionContext) _Project_error_filters(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(pq.StringArray)
 	fc.Result = res
-	return ec.marshalNStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, field.Selections, res)
+	return ec.marshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Project_error_filters(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -63771,9 +63768,6 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Project_error_filters(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "error_json_paths":
 
 			out.Values[i] = ec._Project_error_json_paths(ctx, field, obj)
@@ -72709,27 +72703,6 @@ func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	res := graphql.MarshalString(*v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) unmarshalNStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx context.Context, v interface{}) (pq.StringArray, error) {
-	res, err := model1.UnmarshalStringArray(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx context.Context, sel ast.SelectionSet, v pq.StringArray) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	res := model1.MarshalStringArray(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

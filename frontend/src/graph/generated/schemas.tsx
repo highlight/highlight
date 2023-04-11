@@ -1477,7 +1477,7 @@ export type Project = {
 	__typename?: 'Project'
 	backend_domains?: Maybe<Scalars['StringArray']>
 	billing_email?: Maybe<Scalars['String']>
-	error_filters: Scalars['StringArray']
+	error_filters?: Maybe<Scalars['StringArray']>
 	error_json_paths?: Maybe<Scalars['StringArray']>
 	excluded_users?: Maybe<Scalars['StringArray']>
 	filter_chrome_extension?: Maybe<Scalars['Boolean']>
