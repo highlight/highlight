@@ -1,9 +1,7 @@
-# PRD: [Topic]
+# PRD: Logging
 
----
-Status: Accepted
-Author: @et
----
+* Status: Accepted
+* Author: @et
 
 ## Goals
 

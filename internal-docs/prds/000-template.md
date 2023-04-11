@@ -1,9 +1,7 @@
 # PRD: [Topic]
 
----
-Status: Draft
-Author: @your-github-username
----
+* Status: Draft
+* Author: @your-github-username
 
 
 ## Goals
