@@ -45,18 +45,20 @@ export const ErrorState = ({
 							'already able to join this workspace! ' +
 							'Join it to be able to view the session.'}
 					{message}
-					{errorString !== undefined && (
-						<span
-							className={styles.expandButton}
-							onClick={() => setShowError((t) => !t)}
-						>
-							{showError ? 'show less' : 'show more'}
-						</span>
-					)}
 				</p>
-				{showError && (
-					<code className={styles.errorBody}>{errorString}</code>
+				{errorString !== undefined && (
+					<details onToggle={() => setShowError((t) => !t)}>
+						<summary className="cursor-pointer">
+							{showError ? 'show less' : 'show more'}
+						</summary>
+						{showError && (
+							<code className={styles.errorBody}>
+								{errorString}
+							</code>
+						)}
+					</details>
 				)}
+
 				<div className={styles.buttonGroup}>
 					{isLoggedIn ? (
 						<div className={styles.loggedInButtonGroup}>
