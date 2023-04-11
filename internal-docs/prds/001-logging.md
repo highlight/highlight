@@ -1,7 +1,7 @@
 # PRD: Logging
 
 * Status: Accepted
-* Author: @et
+* Author: [@et](https://github.com/et)
 
 ## Goals
 
