@@ -40,14 +40,10 @@ describe('client recording spec', () => {
 				`fetch('https://localhost:3000/index.html', {method: 'POST'})`,
 			)
 
-			const pp = cy.wait('@PushPayload')
-
-			pp.its('request.body.variables').should(
-				'have.property',
-				'resources',
-			)
-
-			pp.its('request.body.variables').should('have.property', 'events')
+			cy.wait('@PushPayload')
+				.its('request.body.variables')
+				.should('have.property', 'resources')
+				.should('have.property', 'events')
 		})
 	})
 })
