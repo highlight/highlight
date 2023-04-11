@@ -67,12 +67,10 @@ func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCli
 					for _, alert := range alerts {
 						alertWorkerpool.SubmitRecover(
 							func() {
-								log.WithContext(ctx).Info("processing log alert!")
 								err := processLogAlert(ctx, DB, TDB, MailClient, alert, rh, redis, ccClient)
 								if err != nil {
 									log.WithContext(ctx).Error(err)
 								}
-								log.WithContext(ctx).Info("processed log alert!")
 							})
 					}
 				}

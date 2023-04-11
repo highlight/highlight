@@ -7,8 +7,6 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 func newMessageEmbed() *discordgo.MessageEmbed {
@@ -449,7 +447,6 @@ func (bot *Bot) SendLogAlert(channelId string, payload integrations.LogAlertPayl
 	}
 
 	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
-	logrus.Error(errors.Wrap(err, "zane test"))
 
 	return err
 }
