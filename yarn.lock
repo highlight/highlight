@@ -11395,6 +11395,7 @@ __metadata:
   resolution: "@highlight-run/rrweb-types@workspace:rrweb/packages/types"
   dependencies:
     "@highlight-run/rrweb-snapshot": "workspace:*"
+    typescript: ^4.7.3
     vite: ^3.2.0-beta.2
     vite-plugin-dts: ^1.6.6
   languageName: unknown
@@ -48008,6 +48009,7 @@ __metadata:
     "@types/minimist": ^1.2.1
     minimist: ^1.2.5
     puppeteer: ^19.7.2
+    typescript: ^4.7.3
   bin:
     rrvideo: build/cli.js
   languageName: unknown
@@ -52068,7 +52070,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:4.9.5, typescript@npm:^4.9.0, typescript@npm:^4.9.4, typescript@npm:^4.9.5":
+"typescript@npm:4.9.5, typescript@npm:^4.7.3, typescript@npm:^4.9.0, typescript@npm:^4.9.4, typescript@npm:^4.9.5":
   version: 4.9.5
   resolution: "typescript@npm:4.9.5"
   bin:
@@ -52118,7 +52120,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@4.9.5#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.0#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.4#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
+"typescript@patch:typescript@4.9.5#~builtin<compat/typescript>, typescript@patch:typescript@^4.7.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.0#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.4#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
   version: 4.9.5
   resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
   bin:
