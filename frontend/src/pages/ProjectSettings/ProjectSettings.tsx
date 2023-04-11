@@ -1,6 +1,7 @@
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import Tabs from '@components/Tabs/Tabs'
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm'
+import { ErrorFiltersForm } from '@pages/ProjectSettings/ErrorFiltersForm/ErrorFiltersForm'
 import { ErrorSettingsForm } from '@pages/ProjectSettings/ErrorSettingsForm/ErrorSettingsForm'
 import { ExcludedUsersForm } from '@pages/ProjectSettings/ExcludedUsersForm/ExcludedUsersForm'
 import { FilterExtensionForm } from '@pages/ProjectSettings/FilterExtensionForm/FilterExtensionForm'
@@ -54,6 +55,7 @@ const ProjectSettings = () => {
 									<>
 										<ErrorSettingsForm />
 										<FilterExtensionForm />
+										<ErrorFiltersForm />
 										<SourcemapSettings />
 									</>
 								),

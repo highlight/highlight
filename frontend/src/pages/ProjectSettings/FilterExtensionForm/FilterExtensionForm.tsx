@@ -79,7 +79,7 @@ export const FilterExtensionForm = () => {
 	]
 
 	return (
-		<FieldsBox id="errors">
+		<FieldsBox id="extension">
 			<h3>Filter Browser Extension</h3>
 
 			<p>
