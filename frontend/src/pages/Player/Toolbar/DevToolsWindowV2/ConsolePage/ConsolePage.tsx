@@ -63,8 +63,12 @@ export const ConsolePage = ({
 	})
 
 	const messagesToRender = useMemo(() => {
+		if (!data?.sessionLogs) {
+			return []
+		}
+
 		if (filter !== '') {
-			return data?.sessionLogs.filter((logEdge) => {
+			return data.sessionLogs.filter((logEdge) => {
 				if (!logEdge.node.message) {
 					return false
 				}
@@ -75,7 +79,7 @@ export const ConsolePage = ({
 			})
 		}
 
-		return data?.sessionLogs
+		return data.sessionLogs
 	}, [filter, data?.sessionLogs])
 
 	// Logic for scrolling to current entry.
@@ -83,7 +87,7 @@ export const ConsolePage = ({
 		if (state !== ReplayerState.Playing || !autoScroll) {
 			return
 		}
-		if (messagesToRender?.length) {
+		if (messagesToRender.length) {
 			let cursor = ''
 			let msgDiff: number = Number.MAX_VALUE
 			for (let i = 0; i < messagesToRender.length; i++) {
@@ -102,19 +106,21 @@ export const ConsolePage = ({
 	}, [state, time, messagesToRender, autoScroll])
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
+
+	const foundIndex = useMemo(() => {
+		return messagesToRender.findIndex(
+			(logEdge) => logEdge.cursor === selectedCursor,
+		)
+	}, [messagesToRender, selectedCursor])
 	useEffect(() => {
 		if (
 			isPlayerReady && // ensure Virtuoso component is actually rendered
 			virtuoso.current &&
 			messagesToRender
 		) {
-			const index = messagesToRender.findIndex(
-				(logEdge) => logEdge.cursor === selectedCursor,
-			)
-
-			if (index >= 0) {
+			if (foundIndex >= 0) {
 				virtuoso.current.scrollToIndex({
-					index,
+					index: foundIndex,
 					align: 'center',
 					// Using smooth has performance issues with large lists
 					// See: https://virtuoso.dev/scroll-to-index/
@@ -127,7 +133,7 @@ export const ConsolePage = ({
 					// query param is.
 					const timestamp =
 						new Date(
-							messagesToRender[index].node.timestamp,
+							messagesToRender[foundIndex].node.timestamp,
 						).getTime() - sessionMetadata.startTime
 					setTime(timestamp)
 				}
@@ -135,6 +141,7 @@ export const ConsolePage = ({
 		}
 	}, [
 		autoScroll,
+		foundIndex,
 		isPlayerReady,
 		messagesToRender,
 		selectedCursor,
