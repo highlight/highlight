@@ -23,7 +23,7 @@ type Props = React.PropsWithChildren & {
 type Area = 'client' | 'backend' | 'backend-logging'
 
 const AREA_TITLE_MAP: { [key in Area]: string } = {
-	client: 'UX monitoring',
+	client: 'Frontend monitoring + session replay',
 	backend: 'Backend monitoring',
 	'backend-logging': 'Backend logging',
 }

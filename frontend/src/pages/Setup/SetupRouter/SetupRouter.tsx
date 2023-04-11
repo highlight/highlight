@@ -115,7 +115,7 @@ export const SetupRouter = () => {
 							{clientIntegration?.integrated && (
 								<IconSolidCheckCircle />
 							)}
-							<Text>UX monitoring</Text>
+							<Text>Frontend monitoring + session replay</Text>
 						</Stack>
 					</NavLink>
 					<NavLink
