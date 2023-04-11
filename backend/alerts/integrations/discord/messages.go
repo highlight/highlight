@@ -7,6 +7,8 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 func newMessageEmbed() *discordgo.MessageEmbed {
@@ -398,11 +400,13 @@ func (bot *Bot) SendMetricMonitorAlert(channelId string, payload integrations.Me
 func (bot *Bot) SendLogAlert(channelId string, payload integrations.LogAlertPayload) error {
 	fields := []*discordgo.MessageEmbedField{}
 
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name:   "Query",
-		Value:  payload.Query,
-		Inline: true,
-	})
+	if payload.Query != "" {
+		fields = append(fields, &discordgo.MessageEmbedField{
+			Name:   "Query",
+			Value:  payload.Query,
+			Inline: true,
+		})
+	}
 
 	fields = append(fields, &discordgo.MessageEmbedField{
 		Name:   "Count",
@@ -434,7 +438,7 @@ func (bot *Bot) SendLogAlert(channelId string, payload integrations.LogAlertPayl
 			discordgo.ActionsRow{
 				Components: []discordgo.MessageComponent{
 					discordgo.Button{
-						Label:    "View Alert",
+						Label:    "View Logs",
 						Style:    discordgo.LinkButton,
 						Disabled: false,
 						URL:      payload.AlertURL,
@@ -445,6 +449,7 @@ func (bot *Bot) SendLogAlert(channelId string, payload integrations.LogAlertPayl
 	}
 
 	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
+	logrus.Error(errors.Wrap(err, "zane test"))
 
 	return err
 }

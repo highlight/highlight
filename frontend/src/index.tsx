@@ -56,7 +56,7 @@ const dev =
 	import.meta.env.DEV ||
 	import.meta.env.REACT_APP_FRONTEND_URI?.indexOf('localhost') !== -1
 const options: HighlightOptions = {
-	debug: { clientInteractions: true, domRecording: true },
+	debug: { domRecording: true },
 	manualStart: true,
 	enableStrictPrivacy: Math.floor(Math.random() * 8) === 0,
 	networkRecording: {

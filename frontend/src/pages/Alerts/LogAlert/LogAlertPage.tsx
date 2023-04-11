@@ -7,7 +7,6 @@ import {
 	useGetLogsKeysQuery,
 	useUpdateLogAlertMutation,
 } from '@graph/hooks'
-import { DiscordChannel, SanitizedSlackChannel } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -47,18 +46,33 @@ import { message } from 'antd'
 import { capitalize } from 'lodash'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { DateTimeParam, StringParam, useQueryParam } from 'use-query-params'
+
+import LoadingBox from '@/components/LoadingBox'
+import { namedOperations } from '@/graph/generated/operations'
+import {
+	DiscordChannelInput,
+	SanitizedSlackChannelInput,
+} from '@/graph/generated/schemas'
 
 import * as styles from './styles.css'
 
 export const LogAlertPage = () => {
-	const [selectedDates, setSelectedDates] = useState([
-		LOG_TIME_PRESETS[0].startDate,
-		now.toDate(),
+	const [startDateParam] = useQueryParam('start_date', DateTimeParam)
+	const [endDateParam] = useQueryParam('end_date', DateTimeParam)
+
+	const [startDate, setStartDate] = useState(
+		startDateParam ?? LOG_TIME_PRESETS[0].startDate,
+	)
+
+	const [endDate, setEndDate] = useState(endDateParam ?? now.toDate())
+	const [selectedDates, setSelectedDates] = useState<Date[]>([
+		startDate,
+		endDate,
 	])
 
-	const [startDate, setStartDate] = useState(LOG_TIME_PRESETS[0].startDate)
-	const [endDate, setEndDate] = useState(now.toDate())
+	const [queryParam] = useQueryParam('query', StringParam)
 
 	const { alert_id } = useParams<{
 		alert_id: string
@@ -83,7 +97,7 @@ export const LogAlertPage = () => {
 
 	const form = useFormState<LogMonitorForm>({
 		defaultValues: {
-			query: '',
+			query: queryParam ?? '',
 			name: '',
 			belowThreshold: false,
 			excludedEnvironments: [],
@@ -98,13 +112,35 @@ export const LogAlertPage = () => {
 
 	useEffect(() => {
 		if (!loading && data) {
+			console.log(
+				'test',
+				data?.log_alert.ChannelsToNotify.map((c) => ({
+					...c,
+					displayValue: c.webhook_channel,
+					value: c.webhook_channel_id,
+					id: c.webhook_channel_id,
+				})),
+			)
 			form.setValues({
 				query: data?.log_alert.query,
 				name: data?.log_alert.Name,
 				belowThreshold: data?.log_alert.BelowThreshold,
 				excludedEnvironments: data?.log_alert.ExcludedEnvironments,
-				slackChannels: data?.log_alert.ChannelsToNotify,
-				discordChannels: data?.log_alert.DiscordChannelsToNotify,
+				slackChannels: data?.log_alert.ChannelsToNotify.map((c) => ({
+					...c,
+					webhook_channel_name: c.webhook_channel,
+					displayValue: c.webhook_channel,
+					value: c.webhook_channel_id,
+					id: c.webhook_channel_id,
+				})),
+				discordChannels: data?.log_alert.DiscordChannelsToNotify.map(
+					(c) => ({
+						...c,
+						displayValue: c.name,
+						value: c.id,
+						id: c.id,
+					}),
+				),
 				webhookDestinations: data?.log_alert.WebhookDestinations.map(
 					(d) => d.url,
 				),
@@ -112,13 +148,29 @@ export const LogAlertPage = () => {
 				threshold: data?.log_alert.CountThreshold,
 				frequency: data?.log_alert.ThresholdWindow,
 			})
+			console.log('form.values.slackChannels', form.values.slackChannels)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data, loading])
 
-	const [createLogAlertMutation] = useCreateLogAlertMutation()
-	const [updateLogAlertMutation] = useUpdateLogAlertMutation()
-	const [deleteLogAlertMutation] = useDeleteLogAlertMutation()
+	const [createLogAlertMutation] = useCreateLogAlertMutation({
+		refetchQueries: [
+			namedOperations.Query.GetLogAlert,
+			namedOperations.Query.GetAlertsPagePayload,
+		],
+	})
+	const [updateLogAlertMutation] = useUpdateLogAlertMutation({
+		refetchQueries: [
+			namedOperations.Query.GetLogAlert,
+			namedOperations.Query.GetAlertsPagePayload,
+		],
+	})
+	const [deleteLogAlertMutation] = useDeleteLogAlertMutation({
+		refetchQueries: [
+			namedOperations.Query.GetLogAlert,
+			namedOperations.Query.GetAlertsPagePayload,
+		],
+	})
 
 	const { project_id } = useParams<{
 		project_id: string
@@ -134,16 +186,13 @@ export const LogAlertPage = () => {
 	const header = (
 		<Box
 			display="flex"
-			justifyContent="space-between"
+			justifyContent="flex-end"
 			alignItems="center"
 			borderBottom="dividerWeak"
 			px="8"
 			py="6"
 			cssClass={styles.header}
 		>
-			<Text userSelect="none">
-				{capitalize(createStr)} log monitoring alert
-			</Text>
 			<Box display="flex" alignItems="center" gap="4">
 				<Button
 					kind="secondary"
@@ -195,8 +244,11 @@ export const LogAlertPage = () => {
 								form.names.belowThreshold,
 							),
 							disabled: false,
-							discord_channels: form.getValue(
-								form.names.discordChannels,
+							discord_channels: form.values.discordChannels.map(
+								(c) => ({
+									name: c.name,
+									id: c.id,
+								}),
 							),
 							emails: form.getValue(form.names.emails),
 							environments: form.getValue(
@@ -204,8 +256,12 @@ export const LogAlertPage = () => {
 							),
 							name: form.getValue(form.names.name),
 							project_id: project_id || '0',
-							slack_channels: form.getValue(
-								form.names.slackChannels,
+							slack_channels: form.values.slackChannels.map(
+								(c) => ({
+									webhook_channel_id: c.webhook_channel_id,
+									webhook_channel_name:
+										c.webhook_channel_name,
+								}),
 							),
 							webhook_destinations: form
 								.getValue(form.names.webhookDestinations)
@@ -217,7 +273,7 @@ export const LogAlertPage = () => {
 						}
 
 						if (!input.name) {
-							message.error(`Missing name!`)
+							message.error(`Missing alert name!`)
 							return
 						}
 
@@ -277,82 +333,89 @@ export const LogAlertPage = () => {
 				flexDirection="column"
 				height="full"
 			>
-				{header}
-				<Container
-					display="flex"
-					flexDirection="column"
-					py="24"
-					gap="40"
-				>
-					<Box
-						display="flex"
-						flexDirection="column"
-						width="full"
-						height="full"
-						gap="12"
-					>
-						<Box
+				{loading && <LoadingBox />}
+				{!loading && (
+					<>
+						{header}
+						<Container
 							display="flex"
-							alignItems="center"
-							width="full"
-							justifyContent="space-between"
+							flexDirection="column"
+							py="24"
+							gap="40"
 						>
 							<Box
 								display="flex"
-								alignItems="center"
-								gap="4"
-								color="weak"
+								flexDirection="column"
+								width="full"
+								height="full"
+								gap="12"
 							>
-								<Tag
-									kind="secondary"
-									size="medium"
-									shape="basic"
-									emphasis="high"
-									iconLeft={<IconSolidSpeakerphone />}
-									onClick={() => {
-										navigate(`/${project_id}/alerts`)
+								<Box
+									display="flex"
+									alignItems="center"
+									width="full"
+									justifyContent="space-between"
+								>
+									<Box
+										display="flex"
+										alignItems="center"
+										gap="4"
+										color="weak"
+									>
+										<Tag
+											kind="secondary"
+											size="medium"
+											shape="basic"
+											emphasis="high"
+											iconLeft={<IconSolidSpeakerphone />}
+											onClick={() => {
+												navigate(
+													`/${project_id}/alerts`,
+												)
+											}}
+										>
+											Alerts
+										</Tag>
+										<IconSolidCheveronRight />
+										<Text
+											color="moderate"
+											size="small"
+											weight="medium"
+											userSelect="none"
+										>
+											Log monitor
+										</Text>
+									</Box>
+									<PreviousDateRangePicker
+										selectedDates={selectedDates}
+										onDatesChange={setSelectedDates}
+										presets={LOG_TIME_PRESETS}
+										minDate={thirtyDaysAgo}
+										kind="secondary"
+										size="medium"
+										emphasis="low"
+									/>
+								</Box>
+								<LogsHistogram
+									query={query}
+									startDate={startDate}
+									endDate={endDate}
+									onDatesChange={(startDate, endDate) => {
+										setSelectedDates([startDate, endDate])
 									}}
-								>
-									Alerts
-								</Tag>
-								<IconSolidCheveronRight />
-								<Text
-									color="moderate"
-									size="small"
-									weight="medium"
-									userSelect="none"
-								>
-									Log monitor
-								</Text>
+									onLevelChange={() => {}}
+									outline
+									threshold={threshold}
+									belowThreshold={belowThreshold}
+									frequencySeconds={frequency}
+								/>
 							</Box>
-							<PreviousDateRangePicker
-								selectedDates={selectedDates}
-								onDatesChange={setSelectedDates}
-								presets={LOG_TIME_PRESETS}
-								minDate={thirtyDaysAgo}
-								kind="secondary"
-								size="medium"
-								emphasis="low"
-							/>
-						</Box>
-						<LogsHistogram
-							query={query}
-							startDate={startDate}
-							endDate={endDate}
-							onDatesChange={(startDate, endDate) => {
-								setSelectedDates([startDate, endDate])
-							}}
-							onLevelChange={() => {}}
-							outline
-							threshold={threshold}
-							belowThreshold={belowThreshold}
-							frequencySeconds={frequency}
-						/>
-					</Box>
-					<Form state={form} resetOnSubmit={false}>
-						<LogAlertForm {...{ startDate, endDate }} />
-					</Form>
-				</Container>
+							<Form state={form} resetOnSubmit={false}>
+								<LogAlertForm {...{ startDate, endDate }} />
+							</Form>
+						</Container>
+					</>
+				)}
 			</Box>
 		</Box>
 	)
@@ -412,6 +475,9 @@ const LogAlertForm = ({
 			value: email,
 			id: email,
 		}))
+
+	console.log('form.values.discordChannels', form.values.discordChannels)
+	console.log('form.values.slackChannels', form.values.slackChannels)
 
 	return (
 		<Box cssClass={styles.grid}>
@@ -507,7 +573,7 @@ const LogAlertForm = ({
 				<Form.Input
 					name={form.names.name}
 					type="text"
-					placeholder="Type alert name"
+					placeholder="Alert name"
 					label="Name"
 				/>
 
@@ -540,7 +606,6 @@ const LogAlertForm = ({
 				</Box>
 
 				<Box borderTop="dividerWeak" width="full" />
-
 				<Form.NamedSection
 					label="Slack channels to notify"
 					name={form.names.slackChannels}
@@ -549,13 +614,25 @@ const LogAlertForm = ({
 						aria-label="Slack channels to notify"
 						placeholder="Select Slack channels"
 						options={slackChannels}
-						onChange={(values: any): any =>
-							form.setValue(form.names.slackChannels, values)
-						}
+						onChange={(values) => {
+							form.setValue(
+								form.names.slackChannels,
+								values.map((v: any) => ({
+									webhook_channel_name: v.label,
+									webhook_channel_id: v.value,
+									...v,
+								})),
+							)
+						}}
 						value={form.values.slackChannels}
-						notFoundContent={<p>No channel suggestions</p>}
+						notFoundContent={
+							<Link to="/integrations">
+								Connect Highlight with Slack
+							</Link>
+						}
 						className={styles.selectContainer}
 						mode="multiple"
+						labelInValue
 					/>
 				</Form.NamedSection>
 
@@ -567,13 +644,25 @@ const LogAlertForm = ({
 						aria-label="Discord channels to notify"
 						placeholder="Select Discord channels"
 						options={discordChannels}
-						onChange={(values: any): any =>
-							form.setValue(form.names.discordChannels, values)
-						}
+						onChange={(values) => {
+							form.setValue(
+								form.names.discordChannels,
+								values.map((v: any) => ({
+									name: v.label,
+									id: v.value,
+									...v,
+								})),
+							)
+						}}
 						value={form.values.discordChannels}
-						notFoundContent={<p>No channel suggestions</p>}
+						notFoundContent={
+							<Link to="/integrations">
+								Connect Highlight with Discord
+							</Link>
+						}
 						className={styles.selectContainer}
 						mode="multiple"
+						labelInValue
 					/>
 				</Form.NamedSection>
 
@@ -667,8 +756,8 @@ interface LogMonitorForm {
 	threshold: number | undefined
 	frequency: number
 	excludedEnvironments: string[]
-	slackChannels: SanitizedSlackChannel[]
-	discordChannels: DiscordChannel[]
+	slackChannels: SanitizedSlackChannelInput[]
+	discordChannels: DiscordChannelInput[]
 	emails: string[]
 	webhookDestinations: string[]
 }

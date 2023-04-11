@@ -1927,6 +1927,15 @@ type LogAlert struct {
 	AlertIntegrations
 }
 
+func GetLogAlertURL(projectId int, query string, startDate time.Time, endDate time.Time) string {
+	queryStr := url.QueryEscape(query)
+	startDateStr := url.QueryEscape(startDate.Format("2006-01-02T15:04:05.000Z"))
+	endDateStr := url.QueryEscape(endDate.Format("2006-01-02T15:04:05.000Z"))
+	frontendURL := os.Getenv("FRONTEND_URI")
+	return fmt.Sprintf("%s/%d/logs?query=%s&start_date=%s&end_date=%s", frontendURL,
+		projectId, queryStr, startDateStr, endDateStr)
+}
+
 func (obj *LogAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
 	if err := obj.sendSlackAlert(ctx, db, obj.ID, input); err != nil {
 		log.WithContext(ctx).Error(err)
@@ -2415,12 +2424,14 @@ func (obj *MetricMonitor) SendSlackAlert(ctx context.Context, input *SendSlackAl
 	return nil
 }
 
-type SendLogAlertForMetricMonitorInput struct {
+type SendSlackAlertForLogAlertInput struct {
 	Message   string
 	Workspace *Workspace
+	StartDate time.Time
+	EndDate   time.Time
 }
 
-func (obj *LogAlert) SendSlackAlert(ctx context.Context, input *SendLogAlertForMetricMonitorInput) error {
+func (obj *LogAlert) SendSlackAlert(ctx context.Context, input *SendSlackAlertForLogAlertInput) error {
 	if obj == nil {
 		return e.New("log alert needs to be defined.")
 	}
@@ -2441,15 +2452,14 @@ func (obj *LogAlert) SendSlackAlert(ctx context.Context, input *SendLogAlertForM
 		slackClient = slack.New(*input.Workspace.SlackAccessToken)
 	}
 
-	frontendURL := os.Getenv("FRONTEND_URI")
-	alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, obj.ProjectID, obj.ID)
+	alertUrl := GetLogAlertURL(obj.ProjectID, obj.Query, input.StartDate, input.EndDate)
 
 	log.WithContext(ctx).Info("Sending Slack Alert for Log Alert")
 
 	// send message
 	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
-			message := fmt.Sprintf("%s\n<%s|View Alert>", input.Message, alertUrl)
+			message := fmt.Sprintf("%s\n<%s|View Logs>", input.Message, alertUrl)
 			slackChannelId := *channel.WebhookChannelID
 			slackChannelName := *channel.WebhookChannel
 

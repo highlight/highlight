@@ -5,6 +5,7 @@ import {
 	Select as AntDesignSelect,
 	SelectProps as AntDesignSelectProps,
 } from 'antd'
+import { BaseOptionType, DefaultOptionType } from 'antd/lib/select'
 import clsx from 'clsx'
 import React from 'react'
 
@@ -14,49 +15,31 @@ const { Option } = AntDesignSelect
 
 export interface OptionType {
 	value: string
-	displayValue: string | React.ReactNode
+	displayValue: React.ReactNode
 	disabled?: boolean
 	id: string
 	dropDownIcon?: React.ReactNode
 }
 
-type Props = Pick<
-	AntDesignSelectProps<any>,
-	| 'onChange'
-	| 'placeholder'
-	| 'loading'
-	| 'value'
-	| 'className'
-	| 'allowClear'
-	| 'notFoundContent'
-	| 'mode'
-	| 'dropdownRender'
-	| 'defaultValue'
-	| 'onSearch'
-	| 'children'
-	| 'optionLabelProp'
-	| 'filterOption'
-	| 'bordered'
-	| 'disabled'
-	| 'defaultActiveFirstOption'
-	| 'aria-label'
-	| 'tagRender'
-	| 'open'
-	| 'dropdownMatchSelectWidth'
-	| 'optionFilterProp'
-> & {
-	options?: OptionType[]
+type Props<
+	ValueType,
+	OptType extends BaseOptionType | DefaultOptionType,
+> = AntDesignSelectProps<ValueType, OptType> & {
+	options?: OptType[]
 	dropdownClassName?: string
 }
 
-const Select = ({
+const Select = <
+	ValueType = any,
+	OptType extends BaseOptionType | DefaultOptionType = OptionType,
+>({
 	options,
 	className,
 	dropdownClassName,
 	children,
 	defaultActiveFirstOption = false,
 	...props
-}: Props) => {
+}: Props<ValueType, OptType>) => {
 	return (
 		<AntDesignSelect
 			// @ts-ignore
