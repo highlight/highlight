@@ -16,7 +16,7 @@ export const PLAYBACK_SPEED_OPTIONS: readonly number[] = [1, 2, 4, 8]
 const usePlayerConfiguration = () => {
 	const [showLeftPanel, setShowLeftPanel] = useLocalStorage(
 		'highlightMenuShowLeftPanel',
-		false,
+		true,
 	)
 
 	const [showRightPanel, setShowRightPanel] = useLocalStorage(
