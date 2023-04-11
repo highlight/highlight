@@ -206,13 +206,7 @@ function stringifyProperties(
 		const { propertiesObject, propertyType } = msg
 		// Session properties are custom properties that the Highlight snippet adds (visited-url, referrer, etc.)
 		if (propertyType?.type === 'session') {
-			await graphqlSDK.addSessionProperties({
-				session_secure_id: sessionSecureID,
-				properties_object: stringifyProperties(
-					propertiesObject,
-					'session',
-				),
-			})
+			addCustomEvent<string>('Track', stringify(propertiesObject))
 			logger.log(
 				`AddSessionProperties to session (${sessionSecureID}) w/ obj: ${JSON.stringify(
 					propertiesObject,

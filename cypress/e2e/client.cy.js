@@ -29,6 +29,8 @@ describe('client recording spec', () => {
 					])
 				})
 
+			win.eval(`H.track('MyTrackEvent', {'foo': 'bar'})`)
+
 			win.eval(`fetch(new URL('https://localhost:3000/index.html'))`)
 			win.eval(
 				`fetch(new URL('https://localhost:3000/index.html'), {method: 'POST'})`,
@@ -38,9 +40,14 @@ describe('client recording spec', () => {
 				`fetch('https://localhost:3000/index.html', {method: 'POST'})`,
 			)
 
-			cy.wait('@PushPayload')
-				.its('request.body.variables')
-				.should('have.property', 'resources')
+			const pp = cy.wait('@PushPayload')
+
+			pp.its('request.body.variables').should(
+				'have.property',
+				'resources',
+			)
+
+			pp.its('request.body.variables').should('have.property', 'events')
 		})
 	})
 })
