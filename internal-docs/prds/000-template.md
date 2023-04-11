@@ -1,3 +1,13 @@
+<!--- 
+Instructions:
+
+* cp 000-template.md 001-feature.md
+* Make changes to 001-feature.md and open a pull request.
+* Share the pull request with the team in slack asking for feedback.
+* Set up a sync meeting to go over the feedback.
+* After meeting, update Status -> "Accepted" or "Rejected"
+-->
+
 # PRD: [Topic]
 
 * Status: Draft
