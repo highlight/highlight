@@ -11312,7 +11312,6 @@ __metadata:
     rollup-plugin-typescript2: ^0.31.2
     rollup-plugin-web-worker-loader: ^1.6.1
     ts-jest: 27.1.5
-    typescript: ^4.7.3
   languageName: unknown
   linkType: soft
 
@@ -11335,7 +11334,6 @@ __metadata:
     rollup-plugin-typescript2: ^0.31.2
     rollup-plugin-web-worker-loader: ^1.6.1
     ts-jest: 27.1.5
-    typescript: ^4.7.3
   languageName: unknown
   linkType: soft
 
@@ -11365,7 +11363,6 @@ __metadata:
     svelte-check: ^1.4.0
     svelte-preprocess: ^4.0.0
     tslib: ^2.0.0
-    typescript: ^4.7.3
   languageName: unknown
   linkType: soft
 
@@ -11390,7 +11387,6 @@ __metadata:
     ts-jest: 27.1.5
     ts-node: ^7.0.1
     tslib: ^1.9.3
-    typescript: ^4.7.3
   languageName: unknown
   linkType: soft
 
@@ -11429,7 +11425,6 @@ __metadata:
     react-icons: ^4.4.0
     react-router-dom: ^6.4.1
     type-fest: ^2.19.0
-    typescript: ^4.7.3
     vite: ^3.1.8
     vite-plugin-web-extension: ^1.4.5
     vite-plugin-zip-pack: ^1.0.5
@@ -11480,7 +11475,6 @@ __metadata:
     ts-jest: 27.1.5
     ts-node: ^10.9.1
     tslib: ^2.3.1
-    typescript: ^4.7.3
   languageName: unknown
   linkType: soft
 
@@ -19884,6 +19878,13 @@ __metadata:
   version: 1.2.1
   resolution: "@types/minimist@npm:1.2.1"
   checksum: 02631cdd79d346ed6838f5443767b5218a0d915fd0529d4a8840c4eba942d7f6906f0056686dd5a119d42528bed0bee5767ebef7667fdca6fcb95411bb56084e
+  languageName: node
+  linkType: hard
+
+"@types/minimist@npm:^1.2.1":
+  version: 1.2.2
+  resolution: "@types/minimist@npm:1.2.2"
+  checksum: b8da83c66eb4aac0440e64674b19564d9d86c80ae273144db9681e5eeff66f238ade9515f5006ffbfa955ceff8b89ad2bd8ec577d7caee74ba101431fb07045d
   languageName: node
   linkType: hard
 
@@ -47999,6 +48000,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rrvideo@workspace:rrweb/packages/rrvideo":
+  version: 0.0.0-use.local
+  resolution: "rrvideo@workspace:rrweb/packages/rrvideo"
+  dependencies:
+    "@highlight-run/rrweb-player": "workspace:*"
+    "@highlight-run/rrweb-types": "workspace:*"
+    "@types/minimist": ^1.2.1
+    minimist: ^1.2.5
+    puppeteer: ^19.7.2
+    typescript: ^4.7.3
+  bin:
+    rrvideo: build/cli.js
+  languageName: unknown
+  linkType: soft
+
 "rsvp@npm:^4.8.4":
   version: 4.8.5
   resolution: "rsvp@npm:4.8.5"
@@ -52044,7 +52060,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:*, typescript@npm:^4.6.3, typescript@npm:^4.7.3, typescript@npm:^4.8.4, typescript@npm:~4.8.4":
+"typescript@npm:*, typescript@npm:^4.6.3, typescript@npm:^4.8.4, typescript@npm:~4.8.4":
   version: 4.8.4
   resolution: "typescript@npm:4.8.4"
   bin:
@@ -52054,7 +52070,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:4.9.5, typescript@npm:^4.9.0, typescript@npm:^4.9.4, typescript@npm:^4.9.5":
+"typescript@npm:4.9.5, typescript@npm:^4.7.3, typescript@npm:^4.9.0, typescript@npm:^4.9.4, typescript@npm:^4.9.5":
   version: 4.9.5
   resolution: "typescript@npm:4.9.5"
   bin:
@@ -52094,7 +52110,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@*#~builtin<compat/typescript>, typescript@patch:typescript@^4.6.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.7.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.8.4#~builtin<compat/typescript>, typescript@patch:typescript@~4.8.4#~builtin<compat/typescript>":
+"typescript@patch:typescript@*#~builtin<compat/typescript>, typescript@patch:typescript@^4.6.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.8.4#~builtin<compat/typescript>, typescript@patch:typescript@~4.8.4#~builtin<compat/typescript>":
   version: 4.8.4
   resolution: "typescript@patch:typescript@npm%3A4.8.4#~builtin<compat/typescript>::version=4.8.4&hash=1a91c8"
   bin:
@@ -52104,7 +52120,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@4.9.5#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.0#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.4#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
+"typescript@patch:typescript@4.9.5#~builtin<compat/typescript>, typescript@patch:typescript@^4.7.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.0#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.4#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
   version: 4.9.5
   resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
   bin:

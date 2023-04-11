@@ -95,6 +95,12 @@ export declare type HighlightOptions = {
 	 */
 	disableConsoleRecording?: boolean
 	/**
+	 * Specifies whether Highlight will record user session replays.
+	 * Unless you are using Highlight only for error monitoring, you do not want to set this to true.
+	 * @default false
+	 */
+	disableSessionRecording?: boolean
+	/**
 	 * Specifies whether Highlight will report `console.error` invocations as Highlight Errors.
 	 * @default true
 	 */
