@@ -89,8 +89,8 @@ export const ConsolePage = ({
 			for (let i = 0; i < messagesToRender.length; i++) {
 				const currentDiff: number =
 					time -
-					(new Date(messagesToRender[i].node.timestamp).getDate() -
-						new Date(messagesToRender[0].node.timestamp).getDate())
+					(new Date(messagesToRender[i].node.timestamp).getTime() -
+						new Date(messagesToRender[0].node.timestamp).getTime())
 				if (currentDiff < 0) break
 				if (currentDiff < msgDiff) {
 					cursor = messagesToRender[i].cursor
@@ -120,18 +120,27 @@ export const ConsolePage = ({
 					// See: https://virtuoso.dev/scroll-to-index/
 					// behavior: 'smooth'
 				})
-				const timestamp =
-					new Date(messagesToRender[index].node.timestamp).getTime() -
-					sessionMetadata.startTime
-				setTime(timestamp)
+
+				if (state !== ReplayerState.Playing || !autoScroll) {
+					// We really only want this run when the component is mounted
+					// and we are trying to set the player time based on what the log cursor
+					// query param is.
+					const timestamp =
+						new Date(
+							messagesToRender[index].node.timestamp,
+						).getTime() - sessionMetadata.startTime
+					setTime(timestamp)
+				}
 			}
 		}
 	}, [
+		autoScroll,
 		isPlayerReady,
 		messagesToRender,
 		selectedCursor,
 		sessionMetadata.startTime,
 		setTime,
+		state,
 	])
 
 	return (
@@ -181,9 +190,9 @@ const MessageRow = React.memo(function ({
 				}),
 			)}
 			borderBottom="dividerWeak"
-			py="4"
+			py="8"
 		>
-			<Stack direction="row" align="center">
+			<Stack direction="row">
 				<Box flexGrow={1}>
 					<Text
 						family="monospace"
@@ -208,6 +217,7 @@ const MessageRow = React.memo(function ({
 						shape="basic"
 						emphasis="low"
 						kind="secondary"
+						size="small"
 						iconRight={<IconSolidArrowCircleRight />}
 						onClick={onSelect}
 					>
