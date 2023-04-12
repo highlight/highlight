@@ -207,7 +207,7 @@ function stringifyProperties(
 		let eventType = ''
 		if (propertiesObject?.clickTextContent !== undefined) {
 			eventType = 'ClickTextContent'
-			// click test content should be searchable on sessions but not part of the timeline indicators
+			// click text content should be searchable on sessions but not part of the timeline indicators
 			await graphqlSDK.addSessionProperties({
 				session_secure_id: sessionSecureID,
 				properties_object: stringifyProperties(
