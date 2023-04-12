@@ -266,13 +266,32 @@ export const LogAlertPage = () => {
 							query: form.getValue(form.names.query),
 						}
 
-						if (!input.name) {
-							message.error(`Missing alert name!`)
-							return
-						}
+						const nameErr = !input.name
+						const thresholdErr = !input.count_threshold
+						if (nameErr || thresholdErr) {
+							const errs = []
+							if (nameErr) {
+								form.setError(
+									form.names.name,
+									'Name is required',
+								)
+								errs.push('name')
+							}
 
-						if (!input.count_threshold) {
-							message.error(`Missing alert threshold!`)
+							if (thresholdErr) {
+								form.setError(
+									form.names.threshold,
+									'Threshold is required',
+								)
+								errs.push('threshold')
+							}
+
+							message.error(
+								`Missing required field(s): ${errs.join(
+									', ',
+								)}.`,
+							)
+
 							return
 						}
 
@@ -530,6 +549,11 @@ const LogAlertForm = ({
 									label="Red"
 								/>
 							}
+							style={{
+								borderColor: form.errors.threshold
+									? 'var(--color-red-500)'
+									: undefined,
+							}}
 						/>
 					</Column>
 
@@ -576,6 +600,11 @@ const LogAlertForm = ({
 					type="text"
 					placeholder="Alert name"
 					label="Name"
+					style={{
+						borderColor: form.errors.name
+							? 'var(--color-red-500)'
+							: undefined,
+					}}
 				/>
 
 				<Form.NamedSection
