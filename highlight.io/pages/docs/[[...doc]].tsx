@@ -549,19 +549,8 @@ const PageRightBar = ({
 	relativePath: string
 }) => {
 	const { nestedHeadings } = useHeadingsData('h5,h6')
-	const router = useRouter()
 	const [activeId, setActiveId] = useState<string>()
 	useIntersectionObserver(setActiveId)
-
-	// @fabio, this is the problem child. I'm not sure why this is causing the page to scroll to the top on load.
-	// useEffect(() => {
-	// 	const selectedId = router.asPath.split('#')
-	// 	if (selectedId.length > 1) {
-	// 		document.querySelector(`#${selectedId[1]}`)?.scrollIntoView({
-	// 			behavior: 'smooth',
-	// 		})
-	// 	}
-	// }, [router.asPath])
 
 	return (
 		<div className={styles.rightBarWrap}>
@@ -605,13 +594,12 @@ const PageRightBar = ({
 									<li
 										key={heading.id}
 										className={
-											heading.id === activeId
-												? styles.active
-												: ''
+											heading.id === activeId &&
+											styles.active
 										}
 										style={{ padding: '2px 4px' }}
 									>
-										<a
+										<Link
 											href={`#${heading.id}`}
 											onClick={(e) => {
 												e.preventDefault()
@@ -621,24 +609,16 @@ const PageRightBar = ({
 													)
 													?.scrollIntoView({
 														behavior: 'smooth',
-														block: 'start',
 													})
-												const basePath =
-													router.asPath.split('#')[0]
-												const newUrl = `${basePath}#${heading.id}`
-												window.history.replaceState(
-													{
-														...window.history.state,
-														as: newUrl,
-														url: newUrl,
-													},
+												window.history.pushState(
+													{},
 													'',
-													newUrl,
+													`#${heading.id}`,
 												)
 											}}
 										>
 											<span>{heading.innerText}</span>
-										</a>
+										</Link>
 									</li>
 								),
 							)}
