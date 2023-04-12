@@ -204,17 +204,25 @@ function stringifyProperties(
 
 	const processPropertiesMessage = async (msg: PropertiesMessage) => {
 		const { propertiesObject, propertyType } = msg
-		// Session properties are custom properties that the Highlight snippet adds (visited-url, referrer, etc.)
-		if (propertyType?.type === 'session') {
+		if (propertiesObject?.clickTextContent !== undefined) {
+			// click test content should be searchable on sessions but not part of the timeline indicators
+			await graphqlSDK.addSessionProperties({
+				session_secure_id: sessionSecureID,
+				properties_object: stringifyProperties(
+					propertiesObject,
+					'session',
+				),
+			})
+		} else if (propertyType?.type === 'session') {
+			// Session properties are custom properties that the Highlight snippet adds (visited-url, referrer, etc.)
 			addCustomEvent<string>('Track', stringify(propertiesObject))
 			logger.log(
 				`AddSessionProperties to session (${sessionSecureID}) w/ obj: ${JSON.stringify(
 					propertiesObject,
 				)} @ ${backend}`,
 			)
-		}
-		// Track properties are properties that users define; rn, either through segment or manually.
-		else {
+		} else {
+			// Track properties are properties that users define; rn, either through segment or manually.
 			if (propertyType?.source === 'segment') {
 				addCustomEvent<string>(
 					'Segment Track',
