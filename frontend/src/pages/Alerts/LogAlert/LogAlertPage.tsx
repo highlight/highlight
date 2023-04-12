@@ -618,9 +618,13 @@ const LogAlertForm = ({
 						}}
 						value={form.values.slackChannels}
 						notFoundContent={
-							<Link to="/integrations">
-								Connect Highlight with Slack
-							</Link>
+							slackChannels.length === 0 ? (
+								<Link to="/integrations">
+									Connect Highlight with Slack
+								</Link>
+							) : (
+								'Slack channel not found'
+							)
 						}
 						className={styles.selectContainer}
 						mode="multiple"
@@ -649,9 +653,13 @@ const LogAlertForm = ({
 						}}
 						value={form.values.discordChannels}
 						notFoundContent={
-							<Link to="/integrations">
-								Connect Highlight with Discord
-							</Link>
+							discordChannels.length === 0 ? (
+								<Link to="/integrations">
+									Connect Highlight with Discord
+								</Link>
+							) : (
+								'Discord channel not found'
+							)
 						}
 						className={styles.selectContainer}
 						mode="multiple"
