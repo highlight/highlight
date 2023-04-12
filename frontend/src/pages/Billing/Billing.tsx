@@ -353,6 +353,8 @@ const BillingPage = () => {
 				memberLimit={billingData?.billingDetails.plan.membersLimit ?? 0}
 				errorsCount={billingData?.billingDetails.errorsMeter ?? 0}
 				errorsLimit={billingData?.billingDetails.plan.errorsLimit ?? 0}
+				logsCount={billingData?.billingDetails.logsMeter ?? 0}
+				logsLimit={billingData?.billingDetails.plan.logsLimit ?? 0}
 				subscriptionInterval={
 					billingData?.billingDetails.plan.interval ??
 					SubscriptionInterval.Monthly

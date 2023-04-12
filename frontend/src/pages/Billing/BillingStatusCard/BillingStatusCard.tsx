@@ -4,6 +4,7 @@ import { Skeleton } from '@components/Skeleton/Skeleton'
 import { USD } from '@dinero.js/currencies'
 import {
 	PlanType,
+	ProductType,
 	RetentionPeriod,
 	SubscriptionDetails,
 	SubscriptionInterval,
@@ -28,7 +29,36 @@ import styles from './BillingStatusCard.module.scss'
 
 const SESSIONS_CENTS_PER_THOUSAND = 500
 const ERRORS_CENTS_PER_THOUSAND = 20
+const LOGS_CENTS_PER_MILLION = 150
 export const MEMBERS_PRICE = 20
+
+const OverageProgress = ({
+	product,
+	count,
+	limit,
+}: {
+	product: ProductType
+	count: number
+	limit: number
+}) => {
+	return (
+		<>
+			<span className={styles.subText}>
+				You have used{' '}
+				<strong>{formatNumberWithDelimiters(count)}</strong> of your{' '}
+				<strong>{formatNumberWithDelimiters(limit)}</strong>{' '}
+				{product.toLowerCase()}
+			</span>
+			<div className={styles.progressContainer}>
+				<Progress
+					numerator={count}
+					denominator={limit || 1}
+					showInfo={false}
+				/>
+			</div>
+		</>
+	)
+}
 
 export const BillingStatusCard = ({
 	planType,
@@ -38,6 +68,8 @@ export const BillingStatusCard = ({
 	memberLimit,
 	errorsCount,
 	errorsLimit,
+	logsCount,
+	logsLimit,
 	subscriptionInterval,
 	retentionPeriod,
 	allowOverage,
@@ -54,6 +86,8 @@ export const BillingStatusCard = ({
 	memberLimit: number
 	errorsCount: number
 	errorsLimit: number
+	logsCount: number
+	logsLimit: number
 	subscriptionInterval: SubscriptionInterval
 	retentionPeriod: RetentionPeriod
 	allowOverage: boolean
@@ -95,6 +129,11 @@ export const BillingStatusCard = ({
 		errorsOverage = 0
 	}
 
+	let logsOverage = logsCount - logsLimit
+	if (!allowOverage || logsOverage < 0) {
+		logsOverage = 0
+	}
+
 	const matchedPlan = BILLING_PLANS.find((p) => p.name === planType)
 
 	const baseSubtotal =
@@ -113,7 +152,8 @@ export const BillingStatusCard = ({
 	const overageSubtotal = dinero({
 		amount:
 			Math.ceil(sessionsOverage / 1000) * SESSIONS_CENTS_PER_THOUSAND +
-			Math.ceil(errorsOverage / 1000) * ERRORS_CENTS_PER_THOUSAND,
+			Math.ceil(errorsOverage / 1000) * ERRORS_CENTS_PER_THOUSAND +
+			Math.ceil(logsOverage / 1_000_000) * LOGS_CENTS_PER_MILLION,
 		currency: USD,
 	})
 
@@ -226,43 +266,23 @@ export const BillingStatusCard = ({
 								? 'annually'
 								: 'monthly'}
 							)
-							<br />
-							You have used{' '}
-							<strong>
-								{formatNumberWithDelimiters(sessionCount)}
-							</strong>{' '}
-							of your{' '}
-							<strong>
-								{formatNumberWithDelimiters(sessionLimit)}
-							</strong>{' '}
-							sessions
-							<br />
 						</span>
-						<div className={styles.progressContainer}>
-							<Progress
-								numerator={sessionCount}
-								denominator={sessionLimit || 1}
-								showInfo={false}
-							/>
-						</div>
-						<span className={styles.subText}>
-							You have used{' '}
-							<strong>
-								{formatNumberWithDelimiters(errorsCount)}
-							</strong>{' '}
-							of your{' '}
-							<strong>
-								{formatNumberWithDelimiters(errorsLimit)}
-							</strong>{' '}
-							errors
-						</span>
-						<div className={styles.progressContainer}>
-							<Progress
-								numerator={errorsCount}
-								denominator={errorsLimit || 1}
-								showInfo={false}
-							/>
-						</div>
+						<br />
+						<OverageProgress
+							product={ProductType.Sessions}
+							count={sessionCount}
+							limit={sessionLimit}
+						/>
+						<OverageProgress
+							product={ProductType.Errors}
+							count={errorsCount}
+							limit={errorsLimit}
+						/>
+						<OverageProgress
+							product={ProductType.Logs}
+							count={logsCount}
+							limit={logsLimit}
+						/>
 					</>
 				)}
 			</div>
@@ -322,12 +342,12 @@ export const BillingStatusCard = ({
 										sessionsOverage,
 									)}
 								</strong>{' '}
-								sessions ($5 per 1000 sessions).
+								sessions ($5 per 1,000 sessions).
 							</span>
 						) : (
 							<span className={styles.subText}>
 								You're currently not paying session overage ($5
-								per 1000 sessions).
+								per 1,000 sessions).
 							</span>
 						)}
 						<br />
@@ -339,12 +359,29 @@ export const BillingStatusCard = ({
 								<strong>
 									{formatNumberWithDelimiters(errorsOverage)}
 								</strong>{' '}
-								errors ($0.20 per 1000 errors).
+								errors ($0.20 per 1,000 errors).
 							</span>
 						) : (
 							<span className={styles.subText}>
 								You're currently not paying errors overage
-								($0.20 per 1000 errors).
+								($0.20 per 1,000 errors).
+							</span>
+						)}
+						<br />
+						{loading ? (
+							<Skeleton />
+						) : logsOverage > 0 ? (
+							<span className={styles.subText}>
+								You have a logs overage of{' '}
+								<strong>
+									{formatNumberWithDelimiters(logsOverage)}
+								</strong>{' '}
+								logs ($1.50 per 1,000,000 logs).
+							</span>
+						) : (
+							<span className={styles.subText}>
+								You're currently not paying logs overage ($1.50
+								per 1,000,000 logs).
 							</span>
 						)}
 					</div>

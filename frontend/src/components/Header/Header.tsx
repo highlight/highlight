@@ -11,7 +11,7 @@ import { linkStyle } from '@components/Header/styles.css'
 import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
-import { Maybe, PlanType, Project } from '@graph/schemas'
+import { Maybe, PlanType, ProductType, Project } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -43,7 +43,10 @@ import { useProjectId } from '@hooks/useProjectId'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
 import { useBillingHook } from '@pages/Billing/Billing'
-import { getTrialEndDateMessage } from '@pages/Billing/utils/utils'
+import {
+	getQuotaPercents,
+	getTrialEndDateMessage,
+} from '@pages/Billing/utils/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
@@ -62,6 +65,8 @@ import React, { useEffect } from 'react'
 import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
+
+import { GetBillingDetailsForProjectQuery } from '@/graph/generated/operations'
 
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.scss'
@@ -711,6 +716,10 @@ const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 		return null
 	}
 
+	if ([].length === 0 && data) {
+		return <BillingQuotaBanner data={data} />
+	}
+
 	if (temporarilyHideBanner) {
 		toggleShowBanner(false)
 		return null
@@ -833,6 +842,88 @@ const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 					<SvgXIcon />
 				</button>
 			)}
+		</div>
+	)
+}
+
+const productsToString = (p: ProductType[]): string => {
+	const lowers = p.map((p) => p.toLowerCase())
+	if (lowers.length === 0) {
+		return ''
+	} else if (lowers.length === 1) {
+		return lowers[0]
+	} else if (lowers.length === 2) {
+		return `${lowers[0]} and ${lowers[1]}`
+	} else {
+		lowers.reverse()
+		const [last, ...rest] = lowers
+		rest.reverse()
+		return rest.join(', ') + `, and ${last}`
+	}
+}
+
+const BillingQuotaBanner: React.FC<{
+	data: GetBillingDetailsForProjectQuery
+}> = ({ data }) => {
+	const [temporarilyHideBanner, setTemporarilyHideBanner] = useSessionStorage(
+		'highlightHideFreePlanBanner',
+		false,
+	)
+	const { toggleShowBanner } = useGlobalContext()
+
+	if (temporarilyHideBanner) {
+		return null
+	}
+
+	const records = getQuotaPercents(data)
+
+	const threshold = 0.8
+	const productsApproachingQuota = records
+		.filter((r) => r[1] > threshold && r[1] <= 1)
+		.map((r) => r[0])
+	const productsOverQuota = records.filter((r) => r[1] > 1).map((r) => r[0])
+
+	let message = ''
+	if (productsOverQuota.length > 0) {
+		message += `You've exceeded your monthly limit for ${productsToString(
+			productsOverQuota,
+		)}. `
+	}
+	if (productsApproachingQuota.length > 0) {
+		message += `You're close to your monthly limit for ${productsToString(
+			productsApproachingQuota,
+		)}. `
+	}
+
+	if (!message) {
+		return null
+	}
+
+	toggleShowBanner(true)
+
+	return (
+		<div className={styles.trialWrapper}>
+			{message && (
+				<div className={clsx(styles.trialTimeText)}>
+					{message}
+					<a
+						target="_blank"
+						href={`/w/${data.workspace_for_project?.id}/current-plan`}
+						className={styles.trialLink}
+						rel="noreferrer"
+					>
+						Upgrade plan
+					</a>
+				</div>
+			)}
+			<button
+				onClick={() => {
+					analytics.track('TemporarilyHideFreePlanBanner')
+					setTemporarilyHideBanner(true)
+				}}
+			>
+				<SvgXIcon />
+			</button>
 		</div>
 	)
 }

@@ -1475,6 +1475,12 @@ export enum PlanType {
 	Startup = 'Startup',
 }
 
+export enum ProductType {
+	Errors = 'Errors',
+	Logs = 'Logs',
+	Sessions = 'Sessions',
+}
+
 export type Project = {
 	__typename?: 'Project'
 	backend_domains?: Maybe<Scalars['StringArray']>

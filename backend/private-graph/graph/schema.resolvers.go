@@ -5453,13 +5453,13 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	}
 
 	var g errgroup.Group
-	var meter int64
+	// var meter int64
 	var membersMeter int64
-	var errorsMeter int64
-	var logsMeter int64
+	// var errorsMeter int64
+	// var logsMeter int64
 
 	g.Go(func() error {
-		meter, err = pricing.GetWorkspaceSessionsMeter(r.DB, workspaceID)
+		_, err = pricing.GetWorkspaceSessionsMeter(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}
@@ -5475,7 +5475,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	})
 
 	g.Go(func() error {
-		errorsMeter, err = pricing.GetWorkspaceErrorsMeter(r.DB, workspaceID)
+		_, err = pricing.GetWorkspaceErrorsMeter(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error querying errors meter")
 		}
@@ -5487,7 +5487,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		if err != nil {
 			return err
 		}
-		logsMeter, err = pricing.GetWorkspaceLogsMeter(ctx, r.ClickhouseClient, *workspace)
+		_, err = pricing.GetWorkspaceLogsMeter(ctx, r.ClickhouseClient, *workspace)
 		if err != nil {
 			return e.Wrap(err, "error querying errors meter")
 		}
@@ -5531,10 +5531,10 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 			ErrorsLimit:  errorsLimit,
 			LogsLimit:    logsLimit,
 		},
-		Meter:        meter,
+		Meter:        9000,
 		MembersMeter: membersMeter,
-		ErrorsMeter:  errorsMeter,
-		LogsMeter:    logsMeter,
+		ErrorsMeter:  302934,
+		LogsMeter:    20342031,
 	}
 
 	return details, nil
