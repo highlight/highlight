@@ -112,6 +112,7 @@ export const ConsolePage = ({
 			(logEdge) => logEdge.cursor === selectedCursor,
 		)
 	}, [messagesToRender, selectedCursor])
+
 	useEffect(() => {
 		if (
 			isPlayerReady && // ensure Virtuoso component is actually rendered
@@ -127,7 +128,7 @@ export const ConsolePage = ({
 					// behavior: 'smooth'
 				})
 
-				if (state !== ReplayerState.Playing || !autoScroll) {
+				if (state === ReplayerState.Paused) {
 					// We really only want this run when the component is mounted
 					// and we are trying to set the player time based on what the log cursor
 					// query param is.
