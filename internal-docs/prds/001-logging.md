@@ -18,7 +18,7 @@ In Q4 of 2022, Highlight built out an [error monitoring](https://errors.highligh
 
 ## Competitor Analysis
 
-[**Logtail**](https://betterstack.com/logtail)
+**Logtail**
 
 **Pros:**
 
@@ -29,7 +29,7 @@ In Q4 of 2022, Highlight built out an [error monitoring](https://errors.highligh
 
 - Log explorer pulls you into Grafana instead of something more native to their UX.
 
-[**Axiom**](https://axiom.co/)
+**Axiom**
 
 **Pros:**
 
@@ -39,7 +39,7 @@ In Q4 of 2022, Highlight built out an [error monitoring](https://errors.highligh
 
 - Have to learn a [new language](https://www.axiom.co/docs/apl/introduction) to really harness the power.
 
-[**logz.io**](https://logz.io/)
+**logz.io**
 
 **Pros:**
 

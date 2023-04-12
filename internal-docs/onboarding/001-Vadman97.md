@@ -14,20 +14,15 @@ Your onboarding buddy is [@et](https://github.com/et) and they'll walk you throu
 
 ## Feedback
 
-Highlight is a fast moving start up that is constantly evolving. We definitely don't have everything right.
+Highlight is a fast moving start up that is constantly evolving.
 
-You are absolutely encouraged to edit the company at any time either through a pull request or through a public slack channel.
+If you see something you think should be changed, feel empowered to make the change through a pull request, a public slack channel, or a meeting. 
 
 # Timeline
 
 ## Ahead of day one
 
-Prior to joining Highlight, ensure you have ordered a laptop that will arrive before your first day (work with Jay or your onboarding buddy to figure this out).
-
-### Ahead of day one access checklist
-
-* Google Workspace
-* Slack
+Prior to joining Highlight, ensure you have ordered a laptop that will arrive before your first day (work with your onboarding buddy to figure this out).
 
 ## Week one
 
@@ -52,16 +47,6 @@ Your onboarding buddy will help you through the following tasks over your first 
     - Were the docs easy to navigate?
     - Was the API spec in the expected style to the language? (e.g. naming made sense or matched the stylistic nature of the language).
 
-### End of week one access checklist
-
-* Highlight
-* GitHub
-* Zoom
-* Loom
-* Figma
-* Doppler
-* Notion (much of this outdated)
-
 ## Week two
 
 Set up pairing with each member of the team on the following tasks:
@@ -76,7 +61,18 @@ Set up pairing with each member of the team on the following tasks:
 
 ## Week three
 
-### End of week three access checklist
+## Access Checklist
 
-* AWS
-* SendGrid
+- [ ] Google Workspace
+- [ ] Slack
+- [ ] Highlight
+- [ ] GitHub
+- [ ] Zoom
+- [ ] Loom
+- [ ] Figma
+- [ ] Doppler
+- [ ] Render
+- [ ] Datadog
+- [ ] Notion (much of this outdated)
+- [ ] AWS
+- [ ] SendGrid
