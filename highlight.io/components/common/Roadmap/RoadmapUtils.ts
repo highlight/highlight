@@ -140,12 +140,12 @@ export const roadmapFetcher = async (): Promise<{
 	for (let i = 0; i < issues.length; i++) {
 		let content = issues[i].content
 		let issueReactions: IssueReaction[] = []
-		
-		if(!content) {
-			continue;
+
+		if (!content) {
+			continue
 		}
 
-		if(content && content.reactions) {
+		if (content && content.reactions) {
 			const frequencyDict = content.reactions.nodes.reduce(
 				(acc: { [key: string]: number }, cur: { content: string }) => {
 					const content = cur.content
@@ -166,10 +166,10 @@ export const roadmapFetcher = async (): Promise<{
 		}
 
 		let labels: string[] = []
-		if(content && content.labels) {
+		if (content && content.labels) {
 			labels = content.labels.nodes
-			.filter((label) => label)
-			.map((label?: { name: string }) => label.name)	
+				.filter((label) => label)
+				.map((label?: { name: string }) => label.name)
 		}
 
 		let issue: Issue = {
@@ -182,7 +182,7 @@ export const roadmapFetcher = async (): Promise<{
 		}
 
 		if (issue.title == undefined) {
-			continue;
+			continue
 		}
 
 		if (issues[i].fieldValueByName?.name === 'Under Consideration') {
