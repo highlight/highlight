@@ -23,7 +23,7 @@ If you see something you think should be changed, feel empowered to propose chan
 
 ## Ahead of day one
 
-Prior to joining Highlight, ensure you have ordered a laptop that will arrive before your first day (work with your onboarding buddy to figure this out).
+Prior to joining Highlight, ensure you have ordered a laptop that will arrive before your first day and that you have payroll and insurance set up (your onboarding buddy will help you figure this out).
 
 ## Week one
 
