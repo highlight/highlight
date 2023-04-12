@@ -107,6 +107,7 @@ export const LogAlertPage = () => {
 			emails: [],
 			threshold: undefined,
 			frequency: 15,
+			loaded: false,
 		},
 	})
 
@@ -138,6 +139,7 @@ export const LogAlertPage = () => {
 				emails: data?.log_alert.EmailsToNotify,
 				threshold: data?.log_alert.CountThreshold,
 				frequency: data?.log_alert.ThresholdWindow,
+				loaded: true,
 			})
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -311,6 +313,8 @@ export const LogAlertPage = () => {
 		</Box>
 	)
 
+	const isLoading = !isCreate && !form.values.loaded
+
 	return (
 		<Box width="full" background="raised" p="8">
 			<Box
@@ -323,8 +327,8 @@ export const LogAlertPage = () => {
 				flexDirection="column"
 				height="full"
 			>
-				{loading && <LoadingBox />}
-				{!loading && (
+				{isLoading && <LoadingBox />}
+				{!isLoading && (
 					<>
 						{header}
 						<Container
@@ -747,6 +751,7 @@ interface LogMonitorForm {
 	discordChannels: DiscordChannelInput[]
 	emails: string[]
 	webhookDestinations: string[]
+	loaded: boolean
 }
 
 export default LogAlertPage
