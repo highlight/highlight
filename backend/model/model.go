@@ -264,6 +264,7 @@ type Workspace struct {
 	MonthlySessionLimit         *int
 	MonthlyMembersLimit         *int
 	MonthlyErrorsLimit          *int
+	MonthlyLogsLimit            *int
 	RetentionPeriod             *modelInputs.RetentionPeriod
 	TrialEndDate                *time.Time `json:"trial_end_date"`
 	AllowMeterOverage           bool       `gorm:"default:true"`

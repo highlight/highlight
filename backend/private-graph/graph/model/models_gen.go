@@ -74,6 +74,7 @@ type BillingDetails struct {
 	MembersMeter       int64 `json:"membersMeter"`
 	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
 	ErrorsMeter        int64 `json:"errorsMeter"`
+	LogsMeter          int64 `json:"logsMeter"`
 }
 
 type CategoryHistogramBucket struct {
@@ -471,6 +472,7 @@ type Plan struct {
 	Quota        int                  `json:"quota"`
 	MembersLimit *int                 `json:"membersLimit"`
 	ErrorsLimit  int                  `json:"errorsLimit"`
+	LogsLimit    int                  `json:"logsLimit"`
 }
 
 type RageClickEventForProject struct {

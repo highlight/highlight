@@ -112,6 +112,7 @@ export type AverageSessionLength = {
 export type BillingDetails = {
 	__typename?: 'BillingDetails'
 	errorsMeter: Scalars['Int64']
+	logsMeter: Scalars['Int64']
 	membersMeter: Scalars['Int64']
 	meter: Scalars['Int64']
 	plan: Plan
@@ -1460,6 +1461,7 @@ export type Plan = {
 	__typename?: 'Plan'
 	errorsLimit: Scalars['Int']
 	interval: SubscriptionInterval
+	logsLimit: Scalars['Int']
 	membersLimit?: Maybe<Scalars['Int']>
 	quota: Scalars['Int']
 	type: PlanType
