@@ -605,6 +605,7 @@ const LogAlertForm = ({
 						aria-label="Slack channels to notify"
 						placeholder="Select Slack channels"
 						options={slackChannels}
+						optionFilterProp="label"
 						onChange={(values) => {
 							form.setValue(
 								form.names.slackChannels,
@@ -635,6 +636,7 @@ const LogAlertForm = ({
 						aria-label="Discord channels to notify"
 						placeholder="Select Discord channels"
 						options={discordChannels}
+						optionFilterProp="label"
 						onChange={(values) => {
 							form.setValue(
 								form.names.discordChannels,
