@@ -204,7 +204,9 @@ function stringifyProperties(
 
 	const processPropertiesMessage = async (msg: PropertiesMessage) => {
 		const { propertiesObject, propertyType } = msg
+		let eventType = ''
 		if (propertiesObject?.clickTextContent !== undefined) {
+			eventType = 'ClickTextContent'
 			// click test content should be searchable on sessions but not part of the timeline indicators
 			await graphqlSDK.addSessionProperties({
 				session_secure_id: sessionSecureID,
@@ -214,24 +216,34 @@ function stringifyProperties(
 				),
 			})
 		} else if (propertyType?.type === 'session') {
+			eventType = 'Session'
 			// Session properties are custom properties that the Highlight snippet adds (visited-url, referrer, etc.)
-			addCustomEvent<string>('Track', stringify(propertiesObject))
-			logger.log(
-				`AddSessionProperties to session (${sessionSecureID}) w/ obj: ${JSON.stringify(
+			// These should be searchable but not part of `Track` timeline indicators
+			await graphqlSDK.addSessionProperties({
+				session_secure_id: sessionSecureID,
+				properties_object: stringifyProperties(
 					propertiesObject,
-				)} @ ${backend}`,
-			)
+					'session',
+				),
+			})
 		} else {
 			// Track properties are properties that users define; rn, either through segment or manually.
 			if (propertyType?.source === 'segment') {
+				eventType = 'Segment'
 				addCustomEvent<string>(
 					'Segment Track',
 					stringify(propertiesObject),
 				)
 			} else {
-				addCustomEvent<string>('Track', stringify(propertiesObject))
+				eventType = 'Track'
+				addCustomEvent<string>(eventType, stringify(propertiesObject))
 			}
 		}
+		logger.log(
+			`Adding ${eventType} Properties to session (${sessionSecureID}) w/ obj: ${JSON.stringify(
+				propertiesObject,
+			)} @ ${backend}`,
+		)
 	}
 
 	const processMetricsMessage = async (msg: MetricsMessage) => {
