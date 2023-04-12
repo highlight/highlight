@@ -54,7 +54,7 @@ Your onboarding buddy will help you through the following tasks over your first 
 Set up pairing with each member of the team on the following tasks:
 
 - [ ] https://github.com/highlight/highlight/issues/4790 with [@et](https://github.com/et)
-- [ ] https://github.com/highlight/highlight/issues/4764 with [@et](https://github.com/highlight/highlight/issues/4764) and [@julian-highlight](https://github.com/julian-highlight)
+- [ ] https://github.com/highlight/highlight/issues/4764 with [@et](https://github.com/et) and [@julian-highlight](https://github.com/julian-highlight)
 - [ ] https://github.com/highlight/highlight/issues/4477 with [@ccschmitz](https://github.com/ccschmitz)
 - [ ] https://github.com/highlight/highlight/issues/4886 with [@mayberryzane](https://github.com/mayberryzane)
 
