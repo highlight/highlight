@@ -835,12 +835,16 @@ const DocPage = ({
 		if (redirect) router.push(redirect)
 	}, [redirect, router])
 
-	// useEffect(() => {
-	// 	const storedScrollPosition = sessionStorage.getItem('scrollPosition')
-	// 	if (storedScrollPosition) {
-	// 		window.scrollTo(0, parseInt(storedScrollPosition))
-	// 	}
-	// }, [router])
+	useEffect(() => {
+		const storedScrollPosition = parseInt(
+			sessionStorage.getItem('scrollPosition'),
+		)
+
+		if (storedScrollPosition) {
+			window.scrollTo(0, storedScrollPosition)
+			sessionStorage.setItem('scrollPosition', '0')
+		}
+	}, [router])
 
 	const currentToc = toc?.children.find(
 		(c) => c.tocSlug === relPath?.split('/').filter((r) => r)[0],
