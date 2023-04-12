@@ -54,11 +54,6 @@ Set up pairing with each member of the team on the following tasks:
 - [ ] https://github.com/highlight/highlight/issues/4764 with [@ccschmitz](https://github.com/ccschmitz)
 - [ ] https://github.com/highlight/highlight/issues/4837 with [@mayberryzane](https://github.com/mayberryzane)
 
-### End of week two access checklist
-
-* Render
-* Datadog
-
 ## Week three
 
 ## Access Checklist
