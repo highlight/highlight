@@ -33762,6 +33762,7 @@ __metadata:
     "@size-limit/file": ^8.1.0
     "@types/chrome": ^0.0.144
     esbuild: ^0.14.47
+    readdirp: ^3.6.0
     rollup: ^2.79.1
     rollup-plugin-consts: ^1.1.0
     rollup-plugin-esbuild: ^4.9.1
@@ -46627,7 +46628,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"readdirp@npm:~3.6.0":
+"readdirp@npm:^3.6.0, readdirp@npm:~3.6.0":
   version: 3.6.0
   resolution: "readdirp@npm:3.6.0"
   dependencies:
