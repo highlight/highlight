@@ -5,13 +5,13 @@ Instructions for onboarding buddy:
 * Make appropriate changes to this template given who you are onboarding.
 -->
 
-# Welcome [@github-new-hire-username](https://github.com/github-new-hire-username) 👋
+# Welcome [@deltaepsilon](https://github.com/deltaepsilon) 👋
 
-Welcome to Highlight [@github-new-hire-username](https://github.com/github-new-hire-username)! We're thrilled to have you join us.
+Welcome to Highlight [@deltaepsilon](https://github.com/deltaepsilon)! We're thrilled to have you join us.
 
 We are an [open source](https://news.ycombinator.com/item?id=34897645) company and one of our core values is [building in public](https://www.highlight.io/docs/general/company/values#we-build-in-public) -- that also includes onboarding 🎉
 
-Your onboarding buddy is [@github-onboarding-buddy-username](https://github.com/github-onboarding-buddy-username) and they'll walk you through your next couple weeks.
+Your onboarding buddy is [@Vadman97](https://github.com/Vadman97) for week one and [@et](https://github.com/et) for week two and beyond.
 
 ## Feedback
 
@@ -29,7 +29,8 @@ Prior to joining Highlight, ensure you have ordered a laptop that will arrive be
 
 Your onboarding buddy will help you through the following tasks over your first week but prioritize getting to know the team and understanding the product over delivering work. 
 
-- [ ] https://github.com/highlight/highlight/issues/:issue_id
+- [ ] https://github.com/highlight/highlight/issues/3951
+- [ ] https://github.com/highlight/highlight/issues/4774
 
 ### Day one
 
@@ -52,8 +53,10 @@ Your onboarding buddy will help you through the following tasks over your first 
 
 Set up pairing with each member of the team on the following tasks:
 
-- [ ] https://github.com/highlight/highlight/issues/:issue_id with [@github-teammate-username](https://github.com/github-teammate-username)
-- [ ] https://github.com/highlight/highlight/issues/:issue_id with [@github-teammate-username](https://github.com/github-teammate-username)
+- [ ] https://github.com/highlight/highlight/issues/4790 with [@et](https://github.com/et)
+- [ ] https://github.com/highlight/highlight/issues/4764 with [@et](https://github.com/et) and [@julian-highlight](https://github.com/julian-highlight)
+- [ ] https://github.com/highlight/highlight/issues/4477 with [@ccschmitz](https://github.com/ccschmitz)
+- [ ] https://github.com/highlight/highlight/issues/4886 with [@mayberryzane](https://github.com/mayberryzane)
 
 ## Week three
 
