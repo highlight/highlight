@@ -8,7 +8,8 @@ Instructions for onboarding buddy:
 # Welcome [@github-new-hire-username](https://github.com/github-new-hire-username) 👋
 
 Welcome to Highlight [@github-new-hire-username](https://github.com/github-new-hire-username)! We're thrilled to have you join us.
-Recently, our company went [open source](https://news.ycombinator.com/item?id=34897645) and we are [building our work in public](https://www.highlight.io/docs/general/company/values#we-build-in-public).
+
+Since we are [open source](https://news.ycombinator.com/item?id=34897645) and one of our core values is [building in public](https://www.highlight.io/docs/general/company/values#we-build-in-public), your onboarding process will also be tracked in repo.
 
 Your onboarding buddy is [@github-onboarding-buddy-username](https://github.com/github-onboarding-buddy-username) and they'll walk you through your next couple weeks.
 
@@ -16,7 +17,7 @@ Your onboarding buddy is [@github-onboarding-buddy-username](https://github.com/
 
 Highlight is a fast moving start up that is constantly evolving.
 
-If you see something you think should be changed, feel empowered to make the change through a pull request, a public slack channel, or a meeting. 
+If you see something you think should be changed, feel empowered to propose changes through a pull request, a public slack channel, or a meeting. 
 
 # Timeline
 
@@ -56,8 +57,15 @@ Set up pairing with each member of the team on the following tasks:
 
 ## Week three
 
+At this point, you should be getting more comfortable with the team and our codebase. While most of us are full stack engineers, some people gravitate towards different parts of the stack. But success at Highlight doesn't have to be driven by writing code -- there are many opportunities to wear different hats here. Work with your onboarding buddy to understand how you can feel most fulfilled working at Highlight.
+
+## Beyond week three
+
+Once you feel like you are fully spun up, open up a pull request to delete your onboarding document. Feel free to propose any changes to the template to improve the experience for the next hire!
+
 ## Access Checklist
 
+- [ ] Rippling
 - [ ] Google Workspace
 - [ ] Slack
 - [ ] Highlight
@@ -71,3 +79,4 @@ Set up pairing with each member of the team on the following tasks:
 - [ ] Notion (much of this outdated)
 - [ ] AWS
 - [ ] SendGrid
+
