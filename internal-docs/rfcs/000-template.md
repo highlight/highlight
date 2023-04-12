@@ -60,10 +60,6 @@ Instructions:
 
 > How will this change be rolled out and adopted across the team + codebase? Consider adding list showing sequencing of different deliverables.
 
-## Education
-
-> What work needs to be done to educate the team on this change?
-
 ## Tasks
 
 > Document any open action items to move this forward.

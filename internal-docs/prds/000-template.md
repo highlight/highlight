@@ -30,6 +30,10 @@ Instructions:
 
 > How should we monetize this feature while also minimizing friction to adoption.
 
+## Education
+
+> What work needs to be done to educate the team and our customers on this change?
+
 ## What we are building
 
 > What metrics will we be monitoring to know the project is completed and producing the desired result?
