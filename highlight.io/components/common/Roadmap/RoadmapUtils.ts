@@ -130,7 +130,7 @@ export const roadmapFetcher = async (): Promise<{
 
 	const response = await fetch('https://api.github.com/graphql', options)
 	const { data } = await response.json()
-	if (!data) {
+	if (!data || !data.node || !data.node.items || !data.node.items.nodes) {
 		return { column1, column2, column3 }
 	}
 
