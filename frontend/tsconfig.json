@@ -36,6 +36,7 @@
 	"references": [
 		{ "path": "../sdk/client" },
 		{ "path": "../sdk/firstload" },
-		{ "path": "../rrweb/packages/rrweb" }
+		{ "path": "../rrweb/packages/rrweb" },
+		{ "path": "../rrweb/packages/types" }
 	]
 }
