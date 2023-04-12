@@ -3,13 +3,14 @@ package alerts
 import (
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
+	"github.com/highlight-run/highlight/backend/model"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
-	"github.com/highlight-run/highlight/backend/model"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -509,6 +510,8 @@ type LogAlertEvent struct {
 	LogAlert  *model.LogAlert
 	Workspace *model.Workspace
 	Count     int
+	StartDate time.Time
+	EndDate   time.Time
 }
 
 func SendLogAlert(event LogAlertEvent) error {
@@ -516,9 +519,11 @@ func SendLogAlert(event LogAlertEvent) error {
 		Name:           *event.LogAlert.Name,
 		Query:          event.LogAlert.Query,
 		Count:          event.Count,
+		StartDate:      event.StartDate,
+		EndDate:        event.EndDate,
 		Threshold:      event.LogAlert.CountThreshold,
 		BelowThreshold: event.LogAlert.BelowThreshold,
-		AlertURL:       getLogAlertURL(event.LogAlert),
+		AlertURL:       model.GetLogAlertURL(event.LogAlert.ProjectID, event.LogAlert.Query, event.StartDate, event.EndDate),
 	}
 
 	for _, wh := range event.LogAlert.WebhookDestinations {
