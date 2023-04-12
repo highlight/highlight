@@ -117,7 +117,8 @@ const useIntersectionObserver = (setActiveId: (s: string) => void) => {
 		}
 
 		const observer = new IntersectionObserver(callback, {
-			rootMargin: ' -5% 0px -90% 0px',
+			rootMargin: '-5% 0px -90% 0px',
+			threshold: 0.0001,
 		})
 
 		const headingElements = Array.from(

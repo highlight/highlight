@@ -13,7 +13,8 @@ import { H } from 'highlight.run'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
-import { styledVerticalScrollbar } from 'style/common.css'
+
+import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'

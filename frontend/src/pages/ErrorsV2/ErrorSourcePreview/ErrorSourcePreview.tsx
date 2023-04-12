@@ -2,6 +2,7 @@ import { Maybe } from '@graph/schemas'
 import { StackSectionProps } from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import React from 'react'
 import SyntaxHighlighter from 'react-syntax-highlighter/dist/esm/light'
+import { coy as lightTheme } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 type ErrorSourcePreviewProps = {
 	lineContent: StackSectionProps['lineContent']
@@ -80,7 +81,7 @@ const ErrorSourcePreview: React.FC<
 	return (
 		<SyntaxHighlighter
 			language={language}
-			style="light"
+			style={lightTheme}
 			showLineNumbers={showLineNumbers}
 			wrapLines
 			startingLineNumber={(lineNumber ?? 1) - before.length}

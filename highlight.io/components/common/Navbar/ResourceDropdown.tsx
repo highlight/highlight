@@ -31,7 +31,7 @@ const ResourceDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 		{
 			title: 'Feedback',
 			icon: <Icons.HiChat className={styles.copyOnLight} />,
-			link: 'https://feedback.highlight.run',
+			link: 'https://highlight.io/community',
 		},
 		{
 			title: 'Github',

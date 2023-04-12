@@ -363,11 +363,7 @@ func main() {
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
 	}
-	authMode := private.Firebase
-	if util.IsInDocker() {
-		authMode = private.Simple
-	}
-	private.SetupAuthClient(ctx, authMode, oauthSrv, privateResolver.Query().APIKeyToOrgID)
+	private.SetupAuthClient(ctx, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
 	errorLogger := httplog.NewLogger(fmt.Sprintf("%v-service", runtimeParsed), httplog.Options{

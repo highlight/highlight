@@ -9,21 +9,21 @@
 	"dependencies": {
 		"@highlight-run/nest": "workspace:*",
 		"@nestjs/axios": "^0.0.7",
-		"@nestjs/common": "^8.0.0",
+		"@nestjs/common": ">=8",
 		"@nestjs/config": "^2.0.0",
-		"@nestjs/core": "^8.0.0",
-		"@nestjs/jwt": "^8.0.0",
+		"@nestjs/core": ">=8",
+		"@nestjs/jwt": ">=8",
 		"@nestjs/mapped-types": "*",
-		"@nestjs/microservices": "^8.0.11",
-		"@nestjs/passport": "^8.0.1",
-		"@nestjs/platform-express": "^8.0.0",
+		"@nestjs/microservices": ">=8",
+		"@nestjs/passport": ">=8",
+		"@nestjs/platform-express": ">=8",
 		"@nestjs/schedule": "^1.0.2",
 		"@nestjs/swagger": "^5.1.5"
 	},
 	"devDependencies": {
-		"@nestjs/cli": "^8.0.0",
-		"@nestjs/schematics": "^8.0.0",
-		"@nestjs/testing": "^8.0.0",
+		"@nestjs/cli": ">=8",
+		"@nestjs/schematics": ">=8",
+		"@nestjs/testing": ">=8",
 		"typescript": "^4.9.5"
 	}
 }

@@ -25,7 +25,7 @@ jobs:
             - name: Setup Node.js environment
               uses: actions/setup-node@v3
               with:
-                  node-version: 16
+                  node-version: 18
                   cache: 'yarn'
 
             - name: Setup Golang environment
@@ -55,7 +55,7 @@ jobs:
                   ./start-infra.sh > /tmp/highlight.log 2>&1;
                   docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
                   ./run-frontend.sh  >> /tmp/highlight.log 2>&1 & ./run-backend.sh >> /tmp/highlight.log 2>&1 &
-                  yarn dlx wait-on -l -s 3 https://localhost:3000/index.html http://localhost:8080/dist/index.js https://localhost:8082/health;
+                  yarn dlx wait-on -l -s 4 https://127.0.0.1:3000/index.html  https://127.0.0.1:3000/src/routers/AppRouter/AppRouter.tsx http://127.0.0.1:8080/dist/index.js https://127.0.0.1:8082/health;                
                   popd;
 
                   yarn cy:run;
@@ -71,7 +71,7 @@ jobs:
                   docker compose logs;
 
             - name: Save videos
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v3
               if: failure()
               with:
                   name: cypress-videos

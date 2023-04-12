@@ -323,6 +323,7 @@ type Project struct {
 	WorkspaceID         int
 	FreeTier            bool           `gorm:"default:false"`
 	ExcludedUsers       pq.StringArray `json:"excluded_users" gorm:"type:text[]"`
+	ErrorFilters        pq.StringArray `gorm:"type:text[]"`
 	ErrorJsonPaths      pq.StringArray `gorm:"type:text[]"`
 
 	// During metrics querying for network requests, only keep these relevant URLs

@@ -556,7 +556,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 }
 
 // EditProject is the resolver for the editProject field.
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -579,6 +579,7 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 		Name:                  name,
 		BillingEmail:          billingEmail,
 		ExcludedUsers:         excludedUsers,
+		ErrorFilters:          errorFilters,
 		ErrorJsonPaths:        errorJSONPaths,
 		BackendDomains:        backendDomains,
 		FilterChromeExtension: filterChromeExtension,
@@ -3350,7 +3351,7 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 		vercelProjectsById[p.ID] = p
 	}
 
-	configs := []*model.VercelIntegrationConfig{}
+	var configs []*model.VercelIntegrationConfig
 	for _, m := range projectMappings {
 		var project *model.Project
 
@@ -3401,15 +3402,17 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 			return false, err
 		}
 
-		if err := vercel.CreateLogDrain(workspace.VercelTeamID, m.VercelProjectID, project.VerboseID(), "highlight-log-drain", *workspace.VercelAccessToken); err != nil {
-			return false, err
-		}
-
 		configs = append(configs, &model.VercelIntegrationConfig{
 			WorkspaceID:     workspaceId,
 			VercelProjectID: m.VercelProjectID,
 			ProjectID:       project.ID,
 		})
+	}
+
+	if err := vercel.CreateLogDrain(workspace.VercelTeamID, lo.Map(projectMappings, func(t *modelInputs.VercelProjectMappingInput, i int) string {
+		return t.VercelProjectID
+	}), project.VerboseID(), "Highlight Log Drain", *workspace.VercelAccessToken); err != nil {
+		return false, err
 	}
 
 	if err := r.DB.Where("workspace_id = ?", workspaceId).Delete(&model.VercelIntegrationConfig{}).Error; err != nil {

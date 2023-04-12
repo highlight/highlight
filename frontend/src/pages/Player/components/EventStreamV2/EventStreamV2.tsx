@@ -22,7 +22,8 @@ import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
-import { styledVerticalScrollbar } from 'style/common.css'
+
+import { styledVerticalScrollbar } from '@/style/common.css'
 
 import * as style from './EventStreamV2.css'
 

@@ -77,7 +77,7 @@ const Footer = () => {
 					<Typography type="copy3">
 						<ul className={styles.footerList}>
 							<li>
-								<a href="https://feedback.highlight.run/changelog">
+								<a href="https://www.highlight.io/docs/general/changelog/overview">
 									Changelog
 								</a>
 							</li>

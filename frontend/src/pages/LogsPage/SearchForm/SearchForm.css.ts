@@ -1,7 +1,8 @@
 import { vars } from '@highlight-run/ui'
 import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
 import { globalStyle, style } from '@vanilla-extract/css'
-import { styledVerticalScrollbar } from 'style/common.css'
+
+import { styledVerticalScrollbar } from '@/style/common.css'
 
 export const searchIcon = style({
 	position: 'absolute',
