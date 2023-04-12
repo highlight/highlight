@@ -76,6 +76,7 @@ Once you feel like you are fully spun up, open up a pull request to delete your 
 - [ ] Doppler
 - [ ] Render
 - [ ] Datadog
+- [ ] Intercom
 - [ ] Notion (much of this outdated)
 - [ ] AWS
 - [ ] SendGrid
