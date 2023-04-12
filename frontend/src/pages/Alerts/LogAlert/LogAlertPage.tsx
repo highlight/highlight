@@ -42,19 +42,21 @@ import {
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { Search } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
+import { Divider, message } from 'antd'
 import { capitalize } from 'lodash'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { DateTimeParam, StringParam, useQueryParam } from 'use-query-params'
 
+import { getSlackUrl } from '@/components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LoadingBox from '@/components/LoadingBox'
 import { namedOperations } from '@/graph/generated/operations'
 import {
 	DiscordChannelInput,
 	SanitizedSlackChannelInput,
 } from '@/graph/generated/schemas'
+import SyncWithSlackButton from '@/pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 
 import * as styles from './styles.css'
 
@@ -470,6 +472,14 @@ const LogAlertForm = ({
 			id: email,
 		}))
 
+	const syncSlack = (
+		<SyncWithSlackButton
+			slackUrl={getSlackUrl(projectId ?? '')}
+			isSlackIntegrated={alertsPayload?.is_integrated_with_slack || false}
+			refetchQueries={[namedOperations.Query.GetLogAlertsPagePayload]}
+		/>
+	)
+
 	return (
 		<Box cssClass={styles.grid}>
 			<Stack gap="12">
@@ -617,15 +627,22 @@ const LogAlertForm = ({
 							)
 						}}
 						value={form.values.slackChannels}
-						notFoundContent={
-							slackChannels.length === 0 ? (
-								<Link to="/integrations">
-									Connect Highlight with Slack
-								</Link>
-							) : (
-								'Slack channel not found'
-							)
-						}
+						notFoundContent="Slack channel not found"
+						dropdownRender={(menu) => (
+							<div>
+								{menu}
+								{slackChannels.length > 0 && (
+									<>
+										<Divider
+											style={{
+												margin: '4px 0',
+											}}
+										/>
+										<Box mx="12">{syncSlack}</Box>
+									</>
+								)}
+							</div>
+						)}
 						className={styles.selectContainer}
 						mode="multiple"
 						labelInValue
