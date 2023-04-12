@@ -3126,11 +3126,12 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 	return
 }
 
-func (r *Resolver) GetProjectRetentionDate(ctx context.Context, projectId int) (time.Time, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectId)
-	if err != nil {
-		return time.Time{}, err
+func (r *Resolver) GetProjectRetentionDate(projectId int) (time.Time, error) {
+	var project *model.Project
+	if err := r.DB.Model(&model.Project{}).Where("id = ?", projectId).First(&project).Error; err != nil {
+		return time.Time{}, e.Wrap(err, "error querying project")
 	}
+
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return time.Time{}, err
