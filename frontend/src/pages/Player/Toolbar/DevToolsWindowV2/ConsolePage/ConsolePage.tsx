@@ -1,199 +1,155 @@
 import LoadingBox from '@components/LoadingBox'
-import { useGetMessagesQuery } from '@graph/hooks'
-import { ConsoleMessage } from '@highlight-run/client'
-import { playerMetaData } from '@highlight-run/rrweb-types'
-import { Box, Text } from '@highlight-run/ui'
+import { Log, LogLevel, LogSource } from '@graph/schemas'
+import {
+	Box,
+	IconSolidArrowCircleRight,
+	Stack,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
+import { COLOR_MAPPING, LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
+import { buildSessionParams } from '@pages/LogsPage/SearchForm/utils'
 import { ReplayerState } from '@pages/Player/ReplayerContext'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
-import { LogLevel, Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { indexedDBFetch } from '@util/db'
-import { useParams } from '@util/react-router/useParams'
+import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import clsx from 'clsx'
-import { H } from 'highlight.run'
-import _ from 'lodash'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
+import { useGetSessionLogsQuery } from '@/graph/generated/hooks'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
 
-interface ParsedMessage extends ConsoleMessage {
-	selected?: boolean
-	id: number
-}
+type SessionLog = Pick<Log, 'timestamp' | 'message' | 'level'>
+type SessionLogEdge = { cursor: string; node: SessionLog }
 
 export const ConsolePage = ({
+	logCursor,
 	autoScroll,
 	filter,
-	logLevel,
-	time,
+	sources,
+	levels,
 }: {
 	autoScroll: boolean
+	logCursor: string | null
 	filter: string
-	logLevel: LogLevel
-	time: number
+	sources: LogSource[]
+	levels: LogLevel[]
 }) => {
-	const [currentMessage, setCurrentMessage] = useState(-1)
-	const { session, setTime, sessionMetadata, isPlayerReady, state } =
+	const { projectId } = useProjectId()
+	const [selectedCursor, setSelectedCursor] = useState(logCursor)
+	const { session, setTime, time, isPlayerReady, sessionMetadata, state } =
 		useReplayerContext()
-	const [parsedMessages, setParsedMessages] = useState<
-		undefined | Array<ParsedMessage>
-	>([])
-	const { session_secure_id } = useParams<{ session_secure_id: string }>()
-	const [loading, setLoading] = useState(true)
-	const skipQuery = session === undefined || !!session?.messages_url
-	const { data, loading: queryLoading } = useGetMessagesQuery({
+
+	const params = buildSessionParams({ session, levels, sources })
+
+	const { data, loading } = useGetSessionLogsQuery({
 		variables: {
-			session_secure_id: session_secure_id!,
+			params: {
+				query: params.query,
+				date_range: {
+					start_date:
+						params.date_range.start_date.format(LOG_TIME_FORMAT),
+					end_date:
+						params.date_range.end_date.format(LOG_TIME_FORMAT),
+				},
+			},
+			project_id: projectId,
 		},
-		fetchPolicy: 'no-cache',
-		skip: skipQuery || !session_secure_id, // Skip if there is a URL to fetch messages
+		skip: !session,
 	})
 
-	useEffect(() => {
-		if (!skipQuery) {
-			setLoading(queryLoading)
-		}
-	}, [queryLoading, skipQuery])
-
-	// If sessionSecureId is set and equals the current session's (ensures effect is run once)
-	// and resources url is defined, fetch using resources url
-	useEffect(() => {
-		if (
-			session_secure_id === session?.secure_id &&
-			!!session?.messages_url
-		) {
-			setLoading(true)
-			;(async () => {
-				if (!session.messages_url) return
-				let response
-				for await (const r of indexedDBFetch(session.messages_url)) {
-					response = r
-				}
-				if (response) {
-					response
-						.json()
-						.then((data) => {
-							setParsedMessages(
-								(data as any[] | undefined)?.map(
-									(m: ConsoleMessage, i) => {
-										return {
-											...m,
-											id: i,
-										}
-									},
-								) ?? [],
-							)
-						})
-						.catch((e) => {
-							setParsedMessages([])
-							H.consumeError(
-								e,
-								'Error direct downloading resources',
-							)
-						})
-						.finally(() => setLoading(false))
-				}
-			})()
-		}
-	}, [session?.messages_url, session?.secure_id, session_secure_id])
-
-	useEffect(() => {
-		setParsedMessages(
-			data?.messages?.map((m: ConsoleMessage, i) => {
-				return {
-					...m,
-					id: i,
-				}
-			}) ?? [],
-		)
-	}, [data?.messages])
-
-	// Logic for scrolling to current entry.
-	useEffect(() => {
-		if (state !== ReplayerState.Playing) {
-			return
-		}
-		if (parsedMessages?.length) {
-			let msgIndex = 0
-			let msgDiff: number = Number.MAX_VALUE
-			for (let i = 0; i < parsedMessages.length; i++) {
-				const currentDiff: number =
-					time - (parsedMessages[i].time - parsedMessages[0].time)
-				if (currentDiff < 0) break
-				if (currentDiff < msgDiff) {
-					msgIndex = i
-					msgDiff = currentDiff
-				}
-			}
-			setCurrentMessage(msgIndex)
-		}
-	}, [state, time, parsedMessages])
-
 	const messagesToRender = useMemo(() => {
-		const currentMessages = parsedMessages?.filter((m) => {
-			// if the console type is 'all', let all messages through. otherwise, filter.
-			if (logLevel === LogLevel.All) {
-				return true
-			} else if (m.type === logLevel.toLowerCase()) {
-				return true
-			}
-			return false
-		})
-
-		if (!currentMessages) {
+		if (!data?.sessionLogs) {
 			return []
 		}
 
 		if (filter !== '') {
-			return currentMessages.filter((message) => {
-				if (!message.value) {
+			return data.sessionLogs.filter((logEdge) => {
+				if (!logEdge.node.message) {
 					return false
 				}
 
-				switch (typeof message.value) {
-					case 'string':
-						return message.value
-							.toLocaleLowerCase()
-							.includes(filter.toLocaleLowerCase())
-					case 'object':
-						return message.value.some((line: string | null) => {
-							return line
-								?.toString()
-								.toLocaleLowerCase()
-								.includes(filter.toLocaleLowerCase())
-						})
-					default:
-						return false
-				}
+				return logEdge.node.message
+					.toLocaleLowerCase()
+					.includes(filter.toLocaleLowerCase())
 			})
 		}
 
-		return currentMessages.filter((message) => message?.value?.length)
-	}, [logLevel, filter, parsedMessages])
+		return data.sessionLogs
+	}, [filter, data?.sessionLogs])
+
+	// Logic for scrolling to current entry.
+	useEffect(() => {
+		if (state !== ReplayerState.Playing || !autoScroll) {
+			return
+		}
+		if (messagesToRender.length) {
+			let cursor = ''
+			let msgDiff: number = Number.MAX_VALUE
+			for (let i = 0; i < messagesToRender.length; i++) {
+				const currentDiff: number =
+					time -
+					(new Date(messagesToRender[i].node.timestamp).getTime() -
+						new Date(messagesToRender[0].node.timestamp).getTime())
+				if (currentDiff < 0) break
+				if (currentDiff < msgDiff) {
+					cursor = messagesToRender[i].cursor
+					msgDiff = currentDiff
+				}
+			}
+			setSelectedCursor(cursor)
+		}
+	}, [state, time, messagesToRender, autoScroll])
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const scrollFunction = useCallback(
-		_.debounce((index: number) => {
-			if (virtuoso.current) {
-				virtuoso.current.scrollToIndex({
-					index,
-					align: 'center',
-					behavior: 'smooth',
-				})
-			}
-		}, 1000 / 60),
-		[],
-	)
+
+	const foundIndex = useMemo(() => {
+		return messagesToRender.findIndex(
+			(logEdge) => logEdge.cursor === selectedCursor,
+		)
+	}, [messagesToRender, selectedCursor])
 
 	useEffect(() => {
-		if (autoScroll) {
-			scrollFunction(currentMessage)
+		if (
+			isPlayerReady && // ensure Virtuoso component is actually rendered
+			virtuoso.current &&
+			messagesToRender
+		) {
+			if (foundIndex >= 0) {
+				virtuoso.current.scrollToIndex({
+					index: foundIndex,
+					align: 'center',
+					// Using smooth has performance issues with large lists
+					// See: https://virtuoso.dev/scroll-to-index/
+					// behavior: 'smooth'
+				})
+
+				if (state === ReplayerState.Paused) {
+					// We really only want this run when the component is mounted
+					// and we are trying to set the player time based on what the log cursor
+					// query param is.
+					const timestamp =
+						new Date(
+							messagesToRender[foundIndex].node.timestamp,
+						).getTime() - sessionMetadata.startTime
+					setTime(timestamp)
+				}
+			}
 		}
-	}, [autoScroll, scrollFunction, currentMessage])
+	}, [
+		autoScroll,
+		foundIndex,
+		isPlayerReady,
+		messagesToRender,
+		selectedCursor,
+		sessionMetadata.startTime,
+		setTime,
+		state,
+	])
 
 	return (
 		<Box className={styles.consoleBox}>
@@ -206,16 +162,14 @@ export const ConsolePage = ({
 					increaseViewportBy={1024}
 					data={messagesToRender}
 					className={styledVerticalScrollbar}
-					itemContent={(_index, message: ParsedMessage) => (
+					itemContent={(_index, logEdge: SessionLogEdge) => (
 						<MessageRow
-							key={message.id.toString()}
-							message={message}
-							current={message.id === currentMessage}
-							setTime={(time: number) => {
-								setTime(time)
-								setCurrentMessage(_index)
+							key={logEdge.cursor}
+							logEdge={logEdge}
+							current={selectedCursor === logEdge.cursor}
+							onSelect={() => {
+								setSelectedCursor(logEdge.cursor)
 							}}
-							sessionMetadata={sessionMetadata}
 						/>
 					)}
 				/>
@@ -227,47 +181,58 @@ export const ConsolePage = ({
 }
 
 const MessageRow = React.memo(function ({
-	message,
-	setTime,
+	logEdge,
+	onSelect,
 	current,
-	sessionMetadata,
 }: {
-	message: ParsedMessage
-	setTime: (time: number) => void
+	logEdge: SessionLogEdge
+	onSelect: () => void
 	current?: boolean
-	sessionMetadata: playerMetaData
 }) {
 	return (
 		<Box
-			className={clsx(
+			cssClass={clsx(
 				styles.consoleRow,
 				styles.messageRowVariants({
 					current,
 				}),
 			)}
-			onClick={() => {
-				setTime(message.time - sessionMetadata.startTime)
-			}}
+			borderBottom="dividerWeak"
+			py="8"
 		>
-			<div
-				className={clsx(
-					styles.consoleBar,
-					styles.variants({
-						type: message.type as any,
-					}),
-				)}
-			>
-				&nbsp;
-			</div>
-			<Box display="flex" alignItems="center">
-				<Text
-					family="monospace"
-					weight="bold"
-					cssClass={styles.consoleText}
-				>
-					{message.value}
-				</Text>
-			</Box>
+			<Stack direction="row">
+				<Box flexGrow={1}>
+					<Text
+						family="monospace"
+						color="secondaryContentOnEnabled"
+						break="word"
+					>
+						<Box
+							style={{
+								color: COLOR_MAPPING[logEdge.node.level],
+								marginRight: '2px',
+							}}
+							as="span"
+						>
+							[{logEdge.node.level.toUpperCase()}]
+						</Box>
+						{logEdge.node.message}
+					</Text>
+				</Box>
+
+				<Box style={{ minWidth: '70px' }}>
+					<Tag
+						shape="basic"
+						emphasis="low"
+						kind="secondary"
+						size="small"
+						iconRight={<IconSolidArrowCircleRight />}
+						onClick={onSelect}
+					>
+						Go to
+					</Tag>
+				</Box>
+			</Stack>
 		</Box>
 	)
 })
