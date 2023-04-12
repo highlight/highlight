@@ -10,6 +10,8 @@ import { SourcemapErrorDetails } from '@pages/ErrorsV2/SourcemapErrorDetails/Sou
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 
+import analytics from '@/util/analytics'
+
 import commonStyles from '../../Common.module.scss'
 import styles from './Buttons.module.scss'
 import {
@@ -222,6 +224,22 @@ export const Buttons = () => {
 						}}
 					>
 						Throw a custom Error
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={() => {
+							analytics.track('foo')
+						}}
+					>
+						analytics.track('foo')
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={() => {
+							H.track('bar')
+						}}
+					>
+						H.track('bar')
 					</button>
 					<button
 						className={commonStyles.submitButton}
