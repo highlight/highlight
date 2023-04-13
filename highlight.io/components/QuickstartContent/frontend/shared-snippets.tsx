@@ -24,7 +24,7 @@ export const identifyingUsersLink = siteUrl(
 	'/docs/getting-started/client-sdk/replay-configuration/identifying-sessions',
 )
 export const backendInstrumentationLink = siteUrl(
-	'/docs/getting-started/overview#For-your-backend',
+	'/docs/getting-started/overview#for-your-backend-error-monitoring',
 )
 export const fullstackMappingLink = siteUrl(
 	'/docs/getting-started/frontend-backend-mapping',
@@ -58,13 +58,13 @@ export const initializeSnippet: QuickStartStep = {
 import { H } from 'highlight.run';
 
 H.init('<YOUR_PROJECT_ID>', {
-    tracingOrigins: true,
+	tracingOrigins: true,
 	networkRecording: {
 		enabled: true,
 		recordHeadersAndBody: true,
-        urlBlocklist: [
-            // insert urls you don't want to record here
-        ],
+		urlBlocklist: [
+			// insert urls you don't want to record here
+		],
 	},
 });
 
