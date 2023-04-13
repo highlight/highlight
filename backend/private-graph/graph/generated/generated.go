@@ -8308,6 +8308,12 @@ enum PlanType {
 	Enterprise
 }
 
+enum ProductType {
+	Sessions
+	Errors
+	Logs
+}
+
 enum SubscriptionInterval {
 	Monthly
 	Annual
