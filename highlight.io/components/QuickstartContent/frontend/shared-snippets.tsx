@@ -61,13 +61,13 @@ export const initializeSnippet: QuickStartStep = {
 import { H } from 'highlight.run';
 
 H.init('<YOUR_PROJECT_ID>', {
-    tracingOrigins: true,
+	tracingOrigins: true,
 	networkRecording: {
 		enabled: true,
 		recordHeadersAndBody: true,
-        urlBlocklist: [
-            // insert urls you don't want to record here
-        ],
+		urlBlocklist: [
+			// insert urls you don't want to record here
+		],
 	},
 });
 

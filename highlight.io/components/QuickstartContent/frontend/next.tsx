@@ -36,9 +36,9 @@ export default function App({ Component, pageProps }: AppProps) {
 	// other page level logic ...
   
 	return (
-	  <ErrorBoundary>
-		<Component {...pageProps} />
-	  </ErrorBoundary>
+		<ErrorBoundary>
+			<Component {...pageProps} />
+		</ErrorBoundary>
 	);
 }`
 

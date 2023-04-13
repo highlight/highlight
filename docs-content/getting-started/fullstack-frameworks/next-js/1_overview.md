@@ -14,13 +14,14 @@ The Highlight Next.js SDK adds additional features to Highlight, including:
 - automatic proxying for Highlight requests using Next.js rewrites
 
 ## Getting Started
+
 ### Quick Start?
 
-Before getting started with NextJS specific features, we recommend installing a basic SDK setup. Read more below:
+Before getting started with Next.js specific features, we recommend installing a basic SDK setup. Read more below:
 
 <DocsCardGroup>
-    <DocsCard title="NextJS Quickstart" href="../../3_client-sdk/2_nextjs.md">
-        {"Get started with NextJS in just a few lines of code."}
+    <DocsCard title="Next.js Quickstart" href="../../3_client-sdk/2_nextjs.md">
+        {"Get started with Next.js in just a few lines of code."}
     </DocsCard>
 </DocsCardGroup>
 
