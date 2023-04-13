@@ -36,3 +36,13 @@ When using Highlight, you might be interested in querying for sessions where a u
 You can then use the session filters to search for text in the two fields. An example of what the `clickSelector` filter looks like is below:
 
 ![](/images/click-selector.png)
+
+## Searching by Visited URL
+
+You can also search for sessions based on the URL that the user visited. This is useful if you want to search for sessions where a user visited a certain page on your site.
+
+To perform this search, you can use the `Visited URL` filter. This looks like the following:
+
+![](/images/session-search.png)
+
+And like all of our filters, you can use `contains`, `does not contain`, `is`, and `is not`, etc..

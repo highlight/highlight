@@ -13,12 +13,14 @@ You should keep reading this if your application runs in an environment that enf
 
 Here are the policies you'll need to set to use Highlight:
 
-1.  `script-src`: `https://static.highlight.io`
-    1.  This policy is to allow downloading the Highlight runtime code for session recording and error monitoring.
-2.  `worker-src`: `blob: https://static.highlight.io`
-    1. This policy allows our script to create a web-worker which we use to serialize the recording data without affecting the performance of your application.
-3.  `connect-src`: `https://pub.highlight.run`
-    1.  This policy is to allow connecting with Highlight servers to send recorded session data.
+#### `script-src`: `https://static.highlight.io`
+This policy is to allow downloading the Highlight runtime code for session recording and error monitoring.
+
+#### `worker-src`: `blob: https://static.highlight.io`
+This policy allows our script to create a web-worker which we use to serialize the recording data without affecting the performance of your application.
+
+#### `connect-src`: `https://pub.highlight.run`
+This policy is to allow connecting with Highlight servers to send recorded session data.
 
 Your [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) definition may look something like this:
 

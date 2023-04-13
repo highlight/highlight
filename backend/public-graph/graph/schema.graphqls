@@ -94,6 +94,7 @@ type Mutation {
 		fingerprint: String!
 		client_id: String!
 		network_recording_domains: [String!]
+		disable_session_recording: Boolean
 	): InitializeSessionResponse!
 	identifySession(
 		session_secure_id: String!

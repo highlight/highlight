@@ -17,7 +17,7 @@ If your users are using chrome extensions, you may see errors that are not relev
 If you have alerts set up for your project, you can ignore specific error groups from triggering alerts. You can do this by clicking the "Ignore" button on the error group page.
 
 ## Ignore errors by regex on the error body
-Coming soon.
+If you'd like to ignore specific errors by a regex pattern match against the error body, you can do so by adding error filters in your [project settings](https://app.highlight.io/settings/errors#filters) as well.
 
 ## Want to ignore something else?
 If you'd like an easier way to ignore specific types of errors, we're open to feedback. Please reach out to us in our [discord community](https://highlight.io/community).

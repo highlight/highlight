@@ -103,6 +103,7 @@ type BillingDetails {
 	membersMeter: Int64!
 	sessionsOutOfQuota: Int64!
 	errorsMeter: Int64!
+	logsMeter: Int64!
 }
 
 type Invoice {
@@ -127,6 +128,7 @@ type Plan {
 	quota: Int!
 	membersLimit: Int
 	errorsLimit: Int!
+	logsLimit: Int!
 }
 
 enum PlanType {
@@ -135,6 +137,12 @@ enum PlanType {
 	Basic
 	Startup
 	Enterprise
+}
+
+enum ProductType {
+	Sessions
+	Errors
+	Logs
 }
 
 enum SubscriptionInterval {
@@ -315,6 +323,7 @@ type Project {
 	secret: String
 	workspace_id: ID!
 	excluded_users: StringArray
+	error_filters: StringArray
 	error_json_paths: StringArray
 	rage_click_window_seconds: Int
 	rage_click_radius_pixels: Int
@@ -1587,6 +1596,7 @@ type Mutation {
 		name: String
 		billing_email: String
 		excluded_users: StringArray
+		error_filters: StringArray
 		error_json_paths: StringArray
 		rage_click_window_seconds: Int
 		rage_click_radius_pixels: Int

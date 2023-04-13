@@ -10,6 +10,8 @@ import moment from 'moment'
 import { memo, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
+import LoadingBox from '@/components/LoadingBox'
+
 import * as styles from './LogsHistogram.css'
 
 type LogCount = {
@@ -24,7 +26,11 @@ interface HistogramBucket {
 
 type LogsHistogramProps = Omit<
 	LogsHistogramChartProps,
-	'buckets' | 'showLoadingState' | 'totalCount' | 'maxBucketCount'
+	| 'buckets'
+	| 'showLoadingState'
+	| 'totalCount'
+	| 'maxBucketCount'
+	| 'loadingState'
 > & {
 	query: string
 	outline?: boolean
@@ -33,11 +39,13 @@ type LogsHistogramProps = Omit<
 	frequencySeconds?: number
 } & BoxProps
 
+type LoadingState = 'skeleton' | 'spinner'
+
 interface LogsHistogramChartProps {
 	startDate: Date
 	endDate: Date
 	buckets: HistogramBucket[]
-	showLoadingState: boolean
+	loadingState: LoadingState | undefined
 	totalCount: number
 	maxBucketCount: number
 	onDatesChange?: (startDate: Date, endDate: Date) => void
@@ -219,6 +227,15 @@ const LogsHistogram = ({
 		)
 	}
 
+	let loadingState: LoadingState | undefined
+	if (showLoadingState) {
+		if (outline) {
+			loadingState = 'spinner'
+		} else {
+			loadingState = 'skeleton'
+		}
+	}
+
 	return (
 		<Box
 			display="flex"
@@ -260,7 +277,7 @@ const LogsHistogram = ({
 							buckets={buckets}
 							startDate={startDate}
 							endDate={endDate}
-							showLoadingState={showLoadingState}
+							loadingState={loadingState}
 							onDatesChange={onDatesChange}
 							onLevelChange={onLevelChange}
 							totalCount={buckets.length}
@@ -291,7 +308,7 @@ const LogsHistogramChart = ({
 	endDate,
 	onDatesChange,
 	onLevelChange,
-	showLoadingState,
+	loadingState,
 	totalCount,
 	maxBucketCount,
 }: LogsHistogramChartProps) => {
@@ -343,7 +360,7 @@ const LogsHistogramChart = ({
 			py="4"
 			ref={containerRef}
 			onMouseDown={(e: any) => {
-				if (!e || !containerRef.current || showLoadingState) {
+				if (!e || !containerRef.current || loadingState) {
 					return
 				}
 				const rect = containerRef.current.getBoundingClientRect()
@@ -351,7 +368,7 @@ const LogsHistogramChart = ({
 				setDragStart(pos)
 			}}
 			onMouseMove={(e: any) => {
-				if (!e || !containerRef.current || showLoadingState) {
+				if (!e || !containerRef.current || loadingState) {
 					return
 				}
 				if (dragStart !== undefined) {
@@ -382,7 +399,9 @@ const LogsHistogramChart = ({
 				setDragEnd(undefined)
 			}}
 		>
-			{showLoadingState ? <LoadingState /> : content}
+			{loadingState === 'skeleton' && <LoadingState />}
+			{loadingState === 'spinner' && <LoadingBox />}
+			{!loadingState && content}
 			{dragLeft !== undefined && dragRight !== undefined && (
 				<Box
 					position="absolute"

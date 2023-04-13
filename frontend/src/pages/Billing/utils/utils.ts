@@ -1,6 +1,8 @@
 import moment from 'moment'
 
-import { PlanType } from '../../../graph/generated/schemas'
+import { GetBillingDetailsForProjectQuery } from '@/graph/generated/operations'
+
+import { PlanType, ProductType } from '../../../graph/generated/schemas'
 
 /**
  * Returns whether the change from the previousPlan to the newPlan was an upgrade.
@@ -39,4 +41,20 @@ export const getTrialEndDateMessage = (trialEndDate: any): string => {
 	return `You have unlimited sessions until ${moment(trialEndDate).format(
 		'MM/DD/YY',
 	)}. After this trial, you will be on the free tier.`
+}
+
+export const getQuotaPercents = (
+	data: GetBillingDetailsForProjectQuery,
+): [ProductType, number][] => {
+	const sessionsMeter = data.billingDetailsForProject?.meter ?? 0
+	const sessionsQuota = data.billingDetailsForProject?.plan.quota ?? 1
+	const errorsMeter = data.billingDetailsForProject?.errorsMeter ?? 0
+	const errorsQuota = data.billingDetailsForProject?.plan.errorsLimit ?? 1
+	const logsMeter = data.billingDetailsForProject?.logsMeter ?? 0
+	const logsQuota = data.billingDetailsForProject?.plan.logsLimit ?? 1
+	return [
+		[ProductType.Sessions, sessionsMeter / sessionsQuota],
+		[ProductType.Errors, errorsMeter / errorsQuota],
+		[ProductType.Logs, logsMeter / logsQuota],
+	]
 }

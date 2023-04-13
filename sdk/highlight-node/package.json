@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/node",
-	"version": "2.5.3",
+	"version": "2.5.4",
 	"license": "MIT",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
@@ -28,7 +28,7 @@
 		"@opentelemetry/sdk-node": "0.32.0",
 		"@opentelemetry/sdk-trace-base": "1.6.0",
 		"error-stack-parser": "2.0.7",
-		"graphql": "^16.6.0",
+		"graphql": ">=15",
 		"graphql-request": "3.7.0",
 		"graphql-tag": "2.12.6",
 		"highlight.run": "workspace:*",

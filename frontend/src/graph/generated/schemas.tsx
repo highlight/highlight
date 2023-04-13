@@ -112,6 +112,7 @@ export type AverageSessionLength = {
 export type BillingDetails = {
 	__typename?: 'BillingDetails'
 	errorsMeter: Scalars['Int64']
+	logsMeter: Scalars['Int64']
 	membersMeter: Scalars['Int64']
 	meter: Scalars['Int64']
 	plan: Plan
@@ -1149,6 +1150,7 @@ export type MutationEditErrorSegmentArgs = {
 export type MutationEditProjectArgs = {
 	backend_domains?: InputMaybe<Scalars['StringArray']>
 	billing_email?: InputMaybe<Scalars['String']>
+	error_filters?: InputMaybe<Scalars['StringArray']>
 	error_json_paths?: InputMaybe<Scalars['StringArray']>
 	excluded_users?: InputMaybe<Scalars['StringArray']>
 	filter_chrome_extension?: InputMaybe<Scalars['Boolean']>
@@ -1459,6 +1461,7 @@ export type Plan = {
 	__typename?: 'Plan'
 	errorsLimit: Scalars['Int']
 	interval: SubscriptionInterval
+	logsLimit: Scalars['Int']
 	membersLimit?: Maybe<Scalars['Int']>
 	quota: Scalars['Int']
 	type: PlanType
@@ -1472,10 +1475,17 @@ export enum PlanType {
 	Startup = 'Startup',
 }
 
+export enum ProductType {
+	Errors = 'Errors',
+	Logs = 'Logs',
+	Sessions = 'Sessions',
+}
+
 export type Project = {
 	__typename?: 'Project'
 	backend_domains?: Maybe<Scalars['StringArray']>
 	billing_email?: Maybe<Scalars['String']>
+	error_filters?: Maybe<Scalars['StringArray']>
 	error_json_paths?: Maybe<Scalars['StringArray']>
 	excluded_users?: Maybe<Scalars['StringArray']>
 	filter_chrome_extension?: Maybe<Scalars['Boolean']>

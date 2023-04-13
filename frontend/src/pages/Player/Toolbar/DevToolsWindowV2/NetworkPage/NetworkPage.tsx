@@ -26,7 +26,8 @@ import { message } from 'antd'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
-import { styledVerticalScrollbar } from 'style/common.css'
+
+import { styledVerticalScrollbar } from '@/style/common.css'
 
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter'
 import Tooltip from '../../../../../components/Tooltip/Tooltip'

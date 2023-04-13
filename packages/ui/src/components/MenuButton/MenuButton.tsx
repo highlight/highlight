@@ -14,12 +14,15 @@ type Props = styles.Variants & {
 		render: React.ReactNode
 		variants?: Variants
 	}[]
+	selectedKey?: string
 	onChange: (value: string) => void
 	divider?: boolean
 }
 
 export const MenuButton: React.FC<Props> = ({ ...props }) => {
-	const [selected, setSelected] = React.useState<string>(props.options[0].key)
+	const [selected, setSelected] = React.useState<string>(
+		props.selectedKey ?? props.options[0].key,
+	)
 	return (
 		<Menu>
 			<Menu.Button

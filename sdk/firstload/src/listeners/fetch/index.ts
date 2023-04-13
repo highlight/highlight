@@ -1,5 +1,5 @@
-import type { HighlightFetchWindow } from '../../../../client/src/listeners/network-listener/utils/fetch-listener'
-import type { HighlightPublicInterface } from '../../../../client/src/types/types'
+import type { HighlightFetchWindow } from '@highlight-run/client/src/listeners/network-listener/utils/fetch-listener'
+import type { HighlightPublicInterface } from '@highlight-run/client/src/types/types'
 
 type HighlightWindow = Window & {
 	H: HighlightPublicInterface

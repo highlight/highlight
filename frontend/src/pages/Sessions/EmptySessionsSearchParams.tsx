@@ -20,5 +20,5 @@ export const EmptySessionsSearchParams: Complete<SearchParamsInput> = {
 	environments: [],
 	app_versions: [],
 	show_live_sessions: false,
-	query: `{\"isAnd\":true,\"rules\":[[\"custom_processed\",\"is\",\"true\"]]}`,
+	query: `{"isAnd":true,"rules":[["custom_processed","is","true"]]}`,
 }
