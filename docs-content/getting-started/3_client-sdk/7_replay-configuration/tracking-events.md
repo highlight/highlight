@@ -11,7 +11,7 @@ A track event is a named event that you've defined. Adding a track event is usef
 
 You'd like to see what users are doing that cause them to open the shopping cart. In your app, you'll add `H.track()`:
 
-```none
+```javascript
 import { H } from 'highlight.run';
 import { getSubtotal } from '@utils';
 
