@@ -132,7 +132,7 @@ const SearchForm = ({
 								},
 							)
 							navigate({
-								pathname: '/alerts/logs/new',
+								pathname: `/${projectId}/alerts/logs/new`,
 								search: stringify(encodedQuery),
 							})
 						}}

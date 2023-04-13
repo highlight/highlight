@@ -22,8 +22,8 @@ Installing highlight.io in javascript will automatically instrument frontend err
     <DocsCard title="Gatsby"  href="./client-sdk/gatsbyjs.md">
         {"Get started in your Gatsby app"}
     </DocsCard>
-    <DocsCard title="NextJS"  href="./client-sdk/nextjs.md">
-        {"Get started in your NextJS app"}
+    <DocsCard title="Next.js"  href="./client-sdk/nextjs.md">
+        {"Get started in your Next.js app"}
     </DocsCard>
     <DocsCard title="VueJS"  href="./client-sdk/vuejs.md">
         {"Get started in your VueJS app"}
