@@ -103,6 +103,7 @@ type BillingDetails {
 	membersMeter: Int64!
 	sessionsOutOfQuota: Int64!
 	errorsMeter: Int64!
+	logsMeter: Int64!
 }
 
 type Invoice {
@@ -127,6 +128,7 @@ type Plan {
 	quota: Int!
 	membersLimit: Int
 	errorsLimit: Int!
+	logsLimit: Int!
 }
 
 enum PlanType {
@@ -135,6 +137,12 @@ enum PlanType {
 	Basic
 	Startup
 	Enterprise
+}
+
+enum ProductType {
+	Sessions
+	Errors
+	Logs
 }
 
 enum SubscriptionInterval {

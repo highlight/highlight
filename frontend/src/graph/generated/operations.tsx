@@ -2614,11 +2614,20 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 	billingDetailsForProject?: Types.Maybe<
 		{ __typename?: 'BillingDetails' } & Pick<
 			Types.BillingDetails,
-			'meter' | 'membersMeter' | 'sessionsOutOfQuota'
+			| 'meter'
+			| 'membersMeter'
+			| 'errorsMeter'
+			| 'logsMeter'
+			| 'sessionsOutOfQuota'
 		> & {
 				plan: { __typename?: 'Plan' } & Pick<
 					Types.Plan,
-					'type' | 'quota' | 'interval' | 'membersLimit'
+					| 'type'
+					| 'quota'
+					| 'interval'
+					| 'membersLimit'
+					| 'errorsLimit'
+					| 'logsLimit'
 				>
 			}
 	>
@@ -2643,11 +2652,16 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 	billingDetails: { __typename?: 'BillingDetails' } & Pick<
 		Types.BillingDetails,
-		'meter' | 'membersMeter' | 'errorsMeter'
+		'meter' | 'membersMeter' | 'errorsMeter' | 'logsMeter'
 	> & {
 			plan: { __typename?: 'Plan' } & Pick<
 				Types.Plan,
-				'type' | 'quota' | 'interval' | 'membersLimit' | 'errorsLimit'
+				| 'type'
+				| 'quota'
+				| 'interval'
+				| 'membersLimit'
+				| 'errorsLimit'
+				| 'logsLimit'
 			>
 		}
 	workspace?: Types.Maybe<

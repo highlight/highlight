@@ -11,7 +11,7 @@ import { linkStyle } from '@components/Header/styles.css'
 import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
-import { Maybe, PlanType, Project } from '@graph/schemas'
+import { Maybe, ProductType, Project } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -43,7 +43,10 @@ import { useProjectId } from '@hooks/useProjectId'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
 import { useBillingHook } from '@pages/Billing/Billing'
-import { getTrialEndDateMessage } from '@pages/Billing/utils/utils'
+import {
+	getQuotaPercents,
+	getTrialEndDateMessage,
+} from '@pages/Billing/utils/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
@@ -657,6 +660,8 @@ const getBanner = (project_id: string) => {
 	}
 }
 
+const APPROACHING_QUOTA_THRESHOLD = 0.8
+
 const BillingBanner: React.FC = () => {
 	const { toggleShowBanner } = useGlobalContext()
 	const [temporarilyHideBanner, setTemporarilyHideBanner] = useSessionStorage(
@@ -715,23 +720,51 @@ const BillingBanner: React.FC = () => {
 		return null
 	}
 
-	if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
+	if (!data) {
 		toggleShowBanner(false)
 		return null
 	}
 
-	if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
-		toggleShowBanner(false)
-		return null
-	}
-
-	let bannerMessage:
-		| string
-		| React.ReactNode = `You've used ${data?.billingDetailsForProject?.meter}/${data?.billingDetailsForProject?.plan.quota} of your free sessions.`
+	let bannerMessage: string | React.ReactNode = ''
 	const hasTrial = isProjectWithinTrial(data?.workspace_for_project)
-	const hasExceededSessionsForMonth =
-		data?.billingDetailsForProject?.meter >
-		data?.billingDetailsForProject?.plan.quota
+
+	const records = getQuotaPercents(data)
+
+	const productsApproachingQuota = records
+		.filter((r) => r[1] > APPROACHING_QUOTA_THRESHOLD && r[1] <= 1)
+		.map((r) => r[0])
+	const productsOverQuota = records.filter((r) => r[1] > 1).map((r) => r[0])
+
+	if (productsOverQuota.length > 0) {
+		bannerMessage += `You've reached your monthly limit for ${productsToString(
+			productsOverQuota,
+		)}. `
+	}
+	if (productsApproachingQuota.length > 0) {
+		bannerMessage += `You're approaching your monthly limit for ${productsToString(
+			productsApproachingQuota,
+		)}. `
+	}
+	if (productsOverQuota.length > 0 || productsApproachingQuota.length > 0) {
+		bannerMessage = (
+			<>
+				{bannerMessage}
+				<a
+					target="_blank"
+					href={`/w/${data.workspace_for_project?.id}/current-plan`}
+					className={styles.trialLink}
+					rel="noreferrer"
+				>
+					Upgrade plan
+				</a>
+			</>
+		)
+	}
+
+	if (!bannerMessage && !hasTrial) {
+		toggleShowBanner(false)
+		return null
+	}
 
 	if (hasTrial) {
 		bannerMessage = getTrialEndDateMessage(
@@ -742,29 +775,40 @@ const BillingBanner: React.FC = () => {
 	toggleShowBanner(true)
 
 	return (
-		<div
-			className={clsx(styles.trialWrapper, {
-				[styles.error]: hasExceededSessionsForMonth,
-			})}
-		>
+		<div className={styles.trialWrapper}>
 			<div className={styles.trialTimeText}>
 				{bannerMessage} Upgrade{' '}
-				<Link to={`/w/${currentWorkspace?.id}/billing`}>here</Link>.
+				<Link to={`/w/${currentWorkspace?.id}/current-plan`}>here</Link>
+				.
 			</div>
-			{hasTrial && (
-				<button
-					onClick={() => {
-						analytics.track('TemporarilyHideFreePlanBanner', {
-							hasTrial,
-						})
-						setTemporarilyHideBanner(true)
-					}}
-				>
-					<SvgXIcon />
-				</button>
-			)}
+			<button
+				onClick={() => {
+					analytics.track('TemporarilyHideFreePlanBanner', {
+						hasTrial,
+					})
+					setTemporarilyHideBanner(true)
+				}}
+			>
+				<SvgXIcon />
+			</button>
 		</div>
 	)
+}
+
+const productsToString = (p: ProductType[]): string => {
+	const lowers = p.map((p) => p.toLowerCase())
+	if (lowers.length === 0) {
+		return ''
+	} else if (lowers.length === 1) {
+		return lowers[0]
+	} else if (lowers.length === 2) {
+		return `${lowers[0]} and ${lowers[1]}`
+	} else {
+		lowers.reverse()
+		const [last, ...rest] = lowers
+		rest.reverse()
+		return rest.join(', ') + `, and ${last}`
+	}
 }
 
 const OnPremiseBanner = () => {

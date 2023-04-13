@@ -4,6 +4,7 @@ export const annualToggleText: string
 export const billingIssues: string
 export const billingPlanCardWrapper: string
 export const contact: string
+export const contactSalesBox: string
 export const detailsCard: string
 export const detailsCardTitle: string
 export const header: string

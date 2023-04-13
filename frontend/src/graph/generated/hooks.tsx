@@ -7615,9 +7615,13 @@ export const GetBillingDetailsForProjectDocument = gql`
 				quota
 				interval
 				membersLimit
+				errorsLimit
+				logsLimit
 			}
 			meter
 			membersMeter
+			errorsMeter
+			logsMeter
 			sessionsOutOfQuota
 		}
 		workspace_for_project(project_id: $project_id) {
@@ -7689,10 +7693,12 @@ export const GetBillingDetailsDocument = gql`
 				interval
 				membersLimit
 				errorsLimit
+				logsLimit
 			}
 			meter
 			membersMeter
 			errorsMeter
+			logsMeter
 		}
 		workspace(id: $workspace_id) {
 			id

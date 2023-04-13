@@ -5453,12 +5453,13 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	}
 
 	var g errgroup.Group
-	var meter int64
+	var sessionsMeter int64
 	var membersMeter int64
 	var errorsMeter int64
+	var logsMeter int64
 
 	g.Go(func() error {
-		meter, err = pricing.GetWorkspaceSessionsMeter(r.DB, workspaceID)
+		sessionsMeter, err = pricing.GetWorkspaceSessionsMeter(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}
@@ -5475,6 +5476,18 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 	g.Go(func() error {
 		errorsMeter, err = pricing.GetWorkspaceErrorsMeter(r.DB, workspaceID)
+		if err != nil {
+			return e.Wrap(err, "error querying errors meter")
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		workspace, err := r.Workspace(ctx, workspaceID)
+		if err != nil {
+			return err
+		}
+		logsMeter, err = pricing.GetWorkspaceLogsMeter(ctx, r.ClickhouseClient, *workspace)
 		if err != nil {
 			return e.Wrap(err, "error querying errors meter")
 		}
@@ -5503,6 +5516,12 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		errorsLimit = *workspace.MonthlyErrorsLimit
 	}
 
+	logsLimit := pricing.TypeToLogsLimit(planType)
+	// use monthly session limit if it exists
+	if workspace.MonthlyLogsLimit != nil {
+		logsLimit = *workspace.MonthlyLogsLimit
+	}
+
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:         modelInputs.PlanType(planType.String()),
@@ -5510,10 +5529,12 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 			Interval:     interval,
 			MembersLimit: membersLimit,
 			ErrorsLimit:  errorsLimit,
+			LogsLimit:    logsLimit,
 		},
-		Meter:        meter,
+		Meter:        sessionsMeter,
 		MembersMeter: membersMeter,
 		ErrorsMeter:  errorsMeter,
+		LogsMeter:    logsMeter,
 	}
 
 	return details, nil
