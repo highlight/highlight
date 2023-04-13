@@ -467,6 +467,26 @@ const BillingPage = () => {
 							/>
 						</label>
 					</div>
+					<div className={styles.contactSalesBox}>
+						<label>
+							<span className={styles.annualToggleText}>
+								Contact Sales
+							</span>
+							<div>
+								If you have questions about the plans listed
+								here, or you're expecting to have a high usage
+								volume, you can{' '}
+								<a
+									className={styles.contact}
+									href="mailto:sales@highlight.run"
+									type="default"
+								>
+									reach out to us
+								</a>
+								.
+							</div>
+						</label>
+					</div>
 				</div>
 			</Authorization>
 			<div className={styles.billingPlanCardWrapper}>
