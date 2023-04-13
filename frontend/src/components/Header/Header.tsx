@@ -11,7 +11,7 @@ import { linkStyle } from '@components/Header/styles.css'
 import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
-import { Maybe, PlanType, ProductType, Project } from '@graph/schemas'
+import { Maybe, ProductType, Project } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -662,6 +662,8 @@ const getBanner = (project_id: string, integrated: boolean) => {
 	}
 }
 
+const APPROACHING_QUOTA_THRESHOLD = 0.8
+
 const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 	const { toggleShowBanner } = useGlobalContext()
 	const [temporarilyHideBanner, setTemporarilyHideBanner] = useSessionStorage(
@@ -728,22 +730,22 @@ const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 		return <HighlightRoadshowBanner />
 	}
 
-	if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
-		// show Product Hunt banner at the time of a launch
-		const isPHLaunch = moment().isBetween(
-			'2023-01-10T08:00:00Z',
-			'2023-01-11T08:00:00Z',
-		)
-		if (isPHLaunch) {
-			toggleShowBanner(true)
-			return <ProductHuntBanner />
-		}
+	// show Product Hunt banner at the time of a launch
+	const isPHLaunch = moment().isBetween(
+		'2023-01-10T08:00:00Z',
+		'2023-01-11T08:00:00Z',
+	)
+	if (isPHLaunch) {
+		toggleShowBanner(true)
+		return <ProductHuntBanner />
+	}
 
+	if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
 		toggleShowBanner(false)
 		return null
 	}
 
-	if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
+	if (!data) {
 		toggleShowBanner(false)
 		return null
 	}
@@ -754,9 +756,8 @@ const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 
 	const records = getQuotaPercents(data)
 
-	const threshold = 0.8
 	const productsApproachingQuota = records
-		.filter((r) => r[1] > threshold && r[1] <= 1)
+		.filter((r) => r[1] > APPROACHING_QUOTA_THRESHOLD && r[1] <= 1)
 		.map((r) => r[0])
 	const productsOverQuota = records.filter((r) => r[1] > 1).map((r) => r[0])
 

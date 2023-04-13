@@ -393,10 +393,17 @@ export const BillingStatusCard = ({
 						{loading ? (
 							<Skeleton />
 						) : (
-							<span className={styles.subText}>
-								Sessions and errors will be retained for{' '}
-								<strong>{retentionStr}</strong>.
-							</span>
+							<>
+								<span className={styles.subText}>
+									Sessions and errors will be retained for{' '}
+									<strong>{retentionStr}</strong>.
+								</span>
+								<br />
+								<span className={styles.subText}>
+									Logs will be retained for{' '}
+									<strong>30 days</strong>.
+								</span>
+							</>
 						)}
 					</div>
 					<Divider />

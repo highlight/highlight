@@ -440,6 +440,8 @@ const BillingPage = () => {
 							</span>
 							<div>
 								Choose your retention for sessions and errors.
+								<br />
+								Logs are retained for 30 days.
 							</div>
 							<RadioGroup
 								style={{ marginTop: 20, marginBottom: 20 }}
