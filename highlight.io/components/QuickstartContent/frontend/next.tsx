@@ -10,12 +10,16 @@ import {
 
 const ErrorBoundaryCodeSnippet = `import { ErrorBoundary } from '@highlight-run/react';
 
-ReactDOM.render(
-    <ErrorBoundary>
-        <App />
-    </ErrorBoundary>,
-    document.getElementById('root')
-);`
+export default function App({ Component, pageProps }: AppProps) {
+
+	// other page level logic ...
+  
+	return (
+	  <ErrorBoundary>
+		<Component {...pageProps} />
+	  </ErrorBoundary>
+	);
+}`
 
 export const NextContent: QuickStartContent = {
 	title: 'Next.js',
