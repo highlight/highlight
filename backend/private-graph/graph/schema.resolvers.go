@@ -133,7 +133,13 @@ func (r *errorGroupResolver) StructuredStackTrace(ctx context.Context, obj *mode
 		stackTraceString = *obj.MappedStackTrace
 	}
 
-	return r.UnmarshalStackTrace(stackTraceString)
+	var project model.Project
+	filterChromeExtension := false
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: obj.ProjectID}}).First(&project).Error; err == nil {
+		filterChromeExtension = *project.FilterChromeExtension
+	}
+
+	return r.UnmarshalStackTrace(stackTraceString, filterChromeExtension)
 }
 
 // MetadataLog is the resolver for the metadata_log field.
@@ -231,7 +237,13 @@ func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *mod
 		stackTraceString = *obj.MappedStackTrace
 	}
 
-	return r.UnmarshalStackTrace(stackTraceString)
+	var project model.Project
+	filterChromeExtension := false
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: obj.ProjectID}}).First(&project).Error; err == nil {
+		filterChromeExtension = *project.FilterChromeExtension
+	}
+
+	return r.UnmarshalStackTrace(stackTraceString, filterChromeExtension)
 }
 
 // Session is the resolver for the session field.
@@ -544,7 +556,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 }
 
 // EditProject is the resolver for the editProject field.
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -564,11 +576,13 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 	}
 
 	updates := &model.Project{
-		Name:           name,
-		BillingEmail:   billingEmail,
-		ExcludedUsers:  excludedUsers,
-		ErrorJsonPaths: errorJSONPaths,
-		BackendDomains: backendDomains,
+		Name:                  name,
+		BillingEmail:          billingEmail,
+		ExcludedUsers:         excludedUsers,
+		ErrorFilters:          errorFilters,
+		ErrorJsonPaths:        errorJSONPaths,
+		BackendDomains:        backendDomains,
+		FilterChromeExtension: filterChromeExtension,
 	}
 
 	if rageClickWindowSeconds != nil {
@@ -3337,7 +3351,7 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 		vercelProjectsById[p.ID] = p
 	}
 
-	configs := []*model.VercelIntegrationConfig{}
+	var configs []*model.VercelIntegrationConfig
 	for _, m := range projectMappings {
 		var project *model.Project
 
@@ -3388,15 +3402,17 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 			return false, err
 		}
 
-		if err := vercel.CreateLogDrain(workspace.VercelTeamID, m.VercelProjectID, project.VerboseID(), "highlight-log-drain", *workspace.VercelAccessToken); err != nil {
-			return false, err
-		}
-
 		configs = append(configs, &model.VercelIntegrationConfig{
 			WorkspaceID:     workspaceId,
 			VercelProjectID: m.VercelProjectID,
 			ProjectID:       project.ID,
 		})
+	}
+
+	if err := vercel.CreateLogDrain(workspace.VercelTeamID, lo.Map(projectMappings, func(t *modelInputs.VercelProjectMappingInput, i int) string {
+		return t.VercelProjectID
+	}), project.VerboseID(), "Highlight Log Drain", *workspace.VercelAccessToken); err != nil {
+		return false, err
 	}
 
 	if err := r.DB.Where("workspace_id = ?", workspaceId).Delete(&model.VercelIntegrationConfig{}).Error; err != nil {
@@ -3754,7 +3770,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 		return nil, nil
 	}
 
-	retentionDate, err := r.GetProjectRetentionDate(ctx, s.ProjectID)
+	retentionDate, err := r.GetProjectRetentionDate(s.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -3985,7 +4001,7 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model
 	if err != nil {
 		return nil, err
 	}
-	retentionDate, err := r.GetProjectRetentionDate(ctx, eg.ProjectID)
+	retentionDate, err := r.GetProjectRetentionDate(eg.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -4020,7 +4036,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		return nil, e.Wrap(err, "not authorized to view error group")
 	}
 
-	retentionDate, err := r.GetProjectRetentionDate(ctx, errorGroup.ProjectID)
+	retentionDate, err := r.GetProjectRetentionDate(errorGroup.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -7171,6 +7187,16 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 		At:        at,
 		Direction: direction,
 	})
+}
+
+// SessionLogs is the resolver for the sessionLogs field.
+func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogEdge, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	return r.ClickhouseClient.ReadSessionLogs(ctx, project.ID, params)
 }
 
 // LogsTotalCount is the resolver for the logs_total_count field.

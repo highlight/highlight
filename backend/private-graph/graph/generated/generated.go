@@ -631,7 +631,7 @@ type ComplexityRoot struct {
 		DeleteSessionComment             func(childComplexity int, id int) int
 		DeleteSessions                   func(childComplexity int, projectID int, query string, sessionCount int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput, name string) int
-		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray) int
+		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput, name string) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EmailSignup                      func(childComplexity int, email string) int
@@ -707,8 +707,10 @@ type ComplexityRoot struct {
 	Project struct {
 		BackendDomains         func(childComplexity int) int
 		BillingEmail           func(childComplexity int) int
+		ErrorFilters           func(childComplexity int) int
 		ErrorJsonPaths         func(childComplexity int) int
 		ExcludedUsers          func(childComplexity int) int
+		FilterChromeExtension  func(childComplexity int) int
 		ID                     func(childComplexity int) int
 		Name                   func(childComplexity int) int
 		RageClickCount         func(childComplexity int) int
@@ -824,6 +826,7 @@ type ComplexityRoot struct {
 		SessionCommentsForProject    func(childComplexity int, projectID int) int
 		SessionFeedbackAlerts        func(childComplexity int, projectID int) int
 		SessionIntervals             func(childComplexity int, sessionSecureID string) int
+		SessionLogs                  func(childComplexity int, projectID int, params model.LogsParamsInput) int
 		SessionsHistogram            func(childComplexity int, projectID int, query string, histogramOptions model.DateHistogramOptions) int
 		SessionsOpensearch           func(childComplexity int, projectID int, count int, query string, sortDesc bool, page *int) int
 		SlackChannelSuggestion       func(childComplexity int, projectID int) int
@@ -1235,7 +1238,7 @@ type MutationResolver interface {
 	CreateAdmin(ctx context.Context) (*model1.Admin, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model1.Workspace, error)
-	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray) (*model1.Project, error)
+	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) (*model1.Project, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model1.ErrorGroup, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
@@ -1429,6 +1432,7 @@ type QueryResolver interface {
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
 	Logs(ctx context.Context, projectID int, params model.LogsParamsInput, after *string, before *string, at *string, direction model.LogDirection) (*model.LogsConnection, error)
+	SessionLogs(ctx context.Context, projectID int, params model.LogsParamsInput) ([]*model.LogEdge, error)
 	LogsTotalCount(ctx context.Context, projectID int, params model.LogsParamsInput) (uint64, error)
 	LogsHistogram(ctx context.Context, projectID int, params model.LogsParamsInput) (*model.LogsHistogram, error)
 	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput) ([]*model.LogKey, error)
@@ -4284,7 +4288,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["backend_domains"].(pq.StringArray)), true
+		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["backend_domains"].(pq.StringArray), args["filter_chrome_extension"].(*bool)), true
 
 	case "Mutation.editSegment":
 		if e.complexity.Mutation.EditSegment == nil {
@@ -4885,6 +4889,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Project.BillingEmail(childComplexity), true
 
+	case "Project.error_filters":
+		if e.complexity.Project.ErrorFilters == nil {
+			break
+		}
+
+		return e.complexity.Project.ErrorFilters(childComplexity), true
+
 	case "Project.error_json_paths":
 		if e.complexity.Project.ErrorJsonPaths == nil {
 			break
@@ -4898,6 +4909,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.ExcludedUsers(childComplexity), true
+
+	case "Project.filter_chrome_extension":
+		if e.complexity.Project.FilterChromeExtension == nil {
+			break
+		}
+
+		return e.complexity.Project.FilterChromeExtension(childComplexity), true
 
 	case "Project.id":
 		if e.complexity.Project.ID == nil {
@@ -6172,6 +6190,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SessionIntervals(childComplexity, args["session_secure_id"].(string)), true
+
+	case "Query.sessionLogs":
+		if e.complexity.Query.SessionLogs == nil {
+			break
+		}
+
+		args, err := ec.field_Query_sessionLogs_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SessionLogs(childComplexity, args["project_id"].(int), args["params"].(model.LogsParamsInput)), true
 
 	case "Query.sessions_histogram":
 		if e.complexity.Query.SessionsHistogram == nil {
@@ -8438,11 +8468,13 @@ type Project {
 	secret: String
 	workspace_id: ID!
 	excluded_users: StringArray
+	error_filters: StringArray
 	error_json_paths: StringArray
 	rage_click_window_seconds: Int
 	rage_click_radius_pixels: Int
 	rage_click_count: Int
 	backend_domains: StringArray
+	filter_chrome_extension: Boolean
 }
 
 type Account {
@@ -9684,6 +9716,7 @@ type Query {
 		at: String
 		direction: LogDirection!
 	): LogsConnection!
+	sessionLogs(project_id: ID!, params: LogsParamsInput!): [LogEdge!]!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
 	logs_keys(project_id: ID!, date_range: DateRangeRequiredInput!): [LogKey!]!
@@ -9708,11 +9741,13 @@ type Mutation {
 		name: String
 		billing_email: String
 		excluded_users: StringArray
+		error_filters: StringArray
 		error_json_paths: StringArray
 		rage_click_window_seconds: Int
 		rage_click_radius_pixels: Int
 		rage_click_count: Int
 		backend_domains: StringArray
+		filter_chrome_extension: Boolean
 	): Project
 	editWorkspace(id: ID!, name: String): Workspace
 	markErrorGroupAsViewed(
@@ -11388,50 +11423,68 @@ func (ec *executionContext) field_Mutation_editProject_args(ctx context.Context,
 	}
 	args["excluded_users"] = arg3
 	var arg4 pq.StringArray
-	if tmp, ok := rawArgs["error_json_paths"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_json_paths"))
+	if tmp, ok := rawArgs["error_filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_filters"))
 		arg4, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["error_json_paths"] = arg4
-	var arg5 *int
-	if tmp, ok := rawArgs["rage_click_window_seconds"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_window_seconds"))
-		arg5, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	args["error_filters"] = arg4
+	var arg5 pq.StringArray
+	if tmp, ok := rawArgs["error_json_paths"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_json_paths"))
+		arg5, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["rage_click_window_seconds"] = arg5
+	args["error_json_paths"] = arg5
 	var arg6 *int
-	if tmp, ok := rawArgs["rage_click_radius_pixels"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_radius_pixels"))
+	if tmp, ok := rawArgs["rage_click_window_seconds"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_window_seconds"))
 		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["rage_click_radius_pixels"] = arg6
+	args["rage_click_window_seconds"] = arg6
 	var arg7 *int
-	if tmp, ok := rawArgs["rage_click_count"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_count"))
+	if tmp, ok := rawArgs["rage_click_radius_pixels"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_radius_pixels"))
 		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["rage_click_count"] = arg7
-	var arg8 pq.StringArray
-	if tmp, ok := rawArgs["backend_domains"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("backend_domains"))
-		arg8, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
+	args["rage_click_radius_pixels"] = arg7
+	var arg8 *int
+	if tmp, ok := rawArgs["rage_click_count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_count"))
+		arg8, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["backend_domains"] = arg8
+	args["rage_click_count"] = arg8
+	var arg9 pq.StringArray
+	if tmp, ok := rawArgs["backend_domains"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("backend_domains"))
+		arg9, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["backend_domains"] = arg9
+	var arg10 *bool
+	if tmp, ok := rawArgs["filter_chrome_extension"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter_chrome_extension"))
+		arg10, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter_chrome_extension"] = arg10
 	return args, nil
 }
 
@@ -14732,6 +14785,30 @@ func (ec *executionContext) field_Query_serverIntegration_args(ctx context.Conte
 		}
 	}
 	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_sessionLogs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 model.LogsParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg1, err = ec.unmarshalNLogsParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogsParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg1
 	return args, nil
 }
 
@@ -30764,6 +30841,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAdminAndCreateWorkspace(
 				return ec.fieldContext_Project_workspace_id(ctx, field)
 			case "excluded_users":
 				return ec.fieldContext_Project_excluded_users(ctx, field)
+			case "error_filters":
+				return ec.fieldContext_Project_error_filters(ctx, field)
 			case "error_json_paths":
 				return ec.fieldContext_Project_error_json_paths(ctx, field)
 			case "rage_click_window_seconds":
@@ -30774,6 +30853,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAdminAndCreateWorkspace(
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
 			case "backend_domains":
 				return ec.fieldContext_Project_backend_domains(ctx, field)
+			case "filter_chrome_extension":
+				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -30964,6 +31045,8 @@ func (ec *executionContext) fieldContext_Mutation_createProject(ctx context.Cont
 				return ec.fieldContext_Project_workspace_id(ctx, field)
 			case "excluded_users":
 				return ec.fieldContext_Project_excluded_users(ctx, field)
+			case "error_filters":
+				return ec.fieldContext_Project_error_filters(ctx, field)
 			case "error_json_paths":
 				return ec.fieldContext_Project_error_json_paths(ctx, field)
 			case "rage_click_window_seconds":
@@ -30974,6 +31057,8 @@ func (ec *executionContext) fieldContext_Mutation_createProject(ctx context.Cont
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
 			case "backend_domains":
 				return ec.fieldContext_Project_backend_domains(ctx, field)
+			case "filter_chrome_extension":
+				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -31093,7 +31178,7 @@ func (ec *executionContext) _Mutation_editProject(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditProject(rctx, fc.Args["id"].(int), fc.Args["name"].(*string), fc.Args["billing_email"].(*string), fc.Args["excluded_users"].(pq.StringArray), fc.Args["error_json_paths"].(pq.StringArray), fc.Args["rage_click_window_seconds"].(*int), fc.Args["rage_click_radius_pixels"].(*int), fc.Args["rage_click_count"].(*int), fc.Args["backend_domains"].(pq.StringArray))
+		return ec.resolvers.Mutation().EditProject(rctx, fc.Args["id"].(int), fc.Args["name"].(*string), fc.Args["billing_email"].(*string), fc.Args["excluded_users"].(pq.StringArray), fc.Args["error_filters"].(pq.StringArray), fc.Args["error_json_paths"].(pq.StringArray), fc.Args["rage_click_window_seconds"].(*int), fc.Args["rage_click_radius_pixels"].(*int), fc.Args["rage_click_count"].(*int), fc.Args["backend_domains"].(pq.StringArray), fc.Args["filter_chrome_extension"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -31128,6 +31213,8 @@ func (ec *executionContext) fieldContext_Mutation_editProject(ctx context.Contex
 				return ec.fieldContext_Project_workspace_id(ctx, field)
 			case "excluded_users":
 				return ec.fieldContext_Project_excluded_users(ctx, field)
+			case "error_filters":
+				return ec.fieldContext_Project_error_filters(ctx, field)
 			case "error_json_paths":
 				return ec.fieldContext_Project_error_json_paths(ctx, field)
 			case "rage_click_window_seconds":
@@ -31138,6 +31225,8 @@ func (ec *executionContext) fieldContext_Mutation_editProject(ctx context.Contex
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
 			case "backend_domains":
 				return ec.fieldContext_Project_backend_domains(ctx, field)
+			case "filter_chrome_extension":
+				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -36767,6 +36856,47 @@ func (ec *executionContext) fieldContext_Project_excluded_users(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Project_error_filters(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Project_error_filters(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorFilters, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(pq.StringArray)
+	fc.Result = res
+	return ec.marshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Project_error_filters(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type StringArray does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Project_error_json_paths(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Project_error_json_paths(ctx, field)
 	if err != nil {
@@ -36967,6 +37097,47 @@ func (ec *executionContext) fieldContext_Project_backend_domains(ctx context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type StringArray does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Project_filter_chrome_extension(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Project_filter_chrome_extension(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FilterChromeExtension, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Project_filter_chrome_extension(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -41127,6 +41298,8 @@ func (ec *executionContext) fieldContext_Query_projects(ctx context.Context, fie
 				return ec.fieldContext_Project_workspace_id(ctx, field)
 			case "excluded_users":
 				return ec.fieldContext_Project_excluded_users(ctx, field)
+			case "error_filters":
+				return ec.fieldContext_Project_error_filters(ctx, field)
 			case "error_json_paths":
 				return ec.fieldContext_Project_error_json_paths(ctx, field)
 			case "rage_click_window_seconds":
@@ -41137,6 +41310,8 @@ func (ec *executionContext) fieldContext_Query_projects(ctx context.Context, fie
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
 			case "backend_domains":
 				return ec.fieldContext_Project_backend_domains(ctx, field)
+			case "filter_chrome_extension":
+				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -42180,6 +42355,8 @@ func (ec *executionContext) fieldContext_Query_projectSuggestion(ctx context.Con
 				return ec.fieldContext_Project_workspace_id(ctx, field)
 			case "excluded_users":
 				return ec.fieldContext_Project_excluded_users(ctx, field)
+			case "error_filters":
+				return ec.fieldContext_Project_error_filters(ctx, field)
 			case "error_json_paths":
 				return ec.fieldContext_Project_error_json_paths(ctx, field)
 			case "rage_click_window_seconds":
@@ -42190,6 +42367,8 @@ func (ec *executionContext) fieldContext_Query_projectSuggestion(ctx context.Con
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
 			case "backend_domains":
 				return ec.fieldContext_Project_backend_domains(ctx, field)
+			case "filter_chrome_extension":
+				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -43463,6 +43642,8 @@ func (ec *executionContext) fieldContext_Query_project(ctx context.Context, fiel
 				return ec.fieldContext_Project_workspace_id(ctx, field)
 			case "excluded_users":
 				return ec.fieldContext_Project_excluded_users(ctx, field)
+			case "error_filters":
+				return ec.fieldContext_Project_error_filters(ctx, field)
 			case "error_json_paths":
 				return ec.fieldContext_Project_error_json_paths(ctx, field)
 			case "rage_click_window_seconds":
@@ -43473,6 +43654,8 @@ func (ec *executionContext) fieldContext_Query_project(ctx context.Context, fiel
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
 			case "backend_domains":
 				return ec.fieldContext_Project_backend_domains(ctx, field)
+			case "filter_chrome_extension":
+				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -45217,6 +45400,66 @@ func (ec *executionContext) fieldContext_Query_logs(ctx context.Context, field g
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_logs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_sessionLogs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_sessionLogs(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SessionLogs(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.LogsParamsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.LogEdge)
+	fc.Result = res
+	return ec.marshalNLogEdge2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_sessionLogs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cursor":
+				return ec.fieldContext_LogEdge_cursor(ctx, field)
+			case "node":
+				return ec.fieldContext_LogEdge_node(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LogEdge", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_sessionLogs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -54476,6 +54719,8 @@ func (ec *executionContext) fieldContext_Workspace_projects(ctx context.Context,
 				return ec.fieldContext_Project_workspace_id(ctx, field)
 			case "excluded_users":
 				return ec.fieldContext_Project_excluded_users(ctx, field)
+			case "error_filters":
+				return ec.fieldContext_Project_error_filters(ctx, field)
 			case "error_json_paths":
 				return ec.fieldContext_Project_error_json_paths(ctx, field)
 			case "rage_click_window_seconds":
@@ -54486,6 +54731,8 @@ func (ec *executionContext) fieldContext_Workspace_projects(ctx context.Context,
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
 			case "backend_domains":
 				return ec.fieldContext_Project_backend_domains(ctx, field)
+			case "filter_chrome_extension":
+				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -63517,6 +63764,10 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Project_excluded_users(ctx, field, obj)
 
+		case "error_filters":
+
+			out.Values[i] = ec._Project_error_filters(ctx, field, obj)
+
 		case "error_json_paths":
 
 			out.Values[i] = ec._Project_error_json_paths(ctx, field, obj)
@@ -63536,6 +63787,10 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 		case "backend_domains":
 
 			out.Values[i] = ec._Project_backend_domains(ctx, field, obj)
+
+		case "filter_chrome_extension":
+
+			out.Values[i] = ec._Project_filter_chrome_extension(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -66036,6 +66291,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_logs(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "sessionLogs":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_sessionLogs(ctx, field)
 				return res
 			}
 

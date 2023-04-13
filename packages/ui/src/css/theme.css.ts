@@ -28,7 +28,7 @@ export const themeVars = createGlobalTheme('.highlight-light-theme', {
 				informative: '#6346af',
 			},
 		},
-		divider: { strong: '#c8c7cb', default: '#dcdbdd', weak: '#e4e2e4' },
+		divider: { strong: '#c8c7cb', default: '#dcdbdd', weak: '#ebe9eb' },
 	},
 	interactive: {
 		fill: {

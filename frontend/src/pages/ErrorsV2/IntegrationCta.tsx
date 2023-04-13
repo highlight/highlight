@@ -33,13 +33,13 @@ export const IntegrationCta: React.FC = () => {
 					<Stack gap="12" direction="column" paddingBottom="6">
 						<Box mt="6">
 							<Text weight="bold" size="medium">
-								Integrate backend errors
+								Error monitoring for your backend?
 							</Text>
 						</Box>
 
 						<Text>
-							Configure backend error monitoring to see errors
-							from your servers.
+							You're just a few lines away from getting visibility
+							into your backend errors.
 						</Text>
 					</Stack>
 

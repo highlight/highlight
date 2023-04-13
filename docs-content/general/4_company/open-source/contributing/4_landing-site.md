@@ -13,8 +13,7 @@ To run the app locally, install dependencies and call `yarn dev` as follows:
 
 ```bash
 yarn install;
-cd highlight.io;
-yarn dev;
+yarn dev:highlight.io;
 open http://localhost:4000/
 ```
 

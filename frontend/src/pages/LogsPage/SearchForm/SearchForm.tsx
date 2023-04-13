@@ -5,6 +5,7 @@ import {
 	Box,
 	Combobox,
 	Form,
+	IconSolidPlus,
 	IconSolidSearch,
 	IconSolidSwitchVertical,
 	IconSolidXCircle,
@@ -27,7 +28,12 @@ import {
 } from '@pages/LogsPage/SearchForm/utils'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
+import { stringify } from 'query-string'
 import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
+
+import { Button } from '@/components/Button'
 
 import * as styles from './SearchForm.css'
 
@@ -54,10 +60,9 @@ const SearchForm = ({
 	minDate,
 	timeMode,
 }: Props) => {
+	const navigate = useNavigate()
 	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
-
 	const formState = useFormState({ defaultValues: { query: initialQuery } })
-
 	const { projectId } = useProjectId()
 	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
 		variables: {
@@ -101,7 +106,7 @@ const SearchForm = ({
 					keys={keysData?.logs_keys}
 					keysLoading={keysLoading}
 				/>
-				<Box display="flex" pr="8" py="6">
+				<Box display="flex" pr="8" py="6" gap="6">
 					<PreviousDateRangePicker
 						emphasis="low"
 						selectedDates={selectedDates}
@@ -110,6 +115,32 @@ const SearchForm = ({
 						minDate={minDate}
 						disabled={timeMode === 'permalink'}
 					/>
+					<Button
+						kind="secondary"
+						trackingId="create-alert"
+						onClick={() => {
+							const encodedQuery = encodeQueryParams(
+								{
+									query: StringParam,
+									start_date: DateTimeParam,
+									end_date: DateTimeParam,
+								},
+								{
+									query: formState.values.query,
+									start_date: startDate,
+									end_date: endDate,
+								},
+							)
+							navigate({
+								pathname: '/alerts/logs/new',
+								search: stringify(encodedQuery),
+							})
+						}}
+						emphasis="medium"
+						iconLeft={<IconSolidPlus />}
+					>
+						Create alert
+					</Button>{' '}
 				</Box>
 			</Box>
 		</Form>
@@ -166,7 +197,6 @@ export const Search: React.FC<{
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
 
 	const showResults = loading || visibleItems.length > 0 || showTermSelect
-
 	const isDirty = state.value !== ''
 
 	const submitQuery = (query: string) => {
@@ -208,17 +238,29 @@ export const Search: React.FC<{
 		// links combobox and form states;
 		// necessary to update the URL when the query changes
 		formState.setValue('query', state.value)
+
+		// Clear the selected item if the combobox is empty. Need to flush execution
+		// queue before clearing the active item.
+		if (state.value === '') {
+			setTimeout(() => {
+				state.setActiveId(null)
+				state.setMoves(0)
+			}, 0)
+		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [state.value])
 
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
+		noQuotes?: boolean,
 	) => {
 		const isValueSelect = typeof key === 'string'
 
 		// If string, it's a value not a key
 		if (isValueSelect) {
-			queryTerms[activeTermIndex].value = quoteQueryValue(key)
+			queryTerms[activeTermIndex].value = noQuotes
+				? key
+				: quoteQueryValue(key)
 		} else {
 			queryTerms[activeTermIndex].key = key.name
 			queryTerms[activeTermIndex].value = ''
@@ -270,6 +312,13 @@ export const Search: React.FC<{
 						formState.setValue('query', state.value)
 						inputRef?.current?.blur()
 					}}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter' && state.value === '') {
+							e.preventDefault()
+							submitQuery(state.value)
+							state.setOpen(false)
+						}
+					}}
 				/>
 
 				{isDirty ? (
@@ -280,7 +329,7 @@ export const Search: React.FC<{
 							e.stopPropagation()
 
 							state.setValue('')
-							formState.setValue('query', '')
+							submitQuery('')
 						}}
 						style={{ cursor: 'pointer' }}
 					/>
@@ -301,7 +350,7 @@ export const Search: React.FC<{
 								<Combobox.Item
 									className={styles.comboboxItem}
 									onClick={() =>
-										handleItemSelect(activeTerm.value)
+										handleItemSelect(activeTerm.value, true)
 									}
 									state={state}
 								>

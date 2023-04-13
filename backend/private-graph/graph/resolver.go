@@ -1348,7 +1348,7 @@ func (r *Resolver) MarshalAlertEmails(emails []*string) (*string, error) {
 	return &channelsString, nil
 }
 
-func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.ErrorTrace, error) {
+func (r *Resolver) UnmarshalStackTrace(stackTraceString string, filterChrome bool) ([]*modelInputs.ErrorTrace, error) {
 	var unmarshalled []*modelInputs.ErrorTrace
 	if err := json.Unmarshal([]byte(stackTraceString), &unmarshalled); err != nil {
 		// Stack trace may not be able to be unmarshalled as the format may differ
@@ -1361,7 +1361,9 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.
 	var ret []*modelInputs.ErrorTrace
 	for _, frame := range unmarshalled {
 		if frame != nil && *frame != empty {
-			ret = append(ret, frame)
+			if !filterChrome || (frame.FileName != nil && !strings.HasPrefix(*frame.FileName, "chrome-extension")) {
+				ret = append(ret, frame)
+			}
 		}
 	}
 
@@ -3124,11 +3126,12 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 	return
 }
 
-func (r *Resolver) GetProjectRetentionDate(ctx context.Context, projectId int) (time.Time, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectId)
-	if err != nil {
-		return time.Time{}, err
+func (r *Resolver) GetProjectRetentionDate(projectId int) (time.Time, error) {
+	var project *model.Project
+	if err := r.DB.Model(&model.Project{}).Where("id = ?", projectId).First(&project).Error; err != nil {
+		return time.Time{}, e.Wrap(err, "error querying project")
 	}
+
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return time.Time{}, err

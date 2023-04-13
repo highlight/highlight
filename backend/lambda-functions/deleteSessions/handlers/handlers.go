@@ -120,14 +120,14 @@ func (h *handlers) DeleteSessionBatchFromPostgres(ctx context.Context, event uti
 	}
 
 	if !event.DryRun {
-		if err := h.db.Raw(`
+		if err := h.db.Exec(`
 			DELETE FROM session_fields
 			WHERE session_id in (?)
 		`, sessionIds).Error; err != nil {
 			return nil, errors.Wrap(err, "error deleting session fields")
 		}
 
-		if err := h.db.Raw(`
+		if err := h.db.Exec(`
 			DELETE FROM sessions
 			WHERE id in (?)
 		`, sessionIds).Error; err != nil {

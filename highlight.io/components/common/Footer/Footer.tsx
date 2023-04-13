@@ -52,6 +52,19 @@ const Footer = () => {
 							<li>
 								<Link href="/#customers">Customers</Link>
 							</li>
+							<li>
+								<Link href="/session-replay">
+									Session Replay
+								</Link>
+							</li>
+							<li>
+								<Link href="/error-monitoring">
+									Error Monitoring
+								</Link>
+							</li>
+							<li>
+								<Link href="/logging">Logging</Link>
+							</li>
 						</ul>
 					</Typography>
 				</div>
@@ -64,7 +77,7 @@ const Footer = () => {
 					<Typography type="copy3">
 						<ul className={styles.footerList}>
 							<li>
-								<a href="https://feedback.highlight.run/changelog">
+								<a href="https://www.highlight.io/docs/general/changelog/overview">
 									Changelog
 								</a>
 							</li>

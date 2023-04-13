@@ -3,7 +3,7 @@ import yaml from 'js-yaml'
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { serialize } from 'next-mdx-remote/serialize'
 import { GetStaticPaths, GetStaticProps } from 'next/types'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Collapse } from 'react-collapse'
 import styles from '../../components/Docs/Docs.module.scss'
 import ChevronDown from '../../public/images/ChevronDownIcon'
@@ -117,7 +117,8 @@ const useIntersectionObserver = (setActiveId: (s: string) => void) => {
 		}
 
 		const observer = new IntersectionObserver(callback, {
-			rootMargin: '0px 0px -40% 0px',
+			rootMargin: '-5% 0px -90% 0px',
+			threshold: 0.0001,
 		})
 
 		const headingElements = Array.from(document.querySelectorAll('h4, h5'))
@@ -408,7 +409,10 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 		redirect = target ?? ''
 	}
 
-	let roadmapData = await roadmapFetcher()
+	let roadmapData = null
+	if (currentDoc.rel_path.includes('roadmap')) {
+		roadmapData = await roadmapFetcher()
+	}
 
 	return {
 		props: {
@@ -418,9 +422,7 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 						scope: {
 							path: currentDoc.rel_path,
 							quickStartContent,
-							roadmapData: currentDoc.rel_path.includes('roadmap')
-								? roadmapData
-								: null,
+							roadmapData: roadmapData,
 						},
 				  })
 				: null,
@@ -573,7 +575,10 @@ const PageRightBar = ({
 				</Link>
 				<Link
 					className={styles.socialItem}
-					href={`${DOCS_GITUB_LINK}${relativePath}`}
+					href={`${DOCS_GITUB_LINK}${relativePath}`.replaceAll(
+						/\/+/g,
+						'/',
+					)}
 					target="_blank"
 				>
 					<FaGithub style={{ height: 20, width: 20 }}></FaGithub>
@@ -614,6 +619,7 @@ const PageRightBar = ({
 													)
 													?.scrollIntoView({
 														behavior: 'smooth',
+														block: 'start',
 													})
 												const basePath =
 													router.asPath.split('#')[0]
@@ -647,11 +653,13 @@ const TableOfContents = ({
 	docPaths,
 	openParent,
 	openTopLevel = false,
+	onNavigate,
 }: {
 	toc: TocEntry
 	openParent: boolean
 	openTopLevel?: boolean
 	docPaths: DocPath[]
+	onNavigate?: () => void
 }) => {
 	const hasChildren = !!toc?.children.length
 
@@ -670,7 +678,8 @@ const TableOfContents = ({
 			docPaths[toc.docPathId || 0]?.simple_path,
 		)
 		setOpen((prevOpenState) => prevOpenState || isParentOfCurrentPage)
-	}, [docPaths, toc.docPathId])
+		onNavigate?.()
+	}, [docPaths, toc.docPathId, onNavigate])
 
 	return (
 		<div className="max-w-full">
@@ -810,6 +819,7 @@ const DocPage = ({
 	const blogBody = useRef<HTMLDivElement>(null)
 	const router = useRouter()
 	const [open, setOpen] = useState(false)
+	const closeMenu = useCallback(() => setOpen(false), [])
 
 	const isQuickstart = metadata && 'quickstart' in metadata
 
@@ -913,6 +923,7 @@ const DocPage = ({
 										docPaths={docOptions}
 										openParent={false}
 										openTopLevel={false}
+										onNavigate={closeMenu}
 									/>
 								))
 							)}
@@ -991,13 +1002,20 @@ const DocPage = ({
 														typeof props.children ===
 															'string'
 													) {
+														const id =
+															generateIdString(
+																props.children as string,
+															)
 														return (
-															<h5
-																id={generateIdString(
-																	props.children as string,
-																)}
-																{...props}
-															/>
+															<Link
+																href={`#${id}`}
+																className="flex items-baseline gap-2 my-6 transition-all group"
+															>
+																<h5
+																	id={id}
+																	{...props}
+																/>
+															</Link>
 														)
 													}
 													return <></>
@@ -1266,54 +1284,19 @@ const QuickStart = (content: { content: QuickStartContent }) => {
 				{c.entries.map((step: QuickStartStep, i: number) => {
 					if (step.hidden) return null
 					return (
-						<div
-							key={JSON.stringify(step)}
-							style={{ display: 'flex', gap: 24 }}
-						>
-							<div
-								style={{
-									display: 'flex',
-									width: 40,
-									flexDirection: 'column',
-								}}
-							>
-								<div
-									style={{
-										width: 32,
-										minHeight: 32,
-										backgroundColor: '#30294E',
-										borderRadius: 100,
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-									}}
-								>
+						<div key={JSON.stringify(step)} className="flex gap-6">
+							<div className="flex flex-col items-center flex-shrink-0 w-10">
+								<div className="grid flex-shrink-0 w-8 h-8 rounded-full bg-divider-on-dark place-items-center">
 									{i + 1}
 								</div>
-								<div
-									style={{
-										width: 16,
-										height: '100%',
-										borderRight: '2px solid #30294E',
-									}}
-								></div>
+								<div className="w-0.5 flex-1 bg-divider-on-dark" />
 							</div>
-							<div
-								style={{
-									width: '100%',
-									display: 'flex',
-									gap: 20,
-									marginBottom: 42,
-								}}
-							>
+							<div className="grid gap-5 mb-[42px] flex-1 min-[1000px]:grid-cols-2 min-[1000px]:grid-flow-col">
 								<div
-									style={{
-										width: '50%',
-										display: 'flex',
-										flexDirection: 'column',
-										gap: 8,
-									}}
-									className={styles.quickStartSubtext}
+									className={classNames(
+										' flex flex-col gap-2',
+										styles.quickStartSubtext,
+									)}
 								>
 									<Typography type="copy2" emphasis>
 										{step.title}
@@ -1342,7 +1325,7 @@ const QuickStart = (content: { content: QuickStartContent }) => {
 										{step.content}
 									</Markdown>
 								</div>
-								<div style={{ width: '50%' }}>
+								<div className="min-w-0">
 									{step.code && (
 										<HighlightCodeBlock
 											style={{

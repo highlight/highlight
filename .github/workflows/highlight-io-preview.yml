@@ -8,6 +8,7 @@ on:
             - 'highlight.io/**'
             - 'docs-content/**'
             - '.github/workflows/highlight-io-preview.yml'
+            - 'turbo.json'
             - 'yarn.lock'
         branches-ignore:
             - main
@@ -15,7 +16,7 @@ jobs:
     Deploy-Preview:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v3
               with:
                   submodules: true
             - name: Pull Vercel Environment Information

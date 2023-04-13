@@ -5,9 +5,12 @@ import { COLOR_MAPPING, LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import { formatDate, isSignificantDateRange } from '@pages/LogsPage/utils'
 import { clamp, formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
+import clsx from 'clsx'
 import moment from 'moment'
 import { memo, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+
+import LoadingBox from '@/components/LoadingBox'
 
 import * as styles from './LogsHistogram.css'
 
@@ -23,7 +26,11 @@ interface HistogramBucket {
 
 type LogsHistogramProps = Omit<
 	LogsHistogramChartProps,
-	'buckets' | 'showLoadingState' | 'totalCount' | 'maxBucketCount'
+	| 'buckets'
+	| 'showLoadingState'
+	| 'totalCount'
+	| 'maxBucketCount'
+	| 'loadingState'
 > & {
 	query: string
 	outline?: boolean
@@ -32,11 +39,13 @@ type LogsHistogramProps = Omit<
 	frequencySeconds?: number
 } & BoxProps
 
+type LoadingState = 'skeleton' | 'spinner'
+
 interface LogsHistogramChartProps {
 	startDate: Date
 	endDate: Date
 	buckets: HistogramBucket[]
-	showLoadingState: boolean
+	loadingState: LoadingState | undefined
 	totalCount: number
 	maxBucketCount: number
 	onDatesChange?: (startDate: Date, endDate: Date) => void
@@ -208,7 +217,23 @@ const LogsHistogram = ({
 		loading || (!outline && (!data?.logs_histogram || !maxBucketCount))
 
 	if (!loading && !maxBucketCount && !outline) {
-		return null
+		return (
+			<Box
+				cssClass={clsx({
+					[styles.regularHeight]: !outline,
+					[styles.outlineHeight]: outline,
+				})}
+			/>
+		)
+	}
+
+	let loadingState: LoadingState | undefined
+	if (showLoadingState) {
+		if (outline) {
+			loadingState = 'spinner'
+		} else {
+			loadingState = 'skeleton'
+		}
 	}
 
 	return (
@@ -216,12 +241,11 @@ const LogsHistogram = ({
 			display="flex"
 			alignItems="center"
 			gap="4"
+			cssClass={clsx({
+				[styles.regularHeight]: !outline,
+				[styles.outlineHeight]: outline,
+			})}
 			{...props}
-			style={{
-				height: outline
-					? styles.OUTLINE_HISTOGRAM_HEIGHT
-					: styles.REGULAR_HISTOGRAM_HEIGHT,
-			}}
 		>
 			<Box
 				p={outline ? `${styles.OUTLINE_PADDING}` : undefined}
@@ -253,7 +277,7 @@ const LogsHistogram = ({
 							buckets={buckets}
 							startDate={startDate}
 							endDate={endDate}
-							showLoadingState={showLoadingState}
+							loadingState={loadingState}
 							onDatesChange={onDatesChange}
 							onLevelChange={onLevelChange}
 							totalCount={buckets.length}
@@ -284,7 +308,7 @@ const LogsHistogramChart = ({
 	endDate,
 	onDatesChange,
 	onLevelChange,
-	showLoadingState,
+	loadingState,
 	totalCount,
 	maxBucketCount,
 }: LogsHistogramChartProps) => {
@@ -336,7 +360,7 @@ const LogsHistogramChart = ({
 			py="4"
 			ref={containerRef}
 			onMouseDown={(e: any) => {
-				if (!e || !containerRef.current || showLoadingState) {
+				if (!e || !containerRef.current || loadingState) {
 					return
 				}
 				const rect = containerRef.current.getBoundingClientRect()
@@ -344,7 +368,7 @@ const LogsHistogramChart = ({
 				setDragStart(pos)
 			}}
 			onMouseMove={(e: any) => {
-				if (!e || !containerRef.current || showLoadingState) {
+				if (!e || !containerRef.current || loadingState) {
 					return
 				}
 				if (dragStart !== undefined) {
@@ -375,7 +399,9 @@ const LogsHistogramChart = ({
 				setDragEnd(undefined)
 			}}
 		>
-			{showLoadingState ? <LoadingState /> : content}
+			{loadingState === 'skeleton' && <LoadingState />}
+			{loadingState === 'spinner' && <LoadingBox />}
+			{!loadingState && content}
 			{dragLeft !== undefined && dragRight !== undefined && (
 				<Box
 					position="absolute"

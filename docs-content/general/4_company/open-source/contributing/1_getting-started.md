@@ -49,8 +49,8 @@ updatedAt: 2023-01-24T02:07:22.000Z
 ## What are development best practices?
 
 <DocsCardGroup>
-    <DocsCard title="Starter Tickets" href="./best-first-issue">
-        {"Best first issue to start with."}
+    <DocsCard title="Good First Issues" href="./good-first-issues">
+        {"Good first issues to start with."}
     </DocsCard>
     <DocsCard title="Code Style" href="./code-style">
         {"Defining our code styles."}

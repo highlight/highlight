@@ -6,7 +6,7 @@ import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import Table from '@components/Table/Table'
 import Tag from '@components/Tag/Tag'
 import { GetAlertsPagePayloadQuery } from '@graph/operations'
-import { IconSolidViewList } from '@highlight-run/ui'
+import { IconSolidLogs } from '@highlight-run/ui'
 import SvgBugIcon from '@icons/BugIcon'
 import SvgChevronRightIcon from '@icons/ChevronRightIcon'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
@@ -156,7 +156,7 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 		canControlThreshold: true,
 		type: ALERT_TYPE.Logs,
 		description: 'Get alerted when queried logs exceed a threshold.',
-		icon: <IconSolidViewList />,
+		icon: <IconSolidLogs />,
 		supportsExcludeRules: true,
 	},
 } as const

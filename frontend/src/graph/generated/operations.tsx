@@ -238,7 +238,9 @@ export type EditProjectMutationVariables = Types.Exact<{
 	name?: Types.Maybe<Types.Scalars['String']>
 	billing_email?: Types.Maybe<Types.Scalars['String']>
 	excluded_users?: Types.Maybe<Types.Scalars['StringArray']>
+	error_filters?: Types.Maybe<Types.Scalars['StringArray']>
 	error_json_paths?: Types.Maybe<Types.Scalars['StringArray']>
+	filter_chrome_extension?: Types.Maybe<Types.Scalars['Boolean']>
 	rage_click_window_seconds?: Types.Maybe<Types.Scalars['Int']>
 	rage_click_radius_pixels?: Types.Maybe<Types.Scalars['Int']>
 	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
@@ -253,7 +255,9 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
 			| 'name'
 			| 'billing_email'
 			| 'excluded_users'
+			| 'error_filters'
 			| 'error_json_paths'
+			| 'filter_chrome_extension'
 			| 'rage_click_window_seconds'
 			| 'rage_click_radius_pixels'
 			| 'rage_click_count'
@@ -2390,6 +2394,7 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
 			| 'billing_email'
 			| 'secret'
 			| 'workspace_id'
+			| 'error_filters'
 		>
 	>
 	workspace?: Types.Maybe<
@@ -2583,7 +2588,9 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
 			| 'verbose_id'
 			| 'billing_email'
 			| 'excluded_users'
+			| 'error_filters'
 			| 'error_json_paths'
+			| 'filter_chrome_extension'
 			| 'rage_click_window_seconds'
 			| 'rage_click_radius_pixels'
 			| 'rage_click_count'
@@ -4193,6 +4200,22 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 	}
 }
 
+export type GetSessionLogsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.LogsParamsInput
+}>
+
+export type GetSessionLogsQuery = { __typename?: 'Query' } & {
+	sessionLogs: Array<
+		{ __typename?: 'LogEdge' } & Pick<Types.LogEdge, 'cursor'> & {
+				node: { __typename?: 'Log' } & Pick<
+					Types.Log,
+					'timestamp' | 'level' | 'message'
+				>
+			}
+	>
+}
+
 export type GetLogsTotalCountQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.LogsParamsInput
@@ -4385,6 +4408,7 @@ export const namedOperations = {
 		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
+		GetSessionLogs: 'GetSessionLogs' as const,
 		GetLogsTotalCount: 'GetLogsTotalCount' as const,
 		GetLogsHistogram: 'GetLogsHistogram' as const,
 		GetLogsKeys: 'GetLogsKeys' as const,

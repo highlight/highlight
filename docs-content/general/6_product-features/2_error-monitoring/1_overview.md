@@ -19,6 +19,9 @@ Error monitoring in [highlight.io](https://highlight.io) is different than most 
 ## Features.
 
 <DocsCardGroup>
+    <DocsCard title="Manually Reporting Errors."  href="./manually-send-errors.md">
+        {"Manually report errors that are not caught by the SDK."}
+    </DocsCard>
     <DocsCard title="Grouping Errors."  href="./grouping-errors.md">
         {"Logic for grouping errors to mitigate repetition."}
     </DocsCard>
@@ -27,5 +30,8 @@ Error monitoring in [highlight.io](https://highlight.io) is different than most 
     </DocsCard>
     <DocsCard title="Versioning Errors."  href="../../../getting-started/3_client-sdk/7_replay-configuration/versioning-sessions-and-errors.md">
         {"Send highlight.io metadata so you can version errors across deploys."}
+    </DocsCard>
+    <DocsCard title="Ignoring & Excluding Errors"  href="./ignoring-errors.md">
+        {"Options for ignoring and excluding errors."}
     </DocsCard>
 </DocsCardGroup>

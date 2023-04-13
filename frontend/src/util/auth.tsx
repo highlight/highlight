@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // noinspection JSUnusedLocalSymbols
 
-import 'firebase/auth'
+import 'firebase/compat/auth'
 
-import Firebase from 'firebase/app'
+import Firebase from 'firebase/compat/app'
 
 interface User {
 	email: string | null

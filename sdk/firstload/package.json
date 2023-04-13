@@ -1,8 +1,8 @@
 {
 	"name": "highlight.run",
-	"version": "5.4.2",
+	"version": "6.0.2",
 	"scripts": {
-		"build": "yarn typegen && rollup -c",
+		"build": "rollup -c",
 		"dev": "rollup -c -w",
 		"enforce-size": "size-limit",
 		"test": "vitest --run",

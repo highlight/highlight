@@ -118,7 +118,7 @@ func TestCalculateSessionLength(t *testing.T) {
 }
 
 func TestGetActiveDuration(t *testing.T) {
-	zeroTime := time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
+	zeroTime := time.Time{}
 	beginningOfTime := time.Unix(0, 1000000).UTC()
 	tables := map[string]struct {
 		events             []model.EventsObject
@@ -156,6 +156,7 @@ func TestGetActiveDuration(t *testing.T) {
 					"events": [{
 						"_sid": 1,
 						"data": {"source": 5},
+						"timestamp": 1,
 						"type": 2
 					}]
 				}
@@ -194,6 +195,7 @@ func TestGetActiveDuration(t *testing.T) {
 					"events": [{
 						"_sid": 1,
 						"data": {"source": 5},
+						"timestamp": 1,
 						"type": 2
 					}]
 				}
@@ -231,6 +233,7 @@ func TestGetActiveDuration(t *testing.T) {
 					"events": [{
 						"_sid": 1,
 						"data": {"source": 5},
+						"timestamp": 1,
 						"type": 2
 					}]
 				}
@@ -298,6 +301,7 @@ func TestGetActiveDuration(t *testing.T) {
 					"events": [{
 						"_sid": 1,
 						"data": {"source": 5},
+						"timestamp": 1,
 						"type": 2
 					}]
 				}
@@ -696,7 +700,7 @@ func TestGetActiveDuration(t *testing.T) {
 			if diff := deep.Equal(tt.wantActiveDuration, a.ActiveDuration); diff != nil {
 				t.Errorf("[active duration not equal to expected]: %v", diff)
 			}
-			if diff := deep.Equal(tt.expectedFirstTS, a.FirstEventTimestamp); diff != nil {
+			if diff := deep.Equal(tt.expectedFirstTS, a.FirstFullSnapshotTimestamp); diff != nil {
 				t.Errorf("[expected first timestamp not equal to actual]: %v", diff)
 			}
 			for _, iii := range a.RageClickSets {
@@ -706,10 +710,9 @@ func TestGetActiveDuration(t *testing.T) {
 	}
 }
 
-func TestFullSnapshotValidation(t *testing.T) {
+func TestFullSnapshotProcessed(t *testing.T) {
 	tables := map[string]struct {
-		events  []model.EventsObject
-		isValid bool
+		events []model.EventsObject
 	}{
 		"one meta event": {
 			[]model.EventsObject{{
@@ -723,11 +726,9 @@ func TestFullSnapshotValidation(t *testing.T) {
 					}]
 				}
 				`}},
-			true,
 		},
 		"no events": {
 			[]model.EventsObject{},
-			true,
 		},
 		"snapshot before incremental": {
 			[]model.EventsObject{
@@ -753,7 +754,6 @@ func TestFullSnapshotValidation(t *testing.T) {
 				}
 				`},
 			},
-			true,
 		},
 		"incremental before snapshot": {
 			[]model.EventsObject{
@@ -778,7 +778,6 @@ func TestFullSnapshotValidation(t *testing.T) {
 				}
 				`},
 			},
-			false,
 		},
 		"incremental alone": {
 			[]model.EventsObject{
@@ -793,7 +792,6 @@ func TestFullSnapshotValidation(t *testing.T) {
 					}]
 				}`},
 			},
-			false,
 		},
 	}
 	for name, tt := range tables {
@@ -810,9 +808,8 @@ func TestFullSnapshotValidation(t *testing.T) {
 					break
 				}
 			}
-			succeeded := a.Error == nil
-			if succeeded != tt.isValid {
-				t.Errorf("expected success value: %t, actual success value: %t", tt.isValid, succeeded)
+			if a.Error != nil {
+				t.Errorf("expected success, actual error: %v", a.Error)
 			}
 		})
 	}

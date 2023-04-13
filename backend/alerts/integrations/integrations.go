@@ -1,6 +1,10 @@
 package integrations
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"time"
+
+	"github.com/bwmarrin/discordgo"
+)
 
 type ErrorAlertPayload struct {
 	ErrorCount      int64
@@ -71,6 +75,8 @@ type LogAlertPayload struct {
 	Name           string
 	Query          string
 	Count          int
+	StartDate      time.Time
+	EndDate        time.Time
 	Threshold      int
 	BelowThreshold bool
 	AlertURL       string

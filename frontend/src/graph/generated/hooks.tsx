@@ -1274,7 +1274,9 @@ export const EditProjectDocument = gql`
 		$name: String
 		$billing_email: String
 		$excluded_users: StringArray
+		$error_filters: StringArray
 		$error_json_paths: StringArray
+		$filter_chrome_extension: Boolean
 		$rage_click_window_seconds: Int
 		$rage_click_radius_pixels: Int
 		$rage_click_count: Int
@@ -1285,7 +1287,9 @@ export const EditProjectDocument = gql`
 			name: $name
 			billing_email: $billing_email
 			excluded_users: $excluded_users
+			error_filters: $error_filters
 			error_json_paths: $error_json_paths
+			filter_chrome_extension: $filter_chrome_extension
 			rage_click_window_seconds: $rage_click_window_seconds
 			rage_click_radius_pixels: $rage_click_radius_pixels
 			rage_click_count: $rage_click_count
@@ -1295,7 +1299,9 @@ export const EditProjectDocument = gql`
 			name
 			billing_email
 			excluded_users
+			error_filters
 			error_json_paths
+			filter_chrome_extension
 			rage_click_window_seconds
 			rage_click_radius_pixels
 			rage_click_count
@@ -1325,7 +1331,9 @@ export type EditProjectMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      billing_email: // value for 'billing_email'
  *      excluded_users: // value for 'excluded_users'
+ *      error_filters: // value for 'error_filters'
  *      error_json_paths: // value for 'error_json_paths'
+ *      filter_chrome_extension: // value for 'filter_chrome_extension'
  *      rage_click_window_seconds: // value for 'rage_click_window_seconds'
  *      rage_click_radius_pixels: // value for 'rage_click_radius_pixels'
  *      rage_click_count: // value for 'rage_click_count'
@@ -7129,6 +7137,7 @@ export const GetProjectDropdownOptionsDocument = gql`
 			billing_email
 			secret
 			workspace_id
+			error_filters
 		}
 		workspace: workspace_for_project(project_id: $project_id) {
 			id
@@ -7536,7 +7545,9 @@ export const GetProjectDocument = gql`
 			verbose_id
 			billing_email
 			excluded_users
+			error_filters
 			error_json_paths
+			filter_chrome_extension
 			rage_click_window_seconds
 			rage_click_radius_pixels
 			rage_click_count
@@ -12173,6 +12184,68 @@ export type GetLogsLazyQueryHookResult = ReturnType<typeof useGetLogsLazyQuery>
 export type GetLogsQueryResult = Apollo.QueryResult<
 	Types.GetLogsQuery,
 	Types.GetLogsQueryVariables
+>
+export const GetSessionLogsDocument = gql`
+	query GetSessionLogs($project_id: ID!, $params: LogsParamsInput!) {
+		sessionLogs(project_id: $project_id, params: $params) {
+			cursor
+			node {
+				timestamp
+				level
+				message
+			}
+		}
+	}
+`
+
+/**
+ * __useGetSessionLogsQuery__
+ *
+ * To run a query within a React component, call `useGetSessionLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionLogsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *   },
+ * });
+ */
+export function useGetSessionLogsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetSessionLogsQuery,
+		Types.GetSessionLogsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetSessionLogsQuery,
+		Types.GetSessionLogsQueryVariables
+	>(GetSessionLogsDocument, baseOptions)
+}
+export function useGetSessionLogsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetSessionLogsQuery,
+		Types.GetSessionLogsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetSessionLogsQuery,
+		Types.GetSessionLogsQueryVariables
+	>(GetSessionLogsDocument, baseOptions)
+}
+export type GetSessionLogsQueryHookResult = ReturnType<
+	typeof useGetSessionLogsQuery
+>
+export type GetSessionLogsLazyQueryHookResult = ReturnType<
+	typeof useGetSessionLogsLazyQuery
+>
+export type GetSessionLogsQueryResult = Apollo.QueryResult<
+	Types.GetSessionLogsQuery,
+	Types.GetSessionLogsQueryVariables
 >
 export const GetLogsTotalCountDocument = gql`
 	query GetLogsTotalCount($project_id: ID!, $params: LogsParamsInput!) {

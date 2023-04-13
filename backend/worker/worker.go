@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -683,7 +682,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	userInteractionEvents = append(userInteractionEvents, []*parse.ReplayEvent{{
-		Timestamp: accumulator.FirstEventTimestamp,
+		Timestamp: accumulator.FirstFullSnapshotTimestamp,
 	}, {
 		Timestamp: accumulator.LastEventTimestamp,
 	}}...)
@@ -749,7 +748,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Merges inactive segments that are less than a threshold into surrounding active sessions
 	var finalIntervals []model.SessionInterval
 	startInterval := allIntervals[0]
-	sessionLength := float64(CalculateSessionLength(accumulator.FirstEventTimestamp, accumulator.LastEventTimestamp).Milliseconds())
+	sessionLength := float64(CalculateSessionLength(accumulator.FirstFullSnapshotTimestamp, accumulator.LastEventTimestamp).Milliseconds())
 	for i := 1; i < len(allIntervals); i++ {
 		currentInterval := allIntervals[i-1]
 		nextInterval := allIntervals[i]
@@ -779,10 +778,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	var eventCountsLen int64 = 100
-	window := float64(accumulator.LastEventTimestamp.Sub(accumulator.FirstEventTimestamp).Milliseconds()) / float64(eventCountsLen)
+	window := float64(accumulator.LastEventTimestamp.Sub(accumulator.FirstFullSnapshotTimestamp).Milliseconds()) / float64(eventCountsLen)
 	eventCounts := make([]int64, eventCountsLen)
 	for t, c := range accumulator.TimestampCounts {
-		i := int64(math.Round(float64(t.Sub(accumulator.FirstEventTimestamp).Milliseconds()) / window))
+		i := int64(math.Round(float64(t.Sub(accumulator.FirstFullSnapshotTimestamp).Milliseconds()) / window))
 		if i < 0 {
 			i = 0
 		} else if i > 99 {
@@ -797,7 +796,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	eventCountsString := string(eventCountsBytes)
 
 	// Calculate total session length and write the length to the session.
-	sessionTotalLength := CalculateSessionLength(accumulator.FirstEventTimestamp, accumulator.LastEventTimestamp)
+	sessionTotalLength := CalculateSessionLength(accumulator.FirstFullSnapshotTimestamp, accumulator.LastEventTimestamp)
 	sessionTotalLengthInMilliseconds := sessionTotalLength.Milliseconds()
 
 	// Delete the session if the length of the session is 0.
@@ -1116,7 +1115,7 @@ func (w *Worker) Start(ctx context.Context) {
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
 					var excluded *bool
-					if nextCount >= MAX_RETRIES || strings.Contains(err.Error(), "The payload has an IncrementalSnapshot before the first FullSnapshot") {
+					if nextCount >= MAX_RETRIES {
 						excluded = &model.T
 					}
 
@@ -1387,7 +1386,7 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 
 // CalculateSessionLength gets the session length given two sets of ReplayEvents.
 func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
-	if first.IsZero() {
+	if first.IsZero() || last.IsZero() {
 		return d
 	}
 	d = last.Sub(first)
@@ -1408,8 +1407,6 @@ type EventProcessingAccumulator struct {
 	CurrentlyInRageClickSet bool
 	// RageClickSets contains all rage click sets that will be inserted into the db
 	RageClickSets []*model.RageClickEvent
-	// FirstEventTimestamp represents the timestamp for the first event
-	FirstEventTimestamp time.Time
 	// FirstFullSnapshotTimestamp represents the timestamp for the first full snapshot
 	FirstFullSnapshotTimestamp time.Time
 	// LastEventTimestamp represents the timestamp for the first event
@@ -1440,7 +1437,6 @@ func MakeEventProcessingAccumulator(sessionSecureID string, rageClickSettings Ra
 		ClickEventQueue:            list.New(),
 		CurrentlyInRageClickSet:    false,
 		RageClickSets:              []*model.RageClickEvent{},
-		FirstEventTimestamp:        time.Time{},
 		FirstFullSnapshotTimestamp: time.Time{},
 		LastEventTimestamp:         time.Time{},
 		ActiveDuration:             0,
@@ -1486,8 +1482,7 @@ func processEventChunk(ctx context.Context, a EventProcessingAccumulator, events
 			if event.Type == parse.FullSnapshot {
 				a.FirstFullSnapshotTimestamp = event.Timestamp
 			} else if event.Type == parse.IncrementalSnapshot {
-				a.Error = errors.New("The payload has an IncrementalSnapshot before the first FullSnapshot")
-				return a
+				continue
 			}
 		}
 		if event.Type == parse.IncrementalSnapshot {
@@ -1499,9 +1494,6 @@ func processEventChunk(ctx context.Context, a EventProcessingAccumulator, events
 				}
 			}
 			a.LastEventTimestamp = event.Timestamp
-			if a.FirstEventTimestamp.IsZero() {
-				a.FirstEventTimestamp = event.Timestamp
-			}
 
 			// purge old clicks
 			var toRemove []*list.Element

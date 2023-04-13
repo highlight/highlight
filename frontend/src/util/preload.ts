@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import { BackendSearchQuery } from '@context/BaseSearchContext'
 import {
@@ -213,10 +212,6 @@ export const loadSession = async function (secureID: string) {
 		if (!sess) return
 		if (sess.resources_url) {
 			for await (const _ of indexedDBFetch(sess.resources_url)) {
-			}
-		}
-		if (sess.messages_url) {
-			for await (const _ of indexedDBFetch(sess.messages_url)) {
 			}
 		}
 		if (sess.direct_download_url) {

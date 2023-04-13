@@ -1,37 +1,52 @@
 {
 	"$schema": "https://turborepo.org/schema.json",
 	"pipeline": {
-		"codegen": {
-			"inputs": ["./**/*.gql", "./**/*.graphqls"],
-			"outputs": ["src/graph/generated/**"]
-		},
-		"prepublish": {
-			"dependsOn": ["^prepublish"],
-			"outputs": ["lib/**", "es/**", "dist/**", "typings/**"]
-		},
-		"typegen": {
-			"dependsOn": ["^typegen", "^prepublish"],
-			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
-			"outputs": ["dist/**/*.d.ts"]
-		},
 		"highlight.run#typegen": {
 			"dependsOn": [
-				"^typegen",
-				"^prepublish",
-				"@highlight-run/rrweb#prepublish",
-				"@highlight-run/rrweb-types#prepublish",
+				"@highlight-run/rrweb#build",
+				"@highlight-run/rrweb-types#build",
 				"@highlight-run/client#typegen"
 			],
 			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
 			"outputs": ["dist/**/*.d.ts"]
 		},
-		"dev": {
-			"dependsOn": ["^prepublish", "^build"],
-			"cache": false
+		"highlight.io#build": {
+			"dependsOn": ["^build"],
+			"outputs": [".next/**"],
+			"env": ["GRAPHCMS_TOKEN"]
+		},
+		"highlight.io#lint": {
+			"dependsOn": ["^build"]
+		},
+		"nextjs#lint": {
+			"dependsOn": ["^build"]
+		},
+		"codegen": {
+			"inputs": ["./**/*.gql", "./**/*.graphqls"],
+			"outputs": ["src/graph/generated/**"]
+		},
+		"typegen": {
+			"dependsOn": ["^typegen"],
+			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
+			"outputs": [
+				"lib/**",
+				"es/**",
+				"dist/**",
+				"typings/**",
+				"build/**",
+				"esm/**"
+			]
 		},
 		"build": {
-			"dependsOn": ["codegen", "typegen", "^prepublish", "^build"],
-			"outputs": ["build/**", "dist/**", "esm/**"],
+			"dependsOn": ["codegen", "typegen", "^build"],
+			"outputs": [
+				"lib/**",
+				"es/**",
+				"dist/**",
+				"typings/**",
+				"build/**",
+				"esm/**"
+			],
 			"env": [
 				"CLICKUP_CLIENT_ID",
 				"DD_CLIENT_TOKEN",
@@ -55,11 +70,9 @@
 				"SLACK_CLIENT_ID"
 			]
 		},
-		"highlight.io#build": {
+		"dev": {
 			"dependsOn": ["^build"],
-			"inputs": ["../docs-content/**", "./**"],
-			"outputs": [".next/**"],
-			"env": ["GRAPHCMS_TOKEN"]
+			"cache": false
 		},
 		"enforce-size": {
 			"dependsOn": ["build"]
@@ -68,14 +81,8 @@
 			"outputs": [],
 			"inputs": ["**/*.ts*"]
 		},
-		"nextjs#lint": {
-			"dependsOn": ["^build"]
-		},
-		"highlight.io#lint": {
-			"dependsOn": ["^build"]
-		},
 		"test": {
-			"dependsOn": ["lint", "prepublish", "enforce-size"],
+			"dependsOn": ["lint", "build", "enforce-size"],
 			"outputs": [],
 			"inputs": [
 				"src/**/*.tsx",

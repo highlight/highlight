@@ -41,7 +41,7 @@ export class FirstLoadListeners {
 	constructor(options: HighlightClassOptions) {
 		this.options = options
 		this.disableConsoleRecording = !!options.disableConsoleRecording
-		this.reportConsoleErrors = options.reportConsoleErrors ?? true
+		this.reportConsoleErrors = options.reportConsoleErrors ?? false
 		this.consoleMethodsToRecord = options.consoleMethodsToRecord || [
 			...ALL_CONSOLE_METHODS,
 		]

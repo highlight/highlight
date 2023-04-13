@@ -127,9 +127,8 @@ const Home: NextPage = () => {
 				setScrollReviews(entry.isIntersecting)
 			},
 			{
-				root: null,
 				rootMargin: '250px 0px',
-				threshold: 0,
+				threshold: 0.0001,
 			},
 		)
 
@@ -174,14 +173,19 @@ const Home: NextPage = () => {
 						</div>
 					</AnimateBugRight>
 					<div className={styles.anchorFeature}>
-						<h2 className={classNames(styles.landingAnchorHead)}>
+						<h2
+							className={classNames(
+								styles.landingAnchorHead,
+								'px-5',
+							)}
+						>
 							The open source, fullstack <br />
 							<span className="text-highlight-yellow">
 								Monitoring Platform.
 							</span>
 						</h2>
 						<div className="flex justify-center mt-8 mb-16">
-							<div className="flex flex-col sm:flex-row justify-center gap-4 w-screen sm:w-auto px-5">
+							<div className="flex flex-col justify-center w-screen gap-4 px-5 sm:flex-row sm:w-auto">
 								<PrimaryButton
 									className={classNames(
 										styles.solidButton,
