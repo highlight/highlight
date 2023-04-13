@@ -285,7 +285,9 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		logs = append(logs, l)
+		if l.Message != "" {
+			logs = append(logs, l)
+		}
 	}
 
 	projectVerboseID := r.Header.Get(VercelLogDrainProjectHeader)
