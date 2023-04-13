@@ -176,7 +176,6 @@ Use this if you are using the raw http server package and need to setup the High
   </div>
 </section>
 
-
 <section className="section">
   <div className="left">
     <h3>H.GraphQLRecoverFunc()</h3> 
@@ -188,6 +187,25 @@ Use this if you are using the raw http server package and need to setup the High
         import ghandler "github.com/99designs/gqlgen/graphql/handler"
         privateServer := ghandler.New(privategen.NewExecutableSchema(...)
         server.SetRecoverFunc(H.GraphQLRecoverFunc())
+    </code>
+  </div>
+</section>
+
+<section className="section">
+  <div className="left">
+    <h3>H.GraphQLErrorPresenter()</h3> 
+    <p>A gqlgen error presenter.</p>
+    <h6>Configuration</h6>
+    <aside className="parameter">
+      <h5>service<code>string</code> <code>required</code></h5>
+      <p>The name of the service.</p>
+    </aside>
+  </div>
+  <div className="right">
+    <code>
+        import ghandler "github.com/99designs/gqlgen/graphql/handler"
+        privateServer := ghandler.New(privategen.NewExecutableSchema(...)
+        privateServer.SetErrorPresenter(H.GraphQLErrorPresenter("private"))
     </code>
   </div>
 </section>
