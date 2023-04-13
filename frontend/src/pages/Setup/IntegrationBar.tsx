@@ -29,8 +29,8 @@ const AREA_TITLE_MAP: { [key in Area]: string } = {
 }
 
 const CTA_TITLE_MAP: { [key in Area]: string } = {
-	client: 'View first session',
-	backend: 'View first error',
+	client: 'View a session',
+	backend: 'View an error',
 	'backend-logging': 'View logs',
 }
 
