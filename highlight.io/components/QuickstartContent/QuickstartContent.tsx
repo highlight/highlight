@@ -37,6 +37,7 @@ import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
+import { HostingVercelLogContent } from './logging/hosting/vercel'
 
 export type QuickStartOptions = {
 	title: string
@@ -97,6 +98,7 @@ export enum QuickStartType {
 	HTTPOTLP = 'http-otlp',
 	RubyOther = 'other',
 	RubyRails = 'rails',
+	HostingVercel = 'vercel',
 }
 
 export const quickStartContent = {
@@ -209,6 +211,12 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
 			[QuickStartType.RubyRails]: RubyRailsLogContent,
 			[QuickStartType.RubyOther]: RubyOtherLogContent,
+		},
+		hosting: {
+			title: 'Hosting Provider',
+			subtitle:
+				'Select your Hosting provider to setup the Highlight integration and stream logs.',
+			[QuickStartType.HostingVercel]: HostingVercelLogContent,
 		},
 	},
 	other: {

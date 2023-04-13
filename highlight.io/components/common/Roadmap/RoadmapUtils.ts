@@ -1,4 +1,5 @@
 import { gql } from 'graphql-request'
+import { contentRender } from '../../Docs/Docs.module.scss'
 
 //converts "session-replay" to "Session Replay
 export function tagToTitle(tag: string) {
@@ -138,36 +139,50 @@ export const roadmapFetcher = async (): Promise<{
 
 	for (let i = 0; i < issues.length; i++) {
 		let content = issues[i].content
-
-		const frequencyDict = content.reactions.nodes.reduce(
-			(acc: { [key: string]: number }, cur: { content: string }) => {
-				const content = cur.content
-				if (!acc[stringToEmoji(content)]) {
-					acc[stringToEmoji(content)] = 1
-				} else {
-					acc[stringToEmoji(content)]++
-				}
-				return acc
-			},
-			{},
-		)
-
 		let issueReactions: IssueReaction[] = []
 
-		for (const key in frequencyDict) {
-			const value = frequencyDict[key]
-			issueReactions.push({ content: key, count: value })
+		if (!content) {
+			continue
+		}
+
+		if (content && content.reactions) {
+			const frequencyDict = content.reactions.nodes.reduce(
+				(acc: { [key: string]: number }, cur: { content: string }) => {
+					const content = cur.content
+					if (!acc[stringToEmoji(content)]) {
+						acc[stringToEmoji(content)] = 1
+					} else {
+						acc[stringToEmoji(content)]++
+					}
+					return acc
+				},
+				{},
+			)
+
+			for (const key in frequencyDict) {
+				const value = frequencyDict[key]
+				issueReactions.push({ content: key, count: value })
+			}
+		}
+
+		let labels: string[] = []
+		if (content && content.labels) {
+			labels = content.labels.nodes
+				.filter((label) => label)
+				.map((label?: { name: string }) => label.name)
 		}
 
 		let issue: Issue = {
 			title: content.title,
 			number: content.number,
-			labels: content.labels.nodes
-				.filter((label) => label)
-				.map((label?: { name: string }) => label.name),
+			labels: labels,
 			link: content.url,
 			linkText: 'Vote on GitHub',
 			issueReactions: issueReactions,
+		}
+
+		if (issue.title == undefined) {
+			continue
 		}
 
 		if (issues[i].fieldValueByName?.name === 'Under Consideration') {

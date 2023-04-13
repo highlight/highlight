@@ -1265,6 +1265,11 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		AvoidPostgresStorage:           true,
 	}
 
+	// mark recording-less sessions as processed so they are considered excluded
+	if input.DisableSessionRecording != nil && *input.DisableSessionRecording {
+		session.Processed = &model.T
+	}
+
 	// determine if session is within billing quota
 	withinBillingQuota, quotaPercent := r.isWithinBillingQuota(ctx, project, workspace, *session.PayloadUpdatedAt)
 	setupSpan.Finish()
@@ -2336,26 +2341,18 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 	querySessionSpan.Finish()
 
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		log.WithContext(ctx).WithError(err).WithField("project", project).WithField("projectVerboseID", projectVerboseID).Error("failed to find project")
+	}
+
 	// Filter out empty errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
-		if errorObject.Event == "[{}]" {
-			var objString string
-			objBytes, err := json.Marshal(errorObject)
-			if err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error marshalling error object when filtering"))
-				objString = ""
-			} else {
-				objString = string(objBytes)
-			}
-			log.WithContext(ctx).WithFields(log.Fields{
-				"project_id":        projectID,
-				"session_secure_id": errorObject.SessionSecureID,
-				"error_object":      objString,
-			}).Warn("caught empty error, continuing...")
-		} else {
-			filteredErrors = append(filteredErrors, errorObject)
+		if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
+			continue
 		}
+		filteredErrors = append(filteredErrors, errorObject)
 	}
 	errorObjects = filteredErrors
 
@@ -2697,61 +2694,66 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			var lastUserInteractionTimestamp time.Time
 			hasFullSnapshot := false
 			for _, event := range parsedEvents.Events {
-				stylesheetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-					tracer.ResourceName("go.parseEvents.injectStylesheets"), tracer.Tag("project_id", projectID))
-				if event.Type == parse.FullSnapshot {
-					hasFullSnapshot = true
-					// If we see a snapshot event, attempt to inject CORS stylesheets.
-					d, err := parse.InjectStylesheets(event.Data)
+				if event.Type == parse.FullSnapshot || event.Type == parse.IncrementalSnapshot {
+					snapshot, err := parse.NewSnapshot(event.Data)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling full snapshot"))
+						log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling snapshot"))
 						continue
 					}
-					event.Data = d
-				}
-				stylesheetsSpan.Finish()
 
-				assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-					tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID))
-				// Gated for projectID == 1, replace any static resources with our own, hosted in S3
-				// This gate will be removed in the future
-				if projectID == 1 {
-					var s interface{}
-					err := json.Unmarshal(event.Data, &s)
+					jsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+						tracer.ResourceName("go.parseEvents.EscapeJavascript"), tracer.Tag("project_id", projectID))
+					// escape script tags in any javascript
+					err = snapshot.EscapeJavascript(ctx)
+					jsSpan.Finish(tracer.WithError(err))
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "error unmarshalling event"))
-						continue
+						log.WithContext(ctx).Error(e.Wrap(err, "Error escaping snapshot javascript"))
 					}
-					err = parse.ReplaceAssets(ctx, projectID, s.(map[string]interface{}), r.StorageClient, r.DB)
-					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
-						continue
-					}
-					event.Data, err = json.Marshal(s)
-					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "error remarshalling event"))
-						continue
-					}
-				}
-				assetsSpan.Finish()
 
-				incrementalEventSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-					tracer.ResourceName("go.parseEvents.incrementalEvent"), tracer.Tag("project_id", projectID))
-				if event.Type == parse.IncrementalSnapshot {
-					mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
-					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling incremental event"))
+					// Gated for projectID == 1, replace any static resources with our own, hosted in S3
+					// This gate will be removed in the future
+					if projectID == 1 {
+						assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID))
+						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB)
+						assetsSpan.Finish()
+						if err != nil {
+							log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
+						}
+					}
+
+					if event.Type == parse.FullSnapshot {
+						hasFullSnapshot = true
+						stylesheetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+							tracer.ResourceName("go.parseEvents.InjectStylesheets"), tracer.Tag("project_id", projectID))
+						// If we see a snapshot event, attempt to inject CORS stylesheets.
+						err := snapshot.InjectStylesheets()
+						stylesheetsSpan.Finish(tracer.WithError(err))
+						if err != nil {
+							log.WithContext(ctx).Error(e.Wrap(err, "Error injecting snapshot stylesheets"))
+						}
+					}
+					if event.Type == parse.IncrementalSnapshot {
+						incrementalEventSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+							tracer.ResourceName("go.parseEvents.incrementalEvent"), tracer.Tag("project_id", projectID))
+						mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
+						incrementalEventSpan.Finish(tracer.WithError(err))
+						if err != nil {
+							log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling incremental event"))
+						}
+						if userEvent := map[parse.EventSource]bool{
+							parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
+							parse.Input: true, parse.TouchMove: true, parse.Drag: true,
+						}[*mouseInteractionEventData.Source]; userEvent {
+							lastUserInteractionTimestamp = event.Timestamp.Round(time.Millisecond)
+						}
+					}
+
+					if event.Data, err = snapshot.Encode(); err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "Error encoding snapshot"))
 						continue
 					}
-					if _, ok := map[parse.EventSource]bool{
-						parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
-						parse.Input: true, parse.TouchMove: true, parse.Drag: true,
-					}[*mouseInteractionEventData.Source]; !ok {
-						continue
-					}
-					lastUserInteractionTimestamp = event.Timestamp.Round(time.Millisecond)
 				}
-				incrementalEventSpan.Finish()
 			}
 
 			remarshalSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
@@ -2832,26 +2834,19 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		if hasBeacon {
 			r.DB.Where(&model.ErrorObject{SessionID: &sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
 		}
+
+		var project model.Project
+		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+			return e.Wrap(err, "error querying project")
+		}
+
 		// filter out empty errors
 		seenEvents := map[string]*publicModel.ErrorObjectInput{}
 		for _, errorObject := range errors {
-			if errorObject.Event == "[{}]" {
-				var objString string
-				objBytes, err := json.Marshal(errorObject)
-				if err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "error marshalling error object when filtering"))
-					objString = ""
-				} else {
-					objString = string(objBytes)
-				}
-				log.WithContext(ctx).WithFields(log.Fields{
-					"project_id":   projectID,
-					"session_id":   sessionID,
-					"error_object": objString,
-				}).Warn("caught empty error, continuing...")
-			} else {
-				seenEvents[errorObject.Event] = errorObject
+			if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
+				continue
 			}
+			seenEvents[errorObject.Event] = errorObject
 		}
 		errors = lo.Values(seenEvents)
 
@@ -2870,12 +2865,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			VisitedURL string
 			SessionObj *model.Session
 		})
+
 		for _, v := range errors {
 			traceBytes, err := json.Marshal(v.StackTrace)
 			if err != nil {
 				log.WithContext(ctx).Errorf("Error marshaling trace: %v", v.StackTrace)
 				continue
 			}
+
 			traceString := string(traceBytes)
 
 			errorToInsert := &model.ErrorObject{
@@ -3022,6 +3019,35 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 	return nil
+}
+
+func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {
+	if errorEvent == "[{}]" {
+		log.WithContext(ctx).
+			WithField("project_id", projectID).
+			Warn("ignoring empty error")
+		return true
+	}
+
+	// Filter out by project.ErrorFilters, aka regexp filters
+	var err error
+	matchedRegexp := false
+	for _, errorFilter := range errorFilters {
+		matchedRegexp, err = regexp.MatchString(errorFilter, errorEvent)
+		if err != nil {
+			log.WithContext(ctx).
+				WithField("project_id", projectID).
+				WithField("regex", errorFilter).
+				WithError(err).
+				Error("invalid regex: failed to parse backend error filter")
+			continue
+		}
+
+		if matchedRegexp {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {

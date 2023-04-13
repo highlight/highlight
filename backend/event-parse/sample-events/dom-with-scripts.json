@@ -1,0 +1,173 @@
+{
+	"session_secure_id": "a1b2c3d400000001",
+	"messages": "{\"messages\": []}",
+	"resources": "{\"resources\": []}",
+	"errors": [],
+	"events": {
+		"events": [
+			{
+				"_sid": 1,
+				"data": {
+					"height": 1336,
+					"href": "https://app.highlight.io/",
+					"width": 2560
+				},
+				"timestamp": 1680823363609,
+				"type": 4
+			},
+			{
+				"_sid": 2,
+				"data": {
+					"initialOffset": {
+						"left": 0,
+						"top": 0
+					},
+					"node": {
+						"childNodes": [
+							{
+								"id": 2,
+								"name": "html",
+								"publicId": "",
+								"systemId": "",
+								"type": 1
+							},
+							{
+								"attributes": {
+									"lang": "en"
+								},
+								"childNodes": [
+									{
+										"attributes": {},
+										"childNodes": [
+											{
+												"id": 5,
+												"textContent": "\n\t\t",
+												"type": 3
+											},
+											{
+												"attributes": {
+													"href": "https://app.highlight.io/"
+												},
+												"childNodes": [
+													{
+														"attributes": {
+															"src": "https://vadweb.us/"
+														},
+														"childNodes": [],
+														"id": 7,
+														"tagName": "script",
+														"type": 2
+													},
+													{
+														"attributes": {
+															"async": ""
+														},
+														"childNodes": [
+															{
+																"id": 10,
+																"textContent": "console.log('script tag attack');",
+																"type": 3
+															}
+														],
+														"id": 7,
+														"tagName": "script",
+														"type": 2
+													}
+												],
+												"id": 6,
+												"tagName": "base",
+												"type": 2
+											}
+										],
+										"id": 4,
+										"tagName": "head",
+										"type": 2
+									},
+									{
+										"attributes": {},
+										"childNodes": [
+											{
+												"attributes": {
+													"onclick": "console.log('button attack')"
+												},
+												"childNodes": [
+													{
+														"id": 13,
+														"textContent": "hello;",
+														"type": 3
+													}
+												],
+												"id": 12,
+												"tagName": "button",
+												"type": 2
+											},
+											{
+												"attributes": {
+													"onkeydown": "console.log('keydown attack')"
+												},
+												"childNodes": [
+													{
+														"id": 15,
+														"textContent": "hello;",
+														"type": 3
+													}
+												],
+												"id": 14,
+												"tagName": "input",
+												"type": 2
+											}
+										],
+										"id": 11,
+										"tagName": "body",
+										"type": 2
+									}
+								],
+								"id": 3,
+								"tagName": "html",
+								"type": 2
+							}
+						],
+						"id": 1,
+						"type": 0
+					}
+				},
+				"timestamp": 1680823363650,
+				"type": 2
+			},
+			{
+				"_sid": 3,
+				"data": {
+					"adds": [
+						{
+							"nextId": null,
+							"node": {
+								"attributes": {
+									"src": "https://vadweb.us"
+								},
+								"childNodes": [],
+								"id": 9,
+								"tagName": "script",
+								"type": 2
+							},
+							"parentId": 7
+						}
+					],
+					"attributes": [
+						{
+							"attributes": {
+								"onclick": "console.log('button update attack')",
+								"src": "https://vadweb.us"
+							},
+							"id": 12
+						}
+					],
+					"removes": [],
+					"source": 0,
+					"texts": []
+				},
+				"timestamp": 1680823374771,
+				"type": 3
+			}
+		]
+	}
+}

@@ -51,16 +51,18 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 }
 
 func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
-	rc := graphql.GetOperationContext(ctx)
+	var oc *graphql.OperationContext
+	if graphql.HasOperationContext(ctx) {
+		oc = graphql.GetOperationContext(ctx)
+	}
 	// NOTE: This gets called for the first time at the highest level. Creates the 'tracing' value, calls the next handler
 	// and returns the response.
 	opName := "undefined"
-	if rc != nil && rc.Operation != nil {
-		opName = rc.OperationName
+	if oc != nil {
+		opName = oc.OperationName
 	}
 	span, ctx := tracer.StartSpanFromContext(ctx, "graphql.operation", tracer.ResourceName(opName))
 	span.SetTag("backend", t.serverType)
-	span.SetTag("size", len(rc.RawQuery))
 	defer span.Finish()
 	resp := next(ctx)
 	if resp.Errors != nil {

@@ -78,13 +78,15 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 		return next(ctx)
 	}
 
-	rc := graphql.GetOperationContext(ctx)
+	var oc *graphql.OperationContext
+	if graphql.HasOperationContext(ctx) {
+		oc = graphql.GetOperationContext(ctx)
+	}
 	opName := "undefined"
-	if rc != nil && rc.Operation != nil {
-		opName = rc.OperationName
+	if oc != nil {
+		opName = oc.OperationName
 	}
 	name := fmt.Sprintf("graphql.operation.%s", opName)
-	RecordMetric(ctx, name+".size", float64(len(rc.RawQuery)))
 
 	span, ctx := StartTrace(ctx, name)
 	start := graphql.Now()
@@ -104,7 +106,10 @@ func (t Tracer) log(ctx context.Context, span trace.Span, errs gqlerror.List) {
 	if !t.requestFieldLogging {
 		return
 	}
-	oc := graphql.GetOperationContext(ctx)
+	var oc *graphql.OperationContext
+	if graphql.HasOperationContext(ctx) {
+		oc = graphql.GetOperationContext(ctx)
+	}
 	err := errs.Error()
 	lvl := "trace"
 	if err != "" {

@@ -10,5 +10,9 @@ export default function configureElectronHighlight(window: any) {
 		window.on('blur', () => {
 			window.webContents.send('highlight.run', { visible: false })
 		})
+
+		window.on('close', () => {
+			window.webContents.send('highlight.run', { visible: false })
+		})
 	}
 }

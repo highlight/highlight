@@ -817,6 +817,7 @@ query GetProjectDropdownOptions($project_id: ID!) {
 		billing_email
 		secret
 		workspace_id
+		error_filters
 	}
 	workspace: workspace_for_project(project_id: $project_id) {
 		id
@@ -928,6 +929,7 @@ query GetProject($id: ID!) {
 		verbose_id
 		billing_email
 		excluded_users
+		error_filters
 		error_json_paths
 		filter_chrome_extension
 		rage_click_window_seconds
@@ -949,9 +951,13 @@ query GetBillingDetailsForProject($project_id: ID!) {
 			quota
 			interval
 			membersLimit
+			errorsLimit
+			logsLimit
 		}
 		meter
 		membersMeter
+		errorsMeter
+		logsMeter
 		sessionsOutOfQuota
 	}
 	workspace_for_project(project_id: $project_id) {
@@ -973,10 +979,12 @@ query GetBillingDetails($workspace_id: ID!) {
 			interval
 			membersLimit
 			errorsLimit
+			logsLimit
 		}
 		meter
 		membersMeter
 		errorsMeter
+		logsMeter
 	}
 	workspace(id: $workspace_id) {
 		id
