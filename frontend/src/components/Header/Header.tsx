@@ -738,27 +738,12 @@ const BillingBanner: React.FC = () => {
 	if (productsOverQuota.length > 0) {
 		bannerMessage += `You've reached your monthly limit for ${productsToString(
 			productsOverQuota,
-		)}. `
+		)}.`
 	}
 	if (productsApproachingQuota.length > 0) {
-		bannerMessage += `You're approaching your monthly limit for ${productsToString(
+		bannerMessage += ` You're approaching your monthly limit for ${productsToString(
 			productsApproachingQuota,
-		)}. `
-	}
-	if (productsOverQuota.length > 0 || productsApproachingQuota.length > 0) {
-		bannerMessage = (
-			<>
-				{bannerMessage}
-				<a
-					target="_blank"
-					href={`/w/${data.workspace_for_project?.id}/current-plan`}
-					className={styles.trialLink}
-					rel="noreferrer"
-				>
-					Upgrade plan
-				</a>
-			</>
-		)
+		)}.`
 	}
 
 	if (!bannerMessage && !hasTrial) {
