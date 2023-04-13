@@ -30,27 +30,35 @@ var alertFrequencies = []int{15, 60, 300, 900, 1800}
 var maxWorkers = 40
 
 func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
-	log.WithContext(ctx).Info("Starting to watch Log Alerts")
+	log.WithContext(ctx).Info("Starting to watch log alerts")
 
 	alertsByFrequency := &map[int][]*model.LogAlert{}
+
+	getAlerts := func() {
+		bucketed := map[int][]*model.LogAlert{}
+		for _, freq := range alertFrequencies {
+			bucketed[freq] = []*model.LogAlert{}
+		}
+
+		alerts := getLogAlerts(ctx, DB)
+		for _, alert := range alerts {
+			for _, freq := range alertFrequencies {
+				if freq >= alert.Frequency {
+					bucketed[freq] = append(bucketed[freq], alert)
+					break
+				}
+			}
+		}
+
+		alertsByFrequency = &bucketed
+		log.WithContext(ctx).Infof("Watching %d log alerts", len(alerts))
+	}
+
+	getAlerts()
 	go func() {
 		// Every minute, check for new alerts and bucket by frequency
 		for range time.Tick(time.Minute) {
-			bucketed := map[int][]*model.LogAlert{}
-			for _, freq := range alertFrequencies {
-				bucketed[freq] = []*model.LogAlert{}
-			}
-
-			alerts := getLogAlerts(ctx, DB)
-			for _, alert := range alerts {
-				for _, freq := range alertFrequencies {
-					if freq >= alert.Frequency {
-						bucketed[freq] = append(bucketed[freq], alert)
-					}
-				}
-			}
-
-			alertsByFrequency = &bucketed
+			getAlerts()
 		}
 	}()
 
@@ -64,7 +72,9 @@ func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCli
 			func() error {
 				for range time.NewTicker(time.Duration(f) * time.Second).C {
 					alerts := (*alertsByFrequency)[f]
+					log.WithContext(ctx).Infof("Processing %d log alerts for frequency %d", len(alerts), f)
 					for _, alert := range alerts {
+						alert := alert
 						alertWorkerpool.SubmitRecover(
 							func() {
 								err := processLogAlert(ctx, DB, TDB, MailClient, alert, rh, redis, ccClient)
@@ -105,7 +115,7 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCl
 		lastTs = time.Now()
 	}
 	end := lastTs.Add(-time.Minute)
-	start := end.Add(time.Duration(alert.Frequency) * time.Second)
+	start := end.Add(-time.Duration(alert.Frequency) * time.Second)
 
 	count64, err := ccClient.ReadLogsTotalCount(ctx, alert.ProjectID, modelInputs.LogsParamsInput{Query: alert.Query, DateRange: &modelInputs.DateRangeRequiredInput{
 		StartDate: start,
@@ -120,6 +130,16 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCl
 	if alert.BelowThreshold {
 		alertCondition = count <= alert.CountThreshold
 	}
+
+	log.WithContext(ctx).WithFields(log.Fields{
+		"query":     alert.Query,
+		"frequency": alert.Frequency,
+		"start":     start.Format(time.RFC3339),
+		"end":       end.Format(time.RFC3339),
+		"count":     count,
+		"threshold": alert.CountThreshold,
+		"alerting":  alertCondition,
+	}).Info("evaluated log alert")
 
 	if alertCondition {
 		var project model.Project
