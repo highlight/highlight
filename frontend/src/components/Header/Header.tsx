@@ -66,8 +66,6 @@ import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
-import { GetBillingDetailsForProjectQuery } from '@/graph/generated/operations'
-
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.scss'
 
@@ -716,10 +714,6 @@ const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 		return null
 	}
 
-	if ([].length === 0 && data) {
-		return <BillingQuotaBanner data={data} />
-	}
-
 	if (temporarilyHideBanner) {
 		toggleShowBanner(false)
 		return null
@@ -754,14 +748,48 @@ const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 		return null
 	}
 
-	let bannerMessage:
-		| string
-		| React.ReactNode = `You've used ${data?.billingDetailsForProject?.meter}/${data?.billingDetailsForProject?.plan.quota} of your free sessions.`
+	let bannerMessage: string | React.ReactNode = ''
 	const hasTrial = isProjectWithinTrial(data?.workspace_for_project)
 	const canExtend = data?.workspace_for_project?.eligible_for_trial_extension
-	const hasExceededSessionsForMonth =
-		data?.billingDetailsForProject?.meter >
-		data?.billingDetailsForProject?.plan.quota
+
+	const records = getQuotaPercents(data)
+
+	const threshold = 0.8
+	const productsApproachingQuota = records
+		.filter((r) => r[1] > threshold && r[1] <= 1)
+		.map((r) => r[0])
+	const productsOverQuota = records.filter((r) => r[1] > 1).map((r) => r[0])
+
+	if (productsOverQuota.length > 0) {
+		bannerMessage += `You've reached your monthly limit for ${productsToString(
+			productsOverQuota,
+		)}. `
+	}
+	if (productsApproachingQuota.length > 0) {
+		bannerMessage += `You're approaching your monthly limit for ${productsToString(
+			productsApproachingQuota,
+		)}. `
+	}
+	if (productsOverQuota.length > 0 || productsApproachingQuota.length > 0) {
+		bannerMessage = (
+			<>
+				{bannerMessage}
+				<a
+					target="_blank"
+					href={`/w/${data.workspace_for_project?.id}/current-plan`}
+					className={styles.trialLink}
+					rel="noreferrer"
+				>
+					Upgrade plan
+				</a>
+			</>
+		)
+	}
+
+	if (!bannerMessage && !hasTrial) {
+		toggleShowBanner(false)
+		return null
+	}
 
 	if (hasTrial) {
 		bannerMessage = getTrialEndDateMessage(
@@ -810,11 +838,7 @@ const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 	toggleShowBanner(true)
 
 	return (
-		<div
-			className={clsx(styles.trialWrapper, {
-				[styles.error]: hasExceededSessionsForMonth,
-			})}
-		>
+		<div className={clsx(styles.trialWrapper)}>
 			<div className={clsx(styles.trialTimeText)}>
 				{bannerMessage}
 				{!canExtend && (
@@ -830,18 +854,16 @@ const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 					</>
 				)}
 			</div>
-			{hasTrial && (
-				<button
-					onClick={() => {
-						analytics.track('TemporarilyHideFreePlanBanner', {
-							hasTrial,
-						})
-						setTemporarilyHideBanner(true)
-					}}
-				>
-					<SvgXIcon />
-				</button>
-			)}
+			<button
+				onClick={() => {
+					analytics.track('TemporarilyHideFreePlanBanner', {
+						hasTrial,
+					})
+					setTemporarilyHideBanner(true)
+				}}
+			>
+				<SvgXIcon />
+			</button>
 		</div>
 	)
 }
@@ -860,72 +882,6 @@ const productsToString = (p: ProductType[]): string => {
 		rest.reverse()
 		return rest.join(', ') + `, and ${last}`
 	}
-}
-
-const BillingQuotaBanner: React.FC<{
-	data: GetBillingDetailsForProjectQuery
-}> = ({ data }) => {
-	const [temporarilyHideBanner, setTemporarilyHideBanner] = useSessionStorage(
-		'highlightHideFreePlanBanner',
-		false,
-	)
-	const { toggleShowBanner } = useGlobalContext()
-
-	if (temporarilyHideBanner) {
-		return null
-	}
-
-	const records = getQuotaPercents(data)
-
-	const threshold = 0.8
-	const productsApproachingQuota = records
-		.filter((r) => r[1] > threshold && r[1] <= 1)
-		.map((r) => r[0])
-	const productsOverQuota = records.filter((r) => r[1] > 1).map((r) => r[0])
-
-	let message = ''
-	if (productsOverQuota.length > 0) {
-		message += `You've exceeded your monthly limit for ${productsToString(
-			productsOverQuota,
-		)}. `
-	}
-	if (productsApproachingQuota.length > 0) {
-		message += `You're close to your monthly limit for ${productsToString(
-			productsApproachingQuota,
-		)}. `
-	}
-
-	if (!message) {
-		return null
-	}
-
-	toggleShowBanner(true)
-
-	return (
-		<div className={styles.trialWrapper}>
-			{message && (
-				<div className={clsx(styles.trialTimeText)}>
-					{message}
-					<a
-						target="_blank"
-						href={`/w/${data.workspace_for_project?.id}/current-plan`}
-						className={styles.trialLink}
-						rel="noreferrer"
-					>
-						Upgrade plan
-					</a>
-				</div>
-			)}
-			<button
-				onClick={() => {
-					analytics.track('TemporarilyHideFreePlanBanner')
-					setTemporarilyHideBanner(true)
-				}}
-			>
-				<SvgXIcon />
-			</button>
-		</div>
-	)
 }
 
 const OnPremiseBanner = () => {
