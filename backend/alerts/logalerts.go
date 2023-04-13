@@ -37,6 +37,7 @@ func BuildLogAlert(project *model.Project, workspace *model.Workspace, admin *mo
 			Name:                 &input.Name,
 			LastAdminToEditID:    admin.ID,
 			Disabled:             &input.Disabled,
+			Frequency:            input.ThresholdWindow,
 		},
 		BelowThreshold: input.BelowThreshold,
 		Query:          input.Query,
