@@ -409,7 +409,10 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 		redirect = target ?? ''
 	}
 
-	let roadmapData = await roadmapFetcher()
+	let roadmapData = null
+	if (currentDoc.rel_path.includes('roadmap')) {
+		roadmapData = await roadmapFetcher()
+	}
 
 	return {
 		props: {
@@ -419,9 +422,7 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 						scope: {
 							path: currentDoc.rel_path,
 							quickStartContent,
-							roadmapData: currentDoc.rel_path.includes('roadmap')
-								? roadmapData
-								: null,
+							roadmapData: roadmapData,
 						},
 				  })
 				: null,

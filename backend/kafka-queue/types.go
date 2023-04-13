@@ -56,6 +56,7 @@ type InitializeSessionArgs struct {
 	IP                             string
 	ClientID                       string
 	NetworkRecordingDomains        []string
+	DisableSessionRecording        *bool
 }
 
 type IdentifySessionArgs struct {

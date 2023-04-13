@@ -94,6 +94,7 @@ export type HighlightClassOptions = {
 	networkRecording?: boolean | NetworkRecordingOptions
 	disableBackgroundRecording?: boolean
 	disableConsoleRecording?: boolean
+	disableSessionRecording?: boolean
 	reportConsoleErrors?: boolean
 	consoleMethodsToRecord?: ConsoleMethods[]
 	enableSegmentIntegration?: boolean
@@ -546,7 +547,9 @@ export class Highlight {
 			// Duplicate of logic inside FirstLoadListeners.setupNetworkListener,
 			// needed for initializeSession
 			let enableNetworkRecording
-			if (this.options.disableNetworkRecording !== undefined) {
+			if (this.options.disableSessionRecording) {
+				enableNetworkRecording = false
+			} else if (this.options.disableNetworkRecording !== undefined) {
 				enableNetworkRecording = false
 			} else if (typeof this.options.networkRecording === 'boolean') {
 				enableNetworkRecording = false
@@ -577,6 +580,8 @@ export class Highlight {
 					session_secure_id: this.sessionData.sessionSecureID,
 					client_id: clientID,
 					network_recording_domains: destinationDomains,
+					disable_session_recording:
+						this.options.disableSessionRecording,
 				})
 				if (
 					gr.initializeSession.secure_id !==
@@ -639,6 +644,29 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					this.options,
 				)
 			}
+
+			if (this.pushPayloadTimerId) {
+				clearTimeout(this.pushPayloadTimerId)
+				this.pushPayloadTimerId = undefined
+			}
+			if (!this.options.isCrossOriginIframe) {
+				this.pushPayloadTimerId = setTimeout(() => {
+					this._save()
+				}, FIRST_SEND_FREQUENCY)
+			}
+
+			// if disabled, do not record session events / rrweb events.
+			// we still use firstload listeners to record frontend js console logs and errors.
+			if (this.options.disableSessionRecording) {
+				this.logger.log(
+					`Highlight is NOT RECORDING a session replay per H.init setting.`,
+				)
+				this.ready = true
+				this.state = 'Recording'
+				this.manualStopped = false
+				return
+			}
+
 			const { getDeviceDetails } = getPerformanceMethods()
 			if (getDeviceDetails) {
 				this.recordMetric([
@@ -651,15 +679,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				])
 			}
 
-			if (this.pushPayloadTimerId) {
-				clearTimeout(this.pushPayloadTimerId)
-				this.pushPayloadTimerId = undefined
-			}
-			if (!this.options.isCrossOriginIframe) {
-				this.pushPayloadTimerId = setTimeout(() => {
-					this._save()
-				}, FIRST_SEND_FREQUENCY)
-			}
 			const emit = (event: eventWithTime) => {
 				this.events.push(event)
 			}
@@ -1132,10 +1151,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			await this._sendPayload({ isBeacon: false })
 			this.hasPushedData = true
 			this.sessionData.lastPushTime = Date.now()
-			// Listeners are cleared when the user calls stop() manually.
-			if (this.listeners.length === 0) {
-				return
-			}
 		} catch (e) {
 			if (this._isOnLocalHost) {
 				console.error(e)

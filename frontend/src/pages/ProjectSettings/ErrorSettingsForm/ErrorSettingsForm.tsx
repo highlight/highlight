@@ -58,7 +58,7 @@ export const ErrorSettingsForm = () => {
 	}
 
 	return (
-		<FieldsBox id="errors">
+		<FieldsBox id="grouping">
 			<h3>Error Grouping</h3>
 
 			<form onSubmit={onSubmit} key={project_id}>

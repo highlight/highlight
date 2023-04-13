@@ -238,6 +238,7 @@ export type EditProjectMutationVariables = Types.Exact<{
 	name?: Types.Maybe<Types.Scalars['String']>
 	billing_email?: Types.Maybe<Types.Scalars['String']>
 	excluded_users?: Types.Maybe<Types.Scalars['StringArray']>
+	error_filters?: Types.Maybe<Types.Scalars['StringArray']>
 	error_json_paths?: Types.Maybe<Types.Scalars['StringArray']>
 	filter_chrome_extension?: Types.Maybe<Types.Scalars['Boolean']>
 	rage_click_window_seconds?: Types.Maybe<Types.Scalars['Int']>
@@ -254,6 +255,7 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
 			| 'name'
 			| 'billing_email'
 			| 'excluded_users'
+			| 'error_filters'
 			| 'error_json_paths'
 			| 'filter_chrome_extension'
 			| 'rage_click_window_seconds'
@@ -2392,6 +2394,7 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
 			| 'billing_email'
 			| 'secret'
 			| 'workspace_id'
+			| 'error_filters'
 		>
 	>
 	workspace?: Types.Maybe<
@@ -2585,6 +2588,7 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
 			| 'verbose_id'
 			| 'billing_email'
 			| 'excluded_users'
+			| 'error_filters'
 			| 'error_json_paths'
 			| 'filter_chrome_extension'
 			| 'rage_click_window_seconds'

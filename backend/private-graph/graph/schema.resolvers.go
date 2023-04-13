@@ -556,7 +556,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 }
 
 // EditProject is the resolver for the editProject field.
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -579,6 +579,7 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 		Name:                  name,
 		BillingEmail:          billingEmail,
 		ExcludedUsers:         excludedUsers,
+		ErrorFilters:          errorFilters,
 		ErrorJsonPaths:        errorJSONPaths,
 		BackendDomains:        backendDomains,
 		FilterChromeExtension: filterChromeExtension,
@@ -3769,7 +3770,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 		return nil, nil
 	}
 
-	retentionDate, err := r.GetProjectRetentionDate(ctx, s.ProjectID)
+	retentionDate, err := r.GetProjectRetentionDate(s.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -4000,7 +4001,7 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model
 	if err != nil {
 		return nil, err
 	}
-	retentionDate, err := r.GetProjectRetentionDate(ctx, eg.ProjectID)
+	retentionDate, err := r.GetProjectRetentionDate(eg.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -4035,7 +4036,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		return nil, e.Wrap(err, "not authorized to view error group")
 	}
 
-	retentionDate, err := r.GetProjectRetentionDate(ctx, errorGroup.ProjectID)
+	retentionDate, err := r.GetProjectRetentionDate(errorGroup.ProjectID)
 	if err != nil {
 		return nil, err
 	}

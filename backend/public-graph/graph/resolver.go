@@ -1265,6 +1265,11 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		AvoidPostgresStorage:           true,
 	}
 
+	// mark recording-less sessions as processed so they are considered excluded
+	if input.DisableSessionRecording != nil && *input.DisableSessionRecording {
+		session.Processed = &model.T
+	}
+
 	// determine if session is within billing quota
 	withinBillingQuota, quotaPercent := r.isWithinBillingQuota(ctx, project, workspace, *session.PayloadUpdatedAt)
 	setupSpan.Finish()
@@ -2336,26 +2341,18 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 	querySessionSpan.Finish()
 
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		log.WithContext(ctx).WithError(err).WithField("project", project).WithField("projectVerboseID", projectVerboseID).Error("failed to find project")
+	}
+
 	// Filter out empty errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
-		if errorObject.Event == "[{}]" {
-			var objString string
-			objBytes, err := json.Marshal(errorObject)
-			if err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error marshalling error object when filtering"))
-				objString = ""
-			} else {
-				objString = string(objBytes)
-			}
-			log.WithContext(ctx).WithFields(log.Fields{
-				"project_id":        projectID,
-				"session_secure_id": errorObject.SessionSecureID,
-				"error_object":      objString,
-			}).Warn("caught empty error, continuing...")
-		} else {
-			filteredErrors = append(filteredErrors, errorObject)
+		if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
+			continue
 		}
+		filteredErrors = append(filteredErrors, errorObject)
 	}
 	errorObjects = filteredErrors
 
@@ -2837,26 +2834,19 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		if hasBeacon {
 			r.DB.Where(&model.ErrorObject{SessionID: &sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
 		}
+
+		var project model.Project
+		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+			return e.Wrap(err, "error querying project")
+		}
+
 		// filter out empty errors
 		seenEvents := map[string]*publicModel.ErrorObjectInput{}
 		for _, errorObject := range errors {
-			if errorObject.Event == "[{}]" {
-				var objString string
-				objBytes, err := json.Marshal(errorObject)
-				if err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "error marshalling error object when filtering"))
-					objString = ""
-				} else {
-					objString = string(objBytes)
-				}
-				log.WithContext(ctx).WithFields(log.Fields{
-					"project_id":   projectID,
-					"session_id":   sessionID,
-					"error_object": objString,
-				}).Warn("caught empty error, continuing...")
-			} else {
-				seenEvents[errorObject.Event] = errorObject
+			if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
+				continue
 			}
+			seenEvents[errorObject.Event] = errorObject
 		}
 		errors = lo.Values(seenEvents)
 
@@ -2875,12 +2865,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			VisitedURL string
 			SessionObj *model.Session
 		})
+
 		for _, v := range errors {
 			traceBytes, err := json.Marshal(v.StackTrace)
 			if err != nil {
 				log.WithContext(ctx).Errorf("Error marshaling trace: %v", v.StackTrace)
 				continue
 			}
+
 			traceString := string(traceBytes)
 
 			errorToInsert := &model.ErrorObject{
@@ -3027,6 +3019,35 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 	return nil
+}
+
+func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {
+	if errorEvent == "[{}]" {
+		log.WithContext(ctx).
+			WithField("project_id", projectID).
+			Warn("ignoring empty error")
+		return true
+	}
+
+	// Filter out by project.ErrorFilters, aka regexp filters
+	var err error
+	matchedRegexp := false
+	for _, errorFilter := range errorFilters {
+		matchedRegexp, err = regexp.MatchString(errorFilter, errorEvent)
+		if err != nil {
+			log.WithContext(ctx).
+				WithField("project_id", projectID).
+				WithField("regex", errorFilter).
+				WithError(err).
+				Error("invalid regex: failed to parse backend error filter")
+			continue
+		}
+
+		if matchedRegexp {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {

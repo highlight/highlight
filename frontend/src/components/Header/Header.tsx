@@ -67,10 +67,9 @@ import styles from './Header.module.scss'
 
 type Props = {
 	fullyIntegrated?: boolean
-	integrated?: boolean
 }
 
-export const Header: React.FC<Props> = ({ fullyIntegrated, integrated }) => {
+export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -116,9 +115,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated, integrated }) => {
 			<CommandBar />
 			<CommandBarV1 />
 			<Box background="n2" borderBottom="secondary">
-				{!!project_id &&
-					!isSetup &&
-					getBanner(project_id, !!integrated)}
+				{!!project_id && !isSetup && getBanner(project_id)}
 				<Box
 					display="flex"
 					alignItems="center"
@@ -653,22 +650,23 @@ export const Header: React.FC<Props> = ({ fullyIntegrated, integrated }) => {
 	)
 }
 
-const getBanner = (project_id: string, integrated: boolean) => {
+const getBanner = (project_id: string) => {
 	if (isOnPrem) {
 		return <OnPremiseBanner />
 	} else if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
 		return <DemoWorkspaceBanner />
 	} else {
-		return <BillingBanner integrated={integrated} />
+		return <BillingBanner />
 	}
 }
 
-const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
+const BillingBanner: React.FC = () => {
 	const { toggleShowBanner } = useGlobalContext()
 	const [temporarilyHideBanner, setTemporarilyHideBanner] = useSessionStorage(
 		'highlightHideFreePlanBanner',
 		false,
 	)
+	const { currentWorkspace } = useApplicationContext()
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: project_id! },
@@ -720,26 +718,7 @@ const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 		return null
 	}
 
-	const isYoutubeLive = moment().isBetween(
-		'2023-02-09T22:45:00Z',
-		'2023-02-10T00:00:00Z',
-	)
-	if (isYoutubeLive) {
-		toggleShowBanner(true)
-		return <HighlightRoadshowBanner />
-	}
-
 	if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
-		// show Product Hunt banner at the time of a launch
-		const isPHLaunch = moment().isBetween(
-			'2023-01-10T08:00:00Z',
-			'2023-01-11T08:00:00Z',
-		)
-		if (isPHLaunch) {
-			toggleShowBanner(true)
-			return <ProductHuntBanner />
-		}
-
 		toggleShowBanner(false)
 		return null
 	}
@@ -753,7 +732,6 @@ const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 		| string
 		| React.ReactNode = `You've used ${data?.billingDetailsForProject?.meter}/${data?.billingDetailsForProject?.plan.quota} of your free sessions.`
 	const hasTrial = isProjectWithinTrial(data?.workspace_for_project)
-	const canExtend = data?.workspace_for_project?.eligible_for_trial_extension
 	const hasExceededSessionsForMonth =
 		data?.billingDetailsForProject?.meter >
 		data?.billingDetailsForProject?.plan.quota
@@ -762,44 +740,6 @@ const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 		bannerMessage = getTrialEndDateMessage(
 			data?.workspace_for_project?.trial_end_date,
 		)
-
-		if (canExtend) {
-			if (integrated) {
-				bannerMessage = (
-					<>
-						You have unlimited Highlight until{' '}
-						{moment(
-							data?.workspace_for_project?.trial_end_date,
-						).format('MM/DD')}
-						.{' '}
-						<Link
-							className={styles.trialLink}
-							to={`/w/${data?.workspace_for_project?.id}/about-you`}
-						>
-							Fill this out
-						</Link>{' '}
-						before your trial ends to extend this by another week!
-					</>
-				)
-			} else {
-				bannerMessage = (
-					<>
-						You have unlimited Highlight until{' '}
-						{moment(
-							data?.workspace_for_project?.trial_end_date,
-						).format('MM/DD')}
-						.{' '}
-						<Link
-							className={styles.trialLink}
-							to={`/${project_id}/setup`}
-						>
-							Integrate
-						</Link>{' '}
-						before your trial ends to extend this by another week!
-					</>
-				)
-			}
-		}
 	}
 
 	toggleShowBanner(true)
@@ -810,20 +750,9 @@ const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 				[styles.error]: hasExceededSessionsForMonth,
 			})}
 		>
-			<div className={clsx(styles.trialTimeText)}>
-				{bannerMessage}
-				{!canExtend && (
-					<>
-						{' '}
-						Upgrade{' '}
-						<Link
-							className={styles.trialLink}
-							to={`/w/${data?.workspace_for_project?.id}/current-plan`}
-						>
-							here!
-						</Link>
-					</>
-				)}
+			<div className={styles.trialTimeText}>
+				{bannerMessage} Upgrade{' '}
+				<Link to={`/w/${currentWorkspace?.id}/billing`}>here</Link>.
 			</div>
 			{hasTrial && (
 				<button
@@ -882,60 +811,6 @@ const DemoWorkspaceBanner = () => {
 					Go back to your project.
 				</Link>
 			</div>
-		</div>
-	)
-}
-
-const ProductHuntBanner = () => {
-	const { toggleShowBanner } = useGlobalContext()
-
-	toggleShowBanner(true)
-
-	const bannerMessage = (
-		<span>
-			Highlight is live on Product Hunt 🎉‍{' '}
-			<a
-				target="_blank"
-				href="https://www.producthunt.com/posts/error-management-by-highlight"
-				className={styles.trialLink}
-				rel="noreferrer"
-			>
-				Support us
-			</a>{' '}
-			and we'll be forever grateful ❤️
-		</span>
-	)
-
-	return (
-		<div className={clsx(styles.trialWrapper, styles.productHunt)}>
-			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
-		</div>
-	)
-}
-
-const HighlightRoadshowBanner = () => {
-	const { toggleShowBanner } = useGlobalContext()
-
-	toggleShowBanner(true)
-
-	const bannerMessage = (
-		<span>
-			The Highlight Roadshow is live on Youtube 🎉‍{' '}
-			<a
-				target="_blank"
-				href="https://www.youtube.com/@thestartupstack/streams"
-				className={styles.trialLink}
-				rel="noreferrer"
-			>
-				Check it out
-			</a>{' '}
-			to see the latest features from our engineering team!️
-		</span>
-	)
-
-	return (
-		<div className={clsx(styles.trialWrapper, styles.youtube)}>
-			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
 		</div>
 	)
 }

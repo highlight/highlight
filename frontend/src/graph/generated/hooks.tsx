@@ -1274,6 +1274,7 @@ export const EditProjectDocument = gql`
 		$name: String
 		$billing_email: String
 		$excluded_users: StringArray
+		$error_filters: StringArray
 		$error_json_paths: StringArray
 		$filter_chrome_extension: Boolean
 		$rage_click_window_seconds: Int
@@ -1286,6 +1287,7 @@ export const EditProjectDocument = gql`
 			name: $name
 			billing_email: $billing_email
 			excluded_users: $excluded_users
+			error_filters: $error_filters
 			error_json_paths: $error_json_paths
 			filter_chrome_extension: $filter_chrome_extension
 			rage_click_window_seconds: $rage_click_window_seconds
@@ -1297,6 +1299,7 @@ export const EditProjectDocument = gql`
 			name
 			billing_email
 			excluded_users
+			error_filters
 			error_json_paths
 			filter_chrome_extension
 			rage_click_window_seconds
@@ -1328,6 +1331,7 @@ export type EditProjectMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      billing_email: // value for 'billing_email'
  *      excluded_users: // value for 'excluded_users'
+ *      error_filters: // value for 'error_filters'
  *      error_json_paths: // value for 'error_json_paths'
  *      filter_chrome_extension: // value for 'filter_chrome_extension'
  *      rage_click_window_seconds: // value for 'rage_click_window_seconds'
@@ -7133,6 +7137,7 @@ export const GetProjectDropdownOptionsDocument = gql`
 			billing_email
 			secret
 			workspace_id
+			error_filters
 		}
 		workspace: workspace_for_project(project_id: $project_id) {
 			id
@@ -7540,6 +7545,7 @@ export const GetProjectDocument = gql`
 			verbose_id
 			billing_email
 			excluded_users
+			error_filters
 			error_json_paths
 			filter_chrome_extension
 			rage_click_window_seconds

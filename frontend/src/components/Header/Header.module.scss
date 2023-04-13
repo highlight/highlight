@@ -5,7 +5,7 @@
 
 .trialWrapper {
 	align-items: center;
-	background-color: var(--color-purple);
+	background-color: #744ed4;
 	color: var(--text-primary-inverted);
 	display: flex;
 	height: var(--banner-height);
@@ -37,7 +37,7 @@
 		--button-size: var(--size-medium);
 		--icon-size: var(--size-xSmall);
 		align-items: center;
-		background: var(--color-purple);
+		background: transparent;
 		border: 0;
 		border-radius: 50%;
 		cursor: pointer;
@@ -66,50 +66,16 @@
 	}
 }
 
-@keyframes accomodate-banner {
-	0% {
-		transform: translateY(0);
-	}
-
-	100% {
-		transform: translateY(var(--banner-height));
-	}
-}
-
-.trialCloseStyle {
-	cursor: pointer;
-	fill: var(--color-primary-background);
-	height: 8px;
-	margin: 0 5px;
-	position: absolute;
-	right: 0;
-	width: 8px;
-}
-
 .trialTimeText {
 	font-size: 12px;
 	padding-bottom: 4px;
 	padding-top: 4px;
 	z-index: 100;
-}
 
-.quicksearchWrapper {
-	align-items: center;
-	display: flex;
-	flex-grow: 1;
-	height: 28px;
-	justify-content: flex-end;
-	margin-left: var(--size-medium);
-	max-width: 400px;
-}
-
-.logoWrapper {
-	align-items: center;
-	color: var(--text-primary);
-	display: flex;
-	height: 100%;
-	justify-content: center;
-	z-index: 10;
+	a {
+		color: white;
+		text-decoration: underline;
+	}
 }
 
 .homeLink {
@@ -124,10 +90,6 @@
 .homeLink:hover {
 	color: inherit;
 	text-decoration: none;
-}
-
-.logoWrapper:hover {
-	color: var(--text-primary);
 }
 
 .demoLink {
