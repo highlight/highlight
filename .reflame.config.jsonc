@@ -1,0 +1,438 @@
+{
+	// This is a JSON with Comments file.
+	// It's basically JSON, with the addition of comments, and looser syntax
+	// (trailing commas!).
+	// Reflame uses this to identify your app.
+	"appId": "01GVH35S71FJP26W72V3K7CB2N", // prod
+	// "appId": "01GSXZYQT1W0TZDJAG94P9S4BZ", // prod fork
+	// "appId": "01GR550WASJY2G2NSYZ4P54JJV", // dev
+	// This is what shows up in the browser's tab bar.
+	"title": "Reflame App",
+	// This is the description that shows up in Google search.
+	"description": "A new Reflame app.",
+	// Reflame will watch this directory for your React source code and ship changes
+	// instantly.
+	"sourceDirectory": "frontend/src",
+	// Reflame will use this to keep your app up to date as we make improvements.
+	"foundation": {
+		"name": "ts-react",
+		"version": 1
+	},
+	"themeColor": "#5629c6",
+	"filesIgnored": ["**/**.css.ts", "**/**.scss"],
+	"environment": {
+		"REACT_APP_FIREBASE_CONFIG_OBJECT": {
+			"type": "expression",
+			"value": "JSON.stringify({apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',authDomain: 'auth.highlight.run',databaseURL: 'https://highlight-f5c5b.firebaseio.com',projectId: 'highlight-f5c5b',storageBucket: 'highlight-f5c5b.appspot.com',messagingSenderId: '263184175068',appId: '1:263184175068:web:f8190c20320087d1c6c919',})"
+		},
+		"REACT_APP_COMMIT_SHA": {
+			"type": "expression",
+			"value": "Reflame.gitCommitSha"
+		},
+		"REACT_APP_PRIVATE_GRAPH_URI": "https://pri.highlight.run",
+		"REACT_APP_ONPREM": false,
+		"REACT_APP_FRONTEND_URI": {
+			"type": "expression",
+			"value": "window.location.origin"
+		},
+		"REACT_APP_FRONTEND_ORG": 1,
+		"REACT_APP_PUBLIC_GRAPH_URI": "https://pub.highlight.run",
+		"REACT_APP_AUTH_MODE": null,
+		"SLACK_CLIENT_ID": null,
+		"REACT_APP_STRIPE_API_PK": null,
+		"DEMO_ERROR_URL": null,
+		"CLICKUP_CLIENT_ID": null,
+		"DISCORD_CLIENT_ID": null,
+		"REACT_APP_FRONT_INTEGRATION_CLIENT_ID": null,
+		"HEIGHT_CLIENT_ID": null,
+		"DEMO_SESSION_URL": null,
+		"LINEAR_CLIENT_ID": null
+	},
+	"scripts": [
+		"/intercom.js",
+		"/index",
+		"/canny.js",
+		"https://js.hs-scripts.com/20473940.js"
+		// TODO: google tag manager
+	],
+	"stylesheets": [
+		"https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap",
+		"https://unpkg.com/@highlight-run/rrweb@0.9.27/dist/index.css",
+		"/public.css"
+	],
+	"nodejsCompatibility": {
+		"omitModuleExtension": true,
+		"mapIndexToDirectory": true
+	},
+	"specifierTransforms": [
+		{
+			"from": "/",
+			"to": "@/"
+		},
+		{
+			"from": "/components/",
+			"to": "@components/"
+		},
+		{
+			"from": "/static/",
+			"to": "@icons/"
+		},
+		{
+			"from": "/util/",
+			"to": "@util/"
+		},
+		{
+			"from": "/hooks/",
+			"to": "@hooks/"
+		},
+		{
+			"from": "/pages/",
+			"to": "@pages/"
+		},
+		{
+			"from": "/routers/",
+			"to": "@routers/"
+		},
+		{
+			"from": "/graph/generated/",
+			"to": "@graph/"
+		},
+		{
+			"from": "/authentication/",
+			"to": "@authentication/"
+		},
+		{
+			"from": "/context/",
+			"to": "@context/"
+		},
+		{
+			"from": "/lottie/",
+			"to": "@lottie/"
+		},
+		{
+			"from": "/__generated/index.css",
+			"to": "/index.scss"
+		},
+		{
+			"from": "/__generated/rr/rr.js",
+			"to": "@highlight-run/rrweb"
+		},
+		{
+			"from": "/__generated/rr/rrTypes.js",
+			"to": "@highlight-run/rrweb-types"
+		},
+		{
+			"from": "/__generated/rr/rr.min.css",
+			"to": "@highlight-run/rrweb/dist/rrweb.min.css"
+		},
+		{
+			"from": "^/__generated/ve/(.*).css.js$",
+			"to": "/$1.css",
+			"phase": "pre"
+		},
+		{
+			"from": "^/__generated/scss/(.*).scss.js$",
+			"to": "/$1.scss",
+			"phase": "pre"
+		},
+		{
+			"from": "^/__generated/svgr/(.*).svg.js$",
+			"to": "/$1.svg",
+			"phase": "pre"
+		}
+	],
+	"libraries": {
+		"@highlight-run/ui": {
+			"sourceDirectory": "packages/ui/src",
+			"entryPoints": {
+				"/": "/index.ts",
+				"/src": "/index.ts",
+				"/src/components/Box/Box": "/components/Box/Box.tsx",
+				"/src/components/DatePicker/PreviousDateRangePicker": "/components/DatePicker/PreviousDateRangePicker.tsx",
+				"/src/css/vars": "/css/vars.ts",
+				"/src/css/colors": "/css/colors.ts",
+				"/src/css/sprinkles.css": "/css/sprinkles.css",
+				"/src/css/theme.css": "/css/theme.css"
+			},
+			"npmPackages": {
+				"ariakit": {
+					"version": "^2.0.0-next.41",
+					"entryPoints": [
+						"/",
+						"/button",
+						"/combobox",
+						"/form",
+						"/checkbox"
+					]
+				},
+				"clsx": "^1.2.1",
+				"lodash": "^4.17.21",
+				"@rehookify/datepicker": "^4.1.5"
+			},
+			"nodejsCompatibility": {
+				"omitModuleExtension": true,
+				"mapIndexToDirectory": true
+			},
+			"filesIgnored": ["**/**.css.ts"],
+			"specifierTransforms": {
+				"^/__generated/ve/(.*).css.js$": "/$1.css"
+			}
+		},
+		"highlight.run": {
+			"sourceDirectory": "sdk/firstload/src",
+			"entryPoint": "/index.tsx",
+			"nodejsCompatibility": {
+				"omitModuleExtension": true,
+				"mapIndexToDirectory": true
+			},
+			"npmPackages": {
+				// "ariakit": "^2.0.0-next.41",
+				// "clsx": "^1.2.1",
+				// "lodash": "^4.17.21",
+			}
+		},
+		"highlight.io": {
+			"sourceDirectory": "highlight.io",
+			"entryPoint": "/index.ts",
+			"nodejsCompatibility": {
+				"omitModuleExtension": true,
+				"mapIndexToDirectory": true
+			},
+			"filesIgnored": [
+				"**/**",
+				"!components/**/**",
+				"!content/**/**",
+				"!styles/**/**",
+				"!utils/**/**",
+				"!index.ts"
+			]
+		},
+		"@highlight-run/client": {
+			"sourceDirectory": "sdk/client/src",
+			"entryPoints": {
+				"/src/listeners/first-load-listeners": "/listeners/first-load-listeners.tsx",
+				"/src/utils/secure-id": "/utils/secure-id.ts",
+				"/src/utils/sessionStorage/highlightSession": "/utils/sessionStorage/highlightSession.ts"
+			},
+			"nodejsCompatibility": {
+				"omitModuleExtension": true,
+				"mapIndexToDirectory": true
+			},
+			"specifierTransforms": {
+				"/publicGraphURI.ts": "consts:publicGraphURI"
+			},
+			"npmPackages": {
+				"json-stringify-safe": "^5.0.1",
+				"@ctrl/tinycolor": "^2.0.0",
+				"error-stack-parser": "2.0.6"
+				// "ariakit": "^2.0.0-next.41",
+				// "clsx": "^1.2.1",
+				// "lodash": "^4.17.21",
+			}
+		}
+	},
+	// NPM packages listed here will be installed by Reflame every time you update this file.
+	//
+	// It's important to only include packages that will be used by your app in browsers here.
+	// Including dev-time dependencies that run in node can result in deploy failures and poor
+	// performance.
+	"npmPackages": {
+		"@apollo/client": {
+			"version": "^3.7.0",
+			"entryPoints": ["/", "/link/context", "/link/ws", "/utilities"]
+		},
+		"ariakit": {
+			"version": "^2.0.0-next.41",
+			"entryPoints": ["/", "/dialog", "/form"]
+		},
+		// "@babel/runtime": "^7.20.13",
+		// "@babel/core": "^7.19.0",
+		"clsx": "^1.2.1",
+		"@ctrl/tinycolor": "^3.4.1",
+		"@datadog/browser-logs": "^4.13.0",
+		"@datadog/browser-rum": "^4.21.0",
+		"@fontsource/poppins": "^4.5.9",
+		"@frontapp/plugin-sdk": "^1.1.2",
+		// "@highlight-run/client": "workspace:*",
+		// TODO: create a library for this
+		// Might need a shim entry point for .css?
+		"@highlight-run/react": {
+			"version": "^2.0.1",
+			"entryPoints": ["/", "/dist/index.css"]
+		},
+		"@highlight-run/react-mentions": "4.4.1",
+		"@highlight-run/react-select": "^5.2.2",
+		// "@highlight-run/rrweb": "workspace:*",
+		// "@highlight-run/ui": "workspace:*",
+		"@rehooks/local-storage": "^2.4.4",
+		"@stripe/stripe-js": "^1.32.0",
+		"@sentry/react": "^7.38.0",
+		"@sentry/tracing": "^7.38.0",
+		"@tanstack/react-table": "^8.7.9",
+		"@tanstack/react-virtual": "^3.0.0-beta.54",
+		// "@types/js-cookie": "^3.0.2",
+		// "@types/react-virtualized-auto-sizer": "^1.0.1",
+		"antd": {
+			"version": "^4.17.0",
+			"entryPoints": [
+				"/",
+				"/es/menu",
+				"/es/checkbox",
+				"/es/tooltip",
+				"/es/table",
+				"/es/input",
+				"/es/dropdown",
+				"/es/message",
+				"/dist/antd.css"
+			]
+		},
+		"@ant-design/icons": "^4.8.0",
+		// "babel-plugin-react-wrapped-display-name": "^1.0.0",
+		"classnames": "^2.3.1",
+		"color-hash": "^2.0.1",
+		"dexie": "^3.2.2",
+		// "dexie-react-hooks": "^1.1.1",
+		"dinero.js": "2.0.0-alpha.14",
+		"@dinero.js/currencies": "2.0.0-alpha.14",
+		// "eslint-plugin-simple-import-sort": "^7.0.0",
+		"firebase": {
+			"version": "^9.18.0",
+			"entryPoints": ["/compat/auth", "/compat/app"]
+		},
+		"framer-motion": "^6.3.15",
+		"graphql": "^16.6.0",
+		// // "highlight.run": "workspace:*",
+		"intro.js": {
+			"version": "^4.1.0",
+			"entryPoints": ["/", "/introjs.css"]
+		},
+		"intro.js-react": "^0.7.1",
+		"js-cookie": "^3.0.0",
+		// "lodash": "^4.17.21",
+		"lodash": {
+			"version": "^4.17.21",
+			"entryPoints": ["/", "/isEqual"]
+		},
+		"lottie-react": "^2.1.0",
+		"moment": {
+			"version": "^2.29.4",
+			"entryPoints": ["/", "/moment"]
+		},
+		// "postinstall-postinstall": "^2.1.0",
+		// "prop-types": "^15.5.7",
+		"query-string": "6.14.1",
+		"randomcolor": "^0.6.2",
+		"rc-slider": {
+			"version": "^10.1.1",
+			"entryPoints": ["/", "/assets/index.css"]
+		},
+		"re-resizable": "^6.9.1",
+		"react-resizable": {
+			"version": "^3.0.4",
+			"entryPoints": ["/css/styles.css"]
+		},
+		// "react": "^18.2.0",
+		"react-animate-height": "^2.1.2",
+		"react-awesome-query-builder": {
+			"version": "^4.8.0",
+			"entryPoints": [
+				"/",
+				"/lib/config/antd",
+				"/lib/css/compact_styles.css",
+				"/lib/css/styles.css"
+			]
+		},
+		"react-collapsible": "^2.8.1",
+		"react-command-palette": "0.16.0",
+		"react-confetti": "^6.0.1",
+		"react-copy-to-clipboard": "^5.0.2",
+		// "react-date-range": "^1.4.0",
+		// "react-device-detect": "^2.0.1",
+		// "react-dom": "^18.2.0",
+		// "react-draggable": "^4.4.5",
+		"react-files-hooks": "^2.0.0",
+		// "react-firebase-hooks": "^2.2.0",
+		"react-grid-layout": {
+			"version": "^1.3.3",
+			"entryPoints": ["/", "/css/styles.css"]
+		},
+		"react-helmet": "^6.1.0",
+		"react-highlight-words": "^0.17.0",
+		"react-hotkeys-hook": "^3.3.1",
+		"react-icons": {
+			"version": "^4.7.1",
+			"entryPoints": ["/fa", "/fi", "/ri", "/vsc"]
+		},
+		// "react-infinite-scroll-hook": "^3.0.0",
+		"react-json-view": "^1.21.3",
+		"react-lines-ellipsis": "^0.14.1",
+		"react-linkify": "^1.0.0-alpha",
+		"react-loading-skeleton": {
+			"version": "3.0.1",
+			"entryPoints": ["/", "/dist/skeleton.css"]
+		},
+		"react-markdown": "^8.0.5",
+		"react-nice-avatar": "^1.4.0",
+		// Pinning to 3.1.1 due to this: https://github.com/FezVrasta/react-resize-aware/issues/58#issuecomment-1322439696
+		"react-resize-aware": "3.1.1",
+		"react-router-dom": "^6.8.1",
+		"react-select": {
+			"version": "^3.1.1",
+			"entryPoints": ["/", "/async", "/async-creatable", "/creatable"]
+		},
+		"react-slider": "^2.0.1",
+		// "react-snowfall": "^1.1.1",
+		"react-spinners": {
+			"version": "^0.13.2",
+			"entryPoints": ["/BarLoader"]
+		},
+		"react-syntax-highlighter": {
+			"version": "^15.4.4",
+			"entryPoints": [
+				// FIXME: Seems to create ~1000 chunks with esbuild
+				// https://github.com/evanw/esbuild/issues/1836
+				// "/",
+				"/dist/esm/prism",
+				"/dist/esm/light",
+				"/dist/esm/styles/prism"
+			]
+		},
+		"react-text-transition": "^1.3.0",
+		"react-use": {
+			"version": "^17.2.4",
+			"entryPoints": [
+				"/",
+				"/esm/useSessionStorage",
+				"/esm/useLocalStorage"
+			]
+		},
+		"react-virtualized-auto-sizer": "^1.0.6",
+		"react-virtuoso": "^2.13.1",
+		"recharts": "^2.5.0",
+		// later versions seem to have issues around export detection
+		// due to minification. also doesn't properly expose esm module
+		// TODO: PR
+		"rudder-sdk-js": "2.20.0",
+		// "source-map-explorer": "^2.5.2",
+		// "stacktrace-js": "^2.0.2",
+		"subscriptions-transport-ws": "^0.11.0",
+		// "use-http": "^1.0.26",
+		"use-query-params": {
+			"version": "^2.2.0",
+			"entryPoints": ["/", "/adapters/react-router-6"]
+		},
+		"validator": "13.7.0",
+		"xss": "^1.0.14"
+	},
+	"npmPackageOverrides": {
+		"react": "18.2.0",
+		"react-dom": "18.2.0",
+		"graphql": "16.6.0",
+		"react-transition-group": "4.4.1",
+		"lodash": "npm:lodash-es"
+		// "babel-runtime": "@babel/runtime"
+		// "react-base16-styling": {
+		//   "babel-runtime": "^6.26.0"
+		// }
+	}
+}

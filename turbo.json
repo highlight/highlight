@@ -42,6 +42,14 @@
 				"esm/**"
 			]
 		},
+		"reflame": {
+			"dependsOn": [],
+			"cache": false
+		},
+		"reflame-build": {
+			"dependsOn": [],
+			"cache": false
+		},
 		"build": {
 			"dependsOn": ["codegen", "typegen", "^build"],
 			"outputs": [

@@ -8,6 +8,7 @@
 		"stylelint.vscode-stylelint",
 		"sourcegraph.sourcegraph",
 		"eamodio.gitlens",
-		"github.codespaces"
+		"github.codespaces",
+		"reflame.agent"
 	]
 }
