@@ -31,5 +31,16 @@ useEffect(() => {
 }, [userIsLoggedIn])
 ```
 
+## Disable all session recording
+If you're interested in using Highlight for the error monitoring or logging products without session replay, use the follow setting:
+```js
+import { H } from 'highlight.run';
+
+H.init('<YOUR_PROJECT_ID>', {
+    disableSessionRecording: true,
+    // ...
+});
+```
+
 ## Want to ignore something else?
 If you'd like an easier way to ignore specific types of sessions, we're open to feedback. Please reach out to us in our [discord community](https://highlight.io/community).
