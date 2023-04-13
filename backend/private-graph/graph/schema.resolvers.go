@@ -3770,7 +3770,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 		return nil, nil
 	}
 
-	retentionDate, err := r.GetProjectRetentionDate(ctx, s.ProjectID)
+	retentionDate, err := r.GetProjectRetentionDate(s.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -4001,7 +4001,7 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model
 	if err != nil {
 		return nil, err
 	}
-	retentionDate, err := r.GetProjectRetentionDate(ctx, eg.ProjectID)
+	retentionDate, err := r.GetProjectRetentionDate(eg.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -4036,7 +4036,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		return nil, e.Wrap(err, "not authorized to view error group")
 	}
 
-	retentionDate, err := r.GetProjectRetentionDate(ctx, errorGroup.ProjectID)
+	retentionDate, err := r.GetProjectRetentionDate(errorGroup.ProjectID)
 	if err != nil {
 		return nil, err
 	}

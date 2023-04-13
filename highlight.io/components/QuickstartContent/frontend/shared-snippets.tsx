@@ -23,6 +23,9 @@ export const sessionReplayFeaturesLink = siteUrl(
 export const identifyingUsersLink = siteUrl(
 	'/docs/getting-started/client-sdk/replay-configuration/identifying-sessions',
 )
+export const sessionSearchLink = siteUrl(
+	'/docs/general/product-features/session-replay/session-search',
+)
 export const backendInstrumentationLink = siteUrl(
 	'/docs/getting-started/overview#for-your-backend-error-monitoring',
 )
@@ -76,13 +79,21 @@ H.init('<YOUR_PROJECT_ID>', {
 
 export const identifySnippet: QuickStartStep = {
 	title: 'Identify users.',
-	content: `Identify users to tie their sessions/errors to their account. We suggest doing this after the authentication flow of your web app. \n\n\nThe first argument of \`identify\` will be searchable via the property \`identifier\`, and the second property is searchable by the key of each item in the object. Read more about this in our [identifying users](${identifyingUsersLink}) section.`,
+	content: `Identify users after the authentication flow of your web app. We recommend doing this in a \`useEffect\` call or in any asynchronous, client-side context. \n\n\nThe first argument of \`identify\` will be searchable via the property \`identifier\`, and the second property is searchable by the key of each item in the object. \n\n\nFor more details, read about [session search](${sessionSearchLink}) or how to [identify users](${identifyingUsersLink}).`,
 	code: {
-		text: `H.identify('jay@highlight.io', {
-    id: 'very-secure-id',
-    phone: '867-5309',
-    bestFriend: 'jenny'
-});`,
+		text: `useEffect(() => {
+
+	// login logic...
+
+	H.identify('jay@highlight.io', {
+		id: 'very-secure-id',
+		phone: '867-5309',
+		bestFriend: 'jenny'
+	});
+
+
+}, [...])
+`,
 		language: 'js',
 	},
 }

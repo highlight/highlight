@@ -14,37 +14,13 @@ const { Option } = AntDesignSelect
 
 export interface OptionType {
 	value: string
-	displayValue: string | React.ReactNode
+	displayValue: React.ReactNode
 	disabled?: boolean
 	id: string
 	dropDownIcon?: React.ReactNode
 }
 
-type Props = Pick<
-	AntDesignSelectProps<any>,
-	| 'onChange'
-	| 'placeholder'
-	| 'loading'
-	| 'value'
-	| 'className'
-	| 'allowClear'
-	| 'notFoundContent'
-	| 'mode'
-	| 'dropdownRender'
-	| 'defaultValue'
-	| 'onSearch'
-	| 'children'
-	| 'optionLabelProp'
-	| 'filterOption'
-	| 'bordered'
-	| 'disabled'
-	| 'defaultActiveFirstOption'
-	| 'aria-label'
-	| 'tagRender'
-	| 'open'
-	| 'dropdownMatchSelectWidth'
-	| 'optionFilterProp'
-> & {
+type Props = Omit<AntDesignSelectProps, 'options'> & {
 	options?: OptionType[]
 	dropdownClassName?: string
 }
@@ -88,7 +64,12 @@ const Select = ({
 					}
 
 					return (
-						<Option key={id} value={value} disabled={disabled}>
+						<Option
+							key={id}
+							value={value}
+							disabled={disabled}
+							label={displayValue}
+						>
 							{display}
 						</Option>
 					)

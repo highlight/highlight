@@ -1,5 +1,4 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import { LoadingBar } from '@components/Loading/Loading'
 import Switch from '@components/Switch/Switch'
 import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks'
@@ -10,24 +9,17 @@ import { message } from 'antd'
 import { useEffect, useState } from 'react'
 
 const OptInRow = (
-	label: string,
-	info: string | undefined,
+	key: string,
+	label: string | React.ReactNode,
 	checked: boolean,
 	setState: (n: boolean) => void,
 ) => {
 	return (
 		<Switch
-			key={label}
+			key={key}
 			label={
 				<Box display="flex" alignItems="center" gap="2">
 					{label}
-					{info && (
-						<InfoTooltip
-							placement="right"
-							size="medium"
-							title={info}
-						/>
-					)}
 				</Box>
 			}
 			trackingId={`switch-${label}`}
@@ -72,19 +64,30 @@ export const FilterExtensionForm = () => {
 
 	const categories = [
 		{
-			label: 'Chrome extension stackframes',
-			info: 'Hide Chrome extension stack frames from errors.',
+			key: 'Filter out errors thrown by chrome extensions.',
+			message: 'Filter chrome extensions ',
+			label: (
+				<p>
+					Filter out errors thrown by chrome extensions. (read the{' '}
+					<a
+						href="https://www.highlight.io/docs/general/product-features/error-monitoring/ignoring-errors#ignore-errors-emmitted-by-chrome-extensions"
+						target="_blank"
+						rel="noreferrer"
+					>
+						docs
+					</a>
+					)
+				</p>
+			),
 			checked: filterChromeExtension,
 		},
 	]
 
 	return (
-		<FieldsBox id="extension">
-			<h3>Filter Browser Extension</h3>
-
+		<FieldsBox id="errors">
 			<p>
 				{categories.map((c) =>
-					OptInRow(c.label, c.info, c.checked, (isOptIn: boolean) => {
+					OptInRow(c.key, c.label, c.checked, (isOptIn: boolean) => {
 						editProject({
 							variables: {
 								id: project_id!,
@@ -93,7 +96,7 @@ export const FilterExtensionForm = () => {
 						})
 							.then(() => {
 								message.success(
-									`${c.label} turned ${
+									`${c.message} turned ${
 										isOptIn ? 'on' : 'off'
 									} successfully`,
 								)

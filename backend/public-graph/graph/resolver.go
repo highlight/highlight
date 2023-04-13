@@ -1265,6 +1265,11 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		AvoidPostgresStorage:           true,
 	}
 
+	// mark recording-less sessions as processed so they are considered excluded
+	if input.DisableSessionRecording != nil && *input.DisableSessionRecording {
+		session.Processed = &model.T
+	}
+
 	// determine if session is within billing quota
 	withinBillingQuota, quotaPercent := r.isWithinBillingQuota(ctx, project, workspace, *session.PayloadUpdatedAt)
 	setupSpan.Finish()
