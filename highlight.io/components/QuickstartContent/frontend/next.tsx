@@ -21,7 +21,7 @@ const next13DocsLink = siteUrl(
 
 export const nextBackendSnippet: QuickStartStep = {
 	title: 'More Next.js features?',
-	content: `With Next.js, we support automatic sourcemap uploading, network proxying, and log destinations. Read more in our Next.js [overview guide](${nextJSOverviewLink}).`,
+	content: `With Next.js, we have an additional package (\`@highlight-run/next\`) which supports automatic sourcemap uploading, network proxying, and log destinations. Read more in our Next.js [overview guide](${nextJSOverviewLink}).`,
 }
 
 export const next13Snippet: QuickStartStep = {
