@@ -74,6 +74,7 @@ func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCli
 					alerts := (*alertsByFrequency)[f]
 					log.WithContext(ctx).Infof("Processing %d log alerts for frequency %d", len(alerts), f)
 					for _, alert := range alerts {
+						// copy `alert` by value so each call to processLogAlert references a different alert
 						alert := alert
 						alertWorkerpool.SubmitRecover(
 							func() {
