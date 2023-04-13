@@ -4613,9 +4613,6 @@ func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*
 
 	firstSession := model.Session{}
 	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Limit(1).Find(&firstSession).Error
-	if e.Is(err, gorm.ErrRecordNotFound) {
-		return integration, nil
-	}
 	if err != nil {
 		return integration, e.Wrap(err, "error querying session for project")
 	}
@@ -4642,9 +4639,6 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 
 	firstErrorGroup := model.ErrorGroup{}
 	err := r.DB.Model(&model.ErrorGroup{}).Where("project_id = ?", projectID).Limit(1).Find(&firstErrorGroup).Error
-	if e.Is(err, gorm.ErrRecordNotFound) {
-		return integration, nil
-	}
 	if err != nil {
 		return integration, e.Wrap(err, "error querying error group for project")
 	}
