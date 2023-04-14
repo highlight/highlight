@@ -237,6 +237,26 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 	return count, err
 }
 
+func (client *Client) ReadLogsDailyCount(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (uint64, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select("sum(Count) AS Count").
+		From("log_count_daily_mv").
+		Where(sb.In("ProjectId", projectIds)).
+		Where(sb.LessEqualThan("toUInt64(Day)", uint64(dateRange.EndDate.Unix()))).
+		Where(sb.GreaterEqualThan("toUInt64(Day)", uint64(dateRange.StartDate.Unix())))
+
+	sql, args := sb.Build()
+
+	var count uint64
+	err := client.conn.QueryRow(
+		ctx,
+		sql,
+		args...,
+	).Scan(&count)
+
+	return count, err
+}
+
 func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, nBuckets int) (*modelInputs.LogsHistogram, error) {
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())

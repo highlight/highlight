@@ -3,13 +3,14 @@ package graph
 import (
 	"context"
 	"encoding/json"
-	"github.com/highlight-run/highlight/backend/timeseries"
-	"github.com/highlight-run/workerpool"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/timeseries"
+	"github.com/highlight-run/workerpool"
+	"github.com/stretchr/testify/assert"
 
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -205,7 +206,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 						t.Fatal(e.Wrap(err, "error unmarshalling error stack trace frames"))
 					}
 				}
-				errorGroup, err := r.HandleErrorAndGroup(context.TODO(), &errorObj, "", frames, nil, 1)
+				errorGroup, err := r.HandleErrorAndGroup(context.TODO(), &errorObj, "", frames, nil, 1, nil)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error handling error and group"))
 				}

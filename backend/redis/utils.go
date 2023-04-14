@@ -13,6 +13,7 @@ import (
 	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
@@ -46,8 +47,8 @@ func SessionInitializedKey(sessionSecureId string) string {
 	return fmt.Sprintf("session-init-%s", sessionSecureId)
 }
 
-func BillingQuotaExceededKey(projectId int) string {
-	return fmt.Sprintf("billing-quota-exceeded-%d", projectId)
+func BillingQuotaExceededKey(projectId int, productType pricing.ProductType) string {
+	return fmt.Sprintf("billing-quota-exceeded-%d-%s", projectId, productType)
 }
 
 func LastLogTimestampKey(projectId int) string {
@@ -338,6 +339,18 @@ func (r *Client) getFlag(ctx context.Context, key string) (bool, error) {
 	return val == "1" || val == "true", nil
 }
 
+func (r *Client) getFlagOrNil(ctx context.Context, key string) (*bool, error) {
+	val, err := r.redisClient.Get(ctx, key).Result()
+
+	// ignore non-existent keys
+	if err == redis.Nil {
+		return nil, nil
+	} else if err != nil {
+		return pointy.Bool(false), errors.Wrap(err, "error getting flag from Redis")
+	}
+	return pointy.Bool(val == "1" || val == "true"), nil
+}
+
 func (r *Client) IsPendingSession(ctx context.Context, sessionSecureId string) (bool, error) {
 	return r.getFlag(ctx, SessionInitializedKey(sessionSecureId))
 }
@@ -346,12 +359,12 @@ func (r *Client) SetIsPendingSession(ctx context.Context, sessionSecureId string
 	return r.setFlag(ctx, SessionInitializedKey(sessionSecureId), initialized, 24*time.Hour)
 }
 
-func (r *Client) IsBillingQuotaExceeded(ctx context.Context, projectId int) (bool, error) {
-	return r.getFlag(ctx, BillingQuotaExceededKey(projectId))
+func (r *Client) IsBillingQuotaExceeded(ctx context.Context, projectId int, productType pricing.ProductType) (*bool, error) {
+	return r.getFlagOrNil(ctx, BillingQuotaExceededKey(projectId, productType))
 }
 
-func (r *Client) SetBillingQuotaExceeded(ctx context.Context, projectId int) error {
-	return r.setFlag(ctx, BillingQuotaExceededKey(projectId), true, 5*time.Minute)
+func (r *Client) SetBillingQuotaExceeded(ctx context.Context, projectId int, productType pricing.ProductType, exceeded bool) error {
+	return r.setFlag(ctx, BillingQuotaExceededKey(projectId, productType), exceeded, 5*time.Minute)
 }
 
 func (r *Client) GetLastLogTimestamp(ctx context.Context, projectId int) (time.Time, error) {

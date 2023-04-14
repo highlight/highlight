@@ -9,10 +9,14 @@ import (
 	"time"
 
 	e "github.com/pkg/errors"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
+
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 var (
@@ -37,6 +41,10 @@ const (
 	BillingStripeTrial3Days       EmailType = "BillingStripeTrial3Days"
 	BillingSessionUsage80Percent  EmailType = "BillingSessionUsage80Percent"
 	BillingSessionUsage100Percent EmailType = "BillingSessionUsage100Percent"
+	BillingErrorsUsage80Percent   EmailType = "BillingErrorsUsage80Percent"
+	BillingErrorsUsage100Percent  EmailType = "BillingErrorsUsage100Percent"
+	BillingLogsUsage80Percent     EmailType = "BillingLogsUsage80Percent"
+	BillingLogsUsage100Percent    EmailType = "BillingLogsUsage100Percent"
 )
 
 func SendAlertEmail(ctx context.Context, MailClient *sendgrid.Client, email string, message string, alertType string, alertName string) error {
@@ -84,7 +92,60 @@ func GetSubscriptionUrl(adminId int, previous bool) string {
 	return fmt.Sprintf("%s/subscriptions?admin_id=%d&token=%s", os.Getenv("FRONTEND_URI"), adminId, token)
 }
 
-func getBillingNotificationMessage(workspaceId int, emailType EmailType) string {
+func formatNumber(input int) string {
+	p := message.NewPrinter(language.English)
+	return p.Sprintf("%d", input)
+}
+
+var overageCents = map[string]map[modelInputs.RetentionPeriod]int{
+	"session": {
+		modelInputs.RetentionPeriodThreeMonths:  750,
+		modelInputs.RetentionPeriodSixMonths:    750,
+		modelInputs.RetentionPeriodTwelveMonths: 1000,
+		modelInputs.RetentionPeriodTwoYears:     1250,
+	},
+	"error": {
+		modelInputs.RetentionPeriodThreeMonths:  20,
+		modelInputs.RetentionPeriodSixMonths:    30,
+		modelInputs.RetentionPeriodTwelveMonths: 40,
+		modelInputs.RetentionPeriodTwoYears:     50,
+	},
+	"log": {
+		modelInputs.RetentionPeriodThreeMonths:  150,
+		modelInputs.RetentionPeriodSixMonths:    150,
+		modelInputs.RetentionPeriodTwelveMonths: 150,
+		modelInputs.RetentionPeriodTwoYears:     150,
+	},
+}
+
+var overageQuantity = map[string]int{
+	"session": 1_000,
+	"error":   1_000,
+	"log":     1_000_000,
+}
+
+func getApproachingLimitMessage(productType string, workspaceId int, retentionPeriod modelInputs.RetentionPeriod) string {
+	dollars := float64(overageCents[productType][retentionPeriod]) / 100
+	quantityStr := formatNumber(overageQuantity[productType])
+
+	return fmt.Sprintf(`Your %s usage has exceeded 80&#37; of your monthly limit.<br>
+		Once this limit is exceeded, extra %ss will be charged at $%.2f per %s %ss.<br>
+		If you would like to switch to a plan with a higher limit,
+		you can upgrade your subscription <a href="https://app.highlight.io/w/%d/upgrade-plan">here</a>.`,
+		productType, productType, dollars, quantityStr, productType, workspaceId)
+}
+
+func getExceededLimitMessage(productType string, workspaceId int, retentionPeriod modelInputs.RetentionPeriod) string {
+	dollars := float64(overageCents[productType][retentionPeriod]) / 100
+	quantityStr := formatNumber(overageQuantity[productType])
+
+	return fmt.Sprintf(`Your %s usage has exceeded your monthly limit - extra %ss are charged at $%.2f per %s %ss.<br>
+		If you would like to switch to a plan with a higher limit,
+		you can upgrade your subscription <a href="https://app.highlight.io/w/%d/upgrade-plan">here</a>.`,
+		productType, productType, dollars, quantityStr, productType, workspaceId)
+}
+
+func getBillingNotificationMessage(workspaceId int, retentionPeriod modelInputs.RetentionPeriod, emailType EmailType) string {
 	switch emailType {
 	case BillingHighlightTrial7Days:
 		return fmt.Sprintf(`
@@ -112,22 +173,23 @@ func getBillingNotificationMessage(workspaceId int, emailType EmailType) string 
 			If you would like to switch to a different plan or cancel your subscription, 
 			you can update your billing settings <a href="https://app.highlight.io/w/%d/current-plan">here</a>.`, workspaceId)
 	case BillingSessionUsage80Percent:
-		return fmt.Sprintf(`
-			Your session usage has exceeded 80&#37; of your monthly limit.<br>
-			Once this limit is exceeded, extra sessions will be charged at $5 per 1,000 sessions.<br>
-			If you would like to switch to a plan with a higher limit,
-			you can upgrade your subscription <a href="https://app.highlight.io/w/%d/upgrade-plan">here</a>.`, workspaceId)
+		return getApproachingLimitMessage("session", workspaceId, retentionPeriod)
 	case BillingSessionUsage100Percent:
-		return fmt.Sprintf(`
-			Your session usage has exceeded your monthly limit - extra sessions are charged at $5 per 1,000 sessions.<br>
-			If you would like to switch to a plan with a higher limit,
-			you can upgrade your subscription <a href="https://app.highlight.io/w/%d/upgrade-plan">here</a>.`, workspaceId)
+		return getExceededLimitMessage("session", workspaceId, retentionPeriod)
+	case BillingErrorsUsage80Percent:
+		return getApproachingLimitMessage("error", workspaceId, retentionPeriod)
+	case BillingErrorsUsage100Percent:
+		return getExceededLimitMessage("error", workspaceId, retentionPeriod)
+	case BillingLogsUsage80Percent:
+		return getApproachingLimitMessage("log", workspaceId, retentionPeriod)
+	case BillingLogsUsage100Percent:
+		return getExceededLimitMessage("log", workspaceId, retentionPeriod)
 	default:
 		return ""
 	}
 }
 
-func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Client, emailType EmailType, workspaceId int, workspaceName *string, toEmail string, adminId int) error {
+func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Client, workspaceId int, workspaceName *string, retentionPeriod *modelInputs.RetentionPeriod, emailType EmailType, toEmail string, adminId int) error {
 	to := &mail.Email{Address: toEmail}
 
 	m := mail.NewV3Mail()
@@ -138,7 +200,13 @@ func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Clie
 	p := mail.NewPersonalization()
 	p.AddTos(to)
 	curData := map[string]interface{}{}
-	curData["message"] = getBillingNotificationMessage(workspaceId, emailType)
+
+	retentionPeriodOrDefault := modelInputs.RetentionPeriodSixMonths
+	if retentionPeriod != nil {
+		retentionPeriodOrDefault = *retentionPeriod
+	}
+
+	curData["message"] = getBillingNotificationMessage(workspaceId, retentionPeriodOrDefault, emailType)
 	curData["toEmail"] = toEmail
 	curData["workspaceName"] = workspaceName
 	curData["unsubscribeUrl"] = GetSubscriptionUrl(adminId, false)
@@ -148,16 +216,16 @@ func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Clie
 	m.AddPersonalizations(p)
 
 	log.WithContext(ctx).WithFields(log.Fields{"workspace_id": workspaceId, "to_email": toEmail, "email_type": emailType}).
-		Info("BILLING_NOTIFICATION email dry run")
+		Info("BILLING_NOTIFICATION email")
 
-	// if resp, sendGridErr := mailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
-	// 	estr := "error sending sendgrid email -> "
-	// 	estr += fmt.Sprintf("resp-code: %v; ", resp)
-	// 	if sendGridErr != nil {
-	// 		estr += fmt.Sprintf("err: %v", sendGridErr.Error())
-	// 	}
-	// 	return e.New(estr)
-	// }
+	if resp, sendGridErr := mailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
+		estr := "error sending sendgrid email -> "
+		estr += fmt.Sprintf("resp-code: %v; ", resp)
+		if sendGridErr != nil {
+			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
+		}
+		return e.New(estr)
+	}
 
 	return nil
 }

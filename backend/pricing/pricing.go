@@ -17,7 +17,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
-	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
@@ -50,7 +49,7 @@ func GetWorkspaceMembersMeter(DB *gorm.DB, workspaceID int) int64 {
 	return DB.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Association("Admins").Count()
 }
 
-func GetWorkspaceSessionsMeter(DB *gorm.DB, workspaceID int) (int64, error) {
+func GetWorkspaceSessionsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
 	var meter int64
 	if err := DB.Raw(`
 			SELECT COALESCE(SUM(count), 0) as currentPeriodSessionCount
@@ -63,14 +62,14 @@ func GetWorkspaceSessionsMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 			AND date < (
 				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
 				FROM workspaces
-				WHERE id=?)`, workspaceID, workspaceID, workspaceID).
+				WHERE id=?)`, workspace.ID, workspace.ID, workspace.ID).
 		Scan(&meter).Error; err != nil {
 		return 0, e.Wrap(err, "error querying for session meter")
 	}
 	return meter, nil
 }
 
-func GetWorkspaceErrorsMeter(DB *gorm.DB, workspaceID int) (int64, error) {
+func GetWorkspaceErrorsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
 	var meter int64
 	if err := DB.Raw(`
 			SELECT COALESCE(SUM(count), 0) as currentPeriodErrorsCount
@@ -83,14 +82,14 @@ func GetWorkspaceErrorsMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 			AND date < (
 				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
 				FROM workspaces
-				WHERE id=?)`, workspaceID, workspaceID, workspaceID).
+				WHERE id=?)`, workspace.ID, workspace.ID, workspace.ID).
 		Scan(&meter).Error; err != nil {
 		return 0, e.Wrap(err, "error querying for session meter")
 	}
 	return meter, nil
 }
 
-func GetWorkspaceLogsMeter(ctx context.Context, ccClient *clickhouse.Client, workspace model.Workspace) (int64, error) {
+func GetWorkspaceLogsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
 	var startDate time.Time
 	if workspace.NextInvoiceDate != nil {
 		startDate = workspace.NextInvoiceDate.AddDate(0, -1, 0)
@@ -111,33 +110,16 @@ func GetWorkspaceLogsMeter(ctx context.Context, ccClient *clickhouse.Client, wor
 		endDate = time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 1, 0)
 	}
 
-	counts := make([]uint64, len(workspace.Projects))
-	var g errgroup.Group
-	for idx, p := range workspace.Projects {
-		idx := idx
-		p := p
-		g.Go(func() error {
-			count, err := ccClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{
-				DateRange: &backend.DateRangeRequiredInput{StartDate: startDate, EndDate: endDate}})
-			if err != nil {
-				return err
-			}
-			counts[idx] = count
-			return nil
-		})
-	}
+	projectIds := lo.Map(workspace.Projects, func(p model.Project, _ int) int {
+		return p.ID
+	})
 
-	err := g.Wait()
+	count, err := ccClient.ReadLogsDailyCount(ctx, projectIds, backend.DateRangeRequiredInput{StartDate: startDate, EndDate: endDate})
 	if err != nil {
 		return 0, err
 	}
 
-	var count int64
-	for _, c := range counts {
-		count += int64(c)
-	}
-
-	return count, nil
+	return int64(count), nil
 }
 
 func GetProjectQuotaOverflow(ctx context.Context, DB *gorm.DB, projectID int) (int64, error) {
@@ -548,7 +530,7 @@ func reportUsage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, 
 	}
 
 	// Update sessions overage
-	sessionsMeter, err := GetWorkspaceSessionsMeter(DB, workspace.ID)
+	sessionsMeter, err := GetWorkspaceSessionsMeter(ctx, DB, ccClient, &workspace)
 	if err != nil {
 		return e.Wrap(err, "error getting sessions meter")
 	}
@@ -561,7 +543,7 @@ func reportUsage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, 
 	}
 
 	// Update errors overage
-	errorsMeter, err := GetWorkspaceErrorsMeter(DB, workspace.ID)
+	errorsMeter, err := GetWorkspaceErrorsMeter(ctx, DB, ccClient, &workspace)
 	if err != nil {
 		return e.Wrap(err, "error getting errors meter")
 	}
@@ -574,7 +556,7 @@ func reportUsage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, 
 	}
 
 	// Update logs overage
-	logsMeter, err := GetWorkspaceLogsMeter(ctx, ccClient, workspace)
+	logsMeter, err := GetWorkspaceLogsMeter(ctx, DB, ccClient, &workspace)
 	if err != nil {
 		return e.Wrap(err, "error getting errors meter")
 	}
