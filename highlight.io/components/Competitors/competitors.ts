@@ -28,7 +28,7 @@ export type Competitor = {
 }
 
 export const COMPETITORS: { [k: string]: Competitor } = {
-	'logrocket': {
+	logrocket: {
 		slug: 'logrocket',
 		name: 'LogRocket',
 		header: 'The Open Source Logrocket Alternative.',
@@ -126,23 +126,19 @@ export const COMPETITORS: { [k: string]: Competitor } = {
 		paragraphs: [
 			{
 				header: 'Highlight.io is open source and transparent',
-				body:
-				`
+				body: `
 				[Highlight.io](https://highlight.io) is built with transparency at its core. 
 				Not only do we work in the open and give full access to [our source code](https://github.com/highlight/highlight), but we also expose what we\'re working on openly on [our roadmap](https://www.highlight.io/docs/general/roadmap).
 				Lastly, the fact that [Highlight.io](https://highlight.io) is an open source makes it easy to integrate internal tools, an advantage closed-source products like LogRocket can\'t offer.
-				`
-				
+				`,
 			},
 			{
 				header: 'Highlight.io constantly ships new features',
-				body:
-					'At Highlight.io, we ship quickly. We update our [changelog](https://www.highlight.io/docs/general/changelog/overview) with a recap of new features every two weeks, and we share when these features are completed in our [public roadmap](https://www.highlight.io/docs/general/roadmap). Plus, our community of developers keeps pushing us to do more, so we\'re constantly adding new apps and integrations. We work hard to keep Highlight.io ahead of the curve, and we\'re not afraid to show off our secret sauce.',
+				body: "At Highlight.io, we ship quickly. We update our [changelog](https://www.highlight.io/docs/general/changelog/overview) with a recap of new features every two weeks, and we share when these features are completed in our [public roadmap](https://www.highlight.io/docs/general/roadmap). Plus, our community of developers keeps pushing us to do more, so we're constantly adding new apps and integrations. We work hard to keep Highlight.io ahead of the curve, and we're not afraid to show off our secret sauce.",
 			},
 			{
 				header: 'We focus on Cohesion, not just Session Replay',
-				body:
-					'While LogRocket is mainly focused on session replay, Highlight.io provides a full-stack observability solution that encompasses session replay, logs, and error monitoring for both front-end and back-end applications. Along with recording user sessions, Highlight.io also captures system logs and errors, providing developers with a comprehensive view of their entire stack. In contrast, LogRocket primarily focuses on session replay, which can be lacking depth-wise compared to Highlight.io. With its more comprehensive approach, Highlight.io can help developers identify and resolve issues more efficiently and effectively.',
+				body: 'While LogRocket is mainly focused on session replay, Highlight.io provides a full-stack observability solution that encompasses session replay, logs, and error monitoring for both front-end and back-end applications. Along with recording user sessions, Highlight.io also captures system logs and errors, providing developers with a comprehensive view of their entire stack. In contrast, LogRocket primarily focuses on session replay, which can be lacking depth-wise compared to Highlight.io. With its more comprehensive approach, Highlight.io can help developers identify and resolve issues more efficiently and effectively.',
 			},
 		],
 	},
