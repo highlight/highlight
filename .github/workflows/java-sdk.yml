@@ -142,5 +142,5 @@ jobs:
               run: mvn clean deploy --batch-mode --no-transfer-progress -Drevision=${{needs.setup.outputs.version}}
               env:
                   MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-                  MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+                  MAVEN_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
                   MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
