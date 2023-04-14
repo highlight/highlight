@@ -8,7 +8,7 @@ updatedAt: 2022-09-08T21:45:54.000Z
 It's tough being at the top! Explore some of highlight.io's competitors below. 
 
 <DocsCardGroup>
-    <DocsCard title="Log Rocket" href="/compare/logrocket">
+    <DocsCard title="Log Rocket" href="https://highlight.io/compare/logrocket">
         {"Learn more about how we compare to LogRocket."}
     </DocsCard>
 </DocsCardGroup>
