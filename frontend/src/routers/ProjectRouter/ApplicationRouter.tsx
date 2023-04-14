@@ -10,11 +10,6 @@ import PlayerPage from '@pages/Player/PlayerPage'
 import ProjectSettings from '@pages/ProjectSettings/ProjectSettings'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { SetupRouter } from '@pages/Setup/SetupRouter/SetupRouter'
-import {
-	useClientIntegrated,
-	useLogsIntegrated,
-	useServerIntegrated,
-} from '@util/integrated'
 import { usePreloadErrors, usePreloadSessions } from '@util/preload'
 import React, { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
@@ -22,17 +17,11 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
 
-export type IntegrationProps = {
-	clientIntegration?: ReturnType<typeof useClientIntegrated>['data']
-	serverIntegration?: ReturnType<typeof useServerIntegrated>['data']
-	logsIntegration?: ReturnType<typeof useLogsIntegrated>['data']
+type Props = {
+	integrated: boolean
 }
 
-const ApplicationRouter: React.FC<IntegrationProps> = ({
-	clientIntegration,
-	serverIntegration,
-	logsIntegration,
-}) => {
+const ApplicationRouter: React.FC<Props> = ({ integrated }) => {
 	const { page, backendSearchQuery } = useSearchContext()
 	const { page: errorPage, backendSearchQuery: errorBackendSearchQuery } =
 		useErrorSearchContext()
@@ -42,10 +31,6 @@ const ApplicationRouter: React.FC<IntegrationProps> = ({
 		backendSearchQuery: errorBackendSearchQuery,
 	})
 	const { isLoggedIn } = useAuthContext()
-	const integrated =
-		!!clientIntegration?.integrated ||
-		!!serverIntegration?.integrated ||
-		!!logsIntegration?.integrated
 
 	return (
 		<Routes>
@@ -69,16 +54,7 @@ const ApplicationRouter: React.FC<IntegrationProps> = ({
 					<Route path="alerts/*" element={<AlertsRouter />} />
 					<Route path="alerts/logs/*" element={<LogAlertsRouter />} />
 
-					<Route
-						path="setup/*"
-						element={
-							<SetupRouter
-								clientIntegration={clientIntegration}
-								serverIntegration={serverIntegration}
-								logsIntegration={logsIntegration}
-							/>
-						}
-					/>
+					<Route path="setup/*" element={<SetupRouter />} />
 
 					<Route
 						path="integrations/*"

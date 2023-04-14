@@ -24,17 +24,18 @@ import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalCont
 import WithErrorSearchContext from '@routers/ProjectRouter/WithErrorSearchContext'
 import WithSessionSearchContext from '@routers/ProjectRouter/WithSessionSearchContext'
 import { auth } from '@util/auth'
-import {
-	useClientIntegrated,
-	useLogsIntegrated,
-	useServerIntegrated,
-} from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useDialogState } from 'ariakit/dialog'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
+
+import {
+	useClientIntegration,
+	useLogsIntegration,
+	useServerIntegration,
+} from '@/util/integrated'
 
 import commonStyles from '../../Common.module.scss'
 import ApplicationRouter from './ApplicationRouter'
@@ -54,20 +55,21 @@ export const ProjectRouter = () => {
 		skip: !isLoggedIn || !projectId, // Higher level routers decide when guests are allowed to hit this router
 	})
 
-	const { data: clientIntegration, loading: clientLoading } =
-		useClientIntegrated()
-	const { data: serverIntegration, loading: serverLoading } =
-		useServerIntegrated()
-	const { data: logsIntegration, loading: logsLoading } = useLogsIntegrated()
-	const fullyIntegrated =
-		!!clientIntegration?.integrated &&
-		!!serverIntegration?.integrated &&
-		!!logsIntegration?.integrated
+	const clientIntegration = useClientIntegration()
+	const serverIntegration = useServerIntegration()
+	const logsIntegration = useLogsIntegration()
 	const integrated =
 		!!clientIntegration?.integrated ||
 		!!serverIntegration?.integrated ||
 		!!logsIntegration?.integrated
-	const integrationLoading = clientLoading || serverLoading || logsLoading
+	const fullyIntegrated =
+		!!clientIntegration.integrated &&
+		!!serverIntegration.integrated &&
+		!!logsIntegration.integrated
+	const integrationLoading =
+		clientIntegration.loading ||
+		serverIntegration.loading ||
+		logsIntegration.loading
 
 	useEffect(() => {
 		const uri =
@@ -218,7 +220,6 @@ export const ProjectRouter = () => {
 									element={
 										<>
 											<Header
-												integrated={integrated}
 												fullyIntegrated={
 													fullyIntegrated
 												}
@@ -256,15 +257,7 @@ export const ProjectRouter = () => {
 													/>
 												) : (
 													<ApplicationRouter
-														clientIntegration={
-															clientIntegration
-														}
-														serverIntegration={
-															serverIntegration
-														}
-														logsIntegration={
-															logsIntegration
-														}
+														integrated={integrated}
 													/>
 												)}
 											</div>

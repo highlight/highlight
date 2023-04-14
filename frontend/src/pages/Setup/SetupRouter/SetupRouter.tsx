@@ -16,7 +16,6 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
-import { IntegrationProps } from '@routers/ProjectRouter/ApplicationRouter'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
 import { message } from 'antd'
@@ -33,17 +32,21 @@ import {
 } from 'react-router-dom'
 
 import { IntegrationBar } from '@/pages/Setup/IntegrationBar'
+import {
+	useClientIntegration,
+	useLogsIntegration,
+	useServerIntegration,
+} from '@/util/integrated'
 
 import * as styles from './SetupRouter.css'
 
-export const SetupRouter: React.FC<IntegrationProps> = ({
-	clientIntegration,
-	serverIntegration,
-	logsIntegration,
-}) => {
+export const SetupRouter = () => {
 	const { toggleShowBanner } = useGlobalContext()
 	const areaMatch = useMatch('/:project_id/setup/:area/*')
 	const area = areaMatch?.params.area || 'client'
+	const clientIntegration = useClientIntegration()
+	const serverIntegration = useServerIntegration()
+	const logsIntegration = useLogsIntegration()
 	const integrationData =
 		area === 'backend'
 			? serverIntegration
