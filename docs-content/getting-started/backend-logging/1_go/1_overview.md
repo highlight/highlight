@@ -1,18 +1,23 @@
 ---
-heading: Logging in Go
-title: Logging in Go
-slug: go
-createdAt: 2021-09-13T22:07:04.000Z
-updatedAt: 2022-04-01T19:52:59.000Z
+title: Overview
+headline: Logging in Go
+slug: logging-in-go
 ---
 
-Setup log ingestion in any golang environment. If there's a Go Framework that's missing, feel free to [create an issue](https://github.com/highlight/highlight/issues/new?assignees=&labels=external+bug+%2F+request&template=feature_request.md&title=) or message us on [discord](https://highlight.io/community).
+Highlight.io supports logging in go, which maps your logs to corresponding errors & sessions. This gives you and your team a full picture of your application's state. Supported frameworks below:
+
+```hint
+If you don't see one of your languages / frameworks below, reach out to us in our [community](https://highlight.io/community) or create an issue on [github](https://github.com/highlight/highlight/issues/new?assignees=&labels=external+bug+%2F+request&template=feature_request.md&title=).
+```
 
 <DocsCardGroup>
-    <DocsCard title="Go Logrus" href="../go/logrus">
-        {"Get started with Go Chi"}
+    <DocsCard title="Go: Fiber" href="./fiber.md">
+        {"Integrate logging in Go / Fiber."}
     </DocsCard>
-    <DocsCard title="Golang App" href="../go/other">
-        {"Get started with any Go App"}
+    <DocsCard title="Go: Logrus" href="./logrus.md">
+        {"Integrate logging in Go / Logrus."}
+    </DocsCard>
+    <DocsCard title="Go: Other" href="./other.md">
+        {"Integrate logging in any other Go-based app."}
     </DocsCard>
 </DocsCardGroup>

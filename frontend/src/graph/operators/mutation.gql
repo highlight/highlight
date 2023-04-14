@@ -190,7 +190,9 @@ mutation EditProject(
 	$name: String
 	$billing_email: String
 	$excluded_users: StringArray
+	$error_filters: StringArray
 	$error_json_paths: StringArray
+	$filter_chrome_extension: Boolean
 	$rage_click_window_seconds: Int
 	$rage_click_radius_pixels: Int
 	$rage_click_count: Int
@@ -201,7 +203,9 @@ mutation EditProject(
 		name: $name
 		billing_email: $billing_email
 		excluded_users: $excluded_users
+		error_filters: $error_filters
 		error_json_paths: $error_json_paths
+		filter_chrome_extension: $filter_chrome_extension
 		rage_click_window_seconds: $rage_click_window_seconds
 		rage_click_radius_pixels: $rage_click_radius_pixels
 		rage_click_count: $rage_click_count
@@ -211,7 +215,9 @@ mutation EditProject(
 		name
 		billing_email
 		excluded_users
+		error_filters
 		error_json_paths
+		filter_chrome_extension
 		rage_click_window_seconds
 		rage_click_radius_pixels
 		rage_click_count
@@ -814,6 +820,38 @@ mutation DeleteSessionAlert($project_id: ID!, $session_alert_id: ID!) {
 	}
 }
 
+mutation UpdateLogAlert($id: ID!, $input: LogAlertInput!) {
+	updateLogAlert(id: $id, input: $input) {
+		id
+	}
+}
+
+mutation CreateLogAlert($input: LogAlertInput!) {
+	createLogAlert(input: $input) {
+		id
+	}
+}
+
+mutation DeleteLogAlert($project_id: ID!, $id: ID!) {
+	deleteLogAlert(project_id: $project_id, id: $id) {
+		id
+	}
+}
+
+mutation UpdateLogAlertIsDisabled(
+	$id: ID!
+	$project_id: ID!
+	$disabled: Boolean!
+) {
+	updateLogAlertIsDisabled(
+		id: $id
+		project_id: $project_id
+		disabled: $disabled
+	) {
+		id
+	}
+}
+
 mutation UpdateSessionAlertIsDisabled(
 	$id: ID!
 	$project_id: ID!
@@ -855,19 +893,6 @@ mutation UpdateErrorAlertIsDisabled(
 	}
 }
 
-mutation CreateDefaultAlerts(
-	$project_id: ID!
-	$alert_types: [String!]!
-	$slack_channels: [SanitizedSlackChannelInput!]!
-	$emails: [String!]!
-) {
-	createDefaultAlerts(
-		project_id: $project_id
-		alert_types: $alert_types
-		slack_channels: $slack_channels
-		emails: $emails
-	)
-}
 mutation CreateSessionAlert($input: SessionAlertInput!) {
 	createSessionAlert(input: $input) {
 		id

@@ -1,3 +1,4 @@
+import { useGetErrorObjectQuery } from '@graph/hooks'
 import { ErrorObject, Session, SessionComment } from '@graph/schemas'
 import { EventType, Replayer } from '@highlight-run/rrweb'
 import { playerMetaData, SessionInterval } from '@highlight-run/rrweb-types'
@@ -6,7 +7,7 @@ import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import moment from 'moment'
 import { useCallback, useState } from 'react'
-import { useLocation } from 'react-router'
+import { useLocation } from 'react-router-dom'
 import { NavigateFunction } from 'react-router-dom'
 
 import { HighlightEvent } from '../../HighlightEvent'
@@ -139,10 +140,38 @@ export enum PlayerSearchParameters {
 	tsAbs = 'tsAbs',
 	/** The error ID for an error in the current session. The player's time will be set to the lookback period before the error's timestamp. */
 	errorId = 'errorId',
+	/** The Log Cursor where a link was coming from. **/
+	log = 'log',
 	/** The comment ID for a comment in the current session. The player's time will be set to the comments's timestamp. */
 	commentId = 'commentId',
 	/** Whether to mark the comment thread as muted.*/
 	muted = 'muted',
+}
+
+export const useLinkErrorInstance = () => {
+	const location = useLocation()
+	const searchParams = new URLSearchParams(location.search)
+	const errorInstanceID = searchParams.get(PlayerSearchParameters.errorId)
+
+	const { data: errorObject } = useGetErrorObjectQuery({
+		variables: {
+			id: errorInstanceID!,
+		},
+		skip: !errorInstanceID,
+	})
+
+	return {
+		errorObject: errorObject?.error_object,
+	}
+}
+
+export const useLinkLogCursor = () => {
+	const location = useLocation()
+	const searchParams = new URLSearchParams(location.search)
+	const logCursor = searchParams.get(PlayerSearchParameters.log)
+	return {
+		logCursor,
+	}
 }
 
 /**
@@ -272,6 +301,7 @@ const CustomEventsForTimeline = [
 	'Identify',
 	'Web Vitals',
 	'Referrer',
+	'RageClicks',
 	'TabHidden',
 ] as const
 const CustomEventsForTimelineSet = new Set(CustomEventsForTimeline)
@@ -699,4 +729,5 @@ export const EventTypeDescriptions: EventTypeWithDescription = {
 		'These are custom calls to Highlight identify method to add identity metadata for a session.',
 	Viewport: 'The size of the browser changed.',
 	TabHidden: 'The user switched away from the current tab.',
+	RageClicks: 'The user clicked on the same element multiple times in a row.',
 } as const

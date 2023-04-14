@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -29,6 +28,7 @@ import (
 	highlightErrors "github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
+	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
 	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
@@ -56,8 +56,8 @@ const MAX_RETRIES = 5
 // cancel events_objects reads after 5 minutes
 const EVENTS_READ_TIMEOUT = 300000
 
-// cancel refreshing materialized views after 15 minutes
-const REFRESH_MATERIALIZED_VIEW_TIMEOUT = 15 * 60 * 1000
+// cancel refreshing materialized views after 30 minutes
+const REFRESH_MATERIALIZED_VIEW_TIMEOUT = 30 * 60 * 1000
 
 type Worker struct {
 	Resolver       *mgraph.Resolver
@@ -399,7 +399,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.MarkBackendSetup == nil {
 			break
 		}
-		if err := w.PublicResolver.MarkBackendSetupImpl(ctx, task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SessionSecureID, task.MarkBackendSetup.ProjectID); err != nil {
+		if err := w.PublicResolver.MarkBackendSetupImpl(ctx, task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SessionSecureID, task.MarkBackendSetup.ProjectID, task.MarkBackendSetup.Type); err != nil {
 			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process MarkBackendSetup task"))
 			return err
 		}
@@ -682,7 +682,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	userInteractionEvents = append(userInteractionEvents, []*parse.ReplayEvent{{
-		Timestamp: accumulator.FirstEventTimestamp,
+		Timestamp: accumulator.FirstFullSnapshotTimestamp,
 	}, {
 		Timestamp: accumulator.LastEventTimestamp,
 	}}...)
@@ -748,7 +748,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Merges inactive segments that are less than a threshold into surrounding active sessions
 	var finalIntervals []model.SessionInterval
 	startInterval := allIntervals[0]
-	sessionLength := float64(CalculateSessionLength(accumulator.FirstEventTimestamp, accumulator.LastEventTimestamp).Milliseconds())
+	sessionLength := float64(CalculateSessionLength(accumulator.FirstFullSnapshotTimestamp, accumulator.LastEventTimestamp).Milliseconds())
 	for i := 1; i < len(allIntervals); i++ {
 		currentInterval := allIntervals[i-1]
 		nextInterval := allIntervals[i]
@@ -778,10 +778,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	var eventCountsLen int64 = 100
-	window := float64(accumulator.LastEventTimestamp.Sub(accumulator.FirstEventTimestamp).Milliseconds()) / float64(eventCountsLen)
+	window := float64(accumulator.LastEventTimestamp.Sub(accumulator.FirstFullSnapshotTimestamp).Milliseconds()) / float64(eventCountsLen)
 	eventCounts := make([]int64, eventCountsLen)
 	for t, c := range accumulator.TimestampCounts {
-		i := int64(math.Round(float64(t.Sub(accumulator.FirstEventTimestamp).Milliseconds()) / window))
+		i := int64(math.Round(float64(t.Sub(accumulator.FirstFullSnapshotTimestamp).Milliseconds()) / window))
 		if i < 0 {
 			i = 0
 		} else if i > 99 {
@@ -796,7 +796,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	eventCountsString := string(eventCountsBytes)
 
 	// Calculate total session length and write the length to the session.
-	sessionTotalLength := CalculateSessionLength(accumulator.FirstEventTimestamp, accumulator.LastEventTimestamp)
+	sessionTotalLength := CalculateSessionLength(accumulator.FirstFullSnapshotTimestamp, accumulator.LastEventTimestamp)
 	sessionTotalLengthInMilliseconds := sessionTotalLength.Milliseconds()
 
 	// Delete the session if the length of the session is 0.
@@ -1115,7 +1115,7 @@ func (w *Worker) Start(ctx context.Context) {
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
 					var excluded *bool
-					if nextCount >= MAX_RETRIES || strings.Contains(err.Error(), "The payload has an IncrementalSnapshot before the first FullSnapshot") {
+					if nextCount >= MAX_RETRIES {
 						excluded = &model.T
 					}
 
@@ -1151,7 +1151,7 @@ func (w *Worker) Start(ctx context.Context) {
 }
 
 func (w *Worker) ReportStripeUsage(ctx context.Context) {
-	pricing.ReportAllUsage(ctx, w.Resolver.DB, w.Resolver.StripeClient, w.Resolver.MailClient)
+	pricing.ReportAllUsage(ctx, w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.StripeClient, w.Resolver.MailClient)
 }
 
 func (w *Worker) UpdateOpenSearchIndex(ctx context.Context) {
@@ -1219,6 +1219,10 @@ func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
 	metric_monitor.WatchMetricMonitors(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH)
 }
 
+func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
+	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient)
+}
+
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	span, _ := tracer.StartSpanFromContext(ctx, "worker.refreshMaterializedViews",
 		tracer.ResourceName("worker.refreshMaterializedViews"))
@@ -1238,6 +1242,20 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		log.WithContext(ctx).Fatal(e.Wrap(err, "Error refreshing daily_session_counts_view"))
 	}
 
+	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
+		err := tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", REFRESH_MATERIALIZED_VIEW_TIMEOUT)).Error
+		if err != nil {
+			return err
+		}
+
+		return tx.Exec(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY daily_error_counts_view;
+		`).Error
+
+	}); err != nil {
+		log.WithContext(ctx).Fatal(e.Wrap(err, "Error refreshing daily_error_counts_view"))
+	}
+
 	type AggregateSessionCount struct {
 		WorkspaceID  int   `json:"workspace_id"`
 		SessionCount int64 `json:"session_count"`
@@ -1249,7 +1267,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		SELECT p.workspace_id, sum(dsc.count) as session_count, sum(dec.count) as error_count
 		FROM projects p
 				 INNER JOIN daily_session_counts_view dsc on p.id = dsc.project_id
-				 INNER JOIN daily_error_counts dec on p.id = dec.project_id
+				 INNER JOIN daily_error_counts_view dec on p.id = dec.project_id
 		GROUP BY p.workspace_id`).Scan(&counts).Error; err != nil {
 		log.WithContext(ctx).Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
 	}
@@ -1350,6 +1368,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 		return w.UpdateOpenSearchIndex
 	case "metric-monitors":
 		return w.StartMetricMonitorWatcher
+	case "log-alerts":
+		return w.StartLogAlertWatcher
 	case "backfill-stack-frames":
 		return w.BackfillStackFrames
 	case "refresh-materialized-views":
@@ -1366,7 +1386,7 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 
 // CalculateSessionLength gets the session length given two sets of ReplayEvents.
 func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
-	if first.IsZero() {
+	if first.IsZero() || last.IsZero() {
 		return d
 	}
 	d = last.Sub(first)
@@ -1387,8 +1407,6 @@ type EventProcessingAccumulator struct {
 	CurrentlyInRageClickSet bool
 	// RageClickSets contains all rage click sets that will be inserted into the db
 	RageClickSets []*model.RageClickEvent
-	// FirstEventTimestamp represents the timestamp for the first event
-	FirstEventTimestamp time.Time
 	// FirstFullSnapshotTimestamp represents the timestamp for the first full snapshot
 	FirstFullSnapshotTimestamp time.Time
 	// LastEventTimestamp represents the timestamp for the first event
@@ -1419,7 +1437,6 @@ func MakeEventProcessingAccumulator(sessionSecureID string, rageClickSettings Ra
 		ClickEventQueue:            list.New(),
 		CurrentlyInRageClickSet:    false,
 		RageClickSets:              []*model.RageClickEvent{},
-		FirstEventTimestamp:        time.Time{},
 		FirstFullSnapshotTimestamp: time.Time{},
 		LastEventTimestamp:         time.Time{},
 		ActiveDuration:             0,
@@ -1465,8 +1482,7 @@ func processEventChunk(ctx context.Context, a EventProcessingAccumulator, events
 			if event.Type == parse.FullSnapshot {
 				a.FirstFullSnapshotTimestamp = event.Timestamp
 			} else if event.Type == parse.IncrementalSnapshot {
-				a.Error = errors.New("The payload has an IncrementalSnapshot before the first FullSnapshot")
-				return a
+				continue
 			}
 		}
 		if event.Type == parse.IncrementalSnapshot {
@@ -1478,9 +1494,6 @@ func processEventChunk(ctx context.Context, a EventProcessingAccumulator, events
 				}
 			}
 			a.LastEventTimestamp = event.Timestamp
-			if a.FirstEventTimestamp.IsZero() {
-				a.FirstEventTimestamp = event.Timestamp
-			}
 
 			// purge old clicks
 			var toRemove []*list.Element

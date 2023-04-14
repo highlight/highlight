@@ -20,7 +20,8 @@ import { gqlSanitize } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
-import { styledVerticalScrollbar } from 'style/common.css'
+
+import { styledVerticalScrollbar } from '@/style/common.css'
 
 import * as style from './SearchPanel.css'
 

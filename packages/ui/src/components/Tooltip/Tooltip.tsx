@@ -51,7 +51,7 @@ const TooltipRenderer: React.FC<React.PropsWithChildren> = ({ children }) => {
 			border="secondary"
 			p="4"
 			borderRadius="6"
-			shadow="small"
+			shadow="medium"
 			style={{
 				maxWidth: 350,
 			}}

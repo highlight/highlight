@@ -108,6 +108,7 @@ export type MutationInitializeSessionArgs = {
 	clientConfig: Scalars['String']
 	clientVersion: Scalars['String']
 	client_id: Scalars['String']
+	disable_session_recording?: InputMaybe<Scalars['Boolean']>
 	enable_recording_network_contents: Scalars['Boolean']
 	enable_strict_privacy: Scalars['Boolean']
 	environment: Scalars['String']
@@ -121,6 +122,7 @@ export type MutationInitializeSessionArgs = {
 export type MutationMarkBackendSetupArgs = {
 	project_id?: InputMaybe<Scalars['String']>
 	session_secure_id?: InputMaybe<Scalars['String']>
+	type?: InputMaybe<Scalars['String']>
 }
 
 export type MutationPushBackendPayloadArgs = {
@@ -262,6 +264,7 @@ export type InitializeSessionMutationVariables = Exact<{
 	network_recording_domains?: InputMaybe<
 		Array<Scalars['String']> | Scalars['String']
 	>
+	disable_session_recording?: InputMaybe<Scalars['Boolean']>
 }>
 
 export type InitializeSessionMutation = {
@@ -364,6 +367,7 @@ export const InitializeSessionDocument = gql`
 		$appVersion: String
 		$client_id: String!
 		$network_recording_domains: [String!]
+		$disable_session_recording: Boolean
 	) {
 		initializeSession(
 			session_secure_id: $session_secure_id
@@ -378,6 +382,7 @@ export const InitializeSessionDocument = gql`
 			fingerprint: $id
 			client_id: $client_id
 			network_recording_domains: $network_recording_domains
+			disable_session_recording: $disable_session_recording
 		) {
 			secure_id
 			project_id

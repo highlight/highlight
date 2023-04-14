@@ -10,7 +10,9 @@ const TextHighlighter = ({ textToHighlight = '', ...props }: Props) => {
 	return (
 		<Highlighter
 			{...props}
-			highlightClassName={styles.highlighterStyles}
+			highlightClassName={
+				props.highlightClassName ?? styles.highlighterStyles
+			}
 			autoEscape={true}
 			textToHighlight={textToHighlight}
 		/>

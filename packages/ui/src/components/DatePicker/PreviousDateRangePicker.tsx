@@ -4,7 +4,11 @@ import { DatePicker } from './Calendar/DatePicker'
 import { DatePickerStateProvider } from '@rehookify/datepicker'
 import { Menu, MenuButtonProps, useMenu } from '../Menu/Menu'
 import { Text } from '../Text/Text'
-import { IconSolidCheck, IconSolidCheveronDown } from '../icons'
+import {
+	IconSolidCheck,
+	IconSolidCheveronDown,
+	IconSolidCheveronRight,
+} from '../icons'
 import { Stack } from '../Stack/Stack'
 import { Box } from '../Box/Box'
 
@@ -42,6 +46,20 @@ const isCustomSelected = ({
 	return !foundPreset
 }
 
+function toDateTimeString(date: Date, showYear: boolean) {
+	const options: Intl.DateTimeFormatOptions = {
+		month: 'short',
+		day: 'numeric',
+		hour: '2-digit',
+		minute: '2-digit',
+	}
+
+	if (showYear) {
+		options.year = 'numeric'
+	}
+	return date.toLocaleDateString('en-us', options)
+}
+
 export const getLabel = ({
 	selectedDates,
 	presets,
@@ -58,7 +76,13 @@ export const getLabel = ({
 	}
 
 	if (selectedDates.length == 2) {
-		return `${selectedDates[0].toDateString()} - ${selectedDates[1].toDateString()}`
+		const showYear =
+			selectedDates[1].getFullYear() > selectedDates[0].getFullYear()
+
+		return `${toDateTimeString(
+			selectedDates[0],
+			showYear,
+		)} - ${toDateTimeString(selectedDates[1], showYear)}`
 	}
 
 	return ''
@@ -188,14 +212,22 @@ const PreviousDateRangePickerImpl = ({
 								setMenuState(MenuState.Custom)
 							}}
 						>
-							<Stack direction="row" align="center" gap="4">
-								<CheckboxIconIfSelected
-									isSelected={isCustomSelected({
-										presets,
-										selectedDates,
-									})}
-								/>
-								<Text userSelect="none">Custom</Text>
+							<Stack
+								align="center"
+								justify="space-between"
+								direction="row"
+								width="full"
+							>
+								<Stack direction="row" align="center" gap="4">
+									<CheckboxIconIfSelected
+										isSelected={isCustomSelected({
+											presets,
+											selectedDates,
+										})}
+									/>
+									<Text userSelect="none">Custom</Text>
+								</Stack>
+								<IconSolidCheveronRight size={16} />
 							</Stack>
 						</Menu.Item>
 					</>

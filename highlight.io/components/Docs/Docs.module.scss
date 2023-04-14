@@ -28,7 +28,7 @@
 	margin-bottom: 34px;
 }
 
-@media screen and (max-width: 600) {
+@media screen and (max-width: 600px) {
 	.docsCardGroup {
 		grid-template-columns: 1fr;
 	}
@@ -45,7 +45,7 @@
 	flex-direction: column;
 	flex: 0 0 300px;
 	position: sticky;
-	height: calc(100vh - 54px);
+	height: 100vh;
 	top: 0px;
 	z-index: 5;
 	max-width: 300px;
@@ -225,7 +225,6 @@
 	h4,
 	h5 {
 		scroll-margin-top: var(--size-large);
-		margin: var(--size-large) 0 !important;
 
 		&:hover {
 			text-decoration: underline;
@@ -307,6 +306,7 @@
 h4:hover .headingCopyIcon,
 h5:hover .headingCopyIcon {
 	display: inline-flex;
+	cursor: pointer;
 }
 
 .headingCopyIcon {
@@ -384,7 +384,7 @@ h5:hover .headingCopyIcon {
 	display: flex;
 	flex-direction: column;
 	list-style-type: none;
-	width: 100%;
+	width: calc(100% - 16px);
 	z-index: 10;
 	padding: var(--size-xSmall);
 
@@ -586,7 +586,7 @@ h5:hover .headingCopyIcon {
 	flex: 1 1 auto;
 	max-width: 850px;
 	min-width: 0;
-	padding: var(--size-xLarge) var(--size-4xLarge) var(--size-4xLarge);
+	padding: var(--size-xLarge) var(--size-4xLarge) 70vh;
 	border-left: 1px var(--color-divider-on-dark) solid;
 }
 
@@ -1001,7 +1001,7 @@ h5:hover .headingCopyIcon {
 		flex: 0 0 auto;
 		height: auto;
 		border-bottom: 1px solid var(--divider-on-dark);
-		padding: var(--size-large) var(--size-large);
+		gap: 8px;
 		position: relative;
 		max-width: none;
 		top: 0;
@@ -1021,13 +1021,15 @@ h5:hover .headingCopyIcon {
 	}
 
 	.leftInner {
-		padding: 0;
+		padding: 8px;
 	}
 
 	.tocMenu {
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
+		padding: 8px;
+		margin: 0 8px;
 
 		.tocMenuLabel {
 			display: flex;
@@ -1082,10 +1084,6 @@ h5:hover .headingCopyIcon {
 @media screen and (max-width: 600px) {
 	.inlineCodeBlock {
 		word-break: break-word;
-	}
-
-	.leftSection {
-		top: 0;
 	}
 
 	.centerSection {

@@ -5,8 +5,6 @@ createdAt: 2023-01-24T20:28:14.000Z
 updatedAt: 2023-01-24T02:07:22.000Z
 ---
 
-# Application Architecture
-
 Here's the high level structure of the code that you'll want to start tinkering with.
 
 - SDKs `sdk/`

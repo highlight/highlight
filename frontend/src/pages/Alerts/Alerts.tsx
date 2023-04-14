@@ -6,6 +6,7 @@ import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import Table from '@components/Table/Table'
 import Tag from '@components/Tag/Tag'
 import { GetAlertsPagePayloadQuery } from '@graph/operations'
+import { IconSolidLogs } from '@highlight-run/ui'
 import SvgBugIcon from '@icons/BugIcon'
 import SvgChevronRightIcon from '@icons/ChevronRightIcon'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
@@ -17,7 +18,6 @@ import SvgTargetIcon from '@icons/TargetIcon'
 import SvgUserPlusIcon from '@icons/UserPlusIcon'
 import { AlertEnableSwitch } from '@pages/Alerts/AlertEnableSwitch/AlertEnableSwitch'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
-import AlertSetupModal from '@pages/Alerts/AlertSetupModal/AlertSetupModal'
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy'
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils'
 import { useParams } from '@util/react-router/useParams'
@@ -37,6 +37,7 @@ export enum ALERT_TYPE {
 	NewSession,
 	RageClick,
 	MetricMonitor,
+	Logs,
 }
 
 export enum ALERT_NAMES {
@@ -48,6 +49,7 @@ export enum ALERT_NAMES {
 	NEW_SESSION_ALERT = 'New Sessions',
 	RAGE_CLICK_ALERT = 'Rage Clicks',
 	METRIC_MONITOR = 'Metric Monitor',
+	LOG_ALERT = 'Logs',
 }
 
 interface AlertConfiguration {
@@ -149,6 +151,14 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 		icon: <SvgMonitorIcon />,
 		supportsExcludeRules: true,
 	},
+	LOG_ALERT: {
+		name: ALERT_NAMES['LOG_ALERT'],
+		canControlThreshold: true,
+		type: ALERT_TYPE.Logs,
+		description: 'Get alerted when queried logs exceed a threshold.',
+		icon: <IconSolidLogs />,
+		supportsExcludeRules: true,
+	},
 } as const
 
 const TABLE_COLUMNS = [
@@ -238,8 +248,10 @@ const TABLE_COLUMNS = [
 		render: (_: any, record: any) => (
 			<Link
 				to={
-					record.type === 'Metric Monitor'
+					record.type === ALERT_NAMES['METRIC_MONITOR']
 						? `monitor/${record.id}`
+						: record.type === ALERT_NAMES['LOG_ALERT']
+						? `logs/${record.id}`
 						: `${record.id}`
 				}
 				className={styles.configureButton}
@@ -289,6 +301,7 @@ function AlertsPageLoaded({
 			alertsPayload?.user_properties_alerts,
 			alertsPayload?.new_session_alerts,
 			alertsPayload?.rage_click_alerts,
+			alertsPayload?.log_alerts,
 		].flatMap((alerts) => alerts?.flatMap((alert) => alert?.DailyFrequency))
 
 		return Math.max(...compact(values), 5)
@@ -396,11 +409,21 @@ function AlertsPageLoaded({
 				allAdmins: alertsPayload?.admins || [],
 			}))
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
+		...(alertsPayload?.log_alerts || [])
+			.map((logAlert) => ({
+				...logAlert,
+				configuration: ALERT_CONFIGURATIONS['LOG_ALERT'],
+				type: ALERT_CONFIGURATIONS['LOG_ALERT'].name,
+				Name: logAlert?.Name || ALERT_CONFIGURATIONS['LOG_ALERT'].name,
+				key: logAlert?.id,
+				frequency: maxNum,
+				allAdmins: alertsPayload?.admins || [],
+			}))
+			.sort((a, b) => a.Name.localeCompare(b.Name)),
 	]
 
 	return (
 		<>
-			<AlertSetupModal />
 			<div className={styles.subTitleContainer}>
 				<p>Manage the alerts for your project.</p>
 				{alertsAsTableRows.length > 0 && (
@@ -441,9 +464,18 @@ function AlertsPageLoaded({
 						}
 						onRow={(record) => ({
 							onClick: () => {
-								if (record.type === 'Metric Monitor') {
+								if (
+									record.type ===
+									ALERT_NAMES['METRIC_MONITOR']
+								) {
 									navigate(
 										`/${project_id}/alerts/monitor/${record.id}`,
+									)
+								} else if (
+									record.type === ALERT_NAMES['LOG_ALERT']
+								) {
+									navigate(
+										`/${project_id}/alerts/logs/${record.id}`,
 									)
 								} else {
 									navigate(

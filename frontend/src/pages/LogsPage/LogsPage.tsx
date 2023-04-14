@@ -2,11 +2,12 @@ import { LogLevel } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
 import {
 	fifteenMinutesAgo,
+	LOG_TIME_PRESETS,
 	now,
-	PRESETS,
 	thirtyDaysAgo,
 	TIME_MODE,
 } from '@pages/LogsPage/constants'
+import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
@@ -90,7 +91,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	}
 
 	const handleLevelChange = (level: LogLevel) => {
-		setQuery(`level:${String(level).toLowerCase()}`)
+		setQuery(`${query} level:${level}`)
 	}
 
 	const fetchMoreWhenScrolled = React.useCallback(
@@ -128,7 +129,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 					display="flex"
 					flexGrow={1}
 					border="dividerWeak"
-					shadow="small"
+					shadow="medium"
 				>
 					<SearchForm
 						initialQuery={query}
@@ -136,7 +137,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={handleDatesChange}
-						presets={PRESETS}
+						presets={LOG_TIME_PRESETS}
 						minDate={thirtyDaysAgo}
 						timeMode={timeMode}
 					/>
@@ -144,7 +145,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						query={query}
 						startDate={startDate}
 						endDate={endDate}
-						presets={PRESETS}
+						presets={LOG_TIME_PRESETS}
 					/>
 					<LogsHistogram
 						query={query}
@@ -153,7 +154,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						onDatesChange={handleDatesChange}
 						onLevelChange={handleLevelChange}
 					/>
-
 					<Box
 						borderTop="dividerWeak"
 						height="screen"
@@ -166,6 +166,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						}
 						ref={tableContainerRef}
 					>
+						<IntegrationCta />
 						<LogsTable
 							logEdges={logEdges}
 							loading={loading}

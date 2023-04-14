@@ -74,6 +74,7 @@ type BillingDetails struct {
 	MembersMeter       int64 `json:"membersMeter"`
 	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
 	ErrorsMeter        int64 `json:"errorsMeter"`
+	LogsMeter          int64 `json:"logsMeter"`
 }
 
 type CategoryHistogramBucket struct {
@@ -332,6 +333,13 @@ type IntegrationProjectMappingInput struct {
 	ExternalID string `json:"external_id"`
 }
 
+type IntegrationStatus struct {
+	Integrated       bool       `json:"integrated"`
+	ResourceType     string     `json:"resourceType"`
+	ResourceSecureID *string    `json:"resourceSecureId"`
+	CreatedAt        *time.Time `json:"createdAt"`
+}
+
 type Invoice struct {
 	AmountDue    *int64     `json:"amountDue"`
 	AmountPaid   *int64     `json:"amountPaid"`
@@ -362,6 +370,21 @@ type Log struct {
 	SecureSessionID *string                `json:"secureSessionID"`
 	Source          *string                `json:"source"`
 	ServiceName     *string                `json:"serviceName"`
+}
+
+type LogAlertInput struct {
+	ProjectID           int                           `json:"project_id"`
+	Name                string                        `json:"name"`
+	CountThreshold      int                           `json:"count_threshold"`
+	BelowThreshold      bool                          `json:"below_threshold"`
+	ThresholdWindow     int                           `json:"threshold_window"`
+	SlackChannels       []*SanitizedSlackChannelInput `json:"slack_channels"`
+	DiscordChannels     []*DiscordChannelInput        `json:"discord_channels"`
+	WebhookDestinations []*WebhookDestinationInput    `json:"webhook_destinations"`
+	Emails              []string                      `json:"emails"`
+	Environments        []string                      `json:"environments"`
+	Disabled            bool                          `json:"disabled"`
+	Query               string                        `json:"query"`
 }
 
 type LogEdge struct {
@@ -449,6 +472,7 @@ type Plan struct {
 	Quota        int                  `json:"quota"`
 	MembersLimit *int                 `json:"membersLimit"`
 	ErrorsLimit  int                  `json:"errorsLimit"`
+	LogsLimit    int                  `json:"logsLimit"`
 }
 
 type RageClickEventForProject struct {
@@ -814,6 +838,47 @@ func (e IntegrationType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type LogDirection string
+
+const (
+	LogDirectionAsc  LogDirection = "ASC"
+	LogDirectionDesc LogDirection = "DESC"
+)
+
+var AllLogDirection = []LogDirection{
+	LogDirectionAsc,
+	LogDirectionDesc,
+}
+
+func (e LogDirection) IsValid() bool {
+	switch e {
+	case LogDirectionAsc, LogDirectionDesc:
+		return true
+	}
+	return false
+}
+
+func (e LogDirection) String() string {
+	return string(e)
+}
+
+func (e *LogDirection) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LogDirection(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LogDirection", str)
+	}
+	return nil
+}
+
+func (e LogDirection) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type LogKeyType string
 
 const (
@@ -899,6 +964,47 @@ func (e *LogLevel) UnmarshalGQL(v interface{}) error {
 }
 
 func (e LogLevel) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type LogSource string
+
+const (
+	LogSourceFrontend LogSource = "frontend"
+	LogSourceBackend  LogSource = "backend"
+)
+
+var AllLogSource = []LogSource{
+	LogSourceFrontend,
+	LogSourceBackend,
+}
+
+func (e LogSource) IsValid() bool {
+	switch e {
+	case LogSourceFrontend, LogSourceBackend:
+		return true
+	}
+	return false
+}
+
+func (e LogSource) String() string {
+	return string(e)
+}
+
+func (e *LogSource) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LogSource(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LogSource", str)
+	}
+	return nil
+}
+
+func (e LogSource) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1202,11 +1308,55 @@ func (e PlanType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type ProductType string
+
+const (
+	ProductTypeSessions ProductType = "Sessions"
+	ProductTypeErrors   ProductType = "Errors"
+	ProductTypeLogs     ProductType = "Logs"
+)
+
+var AllProductType = []ProductType{
+	ProductTypeSessions,
+	ProductTypeErrors,
+	ProductTypeLogs,
+}
+
+func (e ProductType) IsValid() bool {
+	switch e {
+	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs:
+		return true
+	}
+	return false
+}
+
+func (e ProductType) String() string {
+	return string(e)
+}
+
+func (e *ProductType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ProductType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ProductType", str)
+	}
+	return nil
+}
+
+func (e ProductType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ReservedLogKey string
 
 const (
 	// Keep this in alpha order
 	ReservedLogKeyLevel           ReservedLogKey = "level"
+	ReservedLogKeyMessage         ReservedLogKey = "message"
 	ReservedLogKeySecureSessionID ReservedLogKey = "secure_session_id"
 	ReservedLogKeySpanID          ReservedLogKey = "span_id"
 	ReservedLogKeyTraceID         ReservedLogKey = "trace_id"
@@ -1216,6 +1366,7 @@ const (
 
 var AllReservedLogKey = []ReservedLogKey{
 	ReservedLogKeyLevel,
+	ReservedLogKeyMessage,
 	ReservedLogKeySecureSessionID,
 	ReservedLogKeySpanID,
 	ReservedLogKeyTraceID,
@@ -1225,7 +1376,7 @@ var AllReservedLogKey = []ReservedLogKey{
 
 func (e ReservedLogKey) IsValid() bool {
 	switch e {
-	case ReservedLogKeyLevel, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName:
+	case ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName:
 		return true
 	}
 	return false

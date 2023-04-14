@@ -5,6 +5,7 @@ import {
 	Box,
 	Combobox,
 	Form,
+	IconSolidPlus,
 	IconSolidSearch,
 	IconSolidSwitchVertical,
 	IconSolidXCircle,
@@ -17,7 +18,7 @@ import {
 	useFormState,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { FORMAT, TIME_MODE } from '@pages/LogsPage/constants'
+import { LOG_TIME_FORMAT, TIME_MODE } from '@pages/LogsPage/constants'
 import {
 	BODY_KEY,
 	LogsSearchParam,
@@ -27,7 +28,12 @@ import {
 } from '@pages/LogsPage/SearchForm/utils'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
+import { stringify } from 'query-string'
 import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
+
+import { Button } from '@/components/Button'
 
 import * as styles from './SearchForm.css'
 
@@ -54,17 +60,16 @@ const SearchForm = ({
 	minDate,
 	timeMode,
 }: Props) => {
+	const navigate = useNavigate()
 	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
-
-	const { projectId } = useProjectId()
 	const formState = useFormState({ defaultValues: { query: initialQuery } })
-
-	const { data: keysData } = useGetLogsKeysQuery({
+	const { projectId } = useProjectId()
+	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
 		variables: {
 			project_id: projectId,
 			date_range: {
-				start_date: moment(startDate).format(FORMAT),
-				end_date: moment(endDate).format(FORMAT),
+				start_date: moment(startDate).format(LOG_TIME_FORMAT),
+				end_date: moment(endDate).format(LOG_TIME_FORMAT),
 			},
 		},
 	})
@@ -96,11 +101,12 @@ const SearchForm = ({
 			>
 				<Search
 					initialQuery={initialQuery}
-					keys={keysData?.logs_keys}
 					startDate={startDate}
 					endDate={endDate}
+					keys={keysData?.logs_keys}
+					keysLoading={keysLoading}
 				/>
-				<Box display="flex" pr="8" py="6">
+				<Box display="flex" pr="8" py="6" gap="6">
 					<PreviousDateRangePicker
 						emphasis="low"
 						selectedDates={selectedDates}
@@ -109,6 +115,32 @@ const SearchForm = ({
 						minDate={minDate}
 						disabled={timeMode === 'permalink'}
 					/>
+					<Button
+						kind="secondary"
+						trackingId="create-alert"
+						onClick={() => {
+							const encodedQuery = encodeQueryParams(
+								{
+									query: StringParam,
+									start_date: DateTimeParam,
+									end_date: DateTimeParam,
+								},
+								{
+									query: formState.values.query,
+									start_date: startDate,
+									end_date: endDate,
+								},
+							)
+							navigate({
+								pathname: `/${projectId}/alerts/logs/new`,
+								search: stringify(encodedQuery),
+							})
+						}}
+						emphasis="medium"
+						iconLeft={<IconSolidPlus />}
+					>
+						Create alert
+					</Button>{' '}
 				</Box>
 			</Box>
 		</Form>
@@ -117,14 +149,24 @@ const SearchForm = ({
 
 export { SearchForm }
 
-const Search: React.FC<{
+export const Search: React.FC<{
 	initialQuery: string
-	keys?: GetLogsKeysQuery['logs_keys']
 	startDate: Date
 	endDate: Date
-}> = ({ initialQuery, keys, startDate, endDate }) => {
+	keys?: GetLogsKeysQuery['logs_keys']
+	hideIcon?: boolean
+	className?: string
+	keysLoading: boolean
+}> = ({
+	initialQuery,
+	startDate,
+	endDate,
+	hideIcon,
+	className,
+	keys,
+	keysLoading,
+}) => {
 	const formState = useForm()
-	const { query } = formState.values
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const inputRef = useRef<HTMLInputElement | null>(null)
@@ -136,25 +178,25 @@ const Search: React.FC<{
 	const [getLogsKeyValues, { data, loading: valuesLoading }] =
 		useGetLogsKeyValuesLazyQuery()
 
-	const queryTerms = parseLogsQuery(query)
+	const queryTerms = parseLogsQuery(state.value)
 	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
+
 	const showValues =
 		activeTerm.key !== BODY_KEY ||
 		!!keys?.find((k) => k.name === activeTerm.key)
-	const loading = keys?.length === 0 || (showValues && valuesLoading)
+	const loading = showValues ? valuesLoading : keysLoading
 	const showTermSelect = !!activeTerm.value.length
 
 	const visibleItems = showValues
 		? getVisibleValues(activeTerm, data?.logs_key_values)
-		: getVisibleKeys(query, queryTerms, activeTerm, keys)
+		: getVisibleKeys(state.value, queryTerms, activeTerm, keys)
 
 	// Limit number of items shown
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
 
 	const showResults = loading || visibleItems.length > 0 || showTermSelect
-
 	const isDirty = state.value !== ''
 
 	const submitQuery = (query: string) => {
@@ -172,8 +214,8 @@ const Search: React.FC<{
 				project_id: project_id!,
 				key_name: activeTerm.key,
 				date_range: {
-					start_date: moment(startDate).format(FORMAT),
-					end_date: moment(endDate).format(FORMAT),
+					start_date: moment(startDate).format(LOG_TIME_FORMAT),
+					end_date: moment(endDate).format(LOG_TIME_FORMAT),
 				},
 			},
 		})
@@ -196,17 +238,29 @@ const Search: React.FC<{
 		// links combobox and form states;
 		// necessary to update the URL when the query changes
 		formState.setValue('query', state.value)
+
+		// Clear the selected item if the combobox is empty. Need to flush execution
+		// queue before clearing the active item.
+		if (state.value === '') {
+			setTimeout(() => {
+				state.setActiveId(null)
+				state.setMoves(0)
+			}, 0)
+		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [state.value])
 
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
+		noQuotes?: boolean,
 	) => {
 		const isValueSelect = typeof key === 'string'
 
 		// If string, it's a value not a key
 		if (isValueSelect) {
-			queryTerms[activeTermIndex].value = quoteQueryValue(key)
+			queryTerms[activeTermIndex].value = noQuotes
+				? key
+				: quoteQueryValue(key)
 		} else {
 			queryTerms[activeTermIndex].key = key.name
 			queryTerms[activeTermIndex].value = ''
@@ -232,7 +286,9 @@ const Search: React.FC<{
 			ref={containerRef}
 			position="relative"
 		>
-			<IconSolidSearch className={styles.searchIcon} />
+			{!hideIcon ? (
+				<IconSolidSearch className={styles.searchIcon} />
+			) : null}
 
 			<Box
 				display="flex"
@@ -247,10 +303,21 @@ const Search: React.FC<{
 					state={state}
 					name="search"
 					placeholder="Search your logs..."
-					className={styles.combobox}
+					className={className ?? styles.combobox}
+					style={{
+						paddingLeft: hideIcon ? undefined : 40,
+					}}
 					onBlur={() => {
 						submitQuery(state.value)
+						formState.setValue('query', state.value)
 						inputRef?.current?.blur()
+					}}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter' && state.value === '') {
+							e.preventDefault()
+							submitQuery(state.value)
+							state.setOpen(false)
+						}
 					}}
 				/>
 
@@ -260,7 +327,9 @@ const Search: React.FC<{
 						onClick={(e) => {
 							e.preventDefault()
 							e.stopPropagation()
+
 							state.setValue('')
+							submitQuery('')
 						}}
 						style={{ cursor: 'pointer' }}
 					/>
@@ -270,67 +339,70 @@ const Search: React.FC<{
 			{showResults && (
 				<Combobox.Popover
 					className={styles.comboboxPopover}
+					style={{
+						left: hideIcon ? undefined : 6,
+					}}
 					state={state}
 				>
-					<Box py="4">
-						<Combobox.Group
-							className={styles.comboboxGroup}
-							state={state}
-						>
-							<Combobox.GroupLabel state={state}>
-								{activeTerm.value && (
-									<Combobox.Item
-										className={styles.comboboxItem}
-										onClick={() =>
-											handleItemSelect(activeTerm.value)
-										}
-										state={state}
-									>
-										<Stack direction="row" gap="8">
-											<Text lines="1">
-												{activeTerm.value}:
-											</Text>{' '}
-											<Text color="weak">
-												{activeTerm.key ?? 'Body'}
-											</Text>
-										</Stack>
-									</Combobox.Item>
-								)}
-								<Box px="10" py="6">
-									<Text size="xSmall" color="weak">
-										Filters
-									</Text>
-								</Box>
-							</Combobox.GroupLabel>
-							{loading && (
+					<Box pt="4">
+						<Combobox.GroupLabel state={state}>
+							{activeTerm.value && (
 								<Combobox.Item
 									className={styles.comboboxItem}
-									disabled
-								>
-									<Text>Loading...</Text>
-								</Combobox.Item>
-							)}
-							{visibleItems.map((key, index) => (
-								<Combobox.Item
-									className={styles.comboboxItem}
-									key={index}
-									onClick={() => handleItemSelect(key)}
+									onClick={() =>
+										handleItemSelect(activeTerm.value, true)
+									}
 									state={state}
 								>
-									{typeof key === 'string' ? (
-										<Text>{key}</Text>
-									) : (
-										<Stack direction="row" gap="8">
-											<Text>{key.name}:</Text>{' '}
-											<Text color="weak">
-												{key.type.toLowerCase()}
-											</Text>
-										</Stack>
-									)}
+									<Stack direction="row" gap="8">
+										<Text lines="1">
+											{activeTerm.value}:
+										</Text>{' '}
+										<Text color="weak">
+											{activeTerm.key ?? 'Body'}
+										</Text>
+									</Stack>
 								</Combobox.Item>
-							))}
-						</Combobox.Group>
+							)}
+							<Box px="10" py="6">
+								<Text size="xSmall" color="weak">
+									Filters
+								</Text>
+							</Box>
+						</Combobox.GroupLabel>
 					</Box>
+					<Combobox.Group
+						className={styles.comboboxGroup}
+						state={state}
+					>
+						{loading && (
+							<Combobox.Item
+								className={styles.comboboxItem}
+								disabled
+							>
+								<Text>Loading...</Text>
+							</Combobox.Item>
+						)}
+						{visibleItems.map((key, index) => (
+							<Combobox.Item
+								className={styles.comboboxItem}
+								key={index}
+								onClick={() => handleItemSelect(key)}
+								state={state}
+							>
+								{typeof key === 'string' ? (
+									<Text>{key}</Text>
+								) : (
+									<Stack direction="row" gap="8">
+										<Text>{key.name}:</Text>{' '}
+										<Text color="weak">
+											{key.type.toLowerCase()}
+										</Text>
+									</Stack>
+								)}
+							</Combobox.Item>
+						))}
+					</Combobox.Group>
 					<Box
 						bbr="8"
 						py="4"

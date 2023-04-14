@@ -1,40 +1,40 @@
-import styles from '../Home.module.scss'
+import { ExclamationCircleFilled } from '@ant-design/icons'
 import classNames from 'classnames'
-import { Typography } from '../../common/Typography/Typography'
-import { useEffect, useState } from 'react'
-import { StaticImageData } from 'next/image'
-import sessionReplay from '../../../public/images/session-replay.png'
-import errorMonitoring from '../../../public/images/error-monitoring.png'
-import fullstackLogging from '../../../public/images/fullstack-logging.png'
-import selfHosting from '../../../public/images/docker.png'
-import openSource from '../../../public/images/open-source.png'
-import githubscreenshot from '../../../public/images/githubscreenshot.png'
-import dockerscreenshot from '../../../public/images/dockerscreenshot.png'
-import loggingscreenshot from '../../../public/images/loggingscreenshot.png'
-import monitoringscreenshot from '../../../public/images/monitoringscreenshot.png'
-import sessionscreenshot from '../../../public/images/sessionscreenshot.png'
 import useEmblaCarousel from 'embla-carousel-react'
+import { StaticImageData } from 'next/image'
+import { useEffect, useState } from 'react'
+import { isMobile } from 'react-device-detect'
+import { AiFillGithub } from 'react-icons/ai'
 import {
-	HiTerminal,
+	HiBell,
+	HiChevronDown,
+	HiCloudDownload,
+	HiCode,
+	HiDatabase,
+	HiDesktopComputer,
+	HiDocumentSearch,
 	HiFilm,
 	HiLightningBolt,
-	HiCloudDownload,
+	HiPhoneOutgoing,
+	HiPresentationChartLine,
+	HiTerminal,
 	HiUserGroup,
 	HiViewBoards,
-	HiDocumentSearch,
-	HiPhoneOutgoing,
-	HiDatabase,
-	HiBell,
-	HiCode,
-	HiDesktopComputer,
-	HiPresentationChartLine,
 } from 'react-icons/hi'
-import { CarouselCard } from './CarouselCard'
-import { HiChevronDown } from 'react-icons/hi'
+import selfHosting from '../../../public/images/docker.png'
+import dockerscreenshot from '../../../public/images/dockerscreenshot.png'
+import errorMonitoring from '../../../public/images/error-monitoring.png'
+import fullstackLogging from '../../../public/images/fullstack-logging.png'
+import githubscreenshot from '../../../public/images/githubscreenshot.png'
+import loggingscreenshot from '../../../public/images/loggingscreenshot.png'
+import monitoringscreenshot from '../../../public/images/monitoringscreenshot.png'
+import openSource from '../../../public/images/open-source.png'
+import sessionReplay from '../../../public/images/session-replay.png'
+import sessionscreenshot from '../../../public/images/sessionscreenshot.png'
 import { PrimaryButton } from '../../common/Buttons/PrimaryButton'
-import { AiFillGithub } from 'react-icons/ai'
-import { ExclamationCircleFilled } from '@ant-design/icons'
-import { isMobile } from 'react-device-detect'
+import { Typography } from '../../common/Typography/Typography'
+import styles from '../Home.module.scss'
+import { CarouselCard } from './CarouselCard'
 
 export type Feature = {
 	name: string
@@ -125,7 +125,7 @@ const features: Feature[] = [
 		code: [
 			`git clone --recurse-submodules https://github.com/highlight/highlight;`,
 			`cd docker;`,
-			`docker compose up -d --build;`,
+			`./run.sh;`,
 		],
 		link: '/docs/general/company/open-source/self-host-hobby',
 	},

@@ -394,3 +394,59 @@ func (bot *Bot) SendMetricMonitorAlert(channelId string, payload integrations.Me
 
 	return err
 }
+
+func (bot *Bot) SendLogAlert(channelId string, payload integrations.LogAlertPayload) error {
+	fields := []*discordgo.MessageEmbedField{}
+
+	if payload.Query != "" {
+		fields = append(fields, &discordgo.MessageEmbedField{
+			Name:   "Query",
+			Value:  payload.Query,
+			Inline: true,
+		})
+	}
+
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:   "Count",
+		Value:  strconv.Itoa(payload.Count),
+		Inline: true,
+	})
+
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:   "Threshold",
+		Value:  strconv.Itoa(payload.Threshold),
+		Inline: true,
+	})
+
+	aboveStr := "above"
+	if payload.BelowThreshold {
+		aboveStr = "below"
+	}
+
+	embed := newMessageEmbed()
+	embed.Title = "Highlight Log Alert"
+	embed.Description = fmt.Sprintf("*%s* is currently %s the threshold.", payload.Name, aboveStr)
+	embed.Fields = fields
+
+	messageSend := discordgo.MessageSend{
+		Embeds: []*discordgo.MessageEmbed{
+			embed,
+		},
+		Components: []discordgo.MessageComponent{
+			discordgo.ActionsRow{
+				Components: []discordgo.MessageComponent{
+					discordgo.Button{
+						Label:    "View Logs",
+						Style:    discordgo.LinkButton,
+						Disabled: false,
+						URL:      payload.AlertURL,
+					},
+				},
+			},
+		},
+	}
+
+	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
+
+	return err
+}

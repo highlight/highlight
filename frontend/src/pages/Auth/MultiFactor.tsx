@@ -15,7 +15,7 @@ import {
 } from '@highlight-run/ui'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
-import firebase from 'firebase/app'
+import firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 

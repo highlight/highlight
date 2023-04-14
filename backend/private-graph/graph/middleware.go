@@ -41,6 +41,13 @@ const (
 	Firebase AuthMode = "Firebase"
 )
 
+func GetEnvAuthMode() AuthMode {
+	if strings.EqualFold(os.Getenv("REACT_APP_AUTH_MODE"), Simple) {
+		return Simple
+	}
+	return Firebase
+}
+
 type Client interface {
 	updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error)
 	GetUser(ctx context.Context, uid string) (*auth.UserRecord, error)

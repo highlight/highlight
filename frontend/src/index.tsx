@@ -73,7 +73,6 @@ const options: HighlightOptions = {
 			'session-contents-compressed',
 		],
 	},
-	reportConsoleErrors: false,
 	tracingOrigins: ['highlight.run', 'localhost', 'localhost:8082'],
 	integrations: {
 		amplitude: {

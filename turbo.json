@@ -1,59 +1,78 @@
 {
 	"$schema": "https://turborepo.org/schema.json",
 	"pipeline": {
-		"codegen": {
-			"inputs": ["./**/*.gql", "./**/*.graphqls"],
-			"outputs": ["src/graph/generated/**"]
-		},
-		"prepublish": {
-			"dependsOn": ["^prepublish"],
-			"outputs": ["lib/**", "es/**", "dist/**", "typings/**"]
-		},
-		"typegen": {
-			"dependsOn": ["^typegen", "^prepublish"],
-			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
-			"outputs": ["dist/**/*.d.ts"]
-		},
 		"highlight.run#typegen": {
 			"dependsOn": [
-				"^typegen",
-				"^prepublish",
-				"@highlight-run/rrweb#prepublish",
-				"@highlight-run/rrweb-types#prepublish",
+				"@highlight-run/rrweb#build",
+				"@highlight-run/rrweb-types#build",
 				"@highlight-run/client#typegen"
 			],
 			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
 			"outputs": ["dist/**/*.d.ts"]
 		},
-		"dev": {
-			"dependsOn": ["^prepublish", "^build"],
-			"cache": false
+		"highlight.io#build": {
+			"dependsOn": ["^build"],
+			"outputs": [".next/**"],
+			"env": ["GRAPHCMS_TOKEN"]
+		},
+		"highlight.io#lint": {
+			"dependsOn": ["^build"]
+		},
+		"nextjs#lint": {
+			"dependsOn": ["^build"]
+		},
+		"codegen": {
+			"inputs": ["./**/*.gql", "./**/*.graphqls"],
+			"outputs": ["src/graph/generated/**"]
+		},
+		"typegen": {
+			"dependsOn": ["^typegen"],
+			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
+			"outputs": [
+				"lib/**",
+				"es/**",
+				"dist/**",
+				"typings/**",
+				"build/**",
+				"esm/**"
+			]
 		},
 		"build": {
-			"dependsOn": ["codegen", "typegen", "^prepublish", "^build"],
-			"outputs": ["build/**", "dist/**", "esm/**", ".next/**"],
+			"dependsOn": ["codegen", "typegen", "^build"],
+			"outputs": [
+				"lib/**",
+				"es/**",
+				"dist/**",
+				"typings/**",
+				"build/**",
+				"esm/**"
+			],
 			"env": [
+				"CLICKUP_CLIENT_ID",
+				"DD_CLIENT_TOKEN",
+				"DEMO_ERROR_URL",
+				"DEMO_SESSION_URL",
+				"DISCORD_CLIENT_ID",
+				"HEIGHT_CLIENT_ID",
+				"LINEAR_CLIENT_ID",
 				"REACT_APP_AUTH_MODE",
 				"REACT_APP_COMMIT_SHA",
 				"REACT_APP_DEMO_SESSION",
 				"REACT_APP_FIREBASE_CONFIG_OBJECT",
-				"REACT_APP_FRONT_INTEGRATION_CLIENT_ID",
 				"REACT_APP_FRONTEND_ORG",
 				"REACT_APP_FRONTEND_URI",
+				"REACT_APP_FRONT_INTEGRATION_CLIENT_ID",
 				"REACT_APP_ONPREM",
 				"REACT_APP_PRIVATE_GRAPH_URI",
 				"REACT_APP_PUBLIC_GRAPH_URI",
 				"REACT_APP_STRIPE_API_PK",
 				"REACT_APP_VERCEL_INTEGRATION_NAME",
-				"CLICKUP_CLIENT_ID",
-				"DD_CLIENT_TOKEN",
-				"DISCORD_CLIENT_ID",
-				"HEIGHT_CLIENT_ID",
-				"LINEAR_CLIENT_ID",
-				"SLACK_CLIENT_ID",
-				"DEMO_SESSION_URL",
-				"DEMO_ERROR_URL"
+				"SLACK_CLIENT_ID"
 			]
+		},
+		"dev": {
+			"dependsOn": ["^build"],
+			"cache": false
 		},
 		"enforce-size": {
 			"dependsOn": ["build"]
@@ -62,14 +81,8 @@
 			"outputs": [],
 			"inputs": ["**/*.ts*"]
 		},
-		"nextjs#lint": {
-			"dependsOn": ["^build"]
-		},
-		"highlight.io#lint": {
-			"dependsOn": ["^build"]
-		},
 		"test": {
-			"dependsOn": ["lint", "prepublish", "enforce-size"],
+			"dependsOn": ["lint", "build", "enforce-size"],
 			"outputs": [],
 			"inputs": [
 				"src/**/*.tsx",

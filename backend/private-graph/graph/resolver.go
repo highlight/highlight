@@ -646,7 +646,10 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 	for _, errorGroupID := range errorGroupIDs {
 		errorGroupFilters = append(errorGroupFilters, fmt.Sprintf(`r.ErrorGroupID == "%d"`, errorGroupID))
 	}
-	errorGroupFilter := fmt.Sprintf(`|> filter(fn: (r) => %s)`, strings.Join(errorGroupFilters, " or "))
+	var errorGroupFilter string
+	if len(errorGroupFilters) > 0 {
+		errorGroupFilter = fmt.Sprintf(`|> filter(fn: (r) => %s)`, strings.Join(errorGroupFilters, " or "))
+	}
 	extraFilter := ""
 	if metric != "" {
 		extraFilter = fmt.Sprintf(`|> filter(fn: (r) => r._field == "%s")`, metric)
@@ -1345,7 +1348,7 @@ func (r *Resolver) MarshalAlertEmails(emails []*string) (*string, error) {
 	return &channelsString, nil
 }
 
-func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.ErrorTrace, error) {
+func (r *Resolver) UnmarshalStackTrace(stackTraceString string, filterChrome bool) ([]*modelInputs.ErrorTrace, error) {
 	var unmarshalled []*modelInputs.ErrorTrace
 	if err := json.Unmarshal([]byte(stackTraceString), &unmarshalled); err != nil {
 		// Stack trace may not be able to be unmarshalled as the format may differ
@@ -1358,7 +1361,9 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.
 	var ret []*modelInputs.ErrorTrace
 	for _, frame := range unmarshalled {
 		if frame != nil && *frame != empty {
-			ret = append(ret, frame)
+			if !filterChrome || (frame.FileName != nil && !strings.HasPrefix(*frame.FileName, "chrome-extension")) {
+				ret = append(ret, frame)
+			}
 		}
 	}
 
@@ -1473,21 +1478,28 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error retrieving workspace for customer %s", stripeCustomerID)
 	}
 
+	updates := map[string]interface{}{
+		"PlanTier":           string(tier),
+		"UnlimitedMembers":   unlimitedMembers,
+		"BillingPeriodStart": billingPeriodStart,
+		"BillingPeriodEnd":   billingPeriodEnd,
+		"NextInvoiceDate":    nextInvoiceDate,
+	}
+
+	// Only update retention period if already set
+	// This preserves `nil` values for customers grandfathered into 6 month retention
+	if workspace.RetentionPeriod != nil {
+		updates["RetentionPeriod"] = retentionPeriod
+	}
+
 	if err := r.DB.Model(&model.Workspace{}).
 		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
-		Updates(map[string]interface{}{
-			"PlanTier":           string(tier),
-			"UnlimitedMembers":   unlimitedMembers,
-			"BillingPeriodStart": billingPeriodStart,
-			"BillingPeriodEnd":   billingPeriodEnd,
-			"NextInvoiceDate":    nextInvoiceDate,
-			"RetentionPeriod":    retentionPeriod,
-		}).Error; err != nil {
+		Updates(updates).Error; err != nil {
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.ReportUsageForWorkspace(ctx, r.DB, r.StripeClient, r.MailClient, workspace.ID); err != nil {
+	if err := pricing.ReportUsageForWorkspace(ctx, r.DB, r.ClickhouseClient, r.StripeClient, r.MailClient, workspace.ID); err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
 	}
 
@@ -2024,6 +2036,10 @@ func (r *Resolver) RemoveSlackFromWorkspace(workspace *model.Workspace, projectI
 		// set existing metric monitors to have empty slack channels to notify
 		if err := tx.Where(&model.MetricMonitor{ProjectID: projectID}).Updates(model.MetricMonitor{ChannelsToNotify: &empty}).Error; err != nil {
 			return e.Wrap(err, "error removing slack channels from created MetricMonitor's")
+		}
+
+		if err := tx.Where(&model.LogAlert{Alert: projectAlert}).Updates(model.LogAlert{Alert: clearedChannelsAlert}).Error; err != nil {
+			return e.Wrap(err, "error removing slack channels from created LogAlert's")
 		}
 
 		// no errors updating DB
@@ -3110,11 +3126,12 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 	return
 }
 
-func (r *Resolver) GetProjectRetentionDate(ctx context.Context, projectId int) (time.Time, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectId)
-	if err != nil {
-		return time.Time{}, err
+func (r *Resolver) GetProjectRetentionDate(projectId int) (time.Time, error) {
+	var project *model.Project
+	if err := r.DB.Model(&model.Project{}).Where("id = ?", projectId).First(&project).Error; err != nil {
+		return time.Time{}, e.Wrap(err, "error querying project")
 	}
+
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return time.Time{}, err

@@ -2,6 +2,7 @@ import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import Tabs from '@components/Tabs/Tabs'
 import { EmailOptOutPanel } from '@pages/EmailOptOut/EmailOptOut'
+import { PlayerForm } from '@pages/UserSettings/PlayerForm/PlayerForm'
 import { auth } from '@util/auth'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
@@ -31,8 +32,17 @@ const UserSettings: React.FC = () => {
 				key: 'email-settings',
 				title: 'Email Settings',
 				panelContent: (
-					<FieldsBox>
+					<FieldsBox id="email-settings">
 						<EmailOptOutPanel />
+					</FieldsBox>
+				),
+			},
+			{
+				key: 'player-settings',
+				title: 'Player Settings',
+				panelContent: (
+					<FieldsBox id="player-settings">
+						<PlayerForm />
 					</FieldsBox>
 				),
 			},

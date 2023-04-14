@@ -23,8 +23,8 @@ import {
 	Callout,
 	Heading,
 	IconSolidExternalLink,
+	IconSolidLogs,
 	IconSolidPlay,
-	IconSolidViewList,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
@@ -35,13 +35,7 @@ import {
 	LogsSearchParam,
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
-import {
-	RightPanelView,
-	usePlayerUIContext,
-} from '@pages/Player/context/PlayerUIContext'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import {
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
@@ -101,6 +95,14 @@ const getLogsLink = (errorObject: ErrorObject): string => {
 	} else {
 		return `/${errorObject.project_id}/logs?${params}`
 	}
+}
+
+const getSessionLink = (errorObject: ErrorObject): string => {
+	const params = createSearchParams({
+		tsAbs: errorObject.timestamp,
+		[PlayerSearchParameters.errorId]: errorObject.id,
+	})
+	return `/${errorObject.project_id}/sessions/${errorObject.session?.secure_id}?${params}`
 }
 
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
@@ -165,15 +167,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		[errorInstance?.previous_id],
 	)
 
-	const {
-		setShowLeftPanel,
-		setShowRightPanel,
-		setShowDevTools,
-		setSelectedDevToolsTab,
-	} = usePlayerConfiguration()
-
-	const { setActiveError, setRightPanelView } = usePlayerUIContext()
-
 	const goToErrorInstance = (
 		errorInstanceId: Maybe<string> | undefined,
 		direction: 'next' | 'previous',
@@ -228,7 +221,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								kind="primary"
 								emphasis="high"
 								disabled={true}
-								iconLeft={<IconSolidViewList />}
+								iconLeft={<IconSolidLogs />}
 								trackingId="errorInstanceShowLogs"
 							>
 								Show logs
@@ -350,7 +343,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 							emphasis="high"
 							to={getLogsLink(errorObject)}
 							disabled={!isLoggedIn || !errorObject.session}
-							trackingId="logs-related_session_link"
+							trackingId="error-related_logs_link"
 						>
 							<Box
 								display="flex"
@@ -358,37 +351,27 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								flexDirection="row"
 								gap="4"
 							>
-								<IconSolidViewList />
+								<IconSolidLogs />
 								Show logs
 							</Box>
 						</LinkButton>
-						<Button
+						<LinkButton
 							kind="primary"
 							emphasis="high"
+							to={getSessionLink(errorObject)}
 							disabled={!isLoggedIn || !errorObject.session}
-							onClick={() => {
-								if (!isLoggedIn) {
-									return
-								}
-
-								navigate(
-									`/${projectId}/sessions/${errorObject.session?.secure_id}` +
-										`?${PlayerSearchParameters.tsAbs}=${errorObject.timestamp}`,
-								)
-								setShowLeftPanel(false)
-								setShowRightPanel(true)
-								setShowDevTools(true)
-								setSelectedDevToolsTab(Tab.Errors)
-								setActiveError(
-									errorInstance?.error_object as ErrorObject,
-								)
-								setRightPanelView(RightPanelView.Error)
-							}}
-							iconLeft={<IconSolidPlay />}
-							trackingId="errorInstanceShowSession"
+							trackingId="error-related_session_link"
 						>
-							Show session
-						</Button>
+							<Box
+								display="flex"
+								alignItems="center"
+								flexDirection="row"
+								gap="4"
+							>
+								<IconSolidPlay />
+								Show session
+							</Box>
+						</LinkButton>
 					</Box>
 				</Box>
 			</Box>

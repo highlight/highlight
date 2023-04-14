@@ -103,6 +103,7 @@ type BillingDetails {
 	membersMeter: Int64!
 	sessionsOutOfQuota: Int64!
 	errorsMeter: Int64!
+	logsMeter: Int64!
 }
 
 type Invoice {
@@ -127,6 +128,7 @@ type Plan {
 	quota: Int!
 	membersLimit: Int
 	errorsLimit: Int!
+	logsLimit: Int!
 }
 
 enum PlanType {
@@ -135,6 +137,12 @@ enum PlanType {
 	Basic
 	Startup
 	Enterprise
+}
+
+enum ProductType {
+	Sessions
+	Errors
+	Logs
 }
 
 enum SubscriptionInterval {
@@ -302,6 +310,11 @@ enum LogLevel {
 	fatal
 }
 
+enum LogDirection {
+	ASC
+	DESC
+}
+
 type Project {
 	id: ID!
 	verbose_id: String!
@@ -310,11 +323,13 @@ type Project {
 	secret: String
 	workspace_id: ID!
 	excluded_users: StringArray
+	error_filters: StringArray
 	error_json_paths: StringArray
 	rage_click_window_seconds: Int
 	rage_click_radius_pixels: Int
 	rage_click_count: Int
 	backend_domains: StringArray
+	filter_chrome_extension: Boolean
 }
 
 type Account {
@@ -537,11 +552,17 @@ enum ReservedLogKey {
 	Keep this in alpha order
 	"""
 	level
+	message
 	secure_session_id
 	span_id
 	trace_id
 	source
 	service_name
+}
+
+enum LogSource {
+	frontend
+	backend
 }
 
 enum LogKeyType {
@@ -762,6 +783,21 @@ input SessionAlertInput {
 	user_properties: [UserPropertyInput!]!
 	exclude_rules: [String!]!
 	track_properties: [TrackPropertyInput!]!
+}
+
+input LogAlertInput {
+	project_id: ID!
+	name: String!
+	count_threshold: Int!
+	below_threshold: Boolean!
+	threshold_window: Int!
+	slack_channels: [SanitizedSlackChannelInput!]!
+	discord_channels: [DiscordChannelInput!]!
+	webhook_destinations: [WebhookDestinationInput!]!
+	emails: [String!]!
+	environments: [String!]!
+	disabled: Boolean!
+	query: String!
 }
 
 type ErrorSearchParams {
@@ -1065,6 +1101,25 @@ type SessionAlert {
 	disabled: Boolean!
 }
 
+type LogAlert {
+	id: ID!
+	updated_at: Timestamp!
+	Name: String!
+	ChannelsToNotify: [SanitizedSlackChannel!]!
+	DiscordChannelsToNotify: [DiscordChannel!]!
+	WebhookDestinations: [WebhookDestination!]!
+	EmailsToNotify: [String!]!
+	ExcludedEnvironments: [String!]!
+	CountThreshold: Int!
+	ThresholdWindow: Int!
+	LastAdminToEditID: ID
+	Type: String!
+	DailyFrequency: [Int64]!
+	disabled: Boolean!
+	query: String!
+	BelowThreshold: Boolean!
+}
+
 type WorkspaceInviteLink {
 	id: ID!
 	invitee_email: String
@@ -1122,6 +1177,13 @@ type CategoryHistogramBucket {
 
 type CategoryHistogramPayload {
 	buckets: [CategoryHistogramBucket!]!
+}
+
+type IntegrationStatus {
+	integrated: Boolean!
+	resourceType: String!
+	resourceSecureId: String
+	createdAt: Timestamp
 }
 
 enum DashboardChartType {
@@ -1326,6 +1388,9 @@ type Query {
 	workspace_admins_by_project_id(project_id: ID!): [WorkspaceAdminRole!]!
 	isIntegrated(project_id: ID!): Boolean
 	isBackendIntegrated(project_id: ID!): Boolean
+	clientIntegration(project_id: ID!): IntegrationStatus!
+	serverIntegration(project_id: ID!): IntegrationStatus!
+	logsIntegration(project_id: ID!): IntegrationStatus!
 	unprocessedSessionsCount(project_id: ID!): Int64
 	liveUsersCount(project_id: ID!): Int64
 	adminHasCreatedComment(admin_id: ID!): Boolean
@@ -1420,6 +1485,8 @@ type Query {
 	user_properties_alerts(project_id: ID!): [SessionAlert]!
 	new_session_alerts(project_id: ID!): [SessionAlert]!
 	rage_click_alerts(project_id: ID!): [SessionAlert]!
+	log_alerts(project_id: ID!): [LogAlert]!
+	log_alert(id: ID!): LogAlert!
 	projectSuggestion(query: String!): [Project]!
 	workspaceSuggestion(query: String!): [Workspace]!
 	environment_suggestion(project_id: ID!): [Field]
@@ -1502,7 +1569,9 @@ type Query {
 		after: String
 		before: String
 		at: String
+		direction: LogDirection!
 	): LogsConnection!
+	sessionLogs(project_id: ID!, params: LogsParamsInput!): [LogEdge!]!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
 	logs_keys(project_id: ID!, date_range: DateRangeRequiredInput!): [LogKey!]!
@@ -1527,11 +1596,13 @@ type Mutation {
 		name: String
 		billing_email: String
 		excluded_users: StringArray
+		error_filters: StringArray
 		error_json_paths: StringArray
 		rage_click_window_seconds: Int
 		rage_click_radius_pixels: Int
 		rage_click_count: Int
 		backend_domains: StringArray
+		filter_chrome_extension: Boolean
 	): Project
 	editWorkspace(id: ID!, name: String): Workspace
 	markErrorGroupAsViewed(
@@ -1697,12 +1768,6 @@ type Mutation {
 		workspace_id: ID!
 	): Boolean!
 	syncSlackIntegration(project_id: ID!): SlackSyncResponse!
-	createDefaultAlerts(
-		project_id: ID!
-		alert_types: [String!]!
-		slack_channels: [SanitizedSlackChannelInput!]!
-		emails: [String]!
-	): Boolean
 	createMetricMonitor(
 		project_id: ID!
 		name: String!
@@ -1782,6 +1847,14 @@ type Mutation {
 	updateSessionAlert(id: ID!, input: SessionAlertInput!): SessionAlert
 	createSessionAlert(input: SessionAlertInput!): SessionAlert
 	deleteSessionAlert(project_id: ID!, session_alert_id: ID!): SessionAlert
+	updateLogAlert(id: ID!, input: LogAlertInput!): LogAlert
+	createLogAlert(input: LogAlertInput!): LogAlert
+	deleteLogAlert(project_id: ID!, id: ID!): LogAlert
+	updateLogAlertIsDisabled(
+		id: ID!
+		project_id: ID!
+		disabled: Boolean!
+	): LogAlert
 	updateSessionIsPublic(
 		session_secure_id: String!
 		is_public: Boolean!

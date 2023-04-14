@@ -16,8 +16,4 @@ export async function rudderInitialize() {
 			integrations: { All: true }, // load call options
 		},
 	)
-
-	rudderanalytics.ready(() => {
-		console.log('Rudderstack initialized!')
-	})
 }

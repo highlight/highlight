@@ -33,6 +33,12 @@ Read more about the features we support in Session Replay below:
     <DocsCard title="Devtools Data."  href="./dev-tools.md">
         {"Capturing of console logs, network requests and errors."}
     </DocsCard>
+    <DocsCard title="Extracting the Session URL"  href="./session-url.md">
+        {"SDK support for extracting the session URL from your sessions."}
+    </DocsCard>
+    <DocsCard title="Ignoring & Excluding Sessions"  href="./ignoring-sessions.md">
+        {"Options for ignoring and excluding sessions."}
+    </DocsCard>
     <DocsCard title="Tracking Users & Events."  href="./events-and-users.md">
         {"SDK support for tracking users and their corresponding actions throughout a session."}
     </DocsCard>
@@ -53,5 +59,8 @@ Read more about the features we support in Session Replay below:
     </DocsCard>
     <DocsCard title="Session Search Deep Linking."  href="./session-search.md">
         {"The URL Schema we use for deep linking sessions."}
+    </DocsCard>
+    <DocsCard title="Disable Session Caching"  href="./session-caching">
+        {"For highlight.io power users, we support disabling session caching to reduce memory usage."}
     </DocsCard>
 </DocsCardGroup>

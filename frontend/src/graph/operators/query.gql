@@ -817,6 +817,7 @@ query GetProjectDropdownOptions($project_id: ID!) {
 		billing_email
 		secret
 		workspace_id
+		error_filters
 	}
 	workspace: workspace_for_project(project_id: $project_id) {
 		id
@@ -928,7 +929,9 @@ query GetProject($id: ID!) {
 		verbose_id
 		billing_email
 		excluded_users
+		error_filters
 		error_json_paths
+		filter_chrome_extension
 		rage_click_window_seconds
 		rage_click_radius_pixels
 		rage_click_count
@@ -948,9 +951,13 @@ query GetBillingDetailsForProject($project_id: ID!) {
 			quota
 			interval
 			membersLimit
+			errorsLimit
+			logsLimit
 		}
 		meter
 		membersMeter
+		errorsMeter
+		logsMeter
 		sessionsOutOfQuota
 	}
 	workspace_for_project(project_id: $project_id) {
@@ -972,10 +979,12 @@ query GetBillingDetails($workspace_id: ID!) {
 			interval
 			membersLimit
 			errorsLimit
+			logsLimit
 		}
 		meter
 		membersMeter
 		errorsMeter
+		logsMeter
 	}
 	workspace(id: $workspace_id) {
 		id
@@ -1377,6 +1386,33 @@ query IsBackendIntegrated($project_id: ID!) {
 	isBackendIntegrated(project_id: $project_id)
 }
 
+query GetClientIntegration($project_id: ID!) {
+	clientIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		resourceSecureId
+		createdAt
+	}
+}
+
+query GetServerIntegration($project_id: ID!) {
+	serverIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		resourceSecureId
+		createdAt
+	}
+}
+
+query GetLogsIntegration($project_id: ID!) {
+	logsIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		resourceSecureId
+		createdAt
+	}
+}
+
 query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
 	unprocessedSessionsCount(project_id: $project_id)
 	liveUsersCount(project_id: $project_id)
@@ -1624,6 +1660,65 @@ query GetIdentifierSuggestions($project_id: ID!, $query: String!) {
 	identifier_suggestion(project_id: $project_id, query: $query)
 }
 
+query GetLogAlert($id: ID!) {
+	log_alert(id: $id) {
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		DiscordChannelsToNotify {
+			...DiscordChannelFragment
+		}
+		WebhookDestinations {
+			url
+			authorization
+		}
+		CountThreshold
+		DailyFrequency
+		disabled
+		EmailsToNotify
+		ExcludedEnvironments
+		id
+		LastAdminToEditID
+		Name
+		updated_at
+		BelowThreshold
+		ThresholdWindow
+		Type
+		query
+	}
+}
+
+query GetLogAlertsPagePayload($project_id: ID!) {
+	is_integrated_with_slack: is_integrated_with(
+		integration_type: Slack
+		project_id: $project_id
+	)
+	is_integrated_with_discord: is_integrated_with(
+		integration_type: Discord
+		project_id: $project_id
+	)
+	slack_channel_suggestion(project_id: $project_id) {
+		webhook_channel
+		webhook_channel_id
+	}
+	discord_channel_suggestions(project_id: $project_id) {
+		...DiscordChannelFragment
+	}
+	admins: workspace_admins_by_project_id(project_id: $project_id) {
+		admin {
+			id
+			name
+			email
+			photo_url
+		}
+	}
+	environment_suggestion(project_id: $project_id) {
+		name
+		value
+	}
+}
+
 query GetAlertsPagePayload($project_id: ID!) {
 	is_integrated_with_slack: is_integrated_with(
 		integration_type: Slack
@@ -1725,6 +1820,27 @@ query GetAlertsPagePayload($project_id: ID!) {
 		}
 		units
 		disabled
+	}
+	log_alerts(project_id: $project_id) {
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		DiscordChannelsToNotify {
+			...DiscordChannelFragment
+		}
+		CountThreshold
+		DailyFrequency
+		disabled
+		EmailsToNotify
+		ExcludedEnvironments
+		id
+		LastAdminToEditID
+		Name
+		updated_at
+		ThresholdWindow
+		Type
+		query
 	}
 }
 
@@ -1887,6 +2003,7 @@ query GetLogs(
 	$after: String
 	$before: String
 	$at: String
+	$direction: LogDirection!
 ) {
 	logs(
 		project_id: $project_id
@@ -1894,6 +2011,7 @@ query GetLogs(
 		after: $after
 		before: $before
 		at: $at
+		direction: $direction
 	) {
 		edges {
 			cursor
@@ -1914,6 +2032,17 @@ query GetLogs(
 			hasPreviousPage
 			startCursor
 			endCursor
+		}
+	}
+}
+
+query GetSessionLogs($project_id: ID!, $params: LogsParamsInput!) {
+	sessionLogs(project_id: $project_id, params: $params) {
+		cursor
+		node {
+			timestamp
+			level
+			message
 		}
 	}
 }

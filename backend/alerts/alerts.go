@@ -1,14 +1,16 @@
 package alerts
 
 import (
-	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
-	"golang.org/x/sync/errgroup"
 	"net/url"
 	"strings"
+	"time"
+
+	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
+	"github.com/highlight-run/highlight/backend/model"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
-	"github.com/highlight-run/highlight/backend/model"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -502,6 +504,54 @@ func SendMetricMonitorAlert(event MetricMonitorAlertEvent) error {
 	})
 
 	return g.Wait()
+}
+
+type LogAlertEvent struct {
+	LogAlert  *model.LogAlert
+	Workspace *model.Workspace
+	Count     int
+	StartDate time.Time
+	EndDate   time.Time
+}
+
+func SendLogAlert(event LogAlertEvent) error {
+	payload := integrations.LogAlertPayload{
+		Name:           *event.LogAlert.Name,
+		Query:          event.LogAlert.Query,
+		Count:          event.Count,
+		StartDate:      event.StartDate,
+		EndDate:        event.EndDate,
+		Threshold:      event.LogAlert.CountThreshold,
+		BelowThreshold: event.LogAlert.BelowThreshold,
+		AlertURL:       model.GetLogAlertURL(event.LogAlert.ProjectID, event.LogAlert.Query, event.StartDate, event.EndDate),
+	}
+
+	for _, wh := range event.LogAlert.WebhookDestinations {
+		if err := webhook.SendLogAlert(wh, &payload); err != nil {
+			return err
+		}
+	}
+
+	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+		return nil
+	}
+
+	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
+	if err != nil {
+		return err
+	}
+
+	channels := event.LogAlert.DiscordChannelsToNotify
+
+	for _, channel := range channels {
+		err = bot.SendLogAlert(channel.ID, payload)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func isWorkspaceIntegratedWithDiscord(workspace model.Workspace) bool {

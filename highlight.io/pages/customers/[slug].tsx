@@ -14,6 +14,7 @@ import ReturnIcon from '../../public/images/ReturnIcon'
 import { GraphQLRequest } from '../../utils/graphql'
 
 interface Customer {
+	id: string
 	slug: string
 	image?: {
 		url: string
@@ -41,6 +42,8 @@ interface Customer {
 	}
 }
 
+type Case = { slug: string; companyLogo?: { url: string } } | null
+
 export const getStaticPaths: GetStaticPaths = async () => {
 	const QUERY = gql`
 		{
@@ -49,8 +52,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 			}
 		}
 	`
-	// @ts-ignore
-	const { customers } = await GraphQLRequest(QUERY)
+	const { customers } = await GraphQLRequest<{ customers: Customer[] }>(QUERY)
 
 	return {
 		paths: customers.map((p: { slug: string }) => ({
@@ -115,10 +117,11 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		}
 	`
 
-	const data = await GraphQLRequest(QUERY, { slug: slug })
+	const data = await GraphQLRequest<{ customer: Customer }>(QUERY, {
+		slug: slug,
+	})
 
 	// Handle event slugs which don't exist in our CMS
-	// @ts-ignore
 	if (!data.customer) {
 		return {
 			notFound: true,
@@ -143,18 +146,17 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		}
 	`
 
-	const pageData = await GraphQLRequest(PAGES_QUERY, {
-		// @ts-ignore
+	const pageData = await GraphQLRequest<{
+		previousCase: Case[]
+		nextCase: Case[]
+	}>(PAGES_QUERY, {
 		id: data.customer.id,
 	})
 
 	return {
 		props: {
-			// @ts-ignore
 			customer: data.customer,
-			// @ts-ignore
 			previousCase: pageData.previousCase.shift() ?? null,
-			// @ts-ignore
 			nextCase: pageData.nextCase.shift() ?? null,
 		},
 		revalidate: 60 * 60, // Cache response for 1 hour (60 seconds * 60 minutes)

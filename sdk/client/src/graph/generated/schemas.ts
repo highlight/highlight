@@ -105,6 +105,7 @@ export type MutationInitializeSessionArgs = {
 	clientConfig: Scalars['String']
 	clientVersion: Scalars['String']
 	client_id: Scalars['String']
+	disable_session_recording?: InputMaybe<Scalars['Boolean']>
 	enable_recording_network_contents: Scalars['Boolean']
 	enable_strict_privacy: Scalars['Boolean']
 	environment: Scalars['String']
@@ -118,6 +119,7 @@ export type MutationInitializeSessionArgs = {
 export type MutationMarkBackendSetupArgs = {
 	project_id?: InputMaybe<Scalars['String']>
 	session_secure_id?: InputMaybe<Scalars['String']>
+	type?: InputMaybe<Scalars['String']>
 }
 
 export type MutationPushBackendPayloadArgs = {

@@ -238,7 +238,9 @@ export type EditProjectMutationVariables = Types.Exact<{
 	name?: Types.Maybe<Types.Scalars['String']>
 	billing_email?: Types.Maybe<Types.Scalars['String']>
 	excluded_users?: Types.Maybe<Types.Scalars['StringArray']>
+	error_filters?: Types.Maybe<Types.Scalars['StringArray']>
 	error_json_paths?: Types.Maybe<Types.Scalars['StringArray']>
+	filter_chrome_extension?: Types.Maybe<Types.Scalars['Boolean']>
 	rage_click_window_seconds?: Types.Maybe<Types.Scalars['Int']>
 	rage_click_radius_pixels?: Types.Maybe<Types.Scalars['Int']>
 	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
@@ -253,7 +255,9 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
 			| 'name'
 			| 'billing_email'
 			| 'excluded_users'
+			| 'error_filters'
 			| 'error_json_paths'
+			| 'filter_chrome_extension'
 			| 'rage_click_window_seconds'
 			| 'rage_click_radius_pixels'
 			| 'rage_click_count'
@@ -970,6 +974,50 @@ export type DeleteSessionAlertMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type UpdateLogAlertMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+	input: Types.LogAlertInput
+}>
+
+export type UpdateLogAlertMutation = { __typename?: 'Mutation' } & {
+	updateLogAlert?: Types.Maybe<
+		{ __typename?: 'LogAlert' } & Pick<Types.LogAlert, 'id'>
+	>
+}
+
+export type CreateLogAlertMutationVariables = Types.Exact<{
+	input: Types.LogAlertInput
+}>
+
+export type CreateLogAlertMutation = { __typename?: 'Mutation' } & {
+	createLogAlert?: Types.Maybe<
+		{ __typename?: 'LogAlert' } & Pick<Types.LogAlert, 'id'>
+	>
+}
+
+export type DeleteLogAlertMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	id: Types.Scalars['ID']
+}>
+
+export type DeleteLogAlertMutation = { __typename?: 'Mutation' } & {
+	deleteLogAlert?: Types.Maybe<
+		{ __typename?: 'LogAlert' } & Pick<Types.LogAlert, 'id'>
+	>
+}
+
+export type UpdateLogAlertIsDisabledMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+	project_id: Types.Scalars['ID']
+	disabled: Types.Scalars['Boolean']
+}>
+
+export type UpdateLogAlertIsDisabledMutation = { __typename?: 'Mutation' } & {
+	updateLogAlertIsDisabled?: Types.Maybe<
+		{ __typename?: 'LogAlert' } & Pick<Types.LogAlert, 'id'>
+	>
+}
+
 export type UpdateSessionAlertIsDisabledMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 	project_id: Types.Scalars['ID']
@@ -1009,20 +1057,6 @@ export type UpdateErrorAlertIsDisabledMutation = { __typename?: 'Mutation' } & {
 		{ __typename?: 'ErrorAlert' } & Pick<Types.ErrorAlert, 'id'>
 	>
 }
-
-export type CreateDefaultAlertsMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	alert_types: Array<Types.Scalars['String']> | Types.Scalars['String']
-	slack_channels:
-		| Array<Types.SanitizedSlackChannelInput>
-		| Types.SanitizedSlackChannelInput
-	emails: Array<Types.Scalars['String']> | Types.Scalars['String']
-}>
-
-export type CreateDefaultAlertsMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'createDefaultAlerts'
->
 
 export type CreateSessionAlertMutationVariables = Types.Exact<{
 	input: Types.SessionAlertInput
@@ -2360,6 +2394,7 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
 			| 'billing_email'
 			| 'secret'
 			| 'workspace_id'
+			| 'error_filters'
 		>
 	>
 	workspace?: Types.Maybe<
@@ -2553,7 +2588,9 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
 			| 'verbose_id'
 			| 'billing_email'
 			| 'excluded_users'
+			| 'error_filters'
 			| 'error_json_paths'
+			| 'filter_chrome_extension'
 			| 'rage_click_window_seconds'
 			| 'rage_click_radius_pixels'
 			| 'rage_click_count'
@@ -2577,11 +2614,20 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 	billingDetailsForProject?: Types.Maybe<
 		{ __typename?: 'BillingDetails' } & Pick<
 			Types.BillingDetails,
-			'meter' | 'membersMeter' | 'sessionsOutOfQuota'
+			| 'meter'
+			| 'membersMeter'
+			| 'errorsMeter'
+			| 'logsMeter'
+			| 'sessionsOutOfQuota'
 		> & {
 				plan: { __typename?: 'Plan' } & Pick<
 					Types.Plan,
-					'type' | 'quota' | 'interval' | 'membersLimit'
+					| 'type'
+					| 'quota'
+					| 'interval'
+					| 'membersLimit'
+					| 'errorsLimit'
+					| 'logsLimit'
 				>
 			}
 	>
@@ -2606,11 +2652,16 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 	billingDetails: { __typename?: 'BillingDetails' } & Pick<
 		Types.BillingDetails,
-		'meter' | 'membersMeter' | 'errorsMeter'
+		'meter' | 'membersMeter' | 'errorsMeter' | 'logsMeter'
 	> & {
 			plan: { __typename?: 'Plan' } & Pick<
 				Types.Plan,
-				'type' | 'quota' | 'interval' | 'membersLimit' | 'errorsLimit'
+				| 'type'
+				| 'quota'
+				| 'interval'
+				| 'membersLimit'
+				| 'errorsLimit'
+				| 'logsLimit'
 			>
 		}
 	workspace?: Types.Maybe<
@@ -3241,6 +3292,39 @@ export type IsBackendIntegratedQuery = { __typename?: 'Query' } & Pick<
 	'isBackendIntegrated'
 >
 
+export type GetClientIntegrationQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetClientIntegrationQuery = { __typename?: 'Query' } & {
+	clientIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
+	>
+}
+
+export type GetServerIntegrationQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetServerIntegrationQuery = { __typename?: 'Query' } & {
+	serverIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
+	>
+}
+
+export type GetLogsIntegrationQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetLogsIntegrationQuery = { __typename?: 'Query' } & {
+	logsIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
+	>
+}
+
 export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	lookBackPeriod: Types.Scalars['Int']
@@ -3601,6 +3685,81 @@ export type GetIdentifierSuggestionsQuery = { __typename?: 'Query' } & Pick<
 	'identifier_suggestion'
 >
 
+export type GetLogAlertQueryVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+}>
+
+export type GetLogAlertQuery = { __typename?: 'Query' } & {
+	log_alert: { __typename?: 'LogAlert' } & Pick<
+		Types.LogAlert,
+		| 'CountThreshold'
+		| 'DailyFrequency'
+		| 'disabled'
+		| 'EmailsToNotify'
+		| 'ExcludedEnvironments'
+		| 'id'
+		| 'LastAdminToEditID'
+		| 'Name'
+		| 'updated_at'
+		| 'BelowThreshold'
+		| 'ThresholdWindow'
+		| 'Type'
+		| 'query'
+	> & {
+			ChannelsToNotify: Array<
+				{ __typename?: 'SanitizedSlackChannel' } & Pick<
+					Types.SanitizedSlackChannel,
+					'webhook_channel' | 'webhook_channel_id'
+				>
+			>
+			DiscordChannelsToNotify: Array<
+				{
+					__typename?: 'DiscordChannel'
+				} & DiscordChannelFragmentFragment
+			>
+			WebhookDestinations: Array<
+				{ __typename?: 'WebhookDestination' } & Pick<
+					Types.WebhookDestination,
+					'url' | 'authorization'
+				>
+			>
+		}
+}
+
+export type GetLogAlertsPagePayloadQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetLogAlertsPagePayloadQuery = { __typename?: 'Query' } & {
+	is_integrated_with_slack: Types.Query['is_integrated_with']
+	is_integrated_with_discord: Types.Query['is_integrated_with']
+} & {
+	slack_channel_suggestion: Array<
+		{ __typename?: 'SanitizedSlackChannel' } & Pick<
+			Types.SanitizedSlackChannel,
+			'webhook_channel' | 'webhook_channel_id'
+		>
+	>
+	discord_channel_suggestions: Array<
+		{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
+	>
+	admins: Array<
+		{ __typename?: 'WorkspaceAdminRole' } & {
+			admin: { __typename?: 'Admin' } & Pick<
+				Types.Admin,
+				'id' | 'name' | 'email' | 'photo_url'
+			>
+		}
+	>
+	environment_suggestion?: Types.Maybe<
+		Array<
+			Types.Maybe<
+				{ __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+			>
+		>
+	>
+}
+
 export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -3748,6 +3907,37 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 								'tag' | 'op' | 'value'
 							>
 						>
+					>
+				}
+		>
+	>
+	log_alerts: Array<
+		Types.Maybe<
+			{ __typename?: 'LogAlert' } & Pick<
+				Types.LogAlert,
+				| 'CountThreshold'
+				| 'DailyFrequency'
+				| 'disabled'
+				| 'EmailsToNotify'
+				| 'ExcludedEnvironments'
+				| 'id'
+				| 'LastAdminToEditID'
+				| 'Name'
+				| 'updated_at'
+				| 'ThresholdWindow'
+				| 'Type'
+				| 'query'
+			> & {
+					ChannelsToNotify: Array<
+						{ __typename?: 'SanitizedSlackChannel' } & Pick<
+							Types.SanitizedSlackChannel,
+							'webhook_channel' | 'webhook_channel_id'
+						>
+					>
+					DiscordChannelsToNotify: Array<
+						{
+							__typename?: 'DiscordChannel'
+						} & DiscordChannelFragmentFragment
 					>
 				}
 		>
@@ -3996,6 +4186,7 @@ export type GetLogsQueryVariables = Types.Exact<{
 	after?: Types.Maybe<Types.Scalars['String']>
 	before?: Types.Maybe<Types.Scalars['String']>
 	at?: Types.Maybe<Types.Scalars['String']>
+	direction: Types.LogDirection
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
@@ -4021,6 +4212,22 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 			'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
 		>
 	}
+}
+
+export type GetSessionLogsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.LogsParamsInput
+}>
+
+export type GetSessionLogsQuery = { __typename?: 'Query' } & {
+	sessionLogs: Array<
+		{ __typename?: 'LogEdge' } & Pick<Types.LogEdge, 'cursor'> & {
+				node: { __typename?: 'Log' } & Pick<
+					Types.Log,
+					'timestamp' | 'level' | 'message'
+				>
+			}
+	>
 }
 
 export type GetLogsTotalCountQueryVariables = Types.Exact<{
@@ -4163,6 +4370,9 @@ export const namedOperations = {
 		GetErrorSegments: 'GetErrorSegments' as const,
 		IsIntegrated: 'IsIntegrated' as const,
 		IsBackendIntegrated: 'IsBackendIntegrated' as const,
+		GetClientIntegration: 'GetClientIntegration' as const,
+		GetServerIntegration: 'GetServerIntegration' as const,
+		GetLogsIntegration: 'GetLogsIntegration' as const,
 		GetKeyPerformanceIndicators: 'GetKeyPerformanceIndicators' as const,
 		GetReferrersCount: 'GetReferrersCount' as const,
 		GetNewUsersCount: 'GetNewUsersCount' as const,
@@ -4194,6 +4404,8 @@ export const namedOperations = {
 		GenerateNewZapierAccessTokenJwt:
 			'GenerateNewZapierAccessTokenJwt' as const,
 		GetIdentifierSuggestions: 'GetIdentifierSuggestions' as const,
+		GetLogAlert: 'GetLogAlert' as const,
+		GetLogAlertsPagePayload: 'GetLogAlertsPagePayload' as const,
 		GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
 		GetMetricMonitors: 'GetMetricMonitors' as const,
 		GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
@@ -4210,6 +4422,7 @@ export const namedOperations = {
 		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
+		GetSessionLogs: 'GetSessionLogs' as const,
 		GetLogsTotalCount: 'GetLogsTotalCount' as const,
 		GetLogsHistogram: 'GetLogsHistogram' as const,
 		GetLogsKeys: 'GetLogsKeys' as const,
@@ -4269,10 +4482,13 @@ export const namedOperations = {
 		UpdateErrorAlert: 'UpdateErrorAlert' as const,
 		DeleteErrorAlert: 'DeleteErrorAlert' as const,
 		DeleteSessionAlert: 'DeleteSessionAlert' as const,
+		UpdateLogAlert: 'UpdateLogAlert' as const,
+		CreateLogAlert: 'CreateLogAlert' as const,
+		DeleteLogAlert: 'DeleteLogAlert' as const,
+		UpdateLogAlertIsDisabled: 'UpdateLogAlertIsDisabled' as const,
 		UpdateSessionAlertIsDisabled: 'UpdateSessionAlertIsDisabled' as const,
 		UpdateMetricMonitorIsDisabled: 'UpdateMetricMonitorIsDisabled' as const,
 		UpdateErrorAlertIsDisabled: 'UpdateErrorAlertIsDisabled' as const,
-		CreateDefaultAlerts: 'CreateDefaultAlerts' as const,
 		CreateSessionAlert: 'CreateSessionAlert' as const,
 		UpdateSessionAlert: 'UpdateSessionAlert' as const,
 		UpdateSessionIsPublic: 'UpdateSessionIsPublic' as const,

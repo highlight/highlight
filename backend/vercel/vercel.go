@@ -7,6 +7,8 @@ import (
 	"github.com/go-chi/chi"
 	model2 "github.com/highlight-run/highlight/backend/model"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -223,12 +225,14 @@ func GetProjects(accessToken string, teamId *string) ([]*model.VercelProject, er
 	return projects, nil
 }
 
-func CreateLogDrain(vercelTeamID *string, vercelProjectID string, projectVerboseID string, name string, accessToken string) error {
+func CreateLogDrain(vercelTeamID *string, vercelProjectIDs []string, projectVerboseID string, name string, accessToken string) error {
 	client := &http.Client{}
 
 	headers := fmt.Sprintf(`{"%s":"%s"}`, VercelLogDrainProjectHeader, projectVerboseID)
-	projectIds := fmt.Sprintf(`["%s"]`, vercelProjectID)
-	body := fmt.Sprintf(`{"url":"https://pub.highlight.run/vercel/v1/logs","name":"%s","headers":%s,"projectIds":%s,"deliveryFormat":"ndjson"}`, name, headers, projectIds)
+	projectIds := fmt.Sprintf(`[%s]`, strings.Join(lo.Map(vercelProjectIDs, func(t string, i int) string {
+		return fmt.Sprintf("\"%s\"", t)
+	}), ","))
+	body := fmt.Sprintf(`{"url":"https://pub.highlight.run/vercel/v1/logs", "name":"%s", "headers":%s, "projectIds":%s, "deliveryFormat":"ndjson", "secret": "%s", "sources": ["static", "lambda", "edge", "build", "external"]}`, name, headers, projectIds, projectVerboseID)
 	u := fmt.Sprintf("%s/v2/integrations/log-drains", VercelApiBaseUrl)
 	if vercelTeamID != nil {
 		u = fmt.Sprintf("%s?teamId=%s", u, *vercelTeamID)
@@ -298,6 +302,7 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 
 func Listen(r *chi.Mux) {
 	r.Route("/vercel/v1", func(r chi.Router) {
+		r.Use(highlightChi.Middleware)
 		r.HandleFunc("/logs", HandleLog)
 	})
 }

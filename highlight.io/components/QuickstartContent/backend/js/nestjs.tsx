@@ -6,7 +6,7 @@ import { jsGetSnippet, manualError, verifyError } from './shared-snippets'
 export const JSNestContent: QuickStartContent = {
 	title: 'Nest.js',
 	subtitle: 'Learn how to set up highlight.io in Nest.js.',
-	logoUrl: siteUrl('/images/quickstart/nest.svg'),
+	logoUrl: siteUrl('/images/quickstart/nestjs.svg'),
 	entries: [
 		frontendInstallSnippet,
 		jsGetSnippet(['nest']),
@@ -17,14 +17,12 @@ export const JSNestContent: QuickStartContent = {
 			code: {
 				text: `import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
-import { HighlightErrorFilter } from '@highlight-run/nest'
+import { HighlightInterceptor } from '@highlight-run/nest'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
   const highlightOpts = { projectID: 'YOUR_PROJECT_ID' }
-  app.useGlobalFilters(
-    new HighlightErrorFilter(app.get(HttpAdapterHost), highlightOpts),
-  )
+  app.useGlobalInterceptors(new HighlightInterceptor(highlightOpts))
   await app.listen(3000)
 }
 bootstrap()

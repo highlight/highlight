@@ -102,7 +102,7 @@ export const getHighlightRequestId = (resource?: NetworkResource) => {
 
 export enum Tab {
 	Errors = 'Errors',
-	Console = 'Console',
+	Console = 'Console Logs',
 	Network = 'Network',
 	Events = 'Events',
 }
@@ -110,7 +110,6 @@ export enum Tab {
 export enum LogLevel {
 	All = 'All',
 	Info = 'Info',
-	Log = 'Log',
 	Warn = 'Warn',
 	Error = 'Error',
 }
@@ -118,17 +117,16 @@ export enum LogLevel {
 export const LogLevelVariants = {
 	[LogLevel.All]: 'white',
 	[LogLevel.Info]: 'white',
-	[LogLevel.Log]: 'blue',
 	[LogLevel.Warn]: 'yellow',
 	[LogLevel.Error]: 'red',
 } as const
 
 export enum RequestType {
-	//-- [displayName]: requestName --//
+	/* [displayName]: requestName */
 	All = 'All',
 	CSS = 'css',
 	Fetch = 'fetch',
-	iFrame = 'iframe', // didn't find a request to verify that 'iframe' is what is actually received
+	iFrame = 'iframe' /* didn't find a request to verify that 'iframe' is what is actually received */,
 	Img = 'img',
 	Link = 'link',
 	Other = 'other',
@@ -146,6 +144,20 @@ export interface ICountPerRequestType {
 	other: number
 	script: number
 	xmlhttprequest: number
+}
+
+export enum RequestStatus {
+	All = 'All',
+	'1XX' = '1XX',
+	'2XX' = '2XX',
+	'3XX' = '3XX',
+	'4XX' = '4XX',
+	'5XX' = '5XX',
+	'Unknown' = 'Unknown',
+}
+
+export type ICountPerRequestStatus = {
+	[key in RequestStatus]: number
 }
 
 export const getNetworkResourcesDisplayName = (value: string): string => {

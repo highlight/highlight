@@ -23,7 +23,7 @@ import (
 )
 
 // InitializeSession is the resolver for the initializeSession field.
-func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, clientID string, networkRecordingDomains []string) (*customModels.InitializeSessionResponse, error) {
+func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool) (*customModels.InitializeSessionResponse, error) {
 	s, _ := tracer.StartSpanFromContext(ctx, "InitializeSession", tracer.ResourceName("gql.initializeSession"))
 	s.SetTag("secure_id", sessionSecureID)
 	s.SetTag("client_version", clientVersion)
@@ -56,6 +56,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 				IP:                             ip,
 				ClientID:                       clientID,
 				NetworkRecordingDomains:        networkRecordingDomains,
+				DisableSessionRecording:        disableSessionRecording,
 			},
 		}, sessionSecureID)
 		if err == nil {
@@ -160,18 +161,27 @@ func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customMod
 }
 
 // MarkBackendSetup is the resolver for the markBackendSetup field.
-func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string) (interface{}, error) {
+func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string, typeArg *string) (interface{}, error) {
 	var partitionKey string
 	if sessionSecureID != nil {
 		partitionKey = *sessionSecureID
 	} else if projectID != nil {
 		partitionKey = uuid.New().String()
 	}
+
+	var setupType string
+	if typeArg != nil {
+		setupType = *typeArg
+	} else {
+		setupType = model.MarkBackendSetupTypeGeneric
+	}
+
 	err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
 		Type: kafkaqueue.MarkBackendSetup,
 		MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 			ProjectVerboseID: projectID,
 			SessionSecureID:  sessionSecureID,
+			Type:             setupType,
 		}}, partitionKey)
 	return nil, err
 }

@@ -16,7 +16,7 @@ import React, { FunctionComponent, useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
 import ReactMarkdown from 'react-markdown'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 
 import ButtonLink from '../../components/Button/ButtonLink/ButtonLink'
 import Collapsible from '../../components/Collapsible/Collapsible'
@@ -25,7 +25,6 @@ import LeadAlignLayout from '../../components/layout/LeadAlignLayout'
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 import { ReactComponent as CheckIcon } from '../../static/verify-check-icon.svg'
 import { CodeBlock } from './CodeBlock/CodeBlock'
-import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector'
 import styles from './SetupPage.module.scss'
 
 interface SetupStep {
@@ -50,33 +49,19 @@ type Guide = {
 	}>
 }
 
-type Section = {
-	title: string
-	subtitle: string
-}
-
 type Guides = {
 	client: {
+		[key: string]: Guide
+	}
+	server: {
 		[key: string]: {
 			[key: string]: Guide
-		} & Section
-	} & Section
-	backend: {
-		[key: string]: {
-			[key: string]: Guide
-		} & Section
-	} & Section
-	['backend-logging']: {
-		[key: string]: {
-			[key: string]: Guide
-		} & Section
-	} & Section
+		}
+	}
 	other: {
 		[key: string]: Guide
 	}
 }
-
-const IGNORED_KEYS = ['title', 'subtitle', 'logoUrl']
 
 const SetupPage = ({ integrated }: { integrated: boolean }) => {
 	const navigate = useNavigate()
@@ -242,14 +227,14 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 											data.project.verbose_id
 										}
 										integrated={integrated}
-										docs={docs.client['js']}
+										docs={docs.client}
 									/>
 								)}
 								{step === 'backend' && (
 									<BackendSetup
 										projectData={data}
 										integrated={isBackendIntegrated}
-										docs={docs.backend}
+										docs={docs.server}
 									/>
 								)}
 								{step === 'more' && (
@@ -278,21 +263,14 @@ const ClientSetup = ({
 	project_id: string
 	projectVerboseId: string
 	integrated: boolean
-	docs: Guides['client']['js']
+	docs: Guides['client']
 }) => {
-	const frameworkKeys = Object.keys(docs).filter(
-		(k) => IGNORED_KEYS.indexOf(k) === -1,
-	)
+	const frameworkKeys = Object.keys(docs)
 	const [framework, setFramework] = useLocalStorage<string>(
-		`selectedDocsClientFramework-${project_id}`,
+		`selectedSetupClientFramework-${project_id}`,
 		frameworkKeys[0],
 	)
 	const guide = docs[framework]
-
-	if (!guide) {
-		setFramework(frameworkKeys[0])
-		return null
-	}
 
 	return (
 		<>
@@ -355,12 +333,6 @@ const ClientSetup = ({
 					title={
 						<span className={styles.sectionTitleWithIcon}>
 							Verify Installation
-							{integrated && (
-								<IntegrationDetector
-									verbose={false}
-									integrated={integrated}
-								/>
-							)}
 						</span>
 					}
 					id="highlightIntegration"
@@ -371,10 +343,6 @@ const ClientSetup = ({
 						detect installation.
 					</p>
 					<div className={styles.integrationContainer}>
-						<IntegrationDetector
-							integrated={integrated}
-							verbose={true}
-						/>
 						{integrated && (
 							<ButtonLink
 								to={`/${project_id}/sessions`}
@@ -469,27 +437,19 @@ const BackendSetup = ({
 }: {
 	projectData: GetProjectQuery | undefined
 	integrated: boolean
-	docs: Guides['backend']
+	docs: Guides['server']
 }) => {
-	const languageKeys = Object.keys(docs).filter(
-		(k) => IGNORED_KEYS.indexOf(k) === -1,
-	)
+	const languageKeys = Object.keys(docs)
 	const languageValues = languageKeys.map((k) => capitalize(k))
-
 	const [language, setLanguage] = useLocalStorage<string>(
-		`selectedDocsLanguage-${projectData?.project?.id}`,
+		`selectedSetupLanguage-${projectData?.project?.id}`,
 		languageKeys[0],
 	)
-
-	if (!docs[language]) {
-		setLanguage('client')
-		return null
-	}
 
 	return (
 		<>
 			<Helmet>
-				<title>Setup: {docs[language].title}</title>
+				<title>Setup: {language}</title>
 			</Helmet>
 
 			<div className={styles.headingWrapper}>
@@ -517,16 +477,14 @@ const BackendSetup = ({
 }
 
 const Framework: React.FC<{
-	docs: Guides['backend']
+	docs: Guides['server']
 	integrated: boolean
 	language: string
 	projectData: GetProjectQuery | undefined
-}> = ({ docs, integrated, language, projectData }) => {
-	const frameworkKeys = Object.keys(docs[language]).filter(
-		(k) => IGNORED_KEYS.indexOf(k) === -1,
-	)
+}> = ({ docs, language, projectData }) => {
+	const frameworkKeys = Object.keys(docs[language])
 	const [framework, setFramework] = useLocalStorage<string>(
-		`selectedDocsFramework-${projectData?.project?.id}`,
+		`selectedSetupFramework-${projectData?.project?.id}`,
 		frameworkKeys[0],
 	)
 	const guide = docs[language] && docs[language][framework]
@@ -543,14 +501,14 @@ const Framework: React.FC<{
 		<>
 			<RadioGroup<string>
 				style={{ marginBottom: 20 }}
-				selectedLabel={getFrameworkTitle(language, guide.title)}
+				selectedLabel={getBackendFrameworkTitle(language, guide.title)}
 				labels={frameworkKeys.map((k) =>
-					getFrameworkTitle(language, docs[language][k].title),
+					getBackendFrameworkTitle(language, docs[language][k].title),
 				)}
 				onSelect={(l) => {
 					const frameworkKey = frameworkKeys.find(
 						(k) =>
-							getFrameworkTitle(
+							getBackendFrameworkTitle(
 								language,
 								docs[language][k].title,
 							) === l,
@@ -614,12 +572,6 @@ const Framework: React.FC<{
 					title={
 						<span className={styles.sectionTitleWithIcon}>
 							Verify Backend Installation
-							{integrated && (
-								<IntegrationDetector
-									verbose={false}
-									integrated={integrated}
-								/>
-							)}
 						</span>
 					}
 					id="highlightIntegration"
@@ -629,12 +581,7 @@ const Framework: React.FC<{
 						Highlight on your backend. It should take less than a
 						minute for us to detect installation.
 					</p>
-					<div className={styles.integrationContainer}>
-						<IntegrationDetector
-							integrated={integrated}
-							verbose={true}
-						/>
-					</div>
+					<div className={styles.integrationContainer}></div>
 				</Section>
 				<Section
 					title={
@@ -716,7 +663,6 @@ const Framework: React.FC<{
 const MoreSetup = ({
 	project_id,
 	projectData,
-	integrated,
 }: {
 	project_id: string
 	projectData: GetProjectQuery | undefined
@@ -735,12 +681,8 @@ const MoreSetup = ({
 					title={
 						<span className={styles.sectionTitleWithIcon}>
 							Enable Slack Alerts
-							{projectData?.workspace?.slack_webhook_channel ? (
-								<IntegrationDetector
-									verbose={false}
-									integrated={integrated}
-								/>
-							) : (
+							{projectData?.workspace
+								?.slack_webhook_channel ? null : (
 								<SvgSlackLogo height="15" width="15" />
 							)}
 						</span>
@@ -893,16 +835,6 @@ const MoreSetup = ({
 	)
 }
 
-const getFrameworkTitle = (language: string, framework: string) => {
-	const languageTitle = capitalize(language)
-
-	if (framework.startsWith(`${languageTitle} `)) {
-		// Clean up `Python Flask` to `Flask`
-		framework = framework.replace(`${languageTitle} `, '')
-	}
-	return framework
-}
-
 type SectionProps = {
 	title: string | React.ReactNode
 	id?: string
@@ -917,6 +849,16 @@ export const Section: FunctionComponent<
 			{children}
 		</Collapsible>
 	)
+}
+
+const getBackendFrameworkTitle = (language: string, framework: string) => {
+	const languageTitle = capitalize(language)
+
+	if (framework.startsWith(`${languageTitle} `)) {
+		// Clean up `Python Flask` to `Flask`
+		framework = framework.replace(`${languageTitle} `, '')
+	}
+	return framework
 }
 
 // Copied from RadioGroup.tsx for now. Will refactor and break out to a separate

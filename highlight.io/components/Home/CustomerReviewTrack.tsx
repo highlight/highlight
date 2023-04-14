@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { CustomerReview } from '../../pages'
 import styles from './Home.module.scss'
 import { REVIEWS } from './Reviews'
@@ -38,9 +38,8 @@ export const CustomerReviewTrack = () => {
 				setScrollReviews(entry.isIntersecting)
 			},
 			{
-				root: null,
 				rootMargin: '250px 0px',
-				threshold: 0,
+				threshold: 0.00001,
 			},
 		)
 

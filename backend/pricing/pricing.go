@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/model"
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -16,6 +17,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
@@ -34,6 +36,7 @@ const (
 	ProductTypeMembers  ProductType = "MEMBERS"
 	ProductTypeSessions ProductType = "SESSIONS"
 	ProductTypeErrors   ProductType = "ERRORS"
+	ProductTypeLogs     ProductType = "LOGS"
 )
 
 type SubscriptionInterval string
@@ -71,7 +74,7 @@ func GetWorkspaceErrorsMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 	var meter int64
 	if err := DB.Raw(`
 			SELECT COALESCE(SUM(count), 0) as currentPeriodErrorsCount
-			FROM daily_error_counts
+			FROM daily_error_counts_view
 			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=? AND free_tier = false)
 			AND date >= (
 				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
@@ -85,6 +88,56 @@ func GetWorkspaceErrorsMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 		return 0, e.Wrap(err, "error querying for session meter")
 	}
 	return meter, nil
+}
+
+func GetWorkspaceLogsMeter(ctx context.Context, ccClient *clickhouse.Client, workspace model.Workspace) (int64, error) {
+	var startDate time.Time
+	if workspace.NextInvoiceDate != nil {
+		startDate = workspace.NextInvoiceDate.AddDate(0, -1, 0)
+	} else if workspace.BillingPeriodStart != nil {
+		startDate = *workspace.BillingPeriodStart
+	} else {
+		currentYear, currentMonth, _ := time.Now().Date()
+		startDate = time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC)
+	}
+
+	var endDate time.Time
+	if workspace.NextInvoiceDate != nil {
+		endDate = *workspace.NextInvoiceDate
+	} else if workspace.BillingPeriodEnd != nil {
+		endDate = *workspace.BillingPeriodEnd
+	} else {
+		currentYear, currentMonth, _ := time.Now().Date()
+		endDate = time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 1, 0)
+	}
+
+	counts := make([]uint64, len(workspace.Projects))
+	var g errgroup.Group
+	for idx, p := range workspace.Projects {
+		idx := idx
+		p := p
+		g.Go(func() error {
+			count, err := ccClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{
+				DateRange: &backend.DateRangeRequiredInput{StartDate: startDate, EndDate: endDate}})
+			if err != nil {
+				return err
+			}
+			counts[idx] = count
+			return nil
+		})
+	}
+
+	err := g.Wait()
+	if err != nil {
+		return 0, err
+	}
+
+	var count int64
+	for _, c := range counts {
+		count += int64(c)
+	}
+
+	return count, nil
 }
 
 func GetProjectQuotaOverflow(ctx context.Context, DB *gorm.DB, projectID int) (int64, error) {
@@ -150,6 +203,23 @@ func TypeToErrorsLimit(planType backend.PlanType) int {
 		return 600000
 	default:
 		return 1000
+	}
+}
+
+func TypeToLogsLimit(planType backend.PlanType) int {
+	switch planType {
+	case backend.PlanTypeFree:
+		return 1000000
+	case backend.PlanTypeLite:
+		return 4000000
+	case backend.PlanTypeBasic:
+		return 20000000
+	case backend.PlanTypeStartup:
+		return 160000000
+	case backend.PlanTypeEnterprise:
+		return 600000000
+	default:
+		return 1000000
 	}
 }
 
@@ -268,26 +338,34 @@ func FillProducts(stripeClient *client.API, subscriptions []*stripe.Subscription
 }
 
 // Returns the Stripe Prices for the associated tier and interval
-func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (map[ProductType]*stripe.Price, error) {
-	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval, unlimitedMembers, retentionPeriod)
+func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool, retentionPeriod *backend.RetentionPeriod) (map[ProductType]*stripe.Price, error) {
+	// Default to the `RetentionPeriodThreeMonths` prices for customers grandfathered into 6 month retention
+	rp := backend.RetentionPeriodThreeMonths
+	if retentionPeriod != nil {
+		rp = *retentionPeriod
+	}
+	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval, unlimitedMembers, rp)
 
-	sessionsLookupKey := GetOverageKey(ProductTypeSessions, retentionPeriod)
+	sessionsLookupKey := GetOverageKey(ProductTypeSessions, rp)
 	membersLookupKey := string(ProductTypeMembers)
-	errorsLookupKey := GetOverageKey(ProductTypeErrors, retentionPeriod)
+	errorsLookupKey := GetOverageKey(ProductTypeErrors, rp)
+	logsLookupKey := string(ProductTypeLogs)
 
 	priceListParams := stripe.PriceListParams{}
-	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey}
+	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey, &logsLookupKey}
 	prices := stripeClient.Prices.List(&priceListParams).PriceList().Data
 
 	// Validate that we received exactly 1 response for each lookup key
-	if len(prices) != 4 {
+	expected := len(priceListParams.LookupKeys)
+	actual := len(prices)
+	if expected != actual {
 		searchedKeys := lo.Map(priceListParams.LookupKeys, func(key *string, _ int) string {
 			return *key
 		})
 		foundKeys := lo.Map(prices, func(price *stripe.Price, _ int) string {
 			return price.LookupKey
 		})
-		return nil, e.Errorf("expected 4 prices, received %d; searched %#v, found %#v", len(prices), searchedKeys, foundKeys)
+		return nil, e.Errorf("expected %d prices, received %d; searched %#v, found %#v", expected, actual, searchedKeys, foundKeys)
 	}
 
 	priceMap := map[ProductType]*stripe.Price{}
@@ -301,25 +379,32 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 			priceMap[ProductTypeMembers] = price
 		case errorsLookupKey:
 			priceMap[ProductTypeErrors] = price
+		case logsLookupKey:
+			priceMap[ProductTypeLogs] = price
 		}
 	}
 
-	if len(priceMap) != 4 {
+	if len(priceMap) != expected {
 		return nil, e.New("one or more prices was not found")
 	}
 
 	return priceMap, nil
 }
 
-func ReportUsageForWorkspace(ctx context.Context, DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Client, workspaceID int) error {
-	return reportUsage(ctx, DB, stripeClient, mailClient, workspaceID, nil)
+func ReportUsageForWorkspace(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, stripeClient *client.API, mailClient *sendgrid.Client, workspaceID int) error {
+	return reportUsage(ctx, DB, ccClient, stripeClient, mailClient, workspaceID, nil)
 }
 
-func reportUsage(ctx context.Context, DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Client, workspaceID int, productType *ProductType) error {
+func reportUsage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, stripeClient *client.API, mailClient *sendgrid.Client, workspaceID int, productType *ProductType) error {
 	var workspace model.Workspace
 	if err := DB.Model(&workspace).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
 		return e.Wrap(err, "error querying workspace")
 	}
+	var projects []model.Project
+	if err := DB.Model(&model.Project{}).Where("workspace_id = ?", workspaceID).Find(&projects).Error; err != nil {
+		return e.Wrap(err, "error querying projects in workspace")
+	}
+	workspace.Projects = projects
 
 	// If the trial end date is recent (within the past 7 days) or it hasn't ended yet
 	// The 7 day check is to avoid sending emails to customers whose trials ended long ago
@@ -421,11 +506,7 @@ func reportUsage(ctx context.Context, DB *gorm.DB, stripeClient *client.API, mai
 		}
 	}
 
-	retentionPeriod := backend.RetentionPeriodSixMonths
-	if workspace.RetentionPeriod != nil {
-		retentionPeriod = *workspace.RetentionPeriod
-	}
-	prices, err := GetStripePrices(stripeClient, *productTier, interval, workspace.UnlimitedMembers, retentionPeriod)
+	prices, err := GetStripePrices(stripeClient, *productTier, interval, workspace.UnlimitedMembers, workspace.RetentionPeriod)
 	if err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to get Stripe prices")
 	}
@@ -492,6 +573,19 @@ func reportUsage(ctx context.Context, DB *gorm.DB, stripeClient *client.API, mai
 		return e.Wrap(err, "error updating overage item")
 	}
 
+	// Update logs overage
+	logsMeter, err := GetWorkspaceLogsMeter(ctx, ccClient, workspace)
+	if err != nil {
+		return e.Wrap(err, "error getting errors meter")
+	}
+	logsLimit := TypeToLogsLimit(backend.PlanType(workspace.PlanTier))
+	if workspace.MonthlyLogsLimit != nil {
+		errorsLimit = *workspace.MonthlyErrorsLimit
+	}
+	if err := AddOrUpdateOverageItem(stripeClient, &workspace, prices[ProductTypeLogs], invoiceLines[ProductTypeLogs], c, subscription, &logsLimit, logsMeter); err != nil {
+		return e.Wrap(err, "error updating overage item")
+	}
+
 	return nil
 }
 
@@ -527,7 +621,7 @@ func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace
 	return nil
 }
 
-func ReportAllUsage(ctx context.Context, DB *gorm.DB, stripeClient *client.API, mailClient *sendgrid.Client) {
+func ReportAllUsage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, stripeClient *client.API, mailClient *sendgrid.Client) {
 	// Get all workspace IDs
 	var workspaceIDs []int
 	if err := DB.Raw(`
@@ -541,7 +635,7 @@ func ReportAllUsage(ctx context.Context, DB *gorm.DB, stripeClient *client.API, 
 	}
 
 	for _, workspaceID := range workspaceIDs {
-		if err := reportUsage(ctx, DB, stripeClient, mailClient, workspaceID, nil); err != nil {
+		if err := reportUsage(ctx, DB, ccClient, stripeClient, mailClient, workspaceID, nil); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "error reporting usage for workspace %d", workspaceID))
 		}
 	}

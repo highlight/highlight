@@ -4,7 +4,8 @@ import LoadingBox from '@components/LoadingBox'
 import clsx from 'clsx'
 import React, { useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
-import { styledVerticalScrollbar } from 'style/common.css'
+
+import { styledVerticalScrollbar } from '@/style/common.css'
 
 import styles from './FullCommentList.module.scss'
 

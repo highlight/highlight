@@ -35,7 +35,7 @@ updatedAt: 2022-08-18T22:36:12.000Z
 ### Features
 
 <DocsCardGroup>
-    <DocsCard title="Sesion Replay." href="./6_product-features/1_session-replay/1_overview.md">
+    <DocsCard title="Session Replay." href="./6_product-features/1_session-replay/1_overview.md">
         {"Session replay features, how to get started, etc.."}
     </DocsCard>
     <DocsCard title="Error Monitoring."  href="./6_product-features/2_error-monitoring/1_overview.md">

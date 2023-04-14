@@ -1,5 +1,7 @@
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { useParams as ReactRouterUseParams } from 'react-router'
+// This is the implementation for our custom useParams, exempting from rule
+// eslint-disable-next-line no-restricted-imports
+import { useParams as ReactRouterUseParams } from 'react-router-dom'
 import validator from 'validator'
 
 /**

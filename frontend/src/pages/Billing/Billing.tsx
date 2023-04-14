@@ -171,7 +171,7 @@ const BillingPage = () => {
 	} = useBillingHook({ workspace_id: workspaceId })
 
 	const [createOrUpdateStripeSubscription, { data }] =
-		useCreateOrUpdateStripeSubscriptionMutation()
+		useCreateOrUpdateStripeSubscriptionMutation({ fetchPolicy: 'no-cache' })
 
 	const [updateBillingDetails] = useUpdateBillingDetailsMutation()
 
@@ -353,6 +353,8 @@ const BillingPage = () => {
 				memberLimit={billingData?.billingDetails.plan.membersLimit ?? 0}
 				errorsCount={billingData?.billingDetails.errorsMeter ?? 0}
 				errorsLimit={billingData?.billingDetails.plan.errorsLimit ?? 0}
+				logsCount={billingData?.billingDetails.logsMeter ?? 0}
+				logsLimit={billingData?.billingDetails.plan.logsLimit ?? 0}
 				subscriptionInterval={
 					billingData?.billingDetails.plan.interval ??
 					SubscriptionInterval.Monthly
@@ -438,6 +440,8 @@ const BillingPage = () => {
 							</span>
 							<div>
 								Choose your retention for sessions and errors.
+								<br />
+								Logs are retained for 30 days.
 							</div>
 							<RadioGroup
 								style={{ marginTop: 20, marginBottom: 20 }}
@@ -461,6 +465,26 @@ const BillingPage = () => {
 									}
 								}}
 							/>
+						</label>
+					</div>
+					<div className={styles.contactSalesBox}>
+						<label>
+							<span className={styles.annualToggleText}>
+								Contact Sales
+							</span>
+							<div>
+								If you have questions about the plans listed
+								here, or you're expecting to have a high usage
+								volume, you can{' '}
+								<a
+									className={styles.contact}
+									href="mailto:sales@highlight.run"
+									type="default"
+								>
+									reach out to us
+								</a>
+								.
+							</div>
 						</label>
 					</div>
 				</div>

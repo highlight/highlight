@@ -1,5 +1,8 @@
 import { vars } from '@highlight-run/ui'
+import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
 import { globalStyle, style } from '@vanilla-extract/css'
+
+import { styledVerticalScrollbar } from '@/style/common.css'
 
 export const searchIcon = style({
 	position: 'absolute',
@@ -7,20 +10,24 @@ export const searchIcon = style({
 	left: 14,
 })
 
-export const combobox = style({
-	background: 'transparent',
-	border: 0,
-	color: vars.theme.static.content.default,
-	display: 'flex',
-	fontSize: 13,
-	padding: '6px 0 6px 40px',
-	width: '100%',
-	selectors: {
-		'&:focus': {
-			outline: 0,
+export const combobox = style([
+	sprinkles({
+		py: '6',
+	}),
+	{
+		background: 'transparent',
+		border: 0,
+		color: vars.theme.static.content.default,
+		display: 'flex',
+		fontSize: 13,
+		width: '100%',
+		selectors: {
+			'&:focus': {
+				outline: 0,
+			},
 		},
 	},
-})
+])
 
 export const comboboxInput = globalStyle(`${combobox}::placeholder`, {
 	color: vars.theme.interactive.fill.secondary.content.onDisabled,
@@ -34,9 +41,8 @@ export const comboboxPopover = style({
 	display: 'flex',
 	flexDirection: 'column',
 	flexGrow: 1,
-	left: 6,
-	right: 0,
 	maxWidth: 600,
+	maxHeight: 'min(var(--popover-available-height,300px),300px)',
 	zIndex: 1,
 })
 
@@ -53,10 +59,17 @@ export const comboboxItem = style({
 	},
 })
 
-export const comboboxGroup = style({
-	selectors: {
-		'& + &': {
-			borderTop: vars.border.secondary,
+export const comboboxGroup = style([
+	sprinkles({
+		overflowY: 'scroll',
+		overflowX: 'hidden',
+	}),
+	styledVerticalScrollbar,
+	{
+		selectors: {
+			'& + &': {
+				borderTop: vars.border.secondary,
+			},
 		},
 	},
-})
+])

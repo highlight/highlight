@@ -1,7 +1,7 @@
 import { useGetLogsErrorObjectsQuery, useGetLogsLazyQuery } from '@graph/hooks'
 import { LogEdge, PageInfo } from '@graph/schemas'
 import * as Types from '@graph/schemas'
-import { FORMAT } from '@pages/LogsPage/constants'
+import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import {
 	buildLogsQueryForServer,
 	parseLogsQuery,
@@ -53,11 +53,12 @@ export const useGetLogs = ({
 			variables: {
 				project_id: project_id!,
 				at: logCursor,
+				direction: Types.LogDirection.Desc,
 				params: {
 					query: serverQuery,
 					date_range: {
-						start_date: moment(startDate).format(FORMAT),
-						end_date: moment(endDate).format(FORMAT),
+						start_date: moment(startDate).format(LOG_TIME_FORMAT),
+						end_date: moment(endDate).format(LOG_TIME_FORMAT),
 					},
 				},
 			},
