@@ -61,9 +61,9 @@ type Queue struct {
 }
 
 type MessageQueue interface {
-	Stop()
-	Receive() *Message
-	Submit(*Message, int)
+	Stop(context.Context)
+	Receive(context.Context) *Message
+	Submit(context.Context, *Message, string) error
 	LogStats()
 }
 

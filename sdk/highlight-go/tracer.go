@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
@@ -149,5 +150,30 @@ func GraphQLRecoverFunc() graphql.RecoverFunc {
 		}
 		RecordError(ctx, e, attribute.String(SourceAttribute, "GraphQLRecoverFunc"))
 		return e
+	}
+}
+
+func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *gqlerror.Error {
+	return func(ctx context.Context, e error) *gqlerror.Error {
+		var gqlerr *gqlerror.Error
+		switch t := e.(type) {
+		case *gqlerror.Error:
+			gqlerr = t
+			log.WithContext(ctx).WithError(t).WithFields(log.Fields{
+				"message":    t.Message,
+				"rule":       t.Rule,
+				"path":       t.Path,
+				"extensions": t.Extensions,
+				"locations":  t.Locations,
+			}).Warnf("%s graphql request failed", service)
+		default:
+			gqlerr = gqlerror.Errorf(e.Error())
+			log.WithContext(ctx).WithFields(log.Fields{
+				"error": e,
+				"path":  graphql.GetPath(ctx),
+			}).Warnf("%s graphql request failed", service)
+		}
+
+		return gqlerr
 	}
 }

@@ -225,7 +225,7 @@ func GetProjects(accessToken string, teamId *string) ([]*model.VercelProject, er
 	return projects, nil
 }
 
-func CreateLogDrain(vercelTeamID *string, vercelProjectIDs []string, projectVerboseID string, name string, accessToken string) error {
+func CreateLogDrain(ctx context.Context, vercelTeamID *string, vercelProjectIDs []string, projectVerboseID string, name string, accessToken string) error {
 	client := &http.Client{}
 
 	headers := fmt.Sprintf(`{"%s":"%s"}`, VercelLogDrainProjectHeader, projectVerboseID)
@@ -252,7 +252,7 @@ func CreateLogDrain(vercelTeamID *string, vercelProjectIDs []string, projectVerb
 	b, err := io.ReadAll(res.Body)
 
 	if res.StatusCode != 200 {
-		log.WithContext(context.TODO()).WithField("Body", string(b)).
+		log.WithContext(ctx).WithField("Body", string(b)).
 			WithField("Url", u).
 			Errorf("Vercel Log Drain API responded with error")
 		return errors.New("Vercel Log Drain API responded with error; status_code=" + res.Status + "; body=" + string(b))
@@ -268,7 +268,7 @@ func CreateLogDrain(vercelTeamID *string, vercelProjectIDs []string, projectVerb
 func HandleLog(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.WithContext(context.TODO()).Error(err, "invalid vercel logs body")
+		log.WithContext(r.Context()).WithError(err).Error("invalid vercel logs body")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -281,17 +281,21 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 		}
 		var l hlog.VercelLog
 		if err := json.Unmarshal([]byte(j), &l); err != nil {
-			log.WithContext(context.TODO()).Errorf("failed to unmarshal vercel logs %s: %s", err, j)
+			log.WithContext(r.Context()).WithError(err).WithField("payload", j).Error("failed to unmarshal vercel logs")
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		logs = append(logs, l)
+		if l.Message != "" {
+			logs = append(logs, l)
+		} else {
+			log.WithContext(r.Context()).WithField("log", l).Warn("received empty log message from vercel")
+		}
 	}
 
 	projectVerboseID := r.Header.Get(VercelLogDrainProjectHeader)
 	projectID, err := model2.FromVerboseID(projectVerboseID)
 	if err != nil {
-		log.WithContext(context.TODO()).Error(err, "failed to parse highlight project id from vercel request")
+		log.WithContext(r.Context()).WithError(err).WithField("projectVerboseID", projectVerboseID).Error("failed to parse highlight project id from vercel request")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
