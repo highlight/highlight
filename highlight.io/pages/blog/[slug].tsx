@@ -236,6 +236,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		}
 	}
 
+	console.log(data.post.richcontent.markdown)
 	const postSections: PostSection[] = []
 	let currentBlock: ElementNode[] = []
 	for (const r of data.post.richcontent.raw.children) {
@@ -476,7 +477,43 @@ const PostPage = ({
 							postSections?.map((p, idx) => (
 								<PostSection key={idx} idx={idx} p={p} />
 							))}
-						{source && <MDXRemote {...source} />}
+						{source && (
+							<MDXRemote
+								{...source}
+								components={{
+									p: (props) => {
+										return (
+											<p
+												className={styles.blogText}
+												{...props}
+											></p>
+										)
+									},
+									h1: (props) => <h4 {...props} />,
+									h2: (props) => {
+										return (
+											<h2
+												className={styles.blogText}
+												{...props}
+											></h2>
+										)
+									},
+									h3: (props) => <h6 {...props} />,
+									h4: (props) => <h6 {...props} />,
+									h5: (props) => <h6 {...props} />,
+									code: (props) => {
+										// check if props.children is a string
+										return (
+											<HighlightCodeBlock
+												language={'js'}
+												text={'HI HI HI'}
+												showLineNumbers={false}
+											/>
+										)
+									},
+								}}
+							/>
+						)}
 					</div>
 				</Section>
 				<Section>
