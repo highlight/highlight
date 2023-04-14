@@ -1,4 +1,3 @@
-import { QuestionMarkCircleIcon } from '@heroicons/react/20/solid'
 import Image from 'next/image'
 import {
 	HiCheckCircle,
@@ -78,8 +77,6 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 									{row.feature}
 								</Typography>
 								<div className="flex items-center">
-									<QuestionMarkCircleIcon className="h-5 w-5 mr-2 text-copy-on-light " />
-
 									<div
 										className={`bg-divider-on-dark px-2 py-2 w-[50px] md:w-[200px] border-r-[1px] border-copy-on-light ${
 											j == 0
@@ -92,18 +89,22 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 										{row.highlight == 1 ? (
 											<HiCheckCircle className="text-copy-on-dark h-7 w-7" />
 										) : (
-											<div className="flex gap-1">
-												<HiXCircle className="hidden md:flex text-copy-on-light h-7 w-7" />
-												<HiDotsCircleHorizontal className="md:hidden text-copy-on-light h-7 w-7" />
+											<div className="flex">
+												{row.highlight == 0 && (
+													<HiXCircle className="text-copy-on-light h-7 w-7" />
+												)}
 												{row.highlight == 0.5 && (
-													<div className="hidden md:flex items-center bg-copy-on-light px-3 rounded-full">
-														<Typography
-															type="copy4"
-															emphasis
-															className="text-copy-on-dark rounded-full"
-														>
-															Coming soon
-														</Typography>
+													<div className="flex items-center gap-1">
+														<HiDotsCircleHorizontal className="text-copy-on-light h-7 w-7" />
+														<div className="hidden md:flex items-center bg-copy-on-light px-3 py-[2px] rounded-full">
+															<Typography
+																type="copy4"
+																emphasis
+																className="text-copy-on-dark rounded-full"
+															>
+																Coming soon
+															</Typography>
+														</div>
 													</div>
 												)}
 											</div>

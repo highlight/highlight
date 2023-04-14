@@ -1,5 +1,7 @@
 import classNames from 'classnames'
 import { GetStaticPaths, GetStaticProps } from 'next'
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
+import { serialize } from 'next-mdx-remote/serialize'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -31,8 +33,13 @@ import {
 
 const CompetitorComparisonPage = ({
 	competitor,
+	sources,
 }: {
 	competitor: Competitor
+	sources: MDXRemoteSerializeResult<
+		Record<string, unknown>,
+		Record<string, unknown>
+	>[]
 }) => {
 	const [imageLoaded, setImageLoaded] = useState(false)
 
@@ -149,34 +156,27 @@ const CompetitorComparisonPage = ({
 						</div>
 						<CompetitorTable competitor={competitor} />
 					</div>
-					<div className="max-w-[880px] mx-auto mt-8">
-						<div>
-							<div className="flex flex-col gap-3 md:gap-6 mb-16">
-								<h4 className="text-left">
-									What is {competitor.name}?
-								</h4>
-								<Typography
-									type="copy1"
-									className="text-copy-on-dark text-left"
+					<div className="max-w-[880px] mx-auto my-24">
+						<div className="flex flex-col gap-28">
+							{competitor.paragraphs.map((paragraph, index) => (
+								<div
+									key={index}
+									className="flex flex-col gap-3"
 								>
-									{competitor.competitorInfo}
-								</Typography>
-							</div>
-							<div className="flex flex-col gap-3 md:gap-6">
-								<h4 className="text-left">
-									How is highlight.io different?
-								</h4>
-								<Typography
-									type="copy1"
-									className="text-copy-on-dark"
-								>
-									{competitor.highlightInfo}
-								</Typography>
-							</div>
+									<h4 className="text-left">
+										{paragraph.header}
+									</h4>
+									<Typography
+										type="copy1"
+										className="text-copy-on-dark text-left"
+									>
+										<MDXRemote {...sources[index]} />
+									</Typography>
+								</div>
+							))}
 						</div>
 					</div>
 				</div>
-
 				<OSSCallToAction />
 				<Section>
 					<CompaniesReel />
@@ -221,9 +221,20 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		}
 	}
 
+	let competitor = COMPETITORS[slug]
+
+	const sources = []
+
+	for (let i = 0; i < competitor.paragraphs.length; i++) {
+		let paragraph = competitor.paragraphs[i]
+		const mdxSource = await serialize(paragraph.body)
+		sources.push(mdxSource)
+	}
+
 	return {
 		props: {
 			competitor: COMPETITORS[slug],
+			sources: sources,
 		},
 	}
 }
