@@ -1,8 +1,6 @@
 import { LinkButton } from '@components/LinkButton'
-import { IntegrationStatus } from '@graph/schemas'
 import { Box, Stack, Text } from '@highlight-run/ui'
 import { Header } from '@pages/Setup/Header'
-import { IntegrationBar } from '@pages/Setup/IntegrationBar'
 import {
 	QuickStartContent,
 	quickStartContent,
@@ -17,11 +15,7 @@ export type OptionListItem = {
 	path: string
 }
 
-type Props = {
-	integrationData?: IntegrationStatus
-}
-
-export const SetupOptionsList: React.FC<Props> = ({ integrationData }) => {
+export const SetupOptionsList: React.FC = () => {
 	const location = useLocation()
 	const areaMatch = useMatch('/:project_id/setup/:area')
 	const languageMatch = useMatch('/:project_id/setup/:area/:language')
@@ -58,8 +52,6 @@ export const SetupOptionsList: React.FC<Props> = ({ integrationData }) => {
 
 	return (
 		<Box>
-			<IntegrationBar integrationData={integrationData} />
-
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
 				<Header
 					title={docsSection.title}

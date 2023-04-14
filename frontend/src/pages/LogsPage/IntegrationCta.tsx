@@ -52,7 +52,7 @@ export const IntegrationCta: React.FC = () => {
 
 					<Stack direction="row" gap="8">
 						<LinkButton
-							to="/setup/backend-logging"
+							to={`/${projectId}/setup/backend-logging`}
 							trackingId="logs-page_setup-backend-logging"
 						>
 							Open setup
