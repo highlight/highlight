@@ -59,13 +59,13 @@ export const ProjectRouter = () => {
 	const serverIntegration = useServerIntegration()
 	const logsIntegration = useLogsIntegration()
 	const integrated =
-		!!clientIntegration?.integrated ||
-		!!serverIntegration?.integrated ||
-		!!logsIntegration?.integrated
+		clientIntegration.integrated ||
+		serverIntegration.integrated ||
+		logsIntegration.integrated
 	const fullyIntegrated =
-		!!clientIntegration.integrated &&
-		!!serverIntegration.integrated &&
-		!!logsIntegration.integrated
+		clientIntegration.integrated &&
+		serverIntegration.integrated &&
+		logsIntegration.integrated
 	const integrationLoading =
 		clientIntegration.loading ||
 		serverIntegration.loading ||
