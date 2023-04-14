@@ -8,7 +8,7 @@ updatedAt: 2023-01-24T02:07:22.000Z
 ## Frequently Asked Questions
 
 ### How do I migrate schema changes to PostgreSQL?
-Schema changes to [model.go](https://github.com/highlight/highlight/blob/main/backend/model/model.go#L1) will be automigrated. New tables should be added to [Models](https://github.com/highlight/highlight/blob/main/backend/model/model.go#L133-L187). [Migrations happen automatically](https://github.com/highlight/highlight/blob/main/backend/model/model.go#L1268) in dev and in github action as part of our production deploy. 
+Schema changes to [model.go](https://github.com/highlight/highlight/blob/main/backend/model/model.go#L1) will be automigrated. New tables should be added to [Models](https://github.com/highlight/highlight/blob/main/backend/model/model.go#L133-L187). [Migrations happen automatically](https://github.com/highlight/highlight/blob/main/backend/model/model.go#L1268) in dev and in a GitHub action as part of our production deploy. 
 
 ### How do I inspect the PostgreSQL database?
 ```bash
