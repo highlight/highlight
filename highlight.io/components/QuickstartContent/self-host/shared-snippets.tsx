@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../utils/urls'
 import { QuickStartStep } from '../QuickstartContent'
 
 export const dependencies: QuickStartStep = {
@@ -51,7 +50,7 @@ export const troubleshoot: QuickStartStep = {
 		"Having issues? Here's some things ot try. First run the `docker ps` command and ensure that all containers are in a 'healthy' state. " +
 		'As a second step, run `docker compose logs` to see the logs for the infra containers. ' +
 		'Looking at the logs, if any containers are not healthy, use the follow commands to start from scratch. ' +
-		"If this doesn't help w/ troubleshooting, please [reach out](https://highlight.io/community).",
+		"If this doesn't help with troubleshooting, please [reach out](https://highlight.io/community).",
 	code: {
 		text: `docker ps
 docker compose logs

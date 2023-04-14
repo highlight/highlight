@@ -4612,16 +4612,16 @@ func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*
 	}
 
 	firstSession := model.Session{}
-	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Limit(1).Find(&firstSession).Error
-	if e.Is(err, gorm.ErrRecordNotFound) {
-		return integration, nil
-	}
+	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where("created_at > ?", time.Now().Add(time.Hour*24*-30)).Limit(1).Find(&firstSession).Error
 	if err != nil {
 		return integration, e.Wrap(err, "error querying session for project")
 	}
-	integration.Integrated = true
-	integration.ResourceSecureID = &firstSession.SecureID
-	integration.CreatedAt = &firstSession.CreatedAt
+
+	if firstSession.ID != 0 {
+		integration.Integrated = true
+		integration.ResourceSecureID = &firstSession.SecureID
+		integration.CreatedAt = &firstSession.CreatedAt
+	}
 
 	return integration, nil
 }
@@ -4638,16 +4638,16 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 	}
 
 	firstErrorGroup := model.ErrorGroup{}
-	err := r.DB.Model(&model.ErrorGroup{}).Where("project_id = ?", projectID).Limit(1).Find(&firstErrorGroup).Error
-	if e.Is(err, gorm.ErrRecordNotFound) {
-		return integration, nil
-	}
+	err := r.DB.Model(&model.ErrorGroup{}).Where("project_id = ?", projectID).Where("created_at > ?", time.Now().Add(time.Hour*24*-30)).Limit(1).Find(&firstErrorGroup).Error
 	if err != nil {
 		return integration, e.Wrap(err, "error querying error group for project")
 	}
-	integration.Integrated = true
-	integration.ResourceSecureID = &firstErrorGroup.SecureID
-	integration.CreatedAt = &firstErrorGroup.CreatedAt
+
+	if firstErrorGroup.ID != 0 {
+		integration.Integrated = true
+		integration.ResourceSecureID = &firstErrorGroup.SecureID
+		integration.CreatedAt = &firstErrorGroup.CreatedAt
+	}
 
 	return integration, nil
 }
@@ -4655,7 +4655,7 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 // LogsIntegration is the resolver for the logsIntegration field.
 func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
 	integration := &modelInputs.IntegrationStatus{
-		Integrated:       true,
+		Integrated:       false,
 		ResourceType:     "Log",
 		ResourceSecureID: nil,
 	}
@@ -4667,12 +4667,11 @@ func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*mo
 	setupEvent := model.SetupEvent{}
 	err = r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeLogs).Limit(1).Find(&setupEvent).Error
 	if err != nil {
-		if e.Is(err, gorm.ErrRecordNotFound) {
-			integration.Integrated = false
-		} else {
-			return nil, e.Wrap(err, "error querying setup event")
-		}
-	} else {
+		return nil, e.Wrap(err, "error querying logging setup event")
+	}
+
+	if setupEvent.ID != 0 {
+		integration.Integrated = true
 		integration.CreatedAt = &setupEvent.CreatedAt
 	}
 
@@ -5453,12 +5452,13 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	}
 
 	var g errgroup.Group
-	var meter int64
+	var sessionsMeter int64
 	var membersMeter int64
 	var errorsMeter int64
+	var logsMeter int64
 
 	g.Go(func() error {
-		meter, err = pricing.GetWorkspaceSessionsMeter(r.DB, workspaceID)
+		sessionsMeter, err = pricing.GetWorkspaceSessionsMeter(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}
@@ -5475,6 +5475,18 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 	g.Go(func() error {
 		errorsMeter, err = pricing.GetWorkspaceErrorsMeter(r.DB, workspaceID)
+		if err != nil {
+			return e.Wrap(err, "error querying errors meter")
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		workspace, err := r.Workspace(ctx, workspaceID)
+		if err != nil {
+			return err
+		}
+		logsMeter, err = pricing.GetWorkspaceLogsMeter(ctx, r.ClickhouseClient, *workspace)
 		if err != nil {
 			return e.Wrap(err, "error querying errors meter")
 		}
@@ -5503,6 +5515,12 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		errorsLimit = *workspace.MonthlyErrorsLimit
 	}
 
+	logsLimit := pricing.TypeToLogsLimit(planType)
+	// use monthly session limit if it exists
+	if workspace.MonthlyLogsLimit != nil {
+		logsLimit = *workspace.MonthlyLogsLimit
+	}
+
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:         modelInputs.PlanType(planType.String()),
@@ -5510,10 +5528,12 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 			Interval:     interval,
 			MembersLimit: membersLimit,
 			ErrorsLimit:  errorsLimit,
+			LogsLimit:    logsLimit,
 		},
-		Meter:        meter,
+		Meter:        sessionsMeter,
 		MembersMeter: membersMeter,
 		ErrorsMeter:  errorsMeter,
+		LogsMeter:    logsMeter,
 	}
 
 	return details, nil

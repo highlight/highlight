@@ -194,7 +194,7 @@ export const LogAlertPage = () => {
 					emphasis="low"
 					trackingId="closeLogMonitoringAlert"
 					onClick={() => {
-						navigate(`/${project_id}/alerts`)
+						navigate(-1)
 					}}
 				>
 					Cancel

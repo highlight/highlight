@@ -74,6 +74,7 @@ type BillingDetails struct {
 	MembersMeter       int64 `json:"membersMeter"`
 	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
 	ErrorsMeter        int64 `json:"errorsMeter"`
+	LogsMeter          int64 `json:"logsMeter"`
 }
 
 type CategoryHistogramBucket struct {
@@ -471,6 +472,7 @@ type Plan struct {
 	Quota        int                  `json:"quota"`
 	MembersLimit *int                 `json:"membersLimit"`
 	ErrorsLimit  int                  `json:"errorsLimit"`
+	LogsLimit    int                  `json:"logsLimit"`
 }
 
 type RageClickEventForProject struct {
@@ -1303,6 +1305,49 @@ func (e *PlanType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PlanType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ProductType string
+
+const (
+	ProductTypeSessions ProductType = "Sessions"
+	ProductTypeErrors   ProductType = "Errors"
+	ProductTypeLogs     ProductType = "Logs"
+)
+
+var AllProductType = []ProductType{
+	ProductTypeSessions,
+	ProductTypeErrors,
+	ProductTypeLogs,
+}
+
+func (e ProductType) IsValid() bool {
+	switch e {
+	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs:
+		return true
+	}
+	return false
+}
+
+func (e ProductType) String() string {
+	return string(e)
+}
+
+func (e *ProductType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ProductType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ProductType", str)
+	}
+	return nil
+}
+
+func (e ProductType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
