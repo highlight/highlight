@@ -12,9 +12,9 @@ The documentation rendered on https://highlight.io/docs is rendered from the [do
 To run the app locally, install dependencies and call `yarn dev` as follows:
 
 ```bash
-yarn install
-yarn dev:highlight.io
-open http://localhost:4000
+yarn install;
+yarn dev:highlight.io;
+open http://localhost:4000/
 ```
 
 Changes to `docs-content` may require refreshing the browser.
