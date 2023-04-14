@@ -138,25 +138,25 @@ const CompetitorComparisonPage = ({
 				<div className="w-full mx-auto max-w-[1200px] mt-24 lg:mt-36 px-8">
 					<div className="flex flex-col gap-20">
 						<div className="mx-auto max-w-[1200px]">
-							<h2 className="self-center text-center">
-								How does{' '}
-								<span className="text-color-selected-light">
-									highlight.io
-								</span>{' '}
-								stack up?
-							</h2>
+							<h3 className="text-center">
+								Highlight.io vs {competitor.name}
+							</h3>
 							<div className="px-8 max-w-[1000px] mx-auto mt-6 text-center">
 								<Typography
 									type="copy1"
 									className="text-copy-on-dark text-center"
 								>
-									{competitor.subHeader2}
+									A detailed comparison of {competitor.name}{' '}
+									and Highlight.io
 								</Typography>
 							</div>
 						</div>
 						<CompetitorTable competitor={competitor} />
 					</div>
 					<div className="max-w-[880px] mx-auto my-24">
+						<h3 className="text-center mb-16">
+							What makes us different?
+						</h3>
 						<div className="flex flex-col gap-28">
 							{competitor.paragraphs.map((paragraph, index) => (
 								<div

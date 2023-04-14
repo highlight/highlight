@@ -29,7 +29,7 @@ export type Competitor = {
 
 export const COMPETITORS: { [k: string]: Competitor } = {
 	logrocket: {
-		slug: 'logrocket',
+		slug: 'highlight-vs-logrocket',
 		name: 'LogRocket',
 		header: 'The Open Source Logrocket Alternative.',
 		subheader:
