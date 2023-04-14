@@ -1460,27 +1460,6 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error creating error_fields_md5_idx")
 	}
 
-	if err := DB.Exec(`
-		CREATE TABLE IF NOT EXISTS default_billing_limits (planType, productType, quota)
-		AS SELECT 'Free', 'SESSIONS', 500
-		UNION SELECT 'Lite', 'SESSIONS', 2000
-		UNION SELECT 'Basic', 'SESSIONS', 10000
-		UNION SELECT 'Startup', 'SESSIONS', 80000
-		UNION SELECT 'Enterprise', 'SESSIONS', 300000
-		UNION SELECT 'Free', 'ERRORS', 1000
-		UNION SELECT 'Lite', 'ERRORS', 4000
-		UNION SELECT 'Basic', 'ERRORS', 20000
-		UNION SELECT 'Startup', 'ERRORS', 160000
-		UNION SELECT 'Enterprise', 'ERRORS', 600000
-		UNION SELECT 'Free', 'LOGS', 10000
-		UNION SELECT 'Lite', 'LOGS', 40000
-		UNION SELECT 'Basic', 'LOGS', 200000
-		UNION SELECT 'Startup', 'LOGS', 1600000
-		UNION SELECT 'Enterprise', 'LOGS', 6000000;
-	`).Error; err != nil {
-		return false, e.Wrap(err, "Error creating default_billing_limits")
-	}
-
 	// If sessions_id_seq is not greater than 30000000, set it
 	if err := DB.Exec(`
 		SELECT

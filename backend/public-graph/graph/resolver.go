@@ -840,11 +840,11 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		defer util.Recover()
 		if workspace.PlanTier != privateModel.PlanTypeFree.String() && workspace.AllowMeterOverage {
 			if quotaPercent >= 1 {
-				if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace); err != nil {
+				if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage100Percent, workspace); err != nil {
 					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 				}
 			} else if quotaPercent >= .8 {
-				if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage80Percent, workspace); err != nil {
+				if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage80Percent, workspace); err != nil {
 					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 				}
 			}

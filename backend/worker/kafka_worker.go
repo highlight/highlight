@@ -11,10 +11,12 @@ import (
 	"encoding/binary"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
+	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -171,12 +173,28 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 			continue
 		}
 
-		withinBillingQuota, _ := k.Worker.PublicResolver.IsWithinQuota(ctxW, pricing.ProductTypeLogs, workspace, time.Now())
+		withinBillingQuota, quotaPercent := k.Worker.PublicResolver.IsWithinQuota(ctxW, pricing.ProductTypeLogs, workspace, time.Now())
 		quotaExceededByProject[projectId] = !withinBillingQuota
 		err = k.Worker.Resolver.Redis.SetBillingQuotaExceeded(ctxW, int(projectId), pricing.ProductTypeLogs, !withinBillingQuota)
 		if err != nil {
 			log.WithContext(ctxW).Error(err)
 		}
+
+		// Send alert emails if above the relevant thresholds
+		go func() {
+			defer util.Recover()
+			if workspace.PlanTier != privateModel.PlanTypeFree.String() && workspace.AllowMeterOverage {
+				if quotaPercent >= 1 {
+					if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, email.BillingLogsUsage100Percent, workspace); err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+					}
+				} else if quotaPercent >= .8 {
+					if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, email.BillingLogsUsage80Percent, workspace); err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+					}
+				}
+			}
+		}()
 	}
 
 	spanW.Finish()
