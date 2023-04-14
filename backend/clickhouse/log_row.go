@@ -104,8 +104,9 @@ func WithSeverityText(severityText string) LogRowOption {
 
 func WithSource(source modelInputs.LogSource) LogRowOption {
 	return func(l *LogRow) {
-		l.Source = source
-		if l.Source == "" {
+		if source == modelInputs.LogSourceFrontend {
+			l.Source = modelInputs.LogSourceFrontend
+		} else {
 			l.Source = modelInputs.LogSourceBackend
 		}
 	}
