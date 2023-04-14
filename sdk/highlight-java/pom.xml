@@ -26,6 +26,12 @@
 		</developer>
 	</developers>
 
+	<scm>
+		<connection>scm:git:git://github.com/highlight/highlight.git</connection>
+		<developerConnection>scm:git:ssh://github.com:highlight/highlight.git</developerConnection>
+		<url>https://github.com/highlight/highlight/tree/main</url>
+	</scm>
+
 	<issueManagement>
 		<system>GitHub</system>
 		<url>https://github.com/highlight/highlight/issues</url>
@@ -34,7 +40,7 @@
 	<properties>
 		<revision>1.0.0-b0</revision>
 		<project.language.name>java</project.language.name>
-		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -60,10 +66,13 @@
 	</repositories>
 
 	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
 		<repository>
 			<id>ossrh</id>
-			<name>Central Repository OSSRH</name>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
 	</distributionManagement>
 
@@ -112,16 +121,11 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>${plugin.surefire.version}</version>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>${plugin.javadoc.version}</version>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${plugin.source.version}</version>
 				<executions>
 					<execution>
-						<id>attach-javadoc</id>
+						<id>attach-source</id>
 						<goals>
 							<goal>jar</goal>
 						</goals>
@@ -130,11 +134,11 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>${plugin.source.version}</version>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${plugin.javadoc.version}</version>
 				<executions>
 					<execution>
-						<id>attach-source</id>
+						<id>attach-javadoc</id>
 						<goals>
 							<goal>jar</goal>
 						</goals>
@@ -180,7 +184,7 @@
 				<extensions>true</extensions>
 				<configuration>
 					<serverId>ossrh</serverId>
-					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
 					<autoReleaseAfterClose>true</autoReleaseAfterClose>
 				</configuration>
 			</plugin>
@@ -195,12 +199,6 @@
 						<goals>
 							<goal>sign</goal>
 						</goals>
-						<configuration>
-							<gpgArguments>
-								<arg>--pinentry-mode</arg>
-								<arg>loopback</arg>
-							</gpgArguments>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
