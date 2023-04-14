@@ -7,7 +7,7 @@ slug: go
   <div className="left">
     <h3>Go SDK</h3>
     <p>
-      Highlight's [Go SDK](https://pypi.org/project/highlight-io/) makes it easy to monitor errors and logs on your Go backend.
+      Highlight's [Go SDK](https://pkg.go.dev/github.com/highlight/highlight/sdk/highlight-go) makes it easy to monitor errors and logs on your Go backend.
     </p>
   </div>
   <div className="right">
