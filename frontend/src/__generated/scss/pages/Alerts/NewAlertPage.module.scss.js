@@ -1,0 +1,1 @@
+var _={select:"_select_2ddse_1",cardGrid:"_cardGrid_2ddse_5",cardContainer:"_cardContainer_2ddse_12",cardContent:"_cardContent_2ddse_16",icon:"_icon_2ddse_19",title:"_title_2ddse_1",description:"_description_2ddse_41"};export{_ as default};
