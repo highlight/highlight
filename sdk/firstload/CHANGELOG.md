@@ -166,3 +166,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Patch Changes
 
 - Fixes typescript definitions for `highlight.run` which referenced an internal unpublished package.
+
+## 6.0.3
+
+### Patch Changes
+
+- Packages the web-vitals library as part of the highlight.io client bundle.
