@@ -751,6 +751,10 @@ func (r *Resolver) SetErrorFrequencies(ctx context.Context, projectID int, error
 	}
 	for _, r := range results {
 		eg := errorGroupMap[r.ErrorGroupID]
+		// in case influx returns an error group that isn't part of the inputs
+		if eg == nil {
+			continue
+		}
 		if r.Name == "count" {
 			eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
 		}
