@@ -1,0 +1,71 @@
+x-depends-infra: &depends-infra
+    depends_on:
+        kafka:
+            condition: service_started
+        redis:
+            condition: service_started
+        postgres:
+            condition: service_healthy
+        clickhouse:
+            condition: service_started
+        elasticsearch:
+            condition: service_healthy
+        influxdb:
+            condition: service_healthy
+        setup-influxdb:
+            condition: service_started
+        collector:
+            condition: service_started
+
+services:
+    backend-setup-db:
+        image: public.ecr.aws/highlight-io/highlight-backend
+        command:
+            - go
+            - run
+            - ./migrations/main.go
+        <<: *depends-infra
+
+    backend-setup-elasticsearch:
+        image: public.ecr.aws/highlight-io/highlight-backend
+        command:
+            - /bin/backend
+            - -runtime=worker
+            - -worker-handler=init-opensearch
+        <<: *depends-infra
+
+    backend:
+        container_name: backend
+        image: public.ecr.aws/highlight-io/highlight-backend
+        healthcheck:
+            test: ['CMD', 'curl', '-f', '-k', 'https://localhost:8082/health']
+            start_period: 180s
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        ports:
+            - 8082:8082
+        volumes:
+            - highlight-data:/highlight-data
+        depends_on:
+            backend-setup-db:
+                condition: service_completed_successfully
+            backend-setup-elasticsearch:
+                condition: service_completed_successfully
+
+    frontend:
+        container_name: frontend
+        image: public.ecr.aws/highlight-io/highlight-frontend
+        healthcheck:
+            test: ['CMD', 'curl', '-f', '-k', 'https://localhost:3000/']
+            start_period: 180s
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        ports:
+            - 3000:3000
+            - 6006:6006
+            - 8080:8080
+
+volumes:
+    highlight-data:
