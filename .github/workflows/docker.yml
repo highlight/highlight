@@ -7,10 +7,6 @@ on:
         types: [opened, synchronize]
     merge_group:
 
-permissions:
-    contents: read
-    packages: write
-
 jobs:
     e2e-frontend-backend-client:
         name: E2E Client / Frontend / Backend
@@ -87,6 +83,9 @@ jobs:
         env:
             IMAGE_NAME: highlight-frontend
             IMAGE_TAG: ${{ github.sha }}
+        permissions:
+            contents: read
+            packages: write
 
         steps:
             - name: Checkout
