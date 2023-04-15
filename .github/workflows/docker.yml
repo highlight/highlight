@@ -116,8 +116,8 @@ jobs:
                   # build docker image with common environment
                   pushd docker
                   source env.sh
-                  docker buildx build --platform linux/amd64 -t highlight:$IMAGE_TAG -f docker/${{ matrix.container }}.Dockerfile --target ${{ matrix.container }}-prod .
                   popd
+                  docker buildx build --platform linux/amd64 -t highlight:$IMAGE_TAG -f docker/${{ matrix.container }}.Dockerfile --target ${{ matrix.container }}-prod .
 
                   # push to aws ecr
                   docker tag highlight:$IMAGE_TAG $ECR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
