@@ -1,6 +1,7 @@
 package vercel
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
@@ -42,7 +43,7 @@ func TestCreateLogDrain(t *testing.T) {
 	defer server.Close()
 
 	VercelApiBaseUrl = server.URL
-	if err := CreateLogDrain(pointy.String("team_FRV1rjc2RxkhqoTsz8t76fGs"), []string{"prj_UYboDfJ3kTGcKmmqu4Ydryzy2KQC"}, "1", "Highlight Log Drain", "b81LedZpnZtAVrPy5kIdEgWi"); err != nil {
+	if err := CreateLogDrain(context.TODO(), pointy.String("team_FRV1rjc2RxkhqoTsz8t76fGs"), []string{"prj_UYboDfJ3kTGcKmmqu4Ydryzy2KQC"}, "1", "Highlight Log Drain", "b81LedZpnZtAVrPy5kIdEgWi"); err != nil {
 		t.Errorf("failed to create log drain")
 	}
 }

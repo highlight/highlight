@@ -3409,7 +3409,7 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 		})
 	}
 
-	if err := vercel.CreateLogDrain(workspace.VercelTeamID, lo.Map(projectMappings, func(t *modelInputs.VercelProjectMappingInput, i int) string {
+	if err := vercel.CreateLogDrain(ctx, workspace.VercelTeamID, lo.Map(projectMappings, func(t *modelInputs.VercelProjectMappingInput, i int) string {
 		return t.VercelProjectID
 	}), project.VerboseID(), "Highlight Log Drain", *workspace.VercelAccessToken); err != nil {
 		return false, err
@@ -4612,16 +4612,16 @@ func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*
 	}
 
 	firstSession := model.Session{}
-	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Limit(1).Find(&firstSession).Error
-	if e.Is(err, gorm.ErrRecordNotFound) {
-		return integration, nil
-	}
+	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where("created_at > ?", time.Now().Add(time.Hour*24*-30)).Limit(1).Find(&firstSession).Error
 	if err != nil {
 		return integration, e.Wrap(err, "error querying session for project")
 	}
-	integration.Integrated = true
-	integration.ResourceSecureID = &firstSession.SecureID
-	integration.CreatedAt = &firstSession.CreatedAt
+
+	if firstSession.ID != 0 {
+		integration.Integrated = true
+		integration.ResourceSecureID = &firstSession.SecureID
+		integration.CreatedAt = &firstSession.CreatedAt
+	}
 
 	return integration, nil
 }
@@ -4638,16 +4638,16 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 	}
 
 	firstErrorGroup := model.ErrorGroup{}
-	err := r.DB.Model(&model.ErrorGroup{}).Where("project_id = ?", projectID).Limit(1).Find(&firstErrorGroup).Error
-	if e.Is(err, gorm.ErrRecordNotFound) {
-		return integration, nil
-	}
+	err := r.DB.Model(&model.ErrorGroup{}).Where("project_id = ?", projectID).Where("created_at > ?", time.Now().Add(time.Hour*24*-30)).Limit(1).Find(&firstErrorGroup).Error
 	if err != nil {
 		return integration, e.Wrap(err, "error querying error group for project")
 	}
-	integration.Integrated = true
-	integration.ResourceSecureID = &firstErrorGroup.SecureID
-	integration.CreatedAt = &firstErrorGroup.CreatedAt
+
+	if firstErrorGroup.ID != 0 {
+		integration.Integrated = true
+		integration.ResourceSecureID = &firstErrorGroup.SecureID
+		integration.CreatedAt = &firstErrorGroup.CreatedAt
+	}
 
 	return integration, nil
 }
@@ -4655,7 +4655,7 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 // LogsIntegration is the resolver for the logsIntegration field.
 func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
 	integration := &modelInputs.IntegrationStatus{
-		Integrated:       true,
+		Integrated:       false,
 		ResourceType:     "Log",
 		ResourceSecureID: nil,
 	}
@@ -4667,12 +4667,11 @@ func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*mo
 	setupEvent := model.SetupEvent{}
 	err = r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeLogs).Limit(1).Find(&setupEvent).Error
 	if err != nil {
-		if e.Is(err, gorm.ErrRecordNotFound) {
-			integration.Integrated = false
-		} else {
-			return nil, e.Wrap(err, "error querying setup event")
-		}
-	} else {
+		return nil, e.Wrap(err, "error querying logging setup event")
+	}
+
+	if setupEvent.ID != 0 {
+		integration.Integrated = true
 		integration.CreatedAt = &setupEvent.CreatedAt
 	}
 

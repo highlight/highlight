@@ -10989,6 +10989,7 @@ __metadata:
     stacktrace-js: 2.0.2
     typescript: ^4.1.3
     vitest: ^0.24.1
+    web-vitals: ^3.3.1
   languageName: unknown
   linkType: soft
 
@@ -53903,6 +53904,13 @@ __metadata:
   version: 3.2.1
   resolution: "web-streams-polyfill@npm:3.2.1"
   checksum: b119c78574b6d65935e35098c2afdcd752b84268e18746606af149e3c424e15621b6f1ff0b42b2676dc012fc4f0d313f964b41a4b5031e525faa03997457da02
+  languageName: node
+  linkType: hard
+
+"web-vitals@npm:^3.3.1":
+  version: 3.3.1
+  resolution: "web-vitals@npm:3.3.1"
+  checksum: ff417dec2d77f57bc5130767f47aad6f93173e5d0e24a179082c7dca423850106ba1d66c737f91400a6bed6585a7295531d9e54354d1cb31d1a3e68596bb2000
   languageName: node
   linkType: hard
 

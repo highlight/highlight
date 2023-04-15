@@ -1,13 +1,13 @@
 ---
-title: Golang SDK API Reference
+title: Go SDK API Reference
 slug: go
 ---
 
 <section className="section">
   <div className="left">
-    <h3>Golang SDK</h3>
+    <h3>Go SDK</h3>
     <p>
-      Highlight's [Golang SDK](https://pypi.org/project/highlight-io/) makes it easy to monitor errors and logs on your Golang backend.
+      Highlight's [Go SDK](https://pkg.go.dev/github.com/highlight/highlight/sdk/highlight-go) makes it easy to monitor errors and logs on your Go backend.
     </p>
   </div>
   <div className="right">
@@ -160,7 +160,7 @@ Use this if you are using the raw http server package and need to setup the High
 <section className="section">
   <div className="left">
     <h3>H.NewGraphqlTracer()</h3> 
-    <p>An http middleware for tracing graphql servers.</p>
+    <p>An http middleware for tracing GraphQL servers.</p>
     <h6>Configuration</h6>
     <aside className="parameter">
       <h5>H.NewGraphqlTracer().WithRequestFieldLogging()</h5>
@@ -176,7 +176,6 @@ Use this if you are using the raw http server package and need to setup the High
   </div>
 </section>
 
-
 <section className="section">
   <div className="left">
     <h3>H.GraphQLRecoverFunc()</h3> 
@@ -188,6 +187,25 @@ Use this if you are using the raw http server package and need to setup the High
         import ghandler "github.com/99designs/gqlgen/graphql/handler"
         privateServer := ghandler.New(privategen.NewExecutableSchema(...)
         server.SetRecoverFunc(H.GraphQLRecoverFunc())
+    </code>
+  </div>
+</section>
+
+<section className="section">
+  <div className="left">
+    <h3>H.GraphQLErrorPresenter()</h3> 
+    <p>A gqlgen error presenter.</p>
+    <h6>Configuration</h6>
+    <aside className="parameter">
+      <h5>service<code>string</code> <code>required</code></h5>
+      <p>The name of the service.</p>
+    </aside>
+  </div>
+  <div className="right">
+    <code>
+        import ghandler "github.com/99designs/gqlgen/graphql/handler"
+        privateServer := ghandler.New(privategen.NewExecutableSchema(...)
+        privateServer.SetErrorPresenter(H.GraphQLErrorPresenter("private"))
     </code>
   </div>
 </section>

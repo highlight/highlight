@@ -3,7 +3,7 @@ package hlog
 import (
 	"context"
 	"fmt"
-	"runtime"
+	"runtime/debug"
 	"strings"
 
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -93,22 +93,7 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 	}
 
 	if !hasError {
-		// build the caller stack trace based on the current stack trace and the logrus caller
-		stackTrace := make([]byte, 2048)
-		n := runtime.Stack(stackTrace, false)
-		lines := strings.Split(string(stackTrace[0:n]), "\n")
-		if len(lines) > 1 {
-			var truncLines = []string{lines[0]}
-			var truncIdx = len(lines) - 1
-			for idx, line := range lines {
-				if strings.HasPrefix(line, entry.Caller.Function) {
-					truncIdx = idx
-					break
-				}
-			}
-			truncLines = append(truncLines, lines[truncIdx:]...)
-			attrs = append(attrs, semconv.ExceptionStacktraceKey.String(strings.Join(truncLines, "\n")))
-		}
+		attrs = append(attrs, semconv.ExceptionStacktraceKey.String(string(debug.Stack())))
 	}
 
 	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...))
