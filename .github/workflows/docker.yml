@@ -118,8 +118,9 @@ jobs:
               env:
                   ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
                   GHR_REGISTRY: ${{ env.REGISTRY }}
+                  IMAGE_TAG: ${{ github.sha }}
               run: |
-                  docker buildx build --platform linux/amd64 -t highlight:$IMAGE_TAG -f docker/frontend.Dockerfile .
+                  docker buildx build --platform linux/amd64 -t highlight:$IMAGE_TAG -f docker/frontend.Dockerfile --target frontend-prod .
 
                   docker tag highlight:$IMAGE_TAG $ECR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
                   docker push $ECR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
