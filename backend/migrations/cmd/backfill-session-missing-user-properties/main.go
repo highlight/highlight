@@ -47,7 +47,7 @@ func FindInBatches(db *gorm.DB, dest interface{}, batchSize int, fc func(tx *gor
 				_ = tx.AddError(gorm.ErrPrimaryKeyRequired)
 				break
 			} else {
-				primaryValue, _ := result.Statement.Schema.PrioritizedPrimaryField.ValueOf(context.TODO(), resultsValue.Index(resultsValue.Len()-1))
+				primaryValue, _ := result.Statement.Schema.PrioritizedPrimaryField.ValueOf(resultsValue.Index(resultsValue.Len() - 1))
 				queryDB = tx.Clauses(clause.Gt{Column: clause.Column{Table: clause.CurrentTable, Name: clause.PrimaryKey}, Value: primaryValue})
 			}
 		}
