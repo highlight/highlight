@@ -74,14 +74,17 @@ jobs:
                   name: cypress-videos
                   path: cypress/videos
 
-    publish-docker-frontend:
-        name: Publish Production Frontend Docker Image
+    publish-docker:
+        name: Publish Production Docker Image
         #      if: github.ref == 'refs/heads/main' && github.repository == 'highlight/highlight'
         #        needs: e2e-frontend-backend-client
         runs-on: buildjet-2vcpu-ubuntu-2204
+        strategy:
+            matrix:
+                container: ['frontend', 'backend']
         timeout-minutes: 30
         env:
-            IMAGE_NAME: highlight-frontend
+            IMAGE_NAME: highlight
             IMAGE_TAG: ${{ github.sha }}
         permissions:
             contents: read
@@ -106,23 +109,18 @@ jobs:
                   username: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-            - name: Login to GHR
-              uses: docker/login-action@v2
-              with:
-                  registry: ${{ env.REGISTRY }}
-                  username: Vadman97
-                  password: ${{ secrets.GH_DOCKER_TOKEN }}
-
             - name: Build and push docker container.
               env:
                   ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
                   GHR_REGISTRY: ${{ env.REGISTRY }}
                   IMAGE_TAG: ${{ github.sha }}
+                  GH_DOCKER_TOKEN: ${{ secrets.GH_DOCKER_TOKEN }}
               run: |
-                  docker buildx build --platform linux/amd64 -t highlight:$IMAGE_TAG -f docker/frontend.Dockerfile --target frontend-prod .
+                  docker buildx build --platform linux/amd64 -t highlight:$IMAGE_TAG -f docker/${{ matrix.container }}.Dockerfile --target ${{ matrix.container }}-prod .
 
                   docker tag highlight:$IMAGE_TAG $ECR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
                   docker push $ECR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
 
                   docker tag highlight:$IMAGE_TAG $GHR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+                  echo $GH_DOCKER_TOKEN | docker login ghcr.io -u Vadman97 --password-stdin
                   docker push $GHR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
