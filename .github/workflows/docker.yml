@@ -77,7 +77,7 @@ jobs:
     publish-docker-frontend:
         name: Publish Production Frontend Docker Image
         #      if: github.ref == 'refs/heads/main' && github.repository == 'highlight/highlight'
-        needs: e2e-frontend-backend-client
+        #        needs: e2e-frontend-backend-client
         runs-on: buildjet-2vcpu-ubuntu-2204
         timeout-minutes: 30
         env:
