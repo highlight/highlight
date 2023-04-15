@@ -112,16 +112,18 @@ jobs:
                   GHR_REGISTRY: ${{ env.REGISTRY }}
                   GH_DOCKER_TOKEN: ${{ secrets.GH_DOCKER_TOKEN }}
               run: |
+                  # log in to gh registry
+                  echo $GH_DOCKER_TOKEN | docker login ghcr.io -u Vadman97 --password-stdin
+
                   # build docker image with common environment
                   pushd docker
                   source env.sh
                   popd
-                  docker buildx build --platform linux/amd64 -t $ECR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG -f docker/${{ matrix.container }}.Dockerfile --target ${{ matrix.container }}-prod .
+                  docker buildx build --platform linux/amd64 -t $ECR_REGISTRY/highlight-io/$IMAGE_NAME:$IMAGE_TAG -f docker/${{ matrix.container }}.Dockerfile --target ${{ matrix.container }}-prod .
 
                   # push to aws ecr
-                  docker push $ECR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+                  docker push $ECR_REGISTRY/highlight-io/$IMAGE_NAME:$IMAGE_TAG
 
                   # push to github package registry
-                  docker tag $ECR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG $GHR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
-                  echo $GH_DOCKER_TOKEN | docker login ghcr.io -u Vadman97 --password-stdin
-                  docker push $GHR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+                  docker tag $ECR_REGISTRY/highlight-io/$IMAGE_NAME:$IMAGE_TAG $GHR_REGISTRY/highlight/$IMAGE_NAME:$IMAGE_TAG
+                  docker push $GHR_REGISTRY/highlight/$IMAGE_NAME:$IMAGE_TAG
