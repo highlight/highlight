@@ -26,6 +26,10 @@ LABEL org.opencontainers.image.source=https://github.com/highlight/highlight
 LABEL org.opencontainers.image.description="highlight.io Production Backend Image"
 LABEL org.opencontainers.image.licenses="Apache 2.0"
 
+COPY ../backend ./backend
+COPY ../sdk/highlight-go ./sdk/highlight-go
+COPY ../e2e/go ./e2e/go
+
 WORKDIR /build/backend
 RUN GOOS=linux GOARCH=amd64 go build -o /bin/backend
 CMD ["/bin/backend", "-runtime=private-graph"]

@@ -84,11 +84,8 @@ jobs:
                 container: ['frontend', 'backend']
         timeout-minutes: 30
         env:
-            IMAGE_NAME: highlight
+            IMAGE_NAME: highlight-${{ matrix.container }}
             IMAGE_TAG: ${{ github.sha }}
-        permissions:
-            contents: read
-            packages: write
 
         steps:
             - name: Checkout
