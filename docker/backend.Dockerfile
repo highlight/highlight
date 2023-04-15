@@ -20,3 +20,12 @@ RUN cd /build/sdk/highlight-go && go mod download
 FROM backend-base as backend
 WORKDIR /build/backend
 CMD ["make", "start-no-doppler"]
+
+FROM backend-base as backend-prod
+LABEL org.opencontainers.image.source=https://github.com/highlight/highlight
+LABEL org.opencontainers.image.description="highlight.io Production Backend Image"
+LABEL org.opencontainers.image.licenses="Apache 2.0"
+
+WORKDIR /build/backend
+RUN GOOS=linux GOARCH=amd64 go build -o /bin/backend
+CMD ["/bin/backend", "-runtime=private-graph"]
