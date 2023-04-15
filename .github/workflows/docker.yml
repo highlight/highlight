@@ -7,6 +7,10 @@ on:
         types: [opened, synchronize]
     merge_group:
 
+permissions:
+    contents: read
+    packages: write
+
 jobs:
     e2e-frontend-backend-client:
         name: E2E Client / Frontend / Backend
@@ -14,9 +18,6 @@ jobs:
         runs-on: buildjet-4vcpu-ubuntu-2204
 
         steps:
-            - name: Use HTTPS for checkout
-              run: echo -e '[url "https://github.com/"]\n  insteadOf = "git@github.com:"' >> ~/.gitconfig
-
             - name: Checkout
               uses: actions/checkout@v3
               with:
@@ -76,3 +77,52 @@ jobs:
               with:
                   name: cypress-videos
                   path: cypress/videos
+
+    publish-docker-frontend:
+        name: Publish Production Frontend Docker Image
+        #      if: github.ref == 'refs/heads/main' && github.repository == 'highlight/highlight'
+        needs: e2e-frontend-backend-client
+        runs-on: buildjet-2vcpu-ubuntu-2204
+        timeout-minutes: 30
+        env:
+            IMAGE_NAME: highlight-frontend
+            IMAGE_TAG: ${{ github.sha }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+              with:
+                  submodules: true
+
+            - name: Login to Docker Hub
+              uses: docker/login-action@v2
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Login to AWS ECR
+              uses: docker/login-action@v2
+              with:
+                  registry: public.ecr.aws
+                  username: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+            - name: Login to GHR
+              uses: docker/login-action@v2
+              with:
+                  registry: ${{ env.REGISTRY }}
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Build and push docker container.
+              env:
+                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                  GHR_REGISTRY: ${{ env.REGISTRY }}
+              run: |
+                  docker buildx build --platform linux/amd64 -t highlight:$IMAGE_TAG -f docker/frontend.Dockerfile .
+
+                  docker tag highlight:$IMAGE_TAG $ECR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+                  docker push $ECR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+
+                  docker tag highlight:$IMAGE_TAG $GHR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+                  docker push $GHR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
