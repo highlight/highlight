@@ -1,12 +1,12 @@
 {
 	"name": "highlight.run",
-	"version": "6.0.0",
+	"version": "6.0.3",
 	"scripts": {
 		"build": "rollup -c",
 		"dev": "rollup -c -w",
 		"enforce-size": "size-limit",
 		"test": "vitest --run",
-		"typegen": "tsc"
+		"typegen": "tsc && node scripts/replace-client-imports.mjs"
 	},
 	"main": "dist/index.js",
 	"module": "dist/indexESM.js",
@@ -20,6 +20,7 @@
 		"@size-limit/file": "^8.1.0",
 		"@types/chrome": "^0.0.144",
 		"esbuild": "^0.14.47",
+		"readdirp": "^3.6.0",
 		"rollup": "^2.79.1",
 		"rollup-plugin-consts": "^1.1.0",
 		"rollup-plugin-esbuild": "^4.9.1",

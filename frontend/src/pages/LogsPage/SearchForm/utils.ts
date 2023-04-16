@@ -1,4 +1,4 @@
-import { ReservedLogKey, Session } from '@graph/schemas'
+import { LogLevel, LogSource, ReservedLogKey, Session } from '@graph/schemas'
 import moment from 'moment'
 import { stringify } from 'query-string'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
@@ -112,19 +112,66 @@ export const validateLogsQuery = (params: LogsSearchParam[]): boolean => {
 	return !params.some((param) => !param.value)
 }
 
-export const getLogsURLForSession = (projectId: string, session: Session) => {
+export const buildSessionParams = ({
+	session,
+	levels,
+	sources,
+}: {
+	session: Session | undefined
+	levels: LogLevel[]
+	sources: LogSource[]
+}) => {
 	const queryParams: LogsSearchParam[] = []
-	queryParams.push({
-		key: ReservedLogKey.SecureSessionId,
-		operator: DEFAULT_LOGS_OPERATOR,
-		value: session.secure_id,
-		offsetStart: 0,
+	let offsetStart = 1
+
+	if (session?.secure_id) {
+		queryParams.push({
+			key: ReservedLogKey.SecureSessionId,
+			operator: DEFAULT_LOGS_OPERATOR,
+			value: session.secure_id,
+			offsetStart: offsetStart++,
+		})
+	}
+
+	levels.forEach((level) => {
+		queryParams.push({
+			key: ReservedLogKey.Level,
+			operator: DEFAULT_LOGS_OPERATOR,
+			value: level,
+			offsetStart: offsetStart++,
+		})
 	})
 
-	const sessionStartDate = new Date(session.created_at)
+	sources.forEach((source) => {
+		queryParams.push({
+			key: ReservedLogKey.Source,
+			operator: DEFAULT_LOGS_OPERATOR,
+			value: source,
+			offsetStart: offsetStart++,
+		})
+	})
 
-	// Four hours is the max length of a session (see https://github.com/highlight/highlight/pull/4653#discussion_r1145569643)
-	const sessionEndDate = moment(sessionStartDate).add(4, 'hours').toDate()
+	return {
+		query: stringifyLogsQuery(queryParams),
+		date_range: {
+			start_date: moment(session?.created_at),
+			end_date: moment(session?.created_at).add(4, 'hours'),
+		},
+	}
+}
+
+export const getLogsURLForSession = ({
+	projectId,
+	session,
+	levels,
+	sources,
+}: {
+	projectId: string
+	session: Session
+	levels: LogLevel[]
+	sources: LogSource[]
+}) => {
+	const params = buildSessionParams({ session, levels, sources })
 
 	const encodedQuery = encodeQueryParams(
 		{
@@ -133,9 +180,9 @@ export const getLogsURLForSession = (projectId: string, session: Session) => {
 			end_date: DateTimeParam,
 		},
 		{
-			query: stringifyLogsQuery(queryParams),
-			start_date: sessionStartDate,
-			end_date: sessionEndDate,
+			query: params.query,
+			start_date: params.date_range.start_date.toDate(),
+			end_date: params.date_range.end_date.toDate(),
 		},
 	)
 	return `/${projectId}/logs?${stringify(encodedQuery)}`

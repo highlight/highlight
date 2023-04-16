@@ -3,8 +3,8 @@
 	"packageManager": "yarn@3.3.1",
 	"private": true,
 	"scripts": {
-		"build": "yarn build:sdk && nest build",
-		"start": "yarn build:sdk && nest start"
+		"build": "nest build",
+		"start": "nest start"
 	},
 	"dependencies": {
 		"@highlight-run/nest": "workspace:*",

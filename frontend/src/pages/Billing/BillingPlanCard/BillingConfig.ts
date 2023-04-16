@@ -41,6 +41,10 @@ const getErrorsAfterLimitTooltip = (rp: RetentionPeriod) => {
 	return `After this monthly limit is reached, extra errors will be charged $${formatted} per 1,000 errors.`
 }
 
+const getLogsAfterLimitTooltip = () => {
+	return `After this monthly limit is reached, extra logs will be charged $1.50 per million logs.`
+}
+
 const freePlan: BillingPlan = {
 	name: 'Free',
 	type: PlanType.Free,
@@ -56,6 +60,11 @@ const freePlan: BillingPlan = {
 			text: '1,000 errors / month',
 			tooltip: () =>
 				'After this monthly limit is reached, errors will be recorded but will not be visible until your plan is upgraded.',
+		},
+		{
+			text: '1M logs / month',
+			tooltip: () =>
+				'After this monthly limit is reached, logs will be recorded but will not be visible until your plan is upgraded.',
 		},
 		'3 month retention',
 		'Unlimited dev tools access',
@@ -76,6 +85,10 @@ const litePlan: BillingPlan = {
 			text: '4,000 free errors / mo',
 			tooltip: getErrorsAfterLimitTooltip,
 		},
+		{
+			text: '4M free logs / month',
+			tooltip: getLogsAfterLimitTooltip,
+		},
 		'Unlimited members included',
 		'Unlimited dev tools access',
 	],
@@ -95,6 +108,10 @@ const basicPlan: BillingPlan = {
 			text: '20,000 free errors / mo',
 			tooltip: getErrorsAfterLimitTooltip,
 		},
+		{
+			text: '20M free logs / month',
+			tooltip: getLogsAfterLimitTooltip,
+		},
 		'Everything in Basic',
 	],
 }
@@ -113,10 +130,13 @@ const startupPlan: BillingPlan = {
 			text: '160,000 free errors / mo',
 			tooltip: getErrorsAfterLimitTooltip,
 		},
+		{
+			text: '160M free logs / month',
+			tooltip: getLogsAfterLimitTooltip,
+		},
 		'Everything in Essentials',
 		'Enhanced user metadata',
 		'App performance metrics',
-		'Issue tracking integrations',
 	],
 }
 

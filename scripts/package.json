@@ -4,7 +4,7 @@
 	"packageManager": "yarn@3.2.3",
 	"type": "module",
 	"scripts": {
-		"prepublish:client": "ts-node --esm upload.ts publish sdk/client --validate --replace",
+		"validate:client": "ts-node --esm upload.ts publish sdk/client --validate --replace",
 		"publish:client": "ts-node --esm upload.ts publish sdk/client --replace"
 	},
 	"devDependencies": {

@@ -751,6 +751,10 @@ func (r *Resolver) SetErrorFrequencies(ctx context.Context, projectID int, error
 	}
 	for _, r := range results {
 		eg := errorGroupMap[r.ErrorGroupID]
+		// in case influx returns an error group that isn't part of the inputs
+		if eg == nil {
+			continue
+		}
 		if r.Name == "count" {
 			eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
 		}
@@ -1499,7 +1503,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.ReportUsageForWorkspace(ctx, r.DB, r.StripeClient, r.MailClient, workspace.ID); err != nil {
+	if err := pricing.ReportUsageForWorkspace(ctx, r.DB, r.ClickhouseClient, r.StripeClient, r.MailClient, workspace.ID); err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
 	}
 
@@ -3126,11 +3130,12 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 	return
 }
 
-func (r *Resolver) GetProjectRetentionDate(ctx context.Context, projectId int) (time.Time, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectId)
-	if err != nil {
-		return time.Time{}, err
+func (r *Resolver) GetProjectRetentionDate(projectId int) (time.Time, error) {
+	var project *model.Project
+	if err := r.DB.Model(&model.Project{}).Where("id = ?", projectId).First(&project).Error; err != nil {
+		return time.Time{}, e.Wrap(err, "error querying project")
 	}
+
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return time.Time{}, err

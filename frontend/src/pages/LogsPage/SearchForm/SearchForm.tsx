@@ -5,6 +5,7 @@ import {
 	Box,
 	Combobox,
 	Form,
+	IconSolidPlus,
 	IconSolidSearch,
 	IconSolidSwitchVertical,
 	IconSolidXCircle,
@@ -27,7 +28,12 @@ import {
 } from '@pages/LogsPage/SearchForm/utils'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
+import { stringify } from 'query-string'
 import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
+
+import { Button } from '@/components/Button'
 
 import * as styles from './SearchForm.css'
 
@@ -54,6 +60,7 @@ const SearchForm = ({
 	minDate,
 	timeMode,
 }: Props) => {
+	const navigate = useNavigate()
 	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
 	const formState = useFormState({ defaultValues: { query: initialQuery } })
 	const { projectId } = useProjectId()
@@ -99,7 +106,7 @@ const SearchForm = ({
 					keys={keysData?.logs_keys}
 					keysLoading={keysLoading}
 				/>
-				<Box display="flex" pr="8" py="6">
+				<Box display="flex" pr="8" py="6" gap="6">
 					<PreviousDateRangePicker
 						emphasis="low"
 						selectedDates={selectedDates}
@@ -108,6 +115,32 @@ const SearchForm = ({
 						minDate={minDate}
 						disabled={timeMode === 'permalink'}
 					/>
+					<Button
+						kind="secondary"
+						trackingId="create-alert"
+						onClick={() => {
+							const encodedQuery = encodeQueryParams(
+								{
+									query: StringParam,
+									start_date: DateTimeParam,
+									end_date: DateTimeParam,
+								},
+								{
+									query: formState.values.query,
+									start_date: startDate,
+									end_date: endDate,
+								},
+							)
+							navigate({
+								pathname: `/${projectId}/alerts/logs/new`,
+								search: stringify(encodedQuery),
+							})
+						}}
+						emphasis="medium"
+						iconLeft={<IconSolidPlus />}
+					>
+						Create alert
+					</Button>{' '}
 				</Box>
 			</Box>
 		</Form>
