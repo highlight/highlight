@@ -84,6 +84,17 @@ export async function loadTagsFromHygraph() {
 	return (await GraphQLRequest<{ tags: Tag[] }>(tagsQuery)).tags
 }
 
+export async function loadTagsFromGithub(posts: Post[]) {
+	let tags: Tag[] = []
+	posts.forEach((post) => {
+		post.tags_relations.forEach((tag) => {
+			tags.push(tag)
+		})
+	})
+
+	return tags
+}
+
 export async function loadPostsFromGithub() {
 	let paths = await getBlogPaths(fsp, '')
 	let posts: Post[] = []
@@ -217,10 +228,12 @@ export const getBlogPaths = async (
 
 export const getStaticProps: GetStaticProps = async () => {
 	const hygraphPosts = await loadPostsFromHygraph()
-	const tags = await loadTagsFromHygraph()
+	const hygraphTags = await loadTagsFromHygraph()
 	const githubPosts = await loadPostsFromGithub()
+	const githubTags = await loadTagsFromGithub(githubPosts)
 
 	const posts = githubPosts.concat(hygraphPosts)
+	const tags = githubTags.concat(hygraphTags)
 
 	return {
 		props: {

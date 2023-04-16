@@ -1,11 +1,22 @@
 import { GetStaticProps } from 'next'
-import { loadPostsFromHygraph, loadTagsFromHygraph, Blog } from '../index'
+import {
+	Blog,
+	loadPostsFromGithub,
+	loadPostsFromHygraph,
+	loadTagsFromGithub,
+	loadTagsFromHygraph,
+} from '../index'
 
 export async function getStaticPaths(): Promise<{
 	paths: string[]
 	fallback: string
 }> {
-	const tags = await loadTagsFromHygraph()
+	const hygraphTags = await loadTagsFromHygraph()
+	const githubPosts = await loadPostsFromGithub()
+	const githubTags = await loadTagsFromGithub(githubPosts)
+
+	let tags = [...hygraphTags, ...githubTags]
+	tags = [...new Set(tags)]
 
 	return {
 		paths: tags.map((tag) => `/blog/tag/${tag}`),
@@ -16,7 +27,19 @@ export async function getStaticPaths(): Promise<{
 export const getStaticProps: GetStaticProps = async ({ params }) => {
 	const postsRequest = loadPostsFromHygraph(params!.tag as string)
 	const tagsRequest = loadTagsFromHygraph()
-	const [posts, tags] = await Promise.all([postsRequest, tagsRequest])
+	const githubPosts = await loadPostsFromGithub()
+	const githubTags = await loadTagsFromGithub(githubPosts)
+	let [posts, tags] = await Promise.all([postsRequest, tagsRequest])
+
+	let filteredPosts = githubPosts.filter((post) => {
+		return post.tags.includes(params!.tag as string)
+	})
+
+	console.log(filteredPosts)
+
+	tags.concat(githubTags)
+	tags = [...new Set(tags)]
+	posts = [...filteredPosts, ...posts]
 
 	return {
 		props: {

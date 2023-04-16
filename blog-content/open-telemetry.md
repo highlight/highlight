@@ -13,7 +13,7 @@ authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
 authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Highlight Engineering
+tags: highlight-engineering 
 tag_relation: Highlight Engineering
 tag_relation_slug: highlight-engineering
 description: At highlight.io, we're committed to using open source software for our infrastructure stack. That's why we've partnered with ClickHouse, Kafka, OpenSearch, InfluxDB, and PostgreSQL for our backend architecture to efficiently process ~250 TB of customer data per day. But our promise to our customers goes beyond the technology powering our data ingest. We'll share how we use OpenTelemetry to easily build open source SDKs to support the various programming languages our customers use. 
