@@ -45,7 +45,7 @@ export const curlExample: QuickStartStep = {
                     {
                       "key": "highlight.project_id",
                       "value": {
-                        "stringValue": "YOUR_PROJECT_ID"
+                        "stringValue": "<YOUR_PROJECT_ID>"
                       }
                     },
                     {

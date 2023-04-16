@@ -17,7 +17,7 @@ export const PythonOtherLogContent: QuickStartContent = {
 			code: {
 				text: `import highlight_io
 
-H = highlight_io.H("YOUR_PROJECT_ID", record_logs=True)`,
+H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)`,
 				language: 'python',
 			},
 		},
