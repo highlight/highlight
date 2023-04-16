@@ -1151,7 +1151,7 @@ func (w *Worker) Start(ctx context.Context) {
 }
 
 func (w *Worker) ReportStripeUsage(ctx context.Context) {
-	pricing.ReportAllUsage(ctx, w.Resolver.DB, w.Resolver.StripeClient, w.Resolver.MailClient)
+	pricing.ReportAllUsage(ctx, w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.StripeClient, w.Resolver.MailClient)
 }
 
 func (w *Worker) UpdateOpenSearchIndex(ctx context.Context) {

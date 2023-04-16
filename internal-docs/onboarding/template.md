@@ -1,7 +1,7 @@
 <!--- 
 Instructions for onboarding buddy:
 
-* cp 000-template.md 001-github-new-hire-username.md
+* cp 000-template.md github-new-hire-username.md
 * Make appropriate changes to this template given who you are onboarding.
 -->
 
@@ -9,7 +9,7 @@ Instructions for onboarding buddy:
 
 Welcome to Highlight [@github-new-hire-username](https://github.com/github-new-hire-username)! We're thrilled to have you join us.
 
-Since we are [open source](https://news.ycombinator.com/item?id=34897645) and one of our core values is [building in public](https://www.highlight.io/docs/general/company/values#we-build-in-public), your onboarding process will also be tracked in repo.
+We are an [open source](https://news.ycombinator.com/item?id=34897645) company and one of our core values is [building in public](https://www.highlight.io/docs/general/company/values#we-build-in-public) -- that also includes onboarding 🎉
 
 Your onboarding buddy is [@github-onboarding-buddy-username](https://github.com/github-onboarding-buddy-username) and they'll walk you through your next couple weeks.
 

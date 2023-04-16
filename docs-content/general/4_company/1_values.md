@@ -15,7 +15,7 @@ We strive to build in public in every way we can. This means sharing our roadmap
 
 ## We prioritize cohesion.
 
-People may think that we're building multiple products (session replay, error monitoring, etc..) but we see it as one. Before we build anything new, we prioritize making it operate seemlessly with everything else. E.g. see our [fullstack mapping guide](../../getting-started/2_frontend-backend-mapping.md).
+People may think that we're building multiple products (session replay, error monitoring, etc..) but we see it as one. Before we build anything new, we prioritize making it operate seemlessly with everything else e.g. see our [fullstack mapping guide](../../getting-started/2_frontend-backend-mapping.md).
 
 ## We build for today's developer.
 

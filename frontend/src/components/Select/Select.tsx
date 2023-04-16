@@ -64,7 +64,12 @@ const Select = ({
 					}
 
 					return (
-						<Option key={id} value={value} disabled={disabled}>
+						<Option
+							key={id}
+							value={value}
+							disabled={disabled}
+							label={displayValue}
+						>
 							{display}
 						</Option>
 					)

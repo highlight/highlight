@@ -11,7 +11,7 @@ import { linkStyle } from '@components/Header/styles.css'
 import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
-import { Maybe, PlanType, Project } from '@graph/schemas'
+import { Maybe, ProductType, Project } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -43,7 +43,10 @@ import { useProjectId } from '@hooks/useProjectId'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
 import { useBillingHook } from '@pages/Billing/Billing'
-import { getTrialEndDateMessage } from '@pages/Billing/utils/utils'
+import {
+	getQuotaPercents,
+	getTrialEndDateMessage,
+} from '@pages/Billing/utils/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
@@ -51,7 +54,6 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { client } from '@util/graph'
-import { useClientIntegrated, useServerIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
@@ -66,7 +68,11 @@ import { useSessionStorage } from 'react-use'
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.scss'
 
-export const Header = () => {
+type Props = {
+	fullyIntegrated?: boolean
+}
+
+export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -74,12 +80,6 @@ export const Header = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
-	const { data: clientIntegration } = useClientIntegrated()
-	const { data: serverIntegration } = useServerIntegrated()
-	const fullyIntegrated =
-		!!clientIntegration?.integrated && !!serverIntegration?.integrated
-	const integrated =
-		!!clientIntegration?.integrated || !!serverIntegration?.integrated
 
 	const { pathname, state } = useLocation()
 	const goBackPath = state?.previousPath ?? `/${project_id}/sessions`
@@ -118,7 +118,7 @@ export const Header = () => {
 			<CommandBar />
 			<CommandBarV1 />
 			<Box background="n2" borderBottom="secondary">
-				{!!project_id && !isSetup && getBanner(project_id, integrated)}
+				{!!project_id && !isSetup && getBanner(project_id)}
 				<Box
 					display="flex"
 					alignItems="center"
@@ -352,23 +352,27 @@ export const Header = () => {
 							style={{ zIndex: 20000 }}
 							width="full"
 						>
-							{!!fullyIntegrated && !isSetup && (
-								<LinkButton
-									to={`/${project_id}/setup`}
-									state={{ previousPath: location.pathname }}
-									trackingId="header_setup-cta"
-									emphasis="low"
-								>
-									<Stack
-										direction="row"
-										align="center"
-										gap="4"
+							{!!projectIdRemapped &&
+								!fullyIntegrated &&
+								!isSetup && (
+									<LinkButton
+										to={`/${project_id}/setup`}
+										state={{
+											previousPath: location.pathname,
+										}}
+										trackingId="header_setup-cta"
+										emphasis="low"
 									>
-										<Text>Finish setup </Text>
-										<IconSolidArrowSmRight />
-									</Stack>
-								</LinkButton>
-							)}
+										<Stack
+											direction="row"
+											align="center"
+											gap="4"
+										>
+											<Text>Finish setup </Text>
+											<IconSolidArrowSmRight />
+										</Stack>
+									</LinkButton>
+								)}
 							{!!project_id && !isSetup && (
 								<Button
 									trackingId="quickSearchClicked"
@@ -649,22 +653,25 @@ export const Header = () => {
 	)
 }
 
-const getBanner = (project_id: string, integrated: boolean) => {
+const getBanner = (project_id: string) => {
 	if (isOnPrem) {
 		return <OnPremiseBanner />
 	} else if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
 		return <DemoWorkspaceBanner />
 	} else {
-		return <BillingBanner integrated={integrated} />
+		return <BillingBanner />
 	}
 }
 
-const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
+const APPROACHING_QUOTA_THRESHOLD = 0.8
+
+const BillingBanner: React.FC = () => {
 	const { toggleShowBanner } = useGlobalContext()
 	const [temporarilyHideBanner, setTemporarilyHideBanner] = useSessionStorage(
 		'highlightHideFreePlanBanner',
 		false,
 	)
+	const { currentWorkspace } = useApplicationContext()
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: project_id! },
@@ -716,125 +723,80 @@ const BillingBanner: React.FC<{ integrated: boolean }> = ({ integrated }) => {
 		return null
 	}
 
-	const isYoutubeLive = moment().isBetween(
-		'2023-02-09T22:45:00Z',
-		'2023-02-10T00:00:00Z',
-	)
-	if (isYoutubeLive) {
-		toggleShowBanner(true)
-		return <HighlightRoadshowBanner />
-	}
-
-	if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
-		// show Product Hunt banner at the time of a launch
-		const isPHLaunch = moment().isBetween(
-			'2023-01-10T08:00:00Z',
-			'2023-01-11T08:00:00Z',
-		)
-		if (isPHLaunch) {
-			toggleShowBanner(true)
-			return <ProductHuntBanner />
-		}
-
+	if (!data) {
 		toggleShowBanner(false)
 		return null
 	}
 
-	if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
-		toggleShowBanner(false)
-		return null
-	}
-
-	let bannerMessage:
-		| string
-		| React.ReactNode = `You've used ${data?.billingDetailsForProject?.meter}/${data?.billingDetailsForProject?.plan.quota} of your free sessions.`
+	let bannerMessage: string | React.ReactNode = ''
 	const hasTrial = isProjectWithinTrial(data?.workspace_for_project)
-	const canExtend = data?.workspace_for_project?.eligible_for_trial_extension
-	const hasExceededSessionsForMonth =
-		data?.billingDetailsForProject?.meter >
-		data?.billingDetailsForProject?.plan.quota
+
+	const records = getQuotaPercents(data)
+
+	const productsApproachingQuota = records
+		.filter((r) => r[1] > APPROACHING_QUOTA_THRESHOLD && r[1] <= 1)
+		.map((r) => r[0])
+	const productsOverQuota = records.filter((r) => r[1] > 1).map((r) => r[0])
+
+	if (productsOverQuota.length > 0) {
+		bannerMessage += `You've reached your monthly limit for ${productsToString(
+			productsOverQuota,
+		)}.`
+	}
+	if (productsApproachingQuota.length > 0) {
+		bannerMessage += ` You're approaching your monthly limit for ${productsToString(
+			productsApproachingQuota,
+		)}.`
+	}
+
+	if (!bannerMessage && !hasTrial) {
+		toggleShowBanner(false)
+		return null
+	}
 
 	if (hasTrial) {
 		bannerMessage = getTrialEndDateMessage(
 			data?.workspace_for_project?.trial_end_date,
 		)
-
-		if (canExtend) {
-			if (integrated) {
-				bannerMessage = (
-					<>
-						You have unlimited Highlight until{' '}
-						{moment(
-							data?.workspace_for_project?.trial_end_date,
-						).format('MM/DD')}
-						.{' '}
-						<Link
-							className={styles.trialLink}
-							to={`/w/${data?.workspace_for_project?.id}/about-you`}
-						>
-							Fill this out
-						</Link>{' '}
-						before your trial ends to extend this by another week!
-					</>
-				)
-			} else {
-				bannerMessage = (
-					<>
-						You have unlimited Highlight until{' '}
-						{moment(
-							data?.workspace_for_project?.trial_end_date,
-						).format('MM/DD')}
-						.{' '}
-						<Link
-							className={styles.trialLink}
-							to={`/${project_id}/setup`}
-						>
-							Integrate
-						</Link>{' '}
-						before your trial ends to extend this by another week!
-					</>
-				)
-			}
-		}
 	}
 
 	toggleShowBanner(true)
 
 	return (
-		<div
-			className={clsx(styles.trialWrapper, {
-				[styles.error]: hasExceededSessionsForMonth,
-			})}
-		>
-			<div className={clsx(styles.trialTimeText)}>
-				{bannerMessage}
-				{!canExtend && (
-					<>
-						{' '}
-						Upgrade{' '}
-						<Link
-							className={styles.trialLink}
-							to={`/w/${data?.workspace_for_project?.id}/current-plan`}
-						>
-							here!
-						</Link>
-					</>
-				)}
+		<div className={styles.trialWrapper}>
+			<div className={styles.trialTimeText}>
+				{bannerMessage} Upgrade{' '}
+				<Link to={`/w/${currentWorkspace?.id}/current-plan`}>here</Link>
+				.
 			</div>
-			{hasTrial && (
-				<button
-					onClick={() => {
-						analytics.track('TemporarilyHideFreePlanBanner', {
-							hasTrial,
-						})
-						setTemporarilyHideBanner(true)
-					}}
-				>
-					<SvgXIcon />
-				</button>
-			)}
+			<button
+				onClick={() => {
+					analytics.track('TemporarilyHideFreePlanBanner', {
+						hasTrial,
+					})
+					setTemporarilyHideBanner(true)
+				}}
+			>
+				<SvgXIcon />
+			</button>
 		</div>
 	)
+}
+
+const productsToString = (p: ProductType[]): string => {
+	const lowers = p.map((p) => p.toLowerCase())
+	if (lowers.length === 0) {
+		return ''
+	} else if (lowers.length === 1) {
+		return lowers[0]
+	} else if (lowers.length === 2) {
+		return `${lowers[0]} and ${lowers[1]}`
+	} else {
+		lowers.reverse()
+		const [last, ...rest] = lowers
+		rest.reverse()
+		return rest.join(', ') + `, and ${last}`
+	}
 }
 
 const OnPremiseBanner = () => {
@@ -878,60 +840,6 @@ const DemoWorkspaceBanner = () => {
 					Go back to your project.
 				</Link>
 			</div>
-		</div>
-	)
-}
-
-const ProductHuntBanner = () => {
-	const { toggleShowBanner } = useGlobalContext()
-
-	toggleShowBanner(true)
-
-	const bannerMessage = (
-		<span>
-			Highlight is live on Product Hunt 🎉‍{' '}
-			<a
-				target="_blank"
-				href="https://www.producthunt.com/posts/error-management-by-highlight"
-				className={styles.trialLink}
-				rel="noreferrer"
-			>
-				Support us
-			</a>{' '}
-			and we'll be forever grateful ❤️
-		</span>
-	)
-
-	return (
-		<div className={clsx(styles.trialWrapper, styles.productHunt)}>
-			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
-		</div>
-	)
-}
-
-const HighlightRoadshowBanner = () => {
-	const { toggleShowBanner } = useGlobalContext()
-
-	toggleShowBanner(true)
-
-	const bannerMessage = (
-		<span>
-			The Highlight Roadshow is live on Youtube 🎉‍{' '}
-			<a
-				target="_blank"
-				href="https://www.youtube.com/@thestartupstack/streams"
-				className={styles.trialLink}
-				rel="noreferrer"
-			>
-				Check it out
-			</a>{' '}
-			to see the latest features from our engineering team!️
-		</span>
-	)
-
-	return (
-		<div className={clsx(styles.trialWrapper, styles.youtube)}>
-			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
 		</div>
 	)
 }

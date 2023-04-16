@@ -157,6 +157,18 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 
 ## 6.0.1
 
-### Minor Changes
+### Patch Changes
 
 - Fixes `H.track` reporting to ensure events are recorded as part of the session timeline indicators.
+
+## 6.0.2
+
+### Patch Changes
+
+- Fixes typescript definitions for `highlight.run` which referenced an internal unpublished package.
+
+## 6.0.3
+
+### Patch Changes
+
+- Packages the web-vitals library as part of the highlight.io client bundle.

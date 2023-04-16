@@ -65,6 +65,13 @@ const DOCS_TYPES: Array<{
 	},
 	{
 		id: 7,
+		name: 'Java SDK Documentation',
+		icon: <DocumentTextIcon />,
+		url: '/docs/sdk/java',
+		baseUrl: '/docs/sdk/java',
+	},
+	{
+		id: 8,
 		name: 'Client SDK Documentation',
 		icon: <DocumentTextIcon />,
 		url: '/docs/sdk/client',
