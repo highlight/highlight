@@ -42,11 +42,51 @@ interface Content {
 
 export async function getGithubPostBySlug(slug: string) {
 	const posts = await loadPostsFromGithub()
+	posts.forEach((post) => {
+		console.log(post.slug)
+	})
+
 	const post = posts.find((p) => p.slug === slug)
 	if (!post) {
 		throw new Error(`Could not find post with slug ${slug}`)
 	}
 	return post
+}
+
+const components = {
+	p: (props) => {
+		return <p className={styles.blogText} {...props}></p>
+	},
+	h1: (props) => <h4 className={styles.blogText}>{props.children}</h4>,
+	h2: (props) => {
+		return <h2 className={styles.blogText}>{props.children}</h2>
+	},
+	h3: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
+	h4: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
+	h5: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
+	code: (props) => {
+		if (
+			typeof props.children === 'string' &&
+			(props.children.match(/\n/g) || []).length
+		) {
+			return (
+				<HighlightCodeBlock
+					language={
+						props.className
+							? props.className.split('language-').pop() ?? 'js'
+							: 'js'
+					}
+					text={props.children}
+					showLineNumbers={false}
+				/>
+			)
+		}
+		return (
+			<code className={classNames(styles.codeInline, styles.postBody)}>
+				{props.children}
+			</code>
+		)
+	},
 }
 
 const getBlogTypographyRenderer = (type: string) => {
@@ -236,7 +276,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		}
 	}
 
-	console.log(data.post.richcontent.markdown)
 	const postSections: PostSection[] = []
 	let currentBlock: ElementNode[] = []
 	for (const r of data.post.richcontent.raw.children) {
@@ -347,11 +386,9 @@ const PostPage = ({
 	post: Post
 	postSections: PostSection[]
 	suggestedPosts: Post[]
-	source: MDXRemoteSerializeResult<
-		Record<string, unknown>,
-		Record<string, unknown>
-	>
+	source: MDXRemoteSerializeResult
 }) => {
+	console.log(post)
 	const blogBody = useRef<HTMLDivElement>(null)
 	const [endPosition, setEndPosition] = useState(0)
 
@@ -478,41 +515,12 @@ const PostPage = ({
 								<PostSection key={idx} idx={idx} p={p} />
 							))}
 						{source && (
-							<MDXRemote
-								{...source}
-								components={{
-									p: (props) => {
-										return (
-											<p
-												className={styles.blogText}
-												{...props}
-											></p>
-										)
-									},
-									h1: (props) => <h4 {...props} />,
-									h2: (props) => {
-										return (
-											<h2
-												className={styles.blogText}
-												{...props}
-											></h2>
-										)
-									},
-									h3: (props) => <h6 {...props} />,
-									h4: (props) => <h6 {...props} />,
-									h5: (props) => <h6 {...props} />,
-									code: (props) => {
-										// check if props.children is a string
-										return (
-											<HighlightCodeBlock
-												language={'js'}
-												text={'HI HI HI'}
-												showLineNumbers={false}
-											/>
-										)
-									},
-								}}
-							/>
+							<div className={styles.blogText}>
+								<MDXRemote
+									{...source}
+									components={components}
+								/>
+							</div>
 						)}
 					</div>
 				</Section>
@@ -535,6 +543,7 @@ const PostPage = ({
 						{suggestedPosts.map((p, i) => (
 							<SuggestedBlogPost {...p} key={i} />
 						))}
+						{}
 					</div>
 				</Section>
 			</main>

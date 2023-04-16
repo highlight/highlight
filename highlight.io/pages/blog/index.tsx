@@ -106,9 +106,11 @@ export function markdownToPost(
 	},
 ): Post {
 	let post: Post = {
+		title: data.title,
 		slug: data.slug,
 		description: data.description || null,
-		title: data.title || null,
+		metaDescription: data.metaDescription || data.description || null,
+		metaTitle: data.metaTitle || data.title || null,
 		publishedAt: data.createdAt,
 		postedAt: data.updatedAt,
 		readingTime: data.readingTime,
@@ -136,12 +138,12 @@ export function markdownToPost(
 			},
 		},
 		tags: data.tags,
-		tags_relations: data.tags.split(',').map((t: string) => {
-			return {
-				name: t,
-				slug: t,
-			}
-		}),
+		tags_relations: [
+			{
+				name: data.tag_relation,
+				slug: data.tag_relation_slug,
+			},
+		],
 	}
 
 	return post
@@ -170,13 +172,6 @@ export const getBlogPaths = async (
 	fs_api: any,
 	base: string | undefined,
 ): Promise<BlogPath[]> => {
-	// each docpath needs to have some hierarchy (so we know if its nested, etc..)
-	// each path can either be:
-	// - parent w/o content
-	// - parent w/ content
-	// if (!base) {
-	//   base = 'general-docs';
-	// }
 	base = base ?? ''
 	const full_path = path.join(BLOG_CONTENT_PATH, base)
 	const read = await fs_api.readdir(full_path)
@@ -225,7 +220,7 @@ export const getStaticProps: GetStaticProps = async () => {
 	const tags = await loadTagsFromHygraph()
 	const githubPosts = await loadPostsFromGithub()
 
-	const posts = hygraphPosts.concat(githubPosts)
+	const posts = githubPosts.concat(hygraphPosts)
 
 	return {
 		props: {
