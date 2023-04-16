@@ -989,7 +989,6 @@ const DocPage = ({
 										<MDXRemote
 											components={{
 												MissingFrameworkCopy,
-												Callout,
 												Roadmap,
 												RoadmapItem,
 												QuickStart,

@@ -1,8 +1,6 @@
 ---
 title: Our Product Philsophy
 slug: product-philosphy
-createdAt: 2022-04-01T20:28:14.000Z
-updatedAt: 2022-04-15T02:07:22.000Z
 ---
 
 This doc acts as a reference for our product philosophy at highlight.io, or to be more exact, how we think about what we build (not necessarily how we build it). It acts a way for our team to prioritize work, but also educate the public on where we're headed. Sharing this type of content aligns with our values to [build in public](./1_values.md#we-build-in-public) and we hope to continue sharing more in this space.
