@@ -109,11 +109,11 @@ jobs:
             - name: Build and push docker container.
               env:
                   ECR_REGISTRY: public.ecr.aws
-                  GHR_REGISTRY: ${{ env.REGISTRY }}
+                  GHR_REGISTRY: ghcr.io
                   GH_DOCKER_TOKEN: ${{ secrets.GH_DOCKER_TOKEN }}
               run: |
                   # log in to gh registry
-                  echo $GH_DOCKER_TOKEN | docker login ghcr.io -u Vadman97 --password-stdin
+                  echo $GH_DOCKER_TOKEN | docker login $GHR_REGISTRY -u Vadman97 --password-stdin
 
                   # build docker image with common environment
                   pushd docker
