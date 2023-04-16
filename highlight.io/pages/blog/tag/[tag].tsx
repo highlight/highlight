@@ -1,4 +1,5 @@
 import { GetStaticProps } from 'next'
+import { Tag } from '../../../components/Blog/Tag'
 import {
 	Blog,
 	loadPostsFromGithub,
@@ -6,6 +7,21 @@ import {
 	loadTagsFromGithub,
 	loadTagsFromHygraph,
 } from '../index'
+
+//get unique tags and prefer tags that have a description
+export function getUniqueTags(tags: Tag[]): Tag[] {
+	const uniqueTags: { [key: string]: Tag } = {}
+	for (const tag of tags) {
+		if (
+			!uniqueTags[tag.slug] ||
+			(!uniqueTags[tag.slug].description &&
+				uniqueTags[tag.slug].description != null)
+		) {
+			uniqueTags[tag.slug] = tag
+		}
+	}
+	return Object.values(uniqueTags)
+}
 
 export async function getStaticPaths(): Promise<{
 	paths: string[]
@@ -16,7 +32,8 @@ export async function getStaticPaths(): Promise<{
 	const githubTags = await loadTagsFromGithub(githubPosts)
 
 	let tags = [...hygraphTags, ...githubTags]
-	tags = [...new Set(tags)]
+	tags = getUniqueTags(tags)
+	console.log(tags)
 
 	return {
 		paths: tags.map((tag) => `/blog/tag/${tag}`),
@@ -35,10 +52,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		return post.tags.includes(params!.tag as string)
 	})
 
-	console.log(filteredPosts)
-
 	tags.concat(githubTags)
-	tags = [...new Set(tags)]
+	tags = getUniqueTags(tags)
 	posts = [...filteredPosts, ...posts]
 
 	return {

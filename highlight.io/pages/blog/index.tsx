@@ -233,7 +233,7 @@ export const getStaticProps: GetStaticProps = async () => {
 	const githubTags = await loadTagsFromGithub(githubPosts)
 
 	const posts = githubPosts.concat(hygraphPosts)
-	const tags = githubTags.concat(hygraphTags)
+	const tags = hygraphTags
 
 	return {
 		props: {
