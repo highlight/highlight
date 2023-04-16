@@ -13,7 +13,7 @@ slug: java
   <div className="right">
     <h6>Just getting started?</h6>
     <p>Check out our [getting started guide](https://www.highlight.io/docs/getting-started/overview) to get up and running quickly.</p>
-	<p>Import our maven dependency from [mvnrepository](https://mvnrepository.com/artifact/io.highlight/highlight-sdk/latest)</p>
+    <p>Import our maven dependency from [mvnrepository](https://mvnrepository.com/artifact/io.highlight/highlight-sdk/latest)</p>
   </div>
 </section>
 
