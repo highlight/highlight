@@ -23,7 +23,7 @@ export const PythonFastAPIContext: QuickStartContent = {
 import highlight_io
 from highlight_io.integrations.fastapi import FastAPIMiddleware
 
-H = highlight_io.H("YOUR_PROJECT_ID", record_logs=True)
+H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
 
 app = FastAPI()
 app.add_middleware(FastAPIMiddleware)`,
@@ -44,7 +44,7 @@ app.add_middleware(FastAPIMiddleware)`,
 import highlight_io
 from highlight_io.integrations.fastapi import FastAPIMiddleware
 
-H = highlight_io.H("YOUR_PROJECT_ID", record_logs=True)
+H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
 
 app = FastAPI()
 app.add_middleware(FastAPIMiddleware)

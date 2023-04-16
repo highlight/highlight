@@ -201,7 +201,7 @@ func main() {
 
 const app = express();
 
-const highlightOptions = {projectID: 'YOUR_PROJECT_ID'};
+const highlightOptions = {projectID: '<YOUR_PROJECT_ID>'};
 const highlightHandler = Handlers.errorHandler(highlightOptions);
 
 // This should be before any other error middleware and after all controllers

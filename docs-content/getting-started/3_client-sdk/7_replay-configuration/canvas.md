@@ -12,7 +12,7 @@ Highlight by default does not record the contents of `<canvas>` elements. This i
 Enable canvas recording by configuring [H.init()](../../../sdk/client.md#Hinit) in the following way:
 
 ```javascript
-H.init('YOUR_PROJECT_ID', {
+H.init('<YOUR_PROJECT_ID>', {
   enableCanvasRecording: true,
   samplingStrategy: {
     canvas: 15,

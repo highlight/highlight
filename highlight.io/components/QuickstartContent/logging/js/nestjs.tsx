@@ -19,7 +19,7 @@ import { HighlightLogger } from '@highlight-run/nest'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
-  const highlightOpts = { projectID: 'YOUR_PROJECT_ID' }
+  const highlightOpts = { projectID: '<YOUR_PROJECT_ID>' }
   app.useLogger(new HighlightLogger(highlightOpts))
   await app.listen(3000)
 }
