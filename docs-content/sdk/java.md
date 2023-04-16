@@ -7,12 +7,13 @@ slug: java
   <div className="left">
     <h3>Java SDK</h3>
     <p>
-      Highlight's Java SDK makes it easy to monitor errors and metrics on your Java backend.
+      Highlight's [Java SDK](https://mvnrepository.com/artifact/io.highlight/highlight-sdk/latest) makes it easy to monitor errors and metrics on your Java backend.
     </p>
   </div>
   <div className="right">
     <h6>Just getting started?</h6>
     <p>Check out our [getting started guide](https://www.highlight.io/docs/getting-started/overview) to get up and running quickly.</p>
+	<p>Import our maven dependency from [mvnrepository](https://mvnrepository.com/artifact/io.highlight/highlight-sdk/latest)</p>
   </div>
 </section>
 
