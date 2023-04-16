@@ -76,8 +76,8 @@ jobs:
 
     publish-docker:
         name: Publish Production Docker Image
-        #      if: github.ref == 'refs/heads/main' && github.repository == 'highlight/highlight'
-        #        needs: e2e-frontend-backend-client
+        if: github.ref == 'refs/heads/main' && github.repository == 'highlight/highlight'
+        needs: e2e-frontend-backend-client
         runs-on: buildjet-4vcpu-ubuntu-2204
         strategy:
             matrix:
@@ -122,8 +122,10 @@ jobs:
                   docker buildx build --platform linux/amd64 -t $ECR_REGISTRY/highlight-io/$IMAGE_NAME:$IMAGE_TAG -f docker/${{ matrix.container }}.Dockerfile --target ${{ matrix.container }}-prod .
 
                   # push to aws ecr
-                  docker push $ECR_REGISTRY/highlight-io/$IMAGE_NAME:$IMAGE_TAG
+                  docker tag $ECR_REGISTRY/highlight-io/$IMAGE_NAME:$IMAGE_TAG $ECR_REGISTRY/highlight/$IMAGE_NAME:latest
+                  docker push $ECR_REGISTRY/highlight-io/$IMAGE_NAME
 
                   # push to github package registry
                   docker tag $ECR_REGISTRY/highlight-io/$IMAGE_NAME:$IMAGE_TAG $GHR_REGISTRY/highlight/$IMAGE_NAME:$IMAGE_TAG
-                  docker push $GHR_REGISTRY/highlight/$IMAGE_NAME:$IMAGE_TAG
+                  docker tag $ECR_REGISTRY/highlight-io/$IMAGE_NAME:$IMAGE_TAG $GHR_REGISTRY/highlight/$IMAGE_NAME:latest
+                  docker push $GHR_REGISTRY/highlight/$IMAGE_NAME

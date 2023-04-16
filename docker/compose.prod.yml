@@ -8,26 +8,24 @@ x-depends-infra: &depends-infra
             condition: service_healthy
         clickhouse:
             condition: service_started
-        elasticsearch:
+        opensearch:
             condition: service_healthy
         influxdb:
             condition: service_healthy
-        setup-influxdb:
-            condition: service_started
         collector:
             condition: service_started
 
 services:
     backend-setup-db:
-        image: public.ecr.aws/highlight-io/highlight-backend
+        image: ghcr.io/highlight/highlight-backend:latest
         command:
             - go
             - run
             - ./migrations/main.go
         <<: *depends-infra
 
-    backend-setup-elasticsearch:
-        image: public.ecr.aws/highlight-io/highlight-backend
+    backend-setup-opensearch:
+        image: ghcr.io/highlight/highlight-backend:latest
         command:
             - /bin/backend
             - -runtime=worker
@@ -36,7 +34,7 @@ services:
 
     backend:
         container_name: backend
-        image: public.ecr.aws/highlight-io/highlight-backend
+        image: ghcr.io/highlight/highlight-backend:latest
         healthcheck:
             test: ['CMD', 'curl', '-f', '-k', 'https://localhost:8082/health']
             start_period: 180s
@@ -50,12 +48,12 @@ services:
         depends_on:
             backend-setup-db:
                 condition: service_completed_successfully
-            backend-setup-elasticsearch:
+            backend-setup-opensearch:
                 condition: service_completed_successfully
 
     frontend:
         container_name: frontend
-        image: public.ecr.aws/highlight-io/highlight-frontend
+        image: ghcr.io/highlight/highlight-frontend:latest
         healthcheck:
             test: ['CMD', 'curl', '-f', '-k', 'https://localhost:3000/']
             start_period: 180s
