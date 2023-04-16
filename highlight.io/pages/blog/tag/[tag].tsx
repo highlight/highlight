@@ -33,7 +33,6 @@ export async function getStaticPaths(): Promise<{
 
 	let tags = [...hygraphTags, ...githubTags]
 	tags = getUniqueTags(tags)
-	console.log(tags)
 
 	return {
 		paths: tags.map((tag) => `/blog/tag/${tag}`),
