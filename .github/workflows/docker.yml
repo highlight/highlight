@@ -122,7 +122,7 @@ jobs:
                   docker buildx build --platform linux/amd64 -t $ECR_REGISTRY/highlight-io/$IMAGE_NAME:$IMAGE_TAG -f docker/${{ matrix.container }}.Dockerfile --target ${{ matrix.container }}-prod .
 
                   # push to aws ecr
-                  docker tag $ECR_REGISTRY/highlight-io/$IMAGE_NAME:$IMAGE_TAG $ECR_REGISTRY/highlight/$IMAGE_NAME:latest
+                  docker tag $ECR_REGISTRY/highlight-io/$IMAGE_NAME:$IMAGE_TAG $ECR_REGISTRY/highlight-io/$IMAGE_NAME:latest
                   docker push $ECR_REGISTRY/highlight-io/$IMAGE_NAME
 
                   # push to github package registry
