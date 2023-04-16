@@ -64,7 +64,7 @@ export const SetupDocs: React.FC<Props> = ({ projectVerboseId }) => {
 												},
 											)
 										}}
-										text={entry.code.text.replace(
+										text={entry.code.text.replaceAll(
 											'<YOUR_PROJECT_ID>',
 											projectVerboseId,
 										)}

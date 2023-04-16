@@ -22,7 +22,7 @@ export const PythonDjangoContext: QuickStartContent = {
 				text: `import highlight_io
 from highlight_io.integrations.django import DjangoIntegration
 
-H = highlight_io.H("YOUR_PROJECT_ID", integrations=[DjangoIntegration()], record_logs=True)`,
+H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[DjangoIntegration()], record_logs=True)`,
 				language: 'python',
 			},
 		},

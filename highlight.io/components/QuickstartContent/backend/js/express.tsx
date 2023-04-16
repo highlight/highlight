@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 })
 
 // This should be before any other error middleware and after all controllers (route definitions)
-app.use(Handlers.errorHandler({ projectID: 'YOUR_PROJECT_ID' }))
+app.use(Handlers.errorHandler({ projectID: '<YOUR_PROJECT_ID>' }))
 app.listen(8080, () => {
   console.log(\`Example app listening on port 8080\`)
 })`,

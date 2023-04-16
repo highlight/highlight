@@ -30,7 +30,7 @@ exports.exampleCallable = functions.https.onCall(
       // ... your handler code here
       return { result: 'useful result!' }
     },
-    { projectID: 'YOUR_PROJECT_ID' },
+    { projectID: '<YOUR_PROJECT_ID>' },
   ),
 )
 
@@ -41,7 +41,7 @@ exports.exampleHttp = functions.https.onRequest(
       // ... your handler code here
       res.json({ result: 'useful result!' })
     },
-    { projectID: 'YOUR_PROJECT_ID' },
+    { projectID: '<YOUR_PROJECT_ID>' },
   ),
 )`,
 				language: `js`,
@@ -55,7 +55,7 @@ exports.exampleHttp = functions.https.onRequest(
       throw new Error('example error!')
       return { result: 'useful result!' }
     },
-    { projectID: 'YOUR_PROJECT_ID' },
+    { projectID: '<YOUR_PROJECT_ID>' },
   ),
 )`,
 		),
