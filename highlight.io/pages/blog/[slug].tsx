@@ -42,9 +42,6 @@ interface Content {
 
 export async function getGithubPostBySlug(slug: string) {
 	const posts = await loadPostsFromGithub()
-	posts.forEach((post) => {
-		console.log(post.slug)
-	})
 
 	const post = posts.find((p) => p.slug === slug)
 	if (!post) {
@@ -87,6 +84,18 @@ const components = {
 			</code>
 		)
 	},
+	// img: (props) => {
+	// 	return (
+	// 		<Image
+	// 			src={props.src}
+	// 			alt={props.alt || ''}
+	// 			height={1}
+	// 			width={1}
+	// 			layout="responsive"
+	// 			className="max-w-[3px] max-h-[3px]"
+	// 		/>
+	// 	)
+	// },
 }
 
 const getBlogTypographyRenderer = (type: string) => {
@@ -358,17 +367,17 @@ const PostSection = ({ p }: { p: PostSection; idx: number }) => {
 					h5: getBlogTypographyRenderer('h5'),
 					h6: getBlogTypographyRenderer('h6'),
 					p: getBlogTypographyRenderer('p'),
-					img: (props) => (
-						<div className={styles.blogImageContainer}>
-							<Image
-								className={styles.blogImage}
-								src={props.src || ''}
-								alt={props.altText}
-								width={props.width}
-								height={props.height}
-							/>
-						</div>
-					),
+					// img: (props) => (
+					// 	<div className={styles.blogImageContainer}>
+					// 		<Image
+					// 			className={styles.blogImage}
+					// 			src={props.src || ''}
+					// 			alt={props.altText}
+					// 			width={props.width}
+					// 			height={props.height}
+					// 		/>
+					// 	</div>
+					// ),
 				}}
 			/>
 			{/*update to support new footer components*/}
@@ -515,7 +524,12 @@ const PostPage = ({
 								<PostSection key={idx} idx={idx} p={p} />
 							))}
 						{source && (
-							<div className={styles.blogText}>
+							<div
+								className={classNames(
+									styles.blogText,
+									styles.blogImageContainer,
+								)}
+							>
 								<MDXRemote
 									{...source}
 									components={components}
