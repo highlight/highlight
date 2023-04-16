@@ -54,10 +54,10 @@ export const NextContent: QuickStartContent = {
 				'Install the npm package `highlight.run` in your terminal.',
 			code: {
 				text: `# with npm
-npm install highlight.run @highlight-run/react
+npm install @highlight.run/next @highlight-run/react
 
 # with yarn
-yarn add highlight.run @highlight-run/react`,
+yarn add @highlight.run/next @highlight-run/react`,
 				language: 'bash',
 			},
 		},
