@@ -1,7 +1,7 @@
 // app/highlight.tsx
 'use client'
 
-import { H } from 'highlight.run'
+import { H } from '@highlight-run/next'
 
 H.init('1jdkoe52', {
 	debug: {
