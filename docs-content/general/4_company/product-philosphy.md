@@ -9,6 +9,6 @@ Our product philsophy at highlight.io is centered around the concept of "cohesio
 
 Prior to working on highlight.io, we all worked at several tech companies of varying sizes, and had first-hand experience trying to stich together numerous tools to reproduce bugs. It wasn't uncommon that we had to, for e.g., login to Sentry to see a stacktrace, log into Splunk to query logs, and after loads more tools, finally succumb to having to login "as the user" to try and reproduce the issue.
 
-With highlight.io, we're trying to change that. By building monitoring software that "wraps" your infrastructure and application. Our long-term goal is that you can see the full picture of what's happening in your app, whether it be logs, errors, session replay and more, and we do the work to associate all of these resources so that you can ship w/ confidence.
+With highlight.io, we're trying to change that by building monitoring software that "wraps" your infrastructure and application, and ideally, we do ALL the work to stitch together everything. Our long-term goal is that you can trace everything from a button click to a server-side regression with little to no effort.
 
 Now, you may ask, "but that's a lot to build, no?". And we'd reply with "Yep, you're right.". It's definitely ambitious. But that's why its exciting. 
