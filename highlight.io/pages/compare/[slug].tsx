@@ -153,24 +153,32 @@ const CompetitorComparisonPage = ({
 						</div>
 						<CompetitorTable competitor={competitor} />
 					</div>
-					<div className="max-w-[880px] mx-auto my-24">
-						<h3 className="text-center mb-16">
-							What makes us different?
-						</h3>
-						<div className="flex flex-col gap-28">
+					<div className="max-w-[880px] mx-auto my-28">
+						<h4 className="mb-8">What makes us different?</h4>
+						<div className="flex flex-col gap-8">
 							{competitor.paragraphs.map((paragraph, index) => (
 								<div
 									key={index}
 									className="flex flex-col gap-3"
 								>
-									<h4 className="text-left">
+									<h5 className="text-left">
 										{paragraph.header}
-									</h4>
+									</h5>
 									<Typography
 										type="copy1"
 										className="text-copy-on-dark text-left"
 									>
-										<MDXRemote {...sources[index]} />
+										<MDXRemote
+											{...sources[index]}
+											components={{
+												p: (props) => (
+													<Typography
+														type="copy1"
+														{...props}
+													/>
+												),
+											}}
+										/>
 									</Typography>
 								</div>
 							))}
