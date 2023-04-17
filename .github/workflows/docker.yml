@@ -14,7 +14,7 @@ jobs:
         strategy:
             matrix:
                 runs-on:
-                    [buildjet-4vcpu-ubuntu-2204, buildjet-4vcpu-ubuntu-2204-arm]
+                    [buildjet-4vcpu-ubuntu-2204, buildjet-8vcpu-ubuntu-2204-arm]
                 container: ['frontend', 'backend']
         runs-on: ${{matrix.runs-on}}
         timeout-minutes: 30
