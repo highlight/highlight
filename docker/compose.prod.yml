@@ -19,15 +19,15 @@ services:
     backend-setup-db:
         image: ghcr.io/highlight/highlight-backend:latest
         command:
-            - go
-            - run
-            - ./migrations/main.go
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=migrate-db
         <<: *depends-infra
 
     backend-setup-opensearch:
         image: ghcr.io/highlight/highlight-backend:latest
         command:
-            - /bin/backend
+            - /build/backend
             - -runtime=worker
             - -worker-handler=init-opensearch
         <<: *depends-infra

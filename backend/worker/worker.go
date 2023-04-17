@@ -1175,6 +1175,14 @@ func (w *Worker) UpdateOpenSearchIndex(ctx context.Context) {
 	}
 }
 
+func (w *Worker) MigrateDB(ctx context.Context) {
+	_, err := model.MigrateDB(ctx, w.Resolver.DB)
+
+	if err != nil {
+		log.WithContext(ctx).Fatalf("Error migrating DB: %v", err)
+	}
+}
+
 func (w *Worker) InitializeOpenSearchSessions(ctx context.Context) {
 	w.InitIndexMappings(ctx)
 	w.IndexSessions(ctx, false)
@@ -1364,6 +1372,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 		return w.InitializeOpenSearchIndex
 	case "init-opensearch-sessions":
 		return w.InitializeOpenSearchSessions
+	case "migrate-db":
+		return w.MigrateDB
 	case "update-opensearch":
 		return w.UpdateOpenSearchIndex
 	case "metric-monitors":
