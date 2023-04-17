@@ -77,7 +77,7 @@ RUN yarn build:frontend
 
 # reduce the image size by keeping just the built code
 RUN mkdir -p /build/frontend && cp -r ./frontend/build /build/frontend/build
-RUN mkdir -p /build/sdk/client cp -r ./sdk/client/dist /build/sdk/client/dist
+RUN mkdir -p /build/sdk/client && cp -r ./sdk/client/dist /build/sdk/client/dist
 WORKDIR /build
 RUN rm -rf /highlight
 
