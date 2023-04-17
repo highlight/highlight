@@ -40,6 +40,8 @@ ARG REACT_APP_FRONTEND_URI
 ARG REACT_APP_ONPREM
 ARG REACT_APP_PRIVATE_GRAPH_URI
 ARG REACT_APP_PUBLIC_GRAPH_URI
+ARG TURBO_TOKEN
+ARG TURBO_TEAM
 RUN yarn build:frontend
 
 # reduce the image size by keeping just the built code
