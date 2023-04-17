@@ -173,7 +173,7 @@ const CompetitorComparisonPage = ({
 											components={{
 												p: (props) => (
 													<Typography
-														type="copy1"
+														type="copy2"
 														{...props}
 													/>
 												),
