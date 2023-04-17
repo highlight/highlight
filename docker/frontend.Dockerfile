@@ -26,8 +26,6 @@ COPY ../sdk ./sdk
 COPY ../sourcemap-uploader ./sourcemap-uploader
 RUN yarn
 
-FROM frontend-base as frontend-prod
-
 # These three 'args' need to be here because they're injected at build time
 # all other env variables are provided in environment.yml.
 ARG NODE_OPTIONS="--max-old-space-size=16384 --openssl-legacy-provider"
