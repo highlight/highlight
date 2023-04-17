@@ -53,14 +53,6 @@ x-backend-env: &backend-env
         - TZ
 
 services:
-    backend-setup-db:
-        image: ghcr.io/highlight/highlight-backend:latest
-        command:
-            - /build/backend
-            - -runtime=worker
-            - -worker-handler=migrate-db
-        <<: [*depends-infra, *backend-env]
-
     backend-setup-opensearch:
         image: ghcr.io/highlight/highlight-backend:latest
         command:
