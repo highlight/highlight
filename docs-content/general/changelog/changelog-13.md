@@ -35,5 +35,5 @@ We're making a lot of progress on our new logging product; want to join the beta
 
 ## Improvements
 
-Self-hosting improvements ([docs](../4_company/open-source/self-host-hobby.md))
+Self-hosting improvements ([docs](../4_company/open-source/2_self-host-hobby.md))
 Lots of work on logging!
