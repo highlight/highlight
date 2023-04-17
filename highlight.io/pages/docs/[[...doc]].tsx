@@ -5,7 +5,8 @@ import { serialize } from 'next-mdx-remote/serialize'
 import { GetStaticPaths, GetStaticProps } from 'next/types'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Collapse } from 'react-collapse'
-import styles from '../../components/Docs/Docs.module.scss'
+import remarkGfm from 'remark-gfm'
+import styles, { docsTable } from '../../components/Docs/Docs.module.scss'
 import ChevronDown from '../../public/images/ChevronDownIcon'
 import Minus from '../../public/images/MinusIcon'
 
@@ -425,6 +426,9 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 							path: currentDoc.rel_path,
 							quickStartContent,
 							roadmapData: roadmapData,
+						},
+						mdxOptions: {
+							remarkPlugins: [remarkGfm],
 						},
 				  })
 				: null,
@@ -1119,6 +1123,17 @@ const DocPage = ({
 																	},
 																)}
 														</>
+													)
+												},
+												table: (props) => {
+													return (
+														<div
+															className={
+																docsTable
+															}
+														>
+															<table {...props} />
+														</div>
 													)
 												},
 											}}
