@@ -10,6 +10,7 @@ export OBJECT_STORAGE_FS=/tmp/highlight-data
 export REACT_APP_AUTH_MODE=simple
 
 if [[ "$*" == *"--go-docker"* ]]; then
+    export IN_DOCKER_GO=true
     echo "Using docker-internal infra."
 else
     export CLICKHOUSE_ADDRESS=localhost:9000

@@ -37,6 +37,7 @@ RUN GOOS=linux GOARCH=$GOARCH go build -o /build/backend
 # reduce the image size by keeping just the built code
 WORKDIR /build
 RUN mkdir -p /build/clickhouse/ && cp -r /highlight/backend/clickhouse/migrations/ /build/clickhouse/migrations
+RUN cp -r /highlight/backend/localhostssl/ /build/localhostssl
 RUN rm -rf /highlight
 RUN rm -rf /go/pkg && mkdir /go/pkg
 

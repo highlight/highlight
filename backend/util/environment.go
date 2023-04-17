@@ -9,6 +9,7 @@ var (
 	ON_PREM        = os.Getenv("REACT_APP_ONPREM")
 	DOPPLER_CONFIG = os.Getenv("DOPPLER_CONFIG")
 	IN_DOCKER      = os.Getenv("IN_DOCKER")
+	IN_DOCKER_GO   = os.Getenv("IN_DOCKER_GO")
 )
 
 func IsHubspotEnabled() bool {
@@ -33,6 +34,10 @@ func IsOnPrem() bool {
 
 func IsInDocker() bool {
 	return IN_DOCKER == "true"
+}
+
+func IsBackendInDocker() bool {
+	return IN_DOCKER_GO == "true"
 }
 
 func IsOnRender() bool {

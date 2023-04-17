@@ -232,6 +232,9 @@ func main() {
 		H.SetGraphqlClientAddress("https://localhost:8082/public")
 		H.SetOTLPEndpoint("http://localhost:4318")
 	}
+	if util.IsBackendInDocker() {
+		H.SetOTLPEndpoint("http://collector:4318")
+	}
 	H.Start()
 	defer H.Stop()
 	H.SetDebugMode(log.StandardLogger())
