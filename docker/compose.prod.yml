@@ -54,6 +54,21 @@ x-backend-env: &backend-env
         - TZ
 
 services:
+    kafka:
+        extends:
+            file: compose.yml
+            service: kafka
+        environment:
+            # needs to share docker-internal address
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+    collector:
+        extends:
+            file: compose.yml
+            service: collector
+        volumes:
+            - ./otel-collector.prod.yaml:/etc/otel-collector-config.yaml
+
     backend-setup-opensearch:
         image: ghcr.io/highlight/highlight-backend:latest
         command:
