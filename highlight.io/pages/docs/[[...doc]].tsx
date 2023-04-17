@@ -26,7 +26,7 @@ import { Typography } from '../../components/common/Typography/Typography'
 import { Callout } from '../../components/Docs/Callout/Callout'
 import { DocSection } from '../../components/Docs/DocLayout/DocLayout'
 import DocSelect from '../../components/Docs/DocSelect/DocSelect'
-import { generateIdString } from '../../components/Docs/DocsTypographyRenderer/DocsTypographyRenderer'
+import { generateIdFromProps } from '../../components/Docs/DocsTypographyRenderer/DocsTypographyRenderer'
 import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
 import { useMediaQuery } from '../../components/MediaQuery/MediaQuery'
 import {
@@ -121,7 +121,9 @@ const useIntersectionObserver = (setActiveId: (s: string) => void) => {
 			threshold: 0.0001,
 		})
 
-		const headingElements = Array.from(document.querySelectorAll('h4, h5'))
+		const headingElements = Array.from(
+			document.querySelectorAll('h4, h5, h6'),
+		)
 		headingElements.forEach((element) => observer.observe(element))
 
 		return () => observer.disconnect()
@@ -547,19 +549,9 @@ const PageRightBar = ({
 	title: string
 	relativePath: string
 }) => {
-	const { nestedHeadings } = useHeadingsData('h5')
-	const router = useRouter()
+	const { nestedHeadings } = useHeadingsData('h5,h6')
 	const [activeId, setActiveId] = useState<string>()
 	useIntersectionObserver(setActiveId)
-
-	useEffect(() => {
-		const selectedId = router.asPath.split('#')
-		if (selectedId.length > 1) {
-			document.querySelector(`#${selectedId[1]}`)?.scrollIntoView({
-				behavior: 'smooth',
-			})
-		}
-	}, [router.asPath])
 
 	return (
 		<div className={styles.rightBarWrap}>
@@ -603,13 +595,12 @@ const PageRightBar = ({
 									<li
 										key={heading.id}
 										className={
-											heading.id === activeId
-												? styles.active
-												: ''
+											heading.id === activeId &&
+											styles.active
 										}
 										style={{ padding: '2px 4px' }}
 									>
-										<a
+										<Link
 											href={`#${heading.id}`}
 											onClick={(e) => {
 												e.preventDefault()
@@ -619,24 +610,16 @@ const PageRightBar = ({
 													)
 													?.scrollIntoView({
 														behavior: 'smooth',
-														block: 'start',
 													})
-												const basePath =
-													router.asPath.split('#')[0]
-												const newUrl = `${basePath}#${heading.id}`
-												window.history.replaceState(
-													{
-														...window.history.state,
-														as: newUrl,
-														url: newUrl,
-													},
+												window.history.pushState(
+													{},
 													'',
-													newUrl,
+													`#${heading.id}`,
 												)
 											}}
 										>
 											<span>{heading.innerText}</span>
-										</a>
+										</Link>
 									</li>
 								),
 							)}
@@ -834,9 +817,13 @@ const DocPage = ({
 	}, [redirect, router])
 
 	useEffect(() => {
-		const storedScrollPosition = sessionStorage.getItem('scrollPosition')
+		const storedScrollPosition = parseInt(
+			sessionStorage.getItem('scrollPosition'),
+		)
+
 		if (storedScrollPosition) {
-			window.scrollTo(0, parseInt(storedScrollPosition))
+			window.scrollTo(0, storedScrollPosition)
+			sessionStorage.setItem('scrollPosition', '0')
 		}
 	}, [router])
 
@@ -988,6 +975,7 @@ const DocPage = ({
 									{markdownText && (
 										<MDXRemote
 											components={{
+												MissingFrameworkCopy,
 												Roadmap,
 												RoadmapItem,
 												QuickStart,
@@ -997,32 +985,39 @@ const DocPage = ({
 													<h4 {...props} />
 												),
 												h2: (props) => {
-													if (
-														props.children &&
-														typeof props.children ===
-															'string'
-													) {
-														const id =
-															generateIdString(
-																props.children as string,
-															)
-														return (
-															<Link
-																href={`#${id}`}
-																className="flex items-baseline gap-2 my-6 transition-all group"
-															>
-																<h5
-																	id={id}
-																	{...props}
-																/>
-															</Link>
+													const id =
+														generateIdFromProps(
+															props.children as string,
 														)
-													}
-													return <></>
+													return (
+														<Link
+															href={`#${id}`}
+															className="flex items-baseline gap-2 my-6 transition-all group"
+														>
+															<h5
+																id={id}
+																{...props}
+															/>
+														</Link>
+													)
 												},
-												h3: (props) => (
-													<h6 {...props} />
-												),
+												h3: (props) => {
+													const id =
+														generateIdFromProps(
+															props.children,
+														)
+													return (
+														<Link
+															href={`#${id}`}
+															className="flex items-baseline gap-2 my-6 transition-all group"
+														>
+															<h6
+																id={id}
+																{...props}
+															/>
+														</Link>
+													)
+												},
 												h4: (props) => (
 													<h6 {...props} />
 												),
@@ -1344,6 +1339,14 @@ const QuickStart = (content: { content: QuickStartContent }) => {
 				})}
 			</div>
 		</div>
+	)
+}
+
+const MissingFrameworkCopy = ({}) => {
+	return (
+		<Callout
+			content={`If there's a framework that's missing, feel free to [create an issue](https://github.com/highlight/highlight/issues/new?assignees=&labels=external+bug+%2F+request&template=feature_request.md&title=) or message us on [discord](https://highlight.io/community).`}
+		/>
 	)
 }
 

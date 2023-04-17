@@ -36,6 +36,8 @@ func main() {
   server.Use(H.NewGraphqlTracer("your-backend-service-name").WithRequestFieldLogging())
   // capture panics emitted by graphql handlers in highlight
   server.SetRecoverFunc(H.GraphQLRecoverFunc())
+  // format logs on errors thrown by your graphql handlers
+  server.SetErrorPresenter(H.GraphQLErrorPresenter("my-gql-service"))
   // ...
 }`,
 				language: 'go',

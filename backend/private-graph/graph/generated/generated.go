@@ -119,6 +119,7 @@ type ComplexityRoot struct {
 
 	BillingDetails struct {
 		ErrorsMeter        func(childComplexity int) int
+		LogsMeter          func(childComplexity int) int
 		MembersMeter       func(childComplexity int) int
 		Meter              func(childComplexity int) int
 		Plan               func(childComplexity int) int
@@ -699,6 +700,7 @@ type ComplexityRoot struct {
 	Plan struct {
 		ErrorsLimit  func(childComplexity int) int
 		Interval     func(childComplexity int) int
+		LogsLimit    func(childComplexity int) int
 		MembersLimit func(childComplexity int) int
 		Quota        func(childComplexity int) int
 		Type         func(childComplexity int) int
@@ -1777,6 +1779,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BillingDetails.ErrorsMeter(childComplexity), true
+
+	case "BillingDetails.logsMeter":
+		if e.complexity.BillingDetails.LogsMeter == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.LogsMeter(childComplexity), true
 
 	case "BillingDetails.membersMeter":
 		if e.complexity.BillingDetails.MembersMeter == nil {
@@ -4853,6 +4862,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Plan.Interval(childComplexity), true
+
+	case "Plan.logsLimit":
+		if e.complexity.Plan.LogsLimit == nil {
+			break
+		}
+
+		return e.complexity.Plan.LogsLimit(childComplexity), true
 
 	case "Plan.membersLimit":
 		if e.complexity.Plan.MembersLimit == nil {
@@ -8256,6 +8272,7 @@ type BillingDetails {
 	membersMeter: Int64!
 	sessionsOutOfQuota: Int64!
 	errorsMeter: Int64!
+	logsMeter: Int64!
 }
 
 type Invoice {
@@ -8280,6 +8297,7 @@ type Plan {
 	quota: Int!
 	membersLimit: Int
 	errorsLimit: Int!
+	logsLimit: Int!
 }
 
 enum PlanType {
@@ -8288,6 +8306,12 @@ enum PlanType {
 	Basic
 	Startup
 	Enterprise
+}
+
+enum ProductType {
+	Sessions
+	Errors
+	Logs
 }
 
 enum SubscriptionInterval {
@@ -17191,6 +17215,8 @@ func (ec *executionContext) fieldContext_BillingDetails_plan(ctx context.Context
 				return ec.fieldContext_Plan_membersLimit(ctx, field)
 			case "errorsLimit":
 				return ec.fieldContext_Plan_errorsLimit(ctx, field)
+			case "logsLimit":
+				return ec.fieldContext_Plan_logsLimit(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -17362,6 +17388,50 @@ func (ec *executionContext) _BillingDetails_errorsMeter(ctx context.Context, fie
 }
 
 func (ec *executionContext) fieldContext_BillingDetails_errorsMeter(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BillingDetails_logsMeter(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BillingDetails_logsMeter(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogsMeter, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BillingDetails_logsMeter(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "BillingDetails",
 		Field:      field,
@@ -36557,6 +36627,50 @@ func (ec *executionContext) fieldContext_Plan_errorsLimit(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Plan_logsLimit(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_logsLimit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogsLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_logsLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Project_id(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Project_id(ctx, field)
 	if err != nil {
@@ -40984,6 +41098,8 @@ func (ec *executionContext) fieldContext_Query_billingDetailsForProject(ctx cont
 				return ec.fieldContext_BillingDetails_sessionsOutOfQuota(ctx, field)
 			case "errorsMeter":
 				return ec.fieldContext_BillingDetails_errorsMeter(ctx, field)
+			case "logsMeter":
+				return ec.fieldContext_BillingDetails_logsMeter(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type BillingDetails", field.Name)
 		},
@@ -41050,6 +41166,8 @@ func (ec *executionContext) fieldContext_Query_billingDetails(ctx context.Contex
 				return ec.fieldContext_BillingDetails_sessionsOutOfQuota(ctx, field)
 			case "errorsMeter":
 				return ec.fieldContext_BillingDetails_errorsMeter(ctx, field)
+			case "logsMeter":
+				return ec.fieldContext_BillingDetails_logsMeter(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type BillingDetails", field.Name)
 		},
@@ -59650,6 +59768,13 @@ func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "logsMeter":
+
+			out.Values[i] = ec._BillingDetails_logsMeter(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -63699,6 +63824,13 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 		case "errorsLimit":
 
 			out.Values[i] = ec._Plan_errorsLimit(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "logsLimit":
+
+			out.Values[i] = ec._Plan_logsLimit(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

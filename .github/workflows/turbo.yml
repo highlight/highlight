@@ -63,7 +63,7 @@ jobs:
 
             - name: Validate project is ready to be published
               if: github.repository == 'highlight/highlight' && steps.filter.outputs.npm-changed == 'true'
-              run: yarn prepublish
+              run: yarn validate
 
             # always publish client, even in PRs
             # this is ok because the final push to main of the version will replace
