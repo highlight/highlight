@@ -29,6 +29,7 @@ x-backend-env: &backend-env
         - FIREBASE_SECRET
         - FRONTEND_URI
         - IN_DOCKER=true
+        - IN_DOCKER_GO=true
         - INFLUXDB_BUCKET
         - INFLUXDB_ORG
         - INFLUXDB_SERVER
