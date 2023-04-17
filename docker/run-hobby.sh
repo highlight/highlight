@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-source env.sh
+source env.sh --go-docker
 ./start-infra.sh --go-docker
 
 docker compose -f compose.yml -f compose.prod.yml up --pull missing --detach --wait --remove-orphans
