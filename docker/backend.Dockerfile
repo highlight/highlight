@@ -3,7 +3,7 @@ RUN apt update && apt install -y git build-essential && apt clean
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 RUN go install github.com/cosmtrek/air@latest
 
-WORKDIR /build
+WORKDIR /highlight
 COPY ../go.work .
 COPY ../go.work.sum .
 COPY ../backend/go.mod ./backend/go.mod
@@ -13,12 +13,12 @@ COPY ../sdk/highlight-go/go.sum ./sdk/highlight-go/go.sum
 COPY ../e2e/go/go.mod ./e2e/go/go.mod
 COPY ../e2e/go/go.sum ./e2e/go/go.sum
 RUN go work sync
-RUN cd /build/backend && go mod download
-RUN cd /build/e2e/go && go mod download
-RUN cd /build/sdk/highlight-go && go mod download
+RUN cd /highlight/backend && go mod download
+RUN cd /highlight/e2e/go && go mod download
+RUN cd /highlight/sdk/highlight-go && go mod download
 
 FROM backend-base as backend
-WORKDIR /build/backend
+WORKDIR /highlight/backend
 CMD ["make", "start-no-doppler"]
 
 FROM backend-base as backend-prod
@@ -30,6 +30,13 @@ COPY ../backend ./backend
 COPY ../sdk/highlight-go ./sdk/highlight-go
 COPY ../e2e/go ./e2e/go
 
-WORKDIR /build/backend
-RUN GOOS=linux GOARCH=amd64 go build -o /bin/backend
-CMD ["/bin/backend", "-runtime=private-graph"]
+WORKDIR /highlight/backend
+ARG GOARCH
+RUN GOOS=linux GOARCH=$GOARCH go build -o /build/backend
+
+# reduce the image size by keeping just the built code
+WORKDIR /build
+RUN rm -rf /highlight
+RUN rm -rf /go/pkg && mkdir /go/pkg
+
+CMD ["/build/backend", "-runtime=private-graph"]

@@ -5,7 +5,7 @@ RUN apt update && apt install -y \
   nginx \
   && apt clean
 
-WORKDIR /build
+WORKDIR /highlight
 COPY ../.yarn/plugins ./.yarn/plugins
 COPY ../.yarn/releases ./.yarn/releases
 COPY .yarnrc.yml package.json yarn.lock ./
@@ -74,6 +74,12 @@ ARG REACT_APP_ONPREM
 ARG REACT_APP_PRIVATE_GRAPH_URI
 ARG REACT_APP_PUBLIC_GRAPH_URI
 RUN yarn build:frontend
+
+# reduce the image size by keeping just the built code
+RUN mkdir -p /build/frontend && cp -r ./frontend/build /build/frontend/build
+RUN mkdir -p /build/sdk/client cp -r ./sdk/client/dist /build/sdk/client/dist
+WORKDIR /build
+RUN rm -rf /highlight
 
 COPY ../docker/nginx.conf /etc/nginx/sites-enabled/default
 
