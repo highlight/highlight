@@ -22,7 +22,7 @@ import (
 
 func main() {
   // setup the highlight SDK
-  highlight.SetProjectID("YOUR_PROJECT_ID")
+  highlight.SetProjectID("<YOUR_PROJECT_ID>")
   highlight.Start()
   defer highlight.Stop()
 

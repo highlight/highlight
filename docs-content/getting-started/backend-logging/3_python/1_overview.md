@@ -12,7 +12,7 @@ If you don't see one of your languages / frameworks below, reach out to us in ou
 
 
 <DocsCardGroup>
-    <DocsCard title="Python" href="./python.md">
+    <DocsCard title="Python" href="./python-install.md">
         {"Integrate logging in Python."}
     </DocsCard>
 </DocsCardGroup>

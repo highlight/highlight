@@ -60,8 +60,8 @@ type Resolver struct {
 	AlertWorkerPool *workerpool.WorkerPool
 	DB              *gorm.DB
 	TDB             timeseries.DB
-	ProducerQueue   *kafka_queue.Queue
-	BatchedQueue    *kafka_queue.Queue
+	ProducerQueue   kafka_queue.MessageQueue
+	BatchedQueue    kafka_queue.MessageQueue
 	MailClient      *sendgrid.Client
 	StorageClient   storage.Client
 	OpenSearch      *opensearch.Client

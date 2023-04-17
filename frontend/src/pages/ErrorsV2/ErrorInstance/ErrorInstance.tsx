@@ -544,7 +544,7 @@ const User: React.FC<{
 					<Box display="flex">
 						<LinkButton
 							kind="secondary"
-							to="/setup/backend"
+							to={`/${projectId}/setup/backend`}
 							trackingId="error-mapping-setup"
 							target="_blank"
 						>
