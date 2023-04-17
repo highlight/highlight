@@ -13,17 +13,17 @@ const ErrorOccurenceDate = ({ errorGroup }: Props) => {
 			gap="4"
 			alignItems="center"
 			flexShrink={0}
-			flexWrap="nowrap"
+			flexWrap="wrap"
+			maxWidth="full"
 		>
-			<Text color="black" size="large" weight="bold">
+			<Text color="black" size="large" weight="bold" whiteSpace="nowrap">
 				{errorGroup?.last_occurrence
 					? moment(errorGroup.last_occurrence).fromNow(true)
-					: 'just now'}
+					: 'just now'}{' '}
+				/
 			</Text>
-			<Text color="n11" size="large" weight="bold">
-				{' / '}
-			</Text>
-			<Text color="n11" size="large" weight="bold">
+
+			<Text color="n11" size="large" weight="bold" whiteSpace="nowrap">
 				{errorGroup?.first_occurrence
 					? moment(errorGroup.first_occurrence).fromNow(true)
 					: 'just now'}
