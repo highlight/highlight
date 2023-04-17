@@ -2,6 +2,7 @@ FROM node:lts-bullseye as frontend-base
 RUN apt update && apt install -y \
   build-essential \
   chromium \
+  fish \
   nginx \
   && apt clean
 

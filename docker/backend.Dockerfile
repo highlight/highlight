@@ -1,5 +1,5 @@
 FROM golang:bullseye as backend-base
-RUN apt update && apt install -y git build-essential && apt clean
+RUN apt update && apt install -y fish git build-essential && apt clean
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 RUN go install github.com/cosmtrek/air@latest
 
