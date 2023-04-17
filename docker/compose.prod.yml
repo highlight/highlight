@@ -76,8 +76,6 @@ services:
             - highlight-data:/highlight-data
         <<: *backend-env
         depends_on:
-            backend-setup-db:
-                condition: service_completed_successfully
             backend-setup-opensearch:
                 condition: service_completed_successfully
 
