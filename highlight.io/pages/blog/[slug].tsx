@@ -84,18 +84,6 @@ const components = {
 			</code>
 		)
 	},
-	// img: (props) => {
-	// 	return (
-	// 		<Image
-	// 			src={props.src}
-	// 			alt={props.alt || ''}
-	// 			height={1}
-	// 			width={1}
-	// 			layout="responsive"
-	// 			className="max-w-[3px] max-h-[3px]"
-	// 		/>
-	// 	)
-	// },
 }
 
 const getBlogTypographyRenderer = (type: string) => {
@@ -317,11 +305,11 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		})
 	}
 
-	// if (!data.post.author?.profilePhoto?.url) {
-	// 	throw new Error(
-	// 		`missing required profile image for blog '${data.post.slug}', author: ${data.post.author?.profilePhoto?.url}.`,
-	// 	)
-	// }
+	if (!data.post.author?.profilePhoto?.url) {
+		throw new Error(
+			`missing required profile image for blog '${data.post.slug}', author: ${data.post.author?.profilePhoto?.url}.`,
+		)
+	}
 
 	return {
 		props: {
@@ -367,17 +355,17 @@ const PostSection = ({ p }: { p: PostSection; idx: number }) => {
 					h5: getBlogTypographyRenderer('h5'),
 					h6: getBlogTypographyRenderer('h6'),
 					p: getBlogTypographyRenderer('p'),
-					// img: (props) => (
-					// 	<div className={styles.blogImageContainer}>
-					// 		<Image
-					// 			className={styles.blogImage}
-					// 			src={props.src || ''}
-					// 			alt={props.altText}
-					// 			width={props.width}
-					// 			height={props.height}
-					// 		/>
-					// 	</div>
-					// ),
+					img: (props) => (
+						<div className={styles.blogImageContainer}>
+							<Image
+								className={styles.blogImage}
+								src={props.src || ''}
+								alt={props.altText}
+								width={props.width}
+								height={props.height}
+							/>
+						</div>
+					),
 				}}
 			/>
 			{/*update to support new footer components*/}
@@ -397,7 +385,6 @@ const PostPage = ({
 	suggestedPosts: Post[]
 	source: MDXRemoteSerializeResult
 }) => {
-	console.log(post)
 	const blogBody = useRef<HTMLDivElement>(null)
 	const [endPosition, setEndPosition] = useState(0)
 

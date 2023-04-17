@@ -148,7 +148,7 @@ export function markdownToPost(
 				url: data.authorPFP || null,
 			},
 		},
-		tags: data.tags,
+		tags: data.tags || '',
 		tags_relations: [
 			{
 				name: data.tag_relation,
