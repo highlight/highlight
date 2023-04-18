@@ -2,6 +2,7 @@ package phonehome
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/projectpath"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -14,14 +15,18 @@ import (
 	"time"
 )
 
-const HighlightProjectID = "1"
+const AboutYouSpanName = "highlight-about-you"
+const AboutYouSpanRole = "highlight-about-you-role"
+const AboutYouSpanPersona = "highlight-about-you-persona"
+const AboutYouSpanReferral = "highlight-about-you-referral"
 const HeartbeatInterval = 5 * time.Second
-const HeartbeatSpanName = "highlight-phone-home-interval"
-const HeartbeatSpanDeployment = "deployment"
 const HeartbeatSpanHighlightVersion = "highlight-version"
-const MetricNumCPU = "num-cpu"
-const MetricMemUsed = "mem-used"
-const MetricMemActive = "mem-active"
+const HeartbeatSpanName = "highlight-heartbeat"
+const HighlightProjectID = "1"
+const MetricMemActive = "highlight-mem-active"
+const MetricMemUsed = "highlight-mem-used"
+const MetricNumCPU = "highlight-num-cpu"
+const SpanDeployment = "highlight-phone-home-deployment-id"
 
 func IsOptedOut(ctx context.Context) bool {
 	cfg, err := projectpath.GetConfig()
@@ -32,20 +37,27 @@ func IsOptedOut(ctx context.Context) bool {
 	return cfg.PhoneHomeOptOut
 }
 
-func Start(ctx context.Context) error {
-	if IsOptedOut(ctx) {
-		return nil
-	}
-
+func GetDefaultAttributes() ([]attribute.KeyValue, error) {
 	cfg, err := projectpath.GetConfig()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if cfg.PhoneHomeDeploymentID == "" {
 		cfg.PhoneHomeDeploymentID = util.GenerateRandomString(32)
 	}
 	if err = projectpath.SaveConfig(cfg); err != nil {
-		return err
+		return nil, err
+	}
+
+	return []attribute.KeyValue{
+		attribute.String(highlight.ProjectIDAttribute, HighlightProjectID),
+		attribute.String(SpanDeployment, cfg.PhoneHomeDeploymentID),
+	}, nil
+}
+
+func Start(ctx context.Context) error {
+	if IsOptedOut(ctx) {
+		return nil
 	}
 
 	if !highlight.IsRunning() {
@@ -59,19 +71,39 @@ func Start(ctx context.Context) error {
 			highlight.RecordMetric(ctx, MetricNumCPU, float64(runtime.NumCPU()))
 			highlight.RecordMetric(ctx, MetricMemUsed, float64(vmStat.Used))
 			highlight.RecordMetric(ctx, MetricMemActive, float64(vmStat.Active))
-			s, _ := highlight.StartTrace(
-				ctx, HeartbeatSpanName,
-				attribute.String(highlight.ProjectIDAttribute, HighlightProjectID),
-				attribute.String(HeartbeatSpanDeployment, cfg.PhoneHomeDeploymentID),
+			tags, _ := GetDefaultAttributes()
+			tags = append(tags,
 				attribute.String(HeartbeatSpanHighlightVersion, util.Version),
 				attribute.Int(MetricNumCPU, runtime.NumCPU()),
 				attribute.Int64(MetricMemUsed, int64(vmStat.Used)),
 				attribute.Int64(MetricMemActive, int64(vmStat.Active)),
 			)
 
-			s.AddEvent(highlight.LogEvent, trace.WithAttributes(hlog.LogSeverityKey.String("trace"), hlog.LogMessageKey.String("backend-heartbeat")))
+			s, _ := highlight.StartTrace(ctx, HeartbeatSpanName, tags...)
+			s.AddEvent(highlight.LogEvent, trace.WithAttributes(hlog.LogSeverityKey.String(log.TraceLevel.String()), hlog.LogMessageKey.String(HeartbeatSpanName)))
 			highlight.EndTrace(s)
 		}
 	}()
 	return nil
+}
+
+func ReportAdminAboutYouDetails(ctx context.Context, admin *model.Admin) {
+	if IsOptedOut(ctx) {
+		return
+	}
+
+	tags, _ := GetDefaultAttributes()
+	if admin.UserDefinedRole != nil {
+		tags = append(tags, attribute.String(AboutYouSpanRole, *admin.UserDefinedRole))
+	}
+	if admin.UserDefinedPersona != nil {
+		tags = append(tags, attribute.String(AboutYouSpanPersona, *admin.UserDefinedPersona))
+	}
+	if admin.Referral != nil {
+		tags = append(tags, attribute.String(AboutYouSpanReferral, *admin.Referral))
+	}
+
+	s, _ := highlight.StartTrace(ctx, AboutYouSpanName, tags...)
+	s.AddEvent(highlight.LogEvent, trace.WithAttributes(hlog.LogSeverityKey.String(log.TraceLevel.String()), hlog.LogMessageKey.String(AboutYouSpanName)))
+	highlight.EndTrace(s)
 }

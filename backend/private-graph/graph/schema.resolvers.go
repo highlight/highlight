@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/phonehome"
 	"math"
 	"math/rand"
 	"net/url"
@@ -45,7 +46,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
-	highlight "github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
@@ -55,7 +56,7 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72"
 	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -456,6 +457,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 		}
 	}
 
+	phonehome.ReportAdminAboutYouDetails(ctx, admin)
 	if err := r.DB.Save(admin).Error; err != nil {
 		return false, err
 	}
