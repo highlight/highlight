@@ -41,7 +41,7 @@ LABEL org.opencontainers.image.source=https://github.com/highlight/highlight
 LABEL org.opencontainers.image.description="highlight.io Production Frontend Image"
 LABEL org.opencontainers.image.licenses="Apache 2.0"
 
-RUN apk add nginx && apk clean
+RUN apk add --no-cache nginx
 COPY ../docker/nginx.conf /etc/nginx/sites-enabled/default
 COPY ../backend/localhostssl/server.key /etc/ssl/private/ssl-cert.key
 COPY ../backend/localhostssl/server.pem /etc/ssl/certs/ssl-cert.pem
