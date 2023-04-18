@@ -9,8 +9,6 @@ COPY ../.yarn/releases ./.yarn/releases
 COPY ../backend/private-graph ./backend/private-graph
 COPY ../backend/public-graph ./backend/public-graph
 COPY ../backend/localhostssl ./backend/localhostssl
-COPY ../backend/localhostssl/server.key /etc/ssl/private/ssl-cert.key
-COPY ../backend/localhostssl/server.pem /etc/ssl/certs/ssl-cert.pem
 COPY ../docs-content ./docs-content
 COPY ../frontend ./frontend
 COPY ../highlight.io ./highlight.io
@@ -46,6 +44,8 @@ LABEL org.opencontainers.image.licenses="Apache 2.0"
 
 RUN apt update && apt install -y nginx && apt clean
 COPY ../docker/nginx.conf /etc/nginx/sites-enabled/default
+COPY ../backend/localhostssl/server.key /etc/ssl/private/ssl-cert.key
+COPY ../backend/localhostssl/server.pem /etc/ssl/certs/ssl-cert.pem
 
 WORKDIR /build
 COPY --from=frontend-base /highlight/frontend/build /build/frontend/build
