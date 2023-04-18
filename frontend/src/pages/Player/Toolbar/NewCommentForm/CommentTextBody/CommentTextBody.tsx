@@ -7,6 +7,7 @@ import {
 	MentionsInput,
 	OnChangeHandlerFunc,
 } from '@highlight-run/react-mentions'
+import { useSlackSync } from '@hooks/useSlackSync'
 import { useParams } from '@util/react-router/useParams'
 import { splitTaggedUsers } from '@util/string'
 import clsx from 'clsx'
@@ -45,6 +46,8 @@ const CommentTextBody = ({
 	}>()
 	const slackUrl = getSlackUrl(project_id ?? '')
 	const [shouldAutoFocus, setShouldAutoFocus] = useState(!!onChangeHandler)
+	const { slackLoading, syncSlack } = useSlackSync()
+	const [latestAt, setLatestAt] = useState('')
 
 	useEffect(() => {
 		if (shouldAutoFocus) {
@@ -58,13 +61,20 @@ const CommentTextBody = ({
 		}
 	}, [shouldAutoFocus])
 
+	useEffect(() => {
+		const parts = commentText.split('@')
+		const last = parts.at(-1)
+		if (last) {
+			setLatestAt(`@${last}`)
+		}
+	}, [commentText])
+
 	const isSlackIntegrated = suggestions.some(
 		(suggestion) =>
 			suggestion.display?.includes('#') ||
 			(suggestion.display && suggestion.display[0] == '@'),
 	)
 
-	const taggedUsers: string[] = []
 	if (!newInput) {
 		const pieces = []
 		for (const { matched, value } of splitTaggedUsers(commentText)) {
@@ -72,7 +82,6 @@ const CommentTextBody = ({
 				pieces.push(
 					<span className={styles.mentionedUser}>{value}</span>,
 				)
-				taggedUsers.push(value)
 			} else {
 				pieces.push(
 					<span className={styles.commentText}>
@@ -106,7 +115,17 @@ const CommentTextBody = ({
 			value={commentText}
 			className="mentions"
 			classNames={mentionsClassNames}
-			onChange={onChangeHandler}
+			onChange={(event, newValue, newPlainTextValue, mentions) => {
+				if (onChangeHandler) {
+					onChangeHandler(
+						event,
+						newValue,
+						newPlainTextValue,
+						mentions,
+					)
+				}
+				syncSlack()
+			}}
 			placeholder={placeholder}
 			autoFocus={shouldAutoFocus}
 			aria-readonly={!onChangeHandler}
@@ -117,10 +136,6 @@ const CommentTextBody = ({
 					{isSlackIntegrated ? (
 						<>
 							<p>Tag a user or Slack account</p>
-							<SlackSyncSection
-								isLoading={false}
-								searchQuery={taggedUsers.toString()}
-							/>
 						</>
 					) : (
 						<p>
@@ -134,8 +149,8 @@ const CommentTextBody = ({
 				<>
 					<p className={styles.noResultsMessage}>
 						<SlackSyncSection
-							isLoading={false}
-							searchQuery={taggedUsers.toString()}
+							isLoading={slackLoading}
+							searchQuery={latestAt}
 						/>
 					</p>
 				</>
