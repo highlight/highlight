@@ -60,11 +60,9 @@ jobs:
                   source env.sh --go-docker
                   popd
                   docker buildx build $BUILD_ARGS \
+                    --push \
                     --platform $PLATFORM \
                     -t $GH_REGISTRY/highlight/$IMAGE_NAME:$IMAGE_TAG \
+                    -t $GH_REGISTRY/highlight/$IMAGE_NAME:latest \
                     -f docker/${{ matrix.container }}.Dockerfile \
                     --target ${{ matrix.container }}-prod .
-
-                  # push to github package registry
-                  docker tag $GH_REGISTRY/highlight/$IMAGE_NAME:$IMAGE_TAG $GH_REGISTRY/highlight/$IMAGE_NAME:latest
-                  docker push $GH_REGISTRY/highlight/$IMAGE_NAME

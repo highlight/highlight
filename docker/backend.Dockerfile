@@ -32,4 +32,4 @@ COPY --from=backend-base /build/backend /build
 COPY --from=backend-base /highlight/backend/localhostssl/ /build/localhostssl
 COPY --from=backend-base /highlight/backend/clickhouse/migrations/ /build/clickhouse/migrations
 
-CMD ["/build/backend", "-runtime=private-graph"]
+CMD ["/build/backend", "-runtime=all"]
