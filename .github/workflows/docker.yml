@@ -5,6 +5,9 @@ on:
         types: [published]
     schedule:
         - cron: '0 0 * * 5'
+    # TODO(vkorolik) tmp
+    pull_request:
+        types: [opened, synchronize]
 
 jobs:
     publish-docker:
