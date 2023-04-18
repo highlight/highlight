@@ -7,7 +7,8 @@ source env.sh
 if [[ "$*" == *"--prod"* ]]; then
     CUSTOM_COMPOSE="-f compose.yml -f compose.prod.yml"
 fi
-docker compose $CUSTOM_COMPOSE up --pull missing --detach --wait --remove-orphans \
+docker compose $CUSTOM_COMPOSE pull
+docker compose $CUSTOM_COMPOSE up --detach --wait --remove-orphans \
   clickhouse \
   collector \
   influxdb \
