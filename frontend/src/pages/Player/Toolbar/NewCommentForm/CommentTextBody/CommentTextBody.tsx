@@ -116,6 +116,7 @@ const CommentTextBody = ({
 			className="mentions"
 			classNames={mentionsClassNames}
 			onChange={(event, newValue, newPlainTextValue, mentions) => {
+				syncSlack()
 				if (onChangeHandler) {
 					onChangeHandler(
 						event,
@@ -124,7 +125,6 @@ const CommentTextBody = ({
 						mentions,
 					)
 				}
-				syncSlack()
 			}}
 			placeholder={placeholder}
 			autoFocus={shouldAutoFocus}
