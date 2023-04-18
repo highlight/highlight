@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-const ConfigFile = "backend.json"
+const ConfigFile = "v1.json"
 
 type Config struct {
 	PhoneHomeOptOut       bool   `json:"phone_home_opt_out"`
@@ -18,7 +18,7 @@ func GetConfigDir() (string, error) {
 	dir := fmt.Sprintf("%s/.config", GetRoot())
 	_, err := os.Stat(dir)
 	if os.IsNotExist(err) {
-		if err := os.Mkdir(dir, 0o644); err != nil {
+		if err := os.Mkdir(dir, 0o755); err != nil {
 			return "", err
 		}
 	} else if err != nil {
@@ -28,15 +28,24 @@ func GetConfigDir() (string, error) {
 }
 
 func GetConfig() (*Config, error) {
+	var cfg Config
 	cfgDir, err := GetConfigDir()
 	if err != nil {
 		return nil, err
 	}
-	data, err := os.ReadFile(filepath.Join(cfgDir, ConfigFile))
+	cfgFile := filepath.Join(cfgDir, ConfigFile)
+
+	_, err = os.Stat(cfgFile)
+	if os.IsNotExist(err) {
+		return &cfg, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	data, err := os.ReadFile(cfgFile)
 	if err != nil {
 		return nil, err
 	}
-	var cfg Config
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		return nil, err
 	}

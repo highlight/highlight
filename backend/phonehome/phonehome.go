@@ -5,11 +5,23 @@ import (
 	"github.com/highlight-run/highlight/backend/projectpath"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
+	"github.com/shirou/gopsutil/mem"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"runtime"
 	"time"
 )
+
+const HighlightProjectID = "1"
+const HeartbeatInterval = 5 * time.Second
+const HeartbeatSpanName = "highlight-phone-home-interval"
+const HeartbeatSpanDeployment = "deployment"
+const HeartbeatSpanHighlightVersion = "highlight-version"
+const MetricNumCPU = "num-cpu"
+const MetricMemUsed = "mem-used"
+const MetricMemActive = "mem-active"
 
 func IsOptedOut(ctx context.Context) bool {
 	cfg, err := projectpath.GetConfig()
@@ -42,13 +54,22 @@ func Start(ctx context.Context) error {
 
 	go func() {
 		ctx := context.Background()
-		for range time.Tick(time.Second) {
-			highlight.RecordMetric(ctx, "num-cpu", float64(runtime.NumCPU()))
+		for range time.Tick(HeartbeatInterval) {
+			vmStat, _ := mem.VirtualMemory()
+			highlight.RecordMetric(ctx, MetricNumCPU, float64(runtime.NumCPU()))
+			highlight.RecordMetric(ctx, MetricMemUsed, float64(vmStat.Used))
+			highlight.RecordMetric(ctx, MetricMemActive, float64(vmStat.Active))
 			s, _ := highlight.StartTrace(
-				ctx, "phone-home-interval",
-				attribute.String(highlight.ProjectIDAttribute, "1"),
-				attribute.String("deployment", cfg.PhoneHomeDeploymentID),
+				ctx, HeartbeatSpanName,
+				attribute.String(highlight.ProjectIDAttribute, HighlightProjectID),
+				attribute.String(HeartbeatSpanDeployment, cfg.PhoneHomeDeploymentID),
+				attribute.String(HeartbeatSpanHighlightVersion, util.Version),
+				attribute.Int(MetricNumCPU, runtime.NumCPU()),
+				attribute.Int64(MetricMemUsed, int64(vmStat.Used)),
+				attribute.Int64(MetricMemActive, int64(vmStat.Active)),
 			)
+
+			s.AddEvent(highlight.LogEvent, trace.WithAttributes(hlog.LogSeverityKey.String("trace"), hlog.LogMessageKey.String("backend-heartbeat")))
 			highlight.EndTrace(s)
 		}
 	}()
