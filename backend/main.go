@@ -227,13 +227,13 @@ func main() {
 
 	// setup highlight
 	H.SetProjectID("1jdkoe52")
-	if util.IsDevOrTestEnv() {
+	if !util.IsOnPrem() && util.IsDevOrTestEnv() {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql / otlp client address...")
 		H.SetGraphqlClientAddress("https://localhost:8082/public")
 		H.SetOTLPEndpoint("http://localhost:4318")
-	}
-	if util.IsBackendInDocker() {
-		H.SetOTLPEndpoint("http://collector:4318")
+		if util.IsBackendInDocker() {
+			H.SetOTLPEndpoint("http://collector:4318")
+		}
 	}
 	H.Start()
 	defer H.Stop()
