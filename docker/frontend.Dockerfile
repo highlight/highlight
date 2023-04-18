@@ -36,12 +36,12 @@ ARG TURBO_TEAM
 RUN yarn build:frontend
 
 # reduce the image size by keeping just the built code
-FROM --platform=$BUILDPLATFORM node:lts-bullseye as frontend-prod
+FROM --platform=$BUILDPLATFORM node:lts-alpine as frontend-prod
 LABEL org.opencontainers.image.source=https://github.com/highlight/highlight
 LABEL org.opencontainers.image.description="highlight.io Production Frontend Image"
 LABEL org.opencontainers.image.licenses="Apache 2.0"
 
-RUN apt update && apt install -y nginx && apt clean
+RUN apk add nginx && apk clean
 COPY ../docker/nginx.conf /etc/nginx/sites-enabled/default
 COPY ../backend/localhostssl/server.key /etc/ssl/private/ssl-cert.key
 COPY ../backend/localhostssl/server.pem /etc/ssl/certs/ssl-cert.pem

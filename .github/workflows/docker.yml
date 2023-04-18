@@ -12,10 +12,8 @@ jobs:
         name: Publish Production Docker Image
         strategy:
             matrix:
-                runs-on:
-                    [buildjet-4vcpu-ubuntu-2204, buildjet-8vcpu-ubuntu-2204-arm]
                 container: ['frontend', 'backend']
-        runs-on: ${{matrix.runs-on}}
+        runs-on: buildjet-4vcpu-ubuntu-2204
         timeout-minutes: 30
         env:
             IMAGE_NAME: highlight-${{ matrix.container }}
@@ -43,13 +41,6 @@ jobs:
               shell: bash
               run: |
                   REACT_APP_COMMIT_SHA=${{ github.sha }}
-                  if [[ "$RUNS_ON" == *"buildjet-4vcpu-ubuntu-2204-arm"* ]]; then
-                    PLATFORM=linux/arm64
-                    GOARCH=arm64
-                  else
-                    PLATFORM=linux/amd64
-                    GOARCH=amd64
-                  fi
 
                   # log in to gh registry
                   echo $GH_DOCKER_TOKEN | docker login $GH_REGISTRY -u Vadman97 --password-stdin
@@ -60,7 +51,7 @@ jobs:
                   popd
                   docker buildx build $BUILD_ARGS \
                     --push \
-                    --platform $PLATFORM \
+                    --platform linux/amd64,linux/arm64 \
                     -t $GH_REGISTRY/highlight/$IMAGE_NAME:$IMAGE_TAG \
                     -t $GH_REGISTRY/highlight/$IMAGE_NAME:latest \
                     -f docker/${{ matrix.container }}.Dockerfile \
