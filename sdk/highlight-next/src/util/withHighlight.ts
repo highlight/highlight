@@ -1,10 +1,11 @@
-import { NextApiHandler } from 'next'
 import {
-	H as NodeH,
 	HIGHLIGHT_REQUEST_HEADER,
+	H as NodeH,
 	NodeOptions,
 } from '@highlight-run/node'
+
 import { IncomingHttpHeaders } from 'http'
+import { NextApiHandler } from 'next'
 
 interface RequestMetadata {
 	secureSessionId: string
@@ -26,6 +27,8 @@ export interface HighlightInterface {
 	isInitialized: () => boolean
 	metrics: (metrics: Metric[]) => void
 }
+
+console.log('here!!!')
 
 export const H: HighlightInterface = {
 	init: (options: NodeOptions) => {
@@ -68,6 +71,7 @@ export const Highlight =
 	<T extends HasHeaders, S extends HasStatus>(
 		origHandler: ApiHandler<T, S>,
 	): ApiHandler<T, S> => {
+		console.log('here withHighlight', origHandler)
 		return async (req, res) => {
 			if (!NodeH.isInitialized()) {
 				NodeH.init(options)

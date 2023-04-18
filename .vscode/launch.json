@@ -11,6 +11,13 @@
 			"debugAdapter": "dlv-dap",
 			"mode": "remote",
 			"port": 2345
+		},
+		{
+			"name": "Next.js: debug server-side",
+			"type": "node-terminal",
+			"request": "launch",
+			"command": "npm run dev",
+			"cwd": "${workspaceFolder}/examples/next-js/basic",
 		}
 	]
 }
