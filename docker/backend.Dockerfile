@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y apt-transport-https ca-certificates cur
 
 WORKDIR /build
 COPY --from=backend-base /build/backend /build
-COPY --from=backend-base /highlight/backend/localhostssl/ /build
-COPY --from=backend-base /highlight/backend/clickhouse/migrations/ /build/clickhouse
+COPY --from=backend-base /highlight/backend/localhostssl/ /build/localhostssl
+COPY --from=backend-base /highlight/backend/clickhouse/migrations/ /build/clickhouse/migrations
 
 CMD ["/build/backend", "-runtime=private-graph"]
