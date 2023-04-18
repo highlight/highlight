@@ -7,16 +7,9 @@ source env.sh
 if [[ "$*" == *"--prod"* ]]; then
     CUSTOM_COMPOSE="-f compose.yml -f compose.prod.yml"
 fi
-docker compose $CUSTOM_COMPOSE pull
-docker compose $CUSTOM_COMPOSE up --detach --wait --remove-orphans \
-  clickhouse \
-  collector \
-  influxdb \
-  kafka \
-  opensearch \
-  postgres \
-  redis \
-  zookeeper
+SERVICES="clickhouse collector influxdb kafka opensearch postgres redis zookeeper"
+docker compose $CUSTOM_COMPOSE pull $SERVICES
+docker compose $CUSTOM_COMPOSE up --detach --wait --remove-orphans $SERVICES
 if docker compose exec influxdb bash -c 'influx setup --host http://influxdb:8086 --skip-verify --bucket dev-bucket --org dev-org --username dev --password devdevdevdev --retention 0 --token not-a-secure-token --force' > /dev/null 2>&1; then
   echo 'Setup new InfluxDB instance.'
 else
