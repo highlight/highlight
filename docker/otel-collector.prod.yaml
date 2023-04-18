@@ -1,0 +1,42 @@
+receivers:
+    otlp:
+        protocols:
+            grpc:
+                endpoint: '0.0.0.0:4317'
+            http:
+                endpoint: '0.0.0.0:4318'
+exporters:
+    otlphttp:
+        endpoint: 'https://backend:8082/otel'
+        compression: gzip
+        tls:
+            insecure_skip_verify: true
+    otlphttp/traceloop:
+        traces_endpoint: https://api.traceloop.dev/v1/traces
+        headers:
+            Authorization: 969e17fe-77aa-4f5a-8602-e50ebfccf816
+processors:
+    batch:
+service:
+    extensions: [health_check]
+    pipelines:
+        traces:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [otlphttp]
+        metrics:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [otlphttp]
+        logs:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [otlphttp]
+        traces/traceloop:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [otlphttp/traceloop]
+extensions:
+    health_check:
+        endpoint: '0.0.0.0:4319'
+        path: '/health/status'

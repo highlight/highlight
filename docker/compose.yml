@@ -114,7 +114,6 @@ services:
             - ./otel-collector.yaml:/etc/otel-collector-config.yaml
 
 volumes:
-    highlight-data:
     postgres-data:
     clickhouse-data:
     clickhouse-logs:

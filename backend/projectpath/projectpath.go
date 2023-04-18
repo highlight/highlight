@@ -1,6 +1,7 @@
 package projectpath
 
 import (
+	"os"
 	"path/filepath"
 	"runtime"
 )
@@ -12,3 +13,10 @@ var (
 	// Returns ~/path/to/highlight/backend
 	Root = filepath.Join(filepath.Dir(b), "..")
 )
+
+func GetRoot() string {
+	if _, err := os.Stat("/build"); err == nil {
+		return "/build"
+	}
+	return Root
+}

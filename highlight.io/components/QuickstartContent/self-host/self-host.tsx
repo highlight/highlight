@@ -12,9 +12,32 @@ export const SelfHostContent: QuickStartContent = {
 	subtitle:
 		'Learn how to set up the self-hosted hobby deployment of highlight.io.',
 	entries: [
-		dependencies,
+		{
+			title: 'Prerequisites',
+			content:
+				'Before we get started, you should have the latest version of [Docker](https://docs.docker.com/engine/install/) (19.03.0+) ' +
+				'and [Git](https://git-scm.com/downloads) (2.13+) installed. ' +
+				'For a local hobby deploy, we suggest [configuring docker](https://docs.docker.com/desktop/settings/mac/#resources) ' +
+				'to use at least 12GB of memory, 4 CPUs, and 128 GB of disk space.',
+			code: {
+				language: 'bash',
+				text: `$ docker --version
+Docker version 20.10.23, build 7155243
+$ docker compose version
+Docker Compose version v2.15.1`,
+			},
+		},
 		clone,
-		start,
+		{
+			title: 'Start highlight.',
+			content:
+				'In the `highlight/docker` directory, run `./run-hobby.sh` to start the docker stack.',
+			code: {
+				text: `cd highlight/docker;
+./run-hobby.sh;`,
+				language: 'bash',
+			},
+		},
 		dashboard,
 		{
 			title: 'Setup the snippet.',

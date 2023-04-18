@@ -1,78 +1,67 @@
-name: End-to-end
+name: Publish Production Docker Images
 
 on:
-    push:
-        branches: ['main']
-    pull_request:
-        types: [opened, synchronize]
-    merge_group:
+    workflow_dispatch:
+    release:
+        types: [published]
+    schedule:
+        - cron: '0 0 * * 5'
 
 jobs:
-    e2e-frontend-backend-client:
-        name: E2E Client / Frontend / Backend
+    publish-docker:
+        name: Publish Production Docker Image
+        strategy:
+            matrix:
+                runs-on:
+                    [buildjet-4vcpu-ubuntu-2204, buildjet-8vcpu-ubuntu-2204-arm]
+                container: ['frontend', 'backend']
+        runs-on: ${{matrix.runs-on}}
         timeout-minutes: 30
-        runs-on: buildjet-4vcpu-ubuntu-2204
+        env:
+            IMAGE_NAME: highlight-${{ matrix.container }}
+            IMAGE_TAG: ${{ github.sha }}
+            TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+            TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
         steps:
-            - name: Use HTTPS for checkout
-              run: echo -e '[url "https://github.com/"]\n  insteadOf = "git@github.com:"' >> ~/.gitconfig
-
             - name: Checkout
               uses: actions/checkout@v3
               with:
                   submodules: true
 
-            - name: Setup Node.js environment
-              uses: actions/setup-node@v3
-              with:
-                  node-version: 18
-                  cache: 'yarn'
-
-            - name: Setup Golang environment
-              uses: actions/setup-go@v4
-              with:
-                  go-version: '^1.19'
-                  cache-dependency-path: '**/go.sum'
-
             - name: Login to Docker Hub
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight'
               uses: docker/login-action@v2
               with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Login to AWS ECR
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight'
-              uses: docker/login-action@v2
-              with:
-                  registry: public.ecr.aws
-                  username: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-            - name: Start docker containers & run cypress
+            - name: Build and push docker container.
+              env:
+                  GH_REGISTRY: ghcr.io
+                  GH_DOCKER_TOKEN: ${{ secrets.GH_DOCKER_TOKEN }}
+                  RUNS_ON: ${{ matrix.runs-on }}
+              shell: bash
               run: |
-                  pushd docker;
-                  ./start-infra.sh > /tmp/highlight.log 2>&1;
-                  docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
-                  ./run-frontend.sh  >> /tmp/highlight.log 2>&1 & ./run-backend.sh >> /tmp/highlight.log 2>&1 &
-                  yarn dlx wait-on -l -s 4 https://127.0.0.1:3000/index.html  https://127.0.0.1:3000/src/routers/AppRouter/AppRouter.tsx http://127.0.0.1:8080/dist/index.js https://127.0.0.1:8082/health;                
-                  popd;
+                  REACT_APP_COMMIT_SHA=${{ github.sha }}
+                  if [[ "$RUNS_ON" == *"buildjet-4vcpu-ubuntu-2204-arm"* ]]; then
+                    PLATFORM=linux/arm64
+                    GOARCH=arm64
+                  else
+                    PLATFORM=linux/amd64
+                    GOARCH=amd64
+                  fi
 
-                  yarn cy:run;
+                  # log in to gh registry
+                  echo $GH_DOCKER_TOKEN | docker login $GH_REGISTRY -u Vadman97 --password-stdin
 
-            - name: Dump setup logs on failure
-              if: failure()
-              run: cat /tmp/highlight.log
-
-            - name: Dump docker container logs on failure
-              if: failure()
-              run: |
-                  cd docker;
-                  docker compose logs;
-
-            - name: Save videos
-              uses: actions/upload-artifact@v3
-              if: failure()
-              with:
-                  name: cypress-videos
-                  path: cypress/videos
+                  # build docker image with common environment
+                  pushd docker
+                  source env.sh --go-docker
+                  popd
+                  docker buildx build $BUILD_ARGS \
+                    --push \
+                    --platform $PLATFORM \
+                    -t $GH_REGISTRY/highlight/$IMAGE_NAME:$IMAGE_TAG \
+                    -t $GH_REGISTRY/highlight/$IMAGE_NAME:latest \
+                    -f docker/${{ matrix.container }}.Dockerfile \
+                    --target ${{ matrix.container }}-prod .

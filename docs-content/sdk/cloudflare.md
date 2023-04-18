@@ -48,7 +48,7 @@ with no impact on performance..
                   // do something...
                   return new Response('hello!')
               } catch (e: any) {
-                  H.consumeError(request, { HIGHLIGHT_PROJECT_ID: 'YOUR_PROJECT_ID' }, ctx, e)
+                  H.consumeError(request, { HIGHLIGHT_PROJECT_ID: '<YOUR_PROJECT_ID>' }, ctx, e)
                   throw e
               }
           },
@@ -85,7 +85,7 @@ with no impact on performance..
       export default {
           async fetch(request: Request, env: {}, ctx: ExecutionContext) {
               const response = return new Response('hello!')
-              H.sendResponse(request, { HIGHLIGHT_PROJECT_ID: 'YOUR_PROJECT_ID' }, ctx, response)
+              H.sendResponse(request, { HIGHLIGHT_PROJECT_ID: '<YOUR_PROJECT_ID>' }, ctx, response)
               return response
           },
       }

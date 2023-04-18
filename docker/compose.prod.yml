@@ -1,0 +1,115 @@
+x-depends-infra: &depends-infra
+    depends_on:
+        kafka:
+            condition: service_started
+        redis:
+            condition: service_started
+        postgres:
+            condition: service_healthy
+        clickhouse:
+            condition: service_started
+        opensearch:
+            condition: service_healthy
+        influxdb:
+            condition: service_healthy
+        collector:
+            condition: service_started
+
+x-backend-env: &backend-env
+    environment:
+        - CLICKHOUSE_ADDRESS
+        - CLICKHOUSE_DATABASE
+        - CLICKHOUSE_PASSWORD
+        - CLICKHOUSE_USERNAME
+        - DEMO_SESSION
+        - DEPLOYMENT_KEY
+        - DOPPLER_CONFIG
+        - ENABLE_OBJECT_STORAGE=true
+        - ENVIRONMENT
+        - FIREBASE_SECRET
+        - FRONTEND_URI
+        - IN_DOCKER=true
+        - IN_DOCKER_GO=true
+        - INFLUXDB_BUCKET
+        - INFLUXDB_ORG
+        - INFLUXDB_SERVER
+        - INFLUXDB_TOKEN
+        - KAFKA_SERVERS
+        - KAFKA_TOPIC
+        - OBJECT_STORAGE_FS=/highlight-data
+        - ON_PREM=true
+        - OPENSEARCH_DOMAIN
+        - OPENSEARCH_DOMAIN_READ
+        - OPENSEARCH_PASSWORD
+        - OPENSEARCH_USERNAME
+        - PSQL_DB
+        - PSQL_HOST
+        - PSQL_PASSWORD
+        - PSQL_PORT
+        - PSQL_USER
+        - REACT_APP_AUTH_MODE=simple
+        - PRIVATE_GRAPH_URI
+        - PUBLIC_GRAPH_URI
+        - REDIS_ADDRESS
+        - REDIS_EVENTS_STAGING_ENDPOINT
+        - SESSION_FILE_PATH_PREFIX
+        - TZ
+
+services:
+    kafka:
+        extends:
+            file: compose.yml
+            service: kafka
+        environment:
+            # needs to share docker-internal address
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+    collector:
+        extends:
+            file: compose.yml
+            service: collector
+        volumes:
+            - ./otel-collector.prod.yaml:/etc/otel-collector-config.yaml
+
+    backend-setup-opensearch:
+        image: ghcr.io/highlight/highlight-backend:latest
+        command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=init-opensearch
+        <<: [*depends-infra, *backend-env]
+
+    backend:
+        container_name: backend
+        image: ghcr.io/highlight/highlight-backend:latest
+        healthcheck:
+            test: ['CMD', 'curl', '-f', '-k', 'https://localhost:8082/health']
+            start_period: 180s
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        ports:
+            - 8082:8082
+        volumes:
+            - highlight-data:/highlight-data
+        <<: *backend-env
+        depends_on:
+            backend-setup-opensearch:
+                condition: service_completed_successfully
+
+    frontend:
+        container_name: frontend
+        image: ghcr.io/highlight/highlight-frontend:latest
+        healthcheck:
+            test: ['CMD', 'curl', '-f', '-k', 'https://localhost:3000/']
+            start_period: 180s
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        ports:
+            - 3000:3000
+            - 6006:6006
+            - 8080:8080
+
+volumes:
+    highlight-data:
