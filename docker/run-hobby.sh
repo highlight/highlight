@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
 source env.sh --go-docker
-./start-infra.sh --go-docker
+./start-infra.sh --go-docker --prod
 
 docker compose -f compose.yml -f compose.prod.yml up --pull missing --detach --wait --remove-orphans
 echo 'waiting for highlight hobby deploy to come online'
