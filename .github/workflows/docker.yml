@@ -41,6 +41,7 @@ jobs:
                   RUNS_ON: ${{ matrix.runs-on }}
               shell: bash
               run: |
+                  REACT_APP_COMMIT_SHA=${{ github.sha }}
                   if [[ "$RUNS_ON" == *"buildjet-4vcpu-ubuntu-2204-arm"* ]]; then
                     PLATFORM=linux/arm64
                     GOARCH=arm64

@@ -6,7 +6,7 @@ var (
 	env            = os.Getenv("ENVIRONMENT")
 	DEV_ENV        = "dev"
 	TEST_ENV       = "test"
-	ON_PREM        = os.Getenv("REACT_APP_ONPREM")
+	ON_PREM        = os.Getenv("ON_PREM")
 	DOPPLER_CONFIG = os.Getenv("DOPPLER_CONFIG")
 	IN_DOCKER      = os.Getenv("IN_DOCKER")
 	IN_DOCKER_GO   = os.Getenv("IN_DOCKER_GO")
@@ -25,7 +25,7 @@ func IsTestEnv() bool {
 }
 
 func IsDevOrTestEnv() bool {
-	return env == DEV_ENV || env == TEST_ENV
+	return IsTestEnv() || IsDevEnv()
 }
 
 func IsOnPrem() bool {

@@ -7,7 +7,6 @@ interface ImportMetaEnv {
 	readonly REACT_APP_FRONT_INTEGRATION_CLIENT_ID: string
 	readonly REACT_APP_FRONTEND_ORG: string
 	readonly REACT_APP_FRONTEND_URI: string
-	readonly REACT_APP_ONPREM: string
 	readonly REACT_APP_PRIVATE_GRAPH_URI: string
 	readonly REACT_APP_PUBLIC_GRAPH_URI: string
 	readonly REACT_APP_STRIPE_API_PK: string

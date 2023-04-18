@@ -37,6 +37,7 @@ x-backend-env: &backend-env
         - KAFKA_SERVERS
         - KAFKA_TOPIC
         - OBJECT_STORAGE_FS=/highlight-data
+        - ON_PREM=true
         - OPENSEARCH_DOMAIN
         - OPENSEARCH_DOMAIN_READ
         - OPENSEARCH_PASSWORD

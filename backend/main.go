@@ -467,7 +467,7 @@ func main() {
 		})
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
-		if !util.IsDevOrTestEnv() {
+		if !util.IsDevOrTestEnv() && !util.IsOnPrem() {
 			err := profiler.Start(profiler.WithService("public-graph-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
 			if err != nil {
 				log.WithContext(ctx).Fatal(err)
@@ -582,7 +582,7 @@ func main() {
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
-			if !util.IsDevOrTestEnv() {
+			if !util.IsDevOrTestEnv() && !util.IsOnPrem() {
 				serviceName := "worker-service"
 				if handlerFlag != nil && *handlerFlag != "" {
 					serviceName = *handlerFlag
