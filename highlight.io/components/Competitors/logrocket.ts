@@ -1,3 +1,5 @@
+import logrocketlogofull from '../../public/images/logrocketlogofull.png'
+import logrocketlogosmall from '../../public/images/logrocketlogosmall.png'
 import { Competitor } from './competitors'
 
 export const LogRocketSpec: Competitor = {
@@ -5,6 +7,8 @@ export const LogRocketSpec: Competitor = {
 	header: 'The Open Source Logrocket Alternative.',
 	subheader:
 		'Pixel-perfect video replay of your frontend web application. Step into the shoes of your users.',
+	logoDesktop: logrocketlogofull,
+	logoMobile: logrocketlogosmall,
 	sections: [
 		{
 			title: 'General',

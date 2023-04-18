@@ -7,7 +7,7 @@ import { SmartlookSpec } from './smartlook'
 
 export type ComparisonTableRow = {
 	feature: string
-	highlight: 0 | 0.5 | 1
+	highlight: 0 | 0.5 | 1 //0.5 represents 'coming soon'
 	competitor: 0 | 1
 	tooltip?: string
 }
@@ -21,7 +21,8 @@ export type Competitor = {
 	name: string
 	header: string
 	subheader: string
-	logo?: StaticImageData
+	logoDesktop?: StaticImageData
+	logoMobile?: StaticImageData
 	sections: ComparisonTableSection[]
 	paragraphs?: {
 		header: string
