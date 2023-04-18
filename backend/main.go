@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/phonehome"
 	"html/template"
 	"io"
 	"net/http"
@@ -64,7 +65,7 @@ import (
 	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
-	storage "github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/storage"
 	log "github.com/sirupsen/logrus"
 
 	_ "github.com/urfave/cli/v2"
@@ -242,7 +243,7 @@ func main() {
 	// setup highlight logrus hook
 	hlog.Init()
 	log.WithContext(ctx).WithField("hello", "world").Info("welcome to highlight.io")
-	if err := util.PhoneHome(ctx); err != nil {
+	if err := phonehome.Start(ctx); err != nil {
 		log.WithContext(ctx).Warn("Failed to start highlight phone-home service.")
 	}
 

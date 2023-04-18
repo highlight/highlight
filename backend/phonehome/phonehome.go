@@ -1,7 +1,9 @@
-package util
+package phonehome
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/projectpath"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
@@ -10,7 +12,7 @@ import (
 )
 
 func IsOptedOut(ctx context.Context) bool {
-	cfg, err := GetConfig()
+	cfg, err := projectpath.GetConfig()
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to get opt out status")
 		return true
@@ -18,19 +20,19 @@ func IsOptedOut(ctx context.Context) bool {
 	return cfg.PhoneHomeOptOut
 }
 
-func PhoneHome(ctx context.Context) error {
+func Start(ctx context.Context) error {
 	if IsOptedOut(ctx) {
 		return nil
 	}
 
-	cfg, err := GetConfig()
+	cfg, err := projectpath.GetConfig()
 	if err != nil {
 		return err
 	}
 	if cfg.PhoneHomeDeploymentID == "" {
-		cfg.PhoneHomeDeploymentID = GenerateRandomString(32)
+		cfg.PhoneHomeDeploymentID = util.GenerateRandomString(32)
 	}
-	if err = SaveConfig(cfg); err != nil {
+	if err = projectpath.SaveConfig(cfg); err != nil {
 		return err
 	}
 
