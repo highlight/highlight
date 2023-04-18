@@ -1,6 +1,6 @@
 FROM --platform=$BUILDPLATFORM golang:alpine as backend-build
 
-RUN apk update && apk add --no-cache build-base git
+RUN apk update && apk add --no-cache build-base
 
 WORKDIR /highlight
 COPY ../go.work .
@@ -23,7 +23,7 @@ LABEL org.opencontainers.image.licenses="Apache 2.0"
 
 RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.key' -O /etc/apk/keys/cli@doppler-8004D9FF50437357.rsa.pub && \
     echo 'https://packages.doppler.com/public/cli/alpine/any-version/main' | tee -a /etc/apk/repositories && \
-    apk add --no-cache doppler
+    apk add --no-cache curl doppler
 
 WORKDIR /build
 COPY --from=backend-build /build/backend /build
