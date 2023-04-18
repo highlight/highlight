@@ -242,14 +242,8 @@ func main() {
 	// setup highlight logrus hook
 	hlog.Init()
 	log.WithContext(ctx).WithField("hello", "world").Info("welcome to highlight.io")
-
-	switch os.Getenv("DEPLOYMENT_KEY") {
-	case "HIGHLIGHT_ONPREM_BETA":
-		// default case, should only exist in main highlight prod
-	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
-		go expireHighlightAfterDate(time.Date(2021, 10, 1, 0, 0, 0, 0, time.UTC))
-	default:
-		log.WithContext(ctx).Fatal("please specify a deploy key in order to run Highlight")
+	if err := util.PhoneHome(ctx); err != nil {
+		log.WithContext(ctx).Warn("Failed to start highlight phone-home service.")
 	}
 
 	if sendgridKey == "" {

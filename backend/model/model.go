@@ -1514,28 +1514,23 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error assigning default to session_fields.id")
 	}
 
-	switch os.Getenv("DEPLOYMENT_KEY") {
-	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
-		fallthrough
-	case "HIGHLIGHT_ONPREM_BETA":
-		// default case, should only exist in main highlight prod
-		thresholdWindow := 30
-		emptiness := "[]"
-		if err := DB.FirstOrCreate(&SessionAlert{
-			Alert: Alert{
-				ProjectID: 1,
-				Type:      &AlertType.SESSION_FEEDBACK,
-			},
-		}).Attrs(&SessionAlert{
-			Alert: Alert{
-				ExcludedEnvironments: &emptiness,
-				CountThreshold:       1,
-				ThresholdWindow:      &thresholdWindow,
-				ChannelsToNotify:     &emptiness,
-			},
-		}).Error; err != nil {
-			break
-		}
+	// default case, should only exist in main highlight prod
+	thresholdWindow := 30
+	emptiness := "[]"
+	if err := DB.FirstOrCreate(&SessionAlert{
+		Alert: Alert{
+			ProjectID: 1,
+			Type:      &AlertType.SESSION_FEEDBACK,
+		},
+	}).Attrs(&SessionAlert{
+		Alert: Alert{
+			ExcludedEnvironments: &emptiness,
+			CountThreshold:       1,
+			ThresholdWindow:      &thresholdWindow,
+			ChannelsToNotify:     &emptiness,
+		},
+	}).Error; err != nil {
+		log.WithContext(ctx).WithError(err).Error("Failed to create default session feedback alert.")
 	}
 
 	log.WithContext(ctx).Printf("Finished running DB migrations.\n")
