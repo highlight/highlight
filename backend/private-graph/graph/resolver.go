@@ -1982,7 +1982,12 @@ func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Wor
 		SLACK_CLIENT_SECRET = tempSlackClientSecret
 	}
 
-	redirect := os.Getenv("FRONTEND_URI") + "/callback/slack"
+	// remove
+	SLACK_CLIENT_ID = "60207967185.5091193534916"
+	SLACK_CLIENT_SECRET = "5c443e133931820f29cf611e9735abbf"
+
+	redirect := fmt.Sprintf("%s/callback/slack", os.Getenv("FRONTEND_URI"))
+	log.Warnf("REDIRECT --- 👀 -- %v", redirect)
 
 	resp, err := slack.
 		GetOAuthV2Response(

@@ -2,18 +2,18 @@ import { AdminAvatar } from '@components/Avatar/Avatar'
 import { AdminSuggestion } from '@components/Comment/CommentHeader'
 import { getSlackUrl } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import SvgSlackLogo from '@components/icons/SlackLogo'
-import { namedOperations } from '@graph/operations'
 import {
 	Mention,
 	MentionsInput,
 	OnChangeHandlerFunc,
 } from '@highlight-run/react-mentions'
-import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { useParams } from '@util/react-router/useParams'
 import { splitTaggedUsers } from '@util/string'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import Linkify from 'react-linkify'
+
+import SlackSyncSection from '@/pages/Alerts/AlertConfigurationCard/SlackSyncSection'
 
 import newCommentFormStyles from '../NewCommentForm.module.scss'
 import styles from './CommentTextBody.module.scss'
@@ -115,14 +115,9 @@ const CommentTextBody = ({
 					{isSlackIntegrated ? (
 						<>
 							<p>Tag a user or Slack account</p>
-							<SyncWithSlackButton
-								isSlackIntegrated={isSlackIntegrated}
-								slackUrl={slackUrl}
-								small
-								refetchQueries={[
-									namedOperations.Query
-										.GetCommentMentionSuggestions,
-								]}
+							<SlackSyncSection
+								isLoading={false}
+								searchQuery={commentText}
 							/>
 						</>
 					) : (
@@ -136,13 +131,9 @@ const CommentTextBody = ({
 			noResultsMessage={
 				<>
 					<p className={styles.noResultsMessage}>
-						<SyncWithSlackButton
-							isSlackIntegrated={isSlackIntegrated}
-							slackUrl={slackUrl}
-							refetchQueries={[
-								namedOperations.Query
-									.GetCommentMentionSuggestions,
-							]}
+						<SlackSyncSection
+							isLoading={false}
+							searchQuery={commentText}
 						/>
 					</p>
 				</>

@@ -13,6 +13,7 @@ import {
 	useUpdateErrorAlertMutation,
 	useUpdateSessionAlertMutation,
 } from '@graph/hooks'
+import { useSyncSlackIntegrationMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
 	DiscordChannel,
@@ -21,16 +22,18 @@ import {
 } from '@graph/schemas'
 import alertConfigurationCardStyles from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard.module.scss'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
-import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
-import { Divider, Form, message } from 'antd'
+import { Form, message } from 'antd'
 import clsx from 'clsx'
-import React, { useEffect, useState } from 'react'
+import { throttle } from 'lodash'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { Link, useLocation } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
+
+import SlackSyncSection from '@/pages/Alerts/AlertConfigurationCard/SlackSyncSection'
 
 import Button from '../../../components/Button/Button/Button'
 import InputNumber from '../../../components/InputNumber/InputNumber'
@@ -74,7 +77,6 @@ export const AlertConfigurationCard = ({
 	environmentOptions,
 	channelSuggestions,
 	discordChannelSuggestions,
-	slackUrl,
 	onDeleteHandler,
 	isCreatingNewAlert = false,
 	isSlackIntegrated,
@@ -82,6 +84,7 @@ export const AlertConfigurationCard = ({
 	emailSuggestions,
 }: Props) => {
 	const [loading, setLoading] = useState(false)
+	const [slackLoading, setSlackLoading] = useState(false)
 	const [formTouched, setFormTouched] = useState(false)
 	const [threshold, setThreshold] = useState(alert?.CountThreshold || 1)
 	const [frequency, setFrequency] = useState(
@@ -129,6 +132,34 @@ export const AlertConfigurationCard = ({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 	const [updateSessionAlert] = useUpdateSessionAlertMutation()
+
+	const [syncSlackIntegration] = useSyncSlackIntegrationMutation({
+		variables: {
+			project_id: projectId!,
+		},
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+	})
+
+	// throttle the slack refresh so that we don't
+	// hit the rate limit of ~20/min
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const syncSlackThrottle = useCallback(
+		throttle(
+			async () => {
+				console.log(`throttled slack sync ${Date.now()}`)
+				await syncSlackIntegration()
+				setSlackLoading(false)
+			},
+			3000,
+			{ leading: true },
+		),
+		[],
+	)
+	const onSearch = (qry: string) => {
+		setSearchQuery(qry)
+		setSlackLoading(true)
+		syncSlackThrottle()
+	}
 
 	const excludedEnvironmentsFormName = `${
 		alert.Name || defaultName
@@ -780,9 +811,7 @@ export const AlertConfigurationCard = ({
 											className={styles.channelSelect}
 											options={channels}
 											mode="multiple"
-											onSearch={(value) => {
-												setSearchQuery(value)
-											}}
+											onSearch={onSearch}
 											filterOption={(
 												searchValue,
 												option,
@@ -799,55 +828,14 @@ export const AlertConfigurationCard = ({
 											placeholder={`Select a channel(s) or person(s) to send ${defaultName} to.`}
 											onChange={onChannelsChange}
 											notFoundContent={
-												<SyncWithSlackButton
-													isSlackIntegrated={
-														isSlackIntegrated
-													}
-													slackUrl={slackUrl}
-													refetchQueries={[
-														namedOperations.Query
-															.GetAlertsPagePayload,
-													]}
+												<SlackSyncSection
+													searchQuery={searchQuery}
+													isLoading={slackLoading}
 												/>
 											}
 											defaultValue={alert?.ChannelsToNotify?.map(
 												(channel: any) =>
 													channel.webhook_channel_id,
-											)}
-											dropdownRender={(menu) => (
-												<div>
-													{menu}
-													{searchQuery.length === 0 &&
-														channelSuggestions.length >
-															0 && (
-															<>
-																<Divider
-																	style={{
-																		margin: '4px 0',
-																	}}
-																/>
-																<div
-																	className={
-																		styles.addContainer
-																	}
-																>
-																	<SyncWithSlackButton
-																		isSlackIntegrated={
-																			isSlackIntegrated
-																		}
-																		slackUrl={
-																			slackUrl
-																		}
-																		refetchQueries={[
-																			namedOperations
-																				.Query
-																				.GetAlertsPagePayload,
-																		]}
-																	/>
-																</div>
-															</>
-														)}
-												</div>
 											)}
 										/>
 									)}

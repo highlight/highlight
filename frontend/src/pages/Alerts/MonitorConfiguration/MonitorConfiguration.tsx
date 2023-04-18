@@ -6,7 +6,6 @@ import Select from '@components/Select/Select'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
 import { useGetMetricsTimelineQuery, useGetMetricTagsQuery } from '@graph/hooks'
-import { namedOperations } from '@graph/operations'
 import {
 	DiscordChannel,
 	MetricAggregator,
@@ -14,7 +13,6 @@ import {
 	WebhookDestination,
 } from '@graph/schemas'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
-import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { UNIT_OPTIONS } from '@pages/Dashboards/components/DashboardCard/DashboardCard'
 import {
 	MetricSelector,
@@ -26,6 +24,8 @@ import { Divider, Slider } from 'antd'
 import moment from 'moment'
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+
+import SlackSyncSection from '@/pages/Alerts/AlertConfigurationCard/SlackSyncSection'
 
 import alertConfigurationCardStyles from '../AlertConfigurationCard/AlertConfigurationCard.module.scss'
 import styles from './MonitorConfiguration.module.scss'
@@ -454,12 +454,11 @@ const MonitorConfiguration = ({
 						}}
 						placeholder="Select a channel(s) or person(s) to send the alert to."
 						notFoundContent={
-							<SyncWithSlackButton
+							<SlackSyncSection
+								isLoading={false}
+								searchQuery={searchQuery}
 								isSlackIntegrated={isSlackIntegrated}
 								slackUrl={slackUrl}
-								refetchQueries={[
-									namedOperations.Query.GetAlertsPagePayload,
-								]}
 							/>
 						}
 						dropdownRender={(menu) => (
@@ -478,15 +477,9 @@ const MonitorConfiguration = ({
 													alertConfigurationCardStyles.addContainer
 												}
 											>
-												<SyncWithSlackButton
-													isSlackIntegrated={
-														isSlackIntegrated
-													}
-													slackUrl={slackUrl}
-													refetchQueries={[
-														namedOperations.Query
-															.GetAlertsPagePayload,
-													]}
+												<SlackSyncSection
+													isLoading={false}
+													searchQuery={searchQuery}
 												/>
 											</div>
 										</>
