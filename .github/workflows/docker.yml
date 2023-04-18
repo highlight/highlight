@@ -45,6 +45,7 @@ jobs:
                   REACT_APP_COMMIT_SHA=${{ github.sha }}
                   if [[ "$RUNS_ON" == *"arm"* ]]; then
                     PLATFORM=linux/arm64
+                    IMAGE_SUFFIX=".arm"
                   else
                     PLATFORM=linux/amd64
                   fi
@@ -59,7 +60,7 @@ jobs:
                   docker buildx build $BUILD_ARGS \
                     --push \
                     --platform $PLATFORM \
-                    -t $GH_REGISTRY/highlight/$IMAGE_NAME:$IMAGE_TAG \
-                    -t $GH_REGISTRY/highlight/$IMAGE_NAME:latest \
+                    -t $GH_REGISTRY/highlight/$IMAGE_NAME:$IMAGE_TAG$IMAGE_SUFFIX \
+                    -t $GH_REGISTRY/highlight/$IMAGE_NAME:latest$IMAGE_SUFFIX \
                     -f docker/${{ matrix.container }}.Dockerfile \
                     --target ${{ matrix.container }}-prod .
