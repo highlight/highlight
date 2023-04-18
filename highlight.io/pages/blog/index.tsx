@@ -104,6 +104,7 @@ export async function loadPostsFromGithub() {
 			BLOG_CONTENT_PATH + paths[index].rel_path,
 		)
 		const posty = markdownToPost(data.content, data.data)
+		posty.slug = paths[index].rel_path.split('/').at(-1).replace('.md', '')
 		posts.push(posty)
 	}
 
@@ -118,14 +119,12 @@ export function markdownToPost(
 ): Post {
 	let post: Post = {
 		title: data.title,
-		slug: data.slug,
 		description: data.description || null,
 		metaDescription: data.metaDescription || data.description || null,
 		metaTitle: data.metaTitle || data.title || null,
 		publishedAt: data.createdAt,
 		postedAt: data.updatedAt,
 		readingTime: data.readingTime,
-		featured: data.featured,
 		richcontent: {
 			markdown: content,
 		},
@@ -191,6 +190,7 @@ export const getBlogPaths = async (
 		const file_string = read[i]
 		let total_path = path.join(full_path, file_string)
 		const file_path = await fs_api.stat(total_path)
+		if (file_string.includes('README')) continue
 		if (file_path.isDirectory()) {
 			paths = paths.concat(
 				await getBlogPaths(fs_api, path.join(base, file_string)),

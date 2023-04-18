@@ -16,7 +16,6 @@ export interface Author {
 }
 
 export interface Post {
-	slug: string
 	description: string
 	youtubeVideoId?: string
 	metaDescription?: string
@@ -31,15 +30,17 @@ export interface Post {
 		name: string
 		picture: string
 	}
-	richcontent: {
-		markdown: string
-		raw?: any
-	}
-	featured: boolean
 	tags: Array<string>
 	tags_relations: Tag[]
 	readingTime?: number
 	author?: Author
+	richcontent: {
+		markdown: string
+		raw?: any
+	}
+	// to delete once we fire hygraph
+	slug?: string
+	featured?: boolean
 }
 
 export const BlogPost = ({

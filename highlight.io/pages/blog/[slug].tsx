@@ -256,6 +256,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 	}
 
 	if (!data.post) {
+		// lookup should be done by the file name, not the `slug` parameter.
 		const githubPost = await getGithubPostBySlug(slug)
 		if (!githubPost) {
 			return {

@@ -4,7 +4,6 @@ slug: open-telemetry
 createdAt: 2022-04-01T20:28:14.000Z
 updatedAt: 2022-04-15T02:07:22.000Z
 readingTime: 8
-featured: true
 authorFirstName: Vadim
 authorLastName: Korolik
 authorTitle: Software Engineer @ Highlight 
