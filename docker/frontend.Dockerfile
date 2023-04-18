@@ -1,6 +1,6 @@
-FROM --platform=$BUILDPLATFORM node:lts-bullseye as frontend-build
+FROM --platform=$BUILDPLATFORM node:lts-alpine as frontend-build
 
-RUN apt update && apt install -y build-essential chromium
+RUN apk update && apk add --no-cache build-base chromium
 
 WORKDIR /highlight
 COPY . ./
