@@ -48,7 +48,7 @@ export const ErrorState = ({
 				</p>
 				{errorString !== undefined && (
 					<details onToggle={() => setShowError((t) => !t)}>
-						<summary className="cursor-pointer">
+						<summary className="cursor-pointer text-gray-500">
 							{showError ? 'show less' : 'show more'}
 						</summary>
 						{showError && (
