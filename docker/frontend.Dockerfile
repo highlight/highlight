@@ -1,9 +1,5 @@
 FROM --platform=$BUILDPLATFORM node:lts-bullseye as frontend-base
 
-LABEL org.opencontainers.image.source=https://github.com/highlight/highlight
-LABEL org.opencontainers.image.description="highlight.io Production Frontend Image"
-LABEL org.opencontainers.image.licenses="Apache 2.0"
-
 RUN apt update && apt install -y build-essential chromium
 
 WORKDIR /highlight
@@ -44,6 +40,10 @@ RUN yarn build:frontend
 
 # reduce the image size by keeping just the built code
 FROM --platform=$BUILDPLATFORM node:lts-bullseye as frontend-prod
+LABEL org.opencontainers.image.source=https://github.com/highlight/highlight
+LABEL org.opencontainers.image.description="highlight.io Production Frontend Image"
+LABEL org.opencontainers.image.licenses="Apache 2.0"
+
 RUN apt update && apt install -y nginx && apt clean
 COPY ../docker/nginx.conf /etc/nginx/sites-enabled/default
 
