@@ -1,6 +1,7 @@
 name: Publish Production Docker Images
 
 on:
+    workflow_dispatch:
     release:
         types: [published]
     schedule:
