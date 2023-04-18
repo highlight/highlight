@@ -64,5 +64,5 @@ jobs:
                     -t ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG \
                     -t ghcr.io/highlight/$IMAGE_NAME:latest \
                     -f docker/${{ matrix.container }}.Dockerfile \
-                    --target ${{ matrix.container }}-prod .
+                    --target ${{ matrix.container }}-prod . \
                     --output type=image,name=target,$ANNOTATIONS
