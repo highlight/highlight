@@ -13,21 +13,20 @@ import {
 	useUpdateErrorAlertMutation,
 	useUpdateSessionAlertMutation,
 } from '@graph/hooks'
-import { useSyncSlackIntegrationMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
 	DiscordChannel,
 	SessionAlertType,
 	WebhookDestination,
 } from '@graph/schemas'
+import { useSlackSync } from '@hooks/useSlackSync'
 import alertConfigurationCardStyles from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard.module.scss'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
 import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { Form, message } from 'antd'
 import clsx from 'clsx'
-import { throttle } from 'lodash'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { Link, useLocation } from 'react-router-dom'
@@ -84,12 +83,13 @@ export const AlertConfigurationCard = ({
 	emailSuggestions,
 }: Props) => {
 	const [loading, setLoading] = useState(false)
-	const [slackLoading, setSlackLoading] = useState(false)
 	const [formTouched, setFormTouched] = useState(false)
 	const [threshold, setThreshold] = useState(alert?.CountThreshold || 1)
 	const [frequency, setFrequency] = useState(
 		getFrequencyOption(alert?.Frequency).value,
 	)
+
+	const { slackLoading, syncSlack } = useSlackSync()
 	const [isDisabled, setIsDisabled] = useState(alert?.disabled || false)
 	const [emailsToNotify, setEmailsToNotify] = useState<string[]>(
 		alert?.EmailsToNotify || [],
@@ -133,32 +133,9 @@ export const AlertConfigurationCard = ({
 	})
 	const [updateSessionAlert] = useUpdateSessionAlertMutation()
 
-	const [syncSlackIntegration] = useSyncSlackIntegrationMutation({
-		variables: {
-			project_id: projectId!,
-		},
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
-
-	// throttle the slack refresh so that we don't
-	// hit the rate limit of ~20/min
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const syncSlackThrottle = useCallback(
-		throttle(
-			async () => {
-				console.log(`throttled slack sync ${Date.now()}`)
-				await syncSlackIntegration()
-				setSlackLoading(false)
-			},
-			3000,
-			{ leading: true },
-		),
-		[],
-	)
 	const onSearch = (qry: string) => {
 		setSearchQuery(qry)
-		setSlackLoading(true)
-		syncSlackThrottle()
+		syncSlack()
 	}
 
 	const excludedEnvironmentsFormName = `${

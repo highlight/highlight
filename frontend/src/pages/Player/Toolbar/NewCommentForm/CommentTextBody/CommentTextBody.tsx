@@ -64,6 +64,7 @@ const CommentTextBody = ({
 			(suggestion.display && suggestion.display[0] == '@'),
 	)
 
+	const taggedUsers: string[] = []
 	if (!newInput) {
 		const pieces = []
 		for (const { matched, value } of splitTaggedUsers(commentText)) {
@@ -71,6 +72,7 @@ const CommentTextBody = ({
 				pieces.push(
 					<span className={styles.mentionedUser}>{value}</span>,
 				)
+				taggedUsers.push(value)
 			} else {
 				pieces.push(
 					<span className={styles.commentText}>
@@ -117,7 +119,7 @@ const CommentTextBody = ({
 							<p>Tag a user or Slack account</p>
 							<SlackSyncSection
 								isLoading={false}
-								searchQuery={commentText}
+								searchQuery={taggedUsers.toString()}
 							/>
 						</>
 					) : (
@@ -133,7 +135,7 @@ const CommentTextBody = ({
 					<p className={styles.noResultsMessage}>
 						<SlackSyncSection
 							isLoading={false}
-							searchQuery={commentText}
+							searchQuery={taggedUsers.toString()}
 						/>
 					</p>
 				</>
