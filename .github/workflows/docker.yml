@@ -50,6 +50,9 @@ jobs:
               shell: bash
               run: |
                   REACT_APP_COMMIT_SHA=${{ github.sha }}
+                  ANNOTATIONS=annotation-index.org.opencontainers.image.description="highlight.io production ${{ matrix.container }} image"
+                  ANNOTATIONS=$ANNOTATIONS,annotation-index.org.opencontainers.image.source="https://github.com/highlight/highlight"
+                  ANNOTATIONS=$ANNOTATIONS,annotation-index.org.opencontainers.image.licenses="Apache 2.0"
 
                   # build docker image with common environment
                   pushd docker
@@ -62,3 +65,4 @@ jobs:
                     -t ghcr.io/highlight/$IMAGE_NAME:latest \
                     -f docker/${{ matrix.container }}.Dockerfile \
                     --target ${{ matrix.container }}-prod .
+                    --output type=image,name=target,$ANNOTATIONS
