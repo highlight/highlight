@@ -27,12 +27,10 @@ LABEL org.opencontainers.image.source=https://github.com/highlight/highlight
 LABEL org.opencontainers.image.description="highlight.io Production Frontend Image"
 LABEL org.opencontainers.image.licenses="Apache 2.0"
 
-COPY ../docker/nginx.conf /etc/nginx/sites-enabled/default
+COPY ../docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY ../backend/localhostssl/server.key /etc/ssl/private/ssl-cert.key
 COPY ../backend/localhostssl/server.pem /etc/ssl/certs/ssl-cert.pem
 
 WORKDIR /build
 COPY --from=frontend-build /highlight/frontend/build /build/frontend/build
 COPY --from=frontend-build /highlight/sdk/client/dist /build/sdk/client/dist
-
-CMD ["nginx", "-g", "daemon off;"]
