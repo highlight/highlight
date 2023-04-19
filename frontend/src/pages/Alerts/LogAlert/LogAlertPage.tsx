@@ -494,16 +494,6 @@ const LogAlertForm = ({
 			id: email,
 		}))
 
-	// const syncSlackSection = (
-	// 	<SlackSyncSection
-	// 		slackUrl={getSlackUrl(projectId ?? '')}
-	// 		isSlackIntegrated={alertsPayload?.is_integrated_with_slack || false}
-	// 		isLoading={slackLoading}
-	// 		searchQuery="shrug"
-	// 		// refetchQueries={[namedOperations.Query.GetLogAlertsPagePayload]}
-	// 	/>
-	// )
-
 	return (
 		<Box cssClass={styles.grid}>
 			<Stack gap="12">
