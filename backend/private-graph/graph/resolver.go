@@ -75,6 +75,7 @@ const SessionProcessedMetricName = "sessionProcessed"
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
+	FrontendURI     = os.Getenv("FRONTEND_URI")
 )
 
 var BytesConversion = map[string]int64{
@@ -1982,7 +1983,7 @@ func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Wor
 		SLACK_CLIENT_SECRET = tempSlackClientSecret
 	}
 
-	redirect := fmt.Sprintf("%s/callback/slack", os.Getenv("FRONTEND_URI"))
+	redirect := FrontendURI + "/callback/slack"
 
 	resp, err := slack.
 		GetOAuthV2Response(
@@ -2186,7 +2187,7 @@ func (r *Resolver) AddLinearToWorkspace(workspace *model.Workspace, code string)
 		LINEAR_CLIENT_SECRET = tempLinearClientSecret
 	}
 
-	redirect := os.Getenv("FRONTEND_URI") + "/callback/linear"
+	redirect := FrontendURI + "/callback/linear"
 
 	res, err := r.GetLinearAccessToken(code, redirect, LINEAR_CLIENT_ID, LINEAR_CLIENT_SECRET)
 	if err != nil {
