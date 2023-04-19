@@ -5,6 +5,7 @@ export const SmartlookSpec: Competitor = {
 	header: 'The Open Source Smartlook Alternative.',
 	subheader:
 		'Pixel-perfect video replay of your frontend web application. Step into the shoes of your users.',
+	type: 'error-monitoring',
 	sections: [
 		{
 			title: 'General',

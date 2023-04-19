@@ -19,6 +19,7 @@ export type ComparisonTableSection = {
 
 export type Competitor = {
 	name: string
+	type: 'session-replay' | 'error-monitoring' | 'logging' //determines which hero image to display
 	header: string
 	subheader: string
 	logoDesktop?: StaticImageData

@@ -5,6 +5,7 @@ export const FullstorySpec: Competitor = {
 	header: 'The Open Source Fullstory Alternative.',
 	subheader:
 		'Pixel-perfect video replay of your frontend web application. Step into the shoes of your users.',
+	type: 'session-replay',
 	sections: [
 		{
 			title: 'General',

@@ -18,8 +18,6 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 		return <div>No Competitor Loaded</div>
 	}
 
-	console.log(props.competitor.logoDesktop)
-
 	return (
 		<div className="">
 			{props.competitor.sections.map(
