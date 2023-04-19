@@ -17,6 +17,11 @@ export type ComparisonTableSection = {
 	rows: ComparisonTableRow[]
 }
 
+export type CompetitorPara = {
+	header: string
+	body: string //Body is markdown so it can include links and styling
+}
+
 export type Competitor = {
 	name: string
 	type?: 'session-replay' | 'error-monitoring' | 'logging' //determines which hero image to display
@@ -25,10 +30,7 @@ export type Competitor = {
 	logoDesktop?: StaticImageData
 	logoMobile?: StaticImageData
 	sections: ComparisonTableSection[]
-	paragraphs?: {
-		header: string
-		body: string //Body is markdown so it can include links and styling
-	}[]
+	paragraphs?: CompetitorPara[]
 }
 
 //Slug is stored as the key so we can get constant time lookups in GetStaticProps
