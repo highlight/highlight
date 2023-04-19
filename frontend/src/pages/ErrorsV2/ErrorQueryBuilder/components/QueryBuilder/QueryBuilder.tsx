@@ -1946,20 +1946,17 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const [qbState, setQbState] = useState<string | undefined>(undefined)
 
 	useEffect(() => {
-		if (!segmentsLoading) {
-			if (activeSegmentUrlParam) {
-				selectSegment(activeSegmentUrlParam)
-			}
-			if (searchParamsToUrlParams.query !== undefined) {
-				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
-			}
+		if (searchParamsToUrlParams.query !== undefined) {
+			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+		} else {
+			setSearchParams(EmptyErrorsSearchParams)
 		}
 
 		// We only want to run this on mount (i.e. when the page first loads)
 		// after fetching segments.
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [segmentsLoading])
+	}, [])
 
 	const [forceReload, setForceReload] = useQueryParam('reload', BooleanParam)
 	useEffect(() => {
@@ -1968,6 +1965,19 @@ function QueryBuilder(props: QueryBuilderProps) {
 			setForceReload(false)
 		}
 	}, [forceReload, searchParamsToUrlParams, setForceReload, setSearchParams])
+
+	useEffect(() => {
+		if (!segmentsLoading) {
+			if (activeSegmentUrlParam) {
+				selectSegment(activeSegmentUrlParam)
+			}
+			if (searchParamsToUrlParams.query !== undefined) {
+				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+			}
+		}
+		// We only want to run this once after loading segments.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [segmentsLoading])
 
 	// Errors Segment Deep Linking
 	useEffect(() => {
