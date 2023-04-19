@@ -5,7 +5,7 @@ createdAt: 2022-04-01T20:28:14.000Z
 updatedAt: 2022-04-15T02:07:22.000Z
 ---
 
-## Our Telemetry Philosophy
+## How Telemetry works for self-hosted deploys
 
 Telemetry helps us understand how folks use highlight, what operating systems and hardware capabilities they have, and what features they use most. The metrics we collect are anonymized so that we can associate usage with a particular deployment, but never with a particular user email or name. We use our own highlight cloud product to collect metrics, so you can find exactly how the telemetry metrics are recorded and then stored + queried. Check out the [telemetry code here](https://github.com/highlight/highlight/blob/main/backend/phonehome/phonehome.go) to learn more.
 
