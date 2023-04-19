@@ -227,10 +227,13 @@ func main() {
 
 	// setup highlight
 	H.SetProjectID("1jdkoe52")
-	if util.IsDevOrTestEnv() {
+	if !util.IsOnPrem() && util.IsDevOrTestEnv() {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql / otlp client address...")
 		H.SetGraphqlClientAddress("https://localhost:8082/public")
 		H.SetOTLPEndpoint("http://localhost:4318")
+		if util.IsBackendInDocker() {
+			H.SetOTLPEndpoint("http://collector:4318")
+		}
 	}
 	H.Start()
 	defer H.Stop()
@@ -464,7 +467,7 @@ func main() {
 		})
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
-		if !util.IsDevOrTestEnv() {
+		if !util.IsDevOrTestEnv() && !util.IsOnPrem() {
 			err := profiler.Start(profiler.WithService("public-graph-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
 			if err != nil {
 				log.WithContext(ctx).Fatal(err)
@@ -579,7 +582,7 @@ func main() {
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
-			if !util.IsDevOrTestEnv() {
+			if !util.IsDevOrTestEnv() && !util.IsOnPrem() {
 				serviceName := "worker-service"
 				if handlerFlag != nil && *handlerFlag != "" {
 					serviceName = *handlerFlag

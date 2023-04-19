@@ -1,22 +1,33 @@
-FROM golang:bullseye as backend-base
-RUN apt update && apt install -y git build-essential && apt clean
-RUN go install github.com/go-delve/delve/cmd/dlv@latest
-RUN go install github.com/cosmtrek/air@latest
+FROM --platform=$BUILDPLATFORM golang:alpine as backend-build
 
-WORKDIR /build
+RUN apk update && apk add --no-cache build-base
+
+WORKDIR /highlight
 COPY ../go.work .
 COPY ../go.work.sum .
-COPY ../backend/go.mod ./backend/go.mod
-COPY ../backend/go.sum ./backend/go.sum
-COPY ../sdk/highlight-go/go.mod ./sdk/highlight-go/go.mod
-COPY ../sdk/highlight-go/go.sum ./sdk/highlight-go/go.sum
-COPY ../e2e/go/go.mod ./e2e/go/go.mod
-COPY ../e2e/go/go.sum ./e2e/go/go.sum
+COPY ../backend ./backend
+COPY ../sdk/highlight-go ./sdk/highlight-go
+COPY ../e2e/go ./e2e/go
 RUN go work sync
-RUN cd /build/backend && go mod download
-RUN cd /build/e2e/go && go mod download
-RUN cd /build/sdk/highlight-go && go mod download
 
-FROM backend-base as backend
-WORKDIR /build/backend
-CMD ["make", "start-no-doppler"]
+WORKDIR /highlight/backend
+ARG TARGETARCH
+ARG TARGETOS
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /build/backend
+
+# reduce the image size by keeping just the built code
+FROM golang:alpine as backend-prod
+LABEL org.opencontainers.image.source=https://github.com/highlight/highlight
+LABEL org.opencontainers.image.description="highlight.io Production Backend Image"
+LABEL org.opencontainers.image.licenses="Apache 2.0"
+
+RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.key' -O /etc/apk/keys/cli@doppler-8004D9FF50437357.rsa.pub && \
+    echo 'https://packages.doppler.com/public/cli/alpine/any-version/main' | tee -a /etc/apk/repositories && \
+    apk add --no-cache curl doppler
+
+WORKDIR /build
+COPY --from=backend-build /build/backend /build
+COPY --from=backend-build /highlight/backend/localhostssl/ /build/localhostssl
+COPY --from=backend-build /highlight/backend/clickhouse/migrations/ /build/clickhouse/migrations
+
+CMD ["/build/backend", "-runtime=all"]

@@ -87,14 +87,16 @@ func TestHandler_HandleTrace(t *testing.T) {
 	assert.Equal(t, 4, len(producer.messages))
 	assert.Equal(t, kafkaqueue.PushBackendPayload, producer.messages[0].Type)
 	assert.Equal(t, kafkaqueue.MarkBackendSetup, producer.messages[1].Type)
-	assert.Equal(t, kafkaqueue.PushLogs, producer.messages[2].Type)
-	assert.Equal(t, kafkaqueue.PushLogs, producer.messages[3].Type)
-	assert.Equal(t, 14, len(producer.messages[2].PushLogs.LogRows))
-	assert.Equal(t, 1, len(producer.messages[3].PushLogs.LogRows))
-	for _, log := range producer.messages[2].PushLogs.LogRows {
-		assert.Equal(t, model.LogSourceBackend, log.Source)
+	if assert.Equal(t, kafkaqueue.PushLogs, producer.messages[2].Type) {
+		assert.Equal(t, 14, len(producer.messages[2].PushLogs.LogRows))
+		for _, log := range producer.messages[2].PushLogs.LogRows {
+			assert.Equal(t, model.LogSourceBackend, log.Source)
+		}
 	}
-	for _, log := range producer.messages[3].PushLogs.LogRows {
-		assert.Equal(t, model.LogSourceFrontend, log.Source)
+	if assert.Equal(t, kafkaqueue.PushLogs, producer.messages[3].Type) {
+		assert.Equal(t, 1, len(producer.messages[3].PushLogs.LogRows))
+		for _, log := range producer.messages[3].PushLogs.LogRows {
+			assert.Equal(t, model.LogSourceFrontend, log.Source)
+		}
 	}
 }

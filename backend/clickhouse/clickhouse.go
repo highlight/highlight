@@ -53,7 +53,7 @@ func RunMigrations(ctx context.Context, dbName string) {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		fmt.Sprintf("file:///%s/clickhouse/migrations", projectpath.Root),
+		fmt.Sprintf("file:///%s/clickhouse/migrations", projectpath.GetRoot()),
 		dbName,
 		driver,
 	)
