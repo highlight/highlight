@@ -26,3 +26,13 @@ When you start highlight for development or a hobby deploy, our scripts will sha
 |--------------------|-----------------------|--------|
 | about-you-role     | Engineering / Product | string |
 | about-you-referral | Site visit referrer   | string |
+
+## Usage Metrics
+
+| Name               | Description                 | Type |
+|--------------------|-----------------------------|------|
+| backend-setup      | Is a backend SDK integrated | bool |
+| session-count      | Number of sessions recorded | int  |
+| error-count        | Number of errors recorded   | int  |
+| session-view-count | Number of sessions viewed   | int  |
+| error-view-count   | Number of errors viewed     | int  |

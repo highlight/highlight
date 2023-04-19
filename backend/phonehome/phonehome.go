@@ -15,6 +15,17 @@ import (
 	"time"
 )
 
+type UsageType = string
+
+const AdminUsage UsageType = "highlight-admin-usage"
+const WorkspaceUsage UsageType = "highlight-workspace-usage"
+
+const BackendSetup = "highlight-backend-setup"
+const SessionCount = "highlight-session-count"
+const ErrorCount = "highlight-error-count"
+const SessionViewCount = "highlight-session-view-count"
+const ErrorViewCount = "highlight-error-view-count"
+
 const AboutYouSpanName = "highlight-about-you"
 const AboutYouSpanRole = "highlight-about-you-role"
 const AboutYouSpanReferral = "highlight-about-you-referral"
@@ -93,5 +104,18 @@ func ReportAdminAboutYouDetails(ctx context.Context, admin *model.Admin) {
 
 	s, _ := highlight.StartTrace(ctx, AboutYouSpanName, tags...)
 	s.AddEvent(highlight.LogEvent, trace.WithAttributes(hlog.LogSeverityKey.String(log.TraceLevel.String()), hlog.LogMessageKey.String(AboutYouSpanName)))
+	highlight.EndTrace(s)
+}
+
+func ReportUsageMetrics(ctx context.Context, usageType UsageType, id int, metrics []attribute.KeyValue) {
+	if IsOptedOut(ctx) {
+		return
+	}
+
+	tags, _ := GetDefaultAttributes()
+	tags = append(tags, attribute.Int("id", id))
+	tags = append(tags, metrics...)
+	s, _ := highlight.StartTrace(ctx, usageType, tags...)
+	s.AddEvent(highlight.LogEvent, trace.WithAttributes(hlog.LogSeverityKey.String(log.TraceLevel.String()), hlog.LogMessageKey.String(usageType)))
 	highlight.EndTrace(s)
 }

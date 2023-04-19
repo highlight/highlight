@@ -51,9 +51,6 @@ import (
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
-	"github.com/rs/zerolog"
-	zlog "github.com/rs/zerolog/log"
-	"github.com/rs/zerolog/pkgerrors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/v72"
@@ -670,18 +667,17 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 				Property: "number_of_highlight_error_groups_viewed",
 				Value:    totalErrorGroupCountAsInt,
 			}}, r.DB); err != nil {
-				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
-
-				zlog.Error().
-					Stack().
-					Err(err).
-					Int("admin_id", admin.ID).
-					Int("value", totalErrorGroupCountAsInt).
-					Msg("error updating error group count for admin in hubspot")
+				log.WithContext(ctx).
+					WithError(err).
+					WithField("admin_id", admin.ID).
+					WithField("value", totalErrorGroupCountAsInt).
+					Error("error updating error group count for admin in hubspot")
 			}
 			log.WithContext(ctx).Infof("succesfully added to total error group count for admin [%v], who just viewed error group [%v]", admin.ID, eg.ID)
 		}
+		phonehome.ReportUsageMetrics(ctx, phonehome.AdminUsage, admin.ID, []attribute.KeyValue{
+			attribute.Int(phonehome.ErrorViewCount, totalErrorGroupCountAsInt),
+		})
 	})
 
 	newErrorGroup := &model.ErrorGroup{}
@@ -765,18 +761,17 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 				Property: "number_of_highlight_sessions_viewed",
 				Value:    totalSessionCountAsInt,
 			}}, r.DB); err != nil {
-				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
-
-				zlog.Error().
-					Stack().
-					Err(err).
-					Int("admin_id", admin.ID).
-					Int("value", totalSessionCountAsInt).
-					Msg("error updating session count for admin in hubspot")
+				log.WithContext(ctx).
+					WithError(err).
+					WithField("admin_id", admin.ID).
+					WithField("value", totalSessionCountAsInt).
+					Error("error updating session count for admin in hubspot")
 			}
 			log.WithContext(ctx).Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
 		}
+		phonehome.ReportUsageMetrics(ctx, phonehome.AdminUsage, admin.ID, []attribute.KeyValue{
+			attribute.Int(phonehome.SessionViewCount, totalSessionCountAsInt),
+		})
 	})
 
 	newSession := &model.Session{}

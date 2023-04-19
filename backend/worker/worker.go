@@ -5,6 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/phonehome"
+	"github.com/leonelquinteros/hubspot"
+	"go.opentelemetry.io/otel/attribute"
 	"math"
 	"math/rand"
 	"os"
@@ -14,7 +17,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/leonelquinteros/hubspot"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
@@ -1280,14 +1282,14 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		log.WithContext(ctx).Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
 	}
 
-	if util.IsHubspotEnabled() {
-		for _, c := range counts {
-			// See HIG-2743
-			// Skip updating session count for demo workspace because we exclude it from Hubspot
-			if c.WorkspaceID == 0 {
-				continue
-			}
+	for _, c := range counts {
+		// See HIG-2743
+		// Skip updating session count for demo workspace because we exclude it from Hubspot
+		if c.WorkspaceID == 0 {
+			continue
+		}
 
+		if util.IsHubspotEnabled() {
 			if err := w.Resolver.HubspotApi.UpdateCompanyProperty(ctx, c.WorkspaceID, []hubspot.Property{{
 				Name:     "highlight_session_count",
 				Property: "highlight_session_count",
@@ -1303,8 +1305,14 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 					"error_count":   c.ErrorCount,
 				}).Fatal(e.Wrap(err, "error updating highlight session count in hubspot"))
 			}
-			time.Sleep(150 * time.Millisecond)
 		}
+
+		phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, c.WorkspaceID, []attribute.KeyValue{
+			attribute.Int64(phonehome.SessionCount, c.SessionCount),
+			attribute.Int64(phonehome.ErrorCount, c.ErrorCount),
+		})
+
+		time.Sleep(150 * time.Millisecond)
 	}
 }
 
