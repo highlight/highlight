@@ -28,8 +28,6 @@ export interface HighlightInterface {
 	metrics: (metrics: Metric[]) => void
 }
 
-console.log('here!!!')
-
 export const H: HighlightInterface = {
 	init: (options: NodeOptions) => {
 		if (!NodeH.isInitialized()) {
@@ -59,9 +57,9 @@ export const H: HighlightInterface = {
 	},
 }
 
-declare type HasHeaders = { headers: IncomingHttpHeaders }
-declare type HasStatus = { statusCode: number; statusMessage: string }
-declare type ApiHandler<T extends HasHeaders, S extends HasStatus> = (
+export declare type HasHeaders = { headers: IncomingHttpHeaders }
+export declare type HasStatus = { statusCode: number; statusMessage: string }
+export declare type ApiHandler<T extends HasHeaders, S extends HasStatus> = (
 	req: T,
 	res: S,
 ) => unknown | Promise<unknown>
@@ -71,7 +69,6 @@ export const Highlight =
 	<T extends HasHeaders, S extends HasStatus>(
 		origHandler: ApiHandler<T, S>,
 	): ApiHandler<T, S> => {
-		console.log('here withHighlight', origHandler)
 		return async (req, res) => {
 			if (!NodeH.isInitialized()) {
 				NodeH.init(options)
