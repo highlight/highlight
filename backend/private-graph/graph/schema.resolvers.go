@@ -7256,6 +7256,17 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 		phonehome.ReportUsageMetrics(ctx, phonehome.AdminUsage, admin.ID, []attribute.KeyValue{
 			attribute.Int(phonehome.LogViewCount, totalLogCountAsInt),
 		})
+
+		if err := r.DB.Model(&model.LogAdminsView{}).Create(&model.LogAdminsView{
+			LogCursor: cursor,
+			AdminID:   admin.ID,
+		}).Error; err != nil {
+			log.WithContext(ctx).
+				WithError(err).
+				WithField("admin_id", admin.ID).
+				WithField("value", totalLogCountAsInt).
+				Error("error saving log view for admin in hubspot")
+		}
 	})
 
 	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params, clickhouse.Pagination{
