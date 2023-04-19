@@ -15,11 +15,14 @@ export const LogRocketSpec: Competitor = {
 			rows: [
 				{
 					feature: 'Unlimited Team Members',
+					tooltip:
+						'LogRocket only allows 5 team members on their free plan.',
 					highlight: 1,
 					competitor: 0,
 				},
 				{
 					feature: 'Support Ticket Integrations',
+					tooltip: 'The ability to tickets in a supportive manner!',
 					highlight: 1,
 					competitor: 1,
 				},
