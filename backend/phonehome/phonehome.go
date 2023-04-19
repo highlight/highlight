@@ -17,7 +17,6 @@ import (
 
 const AboutYouSpanName = "highlight-about-you"
 const AboutYouSpanRole = "highlight-about-you-role"
-const AboutYouSpanPersona = "highlight-about-you-persona"
 const AboutYouSpanReferral = "highlight-about-you-referral"
 const HeartbeatInterval = 5 * time.Second
 const HeartbeatSpanHighlightVersion = "highlight-version"
@@ -60,10 +59,6 @@ func Start(ctx context.Context) error {
 		return nil
 	}
 
-	if !highlight.IsRunning() {
-		log.WithContext(ctx).Warn("phone home expected highlight sdk to be running")
-	}
-
 	go func() {
 		ctx := context.Background()
 		for range time.Tick(HeartbeatInterval) {
@@ -96,9 +91,6 @@ func ReportAdminAboutYouDetails(ctx context.Context, admin *model.Admin) {
 	tags, _ := GetDefaultAttributes()
 	if admin.UserDefinedRole != nil {
 		tags = append(tags, attribute.String(AboutYouSpanRole, *admin.UserDefinedRole))
-	}
-	if admin.UserDefinedPersona != nil {
-		tags = append(tags, attribute.String(AboutYouSpanPersona, *admin.UserDefinedPersona))
 	}
 	if admin.Referral != nil {
 		tags = append(tags, attribute.String(AboutYouSpanReferral, *admin.Referral))
