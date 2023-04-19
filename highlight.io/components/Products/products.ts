@@ -37,7 +37,7 @@ const app = express()
 
 // define any configurations needed
 // <https://docs.highlight.run/api/hinit#w0-highlightoptions>
-const highlightOptions = {projectID: 'YOUR_PROJECT_ID'}
+const highlightOptions = {projectID: '<YOUR_PROJECT_ID>'}
 const highlightHandler = Handlers.errorHandler(highlightOptions)
 app.use(highlightHandler)
 

@@ -536,7 +536,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 	}
 
 	c := &stripe.Customer{}
-	if os.Getenv("REACT_APP_ONPREM") != "true" {
+	if !util.IsOnPrem() {
 		params := &stripe.CustomerParams{
 			Name:  &name,
 			Email: admin.Email,

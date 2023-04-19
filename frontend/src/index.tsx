@@ -52,9 +52,7 @@ import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
 analytics.initialize()
-const dev =
-	import.meta.env.DEV ||
-	import.meta.env.REACT_APP_FRONTEND_URI?.indexOf('localhost') !== -1
+const dev = import.meta.env.DEV
 const options: HighlightOptions = {
 	debug: { clientInteractions: true, domRecording: true },
 	manualStart: true,

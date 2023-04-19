@@ -5,8 +5,6 @@ import {
 	HiXCircle,
 } from 'react-icons/hi'
 import highlightlogosmall from '../../public/images/logo-on-dark.png'
-import logrocketlogofull from '../../public/images/logrocketlogofull.png'
-import logrocketlogosmall from '../../public/images/logrocketlogosmall.png'
 import { HighlightLogo } from '../common/HighlightLogo/HighlightLogo'
 import { Typography } from '../common/Typography/Typography'
 import {
@@ -47,19 +45,19 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 									</div>
 									<Image
 										src={highlightlogosmall}
-										alt="LogRocket Logo"
+										alt="Logo"
 										className="md:hidden"
 									/>
 								</div>
 								<div className="w-[50px] md:w-[200px] px-1">
 									<Image
-										src={logrocketlogofull}
-										alt="LogRocket Logo"
+										src={props.competitor.logoDesktop}
+										alt="Logo"
 										className="hidden md:flex"
 									/>
 									<Image
-										src={logrocketlogosmall}
-										alt="LogRocket Logo"
+										src={props.competitor.logoMobile}
+										alt="Logo"
 										className="md:hidden"
 									/>
 								</div>

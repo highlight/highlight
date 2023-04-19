@@ -1,14 +1,26 @@
 ---
-title: Our Competitors 
-slug: competitors 
+title: Our Competitors
+slug: competitors
 createdAt: 2021-09-14T02:03:51.000Z
 updatedAt: 2022-09-08T21:45:54.000Z
 ---
 
-It's tough being at the top! Explore some of highlight.io's competitors below. 
+It's tough being at the top! Explore some of highlight.io's competitors below.
 
 <DocsCardGroup>
-    <DocsCard title="Log Rocket" href="https://highlight.io/compare/logrocket">
+    <DocsCard title="Log Rocket" href="https://highlight.io/compare/highlight-vs-logrocket">
         {"Learn more about how we compare to LogRocket."}
+    </DocsCard>
+    <DocsCard title="Hotjar" href="https://highlight.io/compare/highlight-vs-hotjar">
+        {"Learn more about how we compare to Hotjar."}
+    </DocsCard>
+    <DocsCard title="Fullstory" href="https://highlight.io/compare/highlight-vs-fullstory">
+        {"Learn more about how we compare to Fullstory."}
+    </DocsCard>
+    <DocsCard title="Smartlook" href="https://highlight.io/compare/highlight-vs-smartlook">
+        {"Learn more about how we compare to Smartlook."}
+    </DocsCard>
+    <DocsCard title="Inspectlet" href="https://highlight.io/compare/highlight-vs-inspectlet">
+        {"Learn more about how we compare to Inspectlet."}
     </DocsCard>
 </DocsCardGroup>
