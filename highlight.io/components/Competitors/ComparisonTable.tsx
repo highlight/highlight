@@ -113,7 +113,7 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 							>
 								<Typography
 									type="copy2"
-									className="text-copy-on-dark whitespace-nowrap w-[175px] sm:w-full overflow-x-scroll"
+									className="text-copy-on-dark whitespace-nowrap w-full mr-4 text-ellipsis overflow-hidden"
 								>
 									{row.feature}
 								</Typography>
