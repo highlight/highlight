@@ -34,7 +34,7 @@ func IsOptedOut(ctx context.Context) bool {
 		log.WithContext(ctx).WithError(err).Error("failed to get opt out status")
 		return true
 	}
-	return cfg.PhoneHomeOptOut
+	return cfg != nil && cfg.PhoneHomeOptOut != nil && *cfg.PhoneHomeOptOut
 }
 
 func GetDefaultAttributes() ([]attribute.KeyValue, error) {
@@ -84,6 +84,7 @@ func Start(ctx context.Context) error {
 			highlight.EndTrace(s)
 		}
 	}()
+	log.WithContext(ctx).Info("started highlight phone home service")
 	return nil
 }
 
