@@ -27,13 +27,8 @@ const MetricMemUsed = "highlight-mem-used"
 const MetricNumCPU = "highlight-num-cpu"
 const SpanDeployment = "highlight-phone-home-deployment-id"
 
-func IsOptedOut(ctx context.Context) bool {
-	cfg, err := projectpath.GetConfig()
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("failed to get opt out status")
-		return true
-	}
-	return cfg != nil && cfg.PhoneHomeOptOut != nil && *cfg.PhoneHomeOptOut
+func IsOptedOut(_ context.Context) bool {
+	return false
 }
 
 func GetDefaultAttributes() ([]attribute.KeyValue, error) {

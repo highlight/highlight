@@ -10,7 +10,6 @@ import (
 const ConfigFile = "v1.json"
 
 type Config struct {
-	PhoneHomeOptOut       *bool  `json:"phone_home_opt_out,omitempty"`
 	PhoneHomeDeploymentID string `json:"phone_home_session"`
 }
 
