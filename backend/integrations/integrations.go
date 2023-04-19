@@ -6,6 +6,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/highlight-run/highlight/backend/integrations/github"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -17,12 +18,14 @@ import (
 type Client struct {
 	db     *gorm.DB
 	height *height.HeightClient
+	github *github.Client
 }
 
 func NewIntegrationsClient(db *gorm.DB) *Client {
 	client := &Client{
 		db:     db,
 		height: height.NewHeightClient(),
+		github: github.NewClient(),
 	}
 
 	return client

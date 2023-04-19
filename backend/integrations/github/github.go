@@ -19,10 +19,21 @@ var (
 )
 
 type Client struct {
-	client *github.Client
+	// installationID -> client
+	clients map[int64]*github.Client
 }
 
-func NewClient(ctx context.Context, installationID int64) (*Client, error) {
+func NewClient() *Client {
+	return &Client{
+		clients: make(map[int64]*github.Client),
+	}
+}
+
+func (c *Client) conn(ctx context.Context, installationID int64) (*github.Client, error) {
+	if client, ok := c.clients[installationID]; ok && client != nil {
+		return client, nil
+	}
+
 	appID, err := strconv.ParseInt(AppId, 10, 64)
 	if err != nil {
 		return nil, err
@@ -33,13 +44,16 @@ func NewClient(ctx context.Context, installationID int64) (*Client, error) {
 	}
 
 	// Use installation transport with client.
-	client := github.NewClient(&http.Client{Transport: itr})
-
-	return &Client{client: client}, nil
+	c.clients[installationID] = github.NewClient(&http.Client{Transport: itr})
+	return c.clients[installationID], nil
 }
 
-func (c *Client) CreateIssue(ctx context.Context, owner, repo string) error {
-	c.client.Issues.Create(ctx, owner, repo, &github.IssueRequest{
+func (c *Client) CreateIssue(ctx context.Context, installationID int64, owner, repo string) error {
+	client, err := c.conn(ctx, installationID)
+	if err != nil {
+		return err
+	}
+	client.Issues.Create(ctx, owner, repo, &github.IssueRequest{
 		Title:       nil,
 		Body:        nil,
 		Labels:      nil,
