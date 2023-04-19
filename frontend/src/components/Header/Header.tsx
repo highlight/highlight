@@ -796,25 +796,6 @@ const productsToString = (p: ProductType[]): string => {
 	}
 }
 
-const OnPremiseBanner = () => {
-	const { toggleShowBanner } = useGlobalContext()
-	toggleShowBanner(true)
-
-	return (
-		<div
-			className={styles.trialWrapper}
-			style={{
-				backgroundColor: 'var(--color-primary-inverted-background)',
-			}}
-		>
-			<div className={clsx(styles.trialTimeText)}>
-				Running Highlight On-premise{' '}
-				{`v${import.meta.env.REACT_APP_COMMIT_SHA}`}
-			</div>
-		</div>
-	)
-}
-
 const DemoWorkspaceBanner = () => {
 	const { currentProject, allProjects } = useApplicationContext()
 	const { pathname } = useLocation()
