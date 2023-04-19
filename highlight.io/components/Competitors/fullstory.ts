@@ -1,3 +1,5 @@
+import fullstorylogofull from '../../public/images/fullstorylogofull.png'
+import fullstorylogosmall from '../../public/images/fullstorylogosmall.png'
 import { Competitor } from './competitors'
 import {
 	HighlightIsOpenAndTransparent,
@@ -9,6 +11,8 @@ export const FullstorySpec: Competitor = {
 	header: 'The Open Source Fullstory Alternative.',
 	subheader:
 		'Pixel-perfect video replay of your frontend web application. Step into the shoes of your users.',
+	logoDesktop: fullstorylogofull,
+	logoMobile: fullstorylogosmall,
 	sections: [
 		{
 			title: 'General',

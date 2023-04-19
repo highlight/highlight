@@ -1,3 +1,5 @@
+import smartlooklogofull from '../../public/images/smartlooklogofull.png'
+import smartlooklogosmall from '../../public/images/smartlooklogosmall.png'
 import { Competitor } from './competitors'
 import {
 	EngineersVsMarketers,
@@ -8,6 +10,8 @@ import {
 export const SmartlookSpec: Competitor = {
 	name: 'Smartlook',
 	header: 'The Open Source Smartlook Alternative.',
+	logoDesktop: smartlooklogofull,
+	logoMobile: smartlooklogosmall,
 	subheader:
 		'Pixel-perfect video replay of your frontend web application. Step into the shoes of your users.',
 	sections: [

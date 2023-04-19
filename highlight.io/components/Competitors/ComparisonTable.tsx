@@ -101,12 +101,15 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 													props.competitor.logoDesktop
 												}
 												alt="Logo"
+												height={28}
 												className="hidden md:flex"
 											/>
 											<Image
 												src={
 													props.competitor.logoMobile
 												}
+												height={32}
+												width={32}
 												alt="Logo"
 												className="md:hidden"
 											/>

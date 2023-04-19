@@ -1,3 +1,5 @@
+import hotjarlogofull from '../../public/images/hotjarlogofull.png'
+import hotjarlogosmall from '../../public/images/hotjarlogosmall.png'
 import { Competitor } from './competitors'
 import {
 	EngineersVsMarketers,
@@ -10,6 +12,8 @@ export const HotjarSpec: Competitor = {
 	header: 'The Open Source Hotjar Alternative.',
 	subheader:
 		'Pixel-perfect video replay of your frontend web application. Step into the shoes of your users.',
+	logoDesktop: hotjarlogofull,
+	logoMobile: hotjarlogosmall,
 	sections: [
 		{
 			title: 'General',

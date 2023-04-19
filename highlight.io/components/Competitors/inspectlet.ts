@@ -1,3 +1,5 @@
+import inspectletlogofull from '../../public/images/inspectletlogofull.png'
+import inspectletlogosmall from '../../public/images/inspectletlogosmall.png'
 import { Competitor } from './competitors'
 import {
 	EngineersVsMarketers,
@@ -10,6 +12,8 @@ export const InspectletSpec: Competitor = {
 	header: 'The Open Source Inspectlet Alternative.',
 	subheader:
 		'Pixel-perfect video replay of your frontend web application. Step into the shoes of your users.',
+	logoDesktop: inspectletlogofull,
+	logoMobile: inspectletlogosmall,
 	sections: [
 		{
 			title: 'General',
