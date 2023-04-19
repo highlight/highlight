@@ -7212,18 +7212,6 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 		} else if after != nil {
 			cursor = *after
 		}
-		var currentLogCount int64
-		if err := r.DB.Raw(`
-			select count(*)
-			from log_admins_views
-			where log_cursor = ? and admin_id = ?
-	`, cursor, admin.ID).Scan(&currentLogCount).Error; err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error querying count of log views from admin"))
-			return
-		} else if currentLogCount > 0 {
-			log.WithContext(ctx).Info("not updating hubspot log count; admin has already viewed this log")
-			return
-		}
 
 		var totalLogCount int64
 		if err := r.DB.Raw(`
