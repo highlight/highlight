@@ -93,16 +93,29 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 									/>
 								</div>
 								<div className="w-[50px] md:w-[200px] px-1">
-									<Image
-										src={props.competitor.logoDesktop}
-										alt="Logo"
-										className="hidden md:flex"
-									/>
-									<Image
-										src={props.competitor.logoMobile}
-										alt="Logo"
-										className="md:hidden"
-									/>
+									{props.competitor.logoDesktop &&
+									props.competitor.logoMobile ? (
+										<>
+											<Image
+												src={
+													props.competitor.logoDesktop
+												}
+												alt="Logo"
+												className="hidden md:flex"
+											/>
+											<Image
+												src={
+													props.competitor.logoMobile
+												}
+												alt="Logo"
+												className="md:hidden"
+											/>
+										</>
+									) : (
+										<div style={{ fontSize: 20 }}>
+											{props.competitor.name}
+										</div>
+									)}
 								</div>
 							</div>
 						</div>
