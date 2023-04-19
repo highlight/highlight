@@ -79,6 +79,7 @@ export const AlertConfigurationCard = ({
 	onDeleteHandler,
 	isCreatingNewAlert = false,
 	isSlackIntegrated,
+	slackUrl,
 	isDiscordIntegrated,
 	emailSuggestions,
 }: Props) => {
@@ -132,11 +133,6 @@ export const AlertConfigurationCard = ({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 	const [updateSessionAlert] = useUpdateSessionAlertMutation()
-
-	const onSearch = (qry: string) => {
-		setSearchQuery(qry)
-		syncSlack()
-	}
 
 	const excludedEnvironmentsFormName = `${
 		alert.Name || defaultName
@@ -788,7 +784,10 @@ export const AlertConfigurationCard = ({
 											className={styles.channelSelect}
 											options={channels}
 											mode="multiple"
-											onSearch={onSearch}
+											onSearch={(value) => {
+												setSearchQuery(value)
+												syncSlack()
+											}}
 											filterOption={(
 												searchValue,
 												option,
@@ -808,6 +807,10 @@ export const AlertConfigurationCard = ({
 												<SlackLoadOrConnect
 													searchQuery={searchQuery}
 													isLoading={slackLoading}
+													isSlackIntegrated={
+														isSlackIntegrated
+													}
+													slackUrl={slackUrl}
 												/>
 											}
 											defaultValue={alert?.ChannelsToNotify?.map(
