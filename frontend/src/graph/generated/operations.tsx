@@ -3538,6 +3538,14 @@ export type GetWorkspaceIsIntegratedWithZapierQuery = {
 	__typename?: 'Query'
 } & { is_integrated_with_linear: Types.Query['is_integrated_with'] }
 
+export type GetWorkspaceIsIntegratedWithGitHubQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetWorkspaceIsIntegratedWithGitHubQuery = {
+	__typename?: 'Query'
+} & { is_integrated_with_github: Types.Query['is_integrated_with'] }
+
 export type GetWorkspaceIsIntegratedWithFrontQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -4390,6 +4398,8 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithLinear' as const,
 		GetWorkspaceIsIntegratedWithZapier:
 			'GetWorkspaceIsIntegratedWithZapier' as const,
+		GetWorkspaceIsIntegratedWithGitHub:
+			'GetWorkspaceIsIntegratedWithGitHub' as const,
 		GetWorkspaceIsIntegratedWithFront:
 			'GetWorkspaceIsIntegratedWithFront' as const,
 		GetWorkspaceIsIntegratedWithDiscord:

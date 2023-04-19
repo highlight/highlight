@@ -633,6 +633,7 @@ export enum IntegrationType {
 	ClickUp = 'ClickUp',
 	Discord = 'Discord',
 	Front = 'Front',
+	GitHub = 'GitHub',
 	Height = 'Height',
 	Linear = 'Linear',
 	Slack = 'Slack',

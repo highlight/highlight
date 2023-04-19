@@ -10251,6 +10251,63 @@ export type GetWorkspaceIsIntegratedWithZapierQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithZapierQuery,
 	Types.GetWorkspaceIsIntegratedWithZapierQueryVariables
 >
+export const GetWorkspaceIsIntegratedWithGitHubDocument = gql`
+	query GetWorkspaceIsIntegratedWithGitHub($project_id: ID!) {
+		is_integrated_with_github: is_integrated_with(
+			integration_type: GitHub
+			project_id: $project_id
+		)
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithGitHubQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithGitHubQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithGitHubQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithGitHubQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithGitHubQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithGitHubQuery,
+		Types.GetWorkspaceIsIntegratedWithGitHubQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithGitHubQuery,
+		Types.GetWorkspaceIsIntegratedWithGitHubQueryVariables
+	>(GetWorkspaceIsIntegratedWithGitHubDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithGitHubLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithGitHubQuery,
+		Types.GetWorkspaceIsIntegratedWithGitHubQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithGitHubQuery,
+		Types.GetWorkspaceIsIntegratedWithGitHubQueryVariables
+	>(GetWorkspaceIsIntegratedWithGitHubDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithGitHubQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithGitHubQuery
+>
+export type GetWorkspaceIsIntegratedWithGitHubLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithGitHubLazyQuery
+>
+export type GetWorkspaceIsIntegratedWithGitHubQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceIsIntegratedWithGitHubQuery,
+	Types.GetWorkspaceIsIntegratedWithGitHubQueryVariables
+>
 export const GetWorkspaceIsIntegratedWithFrontDocument = gql`
 	query GetWorkspaceIsIntegratedWithFront($project_id: ID!) {
 		is_integrated_with_front: is_integrated_with(
