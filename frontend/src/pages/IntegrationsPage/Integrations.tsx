@@ -21,6 +21,8 @@ import ZapierIntegrationConfig from '@pages/IntegrationsPage/components/ZapierIn
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import React from 'react'
 
+import GitHubIntegrationConfig from './components/GitHubIntegration/GitHubIntegrationConfig'
+
 export interface Integration {
 	key: string
 	name: string
@@ -161,6 +163,16 @@ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 	Icon: IconSolidHeight,
 }
 
+export const GITHUB_INTEGRATION: Integration = {
+	key: 'github',
+	name: 'GitHub',
+	configurationPath: 'github',
+	description: 'Create GitHub issues from your Highlight comments.',
+	configurationPage: (opts) => <GitHubIntegrationConfig {...opts} />,
+	icon: '/images/integrations/github.svg',
+	hasSettings: false,
+}
+
 const INTEGRATIONS: Integration[] = [
 	SLACK_INTEGRATION,
 	LINEAR_INTEGRATION,
@@ -171,6 +183,7 @@ const INTEGRATIONS: Integration[] = [
 	DISCORD_INTEGRATION,
 	CLICKUP_INTEGRATION,
 	HEIGHT_INTEGRATION,
+	GITHUB_INTEGRATION,
 ]
 
 export default INTEGRATIONS
