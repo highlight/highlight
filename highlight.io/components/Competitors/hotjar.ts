@@ -1,37 +1,51 @@
+import hotjarlogofull from '../../public/images/hotjarlogofull.png'
+import hotjarlogosmall from '../../public/images/hotjarlogosmall.png'
 import { Competitor } from './competitors'
+import {
+	EngineersVsMarketers,
+	HighlightIsOpenAndTransparent,
+	HighlightShipsNewFeatures,
+} from './shared-snippets'
 
 export const HotjarSpec: Competitor = {
 	name: 'Hotjar',
 	header: 'The Open Source Hotjar Alternative.',
 	subheader:
 		'Pixel-perfect video replay of your frontend web application. Step into the shoes of your users.',
-	type: 'session-replay',
+	logoDesktop: hotjarlogofull,
+	logoMobile: hotjarlogosmall,
 	sections: [
 		{
 			title: 'General',
 			rows: [
 				{
 					feature: 'Unlimited Team Members',
+					tooltip:
+						'LogRocket only allows 5 team members on their free plan.',
 					highlight: 1,
 					competitor: 0,
 				},
 				{
 					feature: 'Support Ticket Integrations',
+					tooltip: 'Create tickets with clickup, linear, or jira.',
 					highlight: 1,
-					competitor: 1,
+					competitor: 0,
 				},
 				{
 					feature: 'Self-hosted Options',
+					tooltip:
+						'Self-hosted options are available for highlight.io',
 					highlight: 1,
 					competitor: 0,
 				},
 				{
 					feature: 'Analytics Integrations',
+					tooltip: 'Integrations with mixpanel, amplitude, etc..',
 					highlight: 1,
-					competitor: 1,
+					competitor: 0,
 				},
 				{
-					feature: 'Self-serve',
+					feature: 'Self-serve Setup',
 					highlight: 1,
 					competitor: 1,
 				},
@@ -42,6 +56,8 @@ export const HotjarSpec: Competitor = {
 			rows: [
 				{
 					feature: 'Session Commenting',
+					tooltip:
+						'Create comments on sessions to tag folks on your team of issues.',
 					highlight: 1,
 					competitor: 0,
 				},
@@ -52,6 +68,8 @@ export const HotjarSpec: Competitor = {
 				},
 				{
 					feature: 'Session Sharing',
+					tooltip:
+						'Ability to share sessions across your team and with customers.',
 					highlight: 1,
 					competitor: 1,
 				},
@@ -67,11 +85,15 @@ export const HotjarSpec: Competitor = {
 				},
 				{
 					feature: 'Canvas & WebGL Recording',
+					tooltip:
+						'Ability to record canvas and webgl elements in your application.',
 					highlight: 1,
 					competitor: 0,
 				},
 				{
 					feature: 'Shadow DOM Recording',
+					tooltip:
+						'Ability to record shadow dom elements in your application.',
 					highlight: 1,
 					competitor: 0,
 				},
@@ -86,7 +108,32 @@ export const HotjarSpec: Competitor = {
 					competitor: 1,
 				},
 				{
+					feature: 'Error Sharing',
+					highlight: 1,
+					competitor: 0,
+				},
+				{
 					feature: 'Support for Backend SDKs',
+					highlight: 1,
+					competitor: 0,
+				},
+			],
+		},
+		{
+			title: 'Logging',
+			rows: [
+				{
+					feature: 'Frontend logging',
+					highlight: 1,
+					competitor: 0,
+				},
+				{
+					feature: 'Backend logging',
+					highlight: 1,
+					competitor: 0,
+				},
+				{
+					feature: 'Embedded replay and stacktraces',
 					highlight: 1,
 					competitor: 0,
 				},
@@ -94,30 +141,16 @@ export const HotjarSpec: Competitor = {
 		},
 	],
 	paragraphs: [
-		{
-			header: 'Highlight.io is open source and transparent',
-			body: `
-				[Highlight.io](https://highlight.io) is built with transparency at its core. 
-				Not only do we work in the open, but we also expose what we\'re working on openly on [our roadmap](https://www.highlight.io/docs/general/roadmap).
-				Lastly, the fact that [Highlight.io](https://highlight.io) is open source makes it easy to integrate internal tools, an advantage closed-source products like LogRocket can't offer. 
-				`,
-		},
-		{
-			header: 'Highlight.io constantly ships new features',
-			body: "At Highlight.io, we ship quickly. We update our [changelog](https://www.highlight.io/docs/general/changelog/overview) with a recap of new features every two weeks, and we share when these features are completed in our [public roadmap](https://www.highlight.io/docs/general/roadmap). Plus, our community keeps pushing us to do more, so we're constantly adding new apps and integrations. We work hard to keep Highlight.io ahead of the curve, and we're not afraid to show off our secret sauce.",
-		},
-		{
-			header: 'Engineer vs Marketer',
-			body: "Highlight and Hotjar are two different products with different target audiences. While Highlight is a full-stack observability solution designed for engineers, Hotjar is a tool that offers features such as heatmaps and user feedback to help marketers understand user behavior and optimize conversion rates. While both tools may offer some overlapping features such as session replay, Highlight is focused on providing deeper insights for engineers by capturing logs and tracking errors across the entire stack. In contrast, Hotjar's features are geared toward helping marketers optimize their websites and increase conversions.",
-		},
+		HighlightIsOpenAndTransparent('Hotjar'),
+		HighlightShipsNewFeatures,
+		EngineersVsMarketers('Hotjar'),
 		{
 			header: 'We focus on cohesion, not just session replay',
-			body: 'While Hotjar is mainly focused on session replay, Highlight.io provides a full-stack observability solution that encompasses session replay, logs, and error monitoring for both front-end and back-end applications. Along with recording user sessions, Highlight.io also captures logs and errors, providing developers with a comprehensive view of their entire stack. In contrast, Hotjar primarily focuses on session replay and product analytics, which can be more useful to product folks. With its more comprehensive approach, Highlight.io can help developers identify and resolve issues more efficiently and effectively.',
+			body: 'While Hotjar is mainly focused on session replay, Highlight.io provides a **full-stack** solution that encompasses session replay, logs, and error monitoring. Along with recording user sessions, Highlight.io also captures logs and errors, providing developers with a comprehensive view of their entire stack. In contrast, Hotjar primarily focuses on heatmaps and conversion optimization, which can be more useful to product and marketing teams.',
 		},
 		{
-			header: 'Did someone say free?',
-			body: `Hotjar provides a limited free plan that allows you to record up to 35 daily sessions per month with access to only 20 form analysis views. \\
-             With Highlight, users can start for free and get their first 500 sessions and 1,000 errors per month for free. The tool also provides unlimited seats for all plans, including the free plan. The choice between Hotjar and Highlight for free trials will depend on the specific usage needs and budget of your project.
+			header: 'Pricing',
+			body: `Hotjar provides a limited free plan that allows you to record up to 35 daily sessions with access to only 20 form analysis views. With Highlight, users can start for free and get their first 500 sessions and 1,000 errors per month for free. The tool also provides unlimited seats for all plans, including the free plan. The choice between Hotjar and Highlight for free trials will depend on the specific usage needs and budget of your project.
             `,
 		},
 	],

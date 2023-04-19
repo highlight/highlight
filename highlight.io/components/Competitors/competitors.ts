@@ -1,5 +1,9 @@
 import { StaticImageData } from 'next/image'
+import { FullstorySpec } from './fullstory'
+import { HotjarSpec } from './hotjar'
+import { InspectletSpec } from './inspectlet'
 import { LogRocketSpec } from './logrocket'
+import { SmartlookSpec } from './smartlook'
 
 export type ComparisonTableRow = {
 	feature: string
@@ -13,6 +17,11 @@ export type ComparisonTableSection = {
 	rows: ComparisonTableRow[]
 }
 
+export type CompetitorPara = {
+	header: string
+	body: string //Body is markdown so it can include links and styling
+}
+
 export type Competitor = {
 	name: string
 	type?: 'session-replay' | 'error-monitoring' | 'logging' //determines which hero image to display
@@ -21,13 +30,14 @@ export type Competitor = {
 	logoDesktop?: StaticImageData
 	logoMobile?: StaticImageData
 	sections: ComparisonTableSection[]
-	paragraphs?: {
-		header: string
-		body: string //Body is markdown so it can include links and styling
-	}[]
+	paragraphs?: CompetitorPara[]
 }
 
 //Slug is stored as the key so we can get constant time lookups in GetStaticProps
 export const COMPETITORS: { [k: string]: Competitor } = {
 	'highlight-vs-logrocket': LogRocketSpec,
+	'highlight-vs-hotjar': HotjarSpec,
+	'highlight-vs-fullstory': FullstorySpec,
+	'highlight-vs-smartlook': SmartlookSpec,
+	'highlight-vs-inspectlet': InspectletSpec,
 }

@@ -1,17 +1,25 @@
+import fullstorylogofull from '../../public/images/fullstorylogofull.png'
+import fullstorylogosmall from '../../public/images/fullstorylogosmall.png'
 import { Competitor } from './competitors'
+import {
+	HighlightIsOpenAndTransparent,
+	HighlightShipsNewFeatures,
+} from './shared-snippets'
 
 export const FullstorySpec: Competitor = {
 	name: 'Fullstory',
 	header: 'The Open Source Fullstory Alternative.',
 	subheader:
 		'Pixel-perfect video replay of your frontend web application. Step into the shoes of your users.',
-	type: 'session-replay',
+	logoDesktop: fullstorylogofull,
+	logoMobile: fullstorylogosmall,
 	sections: [
 		{
 			title: 'General',
 			rows: [
 				{
 					feature: 'Unlimited Team Members',
+					tooltip: 'Fullstory limits team members on paid plans.',
 					highlight: 1,
 					competitor: 0,
 				},
@@ -31,7 +39,7 @@ export const FullstorySpec: Competitor = {
 					competitor: 1,
 				},
 				{
-					feature: 'Self-serve',
+					feature: 'Self-serve Setup',
 					highlight: 1,
 					competitor: 1,
 				},
@@ -94,30 +102,19 @@ export const FullstorySpec: Competitor = {
 		},
 	],
 	paragraphs: [
+		HighlightIsOpenAndTransparent('Fullstory'),
+		HighlightShipsNewFeatures,
 		{
-			header: 'Highlight.io is open source and transparent',
-			body: `
-				[Highlight.io](https://highlight.io) is built with transparency at its core. 
-				Not only do we work in the open, but we also expose what we\'re working on openly on [our roadmap](https://www.highlight.io/docs/general/roadmap).
-				Lastly, the fact that [Highlight.io](https://highlight.io) is open source makes it easy to integrate internal tools, an advantage closed-source products like Fullstory can't offer. 
-				`,
+			header: 'Experience Insights vs Errors & Regressions',
+			body: 'Fullstory is designed to provide insights into both product and customer experience, with features such as session replay, heatmaps, and conversion funnels. This makes it an ideal tool for product and customer experience teams looking to understand how users interact with their website or application. In contrast, Highlight is primarily geared towards developers, with features such as error tracking, log search, and code-level visibility.',
 		},
 		{
-			header: 'Highlight.io constantly ships new features',
-			body: "At Highlight.io, we ship quickly. Our changelog is updated every week and we're constantly working on beta testing for even more updates. Plus, our community of developers keeps pushing us to do more, so we're constantly adding new SDKs and integrations ([see our roadmap](https://www.highlight.io/docs/general/roadmap)). We work hard to keep Highlight.io ahead of the curve, and we're not afraid to show off our secret sauce.",
+			header: 'We focus on cohesion, not just session replay',
+			body: 'While Fullstory is mainly focused on session replay, Highlight.io provides a **full-stack** solution that encompasses session replay, logs, and error monitoring. Developers using highlight.io get a comprehensive view of their entire stack with recorded logs and errors. In contrast, Fullstory primarily focuses on experience insight and funnels, which can be more useful to product and marketing teams.',
 		},
 		{
-			header: 'Experience vs Bugs',
-			body: "Fullstory is designed to provide insights into both product and customer experience, with features such as session replay, heatmaps, and conversion funnels. This makes it an ideal tool for product and customer experience teams looking to understand how users interact with their website or application. In contrast, Highlight is primarily geared towards developers, with features such as error tracking, log search, and code-level visibility. This focus on debugging and troubleshooting makes it an excellent tool for developers looking to identify and resolve issues quickly. While both tools offer session replay, Fullstory's focus on user experience and analytics sets it apart from Highlight's focus on debugging and troubleshooting.",
-		},
-		{
-			header: 'Full-stack Observability',
-			body: 'While Fullstory provides a comprehensive set of features for front-end analytics, it does not support full-stack observability. [Highlight.io](https://highlight.io) enables teams to monitor and optimize their entire tech stack, including server-side infrastructure and third-party services. This makes Highlight.io a more comprehensive solution for developers who need to monitor their entire tech stack, not just front-end user behavior.',
-		},
-		{
-			header: 'Did someone say free?',
-			body: `Fullstory does not provide a free trial option. Instead, they offer custom pricing plans tailored to the specific needs of each organization, and interested users are encouraged to connect with their sales team for more information. \\
-            With Highlight, users can start for free and get their first 500 sessions and 1,000 errors per month for free. The tool also provides unlimited seats for all plans, including the free plan. The choice between Fullstory and Highlight for free trials will depend on the specific usage needs and budget of your project.`,
+			header: 'Pricing',
+			body: `Fullstory does not provide a free trial. Instead, they offer custom pricing plans tailored to the specific needs of each organization, and users are encouraged to connect with their sales team. At Highlight.io, we are fundamentally against requiring a sales person to block you from using our product. Users can start for free and get their first 500 sessions and 1,000 errors per month for free. The tool also provides unlimited seats for all plans, including the free plan.`,
 		},
 	],
 }
