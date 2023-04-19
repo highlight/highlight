@@ -1,8 +1,9 @@
 import { gql, GraphQLClient } from 'graphql-request'
-import { getGithubDocsPaths } from './docs/github'
-import { PRODUCTS, iProduct } from '../../components/Products/products'
-import { FEATURES, iFeature } from '../../components/Features/features'
 import { NextApiRequest, NextApiResponse } from 'next'
+import { COMPETITORS } from '../../components/Competitors/competitors'
+import { FEATURES, iFeature } from '../../components/Features/features'
+import { iProduct, PRODUCTS } from '../../components/Products/products'
+import { getGithubDocsPaths } from './docs/github'
 
 async function generateXML(): Promise<string> {
 	const graphcms = new GraphQLClient(
@@ -57,6 +58,10 @@ async function generateXML(): Promise<string> {
 		(feature: iFeature) => `${feature.slug}`,
 	)
 
+	const competitorPages = Object.keys(COMPETITORS).map(
+		(competitorSlug: string) => competitorSlug,
+	)
+
 	const staticPagePaths = process.env.staticPages?.split(', ') || []
 	const staticPages = staticPagePaths.map((path) => {
 		return `${path.replace('pages', '').replace('index.tsx', '')}`
@@ -70,6 +75,7 @@ async function generateXML(): Promise<string> {
 		...docsPages,
 		...productPages,
 		...featurePages,
+		...competitorPages,
 	]
 
 	const addPage = (page: string) => {

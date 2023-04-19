@@ -3,7 +3,7 @@ import { LogRocketSpec } from './logrocket'
 
 export type ComparisonTableRow = {
 	feature: string
-	highlight: 0 | 0.5 | 1
+	highlight: 0 | 0.5 | 1 //0.5 represents 'coming soon'
 	competitor: 0 | 1
 	tooltip?: string
 }
@@ -14,20 +14,20 @@ export type ComparisonTableSection = {
 }
 
 export type Competitor = {
-	slug: string
 	name: string
+	type?: 'session-replay' | 'error-monitoring' | 'logging' //determines which hero image to display
 	header: string
 	subheader: string
-	subHeader2: string
-	logo?: StaticImageData
+	logoDesktop?: StaticImageData
+	logoMobile?: StaticImageData
 	sections: ComparisonTableSection[]
 	paragraphs?: {
 		header: string
-		//Body is markdown so it can include links and styling
-		body: string
+		body: string //Body is markdown so it can include links and styling
 	}[]
 }
 
+//Slug is stored as the key so we can get constant time lookups in GetStaticProps
 export const COMPETITORS: { [k: string]: Competitor } = {
-	logrocket: LogRocketSpec,
+	'highlight-vs-logrocket': LogRocketSpec,
 }
