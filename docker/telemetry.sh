@@ -15,7 +15,7 @@ if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
     jq '.phone_home_opt_out = false' ../backend/.config/v1.json >../backend/.config/v2.json
     mv ../backend/.config/v2.json ../backend/.config/v1.json
   else
-    cat '{"phone_home_opt_out": false}' >../backend/.config/v1.json
+    echo '{"phone_home_opt_out": false}' >../backend/.config/v1.json
   fi
   echo 'Thanks for helping improve the highlight open-source community!'
 else
@@ -23,7 +23,7 @@ else
     jq '.phone_home_opt_out = true' ../backend/.config/v1.json >../backend/.config/v2.json
     mv ../backend/.config/v2.json ../backend/.config/v1.json
   else
-    cat '{"phone_home_opt_out": true}' >../backend/.config/v1.json
+    echo '{"phone_home_opt_out": true}' >../backend/.config/v1.json
   fi
   echo 'No worries. We have turned off internal telemetry.'
 fi

@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-telemetry.sh
+./telemetry.sh
 source env.sh
 
 # start backend
