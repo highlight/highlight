@@ -606,6 +606,13 @@ func main() {
 			}()
 			// for the 'All' worker, explicitly run the PublicWorker as well
 			go w.PublicWorker(ctx)
+			// in `all` mode, refresh materialized views every hour
+			go func() {
+				w.RefreshMaterializedViews(ctx)
+				for range time.Tick(time.Hour) {
+					w.RefreshMaterializedViews(ctx)
+				}
+			}()
 			if util.IsDevEnv() {
 				log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 			} else {

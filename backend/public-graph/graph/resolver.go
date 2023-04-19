@@ -1524,10 +1524,10 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 		}
 		if backendSetupCount < 1 {
 			project, err := r.getProject(projectID)
-			if util.IsHubspotEnabled() {
-				if err != nil {
-					log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
-				} else {
+			if err != nil {
+				log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
+			} else {
+				if util.IsHubspotEnabled() {
 					if err := r.HubspotApi.UpdateCompanyProperty(ctx, project.WorkspaceID, []hubspot.Property{{
 						Name:     "backend_setup",
 						Property: "backend_setup",
@@ -1536,10 +1536,10 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 						log.WithContext(ctx).Errorf("failed to update hubspot")
 					}
 				}
+				phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, project.WorkspaceID, []attribute.KeyValue{
+					attribute.Bool(phonehome.BackendSetup, true),
+				})
 			}
-			phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, project.WorkspaceID, []attribute.KeyValue{
-				attribute.Bool(phonehome.BackendSetup, true),
-			})
 			if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
 				return e.Wrap(err, "error updating backend_setup flag")
 			}
