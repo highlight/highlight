@@ -190,7 +190,7 @@ const CompetitorComparisonPage = ({
 										{paragraph.header}
 									</h5>
 									<Typography
-										type="copy1"
+										type="copy2"
 										className="text-copy-on-dark text-left"
 									>
 										<MDXRemote
@@ -198,7 +198,7 @@ const CompetitorComparisonPage = ({
 											components={{
 												p: (props) => (
 													<Typography
-														type="copy1"
+														type="copy2"
 														{...props}
 													/>
 												),
