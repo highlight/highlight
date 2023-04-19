@@ -46,9 +46,8 @@ func GetConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := json.Unmarshal(data, &cfg); err != nil {
-		return nil, err
-	}
+	// ignore the error here, which would mean the file is empty or invalid json.
+	_ = json.Unmarshal(data, &cfg)
 	return &cfg, err
 }
 
