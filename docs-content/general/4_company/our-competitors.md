@@ -5,7 +5,9 @@ createdAt: 2021-09-14T02:03:51.000Z
 updatedAt: 2022-09-08T21:45:54.000Z
 ---
 
-It's tough being at the top! Explore some of highlight.io's competitors below.
+We respect our competitors. In fact, if a prospective customer is looking to use highlight.io to solve a problem that one of our competitors already solves, we'll tell them to use that competitor instead. We're not in the business of trying to convince people to use our product when it's not the right fit for them.
+
+Explore some of our competitors below:
 
 <DocsCardGroup>
     <DocsCard title="Log Rocket" href="https://highlight.io/compare/highlight-vs-logrocket">
