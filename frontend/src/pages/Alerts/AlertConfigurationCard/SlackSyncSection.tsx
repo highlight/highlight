@@ -1,6 +1,7 @@
 import { CircularSpinner } from '@components/Loading/Loading'
 import clsx from 'clsx'
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 import styles from './SlackSyncSection.module.scss'
 
@@ -11,7 +12,15 @@ interface Props {
 	slackUrl?: string
 }
 
-const SlackSyncSection = ({ isLoading, searchQuery }: Props) => {
+const SlackSyncSection = ({
+	isLoading,
+	searchQuery,
+	isSlackIntegrated,
+	slackUrl,
+}: Props) => {
+	if (!isSlackIntegrated && slackUrl) {
+		return <Link to={slackUrl}>Connect Highlight with Slack</Link>
+	}
 	return (
 		<div className={clsx(styles.selectMessage, styles.notFoundMessage)}>
 			{!isLoading && searchQuery

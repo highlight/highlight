@@ -28,6 +28,7 @@ import {
 	useMenu,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
+import { useSlackSync } from '@hooks/useSlackSync'
 import { useLogAlertsContext } from '@pages/Alerts/LogAlert/context'
 import {
 	dedupeEnvironments,
@@ -42,7 +43,7 @@ import {
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { Search } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useParams } from '@util/react-router/useParams'
-import { Divider, message } from 'antd'
+import { message } from 'antd'
 import { capitalize } from 'lodash'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
@@ -56,7 +57,7 @@ import {
 	DiscordChannelInput,
 	SanitizedSlackChannelInput,
 } from '@/graph/generated/schemas'
-import SyncWithSlackButton from '@/pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
+import SlackSyncSection from '@/pages/Alerts/AlertConfigurationCard/SlackSyncSection'
 
 import * as styles from './styles.css'
 
@@ -457,6 +458,8 @@ const LogAlertForm = ({
 	const query = form.values.query
 
 	const { alertsPayload } = useLogAlertsContext()
+	const { slackLoading, syncSlack } = useSlackSync()
+	const [slackSearchQuery, setSlackSearchQuery] = useState('')
 
 	const environments = dedupeEnvironments(
 		(alertsPayload?.environment_suggestion ??
@@ -491,13 +494,15 @@ const LogAlertForm = ({
 			id: email,
 		}))
 
-	const syncSlack = (
-		<SyncWithSlackButton
-			slackUrl={getSlackUrl(projectId ?? '')}
-			isSlackIntegrated={alertsPayload?.is_integrated_with_slack || false}
-			refetchQueries={[namedOperations.Query.GetLogAlertsPagePayload]}
-		/>
-	)
+	// const syncSlackSection = (
+	// 	<SlackSyncSection
+	// 		slackUrl={getSlackUrl(projectId ?? '')}
+	// 		isSlackIntegrated={alertsPayload?.is_integrated_with_slack || false}
+	// 		isLoading={slackLoading}
+	// 		searchQuery="shrug"
+	// 		// refetchQueries={[namedOperations.Query.GetLogAlertsPagePayload]}
+	// 	/>
+	// )
 
 	return (
 		<Box cssClass={styles.grid}>
@@ -645,6 +650,10 @@ const LogAlertForm = ({
 						placeholder="Select Slack channels"
 						options={slackChannels}
 						optionFilterProp="label"
+						onSearch={(value) => {
+							setSlackSearchQuery(value)
+							syncSlack()
+						}}
 						onChange={(values) => {
 							form.setValue(
 								form.names.slackChannels,
@@ -656,22 +665,17 @@ const LogAlertForm = ({
 							)
 						}}
 						value={form.values.slackChannels}
-						notFoundContent="Slack channel not found"
-						dropdownRender={(menu) => (
-							<div>
-								{menu}
-								{slackChannels.length > 0 && (
-									<>
-										<Divider
-											style={{
-												margin: '4px 0',
-											}}
-										/>
-										<Box mx="12">{syncSlack}</Box>
-									</>
-								)}
-							</div>
-						)}
+						notFoundContent={
+							<SlackSyncSection
+								isLoading={slackLoading}
+								searchQuery={slackSearchQuery}
+								slackUrl={getSlackUrl(projectId ?? '')}
+								isSlackIntegrated={
+									alertsPayload?.is_integrated_with_slack ??
+									false
+								}
+							/>
+						}
 						className={styles.selectContainer}
 						mode="multiple"
 						labelInValue

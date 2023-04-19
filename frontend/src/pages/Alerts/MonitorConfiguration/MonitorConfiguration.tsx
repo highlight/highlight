@@ -12,6 +12,7 @@ import {
 	MetricTagFilter,
 	WebhookDestination,
 } from '@graph/schemas'
+import { useSlackSync } from '@hooks/useSlackSync'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
 import { UNIT_OPTIONS } from '@pages/Dashboards/components/DashboardCard/DashboardCard'
 import {
@@ -20,7 +21,7 @@ import {
 } from '@pages/Dashboards/components/EditMetricModal/EditMetricModal'
 import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
-import { Divider, Slider } from 'antd'
+import { Slider } from 'antd'
 import moment from 'moment'
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -117,6 +118,7 @@ const MonitorConfiguration = ({
 	}>()
 	const { currentWorkspace } = useApplicationContext()
 	const [searchQuery, setSearchQuery] = useState('')
+	const { slackLoading, syncSlack } = useSlackSync()
 	const [endDate] = React.useState<moment.Moment>(moment(new Date()))
 	const { data, loading: metricPreviewLoading } = useGetMetricsTimelineQuery({
 		variables: {
@@ -440,6 +442,7 @@ const MonitorConfiguration = ({
 						mode="multiple"
 						onSearch={(value) => {
 							setSearchQuery(value)
+							syncSlack()
 						}}
 						value={slackChannels}
 						onChange={onSlackChannelsChange}
@@ -455,37 +458,12 @@ const MonitorConfiguration = ({
 						placeholder="Select a channel(s) or person(s) to send the alert to."
 						notFoundContent={
 							<SlackSyncSection
-								isLoading={false}
+								isLoading={slackLoading}
 								searchQuery={searchQuery}
 								isSlackIntegrated={isSlackIntegrated}
 								slackUrl={slackUrl}
 							/>
 						}
-						dropdownRender={(menu) => (
-							<div>
-								{menu}
-								{searchQuery.length === 0 &&
-									channelSuggestions.length > 0 && (
-										<>
-											<Divider
-												style={{
-													margin: '4px 0',
-												}}
-											/>
-											<div
-												className={
-													alertConfigurationCardStyles.addContainer
-												}
-											>
-												<SlackSyncSection
-													isLoading={false}
-													searchQuery={searchQuery}
-												/>
-											</div>
-										</>
-									)}
-							</div>
-						)}
 					/>
 				</section>
 
