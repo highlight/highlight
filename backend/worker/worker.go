@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/highlight-run/highlight/backend/phonehome"
+	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/leonelquinteros/hubspot"
 	"go.opentelemetry.io/otel/attribute"
 	"math"
@@ -1270,6 +1271,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		WorkspaceID  int   `json:"workspace_id"`
 		SessionCount int64 `json:"session_count"`
 		ErrorCount   int64 `json:"error_count"`
+		LogCount     int64 `json:"log_count"`
 	}
 	var counts []AggregateSessionCount
 
@@ -1280,6 +1282,20 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 				 INNER JOIN daily_error_counts_view dec on p.id = dec.project_id
 		GROUP BY p.workspace_id`).Scan(&counts).Error; err != nil {
 		log.WithContext(ctx).Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
+	}
+
+	for _, c := range counts {
+		workspace := &model.Workspace{}
+		if err := w.Resolver.DB.Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).First(&workspace).Error; err != nil {
+			continue
+		}
+		var workspaceLogsCount uint64
+		for _, p := range workspace.Projects {
+			count, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{
+				DateRange: &backend.DateRangeRequiredInput{EndDate: time.Now()}})
+			workspaceLogsCount += count
+		}
+		c.LogCount = int64(workspaceLogsCount)
 	}
 
 	for _, c := range counts {
@@ -1310,6 +1326,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, c.WorkspaceID, []attribute.KeyValue{
 			attribute.Int64(phonehome.SessionCount, c.SessionCount),
 			attribute.Int64(phonehome.ErrorCount, c.ErrorCount),
+			attribute.Int64(phonehome.LogCount, c.LogCount),
 		})
 
 		time.Sleep(150 * time.Millisecond)

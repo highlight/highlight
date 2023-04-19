@@ -34,5 +34,7 @@ When you start highlight for development or a hobby deploy, our scripts will sha
 | backend-setup      | Is a backend SDK integrated | bool |
 | session-count      | Number of sessions recorded | int  |
 | error-count        | Number of errors recorded   | int  |
+| log-count          | Number of logs recorded     | int  |
 | session-view-count | Number of sessions viewed   | int  |
 | error-view-count   | Number of errors viewed     | int  |
+| log-view-count     | Number of logs viewed       | int  |

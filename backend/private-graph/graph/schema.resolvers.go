@@ -7193,10 +7193,70 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 
 // Logs is the resolver for the logs field.
 func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string, direction modelInputs.LogDirection) (*modelInputs.LogsConnection, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not logged in")
+	}
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
+
+	// Update the the number of logs viewed for the current admin.
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		var cursor string
+		if at != nil {
+			cursor = *at
+		} else if before != nil {
+			cursor = *before
+		} else if after != nil {
+			cursor = *after
+		}
+		var currentLogCount int64
+		if err := r.DB.Raw(`
+			select count(*)
+			from log_admins_views
+			where log_cursor = ? and admin_id = ?
+	`, cursor, admin.ID).Scan(&currentLogCount).Error; err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error querying count of log views from admin"))
+			return
+		} else if currentLogCount > 0 {
+			log.WithContext(ctx).Info("not updating hubspot log count; admin has already viewed this log")
+			return
+		}
+
+		var totalLogCount int64
+		if err := r.DB.Raw(`
+			select count(*)
+			from log_admins_views
+			where admin_id = ?
+	`, admin.ID).Scan(&totalLogCount).Error; err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error querying total count of log views from admin"))
+			return
+		}
+		totalLogCountAsInt := int(totalLogCount) + 1
+
+		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfLogsViewed: &totalLogCountAsInt}).Error; err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error updating log count for admin in postgres"))
+		}
+		if util.IsHubspotEnabled() {
+			if err := r.HubspotApi.UpdateContactProperty(ctx, admin.ID, []hubspot.Property{{
+				Name:     "number_of_highlight_logs_viewed",
+				Property: "number_of_highlight_logs_viewed",
+				Value:    totalLogCountAsInt,
+			}}, r.DB); err != nil {
+				log.WithContext(ctx).
+					WithError(err).
+					WithField("admin_id", admin.ID).
+					WithField("value", totalLogCountAsInt).
+					Error("error updating log count for admin in hubspot")
+			}
+			log.WithContext(ctx).Infof("succesfully added to total log count for admin [%v], who just viewed log [%s]", admin.ID, cursor)
+		}
+		phonehome.ReportUsageMetrics(ctx, phonehome.AdminUsage, admin.ID, []attribute.KeyValue{
+			attribute.Int(phonehome.LogViewCount, totalLogCountAsInt),
+		})
+	})
 
 	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params, clickhouse.Pagination{
 		After:     after,

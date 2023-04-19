@@ -188,6 +188,9 @@ var Models = []interface{}{
 	&BillingEmailHistory{},
 	&Retryable{},
 	&SetupEvent{},
+	&SessionAdminsView{},
+	&ErrorGroupAdminsView{},
+	&LogAdminsView{},
 }
 
 func init() {
@@ -517,6 +520,7 @@ type Admin struct {
 	Phone                     *string
 	NumberOfSessionsViewed    *int
 	NumberOfErrorGroupsViewed *int
+	NumberOfLogsViewed        *int
 	EmailVerified             *bool            `gorm:"default:false"`
 	PhotoURL                  *string          `json:"photo_url"`
 	UID                       *string          `gorm:"uniqueIndex"`
@@ -992,6 +996,12 @@ type ErrorField struct {
 	Name           string
 	Value          string
 	ErrorGroups    []ErrorGroup `gorm:"many2many:error_group_fields;"`
+}
+
+type LogAdminsView struct {
+	LogCursor string    `gorm:"primaryKey"`
+	AdminID   int       `gorm:"primaryKey"`
+	ViewedAt  time.Time `gorm:"default:NOW()"`
 }
 
 type FingerprintType string
