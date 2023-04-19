@@ -33,7 +33,7 @@ replace github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
 require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.17.24
-	github.com/DataDog/datadog-go v4.8.2+incompatible
+	github.com/DataDog/datadog-go v4.8.3+incompatible
 	github.com/DmitriyVTitov/size v1.1.0
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/andybalholm/brotli v1.0.4
@@ -41,7 +41,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.8.3
 	github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign v1.3.5
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.16.1
-	github.com/aws/smithy-go v1.13.3
+	github.com/aws/smithy-go v1.13.5
 	github.com/clearbit/clearbit-go v1.0.1
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
 	github.com/go-chi/chi v4.1.2+incompatible
@@ -57,8 +57,8 @@ require (
 	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
 	github.com/hashicorp/go-retryablehttp v0.6.6
 	github.com/highlight-run/workerpool v1.3.0
-	github.com/highlight/highlight/sdk/highlight-go v0.9.2
-	github.com/influxdata/influxdb-client-go/v2 v2.9.1
+	github.com/highlight/highlight/sdk/highlight-go v0.9.8
+	github.com/influxdata/influxdb-client-go/v2 v2.12.1
 	github.com/jackc/pgconn v1.10.1
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.10.4
@@ -239,5 +239,4 @@ require (
 	google.golang.org/genproto v0.0.0-20230222225845-10f96fb3dbec // indirect
 	google.golang.org/grpc v1.53.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
