@@ -1,9 +1,5 @@
 import { StaticImageData } from 'next/image'
-import { FullstorySpec } from './fullstory'
-import { HotjarSpec } from './hotjar'
-import { InspectletSpec } from './inspectlet'
 import { LogRocketSpec } from './logrocket'
-import { SmartlookSpec } from './smartlook'
 
 export type ComparisonTableRow = {
 	feature: string
@@ -34,8 +30,4 @@ export type Competitor = {
 //Slug is stored as the key so we can get constant time lookups in GetStaticProps
 export const COMPETITORS: { [k: string]: Competitor } = {
 	'highlight-vs-logrocket': LogRocketSpec,
-	'highlight-vs-hotjar': HotjarSpec,
-	'highlight-vs-fullstory': FullstorySpec,
-	'highlight-vs-smartlook': SmartlookSpec,
-	'highlight-vs-inspectlet': InspectletSpec,
 }
