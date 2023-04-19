@@ -110,7 +110,7 @@ export const FullstorySpec: Competitor = {
 		},
 		{
 			header: 'We focus on cohesion, not just session replay',
-			body: 'While Fullstory is mainly focused on session replay, Highlight.io provides a **full-stack** solution that encompasses session replay, logs, and error monitoring. Given that Highlight.io also captures logs and errors, developers get a comprehensive view of their entire stack. In contrast, Fullstory primarily focuses on experience insight and funnels, which can be more useful to product and marketing teams.',
+			body: 'While Fullstory is mainly focused on session replay, Highlight.io provides a **full-stack** solution that encompasses session replay, logs, and error monitoring. Developers using highlight.io get a comprehensive view of their entire stack with recorded logs and errors. In contrast, Fullstory primarily focuses on experience insight and funnels, which can be more useful to product and marketing teams.',
 		},
 		{
 			header: 'Pricing',
