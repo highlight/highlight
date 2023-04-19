@@ -15,6 +15,7 @@ export const FullstorySpec: Competitor = {
 			rows: [
 				{
 					feature: 'Unlimited Team Members',
+					tooltip: 'Fullstory limits team members on paid plans.',
 					highlight: 1,
 					competitor: 0,
 				},
