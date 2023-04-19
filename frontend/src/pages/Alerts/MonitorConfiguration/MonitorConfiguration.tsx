@@ -26,7 +26,7 @@ import moment from 'moment'
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import SlackSyncSection from '@/pages/Alerts/AlertConfigurationCard/SlackSyncSection'
+import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 
 import alertConfigurationCardStyles from '../AlertConfigurationCard/AlertConfigurationCard.module.scss'
 import styles from './MonitorConfiguration.module.scss'
@@ -457,7 +457,7 @@ const MonitorConfiguration = ({
 						}}
 						placeholder="Select a channel(s) or person(s) to send the alert to."
 						notFoundContent={
-							<SlackSyncSection
+							<SlackLoadOrConnect
 								isLoading={slackLoading}
 								searchQuery={searchQuery}
 								isSlackIntegrated={isSlackIntegrated}

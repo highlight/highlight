@@ -57,7 +57,7 @@ import {
 	DiscordChannelInput,
 	SanitizedSlackChannelInput,
 } from '@/graph/generated/schemas'
-import SlackSyncSection from '@/pages/Alerts/AlertConfigurationCard/SlackSyncSection'
+import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 
 import * as styles from './styles.css'
 
@@ -656,7 +656,7 @@ const LogAlertForm = ({
 						}}
 						value={form.values.slackChannels}
 						notFoundContent={
-							<SlackSyncSection
+							<SlackLoadOrConnect
 								isLoading={slackLoading}
 								searchQuery={slackSearchQuery}
 								slackUrl={getSlackUrl(projectId ?? '')}

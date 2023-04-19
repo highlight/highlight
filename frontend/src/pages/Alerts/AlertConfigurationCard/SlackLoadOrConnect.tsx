@@ -1,9 +1,8 @@
 import { CircularSpinner } from '@components/Loading/Loading'
 import clsx from 'clsx'
-import React from 'react'
 import { Link } from 'react-router-dom'
 
-import styles from './SlackSyncSection.module.scss'
+import styles from './SlackLoadOrConnect.module.scss'
 
 interface Props {
 	isLoading: boolean
@@ -12,7 +11,7 @@ interface Props {
 	slackUrl?: string
 }
 
-const SlackSyncSection = ({
+const SlackLoadOrConnect = ({
 	isLoading,
 	searchQuery,
 	isSlackIntegrated,
@@ -37,4 +36,4 @@ const SlackSyncSection = ({
 	)
 }
 
-export default SlackSyncSection
+export default SlackLoadOrConnect

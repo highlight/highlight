@@ -32,7 +32,7 @@ import { useNavigate } from 'react-router-dom'
 import { Link, useLocation } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
 
-import SlackSyncSection from '@/pages/Alerts/AlertConfigurationCard/SlackSyncSection'
+import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 
 import Button from '../../../components/Button/Button/Button'
 import InputNumber from '../../../components/InputNumber/InputNumber'
@@ -805,7 +805,7 @@ export const AlertConfigurationCard = ({
 											placeholder={`Select a channel(s) or person(s) to send ${defaultName} to.`}
 											onChange={onChannelsChange}
 											notFoundContent={
-												<SlackSyncSection
+												<SlackLoadOrConnect
 													searchQuery={searchQuery}
 													isLoading={slackLoading}
 												/>

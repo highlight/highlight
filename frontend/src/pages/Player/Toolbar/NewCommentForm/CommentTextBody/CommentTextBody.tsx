@@ -14,7 +14,7 @@ import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import Linkify from 'react-linkify'
 
-import SlackSyncSection from '@/pages/Alerts/AlertConfigurationCard/SlackSyncSection'
+import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 
 import newCommentFormStyles from '../NewCommentForm.module.scss'
 import styles from './CommentTextBody.module.scss'
@@ -148,7 +148,7 @@ const CommentTextBody = ({
 			noResultsMessage={
 				<>
 					<p className={styles.noResultsMessage}>
-						<SlackSyncSection
+						<SlackLoadOrConnect
 							isLoading={slackLoading}
 							searchQuery={latestAt}
 						/>
