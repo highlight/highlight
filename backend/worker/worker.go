@@ -1278,15 +1278,15 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	if err := w.Resolver.DB.Raw(`
 		SELECT p.workspace_id, sum(dsc.count) as session_count, sum(dec.count) as error_count
 		FROM projects p
-				 INNER JOIN daily_session_counts_view dsc on p.id = dsc.project_id
-				 INNER JOIN daily_error_counts_view dec on p.id = dec.project_id
+				 LEFT OUTER JOIN daily_session_counts_view dsc on p.id = dsc.project_id
+				 LEFT OUTER JOIN daily_error_counts_view dec on p.id = dec.project_id
 		GROUP BY p.workspace_id`).Scan(&counts).Error; err != nil {
 		log.WithContext(ctx).Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
 	}
 
 	for _, c := range counts {
 		workspace := &model.Workspace{}
-		if err := w.Resolver.DB.Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).First(&workspace).Error; err != nil {
+		if err := w.Resolver.DB.Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).First(&workspace).Error; err != nil {
 			continue
 		}
 		var workspaceLogsCount uint64
