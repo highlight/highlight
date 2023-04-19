@@ -11507,8 +11507,8 @@ __metadata:
     "@capsizecss/metrics": ^0.3.0
     "@mdx-js/react": ^1.6.22
     "@rehookify/datepicker": ^4.1.5
-    "@storybook/addon-actions": ^6.5.16
-    "@storybook/addon-docs": ^6.5.16
+    "@storybook/addon-actions": ^6.5.15
+    "@storybook/addon-docs": ^6.5.15
     "@storybook/addon-essentials": ^6.5.15
     "@storybook/addon-interactions": ^6.5.15
     "@storybook/addon-links": ^6.5.15
@@ -16721,7 +16721,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-actions@npm:^6.5.16":
+"@storybook/addon-actions@npm:^6.5.15":
   version: 6.5.16
   resolution: "@storybook/addon-actions@npm:6.5.16"
   dependencies:
@@ -16860,7 +16860,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-docs@npm:^6.5.16":
+"@storybook/addon-docs@npm:^6.5.15":
   version: 6.5.16
   resolution: "@storybook/addon-docs@npm:6.5.16"
   dependencies:
