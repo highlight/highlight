@@ -1271,7 +1271,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		ErrorCount   int64 `json:"error_count"`
 		LogCount     int64 `json:"log_count"`
 	}
-	var counts []AggregateSessionCount
+	var counts []*AggregateSessionCount
 
 	if err := w.Resolver.DB.Raw(`
 		SELECT p.workspace_id, sum(dsc.count) as session_count, sum(dec.count) as error_count
@@ -1287,13 +1287,13 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		if err := w.Resolver.DB.Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).First(&workspace).Error; err != nil {
 			continue
 		}
-		var workspaceLogsCount uint64
 		for _, p := range workspace.Projects {
-			count, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{
-				DateRange: &backend.DateRangeRequiredInput{EndDate: time.Now()}})
-			workspaceLogsCount += count
+			count, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{DateRange: &backend.DateRangeRequiredInput{
+				StartDate: time.Now().Add(-time.Hour * 24 * 30),
+				EndDate:   time.Now(),
+			}})
+			c.LogCount += int64(count)
 		}
-		c.LogCount = int64(workspaceLogsCount)
 	}
 
 	for _, c := range counts {
