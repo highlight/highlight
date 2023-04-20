@@ -58,7 +58,7 @@ jobs:
                   source env.sh --go-docker
                   popd
                   docker buildx build $BUILD_ARGS \
-                    --build-arg REACT_APP_COMMIT_SHA=${{ github.sha }}
+                    --build-arg REACT_APP_COMMIT_SHA=${{ github.sha }} \
                     --push \
                     --platform linux/arm64,linux/amd64 \
                     -t ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG \
