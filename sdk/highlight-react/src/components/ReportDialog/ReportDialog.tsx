@@ -1,5 +1,8 @@
 import React, { useRef, useState } from 'react'
 
+import classnames from 'classnames'
+import styles from './styles.module.css'
+
 export interface ReportDialogOptions {
 	user?: {
 		email?: string
@@ -76,116 +79,144 @@ const ReportDialog = ({
 	}
 
 	return (
-		<main className={`container`}>
-			<div className={`card`}>
-				<div
-					className={`cardContents ${
-						sentReport && 'cardContentsVisible'
-					}`}
-				>
-					<h1 className={`title`}>{successMessage}</h1>
-					<h4 className={`subtitle`}>{successSubtitle}</h4>
-					<button
-						className={`button confirmationButton`}
-						onClick={onCloseHandler}
+		<>
+			<style>{`
+				@font-face {
+					font-display: swap;
+					font-family: 'Steradian';
+					font-style: normal;
+					font-weight: normal;
+					src: local('Steradian Regular'), local('SteradianRegular'),
+						url('https://app.highlight.run/font/SteradianRegular.woff2')
+							format('woff2');
+				}
+								
+				@font-face {
+					font-display: swap;
+					font-family: 'Steradian';
+					font-style: normal;
+					font-weight: bold;
+					src: local('Steradian Bold'), local('SteradianBold'),
+						url('https://app.highlight.run/font/SteradianBold.woff2')
+							format('woff2');
+				}
+			`}</style>
+			<main className={styles.container}>
+				<div className={styles.card}>
+					<div
+						className={classnames(styles.cardContents, {
+							[styles.cardContentsVisible]: !!sentReport,
+						})}
 					>
-						Close
-					</button>
-				</div>
-				<div
-					className={`cardContents ${
-						!sentReport && 'cardContentsVisible'
-					}`}
-				>
-					<div>
-						<h1 className={`title`}>{title}</h1>
-						<h2 className={`subtitle`}>
-							{subtitle} {subtitle2}
-						</h2>
-					</div>
-					<form className={`form`} onSubmit={handleSubmit}>
-						<label>
-							{labelName}
-							<input
-								type="text"
-								value={name}
-								name="name"
-								autoFocus
-								onChange={(e) => {
-									setName(e.target.value)
-								}}
-							/>
-						</label>
-
-						<label>
-							{labelEmail}
-							<input
-								type="email"
-								value={email}
-								name="email"
-								onChange={(e) => {
-									setEmail(e.target.value)
-								}}
-							/>
-						</label>
-
-						<label>
-							{labelComments}
-							<textarea
-								value={verbatim}
-								placeholder={placeholderComments}
-								name="verbatim"
-								rows={3}
-								onChange={(e) => {
-									setVerbatim(e.target.value)
-								}}
-							></textarea>
-						</label>
-
-						<div className={`formFooter`}>
-							<div className={`formActionsContainer`}>
-								<button
-									type="submit"
-									className={
-										sendingReport
-											? `button loadingButton`
-											: 'button'
-									}
-								>
-									{labelSubmit}
-								</button>
-								<button
-									className={`button closeButton`}
-									onClick={onCloseHandler}
-									type="button"
-								>
-									{labelClose}
-								</button>
-							</div>
-							{!hideHighlightBranding && (
-								<div className={`ad`}>
-									<p className={`logoContainer`}>
-										Crash reports powered by:
-										{/*  eslint-disable-next-line react/jsx-no-target-blank */}
-										<a
-											href="https://highlight.run"
-											target="_blank"
-										>
-											<img
-												src="https://app.highlight.run/logo-24x130.png"
-												alt="Highlight"
-												height="25"
-												className={`logo`}
-											/>
-										</a>
-									</p>
-								</div>
+						<h1 className={styles.title}>{successMessage}</h1>
+						<h4 className={styles.subtitle}>{successSubtitle}</h4>
+						<button
+							className={classnames(
+								styles.button,
+								styles.confirmationButton,
 							)}
+							onClick={onCloseHandler}
+						>
+							Close
+						</button>
+					</div>
+					<div
+						className={classnames(styles.cardContents, {
+							[styles.cardContentsVisible]: !sentReport,
+						})}
+					>
+						<div>
+							<h1 className={styles.title}>{title}</h1>
+							<h2 className={styles.subtitle}>
+								{subtitle} {subtitle2}
+							</h2>
 						</div>
-					</form>
+						<form className={styles.form} onSubmit={handleSubmit}>
+							<label>
+								{labelName}
+								<input
+									type="text"
+									value={name}
+									name="name"
+									autoFocus
+									onChange={(e) => {
+										setName(e.target.value)
+									}}
+								/>
+							</label>
+
+							<label>
+								{labelEmail}
+								<input
+									type="email"
+									value={email}
+									name="email"
+									onChange={(e) => {
+										setEmail(e.target.value)
+									}}
+								/>
+							</label>
+
+							<label>
+								{labelComments}
+								<textarea
+									value={verbatim}
+									placeholder={placeholderComments}
+									name="verbatim"
+									rows={3}
+									onChange={(e) => {
+										setVerbatim(e.target.value)
+									}}
+								></textarea>
+							</label>
+
+							<div className={styles.formFooter}>
+								<div className={styles.formActionsContainer}>
+									<button
+										type="submit"
+										className={classnames(styles.button, {
+											[styles.loadingButton]:
+												sendingReport,
+										})}
+									>
+										{labelSubmit}
+									</button>
+									<button
+										className={classnames(
+											styles.button,
+											styles.closeButton,
+										)}
+										onClick={onCloseHandler}
+										type="button"
+									>
+										{labelClose}
+									</button>
+								</div>
+								{!hideHighlightBranding && (
+									<div className={styles.ad}>
+										<p className={styles.logoContainer}>
+											Crash reports powered by:
+											{/*  eslint-disable-next-line react/jsx-no-target-blank */}
+											<a
+												href="https://highlight.run"
+												target="_blank"
+											>
+												<img
+													src="https://app.highlight.run/logo-24x130.png"
+													alt="Highlight"
+													height="25"
+													className={`logo`}
+												/>
+											</a>
+										</p>
+									</div>
+								)}
+							</div>
+						</form>
+					</div>
 				</div>
-			</div>
-		</main>
+			</main>
+		</>
 	)
 }
 

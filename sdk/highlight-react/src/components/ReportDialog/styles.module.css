@@ -55,7 +55,8 @@
 .card {
 	border-radius: var(--size-xSmall);
 	padding: var(--size-xLarge);
-	max-width: 650px;
+	width: 650px;
+	max-width: calc(100vw - 96px);
 	background: white;
 }
 
@@ -110,7 +111,7 @@
 	margin: 8px 0;
 	outline: none;
 	padding: 15px;
-	width: 100%;
+	width: calc(100% - 30px);
 }
 
 .button {
