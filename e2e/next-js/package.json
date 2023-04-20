@@ -11,6 +11,7 @@
 	"dependencies": {
 		"@highlight-run/next": "workspace:*",
 		"@highlight-run/node": "workspace:*",
+		"@highlight-run/react": "workspace:*",
 		"@types/node": "18.15.11",
 		"@types/react": "18.0.35",
 		"@types/react-dom": "18.0.11",

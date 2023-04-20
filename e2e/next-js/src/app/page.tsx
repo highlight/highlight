@@ -6,7 +6,16 @@ import Image from 'next/image'
 export default function Home() {
 	return (
 		<>
-			<Highlight projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID} />
+			<Highlight
+				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
+				tracingOrigins
+				networkRecording={{
+					enabled: true,
+					recordHeadersAndBody: true,
+					urlBlocklist: [],
+				}}
+				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
+			/>
 
 			<main style={{ padding: '2rem' }}>
 				<Image
