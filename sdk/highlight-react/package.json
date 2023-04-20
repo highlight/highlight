@@ -12,7 +12,7 @@
 	"types": "./dist/index.d.ts",
 	"scripts": {
 		"typegen": "tsup src/index.tsx --dts-only",
-		"build": "node build.js",
+		"build": "tsup src/index.tsx --format cjs,esm --dts",
 		"dev": "yarn build --watch"
 	},
 	"devDependencies": {
