@@ -24,6 +24,8 @@ RUN yarn build:frontend
 
 # reduce the image size by keeping just the built code
 FROM nginx:stable-alpine as frontend-prod
+ARG REACT_APP_COMMIT_SHA
+ENV REACT_APP_COMMIT_SHA=$REACT_APP_COMMIT_SHA
 LABEL org.opencontainers.image.source=https://github.com/highlight/highlight
 LABEL org.opencontainers.image.description="highlight.io Production Frontend Image"
 LABEL org.opencontainers.image.licenses="Apache 2.0"
