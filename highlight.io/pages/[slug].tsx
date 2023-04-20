@@ -37,6 +37,7 @@ import {
 	AnimateFeatureHeroRight,
 	AnimateFeatureHeroXL,
 } from '../components/Animate'
+import { CalendlyPopover } from '../components/Home/CalendlyPopover'
 
 const IMAGE_MAP = {
 	[errorMonitoringHeroKey]: errorMonitoringHero,
@@ -124,6 +125,9 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 										Read our docs
 									</Typography>
 								</PrimaryButton>
+							</div>
+							<div className="-ml-3 justify-self-start">
+								<CalendlyPopover />
 							</div>
 						</div>
 					</div>
