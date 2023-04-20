@@ -19,16 +19,24 @@ def get_edges(parent):
         edges[child['id']] = parent['id']
     return edges
 
-def get_passwords(parent):
+def get_input_passwords(parent):
+    passwords = set()
+    if parent.get('tagName', '').lower() == 'input' and parent.get('attributes', {}).get('type', '').lower() == 'password':
+        passwords.add(parent['id'])
+    for child in parent.get('childNodes', []):
+        passwords |= get_input_passwords(child)
+    return passwords
+
+def get_stable_passwords(parent):
     passwords = set()
     if parent.get('tagName', '').lower() == 'input':
         attrs = parent.get('attributes', {})
-        if attrs.get('type', '').lower() == 'password' or \
-            attrs.get('autocomplete', '').lower() in ['new-password', 'current-password'] or \
-            attrs.get('id', '').lower() in ['new-password', 'current-password']:
+        if 'password' in attrs.get('autocomplete', '').lower() or \
+            'password' in attrs.get('id', '').lower() or \
+            'password' in attrs.get('name', '').lower():
             passwords.add(parent['id'])
     for child in parent.get('childNodes', []):
-        passwords |= get_passwords(child)
+        passwords |= get_stable_passwords(child)
     return passwords
 
 def get_maybe_passwords(parent):
@@ -58,16 +66,31 @@ def remove_node(node, edges):
             new_edges[c] = p
     return new_edges
 
+def get_sus_children(node, passwords):
+    susses = set()
+    if node.get('id', '') in passwords:
+        val = node.get('attributes', {}).get('value', '')
+        if val and not set('*') <= set(val):
+            print(val)
+            susses.add(node['id'])
+    for child in node.get('childNodes', []):
+        susses |= get_sus_children(child, passwords)
+    return susses
+
 def get_sus(f):
     events = json.loads(f)
     edges = {}
     susses = set()
     passwords = set()
+    unstable_passwords = set()
     for e in events:
         if e['type'] == 2:
             root = e['data']['node']
             edges = get_edges(root)
-            passwords = get_passwords(root)
+            inputs = get_input_passwords(root)
+            stable = get_stable_passwords(root)
+            unstable_passwords = inputs - stable
+            passwords = inputs | stable
         elif e['type'] == 3:
             removed_passwords = set()
             removed_password_ancestors = set()
@@ -75,27 +98,27 @@ def get_sus(f):
                 for p in passwords:
                     if r['id'] in get_ancestors(p, edges):
                         removed_passwords.add(p)
-                        removed_password_ancestors.add(edges[r['id']])
+                        if p in unstable_passwords:
+                            removed_password_ancestors.add(edges[r['id']])
                 edges = remove_node(r['id'], edges)
                 passwords -= removed_passwords
+                unstable_passwords -= removed_passwords
             for a in e['data'].get('attributes', []):
-                if 'attributes' not in a or 'id' not in a:
-                    continue
-                if a['id'] in passwords:
-                    val = a['attributes'].get('value', '')
-                    if val and not set('*') <= set(val):
-                        susses.add(a['id'])
+                susses |= get_sus_children(a, passwords)
             for a in e['data'].get('adds', []):
                 if 'node' not in a:
                     continue
                 node = a['node']
                 edges[node['id']] = a['parentId']
                 edges.update(get_edges(node))
-                passwords |= get_passwords(node)
+                inputs = get_input_passwords(node)
+                stable = get_stable_passwords(node)
+                unstable_passwords |= inputs - stable
+                passwords |= inputs | stable
                 if a['parentId'] in removed_password_ancestors:
                     removed_password_ancestors.add(node['id'])
                     passwords |= get_maybe_passwords(node)
-            # todo: add case where element added has value already set
+                susses |= get_sus_children(a['node'], passwords)
     return susses
 
 # if __name__ == "__main__":
