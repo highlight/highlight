@@ -1,8 +1,7 @@
 #!/bin/bash
 
-telemetryFile="../backend/.config/telemetry"
+telemetryFile=".telemetry"
 
-mkdir -p ../backend/.config
 if [ -f $telemetryFile ]; then
   exit 0
 fi

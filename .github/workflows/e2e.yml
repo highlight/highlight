@@ -40,10 +40,6 @@ jobs:
 
             - name: Start docker containers & run cypress
               run: |
-                  # bypass telemetry question
-                  mkdir -p ./backend/.config
-                  touch ./backend/.config/telemetry
-
                   pushd docker;
                   ./start-infra.sh > /tmp/highlight.log 2>&1;
                   docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;

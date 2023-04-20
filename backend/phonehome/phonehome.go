@@ -35,8 +35,8 @@ const HeartbeatInterval = 5 * time.Second
 const HeartbeatSpanHighlightVersion = "highlight-version"
 const HeartbeatSpanName = "highlight-heartbeat"
 const HighlightProjectID = "1"
-const MetricMemActive = "highlight-mem-active"
-const MetricMemUsed = "highlight-mem-used"
+const MetricMemTotal = "highlight-mem-total"
+const MetricMemUsedPercent = "highlight-mem-used-percent"
 const MetricNumCPU = "highlight-num-cpu"
 const SpanDeployment = "highlight-phone-home-deployment-id"
 
@@ -72,14 +72,14 @@ func Start(ctx context.Context) error {
 		for range time.Tick(HeartbeatInterval) {
 			vmStat, _ := mem.VirtualMemory()
 			highlight.RecordMetric(ctx, MetricNumCPU, float64(runtime.NumCPU()))
-			highlight.RecordMetric(ctx, MetricMemUsed, float64(vmStat.Used))
-			highlight.RecordMetric(ctx, MetricMemActive, float64(vmStat.Active))
+			highlight.RecordMetric(ctx, MetricMemUsedPercent, vmStat.UsedPercent)
+			highlight.RecordMetric(ctx, MetricMemTotal, float64(vmStat.Total))
 			tags, _ := GetDefaultAttributes()
 			tags = append(tags,
 				attribute.String(HeartbeatSpanHighlightVersion, util.Version),
 				attribute.Int(MetricNumCPU, runtime.NumCPU()),
-				attribute.Int64(MetricMemUsed, int64(vmStat.Used)),
-				attribute.Int64(MetricMemActive, int64(vmStat.Active)),
+				attribute.Float64(MetricMemUsedPercent, vmStat.UsedPercent),
+				attribute.Int64(MetricMemTotal, int64(vmStat.Total)),
 			)
 
 			s, _ := highlight.StartTrace(ctx, HeartbeatSpanName, tags...)

@@ -2,7 +2,7 @@ package projectpath
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/highlight-run/highlight/backend/util"
 	"os"
 	"path/filepath"
 )
@@ -14,7 +14,13 @@ type Config struct {
 }
 
 func GetConfigDir() (string, error) {
-	dir := fmt.Sprintf("%s/.config", GetRoot())
+	root := GetRoot()
+	if util.IsOnPrem() {
+		if _, err := os.Stat("/highlight-data"); err == nil {
+			root = "/highlight-data"
+		}
+	}
+	dir := filepath.Join(root, ".config")
 	_, err := os.Stat(dir)
 	if os.IsNotExist(err) {
 		if err := os.Mkdir(dir, 0o755); err != nil {

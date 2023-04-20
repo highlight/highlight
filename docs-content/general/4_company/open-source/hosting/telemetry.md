@@ -13,12 +13,12 @@ When you start highlight for development or a hobby deploy, our scripts will sha
 
 ## Heartbeat Metrics
 
-| Name       | Description            | Type   |
-|------------|------------------------|--------|
-| num-cpu    | CPU Count              | int    |
-| mem-used   | Bytes of memory used   | int    |
-| mem-active | Bytes of memory active | int    |
-| version    | Highlight version sha  | string |
+| Name             | Description           | Type   |
+|------------------|-----------------------|--------|
+| num-cpu          | CPU Count             | int    |
+| mem-used-percent | Percent memory used   | float  |
+| mem-total        | Bytes of memory total | int    |
+| version          | Highlight version sha | string |
 
 ## Self-reported User Attributes
 
