@@ -20,7 +20,7 @@ highlight.io is a monitoring tool for the next generation of developers (like yo
 At a high level, highlight.io's feature set is:
 - Session Replay (read more [here](#session-replay-understand-why-bugs-happen))
 - Error Monitoring (read more [here](#error-monitoring-understand-what-bugs-are-happening))
-- Logging (still in beta) (read more [here](#logging))
+- Logging (read more [here](#logging))
 
 Read more about our [features](#features) below.
 
