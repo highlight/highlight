@@ -11,7 +11,7 @@ import HeroBugRight from '../public/images/hero-bug-right.gif'
 import LandingInfoRowSecurity from '../public/images/landingInfoRowSecurity.png'
 
 import { Popover } from '@headlessui/react'
-import { ArrowLeftIcon, ArrowRightCircleIcon } from '@heroicons/react/20/solid'
+import { ArrowRightCircleIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import { Collapse } from 'antd'
 import classNames from 'classnames'
 import Link from 'next/link'
@@ -125,10 +125,10 @@ const CalendlyPopover = () => {
 							data-url="https://calendly.com/jaykhatri/highlight-demo-call"
 						></div>
 						<button
-							className="absolute grid w-16 h-16 rounded-full place-content-center bg-dark-background/70 max-[652px]:left-2 max-[652px]:top-2  left-10 top-10 hover:bg-white/20 transition-colors"
+							className="absolute grid w-10 h-10 rounded-full place-content-center bg-divider-on-dark max-[652px]:right-2 max-[652px]:top-2 right-10 top-10 hover:brightness-150 transition-all pointer-events-auto"
 							onClick={close}
 						>
-							<ArrowLeftIcon className="w-10 h-10" />
+							<XMarkIcon className="w-5 h-5" />
 						</button>
 					</Popover.Panel>
 					<Script
