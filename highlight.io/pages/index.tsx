@@ -113,14 +113,13 @@ const CalendlyPopover = () => {
 					<Popover.Panel
 						static
 						className={classNames(
-							'fixed inset-0 z-50 grid place-items-center w-screen h-screen',
+							'fixed inset-0 z-50 grid place-items-center w-screen h-screen pointer-events-none',
 							!open && 'hidden',
 						)}
-						focus
 					>
 						<div
 							className={classNames(
-								'calendly-inline-widget min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity',
+								'calendly-inline-widget min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity max-[652px]:pt-14 pointer-events-auto',
 							)}
 							data-url="https://calendly.com/jaykhatri/highlight-demo-call"
 						></div>
