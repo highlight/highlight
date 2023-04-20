@@ -29,16 +29,18 @@ const ErrorViewCount = "highlight-error-view-count"
 const LogViewCount = "highlight-log-view-count"
 
 const AboutYouSpanName = "highlight-about-you"
-const AboutYouSpanRole = "highlight-about-you-role"
 const AboutYouSpanReferral = "highlight-about-you-referral"
+const AboutYouSpanRole = "highlight-about-you-role"
 const HeartbeatInterval = 5 * time.Second
-const HeartbeatSpanHighlightVersion = "highlight-version"
 const HeartbeatSpanName = "highlight-heartbeat"
 const HighlightProjectID = "1"
 const MetricMemTotal = "highlight-mem-total"
 const MetricMemUsedPercent = "highlight-mem-used-percent"
 const MetricNumCPU = "highlight-num-cpu"
 const SpanDeployment = "highlight-phone-home-deployment-id"
+const SpanDopplerConfig = "highlight-doppler-config"
+const SpanHighlightVersion = "highlight-version"
+const SpanOnPrem = "highlight-is-onprem"
 
 func IsOptedOut(_ context.Context) bool {
 	return false
@@ -59,6 +61,9 @@ func GetDefaultAttributes() ([]attribute.KeyValue, error) {
 	return []attribute.KeyValue{
 		attribute.String(highlight.ProjectIDAttribute, HighlightProjectID),
 		attribute.String(SpanDeployment, cfg.PhoneHomeDeploymentID),
+		attribute.String(SpanDopplerConfig, util.DopplerConfig),
+		attribute.String(SpanHighlightVersion, util.Version),
+		attribute.String(SpanOnPrem, util.OnPrem),
 	}, nil
 }
 
@@ -76,7 +81,6 @@ func Start(ctx context.Context) error {
 			highlight.RecordMetric(ctx, MetricMemTotal, float64(vmStat.Total))
 			tags, _ := GetDefaultAttributes()
 			tags = append(tags,
-				attribute.String(HeartbeatSpanHighlightVersion, util.Version),
 				attribute.Int(MetricNumCPU, runtime.NumCPU()),
 				attribute.Float64(MetricMemUsedPercent, vmStat.UsedPercent),
 				attribute.Int64(MetricMemTotal, int64(vmStat.Total)),
