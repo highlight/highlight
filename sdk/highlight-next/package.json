@@ -7,15 +7,20 @@
 	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
+			"edge": "./dist/index.edge.js",
+			"edge-light": "./dist/index.edge.js",
+			"browser": "./dist/index.edge.js",
+			"worker": "./dist/index.edge.js",
+			"workerd": "./dist/index.edge.js",
 			"require": "./dist/index.js",
 			"import": "./dist/index.mjs",
 			"types": "./dist/index.d.ts"
 		}
 	},
 	"scripts": {
-		"typegen": "tsup src/index.ts --dts-only",
+		"typegen": "tsup src/index.ts --dts-only && tsup src/index.edge.ts --dts-only",
 		"dev": "yarn build --watch",
-		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"build": "tsup src/index.edge.ts --format cjs,esm --dts && tsup src/index.ts --format cjs,esm --dts",
 		"test": "jest"
 	},
 	"author": "",
