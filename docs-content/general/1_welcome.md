@@ -10,7 +10,10 @@ updatedAt: 2022-08-18T22:36:12.000Z
 [highlight.io](https://highlight.io) gives you **fullstack** visibility into your application by pairing session replay, error monitoring, and logging, allowing you to tie frontend issues with backend logs and performance issues.
 
 When highlight.io is fully integrated, this is what it looks like:
+
 ![](/images/Cohesion720.gif)
+
+And to get started:
 
 <DocsCardGroup>
     <DocsCard title="Get Started" href="../getting-started/1_overview.md">
@@ -35,7 +38,7 @@ When highlight.io is fully integrated, this is what it looks like:
     </DocsCard>
 </DocsCardGroup>
 
-### Features
+### Features.
 
 <DocsCardGroup>
     <DocsCard title="Session Replay." href="./6_product-features/1_session-replay/1_overview.md">
