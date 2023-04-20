@@ -20,7 +20,7 @@ yarn add ${packages}
 pnpm add ${packages}
 
 # with npm
-npm install ${packages}`,
+npm install --save ${packages}`,
 			language: 'bash',
 		},
 	}

@@ -4,17 +4,33 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # setup env
 $(cat .env | grep -vE '^#' | sed -e 's/^/export /')
-export CLICKHOUSE_ADDRESS=localhost:9000
 export ENABLE_OBJECT_STORAGE=true
-export INFLUXDB_SERVER=http://localhost:8086
 export IN_DOCKER=true
-export KAFKA_SERVERS=localhost:9092
 export OBJECT_STORAGE_FS=/tmp/highlight-data
-export OPENSEARCH_DOMAIN=http://localhost:9200
-export OPENSEARCH_DOMAIN_READ=http://localhost:9200
-export PSQL_HOST=localhost
 export REACT_APP_AUTH_MODE=simple
-export REDIS_EVENTS_STAGING_ENDPOINT=localhost:6379
+
+if [[ "$*" == *"--go-docker"* ]]; then
+    export IN_DOCKER_GO=true
+    echo "Using docker-internal infra."
+else
+    export CLICKHOUSE_ADDRESS=localhost:9000
+    export INFLUXDB_SERVER=http://localhost:8086
+    export KAFKA_SERVERS=localhost:9092
+    export OPENSEARCH_DOMAIN=http://localhost:9200
+    export OPENSEARCH_DOMAIN_READ=http://localhost:9200
+    export PSQL_HOST=localhost
+    export REDIS_EVENTS_STAGING_ENDPOINT=localhost:6379
+fi
+export BUILD_ARGS="--build-arg GOARCH=${GOARCH}
+--build-arg REACT_APP_AUTH_MODE=${REACT_APP_AUTH_MODE}
+--build-arg REACT_APP_DEMO_SESSION=${REACT_APP_DEMO_SESSION}
+--build-arg REACT_APP_FRONTEND_ORG=${REACT_APP_FRONTEND_ORG}
+--build-arg REACT_APP_FRONTEND_URI=${REACT_APP_FRONTEND_URI}
+--build-arg REACT_APP_IN_DOCKER=${REACT_APP_IN_DOCKER}
+--build-arg REACT_APP_PRIVATE_GRAPH_URI=${REACT_APP_PRIVATE_GRAPH_URI}
+--build-arg REACT_APP_PUBLIC_GRAPH_URI=${REACT_APP_PUBLIC_GRAPH_URI}
+--build-arg TURBO_TOKEN=${TURBO_TOKEN}
+--build-arg TURBO_TEAM=${TURBO_TEAM}"
 
 mkdir -p ${OBJECT_STORAGE_FS}
 

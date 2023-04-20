@@ -13,35 +13,36 @@ import (
 	"sync"
 	"time"
 
-	"gorm.io/gorm"
-
-	"github.com/highlight-run/highlight/backend/clickhouse"
-	"github.com/highlight-run/highlight/backend/otel"
-
+	ghandler "github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/andybalholm/brotli"
-	"github.com/highlight-run/highlight/backend/integrations"
-	"github.com/highlight-run/highlight/backend/oauth"
-
-	"github.com/highlight-run/go-resthooks"
-	"github.com/highlight-run/highlight/backend/redis"
-	"github.com/highlight-run/highlight/backend/stepfunctions"
-	"github.com/highlight-run/highlight/backend/timeseries"
-
-	"github.com/highlight-run/highlight/backend/lambda"
-
-	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
-	"github.com/leonelquinteros/hubspot"
-
-	"github.com/sendgrid/sendgrid-go"
-
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/httplog"
 	"github.com/gorilla/websocket"
+	"github.com/highlight-run/go-resthooks"
+	"github.com/highlight-run/highlight/backend/clickhouse"
+	dd "github.com/highlight-run/highlight/backend/datadog"
+	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
+	"github.com/highlight-run/highlight/backend/integrations"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/opensearch"
+	"github.com/highlight-run/highlight/backend/otel"
+	"github.com/highlight-run/highlight/backend/phonehome"
+	private "github.com/highlight-run/highlight/backend/private-graph/graph"
+	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
+	public "github.com/highlight-run/highlight/backend/public-graph/graph"
+	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/stepfunctions"
+	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/worker"
@@ -50,22 +51,14 @@ import (
 	H "github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+	"github.com/leonelquinteros/hubspot"
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
+	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/v72/client"
 	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
-
-	ghandler "github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/handler/extension"
-	"github.com/99designs/gqlgen/graphql/handler/lru"
-	"github.com/99designs/gqlgen/graphql/handler/transport"
-	dd "github.com/highlight-run/highlight/backend/datadog"
-	private "github.com/highlight-run/highlight/backend/private-graph/graph"
-	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
-	public "github.com/highlight-run/highlight/backend/public-graph/graph"
-	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
-	storage "github.com/highlight-run/highlight/backend/storage"
-	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 
 	_ "github.com/urfave/cli/v2"
 	_ "gorm.io/gorm"
@@ -112,10 +105,12 @@ func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rCli
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		if err := queue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, "health"); err != nil {
+			log.WithContext(ctx).Error(fmt.Sprintf("failed kafka health check: %s", err))
 			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", topic), 500)
 			return
 		}
 		if err := batchedQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, "health"); err != nil {
+			log.WithContext(ctx).Error(fmt.Sprintf("failed kafka batched health check: %s", err))
 			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", batchedTopic), 500)
 			return
 		}
@@ -227,10 +222,13 @@ func main() {
 
 	// setup highlight
 	H.SetProjectID("1jdkoe52")
-	if util.IsDevOrTestEnv() {
+	if !util.IsOnPrem() && util.IsDevOrTestEnv() {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql / otlp client address...")
 		H.SetGraphqlClientAddress("https://localhost:8082/public")
 		H.SetOTLPEndpoint("http://localhost:4318")
+		if util.IsBackendInDocker() {
+			H.SetOTLPEndpoint("http://collector:4318")
+		}
 	}
 	H.Start()
 	defer H.Stop()
@@ -239,14 +237,8 @@ func main() {
 	// setup highlight logrus hook
 	hlog.Init()
 	log.WithContext(ctx).WithField("hello", "world").Info("welcome to highlight.io")
-
-	switch os.Getenv("DEPLOYMENT_KEY") {
-	case "HIGHLIGHT_ONPREM_BETA":
-		// default case, should only exist in main highlight prod
-	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
-		go expireHighlightAfterDate(time.Date(2021, 10, 1, 0, 0, 0, 0, time.UTC))
-	default:
-		log.WithContext(ctx).Fatal("please specify a deploy key in order to run Highlight")
+	if err := phonehome.Start(ctx); err != nil {
+		log.WithContext(ctx).Warn("Failed to start highlight phone-home service.")
 	}
 
 	if sendgridKey == "" {
@@ -464,7 +456,7 @@ func main() {
 		})
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
-		if !util.IsDevOrTestEnv() {
+		if !util.IsDevOrTestEnv() && !util.IsOnPrem() {
 			err := profiler.Start(profiler.WithService("public-graph-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
 			if err != nil {
 				log.WithContext(ctx).Fatal(err)
@@ -579,7 +571,7 @@ func main() {
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
-			if !util.IsDevOrTestEnv() {
+			if !util.IsDevOrTestEnv() && !util.IsOnPrem() {
 				serviceName := "worker-service"
 				if handlerFlag != nil && *handlerFlag != "" {
 					serviceName = *handlerFlag
@@ -608,6 +600,13 @@ func main() {
 			}()
 			// for the 'All' worker, explicitly run the PublicWorker as well
 			go w.PublicWorker(ctx)
+			// in `all` mode, refresh materialized views every hour
+			go func() {
+				w.RefreshMaterializedViews(ctx)
+				for range time.Tick(time.Hour) {
+					w.RefreshMaterializedViews(ctx)
+				}
+			}()
 			if util.IsDevEnv() {
 				log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
 			} else {
@@ -620,14 +619,5 @@ func main() {
 		} else {
 			log.Fatal(http.ListenAndServe(":"+port, r))
 		}
-	}
-}
-
-func expireHighlightAfterDate(endDate time.Time) {
-	for {
-		if time.Now().After(endDate) {
-			log.Fatalf("your highlight trial has expired")
-		}
-		time.Sleep(time.Hour)
 	}
 }

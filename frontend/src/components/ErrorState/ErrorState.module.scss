@@ -13,6 +13,7 @@
 }
 
 .errorBody {
+	color: var(--color-black);
 	max-width: 800px;
 	word-wrap: break-word;
 }
@@ -20,11 +21,6 @@
 .buttonGroup {
 	display: flex;
 	margin-top: 25px;
-}
-
-.expandButton {
-	color: var(--color-primary-500);
-	cursor: pointer;
 }
 
 .loggedInButtonGroup {

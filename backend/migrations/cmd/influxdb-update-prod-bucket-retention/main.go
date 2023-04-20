@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	retention := domain.RetentionRuleTypeExpire
 	ctx := context.TODO()
 	log.WithContext(ctx).Info("setting up db")
 	tdb := timeseries.New(ctx)
@@ -32,7 +33,7 @@ func main() {
 					b.RetentionRules = []domain.RetentionRule{{
 						// short metric expiry for granular data since we will only store downsampled data long term
 						EverySeconds: int64((60 * time.Minute).Seconds()),
-						Type:         domain.RetentionRuleTypeExpire,
+						Type:         &retention,
 					}}
 					_, _ = tdb.Client.BucketsAPI().UpdateBucket(context.Background(), &b)
 				}

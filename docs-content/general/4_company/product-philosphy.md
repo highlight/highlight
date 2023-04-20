@@ -9,6 +9,8 @@ This doc acts as a reference for our product philosophy at highlight.io, or to b
 
 ## Cohesion
 
+![](/images/Cohesion720.gif)
+
 Our product philsophy at highlight.io is centered around the concept of "cohesion", or the idea that we're focused on building a tightly coupled suite of tools that helps developers ship software with confidence.
 
 Prior to working on highlight.io, we all worked at several tech companies of varying sizes, and had first-hand experience trying to stich together numerous tools to reproduce bugs. It wasn't uncommon that we had to, for e.g., login to Sentry to see a stacktrace, log into Splunk to query logs, and after investigating with even more tools, give up and log in "as the user" to try and reproduce the issue.

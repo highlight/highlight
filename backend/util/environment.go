@@ -3,12 +3,14 @@ package util
 import "os"
 
 var (
-	env            = os.Getenv("ENVIRONMENT")
-	DEV_ENV        = "dev"
-	TEST_ENV       = "test"
-	ON_PREM        = os.Getenv("REACT_APP_ONPREM")
-	DOPPLER_CONFIG = os.Getenv("DOPPLER_CONFIG")
-	IN_DOCKER      = os.Getenv("IN_DOCKER")
+	env           = os.Getenv("ENVIRONMENT")
+	DevEnv        = "dev"
+	TestEnv       = "test"
+	OnPrem        = os.Getenv("ON_PREM")
+	DopplerConfig = os.Getenv("DOPPLER_CONFIG")
+	InDocker      = os.Getenv("IN_DOCKER")
+	InDockerGo    = os.Getenv("IN_DOCKER_GO")
+	Version       = os.Getenv("REACT_APP_COMMIT_SHA")
 )
 
 func IsHubspotEnabled() bool {
@@ -16,25 +18,29 @@ func IsHubspotEnabled() bool {
 }
 
 func IsDevEnv() bool {
-	return env == DEV_ENV
+	return env == DevEnv
 }
 
 func IsTestEnv() bool {
-	return env == TEST_ENV
+	return env == TestEnv
 }
 
 func IsDevOrTestEnv() bool {
-	return env == DEV_ENV || env == TEST_ENV
+	return IsTestEnv() || IsDevEnv()
 }
 
 func IsOnPrem() bool {
-	return ON_PREM == "true"
+	return OnPrem == "true"
 }
 
 func IsInDocker() bool {
-	return IN_DOCKER == "true"
+	return InDocker == "true"
+}
+
+func IsBackendInDocker() bool {
+	return InDockerGo == "true"
 }
 
 func IsOnRender() bool {
-	return DOPPLER_CONFIG == "prod_aws_render"
+	return DopplerConfig == "prod_aws_render"
 }

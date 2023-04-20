@@ -1,0 +1,34 @@
+receivers:
+    otlp:
+        protocols:
+            grpc:
+                endpoint: '0.0.0.0:4317'
+            http:
+                endpoint: '0.0.0.0:4318'
+exporters:
+    otlphttp:
+        endpoint: 'https://backend:8082/otel'
+        compression: gzip
+        tls:
+            insecure_skip_verify: true
+processors:
+    batch:
+service:
+    extensions: [health_check]
+    pipelines:
+        traces:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [otlphttp]
+        metrics:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [otlphttp]
+        logs:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [otlphttp]
+extensions:
+    health_check:
+        endpoint: '0.0.0.0:4319'
+        path: '/health/status'

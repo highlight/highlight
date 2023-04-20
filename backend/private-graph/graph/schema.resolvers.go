@@ -37,6 +37,7 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
+	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -45,17 +46,14 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
-	highlight "github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
-	"github.com/rs/zerolog"
-	zlog "github.com/rs/zerolog/log"
-	"github.com/rs/zerolog/pkgerrors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72"
 	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -456,6 +454,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 		}
 	}
 
+	phonehome.ReportAdminAboutYouDetails(ctx, admin)
 	if err := r.DB.Save(admin).Error; err != nil {
 		return false, err
 	}
@@ -536,7 +535,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 	}
 
 	c := &stripe.Customer{}
-	if os.Getenv("REACT_APP_ONPREM") != "true" {
+	if !util.IsOnPrem() {
 		params := &stripe.CustomerParams{
 			Name:  &name,
 			Email: admin.Email,
@@ -668,18 +667,17 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 				Property: "number_of_highlight_error_groups_viewed",
 				Value:    totalErrorGroupCountAsInt,
 			}}, r.DB); err != nil {
-				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
-
-				zlog.Error().
-					Stack().
-					Err(err).
-					Int("admin_id", admin.ID).
-					Int("value", totalErrorGroupCountAsInt).
-					Msg("error updating error group count for admin in hubspot")
+				log.WithContext(ctx).
+					WithError(err).
+					WithField("admin_id", admin.ID).
+					WithField("value", totalErrorGroupCountAsInt).
+					Error("error updating error group count for admin in hubspot")
 			}
 			log.WithContext(ctx).Infof("succesfully added to total error group count for admin [%v], who just viewed error group [%v]", admin.ID, eg.ID)
 		}
+		phonehome.ReportUsageMetrics(ctx, phonehome.AdminUsage, admin.ID, []attribute.KeyValue{
+			attribute.Int(phonehome.ErrorViewCount, totalErrorGroupCountAsInt),
+		})
 	})
 
 	newErrorGroup := &model.ErrorGroup{}
@@ -763,18 +761,17 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 				Property: "number_of_highlight_sessions_viewed",
 				Value:    totalSessionCountAsInt,
 			}}, r.DB); err != nil {
-				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
-
-				zlog.Error().
-					Stack().
-					Err(err).
-					Int("admin_id", admin.ID).
-					Int("value", totalSessionCountAsInt).
-					Msg("error updating session count for admin in hubspot")
+				log.WithContext(ctx).
+					WithError(err).
+					WithField("admin_id", admin.ID).
+					WithField("value", totalSessionCountAsInt).
+					Error("error updating session count for admin in hubspot")
 			}
 			log.WithContext(ctx).Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
 		}
+		phonehome.ReportUsageMetrics(ctx, phonehome.AdminUsage, admin.ID, []attribute.KeyValue{
+			attribute.Int(phonehome.SessionViewCount, totalSessionCountAsInt),
+		})
 	})
 
 	newSession := &model.Session{}
@@ -7196,10 +7193,59 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 
 // Logs is the resolver for the logs field.
 func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string, direction modelInputs.LogDirection) (*modelInputs.LogsConnection, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not logged in")
+	}
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
+
+	// Update the the number of logs viewed for the current admin.
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		var totalLogCount int64
+		if err := r.DB.Raw(`
+			select count(*)
+			from log_admins_views
+			where admin_id = ?
+	`, admin.ID).Scan(&totalLogCount).Error; err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error querying total count of log views from admin"))
+			return
+		}
+		totalLogCountAsInt := int(totalLogCount) + 1
+
+		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfLogsViewed: &totalLogCountAsInt}).Error; err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error updating log count for admin in postgres"))
+		}
+		if util.IsHubspotEnabled() {
+			if err := r.HubspotApi.UpdateContactProperty(ctx, admin.ID, []hubspot.Property{{
+				Name:     "number_of_highlight_logs_viewed",
+				Property: "number_of_highlight_logs_viewed",
+				Value:    totalLogCountAsInt,
+			}}, r.DB); err != nil {
+				log.WithContext(ctx).
+					WithError(err).
+					WithField("admin_id", admin.ID).
+					WithField("value", totalLogCountAsInt).
+					Error("error updating log count for admin in hubspot")
+			}
+			log.WithContext(ctx).Infof("succesfully added to total log count for admin [%v], who just viewed log", admin.ID)
+		}
+		phonehome.ReportUsageMetrics(ctx, phonehome.AdminUsage, admin.ID, []attribute.KeyValue{
+			attribute.Int(phonehome.LogViewCount, totalLogCountAsInt),
+		})
+
+		if err := r.DB.Model(&model.LogAdminsView{}).Create(&model.LogAdminsView{
+			AdminID: admin.ID,
+		}).Error; err != nil {
+			log.WithContext(ctx).
+				WithError(err).
+				WithField("admin_id", admin.ID).
+				WithField("value", totalLogCountAsInt).
+				Error("error saving log view for admin in hubspot")
+		}
+	})
 
 	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params, clickhouse.Pagination{
 		After:     after,
