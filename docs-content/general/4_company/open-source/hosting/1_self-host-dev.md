@@ -10,7 +10,7 @@ updatedAt: 2022-04-15T02:07:22.000Z
 Interested in deploying highlight.io on your local machine for developing in the Highlight codebase?
 
 <DocsCardGroup>
-    <DocsCard title="Development Deployment Guide" href="../../../getting-started/self-host/dev-deployment-guide.md">
+    <DocsCard title="Development Deployment Guide" href="../../../../getting-started/self-host/dev-deployment-guide.md">
         {"Getting started with our developer deployment."}
     </DocsCard>
 </DocsCardGroup>
