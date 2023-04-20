@@ -20,7 +20,7 @@ highlight.io is a monitoring tool for the next generation of developers (like yo
 At a high level, highlight.io's feature set is:
 - Session Replay (read more [here](#session-replay-understand-why-bugs-happen))
 - Error Monitoring (read more [here](#error-monitoring-understand-what-bugs-are-happening))
-- Logging (still in beta) (read more [here](#logging))
+- Logging (read more [here](#logging))
 
 Read more about our [features](#features) below.
 
@@ -92,8 +92,6 @@ See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/comp
 </p>
 
 ### Logging
-
-Our logging product is still in beta, but please [message us in discord](https://highlight.io) if you'd like a sneak peak of what we're building. We'd love for you to try an early version to share feedback.
 
 -   **Powerful Log Search**: Search across all your logs, with automatic property collection -> [docs](https://www.highlight.io/docs/general/product-features/logging/log-search)
 -   **Log Alerts**: Set thresholds for your log alerts, and view them in the alerts dashboard -> [docs](https://www.highlight.io/docs/general/product-features/general-features/alerts)
