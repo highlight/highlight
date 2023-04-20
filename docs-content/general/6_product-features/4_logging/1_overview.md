@@ -14,9 +14,12 @@ Get started with the resources below:
 
 <DocsCardGroup>
     <DocsCard title="Get Started" href="../../../getting-started/1_overview.md#for-your-backend-logging">
-        {"The specification we use for ingesting and searching for logs."}
+        {"Set up logging for your application."}
     </DocsCard>
     <DocsCard title="Log Search Specification" href="./log-search.md">
         {"The specification we use for ingesting and searching for logs."}
+    </DocsCard>
+    <DocsCard title="Log Alerts" href="./log-alerts.md">
+        {"Set up alerts to be notified when logs exceed a threshold."}
     </DocsCard>
 </DocsCardGroup>
