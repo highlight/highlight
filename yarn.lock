@@ -11278,6 +11278,9 @@ __metadata:
     "@types/node": ^18.7.16
     "@types/react": ^18.0.28
     "@types/react-dom": ^18.0.11
+    classnames: ^2.3.2
+    css-tree: ^2.3.1
+    esbuild-css-modules-plugin: ^2.7.1
     tsup: ^6.6.3
     typescript: ^4.9.5
   peerDependencies:
@@ -26994,7 +26997,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"css-tree@npm:^2.2.1":
+"css-tree@npm:^2.2.1, css-tree@npm:^2.3.1":
   version: 2.3.1
   resolution: "css-tree@npm:2.3.1"
   dependencies:
@@ -27903,6 +27906,15 @@ __metadata:
   version: 6.0.0
   resolution: "detect-indent@npm:6.0.0"
   checksum: 0c38f362016e2d07af1c65b1ecd6ad8a91f06bfdd11383887c867a495ad286d04be2ab44027ac42444704d523982013115bd748c1541df7c9396ad76b22aaf5d
+  languageName: node
+  linkType: hard
+
+"detect-libc@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "detect-libc@npm:1.0.3"
+  bin:
+    detect-libc: ./bin/detect-libc.js
+  checksum: daaaed925ffa7889bd91d56e9624e6c8033911bb60f3a50a74a87500680652969dbaab9526d1e200a4c94acf80fc862a22131841145a0a8482d60a99c24f4a3e
   languageName: node
   linkType: hard
 
@@ -28928,6 +28940,22 @@ __metadata:
   version: 0.15.10
   resolution: "esbuild-android-arm64@npm:0.15.10"
   conditions: os=android & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"esbuild-css-modules-plugin@npm:^2.7.1":
+  version: 2.7.1
+  resolution: "esbuild-css-modules-plugin@npm:2.7.1"
+  dependencies:
+    fs-extra: ^10.1.0
+    lightningcss: ^1.18.0
+    lodash: ^4.17.21
+    postcss: ^8.4.21
+    postcss-modules: ^6.0.0
+    tmp: ^0.2.1
+  peerDependencies:
+    esbuild: "*"
+  checksum: d02e3f721a056718a534b0cb66adf49f64490e7235a5610bf8b8bf2bcce741ef1c869516e64217ba4637bc7db95cb6b27ef65d3022a24f6f8d67ec3db8edbd7d
   languageName: node
   linkType: hard
 
@@ -32859,6 +32887,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"generic-names@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "generic-names@npm:4.0.0"
+  dependencies:
+    loader-utils: ^3.2.0
+  checksum: 8dabd2505164191501b75f2861b5e1194458a344ae2a7c9776bdd72d1f50b248dff737bcdf118fff677275edb3632f2d10662e6ac122dd7b245c5baa8d303270
+  languageName: node
+  linkType: hard
+
 "gensync@npm:^1.0.0-beta.1, gensync@npm:^1.0.0-beta.2":
   version: 1.0.0-beta.2
   resolution: "gensync@npm:1.0.0-beta.2"
@@ -34688,6 +34725,15 @@ __metadata:
   dependencies:
     postcss: ^7.0.14
   checksum: a4ca2c6b82cb3eb879d635bd4028d74bca174edc49ee48ef5f01988489747d340a389d5a0ac6f6887a5c24ab8fc4386c781daab32a7ade5344a2edff66207635
+  languageName: node
+  linkType: hard
+
+"icss-utils@npm:^5.0.0, icss-utils@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "icss-utils@npm:5.1.0"
+  peerDependencies:
+    postcss: ^8.1.0
+  checksum: 5c324d283552b1269cfc13a503aaaa172a280f914e5b81544f3803bc6f06a3b585fb79f66f7c771a2c052db7982c18bf92d001e3b47282e3abbbb4c4cc488d68
   languageName: node
   linkType: hard
 
@@ -38696,6 +38742,96 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lightningcss-darwin-arm64@npm:1.20.0":
+  version: 1.20.0
+  resolution: "lightningcss-darwin-arm64@npm:1.20.0"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"lightningcss-darwin-x64@npm:1.20.0":
+  version: 1.20.0
+  resolution: "lightningcss-darwin-x64@npm:1.20.0"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"lightningcss-linux-arm-gnueabihf@npm:1.20.0":
+  version: 1.20.0
+  resolution: "lightningcss-linux-arm-gnueabihf@npm:1.20.0"
+  conditions: os=linux & cpu=arm
+  languageName: node
+  linkType: hard
+
+"lightningcss-linux-arm64-gnu@npm:1.20.0":
+  version: 1.20.0
+  resolution: "lightningcss-linux-arm64-gnu@npm:1.20.0"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"lightningcss-linux-arm64-musl@npm:1.20.0":
+  version: 1.20.0
+  resolution: "lightningcss-linux-arm64-musl@npm:1.20.0"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"lightningcss-linux-x64-gnu@npm:1.20.0":
+  version: 1.20.0
+  resolution: "lightningcss-linux-x64-gnu@npm:1.20.0"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"lightningcss-linux-x64-musl@npm:1.20.0":
+  version: 1.20.0
+  resolution: "lightningcss-linux-x64-musl@npm:1.20.0"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"lightningcss-win32-x64-msvc@npm:1.20.0":
+  version: 1.20.0
+  resolution: "lightningcss-win32-x64-msvc@npm:1.20.0"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"lightningcss@npm:^1.18.0":
+  version: 1.20.0
+  resolution: "lightningcss@npm:1.20.0"
+  dependencies:
+    detect-libc: ^1.0.3
+    lightningcss-darwin-arm64: 1.20.0
+    lightningcss-darwin-x64: 1.20.0
+    lightningcss-linux-arm-gnueabihf: 1.20.0
+    lightningcss-linux-arm64-gnu: 1.20.0
+    lightningcss-linux-arm64-musl: 1.20.0
+    lightningcss-linux-x64-gnu: 1.20.0
+    lightningcss-linux-x64-musl: 1.20.0
+    lightningcss-win32-x64-msvc: 1.20.0
+  dependenciesMeta:
+    lightningcss-darwin-arm64:
+      optional: true
+    lightningcss-darwin-x64:
+      optional: true
+    lightningcss-linux-arm-gnueabihf:
+      optional: true
+    lightningcss-linux-arm64-gnu:
+      optional: true
+    lightningcss-linux-arm64-musl:
+      optional: true
+    lightningcss-linux-x64-gnu:
+      optional: true
+    lightningcss-linux-x64-musl:
+      optional: true
+    lightningcss-win32-x64-msvc:
+      optional: true
+  checksum: 633594543fd297f1f7a10d3472d5e55f65b0d8707254d1d975dc37b36208c6ef4c4d9d0f391f7fb1e7b2547f0c7b06bbc0aa31575ebb16917a2d1ff9cc25183e
+  languageName: node
+  linkType: hard
+
 "lilconfig@npm:^2.0.5, lilconfig@npm:^2.0.6":
   version: 2.0.6
   resolution: "lilconfig@npm:2.0.6"
@@ -38863,6 +38999,13 @@ __metadata:
     emojis-list: ^3.0.0
     json5: ^2.1.2
   checksum: a5281f5fff1eaa310ad5e1164095689443630f3411e927f95031ab4fb83b4a98f388185bb1fe949e8ab8d4247004336a625e9255c22122b815bb9a4c5d8fc3b7
+  languageName: node
+  linkType: hard
+
+"loader-utils@npm:^3.2.0":
+  version: 3.2.1
+  resolution: "loader-utils@npm:3.2.1"
+  checksum: 4e3ea054cdc8be1ab1f1238f49f42fdf0483039eff920fb1d442039f3f0ad4ebd11fb8e584ccdf2cb7e3c56b3d40c1832416e6408a55651b843da288960cc792
   languageName: node
   linkType: hard
 
@@ -41465,6 +41608,7 @@ __metadata:
   resolution: "nextjs@workspace:e2e/nextjs"
   dependencies:
     "@highlight-run/next": "workspace:*"
+    "@highlight-run/react": "workspace:*"
     "@next/font": 13.1.6
     "@types/node": 18.11.18
     "@types/react": 18.0.27
@@ -43755,6 +43899,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"postcss-modules-extract-imports@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "postcss-modules-extract-imports@npm:3.0.0"
+  peerDependencies:
+    postcss: ^8.1.0
+  checksum: 4b65f2f1382d89c4bc3c0a1bdc5942f52f3cb19c110c57bd591ffab3a5fee03fcf831604168205b0c1b631a3dce2255c70b61aaae3ef39d69cd7eb450c2552d2
+  languageName: node
+  linkType: hard
+
 "postcss-modules-local-by-default@npm:1.2.0":
   version: 1.2.0
   resolution: "postcss-modules-local-by-default@npm:1.2.0"
@@ -43774,6 +43927,19 @@ __metadata:
     postcss-selector-parser: ^6.0.2
     postcss-value-parser: ^4.1.0
   checksum: 0267633eaf80e72a3abf391b6e34c5b344a1bdfb1421543d3ed43fc757e053e0fcc1a2eb06d959a8f435776e8dc80288b59bfc34d61e5e021d47b747c417c5a1
+  languageName: node
+  linkType: hard
+
+"postcss-modules-local-by-default@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "postcss-modules-local-by-default@npm:4.0.0"
+  dependencies:
+    icss-utils: ^5.0.0
+    postcss-selector-parser: ^6.0.2
+    postcss-value-parser: ^4.1.0
+  peerDependencies:
+    postcss: ^8.1.0
+  checksum: 6cf570badc7bc26c265e073f3ff9596b69bb954bc6ac9c5c1b8cba2995b80834226b60e0a3cbb87d5f399dbb52e6466bba8aa1d244f6218f99d834aec431a69d
   languageName: node
   linkType: hard
 
@@ -43797,6 +43963,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"postcss-modules-scope@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "postcss-modules-scope@npm:3.0.0"
+  dependencies:
+    postcss-selector-parser: ^6.0.4
+  peerDependencies:
+    postcss: ^8.1.0
+  checksum: 330b9398dbd44c992c92b0dc612c0626135e2cc840fee41841eb61247a6cfed95af2bd6f67ead9dd9d0bb41f5b0367129d93c6e434fa3e9c58ade391d9a5a138
+  languageName: node
+  linkType: hard
+
 "postcss-modules-values@npm:1.3.0":
   version: 1.3.0
   resolution: "postcss-modules-values@npm:1.3.0"
@@ -43817,6 +43994,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"postcss-modules-values@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "postcss-modules-values@npm:4.0.0"
+  dependencies:
+    icss-utils: ^5.0.0
+  peerDependencies:
+    postcss: ^8.1.0
+  checksum: f7f2cdf14a575b60e919ad5ea52fed48da46fe80db2733318d71d523fc87db66c835814940d7d05b5746b0426e44661c707f09bdb83592c16aea06e859409db6
+  languageName: node
+  linkType: hard
+
 "postcss-modules@npm:^2.0.0":
   version: 2.0.0
   resolution: "postcss-modules@npm:2.0.0"
@@ -43827,6 +44015,24 @@ __metadata:
     postcss: ^7.0.1
     string-hash: ^1.1.1
   checksum: 5291c397be83391859e24d9b9284b66f825bdaa68ccf398254f7b3bad51ccd9ce4196a7c1259859e81c655dfd7c4ad788ddbb422257ce990f2068133eb8ef91a
+  languageName: node
+  linkType: hard
+
+"postcss-modules@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "postcss-modules@npm:6.0.0"
+  dependencies:
+    generic-names: ^4.0.0
+    icss-utils: ^5.1.0
+    lodash.camelcase: ^4.3.0
+    postcss-modules-extract-imports: ^3.0.0
+    postcss-modules-local-by-default: ^4.0.0
+    postcss-modules-scope: ^3.0.0
+    postcss-modules-values: ^4.0.0
+    string-hash: ^1.1.1
+  peerDependencies:
+    postcss: ^8.0.0
+  checksum: 3bfcfabc0600f7c8fcb49873d67eb8c23c8d874b061dda840977cbe3de74d40be3be885f854594f51687d714d1aa57e83b46ac14ceb9b1b6e3a4d36f2596e2bb
   languageName: node
   linkType: hard
 
@@ -44032,7 +44238,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-selector-parser@npm:^6.0.11":
+"postcss-selector-parser@npm:^6.0.11, postcss-selector-parser@npm:^6.0.4":
   version: 6.0.11
   resolution: "postcss-selector-parser@npm:6.0.11"
   dependencies:
@@ -52628,21 +52834,21 @@ __metadata:
 
 "typescript@patch:typescript@*#~builtin<compat/typescript>, typescript@patch:typescript@^4.6.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.8.4#~builtin<compat/typescript>, typescript@patch:typescript@~4.8.4#~builtin<compat/typescript>":
   version: 4.8.4
-  resolution: "typescript@patch:typescript@npm%3A4.8.4#~builtin<compat/typescript>::version=4.8.4&hash=1a91c8"
+  resolution: "typescript@patch:typescript@npm%3A4.8.4#~builtin<compat/typescript>::version=4.8.4&hash=0102e9"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: c981e82b77a5acdcc4e69af9c56cdecf5b934a87a08e7b52120596701e389a878b8e3f860e73ffb287bf649cc47a8c741262ce058148f71de4cdd88bb9c75153
+  checksum: 301459fc3eb3b1a38fe91bf96d98eb55da88a9cb17b4ef80b4d105d620f4d547ba776cc27b44cc2ef58b66eda23fe0a74142feb5e79a6fb99f54fc018a696afa
   languageName: node
   linkType: hard
 
 "typescript@patch:typescript@4.9.5#~builtin<compat/typescript>, typescript@patch:typescript@^4.7.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.0#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.4#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
   version: 4.9.5
-  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
+  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=ad5954"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: ab417a2f398380c90a6cf5a5f74badd17866adf57f1165617d6a551f059c3ba0a3e4da0d147b3ac5681db9ac76a303c5876394b13b3de75fdd5b1eaa06181c9d
+  checksum: 8f6260acc86b56bfdda6004bc53f32ea548f543e8baef7071c8e34d29d292f3e375c8416556c8de10b24deef6933cd1c16a8233dc84a3dd43a13a13265d0faab
   languageName: node
   linkType: hard
 
@@ -52658,21 +52864,21 @@ __metadata:
 
 "typescript@patch:typescript@^4.8.2#~builtin<compat/typescript>":
   version: 4.8.2
-  resolution: "typescript@patch:typescript@npm%3A4.8.2#~builtin<compat/typescript>::version=4.8.2&hash=3b564f"
+  resolution: "typescript@patch:typescript@npm%3A4.8.2#~builtin<compat/typescript>::version=4.8.2&hash=aae4e6"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 28e130a49d9330b64b8229ad336247bf980e9a705c5850f30a859a68c051e8e68e367b3275f119da4a825dca71ad0fe315964a1315d4a381c0021bca5eeeb62e
+  checksum: 5cb0f02f414f5405f4b0e7ee1fd7fa9177b6a8783c9017b6cad85f56ce4c4f93e0e6f2ce37e863cb597d44227cd009474c9fbd85bf7a50004e5557426cb58079
   languageName: node
   linkType: hard
 
 "typescript@patch:typescript@^5.0.2#~builtin<compat/typescript>":
   version: 5.0.2
-  resolution: "typescript@patch:typescript@npm%3A5.0.2#~builtin<compat/typescript>::version=5.0.2&hash=85af82"
+  resolution: "typescript@patch:typescript@npm%3A5.0.2#~builtin<compat/typescript>::version=5.0.2&hash=ad5954"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: b63cb742fbb9aeb3085e002ad8f10d5fd963606aa4d6b3b65b4e76c396ff09739f03b5dbae08e1698c3bce9d5619d3f67aeb7ee470ed4016bd345b3cfe37b54a
+  checksum: bdbf3d0aac0d6cf010fbe0536753dc19f278eb4aba88140dcd25487dfe1c56ca8b33abc0dcd42078790a939b08ebc4046f3e9bb961d77d3d2c3cfa9829da4d53
   languageName: node
   linkType: hard
 
