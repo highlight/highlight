@@ -28,6 +28,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
+	const [showPassword, setShowPassword] = React.useState(false)
 	const location = useLocation()
 	const initialEmail: string = location.state?.email ?? ''
 	const formState = useFormState({
@@ -120,9 +121,18 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					<Form.Input
 						name={formState.names.password}
 						label="Password"
-						type="password"
+						type={showPassword ? 'text' : 'password'}
 						autoComplete="current-password"
+						key={showPassword ? 'hey' : 'ok'}
 					/>
+					<button
+						onClick={(e) => {
+							setShowPassword(!showPassword)
+							e.preventDefault()
+						}}
+					>
+						show password
+					</button>
 					<Link
 						to="/reset_password"
 						state={{ email: formState.values.email }}
