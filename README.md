@@ -95,6 +95,9 @@ See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/comp
 
 -   **Powerful Log Search**: Search across all your logs, with automatic property collection -> [docs](https://www.highlight.io/docs/general/product-features/logging/log-search)
 -   **Log Alerts**: Set thresholds for your log alerts, and view them in the alerts dashboard -> [docs](https://www.highlight.io/docs/general/product-features/general-features/alerts)
+-   **Embedded Session Replay and Errors**: See all of the sessions & errors associated with any given log.
+-   **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
+-   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
 
 ### More?! Metrics? Traces? Merch?
 
