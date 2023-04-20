@@ -5,28 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/phonehome"
-	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/leonelquinteros/hubspot"
-	"go.opentelemetry.io/otel/attribute"
-	"math"
-	"math/rand"
-	"os"
-	"regexp"
-	"sort"
-	"strconv"
-	"sync"
-	"time"
-
-	"github.com/openlyinc/pointy"
-	"github.com/pkg/errors"
-	e "github.com/pkg/errors"
-	"github.com/shirou/gopsutil/mem"
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/gorm"
-
 	"github.com/highlight-run/highlight/backend/alerts"
 	highlightErrors "github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -37,14 +15,34 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/payload"
+	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
+	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	pubgraph "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
+	"github.com/leonelquinteros/hubspot"
+	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
+	e "github.com/pkg/errors"
+	"github.com/shirou/gopsutil/mem"
+	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
+	"golang.org/x/sync/errgroup"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm"
+	"math"
+	"math/rand"
+	"os"
+	"regexp"
+	"sort"
+	"strconv"
+	"sync"
+	"time"
 )
 
 // Worker is a job runner that parses sessions
@@ -1305,7 +1303,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			continue
 		}
 
-		if util.IsHubspotEnabled() {
+		if util.IsHubspotEnabled() && (c.SessionCount > 0 || c.ErrorCount > 0) {
 			if err := w.Resolver.HubspotApi.UpdateCompanyProperty(ctx, c.WorkspaceID, []hubspot.Property{{
 				Name:     "highlight_session_count",
 				Property: "highlight_session_count",

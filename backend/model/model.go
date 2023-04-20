@@ -999,9 +999,9 @@ type ErrorField struct {
 }
 
 type LogAdminsView struct {
-	LogCursor string    `gorm:"primaryKey"`
-	AdminID   int       `gorm:"primaryKey"`
-	ViewedAt  time.Time `gorm:"default:NOW()"`
+	ID       int       `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	ViewedAt time.Time `gorm:"default:NOW()"`
+	AdminID  int       `gorm:"primaryKey"`
 }
 
 type FingerprintType string

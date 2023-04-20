@@ -7204,15 +7204,6 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 
 	// Update the the number of logs viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		var cursor string
-		if at != nil {
-			cursor = *at
-		} else if before != nil {
-			cursor = *before
-		} else if after != nil {
-			cursor = *after
-		}
-
 		var totalLogCount int64
 		if err := r.DB.Raw(`
 			select count(*)
@@ -7239,15 +7230,14 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 					WithField("value", totalLogCountAsInt).
 					Error("error updating log count for admin in hubspot")
 			}
-			log.WithContext(ctx).Infof("succesfully added to total log count for admin [%v], who just viewed log [%s]", admin.ID, cursor)
+			log.WithContext(ctx).Infof("succesfully added to total log count for admin [%v], who just viewed log", admin.ID)
 		}
 		phonehome.ReportUsageMetrics(ctx, phonehome.AdminUsage, admin.ID, []attribute.KeyValue{
 			attribute.Int(phonehome.LogViewCount, totalLogCountAsInt),
 		})
 
 		if err := r.DB.Model(&model.LogAdminsView{}).Create(&model.LogAdminsView{
-			LogCursor: cursor,
-			AdminID:   admin.ID,
+			AdminID: admin.ID,
 		}).Error; err != nil {
 			log.WithContext(ctx).
 				WithError(err).
