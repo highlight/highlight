@@ -2,7 +2,7 @@ import { ApolloError } from '@apollo/client'
 import { Button } from '@components/Button'
 import { Link } from '@components/Link'
 import LoadingBox from '@components/LoadingBox'
-import { LogLevel as LogLevelType } from '@graph/schemas'
+import { LogLevel as LogLevelType, ReservedLogKey } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
 import {
 	Box,
@@ -333,6 +333,8 @@ export const IconCollapsed: React.FC = () => (
 	<IconSolidCheveronRight color="#6F6E77" size="16" />
 )
 
+const bodyKey = ReservedLogKey['Message']
+
 export const findMatchingLogAttributes = (
 	queryTerms: LogsSearchParam[],
 	logAttributes: object | string,
@@ -359,7 +361,7 @@ export const findMatchingLogAttributes = (
 		let matchingAttribute: string | undefined = undefined
 		if (
 			bodyQueryValue &&
-			key === 'message' &&
+			key === bodyKey &&
 			value.indexOf(bodyQueryValue) !== -1
 		) {
 			matchingAttribute = bodyQueryValue
