@@ -4603,24 +4603,21 @@ func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) 
 // ClientIntegration is the resolver for the clientIntegration field.
 func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
 	integration := &modelInputs.IntegrationStatus{
-		Integrated:       false,
-		ResourceType:     "Session",
-		ResourceSecureID: nil,
+		Integrated:   false,
+		ResourceType: "Session",
 	}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return integration, nil
 	}
 
-	firstSession := model.Session{}
-	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where("created_at > ?", time.Now().Add(time.Hour*24*-30)).Limit(1).Find(&firstSession).Error
-	if err != nil {
-		return integration, e.Wrap(err, "error querying session for project")
+	setupEvent := model.SetupEvent{}
+	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeSession).Limit(1).Find(&setupEvent).Error; err != nil {
+		return nil, e.Wrap(err, "error querying logging setup event")
 	}
 
-	if firstSession.ID != 0 {
+	if setupEvent.ID != 0 {
 		integration.Integrated = true
-		integration.ResourceSecureID = &firstSession.SecureID
-		integration.CreatedAt = &firstSession.CreatedAt
+		integration.CreatedAt = &setupEvent.CreatedAt
 	}
 
 	return integration, nil
@@ -4629,24 +4626,21 @@ func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*
 // ServerIntegration is the resolver for the serverIntegration field.
 func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
 	integration := &modelInputs.IntegrationStatus{
-		Integrated:       false,
-		ResourceType:     "ErrorGroup",
-		ResourceSecureID: nil,
+		Integrated:   false,
+		ResourceType: "ErrorGroup",
 	}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return integration, nil
 	}
 
-	firstErrorGroup := model.ErrorGroup{}
-	err := r.DB.Model(&model.ErrorGroup{}).Where("project_id = ?", projectID).Where("created_at > ?", time.Now().Add(time.Hour*24*-30)).Limit(1).Find(&firstErrorGroup).Error
-	if err != nil {
-		return integration, e.Wrap(err, "error querying error group for project")
+	setupEvent := model.SetupEvent{}
+	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeError).Limit(1).Find(&setupEvent).Error; err != nil {
+		return nil, e.Wrap(err, "error querying logging setup event")
 	}
 
-	if firstErrorGroup.ID != 0 {
+	if setupEvent.ID != 0 {
 		integration.Integrated = true
-		integration.ResourceSecureID = &firstErrorGroup.SecureID
-		integration.CreatedAt = &firstErrorGroup.CreatedAt
+		integration.CreatedAt = &setupEvent.CreatedAt
 	}
 
 	return integration, nil
@@ -4655,9 +4649,8 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 // LogsIntegration is the resolver for the logsIntegration field.
 func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
 	integration := &modelInputs.IntegrationStatus{
-		Integrated:       false,
-		ResourceType:     "Log",
-		ResourceSecureID: nil,
+		Integrated:   false,
+		ResourceType: "Log",
 	}
 	_, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
