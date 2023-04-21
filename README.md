@@ -100,8 +100,9 @@ See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/comp
 -   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
 
 <p align="center">
-<img width="1848" alt="logging-frame" src="https://user-images.githubusercontent.com/20292680/233539048-c1d12b2b-25b9-46d7-89d3-84dd6c9932e8.png">
+![logging-frame](https://user-images.githubusercontent.com/20292680/233539407-cd399425-7161-4e8d-b6e3-b43a120fd5bf.png)
 </p>
+
 
 ### More?! Metrics? Traces? Merch?
 
