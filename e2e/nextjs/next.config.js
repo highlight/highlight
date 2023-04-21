@@ -7,6 +7,7 @@ const nextConfig = {
 	experimental: {
 		appDir: true,
 	},
+	// transpilePackages: ['@highlight-run/react'],
 }
 
 module.exports = withHighlightConfig(nextConfig, { uploadSourceMaps: true })

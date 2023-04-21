@@ -1,15 +1,15 @@
 .container {
-	--brand-color: #5629c6;
+	--brand-color: #744ED4;
+	--brand-color-dark: #5629c6;
 	--color-text-primary: #111111;
 	--color-text-primary-inverted: #fff;
 	--color-text-link: var(--brand-color);
-	--size-xxLarge: 48px;
-	--size-xLarge: 32px;
 	--size-large: 24px;
 	--size-medium: 16px;
 	--size-small: 12px;
 	--size-xSmall: 8px;
-	--size-xxSmall: 4px;
+
+	--color-white: #fff;
 	--color-gray-100: hsla(0, 0%, 93.7%, 0.49019607843137253);
 	--color-gray-200: #f2f2f2;
 	--color-gray-300: #eaeaea;
@@ -19,10 +19,12 @@
 	--color-gray-700: #8a8f98;
 	--color-gray-800: #2d2f36;
 
-	background: hsl(0deg 0% 0% / 75%);
-	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+	--font-family: Steradian, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 		Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
 		'Segoe UI Symbol';
+
+	background: hsl(0deg 0% 0% / 75%);
+	font-family: var(--font-family);
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -35,16 +37,29 @@
 	align-items: center;
 }
 
-@media only screen and (max-width: 750px) {
+@media only screen and (max-width: 420px) {
 	.card {
-		width: 100%;
+		max-width: 100vw !important;
+		height: 100%;
+		border-radius: 0;
+	}
+
+	.cardContents {
+		height: 100%;
 		display: flex;
 		flex-direction: column;
-		justify-content: center;
-		padding-top: var(--size-xxLarge);
-		padding-bottom: var(--size-medium);
-		padding-left: var(--size-small);
-		padding-right: var(--size-small);
+	}
+
+	.form {
+		height: 100%;
+	}
+
+	.textareaLabel {
+		flex: 1;
+	}
+
+	.form textarea {
+		height: 100%;
 	}
 
 	.ad {
@@ -54,100 +69,109 @@
 
 .card {
 	border-radius: var(--size-xSmall);
-	padding: var(--size-xLarge);
-	width: 650px;
-	max-width: calc(100vw - 96px);
+	padding: 20px;
+	width: 420px;
+	max-width: calc(100vw - 1rem);
 	background: white;
 }
 
-.cardContents {
-	height: 0;
-	opacity: 0;
-	transition: visibility 0s, opacity 0.3s linear;
-	visibility: hidden;
-}
-
-.cardContentsVisible {
-	height: auto;
-	opacity: 1;
-	visibility: visible;
-}
-
 .title {
-	font-size: var(--size-large);
+	font-size: 20px;
 	color: var(--color-text-primary);
 }
 
 .subtitle {
-	font-size: 14px;
+	font-size: 13px;
 	margin-top: var(--size-medium) !important;
 	font-weight: 400;
-	color: var(--color-text-primary);
+	color: #8c8b92;
 }
 
 .form {
 	padding-top: var(--size-large);
 	display: flex;
 	flex-direction: column;
-	row-gap: var(--size-large);
+	gap: var(--size-small);
+	width: 100%;
 }
 
 .form label {
 	display: flex;
 	flex-direction: column;
-	font-size: 14px !important;
+	font-size: 11px !important;
+	font-weight: 500;
+	color: var(--color-gray-500);
 }
 
 .form input {
-	height: 40px;
+	height: 28px;
+}
+
+.form textarea {
+	font-family: var(--font-family);
+	min-height: 80px;
 }
 
 .form input,
 .form textarea {
-	background-color: var(--color-gray-200);
-	border: 0;
-	border-radius: 8px;
-	font-size: 15px;
+	background-color: var(--color-white);
+	border: 1px solid #DCDBDD;
+	border-radius: 6px;
+	color: var(--color-gray-500);
+
+	font-size: 13px;
 	margin: 8px 0;
 	outline: none;
-	padding: 15px;
-	width: calc(100% - 30px);
+	padding: 4px 6px;
+	width: calc(100%);
 }
 
-.button {
+.form button {
 	align-items: center;
 	display: flex;
 	justify-content: center;
-	min-height: 40px;
 	height: auto;
 	color: var(--color-text-primary-inverted);
-	background: var(--brand-color);
+	background-color: var(--brand-color);
 	text-shadow: none;
 	box-shadow: none;
-	padding: 4px 16px;
+	padding: 4px 6px;
 	font-size: 14px;
-	border-radius: 8px;
+	border-radius: 6px;
 	border: 0;
 	cursor: pointer;
 }
 
-.closeButton {
-	background: transparent !important;
-	color: var(--color-text-primary) !important;
-	border: 1px solid var(--color-gray-400) !important;
+.form button:hover {
+	background-color: var(--brand-color-dark);
+}
+
+.form button[disabled] {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+.form .closeButton {
+	background-color: transparent;
+	color: #6F6E77 !important;
+	font-size: 13px;
+	font-family: var(--font-family);
+	border: 1px solid var(--color-white);
+}
+
+.form .closeButton:hover {
+	background-color: var(--color-gray-100);
+	border-color: var(--color-gray-300);
 }
 
 .confirmationButton {
-	margin-top: var(--size-xxLarge);
-}
-
-.loadingButton {
-	background-color: #7e7e7e !important;
-	border: #7e7e7e solid 1px !important;
+	float: right;
+	margin-top: 3rem;
 }
 
 .formFooter {
 	display: flex;
+	flex-direction: row-reverse;
 	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
@@ -155,25 +179,28 @@
 
 .formActionsContainer {
 	display: flex;
-	column-gap: var(--size-small);
+	flex-direction: row-reverse;
+	gap: 6px;
 }
 
-.ad {
-	flex-shrink: 0;
-	font-size: 12px;
+.ad:hover {
+	background-color: var(--color-gray-100);
 }
 
 .logoContainer {
 	display: flex;
-	flex-direction: column;
-	height: 40px;
-	margin: 0 !important;
+	align-items: center;
+	gap: 6px;
+
+	border: 1px solid var(--color-gray-300);
+	border-radius: 6px;
+	color: var(--color-gray-500);
+	font-size: 13px;
+	padding: 4px 8px;
 }
 
 .logo {
-	height: 25px;
-	padding-top: 4px;
-	box-sizing: content-box;
+	height: 16px;
 }
 
 .buggyButton {
@@ -185,7 +212,7 @@
 	color: #fff;
 	cursor: pointer;
 	display: flex;
-	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+	font-family: Steradian, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 		Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
 		'Segoe UI Symbol';
 	font-size: 14px;
