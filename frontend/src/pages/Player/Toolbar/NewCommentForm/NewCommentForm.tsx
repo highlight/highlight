@@ -27,6 +27,7 @@ import {
 import ArrowLeftIcon from '@icons/ArrowLeftIcon'
 import ArrowRightIcon from '@icons/ArrowRightIcon'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
+import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import ISSUE_TRACKER_INTEGRATIONS, {
 	IssueTrackerIntegration,
@@ -409,6 +410,8 @@ export const NewCommentForm = ({
 		IntegrationType.Height,
 	)
 
+	const { settings: githubSettings } = useGitHubIntegration()
+
 	const issueIntegrationsOptions = useMemo(() => {
 		const integrations = []
 		if (isLinearIntegratedWithProject) {
@@ -456,12 +459,28 @@ export const NewCommentForm = ({
 				value: IntegrationType.Height,
 			})
 		}
+		if (githubSettings.isIntegrated) {
+			integrations.push({
+				displayValue: (
+					<span>
+						<img
+							className={styles.integrationIcon}
+							src={integrationMap['github']?.icon}
+						/>
+						Create a GitHub task
+					</span>
+				),
+				id: 'github',
+				value: IntegrationType.GitHub,
+			})
+		}
 		return integrations
 	}, [
 		isLinearIntegratedWithProject,
 		isClickupIntegrated,
 		isHeightIntegrated,
 		integrationMap,
+		githubSettings.isIntegrated,
 	])
 
 	useEffect(() => {

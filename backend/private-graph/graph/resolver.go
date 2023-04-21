@@ -2553,8 +2553,8 @@ func (r *Resolver) CreateGitHubTaskAndAttachment(
 		return err
 	}
 
-	attachment.ExternalID = strconv.FormatInt(*task.ID, 10)
-	attachment.Title = *task.Title
+	attachment.ExternalID = task.GetHTMLURL()
+	attachment.Title = task.GetTitle()
 	if err := r.DB.Create(attachment).Error; err != nil {
 		return e.Wrap(err, "error creating external attachment")
 	}
@@ -2580,9 +2580,9 @@ func (r *Resolver) GetGitHubRepos(
 
 	return lo.Map(repos, func(t *github2.Repository, i int) *modelInputs.GitHubRepo {
 		return &modelInputs.GitHubRepo{
-			RepoID: *t.URL,
-			Name:   *t.Name,
-			Key:    strconv.FormatInt(*t.ID, 10),
+			RepoID: t.GetURL(),
+			Name:   t.GetName(),
+			Key:    strconv.FormatInt(t.GetID(), 10),
 		}
 	}), nil
 }
