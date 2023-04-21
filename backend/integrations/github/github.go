@@ -12,10 +12,12 @@ import (
 )
 
 type Config struct {
-	githubAppId        string
-	githubClientID     string
+	githubAppId      string
+	githubPrivateKey string
+	// not used for installation workflow, but kept in case we need an oauth workflow in the future
+	githubClientID string
+	// not used for installation workflow, but kept in case we need an oauth workflow in the future
 	githubClientSecret string
-	githubPrivateKey   string
 }
 
 func GetConfig() (*Config, error) {
@@ -61,6 +63,10 @@ func NewClient(ctx context.Context, installation string) *Client {
 		return nil
 	}
 
+	// we use an app installation workflow to get access to the 'organization' into which
+	// an app is installed. if we went with an oauth workflow, we would only have access
+	// to the repositories the installing user owns.
+	// see https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation
 	jwtTransport, err := ghinstallation.NewAppsTransport(http.DefaultTransport, appID, []byte(config.githubPrivateKey))
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to create github client")
@@ -69,6 +75,7 @@ func NewClient(ctx context.Context, installation string) *Client {
 
 	itt := ghinstallation.NewFromAppsTransport(jwtTransport, installationID)
 
+	// a workaround from https://github.com/bradleyfalzon/ghinstallation/issues/39
 	client := github.NewClient(&http.Client{Transport: itt})
 	appsGhClient := github.NewClient(&http.Client{Transport: jwtTransport})
 	// this client can authenticate all calls except `Apps.Get()`

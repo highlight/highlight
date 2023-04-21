@@ -46,14 +46,14 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
-	highlight "github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72"
 	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -1557,6 +1557,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 				*issueTitle,
 				desc,
 				issueTeamID,
+				tags,
 			); err != nil {
 				return nil, e.Wrap(err, "error creating GitHub task")
 			}
@@ -1631,7 +1632,7 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeGitHub {
-			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
+			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID, nil); err != nil {
 				return nil, e.Wrap(err, "error creating GitHub task")
 			}
 
@@ -1957,7 +1958,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeGitHub {
-			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
+			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID, nil); err != nil {
 				return nil, e.Wrap(err, "error creating GitHub task")
 			}
 
@@ -2128,7 +2129,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeGitHub {
-			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
+			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID, nil); err != nil {
 				return nil, e.Wrap(err, "error creating GitHub task")
 			}
 

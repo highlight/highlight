@@ -1938,6 +1938,9 @@ func (r *Resolver) AddHeightToWorkspace(ctx context.Context, workspace *model.Wo
 }
 
 func (r *Resolver) AddGitHubToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	// a bit of a hack here, but the `code` is actually the `integrationID` which is provided
+	// from github after installation via a callback. this allows us to save the
+	// installation of this app for authenticating.
 	integrationWorkspaceMapping := &model.IntegrationWorkspaceMapping{
 		WorkspaceID:     workspace.ID,
 		IntegrationType: modelInputs.IntegrationTypeGitHub,
@@ -2535,7 +2538,12 @@ func (r *Resolver) CreateGitHubTaskAndAttachment(
 	issueTitle string,
 	issueDescription string,
 	repo *string,
+	tags []*modelInputs.SessionCommentTagInput,
 ) error {
+	labels := lo.Map(tags, func(t *modelInputs.SessionCommentTagInput, i int) string {
+		return t.Name
+	})
+
 	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitHub)
 
 	if err != nil {
@@ -2546,8 +2554,9 @@ func (r *Resolver) CreateGitHubTaskAndAttachment(
 		return errors.New("No GitHub integration access token found.")
 	}
 	task, err := github.NewClient(ctx, *accessToken).CreateIssue(ctx, *repo, &github2.IssueRequest{
-		Title: pointy.String(issueTitle),
-		Body:  pointy.String(issueDescription),
+		Title:  pointy.String(issueTitle),
+		Body:   pointy.String(issueDescription),
+		Labels: &labels,
 	})
 	if err != nil {
 		return err

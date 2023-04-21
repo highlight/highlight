@@ -467,7 +467,7 @@ export const NewCommentForm = ({
 							className={styles.integrationIcon}
 							src={integrationMap['github']?.icon}
 						/>
-						Create a GitHub task
+						Create a GitHub issue
 					</span>
 				),
 				id: 'github',
