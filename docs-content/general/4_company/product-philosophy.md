@@ -19,4 +19,4 @@ Prior to working on highlight.io, we all worked at several tech companies of var
 
 With highlight.io, we're changing that by building monitoring software that "wraps" your infrastructure and application, and we do ALL the work to stitch everything together. Our long-term goal is that you can trace everything from a button click to a server-side regression with little to no effort.
 
-Now, if you were to ask, "but that's a lot to build, no?" we would reply with ["Yes, give us a hand?"](https://careers.highlight.run).
+Now, if you were to ask, "but that's a lot to build, no?" we would reply with ["Yes, give us a hand?"](https://careers.highlight.io).
