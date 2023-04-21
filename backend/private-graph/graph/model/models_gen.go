@@ -286,6 +286,12 @@ type ErrorTrace struct {
 	LinesAfter                 *string             `json:"linesAfter"`
 }
 
+type GitHubRepo struct {
+	RepoID string `json:"repo_id"`
+	Name   string `json:"name"`
+	Key    string `json:"key"`
+}
+
 type HeightList struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`

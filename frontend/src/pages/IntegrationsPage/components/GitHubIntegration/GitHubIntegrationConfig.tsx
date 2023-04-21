@@ -1,4 +1,5 @@
 import Button from '@components/Button/Button/Button'
+import { useProjectId } from '@hooks/useProjectId'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
@@ -9,7 +10,7 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
-import { useParams } from '@util/react-router/useParams'
+import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import React, { useMemo } from 'react'
 
 import styles from './GitHubIntegrationConfig.module.scss'
@@ -17,9 +18,13 @@ import styles from './GitHubIntegrationConfig.module.scss'
 const GitHubIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
 > = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action }) => {
-	const { project_id } = useParams<{ project_id: string }>()
-	const { removeGitHubIntegrationFromProject } = useGitHubIntegration()
-	const authUrl = useMemo(() => getGitHubOAuthUrl(project_id!), [project_id])
+	const { projectId } = useProjectId()
+	const { currentWorkspace } = useApplicationContext()
+	const { removeIntegration } = useGitHubIntegration()
+	const authUrl = useMemo(
+		() => getGitHubOAuthUrl(projectId!, currentWorkspace?.id || ''),
+		[currentWorkspace?.id, projectId],
+	)
 	if (action === IntegrationAction.Disconnect) {
 		return (
 			<>
@@ -46,7 +51,7 @@ const GitHubIntegrationConfig: React.FC<
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
-							removeGitHubIntegrationFromProject(project_id)
+							removeIntegration()
 						}}
 					>
 						<PlugIcon className={styles.modalBtnIcon} />

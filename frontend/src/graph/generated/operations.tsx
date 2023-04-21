@@ -3538,14 +3538,6 @@ export type GetWorkspaceIsIntegratedWithZapierQuery = {
 	__typename?: 'Query'
 } & { is_integrated_with_linear: Types.Query['is_integrated_with'] }
 
-export type GetWorkspaceIsIntegratedWithGitHubQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type GetWorkspaceIsIntegratedWithGitHubQuery = {
-	__typename?: 'Query'
-} & { is_integrated_with_github: Types.Query['is_integrated_with'] }
-
 export type GetWorkspaceIsIntegratedWithFrontQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -3628,6 +3620,23 @@ export type GetHeightIntegrationSettingsQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'IntegrationProjectMapping' } & Pick<
 			Types.IntegrationProjectMapping,
 			'project_id' | 'external_id'
+		>
+	>
+}
+
+export type GetGitHubIntegrationSettingsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetGitHubIntegrationSettingsQuery = { __typename?: 'Query' } & {
+	is_integrated: Types.Query['is_workspace_integrated_with']
+} & {
+	github_repos?: Types.Maybe<
+		Array<
+			{ __typename?: 'GitHubRepo' } & Pick<
+				Types.GitHubRepo,
+				'repo_id' | 'name' | 'key'
+			>
 		>
 	>
 }
@@ -4398,8 +4407,6 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithLinear' as const,
 		GetWorkspaceIsIntegratedWithZapier:
 			'GetWorkspaceIsIntegratedWithZapier' as const,
-		GetWorkspaceIsIntegratedWithGitHub:
-			'GetWorkspaceIsIntegratedWithGitHub' as const,
 		GetWorkspaceIsIntegratedWithFront:
 			'GetWorkspaceIsIntegratedWithFront' as const,
 		GetWorkspaceIsIntegratedWithDiscord:
@@ -4408,6 +4415,7 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithVercel' as const,
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
 		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
+		GetGitHubIntegrationSettings: 'GetGitHubIntegrationSettings' as const,
 		GetProjectIntegratedWith: 'GetProjectIntegratedWith' as const,
 		GetClickUpFolders: 'GetClickUpFolders' as const,
 		GetHeightLists: 'GetHeightLists' as const,

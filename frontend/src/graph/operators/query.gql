@@ -1549,13 +1549,6 @@ query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {
 	)
 }
 
-query GetWorkspaceIsIntegratedWithGitHub($project_id: ID!) {
-	is_integrated_with_github: is_integrated_with(
-		integration_type: GitHub
-		project_id: $project_id
-	)
-}
-
 query GetWorkspaceIsIntegratedWithFront($project_id: ID!) {
 	is_integrated_with_front: is_integrated_with(
 		integration_type: Front
@@ -1621,6 +1614,18 @@ query GetHeightIntegrationSettings($workspace_id: ID!) {
 	) {
 		project_id
 		external_id
+	}
+}
+
+query GetGitHubIntegrationSettings($workspace_id: ID!) {
+	is_integrated: is_workspace_integrated_with(
+		integration_type: GitHub
+		workspace_id: $workspace_id
+	)
+	github_repos(workspace_id: $workspace_id) {
+		repo_id
+		name
+		key
 	}
 }
 

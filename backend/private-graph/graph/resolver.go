@@ -6,6 +6,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	github2 "github.com/google/go-github/v50/github"
+	"github.com/highlight-run/highlight/backend/integrations/github"
 	"io"
 	"math/big"
 	"net/http"
@@ -1935,6 +1937,10 @@ func (r *Resolver) AddHeightToWorkspace(ctx context.Context, workspace *model.Wo
 	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeHeight, code)
 }
 
+func (r *Resolver) AddGitHubToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeGitHub, code)
+}
+
 func (r *Resolver) AddDiscordToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	token, err := discord.OAuth(ctx, code)
 
@@ -2509,6 +2515,65 @@ func (r *Resolver) CreateHeightTaskAndAttachment(
 		return e.Wrap(err, "error creating external attachment")
 	}
 	return nil
+}
+
+func (r *Resolver) CreateGitHubTaskAndAttachment(
+	ctx context.Context,
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueDescription string,
+	repo *string,
+) error {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitHub)
+
+	if err != nil {
+		return err
+	}
+
+	if accessToken == nil {
+		return errors.New("No GitHub integration access token found.")
+	}
+	task, err := github.NewClient(ctx, *accessToken).CreateIssue(ctx, *repo, &github2.IssueRequest{
+		Title: pointy.String(issueTitle),
+		Body:  pointy.String(issueDescription),
+	})
+	if err != nil {
+		return err
+	}
+
+	attachment.ExternalID = strconv.FormatInt(*task.ID, 10)
+	attachment.Title = *task.Title
+	if err := r.DB.Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
+func (r *Resolver) GetGitHubRepos(
+	ctx context.Context,
+	workspace *model.Workspace,
+) ([]*modelInputs.GitHubRepo, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitHub)
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, errors.New("No GitHub integration access token found.")
+	}
+	repos, err := github.NewClient(ctx, *accessToken).GetRepos(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Map(repos, func(t *github2.Repository, i int) *modelInputs.GitHubRepo {
+		return &modelInputs.GitHubRepo{
+			RepoID: *t.URL,
+			Name:   *t.Name,
+			Key:    strconv.FormatInt(*t.ID, 10),
+		}
+	}), nil
 }
 
 type LinearAccessTokenResponse struct {

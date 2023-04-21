@@ -18,14 +18,12 @@ import (
 type Client struct {
 	db     *gorm.DB
 	height *height.HeightClient
-	github *github.Client
 }
 
 func NewIntegrationsClient(db *gorm.DB) *Client {
 	client := &Client{
 		db:     db,
 		height: height.NewHeightClient(),
-		github: github.NewClient(),
 	}
 
 	return client
@@ -34,6 +32,8 @@ func NewIntegrationsClient(db *gorm.DB) *Client {
 func getOAuthConfig(integrationType modelInputs.IntegrationType) (*oauth2.Config, []oauth2.AuthCodeOption, error) {
 	if integrationType == modelInputs.IntegrationTypeHeight {
 		return height.GetOAuthConfig()
+	} else if integrationType == modelInputs.IntegrationTypeGitHub {
+		return github.GetOAuthConfig()
 	}
 
 	return nil, nil, fmt.Errorf("invalid integrationType: %s", integrationType)
@@ -42,6 +42,8 @@ func getOAuthConfig(integrationType modelInputs.IntegrationType) (*oauth2.Config
 func getRefreshOAuthToken(ctx context.Context, oldToken *oauth2.Token, integrationType modelInputs.IntegrationType) (*oauth2.Token, error) {
 	if integrationType == modelInputs.IntegrationTypeHeight {
 		return height.GetRefreshToken(ctx, oldToken)
+	} else if integrationType == modelInputs.IntegrationTypeGitHub {
+		return github.GetRefreshToken(ctx, oldToken)
 	}
 
 	return nil, fmt.Errorf("invalid integrationType: %s", integrationType)

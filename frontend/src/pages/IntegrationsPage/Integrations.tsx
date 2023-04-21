@@ -1,5 +1,6 @@
 import {
 	IconSolidClickUp,
+	IconSolidGithub,
 	IconSolidHeight,
 	IconSolidLinear,
 } from '@highlight-run/ui'
@@ -22,6 +23,7 @@ import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerInt
 import React from 'react'
 
 import GitHubIntegrationConfig from './components/GitHubIntegration/GitHubIntegrationConfig'
+import GitHubRepoSelector from './components/GitHubIntegration/GitHubRepoSelector'
 
 export interface Integration {
 	key: string
@@ -163,7 +165,7 @@ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 	Icon: IconSolidHeight,
 }
 
-export const GITHUB_INTEGRATION: Integration = {
+export const GITHUB_INTEGRATION: IssueTrackerIntegration = {
 	key: 'github',
 	name: 'GitHub',
 	configurationPath: 'github',
@@ -171,6 +173,10 @@ export const GITHUB_INTEGRATION: Integration = {
 	configurationPage: (opts) => <GitHubIntegrationConfig {...opts} />,
 	icon: '/images/integrations/github.svg',
 	hasSettings: false,
+	containerLabel: 'repo',
+	issueLabel: 'issue',
+	containerSelection: (opts) => <GitHubRepoSelector {...opts} />,
+	Icon: IconSolidGithub,
 }
 
 const INTEGRATIONS: Integration[] = [

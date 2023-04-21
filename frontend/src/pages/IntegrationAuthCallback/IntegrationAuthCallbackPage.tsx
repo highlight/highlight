@@ -7,6 +7,7 @@ import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
+import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
@@ -28,6 +29,8 @@ interface Props {
 }
 
 export const VercelSettingsModalWidth = 672
+
+const WorkspaceIntegrations = new Set<string>(['clickup', 'github', 'height'])
 
 const logError = (e: any) => {
 	H.consumeError(e)
@@ -309,6 +312,20 @@ const HeightIntegrationCallback = ({ code, projectId }: Props) => {
 	)
 }
 
+const GitHubIntegrationCallback = ({ code, projectId, next }: Props) => {
+	const { addIntegration } = useGitHubIntegration()
+	return (
+		<WorkspaceIntegrationCallback
+			code={code}
+			name="GitHub"
+			type="github"
+			addIntegration={addIntegration}
+			projectId={projectId}
+			next={next}
+		/>
+	)
+}
+
 const IntegrationAuthCallbackPage = () => {
 	const { integrationName } = useParams<{
 		integrationName: string
@@ -345,6 +362,53 @@ const IntegrationAuthCallbackPage = () => {
 		}
 	}, [])
 
+	const name = integrationName?.toLowerCase() || ''
+
+	if (WorkspaceIntegrations.has(name)) {
+		let cb = null
+		switch (name) {
+			case 'clickup':
+				cb = (
+					<ClickUpIntegrationCallback
+						code={code}
+						projectId={projectId}
+					/>
+				)
+				break
+			case 'height':
+				cb = (
+					<HeightIntegrationCallback
+						code={code}
+						projectId={projectId}
+					/>
+				)
+				break
+			case 'github':
+				cb = (
+					<GitHubIntegrationCallback
+						code={code}
+						projectId={projectId}
+					/>
+				)
+				break
+		}
+		return (
+			<ApplicationContextProvider
+				value={{
+					currentProject: undefined,
+					allProjects: [],
+					currentWorkspace: workspaceId
+						? { id: workspaceId, name: '' }
+						: undefined,
+					workspaces: [],
+				}}
+			>
+				{' '}
+				{cb}
+			</ApplicationContextProvider>
+		)
+	}
+
 	switch (integrationName?.toLowerCase()) {
 		case 'slack':
 			return (
@@ -371,42 +435,6 @@ const IntegrationAuthCallbackPage = () => {
 		case 'discord':
 			return (
 				<DiscordIntegrationCallback code={code} projectId={projectId} />
-			)
-		case 'clickup':
-			return (
-				<ApplicationContextProvider
-					value={{
-						currentProject: undefined,
-						allProjects: [],
-						currentWorkspace: workspaceId
-							? { id: workspaceId, name: '' }
-							: undefined,
-						workspaces: [],
-					}}
-				>
-					<ClickUpIntegrationCallback
-						code={code}
-						projectId={projectId}
-					/>
-				</ApplicationContextProvider>
-			)
-		case 'height':
-			return (
-				<ApplicationContextProvider
-					value={{
-						currentProject: undefined,
-						allProjects: [],
-						currentWorkspace: workspaceId
-							? { id: workspaceId, name: '' }
-							: undefined,
-						workspaces: [],
-					}}
-				>
-					<HeightIntegrationCallback
-						code={code}
-						projectId={projectId}
-					/>
-				</ApplicationContextProvider>
 			)
 	}
 
