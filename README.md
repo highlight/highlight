@@ -103,10 +103,6 @@ See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/comp
 <img width="600" alt="logging" src="https://user-images.githubusercontent.com/20292680/233539519-f8f58251-5b88-4703-8bea-2cd8d9549faf.png">
 </p>
 
-
-
-
-
 ### More?! Metrics? Traces? Merch?
 
 Have an idea for what we should build next? Please share our [community](https://highlight.io/community) or via a Github Issue!
