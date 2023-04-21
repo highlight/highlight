@@ -124,9 +124,9 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 					justifyContent="flex-end"
 					flexBasis={0}
 				>
-					{path && ctaText && (
+					{ctaText && (
 						<LinkButton
-							to={path}
+							to={path || ''}
 							trackingId={`setup-resource-${
 								area === 'backend' ? 'error' : 'session'
 							}`}
