@@ -312,14 +312,18 @@ const HeightIntegrationCallback = ({ code, projectId }: Props) => {
 	)
 }
 
-const GitHubIntegrationCallback = ({ code, projectId, next }: Props) => {
+const GitHubIntegrationCallback = ({
+	projectId,
+	next,
+	installationId,
+}: Omit<Props, 'code'> & { installationId?: string; setupAction?: string }) => {
 	const { addIntegration } = useGitHubIntegration()
 	return (
 		<WorkspaceIntegrationCallback
-			code={code}
 			name="GitHub"
 			type="github"
 			addIntegration={addIntegration}
+			code={installationId!}
 			projectId={projectId}
 			next={next}
 		/>
@@ -336,31 +340,36 @@ const IntegrationAuthCallbackPage = () => {
 		setLoadingState(AppLoadingState.EXTENDED_LOADING)
 	}, [setLoadingState])
 
-	const { code, projectId, next, workspaceId } = useMemo(() => {
-		const urlParams = new URLSearchParams(window.location.search)
-		const code = urlParams.get('code')!
-		const state = urlParams.get('state') || ''
-		let projectId: string | undefined = undefined
-		let next: string | undefined = undefined
-		let workspaceId: string | undefined = undefined
-		if (state) {
-			let parsedState: any
-			try {
-				parsedState = JSON.parse(atob(state))
-			} catch (e) {
-				parsedState = JSON.parse(state)
+	const { code, projectId, workspaceId, next, installationId, setupAction } =
+		useMemo(() => {
+			const urlParams = new URLSearchParams(window.location.search)
+			const code = urlParams.get('code')!
+			const state = urlParams.get('state') || ''
+			const installationId = urlParams.get('installation_id') || ''
+			const setupAction = urlParams.get('setup_action') || ''
+			let projectId: string | undefined = undefined
+			let next: string | undefined = undefined
+			let workspaceId: string | undefined = undefined
+			if (state) {
+				let parsedState: any
+				try {
+					parsedState = JSON.parse(atob(state))
+				} catch (e) {
+					parsedState = JSON.parse(state)
+				}
+				projectId = parsedState['project_id']
+				next = parsedState['next']
+				workspaceId = parsedState['workspace_id']
 			}
-			projectId = parsedState['project_id']
-			next = parsedState['next']
-			workspaceId = parsedState['workspace_id']
-		}
-		return {
-			code,
-			projectId,
-			next,
-			workspaceId,
-		}
-	}, [])
+			return {
+				code,
+				projectId,
+				next,
+				workspaceId,
+				installationId,
+				setupAction,
+			}
+		}, [])
 
 	const name = integrationName?.toLowerCase() || ''
 
@@ -386,8 +395,9 @@ const IntegrationAuthCallbackPage = () => {
 			case 'github':
 				cb = (
 					<GitHubIntegrationCallback
-						code={code}
 						projectId={projectId}
+						installationId={installationId}
+						setupAction={setupAction}
 					/>
 				)
 				break

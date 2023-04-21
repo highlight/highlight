@@ -3,7 +3,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
-	getGitHubOAuthUrl,
+	getGitHubInstallationOAuthUrl,
 	useGitHubIntegration,
 } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import {
@@ -22,7 +22,11 @@ const GitHubIntegrationConfig: React.FC<
 	const { currentWorkspace } = useApplicationContext()
 	const { removeIntegration } = useGitHubIntegration()
 	const authUrl = useMemo(
-		() => getGitHubOAuthUrl(projectId!, currentWorkspace?.id || ''),
+		() =>
+			getGitHubInstallationOAuthUrl(
+				projectId!,
+				currentWorkspace?.id || '',
+			),
 		[currentWorkspace?.id, projectId],
 	)
 	if (action === IntegrationAction.Disconnect) {

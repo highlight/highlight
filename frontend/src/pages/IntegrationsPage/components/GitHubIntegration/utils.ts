@@ -48,3 +48,25 @@ export const getGitHubOAuthUrl = (projectId: string, workspaceId: string) => {
 		`state=${btoa(JSON.stringify(state))}&`
 	)
 }
+
+export const getGitHubInstallationOAuthUrl = (
+	projectId: string,
+	workspaceId: string,
+) => {
+	let redirectPath = window.location.pathname
+	if (redirectPath.length > 3) {
+		// remove project_id and prepended slash
+		redirectPath = redirectPath.substring(redirectPath.indexOf('/', 1) + 1)
+	}
+
+	const state = {
+		next: redirectPath,
+		project_id: projectId,
+		workspace_id: workspaceId,
+	}
+
+	return (
+		`https://github.com/apps/highlight-io/installations/new` +
+		`?state=${btoa(JSON.stringify(state))}&`
+	)
+}

@@ -6,7 +6,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/highlight-run/highlight/backend/integrations/github"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -32,8 +31,6 @@ func NewIntegrationsClient(db *gorm.DB) *Client {
 func getOAuthConfig(integrationType modelInputs.IntegrationType) (*oauth2.Config, []oauth2.AuthCodeOption, error) {
 	if integrationType == modelInputs.IntegrationTypeHeight {
 		return height.GetOAuthConfig()
-	} else if integrationType == modelInputs.IntegrationTypeGitHub {
-		return github.GetOAuthConfig()
 	}
 
 	return nil, nil, fmt.Errorf("invalid integrationType: %s", integrationType)
@@ -42,8 +39,6 @@ func getOAuthConfig(integrationType modelInputs.IntegrationType) (*oauth2.Config
 func getRefreshOAuthToken(ctx context.Context, oldToken *oauth2.Token, integrationType modelInputs.IntegrationType) (*oauth2.Token, error) {
 	if integrationType == modelInputs.IntegrationTypeHeight {
 		return height.GetRefreshToken(ctx, oldToken)
-	} else if integrationType == modelInputs.IntegrationTypeGitHub {
-		return github.GetRefreshToken(ctx, oldToken)
 	}
 
 	return nil, fmt.Errorf("invalid integrationType: %s", integrationType)

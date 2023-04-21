@@ -1938,7 +1938,18 @@ func (r *Resolver) AddHeightToWorkspace(ctx context.Context, workspace *model.Wo
 }
 
 func (r *Resolver) AddGitHubToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
-	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeGitHub, code)
+	integrationWorkspaceMapping := &model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: modelInputs.IntegrationTypeGitHub,
+		AccessToken:     code,
+	}
+
+	if err := r.DB.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Create(integrationWorkspaceMapping).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *Resolver) AddDiscordToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
