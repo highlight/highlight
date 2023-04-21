@@ -99,6 +99,10 @@ See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/comp
 -   **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
 -   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
 
+<p align="center">
+<img width="600" alt="logging" src="https://user-images.githubusercontent.com/20292680/233539519-f8f58251-5b88-4703-8bea-2cd8d9549faf.png">
+</p>
+
 ### More?! Metrics? Traces? Merch?
 
 Have an idea for what we should build next? Please share our [community](https://highlight.io/community) or via a Github Issue!
