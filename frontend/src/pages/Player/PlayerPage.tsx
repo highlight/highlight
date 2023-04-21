@@ -12,7 +12,6 @@ import { Box, Callout, Text } from '@highlight-run/ui'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { CompleteSetup } from '@pages/Player/components/CompleteSetup/CompleteSetup'
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard'
-import UnauthorizedViewingForm from '@pages/Player/components/UnauthorizedViewingForm/UnauthorizedViewingForm'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -525,7 +524,6 @@ const PlayerPage = ({ integrated }: Props) => {
 						>
 							{showSession ? sessionView : sessionFiller}
 						</div>
-						<UnauthorizedViewingForm />
 						<NewCommentModal
 							newCommentModalRef={newCommentModalRef}
 							commentModalPosition={commentModalPosition}
