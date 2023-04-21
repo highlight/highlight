@@ -1,16 +1,22 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 import { DatePicker } from './Calendar/DatePicker'
 import { DatePickerStateProvider } from '@rehookify/datepicker'
 import { Menu, MenuButtonProps, useMenu } from '../Menu/Menu'
 import { Text } from '../Text/Text'
+import { Form } from '@highlight-run/ui'
 import {
 	IconSolidCheck,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
+	IconSolidClock,
 } from '../icons'
 import { Stack } from '../Stack/Stack'
 import { Box } from '../Box/Box'
+import { colors } from '../../css/colors'
+
+const VALID_FORMATTED_TIME_REGEX =
+	/((1[0-2]|0?[1-9]):([0-5][0-9]) ?([AaPp][Mm]))/
 
 export type Preset = {
 	label: string
@@ -58,6 +64,74 @@ function toDateTimeString(date: Date, showYear: boolean) {
 		options.year = 'numeric'
 	}
 	return date.toLocaleDateString('en-us', options)
+}
+
+/**
+ * Takes in a time string in the format HH:mm aa or HH:mmaa and returns	an object with the hour, minute, time of day, and 24 hour time
+ * @param timeString
+ * @returns {	hour: number, minute: number, timeOfDay: string, hour24: number}
+ */
+export const getTimeInfo = (timeString: string) => {
+	const time = timeString.slice(0, -2).trim()
+	const period = timeString.slice(-2).trim().toUpperCase()
+	const [hour, minute] = time.split(':')
+	const isAM = period === 'AM'
+	const isPM = period === 'PM'
+	const hourInt = parseInt(hour, 10)
+	const hour24 =
+		isPM && hourInt !== 12
+			? hourInt + 12
+			: isAM && hourInt === 12
+			? 0
+			: hourInt
+	const timeOfDay = isAM ? 'AM' : isPM ? 'PM' : ''
+
+	return { hour: hourInt, minute: parseInt(minute, 10), timeOfDay, hour24 }
+}
+
+/**
+ * Takes in a date and a time string in the format HH:mm aa or HH:mmaa and returns a new date with the time set
+ * @param date Date
+ * @param hour number
+ * @param minute number
+ * @returns new date	with time set
+ */
+const setTimeOnDate = (date: Date, hour: number, minute: number) => {
+	const newDate = new Date(date)
+
+	newDate.setHours(hour)
+	newDate.setMinutes(minute)
+
+	return newDate
+}
+
+/**
+ * Converts a Date object to a string in the format "HH:mm aa".
+ *
+ * @param {Date} date - The Date object to convert.
+ * @returns {string} A string in the format "HH:mm aa".
+ */
+const getTimeStringFromDate = (date: Date): string => {
+	if (!date) return '00:00 AM'
+
+	const hour = date.getHours() % 12 || 12
+	const minute = date.getMinutes().toString().padStart(2, '0')
+	const period = date.getHours() < 12 ? 'AM' : 'PM'
+
+	return `${hour}:${minute} ${period}`
+}
+
+/**
+ * Format date	to be displayed in the input.
+ * @param date {Date}
+ * @returns {string}
+ */
+const formatDisplayedDate = (date: Date) => {
+	return new Date(date).toLocaleDateString('en-US', {
+		month: 'long',
+		day: 'numeric',
+		year: 'numeric',
+	})
 }
 
 export const getLabel = ({
@@ -128,6 +202,9 @@ const PreviousDateRangePickerImpl = ({
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
 	)
+	const [showingTime, setShowingTime] = useState<boolean>(false)
+	const [startTimeIsValid, setStartTimeIsValid] = useState<boolean>(true)
+	const [endTimeIsValid, setEndTimeIsValid] = useState<boolean>(true)
 
 	const menu = useMenu()
 	useEffect(() => {
@@ -136,9 +213,30 @@ const PreviousDateRangePickerImpl = ({
 		}
 	}, [menu.open])
 
+	// Close the time picker when the menu is closed
+	useEffect(() => {
+		if (menuState === MenuState.Default) {
+			setShowingTime(false)
+		}
+	}, [menuState])
+
+	const startTimePlaceholder = useMemo(
+		() => getTimeStringFromDate(selectedDates[0]),
+		[selectedDates[0]],
+	)
+
+	const endTimePlaceholder = useMemo(
+		() => getTimeStringFromDate(selectedDates[1]),
+		[selectedDates[1]],
+	)
+
 	const [buttonLabel, setButtonLabel] = useState<string>(
 		getLabel({ selectedDates, presets }),
 	)
+
+	const handleShowingTimeToggle = () => {
+		setShowingTime((prevShowingTime) => !prevShowingTime)
+	}
 
 	const handleDatesChange = (dates: Date[]) => {
 		onDatesChange(dates)
@@ -147,6 +245,49 @@ const PreviousDateRangePickerImpl = ({
 			menu.setOpen(false)
 			setMenuState(MenuState.Default)
 		}
+	}
+
+	const handleTimeChange = (
+		event: React.ChangeEvent<HTMLInputElement>,
+		input: 'start' | 'end',
+	) => {
+		const value = event.target.value
+		const isValid = value.match(VALID_FORMATTED_TIME_REGEX) !== null
+
+		if (input === 'start') {
+			setStartTimeIsValid(isValid)
+
+			if (!isValid) {
+				return
+			}
+
+			const timeInfo = getTimeInfo(value)
+			const startDate = setTimeOnDate(
+				selectedDates[0],
+				timeInfo.hour24,
+				timeInfo.minute,
+			)
+
+			onDatesChange([startDate, selectedDates[1]])
+
+			return
+		}
+
+		setEndTimeIsValid(isValid)
+
+		if (!isValid) {
+			return
+		}
+
+		const timeInfo = getTimeInfo(value)
+
+		const endDate = setTimeOnDate(
+			selectedDates[1],
+			timeInfo.hour24,
+			timeInfo.minute,
+		)
+
+		onDatesChange([selectedDates[0], endDate])
 	}
 
 	useEffect(() => {
@@ -213,10 +354,10 @@ const PreviousDateRangePickerImpl = ({
 							}}
 						>
 							<Stack
-								align="center"
-								justify="space-between"
-								direction="row"
-								width="full"
+								width={'full'}
+								display={'flex'}
+								alignItems={'center'}
+								justifyContent={'space-between'}
 							>
 								<Stack direction="row" align="center" gap="4">
 									<CheckboxIconIfSelected
@@ -232,15 +373,161 @@ const PreviousDateRangePickerImpl = ({
 						</Menu.Item>
 					</>
 				) : (
-					<Menu.Item
-						style={{ padding: 0 }}
-						onClick={(e) => {
-							e.preventDefault()
-							e.stopPropagation()
-						}}
-					>
-						<DatePicker />
-					</Menu.Item>
+					<>
+						<Box
+							borderBottom={'divider'}
+							pb={'4'}
+							px={'4'}
+							display={'flex'}
+							gap={'4'}
+						>
+							<Box style={{ width: 116 }}>
+								<Box
+									border={'secondary'}
+									py={'8'}
+									borderBottom={
+										startTimeIsValid ? 'secondary' : 'none'
+									}
+									borderTopLeftRadius={'6'}
+									borderTopRightRadius={'6'}
+									borderBottomLeftRadius={
+										showingTime ? undefined : '6'
+									}
+									borderBottomRightRadius={
+										showingTime ? undefined : '6'
+									}
+									pl={'6'}
+								>
+									<Text size="small">
+										{selectedDates[0]
+											? formatDisplayedDate(
+													selectedDates[0],
+											  )
+											: 'Start Date'}
+									</Text>
+								</Box>
+								{showingTime ? (
+									<Box
+										border={
+											startTimeIsValid
+												? 'secondary'
+												: 'error'
+										}
+										borderTop={
+											startTimeIsValid ? 'none' : 'error'
+										}
+										borderBottomLeftRadius={'6'}
+										borderBottomRightRadius={'6'}
+									>
+										<Form.Input
+											name={'startTime'}
+											placeholder={startTimePlaceholder}
+											type="input"
+											color={'n8'}
+											style={{
+												boxSizing: 'border-box',
+												border: 'none',
+												background: 'none',
+											}}
+											onChange={(event) =>
+												handleTimeChange(event, 'start')
+											}
+										/>
+									</Box>
+								) : null}
+							</Box>
+							<Box style={{ width: 116 }}>
+								<Box
+									border={'secondary'}
+									py={'8'}
+									pl={'6'}
+									borderBottom={
+										endTimeIsValid ? 'secondary' : 'none'
+									}
+									borderTopLeftRadius={'6'}
+									borderTopRightRadius={'6'}
+									borderBottomLeftRadius={
+										showingTime ? undefined : '6'
+									}
+									borderBottomRightRadius={
+										showingTime ? undefined : '6'
+									}
+								>
+									<Text size="small">
+										{selectedDates[1]
+											? formatDisplayedDate(
+													selectedDates[1],
+											  )
+											: 'End Date'}
+									</Text>
+								</Box>
+								{showingTime ? (
+									<Box
+										border={
+											endTimeIsValid
+												? 'secondary'
+												: 'error'
+										}
+										borderTop={
+											endTimeIsValid ? 'none' : 'error'
+										}
+										pl={'6'}
+										borderBottomLeftRadius={'6'}
+										borderBottomRightRadius={'6'}
+									>
+										<Form.Input
+											name={'endTime'}
+											placeholder={endTimePlaceholder}
+											type="input"
+											color={'n8'}
+											style={{
+												boxSizing: 'border-box',
+												border: 'none',
+												background: 'none',
+											}}
+											onChange={(event) =>
+												handleTimeChange(event, 'end')
+											}
+										/>
+									</Box>
+								) : null}
+							</Box>
+							<Box
+								border={'divider'}
+								borderRadius={'4'}
+								as="button"
+								p={'7'}
+								cursor="pointer"
+								background={'n4'}
+								style={{
+									width: 28,
+									height: 28,
+									background: showingTime
+										? colors.p9
+										: colors.n4,
+								}}
+								onClick={handleShowingTimeToggle}
+							>
+								<IconSolidClock
+									style={{
+										color: showingTime
+											? colors.white
+											: colors.n11,
+									}}
+								/>
+							</Box>
+						</Box>
+
+						<Menu.Item
+							style={{ padding: 0 }}
+							onClick={(e) => {
+								e.preventDefault()
+								e.stopPropagation()
+							}}
+						>
+							<DatePicker />
+						</Menu.Item>
+					</>
 				)}
 			</Menu.List>
 		</DatePickerStateProvider>
