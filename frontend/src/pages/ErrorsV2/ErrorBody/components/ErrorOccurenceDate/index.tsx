@@ -15,6 +15,7 @@ const ErrorOccurenceDate = ({ errorGroup }: Props) => {
 			flexShrink={0}
 			flexWrap="wrap"
 			maxWidth="full"
+			style={{ rowGap: 8 }}
 		>
 			<Text color="black" size="large" weight="bold" whiteSpace="nowrap">
 				{errorGroup?.last_occurrence
