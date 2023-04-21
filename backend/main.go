@@ -348,7 +348,7 @@ func main() {
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
 		OpenSearch:             opensearchClient,
-		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig())),
+		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), redisClient),
 		Redis:                  redisClient,
 		StepFunctions:          sfnClient,
 		OAuthServer:            oauthSrv,
@@ -474,7 +474,7 @@ func main() {
 			StorageClient:   storageClient,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
-			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig())),
+			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), redisClient),
 			Redis:           redisClient,
 			RH:              &rh,
 		}
@@ -564,7 +564,7 @@ func main() {
 			StorageClient:   storageClient,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
-			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig())),
+			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), redisClient),
 			Redis:           redisClient,
 			Clickhouse:      clickhouseClient,
 			RH:              &rh,
@@ -603,7 +603,7 @@ func main() {
 			// in `all` mode, refresh materialized views every hour
 			go func() {
 				w.RefreshMaterializedViews(ctx)
-				for range time.Tick(time.Hour) {
+				for range time.Tick(time.Second) {
 					w.RefreshMaterializedViews(ctx)
 				}
 			}()

@@ -2,9 +2,16 @@ package hubspot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/openlyinc/pointy"
+	"github.com/samber/lo"
+	"io"
 	"math"
+	"net/http"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -33,11 +40,13 @@ func retry[T *int](fn func() (T, error)) (ret T, err error) {
 
 type HubspotApi struct {
 	hubspotClient hubspot.Client
+	redisClient   *redis.Client
 }
 
-func NewHubspotAPI(client hubspot.Client) *HubspotApi {
+func NewHubspotAPI(client hubspot.Client, redisClient *redis.Client) *HubspotApi {
 	h := &HubspotApi{}
 	h.hubspotClient = client
+	h.redisClient = redisClient
 	return h
 }
 
@@ -52,9 +61,22 @@ type CustomContactsResponse struct {
 	ProfileURL   string `json:"profile-url"`
 }
 
+type CompanyProperty struct {
+	Value     string `json:"value"`
+	Timestamp int64  `json:"timestamp"`
+}
+
+type CompanyResponse struct {
+	PortalID   int                         `json:"portalId"`
+	CompanyID  int                         `json:"companyId"`
+	Properties map[string]*CompanyProperty `json:"properties"`
+}
+
 type CompaniesResponse struct {
-	PortalID  int `json:"portalId"`
-	CompanyID int `json:"companyId"`
+	Results []*CompanyResponse `json:"results"`
+	HasMore bool               `json:"hasMore"`
+	Offset  int                `json:"offset"`
+	Total   int                `json:"total"`
 }
 
 func (h *HubspotApi) BackendCreationDisabled() bool {
@@ -174,24 +196,99 @@ func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminI
 	return nil
 }
 
-func (h *HubspotApi) getCompany(name string) (contactId *int, err error) {
-	r := CompaniesResponse{}
-	if getErr := h.hubspotClient.Contacts().Client.Request("GET", fmt.Sprintf("companies/v2/companies/%s", name), nil, &r); getErr != nil {
-		errr := e.Wrap(err, e.Wrap(getErr, "error getting hubspot company data by email").Error())
-		return nil, errr
+func (h *HubspotApi) doRequest(url string, result interface{}, params map[string]string) error {
+	req, _ := http.NewRequest("GET", fmt.Sprintf("https://api.hubapi.com%s", url), nil)
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Bearer "+os.Getenv("HUBSPOT_OAUTH_TOKEN"))
+	q := req.URL.Query()
+	q.Add("hapikey", os.Getenv("HUBSPOT_API_KEY"))
+	for k, v := range params {
+		q.Add(k, v)
+	}
+	req.URL.RawQuery = q.Encode()
+
+	httpClient := &http.Client{}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 && resp.StatusCode != 204 {
+		return fmt.Errorf("HubSpot API error: %d - %s \n%s", resp.StatusCode, resp.Status, string(body))
+	}
+
+	return nil
+}
+
+func (h *HubspotApi) getAllCompanies(ctx context.Context) (companies []*CompanyResponse, err error) {
+	if h.redisClient != nil {
+		err = h.redisClient.GetHubspotCompanies(ctx, &companies)
+		if err == nil && len(companies) > 0 {
+			return companies, nil
+		}
+	}
+	offset := 0
+	for {
+		r := CompaniesResponse{}
+		if err = h.doRequest("/companies/v2/companies/recent/created", &r, map[string]string{
+			"count": "100", "offset": strconv.Itoa(offset),
+		}); err != nil {
+			return
+		} else {
+			companies = append(companies, r.Results...)
+			if !r.HasMore {
+				break
+			}
+			offset = r.Offset
+		}
+	}
+	if h.redisClient != nil {
+		_ = h.redisClient.SetHubspotCompanies(ctx, &companies)
+	}
+	return
+}
+
+func (h *HubspotApi) getCompany(ctx context.Context, name string) (*int, error) {
+	companies, err := h.getAllCompanies(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if company, ok := lo.Find(companies, func(response *CompanyResponse) bool {
+		for prop, data := range response.Properties {
+			if prop == "name" {
+				return data.Value == name
+			}
+		}
+		return false
+	}); !ok {
+		return nil, e.New(fmt.Sprintf("failed to find company with name %s", name))
 	} else {
-		return pointy.Int(r.CompanyID), nil
+		return pointy.Int(company.CompanyID), nil
 	}
 }
 
 func (h *HubspotApi) CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string, db *gorm.DB) (companyID *int, err error) {
-	if h.BackendCreationDisabled() {
-		return h.getCompany(name)
-	}
-
 	// Don't create for Demo account
 	if workspaceID == 0 {
 		return
+	}
+
+	if h.BackendCreationDisabled() {
+		return h.getCompany(ctx, name)
 	}
 
 	if emailproviders.Exists(adminEmail) {

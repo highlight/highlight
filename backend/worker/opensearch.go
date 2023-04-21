@@ -66,7 +66,7 @@ func (w *Worker) IndexSessions(ctx context.Context, isUpdate bool) {
 
 	if err := query.Preload("Fields").
 		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
-		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
+		log.WithContext(ctx).Errorf("OPENSEARCH_ERROR error querying objects: %+v", err)
 	}
 
 	if isUpdate {
@@ -99,13 +99,13 @@ func (w *Worker) IndexErrorGroups(ctx context.Context, isUpdate bool) {
 	rows, err := query.
 		Order("created_at asc").Rows()
 	if err != nil {
-		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
+		log.WithContext(ctx).Errorf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
 	}
 
 	for rows.Next() {
 		eg := model.ErrorGroup{}
 		if err := w.Resolver.DB.ScanRows(rows, &eg); err != nil {
-			log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error scanning rows: %+v", err)
+			log.WithContext(ctx).Errorf("OPENSEARCH_ERROR error scanning rows: %+v", err)
 		}
 		var filename *string
 		if eg.MappedStackTrace != nil {
@@ -160,13 +160,13 @@ func (w *Worker) IndexErrorObjects(ctx context.Context, isUpdate bool) {
 		Order("created_at asc").Rows()
 
 	if err != nil {
-		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
+		log.WithContext(ctx).Errorf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
 	}
 
 	for rows.Next() {
 		eo := model.ErrorObject{}
 		if err := w.Resolver.DB.ScanRows(rows, &eo); err != nil {
-			log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error scanning rows: %+v", err)
+			log.WithContext(ctx).Errorf("OPENSEARCH_ERROR error scanning rows: %+v", err)
 		}
 
 		os := opensearch.OpenSearchErrorObject{
@@ -218,13 +218,13 @@ func (w *Worker) IndexTable(ctx context.Context, index opensearch.Index, modelPr
 
 	rows, err := query.Order("created_at asc").Rows()
 	if err != nil {
-		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
+		log.WithContext(ctx).Errorf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
 	}
 
 	for rows.Next() {
 		modelObj := modelPrototype
 		if err := w.Resolver.DB.ScanRows(rows, modelObj); err != nil {
-			log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR error scanning rows: %+v", err)
+			log.WithContext(ctx).Errorf("OPENSEARCH_ERROR error scanning rows: %+v", err)
 		}
 
 		w.indexItem(ctx, index, modelObj)
