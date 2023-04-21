@@ -6,7 +6,7 @@ slug: overview
 
 You can find our logging product at [app.highlight.io/logs](https://app.highlight.io/logs). 
 
-If you're language of choice isn't support in the "Getting Started" docs below, hit us up in [our community](https://highlight.io/community) or send us an email.
+If your language of choice isn't support in the "Getting Started" docs below, hit us up in [our community](https://highlight.io/community) or send us an email at support@highlight.io
 
 Get started with the resources below:
 
