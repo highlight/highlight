@@ -603,7 +603,7 @@ func main() {
 			// in `all` mode, refresh materialized views every hour
 			go func() {
 				w.RefreshMaterializedViews(ctx)
-				for range time.Tick(time.Second) {
+				for range time.Tick(time.Hour) {
 					w.RefreshMaterializedViews(ctx)
 				}
 			}()
