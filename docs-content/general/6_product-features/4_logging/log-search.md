@@ -68,4 +68,14 @@ To perform a wildcard search, use the `*` symbol:
 
 By default, Highlight's SDKs will autoinject attributes to provide additional context as well as assisting in linking [sessions](../1_session-replay/) and [errors](../2_error-monitoring/) to their respective logs.
 
-![](/images/log-search-table.png)
+| Attribute        | Description                                        | Example                                                                                                                                             |
+|------------------|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `code.filepath`  | Filepath of where the log was emitted.             | `/build/backend/worker/worker.go`                                                                                                                   |
+| `code.function`  | Function of where the log was emitted.             | `github.com/highlight-run/highlight/backend/worker.(*Worker).Start.func3`                                                                           |
+| `code.lineno`    | Line number of the file where the log was emitted. | `20`                                                                                                                                                |
+| `host.name`      | Hostname                                           | `ip-172-31-5-211.us-east-2.compute.internal`                                                                                                        |
+| `os.description` | Description of operating system                    | `Alpine Linux 3.17.2 (Linux ip-172-31-5-211.us-east-2.compute.internal 5.10.167-147.601.amzn2.aarch64 #1 SMP Tue Feb 14 21:50:23 UTC 2023 aarch64)` |
+| `os.type`        | Type of operating system                           | `linux`                                                                                                                                             |
+| `level`          | The log level                                      | `info`                                                                                                                                              |
+| `message`        | The log message                                    | `public-graph graphql request failed`                                                                                                               |
+| `span.id`        | Span id that contains this log                     | `528a54addf6f91cc`                                                                                                                                  |
