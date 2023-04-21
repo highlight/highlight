@@ -15,6 +15,7 @@ ARG REACT_APP_DEMO_SESSION
 ARG REACT_APP_FIREBASE_CONFIG_OBJECT
 ARG REACT_APP_FRONTEND_ORG
 ARG REACT_APP_FRONTEND_URI
+ARG REACT_APP_IN_DOCKER
 ARG REACT_APP_PRIVATE_GRAPH_URI
 ARG REACT_APP_PUBLIC_GRAPH_URI
 ARG TURBO_TOKEN
@@ -23,6 +24,8 @@ RUN yarn build:frontend
 
 # reduce the image size by keeping just the built code
 FROM nginx:stable-alpine as frontend-prod
+ARG REACT_APP_COMMIT_SHA
+ENV REACT_APP_COMMIT_SHA=$REACT_APP_COMMIT_SHA
 LABEL org.opencontainers.image.source=https://github.com/highlight/highlight
 LABEL org.opencontainers.image.description="highlight.io Production Frontend Image"
 LABEL org.opencontainers.image.licenses="Apache 2.0"

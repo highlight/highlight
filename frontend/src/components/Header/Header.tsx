@@ -54,7 +54,6 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { client } from '@util/graph'
-import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
 import { showIntercom } from '@util/window'
@@ -651,9 +650,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 }
 
 const getBanner = (project_id: string) => {
-	if (isOnPrem) {
-		return <OnPremiseBanner />
-	} else if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
+	if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
 		return <DemoWorkspaceBanner />
 	} else {
 		return <BillingBanner />
@@ -794,25 +791,6 @@ const productsToString = (p: ProductType[]): string => {
 		rest.reverse()
 		return rest.join(', ') + `, and ${last}`
 	}
-}
-
-const OnPremiseBanner = () => {
-	const { toggleShowBanner } = useGlobalContext()
-	toggleShowBanner(true)
-
-	return (
-		<div
-			className={styles.trialWrapper}
-			style={{
-				backgroundColor: 'var(--color-primary-inverted-background)',
-			}}
-		>
-			<div className={clsx(styles.trialTimeText)}>
-				Running Highlight On-premise{' '}
-				{`v${import.meta.env.REACT_APP_COMMIT_SHA}`}
-			</div>
-		</div>
-	)
 }
 
 const DemoWorkspaceBanner = () => {

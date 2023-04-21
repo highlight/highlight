@@ -20,7 +20,7 @@ highlight.io is a monitoring tool for the next generation of developers (like yo
 At a high level, highlight.io's feature set is:
 - Session Replay (read more [here](#session-replay-understand-why-bugs-happen))
 - Error Monitoring (read more [here](#error-monitoring-understand-what-bugs-are-happening))
-- Logging (still in beta) (read more [here](#logging))
+- Logging (read more [here](#logging))
 
 Read more about our [features](#features) below.
 
@@ -49,7 +49,7 @@ Deploy a hobby instance in one line on Linux with Docker (recommended 16 CPU cor
 ```bash
 git clone --recurse-submodules https://github.com/highlight/highlight
 # or `git submodule update --init --recursive` on git < 2.13
-cd docker && ./run.sh
+cd docker && ./run-hobby.sh
 ```
 
 After a brief frontend load time, the app should be accessible at https://localhost:3000
@@ -93,7 +93,15 @@ See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/comp
 
 ### Logging
 
-Our logging product is still in beta, but please [message us in discord](https://highlight.io) if you'd like a sneak peak of what we're building. We'd love for you to try an early version to share feedback.
+-   **Powerful Log Search**: Search across all your logs, with automatic property collection -> [docs](https://www.highlight.io/docs/general/product-features/logging/log-search)
+-   **Log Alerts**: Set thresholds for your log alerts, and view them in the alerts dashboard -> [docs](https://www.highlight.io/docs/general/product-features/general-features/alerts)
+-   **Embedded Session Replay and Errors**: See all of the sessions & errors associated with any given log.
+-   **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
+-   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
+
+<p align="center">
+<img width="600" alt="logging" src="https://user-images.githubusercontent.com/20292680/233539519-f8f58251-5b88-4703-8bea-2cd8d9549faf.png">
+</p>
 
 ### More?! Metrics? Traces? Merch?
 

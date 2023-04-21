@@ -1,5 +1,6 @@
 #!/bin/bash -ex
 
+./telemetry.sh
 source env.sh --go-docker
 ./start-infra.sh --go-docker --prod
 
