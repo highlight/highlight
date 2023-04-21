@@ -182,7 +182,7 @@ const Products = ({ product }: { product: iProduct }) => {
 									</PrimaryButton>
 
 									<PrimaryButton
-										href={'/docs'}
+										href={product.docsLink}
 										className={classNames(
 											styles.hollowButton,
 										)}
