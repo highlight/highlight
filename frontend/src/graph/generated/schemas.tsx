@@ -1473,6 +1473,7 @@ export enum PlanType {
 	Free = 'Free',
 	Lite = 'Lite',
 	Startup = 'Startup',
+	UsageBased = 'UsageBased',
 }
 
 export enum ProductType {

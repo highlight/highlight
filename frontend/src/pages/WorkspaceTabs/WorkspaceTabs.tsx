@@ -11,6 +11,7 @@ import { useLocation, useMatch, useNavigate } from 'react-router-dom'
 import styles from './WorkspaceTabs.module.scss'
 
 const BillingPage = React.lazy(() => import('../Billing/Billing'))
+const BillingPageV2 = React.lazy(() => import('../Billing/BillingPageV2'))
 
 export type WorkspaceSettingsTab =
 	| 'team'
@@ -83,7 +84,7 @@ export const WorkspaceTabs = () => {
 							title: getTitle('current-plan'),
 							panelContent: (
 								<Suspense fallback={null}>
-									<BillingPage />
+									<BillingPageV2 />
 								</Suspense>
 							),
 						},
@@ -92,7 +93,7 @@ export const WorkspaceTabs = () => {
 							title: getTitle('upgrade-plan'),
 							panelContent: (
 								<Suspense fallback={null}>
-									<BillingPage />
+									<BillingPageV2 />
 								</Suspense>
 							),
 						},

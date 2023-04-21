@@ -8306,6 +8306,7 @@ enum PlanType {
 	Basic
 	Startup
 	Enterprise
+	UsageBased
 }
 
 enum ProductType {

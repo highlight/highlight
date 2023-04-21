@@ -222,6 +222,8 @@ export const BillingStatusCard = ({
 		case PlanType.Enterprise:
 			planTypeStr = 'Enterprise'
 			break
+		case PlanType.UsageBased:
+			planTypeStr = 'Usage-Based'
 	}
 
 	return (

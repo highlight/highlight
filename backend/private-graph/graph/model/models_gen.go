@@ -1269,6 +1269,7 @@ const (
 	PlanTypeBasic      PlanType = "Basic"
 	PlanTypeStartup    PlanType = "Startup"
 	PlanTypeEnterprise PlanType = "Enterprise"
+	PlanTypeUsageBased PlanType = "UsageBased"
 )
 
 var AllPlanType = []PlanType{
@@ -1277,11 +1278,12 @@ var AllPlanType = []PlanType{
 	PlanTypeBasic,
 	PlanTypeStartup,
 	PlanTypeEnterprise,
+	PlanTypeUsageBased,
 }
 
 func (e PlanType) IsValid() bool {
 	switch e {
-	case PlanTypeFree, PlanTypeLite, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise:
+	case PlanTypeFree, PlanTypeLite, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise, PlanTypeUsageBased:
 		return true
 	}
 	return false

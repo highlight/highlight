@@ -5438,9 +5438,14 @@ func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID 
 
 // BillingDetails is the resolver for the billingDetails field.
 func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*modelInputs.BillingDetails, error) {
-	workspace, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
+	_, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
+	}
+
+	workspace, err := r.Query().Workspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	planType := modelInputs.PlanType(workspace.PlanTier)
@@ -5485,7 +5490,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	g.Go(func() error {
 		logsMeter, err = pricing.GetWorkspaceLogsMeter(ctx, r.DB, r.ClickhouseClient, workspace)
 		if err != nil {
-			return e.Wrap(err, "error querying errors meter")
+			return e.Wrap(err, "error querying logs meter")
 		}
 		return nil
 	})
