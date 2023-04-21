@@ -14,7 +14,8 @@ var (
 )
 
 func IsHubspotEnabled() bool {
-	return !IsDevEnv()
+	return true
+	//return !IsDevEnv()
 }
 
 func IsDevEnv() bool {

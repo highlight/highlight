@@ -2,6 +2,8 @@ package hubspot
 
 import (
 	"context"
+	"fmt"
+	"github.com/openlyinc/pointy"
 	"math"
 	"strings"
 	"time"
@@ -50,6 +52,27 @@ type CustomContactsResponse struct {
 	ProfileURL   string `json:"profile-url"`
 }
 
+type CompaniesResponse struct {
+	PortalID  int `json:"portalId"`
+	CompanyID int `json:"companyId"`
+}
+
+func (h *HubspotApi) BackendCreationDisabled() bool {
+	// backend hubspot company and contact creation is disabled to see how the
+	// frontend javascript tracking snippet performs.
+	return true
+}
+
+func (h *HubspotApi) getContactForAdmin(email string) (contactId *int, err error) {
+	r := CustomContactsResponse{}
+	if getErr := h.hubspotClient.Contacts().Client.Request("GET", "/contacts/v1/contact/email/"+email+"/profile", nil, &r); getErr != nil {
+		errr := e.Wrap(err, e.Wrap(getErr, "error getting hubspot contact data by email").Error())
+		return nil, errr
+	} else {
+		return pointy.Int(r.Vid), nil
+	}
+}
+
 func (h *HubspotApi) createContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	var hubspotContactId int
 	if resp, err := h.hubspotClient.Contacts().Create(hubspot.ContactsRequest{
@@ -92,12 +115,8 @@ func (h *HubspotApi) createContactForAdmin(ctx context.Context, adminID int, ema
 		},
 	}); err != nil {
 		// If there's an error creating the contact, assume its a conflict and try to get the existing user.
-		r := CustomContactsResponse{}
-		if getErr := h.hubspotClient.Contacts().Client.Request("GET", "/contacts/v1/contact/email/"+email+"/profile", nil, &r); getErr != nil {
-			errr := e.Wrap(err, e.Wrap(getErr, "error getting hubspot contact data by email").Error())
-			return nil, errr
-		} else {
-			hubspotContactId = r.Vid
+		if contact, err := h.getContactForAdmin(email); err == nil {
+			return contact, nil
 		}
 	} else {
 		hubspotContactId = resp.Vid
@@ -108,12 +127,19 @@ func (h *HubspotApi) createContactForAdmin(ctx context.Context, adminID int, ema
 }
 
 func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
+	if h.BackendCreationDisabled() {
+		return h.getContactForAdmin(email)
+	}
+
 	return retry(func() (*int, error) {
 		return h.createContactForAdmin(ctx, adminID, email, userDefinedRole, userDefinedPersona, first, last, phone, referral)
 	})
 }
 
 func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int, db *gorm.DB) error {
+	if h.BackendCreationDisabled() {
+		return nil
+	}
 	admin := &model.Admin{}
 	if err := db.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
 		return e.Wrap(err, "error retrieving admin details")
@@ -148,7 +174,21 @@ func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminI
 	return nil
 }
 
+func (h *HubspotApi) getCompany(name string) (contactId *int, err error) {
+	r := CompaniesResponse{}
+	if getErr := h.hubspotClient.Contacts().Client.Request("GET", fmt.Sprintf("companies/v2/companies/%s", name), nil, &r); getErr != nil {
+		errr := e.Wrap(err, e.Wrap(getErr, "error getting hubspot company data by email").Error())
+		return nil, errr
+	} else {
+		return pointy.Int(r.CompanyID), nil
+	}
+}
+
 func (h *HubspotApi) CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string, db *gorm.DB) (companyID *int, err error) {
+	if h.BackendCreationDisabled() {
+		return h.getCompany(name)
+	}
+
 	// Don't create for Demo account
 	if workspaceID == 0 {
 		return

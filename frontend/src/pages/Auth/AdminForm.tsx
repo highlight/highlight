@@ -44,6 +44,7 @@ const COMMON_EMAIL_PROVIDERS = [
 	'hey.com',
 ] as const
 
+// IMPORTANT: /about_you is used by google ads for conversion tracking
 export const AdminForm: React.FC = () => {
 	const { refetch: refetchProjects } = useGetProjectsAndWorkspacesQuery()
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
