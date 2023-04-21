@@ -12,7 +12,7 @@ export const SelfHostContent: QuickStartContent = {
 				'Before we get started, you should have the latest version of [Docker](https://docs.docker.com/engine/install/) (19.03.0+) ' +
 				'and [Git](https://git-scm.com/downloads) (2.13+) installed. ' +
 				'For a local hobby deploy, we suggest [configuring docker](https://docs.docker.com/desktop/settings/mac/#resources) ' +
-				'to use at least 6GB of RAM, 2 CPUs, and 64 GB of disk space.',
+				'to use at least 8GB of RAM, 4 CPUs, and 64 GB of disk space.',
 			code: {
 				language: 'bash',
 				text: `$ docker --version

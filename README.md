@@ -44,7 +44,7 @@ The fastest and most reliable way to get started with highlight.io is signing up
 
 ### Hobby self-hosted
 
-Deploy a hobby instance in one line on Linux with Docker (we recommend at least 6GB of RAM, 2 CPUs, and 64 GB of disk space):
+Deploy a hobby instance in one line on Linux with Docker (we recommend at least 8GB of RAM, 4 CPUs, and 64 GB of disk space):
 
 ```bash
 git clone --recurse-submodules https://github.com/highlight/highlight
