@@ -357,18 +357,18 @@ export const findMatchingLogAttributes = (
 		}
 
 		let matchingAttribute: string | undefined = undefined
-		if (bodyQueryValue && value.indexOf(bodyQueryValue) !== -1) {
+		if (
+			bodyQueryValue &&
+			key === 'message' &&
+			value.indexOf(bodyQueryValue) !== -1
+		) {
 			matchingAttribute = bodyQueryValue
 		} else {
 			queryTerms.some((term) => {
 				const queryKey = term.key
 				const queryValue = term.value
 
-				if (
-					queryKey === key ||
-					queryValue === value ||
-					value.indexOf(queryValue) !== -1
-				) {
+				if (queryKey === key && value.indexOf(queryValue) !== -1) {
 					matchingAttribute = queryValue
 				}
 			})
