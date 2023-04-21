@@ -71,8 +71,8 @@ def get_sus_children(node, passwords):
     if node.get('id', '') in passwords:
         val = node.get('attributes', {}).get('value', '')
         if val and not set('*') <= set(val):
-            print(val)
             susses.add(node['id'])
+            node['attributes']['value'] = '*' * len(val)
     for child in node.get('childNodes', []):
         susses |= get_sus_children(child, passwords)
     return susses
@@ -94,6 +94,12 @@ def get_sus(f):
         elif e['type'] == 3:
             removed_passwords = set()
             removed_password_ancestors = set()
+            id = e['data'].get('id', None)
+            if id and id in passwords:
+                text = e['data'].get('text', '')
+                if text and not set('*') <= set(text):
+                    susses.add(id)
+                    e['data']['text'] = '*' * len(text)
             for r in e['data'].get('removes', []):
                 for p in passwords:
                     if r['id'] in get_ancestors(p, edges):
@@ -119,23 +125,31 @@ def get_sus(f):
                     removed_password_ancestors.add(node['id'])
                     passwords |= get_maybe_passwords(node)
                 susses |= get_sus_children(a['node'], passwords)
-    return susses
+    if susses:
+        return json.dumps(events)
+    return None
 
 # if __name__ == "__main__":
 #     with open(sys.argv[1]) as f:
-#         print('error!', 'zane/test', get_sus(f.read()))
+#         sus = get_sus(f.read())
+#         if sus:
+#             print(sus)
+        # print('error!', 'zane/test', get_sus(f.read()))
 
 def lambda_handler(event, context):
     # Get the object from the event and show its content type
     try:
         bucket = event['Records'][0]['s3']['bucket']['name']
         key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'], encoding='utf-8')
-        if 'session-contents-compressed-0' not in key:
+        if 'session-contents-compressed-' not in key:
             return
         response = s3.get_object(Bucket=bucket, Key=key)
         sus = get_sus(brotli.decompress(response['Body'].read()))
         if sus:
-            print('sus!', key, sus)
+            newKey = key.replace('session-contents-compressed-', 'session-contents-compressed-v2-')
+            print('sus!', newKey)
+            compressed = brotli.compress(sus.encode(), quality=9)
+            s3.put_object(Body=compressed, Bucket=bucket, Key=newKey, ContentEncoding='br', ContentType='application/json')
         return
     except Exception as e:
         print('error!', e)
