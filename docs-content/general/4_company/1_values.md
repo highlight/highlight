@@ -1,5 +1,5 @@
 ---
-title: Mission & Values
+title: Values
 slug: values
 createdAt: 2022-04-01T20:28:14.000Z
 updatedAt: 2022-04-15T02:07:22.000Z
@@ -7,15 +7,14 @@ updatedAt: 2022-04-15T02:07:22.000Z
 
 ## Overview
 
-This doc acts as a reference for our values at highlight.io, which includes how we work and we build things. If you'd like to learn more about our product philosophy, check [this doc](./product-philosophy.md).
-
-Our mission is to support developers (like you) to ship with confidence. We do this by giving you the tools you need to **uncover, resolve, and prevent** issues in your web app.
-
-With everything we build, we maintain an unwavering promise to use open source technologies so that you and your team don't have a dependency on our hosted offerings. 
+This doc acts as a reference for our values at highlight.io, which includes how we work and we build things. It acts a way for us to understand how we should operate and what the "startup mentality" means to us. If you'd like to learn more about our product philosophy (which is more related to our product) see [this doc](./product-philosophy.md).
 
 ## We build in public.
 
+With everything we build, we maintain an unwavering promise to use open source technologies so that you and your team don't have a dependency on our hosted offerings. 
+
 We strive to build in public in every way we can. This means sharing our roadmap, product specs, and company strategy. We see this as giving you all the more reason to consider joining us in [building highlight](https://careers.highlight.run).
+
 
 ## We execute quickly and fail fast.
 

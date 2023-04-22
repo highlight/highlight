@@ -1,11 +1,13 @@
 ---
-title: Our Product Philosophy
+title: Product Philosophy
 slug: product-philosophy
 ---
 
 ## Overview
 
 This doc acts as a reference for our product philosophy at highlight.io, or to be more exact, how we think about what we build (not necessarily how we build it). It acts as a way for our team to prioritize work. If you'd like to learn more about our company values, check [this doc](./1_values.md).
+
+Our mission is to support developers (like you) to ship with confidence. We do this by giving you the tools you need to **uncover, resolve, and prevent** issues in your web app.
 
 ## Cohesion
 
