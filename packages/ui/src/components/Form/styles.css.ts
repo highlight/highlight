@@ -14,7 +14,7 @@ export const inputVariants = recipe({
 		selectors: {
 			'&::placeholder': {
 				color: vars.theme.interactive.fill.secondary.content.onDisabled,
-				fontFamily: typographyStyles.family.body.fontFamily
+				fontFamily: typographyStyles.family.body.fontFamily,
 			},
 			'&:disabled': {
 				background: colors.n5,

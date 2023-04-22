@@ -220,6 +220,13 @@ const PreviousDateRangePickerImpl = ({
 		}
 	}, [menuState])
 
+	useEffect(() => {
+		if (showingTime === false) {
+			setStartTimeIsValid(true)
+			setEndTimeIsValid(true)
+		}
+	}, [showingTime])
+
 	const startTimePlaceholder = useMemo(
 		() => getTimeStringFromDate(selectedDates[0]),
 		[selectedDates[0]],
@@ -387,9 +394,7 @@ const PreviousDateRangePickerImpl = ({
 									border={'secondary'}
 									py={'8'}
 									borderBottom={
-										startTimeIsValid
-											? 'secondary'
-											: 'secondary'
+										startTimeIsValid ? 'secondary' : 'none'
 									}
 									borderTopLeftRadius={'6'}
 									borderTopRightRadius={'6'}
@@ -445,9 +450,7 @@ const PreviousDateRangePickerImpl = ({
 									py={'8'}
 									pl={'6'}
 									borderBottom={
-										endTimeIsValid
-											? 'secondary'
-											: 'secondary'
+										endTimeIsValid ? 'secondary' : 'none'
 									}
 									borderTopLeftRadius={'6'}
 									borderTopRightRadius={'6'}
