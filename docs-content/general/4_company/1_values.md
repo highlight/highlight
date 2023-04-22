@@ -9,6 +9,8 @@ updatedAt: 2022-04-15T02:07:22.000Z
 
 This doc acts as a reference for our values at highlight.io, which includes how we work and we build things. It acts a way for us to understand how we should operate and what the "startup mentality" means to us. If you'd like to learn more about our product philosophy (which is more related to our product) see [this doc](./product-philosophy.md).
 
+Our values below:
+
 ## We build in public.
 
 With everything we build, we maintain an unwavering promise to use open source technologies so that you and your team don't have a dependency on our hosted offerings. 
