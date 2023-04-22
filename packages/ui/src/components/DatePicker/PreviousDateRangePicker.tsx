@@ -356,6 +356,7 @@ const PreviousDateRangePickerImpl = ({
 							<Stack
 								width={'full'}
 								display={'flex'}
+								direction={'row'}
 								alignItems={'center'}
 								justifyContent={'space-between'}
 							>
@@ -386,7 +387,9 @@ const PreviousDateRangePickerImpl = ({
 									border={'secondary'}
 									py={'8'}
 									borderBottom={
-										startTimeIsValid ? 'secondary' : 'none'
+										startTimeIsValid
+											? 'secondary'
+											: 'secondary'
 									}
 									borderTopLeftRadius={'6'}
 									borderTopRightRadius={'6'}
@@ -442,7 +445,9 @@ const PreviousDateRangePickerImpl = ({
 									py={'8'}
 									pl={'6'}
 									borderBottom={
-										endTimeIsValid ? 'secondary' : 'none'
+										endTimeIsValid
+											? 'secondary'
+											: 'secondary'
 									}
 									borderTopLeftRadius={'6'}
 									borderTopRightRadius={'6'}
