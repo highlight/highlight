@@ -2,7 +2,8 @@ import React from 'react'
 import { Box } from '../Box/Box'
 
 import * as styles from './styles.css'
-import { Button, Text } from '../../components'
+import { Button } from '../../components/Button/Button'
+import { Text } from '../../components/Text/Text'
 
 interface Page {
 	page: React.ReactNode
