@@ -47,20 +47,29 @@ jobs:
 
             - name: Is deploy running
               id: deploy
+              env:
+                GITHUB_EVENT_REF: ${{ github.event.ref }}
+                INPUTS_ACTION: ${{ inputs.action }}
               run: |
-                  echo "running=$(startsWith($github.event.ref, 'refs/tags/sdk/highlight-java/') || $inputs.action == 'deploy')" >> "$GITHUB_OUTPUT"
+                  echo "running=$(startsWith($GITHUB_EVENT_REF, 'refs/tags/sdk/highlight-java/') || $INPUTS_ACTION == 'deploy')" >> "$GITHUB_OUTPUT"
                   echo "Is deploy running: $running"
 
             - name: Is build running
               id: build
+              env:
+                DEPLOY_RUNNING: ${{ needs.setup.build.running }}
+                INPUTS_ACTION: ${{ inputs.action }}
               run: |
-                  echo "running=$(($inputs.action == '' || $inputs.action == 'none') || ($inputs.action == 'build' || ${{needs.setup.deploy.running}}))" >> "$GITHUB_OUTPUT"
+                  echo "running=$(($INPUTS_ACTION == '' || $INPUTS_ACTION == 'none') || ($INPUTS_ACTION == 'build' || ${{needs.setup.deploy.running}}))" >> "$GITHUB_OUTPUT"
                   echo "Is build running: $running"
 
             - name: Is test running
               id: test
+              env:
+                DEPLOY_RUNNING: ${{ needs.setup.build.running }}
+                INPUTS_ACTION: ${{ inputs.action }}
               run: |
-                  echo "running=$(($inputs.action == '' || $inputs.action == 'none') || ($inputs.action == 'test' || ${{needs.setup.deploy.running}}))" >> "$GITHUB_OUTPUT"
+                  echo "running=$(($INPUTS_ACTION == '' || $INPUTS_ACTION == 'none') || ($INPUTS_ACTION == 'test' || ${{needs.setup.deploy.running}}))" >> "$GITHUB_OUTPUT"
                   echo "Is test running: $running"
 
             - name: Set build version
