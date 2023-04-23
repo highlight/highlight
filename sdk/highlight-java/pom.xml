@@ -43,6 +43,10 @@
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 
+		<maven.install.skip>true</maven.install.skip>
+		<maven.deploy.skip>true</maven.deploy.skip>
+		<deployAtEnd>true</deployAtEnd>
+
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<dependency.opentelemetry.version>1.24.0</dependency.opentelemetry.version>
@@ -101,6 +105,12 @@
 				<groupId>io.opentelemetry</groupId>
 				<artifactId>opentelemetry-semconv</artifactId>
 				<version>${dependency.opentelemetry-alpha.version}</version> <!-- waiting for final release -->
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-web</artifactId>
+				<version>3.0.6</version>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.junit.jupiter</groupId>
@@ -191,6 +201,7 @@
 					<serverId>ossrh</serverId>
 					<nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
 					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+					<skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -214,5 +225,6 @@
 		<module>highlight-sdk</module>
 		<module>highlight-log</module>
 		<module>highlight-common</module>
+		<module>highlight-framework</module>
 	</modules>
 </project>
