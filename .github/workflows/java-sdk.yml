@@ -58,7 +58,7 @@ jobs:
             - name: Build running
               id: build
               env:
-                DEPLOY_RUNNING: ${{ needs.setup.build.running }}
+                DEPLOY_RUNNING: ${{ needs.setup.outputs.deploy }}
                 INPUTS_ACTION: ${{ inputs.action }}
               run: |
                   running=$(if [ "$INPUTS_ACTION" != "test" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
@@ -68,7 +68,7 @@ jobs:
             - name: Test running
               id: test
               env:
-                DEPLOY_RUNNING: ${{ needs.setup.build.running }}
+                DEPLOY_RUNNING: ${{ needs.setup.outputs.deploy }}
                 INPUTS_ACTION: ${{ inputs.action }}
               run: |
                   running=$(if [ "$INPUTS_ACTION" != "build" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
@@ -87,7 +87,7 @@ jobs:
         name: Build
         runs-on: ubuntu-latest
         needs: setup
-        if: ${{ needs.setup.build.result }}
+        if: ${{ needs.setup.outputs.build }}
         defaults:
             run:
                 working-directory: ./sdk/highlight-java
@@ -118,7 +118,7 @@ jobs:
         name: Test
         runs-on: ubuntu-latest
         needs: setup
-        if: ${{ needs.setup.test.result }}
+        if: ${{ needs.setup.outputs.test }}
         defaults:
             run:
                 working-directory: ./sdk/highlight-java
@@ -155,7 +155,7 @@ jobs:
         name: Deploy
         runs-on: ubuntu-latest
         needs: [setup, build, test]
-        if: ${{ needs.setup.deploy.result }}
+        if: ${{ needs.setup.outputs.deploy }}
         defaults:
             run:
                 working-directory: ./sdk/highlight-java
