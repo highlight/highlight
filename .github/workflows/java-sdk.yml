@@ -35,10 +35,10 @@ jobs:
         name: Setup
         runs-on: ubuntu-latest
         outputs:
-            version: ${{ steps.version.outputs.result }}
-            deploy: ${{ steps.deploy.outputs.result }}
-            build: ${{ steps.build.outputs.result }}
-            test: ${{ steps.test.outputs.result }}
+            version: ${{ steps.version.outputs.version }}
+            deploy: ${{ steps.deploy.outputs.deploy }}
+            build: ${{ steps.build.outputs.build }}
+            test: ${{ steps.test.outputs.test }}
         steps:
             - name: Checkout Code
               uses: actions/checkout@v3
@@ -53,27 +53,27 @@ jobs:
               run: |
                   running=$(if [ "$GITHUB_EVENT_REF" = "true" ] || [ "$INPUTS_ACTION" = "deploy" ]; then echo true; else echo false; fi)
                   echo "Is deployment running: $running"
-                  echo "result=$running" >> "$GITHUB_OUTPUT"
+                  echo "deploy=$running" >> "$GITHUB_OUTPUT"
 
             - name: Build running
               id: build
               env:
-                DEPLOY_RUNNING: ${{ needs.setup.outputs.deploy }}
+                DEPLOY_RUNNING: ${{ steps.deploy.outputs.deploy }}
                 INPUTS_ACTION: ${{ inputs.action }}
               run: |
                   running=$(if [ "$INPUTS_ACTION" != "test" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
                   echo "Is build running: $running"
-                  echo "result=$running" >> "$GITHUB_OUTPUT"
+                  echo "build=$running" >> "$GITHUB_OUTPUT"
 
             - name: Test running
               id: test
               env:
-                DEPLOY_RUNNING: ${{ needs.setup.outputs.deploy }}
+                DEPLOY_RUNNING: ${{ steps.deploy.outputs.deploy }}
                 INPUTS_ACTION: ${{ inputs.action }}
               run: |
                   running=$(if [ "$INPUTS_ACTION" != "build" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
                   echo "Is test running: $running"
-                  echo "result=$running" >> "$GITHUB_OUTPUT"
+                  echo "test=$running" >> "$GITHUB_OUTPUT"
 
             - name: Build version
               id: version
@@ -81,7 +81,7 @@ jobs:
                   version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f2)
                   version=$(if [ "$version" != "" ]; then echo $version; else echo "0.0.0"; fi)
                   echo "Build version: $version"
-                  echo "result=$version" >> "$GITHUB_OUTPUT"
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
 
     build:
         name: Build
@@ -105,7 +105,7 @@ jobs:
 
             - name: Build
               run: |
-                  mvn clean package --batch-mode -DskipTests -Drevision=${{needs.setup.outputs.result}}-b$GITHUB_RUN_NUMBER
+                  mvn clean package --batch-mode -DskipTests -Drevision=${{needs.setup.outputs.version}}-b$GITHUB_RUN_NUMBER
                   mv ./highlight-sdk/target/highlight-sdk-*.jar ./
 
             - name: Publish build artifacts
@@ -135,7 +135,7 @@ jobs:
                   java-version: 17
 
             - name: Test
-              run: mvn clean test --batch-mode -Dmaven.test.failure.ignore=true -Drevision=${{needs.setup.outputs.result}}-b$GITHUB_RUN_NUMBER
+              run: mvn clean test --batch-mode -Dmaven.test.failure.ignore=true -Drevision=${{needs.setup.outputs.version}}-b$GITHUB_RUN_NUMBER
 
             - name: Upload Test Report
               uses: actions/upload-artifact@v3
@@ -177,7 +177,7 @@ jobs:
                   gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
             - name: Publish to the Maven Central Repository
-              run: mvn clean deploy --batch-mode --no-transfer-progress -Drevision=${{needs.setup.outputs.result}}
+              run: mvn clean deploy --batch-mode --no-transfer-progress -Drevision=${{needs.setup.outputs.version}}
               env:
                   MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
                   MAVEN_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
