@@ -15,6 +15,7 @@ on:
                     - deploy
     push:
         branches: ['main']
+        tags: ['sdk/highlight-java/**']
     pull_request:
         types: [opened, synchronize]
         paths:
@@ -35,21 +36,44 @@ jobs:
         runs-on: ubuntu-latest
         outputs:
             version: ${{ steps.version.outputs.version }}
+            deploy: ${{ steps.deploy.outputs.running }}
+            build: ${{ steps.build.outputs.running }}
+            test: ${{ steps.test.outputs.running }}
         steps:
             - name: Checkout Code
               uses: actions/checkout@v3
               with:
                   fetch-depth: 0
 
-            - name: Set BUILD_VERSION
+            - name: Is deploy running
+              id: deploy
+              run: |
+                  echo "running=$(startsWith(github.event.ref, 'refs/tags/sdk/highlight-java/') || inputs.action == 'deploy')" >> "$GITHUB_OUTPUT"
+                  echo "Is deploy running: $running"
+
+            - name: Is build running
+              id: build
+              run: |
+                  echo "running=$((inputs.action == '' || inputs.action == 'none') || (inputs.action == 'build' || ${{needs.setup.deploy.running}}))" >> "$GITHUB_OUTPUT"
+                  echo "Is build running: $running"
+
+            - name: Is test running
+              id: test
+              run: |
+                  echo "running=$((inputs.action == '' || inputs.action == 'none') || (inputs.action == 'test' || ${{needs.setup.deploy.running}}))" >> "$GITHUB_OUTPUT"
+                  echo "Is test running: $running"
+
+            - name: Set build version
               id: version
-              run: echo "version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f2)-b$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
+              run: |
+                  echo "version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f2)" >> "$GITHUB_OUTPUT"
+                  echo "Build version: $version"
 
     build:
         name: Build
         runs-on: ubuntu-latest
         needs: setup
-        if: ${{ (inputs.action == '' || inputs.action == 'none') || (inputs.action == 'build' || inputs.action == 'deploy') }}
+        if: ${{ needs.setup.build.running }}
         defaults:
             run:
                 working-directory: ./sdk/highlight-java
@@ -67,7 +91,7 @@ jobs:
 
             - name: Build
               run: |
-                  mvn clean package --batch-mode -DskipTests -Drevision=${{needs.setup.outputs.version}}
+                  mvn clean package --batch-mode -DskipTests -Drevision=${{needs.setup.outputs.version}}-b$GITHUB_RUN_NUMBER
                   mv ./highlight-sdk/target/highlight-sdk-*.jar ./
 
             - name: Publish build artifacts
@@ -80,7 +104,7 @@ jobs:
         name: Test
         runs-on: ubuntu-latest
         needs: setup
-        if: ${{ (inputs.action == '' || inputs.action == 'none') || (inputs.action == 'test' || inputs.action == 'deploy') }}
+        if: ${{ needs.setup.test.running }}
         defaults:
             run:
                 working-directory: ./sdk/highlight-java
@@ -97,7 +121,7 @@ jobs:
                   java-version: 17
 
             - name: Test
-              run: mvn clean test --batch-mode -Dmaven.test.failure.ignore=true -Drevision=${{needs.setup.outputs.version}}
+              run: mvn clean test --batch-mode -Dmaven.test.failure.ignore=true -Drevision=${{needs.setup.outputs.version}}-b$GITHUB_RUN_NUMBER
 
             - name: Upload Test Report
               uses: actions/upload-artifact@v3
@@ -117,7 +141,7 @@ jobs:
         name: Deploy
         runs-on: ubuntu-latest
         needs: [setup, build, test]
-        if: ${{ ((inputs.action == '' || inputs.action == 'none') && github.ref == 'refs/heads/main') || inputs.action == 'deploy' }}
+        if: ${{ needs.setup.deploy.running }}
         defaults:
             run:
                 working-directory: ./sdk/highlight-java
