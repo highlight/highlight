@@ -48,19 +48,19 @@ jobs:
             - name: Is deploy running
               id: deploy
               run: |
-                  echo "running=$(startsWith(github.event.ref, 'refs/tags/sdk/highlight-java/') || inputs.action == 'deploy')" >> "$GITHUB_OUTPUT"
+                  echo "running=$(startsWith(${{ github.event.ref }}, 'refs/tags/sdk/highlight-java/') || ${{ inputs.action }} == 'deploy')" >> "$GITHUB_OUTPUT"
                   echo "Is deploy running: $running"
 
             - name: Is build running
               id: build
               run: |
-                  echo "running=$((inputs.action == '' || inputs.action == 'none') || (inputs.action == 'build' || ${{needs.setup.deploy.running}}))" >> "$GITHUB_OUTPUT"
+                  echo "running=$((${{ inputs.action }} == '' || ${{ inputs.action }} == 'none') || (${{ inputs.action }} == 'build' || ${{needs.setup.deploy.running}}))" >> "$GITHUB_OUTPUT"
                   echo "Is build running: $running"
 
             - name: Is test running
               id: test
               run: |
-                  echo "running=$((inputs.action == '' || inputs.action == 'none') || (inputs.action == 'test' || ${{needs.setup.deploy.running}}))" >> "$GITHUB_OUTPUT"
+                  echo "running=$((${{ inputs.action }} == '' || ${{ inputs.action }} == 'none') || (${{ inputs.action }} == 'test' || ${{needs.setup.deploy.running}}))" >> "$GITHUB_OUTPUT"
                   echo "Is test running: $running"
 
             - name: Set build version
