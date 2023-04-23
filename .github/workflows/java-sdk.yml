@@ -35,10 +35,10 @@ jobs:
         name: Setup
         runs-on: ubuntu-latest
         outputs:
-            version: ${{ steps.version.outputs.version }}
-            deploy: ${{ steps.deploy.outputs.running }}
-            build: ${{ steps.build.outputs.running }}
-            test: ${{ steps.test.outputs.running }}
+            version: ${{ steps.version.outputs.result }}
+            deploy: ${{ steps.deploy.outputs.result }}
+            build: ${{ steps.build.outputs.result }}
+            test: ${{ steps.test.outputs.result }}
         steps:
             - name: Checkout Code
               uses: actions/checkout@v3
@@ -53,6 +53,7 @@ jobs:
               run: |
                   running=$(if [ "$GITHUB_EVENT_REF" = "true" ] || [ "$INPUTS_ACTION" = "deploy" ]; then echo true; else echo false; fi)
                   echo "Is deployment running: $running"
+                  echo "result=$running" >> "$GITHUB_ENV"
 
             - name: Build running
               id: build
@@ -62,6 +63,7 @@ jobs:
               run: |
                   running=$(if [ "$INPUTS_ACTION" != "test" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
                   echo "Is build running: $running"
+                  echo "result=$running" >> "$GITHUB_ENV"
 
             - name: Test running
               id: test
@@ -71,6 +73,7 @@ jobs:
               run: |
                   running=$(if [ "$INPUTS_ACTION" != "build" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
                   echo "Is test running: $running"
+                  echo "result=$running" >> "$GITHUB_ENV"
 
             - name: Build version
               id: version
@@ -78,6 +81,7 @@ jobs:
                   version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f2)
                   version=$(if [ "$version" != "" ]; then echo $version; else echo "0.0.0"; fi)
                   echo "Build version: $version"
+                  echo "result=$version" >> "$GITHUB_ENV"
 
     build:
         name: Build
