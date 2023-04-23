@@ -48,7 +48,7 @@ jobs:
             - name: Is deploy running
               id: deploy
               run: |
-                  echo "running=$(startsWith(${{ github.event.ref }}, 'refs/tags/sdk/highlight-java/') || ${{ inputs.action }} == 'deploy')" >> "$GITHUB_OUTPUT"
+                  echo "running=$((${{ github.event.ref }} != '' && startsWith(${{ github.event.ref }}, 'refs/tags/sdk/highlight-java/')) || ${{ inputs.action }} == 'deploy')" >> "$GITHUB_OUTPUT"
                   echo "Is deploy running: $running"
 
             - name: Is build running
