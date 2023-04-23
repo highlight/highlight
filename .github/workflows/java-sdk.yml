@@ -52,8 +52,8 @@ jobs:
                 INPUTS_ACTION: ${{ inputs.action }}
               run: |
                   running=$(if [ "$GITHUB_EVENT_REF" = "true" ] || [ "$INPUTS_ACTION" = "deploy" ]; then echo true; else echo false; fi)
-                  echo "Is deployment running: $running"
                   echo "deploy=$running" >> "$GITHUB_OUTPUT"
+                  echo "Is deployment running: $running"
 
             - name: Build running
               id: build
@@ -62,8 +62,8 @@ jobs:
                 INPUTS_ACTION: ${{ inputs.action }}
               run: |
                   running=$(if [ "$INPUTS_ACTION" != "test" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
-                  echo "Is build running: $running"
                   echo "build=$running" >> "$GITHUB_OUTPUT"
+                  echo "Is build running: $running"
 
             - name: Test running
               id: test
@@ -72,8 +72,8 @@ jobs:
                 INPUTS_ACTION: ${{ inputs.action }}
               run: |
                   running=$(if [ "$INPUTS_ACTION" != "build" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
-                  echo "Is test running: $running"
                   echo "test=$running" >> "$GITHUB_OUTPUT"
+                  echo "Is test running: $running"
 
             - name: Build version
               id: version
@@ -89,8 +89,8 @@ jobs:
                   # Adding github runner number only when no deployment is running
                   version=$(if [ "$DEPLOY_RUNNING" == "true" ]; then echo "$version"; else echo "$version"-b$GITHUB_RUN_NUMBER; fi)
 
-                  echo "Build version: $version"
                   echo "version=$version" >> "$GITHUB_OUTPUT"
+                  echo "Build version: $version"
 
     build:
         name: Build
