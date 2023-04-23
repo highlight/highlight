@@ -51,8 +51,9 @@ jobs:
                 GITHUB_EVENT_REF: ${{ startsWith(github.event.ref, 'refs/tags/sdk/highlight-java/') }}
                 INPUTS_ACTION: ${{ inputs.action }}
               run: |
-                  echo "running=$(if [ "$GITHUB_EVENT_REF" = "true" ] || [ "$INPUTS_ACTION" = "deploy" ]; then echo true; else echo false; fi)" >> "$GITHUB_OUTPUT"
-                  echo "Is deploy running: "$running
+                  running=$(if [ "$GITHUB_EVENT_REF" = "true" ] || [ "$INPUTS_ACTION" = "deploy" ]; then echo true; else echo false; fi)
+                  echo "Is deployment running: "$running
+                  echo $version >> "$GITHUB_OUTPUT"
 
             - name: Build running
               id: build
@@ -60,8 +61,9 @@ jobs:
                 DEPLOY_RUNNING: ${{ needs.setup.build.running }}
                 INPUTS_ACTION: ${{ inputs.action }}
               run: |
-                  echo "running=$(if [ "$INPUTS_ACTION" != "test" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)" >> "$GITHUB_OUTPUT"
+                  running=$(if [ "$INPUTS_ACTION" != "test" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
                   echo "Is build running: "$running
+                  echo $running >> "$GITHUB_OUTPUT"
 
             - name: Test running
               id: test
@@ -69,15 +71,17 @@ jobs:
                 DEPLOY_RUNNING: ${{ needs.setup.build.running }}
                 INPUTS_ACTION: ${{ inputs.action }}
               run: |
-                  echo "running=$(if [ "$INPUTS_ACTION" != "build" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)" >> "$GITHUB_OUTPUT"
+                  running=$(if [ "$INPUTS_ACTION" != "build" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
                   echo "Is test running: "$running
+                  echo $running >> "$GITHUB_OUTPUT"
 
             - name: Build version
               id: version
               run: |
                   version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f2)
-                  echo "version=$(if [ "$version" != "" ]; then echo $version; else echo "0.0.0"; fi )" >> "$GITHUB_OUTPUT"
+                  version=$(if [ "$version" != "" ]; then echo $version; else echo "0.0.0"; fi)
                   echo "Build version: "$version
+                  echo $version >> "$GITHUB_OUTPUT"
 
     build:
         name: Build
