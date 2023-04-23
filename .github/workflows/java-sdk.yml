@@ -53,7 +53,7 @@ jobs:
               run: |
                   running=$(if [ "$GITHUB_EVENT_REF" = "true" ] || [ "$INPUTS_ACTION" = "deploy" ]; then echo true; else echo false; fi)
                   echo "Is deployment running: $running"
-                  echo "result=$running" >> "$GITHUB_ENV"
+                  echo "result=$running" >> "$GITHUB_OUTPUT"
 
             - name: Build running
               id: build
@@ -63,7 +63,7 @@ jobs:
               run: |
                   running=$(if [ "$INPUTS_ACTION" != "test" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
                   echo "Is build running: $running"
-                  echo "result=$running" >> "$GITHUB_ENV"
+                  echo "result=$running" >> "$GITHUB_OUTPUT"
 
             - name: Test running
               id: test
@@ -73,7 +73,7 @@ jobs:
               run: |
                   running=$(if [ "$INPUTS_ACTION" != "build" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
                   echo "Is test running: $running"
-                  echo "result=$running" >> "$GITHUB_ENV"
+                  echo "result=$running" >> "$GITHUB_OUTPUT"
 
             - name: Build version
               id: version
@@ -81,7 +81,7 @@ jobs:
                   version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f2)
                   version=$(if [ "$version" != "" ]; then echo $version; else echo "0.0.0"; fi)
                   echo "Build version: $version"
-                  echo "result=$version" >> "$GITHUB_ENV"
+                  echo "result=$version" >> "$GITHUB_OUTPUT"
 
     build:
         name: Build
