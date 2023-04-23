@@ -48,8 +48,8 @@ jobs:
             - name: Deployment running
               id: deploy
               env:
-                GITHUB_EVENT_REF: ${{ startsWith(github.event.ref, 'refs/tags/sdk/highlight-java/') }}
-                INPUTS_ACTION: ${{ inputs.action }}
+                  GITHUB_EVENT_REF: ${{ startsWith(github.event.ref, 'refs/tags/sdk/highlight-java/') }}
+                  INPUTS_ACTION: ${{ inputs.action }}
               run: |
                   running=$(if [ "$GITHUB_EVENT_REF" = "true" ] || [ "$INPUTS_ACTION" = "deploy" ]; then echo true; else echo false; fi)
                   echo "deploy=$running" >> "$GITHUB_OUTPUT"
@@ -58,8 +58,8 @@ jobs:
             - name: Build running
               id: build
               env:
-                DEPLOY_RUNNING: ${{ steps.deploy.outputs.deploy }}
-                INPUTS_ACTION: ${{ inputs.action }}
+                  DEPLOY_RUNNING: ${{ steps.deploy.outputs.deploy }}
+                  INPUTS_ACTION: ${{ inputs.action }}
               run: |
                   running=$(if [ "$INPUTS_ACTION" != "test" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
                   echo "build=$running" >> "$GITHUB_OUTPUT"
@@ -68,8 +68,8 @@ jobs:
             - name: Test running
               id: test
               env:
-                DEPLOY_RUNNING: ${{ steps.deploy.outputs.deploy }}
-                INPUTS_ACTION: ${{ inputs.action }}
+                  DEPLOY_RUNNING: ${{ steps.deploy.outputs.deploy }}
+                  INPUTS_ACTION: ${{ inputs.action }}
               run: |
                   running=$(if [ "$INPUTS_ACTION" != "build" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
                   echo "test=$running" >> "$GITHUB_OUTPUT"
@@ -78,11 +78,11 @@ jobs:
             - name: Build version
               id: version
               env:
-                DEPLOY_RUNNING: ${{ steps.deploy.outputs.deploy }}
+                  DEPLOY_RUNNING: ${{ steps.deploy.outputs.deploy }}
               run: |
                   # Get latest tag version
                   version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f3)
- 
+
                   # Returning version 0.0.0 when no git tag was found
                   version=$(if [ "$version" != "" ]; then echo $version; else echo "0.0.0"; fi)
 
