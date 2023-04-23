@@ -92,7 +92,7 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 	}
 }
 
-func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, traceID, spanID string, excMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source modelInputs.LogSource) (*clickhouse.LogRow, error) {
+func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, traceID, spanID string, logMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source modelInputs.LogSource) (*clickhouse.LogRow, error) {
 	projectIDInt, err := clickhouse.ProjectToInt(projectID)
 
 	if err != nil {
@@ -104,7 +104,7 @@ func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, tra
 		clickhouse.WithTraceID(traceID),
 		clickhouse.WithSpanID(spanID),
 		clickhouse.WithSecureSessionID(sessionID),
-		clickhouse.WithBody(ctx, excMessage),
+		clickhouse.WithBody(ctx, logMessage),
 		clickhouse.WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, source == modelInputs.LogSourceFrontend),
 		clickhouse.WithServiceName(cast(resourceAttributes[string(semconv.ServiceNameKey)], "")),
 		clickhouse.WithSeverityText(lvl),
@@ -203,11 +203,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					event := events.At(l)
 					eventAttributes := event.Attributes().AsRaw()
 					setHighlightAttributes(eventAttributes, &projectID, &sessionID, &requestID, &source)
+					ts := event.Timestamp().AsTime()
+					traceID := cast(requestID, span.TraceID().String())
+					spanID := span.SpanID().String()
 					if event.Name() == semconv.ExceptionEventName {
-						traceID := cast(requestID, span.TraceID().String())
-						spanID := span.SpanID().String()
 						excMessage := cast(eventAttributes[string(semconv.ExceptionMessageKey)], "")
-						ts := event.Timestamp().AsTime()
 
 						var logCursor *string
 						logRow, err := getLogRow(ctx, ts, "ERROR", projectID, sessionID, traceID, spanID, excMessage, resourceAttributes, spanAttributes, eventAttributes, source)
@@ -231,9 +231,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							}
 						}
 					} else if event.Name() == highlight.LogEvent {
-						ts := event.Timestamp().AsTime()
-						traceID := cast(requestID, span.TraceID().String())
-						spanID := span.SpanID().String()
 						logSev := cast(eventAttributes[string(hlog.LogSeverityKey)], "unknown")
 						logMessage := cast(eventAttributes[string(hlog.LogMessageKey)], "")
 						if logMessage == "" {

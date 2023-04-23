@@ -1,5 +1,8 @@
 import React, { useRef, useState } from 'react'
 
+import classnames from 'classnames'
+import styles from './styles.module.css'
+
 export interface ReportDialogOptions {
 	user?: {
 		email?: string
@@ -76,34 +79,37 @@ const ReportDialog = ({
 	}
 
 	return (
-		<main className={`container`}>
-			<div className={`card`}>
+		<main className={styles.container}>
+			<div className={styles.card}>
 				<div
-					className={`cardContents ${
-						sentReport && 'cardContentsVisible'
-					}`}
+					className={classnames(styles.cardContents, {
+						[styles.cardContentsVisible]: !!sentReport,
+					})}
 				>
-					<h1 className={`title`}>{successMessage}</h1>
-					<h4 className={`subtitle`}>{successSubtitle}</h4>
+					<h1 className={styles.title}>{successMessage}</h1>
+					<h4 className={styles.subtitle}>{successSubtitle}</h4>
 					<button
-						className={`button confirmationButton`}
+						className={classnames(
+							styles.button,
+							styles.confirmationButton,
+						)}
 						onClick={onCloseHandler}
 					>
 						Close
 					</button>
 				</div>
 				<div
-					className={`cardContents ${
-						!sentReport && 'cardContentsVisible'
-					}`}
+					className={classnames(styles.cardContents, {
+						[styles.cardContentsVisible]: !sentReport,
+					})}
 				>
 					<div>
-						<h1 className={`title`}>{title}</h1>
-						<h2 className={`subtitle`}>
+						<h1 className={styles.title}>{title}</h1>
+						<h2 className={styles.subtitle}>
 							{subtitle} {subtitle2}
 						</h2>
 					</div>
-					<form className={`form`} onSubmit={handleSubmit}>
+					<form className={styles.form} onSubmit={handleSubmit}>
 						<label>
 							{labelName}
 							<input
@@ -142,20 +148,21 @@ const ReportDialog = ({
 							></textarea>
 						</label>
 
-						<div className={`formFooter`}>
-							<div className={`formActionsContainer`}>
+						<div className={styles.formFooter}>
+							<div className={styles.formActionsContainer}>
 								<button
 									type="submit"
-									className={
-										sendingReport
-											? `button loadingButton`
-											: 'button'
-									}
+									className={classnames(styles.button, {
+										[styles.loadingButton]: sendingReport,
+									})}
 								>
 									{labelSubmit}
 								</button>
 								<button
-									className={`button closeButton`}
+									className={classnames(
+										styles.button,
+										styles.closeButton,
+									)}
 									onClick={onCloseHandler}
 									type="button"
 								>
@@ -163,16 +170,16 @@ const ReportDialog = ({
 								</button>
 							</div>
 							{!hideHighlightBranding && (
-								<div className={`ad`}>
-									<p className={`logoContainer`}>
+								<div className={styles.ad}>
+									<p className={styles.logoContainer}>
 										Crash reports powered by:
 										{/*  eslint-disable-next-line react/jsx-no-target-blank */}
 										<a
-											href="https://highlight.run"
+											href="https://highlight.io"
 											target="_blank"
 										>
 											<img
-												src="https://app.highlight.run/logo-24x130.png"
+												src="https://www.highlight.io/images/logo.png"
 												alt="Highlight"
 												height="25"
 												className={`logo`}

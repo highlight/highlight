@@ -7,6 +7,7 @@ export const SampleBuggyButton = ({
 	if (isError) {
 		throw new Error('something bad happened - this is a sample test error')
 	}
+
 	return (
 		<button
 			type="button"

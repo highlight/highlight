@@ -3,13 +3,14 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "next dev",
+		"dev": "next dev --port 3005",
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint"
 	},
 	"dependencies": {
 		"@highlight-run/next": "workspace:*",
+		"@highlight-run/react": "workspace:*",
 		"@next/font": "13.1.6",
 		"@types/node": "18.11.18",
 		"@types/react": "18.0.27",

@@ -136,6 +136,13 @@ export class IndexedDBCache {
 export const indexeddbCache = new IndexedDBCache()
 
 export class IndexedDBLink extends ApolloLink {
+	static excluded = new Set<string>([
+		'GetAdmin',
+		'GetBillingDetails',
+		'GetCustomerPortalUrl',
+		'GetProject',
+		'GetSubscriptionDetails',
+	])
 	httpLink: ApolloLink
 
 	constructor(httpLink: ApolloLink) {
@@ -154,7 +161,7 @@ export class IndexedDBLink extends ApolloLink {
 			return false
 		}
 
-		if (operation.operationName === 'GetAdmin') {
+		if (IndexedDBLink.excluded.has(operation.operationName)) {
 			return false
 		}
 

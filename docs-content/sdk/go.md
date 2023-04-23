@@ -73,7 +73,7 @@ This allows the user kill the highlight worker by canceling their context.Cancel
   </div>
   <div className="right">
     <code>
-        H.SetProjectID("YOUR_PROJECT_ID")
+        H.SetProjectID("<YOUR_PROJECT_ID>")
     </code>
   </div>
 </section>

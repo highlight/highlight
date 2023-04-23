@@ -1,13 +1,13 @@
-import { AiFillGithub } from 'react-icons/ai'
 import { Popover, Transition } from '@headlessui/react'
-import { Typography } from '../Typography/Typography'
 import { useState } from 'react'
+import { AiFillGithub } from 'react-icons/ai'
+import { Typography } from '../Typography/Typography'
 
 import { FaChevronDown } from 'react-icons/fa'
 import * as Icons from 'react-icons/hi'
 
-import styles from './ResourceDropdown.module.scss'
 import classNames from 'classnames'
+import styles from './ResourceDropdown.module.scss'
 
 const ResourceDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 	const [isShowing, setIsShowing] = useState(false)
@@ -39,15 +39,21 @@ const ResourceDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 			link: 'https://github.com/highlight/highlight',
 		},
 		{
-			title: 'Blog',
-			icon: <Icons.HiCollection className={styles.copyOnLight} />,
-			link: '/blog',
+			title: 'Our Competitors',
+			icon: <Icons.HiScale className={styles.copyOnLight} />,
+			link: '/docs/general/company/our-competitors',
 			sameTab: true,
 		},
 		{
 			title: 'Documentation',
 			icon: <Icons.HiDocumentSearch className={styles.copyOnLight} />,
 			link: '/docs',
+			sameTab: true,
+		},
+		{
+			title: 'Roadmap',
+			icon: <Icons.HiMap className={styles.copyOnLight} />,
+			link: '/docs/general/roadmap',
 			sameTab: true,
 		},
 	]

@@ -1,8 +1,10 @@
+**/*.tsbuildinfo
 **/.next
 **/.turbo
 **/build
 **/dist
 **/node_modules
 .idea
+.vercel
 .yarn/cache
 build

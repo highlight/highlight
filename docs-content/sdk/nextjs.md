@@ -46,7 +46,7 @@ quickstart: true
     <code>
       import { Highlight } from "@highlight-run/next";
  
-      export const withHighlight = Highlight({projectID: 'YOUR_PROJECT_ID'});
+      export const withHighlight = Highlight({projectID: '<YOUR_PROJECT_ID>'});
     </code>
     <code>
       import { withHighlight } from "../highlight.config";

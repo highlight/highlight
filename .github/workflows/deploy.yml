@@ -14,11 +14,11 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
             - name: Setup Go
-              uses: actions/setup-go@v3
+              uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v1
+              uses: dopplerhq/cli-action@v2
             - name: Migrate database
               run: |
                   cd backend/
@@ -33,11 +33,11 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
             - name: Setup Go
-              uses: actions/setup-go@v3
+              uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v1
+              uses: dopplerhq/cli-action@v2
             - name: Build and zip
               run: |
                   cd backend/
@@ -52,7 +52,7 @@ jobs:
                   go build ./lambda-functions/deleteSessions/sendEmail
                   zip sendEmail.zip sendEmail
             - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v1
+              uses: aws-actions/configure-aws-credentials@v2
               with:
                   aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -119,11 +119,11 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
             - name: Setup Go
-              uses: actions/setup-go@v3
+              uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v1
+              uses: dopplerhq/cli-action@v2
             - name: Build and zip
               run: |
                   cd backend/
@@ -134,7 +134,7 @@ jobs:
                   go build ./lambda-functions/digests/sendDigestEmails
                   zip sendDigestEmails.zip sendDigestEmails
             - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v1
+              uses: aws-actions/configure-aws-credentials@v2
               with:
                   aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -182,7 +182,7 @@ jobs:
               uses: actions/checkout@v3
 
             - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v1
+              uses: aws-actions/configure-aws-credentials@v2
               with:
                   aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -289,7 +289,7 @@ jobs:
         runs-on: buildjet-2vcpu-ubuntu-2204-arm
         steps:
             - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v1
+              uses: aws-actions/configure-aws-credentials@v2
               with:
                   aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
