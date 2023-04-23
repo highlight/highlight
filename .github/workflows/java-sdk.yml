@@ -87,7 +87,7 @@ jobs:
                   version=$(if [ "$version" != "" ]; then echo $version; else echo "0.0.0"; fi)
 
                   # Adding github runner number only when no deployment is running
-                  version=$(if [ "$DEPLOY_RUNNING" == "true" ]; then echo "$version"-b$GITHUB_RUN_NUMBER; else echo "$version"; fi)
+                  version=$(if [ "$DEPLOY_RUNNING" == "true" ]; then echo "$version"; else echo "$version"-b$GITHUB_RUN_NUMBER; fi)
 
                   echo "Build version: $version"
                   echo "version=$version" >> "$GITHUB_OUTPUT"
