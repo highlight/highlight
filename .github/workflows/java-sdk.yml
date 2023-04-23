@@ -77,9 +77,18 @@ jobs:
 
             - name: Build version
               id: version
+              env:
+                DEPLOY_RUNNING: ${{ steps.deploy.outputs.deploy }}
               run: |
+                  # Get latest tag version
                   version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f2)
+ 
+                  # Returning version 0.0.0 when no git tag was found
                   version=$(if [ "$version" != "" ]; then echo $version; else echo "0.0.0"; fi)
+
+                  # Adding github runner number only when no deployment is running
+                  version=$(if [ "$DEPLOY_RUNNING" == "true" ]; then echo "$version"-b$GITHUB_RUN_NUMBER; else echo "$version"; fi)
+
                   echo "Build version: $version"
                   echo "version=$version" >> "$GITHUB_OUTPUT"
 
@@ -105,7 +114,7 @@ jobs:
 
             - name: Build
               run: |
-                  mvn clean package --batch-mode -DskipTests -Drevision=${{needs.setup.outputs.version}}-b$GITHUB_RUN_NUMBER
+                  mvn clean package --batch-mode -DskipTests -Drevision=${{needs.setup.outputs.version}}
                   mv ./highlight-sdk/target/highlight-sdk-*.jar ./
 
             - name: Publish build artifacts
@@ -135,7 +144,7 @@ jobs:
                   java-version: 17
 
             - name: Test
-              run: mvn clean test --batch-mode -Dmaven.test.failure.ignore=true -Drevision=${{needs.setup.outputs.version}}-b$GITHUB_RUN_NUMBER
+              run: mvn clean test --batch-mode -Dmaven.test.failure.ignore=true -Drevision=${{needs.setup.outputs.version}}
 
             - name: Upload Test Report
               uses: actions/upload-artifact@v3
