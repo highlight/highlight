@@ -122,7 +122,7 @@ const CalendlyPopover = () => {
 							className={classNames(
 								'calendly-inline-widget min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity',
 							)}
-							data-url="https://calendly.com/jaykhatri/highlight-demo-call"
+							data-url="https://calendly.com/d/2gt-rw5-qg5/highlight-demo-call"
 						></div>
 						<button
 							className="absolute grid w-16 h-16 rounded-full place-content-center bg-dark-background/70 max-[652px]:left-2 max-[652px]:top-2  left-10 top-10 hover:bg-white/20 transition-colors"
