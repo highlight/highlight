@@ -54,7 +54,7 @@ cd docker && ./run-hobby.sh
 
 After a brief frontend load time, the app should be accessible at https://localhost:3000
 
-Good for <10k sessions and <50k errors ingested monthly. See our  [docs for more info and limitations](https://www.highlight.io/docs/general/company/open-source/self-host-hobby).
+Good for <10k sessions and <50k errors ingested monthly. See our  [docs for more info and limitations](https://www.highlight.io/docs/general/company/open-source/hosting/self-host-hobby).
 
 ### Developing on Highlight
 
