@@ -1,6 +1,9 @@
 import Select from '@components/Select/Select'
 import { Form, Text } from '@highlight-run/ui'
-import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
+import {
+	GitHubRepoSelectionKey,
+	useGitHubIntegration,
+} from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import * as style from '@pages/IntegrationsPage/components/style.css'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import useLocalStorage from '@rehooks/local-storage'
@@ -26,7 +29,7 @@ const GitHubRepoSelector: React.FC<ContainerSelectionProps> = ({
 	}, [data])
 
 	const [selectedGitHubRepoId, setGitHubRepoId, removeGitHubRepoId] =
-		useLocalStorage('highlight-github-default-repo', '')
+		useLocalStorage(GitHubRepoSelectionKey, '')
 
 	useEffect(() => {
 		setSelectionId(selectedGitHubRepoId)

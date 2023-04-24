@@ -41,7 +41,8 @@ func GetConfig() (*Config, error) {
 
 type Client struct {
 	client *github.Client
-	owner  string
+	// owner is the login of the organization where the app is installed
+	owner string
 }
 
 func NewClient(ctx context.Context, installation string) *Client {
@@ -77,17 +78,20 @@ func NewClient(ctx context.Context, installation string) *Client {
 
 	// a workaround from https://github.com/bradleyfalzon/ghinstallation/issues/39
 	client := github.NewClient(&http.Client{Transport: itt})
-	appsGhClient := github.NewClient(&http.Client{Transport: jwtTransport})
-	// this client can authenticate all calls except `Apps.Get()`
-	client.Apps = appsGhClient.Apps
+	appsJWTClient := github.NewClient(&http.Client{Transport: jwtTransport})
 
-	app, _, err := client.Apps.Get(ctx, "")
+	// the regular ittClient can authenticate all calls except `Apps.Get()` and `Apps.GetInstallation()`
+	// for those two methods, use the JWT client
+	ittApps := client.Apps
+	client.Apps = appsJWTClient.Apps
+	install, _, err := client.Apps.GetInstallation(ctx, installationID)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to create github client")
 		return nil
 	}
+	client.Apps = ittApps
 
-	return &Client{client, app.Owner.GetLogin()}
+	return &Client{client, install.Account.GetLogin()}
 }
 
 func (c *Client) CreateIssue(ctx context.Context, repo string, issueRequest *github.IssueRequest) (*github.Issue, error) {
@@ -95,7 +99,18 @@ func (c *Client) CreateIssue(ctx context.Context, repo string, issueRequest *git
 	return issue, err
 }
 
-func (c *Client) GetRepos(ctx context.Context) ([]*github.Repository, error) {
-	repos, _, err := c.client.Repositories.List(ctx, c.owner, &github.RepositoryListOptions{})
-	return repos, err
+func (c *Client) GetRepos(ctx context.Context) (repos []*github.Repository, err error) {
+	page := 0
+	for {
+		list, _, err := c.client.Apps.ListRepos(ctx, &github.ListOptions{Page: page})
+		if err != nil {
+			return nil, err
+		}
+		repos = append(repos, list.Repositories...)
+		if len(repos) >= list.GetTotalCount() {
+			break
+		}
+		page += 1
+	}
+	return
 }
