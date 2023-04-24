@@ -19,10 +19,10 @@ import {
 	RetentionPeriod,
 	SubscriptionInterval,
 } from '@graph/schemas'
+import { Box } from '@highlight-run/ui'
 import BellRingingIcon from '@icons/BellRingingIcon'
 import SvgLogInIcon from '@icons/LogInIcon'
 import { BillingStatusCard } from '@pages/Billing/BillingStatusCard/BillingStatusCard'
-import { WorkspaceSettingsTab } from '@pages/WorkspaceTabs/WorkspaceTabs'
 import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import { loadStripe } from '@stripe/stripe-js'
 import analytics from '@util/analytics'
@@ -39,6 +39,8 @@ import Confetti from 'react-confetti'
 import Skeleton from 'react-loading-skeleton'
 import { useLocation, useMatch } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
+
+import { WorkspaceSettingsTab } from '@/pages/SettingsRouter/SettingsRouter'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 import styles from './Billing.module.scss'
@@ -553,59 +555,63 @@ const BillingPage = () => {
 	)
 
 	return (
-		<>
-			{rainConfetti && <Confetti recycle={false} />}
-			{subscriptionIssues && (
-				<Card
-					className={styles.invoiceFailedCard}
-					style={{ marginBottom: 0, marginTop: 24 }}
-				>
-					<div className={styles.invoiceFailedContainer}>
-						<div className={styles.invoiceFailedBell}>
-							<BellRingingIcon />
+		<Box>
+			<Box style={{ maxWidth: 1000 }} my="40" mx="auto">
+				{rainConfetti && <Confetti recycle={false} />}
+				{subscriptionIssues && (
+					<Card
+						className={styles.invoiceFailedCard}
+						style={{ marginBottom: 0, marginTop: 24 }}
+					>
+						<div className={styles.invoiceFailedContainer}>
+							<div className={styles.invoiceFailedBell}>
+								<BellRingingIcon />
+							</div>
+							<div>
+								<span className={styles.invoiceFailedHeader}>
+									Your last invoice failed to process!
+								</span>
+								<br />
+								<span>${toDecimal(outstandingAmount)}</span> is
+								past due as of{' '}
+								{moment(
+									subscriptionData?.subscription_details
+										?.lastInvoice?.date,
+								).format('M/D/YY')}
+								. Please add a payment method to maintain the
+								subscription.
+								<Authorization allowedRoles={[AdminRole.Admin]}>
+									<Button
+										trackingId="UpdateFailedInvoice"
+										onClick={() => {
+											window.open(
+												subscriptionData
+													?.subscription_details
+													?.lastInvoice?.url || '',
+												'_self',
+											)
+										}}
+										loading={
+											loadingCustomerPortal && !isCancel
+										}
+										className={
+											styles.invoiceFailedUpdatePayment
+										}
+									>
+										Update Payment
+									</Button>
+								</Authorization>
+							</div>
 						</div>
-						<div>
-							<span className={styles.invoiceFailedHeader}>
-								Your last invoice failed to process!
-							</span>
-							<br />
-							<span>${toDecimal(outstandingAmount)}</span> is past
-							due as of{' '}
-							{moment(
-								subscriptionData?.subscription_details
-									?.lastInvoice?.date,
-							).format('M/D/YY')}
-							. Please add a payment method to maintain the
-							subscription.
-							<Authorization allowedRoles={[AdminRole.Admin]}>
-								<Button
-									trackingId="UpdateFailedInvoice"
-									onClick={() => {
-										window.open(
-											subscriptionData
-												?.subscription_details
-												?.lastInvoice?.url || '',
-											'_self',
-										)
-									}}
-									loading={loadingCustomerPortal && !isCancel}
-									className={
-										styles.invoiceFailedUpdatePayment
-									}
-								>
-									Update Payment
-								</Button>
-							</Authorization>
-						</div>
-					</div>
-				</Card>
-			)}
-			{pageId === 'current-plan' ? (
-				<BillingDetails />
-			) : pageId === 'upgrade-plan' ? (
-				<BillingUpgrade />
-			) : null}
-		</>
+					</Card>
+				)}
+				{pageId === 'current-plan' ? (
+					<BillingDetails />
+				) : pageId === 'upgrade-plan' ? (
+					<BillingUpgrade />
+				) : null}
+			</Box>
+		</Box>
 	)
 }
 
