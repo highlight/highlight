@@ -1,7 +1,7 @@
 import { Popover } from '@headlessui/react'
 import { ArrowRightCircleIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import classNames from 'classnames'
-import Script from 'next/script'
+import { InlineWidget } from 'react-calendly'
 import { Typography } from '../common/Typography/Typography'
 
 export const CalendlyPopover = () => {
@@ -32,12 +32,9 @@ export const CalendlyPopover = () => {
 							!open && 'hidden',
 						)}
 					>
-						<div
-							className={classNames(
-								'calendly-inline-widget min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity max-[652px]:pt-14 pointer-events-auto',
-							)}
-							data-url="https://calendly.com/jaykhatri/highlight-demo-call"
-						></div>
+						<div className="min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity max-[652px]:pt-14 pointer-events-auto">
+							<InlineWidget url="https://calendly.com/jaykhatri/highlight-demo-call" />
+						</div>
 						<button
 							className="absolute grid w-10 h-10 rounded-full place-content-center bg-divider-on-dark max-[652px]:right-2 max-[652px]:top-2 right-10 top-10 hover:brightness-150 transition-all pointer-events-auto"
 							onClick={close}
@@ -45,12 +42,6 @@ export const CalendlyPopover = () => {
 							<XMarkIcon className="w-5 h-5" />
 						</button>
 					</Popover.Panel>
-					<Script
-						type="text/javascript"
-						src="https://assets.calendly.com/assets/external/widget.js"
-						strategy="lazyOnload"
-						async
-					></Script>
 				</>
 			)}
 		</Popover>
