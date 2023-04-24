@@ -12,10 +12,8 @@ jobs:
         name: Publish Production Docker Image
         strategy:
             matrix:
-                runs-on:
-                    [buildjet-4vcpu-ubuntu-2204, buildjet-8vcpu-ubuntu-2204-arm]
                 container: ['frontend', 'backend']
-        runs-on: ${{matrix.runs-on}}
+        runs-on: buildjet-4vcpu-ubuntu-2204
         timeout-minutes: 30
         env:
             IMAGE_NAME: highlight-${{ matrix.container }}
@@ -35,33 +33,36 @@ jobs:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+            - name: Login to GitHub Docker
+              uses: docker/login-action@v2
+              with:
+                  registry: ghcr.io
+                  username: Vadman97
+                  password: ${{ secrets.GH_DOCKER_TOKEN }}
+
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v2
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v2
+
             - name: Build and push docker container.
-              env:
-                  GH_REGISTRY: ghcr.io
-                  GH_DOCKER_TOKEN: ${{ secrets.GH_DOCKER_TOKEN }}
-                  RUNS_ON: ${{ matrix.runs-on }}
               shell: bash
               run: |
-                  REACT_APP_COMMIT_SHA=${{ github.sha }}
-                  if [[ "$RUNS_ON" == *"buildjet-4vcpu-ubuntu-2204-arm"* ]]; then
-                    PLATFORM=linux/arm64
-                    GOARCH=arm64
-                  else
-                    PLATFORM=linux/amd64
-                    GOARCH=amd64
-                  fi
-
-                  # log in to gh registry
-                  echo $GH_DOCKER_TOKEN | docker login $GH_REGISTRY -u Vadman97 --password-stdin
+                  ANNOTATIONS="annotation-index.org.opencontainers.image.description=highlight.io production ${{ matrix.container }} image"
+                  ANNOTATIONS="$ANNOTATIONS,annotation-index.org.opencontainers.image.source=https://github.com/highlight/highlight"
+                  ANNOTATIONS="$ANNOTATIONS,annotation-index.org.opencontainers.image.licenses=Apache 2.0"
 
                   # build docker image with common environment
                   pushd docker
                   source env.sh --go-docker
                   popd
                   docker buildx build $BUILD_ARGS \
+                    --build-arg REACT_APP_COMMIT_SHA=${{ github.sha }} \
                     --push \
-                    --platform $PLATFORM \
-                    -t $GH_REGISTRY/highlight/$IMAGE_NAME:$IMAGE_TAG \
-                    -t $GH_REGISTRY/highlight/$IMAGE_NAME:latest \
+                    --platform linux/arm64,linux/amd64 \
+                    -t ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG \
+                    -t ghcr.io/highlight/$IMAGE_NAME:latest \
                     -f docker/${{ matrix.container }}.Dockerfile \
-                    --target ${{ matrix.container }}-prod .
+                    --target ${{ matrix.container }}-prod \
+                    --output "type=image,name=target,$ANNOTATIONS" .

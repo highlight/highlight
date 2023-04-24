@@ -1,39 +1,50 @@
+import logrocketlogofull from '../../public/images/logrocketlogofull.png'
+import logrocketlogosmall from '../../public/images/logrocketlogosmall.png'
 import { Competitor } from './competitors'
+import {
+	HighlightIsOpenAndTransparent,
+	HighlightShipsNewFeatures,
+} from './shared-snippets'
 
 export const LogRocketSpec: Competitor = {
-	slug: 'highlight-vs-logrocket',
 	name: 'LogRocket',
 	header: 'The Open Source Logrocket Alternative.',
 	subheader:
 		'Pixel-perfect video replay of your frontend web application. Step into the shoes of your users.',
-	subHeader2:
-		'An Open Source, Fullstack Alternative to Logrocket. Get Started for free in minutes.',
+	logoDesktop: logrocketlogofull,
+	logoMobile: logrocketlogosmall,
 	sections: [
 		{
 			title: 'General',
 			rows: [
 				{
 					feature: 'Unlimited Team Members',
+					tooltip:
+						'LogRocket only allows 5 team members on their free plan.',
 					highlight: 1,
 					competitor: 0,
 				},
 				{
 					feature: 'Support Ticket Integrations',
+					tooltip: 'Create tickets with clickup, linear, or jira.',
 					highlight: 1,
-					competitor: 1,
+					competitor: 0,
 				},
 				{
 					feature: 'Self-hosted Options',
+					tooltip:
+						'Self-hosted options are available for highlight.io',
 					highlight: 1,
 					competitor: 0,
 				},
 				{
 					feature: 'Analytics Integrations',
+					tooltip: 'Integrations with mixpanel, amplitude, etc..',
 					highlight: 1,
-					competitor: 1,
+					competitor: 0,
 				},
 				{
-					feature: 'Self-serve',
+					feature: 'Self-serve Setup',
 					highlight: 1,
 					competitor: 1,
 				},
@@ -44,6 +55,8 @@ export const LogRocketSpec: Competitor = {
 			rows: [
 				{
 					feature: 'Session Commenting',
+					tooltip:
+						'Create comments on sessions to tag folks on your team of issues.',
 					highlight: 1,
 					competitor: 0,
 				},
@@ -54,6 +67,8 @@ export const LogRocketSpec: Competitor = {
 				},
 				{
 					feature: 'Session Sharing',
+					tooltip:
+						'Ability to share sessions across your team and with customers.',
 					highlight: 1,
 					competitor: 1,
 				},
@@ -69,11 +84,15 @@ export const LogRocketSpec: Competitor = {
 				},
 				{
 					feature: 'Canvas & WebGL Recording',
+					tooltip:
+						'Ability to record canvas and webgl elements in your application.',
 					highlight: 1,
 					competitor: 0,
 				},
 				{
 					feature: 'Shadow DOM Recording',
+					tooltip:
+						'Ability to record shadow dom elements in your application.',
 					highlight: 1,
 					competitor: 0,
 				},
@@ -88,7 +107,32 @@ export const LogRocketSpec: Competitor = {
 					competitor: 1,
 				},
 				{
+					feature: 'Error Sharing',
+					highlight: 1,
+					competitor: 0,
+				},
+				{
 					feature: 'Support for Backend SDKs',
+					highlight: 1,
+					competitor: 0,
+				},
+			],
+		},
+		{
+			title: 'Logging',
+			rows: [
+				{
+					feature: 'Frontend logging',
+					highlight: 1,
+					competitor: 0,
+				},
+				{
+					feature: 'Backend logging',
+					highlight: 1,
+					competitor: 0,
+				},
+				{
+					feature: 'Embedded replay and stacktraces',
 					highlight: 1,
 					competitor: 0,
 				},
@@ -96,21 +140,11 @@ export const LogRocketSpec: Competitor = {
 		},
 	],
 	paragraphs: [
-		{
-			header: 'Highlight.io is open source and transparent',
-			body: `
-				[Highlight.io](https://highlight.io) is built with transparency at its core. 
-				Not only do we work in the open, but we also expose what we\'re working on openly on [our roadmap](https://www.highlight.io/docs/general/roadmap).
-				Lastly, the fact that [Highlight.io](https://highlight.io) is open source makes it easy to integrate and build your own tools on-top of it, an advantage closed-source products like LogRocket can\'t offer.
-				`,
-		},
-		{
-			header: 'Highlight.io constantly ships new features',
-			body: "At Highlight.io, we ship quickly. We update our [changelog](https://www.highlight.io/docs/general/changelog/overview) with a recap of new features every two weeks, and we share when these features are completed in our [public roadmap](https://www.highlight.io/docs/general/roadmap). Plus, our community keeps pushing us to do more, so we're constantly adding new apps and integrations. We work hard to keep Highlight.io ahead of the curve, and we're not afraid to show off our secret sauce.",
-		},
+		HighlightIsOpenAndTransparent('LogRocket'),
+		HighlightShipsNewFeatures,
 		{
 			header: 'We focus on cohesion, not just session replay',
-			body: 'While LogRocket is mainly focused on session replay, Highlight.io provides a full-stack observability solution that encompasses session replay, logs, and error monitoring for both front-end and back-end applications. Along with recording user sessions, Highlight.io also captures logs and errors, providing developers with a comprehensive view of their entire stack. In contrast, LogRocket primarily focuses on session replay and product analytics, which can be more useful to product folks. With its more comprehensive approach, Highlight.io can help developers identify and resolve issues more efficiently and effectively.',
+			body: 'While LogRocket is mainly focused on session replay, Highlight.io provides a **full-stack** solution that encompasses session replay, logs, and error monitoring. Along with recording user sessions, Highlight.io also captures logs and errors, providing developers with a comprehensive view of their entire stack. In contrast, LogRocket primarily focuses on session replay and product analytics, which can be more useful to product and marketing teams.',
 		},
 	],
 }

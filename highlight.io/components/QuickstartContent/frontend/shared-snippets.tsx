@@ -66,7 +66,7 @@ H.init('<YOUR_PROJECT_ID>', {
 		enabled: true,
 		recordHeadersAndBody: true,
 		urlBlocklist: [
-			// insert urls you don't want to record here
+			// insert full or partial urls that you don't want to record here
 		],
 	},
 });

@@ -135,13 +135,14 @@ func (i *InfluxDB) GetBucket(projectID string, measurement Measurement) string {
 
 func (i *InfluxDB) createWriteAPI(ctx context.Context, bucket string, measurement Measurement) api.WriteAPI {
 	var err error
+	retention := domain.RetentionRuleTypeExpire
 	config := Configs[measurement]
 	b := i.GetBucket(bucket, measurement)
 	// ignore bucket already exists error
 	_, err = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
 		// short data expiry for granular data since we will only store downsampled data long term
 		EverySeconds: int64(config.DownsampleThreshold.Seconds()),
-		Type:         domain.RetentionRuleTypeExpire,
+		Type:         &retention,
 	})
 	if httpErr, ok := err.(*http2.Error); ok {
 		if httpErr.Code != "conflict" {
@@ -153,7 +154,7 @@ func (i *InfluxDB) createWriteAPI(ctx context.Context, bucket string, measuremen
 	_, err = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, downsampleB, domain.RetentionRule{
 		// long term data expiry for downsampled data
 		EverySeconds: int64(config.DownsampleRetention.Seconds()),
-		Type:         domain.RetentionRuleTypeExpire,
+		Type:         &retention,
 	})
 	if httpErr, ok := err.(*http2.Error); ok {
 		if httpErr.Code != "conflict" {

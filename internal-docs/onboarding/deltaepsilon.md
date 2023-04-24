@@ -69,21 +69,21 @@ Once you feel like you are fully spun up, open up a pull request to delete your 
 
 ## Access Checklist
 
-- [ ] Rippling
-- [ ] Google Workspace
-- [ ] Slack
-- [ ] Highlight
-- [ ] GitHub
-- [ ] Zoom
-- [ ] Loom
-- [ ] Figma
-- [ ] Doppler
-- [ ] Render
-- [ ] Datadog
-- [ ] Intercom
-- [ ] Notion (much of this outdated)
-- [ ] AWS
-- [ ] SendGrid
+- [x] Rippling
+- [x] Google Workspace
+- [x] Slack
+- [x] Highlight
+- [x] GitHub
+- [x] Zoom
+- [x] Loom
+- [x] Figma
+- [x] Doppler
+- [x] Render
+- [x] Datadog
+- [x] Intercom
+- [x] Notion (much of this outdated)
+- [x] AWS
+- [x] SendGrid
 
 ## Learnings
 
