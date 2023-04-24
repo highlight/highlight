@@ -1132,7 +1132,11 @@ const DocPage = ({
 																styles.docsTable
 															}
 														>
-															<table {...props} />
+															<Typography type="copy2">
+																<table
+																	{...props}
+																/>
+															</Typography>
 														</div>
 													)
 												},
