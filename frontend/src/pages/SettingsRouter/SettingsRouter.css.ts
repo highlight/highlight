@@ -7,6 +7,8 @@ export const menuItem = style({
 	cursor: 'pointer',
 	padding: '8px 8px',
 	width: 325,
+	height: 28,
+	display: 'flex',
 	selectors: {
 		'&:hover': {
 			backgroundColor: themeVars.interactive.overlay.secondary.hover,
