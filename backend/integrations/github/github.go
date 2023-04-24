@@ -49,6 +49,9 @@ func parseInstallation(installation string) (int64, error) {
 
 type Client struct {
 	client *github.Client
+	// the regular client can authenticate all calls except `Apps.Get()` and `Apps.GetInstallation()`
+	// for those two methods, use the jwtClient
+	jwtClient *github.Client
 	// owner is the login of the organization where the app is installed
 	owner string
 }
@@ -57,23 +60,20 @@ type Client struct {
 // installation corresponds to the numeric installation ID provided by the installation setup workflow.
 // On its own, the installation ID does not provide access to any GitHub resources, but when
 // paired with the app ID and private key, allows us to access a particular organization's entities.
-func NewClient(ctx context.Context, installation string) *Client {
+func NewClient(ctx context.Context, installation string) (*Client, error) {
 	installationID, err := parseInstallation(installation)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("failed to create github client")
-		return nil
+		return nil, err
 	}
 
 	config, err := GetConfig()
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("failed to create github client")
-		return nil
+		return nil, err
 	}
 
 	appID, err := strconv.ParseInt(config.githubAppId, 10, 64)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("failed to create github client")
-		return nil
+		return nil, err
 	}
 
 	// we use an app installation workflow to get access to the 'organization' into which
@@ -82,28 +82,21 @@ func NewClient(ctx context.Context, installation string) *Client {
 	// see https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation
 	jwtTransport, err := ghinstallation.NewAppsTransport(http.DefaultTransport, appID, []byte(config.githubPrivateKey))
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("failed to create github client")
-		return nil
+		return nil, err
 	}
 
 	itt := ghinstallation.NewFromAppsTransport(jwtTransport, installationID)
 
 	// a workaround from https://github.com/bradleyfalzon/ghinstallation/issues/39
 	client := github.NewClient(&http.Client{Transport: itt})
-	appsJWTClient := github.NewClient(&http.Client{Transport: jwtTransport})
+	jwtClient := github.NewClient(&http.Client{Transport: jwtTransport})
 
-	// the regular ittClient can authenticate all calls except `Apps.Get()` and `Apps.GetInstallation()`
-	// for those two methods, use the JWT client
-	ittApps := client.Apps
-	client.Apps = appsJWTClient.Apps
-	install, _, err := client.Apps.GetInstallation(ctx, installationID)
+	install, _, err := jwtClient.Apps.GetInstallation(ctx, installationID)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("failed to create github client")
-		return nil
+		return nil, err
 	}
-	client.Apps = ittApps
 
-	return &Client{client, install.Account.GetLogin()}
+	return &Client{client, jwtClient, install.Account.GetLogin()}, nil
 }
 
 func (c *Client) CreateIssue(ctx context.Context, repo string, issueRequest *github.IssueRequest) (*github.Issue, error) {
@@ -134,6 +127,6 @@ func (c *Client) DeleteInstallation(ctx context.Context, installation string) er
 		return nil
 	}
 
-	_, err = c.client.Apps.DeleteInstallation(ctx, installationID)
+	_, err = c.jwtClient.Apps.DeleteInstallation(ctx, installationID)
 	return err
 }
