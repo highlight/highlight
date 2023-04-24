@@ -33,7 +33,10 @@ export const CalendlyPopover = () => {
 						)}
 					>
 						<div className="min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity max-[652px]:pt-14 pointer-events-auto">
-							<InlineWidget url="https://calendly.com/jaykhatri/highlight-demo-call" />
+							<InlineWidget
+								url="https://calendly.com/jaykhatri/highlight-demo-call"
+								styles={{ width: '100%', height: '100%' }}
+							/>
 						</div>
 						<button
 							className="absolute grid w-10 h-10 rounded-full place-content-center bg-divider-on-dark max-[652px]:right-2 max-[652px]:top-2 right-10 top-10 hover:brightness-150 transition-all pointer-events-auto"
