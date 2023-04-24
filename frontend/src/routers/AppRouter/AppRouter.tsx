@@ -25,7 +25,6 @@ import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { showIntercom } from '@util/window'
-import { H } from 'highlight.run'
 import { omit } from 'lodash'
 import React, { useEffect } from 'react'
 import {
@@ -99,8 +98,6 @@ export const AppRouter = () => {
 				identifyMetadata.avatar = admin.photo_url
 			}
 
-			H.identify(email, identifyMetadata)
-
 			// `id` is a reserved keyword in rudderstack and it's recommended to use a
 			// static property for the user ID rather than something that could change
 			// over time, like an email address.
@@ -117,6 +114,7 @@ export const AppRouter = () => {
 		<Box height="screen" width="screen">
 			<Routes>
 				{isLoggedIn && !admin?.about_you_details_filled && (
+					//  /about_you is used by google ads for conversion tracking
 					<Route path="/about_you" element={<AdminForm />} />
 				)}
 
