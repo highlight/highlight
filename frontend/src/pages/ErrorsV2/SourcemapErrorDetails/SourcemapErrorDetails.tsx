@@ -1,11 +1,5 @@
-import { useAuthContext } from '@authentication/AuthContext'
-import { Button } from '@components/Button'
-import { LinkButton } from '@components/LinkButton'
-import {
-	Maybe,
-	SourceMappingError,
-	SourceMappingErrorCode,
-} from '@graph/schemas'
+import * as styles from './styles.css'
+
 import {
 	Box,
 	ButtonIcon,
@@ -16,13 +10,20 @@ import {
 	usePopover,
 	vars,
 } from '@highlight-run/ui'
-import { useProjectId } from '@hooks/useProjectId'
+import {
+	Maybe,
+	SourceMappingError,
+	SourceMappingErrorCode,
+} from '@graph/schemas'
+import React, { useEffect } from 'react'
+
+import { Button } from '@components/Button'
+import { LinkButton } from '@components/LinkButton'
 import SvgCopyIcon from '@icons/CopyIcon'
 import { copyToClipboard } from '@util/string'
 import { showIntercom } from '@util/window'
-import React, { useEffect } from 'react'
-
-import * as styles from './styles.css'
+import { useAuthContext } from '@authentication/AuthContext'
+import { useProjectId } from '@hooks/useProjectId'
 
 type Props = React.PropsWithChildren & { error: SourceMappingError }
 
@@ -34,7 +35,7 @@ const originalFileTitle = 'Original File Access Error'
 
 const sourcemapFileError =
 	'There was an issue accessing the sourcemap file for this error'
-const sourcemapFileTitle = 'Sourcemal File Error'
+const sourcemapFileTitle = 'Sourcemap File Error'
 
 const fileSizeLimitError = "We couldn't fetch these files due to size limits"
 const fileSizeLimitTitle = 'File Size Limit Error'
@@ -263,7 +264,13 @@ const StackSectionError: React.FC<
 			cursor="default"
 			overflow="scroll"
 			boxShadow="medium"
-			style={{ maxWidth: '450px' }}
+			paddingTop="8"
+			style={{
+				maxWidth: '450px',
+				overflow: 'auto',
+				msOverflowStyle: 'none',
+				scrollbarWidth: 'none',
+			}}
 		>
 			<Box p="8">
 				<Stack gap="16">
@@ -276,7 +283,7 @@ const StackSectionError: React.FC<
 				</Stack>
 
 				{metadata.length > 0 && (
-					<Box>
+					<Box paddingTop="8">
 						<Tag
 							onClick={(e) => {
 								e.stopPropagation()
