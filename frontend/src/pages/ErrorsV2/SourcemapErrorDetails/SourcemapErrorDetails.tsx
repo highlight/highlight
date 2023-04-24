@@ -1,5 +1,11 @@
-import * as styles from './styles.css'
-
+import { useAuthContext } from '@authentication/AuthContext'
+import { Button } from '@components/Button'
+import { LinkButton } from '@components/LinkButton'
+import {
+	Maybe,
+	SourceMappingError,
+	SourceMappingErrorCode,
+} from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
@@ -10,20 +16,13 @@ import {
 	usePopover,
 	vars,
 } from '@highlight-run/ui'
-import {
-	Maybe,
-	SourceMappingError,
-	SourceMappingErrorCode,
-} from '@graph/schemas'
-import React, { useEffect } from 'react'
-
-import { Button } from '@components/Button'
-import { LinkButton } from '@components/LinkButton'
+import { useProjectId } from '@hooks/useProjectId'
 import SvgCopyIcon from '@icons/CopyIcon'
 import { copyToClipboard } from '@util/string'
 import { showIntercom } from '@util/window'
-import { useAuthContext } from '@authentication/AuthContext'
-import { useProjectId } from '@hooks/useProjectId'
+import React, { useEffect } from 'react'
+
+import * as styles from './styles.css'
 
 type Props = React.PropsWithChildren & { error: SourceMappingError }
 
@@ -262,15 +261,11 @@ const StackSectionError: React.FC<
 			borderRadius="6"
 			border="secondary"
 			cursor="default"
+			hiddenScroll
 			overflow="scroll"
 			boxShadow="medium"
 			paddingTop="8"
-			style={{
-				maxWidth: '450px',
-				overflow: 'auto',
-				msOverflowStyle: 'none',
-				scrollbarWidth: 'none',
-			}}
+			style={{ maxWidth: '450px' }}
 		>
 			<Box p="8">
 				<Stack gap="16">
