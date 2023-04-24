@@ -974,11 +974,9 @@ h5:hover .headingCopyIcon {
 
 .docsTable {
 	width: 100%;
-	border: solid #fff2 1px;
+	border: solid #30294e 1px;
 	border-radius: 4px;
 	overflow: hidden;
-	padding: 16px 0 0 0;
-	background-color: #30294e;
 
 	table {
 		width: 100%;
@@ -991,8 +989,19 @@ h5:hover .headingCopyIcon {
 
 		th,
 		td {
-			padding: 8px 16px;
-			border-bottom: solid 1px #fff2;
+			padding: 4px 12px;
+			border-bottom: solid 1px #30294e;
+			border-left: solid 1px #30294e;
+
+			&:first-child {
+				border-left: none;
+			}
+		}
+
+		th {
+			padding: 8px 12px;
+			font-size: 16px;
+			line-height: 26px;
 		}
 
 		tbody {
