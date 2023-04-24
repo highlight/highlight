@@ -68,7 +68,6 @@ export const getAttachmentUrl = (a: Maybe<ExternalAttachment>) => {
 		case IntegrationType.Height:
 			return `https://height.app/${a.external_id}`
 		case IntegrationType.GitHub:
-			console.log('vadim', { a })
 			return a.external_id
 	}
 	return ''

@@ -45,6 +45,10 @@ type Client struct {
 	owner string
 }
 
+// NewClient creates a GitHub client using the installation workflow (https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation).
+// installation corresponds to the numeric installation ID provided by the installation setup workflow.
+// On its own, the installation ID does not provide access to any GitHub resources, but when
+// paired with the app ID and private key, allows us to access a particular organization's entities.
 func NewClient(ctx context.Context, installation string) *Client {
 	installationID, err := strconv.ParseInt(installation, 10, 64)
 	if err != nil {
