@@ -26,12 +26,11 @@ export const useGitHubIntegration = () => {
 	)
 	return {
 		...hook,
-		addIntegration: (code: string) => {
-			// clear selected repo on integration reinstall
+		removeIntegration: () => {
+			// clear selected repo on integration uninstall
 			removeGitHubRepoId()
-			return hook.addIntegration(code)
+			return hook.removeIntegration()
 		},
-		removeIntegration: hook.removeIntegration,
 	}
 }
 

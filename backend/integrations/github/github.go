@@ -39,6 +39,14 @@ func GetConfig() (*Config, error) {
 	return &config, nil
 }
 
+func parseInstallation(installation string) (int64, error) {
+	installationID, err := strconv.ParseInt(installation, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return installationID, nil
+}
+
 type Client struct {
 	client *github.Client
 	// owner is the login of the organization where the app is installed
@@ -50,7 +58,7 @@ type Client struct {
 // On its own, the installation ID does not provide access to any GitHub resources, but when
 // paired with the app ID and private key, allows us to access a particular organization's entities.
 func NewClient(ctx context.Context, installation string) *Client {
-	installationID, err := strconv.ParseInt(installation, 10, 64)
+	installationID, err := parseInstallation(installation)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to create github client")
 		return nil
@@ -117,4 +125,15 @@ func (c *Client) GetRepos(ctx context.Context) (repos []*github.Repository, err 
 		page += 1
 	}
 	return
+}
+
+func (c *Client) DeleteInstallation(ctx context.Context, installation string) error {
+	installationID, err := parseInstallation(installation)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to create github client")
+		return nil
+	}
+
+	_, err = c.client.Apps.DeleteInstallation(ctx, installationID)
+	return err
 }

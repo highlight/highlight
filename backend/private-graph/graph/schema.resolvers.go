@@ -46,14 +46,14 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
-	"github.com/highlight/highlight/sdk/highlight-go"
+	highlight "github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go/v72"
+	stripe "github.com/stripe/stripe-go/v72"
 	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -2389,7 +2389,7 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 			return false, err
 		}
 	} else {
-		if err := r.RemoveIntegrationFromWorkspaceAndProjects(workspace, integrationType); err != nil {
+		if err := r.RemoveIntegrationFromWorkspaceAndProjects(ctx, workspace, integrationType); err != nil {
 			return false, err
 		}
 

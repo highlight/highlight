@@ -2151,14 +2151,18 @@ func (r *Resolver) RemoveClickUpFromWorkspace(workspace *model.Workspace) error 
 	return nil
 }
 
-func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(workspace *model.Workspace, integrationType modelInputs.IntegrationType) error {
+func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(ctx context.Context, workspace *model.Workspace, integrationType modelInputs.IntegrationType) error {
 	workspaceMapping := &model.IntegrationWorkspaceMapping{}
-
 	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
 		WorkspaceID:     workspace.ID,
 		IntegrationType: integrationType,
 	}).First(&workspaceMapping).Error; err != nil {
 		return e.Wrap(err, fmt.Sprintf("workspace does not have a %s integration", integrationType))
+	}
+
+	// uninstall the app in github
+	if err := github.NewClient(ctx, workspaceMapping.AccessToken).DeleteInstallation(ctx, workspaceMapping.AccessToken); err != nil {
+		return e.Wrap(err, "failed to delete github app installation")
 	}
 
 	if err := r.DB.Raw(`
