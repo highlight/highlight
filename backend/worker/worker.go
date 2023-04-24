@@ -1317,7 +1317,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 					"workspace_id":  c.WorkspaceID,
 					"session_count": c.SessionCount,
 					"error_count":   c.ErrorCount,
-				}).Fatal(e.Wrap(err, "error updating highlight session count in hubspot"))
+				}).Error(e.Wrap(err, "error updating highlight session count in hubspot"))
 			}
 		}
 
