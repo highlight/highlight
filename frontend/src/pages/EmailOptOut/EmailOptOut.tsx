@@ -20,6 +20,8 @@ import { H } from 'highlight.run'
 import { useEffect } from 'react'
 import { StringParam, useQueryParams } from 'use-query-params'
 
+import { FieldsBox } from '@/components/FieldsBox/FieldsBox'
+
 import styles from './EmailOptOut.module.scss'
 
 const OptInRow = (
@@ -132,39 +134,46 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 		}
 
 		return (
-			<p>
-				<p>I would like to receive the following emails:</p>
-				<p>
-					{categories.map((c) =>
-						OptInRow(
-							c.label,
-							c.info,
-							!optOuts.has(c.type),
-							(isOptIn: boolean) => {
-								updateEmailOptOut({
-									variables: {
-										token,
-										admin_id,
-										category: c.type,
-										is_opt_out: !isOptIn,
+			<>
+				<h1>Email Settings</h1>
+				<FieldsBox id="email-settings">
+					<p>
+						<p>I would like to receive the following emails:</p>
+						<p>
+							{categories.map((c) =>
+								OptInRow(
+									c.label,
+									c.info,
+									!optOuts.has(c.type),
+									(isOptIn: boolean) => {
+										updateEmailOptOut({
+											variables: {
+												token,
+												admin_id,
+												category: c.type,
+												is_opt_out: !isOptIn,
+											},
+										})
+											.then(() => {
+												message.success(
+													`Opted ${
+														isOptIn
+															? 'in to'
+															: 'out of'
+													} ${c.type} emails.`,
+												)
+											})
+											.catch((reason: any) => {
+												message.error(String(reason))
+											})
 									},
-								})
-									.then(() => {
-										message.success(
-											`Opted ${
-												isOptIn ? 'in to' : 'out of'
-											} ${c.type} emails.`,
-										)
-									})
-									.catch((reason: any) => {
-										message.error(String(reason))
-									})
-							},
-							optOutAll,
-						),
-					)}
-				</p>
-			</p>
+									optOutAll,
+								),
+							)}
+						</p>
+					</p>
+				</FieldsBox>
+			</>
 		)
 	}
 }

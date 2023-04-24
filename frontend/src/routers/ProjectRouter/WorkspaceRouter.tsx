@@ -7,8 +7,6 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetWorkspaceDropdownOptionsQuery } from '@graph/hooks'
-import UserSettings from '@pages/UserSettings/UserSettings'
-import { WorkspaceTabs } from '@pages/WorkspaceTabs/WorkspaceTabs'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
@@ -16,6 +14,8 @@ import { useDialogState } from 'ariakit/dialog'
 import React, { useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
+
+import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
 
 import commonStyles from '../../Common.module.scss'
 import { ApplicationContextProvider } from './context/ApplicationContext'
@@ -106,11 +106,7 @@ export const WorkspaceRouter = () => {
 						/>
 					) : (
 						<Routes>
-							<Route path="*" element={<WorkspaceTabs />} />
-							<Route
-								path="account/:tab?"
-								element={<UserSettings />}
-							/>
+							<Route path="*" element={<SettingsRouter />} />
 						</Routes>
 					)}
 				</div>
