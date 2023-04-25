@@ -1104,11 +1104,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			? state.time / state.sessionMetadata.totalTime
 			: null,
 		sessionStartDateTime: state.sessionMetadata.startTime,
-		setViewingUnauthorizedSession: (viewingUnauthorizedSession) =>
-			dispatch({
-				type: PlayerActionType.setViewingUnauthorizedSession,
-				viewingUnauthorizedSession,
-			}),
 		setCurrentEvent: (currentEvent) =>
 			dispatch({
 				type: PlayerActionType.setCurrentEvent,
