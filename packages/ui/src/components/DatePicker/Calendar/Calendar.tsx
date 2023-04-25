@@ -1,5 +1,7 @@
 import React from 'react'
-import { Box, Stack, Text } from '@highlight-run/ui'
+import { Box } from '../../Box/Box'
+import { Stack } from '../../Stack/Stack'
+import { Text } from '../../Text/Text'
 import { Day } from './Day'
 import {
 	Calendar as CalendarType,
