@@ -9224,7 +9224,6 @@ export const GetClientIntegrationDocument = gql`
 		clientIntegration(project_id: $project_id) {
 			integrated
 			resourceType
-			resourceSecureId
 			createdAt
 		}
 	}
@@ -9283,7 +9282,6 @@ export const GetServerIntegrationDocument = gql`
 		serverIntegration(project_id: $project_id) {
 			integrated
 			resourceType
-			resourceSecureId
 			createdAt
 		}
 	}
@@ -9342,7 +9340,6 @@ export const GetLogsIntegrationDocument = gql`
 		logsIntegration(project_id: $project_id) {
 			integrated
 			resourceType
-			resourceSecureId
 			createdAt
 		}
 	}

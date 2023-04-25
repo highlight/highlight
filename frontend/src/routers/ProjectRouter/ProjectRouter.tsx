@@ -55,6 +55,7 @@ export const ProjectRouter = () => {
 		skip: !isLoggedIn || !projectId, // Higher level routers decide when guests are allowed to hit this router
 	})
 
+	// Can we avoid calling these if we are viewing a shared session?
 	const clientIntegration = useClientIntegration()
 	const serverIntegration = useServerIntegration()
 	const logsIntegration = useLogsIntegration()
@@ -66,10 +67,6 @@ export const ProjectRouter = () => {
 		clientIntegration.integrated &&
 		serverIntegration.integrated &&
 		logsIntegration.integrated
-	const integrationLoading =
-		clientIntegration.loading ||
-		serverIntegration.loading ||
-		logsIntegration.loading
 
 	useEffect(() => {
 		const uri =
@@ -127,7 +124,7 @@ export const ProjectRouter = () => {
 		if (!error) {
 			setLoadingState((previousLoadingState) => {
 				if (previousLoadingState !== AppLoadingState.EXTENDED_LOADING) {
-					return loading || integrationLoading
+					return loading
 						? AppLoadingState.LOADING
 						: AppLoadingState.LOADED
 				}
@@ -137,7 +134,7 @@ export const ProjectRouter = () => {
 		} else {
 			setLoadingState(AppLoadingState.LOADED)
 		}
-	}, [error, integrationLoading, loading, setLoadingState])
+	}, [error, loading, setLoadingState])
 
 	// if the user can join this workspace, give them that option via the ErrorState
 	const joinableWorkspace = data?.joinable_workspaces
@@ -185,7 +182,7 @@ export const ProjectRouter = () => {
 
 	const commandBarDialog = useDialogState()
 
-	if (loading || integrationLoading) {
+	if (loading) {
 		return null
 	}
 
