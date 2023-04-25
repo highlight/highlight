@@ -626,7 +626,6 @@ export type IntegrationStatus = {
 	__typename?: 'IntegrationStatus'
 	createdAt?: Maybe<Scalars['Timestamp']>
 	integrated: Scalars['Boolean']
-	resourceSecureId?: Maybe<Scalars['String']>
 	resourceType: Scalars['String']
 }
 

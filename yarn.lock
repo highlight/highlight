@@ -32986,6 +32986,7 @@ __metadata:
     pretty-quick: ^3.1.3
     react: ^18.2.0
     react-aria: ^3.20.0
+    react-calendly: ^4.1.1
     react-code-blocks: ^0.0.9-0
     react-collapse: ^5.1.1
     react-collapsible: ^2.10.0
@@ -45010,6 +45011,16 @@ __metadata:
     lodash.flow: ^3.3.0
     pure-color: ^1.2.0
   checksum: 00a12dddafc8a9025cca933b0dcb65fca41c81fa176d1fc3a6a9d0242127042e2c0a604f4c724a3254dd2c6aeb5ef55095522ff22f5462e419641c1341a658e4
+  languageName: node
+  linkType: hard
+
+"react-calendly@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "react-calendly@npm:4.1.1"
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: 7c4953c8b1302c906ecf19b9b449ae3de0f78017b59cb74a83c43502bc9c95eb5731d53c3a1a85e0761d91c8ec724159a054a2746ba67de9e741d1f75c1f81a1
   languageName: node
   linkType: hard
 

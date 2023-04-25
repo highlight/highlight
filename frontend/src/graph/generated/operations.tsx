@@ -3299,7 +3299,7 @@ export type GetClientIntegrationQueryVariables = Types.Exact<{
 export type GetClientIntegrationQuery = { __typename?: 'Query' } & {
 	clientIntegration: { __typename?: 'IntegrationStatus' } & Pick<
 		Types.IntegrationStatus,
-		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
+		'integrated' | 'resourceType' | 'createdAt'
 	>
 }
 
@@ -3310,7 +3310,7 @@ export type GetServerIntegrationQueryVariables = Types.Exact<{
 export type GetServerIntegrationQuery = { __typename?: 'Query' } & {
 	serverIntegration: { __typename?: 'IntegrationStatus' } & Pick<
 		Types.IntegrationStatus,
-		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
+		'integrated' | 'resourceType' | 'createdAt'
 	>
 }
 
@@ -3321,7 +3321,7 @@ export type GetLogsIntegrationQueryVariables = Types.Exact<{
 export type GetLogsIntegrationQuery = { __typename?: 'Query' } & {
 	logsIntegration: { __typename?: 'IntegrationStatus' } & Pick<
 		Types.IntegrationStatus,
-		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
+		'integrated' | 'resourceType' | 'createdAt'
 	>
 }
 

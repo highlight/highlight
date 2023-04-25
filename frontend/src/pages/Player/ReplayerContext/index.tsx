@@ -108,8 +108,6 @@ export interface ReplayerContextInterface {
 	currentUrl: string | undefined
 	/** The timestamp for the first rrweb event. */
 	sessionStartDateTime: number
-	viewingUnauthorizedSession: boolean
-	setViewingUnauthorizedSession: React.Dispatch<React.SetStateAction<boolean>>
 	browserExtensionScriptURLs: string[]
 	isLoadingEvents: boolean
 	sessionMetadata: playerMetaData

@@ -478,10 +478,9 @@ type ComplexityRoot struct {
 	}
 
 	IntegrationStatus struct {
-		CreatedAt        func(childComplexity int) int
-		Integrated       func(childComplexity int) int
-		ResourceSecureID func(childComplexity int) int
-		ResourceType     func(childComplexity int) int
+		CreatedAt    func(childComplexity int) int
+		Integrated   func(childComplexity int) int
+		ResourceType func(childComplexity int) int
 	}
 
 	Invoice struct {
@@ -3403,13 +3402,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.IntegrationStatus.Integrated(childComplexity), true
-
-	case "IntegrationStatus.resourceSecureId":
-		if e.complexity.IntegrationStatus.ResourceSecureID == nil {
-			break
-		}
-
-		return e.complexity.IntegrationStatus.ResourceSecureID(childComplexity), true
 
 	case "IntegrationStatus.resourceType":
 		if e.complexity.IntegrationStatus.ResourceType == nil {
@@ -9351,7 +9343,6 @@ type CategoryHistogramPayload {
 type IntegrationStatus {
 	integrated: Boolean!
 	resourceType: String!
-	resourceSecureId: String
 	createdAt: Timestamp
 }
 
@@ -27659,47 +27650,6 @@ func (ec *executionContext) fieldContext_IntegrationStatus_resourceType(ctx cont
 	return fc, nil
 }
 
-func (ec *executionContext) _IntegrationStatus_resourceSecureId(ctx context.Context, field graphql.CollectedField, obj *model.IntegrationStatus) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_IntegrationStatus_resourceSecureId(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ResourceSecureID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_IntegrationStatus_resourceSecureId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "IntegrationStatus",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _IntegrationStatus_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.IntegrationStatus) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_IntegrationStatus_createdAt(ctx, field)
 	if err != nil {
@@ -39582,8 +39532,6 @@ func (ec *executionContext) fieldContext_Query_clientIntegration(ctx context.Con
 				return ec.fieldContext_IntegrationStatus_integrated(ctx, field)
 			case "resourceType":
 				return ec.fieldContext_IntegrationStatus_resourceType(ctx, field)
-			case "resourceSecureId":
-				return ec.fieldContext_IntegrationStatus_resourceSecureId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_IntegrationStatus_createdAt(ctx, field)
 			}
@@ -39646,8 +39594,6 @@ func (ec *executionContext) fieldContext_Query_serverIntegration(ctx context.Con
 				return ec.fieldContext_IntegrationStatus_integrated(ctx, field)
 			case "resourceType":
 				return ec.fieldContext_IntegrationStatus_resourceType(ctx, field)
-			case "resourceSecureId":
-				return ec.fieldContext_IntegrationStatus_resourceSecureId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_IntegrationStatus_createdAt(ctx, field)
 			}
@@ -39710,8 +39656,6 @@ func (ec *executionContext) fieldContext_Query_logsIntegration(ctx context.Conte
 				return ec.fieldContext_IntegrationStatus_integrated(ctx, field)
 			case "resourceType":
 				return ec.fieldContext_IntegrationStatus_resourceType(ctx, field)
-			case "resourceSecureId":
-				return ec.fieldContext_IntegrationStatus_resourceSecureId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_IntegrationStatus_createdAt(ctx, field)
 			}
@@ -62252,10 +62196,6 @@ func (ec *executionContext) _IntegrationStatus(ctx context.Context, sel ast.Sele
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "resourceSecureId":
-
-			out.Values[i] = ec._IntegrationStatus_resourceSecureId(ctx, field, obj)
-
 		case "createdAt":
 
 			out.Values[i] = ec._IntegrationStatus_createdAt(ctx, field, obj)
