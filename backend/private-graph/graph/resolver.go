@@ -871,14 +871,10 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 	return modelParams
 }
 
-func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string, preloadFields bool) (*model.ErrorGroup, bool, error) {
+func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, bool, error) {
 	eg := &model.ErrorGroup{}
 
-	var db = r.DB
-	if preloadFields {
-		db = r.DB.Preload("Fields")
-	}
-	if err := db.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).First(&eg).Error; err != nil {
+	if err := r.DB.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).First(&eg).Error; err != nil {
 		return nil, false, e.Wrap(err, "error querying error group by secureID: "+errorGroupSecureID)
 	}
 
@@ -897,10 +893,10 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 	return eg, true, nil
 }
 
-func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureID string, preloadFields bool) (*model.ErrorGroup, error) {
+func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorGroup"))
 	defer authSpan.Finish()
-	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID, preloadFields)
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID)
 	if err == nil && isOwner {
 		return errorGroup, nil
 	}
@@ -913,7 +909,7 @@ func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureI
 func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifyErrorGroup"))
 	defer authSpan.Finish()
-	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID, false)
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID)
 	if err == nil && isOwner {
 		return errorGroup, nil
 	}

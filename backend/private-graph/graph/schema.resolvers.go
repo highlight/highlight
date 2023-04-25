@@ -1811,7 +1811,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
@@ -2139,7 +2139,7 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 		return nil, e.Wrap(err, "error querying error comment")
 	}
 
-	_, err := r.canAdminViewErrorGroup(ctx, errorComment.ErrorSecureId, false)
+	_, err := r.canAdminViewErrorGroup(ctx, errorComment.ErrorSecureId)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
@@ -3994,7 +3994,7 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 
 // ErrorGroup is the resolver for the error_group field.
 func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
-	eg, err := r.canAdminViewErrorGroup(ctx, secureID, true)
+	eg, err := r.canAdminViewErrorGroup(ctx, secureID)
 	if err != nil {
 		return nil, err
 	}
@@ -4028,7 +4028,7 @@ func (r *queryResolver) ErrorObjectForLog(ctx context.Context, logCursor string)
 
 // ErrorInstance is the resolver for the error_instance field.
 func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int) (*model.ErrorInstance, error) {
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, true)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "not authorized to view error group")
 	}
@@ -4444,7 +4444,7 @@ func (r *queryResolver) IsSessionPending(ctx context.Context, sessionSecureID st
 
 // ErrorIssue is the resolver for the error_issue field.
 func (r *queryResolver) ErrorIssue(ctx context.Context, errorGroupSecureID string) ([]*model.ExternalAttachment, error) {
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not error owner")
 	}
@@ -4477,7 +4477,7 @@ func (r *queryResolver) ErrorIssue(ctx context.Context, errorGroupSecureID strin
 
 // ErrorComments is the resolver for the error_comments field.
 func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupSecureID string) ([]*model.ErrorComment, error) {
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not error owner")
 	}
@@ -4793,7 +4793,7 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dat
 
 // DailyErrorFrequency is the resolver for the dailyErrorFrequency field.
 func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]int64, error) {
-	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
@@ -4817,7 +4817,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 
 // ErrorDistribution is the resolver for the errorDistribution field.
 func (r *queryResolver) ErrorDistribution(ctx context.Context, projectID int, errorGroupSecureID string, property string) ([]*modelInputs.ErrorDistributionItem, error) {
-	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
@@ -4854,7 +4854,7 @@ func (r *queryResolver) ErrorDistribution(ctx context.Context, projectID int, er
 func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params modelInputs.ErrorGroupFrequenciesParamsInput, metric *string) ([]*modelInputs.ErrorDistributionItem, error) {
 	var errorGroupIDs []int
 	for _, errorGroupSecureID := range errorGroupSecureIds {
-		errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+		errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 		if err != nil {
 			return nil, e.Wrap(err, "admin not error group owner")
 		}
@@ -4868,7 +4868,7 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 
 // ErrorGroupTags is the resolver for the errorGroupTags field.
 func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID string) ([]*modelInputs.ErrorGroupTagAggregation, error) {
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not error group owner")
 	}
