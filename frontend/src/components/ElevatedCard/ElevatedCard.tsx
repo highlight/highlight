@@ -1,3 +1,4 @@
+import { Box } from '@highlight-run/ui'
 import clsx from 'clsx'
 import React, { PropsWithChildren } from 'react'
 
@@ -9,6 +10,7 @@ interface Props {
 	/** Buttons or action elements for the card. These are rendered at the bottom of the card. */
 	actions?: React.ReactNode
 	className?: string
+	icon?: React.ReactNode
 }
 
 const ElevatedCard = ({
@@ -17,9 +19,10 @@ const ElevatedCard = ({
 	animation,
 	actions,
 	className,
+	icon = null,
 }: PropsWithChildren<Props>) => {
 	return (
-		<div
+		<Box
 			className={clsx(
 				styles.card,
 				{
@@ -28,11 +31,12 @@ const ElevatedCard = ({
 				className,
 			)}
 		>
-			{animation && <div className={styles.animation}>{animation}</div>}
+			{animation && <Box className={styles.animation}>{animation}</Box>}
+			{icon && <Box>{icon}</Box>}
 			{title && <h2>{title}</h2>}
-			<div className={styles.content}>{children}</div>
-			{actions && <div className={styles.actions}>{actions}</div>}
-		</div>
+			<Box className={styles.content}>{children}</Box>
+			{actions && <Box className={styles.actions}>{actions}</Box>}
+		</Box>
 	)
 }
 

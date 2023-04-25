@@ -3,11 +3,11 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import JoinWorkspace from '@components/ErrorState/JoinWorkspace/JoinWorkspace'
 import Space from '@components/Space/Space'
 import { Maybe } from '@graph/schemas'
+import { Callout } from '@highlight-run/ui'
 import clsx from 'clsx'
-import React, { useState } from 'react'
+import { useState } from 'react'
 
 import Button from '../Button/Button/Button'
-import ElevatedCard from '../ElevatedCard/ElevatedCard'
 import styles from './ErrorState.module.scss'
 import RequestAccess from './RequestAccess/RequestAccess'
 
@@ -38,7 +38,7 @@ export const ErrorState = ({
 				[styles.shownWithHeader]: shownWithHeader,
 			})}
 		>
-			<ElevatedCard title={title}>
+			<Callout kind="info" title={title}>
 				<p className={styles.errorBody}>
 					{joinableWorkspace &&
 						"Good news 🎉 Based on your email address, you're " +
@@ -119,7 +119,7 @@ export const ErrorState = ({
 						</Space>
 					)}
 				</div>
-			</ElevatedCard>
+			</Callout>
 		</div>
 	)
 }

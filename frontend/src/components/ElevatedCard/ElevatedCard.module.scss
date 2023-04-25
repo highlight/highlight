@@ -5,10 +5,7 @@
 	box-shadow: var(--box-shadow-2);
 	color: var(--text-primary);
 	max-width: 500px;
-	padding-bottom: var(--size-xLarge);
-	padding-left: var(--size-xLarge);
-	padding-right: var(--size-xLarge);
-	padding-top: var(--size-xLarge);
+	padding: var(--size-medium);
 
 	&.center {
 		text-align: center;
