@@ -1,11 +1,12 @@
 import classNames from 'classnames'
+import { promises as fsp } from 'fs'
 import { gql } from 'graphql-request'
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { serialize } from 'next-mdx-remote/serialize'
 import Image from 'next/legacy/image'
 import { GetStaticPaths, GetStaticProps } from 'next/types'
 import YouTube from 'react-youtube'
-import { loadPostsFromGithub } from '.'
+import { getBlogPaths, loadPostsFromGithub } from '.'
 import styles from '../../components/Blog/Blog.module.scss'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
@@ -153,14 +154,23 @@ export const getStaticPaths: GetStaticPaths = async () => {
 			}
 		}
 	`
+
+	let paths = []
+
 	const { posts } = await GraphQLRequest<{ posts: Post[] }>(QUERY)
-	const githubPosts = await loadPostsFromGithub()
-	let allPosts = [...posts, ...githubPosts]
+	posts.forEach((post) => {
+		if (post.slug) {
+			paths.push({ params: { slug: post.slug } })
+		}
+	})
+
+	let p = await getBlogPaths(fsp, '')
+	p.forEach((path) => {
+		paths.push({ params: { slug: path.simple_path } })
+	})
 
 	return {
-		paths: allPosts.map((p: { slug: string }) => ({
-			params: { slug: p.slug },
-		})),
+		paths: paths,
 		fallback: 'blocking',
 	}
 }

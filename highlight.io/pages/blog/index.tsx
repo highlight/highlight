@@ -233,6 +233,7 @@ export const getStaticProps: GetStaticProps = async () => {
 	const githubTags = await loadTagsFromGithub(githubPosts)
 
 	const posts = githubPosts.concat(hygraphPosts)
+	posts.sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
 	const tags = hygraphTags
 
 	return {

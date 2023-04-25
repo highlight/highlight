@@ -54,6 +54,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 	tags.concat(githubTags)
 	tags = getUniqueTags(tags)
 	posts = [...filteredPosts, ...posts]
+	posts.sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
 
 	return {
 		props: {
