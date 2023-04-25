@@ -18,7 +18,6 @@ When you start highlight for development or a hobby deploy, our scripts will sha
 | num-cpu          | CPU Count             | int    |
 | mem-used-percent | Percent memory used   | float  |
 | mem-total        | Bytes of memory total | int    |
-| version          | Highlight version sha | string |
 
 ## Self-reported User Attributes
 
@@ -38,3 +37,12 @@ When you start highlight for development or a hobby deploy, our scripts will sha
 | session-view-count | Number of sessions viewed   | int  |
 | error-view-count   | Number of errors viewed     | int  |
 | log-view-count     | Number of logs viewed       | int  |
+
+## General Telemetry
+
+| Name                     | Description                                        | Type   |
+|--------------------------|----------------------------------------------------|--------|
+| version                  | Highlight version sha                              | string |
+| is-onprem                | Value of env var ON_PREM                           | string |
+| doppler-config           | When doppler is used, the name of the environment. | string |
+| phone-home-deployment-id | A randomly-generated deployment identifier.        | string |

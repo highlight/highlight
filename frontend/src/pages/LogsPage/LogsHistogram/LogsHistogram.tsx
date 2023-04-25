@@ -146,8 +146,8 @@ const LogsHistogram = ({
 	}, [data?.logs_histogram, endDate, maxBucketCount, startDate])
 
 	const tickValues = useMemo(() => {
-		// return the axis with 5 ticks based on maxBucketCount
-		const count = 5
+		// return the axis with up to 5 ticks based on maxBucketCount
+		const count = Math.min(5, maxBucketCount)
 		return [
 			...new Set(
 				[...Array(count + 1)].map((_, idx) => {
