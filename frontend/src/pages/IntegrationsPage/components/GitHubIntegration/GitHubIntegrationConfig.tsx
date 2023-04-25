@@ -38,7 +38,7 @@ const GitHubIntegrationConfig: React.FC<
 				</p>
 				<footer>
 					<Button
-						trackingId="IntegrationDisconnectCancel-Slack"
+						trackingId="IntegrationDisconnectCancel-GitHub"
 						className={styles.modalBtn}
 						onClick={() => {
 							setModalOpen(false)
@@ -48,7 +48,7 @@ const GitHubIntegrationConfig: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId="IntegrationDisconnectSave-Slack"
+						trackingId="IntegrationDisconnectSave-GitHub"
 						className={styles.modalBtn}
 						type="primary"
 						danger
@@ -74,7 +74,7 @@ const GitHubIntegrationConfig: React.FC<
 			</p>
 			<footer>
 				<Button
-					trackingId="IntegrationConfigurationCancel-Slack"
+					trackingId="IntegrationConfigurationCancel-GitHub"
 					className={styles.modalBtn}
 					onClick={() => {
 						setModalOpen(false)
@@ -84,7 +84,7 @@ const GitHubIntegrationConfig: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-Slack"
+					trackingId="IntegrationConfigurationSave-GitHub"
 					className={styles.modalBtn}
 					type="primary"
 					href={authUrl}
