@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="2051" alt="github-thumb" src="https://user-images.githubusercontent.com/20292680/214453237-37420cc6-1ae1-474e-be55-d41fea21e0be.png">
+  <img width="2051" alt="docs-thumbnail" src="https://user-images.githubusercontent.com/20292680/233754540-409ee4cf-beab-46b1-b313-d2d717a87fd6.png">
 </p>
 <p align="center">
   <a href='https://github.com/highlight/highlight/graphs/contributors'><img src='https://img.shields.io/badge/all_contributors-17-orange.svg' /></a>
@@ -18,11 +18,9 @@
 highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a [cohesive](#we-build-a-cohesive-product), [modern](#we-build-for-todays-developer) and [fully-featured](#features) monitoring solution, something we wished WE had. And it's all open source :)
 
 At a high level, highlight.io's feature set is:
-- Session Replay (read more [here](#session-replay-understand-why-bugs-happen))
-- Error Monitoring (read more [here](#error-monitoring-understand-what-bugs-are-happening))
-- Logging (read more [here](#logging))
-
-Read more about our [features](#features) below.
+- [Session Replay](#session-replay-understand-why-bugs-happen)
+- [Error Monitoring](#error-monitoring-understand-what-bugs-are-happening)
+- [Logging](#logging)
 
 We strive to make highlight.io as easy to install as a few lines of code in any environment.
 
