@@ -18,7 +18,9 @@ import { generateRandomColor } from '@util/color'
 import { DEMO_PROJECT_NAME } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+
+import { isSettingsPath } from '@/pages/SettingsRouter/SettingsRouter'
 
 import { useApplicationContext } from '../../../../routers/ProjectRouter/context/ApplicationContext'
 
@@ -29,6 +31,9 @@ const ProjectPicker = () => {
 		workspace_id: string
 		project_id: string
 	}>()
+	const { pathname } = useLocation()
+	const parts = pathname.split('/')
+	const isSettings = isSettingsPath(parts)
 	const projectIdRemapped =
 		project_id === DEMO_WORKSPACE_APPLICATION_ID
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
@@ -82,11 +87,12 @@ const ProjectPicker = () => {
 		  })
 		: []
 
-	const headerDisplayValue = isWorkspaceLevel
-		? 'Back to Project'
-		: isInDemoProject
-		? DEMO_PROJECT_NAME
-		: currentProject?.name
+	const headerDisplayValue =
+		isWorkspaceLevel || isSettings
+			? 'Back to Project'
+			: isInDemoProject
+			? DEMO_PROJECT_NAME
+			: currentProject?.name
 
 	return (
 		<div>
@@ -97,7 +103,7 @@ const ProjectPicker = () => {
 						emphasis="high"
 						size="small"
 						iconLeft={
-							isWorkspaceLevel ? (
+							isWorkspaceLevel || isSettings ? (
 								<IconSolidArrowSmLeft size={14} />
 							) : (
 								<IconSolidBriefcase size={14} />
@@ -108,7 +114,7 @@ const ProjectPicker = () => {
 					</Menu.Button>
 					<Menu.List>
 						{projectOptions}
-						{project_id && project_id !== '0' && (
+						{project_id && project_id !== '0' && !isSettings && (
 							<>
 								<Menu.Divider />
 								<Link

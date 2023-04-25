@@ -64,6 +64,8 @@ import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
+import { isSettingsPath } from '@/pages/SettingsRouter/SettingsRouter'
+
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.scss'
 
@@ -85,6 +87,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const parts = pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
 	const isSetup = parts.indexOf('setup') !== -1
+	const isSettings = isSettingsPath(parts)
 
 	const { toggleShowKeyboardShortcutsGuide, commandBarDialog } =
 		useGlobalContext()
@@ -117,7 +120,10 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 			<CommandBar />
 			<CommandBarV1 />
 			<Box background="n2" borderBottom="secondary">
-				{!!project_id && !isSetup && getBanner(project_id)}
+				{!!project_id &&
+					!isSetup &&
+					!isSettings &&
+					getBanner(project_id)}
 				<Box
 					display="flex"
 					alignItems="center"
@@ -156,7 +162,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							width="full"
 						>
 							<ProjectPicker />
-							{project_id && (
+							{project_id && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
 									{pages.map((p) => {
 										return (
@@ -353,7 +359,8 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 						>
 							{!!projectIdRemapped &&
 								!fullyIntegrated &&
-								!isSetup && (
+								!isSetup &&
+								!isSettings && (
 									<LinkButton
 										to={`/${project_id}/setup`}
 										state={{
@@ -372,7 +379,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 										</Stack>
 									</LinkButton>
 								)}
-							{!!project_id && !isSetup && (
+							{!!project_id && !isSetup && !isSettings && (
 								<Button
 									trackingId="quickSearchClicked"
 									kind="secondary"
@@ -391,7 +398,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 									/>
 								</Button>
 							)}
-							{!isSetup && (
+							{!isSetup && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
 									<Button
 										kind="secondary"

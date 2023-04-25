@@ -16,8 +16,10 @@ import {
 } from 'react-router-dom'
 
 import { EmailOptOutPanel } from '@/pages/EmailOptOut/EmailOptOut'
+import ProjectSettings from '@/pages/ProjectSettings/ProjectSettings'
 import Auth from '@/pages/UserSettings/Auth/Auth'
 import { PlayerForm } from '@/pages/UserSettings/PlayerForm/PlayerForm'
+import { useApplicationContext } from '@/routers/ProjectRouter/context/ApplicationContext'
 import { auth } from '@/util/auth'
 
 import * as styles from './SettingsRouter.css'
@@ -31,7 +33,19 @@ export type WorkspaceSettingsTab =
 	| 'settings'
 	| 'current-plan'
 	| 'upgrade-plan'
-	| SettingGroups
+
+export const isSettingsPath = (path: string[]) => {
+	const settingsPaths: (WorkspaceSettingsTab | SettingGroups)[] = [
+		'settings',
+		'account',
+		'team',
+		'current-plan',
+		'upgrade-plan',
+	]
+	return settingsPaths.some(
+		(settingsPath) => path.indexOf(settingsPath) !== -1,
+	)
+}
 
 const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 	switch (tab) {
@@ -51,16 +65,28 @@ const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 export const SettingsRouter = () => {
 	const location = useLocation()
 	const navigate = useNavigate()
-	const { workspace_id: workspaceId, '*': sectionId } = useParams<{
+	const {
+		workspace_id,
+		project_id,
+		'*': sectionId,
+	} = useParams<{
 		workspace_id: string
+		project_id: string
 		'*': string
 	}>()
-
+	const { allProjects, currentProject, currentWorkspace } =
+		useApplicationContext()
+	const workspaceId = workspace_id || currentWorkspace?.id
+	const projectId = project_id || currentProject?.id
 	// Using useMatch instead of pulling from useParams because :page_id isn't
 	// defined in a route anywhere, it's only used by the tabs.
 	const workspaceMatch = useMatch('/w/:workspace_id/:section_id/:page_id?')
+	const projectMatch = useMatch('/:project_id/settings/:page_id?')
 	const pageId =
-		workspaceMatch?.params.page_id || (sectionId as WorkspaceSettingsTab)
+		workspaceMatch?.params.page_id ||
+		projectMatch?.params.page_id ||
+		sectionId ||
+		''
 
 	const workspaceSettingTabs = [
 		{
@@ -117,6 +143,13 @@ export const SettingsRouter = () => {
 		],
 	]
 
+	const projectSettingTabs = allProjects
+		? allProjects.map((project) => ({
+				key: project?.id,
+				title: project?.name,
+		  }))
+		: []
+
 	useEffect(() => {
 		analytics.page()
 		if (!pageId) {
@@ -145,7 +178,7 @@ export const SettingsRouter = () => {
 						{workspaceSettingTabs.map((tab) => (
 							<NavLink
 								key={tab.key}
-								to={`${tab.key}`}
+								to={`/w/${workspaceId}/${tab.key}`}
 								className={({ isActive }) =>
 									clsx(styles.menuItem, {
 										[styles.menuItemActive]: isActive,
@@ -167,7 +200,7 @@ export const SettingsRouter = () => {
 						{accountSettingTabs.map((tab) => (
 							<NavLink
 								key={tab.key}
-								to={`account/${tab.key}`}
+								to={`/w/${workspaceId}/account/${tab.key}`}
 								className={({ isActive }) =>
 									clsx(styles.menuItem, {
 										[styles.menuItemActive]: isActive,
@@ -176,6 +209,27 @@ export const SettingsRouter = () => {
 							>
 								<Stack direction="row" align="center" gap="4">
 									<Text>{tab.title}</Text>
+								</Stack>
+							</NavLink>
+						))}
+					</Stack>
+					<Stack gap="0">
+						<Box mt="12" mb="10" ml="8">
+							<Text size="xxSmall" color="secondaryContentText">
+								Project Settings
+							</Text>
+						</Box>
+						{projectSettingTabs.map((project) => (
+							<NavLink
+								key={project.key}
+								to={`/${project.key}/settings/recording`}
+								className={clsx(styles.menuItem, {
+									[styles.menuItemActive]:
+										projectId === project.key,
+								})}
+							>
+								<Stack direction="row" align="center" gap="4">
+									<Text>{project.title}</Text>
 								</Stack>
 							</NavLink>
 						))}
@@ -220,6 +274,10 @@ export const SettingsRouter = () => {
 										}
 									/>
 								))}
+								<Route
+									path=":tab?"
+									element={<ProjectSettings />}
+								/>
 							</Routes>
 						</Box>
 					</Box>
