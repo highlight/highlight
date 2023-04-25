@@ -240,6 +240,10 @@ const AuthenticationRoleRouter = () => {
 		refetch = sRefetch
 	}
 
+	adminError = 'asdf'
+
+	console.log({ workspaceId, projectId })
+
 	const { setLoadingState } = useAppLoadingContext()
 	const [getProjectQuery] = useGetProjectLazyQuery()
 
