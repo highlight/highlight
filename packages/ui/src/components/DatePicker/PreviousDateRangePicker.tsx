@@ -73,7 +73,7 @@ function toDateTimeString(date: Date, showYear: boolean) {
  * @returns {	hour: number, minute: number, timeOfDay: string, hour24: number}
  */
 export const getTimeInfo = (timeString: string) => {
-	let date = moment(timeString, 'hh:mm a')
+	const date = moment(timeString, 'hh:mm a')
 	return {
 		hour: date.format('HH'),
 		minute: date.minute(),
