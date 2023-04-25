@@ -35,7 +35,7 @@ body {
 	font-style: normal;
 	font-weight: 800;
 	src: local('Steradian Black'), local('SteradianBlack'),
-		url('/font/SteradianBlack.woff2') format('woff2');
+		url('./font/SteradianBlack.woff2') format('woff2');
 }
 
 @font-face {
