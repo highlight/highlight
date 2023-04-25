@@ -1,10 +1,11 @@
+import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { DatePicker } from './Calendar/DatePicker'
 import { DatePickerStateProvider } from '@rehookify/datepicker'
 import { Menu, MenuButtonProps, useMenu } from '../Menu/Menu'
 import { Text } from '../Text/Text'
-import { Form } from '@highlight-run/ui'
+import { Form } from '../Form/Form'
 import {
 	IconSolidCheck,
 	IconSolidCheveronDown,
@@ -72,21 +73,13 @@ function toDateTimeString(date: Date, showYear: boolean) {
  * @returns {	hour: number, minute: number, timeOfDay: string, hour24: number}
  */
 export const getTimeInfo = (timeString: string) => {
-	const time = timeString.slice(0, -2).trim()
-	const period = timeString.slice(-2).trim().toUpperCase()
-	const [hour, minute] = time.split(':')
-	const isAM = period === 'AM'
-	const isPM = period === 'PM'
-	const hourInt = parseInt(hour, 10)
-	const hour24 =
-		isPM && hourInt !== 12
-			? hourInt + 12
-			: isAM && hourInt === 12
-			? 0
-			: hourInt
-	const timeOfDay = isAM ? 'AM' : isPM ? 'PM' : ''
-
-	return { hour: hourInt, minute: parseInt(minute, 10), timeOfDay, hour24 }
+	let date = moment(timeString, 'hh:mm a')
+	return {
+		hour: date.format('HH'),
+		minute: date.minute(),
+		timeOfDay: date.hour() >= 12,
+		hour24: date.hour(),
+	}
 }
 
 /**
@@ -112,13 +105,11 @@ const setTimeOnDate = (date: Date, hour: number, minute: number) => {
  * @returns {string} A string in the format "HH:mm aa".
  */
 const getTimeStringFromDate = (date: Date): string => {
-	if (!date) return '00:00 AM'
+	if (!date) {
+		return '12:00 AM'
+	}
 
-	const hour = date.getHours() % 12 || 12
-	const minute = date.getMinutes().toString().padStart(2, '0')
-	const period = date.getHours() < 12 ? 'AM' : 'PM'
-
-	return `${hour}:${minute} ${period}`
+	return moment(date).format('hh:mm A')
 }
 
 /**
@@ -501,18 +492,24 @@ const PreviousDateRangePickerImpl = ({
 								) : null}
 							</Box>
 							<Box
-								border={'divider'}
-								borderRadius={'4'}
+								border={showingTime ? 'none' : 'divider'}
+								borderRadius={'6'}
 								as="button"
 								p={'7'}
+								display={'flex'}
+								justifyContent={'center'}
 								cursor="pointer"
 								background={'n4'}
+								alignItems={'center'}
 								style={{
 									width: 28,
 									height: 28,
 									background: showingTime
 										? colors.p9
 										: colors.n4,
+									boxShadow: showingTime
+										? '0px -1px 0px rgba(0, 0, 0, 0.32) inset'
+										: undefined,
 								}}
 								onClick={handleShowingTimeToggle}
 							>
