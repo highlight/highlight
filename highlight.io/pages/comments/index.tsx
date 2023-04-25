@@ -52,7 +52,7 @@ const Comments: NextPage = () => {
 								<PrimaryButton href="https://app.highlight.io/sign_up">
 									Get Started For Free
 								</PrimaryButton>
-								<PrimaryLink href="https://calendly.com/jaykhatri/highlight-demo-call">
+								<PrimaryLink href="https://calendly.com/d/2gt-rw5-qg5/highlight-demo-call">
 									Request A Demo
 								</PrimaryLink>
 							</div>

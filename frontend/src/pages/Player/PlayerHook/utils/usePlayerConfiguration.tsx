@@ -6,7 +6,7 @@ import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import { useCallback, useMemo } from 'react'
 
-import { EventsForTimeline } from '.'
+import { EventsForTimeline } from './index'
 
 export const PLAYBACK_SPEED_OPTIONS: readonly number[] = [1, 2, 4, 8]
 

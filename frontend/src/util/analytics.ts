@@ -24,10 +24,23 @@ const track = (event: string, metadata?: rudderanalytics.apiObject) => {
 	rudderanalytics.track(event, metadata)
 }
 
+const identify = (email: string, traits?: rudderanalytics.apiObject) => {
+	;(window._hsq = window._hsq || []).push([
+		'identify',
+		{
+			...traits,
+			email: email,
+		},
+	])
+
+	H.identify(email, traits as Metadata)
+	rudderanalytics.identify(email, traits)
+}
+
 const analytics = {
 	initialize,
 	track,
-	identify: rudderanalytics.identify,
+	identify,
 	page: rudderanalytics.page,
 }
 

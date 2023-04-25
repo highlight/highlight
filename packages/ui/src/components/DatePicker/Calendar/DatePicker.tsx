@@ -1,9 +1,7 @@
 import React from 'react'
-import {
-	Box,
-	IconSolidCheveronLeft,
-	IconSolidCheveronRight,
-} from '@highlight-run/ui'
+import { Box } from '../../Box/Box'
+import { IconSolidCheveronLeft } from '../../icons/IconSolidCheveronLeft'
+import { IconSolidCheveronRight } from '../../icons/IconSolidCheveronRight'
 import { Calendar } from './Calendar'
 import {
 	useContextCalendars,

@@ -15,6 +15,7 @@ on:
                     - deploy
     push:
         branches: ['main']
+        tags: ['sdk/highlight-java/**']
     pull_request:
         types: [opened, synchronize]
         paths:
@@ -35,21 +36,67 @@ jobs:
         runs-on: ubuntu-latest
         outputs:
             version: ${{ steps.version.outputs.version }}
+            deploy: ${{ steps.deploy.outputs.deploy }}
+            build: ${{ steps.build.outputs.build }}
+            test: ${{ steps.test.outputs.test }}
         steps:
             - name: Checkout Code
               uses: actions/checkout@v3
               with:
                   fetch-depth: 0
 
-            - name: Set BUILD_VERSION
+            - name: Deployment running
+              id: deploy
+              env:
+                  GITHUB_EVENT_REF: ${{ startsWith(github.event.ref, 'refs/tags/sdk/highlight-java/') }}
+                  INPUTS_ACTION: ${{ inputs.action }}
+              run: |
+                  running=$(if [ "$GITHUB_EVENT_REF" = "true" ] || [ "$INPUTS_ACTION" = "deploy" ]; then echo true; else echo false; fi)
+                  echo "deploy=$running" >> "$GITHUB_OUTPUT"
+                  echo "Is deployment running: $running"
+
+            - name: Build running
+              id: build
+              env:
+                  DEPLOY_RUNNING: ${{ steps.deploy.outputs.deploy }}
+                  INPUTS_ACTION: ${{ inputs.action }}
+              run: |
+                  running=$(if [ "$INPUTS_ACTION" != "test" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
+                  echo "build=$running" >> "$GITHUB_OUTPUT"
+                  echo "Is build running: $running"
+
+            - name: Test running
+              id: test
+              env:
+                  DEPLOY_RUNNING: ${{ steps.deploy.outputs.deploy }}
+                  INPUTS_ACTION: ${{ inputs.action }}
+              run: |
+                  running=$(if [ "$INPUTS_ACTION" != "build" ] || [ "$DEPLOY_RUNNING" == "true" ]; then echo true; else echo false; fi)
+                  echo "test=$running" >> "$GITHUB_OUTPUT"
+                  echo "Is test running: $running"
+
+            - name: Build version
               id: version
-              run: echo "version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f2)-b$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
+              env:
+                  DEPLOY_RUNNING: ${{ steps.deploy.outputs.deploy }}
+              run: |
+                  # Get latest tag version
+                  version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f3)
+
+                  # Returning version 0.0.0 when no git tag was found
+                  version=$(if [ "$version" != "" ]; then echo $version; else echo "0.0.0"; fi)
+
+                  # Adding github runner number only when no deployment is running
+                  version=$(if [ "$DEPLOY_RUNNING" == "true" ]; then echo "$version"; else echo "$version"-b$GITHUB_RUN_NUMBER; fi)
+
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
+                  echo "Build version: $version"
 
     build:
         name: Build
         runs-on: ubuntu-latest
         needs: setup
-        if: ${{ (inputs.action == '' || inputs.action == 'none') || (inputs.action == 'build' || inputs.action == 'deploy') }}
+        if: ${{ needs.setup.outputs.build == 'true' }}
         defaults:
             run:
                 working-directory: ./sdk/highlight-java
@@ -80,7 +127,7 @@ jobs:
         name: Test
         runs-on: ubuntu-latest
         needs: setup
-        if: ${{ (inputs.action == '' || inputs.action == 'none') || (inputs.action == 'test' || inputs.action == 'deploy') }}
+        if: ${{ needs.setup.outputs.test == 'true' }}
         defaults:
             run:
                 working-directory: ./sdk/highlight-java
@@ -117,7 +164,7 @@ jobs:
         name: Deploy
         runs-on: ubuntu-latest
         needs: [setup, build, test]
-        if: ${{ ((inputs.action == '' || inputs.action == 'none') && github.ref == 'refs/heads/main') || inputs.action == 'deploy' }}
+        if: ${{ needs.setup.outputs.deploy == 'true' }}
         defaults:
             run:
                 working-directory: ./sdk/highlight-java

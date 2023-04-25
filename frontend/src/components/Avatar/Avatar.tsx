@@ -3,12 +3,10 @@ import React, { useMemo } from 'react'
 import ReactNiceAvatar, { genConfig } from 'react-nice-avatar'
 
 import { generateRandomColor } from '../../util/color'
-import {
-	userAvatar,
-	userAvatarBorder,
-	userAvatarText,
-	userAvatarWrapper,
-} from './Avatar.module.scss'
+import styles from './Avatar.module.scss'
+
+const { userAvatar, userAvatarBorder, userAvatarText, userAvatarWrapper } =
+	styles
 
 const BACKGROUND_COLORS = [
 	'--color-purple-300',
