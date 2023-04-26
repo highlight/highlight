@@ -16,6 +16,9 @@ import { Stack } from '../Stack/Stack'
 import { Box } from '../Box/Box'
 import { colors } from '../../css/colors'
 
+const TIME_INPUT_FORMAT = 'HH:mm a'
+const TIME_DISPLAY_FORMAT = 'HH:mm A'
+
 export type Preset = {
 	label: string
 	startDate: Date
@@ -70,7 +73,7 @@ function toDateTimeString(date: Date, showYear: boolean) {
  * @returns {	hour: number, minute: number, timeOfDay: string, hour24: number}
  */
 export const getTimeInfo = (timeString: string) => {
-	const date = moment(timeString, 'HH:mm a')
+	const date = moment(timeString, TIME_INPUT_FORMAT)
 	return {
 		hour: date.format('HH'),
 		minute: date.minute(),
@@ -106,7 +109,7 @@ const getTimeStringFromDate = (date: Date): string => {
 		return '12:00 AM'
 	}
 
-	return moment(date).format('hh:mm A')
+	return moment(date).format(TIME_DISPLAY_FORMAT)
 }
 
 /**
@@ -247,7 +250,7 @@ const PreviousDateRangePickerImpl = ({
 		input: 'start' | 'end',
 	) => {
 		const value = event.target.value
-		const isValid = moment(value, 'HH:mm a', true).isValid()
+		const isValid = moment(value, TIME_INPUT_FORMAT, true).isValid()
 
 		if (input === 'start') {
 			setStartTimeIsValid(isValid)
