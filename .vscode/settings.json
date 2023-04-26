@@ -77,7 +77,7 @@
 		"backend/payload/*": true,
 		"**/yarn-error.log": true
 	},
-	"cSpell.words": ["Blocklist", "interactable"],
+	"cSpell.words": ["autoinject", "Autoinjected", "Blocklist", "interactable"],
 	"[yaml]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
@@ -89,5 +89,8 @@
 	},
 	"[markdown]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[css]": {
+		"editor.defaultFormatter": "vscode.css-language-features"
 	}
 }

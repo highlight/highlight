@@ -1,5 +1,3 @@
-import { siteUrl } from '../../../utils/urls'
-import { QuickStartContent } from '../QuickstartContent'
 import {
 	configureSourcemapsCI,
 	identifySnippet,
@@ -8,6 +6,9 @@ import {
 	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
+
+import { siteUrl } from '../../../utils/urls'
+import { QuickStartContent } from '../QuickstartContent'
 
 const svelteKitInitCodeSnippet = `// hooks.client.ts
 ...
@@ -22,7 +23,7 @@ H.init('<YOUR_PROJECT_ID>', {
 		enabled: true,
 		recordHeadersAndBody: true,
         urlBlocklist: [
-            // insert urls you don't want to record here
+            // insert full or partial urls that you don't want to record here
         ],
 	},
 });

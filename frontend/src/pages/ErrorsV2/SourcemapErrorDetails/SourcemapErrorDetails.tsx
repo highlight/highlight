@@ -34,7 +34,7 @@ const originalFileTitle = 'Original File Access Error'
 
 const sourcemapFileError =
 	'There was an issue accessing the sourcemap file for this error'
-const sourcemapFileTitle = 'Sourcemal File Error'
+const sourcemapFileTitle = 'Sourcemap File Error'
 
 const fileSizeLimitError = "We couldn't fetch these files due to size limits"
 const fileSizeLimitTitle = 'File Size Limit Error'
@@ -261,8 +261,10 @@ const StackSectionError: React.FC<
 			borderRadius="6"
 			border="secondary"
 			cursor="default"
+			hiddenScroll
 			overflow="scroll"
 			boxShadow="medium"
+			paddingTop="8"
 			style={{ maxWidth: '450px' }}
 		>
 			<Box p="8">
@@ -276,7 +278,7 @@ const StackSectionError: React.FC<
 				</Stack>
 
 				{metadata.length > 0 && (
-					<Box>
+					<Box paddingTop="8">
 						<Tag
 							onClick={(e) => {
 								e.stopPropagation()

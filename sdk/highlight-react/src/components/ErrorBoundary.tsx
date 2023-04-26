@@ -1,5 +1,5 @@
 import React, { ErrorInfo } from 'react'
-import ReportDialog, { ReportDialogOptions } from '../ReportDialog/ReportDialog'
+import ReportDialog, { ReportDialogOptions } from './ReportDialog/ReportDialog'
 
 export type FallbackRender = (errorData: {
 	error: Error

@@ -43,8 +43,10 @@ export const inputVariants = recipe({
 				width: 0,
 				padding: 0,
 				border: 'none',
-				'&:focus, &:active, &:placeholder-shown:hover': {
-					border: 'none',
+				selectors: {
+					'&:focus, &:active, &:placeholder-shown:hover': {
+						border: 'none',
+					},
 				},
 			},
 			false: {},

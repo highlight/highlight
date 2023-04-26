@@ -91,6 +91,10 @@ slug: client
           <h5>isCrossOriginIframe <code>boolean</code> <code>optional</code></h5>
           <p>Specifies that the current app is a cross origin iframe in an app where Highlight is also enabled. This flag should only be set in the iframe, not in the parent application hosting the iframe. This allows the iframe to forward its recording to the parent to be included as part of the session. See [cross-origin iframe recording](../getting-started/3_client-sdk/7_replay-configuration/iframes.md) for more details.</p>
         </aside>
+        <aside className="parameter">
+          <h5>urlBlocklist <code>string[]</code> <code>optional</code></h5>
+          <p>Specifies a list of URLs to block <b>before</b> sending events to the Highlight back end. URLs can be fully-qualified or partial substring matches. Example: urlBlocklist: ["//www.high", "light.io"]</p>
+        </aside>
       </article>
     </aside>
   </div>
