@@ -16,9 +16,6 @@ import { Stack } from '../Stack/Stack'
 import { Box } from '../Box/Box'
 import { colors } from '../../css/colors'
 
-const VALID_FORMATTED_TIME_REGEX =
-	/((1[0-2]|0?[1-9]):([0-5][0-9]) ?([AaPp][Mm]))/
-
 export type Preset = {
 	label: string
 	startDate: Date
@@ -250,7 +247,7 @@ const PreviousDateRangePickerImpl = ({
 		input: 'start' | 'end',
 	) => {
 		const value = event.target.value
-		const isValid = value.match(VALID_FORMATTED_TIME_REGEX) !== null
+		const isValid = moment(value, 'HH:mm', true).isValid()
 
 		if (input === 'start') {
 			setStartTimeIsValid(isValid)
