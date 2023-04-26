@@ -122,7 +122,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 					display="flex"
 					alignItems="center"
 					px="12"
-					py={isLoggedIn ? '8' : '0'}
+					py="8"
 					justifyContent="space-between"
 				>
 					{isSetup ? (
@@ -318,19 +318,16 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							justifyContent="space-between"
 							width="full"
 						>
-							<Link className={styles.homeLink} to="/">
-								<Button
-									kind="secondary"
-									emphasis="high"
-									size="small"
-									iconLeft={
-										<IconSolidArrowSmLeft size={14} />
-									}
-									trackingId="navHomeLink"
-								>
-									Back to Highlight
-								</Button>
-							</Link>
+							<LinkButton
+								to="/"
+								kind="secondary"
+								emphasis="high"
+								size="small"
+								iconLeft={<IconSolidArrowSmLeft size={14} />}
+								trackingId="navHomeLink"
+							>
+								Back to Highlight
+							</LinkButton>
 							<a
 								className={styles.homeLink}
 								href="https://www.highlight.io"

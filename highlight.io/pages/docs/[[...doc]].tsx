@@ -1140,6 +1140,17 @@ const DocPage = ({
 														</div>
 													)
 												},
+												img: (props) => {
+													return (
+														<picture>
+															<img
+																{...props}
+																alt={props.alt}
+																className="border-divider-on-dark border rounded-lg"
+															/>
+														</picture>
+													)
+												},
 											}}
 											{...markdownText}
 										/>

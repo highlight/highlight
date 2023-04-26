@@ -1390,7 +1390,6 @@ query GetClientIntegration($project_id: ID!) {
 	clientIntegration(project_id: $project_id) {
 		integrated
 		resourceType
-		resourceSecureId
 		createdAt
 	}
 }
@@ -1399,7 +1398,6 @@ query GetServerIntegration($project_id: ID!) {
 	serverIntegration(project_id: $project_id) {
 		integrated
 		resourceType
-		resourceSecureId
 		createdAt
 	}
 }
@@ -1408,7 +1406,6 @@ query GetLogsIntegration($project_id: ID!) {
 	logsIntegration(project_id: $project_id) {
 		integrated
 		resourceType
-		resourceSecureId
 		createdAt
 	}
 }
@@ -1618,6 +1615,22 @@ query GetHeightIntegrationSettings($workspace_id: ID!) {
 		project_id
 		external_id
 	}
+}
+
+query GetGitHubIntegrationSettings($workspace_id: ID!) {
+	is_integrated: is_workspace_integrated_with(
+		integration_type: GitHub
+		workspace_id: $workspace_id
+	)
+	github_repos(workspace_id: $workspace_id) {
+		repo_id
+		name
+		key
+	}
+}
+
+query GetGitHubIssueLabels($workspace_id: ID!, $repository: String!) {
+	github_issue_labels(workspace_id: $workspace_id, repository: $repository)
 }
 
 query GetProjectIntegratedWith(

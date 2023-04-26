@@ -19,9 +19,11 @@ import {
 import { Box, Menu, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
+import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
 	CLICKUP_INTEGRATION,
+	GITHUB_INTEGRATION,
 	HEIGHT_INTEGRATION,
 	LINEAR_INTEGRATION,
 } from '@pages/IntegrationsPage/Integrations'
@@ -49,6 +51,8 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 	const { isIntegrated: isHeightIntegrated, loading: isLoadingHeight } =
 		useIsProjectIntegratedWith(IntegrationType.Height)
 
+	const { settings: githubSettings } = useGitHubIntegration()
+
 	const { data: errorIssues, loading: isLoadingErrorIssues } =
 		useGetErrorIssuesQuery({
 			variables: {
@@ -68,11 +72,13 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 				[isLinearIntegratedWithProject, LINEAR_INTEGRATION],
 				[isClickupIntegrated, CLICKUP_INTEGRATION],
 				[isHeightIntegrated, HEIGHT_INTEGRATION],
+				[githubSettings.isIntegrated, GITHUB_INTEGRATION],
 			],
 			[
 				isClickupIntegrated,
 				isLinearIntegratedWithProject,
 				isHeightIntegrated,
+				githubSettings.isIntegrated,
 			],
 		)
 
@@ -91,6 +97,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 		isLoadingLinear ||
 		isLoadingClickUp ||
 		isLoadingHeight ||
+		githubSettings.loading ||
 		isLoadingErrorIssues
 
 	const [forceIssueCreationMenu, setForceIssueCreationMenu] = useState(false)

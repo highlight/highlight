@@ -27,6 +27,7 @@ export interface IntegrationActions<SettingsQueryOutput, UpdateMutationInput> {
 	updateIntegration: (settings: UpdateMutationInput) => Promise<unknown>
 	removeIntegration: () => Promise<unknown>
 	settings: Settings<SettingsQueryOutput>
+	data?: SettingsQueryOutput
 }
 
 export const useIntegration = <SettingsQueryOutput, UpdateMutationInput>(
@@ -120,5 +121,6 @@ export const useIntegration = <SettingsQueryOutput, UpdateMutationInput>(
 		removeIntegration,
 		updateIntegration,
 		settings,
+		data,
 	}
 }

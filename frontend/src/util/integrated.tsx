@@ -166,7 +166,6 @@ export const useClientIntegration = () => {
 				integrated: false,
 				createdAt: undefined,
 				resourceType: '',
-				resourceSecureId: undefined,
 			},
 		)
 	const { data, startPolling, stopPolling } = useGetClientIntegrationQuery({
@@ -228,7 +227,6 @@ export const useServerIntegration = () => {
 				integrated: false,
 				createdAt: undefined,
 				resourceType: '',
-				resourceSecureId: undefined,
 			},
 		)
 	const { data, startPolling, stopPolling } = useGetServerIntegrationQuery({
@@ -290,7 +288,6 @@ export const useLogsIntegration = () => {
 				integrated: false,
 				createdAt: undefined,
 				resourceType: '',
-				resourceSecureId: undefined,
 			},
 		)
 	const { data, startPolling, stopPolling } = useGetLogsIntegrationQuery({

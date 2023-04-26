@@ -3299,7 +3299,7 @@ export type GetClientIntegrationQueryVariables = Types.Exact<{
 export type GetClientIntegrationQuery = { __typename?: 'Query' } & {
 	clientIntegration: { __typename?: 'IntegrationStatus' } & Pick<
 		Types.IntegrationStatus,
-		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
+		'integrated' | 'resourceType' | 'createdAt'
 	>
 }
 
@@ -3310,7 +3310,7 @@ export type GetServerIntegrationQueryVariables = Types.Exact<{
 export type GetServerIntegrationQuery = { __typename?: 'Query' } & {
 	serverIntegration: { __typename?: 'IntegrationStatus' } & Pick<
 		Types.IntegrationStatus,
-		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
+		'integrated' | 'resourceType' | 'createdAt'
 	>
 }
 
@@ -3321,7 +3321,7 @@ export type GetLogsIntegrationQueryVariables = Types.Exact<{
 export type GetLogsIntegrationQuery = { __typename?: 'Query' } & {
 	logsIntegration: { __typename?: 'IntegrationStatus' } & Pick<
 		Types.IntegrationStatus,
-		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
+		'integrated' | 'resourceType' | 'createdAt'
 	>
 }
 
@@ -3623,6 +3623,33 @@ export type GetHeightIntegrationSettingsQuery = { __typename?: 'Query' } & {
 		>
 	>
 }
+
+export type GetGitHubIntegrationSettingsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetGitHubIntegrationSettingsQuery = { __typename?: 'Query' } & {
+	is_integrated: Types.Query['is_workspace_integrated_with']
+} & {
+	github_repos?: Types.Maybe<
+		Array<
+			{ __typename?: 'GitHubRepo' } & Pick<
+				Types.GitHubRepo,
+				'repo_id' | 'name' | 'key'
+			>
+		>
+	>
+}
+
+export type GetGitHubIssueLabelsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	repository: Types.Scalars['String']
+}>
+
+export type GetGitHubIssueLabelsQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'github_issue_labels'
+>
 
 export type GetProjectIntegratedWithQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
@@ -4398,6 +4425,8 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithVercel' as const,
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
 		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
+		GetGitHubIntegrationSettings: 'GetGitHubIntegrationSettings' as const,
+		GetGitHubIssueLabels: 'GetGitHubIssueLabels' as const,
 		GetProjectIntegratedWith: 'GetProjectIntegratedWith' as const,
 		GetClickUpFolders: 'GetClickUpFolders' as const,
 		GetHeightLists: 'GetHeightLists' as const,
