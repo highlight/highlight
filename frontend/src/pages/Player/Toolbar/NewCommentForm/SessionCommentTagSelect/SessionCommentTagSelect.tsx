@@ -1,8 +1,13 @@
 import Button from '@components/Button/Button/Button'
 import Select from '@components/Select/Select'
 import { getTagBackgroundColor } from '@components/Tag/Tag'
-import { useGetCommentTagsForProjectQuery } from '@graph/hooks'
+import {
+	useGetCommentTagsForProjectQuery,
+	useGetGitHubIssueLabelsQuery,
+} from '@graph/hooks'
 import SvgCloseIcon from '@icons/CloseIcon'
+import { GITHUB_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
+import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { SelectProps } from 'antd'
 import clsx from 'clsx'
@@ -15,6 +20,8 @@ type Props = Pick<
 	'onChange' | 'className' | 'placeholder' | 'allowClear' | 'value'
 > & {
 	tagClosable?: boolean
+	integrationName?: string
+	integrationContainerId?: string
 }
 
 const SessionCommentTagSelect = ({
@@ -24,7 +31,10 @@ const SessionCommentTagSelect = ({
 	allowClear,
 	value,
 	tagClosable = true,
+	integrationName,
+	integrationContainerId,
 }: Props) => {
+	const { currentWorkspace } = useApplicationContext()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -35,6 +45,36 @@ const SessionCommentTagSelect = ({
 			skip: !project_id,
 		},
 	)
+	const { data: labelsData } = useGetGitHubIssueLabelsQuery({
+		variables: {
+			workspace_id: currentWorkspace?.id || '',
+			repository: integrationContainerId!,
+		},
+		skip:
+			!currentWorkspace?.id ||
+			integrationName !== GITHUB_INTEGRATION.name ||
+			!integrationContainerId,
+	})
+
+	const options = (
+		commentTagsData?.session_comment_tags_for_project || []
+	).map((tag) => ({
+		displayValue: tag.name,
+		id: tag.id,
+		value: tag.name,
+	}))
+	if (integrationName === GITHUB_INTEGRATION.name) {
+		const highlightLabels = new Set<string>(options.map((o) => o.value))
+		labelsData?.github_issue_labels?.forEach((l) => {
+			if (!highlightLabels.has(l)) {
+				options.push({
+					displayValue: l,
+					id: l,
+					value: l,
+				})
+			}
+		})
+	}
 
 	return (
 		<Select
@@ -46,13 +86,7 @@ const SessionCommentTagSelect = ({
 			defaultActiveFirstOption
 			placeholder={placeholder}
 			mode="tags"
-			options={(
-				commentTagsData?.session_comment_tags_for_project || []
-			).map((tag) => ({
-				displayValue: tag.name,
-				id: tag.id,
-				value: tag.name,
-			}))}
+			options={options}
 			onChange={onChange}
 			notFoundContent={
 				<p>
