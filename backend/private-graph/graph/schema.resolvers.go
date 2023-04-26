@@ -263,7 +263,7 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 		return params, nil
 	}
 	if err := json.Unmarshal([]byte(*obj.Params), params); err != nil {
-		return nil, e.Wrapf(err, "error unmarshaling segment params")
+		return nil, e.Wrapf(err, "error unmarshalling segment params")
 	}
 	return params, nil
 }
