@@ -77,6 +77,7 @@ const SessionProcessedMetricName = "sessionProcessed"
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
+	DemoProjectID   = os.Getenv("DEMO_PROJECT_ID")
 )
 
 var BytesConversion = map[string]int64{
@@ -298,12 +299,23 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	return isAdmin || uid == WhitelistedUID || isDockerDefaultAccount
 }
 
-func (r *Resolver) isDemoProject(project_id int) bool {
-	return project_id == 0
+func (r *Resolver) isDemoProject(ctx context.Context, project_id int) bool {
+	return project_id == r.demoProjectID(ctx)
 }
 
 func (r *Resolver) isDemoWorkspace(workspace_id int) bool {
 	return workspace_id == 0
+}
+
+func (r *Resolver) demoProjectID(ctx context.Context) int {
+	if demoProjectID, err := strconv.Atoi(DemoProjectID); err != nil {
+		fmt.Printf("::: demoProjectID %+v", demoProjectID)
+		log.WithContext(ctx).Error(err, "error converting DemoProjectID to int")
+		return 0
+	} else {
+		fmt.Printf("::: demoProjectID %+v", demoProjectID)
+		return demoProjectID
+	}
 }
 
 // These are authentication methods used to make sure that data is secured.
@@ -322,8 +334,8 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	}()
 	var project *model.Project
 	var err error
-	if r.isDemoProject(project_id) {
-		if err = r.DB.Model(&model.Project{}).Where("id = ?", 0).First(&project).Error; err != nil {
+	if r.isDemoProject(ctx, project_id) {
+		if err = r.DB.Model(&model.Project{}).Where("id = ?", r.demoProjectID(ctx)).First(&project).Error; err != nil {
 			return nil, e.Wrap(err, "error querying demo project")
 		}
 	} else {

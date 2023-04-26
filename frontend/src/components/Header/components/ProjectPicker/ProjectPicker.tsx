@@ -1,5 +1,5 @@
 import {
-	DEMO_WORKSPACE_APPLICATION_ID,
+	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { linkStyle } from '@components/Header/styles.css'
@@ -30,7 +30,7 @@ const ProjectPicker = () => {
 		project_id: string
 	}>()
 	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
+		project_id === DEMO_PROJECT_ID
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 	const isWorkspaceLevel = workspace_id !== undefined

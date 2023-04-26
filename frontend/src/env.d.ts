@@ -20,6 +20,7 @@ interface ImportMetaEnv {
 	readonly DD_CLIENT_TOKEN: string
 	readonly DEMO_SESSION_URL: string
 	readonly DEMO_ERROR_URL: string
+	readonly DEMO_PROJECT_ID: string
 }
 
 interface ImportMeta {

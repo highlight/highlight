@@ -2,7 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import CommandBar from '@components/CommandBar/CommandBar'
 import {
-	DEMO_WORKSPACE_APPLICATION_ID,
+	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
@@ -650,7 +650,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 }
 
 const getBanner = (project_id: string) => {
-	if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
+	if (project_id === DEMO_PROJECT_ID) {
 		return <DemoWorkspaceBanner />
 	} else {
 		return <BillingBanner />

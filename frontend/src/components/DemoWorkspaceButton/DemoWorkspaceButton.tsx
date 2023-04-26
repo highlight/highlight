@@ -11,11 +11,13 @@ interface Props {
 }
 
 /**
- * The application ID we use internally e.g. for our backend, database, etc.
+ * The project ID of our demo project.
  */
-export const DEMO_WORKSPACE_APPLICATION_ID = '0'
+export const DEMO_PROJECT_ID = import.meta.env.DEMO_PROJECT_ID
+console.log('::: DEMO_PROJECT_ID', DEMO_PROJECT_ID)
+
 /**
- * The application ID we show in the URL. This should be used instead of `DEMO_WORKSPACE_APPLICATION_ID` when user-facing.
+ * The application ID we show in the URL. This should be used instead of `DEMO_PROJECT_ID` when user-facing.
  * */
 export const DEMO_WORKSPACE_PROXY_APPLICATION_ID = 'demo'
 
@@ -26,7 +28,7 @@ const DemoWorkspaceButton = ({ integrated }: Props) => {
 
 	const [, path] = pathname.split('/').filter((token) => token.length)
 
-	if (integrated && currentProject?.id !== DEMO_WORKSPACE_APPLICATION_ID) {
+	if (integrated && currentProject?.id !== DEMO_PROJECT_ID) {
 		return null
 	}
 
