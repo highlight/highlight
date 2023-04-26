@@ -7,6 +7,15 @@ slug: getting-started
 Stay up to date with what we work on week over week:
 
 <DocsCardGroup>
+    <DocsCard title="Changelog 18" href="./changelog-15.md">
+    {"TBD"}
+    </DocsCard>
+    <DocsCard title="Changelog 17" href="./changelog-15.md">
+    {"TBD"}
+    </DocsCard>
+    <DocsCard title="Changelog 16" href="./changelog-15.md">
+    {"TBD"}
+    </DocsCard>
     <DocsCard title="Changelog 15" href="./changelog-15.md">
     {"New Product Pages & Devtools Improvements!"}
     </DocsCard>
