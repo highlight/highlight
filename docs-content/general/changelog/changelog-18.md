@@ -14,7 +14,7 @@ We just shipped a bunch of improvements to our error boundary. Namely:
 Our GitHub integration is now live. Checkout the [docs here](https://www.highlight.io/docs/general/integrations/github-integration).
 
 ## Docs for our hobby deploy is live
-You can now deploy Highlight.io on a hobby instance. Its important to note that this is different from our dev deploy, which is used for developing on Highlight (useful for contributors). The hobby deploy is for folks that want to self-host Highlight for a low-traffic setup. Docs [here](https://www.highlight.io/docs/getting-started/self-host/self-hosted-hobby-guide).
+You can now deploy Highlight.io on a hobby instance. It's important to note that this is different from our dev deploy, which is used for developing on Highlight (useful for contributors). The hobby deploy is for folks that want to self-host Highlight for a low-traffic setup. Docs [here](https://www.highlight.io/docs/getting-started/self-host/self-hosted-hobby-guide).
 
 ## Open Source Updates
 ### Launch week recap
