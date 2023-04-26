@@ -39,34 +39,37 @@ export const ErrorState = ({
 			})}
 		>
 			<Callout kind="info" title={title}>
-				<p className={styles.errorBody}>
-					{joinableWorkspace &&
-						"Good news 🎉 Based on your email address, you're " +
-							'already able to join this workspace! ' +
-							'Join it to be able to view the session.'}
-					{message}
-				</p>
-				{errorString !== undefined && (
-					<details onToggle={() => setShowError((t) => !t)}>
-						<summary className="cursor-pointer text-gray-500">
-							{showError ? 'show less' : 'show more'}
-						</summary>
-						{showError && (
-							<code className={styles.errorBody}>
-								{errorString}
-							</code>
-						)}
-					</details>
-				)}
+				<div>
+					<p className={styles.errorBody}>
+						{joinableWorkspace &&
+							"Good news 🎉 Based on your email address, you're " +
+								'already able to join this workspace! ' +
+								'Join it to be able to view the session.'}
+						{message}
+					</p>
+					{errorString !== undefined && (
+						<details onToggle={() => setShowError((t) => !t)}>
+							<summary className="cursor-pointer text-gray-500">
+								{showError ? 'show less' : 'show more'}
+							</summary>
+							{showError && (
+								<code className={styles.errorBody}>
+									{errorString}
+								</code>
+							)}
+						</details>
+					)}
+				</div>
 
 				<div className={styles.buttonGroup}>
 					{isLoggedIn ? (
 						<div className={styles.loggedInButtonGroup}>
 							<a href="/">
 								<Button
+									small
 									type={
 										joinableWorkspace || showRequestAccess
-											? 'default'
+											? 'text'
 											: 'primary'
 									}
 									trackingId="ErrorStateGoToMyAccount"
