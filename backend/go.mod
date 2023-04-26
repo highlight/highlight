@@ -50,7 +50,7 @@ require (
 	github.com/go-oauth2/redis/v4 v4.1.1
 	github.com/go-redis/cache/v8 v8.4.4
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
-	github.com/go-test/deep v1.0.4
+	github.com/go-test/deep v1.1.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang/snappy v0.0.4
