@@ -17,6 +17,11 @@ import { Box } from '../Box/Box'
 import { colors } from '../../css/colors'
 
 const TIME_INPUT_FORMAT = 'HH:mm a'
+const TIME_INPUT_FORMAT_NO_SPACE = 'HH:mma'
+
+const TIME_INPUT_FORMAT_12_HOUR = 'h:mm a'
+const TIME_INPUT_FORMAT_12_HOUR_NO_SPACE = 'h:mma'
+
 const TIME_DISPLAY_FORMAT = 'HH:mm A'
 
 export type Preset = {
@@ -250,7 +255,14 @@ const PreviousDateRangePickerImpl = ({
 		input: 'start' | 'end',
 	) => {
 		const value = event.target.value
-		const isValid = moment(value, TIME_INPUT_FORMAT, true).isValid()
+		const isValid = [
+			TIME_INPUT_FORMAT,
+			TIME_INPUT_FORMAT_NO_SPACE,
+			TIME_INPUT_FORMAT_12_HOUR,
+			TIME_INPUT_FORMAT_12_HOUR_NO_SPACE,
+		]
+			.map((format) => moment(value, format, true).isValid())
+			.some((isValid) => isValid)
 
 		if (input === 'start') {
 			setStartTimeIsValid(isValid)
