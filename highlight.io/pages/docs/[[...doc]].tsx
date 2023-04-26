@@ -1,38 +1,12 @@
-import { promises as fsp } from 'fs'
-import yaml from 'js-yaml'
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
-import { serialize } from 'next-mdx-remote/serialize'
 import { GetStaticPaths, GetStaticProps } from 'next/types'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Collapse } from 'react-collapse'
-import remarkGfm from 'remark-gfm'
-import styles from '../../components/Docs/Docs.module.scss'
-import ChevronDown from '../../public/images/ChevronDownIcon'
-import Minus from '../../public/images/MinusIcon'
-
-import path from 'path'
-import { FaDiscord, FaGithub, FaTwitter } from 'react-icons/fa'
-
-import classNames from 'classnames'
-import matter from 'gray-matter'
-import Markdown from 'markdown-to-jsx'
-import Link from 'next/link'
-import { useRouter } from 'next/router'
 import { BiChevronLeft, BiChevronRight } from 'react-icons/bi'
-import { Meta } from '../../components/common/Head/Meta'
-import Navbar from '../../components/common/Navbar/Navbar'
+import { FaDiscord, FaGithub, FaTwitter } from 'react-icons/fa'
 import { Roadmap, RoadmapItem } from '../../components/common/Roadmap/Roadmap'
-import { roadmapFetcher } from '../../components/common/Roadmap/RoadmapUtils'
-import { Typography } from '../../components/common/Typography/Typography'
-import { Callout } from '../../components/Docs/Callout/Callout'
-import { DocSection } from '../../components/Docs/DocLayout/DocLayout'
-import DocSelect from '../../components/Docs/DocSelect/DocSelect'
-import { generateIdFromProps } from '../../components/Docs/DocsTypographyRenderer/DocsTypographyRenderer'
-import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
-import { useMediaQuery } from '../../components/MediaQuery/MediaQuery'
 import {
-	quickStartContent,
 	QuickStartContent,
+	quickStartContent,
 	QuickStartStep,
 } from '../../components/QuickstartContent/QuickstartContent'
 import {
@@ -40,6 +14,31 @@ import {
 	processDocPath,
 	removeOrderingPrefix,
 } from '../api/docs/github'
+
+import classNames from 'classnames'
+import { promises as fsp } from 'fs'
+import matter from 'gray-matter'
+import yaml from 'js-yaml'
+import Markdown from 'markdown-to-jsx'
+import { serialize } from 'next-mdx-remote/serialize'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+import path from 'path'
+import { Collapse } from 'react-collapse'
+import remarkGfm from 'remark-gfm'
+import { Meta } from '../../components/common/Head/Meta'
+import Navbar from '../../components/common/Navbar/Navbar'
+import { roadmapFetcher } from '../../components/common/Roadmap/RoadmapUtils'
+import { Typography } from '../../components/common/Typography/Typography'
+import { Callout } from '../../components/Docs/Callout/Callout'
+import { DocSection } from '../../components/Docs/DocLayout/DocLayout'
+import styles from '../../components/Docs/Docs.module.scss'
+import DocSelect from '../../components/Docs/DocSelect/DocSelect'
+import { generateIdFromProps } from '../../components/Docs/DocsTypographyRenderer/DocsTypographyRenderer'
+import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
+import { useMediaQuery } from '../../components/MediaQuery/MediaQuery'
+import ChevronDown from '../../public/images/ChevronDownIcon'
+import Minus from '../../public/images/MinusIcon'
 
 const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
 const DOCS_GITUB_LINK = `https://github.com/highlight/highlight/blob/main/docs-content`
@@ -598,10 +597,10 @@ const PageRightBar = ({
 								(heading: HTMLHeadingElement) => (
 									<li
 										key={heading.id}
-										className={
-											heading.id === activeId &&
-											styles.active
-										}
+										className={classNames({
+											[styles.active]:
+												heading.id === activeId,
+										})}
 										style={{ padding: '2px 4px' }}
 									>
 										<Link
@@ -953,6 +952,7 @@ const DocPage = ({
 											<Link
 												href={breadcrumb.path}
 												legacyBehavior
+												key={i}
 											>
 												{breadcrumb.title}
 											</Link>
