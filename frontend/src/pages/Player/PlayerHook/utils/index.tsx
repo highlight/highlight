@@ -684,10 +684,7 @@ export const loadiFrameResources = (r: Replayer, project_id: string) => {
 		r.iframe.contentDocument.head.appendChild(scriptLink)
 	}
 	// Add missing stylesheets for Synder
-	if (
-		(project_id === '1' || project_id === '1031') &&
-		r.iframe.contentDocument
-	) {
+	if (project_id === '1031' && r.iframe.contentDocument) {
 		for (const [key, value] of Object.entries(mui4Synder)) {
 			const style = document.createElement('style')
 			style.dataset.meta = key
