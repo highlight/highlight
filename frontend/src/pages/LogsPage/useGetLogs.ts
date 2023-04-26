@@ -50,6 +50,16 @@ export const useGetLogs = ({
 
 	const [getLogs, { data, loading, error, refetch, fetchMore }] =
 		useGetLogsLazyQuery({
+			fetchPolicy: 'cache-and-network',
+		})
+
+	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({
+		variables: { log_cursors: data?.logs.edges.map((e) => e.cursor) || [] },
+		skip: !data?.logs.edges.length,
+	})
+
+	useEffect(() => {
+		getLogs({
 			variables: {
 				project_id: project_id!,
 				at: logCursor,
@@ -62,21 +72,12 @@ export const useGetLogs = ({
 					},
 				},
 			},
-			fetchPolicy: 'cache-and-network',
-		})
-
-	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({
-		variables: { log_cursors: data?.logs.edges.map((e) => e.cursor) || [] },
-		skip: !data?.logs.edges.length,
-	})
-
-	useEffect(() => {
-		getLogs().then((result) => {
+		}).then((result) => {
 			if (result.data?.logs) {
 				setWindowInfo(result.data.logs.pageInfo)
 			}
 		})
-	}, [getLogs])
+	}, [endDate, getLogs, logCursor, project_id, serverQuery, startDate])
 
 	const fetchMoreForward = useCallback(() => {
 		if (!windowInfo.hasNextPage) {
