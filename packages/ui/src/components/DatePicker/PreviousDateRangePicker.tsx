@@ -70,11 +70,11 @@ function toDateTimeString(date: Date, showYear: boolean) {
  * @returns {	hour: number, minute: number, timeOfDay: string, hour24: number}
  */
 export const getTimeInfo = (timeString: string) => {
-	const date = moment(timeString, 'hh:mm a')
+	const date = moment(timeString, 'HH:mm a')
 	return {
 		hour: date.format('HH'),
 		minute: date.minute(),
-		timeOfDay: date.hour() >= 12,
+		timeOfDay: date.format('a'),
 		hour24: date.hour(),
 	}
 }
@@ -247,7 +247,7 @@ const PreviousDateRangePickerImpl = ({
 		input: 'start' | 'end',
 	) => {
 		const value = event.target.value
-		const isValid = moment(value, 'HH:mm', true).isValid()
+		const isValid = moment(value, 'HH:mm a', true).isValid()
 
 		if (input === 'start') {
 			setStartTimeIsValid(isValid)
