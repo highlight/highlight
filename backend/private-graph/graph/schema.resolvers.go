@@ -6394,6 +6394,16 @@ func (r *queryResolver) GithubRepos(ctx context.Context, workspaceID int) ([]*mo
 	return r.GetGitHubRepos(ctx, workspace)
 }
 
+// GithubIssueLabels is the resolver for the github_issue_labels field.
+func (r *queryResolver) GithubIssueLabels(ctx context.Context, workspaceID int, repository string) ([]string, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+
+	return r.GetGitHubIssueLabels(ctx, workspace, repository)
+}
+
 // Project is the resolver for the project field.
 func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, id)

@@ -2597,7 +2597,7 @@ func (r *Resolver) GetGitHubRepos(
 	}
 	var repos []*github2.Repository
 	if c, err := github.NewClient(ctx, *accessToken); err == nil {
-		repos, err = c.GetRepos(ctx)
+		repos, err = c.ListRepos(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -2611,6 +2611,34 @@ func (r *Resolver) GetGitHubRepos(
 			Name:   t.GetName(),
 			Key:    strconv.FormatInt(t.GetID(), 10),
 		}
+	}), nil
+}
+
+func (r *Resolver) GetGitHubIssueLabels(
+	ctx context.Context,
+	workspace *model.Workspace,
+	repository string,
+) ([]string, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitHub)
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, errors.New("No GitHub integration access token found.")
+	}
+	var labels []*github2.Label
+	if c, err := github.NewClient(ctx, *accessToken); err == nil {
+		labels, err = c.ListLabels(ctx, repository)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, e.Wrap(err, "failed to create github client")
+	}
+
+	return lo.Map(labels, func(l *github2.Label, i int) string {
+		return l.GetName()
 	}), nil
 }
 

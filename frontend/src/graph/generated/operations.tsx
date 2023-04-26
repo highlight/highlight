@@ -3641,6 +3641,16 @@ export type GetGitHubIntegrationSettingsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetGitHubIssueLabelsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	repository: Types.Scalars['String']
+}>
+
+export type GetGitHubIssueLabelsQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'github_issue_labels'
+>
+
 export type GetProjectIntegratedWithQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	integration_type: Types.IntegrationType
@@ -4416,6 +4426,7 @@ export const namedOperations = {
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
 		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
 		GetGitHubIntegrationSettings: 'GetGitHubIntegrationSettings' as const,
+		GetGitHubIssueLabels: 'GetGitHubIssueLabels' as const,
 		GetProjectIntegratedWith: 'GetProjectIntegratedWith' as const,
 		GetClickUpFolders: 'GetClickUpFolders' as const,
 		GetHeightLists: 'GetHeightLists' as const,

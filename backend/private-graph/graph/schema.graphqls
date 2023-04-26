@@ -1527,6 +1527,7 @@ type Query {
 	): [IntegrationProjectMapping!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
 	github_repos(workspace_id: ID!): [GitHubRepo!]
+	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!

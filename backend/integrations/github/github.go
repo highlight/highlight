@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v50/github"
+	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -99,25 +100,48 @@ func NewClient(ctx context.Context, installation string) (*Client, error) {
 	return &Client{client, jwtClient, install.Account.GetLogin()}, nil
 }
 
-func (c *Client) CreateIssue(ctx context.Context, repo string, issueRequest *github.IssueRequest) (*github.Issue, error) {
-	issue, _, err := c.client.Issues.Create(ctx, c.owner, repo, issueRequest)
-	return issue, err
-}
-
-func (c *Client) GetRepos(ctx context.Context) (repos []*github.Repository, err error) {
-	page := 0
+func getPaginated[T any](fn func(int) ([]T, *int, *bool, error)) (data []T, err error) {
+	page := 1
 	for {
-		list, _, err := c.client.Apps.ListRepos(ctx, &github.ListOptions{Page: page})
+		list, totalCount, hasNext, err := fn(page)
 		if err != nil {
 			return nil, err
 		}
-		repos = append(repos, list.Repositories...)
-		if len(repos) >= list.GetTotalCount() {
+		data = append(data, list...)
+		if totalCount != nil && len(data) >= *totalCount {
+			break
+		}
+		if hasNext != nil && !*hasNext {
 			break
 		}
 		page += 1
 	}
 	return
+}
+
+func (c *Client) CreateIssue(ctx context.Context, repo string, issueRequest *github.IssueRequest) (*github.Issue, error) {
+	issue, _, err := c.client.Issues.Create(ctx, c.owner, repo, issueRequest)
+	return issue, err
+}
+
+func (c *Client) ListLabels(ctx context.Context, repo string) ([]*github.Label, error) {
+	return getPaginated(func(page int) ([]*github.Label, *int, *bool, error) {
+		list, _, err := c.client.Issues.ListLabels(ctx, c.owner, repo, &github.ListOptions{Page: page})
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		return list, nil, pointy.Bool(len(list) > 0), nil
+	})
+}
+
+func (c *Client) ListRepos(ctx context.Context) (repos []*github.Repository, err error) {
+	return getPaginated(func(page int) ([]*github.Repository, *int, *bool, error) {
+		list, _, err := c.client.Apps.ListRepos(ctx, &github.ListOptions{Page: page})
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		return list.Repositories, pointy.Int(list.GetTotalCount()), nil, nil
+	})
 }
 
 func (c *Client) DeleteInstallation(ctx context.Context, installation string) error {

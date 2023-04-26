@@ -1629,6 +1629,10 @@ query GetGitHubIntegrationSettings($workspace_id: ID!) {
 	}
 }
 
+query GetGitHubIssueLabels($workspace_id: ID!, $repository: String!) {
+	github_issue_labels(workspace_id: $workspace_id, repository: $repository)
+}
+
 query GetProjectIntegratedWith(
 	$project_id: ID!
 	$integration_type: IntegrationType!

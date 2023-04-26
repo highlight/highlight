@@ -553,6 +553,8 @@ export const NewCommentForm = ({
 							<SessionCommentTagSelect
 								onChange={setTags}
 								placeholder="Add tags (e.g. signups, userflow, bug, error)"
+								integrationName={integrationName}
+								integrationContainerId={containerId}
 							/>
 						</div>
 					</div>

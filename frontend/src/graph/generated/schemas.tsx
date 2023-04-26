@@ -1559,6 +1559,7 @@ export type Query = {
 	fields_opensearch: Array<Scalars['String']>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
+	github_issue_labels: Array<Scalars['String']>
 	github_repos?: Maybe<Array<GitHubRepo>>
 	height_lists: Array<HeightList>
 	height_workspaces: Array<HeightWorkspace>
@@ -1862,6 +1863,11 @@ export type QueryGenerate_Zapier_Access_TokenArgs = {
 export type QueryGet_Source_Map_Upload_UrlsArgs = {
 	api_key: Scalars['String']
 	paths: Array<Scalars['String']>
+}
+
+export type QueryGithub_Issue_LabelsArgs = {
+	repository: Scalars['String']
+	workspace_id: Scalars['ID']
 }
 
 export type QueryGithub_ReposArgs = {
