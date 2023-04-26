@@ -8,13 +8,13 @@ Stay up to date with what we work on week over week:
 
 <DocsCardGroup>
     <DocsCard title="Changelog 18" href="./changelog-15.md">
-    {"TBD"}
+    {"Erro boundary improvements, GitHub ticket integration, etc.."}
     </DocsCard>
     <DocsCard title="Changelog 17" href="./changelog-15.md">
-    {"TBD"}
+    {"New Setup Page, Session caching, etc.."}
     </DocsCard>
     <DocsCard title="Changelog 16" href="./changelog-15.md">
-    {"TBD"}
+    {"Logging is in Alpha!"}
     </DocsCard>
     <DocsCard title="Changelog 15" href="./changelog-15.md">
     {"New Product Pages & Devtools Improvements!"}
