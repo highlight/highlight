@@ -28,17 +28,12 @@ Please try your best to describe a clear and realistic impact for your report.
 
 We consider the following out of scope, though there may be exceptions.
 
-- Missing HTTP security headers
-- Incomplete/Missing SPF/DKIM/DMARC
 - Reports from automated tools or scanners
 - Theoretical attacks without proof of exploitability
 - Social engineering
-- Reflected file download
 - Physical attacks
-- Weak SSL/TLS/SSH algorithms or protocols
 - Denial of Service attacks
 - Brute force attacks
-- DNSSEC
 
 ## Thanks
 
