@@ -1,6 +1,6 @@
 import { promises as fsp } from 'fs'
 import path from 'path'
-import { Post } from '../../components/Blog/BlogPost/BlogPost'
+import { getUniqueTags, Post } from '../../components/Blog/BlogPost/BlogPost'
 import { Tag } from '../../components/Blog/Tag'
 import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
@@ -85,13 +85,9 @@ export async function loadTagsFromHygraph() {
 }
 
 export async function loadTagsFromGithub(posts: Post[]) {
-	let tags: Tag[] = []
-	posts.forEach((post) => {
-		post.tags_relations.forEach((tag) => {
-			tags.push(tag)
-		})
-	})
-
+	const tags: Tag[] = Array.from(
+		new Set(posts.flatMap((post) => post.tags_relations)),
+	)
 	return tags
 }
 
@@ -117,6 +113,17 @@ export function markdownToPost(
 		[key: string]: any
 	},
 ): Post {
+	let tags: Tag[] = []
+
+	data.tags.split(',').forEach((tag: string) => {
+		const tempTag: Tag = {
+			name: tag.trim(),
+			slug: tag.toLowerCase().trim().replace(' ', '-'),
+		}
+
+		tags.push(tempTag)
+	})
+
 	let post: Post = {
 		title: data.title,
 		description: data.description || null,
@@ -147,13 +154,7 @@ export function markdownToPost(
 				url: data.authorPFP || null,
 			},
 		},
-		tags: data.tags || '',
-		tags_relations: [
-			{
-				name: data.tag_relation,
-				slug: data.tag_relation_slug,
-			},
-		],
+		tags_relations: tags || [],
 	}
 
 	return post
@@ -234,7 +235,8 @@ export const getStaticProps: GetStaticProps = async () => {
 
 	const posts = githubPosts.concat(hygraphPosts)
 	posts.sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
-	const tags = hygraphTags
+	let tags = [...hygraphTags, ...githubTags]
+	tags = getUniqueTags(tags)
 
 	return {
 		props: {
