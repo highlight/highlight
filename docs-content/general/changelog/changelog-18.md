@@ -9,7 +9,6 @@ slug: changelog-18
 We just shipped a bunch of improvements to our error boundary. Namely:
 - No longer required to import a `.css` file.
 - Lots of design updates (see above)
-- The ErrorBoundary now works seemlessly in NextJS
 
 ## GitHub Integration is live
 Our GitHub integration is now live. Checkout the [docs here](https://www.highlight.io/docs/general/integrations/github-integration).
