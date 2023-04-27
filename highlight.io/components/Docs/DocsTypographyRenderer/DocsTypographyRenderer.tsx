@@ -32,8 +32,17 @@ export const getIdFromHeaderProps = (props: any) => {
 		.join('-')
 }
 
-export const generateIdString = (str: string) => {
-	return str
+export const generateIdFromProps = (component: React.ReactNode) => {
+	const getNodeText = (node: React.ReactNode): string => {
+		if (['string'].includes(typeof node)) {
+			return node as string
+		}
+		if (node instanceof Array) return node.map(getNodeText).join('')
+		if (typeof node === 'object' && node)
+			return 'props' in node ? getNodeText(node.props.children) : ''
+	}
+	const text = getNodeText(component)
+	return text
 		.replace(/[^a-zA-Z ]/g, '')
 		.trim()
 		.split(' ')

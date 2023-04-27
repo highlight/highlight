@@ -1,5 +1,5 @@
 import { LinkButton } from '@components/LinkButton'
-import { IntegrationStatus } from '@graph/schemas'
+import { ErrorGroup, IntegrationStatus, Session } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -10,9 +10,14 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import React from 'react'
+import { useLocation } from 'react-router-dom'
+
+import {
+	useGetErrorGroupsOpenSearchQuery,
+	useGetSessionsOpenSearchQuery,
+} from '@/graph/generated/hooks'
 
 import * as styles from './IntegrationBar.css'
 
@@ -23,14 +28,14 @@ type Props = React.PropsWithChildren & {
 type Area = 'client' | 'backend' | 'backend-logging'
 
 const AREA_TITLE_MAP: { [key in Area]: string } = {
-	client: 'UX monitoring',
+	client: 'Frontend monitoring + session replay',
 	backend: 'Backend monitoring',
 	'backend-logging': 'Backend logging',
 }
 
 const CTA_TITLE_MAP: { [key in Area]: string } = {
-	client: 'View first session',
-	backend: 'View first error',
+	client: 'View a session',
+	backend: 'View an error',
 	'backend-logging': 'View logs',
 }
 
@@ -41,21 +46,50 @@ const CTA_PATH_MAP: { [key in Area]: string } = {
 }
 
 export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
-	const { area } = useParams<{ area: Area }>()
+	const location = useLocation()
+	const area = location.pathname.split('/')[3] as Area
 	const { projectId } = useProjectId()
-	const path = buildResourcePath(area!, projectId, integrationData)
 	const integrated = integrationData?.integrated
 	const ctaText = CTA_TITLE_MAP[area!]
 
+	const { data: sessionData } = useGetSessionsOpenSearchQuery({
+		variables: {
+			project_id: projectId,
+			query: '{"match_all": {}}',
+			count: 1,
+			page: 1,
+			sort_desc: true,
+		},
+		skip: area !== 'client' || !integrated,
+		fetchPolicy: 'no-cache',
+	})
+
+	const { data: errorGroupData } = useGetErrorGroupsOpenSearchQuery({
+		variables: {
+			project_id: projectId,
+			query: '{"match_all": {}}',
+			count: 1,
+		},
+		skip: area !== 'backend' || !integrated,
+		fetchPolicy: 'no-cache',
+	})
+
+	const resource =
+		area === 'client'
+			? sessionData?.sessions_opensearch.sessions[0]
+			: area === 'backend'
+			? errorGroupData?.error_groups_opensearch.error_groups[0]
+			: undefined
+	const path = buildResourcePath(area!, projectId, resource)
+
 	return (
 		<Box
-			backgroundColor={integrated ? 'informative' : 'elevated'}
+			backgroundColor={path ? 'informative' : 'elevated'}
 			p="8"
 			display="flex"
 			flexDirection="column"
 			justifyContent="center"
 			alignItems="center"
-			cssClass={styles.container}
 		>
 			<Box
 				display="flex"
@@ -70,15 +104,13 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 				<Stack gap="2" direction="row" align="center">
 					<Badge
 						label={AREA_TITLE_MAP[area!]}
-						variant={integrated ? 'purple' : 'gray'}
+						variant={path ? 'purple' : 'gray'}
 					/>
 					<Badge
-						label={`Installation ${
-							integrated ? 'complete' : 'pending'
-						}`}
-						variant={integrated ? 'purple' : 'gray'}
+						label={`Installation ${path ? 'complete' : 'pending'}`}
+						variant={path ? 'purple' : 'gray'}
 						iconStart={
-							integrated ? (
+							path ? (
 								<IconSolidCheckCircle />
 							) : (
 								<IconSolidLoading className={styles.loading} />
@@ -92,14 +124,14 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 					justifyContent="flex-end"
 					flexBasis={0}
 				>
-					{path && ctaText && (
+					{ctaText && (
 						<LinkButton
-							to={path}
+							to={path || ''}
 							trackingId={`setup-resource-${
 								area === 'backend' ? 'error' : 'session'
 							}`}
-							kind={integrated ? 'primary' : 'secondary'}
-							disabled={!integrated}
+							kind={path ? 'primary' : 'secondary'}
+							disabled={!path}
 							size="small"
 						>
 							<Box
@@ -122,19 +154,20 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 const buildResourcePath = (
 	area: Area,
 	projectId: string,
-	integrationData?: IntegrationStatus,
+	resource?: Partial<Session> | Partial<ErrorGroup>,
 ) => {
-	let path = `/${projectId}/${CTA_PATH_MAP[area!]}`
+	const basePath = `/${projectId}/${CTA_PATH_MAP[area!]}`
+	let path
 
-	if (integrationData?.resourceSecureId) {
-		path = `${path}/${integrationData.resourceSecureId}`
+	if (resource?.secure_id) {
+		path = `${basePath}/${resource.secure_id}`
 	} else if (area === 'backend-logging') {
-		const logDate = moment(integrationData?.createdAt)
+		const logDate = moment(resource?.created_at)
 		// Show logs with a 2 minute buffer of when the setup event was created.
 		const startDate = moment(logDate).subtract(2, 'minutes')
 		const endDate = moment(logDate).add(2, 'minutes')
 
-		path = `${path}?start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`
+		path = `${basePath}?start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`
 	}
 
 	return path

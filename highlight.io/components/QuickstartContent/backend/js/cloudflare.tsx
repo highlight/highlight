@@ -31,7 +31,7 @@ async function doRequest() {
 
 export default {
   async fetch(request: Request, env: {}, ctx: ExecutionContext) {
-    const hEnv = { HIGHLIGHT_PROJECT_ID: 'YOUR_PROJECT_ID' }
+    const hEnv = { HIGHLIGHT_PROJECT_ID: '<YOUR_PROJECT_ID>' }
     try {
       const response = await doRequest()
       H.sendResponse(request, hEnv, ctx, response)
@@ -49,7 +49,7 @@ export default {
 			'cloudflare',
 			`export default {
   async fetch(request: Request, env: {}, ctx: ExecutionContext) {
-    H.consumeError(request, { HIGHLIGHT_PROJECT_ID: 'YOUR_PROJECT_ID' }, ctx, new Error('example error!'))
+    H.consumeError(request, { HIGHLIGHT_PROJECT_ID: '<YOUR_PROJECT_ID>' }, ctx, new Error('example error!'))
   },
 }`,
 		),

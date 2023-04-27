@@ -29,6 +29,8 @@ yalc.lock
 backend/backend
 backend/__debug_bin
 backend/dump.rdb
+backend/.config
+docker/.telemetry
 
 # Editor Artifacts
 **/.idea
@@ -47,3 +49,5 @@ __pycache__
 
 .turbo
 .vercel
+
+temp

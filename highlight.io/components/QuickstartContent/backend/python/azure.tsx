@@ -23,7 +23,7 @@ export const PythonAzureContext: QuickStartContent = {
 import highlight_io
 from highlight_io.integrations.azure import observe_handler
 
-H = highlight_io.H("1", record_logs=True)
+H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
 
 
 @observe_handler
@@ -50,7 +50,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 import highlight_io
 from highlight_io.integrations.azure import observe_handler
 
-H = highlight_io.H("1", record_logs=True)
+H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
 
 
 @observe_handler

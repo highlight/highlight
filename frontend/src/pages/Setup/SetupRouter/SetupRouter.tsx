@@ -18,11 +18,6 @@ import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
-import {
-	useClientIntegrated,
-	useLogsIntegrated,
-	useServerIntegrated,
-} from '@util/integrated'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
@@ -36,15 +31,22 @@ import {
 	useMatch,
 } from 'react-router-dom'
 
+import { IntegrationBar } from '@/pages/Setup/IntegrationBar'
+import {
+	useClientIntegration,
+	useLogsIntegration,
+	useServerIntegration,
+} from '@/util/integrated'
+
 import * as styles from './SetupRouter.css'
 
 export const SetupRouter = () => {
 	const { toggleShowBanner } = useGlobalContext()
-	const { data: serverIntegration } = useServerIntegrated()
-	const { data: clientIntegration } = useClientIntegrated()
-	const { data: logsIntegration } = useLogsIntegrated()
 	const areaMatch = useMatch('/:project_id/setup/:area/*')
 	const area = areaMatch?.params.area || 'client'
+	const clientIntegration = useClientIntegration()
+	const serverIntegration = useServerIntegration()
+	const logsIntegration = useLogsIntegration()
 	const integrationData =
 		area === 'backend'
 			? serverIntegration
@@ -113,7 +115,7 @@ export const SetupRouter = () => {
 							{clientIntegration?.integrated && (
 								<IconSolidCheckCircle />
 							)}
-							<Text>UX monitoring</Text>
+							<Text>Frontend monitoring + session replay</Text>
 						</Stack>
 					</NavLink>
 					<NavLink
@@ -196,40 +198,39 @@ export const SetupRouter = () => {
 					borderRadius="6"
 					boxShadow="medium"
 					flexGrow={1}
-					overflowY="scroll"
 					position="relative"
+					overflow="hidden"
 				>
-					<Routes>
-						<Route
-							path=":area/:language?"
-							element={
-								<SetupOptionsList
-									integrationData={integrationData}
-								/>
-							}
-						/>
-						<Route
-							path=":area/:language/:framework"
-							element={
-								<SetupDocs
-									projectVerboseId={projectVerboseId}
-									integrationData={integrationData}
-								/>
-							}
-						/>
+					<IntegrationBar integrationData={integrationData} />
 
-						{/* Redirect to default docs. */}
-						<Route
-							path="*"
-							element={
-								<Navigate
-									to="client/js"
-									replace={true}
-									state={location.state}
-								/>
-							}
-						/>
-					</Routes>
+					<Box overflowY="scroll" height="full">
+						<Routes>
+							<Route
+								path=":area/:language?"
+								element={<SetupOptionsList />}
+							/>
+							<Route
+								path=":area/:language/:framework"
+								element={
+									<SetupDocs
+										projectVerboseId={projectVerboseId}
+									/>
+								}
+							/>
+
+							{/* Redirect to default docs. */}
+							<Route
+								path="*"
+								element={
+									<Navigate
+										to="client/js"
+										replace={true}
+										state={location.state}
+									/>
+								}
+							/>
+						</Routes>
+					</Box>
 				</Box>
 			</Box>
 		</Box>

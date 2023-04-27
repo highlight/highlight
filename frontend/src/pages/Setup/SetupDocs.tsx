@@ -9,7 +9,6 @@ import {
 } from '@highlight-run/ui'
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import { Header } from '@pages/Setup/Header'
-import { IntegrationBar } from '@pages/Setup/IntegrationBar'
 import analytics from '@util/analytics'
 import clsx from 'clsx'
 import { QuickStartContent, quickStartContent } from 'highlight.io'
@@ -31,10 +30,7 @@ type Props = {
 	integrationData?: IntegrationStatus
 }
 
-export const SetupDocs: React.FC<Props> = ({
-	integrationData,
-	projectVerboseId,
-}) => {
+export const SetupDocs: React.FC<Props> = ({ projectVerboseId }) => {
 	const match = useMatch('/:project_id/setup/:area/:language/:framework')
 	const { area, framework, language } = match!.params
 	const guide = (quickStartContent as any)[area!][language!][
@@ -43,8 +39,6 @@ export const SetupDocs: React.FC<Props> = ({
 
 	return (
 		<Box>
-			<IntegrationBar integrationData={integrationData} />
-
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
 				<Header title={guide.title} subtitle={guide.subtitle} />
 
@@ -70,7 +64,7 @@ export const SetupDocs: React.FC<Props> = ({
 												},
 											)
 										}}
-										text={entry.code.text.replace(
+										text={entry.code.text.replaceAll(
 											'<YOUR_PROJECT_ID>',
 											projectVerboseId,
 										)}

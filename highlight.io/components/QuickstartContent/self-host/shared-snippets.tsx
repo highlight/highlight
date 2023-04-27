@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../utils/urls'
 import { QuickStartStep } from '../QuickstartContent'
 
 export const dependencies: QuickStartStep = {
@@ -8,7 +7,7 @@ export const dependencies: QuickStartStep = {
 		'You should have the latest version of [Docker](https://docs.docker.com/engine/install/) (19.03.0+) ' +
 		'and [Git](https://git-scm.com/downloads) (2.13+) installed. ' +
 		'For a local deploy, we suggest [configuring docker](https://docs.docker.com/desktop/settings/mac/#resources) ' +
-		'to use at least 6GB of memory, 2 CPUs, and 64 GB of disk space.',
+		'to use at least 8GB of RAM, 4 CPUs, and 64 GB of disk space.',
 	code: {
 		language: 'bash',
 		text: `$ go version
@@ -51,7 +50,7 @@ export const troubleshoot: QuickStartStep = {
 		"Having issues? Here's some things ot try. First run the `docker ps` command and ensure that all containers are in a 'healthy' state. " +
 		'As a second step, run `docker compose logs` to see the logs for the infra containers. ' +
 		'Looking at the logs, if any containers are not healthy, use the follow commands to start from scratch. ' +
-		"If this doesn't help w/ troubleshooting, please [reach out](https://highlight.io/community).",
+		"If this doesn't help with troubleshooting, please [reach out](https://highlight.io/community).",
 	code: {
 		text: `docker ps
 docker compose logs

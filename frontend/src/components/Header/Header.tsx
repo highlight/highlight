@@ -54,8 +54,6 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { client } from '@util/graph'
-import { useClientIntegrated, useServerIntegrated } from '@util/integrated'
-import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
 import { showIntercom } from '@util/window'
@@ -69,7 +67,11 @@ import { useSessionStorage } from 'react-use'
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.scss'
 
-export const Header = () => {
+type Props = {
+	fullyIntegrated?: boolean
+}
+
+export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -77,10 +79,6 @@ export const Header = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
-	const { data: clientIntegration } = useClientIntegrated()
-	const { data: serverIntegration } = useServerIntegrated()
-	const fullyIntegrated =
-		!!clientIntegration?.integrated && !!serverIntegration?.integrated
 
 	const { pathname, state } = useLocation()
 	const goBackPath = state?.previousPath ?? `/${project_id}/sessions`
@@ -124,7 +122,7 @@ export const Header = () => {
 					display="flex"
 					alignItems="center"
 					px="12"
-					py={isLoggedIn ? '8' : '0'}
+					py="8"
 					justifyContent="space-between"
 				>
 					{isSetup ? (
@@ -320,19 +318,16 @@ export const Header = () => {
 							justifyContent="space-between"
 							width="full"
 						>
-							<Link className={styles.homeLink} to="/">
-								<Button
-									kind="secondary"
-									emphasis="high"
-									size="small"
-									iconLeft={
-										<IconSolidArrowSmLeft size={14} />
-									}
-									trackingId="navHomeLink"
-								>
-									Back to Highlight
-								</Button>
-							</Link>
+							<LinkButton
+								to="/"
+								kind="secondary"
+								emphasis="high"
+								size="small"
+								iconLeft={<IconSolidArrowSmLeft size={14} />}
+								trackingId="navHomeLink"
+							>
+								Back to Highlight
+							</LinkButton>
 							<a
 								className={styles.homeLink}
 								href="https://www.highlight.io"
@@ -353,23 +348,27 @@ export const Header = () => {
 							style={{ zIndex: 20000 }}
 							width="full"
 						>
-							{!!fullyIntegrated && !isSetup && (
-								<LinkButton
-									to={`/${project_id}/setup`}
-									state={{ previousPath: location.pathname }}
-									trackingId="header_setup-cta"
-									emphasis="low"
-								>
-									<Stack
-										direction="row"
-										align="center"
-										gap="4"
+							{!!projectIdRemapped &&
+								!fullyIntegrated &&
+								!isSetup && (
+									<LinkButton
+										to={`/${project_id}/setup`}
+										state={{
+											previousPath: location.pathname,
+										}}
+										trackingId="header_setup-cta"
+										emphasis="low"
 									>
-										<Text>Finish setup </Text>
-										<IconSolidArrowSmRight />
-									</Stack>
-								</LinkButton>
-							)}
+										<Stack
+											direction="row"
+											align="center"
+											gap="4"
+										>
+											<Text>Finish setup </Text>
+											<IconSolidArrowSmRight />
+										</Stack>
+									</LinkButton>
+								)}
 							{!!project_id && !isSetup && (
 								<Button
 									trackingId="quickSearchClicked"
@@ -651,9 +650,7 @@ export const Header = () => {
 }
 
 const getBanner = (project_id: string) => {
-	if (isOnPrem) {
-		return <OnPremiseBanner />
-	} else if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
+	if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
 		return <DemoWorkspaceBanner />
 	} else {
 		return <BillingBanner />
@@ -738,27 +735,12 @@ const BillingBanner: React.FC = () => {
 	if (productsOverQuota.length > 0) {
 		bannerMessage += `You've reached your monthly limit for ${productsToString(
 			productsOverQuota,
-		)}. `
+		)}.`
 	}
 	if (productsApproachingQuota.length > 0) {
-		bannerMessage += `You're approaching your monthly limit for ${productsToString(
+		bannerMessage += ` You're approaching your monthly limit for ${productsToString(
 			productsApproachingQuota,
-		)}. `
-	}
-	if (productsOverQuota.length > 0 || productsApproachingQuota.length > 0) {
-		bannerMessage = (
-			<>
-				{bannerMessage}
-				<a
-					target="_blank"
-					href={`/w/${data.workspace_for_project?.id}/current-plan`}
-					className={styles.trialLink}
-					rel="noreferrer"
-				>
-					Upgrade plan
-				</a>
-			</>
-		)
+		)}.`
 	}
 
 	if (!bannerMessage && !hasTrial) {
@@ -809,25 +791,6 @@ const productsToString = (p: ProductType[]): string => {
 		rest.reverse()
 		return rest.join(', ') + `, and ${last}`
 	}
-}
-
-const OnPremiseBanner = () => {
-	const { toggleShowBanner } = useGlobalContext()
-	toggleShowBanner(true)
-
-	return (
-		<div
-			className={styles.trialWrapper}
-			style={{
-				backgroundColor: 'var(--color-primary-inverted-background)',
-			}}
-		>
-			<div className={clsx(styles.trialTimeText)}>
-				Running Highlight On-premise{' '}
-				{`v${import.meta.env.REACT_APP_COMMIT_SHA}`}
-			</div>
-		</div>
-	)
 }
 
 const DemoWorkspaceBanner = () => {

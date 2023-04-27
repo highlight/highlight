@@ -78,7 +78,7 @@ If you want to monitor backend errors, this API wrapper will send your errors to
 ```typescript
 import { Highlight } from '@highlight-run/next'
 
-export const withHighlight = Highlight({ projectID: 'YOUR_PROJECT_ID' })
+export const withHighlight = Highlight({ projectID: '<YOUR_PROJECT_ID>' })
 ```
 
 You can then wrap each of your handlers in the Next.js `api/` directory with the `withHighlight` function from the previous step.

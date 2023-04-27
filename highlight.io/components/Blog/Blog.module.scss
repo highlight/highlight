@@ -165,6 +165,7 @@
 	min-height: 400px;
 	border-radius: var(--border-radius);
 	overflow: hidden;
+	border: 1px solid #30294e;
 }
 
 .youtubeEmbed {
@@ -385,11 +386,11 @@
 }
 
 .blogImageContainer {
-	padding: 12px 0;
-}
-
-.blogImage {
-	border-radius: 6px;
+	margin: 12px 0;
+	border-radius: 8px;
+	border: solid #30294e 1px;
+	overflow: hidden;
+	display: flex;
 }
 
 // Custom font styles for blog-specific text!!!

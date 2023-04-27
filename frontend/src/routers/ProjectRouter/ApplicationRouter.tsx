@@ -17,11 +17,11 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
 
-interface Props {
+type Props = {
 	integrated: boolean
 }
 
-const ApplicationRouter = ({ integrated }: Props) => {
+const ApplicationRouter: React.FC<Props> = ({ integrated }) => {
 	const { page, backendSearchQuery } = useSearchContext()
 	const { page: errorPage, backendSearchQuery: errorBackendSearchQuery } =
 		useErrorSearchContext()

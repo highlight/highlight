@@ -149,7 +149,7 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, projectID *st
 			}}, partitionKey)
 		if err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"project_id": projectID, "secure_id": secureID}).
-				Error(e.Wrap(err, "failed to send kafka message for push backend payload"))
+				Error(e.Wrap(err, "failed to send kafka message for push backend payload."))
 		}
 	}
 	return nil, nil

@@ -17,6 +17,7 @@ import (
 )
 
 const LogAttributeValueLengthLimit = 2 << 10
+const LogAttributeValueWarningLengthLimit = 2 << 8
 
 func ProjectToInt(projectID string) (int, error) {
 	i, err := strconv.ParseInt(projectID, 10, 32)
@@ -104,7 +105,11 @@ func WithSeverityText(severityText string) LogRowOption {
 
 func WithSource(source modelInputs.LogSource) LogRowOption {
 	return func(l *LogRow) {
-		l.Source = source
+		if source == modelInputs.LogSourceFrontend {
+			l.Source = modelInputs.LogSourceFrontend
+		} else {
+			l.Source = modelInputs.LogSourceBackend
+		}
 	}
 }
 
@@ -113,6 +118,7 @@ func WithBody(ctx context.Context, body string) LogRowOption {
 		if len(body) > LogAttributeValueLengthLimit {
 			log.WithContext(ctx).
 				WithField("ValueLength", len(body)).
+				WithField("ValueTrunc", body[:LogAttributeValueWarningLengthLimit]).
 				Warnf("log body value is too long %d", len(body))
 			body = body[:LogAttributeValueLengthLimit] + "..."
 		}

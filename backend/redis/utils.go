@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"os"
 	"sort"
 	"strconv"
 	"time"
 
+	"github.com/go-redis/cache/v8"
 	"github.com/go-redis/redis/v8"
 	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -19,8 +21,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+const CacheKeyHubspotCompanies = "hubspot-companies"
+
 type Client struct {
 	redisClient redis.Cmdable
+	redisCache  *cache.Cache
 }
 
 var (
@@ -57,17 +62,23 @@ func LastLogTimestampKey(projectId int) string {
 
 func NewClient() *Client {
 	if util.IsDevOrTestEnv() {
+		client := redis.NewClient(&redis.Options{
+			Addr:         ServerAddr,
+			Password:     "",
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 5 * time.Second,
+			MaxConnAge:   5 * time.Minute,
+			IdleTimeout:  5 * time.Minute,
+			MaxRetries:   5,
+			MinIdleConns: 16,
+			PoolSize:     256,
+		})
+
 		return &Client{
-			redisClient: redis.NewClient(&redis.Options{
-				Addr:         ServerAddr,
-				Password:     "",
-				ReadTimeout:  5 * time.Second,
-				WriteTimeout: 5 * time.Second,
-				MaxConnAge:   5 * time.Minute,
-				IdleTimeout:  5 * time.Minute,
-				MaxRetries:   5,
-				MinIdleConns: 16,
-				PoolSize:     256,
+			redisClient: client,
+			redisCache: cache.New(&cache.Options{
+				Redis:      client,
+				LocalCache: cache.NewTinyLFU(1000, time.Minute),
 			}),
 		}
 	} else {
@@ -103,6 +114,10 @@ func NewClient() *Client {
 		}()
 		return &Client{
 			redisClient: c,
+			redisCache: cache.New(&cache.Options{
+				Redis:      c,
+				LocalCache: cache.NewTinyLFU(1000, time.Minute),
+			}),
 		}
 	}
 }
@@ -403,4 +418,26 @@ func (r *Client) SetLastLogTimestamp(ctx context.Context, projectId int, timesta
 		return errors.Wrap(err, "error setting last log timestamp")
 	}
 	return nil
+}
+
+func (r *Client) SetHubspotCompanies(ctx context.Context, companies interface{}) error {
+	span, _ := tracer.StartSpanFromContext(ctx, "redis.cache.SetHubspotCompanies")
+	defer span.Finish()
+	if err := r.redisCache.Set(&cache.Item{
+		Ctx:   ctx,
+		Key:   CacheKeyHubspotCompanies,
+		Value: companies,
+		TTL:   5 * time.Minute,
+	}); err != nil {
+		span.Finish(tracer.WithError(err))
+		return err
+	}
+	return nil
+}
+
+func (r *Client) GetHubspotCompanies(ctx context.Context, companies interface{}) (err error) {
+	span, _ := tracer.StartSpanFromContext(ctx, "redis.cache.GetHubspotCompanies")
+	err = r.redisCache.Get(ctx, CacheKeyHubspotCompanies, companies)
+	span.Finish(tracer.WithError(err))
+	return
 }

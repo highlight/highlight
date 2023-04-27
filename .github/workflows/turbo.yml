@@ -19,7 +19,7 @@ jobs:
 
         steps:
             - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v1
+              uses: dopplerhq/cli-action@v2
 
             - name: Checkout
               uses: actions/checkout@v3
@@ -54,8 +54,8 @@ jobs:
                   GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
 
             - name: Configure AWS credentials
-              if: github.repository == 'highlight/highlight' && steps.filter.outputs.npm-changed == 'true'
-              uses: aws-actions/configure-aws-credentials@v1
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' && steps.filter.outputs.npm-changed == 'true'
+              uses: aws-actions/configure-aws-credentials@v2
               with:
                   aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -63,7 +63,7 @@ jobs:
 
             - name: Validate project is ready to be published
               if: github.repository == 'highlight/highlight' && steps.filter.outputs.npm-changed == 'true'
-              run: yarn prepublish
+              run: yarn validate
 
             # always publish client, even in PRs
             # this is ok because the final push to main of the version will replace
@@ -74,14 +74,14 @@ jobs:
               run: yarn publish:client
 
             - name: Upload frontend sourcemaps
-              if: github.repository == 'highlight/highlight' && github.ref == 'refs/heads/main'
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' && github.ref == 'refs/heads/main'
               run: yarn && yarn sourcemaps:frontend
               env:
                   HIGHLIGHT_API_KEY: ${{ secrets.HIGHLIGHT_SOURCEMAP_API_KEY }}
                   APP_VERSION: ${{ github.sha }}
 
             - name: Configure yarn npm registry credentials
-              if: github.repository == 'highlight/highlight' && github.ref == 'refs/heads/main'
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' && github.ref == 'refs/heads/main'
               run: |
                   yarn config set npmRegistryServer "https://registry.npmjs.org"
                   yarn config set npmAuthToken "${NPM_TOKEN}"
@@ -89,7 +89,7 @@ jobs:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Publish npm packages
-              if: github.repository == 'highlight/highlight' && github.ref == 'refs/heads/main'
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' && github.ref == 'refs/heads/main'
               run: yarn publish:turbo
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

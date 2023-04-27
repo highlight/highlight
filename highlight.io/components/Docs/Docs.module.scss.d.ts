@@ -21,6 +21,7 @@ export const docsCardPara: string
 export const docSelect: string
 export const docSelectList: string
 export const docSelectText: string
+export const docsTable: string
 export const emptyContent: string
 export const headingCopyIcon: string
 export const headingSection: string

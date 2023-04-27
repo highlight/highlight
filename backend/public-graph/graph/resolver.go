@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/phonehome"
+	"go.opentelemetry.io/otel/attribute"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -60,8 +62,8 @@ type Resolver struct {
 	AlertWorkerPool *workerpool.WorkerPool
 	DB              *gorm.DB
 	TDB             timeseries.DB
-	ProducerQueue   *kafka_queue.Queue
-	BatchedQueue    *kafka_queue.Queue
+	ProducerQueue   kafka_queue.MessageQueue
+	BatchedQueue    kafka_queue.MessageQueue
 	MailClient      *sendgrid.Client
 	StorageClient   storage.Client
 	OpenSearch      *opensearch.Client
@@ -1539,11 +1541,11 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 			return e.Wrap(err, "error querying backend_setup flag")
 		}
 		if backendSetupCount < 1 {
-			if util.IsHubspotEnabled() {
-				project, err := r.getProject(projectID)
-				if err != nil {
-					log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
-				} else {
+			project, err := r.getProject(projectID)
+			if err != nil {
+				log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
+			} else {
+				if util.IsHubspotEnabled() {
 					if err := r.HubspotApi.UpdateCompanyProperty(ctx, project.WorkspaceID, []hubspot.Property{{
 						Name:     "backend_setup",
 						Property: "backend_setup",
@@ -1552,6 +1554,9 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 						log.WithContext(ctx).Errorf("failed to update hubspot")
 					}
 				}
+				phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, project.WorkspaceID, []attribute.KeyValue{
+					attribute.Bool(phonehome.BackendSetup, true),
+				})
 			}
 			if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
 				return e.Wrap(err, "error updating backend_setup flag")

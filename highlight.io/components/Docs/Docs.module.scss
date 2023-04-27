@@ -972,6 +972,53 @@ h5:hover .headingCopyIcon {
 	}
 }
 
+.docsTable {
+	width: 100%;
+	border: solid #30294e 1px;
+	border-radius: 8px;
+	overflow: hidden;
+
+	table {
+		width: 100%;
+		height: 100%;
+		table-layout: auto;
+
+		thead {
+			text-align: left;
+		}
+
+		th,
+		td {
+			padding: 4px 12px;
+			border-bottom: solid 1px #30294e;
+			border-left: solid 1px #30294e;
+
+			&:first-child {
+				border-left: none;
+			}
+		}
+
+		th {
+			padding: 8px 12px;
+			font-size: 16px;
+			font-weight: 500;
+			line-height: 26px;
+		}
+
+		tbody {
+			color: #dfdfdf;
+
+			td {
+				border-bottom: solid 1px #fff2;
+			}
+
+			tr:last-child > td {
+				border-bottom: none;
+			}
+		}
+	}
+}
+
 @supports (-webkit-hyphens: none) {
 	.contentRender {
 		h4,

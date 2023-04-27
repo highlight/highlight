@@ -3,17 +3,17 @@ env:
     VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 on:
-    push:
+    pull_request:
+        types: [opened, synchronize]
         paths:
             - 'highlight.io/**'
             - 'docs-content/**'
             - '.github/workflows/highlight-io-preview.yml'
             - 'turbo.json'
             - 'yarn.lock'
-        branches-ignore:
-            - main
 jobs:
     Deploy-Preview:
+        if: github.event.pull_request.head.repo.full_name == 'highlight/highlight'
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3

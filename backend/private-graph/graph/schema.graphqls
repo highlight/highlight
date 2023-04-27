@@ -183,6 +183,12 @@ type LinearTeam {
 	key: String!
 }
 
+type GitHubRepo {
+	repo_id: String!
+	name: String!
+	key: String!
+}
+
 type VercelEnv {
 	id: String!
 	key: String!
@@ -261,6 +267,7 @@ enum IntegrationType {
 	Discord
 	ClickUp
 	Height
+	GitHub
 }
 
 enum ErrorState {
@@ -1183,7 +1190,6 @@ type CategoryHistogramPayload {
 type IntegrationStatus {
 	integrated: Boolean!
 	resourceType: String!
-	resourceSecureId: String
 	createdAt: Timestamp
 }
 
@@ -1521,6 +1527,8 @@ type Query {
 		integration_type: IntegrationType
 	): [IntegrationProjectMapping!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
+	github_repos(workspace_id: ID!): [GitHubRepo!]
+	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!

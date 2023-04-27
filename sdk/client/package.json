@@ -61,12 +61,13 @@
 	"dependencies": {
 		"@highlight-run/rrweb": "workspace:*",
 		"error-stack-parser": "2.0.6",
-		"esbuild": "^0.14.47",
+		"esbuild": "^0.16.17",
 		"graphql": "^16.5.0",
 		"graphql-request": "^4.3.0",
 		"graphql-tag": "^2.12.6",
 		"json-stringify-safe": "^5.0.1",
-		"stacktrace-js": "2.0.2"
+		"stacktrace-js": "2.0.2",
+		"web-vitals": "^3.3.1"
 	},
 	"resolutions": {
 		"ansi-regex": "5.0.1",

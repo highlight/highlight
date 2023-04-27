@@ -5,9 +5,15 @@ createdAt: 2021-09-10T17:54:08.000Z
 updatedAt: 2022-08-18T22:36:12.000Z
 ---
 
-[highlight.io](https://highlight.io) is monitoring software for the next generation of developers. And it's all [opensource](https://github.com/highlight/highlight) :).
+[highlight.io](https://highlight.io) is monitoring software for the next generation of developers. And it's all [open source](https://github.com/highlight/highlight) :).
 
 [highlight.io](https://highlight.io) gives you **fullstack** visibility into your application by pairing session replay, error monitoring, and logging, allowing you to tie frontend issues with backend logs and performance issues.
+
+When highlight.io is fully integrated, this is what it looks like:
+
+![](/images/Cohesion720.gif)
+
+And to get started:
 
 <DocsCardGroup>
     <DocsCard title="Get Started" href="../getting-started/1_overview.md">
@@ -19,7 +25,7 @@ updatedAt: 2022-08-18T22:36:12.000Z
 
 <DocsCardGroup>
     <DocsCard title="Mission & Values." href="./2_company/1_values.md">
-        {"Details about our company, our values, and opensource."}
+        {"Details about our company, our values, and open source."}
     </DocsCard>
     <DocsCard title="Compliance & Security."  href="./2_company/compliance-and-security.md">
         {"Our security certificates, and contact details."}
@@ -32,7 +38,7 @@ updatedAt: 2022-08-18T22:36:12.000Z
     </DocsCard>
 </DocsCardGroup>
 
-### Features
+### Features.
 
 <DocsCardGroup>
     <DocsCard title="Session Replay." href="./6_product-features/1_session-replay/1_overview.md">

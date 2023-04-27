@@ -1,6 +1,5 @@
 import 'antd/dist/antd.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
-import '@highlight-run/react/dist/index.css'
 import '@fontsource/poppins'
 import './index.scss'
 import './style/tailwind.css'
@@ -52,9 +51,7 @@ import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
 analytics.initialize()
-const dev =
-	import.meta.env.DEV ||
-	import.meta.env.REACT_APP_FRONTEND_URI?.indexOf('localhost') !== -1
+const dev = import.meta.env.DEV
 const options: HighlightOptions = {
 	debug: { clientInteractions: true, domRecording: true },
 	manualStart: true,

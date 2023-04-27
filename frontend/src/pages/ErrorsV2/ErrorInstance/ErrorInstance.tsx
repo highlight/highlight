@@ -447,7 +447,11 @@ const Metadata: React.FC<{
 		{
 			key: 'Custom Properties',
 			label: customProperties ? (
-				<JsonViewer src={customProperties} name="Custom Properties" />
+				<JsonViewer
+					collapsed={true}
+					src={customProperties}
+					name="Custom Properties"
+				/>
 			) : undefined,
 		},
 	].filter((t) => Boolean(t.label))
@@ -544,7 +548,7 @@ const User: React.FC<{
 					<Box display="flex">
 						<LinkButton
 							kind="secondary"
-							to="/setup/backend"
+							to={`/${projectId}/setup/backend`}
 							trackingId="error-mapping-setup"
 							target="_blank"
 						>

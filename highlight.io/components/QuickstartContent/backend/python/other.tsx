@@ -19,7 +19,7 @@ export const PythonOtherContext: QuickStartContent = {
 			code: {
 				text: `import highlight_io
 
-H = highlight_io.H("YOUR_PROJECT_ID", record_logs=True)`,
+H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)`,
 				language: 'python',
 			},
 		},
@@ -37,7 +37,7 @@ import time
 
 import highlight_io
 
-H = highlight_io.H("YOUR_PROJECT_ID", record_logs=True)
+H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
 
 
 def main():

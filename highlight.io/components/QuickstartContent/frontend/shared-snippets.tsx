@@ -27,7 +27,7 @@ export const sessionSearchLink = siteUrl(
 	'/docs/general/product-features/session-replay/session-search',
 )
 export const backendInstrumentationLink = siteUrl(
-	'/docs/getting-started/overview#For-your-backend',
+	'/docs/getting-started/overview#for-your-backend-error-monitoring',
 )
 export const fullstackMappingLink = siteUrl(
 	'/docs/getting-started/frontend-backend-mapping',
@@ -66,7 +66,7 @@ H.init('<YOUR_PROJECT_ID>', {
 		enabled: true,
 		recordHeadersAndBody: true,
 		urlBlocklist: [
-			// insert urls you don't want to record here
+			// insert full or partial urls that you don't want to record here
 		],
 	},
 });

@@ -21,7 +21,7 @@ export const PythonAWSContext: QuickStartContent = {
 				text: `import highlight_io
 from highlight_io.integrations.aws import observe_handler
 
-H = highlight_io.H("1", record_logs=True)
+H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
 
 
 @observe_handler
@@ -46,7 +46,7 @@ def lambda_handler(event, context):
 				text: `import highlight_io
 from highlight_io.integrations.aws import observe_handler
 
-H = highlight_io.H("1", record_logs=True)
+H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
 
 
 @observe_handler

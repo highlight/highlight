@@ -1,8 +1,9 @@
+import ConsoleButtons from '@/components/ConsoleButtons'
+import ErrorBoundaryButton from '@/components/ErrorBoundaryButton'
+import HelloButton from '@/components/HelloButton'
 import Image from 'next/image'
 import { Inter } from '@next/font/google'
 import styles from './page.module.css'
-import HelloButton from '@/components/HelloButton'
-import ConsoleButtons from '@/components/ConsoleButtons'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -55,6 +56,7 @@ export default function Home() {
 
 			<HelloButton />
 			<ConsoleButtons />
+			<ErrorBoundaryButton />
 
 			<div className={styles.grid}>
 				<a
