@@ -7,7 +7,6 @@ import (
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
-	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	"net/http"
@@ -49,7 +48,6 @@ func TestHandler_HandleLog(t *testing.T) {
 	h := Handler{}
 	h.HandleLog(w, r)
 }
-
 func TestHandler_HandleTrace(t *testing.T) {
 	inputBytes, err := os.ReadFile("./samples/traces.json")
 	if err != nil {
@@ -86,38 +84,19 @@ func TestHandler_HandleTrace(t *testing.T) {
 	}
 	h.HandleTrace(w, r)
 
-	assert.GreaterOrEqual(t, 4, len(producer.messages))
-
-	_, ok := lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
-		return message.Type == kafkaqueue.PushBackendPayload
-	})
-	assert.Truef(t, ok, "did not find a PushBackendPayload message")
-
-	_, ok = lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
-		return message.Type == kafkaqueue.MarkBackendSetup
-	})
-	assert.Truef(t, ok, "did not find a MarkBackendSetup message")
-
-	_, ok = lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
-		return message.Type == kafkaqueue.PushLogs
-	})
-	assert.Truef(t, ok, "did not find a PushLogs message")
-
-	allPushLogs := lo.Filter(producer.messages, func(message *kafkaqueue.Message, _ int) bool {
-		return message.Type == kafkaqueue.PushLogs
-	})
-
-	for _, pushLogs := range allPushLogs {
-		if len(pushLogs.PushLogs.LogRows) == 14 {
-			for _, log := range pushLogs.PushLogs.LogRows {
-				assert.Equal(t, model.LogSourceBackend, log.Source)
-			}
-		} else if len(pushLogs.PushLogs.LogRows) == 1 {
-			for _, log := range pushLogs.PushLogs.LogRows {
-				assert.Equal(t, model.LogSourceFrontend, log.Source)
-			}
-		} else {
-			assert.Fail(t, "found a push logs with no log rows")
+	assert.Equal(t, 4, len(producer.messages))
+	assert.Equal(t, kafkaqueue.PushBackendPayload, producer.messages[0].Type)
+	assert.Equal(t, kafkaqueue.MarkBackendSetup, producer.messages[1].Type)
+	if assert.Equal(t, kafkaqueue.PushLogs, producer.messages[2].Type) {
+		assert.Equal(t, 14, len(producer.messages[2].PushLogs.LogRows))
+		for _, log := range producer.messages[2].PushLogs.LogRows {
+			assert.Equal(t, model.LogSourceBackend, log.Source)
+		}
+	}
+	if assert.Equal(t, kafkaqueue.PushLogs, producer.messages[3].Type) {
+		assert.Equal(t, 1, len(producer.messages[3].PushLogs.LogRows))
+		for _, log := range producer.messages[3].PushLogs.LogRows {
+			assert.Equal(t, model.LogSourceFrontend, log.Source)
 		}
 	}
 }
