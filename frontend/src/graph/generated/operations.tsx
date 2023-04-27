@@ -1497,42 +1497,40 @@ export type GetSessionPayloadQuery = {
 			>
 		>
 		session_comments: Array<
-			Types.Maybe<
-				{ __typename?: 'SessionComment' } & Pick<
-					Types.SessionComment,
-					| 'id'
-					| 'timestamp'
-					| 'session_id'
-					| 'session_secure_id'
-					| 'created_at'
-					| 'updated_at'
-					| 'project_id'
-					| 'text'
-					| 'x_coordinate'
-					| 'y_coordinate'
-					| 'type'
-					| 'metadata'
-					| 'tags'
-				> & {
-						author?: Types.Maybe<
-							{ __typename?: 'SanitizedAdmin' } & Pick<
-								Types.SanitizedAdmin,
-								'id' | 'name' | 'email' | 'photo_url'
+			{ __typename?: 'SessionComment' } & Pick<
+				Types.SessionComment,
+				| 'id'
+				| 'timestamp'
+				| 'session_id'
+				| 'session_secure_id'
+				| 'created_at'
+				| 'updated_at'
+				| 'project_id'
+				| 'text'
+				| 'x_coordinate'
+				| 'y_coordinate'
+				| 'type'
+				| 'metadata'
+				| 'tags'
+			> & {
+					author?: Types.Maybe<
+						{ __typename?: 'SanitizedAdmin' } & Pick<
+							Types.SanitizedAdmin,
+							'id' | 'name' | 'email' | 'photo_url'
+						>
+					>
+					attachments: Array<
+						Types.Maybe<
+							{ __typename?: 'ExternalAttachment' } & Pick<
+								Types.ExternalAttachment,
+								| 'id'
+								| 'integration_type'
+								| 'external_id'
+								| 'title'
 							>
 						>
-						attachments: Array<
-							Types.Maybe<
-								{ __typename?: 'ExternalAttachment' } & Pick<
-									Types.ExternalAttachment,
-									| 'id'
-									| 'integration_type'
-									| 'external_id'
-									| 'title'
-								>
-							>
-						>
-					}
-			>
+					>
+				}
 		>
 	}
 
@@ -1691,57 +1689,52 @@ export type GetSessionCommentsQueryVariables = Types.Exact<{
 
 export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
 	session_comments: Array<
-		Types.Maybe<
-			{ __typename?: 'SessionComment' } & Pick<
-				Types.SessionComment,
-				| 'id'
-				| 'timestamp'
-				| 'session_id'
-				| 'session_secure_id'
-				| 'created_at'
-				| 'updated_at'
-				| 'project_id'
-				| 'text'
-				| 'x_coordinate'
-				| 'y_coordinate'
-				| 'type'
-				| 'metadata'
-				| 'tags'
-			> & {
-					author?: Types.Maybe<
-						{ __typename?: 'SanitizedAdmin' } & Pick<
-							Types.SanitizedAdmin,
-							'id' | 'name' | 'email' | 'photo_url'
+		{ __typename?: 'SessionComment' } & Pick<
+			Types.SessionComment,
+			| 'id'
+			| 'timestamp'
+			| 'session_id'
+			| 'session_secure_id'
+			| 'created_at'
+			| 'updated_at'
+			| 'project_id'
+			| 'text'
+			| 'x_coordinate'
+			| 'y_coordinate'
+			| 'type'
+			| 'metadata'
+			| 'tags'
+		> & {
+				author?: Types.Maybe<
+					{ __typename?: 'SanitizedAdmin' } & Pick<
+						Types.SanitizedAdmin,
+						'id' | 'name' | 'email' | 'photo_url'
+					>
+				>
+				attachments: Array<
+					Types.Maybe<
+						{ __typename?: 'ExternalAttachment' } & Pick<
+							Types.ExternalAttachment,
+							'id' | 'integration_type' | 'external_id' | 'title'
 						>
 					>
-					attachments: Array<
-						Types.Maybe<
-							{ __typename?: 'ExternalAttachment' } & Pick<
-								Types.ExternalAttachment,
-								| 'id'
-								| 'integration_type'
-								| 'external_id'
-								| 'title'
-							>
-						>
+				>
+				replies: Array<
+					Types.Maybe<
+						{ __typename?: 'CommentReply' } & Pick<
+							Types.CommentReply,
+							'id' | 'created_at' | 'updated_at' | 'text'
+						> & {
+								author: {
+									__typename?: 'SanitizedAdmin'
+								} & Pick<
+									Types.SanitizedAdmin,
+									'id' | 'name' | 'email' | 'photo_url'
+								>
+							}
 					>
-					replies: Array<
-						Types.Maybe<
-							{ __typename?: 'CommentReply' } & Pick<
-								Types.CommentReply,
-								'id' | 'created_at' | 'updated_at' | 'text'
-							> & {
-									author: {
-										__typename?: 'SanitizedAdmin'
-									} & Pick<
-										Types.SanitizedAdmin,
-										'id' | 'name' | 'email' | 'photo_url'
-									>
-								}
-						>
-					>
-				}
-		>
+				>
+			}
 	>
 }
 

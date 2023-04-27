@@ -51,6 +51,8 @@ import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { createSearchParams, useNavigate } from 'react-router-dom'
 
+import { ErrorFeedback } from '@/pages/ErrorsV2/ErrorInstance/ErrorFeedback'
+
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -517,6 +519,8 @@ const Metadata: React.FC<{
 					)
 				})}
 			</Box>
+
+			<ErrorFeedback errorObject={errorObject} />
 		</Box>
 	)
 }

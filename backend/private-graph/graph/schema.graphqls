@@ -1381,7 +1381,7 @@ type Query {
 	errors(session_secure_id: String!): [ErrorObject]
 	resources(session_secure_id: String!): [Any]
 	web_vitals(session_secure_id: String!): [Metric!]!
-	session_comments(session_secure_id: String!): [SessionComment]!
+	session_comments(session_secure_id: String!): [SessionComment!]!
 	session_comment_tags_for_project(project_id: ID!): [SessionCommentTag!]!
 	session_comments_for_admin: [SessionComment]!
 	session_comments_for_project(project_id: ID!): [SessionComment]!
