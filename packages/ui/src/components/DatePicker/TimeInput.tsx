@@ -1,8 +1,7 @@
-import { Form, InputProps } from '@components/Form/Form'
+import { Form, InputProps } from '../Form/Form'
 import React, { useState } from 'react'
 
 export interface TimeInputProps extends InputProps {
-	initialValue?: string
 	onTimeChange?: (value: string) => void
 }
 
