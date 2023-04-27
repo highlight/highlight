@@ -447,7 +447,11 @@ const Metadata: React.FC<{
 		{
 			key: 'Custom Properties',
 			label: customProperties ? (
-				<JsonViewer src={customProperties} name="Custom Properties" />
+				<JsonViewer
+					collapsed={false}
+					src={customProperties}
+					name="Custom Properties"
+				/>
 			) : undefined,
 		},
 	].filter((t) => Boolean(t.label))
