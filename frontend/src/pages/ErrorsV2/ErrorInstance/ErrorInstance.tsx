@@ -448,7 +448,7 @@ const Metadata: React.FC<{
 			key: 'Custom Properties',
 			label: customProperties ? (
 				<JsonViewer
-					collapsed={false}
+					collapsed={true}
 					src={customProperties}
 					name="Custom Properties"
 				/>
