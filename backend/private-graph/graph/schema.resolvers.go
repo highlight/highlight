@@ -4156,7 +4156,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		if err := r.DB.Model(&session).Where("id = ?", *errorObject.SessionID).Find(&session).Error; err != nil {
 			return nil, e.Wrap(err, "error reading error group session")
 		}
-		if session.Excluded != nil && *session.Excluded {
+		if session.Excluded {
 			errorObject.SessionID = nil
 		}
 	}
@@ -4773,7 +4773,7 @@ func (r *queryResolver) ProjectHasViewedASession(ctx context.Context, projectID 
 	}
 
 	session := model.Session{}
-	if err := r.DB.Model(&session).Where("project_id = ?", projectID).Where(&model.Session{Viewed: &model.T, Excluded: &model.F}).First(&session).Error; err != nil {
+	if err := r.DB.Model(&session).Where("project_id = ?", projectID).Where(&model.Session{Viewed: &model.T, Excluded: false}).First(&session).Error; err != nil {
 		return &session, nil
 	}
 	return &session, nil
