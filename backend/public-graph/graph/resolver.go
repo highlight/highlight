@@ -2978,10 +2978,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		(sessionObj.Processed != nil && *sessionObj.Processed) ||
 		(sessionObj.ObjectStorageEnabled != nil && *sessionObj.ObjectStorageEnabled) ||
 		(sessionObj.Chunked != nil && *sessionObj.Chunked) ||
-		(!excluded) ||
 		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
 
-	if doUpdate {
+	if doUpdate && !excluded {
 		fieldsToUpdate := model.Session{
 			PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, DirectDownloadEnabled: false, Chunked: &model.F, Excluded: false,
 		}
