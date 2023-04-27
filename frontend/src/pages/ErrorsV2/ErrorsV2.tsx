@@ -49,7 +49,7 @@ import * as styles from './styles.css'
 type Props = { integrated: boolean }
 type Params = { project_id: string; error_secure_id: string }
 
-export function ErrorsV2({ integrated }: Props) {
+export default function ErrorsV2({ integrated }: Props) {
 	const { project_id, error_secure_id } = useParams<Params>()
 	const { isLoggedIn } = useAuthContext()
 
