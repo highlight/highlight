@@ -44,9 +44,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import * as styles from './styles.css'
 
-const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
-	integrated,
-}) => {
+type Props = { integrated: boolean }
+
+export default function ErrorsV2({ integrated }: Props) {
 	const { project_id, error_secure_id } = useParams<{
 		project_id: string
 		error_secure_id: string
@@ -323,18 +323,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 		</>
 	)
 }
-
-export default ErrorsV2
-
-/**
- * TODO: Remove comments before merge. Testing
- *
- * Esplin 4/27/23
- *
- * Not shared: https://localhost:3000/1/errors/zGAkbQcrfp3eU6BIxRuewPR8cDxF?page=1&query=and%7C%7Cerror_state%2Cis%2COPEN%7C%7Cerror-field_timestamp%2Cbetween_date%2C30%20days
- *
- * Shared: https://localhost:3000/1/errors/9GAfjuo2vf7PALQkvhZLNzFFHu54?page=1
- */
 
 function useIsBlocked({
 	isPublic,
