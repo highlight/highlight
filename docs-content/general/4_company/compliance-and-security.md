@@ -29,3 +29,4 @@ Below is a list of our subprocessors:
 | Sendgrid                  | Email Delivery              | USA                 |
 | Datadog                   | Metrics                     | USA                 |
 | Stripe                    | Payment Processing          | USA                 |
+| Clickhouse                | Data storage                | USA                 |
