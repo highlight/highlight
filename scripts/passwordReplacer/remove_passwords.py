@@ -5,6 +5,7 @@ import boto3
 import brotli
 
 s3 = boto3.client('s3')
+client = boto3.client('dynamodb')
 
 def get_ancestors(node, edges):
     ancestors = set([node])
@@ -147,6 +148,13 @@ def lambda_handler(event, context):
         sus = get_sus(brotli.decompress(response['Body'].read()))
         if sus:
             newKey = key.replace('session-contents-compressed-', 'session-contents-compressed-v2-')
+            response = client.put_item(
+                TableName='password-chunks',
+                Item={
+                    'key': {
+                        'S': newKey
+                    }
+                })
             print('sus!', newKey)
             compressed = brotli.compress(sus.encode(), quality=9)
             s3.put_object(Body=compressed, Bucket=bucket, Key=newKey, ContentEncoding='br', ContentType='application/json')
