@@ -22,7 +22,10 @@ const TIME_INPUT_FORMAT_NO_SPACE = 'HH:mma'
 const TIME_INPUT_FORMAT_12_HOUR = 'h:mm a'
 const TIME_INPUT_FORMAT_12_HOUR_NO_SPACE = 'h:mma'
 
-const TIME_DISPLAY_FORMAT = 'HH:mm A'
+const TIME_INPUT_FORMAT_HOURS_NO_MINUTES = 'h a'
+const TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_SPACE = 'ha'
+
+const TIME_DISPLAY_FORMAT = 'hh:mm a'
 
 export type Preset = {
 	label: string
@@ -260,6 +263,8 @@ const PreviousDateRangePickerImpl = ({
 			TIME_INPUT_FORMAT_NO_SPACE,
 			TIME_INPUT_FORMAT_12_HOUR,
 			TIME_INPUT_FORMAT_12_HOUR_NO_SPACE,
+			TIME_INPUT_FORMAT_HOURS_NO_MINUTES,
+			TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_SPACE,
 		]
 			.map((format) => moment(value, format, true).isValid())
 			.some((isValid) => isValid)
