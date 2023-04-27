@@ -634,7 +634,7 @@ type Session struct {
 	VerboseID             string  `json:"verbose_id"`
 
 	// Excluded will be true when we would typically have deleted the session
-	Excluded *bool `gorm:"default:false"`
+	Excluded bool `gorm:"default:false"`
 
 	// Lock is the timestamp at which a session was locked
 	// - when selecting sessions, ignore Locks that are > 10 minutes old

@@ -5,6 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
+	"math/rand"
+	"os"
+	"sort"
+	"strconv"
+	"sync"
+	"time"
+
 	"github.com/highlight-run/highlight/backend/alerts"
 	highlightErrors "github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -35,14 +43,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
-	"math"
-	"math/rand"
-	"os"
-	"regexp"
-	"sort"
-	"strconv"
-	"sync"
-	"time"
 )
 
 // Worker is a job runner that parses sessions
@@ -496,7 +496,7 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 }
 
 func (w *Worker) excludeSession(ctx context.Context, s *model.Session) error {
-	s.Excluded = &model.T
+	s.Excluded = false
 	s.Processed = &model.T
 	if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
@@ -511,43 +511,6 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session) error {
 	}
 
 	return nil
-}
-
-func (w *Worker) isSessionUserExcluded(ctx context.Context, s *model.Session) bool {
-	var project model.Project
-	if err := w.Resolver.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
-		return false
-	}
-	if project.ExcludedUsers == nil {
-		return false
-	}
-	var email string
-	if s.UserProperties != "" {
-		encodedProperties := []byte(s.UserProperties)
-		decodedProperties := map[string]string{}
-		err := json.Unmarshal(encodedProperties, &decodedProperties)
-		if err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s, error: %v", s.UserProperties, err)
-			return false
-		}
-		email = decodedProperties["email"]
-	}
-	for _, value := range []string{s.Identifier, email} {
-		if value == "" {
-			continue
-		}
-		for _, excludedExpr := range project.ExcludedUsers {
-			matched, err := regexp.MatchString(excludedExpr, value)
-			if err != nil {
-				log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s, error: %v", excludedExpr, value, err.Error())
-				return false
-			} else if matched {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
@@ -611,7 +574,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if len(accumulator.EventsForTimelineIndicator) == 0 && s.Length <= 0 {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
-		s.Excluded = &model.T
+		s.Excluded = true
 		s.Processed = &model.T
 		if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
@@ -806,11 +769,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if accumulator.ActiveDuration == 0 {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("excluding session with 0ms length active duration (session_id=%d, identifier=%s)", s.ID, s.Identifier)
-		return w.excludeSession(ctx, s)
-	}
-
-	if w.isSessionUserExcluded(ctx, s) {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Infof("excluding session due to excluded identifier")
 		return w.excludeSession(ctx, s)
 	}
 
