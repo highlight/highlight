@@ -36,6 +36,11 @@ import {
 } from 'react-router-dom'
 import { StringParam, useQueryParam } from 'use-query-params'
 
+import {
+	DEMO_PROJECT_ID,
+	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
 		useAuthContext()
@@ -78,7 +83,24 @@ export const AppRouter = () => {
 			navigate('/about_you', { replace: true })
 			return
 		}
-	}, [admin, isVercelIntegrationFlow, navigate, inviteCode, isInvitePage])
+
+		const pathSegments = location.pathname.split('/').filter(Boolean)
+		if (pathSegments[0] === DEMO_PROJECT_ID) {
+			pathSegments[0] = DEMO_WORKSPACE_PROXY_APPLICATION_ID
+
+			navigate(`/${pathSegments.join('/')}${location.search}`, {
+				replace: true,
+			})
+			return
+		}
+	}, [
+		admin,
+		isVercelIntegrationFlow,
+		navigate,
+		inviteCode,
+		isInvitePage,
+		projectId,
+	])
 
 	useEffect(() => {
 		if (admin) {
