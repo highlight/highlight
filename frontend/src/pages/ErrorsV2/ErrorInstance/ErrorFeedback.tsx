@@ -1,18 +1,18 @@
 import { Box, Text } from '@highlight-run/ui'
 
 import { useGetSessionCommentsQuery } from '@/graph/generated/hooks'
-import { GetErrorObjectQuery } from '@/graph/generated/operations'
+import { Session } from '@/graph/generated/schemas'
+import { ErrorFeedbackItem } from '@/pages/ErrorsV2/ErrorInstance/ErrorFeedbackItem'
 
 type Props = {
-	errorObject: GetErrorObjectQuery['error_object']
+	session: Partial<Session>
 }
 
-export const ErrorFeedback = ({ errorObject }: Props) => {
+export const ErrorFeedback = ({ session }: Props) => {
 	const { data } = useGetSessionCommentsQuery({
 		variables: {
-			session_secure_id: errorObject?.session?.secure_id ?? '',
+			session_secure_id: session.secure_id!,
 		},
-		skip: !errorObject?.session?.secure_id,
 	})
 
 	if (!data?.session_comments || data.session_comments.length === 0) {
@@ -27,13 +27,13 @@ export const ErrorFeedback = ({ errorObject }: Props) => {
 				</Text>
 			</Box>
 			<Box>
-				{data.session_comments.map((sessionComment) => {
-					return (
-						<Box key={sessionComment.id}>
-							{sessionComment?.text}
-						</Box>
-					)
-				})}
+				{data.session_comments.map((sessionComment) => (
+					<ErrorFeedbackItem
+						key={sessionComment.id}
+						errorObject={errorObject}
+						sessionComment={sessionComment}
+					/>
+				))}
 			</Box>
 		</>
 	)

@@ -520,7 +520,9 @@ const Metadata: React.FC<{
 				})}
 			</Box>
 
-			<ErrorFeedback errorObject={errorObject} />
+			{errorObject.session && (
+				<ErrorFeedback session={errorObject.session} />
+			)}
 		</Box>
 	)
 }
