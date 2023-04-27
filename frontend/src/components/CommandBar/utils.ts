@@ -74,7 +74,7 @@ export function nextAttribute(
 }
 
 export const useAttributeSearch = (form: FormState<CommandBarSearch>) => {
-	const query = form.getValue(form.names.search)
+	const query = form.getValue(form.names.search).trim()
 	const dates = form.getValue(form.names.selectedDates)
 
 	const navigate = useNavigate()

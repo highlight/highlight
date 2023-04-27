@@ -84,7 +84,7 @@ const CommandBarBox = () => {
 }
 const SearchOptions = () => {
 	const form = useCommandBarForm()
-	const query = form.getValue<string>(form.names.search)
+	const query = form.getValue(form.names.search).trim()
 	if (!query) return null
 	return (
 		<>
@@ -97,7 +97,7 @@ const SearchOptions = () => {
 
 const SearchBar = () => {
 	const form = useCommandBarForm()
-	const query = form.getValue<string>(form.names.search)
+	const query = form.getValue(form.names.search).trim()
 	const selectedDates = form.getValue<Date[]>(form.names.selectedDates)
 
 	const inputRef = useRef<HTMLInputElement>(null)
@@ -274,7 +274,7 @@ const SectionRow = ({
 				lines="1"
 				cssClass={styles.query}
 			>
-				{form.getValue(form.names.search)}
+				{form.getValue(form.names.search).trim()}
 			</Text>
 			{selected ? (
 				<Badge
