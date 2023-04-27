@@ -310,11 +310,9 @@ func (r *Resolver) isDemoWorkspace(workspace_id int) bool {
 
 func (r *Resolver) demoProjectID(ctx context.Context) int {
 	if demoProjectID, err := strconv.Atoi(DemoProjectID); err != nil {
-		fmt.Printf("::: demoProjectID %+v", demoProjectID)
 		log.WithContext(ctx).Error(err, "error converting DemoProjectID to int")
 		return 0
 	} else {
-		fmt.Printf("::: demoProjectID %+v", demoProjectID)
 		return demoProjectID
 	}
 }
