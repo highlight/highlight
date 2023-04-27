@@ -4683,7 +4683,7 @@ func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*mo
 		Integrated:   false,
 		ResourceType: "Log",
 	}
-	_, err := r.isAdminInProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
