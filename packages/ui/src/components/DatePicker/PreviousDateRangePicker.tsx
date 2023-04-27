@@ -15,6 +15,7 @@ import {
 import { Stack } from '../Stack/Stack'
 import { Box } from '../Box/Box'
 import { colors } from '../../css/colors'
+import { TimeInput } from './TimeInput'
 
 const TIME_INPUT_FORMAT = 'HH:mm a'
 const TIME_INPUT_FORMAT_NO_SPACE = 'HH:mma'
@@ -23,7 +24,9 @@ const TIME_INPUT_FORMAT_12_HOUR = 'h:mm a'
 const TIME_INPUT_FORMAT_12_HOUR_NO_SPACE = 'h:mma'
 
 const TIME_INPUT_FORMAT_HOURS_NO_MINUTES = 'h a'
+const TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_AM_PM = 'h'
 const TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_SPACE = 'ha'
+const TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_AM_PM_24_HOUR = 'HH'
 
 const TIME_DISPLAY_FORMAT = 'hh:mm a'
 
@@ -253,11 +256,7 @@ const PreviousDateRangePickerImpl = ({
 		}
 	}
 
-	const handleTimeChange = (
-		event: React.ChangeEvent<HTMLInputElement>,
-		input: 'start' | 'end',
-	) => {
-		const value = event.target.value
+	const handleTimeChange = (value: string, input: 'start' | 'end') => {
 		const isValid = [
 			TIME_INPUT_FORMAT,
 			TIME_INPUT_FORMAT_NO_SPACE,
@@ -265,6 +264,8 @@ const PreviousDateRangePickerImpl = ({
 			TIME_INPUT_FORMAT_12_HOUR_NO_SPACE,
 			TIME_INPUT_FORMAT_HOURS_NO_MINUTES,
 			TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_SPACE,
+			TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_AM_PM,
+			TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_AM_PM_24_HOUR,
 		]
 			.map((format) => moment(value, format, true).isValid())
 			.some((isValid) => isValid)
@@ -435,19 +436,12 @@ const PreviousDateRangePickerImpl = ({
 										borderBottomLeftRadius={'6'}
 										borderBottomRightRadius={'6'}
 									>
-										<Form.Input
-											name={'startTime'}
+										<TimeInput
+											name="startTime"
 											placeholder={startTimePlaceholder}
-											type="input"
-											color={'n8'}
-											style={{
-												boxSizing: 'border-box',
-												border: 'none',
-												background: 'none',
+											onTimeChange={function (value) {
+												handleTimeChange(value, 'start')
 											}}
-											onChange={(event) =>
-												handleTimeChange(event, 'start')
-											}
 										/>
 									</Box>
 								) : null}
@@ -491,19 +485,12 @@ const PreviousDateRangePickerImpl = ({
 										borderBottomLeftRadius={'6'}
 										borderBottomRightRadius={'6'}
 									>
-										<Form.Input
-											name={'endTime'}
+										<TimeInput
+											name="endTime"
 											placeholder={endTimePlaceholder}
-											type="input"
-											color={'n8'}
-											style={{
-												boxSizing: 'border-box',
-												border: 'none',
-												background: 'none',
+											onTimeChange={function (value) {
+												handleTimeChange(value, 'end')
 											}}
-											onChange={(event) =>
-												handleTimeChange(event, 'end')
-											}
 										/>
 									</Box>
 								) : null}
