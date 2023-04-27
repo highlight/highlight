@@ -13,14 +13,9 @@
 	],
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
-		"project": [
-			"./tsconfig.json"
-		]
+		"project": ["./tsconfig.json"]
 	},
-	"plugins": [
-		"@typescript-eslint",
-		"react"
-	],
+	"plugins": ["@typescript-eslint", "react"],
 	"rules": {
 		"react/display-name": "off",
 		"react/react-in-jsx-scope": "off"
