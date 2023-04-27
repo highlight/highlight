@@ -5,7 +5,6 @@ import { DatePicker } from './Calendar/DatePicker'
 import { DatePickerStateProvider } from '@rehookify/datepicker'
 import { Menu, MenuButtonProps, useMenu } from '../Menu/Menu'
 import { Text } from '../Text/Text'
-import { Form } from '../Form/Form'
 import {
 	IconSolidCheck,
 	IconSolidCheveronDown,
