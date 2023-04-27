@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"fmt"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
@@ -86,7 +87,7 @@ func TestHandler_HandleTrace(t *testing.T) {
 	}
 	h.HandleTrace(w, r)
 
-	assert.GreaterOrEqual(t, 4, len(producer.messages))
+	assert.Equal(t, 4, len(producer.messages), fmt.Sprintf("%+v", producer.messages))
 
 	_, ok := lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
 		return message.Type == kafkaqueue.PushBackendPayload
