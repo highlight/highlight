@@ -9,13 +9,15 @@ export type FallbackRender = (errorData: {
 
 export type ErrorBoundaryProps = {
 	children?: React.ReactNode
-	/** If a Highlight report dialog should be rendered on error */
+	/** Deprecated: no-op for compatibility. Dialog is enabled by default, unless {@link noShowDialog} is true. */
 	showDialog?: boolean
+	/** Set true to disable the Highlight report dialog being rendered on error  */
+	noShowDialog?: boolean
 	/** A custom dialog that you can provide to be shown when the ErrorBoundary is shown. */
 	customDialog?: React.ReactNode
 	/**
 	 * Options to be passed into the Highlight report dialog.
-	 * No-op if {@link showDialog} is false.
+	 * No-op if {@link noShowDialog} is true.
 	 */
 	dialogOptions?: ReportDialogOptions
 	/**
@@ -62,7 +64,7 @@ export class ErrorBoundary extends React.Component<
 	public state: ErrorBoundaryState = INITIAL_STATE
 
 	componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-		const { beforeCapture, onError, showDialog } = this.props
+		const { beforeCapture, onError, noShowDialog } = this.props
 
 		if (beforeCapture) {
 			beforeCapture(error, errorInfo.componentStack)
@@ -71,7 +73,7 @@ export class ErrorBoundary extends React.Component<
 		if (onError) {
 			onError(error, errorInfo.componentStack)
 		}
-		if (showDialog) {
+		if (!noShowDialog) {
 			this.setState({ ...this.state, showingDialog: true })
 		}
 
@@ -196,10 +198,10 @@ function captureReactErrorBoundaryError(
 
 	const componentName = getComponentNameFromStack(componentStack)
 
+	// if highlight is active, then we'll catch the error via the `window.onerror` listener
+	// otherwise, we'll print it
 	if (!window.H) {
-		console.warn('You need to install highlight.run as a npm dependency.')
-	} else {
-		window.H.consumeError(
+		console.error(
 			errorBoundaryError,
 			`${
 				componentName
