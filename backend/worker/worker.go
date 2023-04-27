@@ -1073,9 +1073,9 @@ func (w *Worker) Start(ctx context.Context) {
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
-					var excluded *bool
+					var excluded bool
 					if nextCount >= MAX_RETRIES {
-						excluded = &model.T
+						excluded = true
 					}
 
 					if err := w.Resolver.DB.Model(&model.Session{}).
@@ -1084,7 +1084,7 @@ func (w *Worker) Start(ctx context.Context) {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error incrementing retry count"))
 					}
 
-					if excluded != nil && *excluded {
+					if excluded {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Warn(e.Wrap(err, "session has reached the max retry count and will be excluded"))
 						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
