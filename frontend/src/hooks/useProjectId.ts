@@ -10,14 +10,11 @@ export function useProjectId() {
 		project_id: string
 	}>()
 	const projectIdRemapped =
-		project_id === DEMO_PROJECT_ID
-			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+		project_id === DEMO_WORKSPACE_PROXY_APPLICATION_ID
+			? DEMO_PROJECT_ID
 			: project_id
 
-	return {
-		projectId: projectIdRemapped!,
-		isDemo: project_id === DEMO_PROJECT_ID,
-	}
+	return { projectId: projectIdRemapped! }
 }
 
 export function useNumericProjectId() {

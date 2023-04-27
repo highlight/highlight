@@ -10,6 +10,8 @@ import { useCallback, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { NavigateFunction } from 'react-router-dom'
 
+import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+
 import { HighlightEvent } from '../../HighlightEvent'
 import {
 	ParsedErrorObject,
@@ -626,7 +628,7 @@ export const changeSession = (
 	session: Session | null,
 	successMessageText?: string,
 ) => {
-	const projectIdRemapped = projectId === '0' ? 'demo' : projectId
+	const projectIdRemapped = projectId === DEMO_PROJECT_ID ? 'demo' : projectId
 
 	if (!session) {
 		message.success('No more sessions to play.')

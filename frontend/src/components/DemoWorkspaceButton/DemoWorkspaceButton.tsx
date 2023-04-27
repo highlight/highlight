@@ -14,7 +14,6 @@ interface Props {
  * The project ID of our demo project.
  */
 export const DEMO_PROJECT_ID = import.meta.env.DEMO_PROJECT_ID
-console.log('::: DEMO_PROJECT_ID', DEMO_PROJECT_ID)
 
 /**
  * The application ID we show in the URL. This should be used instead of `DEMO_PROJECT_ID` when user-facing.

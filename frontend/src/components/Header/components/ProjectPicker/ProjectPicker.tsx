@@ -108,7 +108,7 @@ const ProjectPicker = () => {
 					</Menu.Button>
 					<Menu.List>
 						{projectOptions}
-						{project_id && project_id !== '0' && (
+						{project_id && project_id !== DEMO_PROJECT_ID && (
 							<>
 								<Menu.Divider />
 								<Link
