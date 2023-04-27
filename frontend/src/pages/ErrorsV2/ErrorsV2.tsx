@@ -1,9 +1,11 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { ErrorState } from '@components/ErrorState/ErrorState'
 import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import {
 	useGetErrorGroupQuery,
+	useGetProjectDropdownOptionsQuery,
 	useMarkErrorGroupAsViewedMutation,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
@@ -35,11 +37,10 @@ import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import clsx from 'clsx'
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useNavigate } from 'react-router-dom'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import * as styles from './styles.css'
 
@@ -85,6 +86,12 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 			analytics.track('Viewed error', { is_guest: !isLoggedIn })
 		},
 	})
+
+	const { isBlocked, loading: isBlockedLoading } = useIsBlocked({
+		isPublic: data?.error_group?.is_public ?? false,
+		projectId: project_id,
+	})
+	const isErrorState = errorQueryingErrorGroup || isBlocked
 
 	const navigate = useNavigate()
 	const location = useLocation()
@@ -177,11 +184,11 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 			</Helmet>
 
 			<Box cssClass={styles.container} borderTop="dividerWeak">
-				<SearchPanel />
+				{!isBlocked && <SearchPanel />}
 
 				<div
 					className={clsx(styles.detailsContainer, {
-						[styles.moveDetailsRight]: showLeftPanel,
+						[styles.moveDetailsRight]: !isBlocked && showLeftPanel,
 					})}
 				>
 					<Box
@@ -193,7 +200,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 						height="full"
 						shadow="medium"
 					>
-						{isLoggedIn && (
+						{isLoggedIn && !isBlocked && (
 							<Box
 								display="flex"
 								alignItems="center"
@@ -241,7 +248,9 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 							</Box>
 						)}
 
-						{error_secure_id && !errorQueryingErrorGroup ? (
+						{loading || isBlockedLoading ? (
+							<LoadingBox />
+						) : error_secure_id && !isErrorState ? (
 							<>
 								<Helmet>
 									<title>
@@ -283,6 +292,15 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 									</Container>
 								</div>
 							</>
+						) : isBlocked ? (
+							<ErrorState
+								title="Enter this Workspace?"
+								message={
+									"Sadly, you don’t have access to the workspace 😢 Request access and we'll shoot an email to your workspace admin. Alternatively, feel free to make an account!"
+								}
+								shownWithHeader
+								showRequestAccess
+							/>
 						) : errorQueryingErrorGroup ? (
 							<Box m="auto" style={{ maxWidth: 300 }}>
 								<Callout kind="info" title="Can't load error">
@@ -307,3 +325,38 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 }
 
 export default ErrorsV2
+
+/**
+ * TODO: Remove comments before merge. Testing
+ *
+ * Esplin 4/27/23
+ *
+ * Not shared: https://localhost:3000/1/errors/zGAkbQcrfp3eU6BIxRuewPR8cDxF?page=1&query=and%7C%7Cerror_state%2Cis%2COPEN%7C%7Cerror-field_timestamp%2Cbetween_date%2C30%20days
+ *
+ * Shared: https://localhost:3000/1/errors/9GAfjuo2vf7PALQkvhZLNzFFHu54?page=1
+ */
+
+function useIsBlocked({
+	isPublic,
+	projectId,
+}: {
+	isPublic: boolean
+	projectId?: string
+}) {
+	const { data, loading } = useGetProjectDropdownOptionsQuery({
+		variables: { project_id: projectId! },
+		skip: !projectId,
+	})
+	const isBlocked = useMemo(() => {
+		const currentProjectId = data?.project?.id
+		const canJoin = data?.joinable_workspaces?.some((w) =>
+			w?.projects.map((p) => p?.id).includes(projectId),
+		)
+
+		return (
+			!isPublic && !loading && !canJoin && currentProjectId !== projectId
+		)
+	}, [data, isPublic, loading, projectId])
+
+	return { isBlocked, loading }
+}
