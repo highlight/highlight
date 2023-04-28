@@ -8,6 +8,7 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/util"
+	H "github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 )
 
@@ -17,6 +18,9 @@ func main() {
 		return
 	}
 
+	H.SetProjectID("1jdkoe52")
+	H.Start()
+	defer H.Stop()
 	hlog.Init()
 
 	h := handlers.NewHandlers()
