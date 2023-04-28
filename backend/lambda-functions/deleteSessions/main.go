@@ -8,6 +8,7 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/util"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 )
 
 // Meant for local invocation for testing the lambda handler stack
@@ -15,6 +16,8 @@ func main() {
 	if !util.IsDevOrTestEnv() {
 		return
 	}
+
+	hlog.Init()
 
 	h := handlers.NewHandlers()
 	input := utils.QuerySessionsInput{
