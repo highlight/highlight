@@ -1,10 +1,6 @@
-import {
-	Box,
-	Button,
-	Heading,
-	IconSolidArrowSmRight,
-	Text,
-} from '@highlight-run/ui'
+import { Box, Heading, IconSolidArrowSmRight, Text } from '@highlight-run/ui'
+
+import { Button } from '@/components/Button'
 
 const BillingPageV2 = ({}: {}) => {
 	return (
@@ -18,6 +14,7 @@ const BillingPageV2 = ({}: {}) => {
 				// size="large"
 				kind="primary"
 				emphasis="low"
+				trackingId="BillingCustomQuote"
 			>
 				Custom Quote? Reach out to sales
 			</Button>

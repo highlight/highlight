@@ -22,7 +22,7 @@ import { auth } from '@/util/auth'
 
 import * as styles from './SettingsRouter.css'
 
-const BillingPage = React.lazy(() => import('../Billing/Billing'))
+const BillingPageV2 = React.lazy(() => import('../Billing/BillingPageV2'))
 
 export type SettingGroups = 'account' | 'project'
 
@@ -31,6 +31,7 @@ export type WorkspaceSettingsTab =
 	| 'settings'
 	| 'current-plan'
 	| 'upgrade-plan'
+	| 'billing-plans'
 	| SettingGroups
 
 const getTitle = (tab: WorkspaceSettingsTab | string): string => {
@@ -43,6 +44,8 @@ const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 			return 'Current plan'
 		case 'upgrade-plan':
 			return 'Upgrade plan'
+		case 'billing-plans':
+			return 'Billing plans'
 		default:
 			return ''
 	}
@@ -62,6 +65,12 @@ export const SettingsRouter = () => {
 	const pageId =
 		workspaceMatch?.params.page_id || (sectionId as WorkspaceSettingsTab)
 
+	const billingPanelContent = (
+		<Suspense fallback={null}>
+			<BillingPageV2 />
+		</Suspense>
+	)
+
 	const workspaceSettingTabs = [
 		{
 			key: 'team',
@@ -74,22 +83,9 @@ export const SettingsRouter = () => {
 			panelContent: <WorkspaceSettings />,
 		},
 		{
-			key: 'current-plan',
-			title: getTitle('current-plan'),
-			panelContent: (
-				<Suspense fallback={null}>
-					<BillingPage />
-				</Suspense>
-			),
-		},
-		{
-			key: 'upgrade-plan',
-			title: getTitle('upgrade-plan'),
-			panelContent: (
-				<Suspense fallback={null}>
-					<BillingPage />
-				</Suspense>
-			),
+			key: 'billing-plans',
+			title: getTitle('billing-plans'),
+			panelContent: billingPanelContent,
 		},
 	]
 
@@ -203,6 +199,14 @@ export const SettingsRouter = () => {
 										element={tab.panelContent}
 									/>
 								))}
+								<Route
+									path="current-plan"
+									element={billingPanelContent}
+								/>
+								<Route
+									path="upgrade-plan"
+									element={billingPanelContent}
+								/>
 								{accountSettingTabs.map((tab) => (
 									<Route
 										key={tab.key}
