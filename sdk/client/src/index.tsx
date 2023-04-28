@@ -685,6 +685,18 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			emit.bind(this)
 
 			if (!this._recordStop) {
+				let logger = undefined
+				if (
+					(typeof this.options.debug === 'boolean' &&
+						this.options.debug) ||
+					(typeof this.options.debug === 'object' &&
+						this.options.debug.domRecording)
+				) {
+					logger = {
+						debug: this.logger.log,
+						warn: HighlightWarning,
+					}
+				}
 				this._recordStop = record({
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
@@ -710,6 +722,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					inlineImages: this.inlineImages,
 					inlineStylesheet: this.inlineStylesheet,
 					plugins: [getRecordSequentialIdPlugin()],
+					logger,
 				})
 				// recordStop is not part of listeners because we do not actually want to stop rrweb
 				// rrweb has some bugs that make the stop -> restart workflow broken (eg iframe listeners)
