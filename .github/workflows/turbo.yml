@@ -33,6 +33,12 @@ jobs:
                       npm-changed:
                         - 'sdk/client/**'
                         - 'sdk/firstload/**'
+                        - 'sdk/highlight-apollo/**'
+                        - 'sdk/highlight-cloudflare/**'
+                        - 'sdk/highlight-nest/**'
+                        - 'sdk/highlight-next/**'
+                        - 'sdk/highlight-node/**'
+                        - 'sdk/highlight-react/**'
 
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
