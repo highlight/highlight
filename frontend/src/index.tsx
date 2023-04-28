@@ -140,7 +140,6 @@ const App = () => {
 
 	return (
 		<ErrorBoundary
-			showDialog
 			onAfterReportDialogCancelHandler={() => {
 				const { origin } = window.location
 				window.location.href = origin

@@ -15,7 +15,7 @@ Highlight provides an `ErrorBoundary` to help you provide a better experience fo
 import { ErrorBoundary } from '@highlight-run/react'
 
 const App = () => (
-  <ErrorBoundary showDialog>
+  <ErrorBoundary>
     <YourAwesomeApplication />
   </ErrorBoundary>
 )
@@ -31,7 +31,7 @@ const App = () => (
 import { ErrorBoundary } from '@highlight-run/react'
 
 const App = () => (
-  <ErrorBoundary showDialog>
+  <ErrorBoundary>
     <YourAwesomeApplication />
   </ErrorBoundary>
 )
@@ -46,7 +46,6 @@ import { ErrorBoundary } from '@highlight-run/react'
 
 const App = () => (
   <ErrorBoundary
-    showDialog
     customDialog={
       <div>
         <h2>Whoops! Looks like a crash happened.</h2>
@@ -76,7 +75,7 @@ A fallback component that gets rendered when the error boundary encounters an er
 
 ## `showDialog`
 
-Enables Highlight's crash report. When the `ErrorBoundary` is triggered, a form will be prompted to the user asking them for optional feedback.
+Enables Highlight's crash report. When the `ErrorBoundary` is triggered, a form will be prompted to the user asking them for optional feedback. Defaults to true.
 
 ### `dialogOptions`
 
