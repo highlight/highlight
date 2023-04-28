@@ -2715,9 +2715,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						log.WithContext(ctx).Error(e.Wrap(err, "Error escaping snapshot javascript"))
 					}
 
-					// Gated for projectID == 1, replace any static resources with our own, hosted in S3
-					// This gate will be removed in the future
-					if projectID == 1 {
+					// Replace any static resources with our own, hosted in S3
+					if projectID == 1 || projectID == 1344 || projectID == 5403 {
 						assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
 							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID))
 						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB)
