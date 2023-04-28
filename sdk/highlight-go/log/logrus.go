@@ -3,7 +3,6 @@ package hlog
 import (
 	"context"
 	"fmt"
-	"runtime/debug"
 	"strings"
 
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -78,22 +77,8 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 		}
 	}
 
-	hasError := false
 	for k, v := range entry.Data {
-		if k == "error" {
-			hasError = true
-			if err, ok := v.(highlight.ErrorWithStack); ok {
-				highlight.RecordSpanErrorWithStack(span, err)
-			} else if err, ok := v.(error); ok {
-				span.RecordError(err, trace.WithStackTrace(true))
-			}
-		} else {
-			attrs = append(attrs, attribute.String(k, fmt.Sprintf("%+v", v)))
-		}
-	}
-
-	if !hasError {
-		attrs = append(attrs, semconv.ExceptionStacktraceKey.String(string(debug.Stack())))
+		attrs = append(attrs, attribute.String(k, fmt.Sprintf("%+v", v)))
 	}
 
 	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...))
