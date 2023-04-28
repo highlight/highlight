@@ -8,8 +8,6 @@ import {
 	vars,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import React from 'react'
-const { DEMO_ERROR_URL } = import.meta.env
 
 export const CompleteSetup = () => {
 	const { projectId } = useProjectId()
@@ -52,12 +50,12 @@ export const CompleteSetup = () => {
 							Finish setup
 						</LinkButton>
 						<LinkButton
-							to={DEMO_ERROR_URL}
+							to="/demo/errors"
 							trackingId="view-demo-error"
 							kind="secondary"
 							emphasis="low"
 						>
-							View demo error
+							View demo errors
 						</LinkButton>
 					</Stack>
 				</Box>
