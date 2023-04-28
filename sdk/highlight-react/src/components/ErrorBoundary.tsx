@@ -196,10 +196,10 @@ function captureReactErrorBoundaryError(
 
 	const componentName = getComponentNameFromStack(componentStack)
 
-	// if highlight is active, then we'll catch the error via the `window.onerror` listener
-	// otherwise, we'll print it
 	if (!window.H) {
-		console.error(
+		console.warn('You need to install highlight.run as a npm dependency.')
+	} else {
+		window.H.consumeError(
 			errorBoundaryError,
 			`${
 				componentName
