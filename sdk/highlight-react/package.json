@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/react",
-	"version": "3.0.1",
+	"version": "3.1.0",
 	"description": "The official Highlight SDK for React",
 	"license": "MIT",
 	"peerDependencies": {

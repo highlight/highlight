@@ -9,15 +9,13 @@ export type FallbackRender = (errorData: {
 
 export type ErrorBoundaryProps = {
 	children?: React.ReactNode
-	/** Deprecated: no-op for compatibility. Dialog is enabled by default, unless {@link noShowDialog} is true. */
+	/** If a Highlight report dialog should be rendered on error. Defaults to true. */
 	showDialog?: boolean
-	/** Set true to disable the Highlight report dialog being rendered on error  */
-	noShowDialog?: boolean
 	/** A custom dialog that you can provide to be shown when the ErrorBoundary is shown. */
 	customDialog?: React.ReactNode
 	/**
 	 * Options to be passed into the Highlight report dialog.
-	 * No-op if {@link noShowDialog} is true.
+	 * No-op if {@link showDialog} is false.
 	 */
 	dialogOptions?: ReportDialogOptions
 	/**
@@ -64,7 +62,7 @@ export class ErrorBoundary extends React.Component<
 	public state: ErrorBoundaryState = INITIAL_STATE
 
 	componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-		const { beforeCapture, onError, noShowDialog } = this.props
+		const { beforeCapture, onError, showDialog } = this.props
 
 		if (beforeCapture) {
 			beforeCapture(error, errorInfo.componentStack)
@@ -73,7 +71,7 @@ export class ErrorBoundary extends React.Component<
 		if (onError) {
 			onError(error, errorInfo.componentStack)
 		}
-		if (!noShowDialog) {
+		if (showDialog !== false) {
 			this.setState({ ...this.state, showingDialog: true })
 		}
 
