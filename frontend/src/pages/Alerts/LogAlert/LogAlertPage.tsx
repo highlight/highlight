@@ -640,9 +640,11 @@ const LogAlertForm = ({
 						placeholder="Select Slack channels"
 						options={slackChannels}
 						optionFilterProp="label"
+						onFocus={() => {
+							syncSlack()
+						}}
 						onSearch={(value) => {
 							setSlackSearchQuery(value)
-							syncSlack()
 						}}
 						onChange={(values) => {
 							form.setValue(

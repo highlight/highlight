@@ -47,7 +47,6 @@ const CommentTextBody = ({
 	const slackUrl = getSlackUrl(project_id ?? '')
 	const [shouldAutoFocus, setShouldAutoFocus] = useState(!!onChangeHandler)
 	const { slackLoading, syncSlack } = useSlackSync()
-	const [latestAt, setLatestAt] = useState('')
 
 	useEffect(() => {
 		if (shouldAutoFocus) {
@@ -61,13 +60,8 @@ const CommentTextBody = ({
 		}
 	}, [shouldAutoFocus])
 
-	useEffect(() => {
-		const parts = commentText.split('@')
-		const last = parts.at(-1)
-		if (last) {
-			setLatestAt(`@${last}`)
-		}
-	}, [commentText])
+	const mentions = commentText.split('@')
+	const latestMention = `@${mentions.at(-1)}`
 
 	const isSlackIntegrated = suggestions.some(
 		(suggestion) =>
@@ -115,8 +109,10 @@ const CommentTextBody = ({
 			value={commentText}
 			className="mentions"
 			classNames={mentionsClassNames}
-			onChange={(event, newValue, newPlainTextValue, mentions) => {
+			onFocus={() => {
 				syncSlack()
+			}}
+			onChange={(event, newValue, newPlainTextValue, mentions) => {
 				if (onChangeHandler) {
 					onChangeHandler(
 						event,
@@ -150,7 +146,7 @@ const CommentTextBody = ({
 					<p className={styles.noResultsMessage}>
 						<SlackLoadOrConnect
 							isLoading={slackLoading}
-							searchQuery={latestAt}
+							searchQuery={latestMention}
 						/>
 					</p>
 				</>

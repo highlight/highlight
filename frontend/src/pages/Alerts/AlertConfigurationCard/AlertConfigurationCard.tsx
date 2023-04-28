@@ -784,9 +784,11 @@ export const AlertConfigurationCard = ({
 											className={styles.channelSelect}
 											options={channels}
 											mode="multiple"
+											onFocus={() => {
+												syncSlack()
+											}}
 											onSearch={(value) => {
 												setSearchQuery(value)
-												syncSlack()
 											}}
 											filterOption={(
 												searchValue,

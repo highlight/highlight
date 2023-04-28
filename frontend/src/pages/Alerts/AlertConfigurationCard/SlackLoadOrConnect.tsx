@@ -2,6 +2,8 @@ import { CircularSpinner } from '@components/Loading/Loading'
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 
+import { Box } from '@/../../packages/ui/src'
+
 import styles from './SlackLoadOrConnect.module.scss'
 
 interface Props {
@@ -21,18 +23,18 @@ const SlackLoadOrConnect = ({
 		return <Link to={slackUrl}>Connect Highlight with Slack</Link>
 	}
 	return (
-		<div className={clsx(styles.selectMessage, styles.notFoundMessage)}>
+		<Box className={clsx(styles.selectMessage, styles.notFoundMessage)}>
 			{!isLoading && searchQuery
 				? `No results for "${searchQuery}"`
 				: null}
 
 			{isLoading ? (
-				<div className="-my-1 flex items-center gap-x-4">
+				<Box display="flex" alignItems="center" gap="16">
 					<CircularSpinner />
 					No results... checking Slack
-				</div>
+				</Box>
 			) : null}
-		</div>
+		</Box>
 	)
 }
 

@@ -1,8 +1,7 @@
 import { useSyncSlackIntegrationMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { useProjectId } from '@hooks/useProjectId'
-import { throttle } from 'lodash'
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 
 export function useSlackSync() {
 	const [slackLoading, setSlackLoading] = useState(false)
@@ -15,20 +14,10 @@ export function useSlackSync() {
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 
-	// throttle the slack refresh so that we don't
-	// hit the rate limit of ~20/min
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const syncSlackThrottle = useCallback(
-		throttle(
-			async () => {
-				await syncSlackIntegration()
-				setSlackLoading(false)
-			},
-			3000,
-			{ leading: true },
-		),
-		[],
-	)
+	const syncSlackThrottle = async () => {
+		await syncSlackIntegration()
+		setSlackLoading(false)
+	}
 
 	const syncSlack = () => {
 		setSlackLoading(true)
