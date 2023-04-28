@@ -10,17 +10,21 @@
 		background: var(--color-primary-background);
 		height: calc(100vh - var(--header-height));
 	}
+
+	& > div {
+		max-width: 360px;
+	}
 }
 
 .errorBody {
 	color: var(--color-black);
 	max-width: 800px;
 	word-wrap: break-word;
+	margin: 0 !important;
 }
 
 .buttonGroup {
 	display: flex;
-	margin-top: 25px;
 }
 
 .loggedInButtonGroup {

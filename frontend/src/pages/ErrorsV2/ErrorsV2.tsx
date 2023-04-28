@@ -1,9 +1,11 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { ErrorState } from '@components/ErrorState/ErrorState'
 import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import {
 	useGetErrorGroupQuery,
+	useGetProjectDropdownOptionsQuery,
 	useMarkErrorGroupAsViewedMutation,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
@@ -35,66 +37,42 @@ import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import clsx from 'clsx'
-import React, { useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useNavigate } from 'react-router-dom'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+
+import { GetErrorGroupQuery } from '@/graph/generated/operations'
 
 import * as styles from './styles.css'
 
-const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
-	integrated,
-}) => {
-	const { project_id, error_secure_id } = useParams<{
-		project_id: string
-		error_secure_id: string
-	}>()
+type Props = { integrated: boolean }
+type Params = { project_id: string; error_secure_id: string }
+
+export default function ErrorsV2({ integrated }: Props) {
+	const { project_id, error_secure_id } = useParams<Params>()
 	const { isLoggedIn } = useAuthContext()
-	const { searchResultSecureIds } = useErrorSearchContext()
-	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
-	const [markErrorGroupAsViewed] = useMarkErrorGroupAsViewedMutation()
 
-	const currentSearchResultIndex = searchResultSecureIds.findIndex(
-		(secureId) => secureId === error_secure_id,
-	)
-	const canMoveForward =
-		!!searchResultSecureIds.length &&
-		currentSearchResultIndex < searchResultSecureIds.length - 1
-	const canMoveBackward =
-		!!searchResultSecureIds.length && currentSearchResultIndex > 0
-	const nextSecureId = searchResultSecureIds[currentSearchResultIndex + 1]
-	const previousSecureId = searchResultSecureIds[currentSearchResultIndex - 1]
+	const { data, loading, errorQueryingErrorGroup } = useErrorGroup()
 
-	const {
-		data,
-		loading,
-		error: errorQueryingErrorGroup,
-	} = useGetErrorGroupQuery({
-		variables: { secure_id: error_secure_id! },
-		skip: !error_secure_id,
-		onCompleted: () => {
-			if (error_secure_id) {
-				markErrorGroupAsViewed({
-					variables: {
-						error_secure_id,
-						viewed: true,
-					},
-				}).catch(console.error)
-			}
-			analytics.track('Viewed error', { is_guest: !isLoggedIn })
-		},
+	const { isBlocked, loading: isBlockedLoading } = useIsBlocked({
+		isPublic: data?.error_group?.is_public ?? false,
+		projectId: project_id,
 	})
 
 	const navigate = useNavigate()
 	const location = useLocation()
-
 	const { logCursor } = useLinkLogCursor()
+	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
+	const navigation = useNavigation()
+
+	useAllHotKeys(navigation)
+
 	useEffect(() => {
 		if (logCursor) {
-			setShowLeftPanel(false)
+			navigation.setShowLeftPanel(false)
 		}
-	}, [logCursor, setShowLeftPanel])
+	}, [logCursor, navigation])
 
 	useEffect(() => {
 		if (!isLoggedIn && !data?.error_group?.is_public && !loading) {
@@ -102,13 +80,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 		}
 	}, [data?.error_group?.is_public, isLoggedIn, loading, navigate])
 
-	const goToErrorGroup = (secureId: string) => {
-		navigate(`/${project_id}/errors/${secureId}${location.search}`, {
-			replace: true,
-		})
-	}
-
-	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
 	useEffect(() => {
 		const urlParams = new URLSearchParams(location.search)
 		const commentId = urlParams.get(PlayerSearchParameters.commentId)
@@ -140,6 +111,112 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [error_secure_id])
 
+	return (
+		<>
+			<Helmet>
+				<title>Errors</title>
+			</Helmet>
+
+			<Box cssClass={styles.container} borderTop="dividerWeak">
+				{!isBlocked && <SearchPanel />}
+
+				<div
+					className={clsx(styles.detailsContainer, {
+						[styles.moveDetailsRight]:
+							!isBlocked && navigation.showLeftPanel,
+					})}
+				>
+					<Box
+						background="white"
+						border="secondary"
+						borderRadius="6"
+						display="flex"
+						flexDirection="column"
+						height="full"
+						shadow="medium"
+					>
+						<TopBar
+							isLoggedIn={isLoggedIn}
+							isBlocked={isBlocked}
+							navigation={navigation}
+						/>
+
+						<ErrorDisplay
+							errorGroup={data?.error_group}
+							integrated={integrated}
+							isBlocked={isBlocked}
+							isBlockedLoading={isBlockedLoading}
+							isErrorGroupError={!!errorQueryingErrorGroup}
+							isErrorState={
+								!!errorQueryingErrorGroup || isBlocked
+							}
+							loading={loading}
+						/>
+					</Box>
+				</div>
+			</Box>
+		</>
+	)
+}
+
+type TopBarProps = {
+	isLoggedIn: boolean
+	isBlocked: boolean
+	navigation: ReturnType<typeof useNavigation>
+}
+function TopBar({ isLoggedIn, isBlocked, navigation }: TopBarProps) {
+	const {
+		showLeftPanel,
+		setShowLeftPanel,
+		canMoveBackward,
+		canMoveForward,
+		nextSecureId,
+		previousSecureId,
+		goToErrorGroup,
+	} = navigation
+	return isLoggedIn && !isBlocked ? (
+		<Box display="flex" alignItems="center" borderBottom="secondary" p="6">
+			<Box display="flex" gap="8">
+				{!showLeftPanel && (
+					<Tooltip
+						placement="bottom"
+						trigger={
+							<ButtonIcon
+								kind="secondary"
+								size="small"
+								shape="square"
+								emphasis="medium"
+								icon={<IconSolidExitRight size={14} />}
+								onClick={() => setShowLeftPanel(true)}
+							/>
+						}
+					>
+						<KeyboardShortcut
+							label="Toggle sidebar"
+							shortcut={['cmd', 'b']}
+						/>
+					</Tooltip>
+				)}
+				<PreviousNextGroup
+					canMoveBackward={canMoveBackward}
+					canMoveForward={canMoveForward}
+					onPrev={() => goToErrorGroup(previousSecureId)}
+					onNext={() => goToErrorGroup(nextSecureId)}
+				/>
+			</Box>
+		</Box>
+	) : null
+}
+
+function useAllHotKeys({
+	showLeftPanel,
+	setShowLeftPanel,
+	canMoveBackward,
+	canMoveForward,
+	nextSecureId,
+	previousSecureId,
+	goToErrorGroup,
+}: ReturnType<typeof useNavigation>) {
 	useHotkeys(
 		'j',
 		() => {
@@ -169,141 +246,182 @@ const ErrorsV2: React.FC<React.PropsWithChildren<{ integrated: boolean }>> = ({
 		},
 		[showLeftPanel],
 	)
-
-	return (
-		<>
-			<Helmet>
-				<title>Errors</title>
-			</Helmet>
-
-			<Box cssClass={styles.container} borderTop="dividerWeak">
-				<SearchPanel />
-
-				<div
-					className={clsx(styles.detailsContainer, {
-						[styles.moveDetailsRight]: showLeftPanel,
-					})}
-				>
-					<Box
-						background="white"
-						border="secondary"
-						borderRadius="6"
-						display="flex"
-						flexDirection="column"
-						height="full"
-						shadow="medium"
-					>
-						{isLoggedIn && (
-							<Box
-								display="flex"
-								alignItems="center"
-								borderBottom="secondary"
-								p="6"
-							>
-								<Box display="flex" gap="8">
-									{!showLeftPanel && (
-										<Tooltip
-											placement="bottom"
-											trigger={
-												<ButtonIcon
-													kind="secondary"
-													size="small"
-													shape="square"
-													emphasis="medium"
-													icon={
-														<IconSolidExitRight
-															size={14}
-														/>
-													}
-													onClick={() =>
-														setShowLeftPanel(true)
-													}
-												/>
-											}
-										>
-											<KeyboardShortcut
-												label="Toggle sidebar"
-												shortcut={['cmd', 'b']}
-											/>
-										</Tooltip>
-									)}
-									<PreviousNextGroup
-										canMoveBackward={canMoveBackward}
-										canMoveForward={canMoveForward}
-										onPrev={() =>
-											goToErrorGroup(previousSecureId)
-										}
-										onNext={() =>
-											goToErrorGroup(nextSecureId)
-										}
-									/>
-								</Box>
-							</Box>
-						)}
-
-						{error_secure_id && !errorQueryingErrorGroup ? (
-							<>
-								<Helmet>
-									<title>
-										Errors:{' '}
-										{getHeaderFromError(
-											data?.error_group?.event ?? [],
-										)}
-									</title>
-								</Helmet>
-
-								<div className={styles.errorDetails}>
-									<Container>
-										{loading ? (
-											<LoadingBox />
-										) : (
-											<>
-												<IntegrationCta />
-												<Box pt="16" pb="32">
-													<ErrorTitle
-														errorGroup={
-															data?.error_group
-														}
-													/>
-
-													<ErrorBody
-														errorGroup={
-															data?.error_group
-														}
-													/>
-
-													<ErrorTabContent
-														errorGroup={
-															data?.error_group
-														}
-													/>
-												</Box>
-											</>
-										)}
-									</Container>
-								</div>
-							</>
-						) : errorQueryingErrorGroup ? (
-							<Box m="auto" style={{ maxWidth: 300 }}>
-								<Callout kind="info" title="Can't load error">
-									<Box pb="6">
-										<Text>
-											This error does not exist or has not
-											been made public.
-										</Text>
-									</Box>
-								</Callout>
-							</Box>
-						) : integrated ? (
-							<NoActiveErrorCard />
-						) : (
-							<CompleteSetup />
-						)}
-					</Box>
-				</div>
-			</Box>
-		</>
-	)
 }
 
-export default ErrorsV2
+type ErrorDisplayProps = {
+	errorGroup?: GetErrorGroupQuery['error_group']
+	integrated: boolean
+	isBlocked: boolean
+	isBlockedLoading: boolean
+	isErrorGroupError?: boolean
+	isErrorState: boolean
+	loading: boolean
+}
+function ErrorDisplay({
+	errorGroup,
+	integrated,
+	isBlocked,
+	isBlockedLoading,
+	isErrorGroupError,
+	isErrorState,
+	loading,
+}: ErrorDisplayProps) {
+	const { error_secure_id } = useParams<Params>()
+
+	switch (true) {
+		case loading || isBlockedLoading:
+			return <LoadingBox />
+
+		case error_secure_id && !isErrorState:
+			return (
+				<>
+					<Helmet>
+						<title>
+							Errors:{' '}
+							{getHeaderFromError(errorGroup?.event ?? [])}
+						</title>
+					</Helmet>
+
+					<div className={styles.errorDetails}>
+						<Container>
+							{loading ? (
+								<LoadingBox />
+							) : (
+								<>
+									<IntegrationCta />
+									<Box pt="16" pb="32">
+										<ErrorTitle errorGroup={errorGroup} />
+
+										<ErrorBody errorGroup={errorGroup} />
+
+										<ErrorTabContent
+											errorGroup={errorGroup}
+										/>
+									</Box>
+								</>
+							)}
+						</Container>
+					</div>
+				</>
+			)
+
+		case isBlocked:
+			return (
+				<ErrorState
+					title="Enter this Workspace?"
+					message={
+						"Sadly, you don’t have access to the workspace 😢 Request access and we'll shoot an email to your workspace admin. Alternatively, feel free to make an account!"
+					}
+					shownWithHeader
+					showRequestAccess
+				/>
+			)
+
+		case isErrorGroupError:
+			return (
+				<Box m="auto" style={{ maxWidth: 300 }}>
+					<Callout kind="info" title="Can't load error">
+						<Box pb="6">
+							<Text>
+								This error does not exist or has not been made
+								public.
+							</Text>
+						</Box>
+					</Callout>
+				</Box>
+			)
+
+		case integrated:
+			return <NoActiveErrorCard />
+
+		default:
+			return <CompleteSetup />
+	}
+}
+
+function useErrorGroup() {
+	const { error_secure_id } = useParams<Params>()
+	const [markErrorGroupAsViewed] = useMarkErrorGroupAsViewedMutation()
+	const { isLoggedIn } = useAuthContext()
+	const {
+		data,
+		loading,
+		error: errorQueryingErrorGroup,
+	} = useGetErrorGroupQuery({
+		variables: { secure_id: error_secure_id! },
+		skip: !error_secure_id,
+		onCompleted: () => {
+			if (error_secure_id) {
+				markErrorGroupAsViewed({
+					variables: {
+						error_secure_id,
+						viewed: true,
+					},
+				}).catch(console.error)
+			}
+			analytics.track('Viewed error', { is_guest: !isLoggedIn })
+		},
+	})
+
+	return { data, loading, errorQueryingErrorGroup }
+}
+
+function useNavigation() {
+	const navigate = useNavigate()
+	const { project_id, error_secure_id } = useParams<Params>()
+	const { searchResultSecureIds } = useErrorSearchContext()
+	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
+	const goToErrorGroup = useCallback(
+		(secureId: string) => {
+			navigate(`/${project_id}/errors/${secureId}${location.search}`, {
+				replace: true,
+			})
+		},
+		[navigate, project_id],
+	)
+	const currentSearchResultIndex = searchResultSecureIds.findIndex(
+		(secureId) => secureId === error_secure_id,
+	)
+	const canMoveForward =
+		!!searchResultSecureIds.length &&
+		currentSearchResultIndex < searchResultSecureIds.length - 1
+	const canMoveBackward =
+		!!searchResultSecureIds.length && currentSearchResultIndex > 0
+	const nextSecureId = searchResultSecureIds[currentSearchResultIndex + 1]
+	const previousSecureId = searchResultSecureIds[currentSearchResultIndex - 1]
+
+	return {
+		showLeftPanel,
+		setShowLeftPanel,
+		canMoveBackward,
+		canMoveForward,
+		nextSecureId,
+		previousSecureId,
+		goToErrorGroup,
+	}
+}
+
+function useIsBlocked({
+	isPublic,
+	projectId,
+}: {
+	isPublic: boolean
+	projectId?: string
+}) {
+	const { data, loading } = useGetProjectDropdownOptionsQuery({
+		variables: { project_id: projectId! },
+		skip: !projectId,
+	})
+	const isBlocked = useMemo(() => {
+		const currentProjectId = data?.project?.id
+		const canJoin = data?.joinable_workspaces?.some((w) =>
+			w?.projects.map((p) => p?.id).includes(projectId),
+		)
+
+		return (
+			!isPublic && !loading && !canJoin && currentProjectId !== projectId
+		)
+	}, [data, isPublic, loading, projectId])
+
+	return { isBlocked, loading }
+}
