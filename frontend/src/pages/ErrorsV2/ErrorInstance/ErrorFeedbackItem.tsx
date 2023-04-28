@@ -2,7 +2,7 @@ import { Box, Stack, Text } from '@highlight-run/ui'
 
 import { Avatar } from '@/components/Avatar/Avatar'
 import RelativeTime from '@/components/RelativeTime/RelativeTime'
-import { Maybe, Session, SessionComment } from '@/graph/generated/schemas'
+import { Session, SessionComment } from '@/graph/generated/schemas'
 import {
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
@@ -10,7 +10,7 @@ import {
 
 type Props = {
 	sessionComment: SessionComment
-	session: Maybe<Partial<Session>>
+	session: Partial<Session>
 }
 
 export const ErrorFeedbackItem = ({ session, sessionComment }: Props) => {

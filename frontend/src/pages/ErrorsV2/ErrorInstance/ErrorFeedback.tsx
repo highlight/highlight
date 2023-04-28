@@ -30,7 +30,7 @@ export const ErrorFeedback = ({ session }: Props) => {
 				{data.session_comments.map((sessionComment) => (
 					<ErrorFeedbackItem
 						key={sessionComment.id}
-						errorObject={errorObject}
+						session={session}
 						sessionComment={sessionComment}
 					/>
 				))}
