@@ -519,10 +519,6 @@ const Metadata: React.FC<{
 					)
 				})}
 			</Box>
-
-			{errorObject.session && (
-				<ErrorFeedback session={errorObject.session} />
-			)}
 		</Box>
 	)
 }
@@ -718,6 +714,7 @@ const User: React.FC<{
 						)}
 					</Box>
 				</Box>
+				<ErrorFeedback session={errorObject.session} />
 			</Box>
 		</Box>
 	)
