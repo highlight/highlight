@@ -8261,7 +8261,7 @@ type Session {
 	viewed: Boolean
 	starred: Boolean
 	processed: Boolean
-	excluded: Boolean
+	excluded: Boolean!
 	has_rage_clicks: Boolean
 	has_errors: Boolean
 	first_time: Boolean
@@ -49505,11 +49505,14 @@ func (ec *executionContext) _Session_excluded(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*bool)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Session_excluded(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -67544,6 +67547,9 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Session_excluded(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "has_rage_clicks":
 
 			out.Values[i] = ec._Session_has_rage_clicks(ctx, field, obj)
