@@ -67,7 +67,7 @@ export class ErrorBoundary extends React.Component<
 		if (beforeCapture) {
 			beforeCapture(error, errorInfo.componentStack)
 		}
-		captureReactErrorBoundaryError(error, errorInfo.componentStack)
+		captureReactErrorBoundaryError(error, errorInfo)
 		if (onError) {
 			onError(error, errorInfo.componentStack)
 		}
@@ -183,30 +183,17 @@ export class ErrorBoundary extends React.Component<
  * Logs react error boundary errors to Highlight.
  *
  * @param error An error captured by React Error Boundary
- * @param componentStack The component stacktrace
+ * @param errorInfo The error details
  */
 function captureReactErrorBoundaryError(
 	error: Error,
-	componentStack: string,
+	errorInfo: ErrorInfo,
 ): void {
-	const errorBoundaryError = new Error(` ${error.message}`)
-	errorBoundaryError.name = `React ErrorBoundary ${error.name}`
-	//   errorBoundaryError.stack = `${componentStack}`;
-	errorBoundaryError.stack = error.stack
-
-	const componentName = getComponentNameFromStack(componentStack)
-
+	const component = getComponentNameFromStack(errorInfo.componentStack)
 	if (!window.H) {
-		console.warn('You need to install highlight.run as a npm dependency.')
+		console.warn('You need to install highlight.run.')
 	} else {
-		window.H.consumeError(
-			errorBoundaryError,
-			`${
-				componentName
-					? `ErrorBoundary ${componentName}`
-					: 'HighlightErrorBoundary'
-			}`,
-		)
+		window.H.consumeError(error, undefined, { component })
 	}
 }
 
