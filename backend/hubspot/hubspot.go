@@ -45,7 +45,9 @@ func retry[T *int](fn func() (T, error)) (ret T, err error) {
 
 func pollHubspot[T *int](fn func() (T, error)) (result T, err error) {
 	start := time.Now()
-	for t := range time.Tick(ClientSideCreationPollInterval) {
+	ticker := time.NewTicker(ClientSideCreationPollInterval)
+	defer ticker.Stop()
+	for t := range ticker.C {
 		result, err = fn()
 		if result != nil {
 			return
