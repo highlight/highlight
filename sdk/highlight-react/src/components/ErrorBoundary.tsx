@@ -106,10 +106,12 @@ export class ErrorBoundary extends React.Component<
 
 	hideDialog: () => void = () => {
 		this.setState({ ...this.state, showingDialog: false })
-
-		if (this.props.onAfterReportDialogCancelHandler) {
-			this.props.onAfterReportDialogCancelHandler()
-		}
+		;(
+			this.props.onAfterReportDialogCancelHandler ||
+			(() => {
+				window.location.href = window.location.origin
+			})
+		)()
 	}
 
 	onReportDialogSubmitHandler: () => void = () => {
