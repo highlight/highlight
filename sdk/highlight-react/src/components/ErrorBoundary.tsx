@@ -195,7 +195,11 @@ function captureReactErrorBoundaryError(
 	if (!window.H) {
 		console.warn('You need to install highlight.run.')
 	} else {
-		window.H.consumeError(error, undefined, { component })
+		window.H.consumeError(
+			error,
+			undefined,
+			component ? { component } : undefined,
+		)
 	}
 }
 
