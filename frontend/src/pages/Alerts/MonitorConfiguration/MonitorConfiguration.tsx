@@ -440,9 +440,7 @@ const MonitorConfiguration = ({
 						className={alertConfigurationCardStyles.channelSelect}
 						options={channels}
 						mode="multiple"
-						onFocus={() => {
-							syncSlack()
-						}}
+						onFocus={syncSlack}
 						onSearch={(value) => {
 							setSearchQuery(value)
 						}}

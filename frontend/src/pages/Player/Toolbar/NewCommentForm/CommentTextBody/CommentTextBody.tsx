@@ -109,19 +109,8 @@ const CommentTextBody = ({
 			value={commentText}
 			className="mentions"
 			classNames={mentionsClassNames}
-			onFocus={() => {
-				syncSlack()
-			}}
-			onChange={(event, newValue, newPlainTextValue, mentions) => {
-				if (onChangeHandler) {
-					onChangeHandler(
-						event,
-						newValue,
-						newPlainTextValue,
-						mentions,
-					)
-				}
-			}}
+			onFocus={syncSlack}
+			onChange={onChangeHandler}
 			placeholder={placeholder}
 			autoFocus={shouldAutoFocus}
 			aria-readonly={!onChangeHandler}
