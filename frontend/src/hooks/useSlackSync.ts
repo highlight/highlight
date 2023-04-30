@@ -14,14 +14,10 @@ export function useSlackSync() {
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 
-	const syncSlackThrottle = async () => {
+	const syncSlack = async () => {
+		setSlackLoading(true)
 		await syncSlackIntegration()
 		setSlackLoading(false)
-	}
-
-	const syncSlack = () => {
-		setSlackLoading(true)
-		syncSlackThrottle()
 	}
 
 	return {
