@@ -25,13 +25,13 @@ import (
 const (
 	SourcemapEnvKey       = "HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY"
 	ProjectIdEnvVar       = "NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID"
-	ApiBaseUrl            = "https://api.vercel.com"
 	LogDrainProjectHeader = "x-highlight-project"
 )
 
 var (
 	VercelClientId     = os.Getenv("VERCEL_CLIENT_ID")
 	VercelClientSecret = os.Getenv("VERCEL_CLIENT_SECRET")
+	ApiBaseUrl         = "https://api.vercel.com"
 )
 
 type VercelAccessTokenResponse struct {
