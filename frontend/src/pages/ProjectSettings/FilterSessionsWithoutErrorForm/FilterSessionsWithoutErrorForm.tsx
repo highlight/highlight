@@ -33,7 +33,7 @@ const OptInRow = (
 	)
 }
 
-export const FilterSessionsForm = () => {
+export const FilterSessionsWithoutErrorForm = () => {
 	const { projectId } = useProjectId()
 
 	const [filterSessionsWithoutError, setFilterSessionsWithoutError] =
@@ -68,7 +68,7 @@ export const FilterSessionsForm = () => {
 			message: 'Filter sessions without an error',
 			label: (
 				<p>
-					Filter sessions without an error. (read the{' '}
+					Filter sessions without an error (read the{' '}
 					<a
 						href="https://www.highlight.io/docs/general/product-features/session-replay/ignoring-sessions#ignore-sessions-without-an-error"
 						target="_blank"
@@ -76,7 +76,7 @@ export const FilterSessionsForm = () => {
 					>
 						docs
 					</a>
-					)
+					).
 				</p>
 			),
 			checked: filterSessionsWithoutError,

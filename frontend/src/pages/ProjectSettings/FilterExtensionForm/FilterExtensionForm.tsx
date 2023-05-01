@@ -68,7 +68,7 @@ export const FilterExtensionForm = () => {
 			message: 'Filter Chrome extensions ',
 			label: (
 				<p>
-					Filter errors thrown by Chrome extensions. (read the{' '}
+					Filter errors thrown by Chrome extensions (read the{' '}
 					<a
 						href="https://www.highlight.io/docs/general/product-features/error-monitoring/ignoring-errors#ignore-errors-emitted-by-chrome-extensions"
 						target="_blank"
@@ -76,7 +76,7 @@ export const FilterExtensionForm = () => {
 					>
 						docs
 					</a>
-					)
+					).
 				</p>
 			),
 			checked: filterChromeExtension,
