@@ -15,7 +15,6 @@ import (
 	"github.com/DmitriyVTitov/size"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/pkg/errors"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/scram"
 	log "github.com/sirupsen/logrus"
@@ -109,7 +108,7 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 		var err error
 		mechanism, err = scram.Mechanism(scram.SHA512, os.Getenv("KAFKA_SASL_USERNAME"), os.Getenv("KAFKA_SASL_PASSWORD"))
 		if err != nil {
-			log.WithContext(ctx).Fatal(errors.Wrap(err, "failed to authenticate with kafka"))
+			log.WithContext(ctx).Fatal(err)
 		}
 		dialer = &kafka.Dialer{
 			Timeout:       KafkaOperationTimeout,
@@ -140,7 +139,7 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 			}},
 		})
 		if err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to create dev topic"))
+			log.WithContext(ctx).Error(err)
 		}
 	}
 
@@ -160,14 +159,14 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 		},
 	})
 	if err != nil {
-		log.WithContext(ctx).Error(errors.Wrap(err, "failed to update topic retention"))
+		log.WithContext(ctx).Error(err)
 	} else {
 		err = res.Errors[kafka.AlterConfigsResponseResource{
 			Type: int8(kafka.ResourceTypeTopic),
 			Name: topic,
 		}]
 		if err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "topic retention failed server-side"))
+			log.WithContext(ctx).Error(err)
 		}
 	}
 
@@ -226,13 +225,13 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 func (p *Queue) Stop(ctx context.Context) {
 	if p.kafkaC != nil {
 		if err := p.kafkaC.Close(); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to close reader"))
+			log.WithContext(ctx).Error(err)
 		}
 		p.kafkaC = nil
 	}
 	if p.kafkaP != nil {
 		if err := p.kafkaP.Close(); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to close writer"))
+			log.WithContext(ctx).Error(err)
 		}
 		p.kafkaP = nil
 	}
@@ -246,7 +245,7 @@ func (p *Queue) Submit(ctx context.Context, msg *Message, partitionKey string) e
 	msg.MaxRetries = taskRetries
 	msgBytes, err := p.serializeMessage(msg)
 	if err != nil {
-		log.WithContext(ctx).Error(errors.Wrap(err, "failed to serialize message"))
+		log.WithContext(ctx).Error(err)
 		return err
 	}
 	ctx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
@@ -273,13 +272,13 @@ func (p *Queue) Receive(ctx context.Context) (msg *Message) {
 	m, err := p.kafkaC.FetchMessage(ctx)
 	if err != nil {
 		if err.Error() != "context deadline exceeded" {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to receive message"))
+			log.WithContext(ctx).Error(err)
 		}
 		return nil
 	}
 	msg, err = p.deserializeMessage(m.Value)
 	if err != nil {
-		log.WithContext(ctx).Error(errors.Wrap(err, "failed to deserialize message"))
+		log.WithContext(ctx).Error(err)
 		return nil
 	}
 	msg.KafkaMessage = &m
@@ -296,7 +295,7 @@ func (p *Queue) Rewind(ctx context.Context, dur time.Duration) error {
 		Topics: []string{p.Topic},
 	})
 	if err != nil {
-		return errors.Wrap(err, "failed to read topic partitions")
+		return err
 	}
 	numPartitions := len(resp.Topics[0].Partitions)
 
@@ -312,7 +311,7 @@ func (p *Queue) Rewind(ctx context.Context, dur time.Duration) error {
 		IsolationLevel: kafka.ReadCommitted,
 	})
 	if err != nil {
-		return errors.Wrap(err, "failed to list offsets")
+		return err
 	}
 
 	desiredOffsets := map[int]int64{}
@@ -338,7 +337,7 @@ func (p *Queue) Commit(ctx context.Context, msg *kafka.Message) {
 	defer cancel()
 	err := p.kafkaC.CommitMessages(ctx, *msg)
 	if err != nil {
-		log.WithContext(ctx).Error(errors.Wrap(err, "failed to commit message"))
+		log.WithContext(ctx).Error(err)
 	} else {
 		hlog.Incr("worker.kafka.commitMessageCount", nil, 1)
 		hlog.Histogram("worker.kafka.commitSec", time.Since(start).Seconds(), nil, 1)
@@ -378,14 +377,14 @@ func (p *Queue) LogStats() {
 func (p *Queue) serializeMessage(msg *Message) (compressed []byte, err error) {
 	compressed, err = json.Marshal(&msg)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshall json")
+		return nil, err
 	}
 	return
 }
 
 func (p *Queue) deserializeMessage(compressed []byte) (msg *Message, error error) {
 	if err := json.Unmarshal(compressed, &msg); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshall msg")
+		return nil, err
 	}
 	return
 }
@@ -400,20 +399,20 @@ func (p *Queue) resetConsumerOffset(ctx context.Context, partitionOffsets map[in
 		Timeout: KafkaOperationTimeout,
 	})
 	if err != nil {
-		return errors.Wrap(err, "failed to create consumer group")
+		return err
 	}
 
 	gen, err := group.Next(ctx)
 	if err != nil {
-		return errors.Wrap(err, "failed to establish next group generation")
+		return err
 	}
 	err = gen.CommitOffsets(map[string]map[int]int64{cfg.Topic: partitionOffsets})
 	if err != nil {
-		return errors.Wrap(err, "failed to commit new offsets")
+		return err
 	}
 
 	if err = group.Close(); err != nil {
-		return errors.Wrap(err, "failed to close consumer group")
+		return err
 	}
 	log.WithContext(ctx).Infof("reset consumer offsets: %+v", partitionOffsets)
 	return

@@ -2,6 +2,7 @@ package log_alerts
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/openlyinc/pointy"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 
 	"github.com/highlight-run/go-resthooks"
@@ -109,7 +109,7 @@ func getLogAlerts(ctx context.Context, DB *gorm.DB) []*model.LogAlert {
 func processLogAlert(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, alert *model.LogAlert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) error {
 	lastTs, err := redis.GetLastLogTimestamp(ctx, alert.ProjectID)
 	if err != nil {
-		return errors.Wrap(err, "error retrieving last log timestamp")
+		return err
 	}
 	// If there's no log timestamp set, assume time.Now()
 	if lastTs.IsZero() {
@@ -123,7 +123,7 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCl
 		EndDate:   end,
 	}})
 	if err != nil {
-		return errors.Wrap(err, "error querying clickhouse for log count")
+		return err
 	}
 	count := int(count64)
 
@@ -145,11 +145,11 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCl
 	if alertCondition {
 		var project model.Project
 		if err := DB.Model(&model.Project{}).Where("id = ?", alert.ProjectID).First(&project).Error; err != nil {
-			return errors.Wrap(err, "error querying project for processMetricMonitor")
+			return err
 		}
 		var workspace model.Workspace
 		if err := DB.Where(&model.Workspace{Model: model.Model{ID: project.WorkspaceID}}).First(&workspace).Error; err != nil {
-			return errors.Wrap(err, "error querying workspace for processMetricMonitor")
+			return err
 		}
 
 		aboveStr := "above"
