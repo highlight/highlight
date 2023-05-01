@@ -453,6 +453,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 									</Button>
 									<Menu>
 										<Menu.Button
+											emphasis="low"
 											kind="secondary"
 											icon={
 												<IconSolidCog
