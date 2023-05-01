@@ -6,7 +6,6 @@ import {
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
-import Notifications from '@components/Header/Notifications/NotificationsV2'
 import { linkStyle } from '@components/Header/styles.css'
 import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
@@ -452,10 +451,8 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											<Text lines="1">GitHub</Text>
 										</Box>
 									</Button>
-									{inProjectOrWorkspace && <Notifications />}
 									<Menu>
 										<Menu.Button
-											emphasis="low"
 											kind="secondary"
 											icon={
 												<IconSolidCog

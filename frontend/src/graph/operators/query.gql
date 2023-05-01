@@ -339,40 +339,6 @@ query GetSessionComments($session_secure_id: String!) {
 	}
 }
 
-query GetNotifications($project_id: ID!) {
-	session_comments_for_project(project_id: $project_id) {
-		id
-		timestamp
-		updated_at
-		session_id
-		session_secure_id
-		text
-		author {
-			id
-			name
-			email
-			photo_url
-		}
-		type
-		metadata
-		tags
-	}
-	error_comments_for_project(project_id: $project_id) {
-		id
-		updated_at
-		project_id
-		text
-		error_id
-		error_secure_id
-		author {
-			id
-			name
-			email
-			photo_url
-		}
-	}
-}
-
 query GetSessionCommentsForAdmin {
 	session_comments_for_admin {
 		id
