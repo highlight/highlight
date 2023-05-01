@@ -57,13 +57,15 @@ const tryCastDate = (date: Maybe<string> | undefined) => {
 }
 
 const RETENTION_PERIODS = {
+	'30 days': RetentionPeriod.ThirtyDays,
 	'3 months': RetentionPeriod.ThreeMonths,
 	'6 months': RetentionPeriod.SixMonths,
 	'12 months': RetentionPeriod.TwelveMonths,
 	'2 years': RetentionPeriod.TwoYears,
 }
 
-const RETENTION_PERIOD_LABELS = {
+export const RETENTION_PERIOD_LABELS = {
+	[RetentionPeriod.ThirtyDays]: '30 days',
 	[RetentionPeriod.ThreeMonths]: '3 months',
 	[RetentionPeriod.SixMonths]: '6 months',
 	[RetentionPeriod.TwelveMonths]: '12 months',

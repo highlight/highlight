@@ -2251,6 +2251,7 @@ export enum ReservedLogKey {
 
 export enum RetentionPeriod {
 	SixMonths = 'SixMonths',
+	ThirtyDays = 'ThirtyDays',
 	ThreeMonths = 'ThreeMonths',
 	TwelveMonths = 'TwelveMonths',
 	TwoYears = 'TwoYears',
