@@ -13,6 +13,8 @@ import React from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 
+import { FilterSessionsForm } from '@/pages/ProjectSettings/FilterSessionsForm/FilterSessionsForm'
+
 import styles from './ProjectSettings.module.scss'
 
 const ProjectSettings = () => {
@@ -43,6 +45,7 @@ const ProjectSettings = () => {
 								panelContent: (
 									<>
 										<ExcludedUsersForm />
+										<FilterSessionsForm />
 										<RageClicksForm />
 										<NetworkRecordingForm />
 									</>

@@ -109,7 +109,7 @@ func TestCalculateSessionLength(t *testing.T) {
 					lastTimestamp = event.Timestamp
 				}
 			}
-			got := CalculateSessionLength(firstTimestamp, lastTimestamp)
+			got := calculateSessionLength(firstTimestamp, lastTimestamp)
 			if diff := deep.Equal(tt.wantDifference, got); diff != nil {
 				t.Errorf("[session length not equal to expected]: %v", diff)
 			}

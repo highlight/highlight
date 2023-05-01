@@ -602,6 +602,26 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 	return project, nil
 }
 
+// EditProjectFilterSettings is the resolver for the editProjectFilterSettings field.
+func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projectID int, filterSessionsWithoutError bool) (*model.ProjectFilterSettings, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	projectFilterSettings := model.ProjectFilterSettings{}
+
+	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).First(&projectFilterSettings)
+
+	projectFilterSettings.FilterSessionsWithoutError = filterSessionsWithoutError
+
+	if err := r.DB.Save(projectFilterSettings).Error; err != nil {
+		return nil, err
+	}
+
+	return &projectFilterSettings, err
+}
+
 // EditWorkspace is the resolver for the editWorkspace field.
 func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *string) (*model.Workspace, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, id)
@@ -6411,6 +6431,20 @@ func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, er
 		return nil, nil
 	}
 	return project, nil
+}
+
+// ProjectFilterSettings is the resolver for the project_filter_settings field.
+func (r *queryResolver) ProjectFilterSettings(ctx context.Context, projectID int) (*model.ProjectFilterSettings, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	projectFilterSettings := model.ProjectFilterSettings{}
+
+	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
+
+	return &projectFilterSettings, err
 }
 
 // Workspace is the resolver for the workspace field.

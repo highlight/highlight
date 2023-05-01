@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"go.opentelemetry.io/otel/attribute"
 
@@ -2963,9 +2964,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	updateSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
 	defer updateSpan.Finish()
 
-	excluded := r.isSessionUserExcluded(ctx, sessionObj)
+	excluded, reason := r.isSessionExcluded(ctx, sessionObj)
 	if excluded {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": sessionObj.ID, "project_id": sessionObj.ProjectID, "identifier": sessionObj.Identifier}).Infof("excluding session due to excluded identifier")
+		log.WithContext(ctx).WithFields(log.Fields{"session_id": sessionObj.ID, "project_id": sessionObj.ProjectID, "reason": reason}).Infof("excluding session")
 	}
 
 	// Update only if any of these fields are changing
@@ -3030,12 +3031,38 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	return nil
 }
 
-func (r *Resolver) isSessionUserExcluded(ctx context.Context, s *model.Session) bool {
+func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session) (bool, *string) {
 	var project model.Project
 	if err := r.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
-		return false
+		return false, nil
 	}
+
+	if r.isSessionUserExcluded(ctx, s, project) {
+		return true, ptr.String("excluded user matches")
+	}
+
+	if r.isSessionExcludedForNoError(ctx, s, project) {
+		return true, ptr.String("no associated error")
+	}
+
+	return false, nil
+
+}
+
+func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project) bool {
+	projectFilterSettings := model.ProjectFilterSettings{}
+
+	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
+
+	if projectFilterSettings.FilterSessionsWithoutError {
+		return !*s.HasErrors
+	}
+
+	return false
+}
+
+func (r *Resolver) isSessionUserExcluded(ctx context.Context, s *model.Session, project model.Project) bool {
 	if project.ExcludedUsers == nil {
 		return false
 	}

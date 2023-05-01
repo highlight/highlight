@@ -2103,3 +2103,10 @@ query GetLogsErrorObjects($log_cursors: [String!]!) {
 		id
 	}
 }
+
+query GetProjectFilterSettings($projectId: ID!) {
+	projectFilterSettings(projectId: $projectId) {
+		id
+		filterSessionsWithoutError
+	}
+}

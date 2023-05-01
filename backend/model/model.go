@@ -191,6 +191,7 @@ var Models = []interface{}{
 	&SessionAdminsView{},
 	&ErrorGroupAdminsView{},
 	&LogAdminsView{},
+	&ProjectFilterSettings{},
 }
 
 func init() {
@@ -362,6 +363,12 @@ type SetupEvent struct {
 	CreatedAt time.Time            `json:"created_at" deep:"-"`
 	ProjectID int                  `gorm:"uniqueIndex:idx_project_id_type"`
 	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
+}
+
+type ProjectFilterSettings struct {
+	Model
+	ProjectID                  int  `gorm:"uniqueIndex"`
+	FilterSessionsWithoutError bool `gorm:"default:false"`
 }
 
 type HasSecret interface {
