@@ -2355,7 +2355,7 @@ export type Session = {
 	enable_strict_privacy?: Maybe<Scalars['Boolean']>
 	environment?: Maybe<Scalars['String']>
 	event_counts?: Maybe<Scalars['String']>
-	excluded?: Maybe<Scalars['Boolean']>
+	excluded: Scalars['Boolean']
 	field_group?: Maybe<Scalars['String']>
 	fields?: Maybe<Array<Maybe<Field>>>
 	fingerprint?: Maybe<Scalars['Int']>

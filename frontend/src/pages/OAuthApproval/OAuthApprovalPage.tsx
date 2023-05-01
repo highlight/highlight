@@ -23,7 +23,7 @@ interface OAuthToken {
 
 const OAuthBackend =
 	window.location.port === ''
-		? `https://pri.highlight.run`
+		? `https://pri.highlight.io`
 		: `https://pri.highlight.localhost`
 const HighlightFrontend =
 	window.location.port === ''
