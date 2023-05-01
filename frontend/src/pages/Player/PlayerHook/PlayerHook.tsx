@@ -44,6 +44,7 @@ import { HighlightEvent } from '../HighlightEvent'
 import { ReplayerContextInterface, ReplayerState } from '../ReplayerContext'
 import {
 	findNextSessionInList,
+	loadiFrameResources,
 	PlayerSearchParameters,
 	toHighlightEvents,
 	useSetPlayerTimestampFromSearchParam,
@@ -580,6 +581,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 				return Promise.resolve()
 			}
 
+			if (state.replayer) {
+				loadiFrameResources(state.replayer, state.project_id)
+			}
+
 			timerStart('timelineChangeTime')
 			dispatch({ type: PlayerActionType.setTime, time: newTime })
 			return new Promise<void>((r) =>
@@ -599,13 +604,23 @@ export const usePlayer = (): ReplayerContextInterface => {
 				}),
 			)
 		},
-		[ensureChunksLoaded, state.sessionEndTime, state.session_secure_id],
+		[
+			ensureChunksLoaded,
+			state.project_id,
+			state.replayer,
+			state.sessionEndTime,
+			state.session_secure_id,
+		],
 	)
 
 	const pause = useCallback(
 		(time?: number) => {
 			return new Promise<void>((r) => {
 				if (time !== undefined) {
+					if (state.replayer) {
+						loadiFrameResources(state.replayer, state.project_id)
+					}
+
 					timerStart('timelineChangeTime')
 					dispatch({ type: PlayerActionType.setTime, time })
 					ensureChunksLoaded(
@@ -629,7 +644,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 				}
 			})
 		},
-		[ensureChunksLoaded, state.session_secure_id],
+		[
+			ensureChunksLoaded,
+			state.project_id,
+			state.replayer,
+			state.session_secure_id,
+		],
 	)
 
 	const seek = useCallback(
@@ -717,6 +737,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					getTimeFromReplayer(state.replayer, state.sessionMetadata) +
 					state.sessionMetadata.startTime,
 			})
+			loadiFrameResources(state.replayer, state.project_id)
 		}, FRAME_MS * 60),
 		[],
 	)

@@ -564,6 +564,13 @@ export type Field = {
 	value: Scalars['String']
 }
 
+export type GitHubRepo = {
+	__typename?: 'GitHubRepo'
+	key: Scalars['String']
+	name: Scalars['String']
+	repo_id: Scalars['String']
+}
+
 export type HeightList = {
 	__typename?: 'HeightList'
 	id: Scalars['String']
@@ -633,6 +640,7 @@ export enum IntegrationType {
 	ClickUp = 'ClickUp',
 	Discord = 'Discord',
 	Front = 'Front',
+	GitHub = 'GitHub',
 	Height = 'Height',
 	Linear = 'Linear',
 	Slack = 'Slack',
@@ -1551,6 +1559,8 @@ export type Query = {
 	fields_opensearch: Array<Scalars['String']>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
+	github_issue_labels: Array<Scalars['String']>
+	github_repos?: Maybe<Array<GitHubRepo>>
 	height_lists: Array<HeightList>
 	height_workspaces: Array<HeightWorkspace>
 	identifier_suggestion: Array<Scalars['String']>
@@ -1853,6 +1863,15 @@ export type QueryGenerate_Zapier_Access_TokenArgs = {
 export type QueryGet_Source_Map_Upload_UrlsArgs = {
 	api_key: Scalars['String']
 	paths: Array<Scalars['String']>
+}
+
+export type QueryGithub_Issue_LabelsArgs = {
+	repository: Scalars['String']
+	workspace_id: Scalars['ID']
+}
+
+export type QueryGithub_ReposArgs = {
+	workspace_id: Scalars['ID']
 }
 
 export type QueryHeight_ListsArgs = {
@@ -2336,7 +2355,7 @@ export type Session = {
 	enable_strict_privacy?: Maybe<Scalars['Boolean']>
 	environment?: Maybe<Scalars['String']>
 	event_counts?: Maybe<Scalars['String']>
-	excluded?: Maybe<Scalars['Boolean']>
+	excluded: Scalars['Boolean']
 	field_group?: Maybe<Scalars['String']>
 	fields?: Maybe<Array<Maybe<Field>>>
 	fingerprint?: Maybe<Scalars['Int']>

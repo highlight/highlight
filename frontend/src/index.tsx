@@ -62,6 +62,8 @@ const options: HighlightOptions = {
 		destinationDomains: [
 			'pri.highlight.run',
 			'pub.highlight.run',
+			'pri.highlight.io',
+			'pub.highlight.io',
 			'localhost:8082',
 		],
 		urlBlocklist: [
@@ -138,7 +140,6 @@ const App = () => {
 
 	return (
 		<ErrorBoundary
-			showDialog
 			onAfterReportDialogCancelHandler={() => {
 				const { origin } = window.location
 				window.location.href = origin
