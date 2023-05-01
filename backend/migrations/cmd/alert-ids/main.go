@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"strconv"
 
-	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -20,7 +20,7 @@ type UserPropertyOld struct {
 
 func GetPropertiesOld(obj *model.SessionAlert) ([]*UserPropertyOld, error) {
 	if obj == nil {
-		return nil, e.New("empty session alert object for track properties")
+		return nil, errors.New("empty session alert object for track properties")
 	}
 	propertyString := "[]"
 	if obj.TrackProperties != nil {
@@ -28,7 +28,7 @@ func GetPropertiesOld(obj *model.SessionAlert) ([]*UserPropertyOld, error) {
 	}
 	var sanitizedProperties []*UserPropertyOld
 	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized track properties")
+		return nil, err
 	}
 	return sanitizedProperties, nil
 }

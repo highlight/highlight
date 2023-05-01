@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,7 +22,6 @@ import (
 
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
 )
 
 const ERROR_CONTEXT_LINES = 5
@@ -54,7 +54,7 @@ type DiskFetcher struct{}
 func (n DiskFetcher) fetchFile(_ context.Context, href string) ([]byte, error) {
 	inputBytes, err := os.ReadFile(href)
 	if err != nil {
-		return nil, e.Wrap(err, "error fetching file from disk")
+		return nil, err
 	}
 	return inputBytes, nil
 }
@@ -75,7 +75,7 @@ func (n NetworkFetcher) fetchFile(ctx context.Context, href string) ([]byte, err
 	}
 	res, err := n.client.Get(href)
 	if err != nil {
-		return nil, e.Wrap(err, "error getting source file")
+		return nil, err
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -84,13 +84,13 @@ func (n NetworkFetcher) fetchFile(ctx context.Context, href string) ([]byte, err
 		}
 	}(res.Body)
 	if res.StatusCode != http.StatusOK {
-		return nil, e.New("status code not OK")
+		return nil, err
 	}
 
 	// unpack file into slice
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, e.Wrap(err, "error reading response body")
+		return nil, err
 	}
 
 	return bodyBytes, nil
@@ -116,7 +116,7 @@ func limitMaxSize(value *string) *string {
  */
 func EnhanceStackTrace(ctx context.Context, input []*publicModel.StackFrameInput, projectId int, version *string, storageClient storage.Client) ([]privateModel.ErrorTrace, error) {
 	if input == nil {
-		return nil, e.New("stack trace input cannot be nil")
+		return nil, errors.New("stack trace input cannot be nil")
 	}
 
 	var mappedStackTrace []privateModel.ErrorTrace
@@ -160,7 +160,7 @@ func getFileSourcemap(ctx context.Context, projectId int, version *string, stack
 				// (user-facing error message can include all the paths searched)
 				stackTraceErrorCode := privateModel.SourceMappingErrorCodeMissingSourceMapFileInS3
 				stackTraceError.ErrorCode = &stackTraceErrorCode
-				return "", nil, e.Wrapf(err, "failed to match file-scheme sourcemap for js file %s", stackTraceFileURL)
+				return "", nil, err
 			}
 			pathSubpath = strings.Join(strings.Split(pathSubpath, "/")[1:], "/")
 		} else {
@@ -192,12 +192,11 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 			stackTraceError.ErrorCode = &stackTraceErrorCode
 			minifiedFetchStrategy = "S3 and URL"
 			stackTraceError.MinifiedFetchStrategy = &minifiedFetchStrategy
-			err := e.Wrapf(err, "error fetching file: %v", stackTraceFileURL)
 			return "", nil, err
 		}
 		_, err = storageClient.PushSourceMapFile(ctx, projectId, version, stackTraceFilePath, minifiedFileBytes)
 		if err != nil {
-			log.WithContext(ctx).Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFilePath))
+			log.WithContext(ctx).Error(err)
 		}
 	}
 	minifiedFileSize := len(minifiedFileBytes)
@@ -207,7 +206,7 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 		// (user-facing error message  should include actual size)
 		stackTraceErrorCode = privateModel.SourceMappingErrorCodeMinifiedFileLarger
 		stackTraceError.ErrorCode = &stackTraceErrorCode
-		err := e.Errorf("minified source file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), stackTraceFileURL, minifiedFileSize)
+		err := fmt.Errorf("minified source file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), stackTraceFileURL, minifiedFileSize)
 		return "", nil, err
 	}
 
@@ -230,7 +229,7 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 		if err != nil {
 			stackTraceErrorCode = privateModel.SourceMappingErrorCodeInvalidSourceMapURL
 			stackTraceError.ErrorCode = &stackTraceErrorCode
-			return "", nil, e.Errorf("error parsing inline source map: %s", err.Error())
+			return "", nil, fmt.Errorf("error parsing inline source map: %s", err.Error())
 		}
 	} else {
 		// construct sourcemap url from searched file
@@ -247,7 +246,7 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 			// (might be good to include the sourceMapURL in the user-facing error message)
 			stackTraceErrorCode = privateModel.SourceMappingErrorCodeInvalidSourceMapURL
 			stackTraceError.ErrorCode = &stackTraceErrorCode
-			err := e.Errorf("error parsing source map url: %s", sourceMapURL)
+			err := fmt.Errorf("error parsing source map url: %s", sourceMapURL)
 			return "", nil, err
 		}
 		sourceMapFilePath := u2.Path
@@ -274,7 +273,6 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 				stackTraceError.ErrorCode = &stackTraceErrorCode
 				sourcemapFetchStrategy = "S3 and URL"
 				stackTraceError.SourcemapFetchStrategy = &sourcemapFetchStrategy
-				err := e.Wrapf(err, "error fetching source map file: %v", sourceMapURL)
 				return "", nil, err
 			}
 			smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
@@ -284,12 +282,11 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 				// (user-facing error message can include sourceMapURL)
 				stackTraceErrorCode = privateModel.SourceMappingErrorCodeSourcemapLibraryCouldntParse
 				stackTraceError.ErrorCode = &stackTraceErrorCode
-				err := e.Wrapf(err, "error parsing fetched source map: %v - %v, %v", sourceMapURL, smap, err)
 				return "", nil, err
 			}
 			_, err = storageClient.PushSourceMapFile(ctx, projectId, version, sourceMapFilePath, sourceMapFileBytes)
 			if err != nil {
-				log.WithContext(ctx).Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
+				log.WithContext(ctx).Error(err)
 			}
 		}
 	}
@@ -313,7 +310,7 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 		// (might be good to include the stackTraceFileURL in the user-facing error message)
 		stackTraceErrorCode = privateModel.SourceMappingErrorCodeFileNameMissingFromSourcePath
 		stackTraceError.ErrorCode = &stackTraceErrorCode
-		err := e.Errorf("source path doesn't contain file name: %v", stackTraceFileURL)
+		err := fmt.Errorf("source path doesn't contain file name: %v", stackTraceFileURL)
 		return nil, err, stackTraceError
 	}
 
@@ -324,7 +321,6 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 		// (might be good to include the stackTraceFileURL in the user-facing error message)
 		stackTraceErrorCode = privateModel.SourceMappingErrorCodeErrorParsingStackTraceFileURL
 		stackTraceError.ErrorCode = &stackTraceErrorCode
-		err := e.Wrapf(err, "error parsing stack trace file url: %v", stackTraceFileURL)
 		return nil, err, stackTraceError
 	}
 	stackTraceFilePath := u.Path
@@ -357,7 +353,7 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 		// (might be good to include actual size in the user-facing error message)
 		stackTraceErrorCode = privateModel.SourceMappingErrorCodeSourceMapFileLarger
 		stackTraceError.ErrorCode = &stackTraceErrorCode
-		err := e.Errorf("source map file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), stackTraceFilePath, sourceMapFileSize)
+		err := fmt.Errorf("source map file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), stackTraceFilePath, sourceMapFileSize)
 		return nil, err, stackTraceError
 	}
 	smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
@@ -367,7 +363,6 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 		// (might be good to include sourceMapURL in the user-facing error message)
 		stackTraceErrorCode = privateModel.SourceMappingErrorCodeSourcemapLibraryCouldntParse
 		stackTraceError.ErrorCode = &stackTraceErrorCode
-		err := e.Wrapf(err, "error parsing source map file -> %v", sourceMapURL)
 		return nil, err, stackTraceError
 	}
 
@@ -380,7 +375,6 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 		// (might be good to include line and column number in the user-facing error message)
 		stackTraceErrorCode = privateModel.SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource
 		stackTraceError.ErrorCode = &stackTraceErrorCode
-		err := e.Errorf("error extracting true error info from source map: %v", sourceMapURL)
 		return nil, err, stackTraceError
 	}
 

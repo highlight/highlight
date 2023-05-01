@@ -5,7 +5,6 @@ import (
 
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/pkg/errors"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -32,7 +31,7 @@ func Start(rt util.Runtime) error {
 		},
 	))
 	if err != nil {
-		return errors.Wrap(err, "error creating statsd client")
+		return err
 	}
 	return nil
 }

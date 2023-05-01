@@ -2,11 +2,11 @@ package zapier
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	resthooks "github.com/highlight-run/go-resthooks"
 	model "github.com/highlight-run/highlight/backend/model"
-	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -17,7 +17,7 @@ type ZapierResthookStore struct {
 
 func (s *ZapierResthookStore) Save(sub *resthooks.Subscription, r *http.Request) error {
 	if r == nil {
-		return e.New("request is nil")
+		return errors.New("request is nil")
 	}
 	parsedToken := r.Context().Value(model.ContextKeys.ZapierToken).(*ParsedZapierToken)
 	sub.UserId = parsedToken.ProjectID
@@ -32,14 +32,14 @@ func (s *ZapierResthookStore) Save(sub *resthooks.Subscription, r *http.Request)
 	if err != nil {
 		// the subscription does not exist yet, so create it
 		if err := s.DB.Create(&subscription).Error; err != nil {
-			return e.Wrap(err, "error saving resthook subscription to database")
+			return err
 		}
 
 		sub.Id = subscription.ID
 	} else {
 		// the subscription already exists, so update it
 		if err := s.DB.Where(&model.ResthookSubscription{Model: model.Model{ID: existingSub.Id}}).Updates(subscription).Error; err != nil {
-			return e.Wrap(err, "error updating resthook subscription in database")
+			return err
 		}
 
 		sub.Id = existingSub.Id
@@ -53,7 +53,7 @@ func (s *ZapierResthookStore) FindById(id int) (*resthooks.Subscription, error) 
 	hookSub := model.ResthookSubscription{}
 
 	if err := s.DB.Where(&model.ResthookSubscription{Model: model.Model{ID: id}}).First(&hookSub).Error; err != nil {
-		return nil, e.Wrap(err, "error finding resthook subscription by id")
+		return nil, err
 	}
 
 	sub := resthooks.Subscription{
@@ -70,7 +70,7 @@ func (s *ZapierResthookStore) FindByUserId(project_id int, event string) (*resth
 	hookSub := model.ResthookSubscription{}
 
 	if err := s.DB.Where(&model.ResthookSubscription{ProjectID: project_id, Event: &event}).First(&hookSub).Error; err != nil {
-		return nil, e.Wrap(err, "error finding resthook subscription by event and project id")
+		return nil, err
 	}
 
 	sub := resthooks.Subscription{
@@ -97,12 +97,12 @@ func (s *ZapierResthookStore) DeleteById(id int, r *http.Request) error {
 
 		parsedToken := r.Context().Value(model.ContextKeys.ZapierProject).(*ParsedZapierToken)
 		if parsedToken.ProjectID != sub.UserId {
-			return e.New("Request is not authorized to delete this subscription")
+			return errors.New("Request is not authorized to delete this subscription")
 		}
 	}
 
 	if err := s.DB.Delete(&model.ResthookSubscription{Model: model.Model{ID: id}}).Error; err != nil {
-		return e.Wrap(err, "error deleting resthook subscription by id")
+		return err
 	}
 
 	log.WithContext(context.TODO()).Infof("Deleting Zapier subscription: %d", id)

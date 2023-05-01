@@ -346,7 +346,7 @@ func (c *Client) Delete(index Index, id int) error {
 	}
 
 	if err := c.BulkIndexer.Add(context.Background(), item); err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error adding bulk indexer item for delete")
+		return err
 	}
 
 	return nil
@@ -374,7 +374,7 @@ func (c *Client) Index(index Index, id int64, parentId *int, obj interface{}) er
 
 	b, err := json.Marshal(obj)
 	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error marshalling map for index")
+		return err
 	}
 	bodyStr := string(b)
 
@@ -707,7 +707,7 @@ func (c *Client) PutMapping(ctx context.Context, index Index, bodyStr string) er
 
 	createResponse, err := createRequest.Do(context.Background(), c.Client)
 	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error creating index")
+		return err
 	}
 
 	log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s) [%d] index created", indexStr, createResponse.StatusCode)

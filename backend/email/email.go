@@ -3,12 +3,11 @@ package email
 import (
 	"context"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"time"
-
-	e "github.com/pkg/errors"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -62,7 +61,7 @@ func SendAlertEmail(ctx context.Context, MailClient *sendgrid.Client, email stri
 			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
 		}
 		log.WithContext(ctx).Error("🔥", estr)
-		return e.New(estr)
+		return errors.New(estr)
 	}
 	log.WithContext(ctx).Info("Sending email")
 	return nil

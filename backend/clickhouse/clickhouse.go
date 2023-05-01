@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	clickhouseMigrate "github.com/golang-migrate/migrate/v4/database/clickhouse"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/highlight-run/highlight/backend/projectpath"
-	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -78,7 +78,7 @@ func (client *Client) HealthCheck(ctx context.Context) error {
 	if err != nil {
 		return err
 	} else if v != 1 {
-		return e.New("invalid value returned from clickhouse")
+		return errors.New("invalid value returned from clickhouse")
 	}
 	return nil
 }

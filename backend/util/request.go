@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-
-	e "github.com/pkg/errors"
 )
 
 // Slim wrapper around sending a request with arbitrary request/response interfaces.
@@ -16,13 +14,13 @@ func RestRequest(url string, method string, request interface{}, response interf
 		var err error
 		bufb, err = json.Marshal(request)
 		if err != nil {
-			return e.Wrap(err, "error marshaling request")
+			return err
 		}
 	}
 	client := http.Client{}
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(bufb))
 	if err != nil {
-		return e.Wrap(err, "error building request")
+		return err
 	}
 	req.Header = http.Header{
 		"Content-Type":  []string{"application/json"},
@@ -30,16 +28,16 @@ func RestRequest(url string, method string, request interface{}, response interf
 	}
 	res, err := client.Do(req)
 	if err != nil {
-		return e.Wrap(err, "error executing request")
+		return err
 	}
 
 	b, err := io.ReadAll(res.Body)
 	if err != nil {
-		return e.Wrap(err, "error reading contacts body")
+		return err
 	}
 	err = json.Unmarshal(b, response)
 	if err != nil {
-		return e.Wrap(err, "error unmarshaling contacts response")
+		return err
 	}
 	return nil
 }

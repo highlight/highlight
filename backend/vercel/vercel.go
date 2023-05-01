@@ -3,13 +3,8 @@ package vercel
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/go-chi/chi"
-	model2 "github.com/highlight-run/highlight/backend/model"
-	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
-	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
-	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"net/url"
@@ -18,8 +13,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-chi/chi"
+	model2 "github.com/highlight-run/highlight/backend/model"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -51,14 +52,14 @@ func GetAccessToken(code string) (VercelAccessTokenResponse, error) {
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v2/oauth/access_token", VercelApiBaseUrl), strings.NewReader(data.Encode()))
 	if err != nil {
-		return accessTokenResponse, errors.Wrap(err, "error creating api request to Vercel")
+		return accessTokenResponse, err
 	}
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	res, err := client.Do(req)
 
 	if err != nil {
-		return accessTokenResponse, errors.Wrap(err, "error getting response from Vercel oauth token endpoint")
+		return accessTokenResponse, err
 	}
 
 	b, err := io.ReadAll(res.Body)
@@ -68,11 +69,11 @@ func GetAccessToken(code string) (VercelAccessTokenResponse, error) {
 	}
 
 	if err != nil {
-		return accessTokenResponse, errors.Wrap(err, "error reading response body from Vercel oauth token endpoint")
+		return accessTokenResponse, err
 	}
 	err = json.Unmarshal(b, &accessTokenResponse)
 	if err != nil {
-		return accessTokenResponse, errors.Wrap(err, "error unmarshaling Vercel oauth token response")
+		return accessTokenResponse, err
 	}
 
 	return accessTokenResponse, nil
@@ -105,14 +106,14 @@ func SetEnvVariable(projectId string, apiKey string, accessToken string, teamId 
 	req, err := http.NewRequest(method, fmt.Sprintf("%s/v9/projects/%s/env%s%s", VercelApiBaseUrl, projectId, envIdStr, teamIdParam),
 		strings.NewReader(body))
 	if err != nil {
-		return errors.Wrap(err, "error creating api request to Vercel")
+		return err
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 
 	res, err := client.Do(req)
 
 	if err != nil {
-		return errors.Wrap(err, "error getting response from Vercel env endpoint")
+		return err
 	}
 
 	b, err := io.ReadAll(res.Body)
@@ -122,7 +123,7 @@ func SetEnvVariable(projectId string, apiKey string, accessToken string, teamId 
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "error reading response body from Vercel env endpoint")
+		return err
 	}
 
 	return nil
@@ -138,14 +139,14 @@ func RemoveConfiguration(configId string, accessToken string, teamId *string) er
 
 	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v1/integrations/configuration/%s%s", VercelApiBaseUrl, configId, teamIdParam), nil)
 	if err != nil {
-		return errors.Wrap(err, "error creating api request to Vercel")
+		return err
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 
 	res, err := client.Do(req)
 
 	if err != nil {
-		return errors.Wrap(err, "error getting response from Vercel env endpoint")
+		return err
 	}
 
 	b, err := io.ReadAll(res.Body)
@@ -155,7 +156,7 @@ func RemoveConfiguration(configId string, accessToken string, teamId *string) er
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "error reading response body from Vercel env endpoint")
+		return err
 	}
 
 	return nil
@@ -182,14 +183,14 @@ func GetProjects(accessToken string, teamId *string) ([]*model.VercelProject, er
 
 		req, err := http.NewRequest("GET", fmt.Sprintf("%s/v9/projects%s", VercelApiBaseUrl, queryStr), strings.NewReader(data.Encode()))
 		if err != nil {
-			return nil, errors.Wrap(err, "error creating api request to Vercel")
+			return nil, err
 		}
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 
 		res, err := client.Do(req)
 
 		if err != nil {
-			return nil, errors.Wrap(err, "error getting response from Vercel projects endpoint")
+			return nil, err
 		}
 
 		b, err := io.ReadAll(res.Body)
@@ -199,7 +200,7 @@ func GetProjects(accessToken string, teamId *string) ([]*model.VercelProject, er
 		}
 
 		if err != nil {
-			return nil, errors.Wrap(err, "error reading response body from Vercel projects endpoint")
+			return nil, err
 		}
 
 		var projectsResponse struct {
@@ -210,7 +211,7 @@ func GetProjects(accessToken string, teamId *string) ([]*model.VercelProject, er
 		}
 		err = json.Unmarshal(b, &projectsResponse)
 		if err != nil {
-			return nil, errors.Wrap(err, "error unmarshaling Vercel projects response")
+			return nil, err
 		}
 
 		projects = append(projects, projectsResponse.Projects...)
@@ -239,14 +240,14 @@ func CreateLogDrain(ctx context.Context, vercelTeamID *string, vercelProjectIDs 
 	}
 	req, err := http.NewRequest("POST", u, strings.NewReader(body))
 	if err != nil {
-		return errors.Wrap(err, "error creating api request to Vercel")
+		return err
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 
 	res, err := client.Do(req)
 
 	if err != nil {
-		return errors.Wrap(err, "error getting response from Vercel log-drain endpoint")
+		return err
 	}
 
 	b, err := io.ReadAll(res.Body)
@@ -259,7 +260,7 @@ func CreateLogDrain(ctx context.Context, vercelTeamID *string, vercelProjectIDs 
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "error reading response body from Vercel log-drain endpoint")
+		return err
 	}
 
 	return nil

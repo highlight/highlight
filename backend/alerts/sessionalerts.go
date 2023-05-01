@@ -2,9 +2,8 @@ package alerts
 
 import (
 	"encoding/json"
-	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 
-	"github.com/pkg/errors"
+	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	"github.com/highlight-run/highlight/backend/model"
@@ -14,7 +13,7 @@ import (
 func marshalEnvironments(environments []string) (*string, error) {
 	envBytes, err := json.Marshal(environments)
 	if err != nil {
-		return nil, errors.Wrap(err, "error parsing environments")
+		return nil, err
 	}
 	envString := string(envBytes)
 
@@ -29,7 +28,7 @@ func marshalSlackChannelsToSanitizedSlackChannels(slackChannels []*modelInputs.S
 	}
 	channelsBytes, err := json.Marshal(sanitizedChannels)
 	if err != nil {
-		return nil, errors.Wrap(err, "error parsing channels")
+		return nil, err
 	}
 	channelsString := string(channelsBytes)
 
@@ -39,7 +38,7 @@ func marshalSlackChannelsToSanitizedSlackChannels(slackChannels []*modelInputs.S
 func marshalAlertEmails(emails []string) (*string, error) {
 	emailBytes, err := json.Marshal(emails)
 	if err != nil {
-		return nil, errors.Wrap(err, "error parsing emails")
+		return nil, err
 	}
 	channelsString := string(emailBytes)
 
@@ -65,7 +64,7 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 
 	userPropertiesBytes, err := json.Marshal(input.UserProperties)
 	if err != nil {
-		return nil, errors.Wrap(err, "error parsing user properties for user properties alert")
+		return nil, err
 	}
 	userPropertiesString := string(userPropertiesBytes)
 
@@ -76,7 +75,7 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 
 	trackPropertiesBytes, err := json.Marshal(input.TrackProperties)
 	if err != nil {
-		return nil, errors.Wrap(err, "error parsing track properties")
+		return nil, err
 	}
 	trackPropertiesString := string(trackPropertiesBytes)
 

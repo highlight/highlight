@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -18,7 +19,6 @@ import (
 	"github.com/highlight-run/highlight/backend/opensearch"
 	storage "github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"gorm.io/gorm"
@@ -54,17 +54,17 @@ func NewHandlers() *handlers {
 	ctx := context.TODO()
 	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.WithContext(ctx).Fatal(errors.Wrap(err, "error setting up DB"))
+		log.WithContext(ctx).Fatal(err)
 	}
 
 	opensearchClient, err := opensearch.NewOpensearchClient(nil)
 	if err != nil {
-		log.WithContext(ctx).Fatal(errors.Wrap(err, "error creating opensearch client"))
+		log.WithContext(ctx).Fatal(err)
 	}
 
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
 	if err != nil {
-		log.WithContext(ctx).Fatal(errors.Wrap(err, "error loading default from config"))
+		log.WithContext(ctx).Fatal(err)
 	}
 	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
 		o.UsePathStyle = true
@@ -72,7 +72,7 @@ func NewHandlers() *handlers {
 
 	cfgEast2, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-2"))
 	if err != nil {
-		log.WithContext(ctx).Fatal(errors.Wrap(err, "error loading default from config"))
+		log.WithContext(ctx).Fatal(err)
 	}
 	s3ClientEast2 := s3.NewFromConfig(cfgEast2, func(o *s3.Options) {
 		o.UsePathStyle = true
@@ -97,13 +97,13 @@ func (h *handlers) getSessionClientAndBucket(sessionId int) (*s3.Client, *string
 func (h *handlers) DeleteSessionBatchFromOpenSearch(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
 	sessionIds, err := utils.GetSessionIdsInBatch(h.db, event.TaskId, event.BatchId)
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting session ids to delete")
+		return nil, err
 	}
 
 	for _, sessionId := range sessionIds {
 		if !event.DryRun {
 			if err := h.opensearchClient.Delete(opensearch.IndexSessions, sessionId); err != nil {
-				return nil, errors.Wrap(err, "error creating bulk delete request")
+				return nil, err
 			}
 		}
 	}
@@ -124,7 +124,7 @@ func (h *handlers) DeleteSessionBatchFromPostgres(ctx context.Context, event uti
 				AND batch_id = ?
 			)
 		`, event.TaskId, event.BatchId).Error; err != nil {
-			return nil, errors.Wrap(err, "error deleting session fields")
+			return nil, err
 		}
 
 		if err := h.db.Exec(`
@@ -136,7 +136,7 @@ func (h *handlers) DeleteSessionBatchFromPostgres(ctx context.Context, event uti
 				AND batch_id = ?
 			)
 		`, event.TaskId, event.BatchId).Error; err != nil {
-			return nil, errors.Wrap(err, "error deleting sessions")
+			return nil, err
 		}
 	}
 
@@ -146,7 +146,7 @@ func (h *handlers) DeleteSessionBatchFromPostgres(ctx context.Context, event uti
 func (h *handlers) DeleteSessionBatchFromS3(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
 	sessionIds, err := utils.GetSessionIdsInBatch(h.db, event.TaskId, event.BatchId)
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting session ids to delete")
+		return nil, err
 	}
 
 	for _, sessionId := range sessionIds {
@@ -168,7 +168,7 @@ func (h *handlers) DeleteSessionBatchFromS3(ctx context.Context, event utils.Bat
 		}
 		output, err := client.ListObjectsV2(ctx, &options)
 		if err != nil {
-			return nil, errors.Wrap(err, "error listing objects in S3")
+			return nil, err
 		}
 
 		for _, object := range output.Contents {
@@ -179,7 +179,7 @@ func (h *handlers) DeleteSessionBatchFromS3(ctx context.Context, event utils.Bat
 			if !event.DryRun {
 				_, err := client.DeleteObject(ctx, &options)
 				if err != nil {
-					return nil, errors.Wrap(err, "error deleting objects from S3")
+					return nil, err
 				}
 			}
 		}
@@ -227,7 +227,7 @@ func (h *handlers) GetSessionIdsByQuery(ctx context.Context, event utils.QuerySe
 		}
 
 		if err := h.db.Create(&toDelete).Error; err != nil {
-			return nil, errors.Wrap(err, "error saving DeleteSessionsTasks")
+			return nil, err
 		}
 
 		responses = append(responses, utils.BatchIdResponse{

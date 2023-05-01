@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 )
 
 type DiscordChannel struct {
@@ -18,7 +17,7 @@ type DiscordChannels []*DiscordChannel
 func (dc *DiscordChannels) Scan(value interface{}) error {
 	bytes, ok := value.([]byte)
 	if !ok {
-		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
+		return fmt.Errorf("Failed to unmarshal JSONB value: %s", value)
 	}
 	return json.Unmarshal(bytes, &dc)
 }
@@ -40,7 +39,7 @@ type WebhookDestinations []*WebhookDestination
 func (dc *WebhookDestinations) Scan(value interface{}) error {
 	bytes, ok := value.([]byte)
 	if !ok {
-		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
+		return fmt.Errorf("Failed to unmarshal JSONB value: %s", value)
 	}
 	return json.Unmarshal(bytes, &dc)
 }

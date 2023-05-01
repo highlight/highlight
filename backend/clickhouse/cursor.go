@@ -2,12 +2,11 @@ package clickhouse
 
 import (
 	"encoding/base64"
+	"errors"
 
 	"fmt"
 	"strings"
 	"time"
-
-	e "github.com/pkg/errors"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
@@ -91,7 +90,7 @@ func decodeCursor(encodedCursor string) (timestamp time.Time, uuid string, err e
 
 	arrStr := strings.Split(string(byt), ",")
 	if len(arrStr) != 2 {
-		err = e.New("cursor is invalid")
+		err = errors.New("cursor is invalid")
 		return
 	}
 

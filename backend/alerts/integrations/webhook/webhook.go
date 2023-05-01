@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
 	"github.com/highlight-run/highlight/backend/model"
-	e "github.com/pkg/errors"
 )
 
 type ErrorAlertWebhook struct {
@@ -26,7 +25,7 @@ func sendWebhookData(destination *model.WebhookDestination, body []byte) error {
 		return nil
 	}
 
-	return e.New(fmt.Sprintf("webhook %+v received unexpected response code %d", destination, resp.StatusCode))
+	return fmt.Errorf("webhook %+v received unexpected response code %d", destination, resp.StatusCode)
 }
 
 func SendErrorAlert(destination *model.WebhookDestination, payload *integrations.ErrorAlertPayload) error {

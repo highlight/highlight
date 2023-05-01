@@ -13,7 +13,6 @@ import (
 	"github.com/golang-jwt/jwt"
 	resthooks "github.com/highlight-run/go-resthooks"
 	model "github.com/highlight-run/highlight/backend/model"
-	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -26,7 +25,7 @@ func getProjectForToken(parsedToken *ParsedZapierToken, db *gorm.DB) (*model.Pro
 	project := model.Project{}
 
 	if err := db.Where(&model.Project{Model: model.Model{ID: parsedToken.ProjectID}}).First(&project).Error; err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 
 	return &project, nil

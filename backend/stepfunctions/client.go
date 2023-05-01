@@ -12,7 +12,6 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -44,7 +43,7 @@ func NewClient() *Client {
 func (c *Client) DeleteSessionsByQuery(ctx context.Context, input utils.QuerySessionsInput) (*string, error) {
 	marshaled, err := json.Marshal(input)
 	if err != nil {
-		return nil, errors.Wrap(err, "error marshaling DeleteSessionsByQuery input")
+		return nil, err
 	}
 
 	output, err := c.client.StartExecution(context.Background(), &sfn.StartExecutionInput{

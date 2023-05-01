@@ -2,7 +2,6 @@ package utils
 
 import (
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -27,7 +26,7 @@ func GetSessionIdsInBatch(db *gorm.DB, taskId string, batchId string) ([]int, er
 	if err := db.Model(&model.DeleteSessionsTask{}).Select("session_id").
 		Where(&model.DeleteSessionsTask{TaskID: taskId, BatchID: batchId}).
 		Find(&sessionIds).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying session ids to delete")
+		return nil, err
 	}
 	return sessionIds, nil
 }

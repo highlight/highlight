@@ -3,6 +3,7 @@ package height
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,7 +15,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/pkg/errors"
 
 	"golang.org/x/oauth2"
 )
@@ -56,7 +56,7 @@ func doRequest[T any](method string, accessToken string, relativeUrl string, bod
 
 	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", HeightApiBaseUrl, relativeUrl), strings.NewReader(body))
 	if err != nil {
-		return unmarshalled, errors.Wrap(err, "error creating api request to Height")
+		return unmarshalled, err
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 	if method != "GET" {
@@ -65,7 +65,7 @@ func doRequest[T any](method string, accessToken string, relativeUrl string, bod
 
 	res, err := client.Do(req)
 	if err != nil {
-		return unmarshalled, errors.Wrap(err, "error getting response from Height endpoint")
+		return unmarshalled, err
 	}
 
 	b, err := io.ReadAll(res.Body)
@@ -76,12 +76,12 @@ func doRequest[T any](method string, accessToken string, relativeUrl string, bod
 	}
 
 	if err != nil {
-		return unmarshalled, errors.Wrap(err, "error reading response body from Height endpoint")
+		return unmarshalled, err
 	}
 
 	err = json.Unmarshal(b, &unmarshalled)
 	if err != nil {
-		return unmarshalled, errors.Wrap(err, "error unmarshaling Height response")
+		return unmarshalled, err
 	}
 
 	return unmarshalled, nil
