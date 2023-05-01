@@ -712,7 +712,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Merges inactive segments that are less than a threshold into surrounding active sessions
 	var finalIntervals []model.SessionInterval
 	startInterval := allIntervals[0]
-	sessionLength := float64(calculateSessionLength(accumulator.FirstFullSnapshotTimestamp, accumulator.LastEventTimestamp).Milliseconds())
+	sessionLength := float64(CalculateSessionLength(accumulator.FirstFullSnapshotTimestamp, accumulator.LastEventTimestamp).Milliseconds())
 	for i := 1; i < len(allIntervals); i++ {
 		currentInterval := allIntervals[i-1]
 		nextInterval := allIntervals[i]
@@ -760,7 +760,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	eventCountsString := string(eventCountsBytes)
 
 	// Calculate total session length and write the length to the session.
-	sessionTotalLength := calculateSessionLength(accumulator.FirstFullSnapshotTimestamp, accumulator.LastEventTimestamp)
+	sessionTotalLength := CalculateSessionLength(accumulator.FirstFullSnapshotTimestamp, accumulator.LastEventTimestamp)
 	sessionTotalLengthInMilliseconds := sessionTotalLength.Milliseconds()
 
 	// Delete the session if the length of the session is 0.
@@ -1376,7 +1376,7 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 }
 
 // calculateSessionLength gets the session length given two sets of ReplayEvents.
-func calculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
+func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
 	if first.IsZero() || last.IsZero() {
 		return d
 	}
