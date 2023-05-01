@@ -1,5 +1,6 @@
 import boto3
 import os
+import sys
 from multiprocessing import Pool
 
 s3 = boto3.client('s3', 
@@ -15,7 +16,9 @@ lambdaClient = boto3.client('lambda',
 
 paginator = s3.get_paginator('list_objects_v2')
 bucket = 'highlight-session-data'
-pages = paginator.paginate(Bucket=bucket, Prefix='v2/')
+
+
+pages = paginator.paginate(Bucket=bucket, Prefix=sys.argv[1])
 
 def f(key):
     lambdaClient.invoke(
