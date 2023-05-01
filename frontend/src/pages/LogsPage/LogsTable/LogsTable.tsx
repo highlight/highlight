@@ -35,6 +35,10 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
 import React, { Fragment, useEffect, useState } from 'react'
 
+import { useProjectId } from '@/hooks/useProjectId'
+import { SetupLogs } from '@/pages/LogsPage/LogsTable/SetupLogs'
+import { useIntegratedLocalStorage } from '@/util/integrated'
+
 import * as styles from './LogsTable.css'
 
 type Props = {
@@ -44,6 +48,9 @@ type Props = {
 } & LogsTableInnerProps
 
 export const LogsTable = (props: Props) => {
+	const { projectId } = useProjectId()
+	const [{ integrated }] = useIntegratedLocalStorage(projectId!, 'logs')
+
 	if (props.loading) {
 		return (
 			<FullScreenContainer>
@@ -93,7 +100,7 @@ export const LogsTable = (props: Props) => {
 	if (props.logEdges.length === 0) {
 		return (
 			<FullScreenContainer>
-				<NoLogsFound />
+				{integrated ? <NoLogsFound /> : <SetupLogs />}
 			</FullScreenContainer>
 		)
 	}
