@@ -64,13 +64,13 @@ export const FilterExtensionForm = () => {
 
 	const categories = [
 		{
-			key: 'Filter out errors thrown by chrome extensions.',
-			message: 'Filter chrome extensions ',
+			key: 'Filter errors thrown by Chrome extensions.',
+			message: 'Filter Chrome extensions ',
 			label: (
 				<p>
-					Filter out errors thrown by chrome extensions. (read the{' '}
+					Filter errors thrown by Chrome extensions. (read the{' '}
 					<a
-						href="https://www.highlight.io/docs/general/product-features/error-monitoring/ignoring-errors#ignore-errors-emmitted-by-chrome-extensions"
+						href="https://www.highlight.io/docs/general/product-features/error-monitoring/ignoring-errors#ignore-errors-emitted-by-chrome-extensions"
 						target="_blank"
 						rel="noreferrer"
 					>

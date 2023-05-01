@@ -64,13 +64,13 @@ export const FilterSessionsForm = () => {
 
 	const categories = [
 		{
-			key: 'Filter out sessions without an error',
+			key: 'Filter sessions without an error',
 			message: 'Filter sessions without an error',
 			label: (
 				<p>
-					Filter out sessions without an error. (read the{' '}
+					Filter sessions without an error. (read the{' '}
 					<a
-						href="https://www.highlight.io/docs/general/product-features/error-monitoring/ignoring-errors#ignore-errors-emmitted-by-chrome-extensions"
+						href="https://www.highlight.io/docs/general/product-features/session-replay/ignoring-sessions#ignore-sessions-without-an-error"
 						target="_blank"
 						rel="noreferrer"
 					>

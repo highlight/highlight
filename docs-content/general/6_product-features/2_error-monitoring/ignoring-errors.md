@@ -9,8 +9,8 @@ updatedAt: 2022-06-27T03:34:47.000Z
 
 There are several options for ignoring errors, all of which can be found in the "Error Monitoring" tab of your [project settings](https://app.highlight.io/settings). Details on each option are below.
 
-## Ignore errors emmitted by chrome extensions
-If your users are using chrome extensions, you may see errors that are not relevant to your application. You can ignore these errors by checking the "Filter out errors thrown by chrome extensions" box in your [project settings](https://app.highlight.io/settings).
+## Ignore errors emitted by Chrome extensions
+If your users are using Chrome extensions, you may see errors that are not relevant to your application. You can ignore these errors by checking the "Filter errors thrown by Chrome extensions" box in your [project settings](https://app.highlight.io/settings).
 
 ## Ignoring error groups from alerts
 If you have alerts set up for your project, you can ignore specific error groups from triggering alerts. You can do this by clicking the "Ignore" button on the error group page.
