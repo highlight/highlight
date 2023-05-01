@@ -188,7 +188,7 @@ func GetWorkspaces(accessToken string) ([]*model.HeightWorkspace, error) {
 		return nil, err
 	}
 
-	// Even though we can only fetch one workspace, force it into a slice for future compatability
+	// Even though we can only fetch one workspace, force it into a slice for future compatibility
 	return []*model.HeightWorkspace{res}, nil
 }
 

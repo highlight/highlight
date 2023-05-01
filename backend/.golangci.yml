@@ -44,13 +44,12 @@ linters-settings:
             - 'backend/alerts'
 
     depguard:
-        list-type: blacklist
+        list-type: denylist
         include-go-root: true
         packages:
-            - errors
+            - github.com/pkg/errors
             - log
 
         packages-with-error-message:
-            # specify an error message to output when a blacklisted package is used
-            - errors: 'error handling is allowed only by github.com/pkg/errors'
+            - github.com/pkg/errors: 'github.com/pkg/errors is deprecated, use errors.New or fmt.Errorf'
             - log: 'logging is allowed only by github.com/sirupsen/logrus'

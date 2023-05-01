@@ -3,6 +3,7 @@ package clickup
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
 
@@ -84,7 +84,7 @@ func doClickUpRequest[T any](method string, accessToken string, relativeUrl stri
 
 	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", ClickUpApiBaseUrl, relativeUrl), strings.NewReader(body))
 	if err != nil {
-		return unmarshalled, errors.Wrap(err, "error creating api request to ClickUp")
+		return unmarshalled, err
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 	if method != "GET" {
@@ -93,7 +93,7 @@ func doClickUpRequest[T any](method string, accessToken string, relativeUrl stri
 
 	res, err := client.Do(req)
 	if err != nil {
-		return unmarshalled, errors.Wrap(err, "error getting response from ClickUp Teams endpoint")
+		return unmarshalled, err
 	}
 
 	b, err := io.ReadAll(res.Body)
@@ -102,12 +102,12 @@ func doClickUpRequest[T any](method string, accessToken string, relativeUrl stri
 	}
 
 	if err != nil {
-		return unmarshalled, errors.Wrap(err, "error reading response body from ClickUp Teams endpoint")
+		return unmarshalled, err
 	}
 
 	err = json.Unmarshal(b, &unmarshalled)
 	if err != nil {
-		return unmarshalled, errors.Wrap(err, "error unmarshaling ClickUp folders response")
+		return unmarshalled, err
 	}
 
 	return unmarshalled, nil
