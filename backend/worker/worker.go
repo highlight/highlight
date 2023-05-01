@@ -1375,7 +1375,7 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 	}
 }
 
-// calculateSessionLength gets the session length given two sets of ReplayEvents.
+// CalculateSessionLength gets the session length given two sets of ReplayEvents.
 func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
 	if first.IsZero() || last.IsZero() {
 		return d
