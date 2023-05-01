@@ -56,6 +56,7 @@ export default function Home() {
 
 			<HelloButton />
 			<ConsoleButtons />
+			<ErrorBoundaryButton />
 
 			<div className={styles.grid}>
 				<a
