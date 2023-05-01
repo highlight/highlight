@@ -2964,9 +2964,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	updateSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
 	defer updateSpan.Finish()
 
-	excluded, reason := r.isSessionExcluded(ctx, sessionObj)
+	excluded, reason := r.isSessionExcluded(ctx, sessionObj, sessionHasErrors)
 	if excluded {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": sessionObj.ID, "project_id": sessionObj.ProjectID, "reason": reason}).Infof("excluding session")
+		log.WithContext(ctx).WithFields(log.Fields{"session_id": sessionObj.ID, "project_id": sessionObj.ProjectID, "reason": *reason}).Infof("excluding session")
 	}
 
 	// Update only if any of these fields are changing
@@ -3031,7 +3031,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	return nil
 }
 
-func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session) (bool, *string) {
+func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *string) {
 	var project model.Project
 	if err := r.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
@@ -3042,7 +3042,7 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session) (boo
 		return true, ptr.String("excluded user matches")
 	}
 
-	if r.isSessionExcludedForNoError(ctx, s, project) {
+	if r.isSessionExcludedForNoError(ctx, s, project, sessionHasErrors) {
 		return true, ptr.String("no associated error")
 	}
 
@@ -3050,13 +3050,13 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session) (boo
 
 }
 
-func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project) bool {
+func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
 	projectFilterSettings := model.ProjectFilterSettings{}
 
 	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
 
 	if projectFilterSettings.FilterSessionsWithoutError {
-		return !*s.HasErrors
+		return !sessionHasErrors
 	}
 
 	return false
