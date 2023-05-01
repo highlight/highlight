@@ -9224,7 +9224,6 @@ export const GetClientIntegrationDocument = gql`
 		clientIntegration(project_id: $project_id) {
 			integrated
 			resourceType
-			resourceSecureId
 			createdAt
 		}
 	}
@@ -9283,7 +9282,6 @@ export const GetServerIntegrationDocument = gql`
 		serverIntegration(project_id: $project_id) {
 			integrated
 			resourceType
-			resourceSecureId
 			createdAt
 		}
 	}
@@ -9342,7 +9340,6 @@ export const GetLogsIntegrationDocument = gql`
 		logsIntegration(project_id: $project_id) {
 			integrated
 			resourceType
-			resourceSecureId
 			createdAt
 		}
 	}
@@ -10573,6 +10570,126 @@ export type GetHeightIntegrationSettingsLazyQueryHookResult = ReturnType<
 export type GetHeightIntegrationSettingsQueryResult = Apollo.QueryResult<
 	Types.GetHeightIntegrationSettingsQuery,
 	Types.GetHeightIntegrationSettingsQueryVariables
+>
+export const GetGitHubIntegrationSettingsDocument = gql`
+	query GetGitHubIntegrationSettings($workspace_id: ID!) {
+		is_integrated: is_workspace_integrated_with(
+			integration_type: GitHub
+			workspace_id: $workspace_id
+		)
+		github_repos(workspace_id: $workspace_id) {
+			repo_id
+			name
+			key
+		}
+	}
+`
+
+/**
+ * __useGetGitHubIntegrationSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetGitHubIntegrationSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGitHubIntegrationSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGitHubIntegrationSettingsQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetGitHubIntegrationSettingsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetGitHubIntegrationSettingsQuery,
+		Types.GetGitHubIntegrationSettingsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetGitHubIntegrationSettingsQuery,
+		Types.GetGitHubIntegrationSettingsQueryVariables
+	>(GetGitHubIntegrationSettingsDocument, baseOptions)
+}
+export function useGetGitHubIntegrationSettingsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetGitHubIntegrationSettingsQuery,
+		Types.GetGitHubIntegrationSettingsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetGitHubIntegrationSettingsQuery,
+		Types.GetGitHubIntegrationSettingsQueryVariables
+	>(GetGitHubIntegrationSettingsDocument, baseOptions)
+}
+export type GetGitHubIntegrationSettingsQueryHookResult = ReturnType<
+	typeof useGetGitHubIntegrationSettingsQuery
+>
+export type GetGitHubIntegrationSettingsLazyQueryHookResult = ReturnType<
+	typeof useGetGitHubIntegrationSettingsLazyQuery
+>
+export type GetGitHubIntegrationSettingsQueryResult = Apollo.QueryResult<
+	Types.GetGitHubIntegrationSettingsQuery,
+	Types.GetGitHubIntegrationSettingsQueryVariables
+>
+export const GetGitHubIssueLabelsDocument = gql`
+	query GetGitHubIssueLabels($workspace_id: ID!, $repository: String!) {
+		github_issue_labels(
+			workspace_id: $workspace_id
+			repository: $repository
+		)
+	}
+`
+
+/**
+ * __useGetGitHubIssueLabelsQuery__
+ *
+ * To run a query within a React component, call `useGetGitHubIssueLabelsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGitHubIssueLabelsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGitHubIssueLabelsQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      repository: // value for 'repository'
+ *   },
+ * });
+ */
+export function useGetGitHubIssueLabelsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetGitHubIssueLabelsQuery,
+		Types.GetGitHubIssueLabelsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetGitHubIssueLabelsQuery,
+		Types.GetGitHubIssueLabelsQueryVariables
+	>(GetGitHubIssueLabelsDocument, baseOptions)
+}
+export function useGetGitHubIssueLabelsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetGitHubIssueLabelsQuery,
+		Types.GetGitHubIssueLabelsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetGitHubIssueLabelsQuery,
+		Types.GetGitHubIssueLabelsQueryVariables
+	>(GetGitHubIssueLabelsDocument, baseOptions)
+}
+export type GetGitHubIssueLabelsQueryHookResult = ReturnType<
+	typeof useGetGitHubIssueLabelsQuery
+>
+export type GetGitHubIssueLabelsLazyQueryHookResult = ReturnType<
+	typeof useGetGitHubIssueLabelsLazyQuery
+>
+export type GetGitHubIssueLabelsQueryResult = Apollo.QueryResult<
+	Types.GetGitHubIssueLabelsQuery,
+	Types.GetGitHubIssueLabelsQueryVariables
 >
 export const GetProjectIntegratedWithDocument = gql`
 	query GetProjectIntegratedWith(

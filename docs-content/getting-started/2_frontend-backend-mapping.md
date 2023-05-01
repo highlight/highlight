@@ -7,11 +7,11 @@ updatedAt: 2022-04-01T20:40:53.000Z
 
 ## What's this?
 
-In order to make the most out of [highlight.io](https://highlight.io), we suggest instrumenting your frontend & backend so that you can attribute frontend requests with backend errors and logs. See an example below, where you can view an error's details alongside frontend session replay, allowing you to get the full context you need.
+In order to make the most out of [highlight.io](https://highlight.io), we suggest instrumenting your frontend and backend so that you can attribute frontend requests with backend errors and logs. See an example below, where you can view an error's details alongside frontend session replay, allowing you to get the full context you need.
 
 ![](/images/fullstack-mapping.png)
 
-Below, we detail the requirements to get this working as well how to troubleshoot.
+Below, we detail the requirements to get this working as well as how to troubleshoot.
 
 ## How can I start using this?
 
@@ -63,7 +63,7 @@ Below are solutions for what we support today. If you'd like us to support a new
 
 1.  Ensure `tracingOrigins` and `networkRecording` are properly set.
 
-2.  Ensure your backend has `CORS` configured for your frontend hostname, explicitely allowing header `x-highlight-request`.
+2.  Ensure your backend has `CORS` configured for your frontend hostname, explicitly allowing header `x-highlight-request`.
 
 3.  For debugging the backend SDK of your choice, in order to debug, we suggest enabling verbose logging. For example, in Go, add `highlight.SetDebugMode(myLogger)`
 

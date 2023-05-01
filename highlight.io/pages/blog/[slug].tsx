@@ -290,7 +290,6 @@ const PostSection = ({ p }: { p: PostSection; idx: number }) => {
 					img: (props) => (
 						<div className={styles.blogImageContainer}>
 							<Image
-								className={styles.blogImage}
 								src={props.src || ''}
 								alt={props.altText}
 								width={props.width}

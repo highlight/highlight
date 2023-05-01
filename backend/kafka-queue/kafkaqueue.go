@@ -179,7 +179,7 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 			Transport:    transport,
 			Topic:        pool.Topic,
 			Balancer:     &kafka.Hash{},
-			RequiredAcks: kafka.RequireAll,
+			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
 			// synchronous mode so that we can ensure messages are sent before we return
 			Async: false,

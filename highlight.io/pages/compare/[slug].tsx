@@ -21,15 +21,32 @@ import {
 import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel'
 import { CustomerReviewTrack } from '../../components/Home/CustomerReviewTrack'
 import homeStyles from '../../components/Home/Home.module.scss'
-import errorMonitoringHero from '../../public/images/features/errorMonitoringHero.png'
-import loggingHero from '../../public/images/features/loggingHero.png'
-import sessionReplayHero from '../../public/images/features/sessionReplayHero.png'
-import sessionscreenshot from '../../public/images/sessionscreenshot.png'
+import errorMonitoringSlanted from '../../public/images/error-monitoring.png'
+import loggingSlanted from '../../public/images/features/loggingHero.png'
+import sessionReplaySlant from '../../public/images/features/sessionReplayHero.png'
+import loggingStraight from '../../public/images/loggingscreenshot.png'
+import errorMonitoringStraight from '../../public/images/monitoringscreenshot.png'
+import sessionReplayStraight from '../../public/images/sessionscreenshot.png'
 
 import {
 	AnimateFeatureHeroRight,
 	AnimateFeatureHeroXL,
 } from '../../components/Animate'
+
+const heroImage = {
+	'session-replay': {
+		slanted: sessionReplaySlant,
+		straight: sessionReplayStraight,
+	},
+	'error-monitoring': {
+		slanted: errorMonitoringSlanted,
+		straight: errorMonitoringStraight,
+	},
+	logging: {
+		slanted: loggingSlanted,
+		straight: loggingStraight,
+	},
+}
 
 const CompetitorComparisonPage = ({
 	competitor,
@@ -43,19 +60,27 @@ const CompetitorComparisonPage = ({
 }) => {
 	const [imageLoaded, setImageLoaded] = useState(false)
 
+	const slantedImage = heroImage[competitor.type || 'session-replay'].slanted
+	const straightImage =
+		heroImage[competitor.type || 'session-replay'].straight
+
 	return (
 		<div>
 			<Image
-				src={sessionReplayHero}
+				src={sessionReplaySlant}
 				alt="Hero Background"
 				className="hidden"
 			/>
 			<Image
-				src={errorMonitoringHero}
+				src={errorMonitoringSlanted}
 				alt="Hero Background"
 				className="hidden"
 			/>
-			<Image src={loggingHero} alt="Hero Background" className="hidden" />
+			<Image
+				src={loggingSlanted}
+				alt="Hero Background"
+				className="hidden"
+			/>
 			<Navbar />
 			<div className="hidden md:flex ml-10 my-2">
 				<Link href="/">
@@ -114,7 +139,7 @@ const CompetitorComparisonPage = ({
 						<AnimateFeatureHeroRight loaded={imageLoaded}>
 							<Image
 								className={`hidden lg:flex ultra:hidden right-0 object-contain top-0`}
-								src={sessionReplayHero}
+								src={slantedImage}
 								alt="Feature Spotlight"
 								onLoadingComplete={() => setImageLoaded(true)}
 							/>
@@ -122,14 +147,14 @@ const CompetitorComparisonPage = ({
 						<AnimateFeatureHeroXL loaded={imageLoaded}>
 							<Image
 								className={`hidden ultra:flex`}
-								src={sessionscreenshot}
+								src={straightImage}
 								alt="Feature Spotlight"
 								onLoadingComplete={() => setImageLoaded(true)}
 							/>
 						</AnimateFeatureHeroXL>
 						<Image
 							className={`lg:hidden right-0 object-contain bottom-0 md:w-[500px]`}
-							src={sessionscreenshot}
+							src={straightImage}
 							alt="Feature Spotlight"
 							onLoadingComplete={() => setImageLoaded(true)}
 						/>
@@ -165,7 +190,7 @@ const CompetitorComparisonPage = ({
 										{paragraph.header}
 									</h5>
 									<Typography
-										type="copy1"
+										type="copy2"
 										className="text-copy-on-dark text-left"
 									>
 										<MDXRemote

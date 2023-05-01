@@ -6,7 +6,7 @@ import { GetStaticPaths, GetStaticProps } from 'next/types'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Collapse } from 'react-collapse'
 import remarkGfm from 'remark-gfm'
-import styles, { docsTable } from '../../components/Docs/Docs.module.scss'
+import styles from '../../components/Docs/Docs.module.scss'
 import ChevronDown from '../../public/images/ChevronDownIcon'
 import Minus from '../../public/images/MinusIcon'
 
@@ -1129,11 +1129,26 @@ const DocPage = ({
 													return (
 														<div
 															className={
-																docsTable
+																styles.docsTable
 															}
 														>
-															<table {...props} />
+															<Typography type="copy2">
+																<table
+																	{...props}
+																/>
+															</Typography>
 														</div>
+													)
+												},
+												img: (props) => {
+													return (
+														<picture>
+															<img
+																{...props}
+																alt={props.alt}
+																className="border-divider-on-dark border rounded-lg"
+															/>
+														</picture>
 													)
 												},
 											}}

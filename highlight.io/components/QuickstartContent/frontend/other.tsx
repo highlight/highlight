@@ -1,5 +1,3 @@
-import { siteUrl } from '../../../utils/urls'
-import { QuickStartContent } from '../QuickstartContent'
 import {
 	configureSourcemapsCI,
 	identifySnippet,
@@ -7,6 +5,9 @@ import {
 	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
+
+import { QuickStartContent } from '../QuickstartContent'
+import { siteUrl } from '../../../utils/urls'
 
 export const OtherContext: QuickStartContent = {
 	title: 'HTML/JS',
@@ -47,7 +48,7 @@ export const OtherContext: QuickStartContent = {
                 enabled: true,
                 recordHeadersAndBody: true,
                 urlBlocklist: [
-                    // insert urls you don't want to record here
+                    // insert full or partial urls that you don't want to record here
                 ],
             },
         });

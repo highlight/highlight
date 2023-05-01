@@ -103,7 +103,7 @@ export const Submit = ({ ...props }: ButtonProps) => {
 	return <Button type="submit" {...props} />
 }
 
-type InputProps = Omit<AriaKitFormInputProps, 'size'> &
+export type InputProps = Omit<AriaKitFormInputProps, 'size'> &
 	Variants &
 	HasLabel & {
 		cssClass?: ClassValue | ClassValue[]

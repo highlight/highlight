@@ -24,7 +24,7 @@ func main() {
 
 	r := public.Resolver{
 		DB:         db,
-		HubspotApi: hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig())),
+		HubspotApi: hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), nil),
 	}
 
 	var admins []model.Admin

@@ -4,6 +4,7 @@ import { ExternalAttachment, IntegrationType, Maybe } from '@graph/schemas'
 import ShareIcon from '@icons/ShareIcon'
 import {
 	CLICKUP_INTEGRATION,
+	GITHUB_INTEGRATION,
 	HEIGHT_INTEGRATION,
 	LINEAR_INTEGRATION,
 } from '@pages/IntegrationsPage/Integrations'
@@ -52,6 +53,8 @@ const getLogoUrl = (a: Maybe<ExternalAttachment>) => {
 			return CLICKUP_INTEGRATION.icon
 		case IntegrationType.Height:
 			return HEIGHT_INTEGRATION.icon
+		case IntegrationType.GitHub:
+			return GITHUB_INTEGRATION.icon
 	}
 	return ''
 }
@@ -64,6 +67,8 @@ export const getAttachmentUrl = (a: Maybe<ExternalAttachment>) => {
 			return `https://app.clickup.com/t/${a.external_id}`
 		case IntegrationType.Height:
 			return `https://height.app/${a.external_id}`
+		case IntegrationType.GitHub:
+			return a.external_id
 	}
 	return ''
 }

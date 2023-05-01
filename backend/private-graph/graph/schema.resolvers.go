@@ -37,6 +37,7 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
+	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -50,9 +51,6 @@ import (
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
-	"github.com/rs/zerolog"
-	zlog "github.com/rs/zerolog/log"
-	"github.com/rs/zerolog/pkgerrors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
@@ -265,7 +263,7 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 		return params, nil
 	}
 	if err := json.Unmarshal([]byte(*obj.Params), params); err != nil {
-		return nil, e.Wrapf(err, "error unmarshaling segment params")
+		return nil, e.Wrapf(err, "error unmarshalling segment params")
 	}
 	return params, nil
 }
@@ -456,6 +454,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 		}
 	}
 
+	phonehome.ReportAdminAboutYouDetails(ctx, admin)
 	if err := r.DB.Save(admin).Error; err != nil {
 		return false, err
 	}
@@ -668,18 +667,17 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 				Property: "number_of_highlight_error_groups_viewed",
 				Value:    totalErrorGroupCountAsInt,
 			}}, r.DB); err != nil {
-				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
-
-				zlog.Error().
-					Stack().
-					Err(err).
-					Int("admin_id", admin.ID).
-					Int("value", totalErrorGroupCountAsInt).
-					Msg("error updating error group count for admin in hubspot")
+				log.WithContext(ctx).
+					WithError(err).
+					WithField("admin_id", admin.ID).
+					WithField("value", totalErrorGroupCountAsInt).
+					Error("error updating error group count for admin in hubspot")
 			}
 			log.WithContext(ctx).Infof("succesfully added to total error group count for admin [%v], who just viewed error group [%v]", admin.ID, eg.ID)
 		}
+		phonehome.ReportUsageMetrics(ctx, phonehome.AdminUsage, admin.ID, []attribute.KeyValue{
+			attribute.Int(phonehome.ErrorViewCount, totalErrorGroupCountAsInt),
+		})
 	})
 
 	newErrorGroup := &model.ErrorGroup{}
@@ -763,18 +761,17 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 				Property: "number_of_highlight_sessions_viewed",
 				Value:    totalSessionCountAsInt,
 			}}, r.DB); err != nil {
-				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
-
-				zlog.Error().
-					Stack().
-					Err(err).
-					Int("admin_id", admin.ID).
-					Int("value", totalSessionCountAsInt).
-					Msg("error updating session count for admin in hubspot")
+				log.WithContext(ctx).
+					WithError(err).
+					WithField("admin_id", admin.ID).
+					WithField("value", totalSessionCountAsInt).
+					Error("error updating session count for admin in hubspot")
 			}
 			log.WithContext(ctx).Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
 		}
+		phonehome.ReportUsageMetrics(ctx, phonehome.AdminUsage, admin.ID, []attribute.KeyValue{
+			attribute.Int(phonehome.SessionViewCount, totalSessionCountAsInt),
+		})
 	})
 
 	newSession := &model.Session{}
@@ -1552,6 +1549,20 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeGitHub {
+			if err := r.CreateGitHubTaskAndAttachment(
+				ctx,
+				workspace,
+				attachment,
+				*issueTitle,
+				desc,
+				issueTeamID,
+				tags,
+			); err != nil {
+				return nil, e.Wrap(err, "error creating GitHub task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		}
 	}
 
@@ -1617,6 +1628,12 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 		} else if *s == modelInputs.IntegrationTypeHeight {
 			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeGitHub {
+			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID, nil); err != nil {
+				return nil, e.Wrap(err, "error creating GitHub task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -1814,7 +1831,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
@@ -1937,6 +1954,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 		} else if *s == modelInputs.IntegrationTypeHeight {
 			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeGitHub {
+			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID, nil); err != nil {
+				return nil, e.Wrap(err, "error creating GitHub task")
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
@@ -2105,6 +2128,12 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeGitHub {
+			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID, nil); err != nil {
+				return nil, e.Wrap(err, "error creating GitHub task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
 
@@ -2142,7 +2171,7 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 		return nil, e.Wrap(err, "error querying error comment")
 	}
 
-	_, err := r.canAdminViewErrorGroup(ctx, errorComment.ErrorSecureId, false)
+	_, err := r.canAdminViewErrorGroup(ctx, errorComment.ErrorSecureId)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
@@ -2268,11 +2297,6 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddDiscordToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
-	} else if *integrationType == modelInputs.IntegrationTypeClickUp {
-		// TODO - see if we can remove this code path
-		if err := r.AddClickUpToWorkspace(ctx, workspace, code); err != nil {
-			return false, err
-		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -2316,6 +2340,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		if err := r.RemoveDiscordFromWorkspace(workspace); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeGitHub {
+		if err := r.RemoveDiscordFromWorkspace(workspace); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -2338,7 +2366,10 @@ func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integr
 		if err := r.AddHeightToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
-
+	} else if *integrationType == modelInputs.IntegrationTypeGitHub {
+		if err := r.AddGitHubToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -2358,7 +2389,7 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 			return false, err
 		}
 	} else {
-		if err := r.RemoveIntegrationFromWorkspaceAndProjects(workspace, integrationType); err != nil {
+		if err := r.RemoveIntegrationFromWorkspaceAndProjects(ctx, workspace, integrationType); err != nil {
 			return false, err
 		}
 
@@ -3997,7 +4028,7 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 
 // ErrorGroup is the resolver for the error_group field.
 func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
-	eg, err := r.canAdminViewErrorGroup(ctx, secureID, true)
+	eg, err := r.canAdminViewErrorGroup(ctx, secureID)
 	if err != nil {
 		return nil, err
 	}
@@ -4031,7 +4062,7 @@ func (r *queryResolver) ErrorObjectForLog(ctx context.Context, logCursor string)
 
 // ErrorInstance is the resolver for the error_instance field.
 func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int) (*model.ErrorInstance, error) {
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, true)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "not authorized to view error group")
 	}
@@ -4125,7 +4156,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		if err := r.DB.Model(&session).Where("id = ?", *errorObject.SessionID).Find(&session).Error; err != nil {
 			return nil, e.Wrap(err, "error reading error group session")
 		}
-		if session.Excluded != nil && *session.Excluded {
+		if session.Excluded {
 			errorObject.SessionID = nil
 		}
 	}
@@ -4447,7 +4478,7 @@ func (r *queryResolver) IsSessionPending(ctx context.Context, sessionSecureID st
 
 // ErrorIssue is the resolver for the error_issue field.
 func (r *queryResolver) ErrorIssue(ctx context.Context, errorGroupSecureID string) ([]*model.ExternalAttachment, error) {
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not error owner")
 	}
@@ -4480,7 +4511,7 @@ func (r *queryResolver) ErrorIssue(ctx context.Context, errorGroupSecureID strin
 
 // ErrorComments is the resolver for the error_comments field.
 func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupSecureID string) ([]*model.ErrorComment, error) {
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not error owner")
 	}
@@ -4603,24 +4634,21 @@ func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) 
 // ClientIntegration is the resolver for the clientIntegration field.
 func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
 	integration := &modelInputs.IntegrationStatus{
-		Integrated:       false,
-		ResourceType:     "Session",
-		ResourceSecureID: nil,
+		Integrated:   false,
+		ResourceType: "Session",
 	}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return integration, nil
 	}
 
-	firstSession := model.Session{}
-	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where("created_at > ?", time.Now().Add(time.Hour*24*-30)).Limit(1).Find(&firstSession).Error
-	if err != nil {
-		return integration, e.Wrap(err, "error querying session for project")
+	setupEvent := model.SetupEvent{}
+	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeSession).Limit(1).Find(&setupEvent).Error; err != nil {
+		return nil, e.Wrap(err, "error querying logging setup event")
 	}
 
-	if firstSession.ID != 0 {
+	if setupEvent.ID != 0 {
 		integration.Integrated = true
-		integration.ResourceSecureID = &firstSession.SecureID
-		integration.CreatedAt = &firstSession.CreatedAt
+		integration.CreatedAt = &setupEvent.CreatedAt
 	}
 
 	return integration, nil
@@ -4629,24 +4657,21 @@ func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*
 // ServerIntegration is the resolver for the serverIntegration field.
 func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
 	integration := &modelInputs.IntegrationStatus{
-		Integrated:       false,
-		ResourceType:     "ErrorGroup",
-		ResourceSecureID: nil,
+		Integrated:   false,
+		ResourceType: "ErrorGroup",
 	}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return integration, nil
 	}
 
-	firstErrorGroup := model.ErrorGroup{}
-	err := r.DB.Model(&model.ErrorGroup{}).Where("project_id = ?", projectID).Where("created_at > ?", time.Now().Add(time.Hour*24*-30)).Limit(1).Find(&firstErrorGroup).Error
-	if err != nil {
-		return integration, e.Wrap(err, "error querying error group for project")
+	setupEvent := model.SetupEvent{}
+	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeError).Limit(1).Find(&setupEvent).Error; err != nil {
+		return nil, e.Wrap(err, "error querying logging setup event")
 	}
 
-	if firstErrorGroup.ID != 0 {
+	if setupEvent.ID != 0 {
 		integration.Integrated = true
-		integration.ResourceSecureID = &firstErrorGroup.SecureID
-		integration.CreatedAt = &firstErrorGroup.CreatedAt
+		integration.CreatedAt = &setupEvent.CreatedAt
 	}
 
 	return integration, nil
@@ -4655,9 +4680,8 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 // LogsIntegration is the resolver for the logsIntegration field.
 func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
 	integration := &modelInputs.IntegrationStatus{
-		Integrated:       false,
-		ResourceType:     "Log",
-		ResourceSecureID: nil,
+		Integrated:   false,
+		ResourceType: "Log",
 	}
 	_, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
@@ -4749,7 +4773,7 @@ func (r *queryResolver) ProjectHasViewedASession(ctx context.Context, projectID 
 	}
 
 	session := model.Session{}
-	if err := r.DB.Model(&session).Where("project_id = ?", projectID).Where(&model.Session{Viewed: &model.T, Excluded: &model.F}).First(&session).Error; err != nil {
+	if err := r.DB.Model(&session).Where("project_id = ?", projectID).Where(&model.Session{Viewed: &model.T, Excluded: false}).First(&session).Error; err != nil {
 		return &session, nil
 	}
 	return &session, nil
@@ -4803,7 +4827,7 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dat
 
 // DailyErrorFrequency is the resolver for the dailyErrorFrequency field.
 func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]int64, error) {
-	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
@@ -4827,7 +4851,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 
 // ErrorDistribution is the resolver for the errorDistribution field.
 func (r *queryResolver) ErrorDistribution(ctx context.Context, projectID int, errorGroupSecureID string, property string) ([]*modelInputs.ErrorDistributionItem, error) {
-	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
@@ -4864,7 +4888,7 @@ func (r *queryResolver) ErrorDistribution(ctx context.Context, projectID int, er
 func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params modelInputs.ErrorGroupFrequenciesParamsInput, metric *string) ([]*modelInputs.ErrorDistributionItem, error) {
 	var errorGroupIDs []int
 	for _, errorGroupSecureID := range errorGroupSecureIds {
-		errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+		errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 		if err != nil {
 			return nil, e.Wrap(err, "admin not error group owner")
 		}
@@ -4878,7 +4902,7 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 
 // ErrorGroupTags is the resolver for the errorGroupTags field.
 func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID string) ([]*modelInputs.ErrorGroupTagAggregation, error) {
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not error group owner")
 	}
@@ -6360,6 +6384,26 @@ func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*mode
 	return ret, nil
 }
 
+// GithubRepos is the resolver for the github_repos field.
+func (r *queryResolver) GithubRepos(ctx context.Context, workspaceID int) ([]*modelInputs.GitHubRepo, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+
+	return r.GetGitHubRepos(ctx, workspace)
+}
+
+// GithubIssueLabels is the resolver for the github_issue_labels field.
+func (r *queryResolver) GithubIssueLabels(ctx context.Context, workspaceID int, repository string) ([]string, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+
+	return r.GetGitHubIssueLabels(ctx, workspace, repository)
+}
+
 // Project is the resolver for the project field.
 func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, id)
@@ -7196,10 +7240,59 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 
 // Logs is the resolver for the logs field.
 func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string, direction modelInputs.LogDirection) (*modelInputs.LogsConnection, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not logged in")
+	}
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
+
+	// Update the the number of logs viewed for the current admin.
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		var totalLogCount int64
+		if err := r.DB.Raw(`
+			select count(*)
+			from log_admins_views
+			where admin_id = ?
+	`, admin.ID).Scan(&totalLogCount).Error; err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error querying total count of log views from admin"))
+			return
+		}
+		totalLogCountAsInt := int(totalLogCount) + 1
+
+		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfLogsViewed: &totalLogCountAsInt}).Error; err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error updating log count for admin in postgres"))
+		}
+		if util.IsHubspotEnabled() {
+			if err := r.HubspotApi.UpdateContactProperty(ctx, admin.ID, []hubspot.Property{{
+				Name:     "number_of_highlight_logs_viewed",
+				Property: "number_of_highlight_logs_viewed",
+				Value:    totalLogCountAsInt,
+			}}, r.DB); err != nil {
+				log.WithContext(ctx).
+					WithError(err).
+					WithField("admin_id", admin.ID).
+					WithField("value", totalLogCountAsInt).
+					Error("error updating log count for admin in hubspot")
+			}
+			log.WithContext(ctx).Infof("succesfully added to total log count for admin [%v], who just viewed log", admin.ID)
+		}
+		phonehome.ReportUsageMetrics(ctx, phonehome.AdminUsage, admin.ID, []attribute.KeyValue{
+			attribute.Int(phonehome.LogViewCount, totalLogCountAsInt),
+		})
+
+		if err := r.DB.Model(&model.LogAdminsView{}).Create(&model.LogAdminsView{
+			AdminID: admin.ID,
+		}).Error; err != nil {
+			log.WithContext(ctx).
+				WithError(err).
+				WithField("admin_id", admin.ID).
+				WithField("value", totalLogCountAsInt).
+				Error("error saving log view for admin in hubspot")
+		}
+	})
 
 	return r.ClickhouseClient.ReadLogs(ctx, project.ID, params, clickhouse.Pagination{
 		After:     after,

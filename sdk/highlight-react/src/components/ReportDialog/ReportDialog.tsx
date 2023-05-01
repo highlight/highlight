@@ -1,4 +1,7 @@
-import React, { useRef, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
+
+import classnames from 'classnames'
+import styles from './styles.module.css'
 
 export interface ReportDialogOptions {
 	user?: {
@@ -7,8 +10,8 @@ export interface ReportDialogOptions {
 	}
 	title?: string
 	subtitle?: string
-	subtitle2?: string
 	labelName?: string
+	subtitle2?: string
 	labelEmail?: string
 	labelComments?: string
 	placeholderComments?: string
@@ -24,11 +27,11 @@ type ReportDialogProps = ReportDialogOptions & {
 	onSubmitHandler?: () => void
 }
 
-const ReportDialog = ({
-	labelClose = 'Close',
-	labelComments = 'What happened?',
-	labelEmail = 'Email',
+export default function ReportDialog({
+	labelClose = 'Cancel',
+	labelComments = 'Message',
 	labelName = 'Name',
+	labelEmail = 'Email',
 	labelSubmit = 'Submit',
 	subtitle2 = 'If you’d like to help, tell us what happened below.',
 	subtitle = 'Our team has been notified.',
@@ -40,7 +43,7 @@ const ReportDialog = ({
 	onCloseHandler,
 	onSubmitHandler,
 	hideHighlightBranding = false,
-}: ReportDialogProps) => {
+}: ReportDialogProps) {
 	const [name, setName] = useState(user?.name || '')
 	const [email, setEmail] = useState(user?.email || '')
 	const [verbatim, setVerbatim] = useState('')
@@ -48,6 +51,13 @@ const ReportDialog = ({
 	const [sentReport, setSentReport] = useState(false)
 	// We want to record when the feedback started, not when the feedback is submitted. If we record the latter, the timing could be way off.
 	const reportDialogOpenTime = useRef(new Date().toISOString())
+	const isValid = useMemo(() => {
+		const isValidEmail = !!email.match(
+			/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
+		)
+
+		return !!name && isValidEmail && !!verbatim
+	}, [name, email, verbatim])
 
 	const handleSubmit = (event: React.SyntheticEvent) => {
 		event.preventDefault()
@@ -76,119 +86,160 @@ const ReportDialog = ({
 	}
 
 	return (
-		<main className={`container`}>
-			<div className={`card`}>
-				<div
-					className={`cardContents ${
-						sentReport && 'cardContentsVisible'
-					}`}
-				>
-					<h1 className={`title`}>{successMessage}</h1>
-					<h4 className={`subtitle`}>{successSubtitle}</h4>
-					<button
-						className={`button confirmationButton`}
-						onClick={onCloseHandler}
-					>
-						Close
-					</button>
-				</div>
-				<div
-					className={`cardContents ${
-						!sentReport && 'cardContentsVisible'
-					}`}
-				>
-					<div>
-						<h1 className={`title`}>{title}</h1>
-						<h2 className={`subtitle`}>
-							{subtitle} {subtitle2}
-						</h2>
-					</div>
-					<form className={`form`} onSubmit={handleSubmit}>
-						<label>
-							{labelName}
-							<input
-								type="text"
-								value={name}
-								name="name"
-								autoFocus
-								onChange={(e) => {
-									setName(e.target.value)
-								}}
-							/>
-						</label>
+		<>
+			<style
+				dangerouslySetInnerHTML={{
+					__html: `
+					@font-face {
+						font-display: swap;
+						font-family: 'Steradian';
+						font-style: normal;
+						font-weight: normal;
+						src: local('Steradian Regular'), local('SteradianRegular'),
+							url('https://app.highlight.io/font/SteradianRegular.woff2')
+								format('woff2');
+					}
+					@font-face {
+						font-display: swap;
+						font-family: 'Steradian';
+						font-style: normal;
+						font-weight: 500;
+						src: local('Steradian Medium'), local('SteradianMedium'),
+							url('https://app.highlight.io/font/SteradianMedium.woff2')
+								format('woff2');
+					}
 
-						<label>
-							{labelEmail}
-							<input
-								type="email"
-								value={email}
-								name="email"
-								onChange={(e) => {
-									setEmail(e.target.value)
-								}}
-							/>
-						</label>
-
-						<label>
-							{labelComments}
-							<textarea
-								value={verbatim}
-								placeholder={placeholderComments}
-								name="verbatim"
-								rows={3}
-								onChange={(e) => {
-									setVerbatim(e.target.value)
-								}}
-							></textarea>
-						</label>
-
-						<div className={`formFooter`}>
-							<div className={`formActionsContainer`}>
+					::placeholder {
+						color: var(--color-gray-300);
+					}
+			`,
+				}}
+			/>
+			<main className={styles.container}>
+				<div className={styles.card}>
+					{sentReport ? (
+						<div className={styles.cardContents}>
+							<h1 className={styles.title}>{successMessage}</h1>
+							<h4 className={styles.subtitle}>
+								{successSubtitle}
+							</h4>
+							<div>
 								<button
-									type="submit"
-									className={
-										sendingReport
-											? `button loadingButton`
-											: 'button'
-									}
-								>
-									{labelSubmit}
-								</button>
-								<button
-									className={`button closeButton`}
+									className={classnames(
+										styles.button,
+										styles.confirmationButton,
+									)}
 									onClick={onCloseHandler}
-									type="button"
 								>
-									{labelClose}
+									Close
 								</button>
 							</div>
-							{!hideHighlightBranding && (
-								<div className={`ad`}>
-									<p className={`logoContainer`}>
-										Crash reports powered by:
-										{/*  eslint-disable-next-line react/jsx-no-target-blank */}
-										<a
-											href="https://highlight.run"
-											target="_blank"
-										>
-											<img
-												src="https://app.highlight.run/logo-24x130.png"
-												alt="Highlight"
-												height="25"
-												className={`logo`}
-											/>
-										</a>
-									</p>
-								</div>
-							)}
 						</div>
-					</form>
+					) : (
+						<div className={styles.cardContents}>
+							<div>
+								<h1 className={styles.title}>{title}</h1>
+								<h2 className={styles.subtitle}>
+									{subtitle} {subtitle2}
+								</h2>
+							</div>
+							<form
+								className={styles.form}
+								onSubmit={handleSubmit}
+							>
+								<label>
+									{labelName}
+									<input
+										type="text"
+										value={name}
+										name="name"
+										autoFocus
+										onChange={(e) => {
+											setName(e.target.value)
+										}}
+										placeholder="Tom Jerry"
+									/>
+								</label>
+
+								<label>
+									{labelEmail}
+									<input
+										type="email"
+										value={email}
+										name="email"
+										onChange={(e) => {
+											setEmail(e.target.value)
+										}}
+										placeholder="mail@mail.com"
+									/>
+								</label>
+
+								<label className={styles.textareaLabel}>
+									{labelComments}
+									<textarea
+										value={verbatim}
+										placeholder={placeholderComments}
+										name="verbatim"
+										rows={3}
+										onChange={(e) => {
+											setVerbatim(e.target.value)
+										}}
+									/>
+								</label>
+
+								<div className={styles.formFooter}>
+									<div
+										className={styles.formActionsContainer}
+									>
+										<button
+											type="submit"
+											disabled={!isValid || sendingReport}
+										>
+											{labelSubmit}
+										</button>
+
+										<button
+											className={styles.closeButton}
+											onClick={onCloseHandler}
+											type="button"
+										>
+											{labelClose}
+										</button>
+									</div>
+
+									{!hideHighlightBranding && (
+										<div className={styles.ad}>
+											<a
+												href="https://highlight.io"
+												target="_blank"
+											>
+												<div
+													className={
+														styles.logoContainer
+													}
+												>
+													{/*  eslint-disable-next-line react/jsx-no-target-blank */}
+
+													<img
+														src="https://www.highlight.io/images/logo-on-dark.png"
+														alt="Highlight"
+														className={styles.logo}
+													/>
+													<span>
+														Powered by highlight.io
+													</span>
+												</div>
+											</a>
+										</div>
+									)}
+								</div>
+							</form>
+						</div>
+					)}
 				</div>
-			</div>
-		</main>
+			</main>
+		</>
 	)
 }
-
-export default ReportDialog
 
 declare var window: any

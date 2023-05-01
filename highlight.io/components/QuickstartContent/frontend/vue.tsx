@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent, QuickStartStep } from '../QuickstartContent'
 import {
 	configureSourcemapsCI,
@@ -8,6 +7,8 @@ import {
 	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
+
+import { siteUrl } from '../../../utils/urls'
 
 const vueInitSnippet: QuickStartStep = {
 	title: 'Initialize the SDK in your frontend.',
@@ -27,7 +28,7 @@ H.init('<YOUR_PROJECT_ID>', {
 		enabled: true,
 		recordHeadersAndBody: true,
         urlBlocklist: [
-            // insert urls you don't want to record here
+            // insert full or partial urls that you don't want to record here
         ],
 	},
 });

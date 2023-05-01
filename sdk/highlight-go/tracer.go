@@ -11,7 +11,6 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type GraphqlTracer interface {
@@ -93,7 +92,6 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	start := graphql.Now()
 	resp := next(ctx)
 	end := graphql.Now()
-	t.log(ctx, span, resp.Errors)
 	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
@@ -101,44 +99,6 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 		RecordMetric(ctx, name+".errorsCount", float64(len(resp.Errors)))
 	}
 	return resp
-}
-
-func (t Tracer) log(ctx context.Context, span trace.Span, errs gqlerror.List) {
-	if !t.requestFieldLogging {
-		return
-	}
-	var oc *graphql.OperationContext
-	if graphql.HasOperationContext(ctx) {
-		oc = graphql.GetOperationContext(ctx)
-	}
-	err := errs.Error()
-	lvl := "trace"
-	if err != "" {
-		lvl = "error"
-	}
-	attrs := []attribute.KeyValue{
-		attribute.String("graphql.graph", t.graphName),
-		attribute.String(LogSeverityAttribute, lvl),
-	}
-	if oc != nil {
-		attrs = append(attrs,
-			semconv.GraphqlOperationNameKey.String(oc.OperationName),
-			semconv.GraphqlDocumentKey.String(oc.RawQuery),
-		)
-		if oc.Operation != nil {
-			attrs = append(attrs,
-				attribute.String(LogMessageAttribute, fmt.Sprintf("graphql.operation.%s", oc.Operation.Name)),
-				semconv.GraphqlOperationTypeKey.String(string(oc.Operation.Operation)),
-			)
-		}
-	}
-	if err != "" {
-		attrs = append(attrs, attribute.String("graphql.error", err))
-	}
-	span.AddEvent(LogEvent, trace.WithAttributes(attrs...))
-	if err != "" {
-		RecordSpanError(span, errs, attrs...)
-	}
 }
 
 func GraphQLRecoverFunc() graphql.RecoverFunc {
@@ -165,15 +125,14 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 				"path":       t.Path,
 				"extensions": t.Extensions,
 				"locations":  t.Locations,
-			}).Warnf("%s graphql request failed", service)
+			}).Errorf("%s graphql request failed", service)
 		default:
 			gqlerr = gqlerror.Errorf(e.Error())
-			log.WithContext(ctx).WithFields(log.Fields{
+			log.WithContext(ctx).WithError(e).WithFields(log.Fields{
 				"error": e,
 				"path":  graphql.GetPath(ctx),
-			}).Warnf("%s graphql request failed", service)
+			}).Errorf("%s graphql request failed", service)
 		}
-
 		return gqlerr
 	}
 }

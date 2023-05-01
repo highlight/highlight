@@ -1,6 +1,7 @@
 import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
 import { colors } from '../../css/colors'
 import { vars } from '../../css/vars'
+import { typographyStyles } from '../Text/styles.css'
 
 export const inputVariants = recipe({
 	base: {
@@ -13,6 +14,7 @@ export const inputVariants = recipe({
 		selectors: {
 			'&::placeholder': {
 				color: vars.theme.interactive.fill.secondary.content.onDisabled,
+				fontFamily: typographyStyles.family.body.fontFamily,
 			},
 			'&:disabled': {
 				background: colors.n5,
@@ -41,8 +43,10 @@ export const inputVariants = recipe({
 				width: 0,
 				padding: 0,
 				border: 'none',
-				'&:focus, &:active, &:placeholder-shown:hover': {
-					border: 'none',
+				selectors: {
+					'&:focus, &:active, &:placeholder-shown:hover': {
+						border: 'none',
+					},
 				},
 			},
 			false: {},

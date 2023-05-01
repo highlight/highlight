@@ -1,12 +1,10 @@
-import React from 'react'
-
 import { ErrorBoundary, SampleBuggyButton } from '@highlight-run/react'
 
-import '@highlight-run/react/dist/index.css'
+import React from 'react'
 
 export const Basic: React.FC = () => {
 	return (
-		<ErrorBoundary showDialog>
+		<ErrorBoundary>
 			<SampleBuggyButton />
 		</ErrorBoundary>
 	)

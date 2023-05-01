@@ -1,6 +1,5 @@
 import 'antd/dist/antd.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
-import '@highlight-run/react/dist/index.css'
 import '@fontsource/poppins'
 import './index.scss'
 import './style/tailwind.css'
@@ -63,6 +62,8 @@ const options: HighlightOptions = {
 		destinationDomains: [
 			'pri.highlight.run',
 			'pub.highlight.run',
+			'pri.highlight.io',
+			'pub.highlight.io',
 			'localhost:8082',
 		],
 		urlBlocklist: [
@@ -139,7 +140,6 @@ const App = () => {
 
 	return (
 		<ErrorBoundary
-			showDialog
 			onAfterReportDialogCancelHandler={() => {
 				const { origin } = window.location
 				window.location.href = origin

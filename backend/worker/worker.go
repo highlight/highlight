@@ -8,21 +8,10 @@ import (
 	"math"
 	"math/rand"
 	"os"
-	"regexp"
 	"sort"
 	"strconv"
 	"sync"
 	"time"
-
-	"github.com/leonelquinteros/hubspot"
-	"github.com/openlyinc/pointy"
-	"github.com/pkg/errors"
-	e "github.com/pkg/errors"
-	"github.com/shirou/gopsutil/mem"
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/alerts"
 	highlightErrors "github.com/highlight-run/highlight/backend/errors"
@@ -34,14 +23,26 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/payload"
+	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
+	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	pubgraph "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
+	"github.com/leonelquinteros/hubspot"
+	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
+	e "github.com/pkg/errors"
+	"github.com/shirou/gopsutil/mem"
+	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
+	"golang.org/x/sync/errgroup"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm"
 )
 
 // Worker is a job runner that parses sessions
@@ -495,7 +496,7 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 }
 
 func (w *Worker) excludeSession(ctx context.Context, s *model.Session) error {
-	s.Excluded = &model.T
+	s.Excluded = true
 	s.Processed = &model.T
 	if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
@@ -510,43 +511,6 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session) error {
 	}
 
 	return nil
-}
-
-func (w *Worker) isSessionUserExcluded(ctx context.Context, s *model.Session) bool {
-	var project model.Project
-	if err := w.Resolver.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
-		return false
-	}
-	if project.ExcludedUsers == nil {
-		return false
-	}
-	var email string
-	if s.UserProperties != "" {
-		encodedProperties := []byte(s.UserProperties)
-		decodedProperties := map[string]string{}
-		err := json.Unmarshal(encodedProperties, &decodedProperties)
-		if err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s, error: %v", s.UserProperties, err)
-			return false
-		}
-		email = decodedProperties["email"]
-	}
-	for _, value := range []string{s.Identifier, email} {
-		if value == "" {
-			continue
-		}
-		for _, excludedExpr := range project.ExcludedUsers {
-			matched, err := regexp.MatchString(excludedExpr, value)
-			if err != nil {
-				log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s, error: %v", excludedExpr, value, err.Error())
-				return false
-			} else if matched {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
@@ -610,7 +574,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if len(accumulator.EventsForTimelineIndicator) == 0 && s.Length <= 0 {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
-		s.Excluded = &model.T
+		s.Excluded = true
 		s.Processed = &model.T
 		if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
@@ -805,11 +769,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if accumulator.ActiveDuration == 0 {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("excluding session with 0ms length active duration (session_id=%d, identifier=%s)", s.ID, s.Identifier)
-		return w.excludeSession(ctx, s)
-	}
-
-	if w.isSessionUserExcluded(ctx, s) {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Infof("excluding session due to excluded identifier")
 		return w.excludeSession(ctx, s)
 	}
 
@@ -1114,9 +1073,9 @@ func (w *Worker) Start(ctx context.Context) {
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
-					var excluded *bool
+					var excluded bool
 					if nextCount >= MAX_RETRIES {
-						excluded = &model.T
+						excluded = true
 					}
 
 					if err := w.Resolver.DB.Model(&model.Session{}).
@@ -1125,7 +1084,7 @@ func (w *Worker) Start(ctx context.Context) {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error incrementing retry count"))
 					}
 
-					if excluded != nil && *excluded {
+					if excluded {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Warn(e.Wrap(err, "session has reached the max retry count and will be excluded"))
 						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
@@ -1268,26 +1227,41 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		WorkspaceID  int   `json:"workspace_id"`
 		SessionCount int64 `json:"session_count"`
 		ErrorCount   int64 `json:"error_count"`
+		LogCount     int64 `json:"log_count"`
 	}
-	var counts []AggregateSessionCount
+	var counts []*AggregateSessionCount
 
 	if err := w.Resolver.DB.Raw(`
 		SELECT p.workspace_id, sum(dsc.count) as session_count, sum(dec.count) as error_count
 		FROM projects p
-				 INNER JOIN daily_session_counts_view dsc on p.id = dsc.project_id
-				 INNER JOIN daily_error_counts_view dec on p.id = dec.project_id
+				 LEFT OUTER JOIN daily_session_counts_view dsc on p.id = dsc.project_id
+				 LEFT OUTER JOIN daily_error_counts_view dec on p.id = dec.project_id
 		GROUP BY p.workspace_id`).Scan(&counts).Error; err != nil {
 		log.WithContext(ctx).Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
 	}
 
-	if util.IsHubspotEnabled() {
-		for _, c := range counts {
-			// See HIG-2743
-			// Skip updating session count for demo workspace because we exclude it from Hubspot
-			if c.WorkspaceID == 0 {
-				continue
-			}
+	for _, c := range counts {
+		workspace := &model.Workspace{}
+		if err := w.Resolver.DB.Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).First(&workspace).Error; err != nil {
+			continue
+		}
+		for _, p := range workspace.Projects {
+			count, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{DateRange: &backend.DateRangeRequiredInput{
+				StartDate: time.Now().Add(-time.Hour * 24 * 30),
+				EndDate:   time.Now(),
+			}})
+			c.LogCount += int64(count)
+		}
+	}
 
+	for _, c := range counts {
+		// See HIG-2743
+		// Skip updating session count for demo workspace because we exclude it from Hubspot
+		if c.WorkspaceID == 0 {
+			continue
+		}
+
+		if util.IsHubspotEnabled() && (c.SessionCount > 0 || c.ErrorCount > 0) {
 			if err := w.Resolver.HubspotApi.UpdateCompanyProperty(ctx, c.WorkspaceID, []hubspot.Property{{
 				Name:     "highlight_session_count",
 				Property: "highlight_session_count",
@@ -1301,10 +1275,17 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 					"workspace_id":  c.WorkspaceID,
 					"session_count": c.SessionCount,
 					"error_count":   c.ErrorCount,
-				}).Fatal(e.Wrap(err, "error updating highlight session count in hubspot"))
+				}).Error(e.Wrap(err, "error updating highlight session count in hubspot"))
 			}
-			time.Sleep(150 * time.Millisecond)
 		}
+
+		phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, c.WorkspaceID, []attribute.KeyValue{
+			attribute.Int64(phonehome.SessionCount, c.SessionCount),
+			attribute.Int64(phonehome.ErrorCount, c.ErrorCount),
+			attribute.Int64(phonehome.LogCount, c.LogCount),
+		})
+
+		time.Sleep(150 * time.Millisecond)
 	}
 }
 

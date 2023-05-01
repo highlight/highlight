@@ -1,12 +1,13 @@
+import { Popover, Transition } from '@headlessui/react'
 import Image from 'next/image'
+import { useState } from 'react'
 import {
 	HiCheckCircle,
 	HiDotsCircleHorizontal,
+	HiQuestionMarkCircle,
 	HiXCircle,
 } from 'react-icons/hi'
 import highlightlogosmall from '../../public/images/logo-on-dark.png'
-import logrocketlogofull from '../../public/images/logrocketlogofull.png'
-import logrocketlogosmall from '../../public/images/logrocketlogosmall.png'
 import { HighlightLogo } from '../common/HighlightLogo/HighlightLogo'
 import { Typography } from '../common/Typography/Typography'
 import {
@@ -14,6 +15,46 @@ import {
 	ComparisonTableSection,
 	Competitor,
 } from './competitors'
+
+function HeadlessTooltip(props) {
+	const [isShowing, setIsShowing] = useState(false)
+
+	return (
+		<Popover className="relative mr-2 flex items-center">
+			{({ open }) => (
+				<>
+					<Popover.Button
+						onMouseEnter={() => setIsShowing(true)}
+						onMouseLeave={() => setIsShowing(false)}
+					>
+						<HiQuestionMarkCircle className="h-7 w-7 p-1 text-copy-on-light hover:bg-divider-on-dark rounded-md" />
+					</Popover.Button>
+
+					<Transition
+						show={isShowing}
+						onMouseEnter={() => setIsShowing(true)}
+						onMouseLeave={() => setIsShowing(false)}
+						enter="transition ease-out duration-200"
+						enterFrom="opacity-0 translate-y-1"
+						enterTo="opacity-100 translate-y-0"
+						leave="transition ease-in duration-150"
+						leaveFrom="opacity-100 translate-y-0"
+						leaveTo="opacity-0 translate-y-1"
+					>
+						<Popover.Panel className="absolute right-0 bottom-4 z-10 p-2 w-[200px] bg-dark-background border-[1px] border-divider-on-dark rounded-md ">
+							<Typography
+								type="copy4"
+								className="text-darker-copy-on-dark text-center"
+							>
+								{props.tooltip}
+							</Typography>
+						</Popover.Panel>
+					</Transition>
+				</>
+			)}
+		</Popover>
+	)
+}
 
 export default function ComparisonTable(props: { competitor: Competitor }) {
 	if (!props.competitor) {
@@ -47,21 +88,37 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 									</div>
 									<Image
 										src={highlightlogosmall}
-										alt="LogRocket Logo"
+										alt="Logo"
 										className="md:hidden"
 									/>
 								</div>
 								<div className="w-[50px] md:w-[200px] px-1">
-									<Image
-										src={logrocketlogofull}
-										alt="LogRocket Logo"
-										className="hidden md:flex"
-									/>
-									<Image
-										src={logrocketlogosmall}
-										alt="LogRocket Logo"
-										className="md:hidden"
-									/>
+									{props.competitor.logoDesktop &&
+									props.competitor.logoMobile ? (
+										<>
+											<Image
+												src={
+													props.competitor.logoDesktop
+												}
+												alt="Logo"
+												height={28}
+												className="hidden md:flex"
+											/>
+											<Image
+												src={
+													props.competitor.logoMobile
+												}
+												height={32}
+												width={32}
+												alt="Logo"
+												className="md:hidden"
+											/>
+										</>
+									) : (
+										<div style={{ fontSize: 20 }}>
+											{props.competitor.name}
+										</div>
+									)}
 								</div>
 							</div>
 						</div>
@@ -72,11 +129,17 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 							>
 								<Typography
 									type="copy2"
-									className="text-copy-on-dark whitespace-nowrap w-[175px] sm:w-full overflow-x-scroll"
+									className="text-copy-on-dark whitespace-nowrap w-full mr-4 text-ellipsis overflow-hidden"
 								>
 									{row.feature}
 								</Typography>
 								<div className="flex items-center">
+									{row.tooltip && (
+										<HeadlessTooltip
+											tooltip={row.tooltip}
+										/>
+									)}
+
 									<div
 										className={`bg-divider-on-dark px-2 py-2 w-[50px] md:w-[200px] border-r-[1px] border-copy-on-light ${
 											j == 0

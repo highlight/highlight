@@ -188,6 +188,9 @@ var Models = []interface{}{
 	&BillingEmailHistory{},
 	&Retryable{},
 	&SetupEvent{},
+	&SessionAdminsView{},
+	&ErrorGroupAdminsView{},
+	&LogAdminsView{},
 }
 
 func init() {
@@ -517,6 +520,7 @@ type Admin struct {
 	Phone                     *string
 	NumberOfSessionsViewed    *int
 	NumberOfErrorGroupsViewed *int
+	NumberOfLogsViewed        *int
 	EmailVerified             *bool            `gorm:"default:false"`
 	PhotoURL                  *string          `json:"photo_url"`
 	UID                       *string          `gorm:"uniqueIndex"`
@@ -630,7 +634,7 @@ type Session struct {
 	VerboseID             string  `json:"verbose_id"`
 
 	// Excluded will be true when we would typically have deleted the session
-	Excluded *bool `gorm:"default:false"`
+	Excluded bool `gorm:"default:false"`
 
 	// Lock is the timestamp at which a session was locked
 	// - when selecting sessions, ignore Locks that are > 10 minutes old
@@ -992,6 +996,12 @@ type ErrorField struct {
 	Name           string
 	Value          string
 	ErrorGroups    []ErrorGroup `gorm:"many2many:error_group_fields;"`
+}
+
+type LogAdminsView struct {
+	ID       int       `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	ViewedAt time.Time `gorm:"default:NOW()"`
+	AdminID  int       `gorm:"primaryKey"`
 }
 
 type FingerprintType string
@@ -1514,28 +1524,23 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error assigning default to session_fields.id")
 	}
 
-	switch os.Getenv("DEPLOYMENT_KEY") {
-	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
-		fallthrough
-	case "HIGHLIGHT_ONPREM_BETA":
-		// default case, should only exist in main highlight prod
-		thresholdWindow := 30
-		emptiness := "[]"
-		if err := DB.FirstOrCreate(&SessionAlert{
-			Alert: Alert{
-				ProjectID: 1,
-				Type:      &AlertType.SESSION_FEEDBACK,
-			},
-		}).Attrs(&SessionAlert{
-			Alert: Alert{
-				ExcludedEnvironments: &emptiness,
-				CountThreshold:       1,
-				ThresholdWindow:      &thresholdWindow,
-				ChannelsToNotify:     &emptiness,
-			},
-		}).Error; err != nil {
-			break
-		}
+	// default case, should only exist in main highlight prod
+	thresholdWindow := 30
+	emptiness := "[]"
+	if err := DB.FirstOrCreate(&SessionAlert{
+		Alert: Alert{
+			ProjectID: 1,
+			Type:      &AlertType.SESSION_FEEDBACK,
+		},
+	}).Attrs(&SessionAlert{
+		Alert: Alert{
+			ExcludedEnvironments: &emptiness,
+			CountThreshold:       1,
+			ThresholdWindow:      &thresholdWindow,
+			ChannelsToNotify:     &emptiness,
+		},
+	}).Error; err != nil {
+		log.WithContext(ctx).WithError(err).Error("Failed to create default session feedback alert.")
 	}
 
 	log.WithContext(ctx).Printf("Finished running DB migrations.\n")

@@ -19,6 +19,7 @@ import { OSSCallToAction } from '../components/common/CallToAction/OSSCallToActi
 import Footer from '../components/common/Footer/Footer'
 import { Typography } from '../components/common/Typography/Typography'
 import { BigHeroArt } from '../components/Home/BigHeroArt'
+import { CalendlyPopover } from '../components/Home/CalendlyPopover'
 import { CompaniesReel } from '../components/Home/CompaniesReel/CompaniesReel'
 import { CustomerReviewTrack } from '../components/Home/CustomerReviewTrack'
 import { FeatureCarousel } from '../components/Home/FeatureCarousel/FeatureCarousel'
@@ -184,7 +185,7 @@ const Home: NextPage = () => {
 								Monitoring Platform.
 							</span>
 						</h2>
-						<div className="flex justify-center mt-8 mb-16">
+						<div className="flex justify-center mt-8">
 							<div className="flex flex-col justify-center w-screen gap-4 px-5 sm:flex-row sm:w-auto">
 								<PrimaryButton
 									className={classNames(
@@ -207,6 +208,9 @@ const Home: NextPage = () => {
 									</Typography>
 								</PrimaryButton>
 							</div>
+						</div>
+						<div className="relative flex flex-col items-center mt-8 mb-28">
+							<CalendlyPopover />
 						</div>
 						<FeatureCarousel />
 					</div>

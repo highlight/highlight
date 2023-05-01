@@ -1,0 +1,224 @@
+.container {
+	--brand-color: #744ed4;
+	--brand-color-dark: #5629c6;
+	--color-text-primary: #111111;
+	--color-text-primary-inverted: #fff;
+	--color-text-link: var(--brand-color);
+	--size-large: 24px;
+	--size-medium: 16px;
+	--size-small: 12px;
+	--size-xSmall: 8px;
+
+	--color-white: #fff;
+	--color-gray-100: hsla(0, 0%, 93.7%, 0.49019607843137253);
+	--color-gray-200: #f2f2f2;
+	--color-gray-300: #eaeaea;
+	--color-gray-400: #bdbdbd;
+	--color-gray-500: #828282;
+	--color-gray-600: #7e7e7e;
+	--color-gray-700: #8a8f98;
+	--color-gray-800: #2d2f36;
+
+	--font-family: Steradian, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+		Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
+		'Segoe UI Emoji', 'Segoe UI Symbol';
+
+	background: hsl(0deg 0% 0% / 75%);
+	font-family: var(--font-family);
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: 999999;
+	backdrop-filter: blur(1px);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+@media only screen and (max-width: 420px) {
+	.card {
+		max-width: 100vw !important;
+		height: 100%;
+		border-radius: 0;
+	}
+
+	.cardContents {
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.form {
+		height: 100%;
+	}
+
+	.textareaLabel {
+		flex: 1;
+	}
+
+	.form textarea {
+		height: 100%;
+	}
+
+	.ad {
+		display: none;
+	}
+}
+
+.card {
+	border-radius: var(--size-xSmall);
+	padding: 20px;
+	width: 420px;
+	max-width: calc(100vw - 1rem);
+	background: white;
+}
+
+.title {
+	font-size: 20px;
+	color: var(--color-text-primary);
+}
+
+.subtitle {
+	font-size: 13px;
+	margin-top: var(--size-medium) !important;
+	font-weight: 400;
+	color: #8c8b92;
+}
+
+.form {
+	padding-top: var(--size-large);
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-small);
+	width: 100%;
+}
+
+.form label {
+	display: flex;
+	flex-direction: column;
+	font-size: 11px !important;
+	font-weight: 500;
+	color: var(--color-gray-500);
+}
+
+.form input {
+	height: 28px;
+}
+
+.form textarea {
+	font-family: var(--font-family);
+	min-height: 80px;
+}
+
+.form input,
+.form textarea {
+	background-color: var(--color-white);
+	border: 1px solid #dcdbdd;
+	border-radius: 6px;
+	color: var(--color-gray-500);
+
+	font-size: 13px;
+	margin: 8px 0;
+	outline: none;
+	padding: 4px 6px;
+	width: calc(100%);
+}
+
+.form button {
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	height: auto;
+	color: var(--color-text-primary-inverted);
+	background-color: var(--brand-color);
+	text-shadow: none;
+	box-shadow: none;
+	padding: 4px 6px;
+	font-size: 14px;
+	border-radius: 6px;
+	border: 0;
+	cursor: pointer;
+}
+
+.form button:hover {
+	background-color: var(--brand-color-dark);
+}
+
+.form button[disabled] {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+.form .closeButton {
+	background-color: transparent;
+	color: #6f6e77 !important;
+	font-size: 13px;
+	font-family: var(--font-family);
+	border: 1px solid var(--color-white);
+}
+
+.form .closeButton:hover {
+	background-color: var(--color-gray-100);
+	border-color: var(--color-gray-300);
+}
+
+.confirmationButton {
+	float: right;
+	margin-top: 3rem;
+}
+
+.formFooter {
+	display: flex;
+	flex-direction: row-reverse;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.formActionsContainer {
+	display: flex;
+	flex-direction: row-reverse;
+	gap: 6px;
+}
+
+.ad:hover {
+	background-color: var(--color-gray-100);
+}
+
+.logoContainer {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+
+	border: 1px solid var(--color-gray-300);
+	border-radius: 6px;
+	color: var(--color-gray-500);
+	font-size: 13px;
+	padding: 4px 8px;
+}
+
+.logo {
+	height: 16px;
+}
+
+.buggyButton {
+	align-items: center;
+	background: #5629c6;
+	border-radius: 8px;
+	border: 1px solid #bdbdbd;
+	box-shadow: none;
+	color: #fff;
+	cursor: pointer;
+	display: flex;
+	font-family: Steradian, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+		Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
+		'Segoe UI Emoji', 'Segoe UI Symbol';
+	font-size: 14px;
+	height: auto;
+	justify-content: center;
+	min-height: 40px;
+	padding: 4px 16px;
+	text-shadow: none;
+}

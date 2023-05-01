@@ -123,7 +123,6 @@ interface PlayerState {
 	sessionViewability: SessionViewability
 	session_secure_id: string
 	time: number
-	viewingUnauthorizedSession: boolean
 	viewport: viewportResizeDimension | undefined
 }
 
@@ -144,7 +143,6 @@ export enum PlayerActionType {
 	setScale,
 	setSessionResults,
 	setTime,
-	setViewingUnauthorizedSession,
 	startChunksLoad,
 	updateCurrentUrl,
 	updateEvents,
@@ -168,7 +166,6 @@ type PlayerAction =
 	| setScale
 	| setSessionResults
 	| setTime
-	| setViewingUnauthorizedSession
 	| startChunksLoad
 	| updateEvents
 	| updateCurrentUrl
@@ -274,11 +271,6 @@ interface setIsLiveMode {
 	isLiveMode: SetStateAction<boolean>
 }
 
-interface setViewingUnauthorizedSession {
-	type: PlayerActionType.setViewingUnauthorizedSession
-	viewingUnauthorizedSession: SetStateAction<boolean>
-}
-
 interface setCurrentEvent {
 	type: PlayerActionType.setCurrentEvent
 	currentEvent: SetStateAction<string>
@@ -314,7 +306,6 @@ export const PlayerInitialState = {
 	sessionViewability: SessionViewability.VIEWABLE,
 	session_secure_id: '',
 	time: 0,
-	viewingUnauthorizedSession: false,
 	viewport: undefined,
 }
 
@@ -386,10 +377,6 @@ export const PlayerReducer = (
 					alert(
 						"btw this session is outside of the project's billing quota.",
 					)
-				}
-				// Show the authorization form for Highlight staff if they're trying to access a customer session.
-				if (s.isHighlightAdmin && s.project_id !== '1') {
-					s.viewingUnauthorizedSession = true
 				}
 				if (action.data.session?.last_user_interaction_time) {
 					s.lastActiveTimestamp = new Date(
@@ -567,12 +554,6 @@ export const PlayerReducer = (
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)
 			s = initReplayer(s, events, !!s.replayer?.config.mouseTail)
-			break
-		case PlayerActionType.setViewingUnauthorizedSession:
-			s.viewingUnauthorizedSession = handleSetStateAction(
-				s.viewingUnauthorizedSession,
-				action.viewingUnauthorizedSession,
-			)
 			break
 		case PlayerActionType.setCurrentEvent:
 			s.currentEvent = handleSetStateAction(

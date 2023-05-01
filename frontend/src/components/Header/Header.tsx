@@ -54,7 +54,6 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { client } from '@util/graph'
-import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
 import { showIntercom } from '@util/window'
@@ -123,7 +122,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 					display="flex"
 					alignItems="center"
 					px="12"
-					py={isLoggedIn ? '8' : '0'}
+					py="8"
 					justifyContent="space-between"
 				>
 					{isSetup ? (
@@ -319,19 +318,16 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							justifyContent="space-between"
 							width="full"
 						>
-							<Link className={styles.homeLink} to="/">
-								<Button
-									kind="secondary"
-									emphasis="high"
-									size="small"
-									iconLeft={
-										<IconSolidArrowSmLeft size={14} />
-									}
-									trackingId="navHomeLink"
-								>
-									Back to Highlight
-								</Button>
-							</Link>
+							<LinkButton
+								to="/"
+								kind="secondary"
+								emphasis="high"
+								size="small"
+								iconLeft={<IconSolidArrowSmLeft size={14} />}
+								trackingId="navHomeLink"
+							>
+								Back to Highlight
+							</LinkButton>
 							<a
 								className={styles.homeLink}
 								href="https://www.highlight.io"
@@ -654,9 +650,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 }
 
 const getBanner = (project_id: string) => {
-	if (isOnPrem) {
-		return <OnPremiseBanner />
-	} else if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
+	if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
 		return <DemoWorkspaceBanner />
 	} else {
 		return <BillingBanner />
@@ -797,25 +791,6 @@ const productsToString = (p: ProductType[]): string => {
 		rest.reverse()
 		return rest.join(', ') + `, and ${last}`
 	}
-}
-
-const OnPremiseBanner = () => {
-	const { toggleShowBanner } = useGlobalContext()
-	toggleShowBanner(true)
-
-	return (
-		<div
-			className={styles.trialWrapper}
-			style={{
-				backgroundColor: 'var(--color-primary-inverted-background)',
-			}}
-		>
-			<div className={clsx(styles.trialTimeText)}>
-				Running Highlight On-premise{' '}
-				{`v${import.meta.env.REACT_APP_COMMIT_SHA}`}
-			</div>
-		</div>
-	)
 }
 
 const DemoWorkspaceBanner = () => {
