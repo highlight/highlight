@@ -10,6 +10,7 @@ updatedAt: 2022-06-27T03:34:47.000Z
 
 ## Ignore sessions by user identifier
 In some cases, you may want to ignore sessions from a specific user. You can do this by adding the user identifier to the "Excluded Sessions" input under the "Session Replay" tab in your [project settings](https://app.highlight.io/settings). Please note that we use the `identifier` (or first argument) sent in your `H.identify` method to ignore against (SDK docs [here](../../../sdk/client.md)).
+
 ## Ignoring sessions without an error
 If you're using Highlight mostly for error monitoring, enable the "Filter sessions without an error" in your [project settings](https://app.highlight.io/settings) to only record sessions with an error.
 
