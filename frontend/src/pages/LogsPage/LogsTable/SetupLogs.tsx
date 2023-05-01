@@ -45,7 +45,7 @@ export const SetupLogs = () => {
 					</Text>
 					<Stack gap="6" direction="row">
 						<LinkButton
-							to={`/${projectId}/setup`}
+							to={`/${projectId}/setup/backend-logging`}
 							trackingId="finish-setup-logs-empty-state"
 						>
 							Finish setup
