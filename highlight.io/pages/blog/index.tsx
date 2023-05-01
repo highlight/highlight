@@ -118,7 +118,7 @@ export function markdownToPost(
 	data.tags.split(',').forEach((tag: string) => {
 		const tempTag: Tag = {
 			name: tag.trim(),
-			slug: tag.toLowerCase().trim().replace(' ', '-'),
+			slug: tag.toLowerCase().trim().replaceAll(' ', '-'),
 		}
 
 		tags.push(tempTag)
@@ -130,8 +130,8 @@ export function markdownToPost(
 		metaDescription: data.metaDescription || data.description || null,
 		metaTitle: data.metaTitle || data.title || null,
 		publishedAt: data.createdAt,
-		postedAt: data.updatedAt,
-		readingTime: data.readingTime,
+		postedAt: data.createdAt,
+		readingTime: data.readingTime || '12',
 		richcontent: {
 			markdown: content,
 		},

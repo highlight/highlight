@@ -1,8 +1,6 @@
 ---
 title: Our Commitment to OpenTelemetry
-slug: open-telemetry
-createdAt: 2022-04-01T20:28:14.000Z
-updatedAt: 2022-04-15T02:07:22.000Z
+createdAt: 2023-04-04T12:00:00Z
 readingTime: 8
 authorFirstName: Vadim
 authorLastName: Korolik
@@ -34,8 +32,6 @@ OpenTelemetry achieves efficient data transfer through its batching and compress
 ## **Hosted Collector for Agent-less Deployments**
 
 Another significant benefit of OpenTelemetry is its collector, a hostable service that receives telemetry data from different sources and sends it to the backend for processing. We host the collector for you as a gateway at https://otel.highlight.io:4318. The gateway acts as an intermediary between the application and the backend, simplifying the deployment process by removing the need to install agents or other software. This approach makes it easy to integrate OpenTelemetry with any application or infrastructure component, and the collector provides features such as data filtering, aggregation, and transformation.
-
-
 
 ![OpenTelemetry.png](https://media.graphassets.com/ptEbAJpSoiKmbWaaXWSH "OpenTelemetry.png")
 

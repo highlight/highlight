@@ -274,6 +274,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			}
 		}
 		const mdxSource = await serialize(githubPost.richcontent.markdown)
+		console.log(githubPost.richcontent.markdown)
 		return {
 			props: {
 				suggestedPosts,
@@ -521,12 +522,7 @@ const PostPage = ({
 								<PostSection key={idx} idx={idx} p={p} />
 							))}
 						{source && (
-							<div
-								className={classNames(
-									styles.blogText,
-									styles.blogImageContainer,
-								)}
-							>
+							<div className={classNames(styles.blogText)}>
 								<MDXRemote
 									{...source}
 									components={components}
