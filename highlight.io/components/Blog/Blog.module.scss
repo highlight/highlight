@@ -396,6 +396,11 @@
 // Custom font styles for blog-specific text!!!
 
 .blogText {
+	p {
+		padding: var(--size-small) 0 !important;
+		margin: 0 !important;
+	}
+
 	b {
 		font-weight: 600 !important;
 	}
