@@ -80,14 +80,14 @@ jobs:
               run: yarn publish:client
 
             - name: Upload frontend sourcemaps
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/master'
+              if: github.ref == 'refs/heads/master'
               run: yarn && yarn sourcemaps:frontend
               env:
                   HIGHLIGHT_API_KEY: ${{ secrets.HIGHLIGHT_SOURCEMAP_API_KEY }}
                   APP_VERSION: ${{ github.sha }}
 
             - name: Configure yarn npm registry credentials
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/master'
+              if: github.ref == 'refs/heads/master'
               run: |
                   yarn config set npmRegistryServer "https://registry.npmjs.org"
                   yarn config set npmAuthToken "${NPM_TOKEN}"
@@ -95,7 +95,7 @@ jobs:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Publish npm packages
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/master'
+              if: github.ref == 'refs/heads/master'
               run: yarn publish:turbo
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
