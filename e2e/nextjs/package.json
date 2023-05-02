@@ -10,7 +10,7 @@
 	},
 	"dependencies": {
 		"@highlight-run/next": "workspace:*",
-		"@highlight-run/node": "workspace:*",
+		"@highlight-run/node": "workspace:^",
 		"@highlight-run/react": "workspace:*",
 		"@types/node": "18.15.11",
 		"@types/react": "18.0.35",
@@ -20,6 +20,7 @@
 		"eslint-config-next": "13.3.0",
 		"highlight.run": "workspace:*",
 		"next": "13.3.0",
+		"next-build-id": "^3.0.0",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
 		"typescript": "5.0.4",

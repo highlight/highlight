@@ -10757,7 +10757,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/node@workspace:*, @highlight-run/node@workspace:sdk/highlight-node":
+"@highlight-run/node@workspace:*, @highlight-run/node@workspace:^, @highlight-run/node@workspace:sdk/highlight-node":
   version: 0.0.0-use.local
   resolution: "@highlight-run/node@workspace:sdk/highlight-node"
   dependencies:
@@ -40163,6 +40163,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"next-build-id@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "next-build-id@npm:3.0.0"
+  checksum: e36e15979420c343e32a5e7a55efc1300a4b12aea1637df8300f0085ca862bf78e4fd3ac969ce7c7757cfad40c3c77e02ae4859be77692c9bdcb4243cbabb810
+  languageName: node
+  linkType: hard
+
 "next-mdx-remote@npm:^4.3.0":
   version: 4.4.1
   resolution: "next-mdx-remote@npm:4.4.1"
@@ -40332,7 +40339,7 @@ __metadata:
   resolution: "nextjs@workspace:e2e/nextjs"
   dependencies:
     "@highlight-run/next": "workspace:*"
-    "@highlight-run/node": "workspace:*"
+    "@highlight-run/node": "workspace:^"
     "@highlight-run/react": "workspace:*"
     "@types/node": 18.15.11
     "@types/react": 18.0.35
@@ -40342,6 +40349,7 @@ __metadata:
     eslint-config-next: 13.3.0
     highlight.run: "workspace:*"
     next: 13.3.0
+    next-build-id: ^3.0.0
     react: 18.2.0
     react-dom: 18.2.0
     typescript: 5.0.4

@@ -5,6 +5,7 @@ const nextConfig = {
 	generateBuildId: () => nextBuildId({ dir: __dirname }),
 	experimental: {
 		appDir: true,
+		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: true,
 }
