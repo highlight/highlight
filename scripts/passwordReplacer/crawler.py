@@ -3,6 +3,8 @@ import os
 import sys
 from multiprocessing import Pool
 
+bucket = 'highlight-session-data'
+
 s3 = boto3.client('s3', 
     aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
     aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
@@ -13,12 +15,6 @@ lambdaClient = boto3.client('lambda',
     aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
     region_name="us-east-2",
 )
-
-paginator = s3.get_paginator('list_objects_v2')
-bucket = 'highlight-session-data'
-
-
-pages = paginator.paginate(Bucket=bucket, Prefix=sys.argv[1])
 
 def f(key):
     lambdaClient.invoke(
@@ -39,11 +35,19 @@ def f(key):
             ]
         }}'''
     )
-    print(key)
 
 if __name__ == "__main__":
-    with Pool(50) as p:
+
+    paginator = s3.get_paginator('list_objects_v2')
+
+    cfg = {}
+    if len(sys.argv) >= 3:
+        cfg = {'PaginationConfig': {'StartingToken': sys.argv[2]}}
+
+    pages = paginator.paginate(Bucket=bucket, Prefix=sys.argv[1], **cfg)
+    with Pool(250) as p:
         for page in pages:
+            print(page['NextContinuationToken'])
             items = []
             for obj in page['Contents']:
                 key = obj['Key']
