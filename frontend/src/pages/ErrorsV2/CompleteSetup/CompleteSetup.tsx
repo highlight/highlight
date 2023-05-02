@@ -42,11 +42,12 @@ export const CompleteSetup = () => {
 			>
 				<Box display="flex" flexDirection="column" gap="16">
 					<Text color="moderate">
-						View your app's errors by completing the setup process.
+						View your app's backend errors by completing the setup
+						process.
 					</Text>
 					<Stack gap="6" direction="row">
 						<LinkButton
-							to={`/${projectId}/setup`}
+							to={`/${projectId}/setup/backend`}
 							trackingId="finish-setup-errors"
 						>
 							Finish setup
