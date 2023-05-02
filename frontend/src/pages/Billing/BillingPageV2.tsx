@@ -1,14 +1,28 @@
 import { USD } from '@dinero.js/currencies'
-import { Box, Heading, IconSolidArrowSmRight, Text } from '@highlight-run/ui'
+import {
+	Box,
+	Heading,
+	IconProps,
+	IconSolidArrowSmRight,
+	IconSolidCheveronRight,
+	IconSolidInformationCircle,
+	IconSolidLightningBolt,
+	IconSolidLogs,
+	IconSolidPlayCircle,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
 import { dinero, toDecimal } from 'dinero.js'
 
 import { Button } from '@/components/Button'
 import { RetentionPeriod } from '@/graph/generated/schemas'
 import { RETENTION_PERIOD_LABELS } from '@/pages/Billing/Billing'
+import { formatNumberWithDelimiters } from '@/util/numbers'
 
 import * as style from './BillingPageV2.css'
 
 type UsageCardProps = {
+	productIcon: React.ReactElement<IconProps>
 	productType: string
 	costCents: number
 	retentionPeriod: RetentionPeriod
@@ -18,19 +32,79 @@ type UsageCardProps = {
 }
 
 const UsageCard = ({
+	productIcon,
 	productType,
 	costCents,
 	retentionPeriod,
+	billingLimitCents,
+	usageAmount,
+	usageLimitAmount,
 }: UsageCardProps) => {
-	const amt = dinero({ amount: costCents, currency: USD })
-	const formatted = toDecimal(amt)
+	const costFormatted =
+		'$' + toDecimal(dinero({ amount: costCents, currency: USD }))
+	const limitFormatted = billingLimitCents
+		? '$' + toDecimal(dinero({ amount: billingLimitCents, currency: USD }))
+		: undefined
+	const usageRatio = billingLimitCents && costCents / billingLimitCents
+	const isOverage = usageRatio ? usageRatio >= 1 : false
+
 	return (
-		<Box>
-			<Box display="flex" justifyContent="space-between">
-				<Box>{productType}</Box>
-				<Box>${formatted}</Box>
+		<Box px="12" display="flex" gap="12" flexDirection="column">
+			<Box display="flex" gap="4" flexDirection="column">
+				<Box display="flex" justifyContent="space-between">
+					<Box display="flex" gap="4">
+						{productIcon}
+						{productType}
+					</Box>
+					<Box>{costFormatted}</Box>
+				</Box>
+				<Box display="flex" gap="4">
+					<Tag
+						size="medium"
+						shape="basic"
+						kind="secondary"
+						emphasis="medium"
+						iconRight={<IconSolidInformationCircle />}
+					>
+						Retention: {RETENTION_PERIOD_LABELS[retentionPeriod]}
+					</Tag>
+					<Tag
+						size="medium"
+						shape="basic"
+						kind="secondary"
+						emphasis="medium"
+						iconRight={<IconSolidInformationCircle />}
+					>
+						Billing Limit: {limitFormatted ?? 'Unlimited'}
+					</Tag>
+					<Tag
+						iconRight={<IconSolidCheveronRight />}
+						kind="secondary"
+						emphasis="low"
+						shape="basic"
+					>
+						Update
+					</Tag>
+				</Box>
 			</Box>
-			<Box>{RETENTION_PERIOD_LABELS[retentionPeriod]}</Box>
+			<Box display="flex" flexDirection="column" gap="4">
+				<Box cssClass={style.progressBarBackground}>
+					<Box
+						cssClass={
+							isOverage
+								? style.progressBarOverage
+								: style.progressBar
+						}
+						height="full"
+						style={{ width: `${(usageRatio ?? 0) * 100}%` }}
+					/>
+				</Box>
+				<Text color={isOverage ? 'caution' : undefined}>
+					{formatNumberWithDelimiters(usageAmount)} /{' '}
+					{formatNumberWithDelimiters(usageLimitAmount) ??
+						'Unlimited'}
+				</Text>
+			</Box>
 		</Box>
 	)
 }
@@ -46,19 +120,18 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		<Box width="full" display="flex" justifyContent="center">
 			<Box height="full" cssClass={style.pageWrapper}>
 				<Heading level="h4">Billing plans</Heading>
-				<Box>
+				<Box display="flex">
 					<Text size="small" weight="medium">
 						Prices are usage based and flexibly on your needs.
 					</Text>
-					<Button
+					<Tag
 						iconRight={<IconSolidArrowSmRight />}
-						// size="large"
 						kind="primary"
 						emphasis="low"
-						trackingId="BillingCustomQuote"
+						shape="basic"
 					>
 						Custom Quote? Reach out to sales
-					</Button>
+					</Tag>
 				</Box>
 				<Box display="flex" justifyContent="space-between">
 					<Box>
@@ -85,30 +158,42 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						</Button>
 					</Box>
 				</Box>
-				<Box>
+				<Box
+					display="flex"
+					flexDirection="column"
+					border="secondary"
+					borderRadius="8"
+					py="12"
+					gap="12"
+				>
 					<UsageCard
+						productIcon={<IconSolidPlayCircle />}
 						productType="Sessions"
 						costCents={12323}
 						retentionPeriod={RetentionPeriod.ThreeMonths}
 						billingLimitCents={24000}
 						usageAmount={8030}
-						usageLimitAmount={undefined}
+						usageLimitAmount={16000}
 					/>
+					<Box borderTop="secondary" />
 					<UsageCard
+						productIcon={<IconSolidLightningBolt />}
 						productType="Errors"
 						costCents={39200}
 						retentionPeriod={RetentionPeriod.ThreeMonths}
 						billingLimitCents={undefined}
-						usageAmount={0}
+						usageAmount={302}
 						usageLimitAmount={undefined}
 					/>
+					<Box borderTop="secondary" />
 					<UsageCard
+						productIcon={<IconSolidLogs />}
 						productType="Logs"
 						costCents={10000}
 						retentionPeriod={RetentionPeriod.ThreeMonths}
-						billingLimitCents={undefined}
-						usageAmount={0}
-						usageLimitAmount={undefined}
+						billingLimitCents={10000}
+						usageAmount={17000}
+						usageLimitAmount={17000}
 					/>
 				</Box>
 			</Box>
