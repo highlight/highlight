@@ -117,7 +117,7 @@ export default function ErrorsV2({ integrated }: Props) {
 				<title>Errors</title>
 			</Helmet>
 
-			<Box cssClass={styles.container} borderTop="dividerWeak">
+			<Box cssClass={styles.container}>
 				{!isBlocked && <SearchPanel />}
 
 				<div

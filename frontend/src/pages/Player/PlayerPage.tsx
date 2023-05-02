@@ -508,7 +508,6 @@ const PlayerPage = ({ integrated }: Props) => {
 						height="full"
 						width="full"
 						overflow="hidden"
-						borderTop="dividerWeak"
 					>
 						<Box
 							cssClass={clsx(style.playerLeftPanel, {
