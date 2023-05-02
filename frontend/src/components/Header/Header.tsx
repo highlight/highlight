@@ -14,6 +14,7 @@ import { Maybe, ProductType, Project } from '@graph/schemas'
 import {
 	Badge,
 	Box,
+	ButtonIcon,
 	IconSolidArrowSmLeft,
 	IconSolidArrowSmRight,
 	IconSolidAtSymbol,
@@ -368,89 +369,79 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 										</Stack>
 									</LinkButton>
 								)}
-							{!!project_id && !isSetup && (
-								<Button
-									trackingId="quickSearchClicked"
-									kind="secondary"
-									size="small"
-									emphasis="high"
-									iconLeft={<IconSolidSearch />}
-									onClick={commandBarDialog.toggle}
-								>
-									<Badge
-										variant="outlineGray"
-										shape="basic"
-										size="small"
-										label={OpenCommandBarShortcut.shortcut.join(
-											'+',
-										)}
-									/>
-								</Button>
-							)}
 							{!isSetup && (
 								<Box display="flex" alignItems="center" gap="4">
-									<Button
-										kind="secondary"
-										size="small"
-										emphasis="high"
-										onClick={() => {
-											window.open(
-												'https://discord.gg/yxaXEAqgwN',
-												'_blank',
-											)
-										}}
-										trackingId="DiscordSupportLinkClicked"
-									>
-										<Box
-											display="flex"
-											alignItems="center"
-											as="span"
-											gap="4"
+									{!!project_id && (
+										<Button
+											trackingId="quickSearchClicked"
+											kind="secondary"
+											size="small"
+											emphasis="high"
+											iconLeft={<IconSolidSearch />}
+											onClick={commandBarDialog.toggle}
 										>
-											<FaDiscord
-												style={{
-													height: 14,
-													width: 14,
-												}}
-												color={
-													vars.theme.interactive.fill
-														.secondary.content.text
-												}
+											<Badge
+												variant="outlineGray"
+												shape="basic"
+												size="small"
+												label={OpenCommandBarShortcut.shortcut.join(
+													'+',
+												)}
 											/>
-											<Text lines="1">Community</Text>
-										</Box>
-									</Button>
-									<Button
-										kind="secondary"
-										size="small"
-										emphasis="high"
-										onClick={() => {
-											window.open(
-												'https://github.com/highlight/highlight',
-												'_blank',
-											)
-										}}
-										trackingId="GithubButton"
-									>
-										<Box
-											display="flex"
-											alignItems="center"
-											as="span"
-											gap="4"
-										>
-											<FaGithub
-												style={{
-													height: 14,
-													width: 14,
-												}}
-												color={
-													vars.theme.interactive.fill
-														.secondary.content.text
-												}
-											/>
-											<Text lines="1">GitHub</Text>
-										</Box>
-									</Button>
+										</Button>
+									)}
+									<Box>
+										<ButtonIcon
+											cssClass={styles.button}
+											kind="secondary"
+											size="small"
+											emphasis="high"
+											onClick={() => {
+												window.open(
+													'https://discord.gg/yxaXEAqgwN',
+													'_blank',
+												)
+											}}
+											icon={
+												<FaDiscord
+													style={{
+														height: 14,
+														width: 14,
+													}}
+													color={
+														vars.theme.interactive
+															.fill.secondary
+															.content.text
+													}
+												/>
+											}
+										/>
+										<ButtonIcon
+											cssClass={styles.button}
+											kind="secondary"
+											size="small"
+											emphasis="high"
+											onClick={() => {
+												window.open(
+													'https://github.com/highlight/highlight',
+													'_blank',
+												)
+											}}
+											icon={
+												<FaGithub
+													style={{
+														height: 14,
+														width: 14,
+													}}
+													color={
+														vars.theme.interactive
+															.fill.secondary
+															.content.text
+													}
+												/>
+											}
+										/>
+									</Box>
 									<Menu>
 										<Menu.Button
 											emphasis="low"
