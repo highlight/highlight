@@ -1,6 +1,6 @@
 module github.com/highlight-run/highlight/backend
 
-go 1.19
+go 1.20
 
 replace github.com/opensearch-project/opensearch-go => github.com/highlight-run/opensearch-go v1.0.1
 
