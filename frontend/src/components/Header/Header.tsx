@@ -321,7 +321,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							<LinkButton
 								to="/"
 								kind="secondary"
-								emphasis="high"
+								emphasis="low"
 								size="small"
 								iconLeft={<IconSolidArrowSmLeft size={14} />}
 								trackingId="navHomeLink"

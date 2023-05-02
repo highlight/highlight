@@ -57,6 +57,7 @@ const ProjectPicker = () => {
 					>
 						<Box display="flex" alignItems="center" gap="4">
 							<Box
+								flexShrink={0}
 								margin="4"
 								style={{
 									height: 8,
@@ -94,7 +95,7 @@ const ProjectPicker = () => {
 				<Menu>
 					<Menu.Button
 						kind="secondary"
-						emphasis="high"
+						emphasis="medium"
 						size="small"
 						iconLeft={
 							isWorkspaceLevel ? (
