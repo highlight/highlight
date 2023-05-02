@@ -29,7 +29,7 @@ import (
 const Retries = 5
 
 // ClientSideCreationTimeout is the time we will wait for the object to be created by the hubspot client-side snippet
-const ClientSideCreationTimeout = time.Minute
+const ClientSideCreationTimeout = 3 * time.Minute
 const ClientSideCreationPollInterval = 5 * time.Second
 
 func retry[T *int](fn func() (T, error)) (ret T, err error) {

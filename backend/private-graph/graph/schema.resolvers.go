@@ -912,6 +912,9 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		return adminID, err
 	}
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		if adminID == nil {
+			return
+		}
 		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, *adminID, workspaceID); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(
 				err,
