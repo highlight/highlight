@@ -938,7 +938,7 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id st
 	if err == nil && isOwner {
 		return session, nil
 	}
-	if session != nil && *session.IsPublic {
+	if session != nil && session.IsPublic {
 		return session, nil
 	}
 	return nil, err

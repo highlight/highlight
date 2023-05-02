@@ -27,7 +27,12 @@
 		},
 		"typegen": {
 			"dependsOn": ["^typegen"],
-			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
+			"inputs": [
+				"src/**/*.tsx",
+				"src/**/*.ts",
+				"tsconfig.json",
+				"./**/*.graphqls"
+			],
 			"outputs": [
 				"lib/**",
 				"es/**",
