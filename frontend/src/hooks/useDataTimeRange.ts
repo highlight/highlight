@@ -5,9 +5,10 @@ export const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
 
 export const defaultEndDate = moment()
 export const defaultLookback = 24 * 60
-export const defaultStartDate = moment(defaultEndDate)
-.subtract(defaultLookback, 'minutes')
-
+export const defaultStartDate = moment(defaultEndDate).subtract(
+	defaultLookback,
+	'minutes',
+)
 
 export interface DataTimeRange {
 	start_date: string
