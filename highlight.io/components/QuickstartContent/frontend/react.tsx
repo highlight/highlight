@@ -38,7 +38,7 @@ yarn add highlight.run @highlight-run/react`,
 		initializeSnippet,
 		{
 			title: 'Add the ErrorBoundary component. (optional)',
-			content: `The ErrorBoundary component wraps your component tree and catches crashes/exceptions from your react app. When a crash happens, if \`showDialog\` is set, your users will be prompted with a modal to share details about what led up to the crash. Read more [here](https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/react-error-boundary).`,
+			content: `The ErrorBoundary component wraps your component tree and catches crashes/exceptions from your react app. When a crash happens, your users will be prompted with a modal to share details about what led up to the crash. Read more [here](https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/react-error-boundary).`,
 			code: {
 				text: ErrorBoundaryCodeSnippet,
 				language: 'js',

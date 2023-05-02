@@ -103,7 +103,7 @@ export const CommandBarContextProvider: React.FC<React.PropsWithChildren> = ({
 		},
 	})
 
-	const query = form.getValue<string>(form.names.search)
+	const query = form.getValue(form.names.search).trim()
 	const selectedDates = form.getValue<[Date, Date]>(form.names.selectedDates)
 	const searchAttribute = useAttributeSearch(form)
 

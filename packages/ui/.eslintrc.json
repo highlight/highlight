@@ -17,7 +17,8 @@
 	},
 	"plugins": ["@typescript-eslint", "react"],
 	"rules": {
-		"react/display-name": "off"
+		"react/display-name": "off",
+		"react/react-in-jsx-scope": "off"
 	},
 	"settings": {
 		"react": {

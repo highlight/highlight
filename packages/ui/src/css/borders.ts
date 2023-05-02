@@ -8,6 +8,7 @@ type BorderKeys =
 	| 'primaryPressed'
 	| 'primaryDisabled'
 	| 'secondary'
+	| 'error'
 	| 'secondaryHover'
 	| 'secondaryPressed'
 	| 'secondaryDisabled'
@@ -33,6 +34,7 @@ export const borders: Borders = {
 	primaryDisabled: `${themeVars.interactive.outline.primary.disabled} solid ${borderWidths.small}`,
 
 	secondary: `${themeVars.interactive.outline.secondary.enabled} solid ${borderWidths.small}`,
+	error: `${themeVars.interactive.fill.bad.enabled} solid ${borderWidths.small}`,
 	secondaryHover: `${themeVars.interactive.outline.secondary.hover} solid ${borderWidths.small}`,
 	secondaryPressed: `${themeVars.interactive.outline.secondary.pressed} solid ${borderWidths.small}`,
 	secondaryDisabled: `${themeVars.interactive.outline.secondary.disabled} solid ${borderWidths.small}`,

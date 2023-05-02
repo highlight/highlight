@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/phonehome"
-	"go.opentelemetry.io/otel/attribute"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -16,6 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/phonehome"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/highlight-run/go-resthooks"
@@ -1262,7 +1263,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		LastUserInteractionTime:        time.Now(),
 		ViewedByAdmins:                 []model.Admin{},
 		ClientID:                       input.ClientID,
-		Excluded:                       &model.T, // A session is excluded by default until it receives events
+		Excluded:                       true, // A session is excluded by default until it receives events
 		ProcessWithRedis:               true,
 		AvoidPostgresStorage:           true,
 	}
@@ -1532,7 +1533,7 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 						Name:     "backend_setup",
 						Property: "backend_setup",
 						Value:    true,
-					}}, r.DB); err != nil {
+					}}); err != nil {
 						log.WithContext(ctx).Errorf("failed to update hubspot")
 					}
 				}
@@ -2715,9 +2716,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						log.WithContext(ctx).Error(e.Wrap(err, "Error escaping snapshot javascript"))
 					}
 
-					// Gated for projectID == 1, replace any static resources with our own, hosted in S3
-					// This gate will be removed in the future
-					if projectID == 1 {
+					// Replace any static resources with our own, hosted in S3
+					if projectID == 1 || projectID == 1344 || projectID == 5403 {
 						assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
 							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID))
 						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB)
@@ -2962,6 +2962,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	updateSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
 	defer updateSpan.Finish()
+
+	excluded := r.isSessionUserExcluded(ctx, sessionObj)
+	if excluded {
+		log.WithContext(ctx).WithFields(log.Fields{"session_id": sessionObj.ID, "project_id": sessionObj.ProjectID, "identifier": sessionObj.Identifier}).Infof("excluding session due to excluded identifier")
+	}
+
 	// Update only if any of these fields are changing
 	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
 	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
@@ -2971,12 +2977,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		(sessionObj.Processed != nil && *sessionObj.Processed) ||
 		(sessionObj.ObjectStorageEnabled != nil && *sessionObj.ObjectStorageEnabled) ||
 		(sessionObj.Chunked != nil && *sessionObj.Chunked) ||
-		(sessionObj.Excluded != nil && *sessionObj.Excluded) ||
 		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
 
-	if doUpdate {
+	if doUpdate && !excluded {
 		fieldsToUpdate := model.Session{
-			PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, DirectDownloadEnabled: false, Chunked: &model.F, Excluded: &model.F,
+			PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, DirectDownloadEnabled: false, Chunked: &model.F, Excluded: false,
 		}
 
 		// We only want to update the `HasErrors` field if the session has errors.
@@ -3003,8 +3008,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// in OpenSearch so that it's treated as a live session again.
 	// If the session was previously excluded (as we do with new sessions by default),
 	// clear it so it is shown as live in OpenSearch since we now have data for it.
-	if (sessionObj.Processed != nil && *sessionObj.Processed) ||
-		(sessionObj.Excluded != nil && *sessionObj.Excluded) {
+	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
 		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"processed":  false,
 			"Excluded":   false,
@@ -3024,6 +3028,43 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 	return nil
+}
+
+func (r *Resolver) isSessionUserExcluded(ctx context.Context, s *model.Session) bool {
+	var project model.Project
+	if err := r.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
+		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
+		return false
+	}
+	if project.ExcludedUsers == nil {
+		return false
+	}
+	var email string
+	if s.UserProperties != "" {
+		encodedProperties := []byte(s.UserProperties)
+		decodedProperties := map[string]string{}
+		err := json.Unmarshal(encodedProperties, &decodedProperties)
+		if err != nil {
+			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s, error: %v", s.UserProperties, err)
+			return false
+		}
+		email = decodedProperties["email"]
+	}
+	for _, value := range []string{s.Identifier, email} {
+		if value == "" {
+			continue
+		}
+		for _, excludedExpr := range project.ExcludedUsers {
+			matched, err := regexp.MatchString(excludedExpr, value)
+			if err != nil {
+				log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s, error: %v", excludedExpr, value, err.Error())
+				return false
+			} else if matched {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {

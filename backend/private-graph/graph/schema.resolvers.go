@@ -46,14 +46,14 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
-	highlight "github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72"
 	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -435,7 +435,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.AboutYouDetailsFilled = &model.T
 
 	if util.IsHubspotEnabled() {
-		hubspotContactId, err := r.HubspotApi.CreateContactForAdmin(
+		err := r.HubspotApi.CreateContactForAdmin(
 			ctx,
 			admin.ID,
 			*admin.Email,
@@ -448,9 +448,6 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 		)
 		if err != nil {
 			log.WithContext(ctx).Error(err, "error creating hubspot contact")
-		}
-		if hubspotContactId != nil {
-			admin.HubspotContactID = hubspotContactId
 		}
 	}
 
@@ -527,10 +524,8 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 
 	if util.IsHubspotEnabled() {
 		// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
-		if _, err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name, r.DB); err != nil {
+		if err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name); err != nil {
 			log.WithContext(ctx).Error(err, "error creating hubspot company")
-		} else if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID, r.DB); err != nil {
-			log.WithContext(ctx).Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
 		}
 	}
 
@@ -666,7 +661,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 				Name:     "number_of_highlight_error_groups_viewed",
 				Property: "number_of_highlight_error_groups_viewed",
 				Value:    totalErrorGroupCountAsInt,
-			}}, r.DB); err != nil {
+			}}); err != nil {
 				log.WithContext(ctx).
 					WithError(err).
 					WithField("admin_id", admin.ID).
@@ -760,7 +755,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 				Name:     "number_of_highlight_sessions_viewed",
 				Property: "number_of_highlight_sessions_viewed",
 				Value:    totalSessionCountAsInt,
-			}}, r.DB); err != nil {
+			}}); err != nil {
 				log.WithContext(ctx).
 					WithError(err).
 					WithField("admin_id", admin.ID).
@@ -917,7 +912,10 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		return adminID, err
 	}
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, *adminID, workspaceID, r.DB); err != nil {
+		if adminID == nil {
+			return
+		}
+		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, *adminID, workspaceID); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(
 				err,
 				"error creating association between hubspot records with admin ID [%v] and workspace ID [%v]",
@@ -4156,7 +4154,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		if err := r.DB.Model(&session).Where("id = ?", *errorObject.SessionID).Find(&session).Error; err != nil {
 			return nil, e.Wrap(err, "error reading error group session")
 		}
-		if session.Excluded != nil && *session.Excluded {
+		if session.Excluded {
 			errorObject.SessionID = nil
 		}
 	}
@@ -4773,7 +4771,7 @@ func (r *queryResolver) ProjectHasViewedASession(ctx context.Context, projectID 
 	}
 
 	session := model.Session{}
-	if err := r.DB.Model(&session).Where("project_id = ?", projectID).Where(&model.Session{Viewed: &model.T, Excluded: &model.F}).First(&session).Error; err != nil {
+	if err := r.DB.Model(&session).Where("project_id = ?", projectID).Where(&model.Session{Viewed: &model.T, Excluded: false}).First(&session).Error; err != nil {
 		return &session, nil
 	}
 	return &session, nil
@@ -7270,7 +7268,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 				Name:     "number_of_highlight_logs_viewed",
 				Property: "number_of_highlight_logs_viewed",
 				Value:    totalLogCountAsInt,
-			}}, r.DB); err != nil {
+			}}); err != nil {
 				log.WithContext(ctx).
 					WithError(err).
 					WithField("admin_id", admin.ID).
