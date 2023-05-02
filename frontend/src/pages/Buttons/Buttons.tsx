@@ -21,6 +21,14 @@ import {
 	RandomError,
 } from './ButtonsHelper'
 
+interface Navigator {
+	getUserMedia(
+		options: { video?: boolean; audio?: boolean },
+		success: (stream: MediaSource) => void,
+		error?: (error: string) => void,
+	): void
+}
+
 export const Buttons = () => {
 	const [hasError, setHasError] = useState(false)
 	const [sendEmail, { loading }] = useSendEmailSignupMutation()
@@ -93,6 +101,24 @@ export const Buttons = () => {
 		return () => window.removeEventListener('message', messageListener)
 	}, [])
 
+	useEffect(() => {
+		const video = document.querySelector('#webcam')! as HTMLVideoElement
+		const n = navigator as any as Navigator
+		if (n.getUserMedia) {
+			n.getUserMedia(
+				{
+					video: true,
+				},
+				function (stream) {
+					video.srcObject = stream
+				},
+				() => {
+					console.error('denied')
+				},
+			)
+		}
+	}, [])
+
 	return (
 		<div className={styles.container}>
 			<div className={styles.buttonBody}>
@@ -136,6 +162,9 @@ export const Buttons = () => {
 					<span id="shadowNumber">123</span>
 				</div>
 			</section>
+			<div className={styles.buttonBody}>
+				<video autoPlay width={720} height={405} id="webcam"></video>
+			</div>
 			<div className={styles.buttonBody}>
 				<div>
 					<button
