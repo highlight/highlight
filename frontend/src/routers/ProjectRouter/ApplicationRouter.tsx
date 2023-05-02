@@ -17,7 +17,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
 
-const ApplicationRouter: React.FC<Props> = () => {
+const ApplicationRouter: React.FC = () => {
 	const { page, backendSearchQuery } = useSearchContext()
 	const { page: errorPage, backendSearchQuery: errorBackendSearchQuery } =
 		useErrorSearchContext()
