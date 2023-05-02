@@ -3019,7 +3019,7 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 	if err := r.DB.Model(session).Updates(&model.Session{
-		IsPublic: &isPublic,
+		IsPublic: isPublic,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating session is_public")
 	}
