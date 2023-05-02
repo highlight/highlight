@@ -78,7 +78,6 @@ const SessionProcessedMetricName = "sessionProcessed"
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
-	DemoProjectID   = os.Getenv("DEMO_PROJECT_ID")
 )
 
 var BytesConversion = map[string]int64{
@@ -309,7 +308,14 @@ func (r *Resolver) isDemoWorkspace(workspace_id int) bool {
 }
 
 func (r *Resolver) demoProjectID(ctx context.Context) int {
-	if demoProjectID, err := strconv.Atoi(DemoProjectID); err != nil {
+	demoProjectString := os.Getenv("DEMO_PROJECT_ID")
+
+	// Demo project is disabled if the env var is not set.
+	if demoProjectString == "" {
+		return 0
+	}
+
+	if demoProjectID, err := strconv.Atoi(demoProjectString); err != nil {
 		log.WithContext(ctx).Error(err, "error converting DemoProjectID to int")
 		return 0
 	} else {
