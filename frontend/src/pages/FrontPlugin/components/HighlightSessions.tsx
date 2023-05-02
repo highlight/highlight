@@ -120,6 +120,7 @@ function HighlightSessions() {
 							session={{
 								...s,
 								payload_updated_at: new Date().toISOString(),
+								excluded: false,
 							}}
 							key={s.secure_id}
 							selected={false}

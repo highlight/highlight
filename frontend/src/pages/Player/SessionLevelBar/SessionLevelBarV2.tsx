@@ -86,6 +86,7 @@ export const SessionLevelBarV2: React.FC<
 				sessions: data.sessions_opensearch.sessions.map((s) => ({
 					...s,
 					payload_updated_at: new Date().toISOString(),
+					excluded: false,
 				})),
 			})
 		}

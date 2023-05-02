@@ -195,6 +195,7 @@ export const SessionFeedV3 = React.memo(() => {
 				sessions: response.sessions_opensearch.sessions.map((s) => ({
 					...s,
 					payload_updated_at: new Date().toISOString(),
+					excluded: false,
 				})),
 			})
 			totalPages.current = Math.ceil(
