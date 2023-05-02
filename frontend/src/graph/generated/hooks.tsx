@@ -6412,6 +6412,7 @@ export const GetSessionsOpenSearchDocument = gql`
 				user_properties
 				event_counts
 				last_user_interaction_time
+				excluded
 			}
 			totalCount
 		}
