@@ -1,3 +1,4 @@
+// next.config.js
 const nextBuildId = require('next-build-id')
 
 /** @type {import('next').NextConfig} */

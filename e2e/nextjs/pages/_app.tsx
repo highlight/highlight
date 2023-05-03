@@ -1,19 +1,9 @@
-// src/app/layout.tsx
-import './globals.css'
-
+// pages/_app.tsx
+import { AppProps } from 'next/app'
 import CONSTANTS from '@/app/constants'
 import { HighlightInit } from '@highlight-run/next/HighlightInit'
 
-export const metadata = {
-	title: 'Highlight Next Demo',
-	description: 'Check out how Highlight works with Next.js',
-}
-
-export default function RootLayout({
-	children,
-}: {
-	children: React.ReactNode
-}) {
+export default function MyApp({ Component, pageProps }: AppProps) {
 	return (
 		<>
 			<HighlightInit
@@ -27,9 +17,7 @@ export default function RootLayout({
 				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
 			/>
 
-			<html lang="en">
-				<body>{children}</body>
-			</html>
+			<Component {...pageProps} />
 		</>
 	)
 }

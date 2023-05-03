@@ -10,11 +10,11 @@ export default withHighlight(function handler(
 ) {
 	const success = z.enum(['true', 'false']).parse(req.query.success)
 
-	console.info('Here: /api/app-directory-test', { success })
+	console.info('Here: /pages/api/test.ts', { success })
 
 	if (success === 'true') {
-		res.send('Success: /api/app-directory-test')
+		res.send('Success: /pages/api/test.ts')
 	} else {
-		throw new Error('Error: /api/app-directory-test')
+		throw new Error('Error: /pages/api/test.ts')
 	}
 })
