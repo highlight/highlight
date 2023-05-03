@@ -17,11 +17,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
 
-type Props = {
-	integrated: boolean
-}
-
-const ApplicationRouter: React.FC<Props> = ({ integrated }) => {
+const ApplicationRouter: React.FC = () => {
 	const { page, backendSearchQuery } = useSearchContext()
 	const { page: errorPage, backendSearchQuery: errorBackendSearchQuery } =
 		useErrorSearchContext()
@@ -36,12 +32,12 @@ const ApplicationRouter: React.FC<Props> = ({ integrated }) => {
 		<Routes>
 			<Route
 				path="sessions/:session_secure_id?"
-				element={<PlayerPage integrated={integrated} />}
+				element={<PlayerPage />}
 			/>
 
 			<Route
 				path="errors/:error_secure_id?/:error_tab_key?/:error_object_id?"
-				element={<ErrorsV2 integrated={integrated} />}
+				element={<ErrorsV2 />}
 			/>
 
 			{isLoggedIn ? (
@@ -77,10 +73,7 @@ const ApplicationRouter: React.FC<Props> = ({ integrated }) => {
 						}
 					/>
 
-					<Route
-						path="*"
-						element={<DashboardsRouter integrated={integrated} />}
-					/>
+					<Route path="*" element={<DashboardsRouter />} />
 				</>
 			) : (
 				<Route path="*" element={<Navigate to="/" replace />} />
