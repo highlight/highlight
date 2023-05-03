@@ -6,8 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	github2 "github.com/google/go-github/v50/github"
-	"github.com/highlight-run/highlight/backend/integrations/github"
 	"io"
 	"math/big"
 	"net/http"
@@ -16,6 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	github2 "github.com/google/go-github/v50/github"
+	"github.com/highlight-run/highlight/backend/integrations/github"
 
 	"gorm.io/gorm/clause"
 
@@ -298,12 +299,28 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	return isAdmin || uid == WhitelistedUID || isDockerDefaultAccount
 }
 
-func (r *Resolver) isDemoProject(project_id int) bool {
-	return project_id == 0
+func (r *Resolver) isDemoProject(ctx context.Context, project_id int) bool {
+	return project_id == r.demoProjectID(ctx)
 }
 
 func (r *Resolver) isDemoWorkspace(workspace_id int) bool {
 	return workspace_id == 0
+}
+
+func (r *Resolver) demoProjectID(ctx context.Context) int {
+	demoProjectString := os.Getenv("DEMO_PROJECT_ID")
+
+	// Demo project is disabled if the env var is not set.
+	if demoProjectString == "" {
+		return 0
+	}
+
+	if demoProjectID, err := strconv.Atoi(demoProjectString); err != nil {
+		log.WithContext(ctx).Error(err, "error converting DemoProjectID to int")
+		return 0
+	} else {
+		return demoProjectID
+	}
 }
 
 // These are authentication methods used to make sure that data is secured.
@@ -322,8 +339,8 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	}()
 	var project *model.Project
 	var err error
-	if r.isDemoProject(project_id) {
-		if err = r.DB.Model(&model.Project{}).Where("id = ?", 0).First(&project).Error; err != nil {
+	if r.isDemoProject(ctx, project_id) {
+		if err = r.DB.Model(&model.Project{}).Where("id = ?", r.demoProjectID(ctx)).First(&project).Error; err != nil {
 			return nil, e.Wrap(err, "error querying demo project")
 		}
 	} else {

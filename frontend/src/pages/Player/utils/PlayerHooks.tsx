@@ -17,6 +17,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
+import { useProjectId } from '@/hooks/useProjectId'
+
 import { ReplayerState, useReplayerContext } from '../ReplayerContext'
 
 /**
@@ -70,10 +72,8 @@ export const usePlayerKeyboardShortcuts = () => {
 		setShowHistogram,
 		showHistogram,
 	} = usePlayerConfiguration()
-	const { session_secure_id, project_id } = useParams<{
-		session_secure_id: string
-		project_id: string
-	}>()
+	const { projectId } = useProjectId()
+	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const navigate = useNavigate()
 	message.config({
 		maxCount: 1,
@@ -202,7 +202,7 @@ export const usePlayerKeyboardShortcuts = () => {
 					session_secure_id,
 				)
 				changeSession(
-					project_id!,
+					projectId!,
 					navigate,
 					nextSession,
 					'Playing the next session.',
@@ -224,7 +224,7 @@ export const usePlayerKeyboardShortcuts = () => {
 					session_secure_id,
 				)
 				changeSession(
-					project_id!,
+					projectId!,
 					navigate,
 					nextSession,
 					'Playing the previous session.',

@@ -48,7 +48,7 @@ export const SessionLevelBarV2: React.FC<
 	const [copyShown, setCopyShown] = useState<boolean>(false)
 	const delayRef = useRef<number>()
 	const navigate = useNavigate()
-	const { projectId: project_id } = useProjectId()
+	const { projectId } = useProjectId()
 	const { session_secure_id } = useParams<{
 		session_secure_id: string
 	}>()
@@ -68,11 +68,11 @@ export const SessionLevelBarV2: React.FC<
 			query: backendSearchQuery?.searchQuery || '',
 			count: DEFAULT_PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
-			project_id: project_id!,
+			project_id: projectId!,
 			sort_desc: true,
 		},
 		fetchPolicy: 'cache-first',
-		skip: !project_id || !backendSearchQuery?.searchQuery,
+		skip: !projectId || !backendSearchQuery?.searchQuery,
 	})
 	const isDefaultView = DEFAULT_RIGHT_PANEL_VIEWS.includes(rightPanelView)
 
@@ -100,16 +100,16 @@ export const SessionLevelBarV2: React.FC<
 		setSessionResults,
 	])
 
-	const canMoveForward = !!project_id && sessionResults.sessions[next]
-	const canMoveBackward = !!project_id && sessionResults.sessions[prev]
+	const canMoveForward = !!projectId && sessionResults.sessions[next]
+	const canMoveBackward = !!projectId && sessionResults.sessions[prev]
 
 	useHotkeys(
 		'j',
 		() => {
-			if (canMoveForward && project_id) {
+			if (canMoveForward && projectId) {
 				analytics.track('NextSessionKeyboardShortcut')
 				changeSession(
-					project_id,
+					projectId,
 					navigate,
 					sessionResults.sessions[next],
 				)
@@ -121,10 +121,10 @@ export const SessionLevelBarV2: React.FC<
 	useHotkeys(
 		'k',
 		() => {
-			if (canMoveBackward && project_id) {
+			if (canMoveBackward && projectId) {
 				analytics.track('PrevSessionKeyboardShortcut')
 				changeSession(
-					project_id,
+					projectId,
 					navigate,
 					sessionResults.sessions[prev],
 				)
@@ -165,9 +165,9 @@ export const SessionLevelBarV2: React.FC<
 					)}
 					<PreviousNextGroup
 						onPrev={() => {
-							if (project_id) {
+							if (projectId) {
 								changeSession(
-									project_id,
+									projectId,
 									navigate,
 									sessionResults.sessions[prev],
 								)
@@ -175,9 +175,9 @@ export const SessionLevelBarV2: React.FC<
 						}}
 						canMoveBackward={!!canMoveBackward}
 						onNext={() => {
-							if (project_id) {
+							if (projectId) {
 								changeSession(
-									project_id,
+									projectId,
 									navigate,
 									sessionResults.sessions[next],
 								)

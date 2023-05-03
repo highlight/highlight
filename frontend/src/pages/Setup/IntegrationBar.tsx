@@ -81,10 +81,11 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 			? errorGroupData?.error_groups_opensearch.error_groups[0]
 			: undefined
 	const path = buildResourcePath(area!, projectId, resource)
+	const complete = path && integrated
 
 	return (
 		<Box
-			backgroundColor={path ? 'informative' : 'elevated'}
+			backgroundColor={complete ? 'informative' : 'elevated'}
 			p="8"
 			display="flex"
 			flexDirection="column"
@@ -104,13 +105,15 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 				<Stack gap="2" direction="row" align="center">
 					<Badge
 						label={AREA_TITLE_MAP[area!]}
-						variant={path ? 'purple' : 'gray'}
+						variant={complete ? 'purple' : 'gray'}
 					/>
 					<Badge
-						label={`Installation ${path ? 'complete' : 'pending'}`}
-						variant={path ? 'purple' : 'gray'}
+						label={`Installation ${
+							complete ? 'complete' : 'pending'
+						}`}
+						variant={complete ? 'purple' : 'gray'}
 						iconStart={
-							path ? (
+							complete ? (
 								<IconSolidCheckCircle />
 							) : (
 								<IconSolidLoading className={styles.loading} />
@@ -130,8 +133,8 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 							trackingId={`setup-resource-${
 								area === 'backend' ? 'error' : 'session'
 							}`}
-							kind={path ? 'primary' : 'secondary'}
-							disabled={!path}
+							kind={complete ? 'primary' : 'secondary'}
+							disabled={!complete}
 							size="small"
 						>
 							<Box
