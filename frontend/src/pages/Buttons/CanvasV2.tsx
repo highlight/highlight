@@ -112,17 +112,25 @@ export const CanvasPage = function () {
 	}, [])
 
 	return (
-		<Box ref={ref} display="flex" width="full" height="full">
-			<video
-				width={240}
-				height={480}
-				preload="metadata"
-				autoPlay={true}
-				crossOrigin="anonymous"
-				src="https://static.highlight.io/dev/BigBuckBunny.mp4"
-			></video>
-			<canvas className=":hover" />
-			<video autoPlay id="webcam"></video>
+		<Box ref={ref} width="full" height="full">
+			<Box display="flex" width="full">
+				<Box border="dividerStrong">
+					<video
+						width={240}
+						height={480}
+						preload="metadata"
+						autoPlay={true}
+						crossOrigin="anonymous"
+						src="https://static.highlight.io/dev/BigBuckBunny.mp4"
+					></video>
+				</Box>
+				<Box border="dividerStrong">
+					<canvas className=":hover" />
+				</Box>
+				<Box border="dividerStrong">
+					<video autoPlay id="webcam"></video>
+				</Box>
+			</Box>
 		</Box>
 	)
 }
