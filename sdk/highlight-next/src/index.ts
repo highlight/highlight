@@ -1,3 +1,3 @@
-export { registerHighlight } from './util/registerHighlight.js'
-export { H, Highlight } from './util/withHighlight.js'
-export { withHighlightConfig } from './util/withHighlightConfig.js'
+export { registerHighlight } from './util/registerHighlight'
+export { H, Highlight } from './util/withHighlight'
+export { withHighlightConfig } from './util/withHighlightConfig'

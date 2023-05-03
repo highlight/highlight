@@ -1,33 +1,24 @@
-import CONSTANTS from '@/app/constants'
 import { ErrorButtons } from '@/app/components/error-buttons'
-import { Highlight } from '@/app/components/highlight'
 import Image from 'next/image'
+import { PathButtons } from '@/app/components/path-buttons'
 
 export default function Home() {
 	return (
-		<>
-			<Highlight
-				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
-				tracingOrigins
-				networkRecording={{
-					enabled: true,
-					recordHeadersAndBody: true,
-					urlBlocklist: [],
-				}}
-				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
+		<main style={{ padding: '2rem' }}>
+			<Image
+				alt="Highlight logo"
+				src="highlight/logo-and-text-on-dark.svg"
+				width={167}
+				height={33}
+				priority
 			/>
 
-			<main style={{ padding: '2rem' }}>
-				<Image
-					alt="Highlight logo"
-					src="highlight/logo-and-text-on-dark.svg"
-					width={167}
-					height={33}
-					priority
-				/>
+			<h3>Error Buttons</h3>
 
-				<ErrorButtons />
-			</main>
-		</>
+			<ErrorButtons />
+
+			<h3>Paths</h3>
+			<PathButtons />
+		</main>
 	)
 }

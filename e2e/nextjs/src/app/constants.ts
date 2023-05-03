@@ -1,3 +1,4 @@
+// src/app/constants.ts
 import { z } from 'zod'
 
 const stringOrUndefined = z.preprocess(

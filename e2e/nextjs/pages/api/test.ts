@@ -1,3 +1,4 @@
+// pages/api/test.ts
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { withHighlight } from '@/app/utils/highlight.config'

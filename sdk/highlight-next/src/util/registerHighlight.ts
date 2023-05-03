@@ -5,5 +5,9 @@ export async function registerHighlight(nodeOptions: NodeOptions) {
 		const { H } = await import('@highlight-run/node')
 
 		H.init(nodeOptions)
+	} else {
+		console.info(
+			`Highlight not registered: NEXT_RUNTIME=${process.env.NEXT_RUNTIME}`,
+		)
 	}
 }
