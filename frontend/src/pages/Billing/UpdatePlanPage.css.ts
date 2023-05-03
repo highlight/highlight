@@ -3,7 +3,11 @@ import { style } from '@vanilla-extract/css'
 
 export const pageWrapper = style({
 	width: 540,
-	marginTop: 36,
+	marginTop: 24,
+})
+
+export const pageHeader = style({
+	height: 40,
 })
 
 export const progressBarBackground = style({

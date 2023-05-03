@@ -23,7 +23,7 @@ import * as style from './BillingPageV2.css'
 
 type UsageCardProps = {
 	productIcon: React.ReactElement<IconProps>
-	productType: string
+	productType: 'Sessions' | 'Errors' | 'Logging'
 	costCents: number
 	retentionPeriod: RetentionPeriod
 	billingLimitCents: number | undefined
@@ -109,11 +109,7 @@ const UsageCard = ({
 	)
 }
 
-type BillingPageProps = {
-	trackingId: string
-	closable?: boolean
-	shouldAlwaysShow?: boolean
-}
+type BillingPageProps = {}
 
 const BillingPageV2 = ({}: BillingPageProps) => {
 	return (
@@ -122,7 +118,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 				<Heading level="h4">Billing plans</Heading>
 				<Box display="flex">
 					<Text size="small" weight="medium">
-						Prices are usage based and flexibly on your needs.
+						Prices are usage based and flexible with your needs.
 					</Text>
 					<Tag
 						iconRight={<IconSolidArrowSmRight />}
@@ -188,7 +184,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					<Box borderTop="secondary" />
 					<UsageCard
 						productIcon={<IconSolidLogs />}
-						productType="Logs"
+						productType="Logging"
 						costCents={10000}
 						retentionPeriod={RetentionPeriod.ThreeMonths}
 						billingLimitCents={10000}

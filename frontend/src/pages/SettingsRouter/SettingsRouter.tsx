@@ -23,6 +23,7 @@ import { auth } from '@/util/auth'
 import * as styles from './SettingsRouter.css'
 
 const BillingPageV2 = React.lazy(() => import('../Billing/BillingPageV2'))
+const UpdatePlanPage = React.lazy(() => import('../Billing/UpdatePlanPage'))
 
 export type SettingGroups = 'account' | 'project'
 
@@ -65,9 +66,15 @@ export const SettingsRouter = () => {
 	const pageId =
 		workspaceMatch?.params.page_id || (sectionId as WorkspaceSettingsTab)
 
-	const billingPanelContent = (
+	const billingContent = (
 		<Suspense fallback={null}>
 			<BillingPageV2 />
+		</Suspense>
+	)
+
+	const updatePlanContent = (
+		<Suspense fallback={null}>
+			<UpdatePlanPage />
 		</Suspense>
 	)
 
@@ -85,7 +92,7 @@ export const SettingsRouter = () => {
 		{
 			key: 'billing-plans',
 			title: getTitle('billing-plans'),
-			panelContent: billingPanelContent,
+			panelContent: billingContent,
 		},
 	]
 
@@ -200,12 +207,16 @@ export const SettingsRouter = () => {
 									/>
 								))}
 								<Route
+									path="billing-plans/update-plan"
+									element={updatePlanContent}
+								/>
+								<Route
 									path="current-plan"
-									element={billingPanelContent}
+									element={billingContent}
 								/>
 								<Route
 									path="upgrade-plan"
-									element={billingPanelContent}
+									element={billingContent}
 								/>
 								{accountSettingTabs.map((tab) => (
 									<Route
