@@ -81,8 +81,7 @@ const options: HighlightOptions = {
 	enableSegmentIntegration: true,
 	enableCanvasRecording: true,
 	samplingStrategy: {
-		canvas: 15,
-		canvasQuality: 'low',
+		canvas: 1,
 		canvasMaxSnapshotDimension: 480,
 		canvasFactor: 0.5,
 	},

@@ -333,8 +333,7 @@ export class Highlight {
 		this.inlineImages = options.inlineImages ?? this._isOnLocalHost
 		this.inlineStylesheet = options.inlineStylesheet ?? this._isOnLocalHost
 		this.samplingStrategy = {
-			canvas: 5,
-			canvasQuality: 'low',
+			canvas: 1,
 			canvasFactor: 0.5,
 			canvasMaxSnapshotDimension: 360,
 			...(options.samplingStrategy ?? {}),
@@ -709,8 +708,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					sampling: {
 						canvas: {
 							fps: this.samplingStrategy.canvas,
-							resizeQuality: this.samplingStrategy.canvasQuality,
 							resizeFactor: this.samplingStrategy.canvasFactor,
+							dataURLOptions: {
+								type: 'image/webp',
+								quality: 0.9,
+							},
 							maxSnapshotDimension:
 								this.samplingStrategy
 									.canvasMaxSnapshotDimension,

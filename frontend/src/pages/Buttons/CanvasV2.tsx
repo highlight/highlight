@@ -1,10 +1,36 @@
 import { Image } from 'antd'
-import { useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 
 import { Box } from '@/../../packages/ui'
 
+interface Navigator {
+	getUserMedia(
+		options: { video?: boolean; audio?: boolean },
+		success: (stream: MediaSource) => void,
+		error?: (error: string) => void,
+	): void
+}
+
 export const CanvasPage = function () {
 	const ref = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		const video = document.querySelector('#webcam')! as HTMLVideoElement
+		const n = navigator as any as Navigator
+		if (n.getUserMedia) {
+			n.getUserMedia(
+				{
+					video: true,
+				},
+				function (stream) {
+					video.srcObject = stream
+				},
+				() => {
+					console.error('denied')
+				},
+			)
+		}
+	}, [])
 
 	useEffect(() => {
 		const canvases = ref.current?.getElementsByTagName('canvas')
@@ -89,18 +115,18 @@ export const CanvasPage = function () {
 	return (
 		<Box ref={ref} width="full" height="full">
 			<Box display="flex" width="full">
-				{Array(8)
+				{Array(1)
 					.fill(0)
 					.map((_, i) => (
 						<Box key={i} display="flex" flexDirection="column">
 							<video
-								width={128}
-								height={128}
+								width={512}
+								height={512}
 								preload="metadata"
 								autoPlay={true}
-								src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+								crossOrigin="anonymous"
+								src="https://static.highlight.io/dev/BigBuckBunny.mp4"
 							></video>
-							<canvas width={128} height={128}></canvas>
 						</Box>
 					))}
 			</Box>
@@ -133,6 +159,11 @@ export const CanvasPage = function () {
 					width={512}
 					height={512}
 				/>
+			</Box>
+			<Box display="flex" width="full">
+				<Box border="dividerStrong">
+					<video autoPlay id="webcam"></video>
+				</Box>
 			</Box>
 		</Box>
 	)
