@@ -67,7 +67,7 @@ export class ErrorBoundary extends React.Component<
 		if (beforeCapture) {
 			beforeCapture(error, errorInfo.componentStack)
 		}
-		captureReactErrorBoundaryError(error, errorInfo.componentStack)
+		captureReactErrorBoundaryError(error, errorInfo)
 		if (onError) {
 			onError(error, errorInfo.componentStack)
 		}
@@ -106,10 +106,12 @@ export class ErrorBoundary extends React.Component<
 
 	hideDialog: () => void = () => {
 		this.setState({ ...this.state, showingDialog: false })
-
-		if (this.props.onAfterReportDialogCancelHandler) {
-			this.props.onAfterReportDialogCancelHandler()
-		}
+		;(
+			this.props.onAfterReportDialogCancelHandler ||
+			(() => {
+				window.location.href = window.location.origin
+			})
+		)()
 	}
 
 	onReportDialogSubmitHandler: () => void = () => {
@@ -183,29 +185,20 @@ export class ErrorBoundary extends React.Component<
  * Logs react error boundary errors to Highlight.
  *
  * @param error An error captured by React Error Boundary
- * @param componentStack The component stacktrace
+ * @param errorInfo The error details
  */
 function captureReactErrorBoundaryError(
 	error: Error,
-	componentStack: string,
+	errorInfo: ErrorInfo,
 ): void {
-	const errorBoundaryError = new Error(` ${error.message}`)
-	errorBoundaryError.name = `React ErrorBoundary ${error.name}`
-	//   errorBoundaryError.stack = `${componentStack}`;
-	errorBoundaryError.stack = error.stack
-
-	const componentName = getComponentNameFromStack(componentStack)
-
-	// if highlight is active, then we'll catch the error via the `window.onerror` listener
-	// otherwise, we'll print it
+	const component = getComponentNameFromStack(errorInfo.componentStack)
 	if (!window.H) {
-		console.error(
-			errorBoundaryError,
-			`${
-				componentName
-					? `ErrorBoundary ${componentName}`
-					: 'HighlightErrorBoundary'
-			}`,
+		console.warn('You need to install highlight.run.')
+	} else {
+		window.H.consumeError(
+			error,
+			undefined,
+			component ? { component } : undefined,
 		)
 	}
 }

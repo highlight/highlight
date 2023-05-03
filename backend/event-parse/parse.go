@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/lukasbob/srcset"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -89,6 +89,7 @@ const (
 	ErrAssetTooLarge    = "ErrAssetTooLarge"
 	ErrAssetSizeUnknown = "ErrAssetSizeUnknown"
 	ErrFailedToFetch    = "ErrFailedToFetch"
+	MaxAssetSize        = 10 * 1024 * 1e6
 )
 
 type fetcher interface {
@@ -407,7 +408,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 			response, err := http.Get(url)
 			if err != nil {
 				hashVal = ErrFailedToFetch
-			} else if response.ContentLength > 30e6 {
+			} else if response.ContentLength > MaxAssetSize {
 				hashVal = ErrAssetTooLarge
 			} else {
 				res, err := io.ReadAll(response.Body)

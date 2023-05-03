@@ -139,12 +139,7 @@ const App = () => {
 	)
 
 	return (
-		<ErrorBoundary
-			onAfterReportDialogCancelHandler={() => {
-				const { origin } = window.location
-				window.location.href = origin
-			}}
-		>
+		<ErrorBoundary>
 			<ApolloProvider client={client}>
 				<SkeletonTheme
 					baseColor="var(--color-gray-200)"

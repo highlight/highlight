@@ -6412,6 +6412,8 @@ export const GetSessionsOpenSearchDocument = gql`
 				user_properties
 				event_counts
 				last_user_interaction_time
+				is_public
+				excluded
 			}
 			totalCount
 		}
