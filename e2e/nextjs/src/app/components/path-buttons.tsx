@@ -2,6 +2,7 @@
 
 import { Button } from '@/app/components/button'
 import { ErrorBoundary } from '@/app/components/error-boundary'
+import Link from 'next/link'
 
 export function PathButtons() {
 	return (
@@ -24,22 +25,22 @@ export function PathButtons() {
 				}}
 			/>
 			<ErrorBoundary>
-				<a href="/isr/success">
+				<Link href="/isr">
 					<Button>Standard ISR: Success</Button>
-				</a>
+				</Link>
 				<hr />
-				<a href="/isr/error">
+				<Link href="/isr?error=true">
 					<Button>Standard ISR: Error</Button>
-				</a>
+				</Link>
 				<hr />
 
-				<a href="/app-directory/isr/success">
+				<Link href="/app-directory/isr">
 					<Button>App Directory: Success</Button>
-				</a>
+				</Link>
 				<hr />
-				<a href="/app-directory/isr/error">
+				<Link href="/app-directory/isr?error=true">
 					<Button>App Directory: Error</Button>
-				</a>
+				</Link>
 			</ErrorBoundary>
 		</div>
 	)

@@ -1,4 +1,12 @@
-export default function IsrPage() {
+type Props = {
+	searchParams: { error?: string }
+}
+
+export default function IsrPage({ searchParams }: Props) {
+	if (searchParams.error) {
+		throw new Error('ISR Error: src/app-directory/isr/page.tsx')
+	}
+
 	return (
 		<div>
 			<h1>App Directory ISR: Success</h1>

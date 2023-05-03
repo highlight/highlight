@@ -111,22 +111,28 @@ export default withHighlight(function handler(
 Next.js comes out of the box instrumented for Open Telemetry. This example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configue Open Telemetry on our Next.js server. There are probably other ways to configure Open Telemetry with Next... but this is our favorite.
 
 
-1.  Turn on `instrumentationHook`. We've also turned on `productionBrowserSourceMaps` because Highlight is much easier to use with sourcemaps.
+1. Install `next-build-id` with `npm install next-build-id`.
+2.  Turn on `instrumentationHook`. We've also turned on `productionBrowserSourceMaps` because Highlight is much easier to use with sourcemaps. Notice that we're transpiling the `@highlight-run/next/HighlightInit` package.
 
 ```javascript
+const nextBuildId = require('next-build-id')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+	generateBuildId: () => nextBuildId({ dir: __dirname }),
 	experimental: {
 		appDir: true,
 		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: true,
+	transpilePackages: ['@highlight-run/next/HighlightInit'],
 }
 
 module.exports = nextConfig
+
 ```
 
-2. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function:
+3. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function:
 
 ```javascript
 // instrumentation.ts

@@ -1,7 +1,7 @@
 import './globals.css'
 
 import CONSTANTS from '@/app/constants'
-import { HighlightInit } from '@highlight-run/react'
+import { HighlightInit } from '@highlight-run/next/HighlightInit'
 
 export const metadata = {
 	title: 'Highlight Next Demo',
