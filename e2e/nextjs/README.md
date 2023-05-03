@@ -259,9 +259,7 @@ module.exports = withHighlightConfig(nextConfig)
 
 You must export your `HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY` to your build process. If you're building and deploying with Vercel, try our [Highlight Vercel Integration](https://vercel.com/integrations/highlight) to inject `HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY` automatically.
 
-
-https://user-images.githubusercontent.com/878947/235968185-0cd5efbf-de0e-4d63-916a-c7290c2abb39.mp4
-
+[sourcemaps-secret-key.webm](https://user-images.githubusercontent.com/878947/235971066-def65bcb-1580-4e8a-9d69-3e5556d51b27.webm)
 
 ## Vercel Log Drain
 
