@@ -47,7 +47,6 @@ linters-settings:
         list-type: denylist
         include-go-root: true
         packages:
-            - errors
             - log
 
         packages-with-error-message:
