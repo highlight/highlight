@@ -25,6 +25,11 @@ export declare type SamplingStrategy = {
 	 */
 	canvas?: 'all' | number
 	/**
+	 * A quality at which to take canvas snapshots. See https://developer.mozilla.org/en-US/docs/Web/API/createImageBitmap
+	 * @deprecated This value is no longer used.
+	 */
+	canvasQuality?: 'pixelated' | 'low' | 'medium' | 'high'
+	/**
 	 * A multiplier resolution at which to take canvas snapshots.
 	 */
 	canvasFactor?: number
