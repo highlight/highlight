@@ -1,9 +1,6 @@
 import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment'
-import { SessionCommentType } from '@graph/schemas'
-import { Box } from '@highlight-run/ui'
+import { Box, Text } from '@highlight-run/ui'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import { getFeedbackCommentSessionTimestamp } from '@util/comment/util'
-import { MillisToMinutesAndSeconds } from '@util/time'
 import React, { useEffect, useRef, useState } from 'react'
 
 import { useGetSessionCommentsQuery } from '@/graph/generated/hooks'
@@ -11,7 +8,6 @@ import { useParams } from '@/util/react-router/useParams'
 
 import FullCommentList from '../../../components/FullCommentList/FullCommentList'
 import { PlayerSearchParameters } from '../PlayerHook/utils'
-import styles from './SessionFullCommentList.module.scss'
 
 const SessionFullCommentList = ({}: {}) => {
 	const sessionCommentsRef = useRef(null)
@@ -37,25 +33,13 @@ const SessionFullCommentList = ({}: {}) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [location.search])
 
-	const getCommentTimestamp = (comment: any) => {
-		if (comment.type === SessionCommentType.Feedback) {
-			const sessionStartTime = sessionMetadata.startTime
-
-			if (sessionStartTime) {
-				const deltaMilliseconds = getFeedbackCommentSessionTimestamp(
-					comment,
-					sessionStartTime,
-				)
-
-				return MillisToMinutesAndSeconds(deltaMilliseconds)
-			}
-		}
-
-		return MillisToMinutesAndSeconds(comment?.timestamp || 0)
-	}
-
 	return (
 		<Box ref={sessionCommentsRef} height="full">
+			<Box py="16" px="12" borderBottom="dividerWeak">
+				<Text size="small" weight="bold">
+					Threads
+				</Text>
+			</Box>
 			<FullCommentList
 				loading={loading}
 				comments={data?.session_comments}
@@ -64,22 +48,6 @@ const SessionFullCommentList = ({}: {}) => {
 						parentRef={sessionCommentsRef}
 						deepLinkedCommentId={deepLinkedCommentId}
 						comment={comment}
-						footer={
-							<div className={styles.footer}>
-								{comment.type === SessionCommentType.Feedback &&
-									comment?.metadata?.email && (
-										<a
-											href={`mailto:${comment.metadata.email}`}
-											className={styles.email}
-										>
-											{comment.metadata.email}
-										</a>
-									)}
-								<p className={styles.timestamp}>
-									{getCommentTimestamp(comment)}
-								</p>
-							</div>
-						}
 					/>
 				)}
 				noCommentsMessage="Click anywhere on the session player to leave one"

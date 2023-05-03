@@ -87,11 +87,7 @@ const RightPlayerPanel = () => {
 				}
 
 			case RightPanelView.Comments:
-				return (
-					<Box height="full" display="flex" flexDirection="column">
-						<SessionFullCommentList />
-					</Box>
-				)
+				return <SessionFullCommentList />
 		}
 	}, [
 		activeError,
@@ -104,11 +100,11 @@ const RightPlayerPanel = () => {
 
 	return (
 		<Box
+			backgroundColor="white"
 			flexShrink={0}
 			bt="dividerWeak"
 			bl="dividerWeak"
 			cssClass={[
-				style.playerRightPanelContainer,
 				{
 					[style.playerRightPanelContainerHidden]: !showRightPanel,
 				},

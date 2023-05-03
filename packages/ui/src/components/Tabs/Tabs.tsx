@@ -11,7 +11,7 @@ interface Page {
 	badge?: React.ReactNode
 }
 
-type Props<T extends string> = styles.Variants & {
+type Props<T extends string> = {
 	pages: {
 		[k: string]: Page
 	}

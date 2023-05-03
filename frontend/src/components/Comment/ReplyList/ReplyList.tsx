@@ -1,8 +1,9 @@
-import { CommentHeader } from '@components/Comment/CommentHeader'
 import { CommentReply, Maybe } from '@graph/schemas'
-import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import clsx from 'clsx'
 import React from 'react'
+
+import SessionComment from '@/components/Comment/SessionComment/SessionComment'
+import { ParsedSessionComment } from '@/pages/Player/ReplayerContext'
 
 import styles from './ReplyList.module.scss'
 
@@ -27,11 +28,10 @@ const ReplyList: React.FC<React.PropsWithChildren<ReplyListProps>> = ({
 					record && (
 						<div className={styles.record} key={record.id}>
 							<div>
-								<CommentHeader comment={record} small>
-									<CommentTextBody
-										commentText={record.text}
-									/>
-								</CommentHeader>
+								<SessionComment
+									comment={record as ParsedSessionComment}
+									isReply
+								/>
 							</div>
 						</div>
 					)

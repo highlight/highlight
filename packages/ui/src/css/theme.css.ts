@@ -114,6 +114,10 @@ export const themeVars = createGlobalTheme('.highlight-light-theme', {
 				hover: '#eeedef',
 				pressed: '#e9e8ea',
 				disabled: 'rgba(238, 237, 239, 0.0)',
+				selected: {
+					default: 'rgba(238, 237, 239, 0.64)',
+					hover: 'rgba(238, 237, 239, 0.84)',
+				},
 			},
 		},
 	},

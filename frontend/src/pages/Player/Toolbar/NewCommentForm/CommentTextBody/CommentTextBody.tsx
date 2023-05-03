@@ -8,6 +8,7 @@ import {
 	MentionsInput,
 	OnChangeHandlerFunc,
 } from '@highlight-run/react-mentions'
+import { Box, Text } from '@highlight-run/ui'
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { useParams } from '@util/react-router/useParams'
 import { splitTaggedUsers } from '@util/string'
@@ -69,34 +70,40 @@ const CommentTextBody = ({
 		for (const { matched, value } of splitTaggedUsers(commentText)) {
 			if (matched) {
 				pieces.push(
-					<span className={styles.mentionedUser}>{value}</span>,
+					<Box as="span" cssClass={styles.commentLink}>
+						{value}
+					</Box>,
 				)
 			} else {
 				pieces.push(
-					<span className={styles.commentText}>
-						<Linkify
-							componentDecorator={(
-								decoratedHref: string,
-								decoratedText: string,
-								key: number,
-							) => (
-								<a
-									target="_blank"
-									rel="noreferrer"
-									href={decoratedHref}
-									key={key}
-								>
-									{decoratedText}
-								</a>
-							)}
-						>
-							{value}
-						</Linkify>
-					</span>,
+					<Linkify
+						componentDecorator={(
+							decoratedHref: string,
+							decoratedText: string,
+							key: number,
+						) => (
+							<a
+								target="_blank"
+								rel="noreferrer"
+								href={decoratedHref}
+								key={key}
+								className={styles.commentLink}
+							>
+								{decoratedText}
+							</a>
+						)}
+					>
+						{value}
+					</Linkify>,
 				)
 			}
 		}
-		return <>{pieces}</>
+
+		return (
+			<Text size="small" color="moderate">
+				{pieces}
+			</Text>
+		)
 	}
 
 	return (

@@ -1,7 +1,7 @@
 import ConnectHighlightWithSlackButton from '@components/Header/components/ConnectHighlightWithSlackButton/ConnectHighlightWithSlackButton'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LoadingBox from '@components/LoadingBox'
-import clsx from 'clsx'
+import { Box } from '@highlight-run/ui'
 import React, { useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
@@ -27,7 +27,7 @@ const FullCommentList = ({
 
 	const loading = isLoadingComments || isLoadingSlack
 	return (
-		<div className={styles.commentStream}>
+		<Box display="flex" flexDirection="column" height="full" p="8">
 			{loading && <LoadingBox />}
 			{!loading && comments.length === 0 ? (
 				<div className={styles.noCommentsContainer}>
@@ -45,19 +45,14 @@ const FullCommentList = ({
 						data={comments}
 						className={styledVerticalScrollbar}
 						itemContent={(index, comment: any) => (
-							<div
-								key={comment.id || index}
-								className={clsx(styles.comment, {
-									[styles.firstComment]: index === 0,
-								})}
-							>
+							<Box key={comment.id || index}>
 								{commentRender(comment)}
-							</div>
+							</Box>
 						)}
 					/>
 				</>
 			)}
-		</div>
+		</Box>
 	)
 }
 

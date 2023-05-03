@@ -1,4 +1,5 @@
 import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment'
+import { Box } from '@highlight-run/ui'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import clsx from 'clsx'
@@ -115,8 +116,13 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 			<TransparentPopover
 				placement="right"
 				content={
-					<div
-						className={styles.sessionCommentCardContainer}
+					<Box
+						backgroundColor="white"
+						border="divider"
+						borderRadius="8"
+						boxShadow="medium"
+						p="4"
+						style={{ width: 350 }}
 						ref={commentCardParentRef}
 					>
 						<SessionCommentCard
@@ -125,9 +131,8 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 							onClose={() => setVisible(false)}
 							deepLinkedCommentId={deepLinkedCommentId}
 							scrollReplies
-							hasShadow
 						/>
-					</div>
+					</Box>
 				}
 				align={{ offset: [0, 12] }}
 				visible={visible}

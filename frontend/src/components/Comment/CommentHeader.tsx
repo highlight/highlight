@@ -1,7 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import CloseButton from '@components/CloseButton/CloseButton'
 import { Admin, SanitizedAdminInput, SessionCommentType } from '@graph/schemas'
-import SvgShare2Icon from '@icons/Share2Icon'
 import { CommentSuggestion } from '@util/comment/util'
 import clsx from 'clsx'
 import React, { PropsWithChildren } from 'react'
@@ -60,7 +59,6 @@ export const CommentHeader = ({
 	moreMenu,
 	children,
 	footer,
-	shareMenu,
 	gotoButton,
 	onClose,
 	small,
@@ -69,7 +67,6 @@ export const CommentHeader = ({
 }: PropsWithChildren<{
 	comment: any
 	moreMenu?: JSX.Element
-	shareMenu?: JSX.Element
 	gotoButton?: JSX.Element
 	onClose?: () => void
 	footer?: React.ReactNode
@@ -98,14 +95,6 @@ export const CommentHeader = ({
 					<span className={styles.endActions}>
 						{isLoggedIn && !small && (
 							<>
-								{shareMenu && (
-									<DotsMenu
-										menu={shareMenu}
-										trackingId="CommentsShare"
-										icon={<SvgShare2Icon />}
-										disabled={isSharingDisabled}
-									/>
-								)}
 								{gotoButton!}
 								{onClose && (
 									<CloseButton
