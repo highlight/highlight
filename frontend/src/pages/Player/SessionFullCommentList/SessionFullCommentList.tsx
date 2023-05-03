@@ -1,24 +1,27 @@
 import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment'
-import { GetSessionCommentsQuery } from '@graph/operations'
 import { SessionCommentType } from '@graph/schemas'
+import { Box } from '@highlight-run/ui'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { getFeedbackCommentSessionTimestamp } from '@util/comment/util'
 import { MillisToMinutesAndSeconds } from '@util/time'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+
+import { useGetSessionCommentsQuery } from '@/graph/generated/hooks'
+import { useParams } from '@/util/react-router/useParams'
 
 import FullCommentList from '../../../components/FullCommentList/FullCommentList'
 import { PlayerSearchParameters } from '../PlayerHook/utils'
 import styles from './SessionFullCommentList.module.scss'
 
-const SessionFullCommentList = ({
-	loading,
-	sessionCommentsData,
-	parentRef,
-}: {
-	loading: boolean
-	sessionCommentsData?: GetSessionCommentsQuery
-	parentRef?: React.RefObject<HTMLDivElement>
-}) => {
+const SessionFullCommentList = ({}: {}) => {
+	const sessionCommentsRef = useRef(null)
+	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+	const { data, loading } = useGetSessionCommentsQuery({
+		variables: {
+			session_secure_id: session_secure_id!,
+		},
+		skip: !session_secure_id,
+	})
 	const { sessionMetadata } = useReplayerContext()
 	const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
 		new URLSearchParams(location.search).get(
@@ -52,34 +55,36 @@ const SessionFullCommentList = ({
 	}
 
 	return (
-		<FullCommentList
-			loading={loading}
-			comments={sessionCommentsData?.session_comments}
-			commentRender={(comment) => (
-				<SessionCommentCard
-					parentRef={parentRef}
-					deepLinkedCommentId={deepLinkedCommentId}
-					comment={comment}
-					footer={
-						<div className={styles.footer}>
-							{comment.type === SessionCommentType.Feedback &&
-								comment?.metadata?.email && (
-									<a
-										href={`mailto:${comment.metadata.email}`}
-										className={styles.email}
-									>
-										{comment.metadata.email}
-									</a>
-								)}
-							<p className={styles.timestamp}>
-								{getCommentTimestamp(comment)}
-							</p>
-						</div>
-					}
-				/>
-			)}
-			noCommentsMessage="Click anywhere on the session player to leave one"
-		/>
+		<Box ref={sessionCommentsRef} height="full">
+			<FullCommentList
+				loading={loading}
+				comments={data?.session_comments}
+				commentRender={(comment) => (
+					<SessionCommentCard
+						parentRef={sessionCommentsRef}
+						deepLinkedCommentId={deepLinkedCommentId}
+						comment={comment}
+						footer={
+							<div className={styles.footer}>
+								{comment.type === SessionCommentType.Feedback &&
+									comment?.metadata?.email && (
+										<a
+											href={`mailto:${comment.metadata.email}`}
+											className={styles.email}
+										>
+											{comment.metadata.email}
+										</a>
+									)}
+								<p className={styles.timestamp}>
+									{getCommentTimestamp(comment)}
+								</p>
+							</div>
+						}
+					/>
+				)}
+				noCommentsMessage="Click anywhere on the session player to leave one"
+			/>
+		</Box>
 	)
 }
 

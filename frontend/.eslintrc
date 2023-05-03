@@ -126,6 +126,12 @@
 						"importNames": ["Button"],
 						"message": "Please use Button from @components/Button instead."
 					}
+				],
+				"patterns": [
+					{
+						"group": ["**/packages/ui/src"],
+						"message": "Import from @highlight-run/ui instead."
+					}
 				]
 			}
 		],

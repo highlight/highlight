@@ -4,7 +4,7 @@ import {
 	createMapValueFn,
 } from '@vanilla-extract/sprinkles'
 import { borders } from './borders'
-import { Breakpoint, mediaQueries } from './breakpoints'
+import { Breakpoint } from './breakpoints'
 import { colors } from './colors'
 import { vars } from './vars'
 
@@ -66,8 +66,6 @@ export const backgroundColors = {
 } as const
 
 const responsiveProperties = defineProperties({
-	conditions: mediaQueries,
-	defaultCondition: 'mobile',
 	properties: {
 		alignItems: ['stretch', 'flex-start', 'center', 'flex-end'],
 		borderRadius: vars.borderRadius,
@@ -196,10 +194,10 @@ const staticProperties = defineProperties({
 
 const colorProperties = defineProperties({
 	conditions: {
-		lightMode: {},
-		darkMode: { '@media': '(prefers-color-scheme: dark)' },
+		default: {},
+		hover: { selector: '&:hover' },
 	},
-	defaultCondition: 'lightMode',
+	defaultCondition: 'default',
 	properties: {
 		backgroundColor: backgroundColors,
 		border: borders,

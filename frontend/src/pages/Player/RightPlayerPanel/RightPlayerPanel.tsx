@@ -14,6 +14,8 @@ import NetworkResourceDetails from '@pages/Player/RightPlayerPanel/components/Ne
 import RightPanelTabs from '@pages/Player/RightPlayerPanel/components/Tabs'
 import React, { useEffect, useMemo } from 'react'
 
+import SessionFullCommentList from '@/pages/Player/SessionFullCommentList/SessionFullCommentList'
+
 import * as style from './style.css'
 
 const RightPlayerPanel = () => {
@@ -87,7 +89,7 @@ const RightPlayerPanel = () => {
 			case RightPanelView.Comments:
 				return (
 					<Box height="full" display="flex" flexDirection="column">
-						Comments
+						<SessionFullCommentList />
 					</Box>
 				)
 		}

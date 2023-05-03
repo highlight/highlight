@@ -7,6 +7,7 @@ import CommentReplyForm, {
 import ReplyList from '@components/Comment/ReplyList/ReplyList'
 import SplitButton from '@components/SplitButton/SplitButton'
 import Tag from '@components/Tag/Tag'
+import { Box } from '@highlight-run/ui'
 import SvgHeartIcon from '@icons/HeartIcon'
 import SvgSpeechBubbleIcon from '@icons/SpeechBubbleIcon'
 import { ParsedSessionComment } from '@pages/Player/ReplayerContext'
@@ -36,7 +37,6 @@ interface Props {
 export const SessionCommentCard = ({
 	comment,
 	deepLinkedCommentId,
-	hasShadow,
 	menuItems,
 	onClose,
 	footer,
@@ -44,11 +44,14 @@ export const SessionCommentCard = ({
 	scrollReplies,
 }: Props) => {
 	return (
-		<div
-			className={clsx(styles.container, {
-				[styles.deepLinkedComment]: deepLinkedCommentId === comment.id,
-				[styles.hasShadow]: hasShadow,
-			})}
+		<Box
+			backgroundColor={{ hover: 'n9' }}
+			paddingTop="8"
+			paddingBottom="10"
+			px="8"
+			borderRadius="6"
+			display="flex"
+			flexDirection="column"
 		>
 			<SessionComment
 				comment={comment}
@@ -59,7 +62,7 @@ export const SessionCommentCard = ({
 				parentRef={parentRef}
 				scrollReplies={scrollReplies}
 			/>
-		</div>
+		</Box>
 	)
 }
 
@@ -89,11 +92,13 @@ export const SessionComment = ({
 					scrollReplies={scrollReplies}
 				/>
 			)}
-			<CommentReplyForm<SessionCommentReplyAction>
-				action={new SessionCommentReplyAction()}
-				commentID={comment.id}
-				parentRef={parentRef}
-			/>
+			{scrollReplies && (
+				<CommentReplyForm<SessionCommentReplyAction>
+					action={new SessionCommentReplyAction()}
+					commentID={comment.id}
+					parentRef={parentRef}
+				/>
+			)}
 		</>
 	)
 }
