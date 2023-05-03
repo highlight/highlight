@@ -55,6 +55,7 @@ const RightPlayerPanel = () => {
 						<RightPanelTabs />
 					</Box>
 				)
+
 			case RightPanelView.Event:
 				if (activeEvent) {
 					return <EventDetails event={activeEvent} />
@@ -70,6 +71,7 @@ const RightPlayerPanel = () => {
 					setRightPanelView(RightPanelView.Session)
 					return null
 				}
+
 			case RightPanelView.NetworkResource:
 				if (activeNetworkResource) {
 					return (
@@ -81,6 +83,13 @@ const RightPlayerPanel = () => {
 					setRightPanelView(RightPanelView.Session)
 					return null
 				}
+
+			case RightPanelView.Comments:
+				return (
+					<Box height="full" display="flex" flexDirection="column">
+						Comments
+					</Box>
+				)
 		}
 	}, [
 		activeError,

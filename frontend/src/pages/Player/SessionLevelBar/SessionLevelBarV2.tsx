@@ -18,7 +18,10 @@ import {
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useProjectId } from '@hooks/useProjectId'
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import {
+	RightPanelView,
+	usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext'
 import { changeSession } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
@@ -57,8 +60,11 @@ export const SessionLevelBarV2: React.FC<
 		showRightPanel,
 		setShowRightPanel,
 	} = usePlayerConfiguration()
-	const { selectedRightPanelTab, setSelectedRightPanelTab } =
-		usePlayerUIContext()
+	const {
+		selectedRightPanelTab,
+		setSelectedRightPanelTab,
+		setRightPanelView,
+	} = usePlayerUIContext()
 	const { data } = useGetSessionsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
@@ -303,6 +309,10 @@ export const SessionLevelBarV2: React.FC<
 									<SwitchButton
 										size="small"
 										onChange={() => {
+											// TODO: Transition to comments...
+											setRightPanelView(
+												RightPanelView.Comments,
+											)
 											if (
 												selectedRightPanelTab !==
 												'Threads'
