@@ -8,8 +8,6 @@ import {
 	vars,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import React from 'react'
-const { DEMO_SESSION_URL } = import.meta.env
 
 export const CompleteSetup = () => {
 	const { projectId } = useProjectId()
@@ -53,12 +51,12 @@ export const CompleteSetup = () => {
 							Finish setup
 						</LinkButton>
 						<LinkButton
-							to={DEMO_SESSION_URL}
+							to="/demo/sessions"
 							trackingId="view-demo-session"
 							kind="secondary"
 							emphasis="low"
 						>
-							View demo session
+							View demo sessions
 						</LinkButton>
 					</Stack>
 				</Box>

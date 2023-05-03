@@ -97,12 +97,16 @@ const TimelineIndicatorsBarGraph = ({
 	})
 	const { zoomAreaPercent, setZoomAreaPercent } = useToolbarItemsContext()
 
+	const calculateViewportWidth = useCallback(() => {
+		return Math.max(Math.round(width) - 2 * TIMELINE_MARGIN, 0)
+	}, [width])
+
 	const [camera, setCamera] = useState<Camera>({ x: 0, zoom: 1 })
 	const [dragTime, setDragTime] = useState<number>(0)
 	const [hasActiveScrollbar, setHasActiveScrollbar] = useState<boolean>(false)
 	const [isDragging, setIsDragging] = useState<boolean>(false)
 	const [isRefreshingDOM, setIsRefreshingDOM] = useState<boolean>(false)
-	const [viewportWidth, setViewportWidth] = useState(0)
+	const [viewportWidth, setViewportWidth] = useState(calculateViewportWidth())
 
 	const canvasRef = useRef<HTMLDivElement>(null)
 	const sessionMonitorRef = useRef<HTMLDivElement>(null)
@@ -112,18 +116,11 @@ const TimelineIndicatorsBarGraph = ({
 	const timeIndicatorTextRef = useRef<HTMLElement>(null)
 	const timeIndicatorTopRef = useRef<HTMLDivElement>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
-
 	const viewportBbox = viewportRef.current?.getBoundingClientRect()
+
 	useLayoutEffect(() => {
-		if (!viewportBbox) {
-			return
-		}
-		const viewportWidth = Math.max(
-			Math.round(viewportBbox.width) - 2 * TIMELINE_MARGIN,
-			0,
-		)
-		setViewportWidth(viewportWidth)
-	}, [width, showHistogram, viewportBbox])
+		setViewportWidth(calculateViewportWidth())
+	}, [width, showHistogram, calculateViewportWidth])
 
 	const inactivityPeriods: [number, number][] = useMemo(() => {
 		return sessionIntervals
