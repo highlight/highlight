@@ -37,20 +37,19 @@ export const CanvasPage = function () {
 		for (const canvas of canvases) {
 			const rand = Math.random()
 			if (rand < 0.25) {
-				const ctx = canvas.getContext('bitmaprenderer')
-				if (!ctx) continue
-				createImageBitmap(
-					ref.current
-						?.getElementsByClassName('sample-image')
-						.item(0) as HTMLImageElement,
-					{
+				const ctx = canvas.getContext('bitmaprenderer')!
+				const img = ref.current
+					?.getElementsByClassName('sample-image')
+					.item(0) as HTMLImageElement
+				img.onload = function () {
+					createImageBitmap(img, {
 						resizeQuality: 'low',
 						resizeWidth: 128,
 						resizeHeight: 128,
-					},
-				).then((bitmap) => {
-					ctx.transferFromImageBitmap(bitmap)
-				})
+					}).then((bitmap) => {
+						ctx.transferFromImageBitmap(bitmap)
+					})
+				}
 			} else if (rand < 0.5) {
 				const gl = canvas.getContext('webgl')
 				if (!gl) continue
@@ -125,7 +124,23 @@ export const CanvasPage = function () {
 					></video>
 				</Box>
 				<Box border="dividerStrong">
-					<canvas width={640} height={480} className=":hover" />
+					{Array(8)
+						.fill(0)
+						.map((_, i) => (
+							<canvas
+								key={`canvas-${i}`}
+								width={640}
+								height={480}
+								className=":hover"
+							/>
+						))}
+					<img
+						className="sample-image"
+						src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Fiore_con_petali_arancioni_SVG.svg"
+						width={512}
+						height={512}
+						alt="sample-image"
+					/>
 				</Box>
 				<Box border="dividerStrong">
 					<video
