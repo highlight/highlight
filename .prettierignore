@@ -11,3 +11,9 @@ rrweb/packages/rrweb/test
 scripts/venv
 **/.next
 **/.vercel
+**/*.css
+**/settings.json
+**/tsconfig.json
+**/launch.json
+**/.eslintrc.json
+.yarnrc.yml
