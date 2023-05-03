@@ -27,6 +27,7 @@ import (
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	dd "github.com/highlight-run/highlight/backend/datadog"
+	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -504,6 +505,7 @@ func main() {
 		otelHandler := otel.New(publicResolver)
 		otelHandler.Listen(r)
 		vercel.Listen(r)
+		highlightHttp.Listen(r)
 	}
 
 	/*
