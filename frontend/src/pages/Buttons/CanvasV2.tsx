@@ -1,4 +1,3 @@
-import { Image } from 'antd'
 import React, { useEffect, useRef } from 'react'
 
 import { Box } from '@/../../packages/ui'
@@ -113,58 +112,17 @@ export const CanvasPage = function () {
 	}, [])
 
 	return (
-		<Box ref={ref} width="full" height="full">
-			<Box display="flex" width="full">
-				{Array(1)
-					.fill(0)
-					.map((_, i) => (
-						<Box key={i} display="flex" flexDirection="column">
-							<video
-								width={512}
-								height={512}
-								preload="metadata"
-								autoPlay={true}
-								crossOrigin="anonymous"
-								src="https://static.highlight.io/dev/BigBuckBunny.mp4"
-							></video>
-						</Box>
-					))}
-			</Box>
-			<Box display="flex" width="full">
-				<Box>
-					<div
-						style={{
-							width: '100%',
-							height: '100%',
-							overflow: 'hidden',
-						}}
-						className=":hover"
-					>
-						<canvas
-							height="963"
-							style={{
-								width: 2909,
-								height: 963,
-							}}
-							width="2909"
-							className=":hover"
-						></canvas>
-					</div>
-				</Box>
-			</Box>
-			<Box display="flex" width="full">
-				<Image
-					className="sample-image"
-					src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Fiore_con_petali_arancioni_SVG.svg"
-					width={512}
-					height={512}
-				/>
-			</Box>
-			<Box display="flex" width="full">
-				<Box border="dividerStrong">
-					<video autoPlay id="webcam"></video>
-				</Box>
-			</Box>
+		<Box ref={ref} display="flex" width="full" height="full">
+			<video
+				width={240}
+				height={480}
+				preload="metadata"
+				autoPlay={true}
+				crossOrigin="anonymous"
+				src="https://static.highlight.io/dev/BigBuckBunny.mp4"
+			></video>
+			<canvas className=":hover" />
+			<video autoPlay id="webcam"></video>
 		</Box>
 	)
 }
