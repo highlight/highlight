@@ -116,7 +116,7 @@ export const CanvasPage = function () {
 			<Box display="flex" width="full">
 				<Box border="dividerStrong">
 					<video
-						width={240}
+						width={640}
 						height={480}
 						preload="metadata"
 						autoPlay={true}
@@ -125,10 +125,15 @@ export const CanvasPage = function () {
 					></video>
 				</Box>
 				<Box border="dividerStrong">
-					<canvas className=":hover" />
+					<canvas width={640} height={480} className=":hover" />
 				</Box>
 				<Box border="dividerStrong">
-					<video autoPlay id="webcam"></video>
+					<video
+						autoPlay
+						id="webcam"
+						width={640}
+						height={480}
+					></video>
 				</Box>
 			</Box>
 		</Box>
