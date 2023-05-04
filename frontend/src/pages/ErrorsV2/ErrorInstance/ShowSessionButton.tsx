@@ -30,7 +30,9 @@ type Props = {
 
 export const ShowSessionButton = ({ errorObject }: Props) => {
 	const trackingId = 'errorInstanceShowSession'
-	if (errorObject) {
+	const sessionAvailable =
+		errorObject && errorObject.session?.excluded === false
+	if (sessionAvailable) {
 		const linkButton = (
 			<LinkButton
 				kind="primary"

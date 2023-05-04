@@ -528,6 +528,36 @@ const User: React.FC<{
 				</Callout>
 			</Box>
 		)
+	} else if (errorObject.session.excluded) {
+		return (
+			<Box width="full">
+				<Box pb="20" mt="12">
+					<Text weight="bold" size="large">
+						User details
+					</Text>
+				</Box>
+				<Callout title="We didn't find a session for this error">
+					<Box>
+						<Text size="small" weight="medium" color="moderate">
+							We weren't able to match this error to a session.
+							This can happen when a session has no activity or it
+							has been ignored.
+						</Text>
+					</Box>
+					<Box display="flex">
+						<LinkButton
+							kind="secondary"
+							to="https://www.highlight.io/docs/general/product-features/session-replay/ignoring-sessions"
+							trackingId="session-ignoring-docs"
+							emphasis="low"
+							target="_blank"
+						>
+							Learn more
+						</LinkButton>
+					</Box>
+				</Callout>
+			</Box>
+		)
 	}
 
 	const { session } = errorObject
