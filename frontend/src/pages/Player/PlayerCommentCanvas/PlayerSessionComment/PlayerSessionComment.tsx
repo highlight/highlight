@@ -130,7 +130,7 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 							comment={comment}
 							onClose={() => setVisible(false)}
 							deepLinkedCommentId={deepLinkedCommentId}
-							scrollReplies
+							showReplies
 						/>
 					</Box>
 				}

@@ -47,6 +47,7 @@ const SessionCommentHeader: React.FC<Props> = ({
 	onClose,
 }) => {
 	const { pause, session, sessionMetadata } = useReplayerContext()
+	const navigate = useNavigate()
 
 	const [deleteSessionComment] = useDeleteSessionCommentMutation({
 		refetchQueries: [
@@ -55,7 +56,6 @@ const SessionCommentHeader: React.FC<Props> = ({
 		],
 		onQueryUpdated: delayedRefetch,
 	})
-	const navigate = useNavigate()
 
 	const { isLinearIntegratedWithProject } = useLinearIntegration()
 	const { isIntegrated: isClickupIntegrated } = useIsProjectIntegratedWith(

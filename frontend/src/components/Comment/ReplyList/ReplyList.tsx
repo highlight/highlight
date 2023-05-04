@@ -1,43 +1,30 @@
 import { CommentReply, Maybe } from '@graph/schemas'
-import clsx from 'clsx'
+import { Box } from '@highlight-run/ui'
 import React from 'react'
 
 import SessionComment from '@/components/Comment/SessionComment/SessionComment'
 import { ParsedSessionComment } from '@/pages/Player/ReplayerContext'
 
-import styles from './ReplyList.module.scss'
-
-interface ReplyListProps {
+interface Props {
 	replies: Maybe<CommentReply>[]
-	errorComment?: boolean
-	scrollReplies?: boolean
 }
 
-const ReplyList: React.FC<React.PropsWithChildren<ReplyListProps>> = ({
-	replies,
-	scrollReplies,
-}) => {
+const ReplyList: React.FC<Props> = ({ replies }) => {
 	return (
-		<div
-			className={clsx(styles.repliesList, {
-				[styles.scrollReplies]: scrollReplies,
-			})}
-		>
-			{replies.map((record) => {
+		<Box>
+			{replies.map((reply) => {
 				return (
-					record && (
-						<div className={styles.record} key={record.id}>
-							<div>
-								<SessionComment
-									comment={record as ParsedSessionComment}
-									isReply
-								/>
-							</div>
-						</div>
+					reply && (
+						<Box key={reply.id}>
+							<SessionComment
+								comment={reply as ParsedSessionComment}
+								isReply
+							/>
+						</Box>
 					)
 				)
 			})}
-		</div>
+		</Box>
 	)
 }
 

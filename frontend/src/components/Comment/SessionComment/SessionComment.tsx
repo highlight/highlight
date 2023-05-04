@@ -3,10 +3,12 @@ import CommentReplyForm, {
 	SessionCommentReplyAction,
 } from '@components/Comment/CommentReplyForm/CommentReplyForm'
 import ReplyList from '@components/Comment/ReplyList/ReplyList'
-import { Box, Stack, Tag } from '@highlight-run/ui'
+import { Box, IconSolidReply, Stack, Tag, Text } from '@highlight-run/ui'
 import { ParsedSessionComment } from '@pages/Player/ReplayerContext'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
+
+import { formatTimeAsHMS, MillisToMinutesAndSeconds } from '@/util/time'
 
 import CommentTextBody from '../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import styles from './SessionComment.module.scss'
@@ -18,7 +20,7 @@ interface Props {
 	hasShadow?: boolean
 	onClose?: () => void
 	parentRef?: React.RefObject<HTMLDivElement>
-	scrollReplies?: boolean
+	showReplies?: boolean
 }
 
 export const SessionCommentCard = ({
@@ -26,31 +28,16 @@ export const SessionCommentCard = ({
 	deepLinkedCommentId,
 	onClose,
 	parentRef,
-	scrollReplies,
+	showReplies,
 }: Props) => {
-	const isSelected = deepLinkedCommentId === comment.id
-
 	return (
-		<Box
-			backgroundColor={
-				isSelected
-					? { default: 'secondarySelected' }
-					: { default: 'white', hover: 'secondaryHover' }
-			}
-			boxShadow={isSelected ? 'innerSecondary' : undefined}
-			paddingTop="8"
-			paddingBottom="10"
-			px="8"
-			borderRadius="6"
-			display="flex"
-			flexDirection="column"
-		>
+		<Box>
 			<SessionComment
 				comment={comment}
 				deepLinkedCommentId={deepLinkedCommentId}
 				onClose={onClose}
 				parentRef={parentRef}
-				scrollReplies={scrollReplies}
+				showReplies={showReplies}
 			/>
 		</Box>
 	)
@@ -58,42 +45,72 @@ export const SessionCommentCard = ({
 
 export const SessionComment = ({
 	comment,
-	onClose,
+	deepLinkedCommentId,
 	parentRef,
-	scrollReplies,
 	isReply,
+	showReplies,
+	onClose,
 }: Props & { isReply?: boolean }) => {
+	const isSelected = deepLinkedCommentId === comment.id
+	const commentTime = formatTimeAsHMS(comment.timestamp || 0)
+
 	return (
 		<Stack gap="4" direction="column">
-			<SessionCommentHeader
-				key={comment.id}
-				comment={comment}
-				onClose={onClose}
-				isReply={isReply}
-			/>
-			<CommentTextBody commentText={comment.text} />
-			<Stack direction="row" gap="8" justifyContent="flex-end">
-				{comment?.attachments?.length > 0 && (
-					<AttachmentList attachments={comment.attachments} />
-				)}
-				{!isReply && (
-					<Tag kind="secondary" shape="basic" size="small">
-						00:00:08
-					</Tag>
-				)}
-			</Stack>
-			{comment?.replies?.length > 0 && (
-				<ReplyList
-					replies={comment.replies}
-					scrollReplies={scrollReplies}
+			<Box
+				backgroundColor={
+					isSelected
+						? { default: 'secondarySelected' }
+						: { default: 'white', hover: 'secondaryHover' }
+				}
+				boxShadow={isSelected ? 'innerSecondary' : undefined}
+				paddingTop="8"
+				paddingBottom="10"
+				px="8"
+				borderRadius="6"
+				display="flex"
+				flexDirection="column"
+				gap="4"
+			>
+				<SessionCommentHeader
+					key={comment.id}
+					comment={comment}
+					onClose={onClose}
+					isReply={isReply}
 				/>
-			)}
-			{scrollReplies && (
-				<CommentReplyForm<SessionCommentReplyAction>
-					action={new SessionCommentReplyAction()}
-					commentID={comment.id}
-					parentRef={parentRef}
-				/>
+				<CommentTextBody commentText={comment.text} />
+				<Stack direction="row" gap="8" justifyContent="space-between">
+					<Stack direction="row" gap="4" alignItems="center">
+						{comment?.replies?.length > 0 && (
+							<>
+								<IconSolidReply size={14} />
+								<Text>{comment?.replies?.length}</Text>
+							</>
+						)}
+					</Stack>
+					<Box display="flex">
+						{comment?.attachments?.length > 0 && (
+							<AttachmentList attachments={comment.attachments} />
+						)}
+						{!isReply && (
+							<Tag kind="secondary" shape="basic" size="small">
+								{commentTime}
+							</Tag>
+						)}
+					</Box>
+				</Stack>
+			</Box>
+			{showReplies && (
+				<>
+					{comment?.replies?.length > 0 && (
+						<ReplyList replies={comment.replies} />
+					)}
+
+					<CommentReplyForm<SessionCommentReplyAction>
+						action={new SessionCommentReplyAction()}
+						commentID={comment.id}
+						parentRef={parentRef}
+					/>
+				</>
 			)}
 		</Stack>
 	)
