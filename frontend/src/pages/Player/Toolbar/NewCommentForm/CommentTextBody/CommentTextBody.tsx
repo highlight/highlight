@@ -100,9 +100,11 @@ const CommentTextBody = ({
 		}
 
 		return (
-			<Text size="small" color="moderate">
-				{pieces}
-			</Text>
+			<Box py="4">
+				<Text size="small" color="moderate">
+					{pieces}
+				</Text>
+			</Box>
 		)
 	}
 

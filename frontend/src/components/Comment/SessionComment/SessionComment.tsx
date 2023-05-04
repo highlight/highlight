@@ -64,7 +64,7 @@ export const SessionComment = ({
 	isReply,
 }: Props & { isReply?: boolean }) => {
 	return (
-		<>
+		<Stack gap="4" direction="column">
 			<SessionCommentHeader
 				key={comment.id}
 				comment={comment}
@@ -95,7 +95,7 @@ export const SessionComment = ({
 					parentRef={parentRef}
 				/>
 			)}
-		</>
+		</Stack>
 	)
 }
 
