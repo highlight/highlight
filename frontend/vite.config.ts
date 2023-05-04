@@ -53,6 +53,10 @@ export default defineConfig(({ mode }): UserConfig => {
 			tsconfigPaths(),
 			svgr(),
 			vitePluginImp({
+				// Seems to result in this error:
+				// > Rollup failed to resolve import "lodash/default" from "src/pages/Player/PlayerHook/PlayerHook.tsx"
+				// Likely due to some custom resolution algorithm that doesn't support hoisted monorepos?
+				exclude: ['lodash'],
 				libList: [
 					{
 						libName: 'antd',

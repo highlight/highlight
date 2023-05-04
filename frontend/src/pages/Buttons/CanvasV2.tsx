@@ -1,6 +1,5 @@
+import { Box } from '@highlight-run/ui'
 import React, { useEffect, useRef } from 'react'
-
-import { Box } from '@/../../packages/ui'
 
 interface Navigator {
 	getUserMedia(

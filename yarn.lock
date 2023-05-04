@@ -10546,9 +10546,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@highlight-run/frontend@workspace:frontend"
   dependencies:
+    "@ant-design/icons": ^4.7.0
     "@apollo/client": ^3.7.0
     "@babel/core": ^7.19.0
     "@ctrl/tinycolor": ^3.4.1
+    "@dinero.js/currencies": 2.0.0-alpha.14
     "@fontsource/poppins": ^4.5.9
     "@frontapp/plugin-sdk": ^1.1.2
     "@graphql-codegen/cli": ^2.13.7
@@ -10570,7 +10572,7 @@ __metadata:
     "@stripe/stripe-js": ^1.32.0
     "@svgr/cli": ^5.5.0
     "@tanstack/react-table": ^8.7.9
-    "@tanstack/react-virtual": beta
+    "@tanstack/react-virtual": 3.0.0-beta.52
     "@testing-library/jest-dom": ^5.1.0
     "@testing-library/react-hooks": ^8.0.1
     "@types/classnames": ^2.2.11
@@ -10601,12 +10603,15 @@ __metadata:
     "@vanilla-extract/vite-plugin": ^3.7.0
     "@vitejs/plugin-react-swc": ^3.0.1
     antd: ^4.17.0
+    ariakit: ^2.0.0-next.41
     autoprefixer: ^10.4.8
     babel-plugin-react-wrapped-display-name: ^1.0.0
+    classnames: ^2.3.2
+    clsx: ^1.2.1
     color-hash: ^2.0.1
     dexie: ^3.2.2
-    dexie-react-hooks: ^1.1.1
-    dinero.js: alpha
+    dinero.js: 2.0.0-alpha.14
+    esbuild: 0.17.17
     eslint: ^7.0.0
     eslint-config-prettier: ^7.2.0
     eslint-plugin-react: ^7.31.11
@@ -10623,6 +10628,7 @@ __metadata:
     intro.js-react: ^0.6.0
     js-cookie: ^3.0.1
     less: ^4.1.3
+    lodash: ^4.17.21
     lottie-react: ^2.1.0
     moment: 2.29.4
     npm-run-all: ^4.1.5
@@ -10630,9 +10636,9 @@ __metadata:
     postcss-custom-properties: ^12.1.7
     postinstall-postinstall: ^2.1.0
     prettier: ^2.7.1
-    prop-types: ^15.5.7
     query-string: 6.14.1
     randomcolor: ^0.6.2
+    rc-slider: ^10.1.1
     re-resizable: ^6.9.1
     react: ^18.2.0
     react-animate-height: ^2.1.2
@@ -10641,28 +10647,24 @@ __metadata:
     react-command-palette: 0.16.0
     react-confetti: ^6.0.1
     react-copy-to-clipboard: ^5.0.2
-    react-date-range: ^1.4.0
-    react-device-detect: ^2.0.1
     react-dom: ^18.2.0
-    react-draggable: ^4.4.5
     react-files-hooks: ^2.0.0
-    react-firebase-hooks: ^2.2.0
     react-grid-layout: ^1.3.3
     react-helmet: ^6.1.0
     react-highlight-words: ^0.17.0
     react-hotkeys-hook: ^3.3.1
     react-icons: ^4.7.1
-    react-infinite-scroll-hook: ^3.0.0
     react-json-view: ^1.21.3
     react-lines-ellipsis: ^0.14.1
     react-linkify: ^1.0.0-alpha
     react-loading-skeleton: 3.0.1
+    react-markdown: ^8.0.5
     react-nice-avatar: ^1.2.1
+    react-resizable: ^3.0.4
     react-resize-aware: ^3.0.1
     react-router-dom: ^6.8.1
     react-select: ^3.1.1
     react-slider: ^2.0.1
-    react-snowfall: ^1.1.1
     react-spinners: ^0.13.2
     react-syntax-highlighter: ^15.5.0
     react-text-transition: ^1.3.0
@@ -10670,10 +10672,9 @@ __metadata:
     react-virtualized-auto-sizer: ^1.0.6
     react-virtuoso: ^2.13.1
     recharts: ^2.1.13
-    rudder-sdk-js: ^2.20.0
+    rudder-sdk-js: 2.20.0
     sass: ^1.54.8
     source-map-explorer: ^2.5.2
-    stacktrace-js: ^2.0.2
     stylelint: ^14.9.1
     stylelint-config-sass-guidelines: ^9.0.1
     stylelint-config-standard: ^26.0.0
@@ -10681,7 +10682,6 @@ __metadata:
     tailwindcss: ^3.1.8
     typed-scss-modules: ^3.4.0
     typescript: ^4.8.2
-    use-http: ^1.0.26
     use-query-params: ^2.2.0
     validator: 13.7.0
     vite: ^4.0.4
@@ -11065,6 +11065,7 @@ __metadata:
     fs-extra: ^11.1.0
     globby: ^13.1.3
     lodash: ^4.17.21
+    moment: 2.29.4
     react: ^18.2.0
     svgo: ^3.0.2
     typescript: ^4.8.4
@@ -18726,7 +18727,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-virtual@npm:beta":
+"@tanstack/react-virtual@npm:3.0.0-beta.52":
   version: 3.0.0-beta.52
   resolution: "@tanstack/react-virtual@npm:3.0.0-beta.52"
   dependencies:
@@ -27532,17 +27533,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dexie-react-hooks@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "dexie-react-hooks@npm:1.1.1"
-  peerDependencies:
-    "@types/react": ">=16"
-    dexie: ">=3.1.0-alpha.1 <5.0.0"
-    react: ">=16"
-  checksum: 09e1b1d4ebc248d103eb13c8f77733f4c140478350d2b8f3989af2fedb45e0d4ae7a07df9281ade162a3264ff621db35899b47d6edf5bf532ba22d571f6f1496
-  languageName: node
-  linkType: hard
-
 "dexie@npm:^3.2.2":
   version: 3.2.2
   resolution: "dexie@npm:3.2.2"
@@ -27599,7 +27589,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dinero.js@npm:alpha":
+"dinero.js@npm:2.0.0-alpha.14":
   version: 2.0.0-alpha.14
   resolution: "dinero.js@npm:2.0.0-alpha.14"
   dependencies:
@@ -43470,7 +43460,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:15, prop-types@npm:15.8.1, prop-types@npm:15.x, prop-types@npm:^15.0.0, prop-types@npm:^15.5.10, prop-types@npm:^15.5.7, prop-types@npm:^15.5.8, prop-types@npm:^15.6.0, prop-types@npm:^15.6.1, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
+"prop-types@npm:15.8.1, prop-types@npm:15.x, prop-types@npm:^15.0.0, prop-types@npm:^15.5.10, prop-types@npm:^15.5.8, prop-types@npm:^15.6.0, prop-types@npm:^15.6.1, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
   dependencies:
@@ -44529,6 +44519,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rc-slider@npm:^10.1.1":
+  version: 10.1.1
+  resolution: "rc-slider@npm:10.1.1"
+  dependencies:
+    "@babel/runtime": ^7.10.1
+    classnames: ^2.2.5
+    rc-util: ^5.27.0
+  peerDependencies:
+    react: ">=16.9.0"
+    react-dom: ">=16.9.0"
+  checksum: 8df66142f1be00d31aaa45f3cf266fa30d03b70c74c734502389bbfacdb6741e149cd36dc1d3557d9dbb0194ed2733748366d888651d1120098338086419ba2c
+  languageName: node
+  linkType: hard
+
 "rc-slider@npm:~10.0.0":
   version: 10.0.1
   resolution: "rc-slider@npm:10.0.1"
@@ -45095,33 +45099,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-date-range@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "react-date-range@npm:1.4.0"
-  dependencies:
-    classnames: ^2.2.6
-    prop-types: ^15.7.2
-    react-list: ^0.8.13
-    shallow-equal: ^1.2.1
-  peerDependencies:
-    date-fns: 2.0.0-alpha.7 || >=2.0.0
-    react: ^0.14 || ^15.0.0-rc || >=15.0
-  checksum: ea26bcc268aef2045fc89c1f15148d2578a83712aedcced401da91e8bb613d929264ee71e6c5b4783147c07a175b14a0264c3cea01749a8414f7d9eb09a43b5a
-  languageName: node
-  linkType: hard
-
-"react-device-detect@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "react-device-detect@npm:2.0.1"
-  dependencies:
-    ua-parser-js: ^0.7.28
-  peerDependencies:
-    react: ">= 0.14.0 < 18.0.0"
-    react-dom: ">= 0.14.0 < 18.0.0"
-  checksum: 134c240acdeead34d8611a62c8e6531bc12e8597fffabeb6c79801a7ee09b03d8bfaea47d6b19ba1c9f3a02e9e38ad974e4eb1286f90d28e0312c838f874c4bc
-  languageName: node
-  linkType: hard
-
 "react-device-detect@npm:^2.2.3":
   version: 2.2.3
   resolution: "react-device-detect@npm:2.2.3"
@@ -45195,7 +45172,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-draggable@npm:^4.0.0, react-draggable@npm:^4.0.3, react-draggable@npm:^4.4.5":
+"react-draggable@npm:^4.0.0, react-draggable@npm:^4.0.3":
   version: 4.4.5
   resolution: "react-draggable@npm:4.4.5"
   dependencies:
@@ -45233,7 +45210,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-fast-compare@npm:3.2.0, react-fast-compare@npm:^3.1.1, react-fast-compare@npm:^3.2.0":
+"react-fast-compare@npm:3.2.0, react-fast-compare@npm:^3.1.1":
   version: 3.2.0
   resolution: "react-fast-compare@npm:3.2.0"
   checksum: 8ef272c825ae329f61633ce4ce7f15aa5b84e5214d88bc0823880236e03e985a13195befa2c7a4eda7db3b017dc7985729152d88445823f652403cf36c2b86aa
@@ -45247,15 +45224,6 @@ __metadata:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
   checksum: 369f92c27eede6f7655d7676d4c34d0b53e085a6145434bc92333727584f88c768fe9fd60e73241068ed316693dbfd7594eb65c6667e2a73019b5cef315fb74a
-  languageName: node
-  linkType: hard
-
-"react-firebase-hooks@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "react-firebase-hooks@npm:2.2.0"
-  peerDependencies:
-    react: ^16.8.0
-  checksum: 8d56303e58a7e854f1c32c39589d8f239ceefc18c8aa0c50ccb49132cffd6edd59da0ed18a7d326ae1faf50b0c6406813f8f6bd4dcd2c2ee418b3a472b8dec5d
   languageName: node
   linkType: hard
 
@@ -45378,15 +45346,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-infinite-scroll-hook@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "react-infinite-scroll-hook@npm:3.0.0"
-  peerDependencies:
-    react: ">=16"
-  checksum: b90ffb359e2fa1f509eb24550ec04defdb8716be815199ddd4995908f3553fba971fa1ff44f5a6661df5e5d81fc4accdf13f1701f0d795e13028dc2a1a2d53dc
-  languageName: node
-  linkType: hard
-
 "react-input-autosize@npm:^3.0.0":
   version: 3.0.0
   resolution: "react-input-autosize@npm:3.0.0"
@@ -45483,17 +45442,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-list@npm:^0.8.13":
-  version: 0.8.16
-  resolution: "react-list@npm:0.8.16"
-  dependencies:
-    prop-types: 15
-  peerDependencies:
-    react: 0.14 || 15 || 16 || 17
-  checksum: a660425a4b46c7c258f913f34c8eb1b7f659c8efdb617c5b8ce111dc9c3ccdf3503fa1da3adc9ec8323508232b9e659a42357ade9361d3695f27f5f77584a119
-  languageName: node
-  linkType: hard
-
 "react-loading-skeleton@npm:3.0.1":
   version: 3.0.1
   resolution: "react-loading-skeleton@npm:3.0.1"
@@ -45526,6 +45474,32 @@ __metadata:
     "@types/react": ">=16"
     react: ">=16"
   checksum: 59fd5dcd089df0cd9098755e3063d8fcf4b4635b1ac2d5e05fcda9923769724476396abdf2afb80fb8e7589a951deac50d6f89c4740d5ec6decd34076122c80c
+  languageName: node
+  linkType: hard
+
+"react-markdown@npm:^8.0.5":
+  version: 8.0.7
+  resolution: "react-markdown@npm:8.0.7"
+  dependencies:
+    "@types/hast": ^2.0.0
+    "@types/prop-types": ^15.0.0
+    "@types/unist": ^2.0.0
+    comma-separated-tokens: ^2.0.0
+    hast-util-whitespace: ^2.0.0
+    prop-types: ^15.0.0
+    property-information: ^6.0.0
+    react-is: ^18.0.0
+    remark-parse: ^10.0.0
+    remark-rehype: ^10.0.0
+    space-separated-tokens: ^2.0.0
+    style-to-object: ^0.4.0
+    unified: ^10.0.0
+    unist-util-visit: ^4.0.0
+    vfile: ^5.0.0
+  peerDependencies:
+    "@types/react": ">=16"
+    react: ">=16"
+  checksum: 0f3e570975134a3382c3fe5189e04e742ae154941463bdfaab2293319da1f1585cb9b75b6f07d99f514c4d728d69cc1af3c96ab37df90003b3bcc210dd0001ba
   languageName: node
   linkType: hard
 
@@ -45765,18 +45739,6 @@ __metadata:
     react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
     react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
   checksum: 65678491cbd506573f2dba82778ebf8259714d68dd227e0ee7c0e204bcbc7839cf97401620b4223814066581f1dce0493f97162a03dc2a68058b5a7ad2b41085
-  languageName: node
-  linkType: hard
-
-"react-snowfall@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "react-snowfall@npm:1.1.1"
-  dependencies:
-    react-fast-compare: ^3.2.0
-  peerDependencies:
-    react: ^16.8 || 17.x
-    react-dom: ^16.8 || 17.x
-  checksum: 8867f9acb5418a068d626c250d8afea01e849dad275f07deef818a36dfcdfe70787855c39281895b70cce2331a4ffb40fc7d8de7222f7af0f5591d5cd1f5a935
   languageName: node
   linkType: hard
 
@@ -47485,7 +47447,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rudder-sdk-js@npm:^2.20.0":
+"rudder-sdk-js@npm:2.20.0, rudder-sdk-js@npm:^2.20.0":
   version: 2.20.0
   resolution: "rudder-sdk-js@npm:2.20.0"
   checksum: a6f255c6f5e27aa2cf928f3792358247a204de7f5b447f540e3ab437d7eade4fc9eefa01005211c3091e71a6603e7a7b679104a728392d6014fd7b44b40ee173
@@ -52293,16 +52255,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"urs@npm:^0.0.8":
-  version: 0.0.8
-  resolution: "urs@npm:0.0.8"
-  peerDependencies:
-    react: ^16.13.1 || ^17.0.0
-    react-dom: ^16.13.1 || ^17.0.0
-  checksum: ab36ebdc648ca29f2fbbd40ebb300d5b750b1d4e0b4c7855b21ad630e6724f5a419f49976f5f06685ab20ca052e75137119bfed58dc23187e4bbb5ae1369f8c5
-  languageName: node
-  linkType: hard
-
 "use-callback-ref@npm:^1.3.0":
   version: 1.3.0
   resolution: "use-callback-ref@npm:1.3.0"
@@ -52326,20 +52278,6 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0
   checksum: b438c1577eafb26dd8aff8d7ffbeae10b544172fc4c4f38733343f70c04da6f14a748a274cb76b70b829604e1382be56fb37a96f3c62b5aeec50657e23e61097
-  languageName: node
-  linkType: hard
-
-"use-http@npm:^1.0.26":
-  version: 1.0.26
-  resolution: "use-http@npm:1.0.26"
-  dependencies:
-    urs: ^0.0.8
-    use-ssr: ^1.0.24
-    utility-types: ^3.10.0
-  peerDependencies:
-    react: ^16.13.1 || ^17.0.0
-    react-dom: ^16.13.1 || ^17.0.0
-  checksum: 5d235a5ba9e24104cc1f3c97a68d8f223280d3bdfc3699dc787b9c9122bce7619db18c4cf31f735548ac02b7ac642facfead552c447d3f5ab2f0e5a1b09f05ec
   languageName: node
   linkType: hard
 
@@ -52394,16 +52332,6 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 925d1922f9853e516eaad526b6fed1be38008073067274f0ecc3f56b17bb8ab63480140dd7c271f94150027c996cea4efe83d3e3525e8f3eda22055f6a39220b
-  languageName: node
-  linkType: hard
-
-"use-ssr@npm:^1.0.24":
-  version: 1.0.24
-  resolution: "use-ssr@npm:1.0.24"
-  peerDependencies:
-    react: ^16.13.1 || ^17.0.0
-    react-dom: ^16.13.1 || ^17.0.0
-  checksum: 527c41649e2c7b98ad9e0cc2fea957cd98c6e55ec13000fed7dd68d44f23e07a6ab2b0ee543f69230efdccb61c5b066f0eeff4036b82b521621992d30e2bc012
   languageName: node
   linkType: hard
 
@@ -52479,13 +52407,6 @@ __metadata:
   version: 0.4.0
   resolution: "utila@npm:0.4.0"
   checksum: 97ffd3bd2bb80c773429d3fb8396469115cd190dded1e733f190d8b602bd0a1bcd6216b7ce3c4395ee3c79e3c879c19d268dbaae3093564cb169ad1212d436f4
-  languageName: node
-  linkType: hard
-
-"utility-types@npm:^3.10.0":
-  version: 3.10.0
-  resolution: "utility-types@npm:3.10.0"
-  checksum: 8f274415c6196ab62883b8bd98c9d2f8829b58016e4269aaa1ebd84184ac5dda7dc2ca45800c0d5e0e0650966ba063bf9a412aaeaea6850ca4440a391283d5c8
   languageName: node
   linkType: hard
 
@@ -52770,8 +52691,8 @@ __metadata:
   linkType: hard
 
 "vite-plugin-imp@npm:^2.3.1":
-  version: 2.3.1
-  resolution: "vite-plugin-imp@npm:2.3.1"
+  version: 2.4.0
+  resolution: "vite-plugin-imp@npm:2.4.0"
   dependencies:
     "@babel/core": ^7.12.10
     "@babel/generator": ^7.12.11
@@ -52782,7 +52703,7 @@ __metadata:
     pascal-case: ^3.1.2
   peerDependencies:
     vite: ">= 2.0.0-beta.5"
-  checksum: 7f6fd81de84dd736c3376f3f5b21c571b9d30480532a6322fe549fc29a3854b7d734513dabc1fb985ffcd999a5199b2d3e764c10320e61f7963a4857e129c459
+  checksum: 189efcea7e4888f19082c9f331c52f782e4c9ac4a6b6cd50c686da4eb998fb8c6483a16c3571ded1099e385a0a00068aa637fbbb4e40691bc541ba9e5958acf5
   languageName: node
   linkType: hard
 

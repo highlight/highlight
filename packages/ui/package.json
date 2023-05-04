@@ -23,6 +23,7 @@
 		"ariakit": "^2.0.0-next.41",
 		"clsx": "^1.2.1",
 		"lodash": "^4.17.21",
+		"moment": "2.29.4",
 		"react": "^18.2.0"
 	},
 	"devDependencies": {
