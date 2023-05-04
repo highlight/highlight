@@ -10929,8 +10929,7 @@ __metadata:
   dependencies:
     "@highlight-run/rrweb-snapshot": "workspace:*"
     typescript: ^4.7.3
-    vite: ^3.2.0-beta.2
-    vite-plugin-dts: ^1.6.6
+    vite: ^3.2.6
   languageName: unknown
   linkType: soft
 
@@ -52949,9 +52948,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^3.2.0-beta.2":
-  version: 3.2.5
-  resolution: "vite@npm:3.2.5"
+"vite@npm:^3.2.6":
+  version: 3.2.6
+  resolution: "vite@npm:3.2.6"
   dependencies:
     esbuild: ^0.15.9
     fsevents: ~2.3.2
@@ -52983,7 +52982,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: ad35b7008c2b62a167d1d1a82f0a0c60fa457733f1969e9eedf0b0077f67a7ac74b4c9477e75a397895150f09b6551f0c17841c5b05c34d9fe302bb0b5dc28a8
+  checksum: b380064a4273d8d97545aa9e5ad88eb60289d1fc073046d2227b5e8a821792ef460d1ffffc40857ed907aae92d6a74584d999c99df7063cebdf03abcf9aae38e
   languageName: node
   linkType: hard
 
