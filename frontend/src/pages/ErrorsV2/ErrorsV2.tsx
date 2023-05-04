@@ -42,6 +42,7 @@ import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
@@ -76,10 +77,21 @@ export default function ErrorsV2() {
 	}, [logCursor, navigation])
 
 	useEffect(() => {
-		if (!isLoggedIn && !data?.error_group?.is_public && !loading) {
+		if (
+			!isLoggedIn &&
+			project_id !== DEMO_PROJECT_ID &&
+			!data?.error_group?.is_public &&
+			!loading
+		) {
 			navigate(SIGN_IN_ROUTE, { replace: true })
 		}
-	}, [data?.error_group?.is_public, isLoggedIn, loading, navigate])
+	}, [
+		data?.error_group?.is_public,
+		isLoggedIn,
+		loading,
+		navigate,
+		project_id,
+	])
 
 	useEffect(() => {
 		const urlParams = new URLSearchParams(location.search)
