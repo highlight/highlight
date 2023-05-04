@@ -2811,6 +2811,7 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 				| 'country'
 				| 'user_properties'
 				| 'processed'
+				| 'excluded'
 			>
 		>
 		structured_stack_trace: Array<

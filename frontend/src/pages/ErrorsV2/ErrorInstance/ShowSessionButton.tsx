@@ -15,10 +15,10 @@ const getSessionLink = (errorObject: ErrorObjectFragment): string => {
 	return `/${errorObject.project_id}/sessions/${errorObject.session?.secure_id}?${params}`
 }
 
-const WithTooltip = ({ children }: React.PropsWithChildren) => {
+const WithDevToolsTooltip = ({ children }: React.PropsWithChildren) => {
 	return (
 		<Tooltip trigger={children}>
-			This session is still live and some Dev tools may not work as
+			This session is still live -- some Dev tools may not work as
 			expected.
 		</Tooltip>
 	)
@@ -51,8 +51,8 @@ export const ShowSessionButton = ({ errorObject }: Props) => {
 			</LinkButton>
 		)
 
-		if (errorObject.session?.processed === false) {
-			return <WithTooltip>{linkButton}</WithTooltip>
+		if (errorObject.session && errorObject.session.processed === false) {
+			return <WithDevToolsTooltip>{linkButton}</WithDevToolsTooltip>
 		} else {
 			return linkButton
 		}

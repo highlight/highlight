@@ -109,6 +109,7 @@ export const ErrorObjectFragmentDoc = gql`
 			country
 			user_properties
 			processed
+			excluded
 		}
 		error_group_id
 		error_group_secure_id
