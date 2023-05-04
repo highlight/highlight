@@ -266,13 +266,6 @@ function ApplicationOrError({
 	error: ApolloError | undefined
 	joinableWorkspace: JoinableWorkspace | undefined
 }) {
-	const clientIntegration = useClientIntegration()
-	const serverIntegration = useServerIntegration()
-	const logsIntegration = useLogsIntegration()
-	const integrated =
-		clientIntegration.integrated ||
-		serverIntegration.integrated ||
-		logsIntegration.integrated
 	const { isLoggedIn } = useAuthContext()
 
 	// Edge case: shareable links will still direct to this error page if you are logged in on a different project
@@ -300,6 +293,6 @@ function ApplicationOrError({
 			)
 
 		default:
-			return <ApplicationRouter integrated={integrated} />
+			return <ApplicationRouter />
 	}
 }

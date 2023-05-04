@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import AlertsRouter from '@pages/Alerts/AlertsRouter'
 import LogAlertsRouter from '@pages/Alerts/LogAlert/LogAlertRouter'
+import { CanvasPage } from '@pages/Buttons/CanvasV2'
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
@@ -17,11 +18,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
 
-type Props = {
-	integrated: boolean
-}
-
-const ApplicationRouter: React.FC<Props> = ({ integrated }) => {
+const ApplicationRouter: React.FC = () => {
 	const { page, backendSearchQuery } = useSearchContext()
 	const { page: errorPage, backendSearchQuery: errorBackendSearchQuery } =
 		useErrorSearchContext()
@@ -36,12 +33,12 @@ const ApplicationRouter: React.FC<Props> = ({ integrated }) => {
 		<Routes>
 			<Route
 				path="sessions/:session_secure_id?"
-				element={<PlayerPage integrated={integrated} />}
+				element={<PlayerPage />}
 			/>
 
 			<Route
 				path="errors/:error_secure_id?/:error_tab_key?/:error_object_id?"
-				element={<ErrorsV2 integrated={integrated} />}
+				element={<ErrorsV2 />}
 			/>
 
 			{isLoggedIn ? (
@@ -69,6 +66,14 @@ const ApplicationRouter: React.FC<Props> = ({ integrated }) => {
 						}
 					/>
 					<Route
+						path="canvas/*"
+						element={
+							<Suspense fallback={null}>
+								<CanvasPage />
+							</Suspense>
+						}
+					/>
+					<Route
 						path="hit-targets/*"
 						element={
 							<Suspense fallback={null}>
@@ -77,10 +82,7 @@ const ApplicationRouter: React.FC<Props> = ({ integrated }) => {
 						}
 					/>
 
-					<Route
-						path="*"
-						element={<DashboardsRouter integrated={integrated} />}
-					/>
+					<Route path="*" element={<DashboardsRouter />} />
 				</>
 			) : (
 				<Route path="*" element={<Navigate to="/" replace />} />

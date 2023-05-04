@@ -122,7 +122,7 @@ const Footer = () => {
 								<Link href="/privacy">Privacy Policy</Link>
 							</li>
 							<li>
-								<a href="https://careers.highlight.run/">
+								<a href="https://careers.highlight.io/">
 									Careers
 								</a>
 							</li>

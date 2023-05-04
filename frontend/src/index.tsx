@@ -81,8 +81,7 @@ const options: HighlightOptions = {
 	enableSegmentIntegration: true,
 	enableCanvasRecording: true,
 	samplingStrategy: {
-		canvas: 15,
-		canvasQuality: 'low',
+		canvas: 1,
 		canvasMaxSnapshotDimension: 480,
 		canvasFactor: 0.5,
 	},
@@ -139,12 +138,7 @@ const App = () => {
 	)
 
 	return (
-		<ErrorBoundary
-			onAfterReportDialogCancelHandler={() => {
-				const { origin } = window.location
-				window.location.href = origin
-			}}
-		>
+		<ErrorBoundary>
 			<ApolloProvider client={client}>
 				<SkeletonTheme
 					baseColor="var(--color-gray-200)"

@@ -1621,16 +1621,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const [currentRule, setCurrentRule] = useState<RuleProps | undefined>()
 	const defaultTimeRangeRule: RuleProps = useMemo(() => {
-		const period =
-			projectId === '0'
-				? {
-						label: 'Last 5 years',
-						value: '5 years',
-				  }
-				: {
-						label: 'Last 30 days',
-						value: '30 days',
-				  }
+		const period = {
+			label: 'Last 30 days',
+			value: '30 days',
+		}
 
 		return {
 			field: timeRangeField,
@@ -1640,7 +1634,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				options: [period],
 			},
 		}
-	}, [timeRangeField, projectId])
+	}, [timeRangeField])
 
 	const parseGroup = useCallback(
 		(isAnd: boolean, rules: RuleProps[]): OpenSearchQuery => {

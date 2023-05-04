@@ -15,6 +15,13 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+type Log struct {
+	Message    string `json:"message"`
+	Timestamp  string `json:"timestamp"`
+	Level      string `json:"level"`
+	Attributes map[string]string
+}
+
 type VercelProxy struct {
 	Timestamp   int64    `json:"timestamp"`
 	Method      string   `json:"method"`
@@ -160,4 +167,31 @@ func SubmitVercelLogs(ctx context.Context, projectID int, logs []VercelLog) {
 	for _, log := range logs {
 		submitVercelLog(ctx, projectID, log)
 	}
+}
+
+func SubmitHTTPLog(ctx context.Context, projectID int, lg Log) error {
+	span, _ := highlight.StartTrace(
+		ctx, "highlight-ctx",
+		attribute.String(highlight.SourceAttribute, "SubmitHTTPLog"),
+		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
+	)
+	defer highlight.EndTrace(span)
+
+	attrs := []attribute.KeyValue{
+		LogSeverityKey.String(lg.Level),
+		LogMessageKey.String(lg.Message),
+	}
+	for k, v := range lg.Attributes {
+		attrs = append(attrs, attribute.String(k, v))
+	}
+
+	t, err := time.Parse("2006-01-02T15:04:05.000Z", lg.Timestamp)
+	if err != nil {
+		return err
+	}
+	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(t))
+	if lg.Level == "error" {
+		span.SetStatus(codes.Error, lg.Message)
+	}
+	return nil
 }
