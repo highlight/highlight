@@ -8,7 +8,7 @@ import { ParsedSessionComment } from '@pages/Player/ReplayerContext'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 
-import { formatTimeAsHMS, MillisToMinutesAndSeconds } from '@/util/time'
+import { formatTimeAsHMS } from '@/util/time'
 
 import CommentTextBody from '../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import styles from './SessionComment.module.scss'
@@ -80,15 +80,15 @@ export const SessionComment = ({
 				<CommentTextBody commentText={comment.text} />
 				<Stack direction="row" gap="8" justifyContent="space-between">
 					<Stack direction="row" gap="4" alignItems="center">
-						{comment?.replies?.length > 0 && (
+						{comment.replies?.length > 0 && (
 							<>
 								<IconSolidReply size={14} />
-								<Text>{comment?.replies?.length}</Text>
+								<Text>{comment.replies?.length}</Text>
 							</>
 						)}
 					</Stack>
 					<Box display="flex">
-						{comment?.attachments?.length > 0 && (
+						{comment.attachments?.length > 0 && (
 							<AttachmentList attachments={comment.attachments} />
 						)}
 						{!isReply && (
@@ -101,7 +101,7 @@ export const SessionComment = ({
 			</Box>
 			{showReplies && (
 				<>
-					{comment?.replies?.length > 0 && (
+					{comment.replies?.length > 0 && (
 						<ReplyList replies={comment.replies} />
 					)}
 
