@@ -9,7 +9,7 @@ import { Box } from '../Box/Box'
 
 export type TooltipProps = Partial<TooltipState> &
 	React.PropsWithChildren<{
-		trigger: React.ReactElement
+		trigger: React.ReactNode
 		disabled?: boolean
 		style?: React.CSSProperties
 	}>

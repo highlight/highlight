@@ -11,20 +11,14 @@ import {
 	GetErrorInstanceDocument,
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
-import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
-import {
-	ErrorInstance as ErrorInstanceType,
-	ErrorObject,
-	Maybe,
-	ReservedLogKey,
-} from '@graph/schemas'
+import { ErrorObjectFragment, GetErrorGroupQuery } from '@graph/operations'
+import { Maybe, ReservedLogKey } from '@graph/schemas'
 import {
 	Box,
 	Callout,
 	Heading,
 	IconSolidExternalLink,
 	IconSolidLogs,
-	IconSolidPlay,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
@@ -35,7 +29,6 @@ import {
 	LogsSearchParam,
 	stringifyLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
-import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import {
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
@@ -51,6 +44,8 @@ import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { createSearchParams, useNavigate } from 'react-router-dom'
 
+import { ShowSessionButton } from '@/pages/ErrorsV2/ErrorInstance/ShowSessionButton'
+
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -62,7 +57,7 @@ const METADATA_LABELS: { [key: string]: string } = {
 	id: 'ID',
 } as const
 
-const getLogsLink = (errorObject: ErrorObject): string => {
+const getLogsLink = (errorObject: ErrorObjectFragment): string => {
 	const queryParams: LogsSearchParam[] = []
 	let offsetStart = 1
 	if (errorObject.session?.secure_id) {
@@ -95,14 +90,6 @@ const getLogsLink = (errorObject: ErrorObject): string => {
 	} else {
 		return `/${errorObject.project_id}/logs?${params}`
 	}
-}
-
-const getSessionLink = (errorObject: ErrorObject): string => {
-	const params = createSearchParams({
-		tsAbs: errorObject.timestamp,
-		[PlayerSearchParameters.errorId]: errorObject.id,
-	})
-	return `/${errorObject.project_id}/sessions/${errorObject.session?.secure_id}?${params}`
 }
 
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
@@ -226,15 +213,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 							>
 								Show logs
 							</Button>
-							<Button
-								kind="primary"
-								emphasis="high"
-								disabled={true}
-								iconLeft={<IconSolidPlay />}
-								trackingId="errorInstanceShowSession"
-							>
-								Show session
-							</Button>
+							<ShowSessionButton />
 						</Box>
 					</Box>
 				</Box>
@@ -277,9 +256,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			</Box>
 		)
 	}
-
-	const errorObject =
-		errorInstance.error_object as ErrorInstanceType['error_object']
 
 	return (
 		<Box id="error-instance-container">
@@ -339,8 +315,11 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						<LinkButton
 							kind="primary"
 							emphasis="high"
-							to={getLogsLink(errorObject)}
-							disabled={!isLoggedIn || !errorObject.session}
+							to={getLogsLink(errorInstance.error_object)}
+							disabled={
+								!isLoggedIn ||
+								!errorInstance.error_object.session
+							}
 							trackingId="error-related_logs_link"
 						>
 							<Box
@@ -353,23 +332,9 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								Show logs
 							</Box>
 						</LinkButton>
-						<LinkButton
-							kind="primary"
-							emphasis="high"
-							to={getSessionLink(errorObject)}
-							disabled={!isLoggedIn || !errorObject.session}
-							trackingId="error-related_session_link"
-						>
-							<Box
-								display="flex"
-								alignItems="center"
-								flexDirection="row"
-								gap="4"
-							>
-								<IconSolidPlay />
-								Show session
-							</Box>
-						</LinkButton>
+						<ShowSessionButton
+							errorObject={errorInstance.error_object}
+						/>
 					</Box>
 				</Box>
 			</Box>
@@ -381,11 +346,11 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				gap="40"
 			>
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
-					<Metadata errorObject={errorObject} />
+					<Metadata errorObject={errorInstance.error_object} />
 				</div>
 
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
-					<User errorObject={errorObject} />
+					<User errorObject={errorInstance.error_object} />
 				</div>
 			</Box>
 
@@ -402,18 +367,16 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 					</>
 				)}
 
-			{(errorObject.stack_trace !== '' &&
-				errorObject.stack_trace !== 'null') ||
-			errorObject.structured_stack_trace?.length ? (
+			{(errorInstance.error_object.stack_trace !== '' &&
+				errorInstance.error_object.stack_trace !== 'null') ||
+			errorInstance.error_object.structured_stack_trace?.length ? (
 				<>
 					<Text size="large" weight="bold">
 						Stack trace
 					</Text>
 					<Box bt="secondary" mt="12" pt="16">
 						<ErrorStackTrace
-							errorObject={
-								errorObject as ErrorInstanceType['error_object']
-							}
+							errorObject={errorInstance.error_object}
 						/>
 					</Box>
 				</>
@@ -423,7 +386,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 }
 
 const Metadata: React.FC<{
-	errorObject?: GetErrorObjectQuery['error_object']
+	errorObject?: ErrorObjectFragment
 }> = ({ errorObject }) => {
 	if (!errorObject) {
 		return null
@@ -520,7 +483,7 @@ const Metadata: React.FC<{
 }
 
 const User: React.FC<{
-	errorObject?: GetErrorObjectQuery['error_object']
+	errorObject?: ErrorObjectFragment
 }> = ({ errorObject }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()

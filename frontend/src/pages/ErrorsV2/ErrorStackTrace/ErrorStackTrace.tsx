@@ -2,7 +2,7 @@ import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import { LinkButton } from '@components/LinkButton'
 import Tooltip from '@components/Tooltip/Tooltip'
-import { ErrorInstance, Maybe, SourceMappingError } from '@graph/schemas'
+import { Maybe, SourceMappingError } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
@@ -22,10 +22,12 @@ import clsx from 'clsx'
 import React from 'react'
 import ReactCollapsible from 'react-collapsible'
 
+import { ErrorObjectFragment } from '@/graph/generated/operations'
+
 import * as styles from './ErrorStackTrace.css'
 
 interface Props {
-	errorObject?: ErrorInstance['error_object']
+	errorObject?: ErrorObjectFragment
 }
 
 const ErrorStackTrace = ({ errorObject }: Props) => {

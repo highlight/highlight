@@ -91,6 +91,67 @@ export const SessionAlertFragmentFragmentDoc = gql`
 	}
 	${DiscordChannelFragmentFragmentDoc}
 `
+export const ErrorObjectFragmentDoc = gql`
+	fragment ErrorObject on ErrorObject {
+		id
+		created_at
+		project_id
+		session_id
+		trace_id
+		span_id
+		log_cursor
+		session {
+			identifier
+			fingerprint
+			secure_id
+			city
+			state
+			country
+			user_properties
+			processed
+		}
+		error_group_id
+		error_group_secure_id
+		event
+		type
+		url
+		source
+		lineNumber
+		columnNumber
+		stack_trace
+		structured_stack_trace {
+			fileName
+			lineNumber
+			functionName
+			columnNumber
+			lineContent
+			linesBefore
+			linesAfter
+			error
+			sourceMappingErrorMetadata {
+				errorCode
+				stackTraceFileURL
+				sourcemapFetchStrategy
+				sourceMapURL
+				minifiedFetchStrategy
+				actualMinifiedFetchedPath
+				minifiedLineNumber
+				minifiedColumnNumber
+				actualSourcemapFetchedPath
+				sourcemapFileSize
+				minifiedFileSize
+				mappedLineNumber
+				mappedColumnNumber
+			}
+		}
+		timestamp
+		payload
+		request_id
+		os
+		browser
+		environment
+	}
+`
 export const MarkErrorGroupAsViewedDocument = gql`
 	mutation MarkErrorGroupAsViewed(
 		$error_secure_id: String!
@@ -7979,45 +8040,10 @@ export type GetErrorObjectForLogQueryResult = Apollo.QueryResult<
 export const GetErrorObjectDocument = gql`
 	query GetErrorObject($id: ID!) {
 		error_object(id: $id) {
-			id
-			created_at
-			project_id
-			session {
-				identifier
-				fingerprint
-				secure_id
-				city
-				state
-				country
-				user_properties
-			}
-			error_group_id
-			error_group_secure_id
-			event
-			type
-			url
-			source
-			lineNumber
-			columnNumber
-			stack_trace
-			structured_stack_trace {
-				fileName
-				lineNumber
-				functionName
-				columnNumber
-				lineContent
-				linesBefore
-				linesAfter
-				error
-			}
-			timestamp
-			payload
-			request_id
-			os
-			browser
-			environment
+			...ErrorObject
 		}
 	}
+	${ErrorObjectFragmentDoc}
 `
 
 /**
@@ -8078,67 +8104,13 @@ export const GetErrorInstanceDocument = gql`
 			error_object_id: $error_object_id
 		) {
 			error_object {
-				id
-				created_at
-				project_id
-				session_id
-				trace_id
-				span_id
-				log_cursor
-				session {
-					identifier
-					fingerprint
-					secure_id
-					city
-					state
-					country
-					user_properties
-				}
-				error_group_id
-				error_group_secure_id
-				event
-				type
-				url
-				source
-				lineNumber
-				columnNumber
-				stack_trace
-				structured_stack_trace {
-					fileName
-					lineNumber
-					functionName
-					columnNumber
-					lineContent
-					linesBefore
-					linesAfter
-					error
-					sourceMappingErrorMetadata {
-						errorCode
-						stackTraceFileURL
-						sourcemapFetchStrategy
-						sourceMapURL
-						minifiedFetchStrategy
-						actualMinifiedFetchedPath
-						minifiedLineNumber
-						minifiedColumnNumber
-						actualSourcemapFetchedPath
-						sourcemapFileSize
-						minifiedFileSize
-						mappedLineNumber
-						mappedColumnNumber
-					}
-				}
-				timestamp
-				payload
-				request_id
-				os
-				browser
-				environment
+				...ErrorObject
 			}
 			next_id
 			previous_id
 		}
 	}
+	${ErrorObjectFragmentDoc}
 `
 
 /**
