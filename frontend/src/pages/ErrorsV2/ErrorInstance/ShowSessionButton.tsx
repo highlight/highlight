@@ -18,8 +18,8 @@ const getSessionLink = (errorObject: ErrorObjectFragment): string => {
 const WithTooltip = ({ children }: React.PropsWithChildren) => {
 	return (
 		<Tooltip trigger={children}>
-			Heads up! This session is still live and some Dev tools may not work
-			as expected.
+			This session is still live and some Dev tools may not work as
+			expected.
 		</Tooltip>
 	)
 }
