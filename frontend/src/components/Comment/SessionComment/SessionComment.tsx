@@ -19,7 +19,6 @@ interface Props {
 	comment: ParsedSessionComment
 	deepLinkedCommentId?: string | null
 	hasShadow?: boolean
-	onClose?: () => void
 	parentRef?: React.RefObject<HTMLDivElement>
 	showReplies?: boolean
 }
@@ -27,7 +26,6 @@ interface Props {
 export const SessionCommentCard = ({
 	comment,
 	deepLinkedCommentId,
-	onClose,
 	parentRef,
 	showReplies,
 }: Props) => {
@@ -35,7 +33,6 @@ export const SessionCommentCard = ({
 		<SessionComment
 			comment={comment}
 			deepLinkedCommentId={deepLinkedCommentId}
-			onClose={onClose}
 			parentRef={parentRef}
 			showReplies={showReplies}
 		/>

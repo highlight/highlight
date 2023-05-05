@@ -3,7 +3,7 @@ import { Box } from '@highlight-run/ui'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import clsx from 'clsx'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import TransparentPopover from '../../../../components/Popover/TransparentPopover'
 import {
@@ -74,6 +74,28 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 		}
 	}, [])
 
+	const handleClick: EventListener = useCallback(
+		(e) => {
+			if (!visible) {
+				return
+			}
+
+			if (!commentCardParentRef.current?.contains(e.target as Node)) {
+				setVisible(false)
+			}
+		},
+		[visible],
+	)
+
+	useEffect(() => {
+		window.removeEventListener('click', handleClick)
+		window.addEventListener('click', handleClick)
+
+		return () => {
+			window.removeEventListener('click', handleClick)
+		}
+	}, [visible, handleClick])
+
 	if (!comment) {
 		return null
 	}
@@ -108,7 +130,7 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 				setVisible(true)
 			}}
 			onMouseLeave={() => {
-				if (!clicked) {
+				if (!clicked && comment.id !== deepLinkedCommentId) {
 					setVisible(false)
 				}
 			}}
@@ -127,7 +149,6 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 						<SessionCommentCard
 							parentRef={commentCardParentRef}
 							comment={comment}
-							onClose={() => setVisible(false)}
 							deepLinkedCommentId={deepLinkedCommentId}
 							showReplies
 						/>
