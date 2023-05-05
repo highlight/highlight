@@ -2,7 +2,11 @@ import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
 import { IntegrationType, SessionCommentType } from '@graph/schemas'
 import {
 	Box,
+	IconSolidArrowCircleRight,
 	IconSolidDotsHorizontal,
+	IconSolidExternalLink,
+	IconSolidLink,
+	IconSolidTrash,
 	Menu,
 	Stack,
 	Text,
@@ -28,6 +32,7 @@ import moment from 'moment'
 import React, { useMemo, useState } from 'react'
 
 import { AdminAvatar, Avatar } from '@/components/Avatar/Avatar'
+import { getAttachmentUrl } from '@/components/Comment/AttachmentList/AttachmentList'
 import {
 	useDeleteComment,
 	useNavigateToComment,
@@ -75,17 +80,37 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 		<>
 			{issueTrackers.map((item) => {
 				const [isIntegrated, integration] = item
+				const existingAttachment = comment.attachments?.find(
+					(attachment) =>
+						attachment?.integration_type === integration.name,
+				)
+
 				return isIntegrated ? (
 					<Menu.Item
 						key={integration.name}
 						onClick={() => {
-							analytics.track(
-								`Create ${integration.name} Issue from Comment`,
-							)
+							existingAttachment
+								? window.open(
+										getAttachmentUrl(existingAttachment),
+										'_blank',
+								  )
+								: analytics.track(
+										`Create ${integration.name} Issue from Comment`,
+								  )
 							setShowNewIssueModal(integration)
 						}}
 					>
-						Create {integration.name} Issue
+						<Stack gap="4" direction="row" align="center">
+							<integration.Icon />
+							{existingAttachment ? (
+								<>
+									View {existingAttachment.title}{' '}
+									<IconSolidExternalLink /> {}
+								</>
+							) : (
+								<>Create {integration.name} issue</>
+							)}
+						</Stack>
 					</Menu.Item>
 				) : null
 			})}
@@ -146,6 +171,11 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 					<Box>
 						<Menu placement="bottom-end">
 							<Menu.Button
+								onClick={(
+									e: React.MouseEvent<HTMLButtonElement>,
+								) => {
+									e.stopPropagation()
+								}}
 								icon={
 									<IconSolidDotsHorizontal
 										size={14}
@@ -157,6 +187,16 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 								size="xSmall"
 							/>
 							<Menu.List>
+								<Menu.Item onClick={navigateToComment}>
+									<Stack
+										gap="4"
+										direction="row"
+										align="center"
+									>
+										<IconSolidArrowCircleRight />
+										Go to timestamp
+									</Stack>
+								</Menu.Item>
 								<Menu.Item
 									onClick={() => {
 										const url = getCommentLink()
@@ -164,30 +204,26 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 										navigator.clipboard.writeText(url.href)
 									}}
 								>
-									Copy link
-								</Menu.Item>
-								{comment.type === SessionCommentType.Feedback &&
-									comment?.metadata?.email && (
-										<Menu.Item
-											onClick={() => {
-												message.success(
-													"Copied the feedback provider's email!",
-												)
-												navigator.clipboard.writeText(
-													comment.metadata
-														?.email as string,
-												)
-											}}
-										>
-											Copy feedback email
-										</Menu.Item>
-									)}
-								<Menu.Item onClick={navigateToComment}>
-									Goto
+									<Stack
+										gap="4"
+										direction="row"
+										align="center"
+									>
+										<IconSolidLink />
+										Copy link
+									</Stack>
 								</Menu.Item>
 								<Menu.Item onClick={deleteComment}>
-									Delete comment
+									<Stack
+										gap="4"
+										direction="row"
+										align="center"
+									>
+										<IconSolidTrash />
+										Delete comment
+									</Stack>
 								</Menu.Item>
+								<Menu.Divider />
 								{session && createIssueMenuItems}
 							</Menu.List>
 						</Menu>

@@ -32,15 +32,13 @@ export const SessionCommentCard = ({
 	showReplies,
 }: Props) => {
 	return (
-		<Box>
-			<SessionComment
-				comment={comment}
-				deepLinkedCommentId={deepLinkedCommentId}
-				onClose={onClose}
-				parentRef={parentRef}
-				showReplies={showReplies}
-			/>
-		</Box>
+		<SessionComment
+			comment={comment}
+			deepLinkedCommentId={deepLinkedCommentId}
+			onClose={onClose}
+			parentRef={parentRef}
+			showReplies={showReplies}
+		/>
 	)
 }
 
@@ -58,7 +56,7 @@ export const SessionComment = ({
 
 	return (
 		<>
-			<Box p={isReply ? undefined : '4'}>
+			<Box p={isReply || !showReplies ? undefined : '4'}>
 				<Box
 					backgroundColor={
 						isSelected
