@@ -4205,7 +4205,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	p, err := r.isAdminInProject(ctx, s.ProjectID)
+	p, err := r.isAdminInProjectOrDemoProject(ctx, s.ProjectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not project owner")
 	}
@@ -4664,9 +4664,10 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 
 	setupEvent := model.SetupEvent{}
 	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeError).Limit(1).Find(&setupEvent).Error; err != nil {
-		return nil, e.Wrap(err, "error querying logging setup event")
+		return nil, e.Wrap(err, "error querying error setup event")
 	}
 
+	fmt.Printf("setupEvent: %+v\n", setupEvent)
 	if setupEvent.ID != 0 {
 		integration.Integrated = true
 		integration.CreatedAt = &setupEvent.CreatedAt
@@ -7242,7 +7243,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 	if err != nil {
 		return nil, e.Wrap(err, "admin not logged in")
 	}
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
@@ -7302,7 +7303,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 
 // SessionLogs is the resolver for the sessionLogs field.
 func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogEdge, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
@@ -7312,7 +7313,7 @@ func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params m
 
 // LogsTotalCount is the resolver for the logs_total_count field.
 func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return 0, e.Wrap(err, "error querying project")
 	}
@@ -7322,7 +7323,7 @@ func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, param
 
 // LogsHistogram is the resolver for the logs_histogram field.
 func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (*modelInputs.LogsHistogram, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
@@ -7332,7 +7333,7 @@ func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params
 
 // LogsKeys is the resolver for the logs_keys field.
 func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.LogKey, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
@@ -7342,7 +7343,7 @@ func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange m
 
 // LogsKeyValues is the resolver for the logs_key_values field.
 func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}

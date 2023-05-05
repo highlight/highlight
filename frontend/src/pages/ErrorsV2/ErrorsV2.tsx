@@ -151,6 +151,7 @@ export default function ErrorsV2() {
 						<TopBar
 							isLoggedIn={isLoggedIn}
 							isBlocked={isBlocked}
+							projectId={project_id}
 							navigation={navigation}
 						/>
 
@@ -176,8 +177,9 @@ type TopBarProps = {
 	isLoggedIn: boolean
 	isBlocked: boolean
 	navigation: ReturnType<typeof useNavigation>
+	projectId?: string
 }
-function TopBar({ isLoggedIn, isBlocked, navigation }: TopBarProps) {
+function TopBar({ isLoggedIn, isBlocked, projectId, navigation }: TopBarProps) {
 	const {
 		showLeftPanel,
 		setShowLeftPanel,
@@ -187,7 +189,7 @@ function TopBar({ isLoggedIn, isBlocked, navigation }: TopBarProps) {
 		previousSecureId,
 		goToErrorGroup,
 	} = navigation
-	return isLoggedIn && !isBlocked ? (
+	return (isLoggedIn || projectId === DEMO_PROJECT_ID) && !isBlocked ? (
 		<Box display="flex" alignItems="center" borderBottom="secondary" p="6">
 			<Box display="flex" gap="8">
 				{!showLeftPanel && (
@@ -430,9 +432,14 @@ function useIsBlocked({
 		const canJoin = data?.joinable_workspaces?.some((w) =>
 			w?.projects.map((p) => p?.id).includes(projectId),
 		)
+		const isDemo = projectId === DEMO_PROJECT_ID
 
 		return (
-			!isPublic && !loading && !canJoin && currentProjectId !== projectId
+			!isPublic &&
+			!isDemo &&
+			!loading &&
+			!canJoin &&
+			currentProjectId !== projectId
 		)
 	}, [data, isPublic, loading, projectId])
 
