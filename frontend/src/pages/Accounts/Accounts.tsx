@@ -187,6 +187,13 @@ const COLUMNS = [
 	},
 ]
 
+type Row = {
+	id: any
+	name?: any
+	email?: any
+	last_active?: any
+}
+
 export const AccountsPage = () => {
 	const { setLoadingState } = useAppLoadingContext()
 	const { isHighlightAdmin } = useAuthContext()
@@ -283,24 +290,19 @@ export const Account = () => {
 							{
 								title: 'ID',
 								dataIndex: 'id',
-								sorter: (a: { id: any }, b: { id: any }) =>
+								sorter: (a: Row, b: Row) =>
 									(a.id ?? 0) - (b.id ?? 0),
 							},
 							{
 								title: 'Name',
 								dataIndex: 'name',
-								sorter: (
-									a: { name?: any },
-									b: { name?: any },
-								) => (a.name ?? '').localeCompare(b.name ?? ''),
+								sorter: (a: Row, b: Row) =>
+									(a.name ?? '').localeCompare(b.name ?? ''),
 							},
 							{
 								title: 'Email',
 								dataIndex: 'email',
-								sorter: (
-									a: { email?: any },
-									b: { email?: any },
-								) =>
+								sorter: (a: Row, b: Row) =>
 									(a.email ?? '').localeCompare(
 										b.email ?? '',
 									),
@@ -310,10 +312,7 @@ export const Account = () => {
 								dataIndex: 'last_active',
 								render: (value: moment.MomentInput) =>
 									moment(value).format('MM/DD/YY'),
-								sorter: (
-									a: { last_active?: any },
-									b: { last_active?: any },
-								) =>
+								sorter: (a: Row, b: Row) =>
 									(a.last_active ?? '').localeCompare(
 										b.last_active ?? '',
 									),
