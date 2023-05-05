@@ -118,7 +118,7 @@ export default function ErrorsV2() {
 				<title>Errors</title>
 			</Helmet>
 
-			<Box cssClass={styles.container} borderTop="dividerWeak">
+			<Box cssClass={styles.container}>
 				{!isBlocked && <SearchPanel />}
 
 				<div

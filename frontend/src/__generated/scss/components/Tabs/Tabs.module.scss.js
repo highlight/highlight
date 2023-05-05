@@ -1,0 +1,1 @@
+var t={tabPane:"_tabPane_19cqh_1",withPadding:"_withPadding_19cqh_5",unsetOverflowY:"_unsetOverflowY_19cqh_8",extraContentContainer:"_extraContentContainer_19cqh_12",withHeaderPadding:"_withHeaderPadding_19cqh_17",tabs:"_tabs_19cqh_21",noHeaderPadding:"_noHeaderPadding_19cqh_24"};export{t as default};

@@ -27,6 +27,7 @@ import (
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	dd "github.com/highlight-run/highlight/backend/datadog"
+	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -293,7 +294,7 @@ func main() {
 		if os.Getenv("OBJECT_STORAGE_FS") != "" {
 			fsRoot = os.Getenv("OBJECT_STORAGE_FS")
 		}
-		if storageClient, err = storage.NewFSClient(ctx, os.Getenv("PRIVATE_GRAPH_URI"), fsRoot); err != nil {
+		if storageClient, err = storage.NewFSClient(ctx, os.Getenv("REACT_APP_PRIVATE_GRAPH_URI"), fsRoot); err != nil {
 			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
 		}
 	} else {
@@ -504,6 +505,7 @@ func main() {
 		otelHandler := otel.New(publicResolver)
 		otelHandler.Listen(r)
 		vercel.Listen(r)
+		highlightHttp.Listen(r)
 	}
 
 	/*

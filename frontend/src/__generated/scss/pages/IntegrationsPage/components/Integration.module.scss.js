@@ -1,0 +1,1 @@
+var o={integration:"_integration_14mrc_1",logo:"_logo_14mrc_1",header:"_header_14mrc_6",connectButton:"_connectButton_14mrc_12",title:"_title_14mrc_15",description:"_description_14mrc_18",modal:"_modal_14mrc_22"};export{o as default};
