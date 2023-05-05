@@ -23,6 +23,9 @@ Read more about highlight.io's integrations! Have a questions or want to request
     <DocsCard title="Linear."  href="./linear-integration.md">
         {"Create linear tickets within highlight.io"}
     </DocsCard>
+    <DocsCard title="GitHub."  href="./github-integration.md">
+        {"Create GitHub Issues within highlight.io"}
+    </DocsCard>
     <DocsCard title="Segment."  href="./segment-integration.md">
         {"Instrument highlight.io to send segment events."}
     </DocsCard>

@@ -304,7 +304,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									}
 									kind="secondary"
 									emphasis="low"
-									display="inlineBlock"
 									trackingId="errorInstanceOlder"
 								>
 									Older
@@ -329,7 +328,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									}
 									kind="secondary"
 									emphasis="low"
-									display="inlineBlock"
 									trackingId="errorInstanceNewer"
 								>
 									Newer
@@ -447,7 +445,11 @@ const Metadata: React.FC<{
 		{
 			key: 'Custom Properties',
 			label: customProperties ? (
-				<JsonViewer src={customProperties} name="Custom Properties" />
+				<JsonViewer
+					collapsed={true}
+					src={customProperties}
+					name="Custom Properties"
+				/>
 			) : undefined,
 		},
 	].filter((t) => Boolean(t.label))

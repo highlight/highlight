@@ -564,6 +564,13 @@ export type Field = {
 	value: Scalars['String']
 }
 
+export type GitHubRepo = {
+	__typename?: 'GitHubRepo'
+	key: Scalars['String']
+	name: Scalars['String']
+	repo_id: Scalars['String']
+}
+
 export type HeightList = {
 	__typename?: 'HeightList'
 	id: Scalars['String']
@@ -626,7 +633,6 @@ export type IntegrationStatus = {
 	__typename?: 'IntegrationStatus'
 	createdAt?: Maybe<Scalars['Timestamp']>
 	integrated: Scalars['Boolean']
-	resourceSecureId?: Maybe<Scalars['String']>
 	resourceType: Scalars['String']
 }
 
@@ -634,6 +640,7 @@ export enum IntegrationType {
 	ClickUp = 'ClickUp',
 	Discord = 'Discord',
 	Front = 'Front',
+	GitHub = 'GitHub',
 	Height = 'Height',
 	Linear = 'Linear',
 	Slack = 'Slack',
@@ -887,6 +894,7 @@ export type Mutation = {
 	deleteSessions: Scalars['Boolean']
 	editErrorSegment?: Maybe<Scalars['Boolean']>
 	editProject?: Maybe<Project>
+	editProjectFilterSettings?: Maybe<ProjectFilterSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
 	editWorkspace?: Maybe<Workspace>
 	emailSignup: Scalars['String']
@@ -1159,6 +1167,11 @@ export type MutationEditProjectArgs = {
 	rage_click_count?: InputMaybe<Scalars['Int']>
 	rage_click_radius_pixels?: InputMaybe<Scalars['Int']>
 	rage_click_window_seconds?: InputMaybe<Scalars['Int']>
+}
+
+export type MutationEditProjectFilterSettingsArgs = {
+	filterSessionsWithoutError: Scalars['Boolean']
+	projectId: Scalars['ID']
 }
 
 export type MutationEditSegmentArgs = {
@@ -1499,6 +1512,12 @@ export type Project = {
 	workspace_id: Scalars['ID']
 }
 
+export type ProjectFilterSettings = {
+	__typename?: 'ProjectFilterSettings'
+	filterSessionsWithoutError: Scalars['Boolean']
+	id: Scalars['ID']
+}
+
 export type Query = {
 	__typename?: 'Query'
 	account_details: AccountDetails
@@ -1552,6 +1571,8 @@ export type Query = {
 	fields_opensearch: Array<Scalars['String']>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
+	github_issue_labels: Array<Scalars['String']>
+	github_repos?: Maybe<Array<GitHubRepo>>
 	height_lists: Array<HeightList>
 	height_workspaces: Array<HeightWorkspace>
 	identifier_suggestion: Array<Scalars['String']>
@@ -1586,6 +1607,7 @@ export type Query = {
 	new_user_alerts?: Maybe<Array<Maybe<SessionAlert>>>
 	oauth_client_metadata?: Maybe<OAuthClient>
 	project?: Maybe<Project>
+	projectFilterSettings?: Maybe<ProjectFilterSettings>
 	projectHasViewedASession?: Maybe<Session>
 	projectSuggestion: Array<Maybe<Project>>
 	projects?: Maybe<Array<Maybe<Project>>>
@@ -1856,6 +1878,15 @@ export type QueryGet_Source_Map_Upload_UrlsArgs = {
 	paths: Array<Scalars['String']>
 }
 
+export type QueryGithub_Issue_LabelsArgs = {
+	repository: Scalars['String']
+	workspace_id: Scalars['ID']
+}
+
+export type QueryGithub_ReposArgs = {
+	workspace_id: Scalars['ID']
+}
+
 export type QueryHeight_ListsArgs = {
 	project_id: Scalars['ID']
 }
@@ -2011,6 +2042,10 @@ export type QueryOauth_Client_MetadataArgs = {
 
 export type QueryProjectArgs = {
 	id: Scalars['ID']
+}
+
+export type QueryProjectFilterSettingsArgs = {
+	projectId: Scalars['ID']
 }
 
 export type QueryProjectHasViewedASessionArgs = {
@@ -2337,7 +2372,7 @@ export type Session = {
 	enable_strict_privacy?: Maybe<Scalars['Boolean']>
 	environment?: Maybe<Scalars['String']>
 	event_counts?: Maybe<Scalars['String']>
-	excluded?: Maybe<Scalars['Boolean']>
+	excluded: Scalars['Boolean']
 	field_group?: Maybe<Scalars['String']>
 	fields?: Maybe<Array<Maybe<Field>>>
 	fingerprint?: Maybe<Scalars['Int']>
@@ -2348,7 +2383,7 @@ export type Session = {
 	id: Scalars['ID']
 	identified: Scalars['Boolean']
 	identifier: Scalars['String']
-	is_public?: Maybe<Scalars['Boolean']>
+	is_public: Scalars['Boolean']
 	language: Scalars['String']
 	last_user_interaction_time: Scalars['Timestamp']
 	length?: Maybe<Scalars['Int']>

@@ -1,0 +1,1 @@
+import{a as r}from"../../../chunk-ZIVUDSZS.js";import{b as t}from"../../../chunk-NLMHZ7JJ.js";var a=t(r(),1),e="ybwwtm1",s=(0,a.createRuntimeFn)({defaultClassName:"",variantClassNames:{},defaultVariants:{},compoundVariants:[]}),m="ybwwtm0";export{e as days,s as variants,m as weekDays};

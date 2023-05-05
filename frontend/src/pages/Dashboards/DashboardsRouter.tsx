@@ -23,11 +23,7 @@ import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
-interface Props {
-	integrated?: boolean
-}
-
-const DashboardsRouter = ({ integrated }: Props) => {
+const DashboardsRouter = () => {
 	const { project_id } = useParams<{ project_id: string }>()
 
 	const { data: adminsData } = useGetWorkspaceAdminsByProjectIdQuery({
@@ -160,11 +156,7 @@ const DashboardsRouter = ({ integrated }: Props) => {
 				<Route
 					path="*"
 					element={
-						integrated ? (
-							<Navigate to={`/${project_id}/sessions`} replace />
-						) : (
-							<Navigate to={`/${project_id}/setup`} replace />
-						)
+						<Navigate to={`/${project_id}/sessions`} replace />
 					}
 				/>
 			</Routes>

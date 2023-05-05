@@ -1,7 +1,3 @@
-import {
-	DEMO_WORKSPACE_APPLICATION_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { linkStyle } from '@components/Header/styles.css'
 import {
 	Box,
@@ -17,9 +13,10 @@ import { vars } from '@highlight-run/ui/src/css/vars'
 import { generateRandomColor } from '@util/color'
 import { DEMO_PROJECT_NAME } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
-import React from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
+import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { useProjectId } from '@/hooks/useProjectId'
 import { isSettingsPath } from '@/pages/SettingsRouter/SettingsRouter'
 
 import { useApplicationContext } from '../../../../routers/ProjectRouter/context/ApplicationContext'
@@ -27,25 +24,18 @@ import { useApplicationContext } from '../../../../routers/ProjectRouter/context
 const ProjectPicker = () => {
 	const { allProjects, currentProject, currentWorkspace } =
 		useApplicationContext()
-	const { workspace_id, project_id } = useParams<{
-		workspace_id: string
-		project_id: string
-	}>()
+	const { workspace_id } = useParams<{ workspace_id: string }>()
+	const { projectId } = useProjectId()
 	const { pathname } = useLocation()
 	const parts = pathname.split('/')
 	const isSettings = isSettingsPath(parts)
-	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
-			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-			: project_id
 	const isWorkspaceLevel = workspace_id !== undefined
 	const navigate = useNavigate()
-	const isInDemoProject =
-		projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
+	const isInDemoProject = projectId === DEMO_WORKSPACE_PROXY_APPLICATION_ID
 
 	const projectOptions = allProjects
 		? allProjects.map((project) => {
-				const isSelected = project_id === project?.id
+				const isSelected = projectId === project?.id
 				return (
 					<Menu.Item
 						key={project?.id}
@@ -62,6 +52,7 @@ const ProjectPicker = () => {
 					>
 						<Box display="flex" alignItems="center" gap="4">
 							<Box
+								flexShrink={0}
 								margin="4"
 								style={{
 									height: 8,
@@ -100,7 +91,7 @@ const ProjectPicker = () => {
 				<Menu>
 					<Menu.Button
 						kind="secondary"
-						emphasis="high"
+						emphasis="medium"
 						size="small"
 						iconLeft={
 							isWorkspaceLevel || isSettings ? (
@@ -114,7 +105,7 @@ const ProjectPicker = () => {
 					</Menu.Button>
 					<Menu.List>
 						{projectOptions}
-						{project_id && project_id !== '0' && !isSettings && (
+						{projectId && !isInDemoProject && !isSettings && (
 							<>
 								<Menu.Divider />
 								<Link
@@ -136,7 +127,7 @@ const ProjectPicker = () => {
 									</Menu.Item>
 								</Link>
 								<Link
-									to={`/${project_id}/settings/recording`}
+									to={`/${projectId}/settings/recording`}
 									className={linkStyle}
 								>
 									<Menu.Item>

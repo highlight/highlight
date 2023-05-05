@@ -1,4 +1,3 @@
-import packageJson from '../package.json'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
 import {
 	AmplitudeAPI,
@@ -22,6 +21,7 @@ import type {
 } from '@highlight-run/client/src/types/types'
 import HighlightSegmentMiddleware from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
+import firstloadVersion from './__generated/version'
 
 initializeFetchListener()
 
@@ -84,7 +84,7 @@ export const H: HighlightPublicInterface = {
 			script = document.createElement('script')
 			var scriptSrc = options?.scriptUrl
 				? options.scriptUrl
-				: `https://static.highlight.io/v${packageJson.version}/index.js`
+				: `https://static.highlight.io/v${firstloadVersion}/index.js`
 			script.setAttribute('src', scriptSrc)
 			script.setAttribute('type', 'text/javascript')
 			document.getElementsByTagName('head')[0].appendChild(script)
@@ -115,7 +115,7 @@ export const H: HighlightPublicInterface = {
 				inlineStylesheet: options?.inlineStylesheet,
 				recordCrossOriginIframe: options?.recordCrossOriginIframe,
 				isCrossOriginIframe: options?.isCrossOriginIframe,
-				firstloadVersion: packageJson['version'],
+				firstloadVersion,
 				environment: options?.environment || 'production',
 				appVersion: options?.version,
 				sessionShortcut: options?.sessionShortcut,

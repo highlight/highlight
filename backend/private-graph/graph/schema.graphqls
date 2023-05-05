@@ -45,7 +45,7 @@ type Session {
 	viewed: Boolean
 	starred: Boolean
 	processed: Boolean
-	excluded: Boolean
+	excluded: Boolean!
 	has_rage_clicks: Boolean
 	has_errors: Boolean
 	first_time: Boolean
@@ -55,7 +55,7 @@ type Session {
 	object_storage_enabled: Boolean
 	payload_size: Int64
 	within_billing_quota: Boolean
-	is_public: Boolean
+	is_public: Boolean!
 	event_counts: String
 	direct_download_url: String
 	resources_url: String
@@ -182,6 +182,12 @@ type LinearTeam {
 	key: String!
 }
 
+type GitHubRepo {
+	repo_id: String!
+	name: String!
+	key: String!
+}
+
 type VercelEnv {
 	id: String!
 	key: String!
@@ -260,6 +266,7 @@ enum IntegrationType {
 	Discord
 	ClickUp
 	Height
+	GitHub
 }
 
 enum ErrorState {
@@ -330,6 +337,11 @@ type Project {
 	rage_click_count: Int
 	backend_domains: StringArray
 	filter_chrome_extension: Boolean
+}
+
+type ProjectFilterSettings {
+	id: ID!
+	filterSessionsWithoutError: Boolean!
 }
 
 type Account {
@@ -1182,7 +1194,6 @@ type CategoryHistogramPayload {
 type IntegrationStatus {
 	integrated: Boolean!
 	resourceType: String!
-	resourceSecureId: String
 	createdAt: Timestamp
 }
 
@@ -1520,7 +1531,10 @@ type Query {
 		integration_type: IntegrationType
 	): [IntegrationProjectMapping!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
+	github_repos(workspace_id: ID!): [GitHubRepo!]
+	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
+	projectFilterSettings(projectId: ID!): ProjectFilterSettings
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
@@ -1604,6 +1618,10 @@ type Mutation {
 		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 	): Project
+	editProjectFilterSettings(
+		projectId: ID!
+		filterSessionsWithoutError: Boolean!
+	): ProjectFilterSettings
 	editWorkspace(id: ID!, name: String): Workspace
 	markErrorGroupAsViewed(
 		error_secure_id: String!

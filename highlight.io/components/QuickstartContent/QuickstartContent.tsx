@@ -33,6 +33,8 @@ import { HostingVercelLogContent } from './logging/hosting/vercel'
 import { HTTPContent } from './logging/http'
 import { JSNestLogContent } from './logging/js/nestjs'
 import { JSOtherLogContent } from './logging/js/other'
+
+import { JSWinstonHTTPJSONLogContent } from './logging/js/winston'
 import { PythonOtherLogContent } from './logging/python/other'
 import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
@@ -94,8 +96,9 @@ export enum QuickStartType {
 	JSFirebase = 'firebase',
 	JSNodejs = 'nodejs',
 	JSNestjs = 'nestjs',
+	JSWinston = 'winston',
 	JStRPC = 'trpc',
-	HTTPOTLP = 'http-otlp',
+	HTTPOTLP = 'curl',
 	RubyOther = 'other',
 	RubyRails = 'rails',
 	HostingVercel = 'vercel',
@@ -197,9 +200,10 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 			[QuickStartType.JSNodejs]: JSOtherLogContent,
 			[QuickStartType.JSNestjs]: JSNestLogContent,
+			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogContent,
 		},
 		http: {
-			title: 'HTTP/OTLP',
+			title: 'curl',
 			subtitle:
 				'Get started with logging in your application via HTTP or OTLP.',
 			[QuickStartType.HTTPOTLP]: HTTPContent,

@@ -266,6 +266,20 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type EditProjectFilterSettingsMutationVariables = Types.Exact<{
+	projectId: Types.Scalars['ID']
+	filterSessionsWithoutError: Types.Scalars['Boolean']
+}>
+
+export type EditProjectFilterSettingsMutation = { __typename?: 'Mutation' } & {
+	editProjectFilterSettings?: Types.Maybe<
+		{ __typename?: 'ProjectFilterSettings' } & Pick<
+			Types.ProjectFilterSettings,
+			'id' | 'filterSessionsWithoutError'
+		>
+	>
+}
+
 export type DeleteProjectMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 }>
@@ -1745,54 +1759,6 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetNotificationsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type GetNotificationsQuery = { __typename?: 'Query' } & {
-	session_comments_for_project: Array<
-		Types.Maybe<
-			{ __typename?: 'SessionComment' } & Pick<
-				Types.SessionComment,
-				| 'id'
-				| 'timestamp'
-				| 'updated_at'
-				| 'session_id'
-				| 'session_secure_id'
-				| 'text'
-				| 'type'
-				| 'metadata'
-				| 'tags'
-			> & {
-					author?: Types.Maybe<
-						{ __typename?: 'SanitizedAdmin' } & Pick<
-							Types.SanitizedAdmin,
-							'id' | 'name' | 'email' | 'photo_url'
-						>
-					>
-				}
-		>
-	>
-	error_comments_for_project: Array<
-		Types.Maybe<
-			{ __typename?: 'ErrorComment' } & Pick<
-				Types.ErrorComment,
-				| 'id'
-				| 'updated_at'
-				| 'project_id'
-				| 'text'
-				| 'error_id'
-				| 'error_secure_id'
-			> & {
-					author: { __typename?: 'SanitizedAdmin' } & Pick<
-						Types.SanitizedAdmin,
-						'id' | 'name' | 'email' | 'photo_url'
-					>
-				}
-		>
-	>
-}
-
 export type GetSessionCommentsForAdminQueryVariables = Types.Exact<{
 	[key: string]: never
 }>
@@ -2141,6 +2107,8 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
 					| 'user_properties'
 					| 'event_counts'
 					| 'last_user_interaction_time'
+					| 'is_public'
+					| 'excluded'
 				> & {
 						fields?: Types.Maybe<
 							Array<
@@ -3299,7 +3267,7 @@ export type GetClientIntegrationQueryVariables = Types.Exact<{
 export type GetClientIntegrationQuery = { __typename?: 'Query' } & {
 	clientIntegration: { __typename?: 'IntegrationStatus' } & Pick<
 		Types.IntegrationStatus,
-		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
+		'integrated' | 'resourceType' | 'createdAt'
 	>
 }
 
@@ -3310,7 +3278,7 @@ export type GetServerIntegrationQueryVariables = Types.Exact<{
 export type GetServerIntegrationQuery = { __typename?: 'Query' } & {
 	serverIntegration: { __typename?: 'IntegrationStatus' } & Pick<
 		Types.IntegrationStatus,
-		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
+		'integrated' | 'resourceType' | 'createdAt'
 	>
 }
 
@@ -3321,7 +3289,7 @@ export type GetLogsIntegrationQueryVariables = Types.Exact<{
 export type GetLogsIntegrationQuery = { __typename?: 'Query' } & {
 	logsIntegration: { __typename?: 'IntegrationStatus' } & Pick<
 		Types.IntegrationStatus,
-		'integrated' | 'resourceType' | 'resourceSecureId' | 'createdAt'
+		'integrated' | 'resourceType' | 'createdAt'
 	>
 }
 
@@ -3623,6 +3591,33 @@ export type GetHeightIntegrationSettingsQuery = { __typename?: 'Query' } & {
 		>
 	>
 }
+
+export type GetGitHubIntegrationSettingsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetGitHubIntegrationSettingsQuery = { __typename?: 'Query' } & {
+	is_integrated: Types.Query['is_workspace_integrated_with']
+} & {
+	github_repos?: Types.Maybe<
+		Array<
+			{ __typename?: 'GitHubRepo' } & Pick<
+				Types.GitHubRepo,
+				'repo_id' | 'name' | 'key'
+			>
+		>
+	>
+}
+
+export type GetGitHubIssueLabelsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	repository: Types.Scalars['String']
+}>
+
+export type GetGitHubIssueLabelsQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'github_issue_labels'
+>
 
 export type GetProjectIntegratedWithQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
@@ -4301,6 +4296,19 @@ export type GetLogsErrorObjectsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetProjectFilterSettingsQueryVariables = Types.Exact<{
+	projectId: Types.Scalars['ID']
+}>
+
+export type GetProjectFilterSettingsQuery = { __typename?: 'Query' } & {
+	projectFilterSettings?: Types.Maybe<
+		{ __typename?: 'ProjectFilterSettings' } & Pick<
+			Types.ProjectFilterSettings,
+			'id' | 'filterSessionsWithoutError'
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4314,7 +4322,6 @@ export const namedOperations = {
 		GetWorkspaceAdminsByProjectId: 'GetWorkspaceAdminsByProjectId' as const,
 		GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,
 		GetSessionComments: 'GetSessionComments' as const,
-		GetNotifications: 'GetNotifications' as const,
 		GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
 		isSessionPending: 'isSessionPending' as const,
 		GetAccounts: 'GetAccounts' as const,
@@ -4398,6 +4405,8 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithVercel' as const,
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
 		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
+		GetGitHubIntegrationSettings: 'GetGitHubIntegrationSettings' as const,
+		GetGitHubIssueLabels: 'GetGitHubIssueLabels' as const,
 		GetProjectIntegratedWith: 'GetProjectIntegratedWith' as const,
 		GetClickUpFolders: 'GetClickUpFolders' as const,
 		GetHeightLists: 'GetHeightLists' as const,
@@ -4428,6 +4437,7 @@ export const namedOperations = {
 		GetLogsKeys: 'GetLogsKeys' as const,
 		GetLogsKeyValues: 'GetLogsKeyValues' as const,
 		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
+		GetProjectFilterSettings: 'GetProjectFilterSettings' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -4455,6 +4465,7 @@ export const namedOperations = {
 		CreateAdmin: 'CreateAdmin' as const,
 		CreateWorkspace: 'CreateWorkspace' as const,
 		EditProject: 'EditProject' as const,
+		EditProjectFilterSettings: 'EditProjectFilterSettings' as const,
 		DeleteProject: 'DeleteProject' as const,
 		EditWorkspace: 'EditWorkspace' as const,
 		DeleteSegment: 'DeleteSegment' as const,

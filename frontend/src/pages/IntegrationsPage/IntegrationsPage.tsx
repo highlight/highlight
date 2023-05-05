@@ -5,6 +5,7 @@ import { useClearbitIntegration } from '@pages/IntegrationsPage/components/Clear
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
+import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
 import Integration from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
@@ -53,6 +54,13 @@ const IntegrationsPage = () => {
 
 	const {
 		settings: {
+			isIntegrated: isGitHubIntegratedWithProject,
+			loading: loadingGitHub,
+		},
+	} = useGitHubIntegration()
+
+	const {
+		settings: {
 			isIntegrated: isClickUpIntegratedWithProject,
 			loading: loadingClickUp,
 		},
@@ -74,7 +82,8 @@ const IntegrationsPage = () => {
 		loadingVercel ||
 		loadingDiscord ||
 		loadingClickUp ||
-		loadingHeight
+		loadingHeight ||
+		loadingGitHub
 
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((integration) => {
@@ -110,6 +119,7 @@ const IntegrationsPage = () => {
 				(inter.key === 'front' && isFrontIntegratedWithProject) ||
 				(inter.key === 'vercel' && isVercelIntegratedWithProject) ||
 				(inter.key === 'discord' && isDiscordIntegratedWithProject) ||
+				(inter.key === 'github' && isGitHubIntegratedWithProject) ||
 				(inter.key === 'clickup' && isClickUpIntegratedWithProject) ||
 				(inter.key === 'height' && isHeightIntegratedWithProject),
 		}))
@@ -123,6 +133,7 @@ const IntegrationsPage = () => {
 		isFrontIntegratedWithProject,
 		isVercelIntegratedWithProject,
 		isDiscordIntegratedWithProject,
+		isGitHubIntegratedWithProject,
 		isClickUpIntegratedWithProject,
 		isHeightIntegratedWithProject,
 	])

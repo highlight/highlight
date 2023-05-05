@@ -2,7 +2,7 @@ import Button from '@components/Button/Button/Button'
 import { useRequestAccessMutation } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import React, { useState } from 'react'
+import { useState } from 'react'
 
 const RequestAccess = () => {
 	const { project_id } = useParams<{
@@ -12,6 +12,7 @@ const RequestAccess = () => {
 	const [sentAccessRequest, setSentAccessRequest] = useState(false)
 	return (
 		<Button
+			small
 			trackingId="ErrorStateRequestAccess"
 			disabled={sentAccessRequest}
 			type="primary"

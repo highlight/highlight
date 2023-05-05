@@ -3,7 +3,7 @@
 	<head>
 		<base href="/" />
 		<meta charset="utf-8" />
-		<link rel="icon" href="/favicon.ico" />
+		<link rel="icon" href="./src/icon.ico" />
 		<link
 			rel="apple-touch-icon"
 			sizes="180x180"
@@ -27,7 +27,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="theme-color" content="#5629c6" />
 
-		<link rel="stylesheet" href="/public.css" />
+		<link rel="stylesheet" href="./src/public.css" />
 		<link
 			rel="stylesheet"
 			href="https://unpkg.com/@highlight-run/rrweb@0.9.27/dist/index.css"
@@ -83,40 +83,7 @@
 			rel="stylesheet"
 		/>
 		<title>highlight.io</title>
-		<script>
-			// We pre-filled your app ID in the widget URL: 'https://widget.intercom.io/widget/gm6369ty'
-			;(function () {
-				var w = window
-				var ic = w.Intercom
-				if (typeof ic === 'function') {
-					ic('reattach_activator')
-					ic('update', w.intercomSettings)
-				} else {
-					var d = document
-					var i = function () {
-						i.c(arguments)
-					}
-					i.q = []
-					i.c = function (args) {
-						i.q.push(args)
-					}
-					w.Intercom = i
-					var l = function () {
-						var s = d.createElement('script')
-						s.type = 'text/javascript'
-						s.async = true
-						s.src = 'https://widget.intercom.io/widget/gm6369ty'
-						var x = d.getElementsByTagName('script')[0]
-						x.parentNode.insertBefore(s, x)
-					}
-					if (w.attachEvent) {
-						w.attachEvent('onload', l)
-					} else {
-						w.addEventListener('load', l, false)
-					}
-				}
-			})()
-		</script>
+		<script type="module" src="./src/intercom.js" defer></script>
 		<script>
 			window._highlightFirebaseConfigString = `{{.FirebaseConfigString}}`
 		</script>
@@ -142,8 +109,8 @@
 			src="//js.hs-scripts.com/20473940.js"
 		></script>
 		<!-- End of HubSpot Embed Code -->
-
-		<script type="module" src="./src/index.tsx"></script>
+		<script type="module" src="./src/canny.js" defer></script>
+		<script type="module" src="./src/index.tsx" defer></script>
 	</head>
 	<body class="highlight-light-theme">
 		<noscript>You need to enable JavaScript to run this app.</noscript>
@@ -157,32 +124,5 @@
 
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-		<script async>
-			!(function (w, d, i, s) {
-				function l() {
-					if (!d.getElementById(i)) {
-						var f = d.getElementsByTagName(s)[0],
-							e = d.createElement(s)
-						;(e.type = 'text/javascript'),
-							(e.async = !0),
-							(e.src = 'https://canny.io/sdk.js'),
-							f.parentNode.insertBefore(e, f)
-					}
-				}
-				if ('function' != typeof w.Canny) {
-					var c = function () {
-						c.q.push(arguments)
-					}
-					;(c.q = []),
-						(w.Canny = c),
-						'complete' === d.readyState
-							? l()
-							: w.attachEvent
-							? w.attachEvent('onload', l)
-							: w.addEventListener('load', l, !1)
-				}
-			})(window, document, 'canny-jssdk', 'script')
-		</script>
-	</body>
+    --></body>
 </html>

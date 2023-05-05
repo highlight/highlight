@@ -14,6 +14,30 @@ import { useEffect, useState } from 'react'
 
 import { IntegrationStatus } from '@/graph/generated/schemas'
 
+export const useIntegratedLocalStorage = (
+	projectId: string,
+	area: 'client' | 'server' | 'logs',
+) => {
+	return useLocalStorage<LocalStorageIntegrationData>(
+		`highlight-${projectId}-${area}-integration`,
+		{
+			loading: true,
+			integrated: false,
+			createdAt: undefined,
+			resourceType: '',
+		},
+	)
+}
+
+export const serverLocalStorageIntegratedKey = (projectId: string) =>
+	`highlight-${projectId}-backend-integrated`
+
+export const clientLocalStorageIntegratedKey = (projectId: string) =>
+	`highlight-${projectId}-client-integration`
+
+export const logsLocalStorageIntegratedKey = (projectId: string) =>
+	`highlight-${projectId}-logs-integration`
+
 export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
 	const { isLoggedIn, isAuthLoading } = useAuthContext()
 	const { projectId } = useNumericProjectId()
@@ -159,16 +183,8 @@ export const useClientIntegration = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { projectId } = useNumericProjectId()
 	const [localStorageIntegrated, setLocalStorageIntegrated] =
-		useLocalStorage<LocalStorageIntegrationData>(
-			`highlight-${projectId}-client-integration`,
-			{
-				loading: true,
-				integrated: false,
-				createdAt: undefined,
-				resourceType: '',
-				resourceSecureId: undefined,
-			},
-		)
+		useIntegratedLocalStorage(projectId!, 'client')
+
 	const { data, startPolling, stopPolling } = useGetClientIntegrationQuery({
 		variables: { project_id: projectId! },
 		skip: localStorageIntegrated.integrated,
@@ -221,16 +237,8 @@ export const useServerIntegration = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { projectId } = useNumericProjectId()
 	const [localStorageIntegrated, setLocalStorageIntegrated] =
-		useLocalStorage<LocalStorageIntegrationData>(
-			`highlight-${projectId}-server-integration`,
-			{
-				loading: true,
-				integrated: false,
-				createdAt: undefined,
-				resourceType: '',
-				resourceSecureId: undefined,
-			},
-		)
+		useIntegratedLocalStorage(projectId!, 'server')
+
 	const { data, startPolling, stopPolling } = useGetServerIntegrationQuery({
 		variables: { project_id: projectId! },
 		skip: localStorageIntegrated.integrated,
@@ -283,16 +291,8 @@ export const useLogsIntegration = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { projectId } = useNumericProjectId()
 	const [localStorageIntegrated, setLocalStorageIntegrated] =
-		useLocalStorage<LocalStorageIntegrationData>(
-			`highlight-${projectId}-logs-integration`,
-			{
-				loading: true,
-				integrated: false,
-				createdAt: undefined,
-				resourceType: '',
-				resourceSecureId: undefined,
-			},
-		)
+		useIntegratedLocalStorage(projectId!, 'logs')
+
 	const { data, startPolling, stopPolling } = useGetLogsIntegrationQuery({
 		variables: { project_id: projectId! },
 		skip: localStorageIntegrated.integrated,

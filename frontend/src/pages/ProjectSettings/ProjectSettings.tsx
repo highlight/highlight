@@ -1,5 +1,4 @@
 import Tabs from '@components/Tabs/Tabs'
-import { Box } from '@highlight-run/ui'
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm'
 import { ErrorFiltersForm } from '@pages/ProjectSettings/ErrorFiltersForm/ErrorFiltersForm'
 import { ErrorSettingsForm } from '@pages/ProjectSettings/ErrorSettingsForm/ErrorSettingsForm'
@@ -13,6 +12,9 @@ import React from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 
+import LeadAlignLayout from '@/components/layout/LeadAlignLayout'
+import { FilterSessionsWithoutErrorForm } from '@/pages/ProjectSettings/FilterSessionsWithoutErrorForm/FilterSessionsWithoutErrorForm'
+
 import styles from './ProjectSettings.module.scss'
 
 const ProjectSettings = () => {
@@ -25,54 +27,51 @@ const ProjectSettings = () => {
 				<title>Project Settings</title>
 			</Helmet>
 
-			<Box>
-				<Box style={{ maxWidth: 560 }} my="40" mx="auto">
-					<h2>Project Settings</h2>
-					<div className={styles.tabsContainer}>
-						<Tabs
-							activeKeyOverride={params.tab ?? 'recording'}
-							onChange={(key) => {
-								navigate(
-									`/${params.project_id}/settings/${key}`,
-								)
-							}}
-							noHeaderPadding
-							noPadding
-							id="settingsTabs"
-							tabs={[
-								{
-									key: 'recording',
-									title: 'Session Replay',
-									panelContent: (
-										<>
-											<ExcludedUsersForm />
-											<RageClicksForm />
-											<NetworkRecordingForm />
-										</>
-									),
-								},
-								{
-									key: 'errors',
-									title: 'Error Monitoring',
-									panelContent: (
-										<>
-											<ErrorSettingsForm />
-											<FilterExtensionForm />
-											<ErrorFiltersForm />
-											<SourcemapSettings />
-										</>
-									),
-								},
-								{
-									key: 'general',
-									title: 'General',
-									panelContent: <DangerForm />,
-								},
-							]}
-						/>
-					</div>
-				</Box>
-			</Box>
+			<LeadAlignLayout>
+				<h2>Project Settings</h2>
+				<div className={styles.tabsContainer}>
+					<Tabs
+						activeKeyOverride={params.tab ?? 'recording'}
+						onChange={(key) => {
+							navigate(`/${params.project_id}/settings/${key}`)
+						}}
+						noHeaderPadding
+						noPadding
+						id="settingsTabs"
+						tabs={[
+							{
+								key: 'recording',
+								title: 'Session Replay',
+								panelContent: (
+									<>
+										<ExcludedUsersForm />
+										<FilterSessionsWithoutErrorForm />
+										<RageClicksForm />
+										<NetworkRecordingForm />
+									</>
+								),
+							},
+							{
+								key: 'errors',
+								title: 'Error Monitoring',
+								panelContent: (
+									<>
+										<ErrorSettingsForm />
+										<FilterExtensionForm />
+										<ErrorFiltersForm />
+										<SourcemapSettings />
+									</>
+								),
+							},
+							{
+								key: 'general',
+								title: 'General',
+								panelContent: <DangerForm />,
+							},
+						]}
+					/>
+				</div>
+			</LeadAlignLayout>
 		</>
 	)
 }

@@ -15,6 +15,9 @@ import (
 	"strings"
 	"time"
 
+	github2 "github.com/google/go-github/v50/github"
+	"github.com/highlight-run/highlight/backend/integrations/github"
+
 	"gorm.io/gorm/clause"
 
 	"github.com/go-chi/chi"
@@ -75,6 +78,7 @@ const SessionProcessedMetricName = "sessionProcessed"
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
+	FrontendURI     = os.Getenv("FRONTEND_URI")
 )
 
 var BytesConversion = map[string]int64{
@@ -227,11 +231,11 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 }
 
 type HubspotApiInterface interface {
-	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (*int, error)
-	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string, db *gorm.DB) (*int, error)
-	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int, db *gorm.DB) error
-	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property, db *gorm.DB) error
-	UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property, db *gorm.DB) error
+	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) error
+	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) error
+	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error
+	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error
+	UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -296,12 +300,28 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	return isAdmin || uid == WhitelistedUID || isDockerDefaultAccount
 }
 
-func (r *Resolver) isDemoProject(project_id int) bool {
-	return project_id == 0
+func (r *Resolver) isDemoProject(ctx context.Context, project_id int) bool {
+	return project_id == r.demoProjectID(ctx)
 }
 
 func (r *Resolver) isDemoWorkspace(workspace_id int) bool {
 	return workspace_id == 0
+}
+
+func (r *Resolver) demoProjectID(ctx context.Context) int {
+	demoProjectString := os.Getenv("DEMO_PROJECT_ID")
+
+	// Demo project is disabled if the env var is not set.
+	if demoProjectString == "" {
+		return 0
+	}
+
+	if demoProjectID, err := strconv.Atoi(demoProjectString); err != nil {
+		log.WithContext(ctx).Error(err, "error converting DemoProjectID to int")
+		return 0
+	} else {
+		return demoProjectID
+	}
 }
 
 // These are authentication methods used to make sure that data is secured.
@@ -320,8 +340,8 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	}()
 	var project *model.Project
 	var err error
-	if r.isDemoProject(project_id) {
-		if err = r.DB.Model(&model.Project{}).Where("id = ?", 0).First(&project).Error; err != nil {
+	if r.isDemoProject(ctx, project_id) {
+		if err = r.DB.Model(&model.Project{}).Where("id = ?", r.demoProjectID(ctx)).First(&project).Error; err != nil {
 			return nil, e.Wrap(err, "error querying demo project")
 		}
 	} else {
@@ -871,14 +891,10 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 	return modelParams
 }
 
-func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string, preloadFields bool) (*model.ErrorGroup, bool, error) {
+func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, bool, error) {
 	eg := &model.ErrorGroup{}
 
-	var db = r.DB
-	if preloadFields {
-		db = r.DB.Preload("Fields")
-	}
-	if err := db.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).First(&eg).Error; err != nil {
+	if err := r.DB.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).First(&eg).Error; err != nil {
 		return nil, false, e.Wrap(err, "error querying error group by secureID: "+errorGroupSecureID)
 	}
 
@@ -897,10 +913,10 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 	return eg, true, nil
 }
 
-func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureID string, preloadFields bool) (*model.ErrorGroup, error) {
+func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorGroup"))
 	defer authSpan.Finish()
-	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID, preloadFields)
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID)
 	if err == nil && isOwner {
 		return errorGroup, nil
 	}
@@ -913,7 +929,7 @@ func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureI
 func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifyErrorGroup"))
 	defer authSpan.Finish()
-	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID, false)
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID)
 	if err == nil && isOwner {
 		return errorGroup, nil
 	}
@@ -940,7 +956,7 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id st
 	if err == nil && isOwner {
 		return session, nil
 	}
-	if session != nil && *session.IsPublic {
+	if session != nil && session.IsPublic {
 		return session, nil
 	}
 	return nil, err
@@ -1939,6 +1955,24 @@ func (r *Resolver) AddHeightToWorkspace(ctx context.Context, workspace *model.Wo
 	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeHeight, code)
 }
 
+func (r *Resolver) AddGitHubToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	// a bit of a hack here, but the `code` is actually the `integrationID` which is provided
+	// from github after installation via a callback. this allows us to save the
+	// installation of this app for authenticating.
+	integrationWorkspaceMapping := &model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: modelInputs.IntegrationTypeGitHub,
+		AccessToken:     code,
+	}
+
+	if err := r.DB.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Create(integrationWorkspaceMapping).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *Resolver) AddDiscordToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	token, err := discord.OAuth(ctx, code)
 
@@ -1982,7 +2016,7 @@ func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Wor
 		SLACK_CLIENT_SECRET = tempSlackClientSecret
 	}
 
-	redirect := os.Getenv("FRONTEND_URI") + "/callback/slack"
+	redirect := FrontendURI + "/callback/slack"
 
 	resp, err := slack.
 		GetOAuthV2Response(
@@ -2135,14 +2169,22 @@ func (r *Resolver) RemoveClickUpFromWorkspace(workspace *model.Workspace) error 
 	return nil
 }
 
-func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(workspace *model.Workspace, integrationType modelInputs.IntegrationType) error {
+func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(ctx context.Context, workspace *model.Workspace, integrationType modelInputs.IntegrationType) error {
 	workspaceMapping := &model.IntegrationWorkspaceMapping{}
-
 	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
 		WorkspaceID:     workspace.ID,
 		IntegrationType: integrationType,
 	}).First(&workspaceMapping).Error; err != nil {
 		return e.Wrap(err, fmt.Sprintf("workspace does not have a %s integration", integrationType))
+	}
+
+	// uninstall the app in github
+	if c, err := github.NewClient(ctx, workspaceMapping.AccessToken); err == nil {
+		if err := c.DeleteInstallation(ctx, workspaceMapping.AccessToken); err != nil {
+			return e.Wrap(err, "failed to delete github app installation")
+		}
+	} else {
+		return e.Wrap(err, "failed to create github client")
 	}
 
 	if err := r.DB.Raw(`
@@ -2186,7 +2228,7 @@ func (r *Resolver) AddLinearToWorkspace(workspace *model.Workspace, code string)
 		LINEAR_CLIENT_SECRET = tempLinearClientSecret
 	}
 
-	redirect := os.Getenv("FRONTEND_URI") + "/callback/linear"
+	redirect := FrontendURI + "/callback/linear"
 
 	res, err := r.GetLinearAccessToken(code, redirect, LINEAR_CLIENT_ID, LINEAR_CLIENT_SECRET)
 	if err != nil {
@@ -2513,6 +2555,109 @@ func (r *Resolver) CreateHeightTaskAndAttachment(
 		return e.Wrap(err, "error creating external attachment")
 	}
 	return nil
+}
+
+func (r *Resolver) CreateGitHubTaskAndAttachment(
+	ctx context.Context,
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueDescription string,
+	repo *string,
+	tags []*modelInputs.SessionCommentTagInput,
+) error {
+	labels := lo.Map(tags, func(t *modelInputs.SessionCommentTagInput, i int) string {
+		return t.Name
+	})
+
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitHub)
+
+	if err != nil {
+		return err
+	}
+
+	if accessToken == nil {
+		return errors.New("No GitHub integration access token found.")
+	}
+	var task *github2.Issue
+	if c, err := github.NewClient(ctx, *accessToken); err == nil {
+		task, err = c.CreateIssue(ctx, *repo, &github2.IssueRequest{
+			Title:  pointy.String(issueTitle),
+			Body:   pointy.String(issueDescription),
+			Labels: &labels,
+		})
+		if err != nil {
+			return err
+		}
+	} else {
+		return e.Wrap(err, "failed to create github client")
+	}
+
+	attachment.ExternalID = task.GetHTMLURL()
+	attachment.Title = task.GetTitle()
+	if err := r.DB.Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
+func (r *Resolver) GetGitHubRepos(
+	ctx context.Context,
+	workspace *model.Workspace,
+) ([]*modelInputs.GitHubRepo, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitHub)
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, errors.New("No GitHub integration access token found.")
+	}
+	var repos []*github2.Repository
+	if c, err := github.NewClient(ctx, *accessToken); err == nil {
+		repos, err = c.ListRepos(ctx)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, e.Wrap(err, "failed to create github client")
+	}
+
+	return lo.Map(repos, func(t *github2.Repository, i int) *modelInputs.GitHubRepo {
+		return &modelInputs.GitHubRepo{
+			RepoID: t.GetURL(),
+			Name:   t.GetName(),
+			Key:    strconv.FormatInt(t.GetID(), 10),
+		}
+	}), nil
+}
+
+func (r *Resolver) GetGitHubIssueLabels(
+	ctx context.Context,
+	workspace *model.Workspace,
+	repository string,
+) ([]string, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitHub)
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, errors.New("No GitHub integration access token found.")
+	}
+	var labels []*github2.Label
+	if c, err := github.NewClient(ctx, *accessToken); err == nil {
+		labels, err = c.ListLabels(ctx, repository)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, e.Wrap(err, "failed to create github client")
+	}
+
+	return lo.Map(labels, func(l *github2.Label, i int) string {
+		return l.GetName()
+	}), nil
 }
 
 type LinearAccessTokenResponse struct {

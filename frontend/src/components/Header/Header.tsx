@@ -1,12 +1,8 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import CommandBar from '@components/CommandBar/CommandBar'
-import {
-	DEMO_WORKSPACE_APPLICATION_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
-import Notifications from '@components/Header/Notifications/NotificationsV2'
 import { linkStyle } from '@components/Header/styles.css'
 import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
@@ -15,6 +11,7 @@ import { Maybe, ProductType, Project } from '@graph/schemas'
 import {
 	Badge,
 	Box,
+	ButtonIcon,
 	IconSolidArrowSmLeft,
 	IconSolidArrowSmRight,
 	IconSolidAtSymbol,
@@ -74,16 +71,13 @@ type Props = {
 }
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
-	const { projectId: projectIdRemapped } = useProjectId()
+	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
 	const { pathname, state } = useLocation()
-	const goBackPath = state?.previousPath ?? `/${project_id}/sessions`
+	const goBackPath = state?.previousPath ?? `/${projectId}/sessions`
 	const parts = pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
 	const isSetup = parts.indexOf('setup') !== -1
@@ -112,23 +106,19 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		},
 	]
 
-	const inProjectOrWorkspace =
-		isLoggedIn && (projectIdRemapped || workspaceId)
+	const inProjectOrWorkspace = isLoggedIn && (projectId || workspaceId)
 
 	return (
 		<>
 			<CommandBar />
 			<CommandBarV1 />
 			<Box background="n2" borderBottom="secondary">
-				{!!project_id &&
-					!isSetup &&
-					!isSettings &&
-					getBanner(project_id)}
+				{!!projectId && getBanner(projectId, isSetup)}
 				<Box
 					display="flex"
 					alignItems="center"
 					px="12"
-					py={isLoggedIn ? '8' : '0'}
+					py="8"
 					justifyContent="space-between"
 				>
 					{isSetup ? (
@@ -152,8 +142,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							</Box>
 						</LinkButton>
 					) : inProjectOrWorkspace ||
-					  projectIdRemapped ===
-							DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
+					  projectId === DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
 						<Box
 							display="flex"
 							alignItems="center"
@@ -162,7 +151,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							width="full"
 						>
 							<ProjectPicker />
-							{project_id && !isSettings && (
+							{projectId && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
 									{pages.map((p) => {
 										return (
@@ -193,7 +182,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 														? 'primary'
 														: 'secondary'
 												}
-												to={`/${project_id}/${p.key}`}
+												to={`/${projectId}/${p.key}`}
 												key={p.key}
 												trackingId={`header-link-click-${p.key}`}
 											>
@@ -214,7 +203,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 										/>
 										<Menu.List>
 											<Link
-												to={`/${project_id}/dashboards`}
+												to={`/${projectId}/dashboards`}
 												className={linkStyle}
 											>
 												<Menu.Item>
@@ -239,7 +228,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												</Menu.Item>
 											</Link>
 											<Link
-												to={`/${project_id}/integrations`}
+												to={`/${projectId}/integrations`}
 												className={linkStyle}
 											>
 												<Menu.Item>
@@ -264,7 +253,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												</Menu.Item>
 											</Link>
 											<Link
-												to={`/${project_id}/analytics`}
+												to={`/${projectId}/analytics`}
 												className={linkStyle}
 											>
 												<Menu.Item>
@@ -289,7 +278,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												</Menu.Item>
 											</Link>
 											<Link
-												to={`/${project_id}/setup`}
+												to={`/${projectId}/setup`}
 												className={linkStyle}
 											>
 												<Menu.Item>
@@ -324,19 +313,16 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							justifyContent="space-between"
 							width="full"
 						>
-							<Link className={styles.homeLink} to="/">
-								<Button
-									kind="secondary"
-									emphasis="high"
-									size="small"
-									iconLeft={
-										<IconSolidArrowSmLeft size={14} />
-									}
-									trackingId="navHomeLink"
-								>
-									Back to Highlight
-								</Button>
-							</Link>
+							<LinkButton
+								to="/"
+								kind="secondary"
+								emphasis="low"
+								size="small"
+								iconLeft={<IconSolidArrowSmLeft size={14} />}
+								trackingId="navHomeLink"
+							>
+								Back to Highlight
+							</LinkButton>
 							<a
 								className={styles.homeLink}
 								href="https://www.highlight.io"
@@ -357,12 +343,12 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							style={{ zIndex: 20000 }}
 							width="full"
 						>
-							{!!projectIdRemapped &&
+							{!!projectId &&
 								!fullyIntegrated &&
 								!isSetup &&
 								!isSettings && (
 									<LinkButton
-										to={`/${project_id}/setup`}
+										to={`/${projectId}/setup`}
 										state={{
 											previousPath: location.pathname,
 										}}
@@ -379,90 +365,79 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 										</Stack>
 									</LinkButton>
 								)}
-							{!!project_id && !isSetup && !isSettings && (
-								<Button
-									trackingId="quickSearchClicked"
-									kind="secondary"
-									size="small"
-									emphasis="high"
-									iconLeft={<IconSolidSearch />}
-									onClick={commandBarDialog.toggle}
-								>
-									<Badge
-										variant="outlineGray"
-										shape="basic"
-										size="small"
-										label={OpenCommandBarShortcut.shortcut.join(
-											'+',
-										)}
-									/>
-								</Button>
-							)}
 							{!isSetup && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
-									<Button
-										kind="secondary"
-										size="small"
-										emphasis="high"
-										onClick={() => {
-											window.open(
-												'https://discord.gg/yxaXEAqgwN',
-												'_blank',
-											)
-										}}
-										trackingId="DiscordSupportLinkClicked"
-									>
-										<Box
-											display="flex"
-											alignItems="center"
-											as="span"
-											gap="4"
+									{!!projectId && (
+										<Button
+											trackingId="quickSearchClicked"
+											kind="secondary"
+											size="small"
+											emphasis="high"
+											iconLeft={<IconSolidSearch />}
+											onClick={commandBarDialog.toggle}
 										>
-											<FaDiscord
-												style={{
-													height: 14,
-													width: 14,
-												}}
-												color={
-													vars.theme.interactive.fill
-														.secondary.content.text
-												}
+											<Badge
+												variant="outlineGray"
+												shape="basic"
+												size="small"
+												label={OpenCommandBarShortcut.shortcut.join(
+													'+',
+												)}
 											/>
-											<Text lines="1">Community</Text>
-										</Box>
-									</Button>
-									<Button
-										kind="secondary"
-										size="small"
-										emphasis="high"
-										onClick={() => {
-											window.open(
-												'https://github.com/highlight/highlight',
-												'_blank',
-											)
-										}}
-										trackingId="GithubButton"
-									>
-										<Box
-											display="flex"
-											alignItems="center"
-											as="span"
-											gap="4"
-										>
-											<FaGithub
-												style={{
-													height: 14,
-													width: 14,
-												}}
-												color={
-													vars.theme.interactive.fill
-														.secondary.content.text
-												}
-											/>
-											<Text lines="1">GitHub</Text>
-										</Box>
-									</Button>
-									{inProjectOrWorkspace && <Notifications />}
+										</Button>
+									)}
+									<Box>
+										<ButtonIcon
+											cssClass={styles.button}
+											kind="secondary"
+											size="small"
+											emphasis="high"
+											onClick={() => {
+												window.open(
+													'https://discord.gg/yxaXEAqgwN',
+													'_blank',
+												)
+											}}
+											icon={
+												<FaDiscord
+													style={{
+														height: 14,
+														width: 14,
+													}}
+													color={
+														vars.theme.interactive
+															.fill.secondary
+															.content.text
+													}
+												/>
+											}
+										/>
+										<ButtonIcon
+											cssClass={styles.button}
+											kind="secondary"
+											size="small"
+											emphasis="high"
+											onClick={() => {
+												window.open(
+													'https://github.com/highlight/highlight',
+													'_blank',
+												)
+											}}
+											icon={
+												<FaGithub
+													style={{
+														height: 14,
+														width: 14,
+													}}
+													color={
+														vars.theme.interactive
+															.fill.secondary
+															.content.text
+													}
+												/>
+											}
+										/>
+									</Box>
 									<Menu>
 										<Menu.Button
 											emphasis="low"
@@ -659,10 +634,10 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	)
 }
 
-const getBanner = (project_id: string) => {
-	if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
+const getBanner = (projectId: string, isSetup: boolean) => {
+	if (projectId === DEMO_WORKSPACE_PROXY_APPLICATION_ID) {
 		return <DemoWorkspaceBanner />
-	} else {
+	} else if (!isSetup) {
 		return <BillingBanner />
 	}
 }
@@ -676,14 +651,14 @@ const BillingBanner: React.FC = () => {
 		false,
 	)
 	const { currentWorkspace } = useApplicationContext()
-	const { project_id } = useParams<{ project_id: string }>()
+	const { projectId } = useParams<{ projectId: string }>()
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
-		variables: { project_id: project_id! },
-		skip: !project_id,
+		variables: { project_id: projectId! },
+		skip: !projectId,
 	})
 	const [hasReportedTrialExtension, setHasReportedTrialExtension] =
 		useLocalStorage('highlightReportedTrialExtension', false)
-	const { issues: billingIssues } = useBillingHook({ project_id })
+	const { issues: billingIssues } = useBillingHook({ project_id: projectId })
 
 	useEffect(() => {
 		if (
@@ -691,7 +666,7 @@ const BillingBanner: React.FC = () => {
 			data?.workspace_for_project?.trial_extension_enabled
 		) {
 			analytics.track('TrialExtensionEnabled', {
-				project_id,
+				projectId,
 				workspace_id: data?.workspace_for_project.id,
 			})
 			setHasReportedTrialExtension(true)
@@ -700,7 +675,7 @@ const BillingBanner: React.FC = () => {
 		data?.workspace_for_project?.id,
 		data?.workspace_for_project?.trial_extension_enabled,
 		hasReportedTrialExtension,
-		project_id,
+		projectId,
 		setHasReportedTrialExtension,
 	])
 

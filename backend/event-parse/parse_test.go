@@ -3,6 +3,13 @@ package parse
 import (
 	"context"
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/util"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 	"os"
 	"strings"
 	"testing"
@@ -11,6 +18,21 @@ import (
 	"github.com/go-test/deep"
 	"github.com/kylelemons/godebug/pretty"
 )
+
+var DB *gorm.DB
+
+// Gets run once; M.run() calls the tests in this file.
+func TestMain(m *testing.M) {
+	dbName := "highlight_testing_db"
+	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
+	var err error
+	DB, err = util.CreateAndMigrateTestDB(dbName)
+	if err != nil {
+		testLogger.Error(e.Wrap(err, "error creating testdb"))
+	}
+	code := m.Run()
+	os.Exit(code)
+}
 
 func TestEventsFromString(t *testing.T) {
 	tables := []struct {
@@ -187,5 +209,46 @@ func TestEscapeJavascript(t *testing.T) {
 	str := string(processed)
 	if strings.Contains(str, "attack") {
 		t.Errorf("attack substring not escaped %+v", str)
+	}
+}
+
+func TestSnapshot_ReplaceAssets(t *testing.T) {
+	ctx := context.TODO()
+	inputBytes, err := os.ReadFile("./sample-events/input.json")
+	if err != nil {
+		t.Fatalf("error reading: %v", err)
+	}
+
+	snapshot, err := NewSnapshot(inputBytes)
+	if err != nil {
+		t.Fatalf("error parsing: %v", err)
+	}
+
+	var storageClient storage.Client
+	if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
+		log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
+	}
+	if err := snapshot.ReplaceAssets(ctx, 1, storageClient, DB); err != nil {
+		t.Fatalf("failed to replace assets %+v", err)
+	}
+
+	var assets []*model.SavedAsset
+	if err := DB.Model(&model.SavedAsset{}).Find(&assets).Error; err != nil {
+		t.Fatalf("failed to fetch assets %+v", err)
+	}
+
+	assert.Equal(t, 2, len(assets))
+	for _, exp := range []string{
+		"https://static.highlight.io/dev/BigBuckBunny.mp4?AWSAccessKeyId=asdffdsa1234",
+		"https://static.highlight.io/dev/test.mp4?AWSAccessKeyId=asdffdsa1234",
+	} {
+		matched := false
+		for _, asset := range assets {
+			if asset.OriginalUrl == exp {
+				matched = true
+				break
+			}
+		}
+		assert.True(t, matched, "no asset matched %s", exp)
 	}
 }

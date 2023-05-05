@@ -18,7 +18,7 @@ interface Props {
 	onHideModal: () => void
 	/** Called after a segment is created. */
 	afterCreateHandler?: (segmentId: string, segmentValue: string) => void
-	currentSegment?: Maybe<Partial<Segment>>
+	currentSegment?: Maybe<Pick<Segment, 'id' | 'name'>>
 }
 
 const CreateSegmentModal = ({

@@ -441,6 +441,12 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	GitHubRepo struct {
+		Key    func(childComplexity int) int
+		Name   func(childComplexity int) int
+		RepoID func(childComplexity int) int
+	}
+
 	HeightList struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
@@ -478,10 +484,9 @@ type ComplexityRoot struct {
 	}
 
 	IntegrationStatus struct {
-		CreatedAt        func(childComplexity int) int
-		Integrated       func(childComplexity int) int
-		ResourceSecureID func(childComplexity int) int
-		ResourceType     func(childComplexity int) int
+		CreatedAt    func(childComplexity int) int
+		Integrated   func(childComplexity int) int
+		ResourceType func(childComplexity int) int
 	}
 
 	Invoice struct {
@@ -633,6 +638,7 @@ type ComplexityRoot struct {
 		DeleteSessions                   func(childComplexity int, projectID int, query string, sessionCount int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput, name string) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) int
+		EditProjectFilterSettings        func(childComplexity int, projectID int, filterSessionsWithoutError bool) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput, name string) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EmailSignup                      func(childComplexity int, email string) int
@@ -723,6 +729,11 @@ type ComplexityRoot struct {
 		WorkspaceID            func(childComplexity int) int
 	}
 
+	ProjectFilterSettings struct {
+		FilterSessionsWithoutError func(childComplexity int) int
+		ID                         func(childComplexity int) int
+	}
+
 	Query struct {
 		APIKeyToOrgID                func(childComplexity int, apiKey string) int
 		AccountDetails               func(childComplexity int, workspaceID int) int
@@ -775,6 +786,8 @@ type ComplexityRoot struct {
 		FieldsOpensearch             func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		GenerateZapierAccessToken    func(childComplexity int, projectID int) int
 		GetSourceMapUploadUrls       func(childComplexity int, apiKey string, paths []string) int
+		GithubIssueLabels            func(childComplexity int, workspaceID int, repository string) int
+		GithubRepos                  func(childComplexity int, workspaceID int) int
 		HeightLists                  func(childComplexity int, projectID int) int
 		HeightWorkspaces             func(childComplexity int, workspaceID int) int
 		IdentifierSuggestion         func(childComplexity int, projectID int, query string) int
@@ -809,6 +822,7 @@ type ComplexityRoot struct {
 		NewUsersCount                func(childComplexity int, projectID int, lookBackPeriod int) int
 		OauthClientMetadata          func(childComplexity int, clientID string) int
 		Project                      func(childComplexity int, id int) int
+		ProjectFilterSettings        func(childComplexity int, projectID int) int
 		ProjectHasViewedASession     func(childComplexity int, projectID int) int
 		ProjectSuggestion            func(childComplexity int, query string) int
 		Projects                     func(childComplexity int) int
@@ -1241,6 +1255,7 @@ type MutationResolver interface {
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model1.Workspace, error)
 	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) (*model1.Project, error)
+	EditProjectFilterSettings(ctx context.Context, projectID int, filterSessionsWithoutError bool) (*model1.ProjectFilterSettings, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model1.ErrorGroup, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
@@ -1405,7 +1420,10 @@ type QueryResolver interface {
 	HeightWorkspaces(ctx context.Context, workspaceID int) ([]*model.HeightWorkspace, error)
 	IntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType *model.IntegrationType) ([]*model1.IntegrationProjectMapping, error)
 	LinearTeams(ctx context.Context, projectID int) ([]*model.LinearTeam, error)
+	GithubRepos(ctx context.Context, workspaceID int) ([]*model.GitHubRepo, error)
+	GithubIssueLabels(ctx context.Context, workspaceID int, repository string) ([]string, error)
 	Project(ctx context.Context, id int) (*model1.Project, error)
+	ProjectFilterSettings(ctx context.Context, projectID int) (*model1.ProjectFilterSettings, error)
 	Workspace(ctx context.Context, id int) (*model1.Workspace, error)
 	WorkspaceForInviteLink(ctx context.Context, secret string) (*model.WorkspaceForInviteLink, error)
 	WorkspaceInviteLinks(ctx context.Context, workspaceID int) (*model1.WorkspaceInviteLink, error)
@@ -3264,6 +3282,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Field.Value(childComplexity), true
 
+	case "GitHubRepo.key":
+		if e.complexity.GitHubRepo.Key == nil {
+			break
+		}
+
+		return e.complexity.GitHubRepo.Key(childComplexity), true
+
+	case "GitHubRepo.name":
+		if e.complexity.GitHubRepo.Name == nil {
+			break
+		}
+
+		return e.complexity.GitHubRepo.Name(childComplexity), true
+
+	case "GitHubRepo.repo_id":
+		if e.complexity.GitHubRepo.RepoID == nil {
+			break
+		}
+
+		return e.complexity.GitHubRepo.RepoID(childComplexity), true
+
 	case "HeightList.id":
 		if e.complexity.HeightList.ID == nil {
 			break
@@ -3403,13 +3442,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.IntegrationStatus.Integrated(childComplexity), true
-
-	case "IntegrationStatus.resourceSecureId":
-		if e.complexity.IntegrationStatus.ResourceSecureID == nil {
-			break
-		}
-
-		return e.complexity.IntegrationStatus.ResourceSecureID(childComplexity), true
 
 	case "IntegrationStatus.resourceType":
 		if e.complexity.IntegrationStatus.ResourceType == nil {
@@ -4299,6 +4331,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["backend_domains"].(pq.StringArray), args["filter_chrome_extension"].(*bool)), true
 
+	case "Mutation.editProjectFilterSettings":
+		if e.complexity.Mutation.EditProjectFilterSettings == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_editProjectFilterSettings_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EditProjectFilterSettings(childComplexity, args["projectId"].(int), args["filterSessionsWithoutError"].(bool)), true
+
 	case "Mutation.editSegment":
 		if e.complexity.Mutation.EditSegment == nil {
 			break
@@ -4989,6 +5033,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Project.WorkspaceID(childComplexity), true
 
+	case "ProjectFilterSettings.filterSessionsWithoutError":
+		if e.complexity.ProjectFilterSettings.FilterSessionsWithoutError == nil {
+			break
+		}
+
+		return e.complexity.ProjectFilterSettings.FilterSessionsWithoutError(childComplexity), true
+
+	case "ProjectFilterSettings.id":
+		if e.complexity.ProjectFilterSettings.ID == nil {
+			break
+		}
+
+		return e.complexity.ProjectFilterSettings.ID(childComplexity), true
+
 	case "Query.api_key_to_org_id":
 		if e.complexity.Query.APIKeyToOrgID == nil {
 			break
@@ -5586,6 +5644,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetSourceMapUploadUrls(childComplexity, args["api_key"].(string), args["paths"].([]string)), true
 
+	case "Query.github_issue_labels":
+		if e.complexity.Query.GithubIssueLabels == nil {
+			break
+		}
+
+		args, err := ec.field_Query_github_issue_labels_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GithubIssueLabels(childComplexity, args["workspace_id"].(int), args["repository"].(string)), true
+
+	case "Query.github_repos":
+		if e.complexity.Query.GithubRepos == nil {
+			break
+		}
+
+		args, err := ec.field_Query_github_repos_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GithubRepos(childComplexity, args["workspace_id"].(int)), true
+
 	case "Query.height_lists":
 		if e.complexity.Query.HeightLists == nil {
 			break
@@ -5988,6 +6070,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Project(childComplexity, args["id"].(int)), true
+
+	case "Query.projectFilterSettings":
+		if e.complexity.Query.ProjectFilterSettings == nil {
+			break
+		}
+
+		args, err := ec.field_Query_projectFilterSettings_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ProjectFilterSettings(childComplexity, args["projectId"].(int)), true
 
 	case "Query.projectHasViewedASession":
 		if e.complexity.Query.ProjectHasViewedASession == nil {
@@ -8214,7 +8308,7 @@ type Session {
 	viewed: Boolean
 	starred: Boolean
 	processed: Boolean
-	excluded: Boolean
+	excluded: Boolean!
 	has_rage_clicks: Boolean
 	has_errors: Boolean
 	first_time: Boolean
@@ -8224,7 +8318,7 @@ type Session {
 	object_storage_enabled: Boolean
 	payload_size: Int64
 	within_billing_quota: Boolean
-	is_public: Boolean
+	is_public: Boolean!
 	event_counts: String
 	direct_download_url: String
 	resources_url: String
@@ -8351,6 +8445,12 @@ type LinearTeam {
 	key: String!
 }
 
+type GitHubRepo {
+	repo_id: String!
+	name: String!
+	key: String!
+}
+
 type VercelEnv {
 	id: String!
 	key: String!
@@ -8429,6 +8529,7 @@ enum IntegrationType {
 	Discord
 	ClickUp
 	Height
+	GitHub
 }
 
 enum ErrorState {
@@ -8499,6 +8600,11 @@ type Project {
 	rage_click_count: Int
 	backend_domains: StringArray
 	filter_chrome_extension: Boolean
+}
+
+type ProjectFilterSettings {
+	id: ID!
+	filterSessionsWithoutError: Boolean!
 }
 
 type Account {
@@ -9351,7 +9457,6 @@ type CategoryHistogramPayload {
 type IntegrationStatus {
 	integrated: Boolean!
 	resourceType: String!
-	resourceSecureId: String
 	createdAt: Timestamp
 }
 
@@ -9689,7 +9794,10 @@ type Query {
 		integration_type: IntegrationType
 	): [IntegrationProjectMapping!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
+	github_repos(workspace_id: ID!): [GitHubRepo!]
+	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
+	projectFilterSettings(projectId: ID!): ProjectFilterSettings
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
@@ -9773,6 +9881,10 @@ type Mutation {
 		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 	): Project
+	editProjectFilterSettings(
+		projectId: ID!
+		filterSessionsWithoutError: Boolean!
+	): ProjectFilterSettings
 	editWorkspace(id: ID!, name: String): Workspace
 	markErrorGroupAsViewed(
 		error_secure_id: String!
@@ -11404,6 +11516,30 @@ func (ec *executionContext) field_Mutation_editErrorSegment_args(ctx context.Con
 		}
 	}
 	args["name"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_editProjectFilterSettings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["projectId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectId"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["projectId"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["filterSessionsWithoutError"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterSessionsWithoutError"))
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filterSessionsWithoutError"] = arg1
 	return args, nil
 }
 
@@ -13873,6 +14009,45 @@ func (ec *executionContext) field_Query_get_source_map_upload_urls_args(ctx cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_github_issue_labels_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["repository"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repository"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["repository"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_github_repos_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_height_lists_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -14575,6 +14750,21 @@ func (ec *executionContext) field_Query_oauth_client_metadata_args(ctx context.C
 		}
 	}
 	args["client_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_projectFilterSettings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["projectId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectId"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["projectId"] = arg0
 	return args, nil
 }
 
@@ -26769,6 +26959,138 @@ func (ec *executionContext) fieldContext_Field_type(ctx context.Context, field g
 	return fc, nil
 }
 
+func (ec *executionContext) _GitHubRepo_repo_id(ctx context.Context, field graphql.CollectedField, obj *model.GitHubRepo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GitHubRepo_repo_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RepoID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GitHubRepo_repo_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GitHubRepo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GitHubRepo_name(ctx context.Context, field graphql.CollectedField, obj *model.GitHubRepo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GitHubRepo_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GitHubRepo_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GitHubRepo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GitHubRepo_key(ctx context.Context, field graphql.CollectedField, obj *model.GitHubRepo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GitHubRepo_key(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GitHubRepo_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GitHubRepo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _HeightList_id(ctx context.Context, field graphql.CollectedField, obj *model.HeightList) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_HeightList_id(ctx, field)
 	if err != nil {
@@ -27647,47 +27969,6 @@ func (ec *executionContext) _IntegrationStatus_resourceType(ctx context.Context,
 }
 
 func (ec *executionContext) fieldContext_IntegrationStatus_resourceType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "IntegrationStatus",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _IntegrationStatus_resourceSecureId(ctx context.Context, field graphql.CollectedField, obj *model.IntegrationStatus) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_IntegrationStatus_resourceSecureId(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ResourceSecureID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_IntegrationStatus_resourceSecureId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "IntegrationStatus",
 		Field:      field,
@@ -31309,6 +31590,63 @@ func (ec *executionContext) fieldContext_Mutation_editProject(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_editProject_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_editProjectFilterSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_editProjectFilterSettings(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EditProjectFilterSettings(rctx, fc.Args["projectId"].(int), fc.Args["filterSessionsWithoutError"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.ProjectFilterSettings)
+	fc.Result = res
+	return ec.marshalOProjectFilterSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐProjectFilterSettings(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_editProjectFilterSettings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ProjectFilterSettings_id(ctx, field)
+			case "filterSessionsWithoutError":
+				return ec.fieldContext_ProjectFilterSettings_filterSessionsWithoutError(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProjectFilterSettings", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_editProjectFilterSettings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -37257,6 +37595,94 @@ func (ec *executionContext) fieldContext_Project_filter_chrome_extension(ctx con
 	return fc, nil
 }
 
+func (ec *executionContext) _ProjectFilterSettings_id(ctx context.Context, field graphql.CollectedField, obj *model1.ProjectFilterSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProjectFilterSettings_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProjectFilterSettings_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProjectFilterSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProjectFilterSettings_filterSessionsWithoutError(ctx context.Context, field graphql.CollectedField, obj *model1.ProjectFilterSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProjectFilterSettings_filterSessionsWithoutError(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FilterSessionsWithoutError, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProjectFilterSettings_filterSessionsWithoutError(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProjectFilterSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_accounts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_accounts(ctx, field)
 	if err != nil {
@@ -39582,8 +40008,6 @@ func (ec *executionContext) fieldContext_Query_clientIntegration(ctx context.Con
 				return ec.fieldContext_IntegrationStatus_integrated(ctx, field)
 			case "resourceType":
 				return ec.fieldContext_IntegrationStatus_resourceType(ctx, field)
-			case "resourceSecureId":
-				return ec.fieldContext_IntegrationStatus_resourceSecureId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_IntegrationStatus_createdAt(ctx, field)
 			}
@@ -39646,8 +40070,6 @@ func (ec *executionContext) fieldContext_Query_serverIntegration(ctx context.Con
 				return ec.fieldContext_IntegrationStatus_integrated(ctx, field)
 			case "resourceType":
 				return ec.fieldContext_IntegrationStatus_resourceType(ctx, field)
-			case "resourceSecureId":
-				return ec.fieldContext_IntegrationStatus_resourceSecureId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_IntegrationStatus_createdAt(ctx, field)
 			}
@@ -39710,8 +40132,6 @@ func (ec *executionContext) fieldContext_Query_logsIntegration(ctx context.Conte
 				return ec.fieldContext_IntegrationStatus_integrated(ctx, field)
 			case "resourceType":
 				return ec.fieldContext_IntegrationStatus_resourceType(ctx, field)
-			case "resourceSecureId":
-				return ec.fieldContext_IntegrationStatus_resourceSecureId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_IntegrationStatus_createdAt(ctx, field)
 			}
@@ -43711,6 +44131,119 @@ func (ec *executionContext) fieldContext_Query_linear_teams(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_github_repos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_github_repos(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GithubRepos(rctx, fc.Args["workspace_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.GitHubRepo)
+	fc.Result = res
+	return ec.marshalOGitHubRepo2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐGitHubRepoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_github_repos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "repo_id":
+				return ec.fieldContext_GitHubRepo_repo_id(ctx, field)
+			case "name":
+				return ec.fieldContext_GitHubRepo_name(ctx, field)
+			case "key":
+				return ec.fieldContext_GitHubRepo_key(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GitHubRepo", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_github_repos_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_github_issue_labels(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_github_issue_labels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GithubIssueLabels(rctx, fc.Args["workspace_id"].(int), fc.Args["repository"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_github_issue_labels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_github_issue_labels_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_project(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_project(ctx, field)
 	if err != nil {
@@ -43786,6 +44319,63 @@ func (ec *executionContext) fieldContext_Query_project(ctx context.Context, fiel
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_project_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_projectFilterSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_projectFilterSettings(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ProjectFilterSettings(rctx, fc.Args["projectId"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.ProjectFilterSettings)
+	fc.Result = res
+	return ec.marshalOProjectFilterSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐProjectFilterSettings(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_projectFilterSettings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ProjectFilterSettings_id(ctx, field)
+			case "filterSessionsWithoutError":
+				return ec.fieldContext_ProjectFilterSettings_filterSessionsWithoutError(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProjectFilterSettings", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_projectFilterSettings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -49213,11 +49803,14 @@ func (ec *executionContext) _Session_excluded(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*bool)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Session_excluded(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -49623,11 +50216,14 @@ func (ec *executionContext) _Session_is_public(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*bool)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Session_is_public(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -61976,6 +62572,48 @@ func (ec *executionContext) _Field(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var gitHubRepoImplementors = []string{"GitHubRepo"}
+
+func (ec *executionContext) _GitHubRepo(ctx context.Context, sel ast.SelectionSet, obj *model.GitHubRepo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, gitHubRepoImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GitHubRepo")
+		case "repo_id":
+
+			out.Values[i] = ec._GitHubRepo_repo_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._GitHubRepo_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "key":
+
+			out.Values[i] = ec._GitHubRepo_key(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var heightListImplementors = []string{"HeightList"}
 
 func (ec *executionContext) _HeightList(ctx context.Context, sel ast.SelectionSet, obj *model.HeightList) graphql.Marshaler {
@@ -62252,10 +62890,6 @@ func (ec *executionContext) _IntegrationStatus(ctx context.Context, sel ast.Sele
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "resourceSecureId":
-
-			out.Values[i] = ec._IntegrationStatus_resourceSecureId(ctx, field, obj)
-
 		case "createdAt":
 
 			out.Values[i] = ec._IntegrationStatus_createdAt(ctx, field, obj)
@@ -63222,6 +63856,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_editProject(ctx, field)
 			})
 
+		case "editProjectFilterSettings":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_editProjectFilterSettings(ctx, field)
+			})
+
 		case "editWorkspace":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -63924,6 +64564,41 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Project_filter_chrome_extension(ctx, field, obj)
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var projectFilterSettingsImplementors = []string{"ProjectFilterSettings"}
+
+func (ec *executionContext) _ProjectFilterSettings(ctx context.Context, sel ast.SelectionSet, obj *model1.ProjectFilterSettings) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, projectFilterSettingsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ProjectFilterSettings")
+		case "id":
+
+			out.Values[i] = ec._ProjectFilterSettings_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "filterSessionsWithoutError":
+
+			out.Values[i] = ec._ProjectFilterSettings_filterSessionsWithoutError(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -65853,6 +66528,46 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "github_repos":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_github_repos(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "github_issue_labels":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_github_issue_labels(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "project":
 			field := field
 
@@ -65863,6 +66578,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_project(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "projectFilterSettings":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_projectFilterSettings(ctx, field)
 				return res
 			}
 
@@ -67174,6 +67909,9 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Session_excluded(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "has_rage_clicks":
 
 			out.Values[i] = ec._Session_has_rage_clicks(ctx, field, obj)
@@ -67214,6 +67952,9 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Session_is_public(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "event_counts":
 
 			out.Values[i] = ec._Session_event_counts(ctx, field, obj)
@@ -70854,6 +71595,16 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) marshalNGitHubRepo2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐGitHubRepo(ctx context.Context, sel ast.SelectionSet, v *model.GitHubRepo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._GitHubRepo(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNHeightList2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHeightListᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.HeightList) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -74312,6 +75063,53 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	return res
 }
 
+func (ec *executionContext) marshalOGitHubRepo2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐGitHubRepoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.GitHubRepo) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNGitHubRepo2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐGitHubRepo(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalOHistogramPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramPayload(ctx context.Context, sel ast.SelectionSet, v *model.HistogramPayload) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -74723,6 +75521,13 @@ func (ec *executionContext) marshalOProject2ᚖgithubᚗcomᚋhighlightᚑrunᚋ
 		return graphql.Null
 	}
 	return ec._Project(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOProjectFilterSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐProjectFilterSettings(ctx context.Context, sel ast.SelectionSet, v *model1.ProjectFilterSettings) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ProjectFilterSettings(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOReferrerTablePayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐReferrerTablePayload(ctx context.Context, sel ast.SelectionSet, v *model.ReferrerTablePayload) graphql.Marshaler {

@@ -1,0 +1,1 @@
+var o={box:"_box_1jyd5_1",title:"_title_1jyd5_9",subTitle:"_subTitle_1jyd5_14",fullWidth:"_fullWidth_1jyd5_21",intercomButton:"_intercomButton_1jyd5_25",button:"_button_1jyd5_32"};export{o as default};

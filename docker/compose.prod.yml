@@ -21,7 +21,7 @@ x-backend-env: &backend-env
         - CLICKHOUSE_DATABASE
         - CLICKHOUSE_PASSWORD
         - CLICKHOUSE_USERNAME
-        - DEMO_SESSION
+        - DEMO_PROJECT_ID
         - DOPPLER_CONFIG
         - ENABLE_OBJECT_STORAGE=true
         - ENVIRONMENT
