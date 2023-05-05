@@ -27,7 +27,12 @@
 		},
 		"typegen": {
 			"dependsOn": ["^typegen"],
-			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
+			"inputs": [
+				"src/**/*.tsx",
+				"src/**/*.ts",
+				"tsconfig.json",
+				"./**/*.graphqls"
+			],
 			"outputs": [
 				"lib/**",
 				"es/**",
@@ -50,15 +55,13 @@
 			"env": [
 				"CLICKUP_CLIENT_ID",
 				"DD_CLIENT_TOKEN",
-				"DEMO_ERROR_URL",
-				"DEMO_SESSION_URL",
+				"DEMO_PROJECT_ID",
 				"DISCORD_CLIENT_ID",
 				"GITHUB_CLIENT_ID",
 				"HEIGHT_CLIENT_ID",
 				"LINEAR_CLIENT_ID",
 				"REACT_APP_AUTH_MODE",
 				"REACT_APP_COMMIT_SHA",
-				"REACT_APP_DEMO_SESSION",
 				"REACT_APP_FIREBASE_CONFIG_OBJECT",
 				"REACT_APP_FRONTEND_ORG",
 				"REACT_APP_FRONTEND_URI",

@@ -2093,6 +2093,8 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
 					| 'user_properties'
 					| 'event_counts'
 					| 'last_user_interaction_time'
+					| 'is_public'
+					| 'excluded'
 				> & {
 						fields?: Types.Maybe<
 							Array<

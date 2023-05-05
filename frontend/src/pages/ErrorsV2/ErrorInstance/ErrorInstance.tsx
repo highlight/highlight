@@ -304,7 +304,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									}
 									kind="secondary"
 									emphasis="low"
-									display="inlineBlock"
 									trackingId="errorInstanceOlder"
 								>
 									Older
@@ -329,7 +328,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									}
 									kind="secondary"
 									emphasis="low"
-									display="inlineBlock"
 									trackingId="errorInstanceNewer"
 								>
 									Newer

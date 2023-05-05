@@ -72,7 +72,12 @@ const options: HighlightOptions = {
 			'session-contents-compressed',
 		],
 	},
-	tracingOrigins: ['highlight.run', 'localhost', 'localhost:8082'],
+	tracingOrigins: [
+		'highlight.io',
+		'highlight.run',
+		'localhost',
+		'localhost:8082',
+	],
 	integrations: {
 		amplitude: {
 			apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
@@ -81,8 +86,7 @@ const options: HighlightOptions = {
 	enableSegmentIntegration: true,
 	enableCanvasRecording: true,
 	samplingStrategy: {
-		canvas: 15,
-		canvasQuality: 'low',
+		canvas: 1,
 		canvasMaxSnapshotDimension: 480,
 		canvasFactor: 0.5,
 	},

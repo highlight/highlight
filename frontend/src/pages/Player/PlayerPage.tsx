@@ -57,19 +57,19 @@ import { Helmet } from 'react-helmet'
 import useResizeAware from 'react-resize-aware'
 import { useNavigate } from 'react-router-dom'
 
+import { useIntegratedLocalStorage } from '@/util/integrated'
+
 import WaitingAnimation from '../../lottie/waiting.json'
 import * as style from './styles.css'
 
-interface Props {
-	integrated: boolean
-}
-
-const PlayerPage = ({ integrated }: Props) => {
+const PlayerPage = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
-	const { session_secure_id } = useParams<{
+	const { project_id, session_secure_id } = useParams<{
+		project_id: string
 		session_secure_id: string
 	}>()
+	const [{ integrated }] = useIntegratedLocalStorage(project_id!, 'client')
 
 	const [resizeListener, sizes] = useResizeAware()
 	const { width } = useWindowSize()

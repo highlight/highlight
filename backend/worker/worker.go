@@ -1016,7 +1016,7 @@ func (w *Worker) Start(ctx context.Context) {
 	lockPeriod := 30            // time in minutes
 
 	if util.IsDevEnv() {
-		payloadLookbackPeriod = 16
+		payloadLookbackPeriod = 8
 		lockPeriod = 1
 	}
 

@@ -8,28 +8,6 @@ on:
     merge_group:
 
 jobs:
-    changes:
-        runs-on: ubuntu-latest
-        # Set job outputs to values from filter step
-        outputs:
-            private-graph: ${{ steps.filter.outputs.private-graph }}
-            public-graph: ${{ steps.filter.outputs.public-graph }}
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v3
-            - name: Setup Go
-              uses: actions/setup-go@v4
-              with:
-                  go-version-file: 'backend/go.mod'
-            - uses: dorny/paths-filter@v2
-              id: filter
-              with:
-                  filters: |
-                      private-graph:
-                        - 'backend/private-graph/graph/schema.graphqls'
-                      public-graph:
-                        - 'backend/public-graph/graph/schema.graphqls'
-
     code-setup:
         runs-on: ubuntu-latest
         steps:
@@ -64,8 +42,7 @@ jobs:
                   version: latest
 
     make-check:
-        needs: [changes, code-setup]
-        if: needs.changes.outputs.private-graph == 'true' || needs.changes.outputs.public-graph == 'true'
+        needs: [code-setup]
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
@@ -79,12 +56,10 @@ jobs:
                   mkdir tmp
                   cp -a backend/. tmp/
             - name: Make private graph
-              if: ${{ needs.changes.outputs.private-graph == 'true' }}
               run: |
                   cd backend/
                   make private-gen
             - name: Make public graph
-              if: ${{ needs.changes.outputs.public-graph == 'true' }}
               run: |
                   cd backend/
                   make public-gen

@@ -1,5 +1,5 @@
 import Button from '@components/Button/Button/Button'
-import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { DEMO_PROJECT_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { useSyncSlackIntegrationMutation } from '@graph/hooks'
 import Reload from '@icons/Reload'
@@ -60,7 +60,7 @@ const SyncWithSlackButton = ({
 			})}
 		>
 			{small ? null : "Can't find the channel or person here? "}
-			{project_id !== DEMO_WORKSPACE_APPLICATION_ID &&
+			{project_id !== DEMO_PROJECT_ID &&
 				(!isSlackIntegrated ? (
 					<a href={slackUrl}>Connect Highlight with Slack</a>
 				) : (
