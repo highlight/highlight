@@ -464,7 +464,7 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 	return nil
 }
 
-func (r *Resolver) getIncrementedEnvironmentCount(ctx context.Context, errorGroup *model.ErrorGroup, errorObj *model.ErrorObject) string {
+func getIncrementedEnvironmentCount(ctx context.Context, errorGroup *model.ErrorGroup, errorObj *model.ErrorObject) string {
 	environmentsMap := make(map[string]int)
 	if errorGroup.Environments != "" {
 		err := json.Unmarshal([]byte(errorGroup.Environments), &environmentsMap)
@@ -518,7 +518,7 @@ func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*
 	return newMappedStackTraceString, mappedStackTrace, nil
 }
 
-func (r *Resolver) normalizeStackTraceString(stackTraceString string) string {
+func normalizeStackTraceString(stackTraceString string) string {
 	var stackTraceSlice []string
 	if err := json.Unmarshal([]byte(stackTraceString), &stackTraceSlice); err != nil {
 		return ""
@@ -573,47 +573,6 @@ func joinIntPtrs(ptrs ...*int) string {
 		}
 	}
 	return sb.String()
-}
-
-func (r *Resolver) GetOrCreateErrorGroupOld(errorObj *model.ErrorObject, stackTraceString string) (*model.ErrorGroup, error) {
-	errorGroup := &model.ErrorGroup{}
-
-	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
-	// If it doesn't exist, we create a new error group.
-	if err := r.DB.Where(&model.ErrorGroup{
-		ProjectID: errorObj.ProjectID,
-		Event:     errorObj.Event,
-		Type:      errorObj.Type,
-	}).First(&errorGroup).Error; err != nil {
-		newErrorGroup := &model.ErrorGroup{
-			ProjectID:  errorObj.ProjectID,
-			Event:      errorObj.Event,
-			StackTrace: stackTraceString,
-			Type:       errorObj.Type,
-			State:      privateModel.ErrorStateOpen.String(),
-			Fields:     []*model.ErrorField{},
-		}
-		if err := r.DB.Create(newErrorGroup).Error; err != nil {
-			return nil, e.Wrap(err, "Error creating new error group")
-		}
-
-		opensearchErrorGroup := &model.ErrorGroup{
-			Model:     newErrorGroup.Model,
-			SecureID:  newErrorGroup.SecureID,
-			ProjectID: errorObj.ProjectID,
-			Event:     errorObj.Event,
-			Type:      errorObj.Type,
-			State:     privateModel.ErrorStateOpen.String(),
-			Fields:    []*model.ErrorField{},
-		}
-		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(newErrorGroup.ID), pointy.Int(0), opensearchErrorGroup); err != nil {
-			return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
-		}
-
-		errorGroup = newErrorGroup
-	}
-
-	return errorGroup, nil
 }
 
 func (r *Resolver) GetOrCreateErrorGroup(errorObj *model.ErrorObject, fingerprints []*model.ErrorFingerprint, stackTraceString string) (*model.ErrorGroup, error) {
@@ -784,8 +743,8 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	if errorObj == nil {
 		return nil, e.New("error object was nil")
 	}
-	if errorObj.Event == "" || errorObj.Event == "<nil>" {
-		return nil, e.New("error object event was nil or empty")
+	if errorObj.Event == "" {
+		return nil, e.New("error object event was empty")
 	}
 
 	if projectID == 1 {
@@ -858,13 +817,11 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}
 
 		stackTraceString = string(firstFrameBytes)
-	} else if stackTraceString != "<nil>" {
+	} else {
 		// If stackTraceString was passed in, try to normalize it
-		if t := r.normalizeStackTraceString(stackTraceString); t != "" {
+		if t := normalizeStackTraceString(stackTraceString); t != "" {
 			stackTraceString = t
 		}
-	} else if stackTraceString == "<nil>" {
-		return nil, e.New(`stackTrace slice was empty and stack trace string was equal to "<nil>"`)
 	}
 
 	// If stackTrace is non-nil, do the source mapping; else, MappedStackTrace will not be set on the ErrorObject
@@ -935,7 +892,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 
 	var errorGroup *model.ErrorGroup
 	var err error
-	// New error grouping logic is gated by project_id 1 for now
 	errorGroup, err = r.GetOrCreateErrorGroup(errorObj, fingerprints, stackTraceString)
 	if err != nil {
 		return nil, e.Wrap(err, "Error getting top error group match")
@@ -957,7 +913,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
-	environmentsString := r.getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
+	environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
 
 	if err := r.AppendErrorFields(fields, errorGroup); err != nil {
 		return nil, e.Wrap(err, "error appending error fields")
